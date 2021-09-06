@@ -483,6 +483,8 @@
     <ClInclude Include="System\GraphicalPrimitive.h">
       <Filter>System</Filter>
     </ClInclude>
+    <ClInclude Include="System\BitmapToPolygonHelper.h" />
+    <ClInclude Include="System\psimpl.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\Box.cpp">
@@ -921,6 +923,7 @@
     <ClCompile Include="System\GraphicalPrimitive.cpp">
       <Filter>System</Filter>
     </ClCompile>
+    <ClCompile Include="System\BitmapToPolygonHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\ccicon.ico">

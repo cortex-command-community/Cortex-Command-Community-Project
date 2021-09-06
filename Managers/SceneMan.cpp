@@ -32,6 +32,8 @@
 #include "Material.h"
 // Temp
 #include "Controller.h"
+#include "box2d/box2d.h"
+#include "PlayRho.hpp"
 
 namespace RTE
 {
@@ -179,6 +181,35 @@ int SceneMan::LoadScene(Scene *pNewScene, bool placeObjects, bool placeUnits) {
 		g_NetworkServer.LockScene(false);
 		return -1;
     }
+
+    b2Vec2 gravity(0.0F, -10.0F);
+    b2World world(gravity);
+
+    b2BodyDef groundBodyDef;
+    groundBodyDef.position.Set(0.0F, -10.0F);
+    b2Body *groundBody = world.CreateBody(&groundBodyDef);
+
+    b2PolygonShape groundBox;
+    groundBox.SetAsBox(50.0f, 10.0f);
+
+    groundBody->CreateFixture(&groundBox, 0.0f);
+
+
+    b2BodyDef bodyDef;
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.position.Set(0.0f, 4.0f);
+    b2Body *body = world.CreateBody(&bodyDef);
+
+    b2PolygonShape dynamicBox;
+    dynamicBox.SetAsBox(1.0f, 1.0f);
+
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &dynamicBox;
+    fixtureDef.density = 1.0f;
+    fixtureDef.friction = 0.3f;
+    body->CreateFixture(&fixtureDef);
+
+
 
     // Report successful load to the console
     g_ConsoleMan.PrintString("SYSTEM: Scene \"" + m_pCurrentScene->GetPresetName() + "\" was loaded");

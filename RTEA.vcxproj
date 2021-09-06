@@ -540,6 +540,7 @@
     <ClInclude Include="Menus\LoadingGUI.h" />
     <ClInclude Include="Resources\resource.h" />
     <ClInclude Include="System\Atom.h" />
+    <ClInclude Include="System\BitmapToPolygonHelper.h" />
     <ClInclude Include="System\Constants.h" />
     <ClInclude Include="System\Controller.h" />
     <ClInclude Include="System\Entity.h" />
@@ -547,6 +548,7 @@
     <ClInclude Include="System\InputScheme.h" />
     <ClInclude Include="System\NetworkMessages.h" />
     <ClInclude Include="System\GraphicalPrimitive.h" />
+    <ClInclude Include="System\psimpl.h" />
     <ClInclude Include="System\StandardIncludes.h" />
     <ClInclude Include="System\Box.h" />
     <ClInclude Include="System\Color.h" />
@@ -692,6 +694,7 @@
     <ClCompile Include="Managers\PrimitiveMan.cpp" />
     <ClCompile Include="Menus\LoadingGUI.cpp" />
     <ClCompile Include="System\Atom.cpp" />
+    <ClCompile Include="System\BitmapToPolygonHelper.cpp" />
     <ClCompile Include="System\Controller.cpp" />
     <ClCompile Include="System\Entity.cpp" />
     <ClCompile Include="System\InputMapping.cpp" />

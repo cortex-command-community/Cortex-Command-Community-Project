@@ -1873,6 +1873,22 @@ void MOSRotating::Draw(BITMAP *pTargetBitmap,
         if (attachableToDraw->IsDrawnAfterParent() && attachableToDraw->IsDrawnNormallyByParent()) { attachableToDraw->Draw(pTargetBitmap, targetPos, mode, onlyPhysical); }
     }
 
+    if (mode == g_DrawColor && m_pAtomGroup && m_pAtomGroup->GetAtomCount() > 1) {
+        BitmapToPolygonHelper testPolygonHelper;
+        for (int count = 0; count < 2; count++) {
+            std::vector<Vector> spritePoints = testPolygonHelper.ConvertBitmapToPolygon(m_aSprite[m_Frame], count > 0);
+            int j;
+            Vector testV1;
+            Vector testV2;
+            for (int i = 0; i < spritePoints.size(); i++) {
+                j = (i + 1) % (spritePoints.size() - 1);
+                testV1 = spritePos + spritePoints[i] - Vector(m_aSprite[m_Frame]->w / 2, m_aSprite[m_Frame]->h / 2);
+                testV2 = spritePos + spritePoints[j] - Vector(m_aSprite[m_Frame]->w / 2, m_aSprite[m_Frame]->h / 2);
+                line(pTargetBitmap, testV1.GetFloorIntX(), testV1.GetFloorIntY(), testV2.GetFloorIntX(), testV2.GetFloorIntY(), count > 0 ? 5 : 13);
+            }
+        }
+    }
+
     if (mode == g_DrawColor && !onlyPhysical && m_pAtomGroup && g_SettingsMan.DrawAtomGroupVisualizations() && GetRootParent() == this) {
         m_pAtomGroup->Draw(pTargetBitmap, targetPos, false, 122);
         //m_pDeepGroup->Draw(pTargetBitmap, targetPos, false, 13);
