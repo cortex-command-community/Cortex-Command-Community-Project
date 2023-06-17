@@ -27,16 +27,24 @@
 #include "Actor.h"
 #include "BunkerAssemblyScheme.h"
 #include "BunkerAssembly.h"
+#include "SLBackground.h"
+#include "EditorActivity.h"
 
+#include "AEmitter.h"
 #include "ADoor.h"
 #include "AHuman.h"
-#include "Arm.h"
-#include "HeldDevice.h"
+#include "ACrab.h"
+#include "Turret.h"
+#include "ACRocket.h"
+#include "ACDropShip.h"
+#include "HDFirearm.h"
+#include "Magazine.h"
+#include "ThrownDevice.h"
 
 namespace RTE {
 
 ConcreteClassInfo(Scene, Entity, 0);
-const string Scene::Area::c_ClassName = "Area";
+const std::string Scene::Area::c_ClassName = "Area";
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +67,7 @@ void Scene::Area::Clear()
 
 int Scene::Area::Create(const Area &reference)
 {
-    for (vector<Box>::const_iterator itr = reference.m_BoxList.begin(); itr != reference.m_BoxList.end(); ++itr)
+    for (std::vector<Box>::const_iterator itr = reference.m_BoxList.begin(); itr != reference.m_BoxList.end(); ++itr)
         m_BoxList.push_back(*itr);
 
     m_Name = reference.m_Name;
@@ -117,7 +125,7 @@ int Scene::Area::Save(Writer &writer) const
 {
     Serializable::Save(writer);
 
-    for (vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr)
+    for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr)
     {
         writer.NewProperty("AddBox");
         writer << *itr;
@@ -170,7 +178,7 @@ bool Scene::Area::HasNoArea() const
         return true;
 
     // Search through the boxes to see if we find any with both width and height
-    for (vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr)
+    for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr)
     {
         if (!itr->IsEmpty())
             return false;
@@ -187,15 +195,15 @@ bool Scene::Area::HasNoArea() const
 
 bool Scene::Area::IsInside(const Vector &point) const
 {
-    list<Box> wrappedBoxes;
-    for (vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
+    std::list<Box> wrappedBoxes;
+    for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
     {
         // Handle wrapped boxes properly
         wrappedBoxes.clear();
         g_SceneMan.WrapBox(*aItr, wrappedBoxes);
 
         // Iterate through the wrapped boxes - will only be one if there's no wrapping
-        for (list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
+        for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
         {
             if (wItr->IsWithinBox(point))
                 return true;
@@ -213,15 +221,15 @@ bool Scene::Area::IsInside(const Vector &point) const
 
 bool Scene::Area::IsInsideX(float pointX) const
 {
-    list<Box> wrappedBoxes;
-    for (vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
+    std::list<Box> wrappedBoxes;
+    for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
     {
         // Handle wrapped boxes properly
         wrappedBoxes.clear();
         g_SceneMan.WrapBox(*aItr, wrappedBoxes);
 
         // Iterate through the wrapped boxes - will only be one if there's no wrapping
-        for (list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
+        for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
         {
             if (wItr->IsWithinBoxX(pointX))
                 return true;
@@ -239,15 +247,15 @@ bool Scene::Area::IsInsideX(float pointX) const
 
 bool Scene::Area::IsInsideY(float pointY) const
 {
-    list<Box> wrappedBoxes;
-    for (vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
+    std::list<Box> wrappedBoxes;
+    for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
     {
         // Handle wrapped boxes properly
         wrappedBoxes.clear();
         g_SceneMan.WrapBox(*aItr, wrappedBoxes);
 
         // Iterate through the wrapped boxes - will only be one if there's no wrapping
-        for (list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
+        for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
         {
             if (wItr->IsWithinBoxY(pointY))
                 return true;
@@ -272,15 +280,15 @@ bool Scene::Area::MovePointInsideX(float &pointX, int direction) const
     float shortest = notFoundValue;
     float shortestConstrained = notFoundValue;
     float testDistance = 0;
-    list<Box> wrappedBoxes;
-    for (vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
+    std::list<Box> wrappedBoxes;
+    for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
     {
         // Handle wrapped boxes properly
         wrappedBoxes.clear();
         g_SceneMan.WrapBox(*aItr, wrappedBoxes);
 
         // Iterate through the wrapped boxes - will only be one if there's no wrapping
-        for (list<Box>::const_iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
+        for (std::list<Box>::const_iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
         {
             // Check against one edge of the box for the shortest distance
             testDistance = g_SceneMan.ShortestDistanceX(pointX, (*wItr).GetCorner().m_X, false, direction);
@@ -325,15 +333,15 @@ bool Scene::Area::MovePointInsideX(float &pointX, int direction) const
 
 Box * Scene::Area::GetBoxInside(const Vector &point)
 {
-    list<Box> wrappedBoxes;
-    for (vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
+    std::list<Box> wrappedBoxes;
+    for (std::vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
     {
         // Handle wrapped boxes properly
         wrappedBoxes.clear();
         g_SceneMan.WrapBox(*aItr, wrappedBoxes);
 
         // Iterate through the wrapped boxes - will only be one if there's no wrapping
-        for (list<Box>::const_iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
+        for (std::list<Box>::const_iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
         {
             // Return the BoxList box, not the inconsequential wrapped copy
             if (wItr->IsWithinBox(point))
@@ -353,15 +361,15 @@ Box Scene::Area::RemoveBoxInside(const Vector &point)
 {
     Box returnBox;
 
-    list<Box> wrappedBoxes;
-    for (vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
+    std::list<Box> wrappedBoxes;
+    for (std::vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr)
     {
         // Handle wrapped boxes properly
         wrappedBoxes.clear();
         g_SceneMan.WrapBox(*aItr, wrappedBoxes);
 
         // Iterate through the wrapped boxes - will only be one if there's no wrapping
-        for (list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
+        for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
         {
             if (wItr->IsWithinBox(point))
             {
@@ -386,10 +394,13 @@ Vector Scene::Area::GetCenterPoint() const
 {
     Vector areaCenter;
 
-    if (!m_BoxList.empty())
-    {
+    if (!m_BoxList.empty()) {
+		if (m_BoxList.size() == 1) {
+			return m_BoxList[0].GetCenter();
+		}
+
         float totalWeight = 0;
-        for (vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr)
+        for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr)
         {
             // Doubly weighted
             areaCenter += (*itr).GetCenter() * (*itr).GetArea() * 2;
@@ -441,10 +452,12 @@ void Scene::Clear()
     m_AutoDesigned = true;
     m_TotalInvestment = 0;
     m_pTerrain = 0;
-    m_pPathFinder = 0;
+    for (std::unique_ptr<PathFinder> &pathFinder : m_pPathFinders) {
+        pathFinder.reset();
+    }
     m_PathfindingUpdated = false;
-    m_FullPathUpdateTimer.Reset();
     m_PartialPathUpdateTimer.Reset();
+
     for (int set = PLACEONLOAD; set < PLACEDSETSCOUNT; ++set)
         m_PlacedObjects[set].clear();
     m_BackLayerList.clear();
@@ -466,6 +479,7 @@ void Scene::Clear()
 	m_pPreviewBitmap = 0;
 	m_MetasceneParent.clear();
 	m_IsMetagameInternal = false;
+    m_IsSavedGameInternal = false;
 }
 
 /*
@@ -529,12 +543,12 @@ int Scene::Create(const Scene &reference)
 
     for (int set = PLACEONLOAD; set < PLACEDSETSCOUNT; ++set)
     {
-        for (list<SceneObject *>::const_iterator oItr = reference.m_PlacedObjects[set].begin(); oItr != reference.m_PlacedObjects[set].end(); ++oItr)
+        for (std::list<SceneObject *>::const_iterator oItr = reference.m_PlacedObjects[set].begin(); oItr != reference.m_PlacedObjects[set].end(); ++oItr)
             m_PlacedObjects[set].push_back(dynamic_cast<SceneObject *>((*oItr)->Clone()));
     }
 
-    for (list<SceneLayer *>::const_iterator lItr = reference.m_BackLayerList.begin(); lItr != reference.m_BackLayerList.end(); ++lItr)
-        m_BackLayerList.push_back(dynamic_cast<SceneLayer *>((*lItr)->Clone()));
+    for (std::list<SLBackground *>::const_iterator lItr = reference.m_BackLayerList.begin(); lItr != reference.m_BackLayerList.end(); ++lItr)
+        m_BackLayerList.push_back(dynamic_cast<SLBackground *>((*lItr)->Clone()));
 
     for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
     {
@@ -549,11 +563,11 @@ int Scene::Create(const Scene &reference)
     }
 
     // Copy areas
-    for (list<Area>::const_iterator aItr = reference.m_AreaList.begin(); aItr != reference.m_AreaList.end(); ++aItr)
+    for (std::list<Area>::const_iterator aItr = reference.m_AreaList.begin(); aItr != reference.m_AreaList.end(); ++aItr)
         m_AreaList.push_back(*aItr);
 
     m_GlobalAcc = reference.m_GlobalAcc;
-	
+
 	// Deep copy of the bitmap
     if (reference.m_pPreviewBitmap)
     {
@@ -562,6 +576,7 @@ int Scene::Create(const Scene &reference)
 		// Destination
 		m_pPreviewBitmap = create_bitmap_ex(8, pCopyFrom->w, pCopyFrom->h);
 		RTEAssert(m_pPreviewBitmap, "Failed to allocate BITMAP in Scene::Create");
+		m_PreviewBitmapFile = reference.m_PreviewBitmapFile;
 
 		// Copy!
 		blit(pCopyFrom, m_pPreviewBitmap, 0, 0, 0, 0, pCopyFrom->w, pCopyFrom->h);
@@ -569,6 +584,7 @@ int Scene::Create(const Scene &reference)
 
 	m_MetasceneParent = reference.m_MetasceneParent;
 	m_IsMetagameInternal = reference.m_IsMetagameInternal;
+    m_IsSavedGameInternal = reference.m_IsSavedGameInternal;
     return 0;
 }
 
@@ -590,7 +606,10 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
         RTEAbort("Loading Terrain " + m_pTerrain->GetPresetName() + "\'s data failed!");
         return -1;
     }
-    
+	for (SLBackground *backgroundLayer : m_BackLayerList) {
+		backgroundLayer->InitScaleFactors();
+	}
+
     ///////////////////////////////////
     // Load Unseen layers before applying objects to the scene,
     // so we can reveal around stuff that is getting placed for the appropriate team
@@ -634,42 +653,35 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
 
 		// Indicates whether we need to process static brain deployments or mobile
 		// whichever comes first is selected and used everywhere
-		string activeBrainDeployment[Activity::MaxTeamCount];
+        std::string activeBrainDeployment[Activity::MaxTeamCount];
 
 		// Lists of found brain deployment locations used to place brain
 		std::vector<Vector> brainLocations[Activity::MaxTeamCount];
 
-        
-		//for (list<SceneObject *>::iterator oItr = m_PlacedObjects[AIPLAN].begin(); oItr != m_PlacedObjects[AIPLAN].end(); ++oItr) // I'm using this to dump AI plans with ctrl+w
-        for (list<SceneObject *>::iterator oItr = m_PlacedObjects[PLACEONLOAD].begin(); oItr != m_PlacedObjects[PLACEONLOAD].end(); ++oItr)
+		//for (std::list<SceneObject *>::iterator oItr = m_PlacedObjects[AIPLAN].begin(); oItr != m_PlacedObjects[AIPLAN].end(); ++oItr) // I'm using this to dump AI plans with ctrl+w
+        for (std::list<SceneObject *>::iterator oItr = m_PlacedObjects[PLACEONLOAD].begin(); oItr != m_PlacedObjects[PLACEONLOAD].end(); ++oItr)
 		{
             // MovableObject:s get added to the MovableMan
             MovableObject *pMO = dynamic_cast<MovableObject *>(*oItr);
             if (pMO)
             {
                 // PASSING OWNERSHIP INTO the Add* ones - we are clearing out this list!
-                if (pMO->IsActor())
-				{
-					// Skip playable actors if we're told to not place actors
-					if (!placeUnits)
-					{
-						if (dynamic_cast<ADoor *>(pMO))
-							g_MovableMan.AddActor(dynamic_cast<Actor *>(pMO));
-						else
-						{
-							//Just delete the object
-							delete pMO;
-							pMO = 0;
-						}
+				if (Actor *actor = dynamic_cast<Actor *>(pMO)) {
+                    bool shouldPlace = placeUnits || dynamic_cast<ADoor *>(actor);
+
+                    // Because we don't save/load all data yet and do a bit of a hack with scene loading, we can potentially save a dead actor that still technically exists.
+                    // If we find one of these, just skip them!
+                    //shouldPlace = shouldPlace && dynamic_cast<Actor*>(pMO)->GetHealth() > 0.0F;
+
+					if (shouldPlace) {
+                        g_MovableMan.AddActor(dynamic_cast<Actor*>(pMO));
 					} else {
-						// Place units as usual if we're told to place units
-						g_MovableMan.AddActor(dynamic_cast<Actor *>(pMO));
+                        delete pMO;
+                        pMO = nullptr;
 					}
+				} else {
+					g_MovableMan.AddMO(pMO);
 				}
-                else if (pMO->IsDevice())
-                    g_MovableMan.AddItem(dynamic_cast<MovableObject *>(pMO));
-                else
-                    g_MovableMan.AddParticle(dynamic_cast<MovableObject *>(pMO));
             }
             else
             {
@@ -708,7 +720,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
 						// Ignore brain hideouts, they are used only by metagame when applying build budget
 						if (pDep->GetPresetName() == "Brain Hideout")
 							toIgnore = true;
-						
+
 						if (!toIgnore)
 						{
 							// Ownership IS transferred here; pass it along into the MovableMan
@@ -741,7 +753,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
 								SceneObject *pObject = pDep->CreateDeployedObject(pDep->GetPlacedByPlayer(), cost);
 								pMO = dynamic_cast<MovableObject *>(pObject);
 								if (pMO)
-									g_MovableMan.AddItem(pMO);
+									g_MovableMan.AddMO(pMO);
 								else
 								{
 									delete pObject;
@@ -765,7 +777,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
 						// Try to select previousy selected assembly
 						if (pBAS->IsOneTypePerScene())
 						{
-							map<string, const BunkerAssembly *>::iterator itr = m_SelectedAssemblies.find(pBAS->GetModuleAndPresetName());
+							auto itr = m_SelectedAssemblies.find(pBAS->GetModuleAndPresetName());
 							if (itr != m_SelectedAssemblies.end())
 								pBAPreset = (*itr).second;
 						}
@@ -780,19 +792,19 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
 								// Remember selected BunkerAssembly for this scheme to use it everywhere on the map.
 								if (pBAS->IsOneTypePerScene())
 								{
-									m_SelectedAssemblies.insert(pair<string, const BunkerAssembly *>(pBAS->GetModuleAndPresetName(), pBAPreset));
+									m_SelectedAssemblies.insert(std::pair<std::string, const BunkerAssembly *>(pBAS->GetModuleAndPresetName(), pBAPreset));
 
 									// Find out if this scheme has symmetric scheme, and this assembly have symmetric version
 									// so we could set them to be used when we need to create symmetric versions of this scheme
-									string symmetricScheme = pBAS->GetSymmetricSchemeName();
-									string symmetricAssembly = pBAPreset->GetSymmetricAssemblyName();
+                                    std::string symmetricScheme = pBAS->GetSymmetricSchemeName();
+                                    std::string symmetricAssembly = pBAPreset->GetSymmetricAssemblyName();
 
 									if (symmetricScheme.size() > 0 && symmetricAssembly.size() > 0)
 									{
 										const BunkerAssembly * pBAPresetSymmetric = dynamic_cast<const BunkerAssembly *>(g_PresetMan.GetEntityPreset("BunkerAssembly", symmetricAssembly));
 
 										if (pBAPresetSymmetric)
-											m_SelectedAssemblies.insert(pair<string, const BunkerAssembly *>(symmetricScheme, pBAPresetSymmetric));
+											m_SelectedAssemblies.insert(std::pair<std::string, const BunkerAssembly *>(symmetricScheme, pBAPresetSymmetric));
 									}
 								}
 							}
@@ -811,7 +823,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
 					if (!pTO)
 						pTO = dynamic_cast<TerrainObject *>(*oItr);
 
-					// Add deployments placed by bunker assemblies, but not in metagame, 
+					// Add deployments placed by bunker assemblies, but not in metagame,
 					// as they are spawned and placed during ApplyBuildBudget
 					if (placeUnits && !g_MetaMan.GameInProgress())
 					{
@@ -834,19 +846,21 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
 					// Finally place TerrainObject
 					if (pTO)
                     {
+						const BITMAP *terrainObjectBitmap = pTO->GetFGColorBitmap() ? pTO->GetFGColorBitmap() : pTO->GetBGColorBitmap();
+
                         // First clear out the box of unseen layer for whichever team placed this
-                        if (pTO->GetFGColorBitmap() && pTO->GetPlacedByPlayer() != Players::NoPlayer && g_ActivityMan.GetActivity())
+                        if (terrainObjectBitmap && pTO->GetPlacedByPlayer() != Players::NoPlayer && g_ActivityMan.GetActivity())
                         {
                             // Learn which team placed this thing so we can reveal for them only
                             int ownerTeam = pTO->GetTeam();
                             if (ownerTeam != Activity::NoTeam && m_apUnseenLayer[ownerTeam] && m_apUnseenLayer[ownerTeam]->GetBitmap())
                             {
                                 // Translate to the scaled unseen layer's coordinates
-                                Vector scale = m_apUnseenLayer[ownerTeam]->GetScaleInverse();
-                                int scaledX = std::floor((pTO->GetPos().m_X - (float)(pTO->GetFGColorBitmap()->w / 2)) * scale.m_X);
-                                int scaledY = std::floor((pTO->GetPos().m_Y - (float)(pTO->GetFGColorBitmap()->h / 2)) * scale.m_Y);
-                                int scaledW = std::ceil(pTO->GetFGColorBitmap()->w * scale.m_X);
-                                int scaledH = std::ceil(pTO->GetFGColorBitmap()->h * scale.m_Y);
+                                Vector scale = m_apUnseenLayer[ownerTeam]->GetScaleFactor();
+                                int scaledX = std::floor((pTO->GetPos().m_X - (float)(terrainObjectBitmap->w / 2)) / scale.m_X);
+                                int scaledY = std::floor((pTO->GetPos().m_Y - (float)(terrainObjectBitmap->h / 2)) / scale.m_Y);
+                                int scaledW = std::ceil(terrainObjectBitmap->w / scale.m_X);
+                                int scaledH = std::ceil(terrainObjectBitmap->h / scale.m_Y);
                                 // Fill the box with key color for the owner ownerTeam, revealing the area that this thing is on
                                 rectfill(m_apUnseenLayer[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
                                 // Expand the box a little so the whole placed object is going to be hidden
@@ -863,7 +877,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
                             }
                         }
                         // Now actually stamp the terrain object onto the terrain's scene layers
-                        m_pTerrain->ApplyTerrainObject(pTO);
+						pTO->PlaceOnTerrain(m_pTerrain);
                         //delete pTO;
                         //pTO = 0;
                     }
@@ -903,7 +917,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
     // Go through and init the teams on all remaining placed objects, so their flag icons etc are correct for the current Activity
     for (int set = PLACEONLOAD; set < PLACEDSETSCOUNT; ++set)
     {
-        for (list<SceneObject *>::iterator oItr = m_PlacedObjects[set].begin(); oItr != m_PlacedObjects[set].end(); ++oItr)
+        for (std::list<SceneObject *>::iterator oItr = m_PlacedObjects[set].begin(); oItr != m_PlacedObjects[set].end(); ++oItr)
             (*oItr)->SetTeam((*oItr)->GetTeam());
     }
 
@@ -911,21 +925,18 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
     // Pathfinding init
     if (initPathfinding)
     {
-        // Create the pathfinding stuff based on the current scene
-        m_pPathFinder = new PathFinder(this, 20, 2000);
-        // Update all the pathfinding data
-        m_pPathFinder->RecalculateAllCosts();
+		// Create the pathfinding stuff based on the current scene
+		int pathFinderGridNodeSize = g_SettingsMan.GetPathFinderGridNodeSize();
 
-        // Load Background layers' data
-        for (list<SceneLayer *>::iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr)
-        {
-            RTEAssert((*slItr), "Background layer not instantiated before trying to load its data!");
-            if ((*slItr)->LoadData() < 0)
-            {
-                g_ConsoleMan.PrintString("ERROR: Loading background layer " + (*slItr)->GetPresetName() + "\'s data failed!");
-                return -1;
-            }
+		// TODO: test dynamically setting this. The code below sets it based on map area and block size, with a hefty upper limit.
+		//int sceneArea = GetWidth() * GetHeight();
+		//unsigned int numberOfBlocksToAllocate = std::min(128000, sceneArea / (pathFinderGridNodeSize * pathFinderGridNodeSize));
+		unsigned int numberOfBlocksToAllocate = 4000;
+
+        for (int i = 0; i < m_pPathFinders.size(); ++i) {
+            m_pPathFinders[i] = std::make_unique<PathFinder>(pathFinderGridNodeSize, numberOfBlocksToAllocate);
         }
+        ResetPathFinding();
     }
 
     return 0;
@@ -937,14 +948,14 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  ExpandAIPlanAssemblySchemes
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     
-//                  
+// Description:
+//
 
 int Scene::ExpandAIPlanAssemblySchemes()
 {
-	list<SceneObject *> newAIPlan;
+	std::list<SceneObject *> newAIPlan;
 
-    for (list<SceneObject *>::iterator oItr = m_PlacedObjects[AIPLAN].begin(); oItr != m_PlacedObjects[AIPLAN].end(); ++oItr)
+    for (std::list<SceneObject *>::iterator oItr = m_PlacedObjects[AIPLAN].begin(); oItr != m_PlacedObjects[AIPLAN].end(); ++oItr)
 	{
 		BunkerAssemblyScheme *pBAS = dynamic_cast<BunkerAssemblyScheme *>(*oItr);
 
@@ -956,7 +967,7 @@ int Scene::ExpandAIPlanAssemblySchemes()
 			// Try to select previousy selected assembly
 			if (pBAS->IsOneTypePerScene())
 			{
-				map<string, const BunkerAssembly *>::iterator itr = m_SelectedAssemblies.find(pBAS->GetModuleAndPresetName());
+                auto itr = m_SelectedAssemblies.find(pBAS->GetModuleAndPresetName());
 				if (itr != m_SelectedAssemblies.end())
 					pBAPreset = (*itr).second;
 			}
@@ -968,7 +979,7 @@ int Scene::ExpandAIPlanAssemblySchemes()
 
 				// Remember selected BunkerAssembly for this scheme to use it everywhere on the map.
 				if (pBAS->IsOneTypePerScene())
-					m_SelectedAssemblies.insert(pair<string, const BunkerAssembly *>(pBAS->GetModuleAndPresetName(), pBAPreset));
+					m_SelectedAssemblies.insert(std::pair<std::string, const BunkerAssembly *>(pBAS->GetModuleAndPresetName(), pBAPreset));
 			}
 
 			// Add found assembly to the AI plan
@@ -980,7 +991,7 @@ int Scene::ExpandAIPlanAssemblySchemes()
 				pBA->SetPlacedByPlayer(pBAS->GetPlacedByPlayer());
 
 				newAIPlan.push_back(pBA);
-				
+
 				std::vector<Deployment *>pDeployments = pBA->GetDeployments();
 				for (std::vector<Deployment *>::iterator itr = pDeployments.begin(); itr != pDeployments.end() ; ++itr)
 				{
@@ -1003,7 +1014,7 @@ int Scene::ExpandAIPlanAssemblySchemes()
 
 	// Copy new AI plan list to replace the original
 	m_PlacedObjects[AIPLAN].clear();
-    for (list<SceneObject *>::iterator oItr = newAIPlan.begin(); oItr != newAIPlan.end(); ++oItr)
+    for (std::list<SceneObject *>::iterator oItr = newAIPlan.begin(); oItr != newAIPlan.end(); ++oItr)
 		m_PlacedObjects[AIPLAN].push_back(*oItr);
 
     return 0;
@@ -1018,16 +1029,17 @@ int Scene::ExpandAIPlanAssemblySchemes()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Saves currently loaded bitmap data in memory to disk.
 
-int Scene::SaveData(string pathBase)
+int Scene::SaveData(std::string pathBase)
 {
-    if (pathBase.empty())
+    const std::string fullPathBase = g_PresetMan.GetFullModulePath(pathBase);
+    if (fullPathBase.empty())
         return -1;
 
     if (!m_pTerrain)
         return 0;
 
     // Save Terrain's data
-    if (m_pTerrain->SaveData(pathBase) < 0)
+    if (m_pTerrain->SaveData(fullPathBase) < 0)
     {
         RTEAbort("Saving Terrain " + m_pTerrain->GetPresetName() + "\'s data failed!");
         return -1;
@@ -1043,7 +1055,7 @@ int Scene::SaveData(string pathBase)
         {
             std::snprintf(str, sizeof(str), "T%d", team);
             // Save unseen layer data to disk
-            if (m_apUnseenLayer[team]->SaveData(pathBase + " US" + str + ".bmp") < 0)
+            if (m_apUnseenLayer[team]->SaveData(fullPathBase + " US" + str + ".png") < 0)
             {
                 g_ConsoleMan.PrintString("ERROR: Saving unseen layer " + m_apUnseenLayer[team]->GetPresetName() + "\'s data failed!");
                 return -1;
@@ -1092,14 +1104,14 @@ int Scene::SavePreview(const std::string &bitmapPath) {
 
 			// Wrapped drawing
 			if (pos.GetFloorIntX() < 0) {
-				masked_blit(terrainObjectBG, previewBuffer, 0, 0, pos.GetFloorIntX() + sceneWidth, pos.GetFloorIntY(), terrainObjectBG->w, terrainObjectBG->h);
-				masked_blit(terrainObjectFG, previewBuffer, 0, 0, pos.GetFloorIntX() + sceneWidth, pos.GetFloorIntY(), terrainObjectFG->w, terrainObjectFG->h);
+				if (terrainObject->HasBGColorBitmap()) { masked_blit(terrainObjectBG, previewBuffer, 0, 0, pos.GetFloorIntX() + sceneWidth, pos.GetFloorIntY(), terrainObjectBG->w, terrainObjectBG->h); }
+				if (terrainObject->HasFGColorBitmap()) { masked_blit(terrainObjectFG, previewBuffer, 0, 0, pos.GetFloorIntX() + sceneWidth, pos.GetFloorIntY(), terrainObjectFG->w, terrainObjectFG->h); }
 			} else if (pos.GetFloorIntX() + terrainObject->GetBitmapWidth() >= sceneWidth) {
-				masked_blit(terrainObjectBG, previewBuffer, 0, 0, pos.GetFloorIntX() - sceneWidth, pos.GetFloorIntY(), terrainObjectBG->w, terrainObjectBG->h);
-				masked_blit(terrainObjectFG, previewBuffer, 0, 0, pos.GetFloorIntX() - sceneWidth, pos.GetFloorIntY(), terrainObjectFG->w, terrainObjectFG->h);
+				if (terrainObject->HasBGColorBitmap()) { masked_blit(terrainObjectBG, previewBuffer, 0, 0, pos.GetFloorIntX() - sceneWidth, pos.GetFloorIntY(), terrainObjectBG->w, terrainObjectBG->h); }
+				if (terrainObject->HasFGColorBitmap()) { masked_blit(terrainObjectFG, previewBuffer, 0, 0, pos.GetFloorIntX() - sceneWidth, pos.GetFloorIntY(), terrainObjectFG->w, terrainObjectFG->h); }
 			}
-			masked_blit(terrainObjectBG, previewBuffer, 0, 0, pos.GetFloorIntX(), pos.GetFloorIntY(), terrainObjectBG->w, terrainObjectBG->h);
-			masked_blit(terrainObjectFG, previewBuffer, 0, 0, pos.GetFloorIntX(), pos.GetFloorIntY(), terrainObjectFG->w, terrainObjectFG->h);
+			if (terrainObject->HasBGColorBitmap()) { masked_blit(terrainObjectBG, previewBuffer, 0, 0, pos.GetFloorIntX(), pos.GetFloorIntY(), terrainObjectBG->w, terrainObjectBG->h); }
+			if (terrainObject->HasFGColorBitmap()) { masked_blit(terrainObjectFG, previewBuffer, 0, 0, pos.GetFloorIntX(), pos.GetFloorIntY(), terrainObjectFG->w, terrainObjectFG->h); }
 		}
 
 		// TODO: Figure out how to draw the actual modules that compose an assembly that is part of the scheme. For now just disable.
@@ -1143,17 +1155,6 @@ int Scene::ClearData()
         return -1;
     }
 
-    // Clear Background layers' data
-    for (list<SceneLayer *>::iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr)
-    {
-        RTEAssert((*slItr), "Background layer not instantiated before trying to clear its data!");
-        if ((*slItr)->ClearData() < 0)
-        {
-            g_ConsoleMan.PrintString("ERROR: Clearing background layer " + (*slItr)->GetPresetName() + "\'s data failed!");
-            return -1;
-        }
-    }
-
     // Clear unseen layers' data
     for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
     {
@@ -1193,6 +1194,8 @@ int Scene::ReadProperty(const std::string_view &propName, Reader &reader)
         reader >> m_MetasceneParent;
     else if (propName == "MetagameInternal")
         reader >> m_IsMetagameInternal;
+     else if (propName == "ScriptSave")
+        reader >> m_IsSavedGameInternal;
     else if (propName == "OwnedByTeam")
         reader >> m_OwnedByTeam;
     else if (propName == "RoundIncome")
@@ -1256,7 +1259,7 @@ int Scene::ReadProperty(const std::string_view &propName, Reader &reader)
     }
     else if (propName == "AddBackgroundLayer")
     {
-        SceneLayer *pLayer = dynamic_cast<SceneLayer *>(g_PresetMan.ReadReflectedPreset(reader));
+		SLBackground *pLayer = dynamic_cast<SLBackground *>(g_PresetMan.ReadReflectedPreset(reader));
         RTEAssert(pLayer, "Something went wrong with reading SceneLayer");
         if (pLayer)
             m_BackLayerList.push_back(pLayer);
@@ -1324,228 +1327,69 @@ int Scene::ReadProperty(const std::string_view &propName, Reader &reader)
     return 0;
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Save
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Saves the complete state of this Scene with a Writer for
 //                  later recreation with Create(Reader &reader);
 
-int Scene::Save(Writer &writer) const
-{
+int Scene::Save(Writer &writer) const {
     Entity::Save(writer);
-    writer.NewProperty("LocationOnPlanet");
-    writer << m_Location;
-    writer.NewProperty("MetagamePlayable");
-    writer << m_MetagamePlayable;
+
+	bool doFullGameSave = !dynamic_cast<EditorActivity *>(g_ActivityMan.GetActivity());
+
+    writer.NewPropertyWithValue("LocationOnPlanet", m_Location);
+    writer.NewPropertyWithValue("MetagamePlayable", m_MetagamePlayable);
 	//Do not save preview if it's path is empty, for example in metagame
-	if (m_PreviewBitmapFile.GetDataPath().length() > 0 && m_MetasceneParent.length() == 0)
-	{
-		writer.NewProperty("PreviewBitmapFile");
-		writer << m_PreviewBitmapFile;
+	if (m_PreviewBitmapFile.GetDataPath().length() > 0 && m_MetasceneParent.length() == 0) {
+		writer.NewPropertyWithValue("PreviewBitmapFile", m_PreviewBitmapFile);
 	}
-	if (m_MetasceneParent.length() > 0)
-	{
-		writer.NewProperty("MetasceneParent");
-		writer << m_MetasceneParent;
+	if (m_MetasceneParent.length() > 0) {
+		writer.NewPropertyWithValue("MetasceneParent", m_MetasceneParent);
 	}
-    writer.NewProperty("MetagameInternal");
-    writer << m_IsMetagameInternal;
-    writer.NewProperty("Revealed");
-    writer << m_Revealed;
-    writer.NewProperty("OwnedByTeam");
-    writer << m_OwnedByTeam;
-    writer.NewProperty("RoundIncome");
-    writer << m_RoundIncome;
-    // Write out the brains and the minimal info needed to place them in the scene
-    char str[64];
-    for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player)
-    {
-        if (m_ResidentBrains[player])
-        {
-            std::snprintf(str, sizeof(str), "P%dResidentBrain", player + 1);
-            writer.NewProperty(str);
-            writer.ObjectStart(m_ResidentBrains[player]->GetClassName());
-            writer.NewProperty("CopyOf");
-            writer << m_ResidentBrains[player]->GetModuleAndPresetName();
-            writer.NewProperty("Position");
-            writer << m_ResidentBrains[player]->GetPos();
-            writer.NewProperty("HFlipped");
-            writer << m_ResidentBrains[player]->IsHFlipped();
-            writer.NewProperty("Team");
-            writer << m_ResidentBrains[player]->GetTeam();
-			
-			//Write out brain's inventory if it is Actor
-			Actor *pActor = dynamic_cast<Actor *>(m_ResidentBrains[player]);
-            if (pActor)
-            {
-                const deque<MovableObject *> *pInventory = pActor->GetInventory();
-                for (deque<MovableObject *>::const_iterator iitr = pInventory->begin(); iitr != pInventory->end(); ++iitr)
-                {
-                    writer.NewProperty("AddInventory");
-                    writer.ObjectStart((*iitr)->GetClassName());
+    writer.NewPropertyWithValue("MetagameInternal", m_IsMetagameInternal);
+    writer.NewPropertyWithValue("ScriptSave", m_IsSavedGameInternal);
+    writer.NewPropertyWithValue("Revealed", m_Revealed);
+    writer.NewPropertyWithValue("OwnedByTeam", m_OwnedByTeam);
+    writer.NewPropertyWithValue("RoundIncome", m_RoundIncome);
 
-                    writer.NewProperty("CopyOf");
-                    writer << (*iitr)->GetModuleAndPresetName();
-                    
-                    writer.ObjectEnd();
-                }
+	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+		std::string playerNumberString = "P" + std::to_string(player + 1);
+		writer.NewPropertyWithValue(playerNumberString + "BuildBudget", m_BuildBudget[player]);
+		writer.NewPropertyWithValue(playerNumberString + "BuildBudgetRatio", m_BuildBudgetRatio[player]);
+		if (m_ResidentBrains[player]) {
+			writer.NewProperty(playerNumberString + "ResidentBrain");
+			SaveSceneObject(writer, m_ResidentBrains[player], false, doFullGameSave);
+		}
+	}
 
-                // Also put whatever was held in the hand into inventory
-                AHuman *pAHuman = dynamic_cast<AHuman *>(m_ResidentBrains[player]);
-                if (pAHuman && dynamic_cast<Arm *>(pAHuman->GetFGArm()) && dynamic_cast<Arm *>(pAHuman->GetFGArm())->GetHeldDevice())
-                {
-                    writer.NewProperty("AddInventory");
-                    writer.ObjectStart(dynamic_cast<Arm *>(pAHuman->GetFGArm())->GetHeldDevice()->GetClassName());
+	writer.NewPropertyWithValue("AutoDesigned", m_AutoDesigned);
+	writer.NewPropertyWithValue("TotalInvestment", m_TotalInvestment);
+	writer.NewPropertyWithValue("Terrain", m_pTerrain);
 
-                    writer.NewProperty("CopyOf");
-                    writer << dynamic_cast<Arm *>(pAHuman->GetFGArm())->GetHeldDevice()->GetModuleAndPresetName();
-
-                    writer.ObjectEnd();                            
-                }
-            }
-
-            writer.ObjectEnd();
-        }
-    }
-    writer.NewProperty("P1BuildBudget");
-    writer << m_BuildBudget[Players::PlayerOne];
-    writer.NewProperty("P2BuildBudget");
-    writer << m_BuildBudget[Players::PlayerTwo];
-    writer.NewProperty("P3BuildBudget");
-    writer << m_BuildBudget[Players::PlayerThree];
-    writer.NewProperty("P4BuildBudget");
-    writer << m_BuildBudget[Players::PlayerFour];
-    writer.NewProperty("P1BuildBudgetRatio");
-    writer << m_BuildBudgetRatio[Players::PlayerOne];
-    writer.NewProperty("P2BuildBudgetRatio");
-    writer << m_BuildBudgetRatio[Players::PlayerTwo];
-    writer.NewProperty("P3BuildBudgetRatio");
-    writer << m_BuildBudgetRatio[Players::PlayerThree];
-    writer.NewProperty("P4BuildBudgetRatio");
-    writer << m_BuildBudgetRatio[Players::PlayerFour];
-    writer.NewProperty("AutoDesigned");
-    writer << m_AutoDesigned;
-    writer.NewProperty("TotalInvestment");
-    writer << m_TotalInvestment;
-    writer.NewProperty("Terrain");
-    writer << m_pTerrain;
-
-    for (int set = PLACEONLOAD; set < PLACEDSETSCOUNT; ++set)
-    {
-        for (list<SceneObject *>::const_iterator oItr = m_PlacedObjects[set].begin(); oItr != m_PlacedObjects[set].end(); ++oItr)
-        {
-            if (set == PLACEONLOAD)
-                writer.NewProperty("PlaceSceneObject");
-            else if (set == BLUEPRINT)
-                writer.NewProperty("BlueprintObject");
-            else if (set == AIPLAN)
-                writer.NewProperty("PlaceAIPlanObject");
-
-    //        writer << (*oItr);
-            writer.ObjectStart((*oItr)->GetClassName());
-
-            writer.NewProperty("CopyOf");
-            writer << (*oItr)->GetModuleAndPresetName();
-
-            writer.NewProperty("Position");
-            writer << (*oItr)->GetPos();
-
-            if ((*oItr)->GetPlacedByPlayer() != Players::NoPlayer)
-            {
-                writer.NewProperty("PlacedByPlayer");
-                writer << (*oItr)->GetPlacedByPlayer();
-            }
-
-			// Save deployment's and assemblies teams if we're saving default scene set
-			// because they can spawn actors and other deployments
-			if (set == PLACEONLOAD)
-			{
-				if (dynamic_cast<Deployment *>(*oItr) || dynamic_cast<BunkerAssembly *>(*oItr) || dynamic_cast<BunkerAssemblyScheme *>(*oItr))
-				{
-					writer.NewProperty("Team");
-					writer << (*oItr)->GetTeam();
-				}
+    for (int set = PlacedObjectSets::PLACEONLOAD; set < PlacedObjectSets::PLACEDSETSCOUNT; ++set) {
+		for (const SceneObject *placedObject : m_PlacedObjects[set]) {
+			if (placedObject->GetPresetName().empty() || placedObject->GetPresetName() == "None") {
+				// We have no info about what we're placing. This is probably because it's some particle that was kicked off the terrain
+				// In future, we'll save all the data (uncomment out //writer << placedObject;), and will be able to save/load that stuff
+				// But for now, until we have a more effective writer that can remove redundant properties, we just skip this
+				continue;
 			}
 
-            // Only write certain properties if they are applicable to the type of SceneObject being written
-            MOSRotating *pSpriteObj = dynamic_cast<MOSRotating *>(*oItr);
-            if (pSpriteObj)
-            {
-                writer.NewProperty("HFlipped");
-                writer << pSpriteObj->IsHFlipped();
-                Actor *pActor = dynamic_cast<Actor *>(pSpriteObj);
-                if (pActor)
-                {
-                    writer.NewProperty("Team");
-                    writer << pActor->GetTeam();
-                    // Rotation of doors is important
-                    ADoor *pDoor = dynamic_cast<ADoor *>(pActor);
-                    if (pDoor)
-                    {
-                        writer.NewProperty("Rotation");
-                        writer << pDoor->GetRotMatrix();
-                    }
-                    // Inventory is important to preserve too
-                    Actor *pActor = dynamic_cast<Actor *>(*oItr);
-                    if (pActor)
-                    {
-                        writer.NewProperty("Health");
-                        writer << pActor->GetHealth();
-                        writer.NewProperty("MaxHealth");
-                        writer << pActor->GetMaxHealth();
-						if (pActor->GetDeploymentID())
-						{
-							writer.NewProperty("DeploymentID");
-							writer << pActor->GetDeploymentID();
-						}
+			if (set == PlacedObjectSets::PLACEONLOAD) {
+				writer.NewProperty("PlaceSceneObject");
+			} else if (set == PlacedObjectSets::BLUEPRINT) {
+				writer.NewProperty("BlueprintObject");
+			} else if (set == PlacedObjectSets::AIPLAN) {
+				writer.NewProperty("PlaceAIPlanObject");
+			}
 
-                        const deque<MovableObject *> *pInventory = pActor->GetInventory();
-                        for (deque<MovableObject *>::const_iterator iitr = pInventory->begin(); iitr != pInventory->end(); ++iitr)
-                        {
-                            writer.NewProperty("AddInventory");
-                            writer.ObjectStart((*iitr)->GetClassName());
-
-                            writer.NewProperty("CopyOf");
-                            writer << (*iitr)->GetModuleAndPresetName();
-                            
-                            writer.ObjectEnd();
-                        }
-
-                        // Also put whatever was held in the hand into inventory
-                        AHuman *pAHuman = dynamic_cast<AHuman *>(*oItr);
-                        if (pAHuman && dynamic_cast<Arm *>(pAHuman->GetFGArm()) && dynamic_cast<Arm *>(pAHuman->GetFGArm())->GetHeldDevice())
-                        {
-                            writer.NewProperty("AddInventory");
-                            writer.ObjectStart(dynamic_cast<Arm *>(pAHuman->GetFGArm())->GetHeldDevice()->GetClassName());
-
-                            writer.NewProperty("CopyOf");
-                            writer << dynamic_cast<Arm *>(pAHuman->GetFGArm())->GetHeldDevice()->GetModuleAndPresetName();
-
-                            writer.ObjectEnd();                            
-                        }
-                    }
-                }
-            }
-            TerrainObject *pTObject = dynamic_cast<TerrainObject *>(*oItr);
-            if (pTObject && !pTObject->GetChildObjects().empty())
-            {
-                writer.NewProperty("Team");
-                writer << pTObject->GetTeam();
-            }
-            Deployment *pDeployment = dynamic_cast<Deployment *>(*oItr);
-            if (pDeployment && pDeployment->GetID())
-            {
-                writer.NewProperty("ID");
-                writer << pDeployment->GetID();
-				writer.NewProperty("HFlipped");
-				writer << pDeployment->IsHFlipped();
-            }
-            writer.ObjectEnd();
-        }
+			//writer << placedObject;
+			SaveSceneObject(writer, placedObject, false, doFullGameSave);
+		}
     }
 
-    for (list<SceneLayer *>::const_iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr)
+    for (std::list<SLBackground *>::const_iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr)
     {
         writer.NewProperty("AddBackgroundLayer");
         (*slItr)->SavePresetCopy(writer);
@@ -1610,11 +1454,10 @@ int Scene::Save(Writer &writer) const
         writer.NewProperty("ScanScheduledTeam4");
         writer << m_ScanScheduled[Activity::TeamFour];
     }
-	for (list<Area>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
+	for (std::list<Area>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
 	{
 		// Only write the area if it has any boxes/area at all
-		if (!(*aItr).HasNoArea())
-		{
+		if (doFullGameSave || !(*aItr).HasNoArea()) {
 			writer.NewProperty("AddArea");
 			writer << *aItr;
 		}
@@ -1625,6 +1468,241 @@ int Scene::Save(Writer &writer) const
     return 0;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Scene::SaveSceneObject(Writer &writer, const SceneObject *sceneObjectToSave, bool isChildAttachable, bool saveFullData) const {
+	auto WriteHardcodedAttachableOrNone = [this, &writer, &saveFullData](const std::string &propertyName, const Attachable *harcodedAttachable) {
+		if (harcodedAttachable) {
+			writer.NewProperty(propertyName);
+			SaveSceneObject(writer, harcodedAttachable, true, saveFullData);
+		} else {
+			writer.NewPropertyWithValue(propertyName, "None");
+		}
+	};
+
+	writer.ObjectStart(sceneObjectToSave->GetClassName());
+	writer.NewPropertyWithValue("CopyOf", sceneObjectToSave->GetModuleAndPresetName());
+
+	if (saveFullData) {
+		for (const std::string &group : *sceneObjectToSave->GetGroups()) {
+			writer.NewPropertyWithValue("AddToGroup", group);
+		}
+	}
+
+	writer.NewPropertyWithValue("Position", sceneObjectToSave->GetPos());
+	writer.NewPropertyWithValue("Team", sceneObjectToSave->GetTeam());
+	if (!isChildAttachable) {
+		writer.NewPropertyWithValue("PlacedByPlayer", sceneObjectToSave->GetPlacedByPlayer());
+	}
+	if (saveFullData) {
+		writer.NewPropertyWithValue("GoldValue", sceneObjectToSave->GetGoldValue());
+	}
+
+	if (const Deployment *deploymentToSave = dynamic_cast<const Deployment *>(sceneObjectToSave); deploymentToSave && deploymentToSave->GetID() != 0) {
+		writer.NewPropertyWithValue("ID", deploymentToSave->GetID());
+	}
+
+	if (const MovableObject *movableObjectToSave = dynamic_cast<const MovableObject *>(sceneObjectToSave); movableObjectToSave && saveFullData) {
+		writer.NewPropertyWithValue("HUDVisible", movableObjectToSave->GetHUDVisible());
+		writer.NewPropertyWithValue("Velocity", movableObjectToSave->GetVel());
+		writer.NewPropertyWithValue("LifeTime", movableObjectToSave->GetLifetime());
+		writer.NewPropertyWithValue("Age", movableObjectToSave->GetAge());
+		writer.NewPropertyWithValue("PinStrength", movableObjectToSave->GetPinStrength());
+	}
+
+	if (const MOSprite *moSpriteToSave = dynamic_cast<const MOSprite *>(sceneObjectToSave)) {
+		writer.NewPropertyWithValue("HFlipped", moSpriteToSave->IsHFlipped());
+		if (saveFullData || dynamic_cast<const ADoor *>(moSpriteToSave)) {
+			writer.NewPropertyWithValue("Rotation", moSpriteToSave->GetRotMatrix());
+		}
+		if (saveFullData) {
+			writer.NewPropertyWithValue("AngularVel", moSpriteToSave->GetAngularVel());
+		}
+	}
+
+	if (const MOSRotating *mosRotatingToSave = dynamic_cast<const MOSRotating *>(sceneObjectToSave)) {
+		if (saveFullData) {
+			const std::list<Attachable *> &attachablesToSave = mosRotatingToSave->GetAttachableList();
+
+			// If this MOSRotating has any Attachables, we have to add a special behaviour property that'll delete them all so they can be re-read. This will allow us to handle Attachables with our limited serialization.
+			// Alternatively, if the MOSRotating has no Attachables but its preset does, we need to set the flag, because that means this is missing Attachables, and we don't want to magically regenerate them when a game is loaded.
+			if (!attachablesToSave.empty()) {
+				writer.NewPropertyWithValue("SpecialBehaviour_ClearAllAttachables", true);
+			}
+			else if (const MOSRotating *presetOfMOSRotatingToSave = dynamic_cast<const MOSRotating *>(g_PresetMan.GetEntityPreset(mosRotatingToSave->GetClassName(), mosRotatingToSave->GetPresetName(), mosRotatingToSave->GetModuleID())); presetOfMOSRotatingToSave && !presetOfMOSRotatingToSave->GetAttachableList().empty()) {
+				writer.NewPropertyWithValue("SpecialBehaviour_ClearAllAttachables", true);
+			}
+
+			for (const Attachable *attachable : attachablesToSave) {
+				if (!mosRotatingToSave->AttachableIsHardcoded(attachable)) {
+					writer.NewProperty("AddAttachable");
+					SaveSceneObject(writer, attachable, true, saveFullData);
+				}
+			}
+			for (const AEmitter *wound : mosRotatingToSave->GetWoundList()) {
+				writer.NewProperty("SpecialBehaviour_AddWound");
+				SaveSceneObject(writer, wound, true, saveFullData);
+			}
+		}
+
+		for (auto &[key, value] : mosRotatingToSave->GetStringValueMap()) {
+			writer.NewProperty("AddCustomValue");
+			writer.ObjectStart("StringValue");
+			writer.NewPropertyWithValue(key, value);
+			writer.ObjectEnd();
+		}
+
+		for (auto &[key, value] : mosRotatingToSave->GetNumberValueMap()) {
+			writer.NewProperty("AddCustomValue");
+			writer.ObjectStart("NumberValue");
+			writer.NewPropertyWithValue(key, value);
+			writer.ObjectEnd();
+		}
+	}
+
+	if (const Attachable *attachableToSave = dynamic_cast<const Attachable *>(sceneObjectToSave); attachableToSave && saveFullData) {
+		writer.NewPropertyWithValue("ParentOffset", attachableToSave->GetParentOffset());
+		writer.NewPropertyWithValue("DrawAfterParent", attachableToSave->IsDrawnAfterParent());
+		writer.NewPropertyWithValue("DeleteWhenRemovedFromParent", attachableToSave->GetDeleteWhenRemovedFromParent());
+		writer.NewPropertyWithValue("GibWhenRemovedFromParent", attachableToSave->GetGibWhenRemovedFromParent());
+		writer.NewPropertyWithValue("JointStrength", attachableToSave->GetJointStrength());
+		writer.NewPropertyWithValue("JointStiffness", attachableToSave->GetJointStiffness());
+		writer.NewPropertyWithValue("JointOffset", attachableToSave->GetJointOffset());
+		writer.NewPropertyWithValue("InheritsHFlipped", attachableToSave->InheritsHFlipped());
+		writer.NewPropertyWithValue("InheritsRotAngle", attachableToSave->InheritsRotAngle());
+		writer.NewPropertyWithValue("InheritedRotAngleOffset", attachableToSave->GetInheritedRotAngleOffset());
+		writer.NewPropertyWithValue("InheritsFrame", attachableToSave->InheritsFrame());
+		writer.NewPropertyWithValue("CollidesWithTerrainWhileAttached", attachableToSave->GetCollidesWithTerrainWhileAttached());
+
+		if (const AEmitter *aemitterToSave = dynamic_cast<const AEmitter *>(sceneObjectToSave)) {
+			writer.NewPropertyWithValue("EmissionEnabled", aemitterToSave->IsEmitting());
+			writer.NewPropertyWithValue("EmissionCount", aemitterToSave->GetEmitCount());
+			writer.NewPropertyWithValue("EmissionCountLimit", aemitterToSave->GetEmitCountLimit());
+			writer.NewPropertyWithValue("NegativeThrottleMultiplier", aemitterToSave->GetNegativeThrottleMultiplier());
+			writer.NewPropertyWithValue("PositiveThrottleMultiplier", aemitterToSave->GetPositiveThrottleMultiplier());
+			writer.NewPropertyWithValue("Throttle", aemitterToSave->GetThrottle());
+			writer.NewPropertyWithValue("BurstScale", aemitterToSave->GetBurstScale());
+			writer.NewPropertyWithValue("BurstDamage", aemitterToSave->GetBurstDamage());
+			writer.NewPropertyWithValue("EmitterDamageMultiplier", aemitterToSave->GetEmitterDamageMultiplier());
+			writer.NewPropertyWithValue("BurstSpacing", aemitterToSave->GetBurstSpacing());
+			writer.NewPropertyWithValue("BurstTriggered", aemitterToSave->IsSetToBurst());
+			writer.NewPropertyWithValue("EmissionAngle", aemitterToSave->GetEmitAngleMatrix());
+			writer.NewPropertyWithValue("EmissionOffset", aemitterToSave->GetEmitOffset());
+			writer.NewPropertyWithValue("EmissionDamage", aemitterToSave->GetEmitDamage());
+			WriteHardcodedAttachableOrNone("Flash", aemitterToSave->GetFlash());
+		}
+
+		if (const Arm *armToSave = dynamic_cast<const Arm *>(sceneObjectToSave)) {
+			WriteHardcodedAttachableOrNone("HeldDevice", armToSave->GetHeldDevice());
+		}
+
+		if (const Leg *legToSave = dynamic_cast<const Leg *>(sceneObjectToSave)) {
+			WriteHardcodedAttachableOrNone("Foot", legToSave->GetFoot());
+		}
+
+		if (const Turret *turretToSave = dynamic_cast<const Turret *>(sceneObjectToSave)) {
+			for (const HeldDevice *heldDeviceToSave : turretToSave->GetMountedDevices()) {
+				WriteHardcodedAttachableOrNone("AddMountedDevice", heldDeviceToSave);
+			}
+		}
+
+		if (const HeldDevice *heldDeviceToSave = dynamic_cast<const HeldDevice *>(sceneObjectToSave)) {
+			writer.NewPropertyWithValue("SpecialBehaviour_Activated", heldDeviceToSave->IsActivated());
+			writer.NewPropertyWithValue("SpecialBehaviour_ActivationTimerElapsedSimTimeMS", heldDeviceToSave->GetActivationTimer().GetElapsedSimTimeMS());
+		}
+
+		if (const HDFirearm *hdFirearmToSave = dynamic_cast<const HDFirearm *>(sceneObjectToSave)) {
+			WriteHardcodedAttachableOrNone("Magazine", hdFirearmToSave->GetMagazine());
+			WriteHardcodedAttachableOrNone("Flash", hdFirearmToSave->GetFlash());
+		}
+
+		if (const Magazine *magazineToSave = dynamic_cast<const Magazine *>(sceneObjectToSave)) {
+			writer.NewPropertyWithValue("RoundCount", magazineToSave->GetRoundCount());
+		}
+	}
+
+	if (const Actor *actorToSave = dynamic_cast<const Actor *>(sceneObjectToSave)) {
+		writer.NewPropertyWithValue("Health", actorToSave->GetHealth());
+		writer.NewPropertyWithValue("MaxHealth", actorToSave->GetMaxHealth());
+		if (saveFullData) {
+			writer.NewPropertyWithValue("Status", actorToSave->GetStatus());
+			writer.NewPropertyWithValue("PlayerControllable", actorToSave->IsPlayerControllable());
+
+			int aiModeToSave = actorToSave->GetAIMode() == Actor::AIMode::AIMODE_SQUAD ? Actor::AIMode::AIMODE_GOTO : actorToSave->GetAIMode();
+			if (aiModeToSave == Actor::AIMode::AIMODE_GOTO && (!actorToSave->GetMOMoveTarget() && g_SceneMan.ShortestDistance(actorToSave->GetMovePathEnd(), actorToSave->GetPos(), g_SceneMan.SceneWrapsX()).MagnitudeIsLessThan(1.0F))) {
+				aiModeToSave = Actor::AIMode::AIMODE_SENTRY;
+			}
+			writer.NewPropertyWithValue("AIMode", aiModeToSave);
+			if (aiModeToSave == Actor::AIMode::AIMODE_GOTO) {
+				const std::string addWaypointPropertyName = "SpecialBehaviour_AddAISceneWaypoint";
+				if (const MovableObject *actorToSaveMOMoveTarget = actorToSave->GetMOMoveTarget()) {
+					writer.NewPropertyWithValue(addWaypointPropertyName, actorToSaveMOMoveTarget->GetPos());
+				} else {
+					writer.NewPropertyWithValue(addWaypointPropertyName, actorToSave->GetMovePathEnd());
+					for (auto &[waypointPosition, waypointObject] : actorToSave->GetWaypointList()) {
+						writer.NewPropertyWithValue(addWaypointPropertyName, waypointPosition);
+					}
+				}
+			}
+		}
+
+		if (actorToSave->GetDeploymentID()) {
+			writer.NewPropertyWithValue("DeploymentID", actorToSave->GetDeploymentID());
+		}
+
+		for (const MovableObject *inventoryItem : *actorToSave->GetInventory()) {
+			writer.NewProperty("AddInventory");
+			SaveSceneObject(writer, inventoryItem, true, saveFullData);
+		}
+
+		if (saveFullData) {
+			if (const ADoor *aDoorToSave = dynamic_cast<const ADoor *>(sceneObjectToSave)) {
+				WriteHardcodedAttachableOrNone("Door", aDoorToSave->GetDoor());
+			} else if (const AHuman *aHumanToSave = dynamic_cast<const AHuman *>(sceneObjectToSave)) {
+				WriteHardcodedAttachableOrNone("Head", aHumanToSave->GetHead());
+				WriteHardcodedAttachableOrNone("Jetpack", aHumanToSave->GetJetpack());
+				WriteHardcodedAttachableOrNone("FGArm", aHumanToSave->GetFGArm());
+				WriteHardcodedAttachableOrNone("BGArm", aHumanToSave->GetBGArm());
+				WriteHardcodedAttachableOrNone("FGLeg", aHumanToSave->GetFGLeg());
+				WriteHardcodedAttachableOrNone("BGLeg", aHumanToSave->GetBGLeg());
+			} else if (const ACrab *aCrabToSave = dynamic_cast<const ACrab *>(sceneObjectToSave)) {
+				WriteHardcodedAttachableOrNone("Turret", aCrabToSave->GetTurret());
+				WriteHardcodedAttachableOrNone("Jetpack", aCrabToSave->GetJetpack());
+				WriteHardcodedAttachableOrNone("LeftFGLeg", aCrabToSave->GetLeftFGLeg());
+				WriteHardcodedAttachableOrNone("LeftBGLeg", aCrabToSave->GetLeftBGLeg());
+				WriteHardcodedAttachableOrNone("RightFGLeg", aCrabToSave->GetRightFGLeg());
+				WriteHardcodedAttachableOrNone("RightBGLeg", aCrabToSave->GetRightBGLeg());
+			} else if (const ACRocket *acRocketToSave = dynamic_cast<const ACRocket *>(sceneObjectToSave)) {
+				WriteHardcodedAttachableOrNone("RightLeg", acRocketToSave->GetRightLeg());
+				WriteHardcodedAttachableOrNone("LeftLeg", acRocketToSave->GetLeftLeg());
+				WriteHardcodedAttachableOrNone("MainThruster", acRocketToSave->GetMainThruster());
+				WriteHardcodedAttachableOrNone("RightThruster", acRocketToSave->GetRightThruster());
+				WriteHardcodedAttachableOrNone("LeftThruster", acRocketToSave->GetLeftThruster());
+				WriteHardcodedAttachableOrNone("UpRightThruster", acRocketToSave->GetURightThruster());
+				WriteHardcodedAttachableOrNone("UpRightThruster", acRocketToSave->GetULeftThruster());
+			} else if (const ACDropShip *acDropShipToSave = dynamic_cast<const ACDropShip *>(sceneObjectToSave)) {
+				WriteHardcodedAttachableOrNone("RightThruster", acDropShipToSave->GetRightThruster());
+				WriteHardcodedAttachableOrNone("LeftThruster", acDropShipToSave->GetLeftThruster());
+				WriteHardcodedAttachableOrNone("UpRightThruster", acDropShipToSave->GetURightThruster());
+				WriteHardcodedAttachableOrNone("UpLeftThruster", acDropShipToSave->GetULeftThruster());
+				WriteHardcodedAttachableOrNone("RightHatchDoor", acDropShipToSave->GetRightHatch());
+				WriteHardcodedAttachableOrNone("LeftHatchDoor", acDropShipToSave->GetLeftHatch());
+			}
+		} else if (const AHuman *aHumanToSave = dynamic_cast<const AHuman *>(sceneObjectToSave)) {
+			if (const HeldDevice *equippedItem = aHumanToSave->GetEquippedItem()) {
+				writer.NewProperty("AddInventory");
+				SaveSceneObject(writer, equippedItem, true, saveFullData);
+			}
+			if (const HeldDevice *bgEquippedItem = aHumanToSave->GetEquippedBGItem()) {
+				writer.NewProperty("AddInventory");
+				SaveSceneObject(writer, bgEquippedItem, true, saveFullData);
+			}
+		}
+	}
+	writer.ObjectEnd();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Destroy
@@ -1634,27 +1712,27 @@ int Scene::Save(Writer &writer) const
 void Scene::Destroy(bool notInherited)
 {
     delete m_pTerrain;
-    delete m_pPathFinder;
 
-    for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player)
+    for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
         delete m_ResidentBrains[player];
+    }
 
     for (int set = PLACEONLOAD; set < PLACEDSETSCOUNT; ++set)
     {
-        for (list<SceneObject *>::iterator oItr = m_PlacedObjects[set].begin(); oItr != m_PlacedObjects[set].end(); ++oItr)
+        for (std::list<SceneObject *>::iterator oItr = m_PlacedObjects[set].begin(); oItr != m_PlacedObjects[set].end(); ++oItr)
         {
             delete (*oItr);
             *oItr = 0;
         }
     }
 
-    for (list<SceneLayer *>::iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr)
+    for (std::list<SLBackground *>::iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr)
     {
         delete (*slItr);
         *slItr = 0;
     }
 
-	for (list<Deployment *>::iterator slItr = m_Deployments.begin(); slItr != m_Deployments.end(); ++slItr)
+	for (std::list<Deployment *>::iterator slItr = m_Deployments.begin(); slItr != m_Deployments.end(); ++slItr)
 	{
 		delete (*slItr);
 		*slItr = 0;
@@ -1751,7 +1829,7 @@ void Scene::ClearSeenPixels(int team)
         // Clear all the pixels off the map, set them to key color
         if (m_apUnseenLayer[team])
         {
-            for (list<Vector>::iterator itr = m_SeenPixels[team].begin(); itr != m_SeenPixels[team].end(); ++itr)
+            for (std::list<Vector>::iterator itr = m_SeenPixels[team].begin(); itr != m_SeenPixels[team].end(); ++itr)
             {
                 putpixel(m_apUnseenLayer[team]->GetBitmap(), (*itr).m_X, (*itr).m_Y, g_MaskColor);
 
@@ -1771,7 +1849,7 @@ void Scene::ClearSeenPixels(int team)
         m_SeenPixels[team].clear();
 
         // Transfer all cleaned pixels from orphans to the seen pixels for next frame
-        for (list<Vector>::iterator itr = m_CleanedPixels[team].begin(); itr != m_CleanedPixels[team].end(); ++itr)
+        for (std::list<Vector>::iterator itr = m_CleanedPixels[team].begin(); itr != m_CleanedPixels[team].end(); ++itr)
             m_SeenPixels[team].push_back(*itr);
 
         // We have moved the cleaned pixels to the seen pixels list, now clean up the list for next frame
@@ -1792,7 +1870,7 @@ bool Scene::CleanOrphanPixel(int posX, int posY, NeighborDirection checkingFrom,
         return false;
 
     // Do any necessary wrapping
-    m_apUnseenLayer[team]->WrapPosition(posX, posY, false);
+    m_apUnseenLayer[team]->WrapPosition(posX, posY);
 
     // First check the actual position of the checked pixel, it may already been seen.
     if (getpixel(m_apUnseenLayer[team]->GetBitmap(), posX, posY) == g_MaskColor)
@@ -1805,56 +1883,56 @@ bool Scene::CleanOrphanPixel(int posX, int posY, NeighborDirection checkingFrom,
     {
         testPosX = posX + 1;
         testPosY = posY;
-        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY, false);
+        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY);
         support += getpixel(m_apUnseenLayer[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 1 : 0;
     }
     if (checkingFrom != W)
     {
         testPosX = posX - 1;
         testPosY = posY;
-        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY, false);
+        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY);
         support += getpixel(m_apUnseenLayer[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 1 : 0;
     }
     if (checkingFrom != S)
     {
         testPosX = posX;
         testPosY = posY + 1;
-        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY, false);
+        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY);
         support += getpixel(m_apUnseenLayer[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 1 : 0;
     }
     if (checkingFrom != N)
     {
         testPosX = posX;
         testPosY = posY - 1;
-        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY, false);
+        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY);
         support += getpixel(m_apUnseenLayer[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 1 : 0;
     }
     if (checkingFrom != SE)
     {
         testPosX = posX + 1;
         testPosY = posY + 1;
-        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY, false);
+        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY);
         support += getpixel(m_apUnseenLayer[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 0.5f : 0;
     }
     if (checkingFrom != SW)
     {
         testPosX = posX - 1;
         testPosY = posY + 1;
-        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY, false);
+        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY);
         support += getpixel(m_apUnseenLayer[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 0.5f : 0;
     }
     if (checkingFrom != NW)
     {
         testPosX = posX - 1;
         testPosY = posY - 1;
-        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY, false);
+        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY);
         support += getpixel(m_apUnseenLayer[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 0.5f : 0;
     }
     if (checkingFrom != NE)
     {
         testPosX = posX + 1;
         testPosY = posY - 1;
-        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY, false);
+        m_apUnseenLayer[team]->WrapPosition(testPosX, testPosY);
         support += getpixel(m_apUnseenLayer[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 0.5f : 0;
     }
 
@@ -1864,37 +1942,46 @@ bool Scene::CleanOrphanPixel(int posX, int posY, NeighborDirection checkingFrom,
         putpixel(m_apUnseenLayer[team]->GetBitmap(), posX, posY, g_MaskColor);
         m_CleanedPixels[team].push_back(Vector(posX, posY));
         return true;
-    }    
+    }
 
     return false;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetDimensions
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the total dimensions (width and height) of the scene, in pixels.
-
-Vector Scene::GetDimensions() const
-{
-    return (m_pTerrain && m_pTerrain->GetBitmap()) ? Vector(m_pTerrain->GetBitmap()->w, m_pTerrain->GetBitmap()->h) : Vector();
+Vector Scene::GetDimensions() const {
+	if (m_pTerrain) {
+		if (const BITMAP *terrainBitmap = m_pTerrain->GetBitmap()) {
+			return Vector(static_cast<float>(terrainBitmap->w), static_cast<float>(terrainBitmap->h));
+		}
+		return Vector(static_cast<float>(m_pTerrain->GetWidth()), static_cast<float>(m_pTerrain->GetHeight()));
+	}
+	return Vector();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetWidth
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the total width of the scene, in pixels.
+int Scene::GetWidth() const {
+	if (m_pTerrain) {
+		if (const BITMAP *terrainBitmap = m_pTerrain->GetBitmap()) {
+			return terrainBitmap->w;
+		}
+		return m_pTerrain->GetWidth();
+	}
+	return 0;
+}
 
-int Scene::GetWidth() const { return (m_pTerrain && m_pTerrain->GetBitmap()) ? m_pTerrain->GetBitmap()->w : 0; }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetHeight
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the total height of the scene, in pixels.
-
-int Scene::GetHeight() const { return (m_pTerrain && m_pTerrain->GetBitmap()) ? m_pTerrain->GetBitmap()->h : 0; }
+int Scene::GetHeight() const {
+	if (m_pTerrain) {
+		if (const BITMAP *terrainBitmap = m_pTerrain->GetBitmap()) {
+			return terrainBitmap->h;
+		}
+		return m_pTerrain->GetHeight();
+	}
+	return 0;
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -2001,26 +2088,19 @@ int Scene::RetrieveResidentBrains(Activity &oldActivity)
     return found;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RetrieveActorsAndDevices
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sucks up all the Actors and Devices currently active in MovableMan and
-//                  puts them into this' list of objects to place on next load.
-//                  Should be done AFTER RetrieveResidentBrains!
-
-int Scene::RetrieveActorsAndDevices(int onlyTeam, bool noBrains)
-{
+int Scene::RetrieveSceneObjects(bool transferOwnership, int onlyTeam, bool noBrains) {
     int found = 0;
-    
-    // Suck out all the Actors from the MovableMan - TAKING OVER ownership
-    found += g_MovableMan.EjectAllActors(m_PlacedObjects[PLACEONLOAD], onlyTeam, noBrains);
-    // Suck out all the Items from the MovableMan - TAKING OVER ownership
-    found += g_MovableMan.EjectAllItems(m_PlacedObjects[PLACEONLOAD]);
+
+    found += g_MovableMan.GetAllActors(transferOwnership, m_PlacedObjects[PlacedObjectSets::PLACEONLOAD], onlyTeam, noBrains);
+    found += g_MovableMan.GetAllItems(transferOwnership, m_PlacedObjects[PlacedObjectSets::PLACEONLOAD]);
+    found += g_MovableMan.GetAllParticles(transferOwnership, m_PlacedObjects[PlacedObjectSets::PLACEONLOAD]);
 
     return found;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          AddPlacedObject
@@ -2042,7 +2122,7 @@ void Scene::AddPlacedObject(int whichSet, SceneObject *pObjectToAdd, int listOrd
     else
     {
         // Find the spot
-        list<SceneObject *>::iterator itr = m_PlacedObjects[whichSet].begin();
+        std::list<SceneObject *>::iterator itr = m_PlacedObjects[whichSet].begin();
         for (int i = 0; i != listOrder && itr != m_PlacedObjects[whichSet].end(); ++i, ++itr)
             ;
 
@@ -2070,7 +2150,7 @@ void Scene::RemovePlacedObject(int whichSet, int whichToRemove)
     else
     {
         // Find the spot
-        list<SceneObject *>::iterator itr = m_PlacedObjects[whichSet].begin();
+        std::list<SceneObject *>::iterator itr = m_PlacedObjects[whichSet].begin();
         for (int i = 0; i != whichToRemove && itr != m_PlacedObjects[whichSet].end(); ++i, ++itr)
             ;
 
@@ -2090,7 +2170,7 @@ const SceneObject * Scene::PickPlacedObject(int whichSet, Vector &scenePoint, in
 {
     // REVERSE!
     int i = m_PlacedObjects[whichSet].size() - 1;
-    for (list<SceneObject *>::const_reverse_iterator itr = m_PlacedObjects[whichSet].rbegin(); itr != m_PlacedObjects[whichSet].rend(); ++itr, --i)
+    for (std::list<SceneObject *>::const_reverse_iterator itr = m_PlacedObjects[whichSet].rbegin(); itr != m_PlacedObjects[whichSet].rend(); ++itr, --i)
     {
         if ((*itr)->IsOnScenePoint(scenePoint))
         {
@@ -2123,20 +2203,20 @@ const SceneObject * Scene::PickPlacedObject(int whichSet, Vector &scenePoint, in
 const SceneObject * Scene::PickPlacedActorInRange(int whichSet, Vector &scenePoint, int range, int *pListOrderPlace) const
 {
 	SceneObject * pFoundObject = 0;
-	float distance = range;
-	
+	float sqrDistance = static_cast<float>(range * range);
+
 	// REVERSE!
     int i = m_PlacedObjects[whichSet].size() - 1;
-    for (list<SceneObject *>::const_reverse_iterator itr = m_PlacedObjects[whichSet].rbegin(); itr != m_PlacedObjects[whichSet].rend(); ++itr, --i)
+    for (std::list<SceneObject *>::const_reverse_iterator itr = m_PlacedObjects[whichSet].rbegin(); itr != m_PlacedObjects[whichSet].rend(); ++itr, --i)
     {
 		if (dynamic_cast<const Actor *>(*itr))
 		{
-			float d = g_SceneMan.ShortestDistance((*itr)->GetPos(), scenePoint, true).GetMagnitude();
-			if (d < distance)
+			float sqrCheckDistance = g_SceneMan.ShortestDistance((*itr)->GetPos(), scenePoint, true).GetSqrMagnitude();
+			if (sqrCheckDistance < sqrDistance)
 			{
 				if (pListOrderPlace)
 					*pListOrderPlace = i;
-				distance = d;
+				sqrDistance = sqrCheckDistance;
 				pFoundObject = *itr;
 			}
 		}
@@ -2167,7 +2247,7 @@ void Scene::UpdatePlacedObjects(int whichSet)
                 m_ResidentBrains[player]->Update();
     }
 
-    for (list<SceneObject *>::iterator itr = m_PlacedObjects[whichSet].begin(); itr != m_PlacedObjects[whichSet].end(); ++itr)
+    for (std::list<SceneObject *>::iterator itr = m_PlacedObjects[whichSet].begin(); itr != m_PlacedObjects[whichSet].end(); ++itr)
     {
         (*itr)->Update();
     }
@@ -2179,17 +2259,16 @@ void Scene::UpdatePlacedObjects(int whichSet)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Removes all entries in a specific set of placed Objects.
 
-int Scene::ClearPlacedObjectSet(int whichSet)
+int Scene::ClearPlacedObjectSet(int whichSet, bool weHaveOwnership)
 {
-    int count = 0;
-    for (list<SceneObject *>::iterator itr = m_PlacedObjects[whichSet].begin(); itr != m_PlacedObjects[whichSet].end(); ++itr)
-    {
-        delete *itr;
-        (*itr) = 0;
-        ++count;
+    if (weHaveOwnership) {
+        for (std::list<SceneObject *>::iterator itr = m_PlacedObjects[whichSet].begin(); itr != m_PlacedObjects[whichSet].end(); ++itr) {
+            delete *itr;
+        }
     }
-    m_PlacedObjects[whichSet].clear();
 
+    int count = m_PlacedObjects[whichSet].size();
+    m_PlacedObjects[whichSet].clear();
     return count;
 }
 
@@ -2205,7 +2284,7 @@ SceneObject * Scene::GetResidentBrain(int player) const
 //    if (m_ResidentBrains[player])
         return m_ResidentBrains[player];
 
-//    for (list<SceneObject *>::iterator itr = m_PlacedObjects[PLACEONLOAD].begin(); itr != m_PlacedObjects[PLACEONLOAD].end(); ++itr)
+//    for (std::list<SceneObject *>::iterator itr = m_PlacedObjects[PLACEONLOAD].begin(); itr != m_PlacedObjects[PLACEONLOAD].end(); ++itr)
 //    {
 //        (*itr)->teamUpdate();
 //    }
@@ -2249,7 +2328,7 @@ int Scene::GetResidentBrainCount() const
 
 bool Scene::SetArea(Area &newArea)
 {
-    for (list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
+    for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
     {
         // Try to find an existing area of the same name
         if ((*aItr).GetName() == newArea.GetName())
@@ -2273,9 +2352,9 @@ bool Scene::SetArea(Area &newArea)
 // Description:     Checks for the existence of a specific Area identified by a name.
 //                  This won't throw any errors to the console if the Area isn't found.
 
-bool Scene::HasArea(string areaName)
+bool Scene::HasArea(std::string areaName)
 {
-    for (list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
+    for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
     {
         if ((*aItr).GetName() == areaName)
             return true;
@@ -2310,7 +2389,7 @@ Scene::Area * Scene::GetArea(const std::string_view &areaName, bool luaWarnNotEr
 
 bool Scene::RemoveArea(std::string areaName)
 {
-    for (list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
+    for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
     {
         if ((*aItr).GetName() == areaName)
         {
@@ -2329,12 +2408,12 @@ bool Scene::RemoveArea(std::string areaName)
 //                  no Area of the name is found, this just returns false without error.
 // Arguments:       The name of the Area to try to check against.
 
-bool Scene::WithinArea(string areaName, const Vector &point) const
+bool Scene::WithinArea(std::string areaName, const Vector &point) const
 {
     if (areaName.empty())
         return false;
 
-    for (list<Area>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
+    for (std::list<Area>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr)
     {
         if ((*aItr).GetName() == areaName && (*aItr).IsInside(point))
             return true;
@@ -2356,7 +2435,7 @@ void Scene::SetTeamOwnership(int newTeam)
     // Go through all the things placed and make sure they are all set to the new owner team
     for (int set = PLACEONLOAD; set <= AIPLAN; ++set)
     {
-        for (list<SceneObject *>::const_iterator bpItr = m_PlacedObjects[set].begin(); bpItr != m_PlacedObjects[set].end(); ++bpItr)
+        for (std::list<SceneObject *>::const_iterator bpItr = m_PlacedObjects[set].begin(); bpItr != m_PlacedObjects[set].end(); ++bpItr)
         {
             if (*bpItr)
                 (*bpItr)->SetTeam(m_OwnedByTeam);
@@ -2401,9 +2480,9 @@ float Scene::CalcBuildBudgetUse(int player, int *pAffordCount, int *pAffordAIPla
     // The last resident brain that is encountered in the building list, starting with the preexisting resident brain. Not owned here
     SceneObject *pLastBrain = m_ResidentBrains[player];
     // The total list of objects that WILL be placed as the building phase goes on for real - nothing is owned by this!
-    list<SceneObject *> virtualPlacedList;
+    std::list<SceneObject *> virtualPlacedList;
     // Add all the already placed objects int he scene to it; then we'll add the objects that would be placed this round - ownership is NOT passed
-    for (list<SceneObject *>::const_iterator placedItr = m_PlacedObjects[PLACEONLOAD].begin(); placedItr != m_PlacedObjects[PLACEONLOAD].end(); ++placedItr)
+    for (std::list<SceneObject *>::const_iterator placedItr = m_PlacedObjects[PLACEONLOAD].begin(); placedItr != m_PlacedObjects[PLACEONLOAD].end(); ++placedItr)
         virtualPlacedList.push_back(*placedItr);
 
     // First go through the blueprints that are already placed, THEN go through the AI plan objects if we are specified to
@@ -2416,10 +2495,10 @@ float Scene::CalcBuildBudgetUse(int player, int *pAffordCount, int *pAffordAIPla
         // Two passes, one for only things placed by this player, second to see if we can still afford any placed by teammates
         for (int pass = 0; pass < 2; ++pass)
         {
-            for (list<SceneObject *>::const_iterator bpItr = m_PlacedObjects[set].begin(); bpItr != m_PlacedObjects[set].end(); ++bpItr)
+            for (std::list<SceneObject *>::const_iterator bpItr = m_PlacedObjects[set].begin(); bpItr != m_PlacedObjects[set].end(); ++bpItr)
             {
                 // Skip objects on the first pass that aren't placed by this player
-                // Skip objects on the second pass that WERE placed by this player.. because we already counted them 
+                // Skip objects on the second pass that WERE placed by this player.. because we already counted them
                 if ((pass == 0 && (*bpItr)->GetPlacedByPlayer() != player) ||
                     (pass == 1 && (*bpItr)->GetPlacedByPlayer() == player))
                     continue;
@@ -2600,8 +2679,8 @@ float Scene::ApplyBuildBudget(int player, int *pObjectsBuilt)
     int placedCount = 0;
     float fundsSpent = 0;
     float objectCost = 0;
-    list<SceneObject *>::iterator bpItr;
-    list<SceneObject *>::iterator delItr;
+    std::list<SceneObject *>::iterator bpItr;
+    std::list<SceneObject *>::iterator delItr;
     SceneObject *pObjectToPlace = 0;
     Deployment *pDeployment = 0;
     // The last resident brain that is encountered in the building list, starting with the preexisting resident brain. Not owned here
@@ -2818,8 +2897,8 @@ int Scene::RemoveAllPlacedActors(int exceptTeam)
 
     bool remove = false;
     Actor *pActor = 0;
-    list<SceneObject *>::iterator soItr;
-    list<SceneObject *>::iterator delItr;
+    std::list<SceneObject *>::iterator soItr;
+    std::list<SceneObject *>::iterator delItr;
 
     // Scrub both blueprints and the stuff that is already bought and about to be placed on loading the scene
     for (int set = PLACEONLOAD; set <= BLUEPRINT; ++set)
@@ -2865,7 +2944,7 @@ int Scene::SetOwnerOfAllDoors(int team, int player)
     int changedCount = 0;
 
     ADoor *pDoor = 0;
-    list<SceneObject *>::iterator soItr;
+    std::list<SceneObject *>::iterator soItr;
 
     // Affect both blueprints and the stuff that is already bought and about to be placed on loading the scene
     for (int set = PLACEONLOAD; set <= BLUEPRINT; ++set)
@@ -2894,10 +2973,13 @@ int Scene::SetOwnerOfAllDoors(int team, int player)
 // Description:     Recalculates all of the pathfinding data. This is very expensive, so
 //                  do very rarely!
 
-void Scene::ResetPathFinding()
-{
-    if (m_pPathFinder)
-        m_pPathFinder->RecalculateAllCosts();
+void Scene::ResetPathFinding() {
+	GetPathFinder(Activity::Teams::NoTeam)->RecalculateAllCosts();
+	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+		g_MovableMan.OverrideMaterialDoors(true, team);
+		GetPathFinder(static_cast<Activity::Teams>(team))->RecalculateAllCosts();
+		g_MovableMan.OverrideMaterialDoors(false, team);
+	}
 }
 
 
@@ -2909,8 +2991,34 @@ void Scene::ResetPathFinding()
 
 void Scene::UpdatePathFinding()
 {
-    m_pPathFinder->RecalculateAreaCosts(m_pTerrain->GetUpdatedMaterialAreas());
-    m_pTerrain->ClearUpdatedAreas();
+    constexpr int nodeUpdatesPerCall = 100;
+    constexpr int maxUnupdatedMaterialAreas = 1000;
+
+    int nodesToUpdate = nodeUpdatesPerCall / g_ActivityMan.GetActivity()->GetTeamCount();
+    if (m_pTerrain->GetUpdatedMaterialAreas().size() > maxUnupdatedMaterialAreas) {
+        // Our list of boxes is getting too big and a bit out of hand, so clear everything.
+        nodesToUpdate = std::numeric_limits<int>::max();
+    }
+
+    // Update our shared pathFinder
+    std::vector<int> updatedNodes = GetPathFinder(Activity::Teams::NoTeam)->RecalculateAreaCosts(m_pTerrain->GetUpdatedMaterialAreas(), nodesToUpdate);
+    if (!updatedNodes.empty()) {
+        // Update each team's pathFinder
+        for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+            if (!g_ActivityMan.ActivityRunning() || !g_ActivityMan.GetActivity()->TeamActive(team)) {
+                continue;
+            }
+
+            // Remove the material representation of all doors of this team so we can navigate through them (they'll open for us).
+            g_MovableMan.OverrideMaterialDoors(true, team);
+
+            GetPathFinder(static_cast<Activity::Teams>(team))->UpdateNodeList(updatedNodes);
+
+            // Place back the material representation of all doors of this team so they are as we found them.
+            g_MovableMan.OverrideMaterialDoors(false, team);
+        }
+    }
+
     m_PartialPathUpdateTimer.Reset();
     m_PathfindingUpdated = true;
 }
@@ -2922,52 +3030,17 @@ void Scene::UpdatePathFinding()
 // Description:     Calculates and returns the least difficult path between two points on
 //                  the current scene. Takes both distance and materials into account.
 
-float Scene::CalculatePath(const Vector &start, const Vector &end, std::list<Vector> &pathResult, float digStrenght)
-{
+float Scene::CalculatePath(const Vector &start, const Vector &end, std::list<Vector> &pathResult, float digStrength, Activity::Teams team) {
     float totalCostResult = -1;
-    if (m_pPathFinder)
-    {
-        int result = m_pPathFinder->CalculatePath(start, end, pathResult, totalCostResult, digStrenght);
+
+    if (const std::unique_ptr<PathFinder> &pathFinder = GetPathFinder(team)) {
+        int result = pathFinder->CalculatePath(start, end, pathResult, totalCostResult, digStrength);
 
         // It's ok if start and end nodes happen to be the same, the exact pixel locations are added at the front and end of the result regardless
         return (result == micropather::MicroPather::SOLVED || result == micropather::MicroPather::START_END_SAME) ? totalCostResult : -1;
     }
 
     return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CalculateScenePath
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates the least difficult path between two points on
-//                  the current scene. Takes both distance and materials into account.
-//                  A list of waypoints can be retrived from m_ScenePath;
-//                  For exposing CalculatePath to Lua.
-
-int Scene::CalculateScenePath(const Vector start, const Vector end, bool movePathToGround, float digStrength)
-{
-    int pathSize = -1;
-    if (m_pPathFinder)
-    {
-        float notUsed;
-        m_pPathFinder->CalculatePath(start, end, m_ScenePath, notUsed, digStrength);
-
-        // Process the new path we now have, if any
-        if (!m_ScenePath.empty())
-        {
-            pathSize = m_ScenePath.size();
-            if (movePathToGround)
-            {
-                // Smash all airborne waypoints down to just above the ground
-                list<Vector>::iterator finalItr = m_ScenePath.end();
-                for (list<Vector>::iterator lItr = m_ScenePath.begin(); lItr != finalItr; ++lItr)
-                    (*lItr) = g_SceneMan.MovePointToGround((*lItr), 20, 15);
-            }
-        }
-    }
-    
-    return pathSize;
 }
 
 
@@ -3027,7 +3100,7 @@ void Scene::Update()
 		{
 			if (m_apUnseenLayer[team])
 			{
-				for (list<Vector>::iterator itr = m_SeenPixels[team].begin(); itr != m_SeenPixels[team].end(); ++itr)
+				for (std::list<Vector>::iterator itr = m_SeenPixels[team].begin(); itr != m_SeenPixels[team].end(); ++itr)
 				{
 					putpixel(m_apUnseenLayer[team]->GetBitmap(), (*itr).m_X, (*itr).m_Y, g_WhiteColor);
 				}
@@ -3035,17 +3108,17 @@ void Scene::Update()
 		}
 	}
 
-    // Do full update every two minutes
-    if (m_FullPathUpdateTimer.IsPastSimMS(120000))
-    {
-        m_pPathFinder->RecalculateAllCosts();
-        m_FullPathUpdateTimer.Reset();
-        m_PathfindingUpdated = true;
-    }
-
-    // Do partial update every 10 seconds
-    if (m_PartialPathUpdateTimer.IsPastRealMS(10000))
+    // Occasionally update pathfinding. There's a tradeoff between how often updates occur vs how big the multithreaded batched node lists to update are.
+    if (m_PartialPathUpdateTimer.IsPastRealMS(100)) {
         UpdatePathFinding();
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::unique_ptr<PathFinder>& Scene::GetPathFinder(Activity::Teams team) {
+	// Note - we use + 1 when getting pathfinders by index, because our shared NoTeam pathfinder occupies index 0, and the rest come after that.
+	return m_pPathFinders[static_cast<int>(team) + 1];
 }
 
 } // namespace RTE

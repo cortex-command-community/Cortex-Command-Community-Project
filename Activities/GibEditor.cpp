@@ -12,6 +12,8 @@
 // Inclusions of header files
 
 #include "GibEditor.h"
+
+#include "WindowMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "UInputMan.h"
@@ -28,14 +30,8 @@
 #include "DataModule.h"
 
 #include "GUI.h"
-#include "GUIFont.h"
-#include "AllegroScreen.h"
 #include "AllegroBitmap.h"
-#include "AllegroInput.h"
-#include "GUIControlManager.h"
 #include "GUICollectionBox.h"
-#include "GUITab.h"
-#include "GUIListBox.h"
 #include "GUITextBox.h"
 #include "GUIButton.h"
 #include "GUILabel.h"
@@ -177,7 +173,7 @@ int GibEditor::Start()
     // Resize the invisible root container so it matches the screen rez
     GUICollectionBox *pRootBox = dynamic_cast<GUICollectionBox *>(m_pGUIController->GetControl("base"));
     if (pRootBox)
-        pRootBox->SetSize(g_FrameMan.GetResX(), g_FrameMan.GetResY());
+        pRootBox->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
     // Make sure we have convenient points to the containing GUI dialog boxes that we will manipulate the positions of
     if (!m_pNewDialogBox)
@@ -270,7 +266,7 @@ void GibEditor::End()
 {
     EditorActivity::End();
 
-    
+
 
     m_ActivityState = ActivityState::Over;
 }
@@ -338,7 +334,7 @@ void GibEditor::Update()
                 // Clear out the terrain after a few tests
                 if (m_TestCounter >= 3)
                 {
-                    g_SceneMan.GetScene()->GetTerrain()->ClearAllMaterial();
+					ClearTestArea();
                     m_TestCounter = 0;
                 }
                 // Clear all crap still flying around
@@ -379,7 +375,7 @@ void GibEditor::Update()
     m_NeedSave = m_NeedSave || m_pEditorGUI->EditMade();
 
     // Get any mode change commands that the user gave the Editor GUI
-    if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::PieSliceIndex::PSI_NEW && m_EditorMode != NEWDIALOG)
+    if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorNew && m_EditorMode != NEWDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(GibEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::NEWDIALOG;
@@ -393,14 +389,14 @@ void GibEditor::Update()
         m_EditorMode = EditorActivity::LOADDIALOG;
         m_ModeChange = true;
     }
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::PieSliceIndex::PSI_SAVE && m_EditorMode != SAVEDIALOG)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorSave && m_EditorMode != SAVEDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(GibEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::SAVEDIALOG;
         m_ModeChange = true;
     }
     // Test the object by allowing the player to gib temporary test copy instances of the edited object
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::PieSliceIndex::PSI_DONE)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorDone)
     {
         // Make the copy of the current edited object
         delete m_pTestingObject;
@@ -513,11 +509,11 @@ void GibEditor::Update()
                     m_pEditedObject->Update();
 
                     // Make proxy copies of the loaded objects' gib reference instances and place them in the list to be edited
-                    list<Gib> *pLoadedGibList = m_pEditedObject->GetGibList();
-                    list<MovableObject *> *pEditedGibList = m_pEditorGUI->GetPlacedGibs();
+                    std::list<Gib> *pLoadedGibList = m_pEditedObject->GetGibList();
+                    std::list<MovableObject *> *pEditedGibList = m_pEditorGUI->GetPlacedGibs();
                     MovableObject *pGibCopy = 0;
 
-                    for (list<Gib>::iterator gItr = pLoadedGibList->begin(); gItr != pLoadedGibList->end(); ++gItr)
+                    for (std::list<Gib>::iterator gItr = pLoadedGibList->begin(); gItr != pLoadedGibList->end(); ++gItr)
                     {
                         pGibCopy = dynamic_cast<MovableObject *>((*gItr).GetParticlePreset()->Clone());
                         if (pGibCopy)
@@ -529,7 +525,7 @@ void GibEditor::Update()
                     }
 
                     // Clear out the testing area
-                    g_SceneMan.GetScene()->GetTerrain()->ClearAllMaterial();
+					ClearTestArea();
                     m_TestCounter = 0;
 
                     m_pObjectToLoad = 0;
@@ -685,7 +681,7 @@ void GibEditor::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int whic
         // Draw ghost outline of edited object to place gibs upon
         if (m_pEditedObject)
         {
-            g_FrameMan.SetTransTable(MoreTrans);
+            g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
             // Draw only the MOSRotating since that's all we are adding gibs for; any attachables have to be edited separately
             m_pEditedObject->MOSRotating::Draw(pTargetBitmap, targetPos, g_DrawTrans, true);
         }
@@ -707,93 +703,69 @@ void GibEditor::Draw(BITMAP *pTargetBitmap, const Vector &targetPos)
     EditorActivity::Draw(pTargetBitmap, targetPos);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SaveObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Saves the current object to an appropriate ini file, and asks user if
-//                  they want to overwrite first if object of this name exists.
+bool GibEditor::SaveObject(const std::string &saveAsName, bool forceOverwrite) {
+	if (!m_pEditedObject) {
+		return false;
+	}
+	m_pEditedObject->SetPresetName(saveAsName);
 
-bool GibEditor::SaveObject(string saveAsName, bool forceOverwrite)
-{
-    if (!m_pEditedObject)
-        return false;
+	// Replace the gibs of the object with the proxies that have been edited in the GUI.
+	StuffEditedGibs(m_pEditedObject);
 
-    // Set the name of the current object in effect
-    m_pEditedObject->SetPresetName(saveAsName);
+	std::string dataModuleName = g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName();
+	std::string dataModuleFullPath = g_PresetMan.GetFullModulePath(dataModuleName);
+	std::string newDataDir = dataModuleFullPath + "/NewData";
+	std::string objectSavePath = newDataDir + "/" + saveAsName + ".ini";
 
-    // Replace the gibs of the object with the proxies that have been edited in the gui
-    StuffEditedGibs(m_pEditedObject);
-
-// TODO: do proper overwriting looking at the files etc
-    // Try to add to the isntance man
-    string objectFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/" + saveAsName + ".ini");
-
-	// Check if file exists
-	bool newDataFileExisted = exists(objectFilePath.c_str());
-
-	// Try to create NewData directory if file does not exist
-	if (!newDataFileExisted)
-	{
-		System::MakeDirectory(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData");
+	if (!System::PathExistsCaseSensitive(newDataDir) && !System::MakeDirectory(newDataDir)) {
+		RTEError::ShowMessageBox("Failed to create NewData directory in:\n\n" + dataModuleFullPath + "\n\nTHE EDITED OBJECT PRESET WAS NOT SAVED!!!");
+		return false;
 	}
 
-    if (g_PresetMan.AddEntityPreset(m_pEditedObject, m_ModuleSpaceID, forceOverwrite, objectFilePath))
-// TEMP always overwrite for now until proper save system is in place
-//    if (g_PresetMan.AddEntityPreset(m_pEditedObject, m_ModuleSpaceID, true))
-    {
-        // Does ini already exist? If yes, then no need to add it to a objects.ini etc
-        bool objectFileExisted = exists(objectFilePath.c_str());
-        // If the ini file already exists, and then ask if overwrite first
-        if (objectFileExisted && !forceOverwrite)
-        {
-            // Gotto ask if we can overwrite the existing object/file
-            m_PreviousMode = EditorActivity::SAVEDIALOG;
-            m_EditorMode = EditorActivity::OVERWRITEDIALOG;
-            m_ModeChange = true;
-            return false;
-        }
-        // Create the writer
-        Writer objectWriter(objectFilePath.c_str(), false);
-        RTEAssert(objectWriter.WriterOK(), "Couldn't open file " + objectFilePath + "to write to! Check if directory exists..?");
-        objectWriter.NewProperty("AddObject");
-        // Write the object out to the new ini
-        m_pEditedObject->MOSRotating::Save(objectWriter);
-        objectWriter.ObjectEnd();
-        // TODO: Make system for saving into/over the existing definition read originally from the ini's, wherever it was
-        /*
-                if (!objectFileExisted)
-                {
-                    // First find/create  a .rte/Scenes.ini file to include the new .ini into
-                    string objectsFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes.ini");
-                    bool objectsFileExisted = exists(objectsFilePath.c_str());
-                    Writer objectsWriter(objectsFilePath.c_str(), true);
-                    objectsWriter.NewProperty("\nIncludeFile");
-                    objectsWriter << objectFilePath;
+	// Force overwrite the stored preset so we aren't prompted to every time for every preset. This doesn't screw with the original ini because there's no system for that in place
+	// and doesn't actually get loaded on the next game start either, so any changes will be discarded at the end of the current runtime.
+	if (g_PresetMan.AddEntityPreset(m_pEditedObject, m_ModuleSpaceID, true, objectSavePath)) {
+		// Show the overwrite dialog only when actually overwriting a saved ini in NewData or forcing an overwrite.
+		if (!System::PathExistsCaseSensitive(objectSavePath) || forceOverwrite) {
+			if (Writer objectWriter(objectSavePath, false); !objectWriter.WriterOK()) {
+				RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + objectSavePath + "\n\nTHE EDITED OBJECT PRESET WAS NOT SAVED!!!");
+			} else {
+				std::string addObjectType;
+				switch (m_pEditedObject->GetMOType()) {
+					case MovableObject::MOType::TypeActor:
+						addObjectType = "AddActor";
+						break;
+					case MovableObject::MOType::TypeHeldDevice:
+					case MovableObject::MOType::TypeThrownDevice:
+						addObjectType = "AddDevice";
+						break;
+					default:
+						addObjectType = "AddEffect";
+				}
+				objectWriter.NewProperty(addObjectType);
+				m_pEditedObject->Entity::Save(objectWriter);
+				for (const Gib &gib : *m_pEditedObject->GetGibList()) {
+					objectWriter.NewPropertyWithValue("AddGib", gib);
+				}
+				objectWriter.ObjectEnd();
+				objectWriter.EndWrite();
 
-                    // Also add a line to the end of the modules' Index.ini to include the newly created Scenes.ini next startup
-                    // If it's already included, it doens't matter, the definitions will just bounce the second time
-                    if (!objectsFileExisted)
-                    {
-                        string indexFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Index.ini");
-                        Writer indexWriter(indexFilePath.c_str(), true);
-                        // Add extra tab since the DataModule has everything indented
-                        indexWriter.NewProperty("\tIncludeFile");
-                        indexWriter << objectsFilePath;
-                    }
-                }
-        */
-        return m_HasEverBeenSaved = true;
-    }
-    else
-    {
-        // Gotto ask if we can overwrite the existing object
-        m_PreviousMode = EditorActivity::SAVEDIALOG;
-        m_EditorMode = EditorActivity::OVERWRITEDIALOG;
-        m_ModeChange = true;
-    }
+				m_HasEverBeenSaved = true;
 
-    return false;
+				// TODO: Maybe make system for saving into/over the existing definition read originally from the ini's, wherever it was.
+
+				return true;
+			}
+		} else {
+			// Got to ask if we can overwrite the existing object.
+			m_PreviousMode = EditorMode::SAVEDIALOG;
+			m_EditorMode = EditorMode::OVERWRITEDIALOG;
+			m_ModeChange = true;
+		}
+	}
+	return false;
 }
 
 
@@ -809,12 +781,12 @@ void GibEditor::StuffEditedGibs(MOSRotating *pEditedObject)
         return;
 
     // Replace the gibs of the object with the proxies that have been edited in the gui
-    list<Gib> *pObjectGibList = pEditedObject->GetGibList();
+    std::list<Gib> *pObjectGibList = pEditedObject->GetGibList();
     pObjectGibList->clear();
 
     // Take each proxy object and stuff it into a Gib instance which then gets stuffed into the object to be saved
-    list<MovableObject *> *pProxyGibList = m_pEditorGUI->GetPlacedGibs();
-    for (list<MovableObject *>::iterator gItr = pProxyGibList->begin(); gItr != pProxyGibList->end(); ++gItr)
+    std::list<MovableObject *> *pProxyGibList = m_pEditorGUI->GetPlacedGibs();
+    for (std::list<MovableObject *>::iterator gItr = pProxyGibList->begin(); gItr != pProxyGibList->end(); ++gItr)
     {
         Gib newGib;
         // Only set the refernce instance directly from the isntanceman. OWNERSHIP IS NOT TRANSFERRED!
@@ -955,4 +927,11 @@ void GibEditor::UpdateOverwriteDialog()
         m_pOverwriteNameLabel->SetText(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/" + m_pEditedObject->GetPresetName() + ".ini");
 }
 
-} // namespace RTE
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void GibEditor::ClearTestArea() const {
+		clear_bitmap(g_SceneMan.GetTerrain()->GetFGColorBitmap());
+		clear_bitmap(g_SceneMan.GetTerrain()->GetBGColorBitmap());
+		clear_bitmap(g_SceneMan.GetTerrain()->GetMaterialBitmap());
+	}
+}

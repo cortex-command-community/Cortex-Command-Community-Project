@@ -16,11 +16,13 @@
 /// Data Realms, LLC - http://www.datarealms.com
 /// Cortex Command Community Project - https://github.com/cortex-command-community
 /// Cortex Command Community Project Discord - https://discord.gg/TSU6StNQUG
-/// Cortex Command Center - https://discord.gg/SdNnKJN
 /// </summary>
 
+#include "allegro.h"
+#include "SDL.h"
+
 #include "GUI.h"
-#include "AllegroInput.h"
+#include "GUIInputWrapper.h"
 #include "AllegroScreen.h"
 #include "AllegroBitmap.h"
 
@@ -35,7 +37,9 @@
 #include "UInputMan.h"
 #include "PerformanceMan.h"
 #include "MetaMan.h"
+#include "WindowMan.h"
 #include "NetworkServer.h"
+#include "NetworkClient.h"
 
 extern "C" { FILE __iob_func[3] = { *stdin,*stdout,*stderr }; }
 
@@ -56,6 +60,7 @@ namespace RTE {
 		g_NetworkClient.Initialize();
 		g_TimerMan.Initialize();
 		g_PerformanceMan.Initialize();
+		g_WindowMan.Initialize();
 		g_FrameMan.Initialize();
 		g_PostProcessMan.Initialize();
 
@@ -63,6 +68,7 @@ namespace RTE {
 
 		g_UInputMan.Initialize();
 		g_ConsoleMan.Initialize();
+		g_SceneMan.Initialize();
 		g_MovableMan.Initialize();
 		g_MetaMan.Initialize();
 		g_MenuMan.Initialize();
@@ -70,8 +76,6 @@ namespace RTE {
 		// Overwrite Settings.ini after all the managers are created to fully populate the file. Up until this moment Settings.ini is populated only with minimal required properties to run.
 		// If Settings.ini already exists and is fully populated, this will deal with overwriting it to apply any overrides performed by the managers at boot (e.g resolution validation).
 		if (g_SettingsMan.SettingsNeedOverwrite()) { g_SettingsMan.UpdateSettingsFile(); }
-
-		g_FrameMan.PrintForcedGfxDriverMessage();
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,6 +87,7 @@ namespace RTE {
 		g_NetworkClient.Destroy();
 		g_NetworkServer.Destroy();
 		g_MetaMan.Destroy();
+		g_PerformanceMan.Destroy();
 		g_MovableMan.Destroy();
 		g_SceneMan.Destroy();
 		g_ActivityMan.Destroy();
@@ -124,6 +129,8 @@ namespace RTE {
 
 			if (currentArg == "-cout") { System::EnableLoggingToCLI(); }
 
+			if (currentArg == "-ext-validate") { System::EnableExternalModuleValidationMode(); }
+
 			if (!lastArg && !singleModuleSet && currentArg == "-module") {
 				std::string moduleToLoad = argValue[++i];
 				if (moduleToLoad.find(System::GetModulePackageExtension()) == moduleToLoad.length() - System::GetModulePackageExtension().length()) {
@@ -149,24 +156,65 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/// <summary>
+	/// Polls the SDL event queue and passes events to be handled by the relevant managers.
+	/// </summary>
+	void PollSDLEvents() {
+		SDL_Event sdlEvent;
+		while (SDL_PollEvent(&sdlEvent)) {
+			switch (sdlEvent.type) {
+				case SDL_QUIT:
+					System::SetQuit(true);
+					break;
+				case SDL_WINDOWEVENT:
+					g_WindowMan.HandleWindowEvent(sdlEvent);
+					break;
+				case SDL_KEYUP:
+				case SDL_KEYDOWN:
+				case SDL_TEXTINPUT:
+				case SDL_MOUSEMOTION:
+				case SDL_MOUSEBUTTONUP:
+				case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEWHEEL:
+				case SDL_CONTROLLERAXISMOTION:
+				case SDL_CONTROLLERBUTTONDOWN:
+				case SDL_CONTROLLERBUTTONUP:
+				case SDL_JOYAXISMOTION:
+				case SDL_JOYBUTTONDOWN:
+				case SDL_JOYBUTTONUP:
+				case SDL_JOYDEVICEADDED:
+				case SDL_JOYDEVICEREMOVED:
+					g_UInputMan.QueueInputEvent(sdlEvent);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/// <summary>
 	/// Game menus loop.
 	/// </summary>
 	void RunMenuLoop() {
 		g_UInputMan.DisableKeys(false);
 		g_UInputMan.TrapMousePos(false);
-		g_AudioMan.StopAll();
 
 		while (!System::IsSetToQuit()) {
+			PollSDLEvents();
+
+			g_WindowMan.Update();
+
 			g_UInputMan.Update();
 			g_TimerMan.Update();
 			g_TimerMan.UpdateSim();
 			g_AudioMan.Update();
 
-			if (g_FrameMan.ResolutionChanged()) {
+			if (g_WindowMan.ResolutionChanged()) {
 				g_MenuMan.Reinitialize();
 				g_ConsoleMan.Destroy();
 				g_ConsoleMan.Initialize();
-				g_FrameMan.DestroyTempBackBuffers();
+				g_WindowMan.CompleteResolutionChange();
 			}
 
 			if (g_MenuMan.Update()) {
@@ -176,7 +224,7 @@ namespace RTE {
 
 			g_MenuMan.Draw();
 			g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
-			g_FrameMan.FlipFrameBuffers();
+			g_WindowMan.UploadFrame();
 		}
 	}
 
@@ -189,24 +237,32 @@ namespace RTE {
 		if (System::IsSetToQuit()) {
 			return;
 		}
-		g_PerformanceMan.ResetFrameTimer();
 		g_TimerMan.PauseSim(false);
 
 		if (g_ActivityMan.ActivitySetToRestart() && !g_ActivityMan.RestartActivity()) { g_MenuMan.GetTitleScreen()->SetTitleTransitionState(TitleScreen::TitleTransition::ScrollingFadeIn); }
 
+		long long updateStartTime = 0;
+		long long updateTotalTime = 0;
+		long long updateEndAndDrawStartTime = 0;
+		long long drawStartTime = 0;
+		long long drawTotalTime = 0;
+
 		while (!System::IsSetToQuit()) {
-			// Need to clear this out; sometimes background layers don't cover the whole back.
-			g_FrameMan.ClearBackBuffer8();
+			bool serverUpdated = false;
+			updateStartTime = g_TimerMan.GetAbsoluteTime();
 
 			g_TimerMan.Update();
-
-			bool serverUpdated = false;
 
 			// Simulation update, as many times as the fixed update step allows in the span since last frame draw.
 			while (g_TimerMan.TimeForSimUpdate()) {
 				serverUpdated = false;
-				g_PerformanceMan.NewPerformanceSample();
 
+				PollSDLEvents();
+
+				g_WindowMan.Update();
+
+				g_PerformanceMan.NewPerformanceSample();
+				g_PerformanceMan.UpdateMSPSU();
 				g_TimerMan.UpdateSim();
 
 				g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
@@ -227,6 +283,10 @@ namespace RTE {
 				g_AudioMan.Update();
 
 				g_ActivityMan.LateUpdateGlobalScripts();
+
+				// This is to support hot reloading entities in SceneEditorGUI. It's a bit hacky to put it in Main like this, but PresetMan has no update in which to clear the value, and I didn't want to set up a listener for the job.
+				// It's in this spot to allow it to be set by UInputMan update and ConsoleMan update, and read from ActivityMan update.
+				g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
 
 				g_ConsoleMan.Update();
 				g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
@@ -251,7 +311,8 @@ namespace RTE {
 				}
 				if (g_ActivityMan.ActivitySetToResume()) {
 					g_ActivityMan.ResumeActivity();
-					g_PerformanceMan.ResetFrameTimer();
+					g_PerformanceMan.ResetSimUpdateTimer();
+					updateStartTime = g_TimerMan.GetAbsoluteTime();
 				}
 			}
 
@@ -270,8 +331,15 @@ namespace RTE {
 					}
 				}
 			}
+			updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();
+			updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
+			drawStartTime = updateEndAndDrawStartTime;
+
 			g_FrameMan.Draw();
-			g_FrameMan.FlipFrameBuffers();
+			g_WindowMan.UploadFrame();
+
+			drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
+			g_PerformanceMan.UpdateMSPF(updateTotalTime, drawTotalTime);
 		}
 	}
 }
@@ -282,10 +350,21 @@ namespace RTE {
 /// Implementation of the main function.
 /// </summary>
 int main(int argc, char **argv) {
-	set_config_file("Base.rte/AllegroConfig.txt");
-	allegro_init();
+	install_allegro(SYSTEM_NONE, &errno, std::atexit);
 	loadpng_init();
-	set_close_button_callback(System::WindowCloseButtonHandler);
+
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER);
+
+#if SDL_MINOR_VERSION > 22
+	SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
+#endif
+
+	SDL_ShowCursor(SDL_DISABLE);
+	SDL_SetHint("SDL_ALLOW_TOPMOST", "0");
+
+	if (std::filesystem::exists("Base.rte/gamecontrollerdb.txt")) {
+		SDL_GameControllerAddMappingsFromFile("Base.rte/gamecontrollerdb.txt");
+	}
 
 	System::Initialize();
 	SeedRNG();
@@ -295,24 +374,31 @@ int main(int argc, char **argv) {
 	HandleMainArgs(argc, argv);
 
 	g_PresetMan.LoadAllDataModules();
-	// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.
-	g_UInputMan.LoadDeviceIcons();
 
-	if (g_ConsoleMan.LoadWarningsExist()) {
-		g_ConsoleMan.PrintString("WARNING: References to files that could not be located or failed to load detected during module loading!\nSee \"LogLoadingWarning.txt\" for a list of bad references.");
-		g_ConsoleMan.SaveLoadWarningLog("LogLoadingWarning.txt");
-		// Open the console so the user is aware there are loading warnings.
-		g_ConsoleMan.SetEnabled(true);
-	} else {
-		// Delete an existing log if there are no warnings so there's less junk in the root folder.
-		if (std::filesystem::exists(System::GetWorkingDirectory() + "LogLoadingWarning.txt")) { std::remove("LogLoadingWarning.txt"); }
+	if (!System::IsInExternalModuleValidationMode()) {
+		// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.
+		g_UInputMan.LoadDeviceIcons();
+
+		if (g_ConsoleMan.LoadWarningsExist()) {
+			g_ConsoleMan.PrintString("WARNING: Encountered non-fatal errors during module loading!\nSee \"LogLoadingWarning.txt\" for information.");
+			g_ConsoleMan.SaveLoadWarningLog("LogLoadingWarning.txt");
+			// Open the console so the user is aware there are loading warnings.
+			g_ConsoleMan.SetEnabled(true);
+		} else {
+			// Delete an existing log if there are no warnings so there's less junk in the root folder.
+			if (std::filesystem::exists(System::GetWorkingDirectory() + "LogLoadingWarning.txt")) { std::remove("LogLoadingWarning.txt"); }
+		}
+
+		if (!g_ActivityMan.Initialize()) { RunMenuLoop(); }
+		RunGameLoop();
 	}
 
-	if (!g_ActivityMan.Initialize()) { RunMenuLoop(); }
-	RunGameLoop();
-
 	DestroyManagers();
-	return 0;
+
+	allegro_exit();
+	SDL_Quit();
+
+	return EXIT_SUCCESS;
 }
 
 #ifdef _WIN32

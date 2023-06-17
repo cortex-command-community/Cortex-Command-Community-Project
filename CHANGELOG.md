@@ -20,6 +20,895 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ***
 
+## [0.1.0 pre-release 5.0][0.1.0-pre5.0] - 2023/06/17
+
+<details><summary><b>Added</b></summary>
+
+- New INI `HDFirearm` property `LegacyCompatibilityRoundsAlwaysFireUnflipped`. This is used to make guns fire their projectiles unflipped, like they used to in old game versions, and should only be turned on for `HDFirearms` in old mods that need it.
+
+- New INI and Lua (R) `HDFirearm` property `InheritsFirerVelocity`, which determines whether or not the particles in a `Round` should inherit their firer's velocity. Defaults to true to preserve normal behavior.
+	
+- New INI `BuyableMode` setting `BuyableMode = 3` for script only items.  
+	This makes the item unable to be bought by any player at all as if it were `Buyable = 0`, but without removing the item from the `CreateRandom` Lua functions that the AI and activities use.  
+	That way players can still find these weapons used by activities and AI enemies, and modders can have big arsenals, without actually having big arsenals.
+
+- New `DataModule` INI property `SupportedGameVersion` to define what version of the game a mod supports. This must be specified, and must match the current game version, in order for the mod to load successfully.
+
+- New Lua event functions for `HDFirearm` - `OnFire(self)` that triggers when the gun fires, and `OnReload(self, hadMagazineBeforeReload)` that triggers when the gun is reloaded.
+
+- New `MOSRotating` INI and Lua (R/W) `MOSRotating` property `GibAtEndOfLifetime` that, when set to true, will make the `MOSRotating` gib if its age exceeds its lifetime, rather than deleting as it normally would.
+
+- New `Actor` INI properties `Organic = 0/1` and `Mechanical = 0/1` and supporting Lua functions `Actor:IsOrganic()` and `Actor:IsMechanical()`.  
+	These have no direct gameplay effect (and default to false), but will be very useful for inter-mod compatibility, as they allow scripts to know if an `Actor` is organic or mechanical, and treat them accordingly.
+  
+- New INI and Lua (R/W) `ACDropShip` property `HoverHeightModifier`. This allows for modification of the height at which an `ACDropShip` will hover when unloading cargo, or staying at a location.
+
+- New `Scene` Lua property `BackgroundLayers` (R/O) to access an iterator of the `Scene`'s `SLBackground` layers.
+
+- `SLBackground` layers can now be animated using the same INI and Lua animation controls as everything else (`FrameCount`, `SpriteAnimMode`, etc). ([Issue #66](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/66))  
+	The collection of the `Scene`'s background layers can be accessed via `scene.BackgroundLayers`.
+
+- Added `SLBackground` auto-scrolling INI and Lua controls. ([Issue #66](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/66))  
+	The INI definition looks like this:  
+	```
+	CanAutoScrollX = 0/1 // Whether this can auto-scroll on the X axis. Scrolling will take effect only when combined with WrapX = 1, otherwise ignored.
+	CanAutoScrollY = 0/1 // Whether this can auto-scroll on the Y axis. Scrolling will take effect only when combined with WrapY = 1, otherwise ignored.
+
+	AutoScrollStepInterval = intValue // The duration between auto-scrolling steps on both axis, in milliseconds.
+
+	AutoScrollStep = Vector
+		X = intValue // The number of pixels to progress the scrolling on the X axis each step. Float values are supported but may end up choppy and inconsistent due to internal rounding and lack of sub-pixel precision.
+		Y = intValue // The number of pixels to progress the scrolling on the Y axis each step. Float values are supported but may end up choppy and inconsistent due to internal rounding and lack of sub-pixel precision.
+	```
+	You can read and write the following Lua properties:  
+	```
+	slBackground.CanAutoScrollX = bool -- this may be true even if X axis scrolling is not in effect due to WrapX = 0.
+	slBackground.CanAutoScrollY = bool -- this may be true even if Y axis scrolling is not in effect due to WrapY = 0.
+	slBackground.AutoScrollInterval = intValue
+	slBackground.AutoScrollStep = vector
+	slBackground.AutoScrollStepX = intValue
+	slBackground.AutoScrollStepY = intValue
+	```
+	`slBackground:IsAutoScrolling()` - (R/O) returns whether auto-scrolling is actually in effect on either axis (meaning either `WrapX` and `CanAutoScrollX` or `WrapY` and `CanAutoScrollY` are true).
+
+	The collection of the `Scene`'s background layers can be accessed via `scene.BackgroundLayers`.
+
+- New `Settings.ini` property `SceneBackgroundAutoScaleMode = 0/1/2`. ([Issue #243](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/243))  
+	Auto-scaling modes are: 0 = Off, 1 = Fit Screen, 2 = Always 2x.  
+	This will auto-scale all `Scene` background layers to cover the whole screen vertically in cases where the layer's sprite is too short and creates a gap at the bottom.  
+	In cases where a layer is short by design, auto-scaling behavior can be disabled on a per-layer basis using the `SLBackground` INI property `IgnoreAutoScaling`, otherwise it may be excessively scaled up to 2x (maximum).  
+	Note that any `ScaleFactor` definitions in layers that aren't set to ignore auto-scaling will be overridden.  
+
+	Only relevant when playing on un-scaled vertical resolutions of 640p and above as most background layer sprites are currently around 580px tall, and comes with a minor performance impact.  
+	Note that in fit screen mode each layer is scaled individually so some layers may be scaled more than others, or not scaled at all.  
+	In always 2x mode all layers will be equally scaled to 2x.
+
+- New `SLBackground` INI property `IgnoreAutoScaling = 0/1` to ignore the global background layer auto-scaling setting and use the `ScaleFactor` defined in the preset, if any.
+
+- New `SLBackground` INI property `OriginPointOffset` to offset the layer from the top left corner of the screen.
+
+- Added new `TerrainDebris` scattering functionality. ([Issue #152](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/152))  
+	New INI properties are:  
+	```
+	MinRotation/MaxRotation = angleDegrees // Rotates each debris piece to a random angle within the specified values. Values in degrees, negative values are counter-clockwise.  
+
+	FlipChance = floatValue // Chance for a debris piece to be flipped when either `CanHFlip` or `CanYFlip` are set true. 0-1, defaults to 0.5.  
+	
+	CanHFlip/CanVFlip = 0/1 // Flips each debris piece on the X, Y or both axis.
+	```
+
+- Added support for `Material` background textures with INI property `BGTextureFile`.
+
+- New `MovableObject` INI and Lua (R/W) property `SimUpdatesBetweenScriptedUpdates`, that lets `MovableObject`s run their Lua update function less frequently, for performance benefits.
+
+- Added faction themes.  
+	Faction themes apply to the `BuyMenu` when the faction is set as the native module (i.e. playing as the faction) in both Conquest and Scenario battle.
+
+	The theme properties are defined in the `DataModule`'s `Index.ini` (before any `IncludeFile` lines) like so:
+	```
+	FactionBuyMenuTheme = BuyMenuTheme
+		SkinFile = pathToSkinFile // GUI element visuals (NOT actual layout).
+		BackgroundColorIndex = paletteIndex // Color of the parent box that holds all the elements. Palette colors only, no support for images.
+		BannerFile = pathToBannerImage
+		LogoFile = pathToLogoImage
+	```
+	All properties are optional, any combination works.  
+	The skin and background color are also applied to the `ObjectPicker` (scene object placer) for visual consistency.
+
+- New `Settings.ini` property `DisableFactionBuyMenuThemes = 0/1` which will cause custom faction theme definitions in all modules to be ignored and the default theme to be used instead.
+
+- New `Settings.ini` property `DisableFactionBuyMenuThemeCursors = 0/1` which will cause custom faction theme cursor definitions in all modules to be ignored and the default cursors to be used instead.
+
+- New `Settings.ini` and `SceneMan` Lua (R/W) property `ScrapCompactingHeight` which determines the maximum height of a column of scrap terrain to collapse when the bottom pixel is knocked loose. 0 means no columns of terrain are ever collapsed, much like in old builds of CC.
+
+- New `DataModule` INI and Lua (R/O) property `IsMerchant` which determines whether a module is an independent merchant. Defaults to false (0). ([Issue #401](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/401))  
+	A module defined as a merchant will stop being playable (in Conquest, etc.) but will have its buyable content available for purchase/placement when playing as any other faction (like how base content is).  
+	Only has a noticeable effect when the "Allow purchases from other factions" (`Settings.ini` `ShowForeignItems`) gameplay setting is disabled.
+
+	Note that this property takes priority over the `IsFaction` property. A module that is set as both `IsFaction = 1` and `IsMerchant = 1` will be treated as `IsFaction = 0`.
+
+- Made `Vector` properties `AbsRadAngle` and `AbsDegAngle` writable, so you can set a `Vector`'s direction directly, instead of rotating it by an angle via `RadRotate` and `DegRotate`.
+
+- New `HDFirearm` Lua function `GetNextMagazineName()`, that gets the name of the next `Magazine` to be loaded into the `HDFirearm`.
+
+- New INI and Lua (R/W) `Actor` property `PieMenu`. This allows you to set an `Actor`'s `PieMenu` via INI and Lua. If no value is set for this, the default `PieMenu` for the type of `Actor` will be used, these can be found in `Base.rte/GUIs/PieMenus/PieMenus.ini`.
+
+- `PieMenu`s have been completely redone, and are now fully defined in INI and customizable in Lua.	Additionally, `PieMenu`s can have sub-`PieMenu`s to allow for better organization and more controls.
+
+	You can define `PieMenu`s in INI using standard INI concepts like `CopyOf` and `PresetName`, and modify their visuals as you please. They have the following INI properties:  
+	```
+	IconSeparatorMode // The visuals style of the PieMenu's separators. The options are "Line", "Circle" and "Square". Defaults to "Line".  
+	FullInnerRadius // The inner radius of the PieMenu when it's fully expanded, in pixels. Defaults to 58.  
+	BackgroundThickness // The thickness of the background ring of the PieMenu. Defaults to 16.  
+	BackgroundSeparatorSize // The size of the background separators (lines, circles, squares). Defaults to 2.  
+	DrawBackgroundTransparent // Whether or not the PieMenu's background should be drawn transparent. Defaults to true.  
+	BackgroundColor // The color used to draw the background ring of the PieMenu. Color values are palette indexes.  
+	BackgroundBorderColor // The color used to draw the border around the background ring of the PieMenu. Color values are palette indexes.  
+	SelectedItemBackgroundColor // The color used to highlight selected PieSlices in the PieMenu. Color values are palette indexes.  
+	AddPieSlice = PieSlice // Add a PieSlice to the PieMenu. Standard INI concepts like CopyOf, etc. apply.
+	```	
+
+	Additionally, `PieMenu`s have the following Lua properties and functions:  
+
+	**`Owner`** (R) - Gets the owning `Actor` for the `PieMenu`, if there is one.  
+	**`Controller`** (R) - Gets the `Controller` controlling the `PieMenu`. If there's an `Actor` owner, it'll be that `Actor`'s `Controller`, otherwise it's probably a general `Controller` used for handling in-game menu inputs.  
+	**`AffectedObject`** (R) - Gets the affected `MovableObject` for the `PieMenu` if there is one. Support isn't fully here for it yet, but `PieMenu`s can theoretically be made to affect objects that aren't `Actors`.  
+	**`Pos`** (R) - Gets the position of the center of the `PieMenu`. Generally updated to move with its `Owner` or `AffectedObject`.  
+	**`RotAngle`** (R/W) - Gets/sets the rotation of the `PieMenu`. Note that changing this may cause oddities and issues, especially if the **`PieMenu`** is currently visible.  
+	**`FullInnerRadius`** (R/W) - Gets/sets the inner radius of the `PieMenu`, i.e. the radius distance before the inside of the ring.  
+	**`PieSlices`** - Gets all of the `PieSlice`s in the `PieMenu` for iterating over in a for loop.  
+
+	**`IsEnabled()`** - Gets whether or not the `PieMenu` is enabled or enabling.  
+	**`IsEnabling()`** - Gets whether or not the `PieMenu` is currently enabling.  
+	**`IsDisabling()`** - Gets whether or not the `PieMenu` is currently disabling.  
+	**`IsEnablingOrDisabling()`** - Gets whether or not the `PieMenu` is currently enabling or disabling.  
+	**`IsVisible()`** - Gets whether or not the `PieMenu` is currently visible (i.e. not disabled).  
+	**`HasSubPieMenuOpen()`** - Gets whether the `PieMenu` has a sub-`PieMenu` open, and is thus transferring commands to that sub-`PieMenu`.  
+	**`SetAnimationModeToNormal()`** - Sets the `PieMenu` back to normal animation mode, and disables it so it's ready for use.  
+	**`DoDisableAnimation()`** - Makes the `PieMenu` do its disabling animation.  
+	**`Wobble()`** - Makes the `PieMenu` do its wobbling animation.  
+	**`FreezeAtRadius(radius)`** - Makes the `PieMenu` freeze open at the given radius.  
+	**`GetPieCommand()`** - Gets the command given to the `PieMenu`, either by pressing a `PieSlice` button, or by selecting a `PieSlice` and closing the `PieMenu`.  
+	**`GetFirstPieSliceByPresetName(presetName)`** - Searches through the `PieSlice`s in the `PieMenu` and returns the first one with the given `PresetName`.  
+	**`GetFirstPieSliceByType(pieSliceType)`** - Searches through the `PieSlice`s in the `PieMenu` and returns the first one with the given `PieSlice` `Type`.
+
+	**`AddPieSlice(pieSliceToAdd, pieSliceOriginalSource, optional_onlyCheckPieSlicesWithSameOriginalSource, optional_allowQuadrantOverflow)`** - Adds the given `PieSlice` to the `PieMenu`, returning whether or not the `PieSlice` was added.  
+	The `pieSliceOriginalSource` is the object that added the `PieSlice` to the `PieMenu`, and it's very important you set this properly (much of the time you'll want it to be `self` if, say, you have a gun adding a `PieSlice`), otherwise you can end up with ghost `PieSlice`s.  
+	`allowQuadrantOverflow` is optional and defaults to false, it determines whether the `PieSlice` can only be added in its specified direction (false), or if it can overflow if that direction is full of `PieSlice`s (true).
+
+	**`AddPieSliceIfPresetNameIsUnique(pieSliceToAdd, pieSliceOriginalSource, optionalAllowQuadrantOverflow)`** - Like `AddPieSlice`, this adds the given `PieSlice` to the `PieMenu` and returns whether or not the `PieSlice` was added, but only if the `PieMenu` doesn't contain a `PieSlice` with this `PieSlice`'s preset name, optionally only checking `PieSlice`s with the same original source (by default it checks all `PieSlice`s in the `PieMenu`).  
+	`PieSlice`s with no preset name will always be added by this.
+
+	**`RemovePieSlice(pieSliceToRemove)`** - Removes the given `PieSlice` from the `PieMenu`, and returns it to Lua so you can add it to another `PieMenu` if you want.  
+	**`RemovePieSlicesByPresetName(presetNameToRemoveBy)`** - Removes any `PieSlice`s with the given preset name from the `PieMenu`. Note that, unlike `RemovePieSlice`, the `PieSlice` is not returned, since multiple `PieSlices` can be removed this way. Instead, this returns true if any `PieSlice`s were removed.  
+	**`RemovePieSlicesByType(pieSliceTypeToRemoveBy)`** - Removes any `PieSlice`s with the given `PieSlice` `Type` from the `PieMenu`. Note that, unlike `RemovePieSlice`, the `PieSlice` is not returned, since multiple `PieSlices` can be removed this way. Instead, this returns true if any `PieSlice`s were removed.  
+	**`RemovePieSlicesByOriginalSource(originalSource)`** - Removes any `PieSlice`s with the original source from the `PieMenu`. Note that, unlike `RemovePieSlice`, the `PieSlice` is not returned, since multiple `PieSlices` can be removed this way. Instead, this returns true if any `PieSlice`s were removed.  
+	
+	**`ReplacePieSlice`(pieSliceToReplace, replacementPieSlice)`** - Replaces the specified `PieSlice` to replace, if it exists in the `PieMenu`, with the replacement `PieSlice` and returns the replaced `PieSlice` for use (e.g. for adding to a different `PieMenu`). The replacement `PieSlice` takes the replaced `PieSlice`'s original source, direction, middle slice eligibility, angles and slot count, so it seamlessly replaces it.
+
+- `PieSlice`s have been modified to support `PieMenu`s being defined in INI. They have the following properties:  
+
+	**`Type`** (INI, Lua R/W) - Gets or sets the `PieSlice`'s type, useful for invoking hardcoded game actions (e.g. pickup).  
+	**`Direction`** (INI, Lua R/W) - Gets or sets the `PieSlice`'s direction, i.e what direction the `PieSlice` should be added in to a `PieMenu`. Defaults to `Any`, which means it will be added to the least populated direction. Note that if you set this via Lua, you will need to remove and readd the `PieSlice` for it to take effect.  
+	**`CanBeMiddleSlice`** (INI, Lua R/W) - Gets or sets whether or not this `PieSlice` can be the middle slice (i.e. a cardinal one like reload) in its direction, when added to a `PieMenu`. Defaults to true. Note that if you set this via Lua, you will need to remove and readd the `PieSlice` for it to take effect.  
+	**`Enabled`** (INI, Lua R/W) - Gets or sets whether or not this `PieSlice` is enabled and usable.  
+	**`ScriptPath`** (INI, Lua R/W) - Gets or sets the filepath to the script that should be run when this `PieSlice` is activated. A script function name is also required for this to work.  
+	**`ScriptFunctionName`** (INI Lua R/W) - Gets or sets the name of the function that should be run when this `PieSlice` is activated. A script path is also required for this to work.  
+	**`SubPieMenu`** (INI Lua R/W) - Gets or sets the sub-`PieMenu` that should be opened when this `PieSlice` is activated. Note that `PieSlice`s with sub-`PieMenu`s will not perform any other actions, though they will run scripts.  
+	**`Icon`** (INI) - The icon for this `PieSlice` to show in its `PieMenu`.  
+	**`OriginalSource`** (Lua R) - The object that added this `PieSlice` to its `PieMenu`.
+	
+- Added `Directions` enum with the following values:  
+	```
+	(-1) None
+	(0)  Up
+	(1)  Down
+	(2)  Left
+	(3)  Right
+	(4)  Any
+	```
+
+- Added `GameActivity` INI property `BuyMenuEnabled` to match the Lua property, and made the buy menu `PieSlice` disappear if `BuyMenuEnabled` is false.  
+	Note that, if you toggle this from off to on in Lua for a running `GameActivity`, you'll need to re-add the buy menu `PieSlice` manually.
+	
+- Added `Controller` Lua function `IsGamepadControlled()`, that lets you tell if a `Controller` is being controlled by any of the gamepad inputs, much like the pre-existing `IsMouseControlled()` function.
+
+- Added some useful global angle helper functions:  
+	```lua
+	NormalizeAngleBetween0And2PI(angle) -- Takes an angle in radians, and returns that angle modified so it's not negative or larger than 2PI.	
+	NormalizeAngleBetweenNegativePIAndPI(angle) -- Takes an angle in radians, and returns that angle modified so angles larger than PI are instead represented as negative angles, and no angle is larger than PI or smaller than -PI.
+	AngleWithinRange(float angleToCheck, float startAngle, float endAngle) -- Returns whether or not the angleToCheck is between the startAngle and endAngle, in a counter-clockwise direction (e.g. 0.5rad is between 0rad and 1rad, and 0.3rad is between 2.5rad and 1 rad).	 
+	ClampAngle(float angleToClamp, float startAngle, float endAngle) -- Returns the angleToClamp, clamped between the startAngle and endAngle.
+	```
+	
+- Added support for nested block comments in INI. ([Issue #248](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/248))  
+	The reader will track block comment open tags and crash if a file ends while a block is open, reporting the line it was opened on.
+
+- Added thickness option to Line primitives. ([Issue #403](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/403))  
+	New bindings with argument for thickness are:  
+	`PrimitiveMan:DrawLinePrimitive(startPos, endPos, color, thickness)`  
+	`PrimitiveMan:DrawLinePrimitive(player, startPos, endPos, color, thickness)`  
+	Original bindings with no thickness argument are untouched and can be called as they were.
+
+- Added rotation option to Text primitives.  
+	New bindings with argument for rotation are:  
+	`PrimitiveMan:DrawTextPrimitive(pos, text, bool useSmallFont, alignment, rotAngleInRadians)`  
+	`PrimitiveMan:DrawTextPrimitive(player, pos, text, bool useSmallFont, alignment, rotAngleInRadians)`  
+	Original bindings with no rotation argument are untouched and can be called as they were.
+
+- Added option to draw bitmap from file instead of from `MOSPrite` based object to Bitmap primitives.  
+	New bindings with argument for file path are:  
+	`PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngleInRadians)`  
+	`PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngleInRadians, hFlipped, vFlipped)`  
+	`PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngleInRadians)`  
+	`PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngleInRadians, hFlipped, vFlipped)`  
+	Note that the `frame` argument does not exist in these bindings.  
+	Original bindings with no filepath argument are untouched and can be called as they were.
+
+- Added new primitive drawing functions to `PrimitiveMan`:  
+	```lua
+	-- Polygon
+	PrimitiveMan:DrawPolygonPrimitive(Vector startPos, color, { Vector vertexRelPos, ... })
+	PrimitiveMan:DrawPolygonPrimitive(player, Vector startPos, { Vector vertexRelPos, ... })
+
+	PrimitiveMan:DrawPolygonFillPrimitive(Vector startPos, color, { Vector vertexRelPos, ... })
+	PrimitiveMan:DrawPolygonFillPrimitive(player, Vector startPos, { Vector vertexRelPos, ... })
+	```
+	The vertices table contains `Vector`s with the position of each vertex of the polygon **RELATIVE** to the starting position. The starting position will be automatically added to each vertex position, doing so manually will lead to unexpected results.  
+	A minimum of 2 vertices (which would result in a line) are required to draw a polygon primitive. A console error will be printed and drawing will be skipped if less are provided.  
+	There may be a limit for the number of vertices in `PolygonFillPrimitive` because it has different handling but it was not reached during testing.
+
+	The order of vertices is of high importance. Bad ordering will lead to unexpected results.  
+	For example: `{ Vector(10, 0), Vector(10, 10), Vector(0, 10), Vector(0, 0) }` will result in a square, while `{ Vector(10, 0), Vector(0, 10), Vector(10, 10), Vector(0, 0) }` will result in an hourglass shape.  
+	Note that **all** vertices of the shape must be specified, as the last vertex will be connected to the first vertex and not to the starting position (whether it is used as center or as a corner) to complete the shape.  
+	Omitting the last `Vector(0, 0)` in the above example would result in a right angle triangle.
+
+	**The `Vector`s in the vertices table are single use! They will be deleted after being drawn, so they cannot be re-used!**
+
+	Usage example:
+	```lua
+	local myVertices = {
+		Vector(10, 0),
+		Vector(10, 10),
+		Vector(0, 10),
+		Vector(0, 0)
+	};
+	PrimitiveMan:DrawPolygonPrimitive(self.Pos, 13, myVertices);
+
+	-- myVertices no longer contains valid Vectors for this call, they were deleted after being drawn by the previous call.
+	PrimitiveMan:DrawPolygonFillPrimitive(self.Pos, 13, {
+		Vector(10, 0),
+		Vector(10, 10),
+		Vector(0, 10),
+		Vector(0, 0)
+	});
+	```
+
+- Added blended drawing functions to `PrimitiveMan`:  
+	There are 10 blending modes available to produce different color and transparency effects for both true primitives and bitmap based primitives.  
+	Blended drawing effects are not the same as post-processing (glows), as they are all drawn in indexed color mode and will produce widely different results.
+
+	**Note that blended drawing is very expensive and chugs FPS like no tomorrow. It should not be abused!**
+
+	There are 3 blended drawing function overloads:
+
+	* `PrimitiveMan:DrawPrimitives(blendMode, blendAmountR, blendAmountG, blendAmountB, blendAmountA, { primitiveObj, ... })`  
+	This is the fully fledged blended drawing function which allows individual control over each color channel blend amount.  
+	Blend amounts are in percentages, where 0 means no blending and 100 means full blending (e.g. `blendAmountA = 100` will result in a fully transparent primitive, as if it was not drawn at all).  
+	The blend mode and amounts will be applied to all the primitives in the primitive table.  
+	Note that blend amounts are internally rounded to multiples of 5 (e.g. 32 will round to 30, 33 will round to 35) to reduce memory usage and because smaller steps are hardly noticeable.
+	
+	* `PrimitiveMan:DrawPrimitives(blendMode, blendAmountRGBA, { primitiveObj, ... })`  
+	This overload allows selecting a blend mode and applies the blend amount to all color channels at once.  
+	This overload is for convenience when using certain modes (e.g. `Invert` and `Dissolve`). See blend mode specifics further below.
+	
+	* `PrimitiveMan:DrawPrimitives(transBlendAmount, { primitiveObj, ... })`  
+	This overload uses the transparency blending mode and applies the blend amount to all color channels at once.  
+	Transparency blending is likely to be the most commonly used mode so this exists for convenience.
+
+	The blending modes are defined in the new `DrawBlendMode` enum as follows:
+	```
+	(0)  NoBlend
+	(1)  Burn
+	(2)  Color
+	(3)  Difference
+	(4)  Dissolve
+	(5)  Dodge
+	(6)  Invert
+	(7)  Luminance
+	(8)  Multiply
+	(9)  Saturation
+	(10) Screen
+	(11) Transparency
+	(12) BlendModeCount
+	```
+	The blending modes are common and information on what the result of each is can be found with a quick search.
+
+	Some blend mode specifics:
+	* `Invert` and `Dissolve` modes only use alpha channel blend amount. RGB channels blend amounts are ignored in these modes.  
+	* `Transparency` mode ignores alpha channel blend amount. Only RGB channels blend amounts are used in this mode.  
+	* Some trial and error is expected to produce desired results in other modes.
+
+	The primitives table must be filled with `GraphicalPrimitive` objects. For this the constructors for all the supported primitives have been exposed:
+	```lua
+	LinePrimitive(player, startPos, endPos, color)
+	ArcPrimitive(player, centerPos, startAngle, endAngle, radius, thickness, color)
+	SplinePrimitive(player, startPos, guideA, guideB, endPos, color)
+	BoxPrimitive(player, topLeftPos, bottomRightPos, color)
+	BoxFillPrimitive(player, topLeftPos, bottomRightPos, color)
+	RoundedBoxPrimitive(player, topLeftPos, bottomRightPos, cornerRadius, color)
+	RoundedBoxFillPrimitive(player, topLeftPos, bottomRightPos, cornerRadius, color)
+	CirclePrimitive(player, centerPos, radius, color)
+	CircleFillPrimitive(player, centerPos, radius, color)
+	EllipsePrimitive(player, centerPos, horizRadius, vertRadius, color)
+	EllipseFillPrimitive(player, centerPos, horizRadius, vertRadius, color)
+	TrianglePrimitive(player, pointA, pointB, pointC, color)
+	TriangleFillPrimitive(player, pointA, pointB, pointC, color)
+	TextPrimitive(player, pos, text, useSmallFont, alignment, rotAngle)
+	BitmapPrimitive(player, centerPos, moSprite, rotAngle, frame, hFlipped, vFlipped)
+	BitmapPrimitive(player, centerPos, filePath, rotAngle, hFlipped, vFlipped)
+	```
+	Note that `PolygonPrimitive`, `IconPrimitive` and `LinePrimitive` with thickness do not support blended drawing.
+
+	**The `GraphicalPrimitive`s in the primitives table are single use! They will be deleted after being drawn, so they cannot be re-used!**
+
+	Usage example:
+	```lua
+	local myPrimitives = {
+		CircleFillPrimitive(-1, self.Pos + Vector(-100, 0), 20, 13),
+		BitmapPrimitive(-1, self.Pos + Vector(100, 0), "Base.rte/Craft/Rockets/MK2/RocketMK2000.png", 0, false, false)
+	};
+	PrimitiveMan:DrawPrimitives(DrawBlendMode.Screen, 50, 0, 50, 0, myPrimitives);
+
+	-- myPrimitives no longer contains valid primitives for this call, they were deleted after being drawn by the previous call.
+	PrimitiveMan:DrawPrimitives(DrawBlendMode.Dissolve, 50, {
+		CircleFillPrimitive(-1, self.Pos + Vector(-100, -100), 20, 13),
+		BitmapPrimitive(-1, self.Pos + Vector(100, -100), "Base.rte/Craft/Rockets/MK2/RocketMK2000.png", 0, false, false)
+	});
+
+	PrimitiveMan:DrawPrimitives(50, {
+		CircleFillPrimitive(-1, self.Pos + Vector(-100, -200), 20, 13),
+		BitmapPrimitive(-1, self.Pos + Vector(100, -200), "Base.rte/Craft/Rockets/MK2/RocketMK2000.png", 0, false, false)
+	});
+
+	-- NoBlend will draw the primitives without any blending mode (solid mode). Any color channel blend amounts are ignored.
+	PrimitiveMan:DrawPrimitives(DrawBlendMode.NoBlend, 0, 0, 0, 0, {
+		CircleFillPrimitive(-1, self.Pos + Vector(-100, -300), 20, 13),
+		BitmapPrimitive(-1, self.Pos + Vector(100, -300), "Base.rte/Craft/Rockets/MK2/RocketMK2000.png", 0, false, false)
+	});
+	-- It is equivalent to calling the individual draw functions like so:
+	-- PrimitiveMan:DrawCircleFillPrimitive(-1, self.Pos + Vector(-100, -200), 20, 13);
+	-- PrimitiveMan:DrawBitmapPrimitive(-1, self.Pos + Vector(100, -200), "Base.rte/Craft/Rockets/MK2/RocketMK2000.png", 0, false, false);
+	```
+
+- New `Vector` Lua (R/O) property `SqrMagnitude` which returns the squared magnitude of the `Vector`.  
+	Should be used for more efficient comparison with `vector.SqrMagnitude > (floatValue * floatValue)` over `vector.Magnitude > floatValue`.
+
+- New `Vector` Lua convenience functions for more efficient magnitude comparison.  
+	```lua
+	-- These perform vector.SqrMagnitude > or < (floatValue * floatValue).
+	vector:MagnitudeIsGreaterThan(floatValue) -- Note that you can use (not vector:MagnitudeIsGreaterThan(floatValue)) in place of (vector.SqrMagnitude <= (floatValue * floatValue)).
+	vector:MagnitudeIsLessThan(floatValue) -- Note that you can use (not vector:MagnitudeIsLessThan(floatValue)) in place of (vector.SqrMagnitude >= (floatValue * floatValue)).
+	```
+
+- The game now supports saving and loading. The easiest way to do this is to quick-save with `F5`, and quick-load with `F9`. Console clearing is now done with `F10`.
+	```lua
+	ActivityMan:SaveGame(fileName) -- Saves the currently playing Scene and Activity. The save result will be printed to the console.
+	ActivityMan:LoadGame(fileName) -- Loads and resumes a previously saved Scene and Activity.
+	```
+	The `Activity` start function now looks like `function activityName:StartActivity(isNewGame)`. The new `isNewGame` parameter is true if a game is beingly newly started (or restarted), and false if it's being loaded.  
+
+	Scripts on `Activities` now have a new callback function `OnSave` (in addition to `Create`, `Update`, etc), which is called whenever a scene is saved. This function must exist for the `Activity` to be saveable!  
+	To support saving and loading, `Activity` now has several Lua convenience functions to for dealing with script variables:
+	```lua
+	Activity:SaveNumber(stringKey, floatValue) -- Saves a float value which can later be retrieved using stringKey.
+	Activity:LoadNumber(stringKey) -- Retrieves a previously saved float value with key stringKey.
+
+	Activity:SaveString(stringKey, stringValue) -- Saves a string value which can later be retrieved using stringKey.
+	Activity:LoadString(stringKey) -- Retrieves a previously saved string value with key stringKey.
+	```
+	A new `GlobalScript` has been added that will automatically save the game every three minutes. To turn it on, enable the Autosaving `GlobalScript` in the main menu mod manager's Global Scripts section.  
+	To load games saved by this script, open the console and enter the command `ActivityMan:LoadGame("Autosave")`, or use the `Ctrl + F9` shortcut.
+	
+- New hardcoded `MovableObject` function `OnGameSave(self)` that gets run for each `MovableObject` with it when the game is saved. This can be used in tandem with custom values (for `MOSRotatings` and child classes) to store data, which can be read during `Create` when the game is loaded.
+	
+- New Lua `AEmitter` properties:  
+	**TotalParticlesPerMinute** (R/O) - The rate at which all of the `Emission`s of this `AEmitter` combined, emit their particles.  
+	**TotalBurstSize** (R/O) - The number of particles that will be emitted by all the `Emission`s of this `AEmitter` combined, in one shot when a burst is triggered.  
+	**EmitCount** (R/O) - The number of emissions emitted since emission was last enabled.  
+	**EmitOffset** (R/W) - The offset (`Vector`) of the emission point from this `AEmitter`'s sprite center.  
+
+- New `PresetMan` Lua function `ReloadEntityPreset(presetName, className, optionalDefinedInModule)` that allows hot-reloading `Entity` INI presets (along with all other entity presets referenced in the reloaded entity preset).  
+	If the `optionalDefinedInModule` argument is not specified, the game will look through every `DataModule` to find an `Entity` preset that matches the name and type.  
+	Once an `Entity` preset has been reloaded via the function, the key combination `Ctrl + F2` can be used to quickly reload it as many times as necessary.  
+	Note that any changes made to the `Entity` preset will not be reflected in existing copies of the `Entity`, only in new ones created after the reload.  
+	Also note that this will reload the `Entity`'s sprites (and of all other referenced entity presets), which will be reflected immediately in all existing copies of the `Entity`.
+	
+- New INI and Lua (R/W) `Actor` property `AIBaseDigStrength`, used to determine the strength of the terrain the `Actor` can attempt to move through without digging tools. Normally used for moving through things like terrain debris and corpses. Defaults to 35.
+
+- New optional parameter `ignoreMaterial` for Lua function `SceneMan:CastMaxStrengthRay(start, end, skip, ignoreMaterial)`, which allows specifying a material that the ray will ignore. Defaults to the door material, for legacy compatibility purposes.
+
+- New `Settings.ini` property `PathFinderGridNodeSize` to define the size of the pathfinder's graph nodes, in pixels. 
+
+- New `Settings.ini` property `AIUpdateInterval` to define how often actor AI will update, in simulation updates. Higher values may give better performance with large actor counts, at a cost of AI capability and awareness.  
+This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInterval`.
+
+- New Lua (R) `TimerMan` properties `AIDeltaTimeMS` and `AIDeltaTimeSecs` to get the time that has passed since the last AI update.
+
+- Added `MOSRotating` INI property `DetachAttachablesBeforeGibbingFromWounds` that makes `Attachables` fall off before the `MOSRotating` gibs from having too many wounds, for nice visuals. Defaults to true.
+
+- New `MOSRotating` Lua property `Gibs` (R/O) to access an iterator of the `MOSRotating`'s `Gib`s.
+
+- Expose `Gib` to Lua.  
+	You can read and write the following properties:  
+	```
+	gib.ParticlePreset = movableObject;
+	gib.Offset = vector;
+	gib.Count = intValue;
+	gib.Spread = angleInRadians;
+	gib.MinVelocity = floatValue;
+	gib.MaxVelocity = floatValue;
+	gib.LifeVariation = floatValue;
+	gib.InheritsVel = bool;
+	gib.IgnoresTeamHits = bool;
+	gib.SpreadMode = SpreadMode;
+	```
+
+	The `SpreadMode` property accepts values from the `SpreadMode` enum:  
+	```
+	(0) Gib.SpreadRandom
+	(1) Gib.SpreadEven
+	(2) Gib.SpreadSpiral
+	```
+
+	The collection of a `MOSRotating`'s `Gib`s can be accessed via `mosRotating.Gibs`.
+
+- New `Settings.ini` property `ServerUseDeltaCompression = 0/1` to enable delta compression in dedicated server mode which reduces bandwidth usage. Enabled by default.
+
+- New `Settings.ini` property `SubPieMenuHoverOpenDelay` that determines how long, in milliseconds,a `PieSlice` with a sub-`PieMenu` must be hovered over for the sub-`PieMenu` to automatically open. Default is 1000 milliseconds.
+
+- Added `PieSlice` Lua function `ReloadScripts()`. Works the same as the `MovableObject` function, but for `PieSlice`s.
+
+- Added key combinations for resetting time scales to defaults while performance stats are visible.  
+	`Ctrl + 1` to reset the time scale.  
+	`Ctrl + 3` to reset the `RealToSimCap`.  
+	`Ctrl + 5` to reset the `DeltaTime`.
+
+- Added `Alt + P` key combination for toggling advanced performance stats (graphs) visibility while performance stats are visible.
+
+- Added new `UPS` (Updates per second) measurement to the performance stats which is probably the most reliable performance indicator.  
+	The sim update target is ~60 UPS (defined by `DeltaTime`).  
+	When UPS dips due to load there will be noticeable FPS impact because more time is spent updating the sim and less time is left to draw frames before the next sim update.  
+	When UPS dips to ~30 the FPS will be equal to UPS because there is only enough time to draw one frame before it is time for the next sim update.  
+	When UPS is capped at the target, FPS will be greater than UPS because there is enough time to perform multiple draws before it is time for the next sim update.  
+	Results will obviously vary depending on system performance.
+
+- Added `LuaMan` Lua functions `GetDirectoryList(pathToGetDirectoryNamesIn)` and `GetFileList(pathToGetFileNamesIn)`, that get the names of all directories or files at the specified file path.  
+
+- Added a new Lua scripted function for `Actor`s: `OnControllerInputModeChange(self, previousControllerMode, previousControllingPlayer)` that triggers when an `Actor`'s `Controller`'s input state changes (between AI/Player/Network control etc). This provides a script hook that fires when a player starts/stops controlling an `Actor`.
+
+- Added `ACrab` INI properties for setting individual foot `AtomGroup`s, as opposed to setting the same foot `AtomGroup`s for both `Legs` on the left or right side.  
+	These are `LeftFGFootGroup`, `LeftBGFootGroup`, `RightFGFootGroup` and `RightBGFootGroup`.
+
+- Buy Menu Quality-of-Life improvements:  
+	Shift-clicking an item (or Shift + Fire in keyboard-only) in the cart will now empty the entire cart.  
+	Items in the cart will be indented to signify what actor's inventory they belong to.  
+	Middle-clicking (or pressing the Pickup key) on an item will duplicate it. This also duplicates an actor's inventory.  
+	You can now reorganize the cart by click-dragging. For kbd-only you can do this by holding the sharp aim key and pressing up/down.
+
+- Added to Lua enum `ControlState` the state `RELEASE_FACEBUTTON`.
+
+- Added screen-shake. The screen-shake strength can be tweaked or disabled in the options menu.  
+	New `MOSRotating` INI property `GibScreenShakeAmount`, which determines how much this will shake the screen when gibbed. This defaults to automatically calculating a screen-shake amount based on the energy involved in the gib.  
+	New `HDFirearm` INI property `RecoilScreenShakeAmount`, which determines how much this weapon will shake the screen when fired. This defaults to automatically calculating a screen-shake amount based on the recoil energy.  
+
+	New `Settings.ini` screen-shake properties:  
+	`ScreenShakeStrength` - a global multiplier applied to screen shaking strength.  
+	`ScreenShakeDecay` - how quickly screen shake falls off.  
+	`MaxScreenShakeTime` - the amount of screen shake time, i.e. the maximum number of seconds screen shake will happen until ScreenShakeDecay reduces it to zero.  
+	`DefaultShakePerUnitOfGibEnergy` - how much the screen should shake per unit of energy from gibbing (i.e explosions), when the screen shake amount is auto-calculated.  
+	`DefaultShakePerUnitOfRecoilEnergy` - how much the screen should shake per unit of energy for recoil, when the screen shake amount is auto-calculated.  
+	`DefaultShakeFromRecoilMaximum` - the maximum amount of screen shake recoil can cause, when the screen shake amount is auto-calculated. This is ignored by per-firearm shake settings.
+
+- Added new Lua manager `CameraMan`, to handle camera movement.
+	New Lua functions on CameraMan:
+	```lua
+	AddScreenShake(screenShakeAmount, screen); -- Can be used to shake a particular screen.
+	AddScreenShake(screenShakeAmount, position); -- Applies screenshake at a position in the game world. All screens looking near this position will have their screen shaken.
+	```
+	Several `SceneMan` Lua functions have been moved into CameraMan. For the full list, see the Changed section below.
+
+- Added `MovableMan` Lua functions `GetMOsInRadius(position, radius, ignoreTeam, getsHitByMOsOnly)` and `GetMOsInBox(box, ignoreTeam, getsHitByMOsOnly)` that'll return all of the MOs either within a circular radius of a position, or in an axis-aligned-bounding-box. The `ignoreTeam` parameter defaults to `Team.NOTEAM`. The `getsHitByMOsOnly` defaults to false, which will get every `MovableObject`.
+
+- `SceneMan`s `GetMOIDPixel(x, y, ignoreTeam)` Lua function has a new optional `ignoreTeam` parameter. This defaults to `Team.NOTEAM`.
+
+- Added alternative `Actor` Lua function `RemoveInventoryItem(moduleName, presetName)`, that lets you specify the module and preset name of the inventory item, instead of just the preset name.
+
+- Added alternative `AHuman` Lua function `EquipNamedDevice(moduleName, presetName, doEquip)`, that lets you specify the module and preset name of the `HeldDevice` to equip, instead of just the preset name.
+
+- Added Lua access (R/W) to `Attachable` property `DeleteWhenRemovedFromParent`, which determines whether the given `Attachable` should delete itself when it's removed from its current parent.
+
+- Added Lua convenience function `RoundToNearestMultiple(num, multiple)` which returns a number rounded to the nearest specified multiple.  
+	Note that this operates on integers, so fractional parts will be truncated towards zero by type conversion.
+
+- Added `Actor` INI and Lua property (R/W) `PlayerControllable`, that determines whether the `Actor` can be swapped to by human players. Note that Lua can probably break this, by forcing the `Controller`s of `Actor`s that aren't `PlayerControllable` to the `CIM_PLAYER` input mode.
+
+- Added alternative `MovableMan:GetClosestTeamActor(team, player, scenePoint, maxRadius, getDistance, onlyPlayerControllableActors, actorToExclude)` that acts like the existing version, but allows you to specify whether or not to only get `Actors` that are `PlayerControllable`.
+
+- New `Attachable` INI and Lua property `IgnoresParticlesWhileAttached`, which determines whether the `Attachable` should ignore collisions (and penetrations) with single-atom particles. Useful for preventing `HeldDevice`s from being destroyed by bullets while equipped.
+
+- Added `AHuman` INI and Lua (R/W) property `DeviceArmSwayRate`, that defines how much `HeldDevices` will sway when walking. 0 is no sway, 1 directly couples sway with leg movement, >1 may be funny. Defaults to 0.75.
+
+- Added `AHuman` INI and Lua (R/W) property `ReloadOffset`, that defines where `Hands` should move to when reloading, if they're not holding a supported `HeldDevice`.
+
+- Added `AHuman` Lua function `FirearmsAreReloading(onlyIfAllFirearmsAreReloading)` which returns whether or not this `AHuman`'s `HeldDevices` are currently reloading. If the parameter is set to true and the `AHuman` is holding multiple `HeldDevices`, this will only return true if all of them are reloading.
+
+- Added `AHuman` Lua function `ReloadFirearms(onlyReloadEmptyFirearms)`. This behaves the same as the pre-existing `ReloadFirearms` function, but if the parameter is set to true, only `HDFirearms` that are empty will be reloaded.
+
+- Added `AHuman` Lua property (R/W) `UpperBodyState`, that lets you get and set the `AHuman`'s `UpperBodyState`. If you don't know what this does, you probably don't need or want it.
+
+- Added `AHuman` Lua property (R/W) `MovementState`, that lets you get and set the `AHuman`'s `MovementState`. If you don't know what this does, you probably don't need or want it.
+
+- Added `AHuman` Lua property (R/W) `ProneState`, that lets you get and set the `AHuman`'s `ProneState`. If you don't know what this does, you probably don't need or want it.
+
+- Added `Actor` Lua property (R/W) `LimbPushForcesAndCollisionsDisabled`. If this is true, any of the `Actor`'s `Arm`s and `Leg`s won't do any movement or collide with terrain, and will just swing around with momentum.
+
+- Added `HeldDevice` INI and Lua (R/W) property `DualReloadable`, that determines whether or not a one-handed `HeldDevice` can be dual-reloaded (i.e. old reload behaviour). Note that for dual-reload to happen, both equipped `HDFirearms` must have this flag enabled.
+
+- Added `HeldDevice` INI and Lua (R/W) property `OneHandedReloadTimeMultiplier`, that determines how much faster or slower an `HeldDevice` is when reloading one-handed (i.e. if it's one-handed and the other `Arm` is missing, or is holding something).
+
+- Added `HeldDevice` INI and Lua (R/W) property `Supportable`, that determines whether or not a `HeldDevice` can be supported by a background `Arm`.
+
+- Added `Timer` Lua function `GetSimTimeLimitMS()` that gets the sim time limit of the `Timer` in milliseconds.
+
+- Added `Timer` Lua function `GetSimTimeLimitS()` that gets the sim time limit of the `Timer` in seconds.
+
+- Ground pressure calculations revamp. Ground pressure, by default, is now calculated using a pseudo-3d model which takes into account the depth of an object colliding with terrain. This means actors cause much less terrain deformation from walking, especially large actors walking on smooth ground.
+
+	New `AtomGroup` INI property `AreaDistributionType`, with the following options: 
+	```
+	Linear // Legacy CC behaviour. This is best for long but flat objects, like guns.
+	Circle // Calculates ground pressure assuming objects are cylindrical with a diameter equal to the object's width. This is best for roundish objects, like feet.
+	Square // Similar to Circle, but instead assuming that the object is a cuboid with a depth equal to the object's width.
+	```
+	New `AtomGroup` INI propery `AreaDistributionSurfaceAreaMultiplier`. This is a multiplier to the calculated surface area, i.e how "blunt" an object is. Large values lead to objects having lower ground pressure, and so dig into the terrain less. 
+	
+	The default values are `AreaDistributionType = Circle` and `AreaDistributionSurfaceAreaMultiplier = 0.5`, meaning that an object is assumed to be an oval with a depth of half it's width.
+
+- New `SceneMan` Lua function `DislodgePixel(posX, posY)` that removes a pixel of terrain at the passed in coordinates and turns it into a `MOPixel`. Returns the dislodged pixel as a `MovableObject`, or `nil` if no pixel terrain was found at the passed in position.
+
+- New `HDFirearm` Lua property `CanFire` which accurately indicates whether the firearm is ready to fire off another round.
+
+- New `HDFirearm` Lua property `MSPerRound` which returns the minimum amount of MS in between shots, relative to `RateOfFire`.
+
+- New `HDFirearm` INI and Lua (R/W) properties `ReloadAngle` and `OneHandedReloadAngle` which determine the width of the reload animation angle in radians, the latter being used when the device is held with no supporting `Arm` available. 0 means the animation is disabled. 
+
+- New `HDFirearm` Lua (R) property `CurrentReloadAngle` which gets the reload angle being currently used. I.e. the `ReloadAngle` when there's a supporting `Arm` available, and the `OneHandedReloadAngle` when there isn't.
+
+- New `HDFirearm` Lua property `MSPerRound` which returns the minimum amount of MS in between shots, relative to`RateOfFire`.
+
+- New `Attachable` INI and Lua (R/W) property `GibWhenRemovedFromParent` which gibs the `Attachable` in question when it's removed from its parent. `DeleteWhenRemovedFromParent` will always override this.
+
+- New `Settings.ini` property `AutomaticGoldDeposit` which determines whether gold gathered by actors is automatically added into the team's funds. False means that gold needs to be manually transported into orbit via craft, the old school way. Enabled by default.  
+	A noteworthy change in comparison to previous logic is that gold is no longer converted into objects, and `GoldCarried` is now automatically transferred into craft upon entering them. This effectively allows the same actor to resume prospecting without having to return to orbit with the craft.  
+	Regardless of the setting, this behavior is always disabled for AI-only teams for the time being, until the actor AI is accommodated accordingly.
+
+- New `Actor` Lua function `AddGold(goldOz)` which adds the passed-in amount of gold either to the team's funds, or the `GoldCarried` of the actor in question, depending on whether automatic gold depositing is enabled. This effectively simulates the actor collecting gold.
+
+- New `Actor` Lua function `DropAllGold()` which converts all of the actor's `GoldCarried` into particles and spews them on the ground.
+
+- Added `Alt + F2` key combination to reload all cached sprites. This allows you to see changes made to sprites immediately in-game.
+
+- New `MovableObject` Lua (R) property `DistanceTravelled` which returns the amount of pixels the object has travelled since its creation.
+
+- Added `Activity` Lua function `ForceSetTeamAsActive(team)`, which forcefully sets a team as active. Necessary for `Activity`s that don't want to define/show all used teams, but still want `Actor`s of hidden teams to work properly.
+
+- Added `GameActivity` INI property `DefaultGoldMaxDifficulty`, which lets you specify the default gold when the difficulty slider is maxed out.
+
+- Added `HDFirearm` Lua (R/W) property `BaseReloadTime` that lets you get and set the `HDFirearm`'s base reload time (i.e. the reload time before it's adjusted for one-handed reloads where appropriate).
+
+- Added `Actor` INI and Lua property (R/W) `PlayerControllable`, that determines whether the `Actor` can be swapped to by human players. Note that Lua can probably break this, by forcing the `Controller`s of `Actor`s that aren't `PlayerControllable` to the `CIM_PLAYER` input mode.
+
+- Added alternative `MovableMan:GetClosestTeamActor(team, player, scenePoint, maxRadius, getDistance, onlyPlayerControllableActors, actorToExclude)` that acts like the existing version, but allows you to specify whether or not to only get `Actors` that are `PlayerControllable`.
+
+- Added new `Timer` constructors `timer = Timer(elapsedSimTimeMS)` and `timer = Timer(elapsedSimTimeMS, simTimeLimitMS)` that let you setup `Timer`s more cleanly.
+
+- Added `Timer` Lua (R) properties `RealTimeLimitProgress` and `SimTimeLimitProgress`, that get how much progress the `Timer` has made towards its `RealTimeLimit` or `SimTimeLimit`. 0 means no progress, 1.0 means the timer has reached or passed the time limit.
+
+- New `Settings.ini` property `EnableVSync` to enable vertical synchronization. Enabled by default.
+
+- New `Settings.ini` property `IgnoreMultiDisplays` to ignore all displays except the one the window is currently positioned at when changing resolution.
+
+- Added Lua (R/W) properties for `ACrab` `AimRangeUpperLimit` and `AimRangeLowerLimit`. INI bindings already existed and are mentioned in an earlier changelog entry.
+
+- Added `TerrainObject` INI property `ClearChildObjects` that lets you clear child objects when doing a `CopyOf` of another `TerrainObject`.
+
+- Added `Actor` Lua (R) property `MovePathEnd` that gets you the last point in the `Actor`'s move path.
+
+- Added `Actor` Lua (R) property `SceneWaypoints` that lets you iterate over the `Actor`'s scene waypoints.
+
+- Added `MovableObject` Lua (R) property `HasEverBeenAddedToMovableMan` that tells you whether or not the `MovableObject` has ever been added to `MovableMan`.
+
+- Added alternate version of `Scene` Lua function `CalculatePath(startPos, endPos, movePathToGround, digStrength, team)` that works as the previous one, but lets you specify the team to calculate the path for, allowing you to ignore doors on your team.
+
+</details>
+
+<details><summary><b>Changed</b></summary>
+
+- Codebase now uses the C++20 standard.
+
+- Dramatic performance enhancements, especially with high actor counts and large maps. FPS has been more-than-doubled.
+
+- Greatly reduce online multiplayer bandwidth usage.
+
+- Swapped MoonJIT to LuaJIT. Compiled from [d0e88930ddde28ff662503f9f20facf34f7265aa](https://github.com/LuaJIT/LuaJIT/commit/d0e88930ddde28ff662503f9f20facf34f7265aa).
+
+- Swapped to SDL2 for window management and input handling.
+
+- `Settings.ini` and player loadouts (BuyMenu presets) are now stored in the `Userdata` directory instead of `Base.rte`.
+
+- Lua scripts are now run in a more efficient way. As part of this change, `PieSlice` scripts need to be reloaded like `MovableObject` scripts (i.e. using `pieSlice:ReloadScripts()`, in order for their changes to be reflected in-game.  
+	`PresetMan:ReloadAllScripts()` will reload `PieSlice` preset scripts, like it does for `MovableObject`s.
+
+- The landing zone cursor will now show the width of the selected delivery craft.
+
+- Completely replaced `ScriptFile` with `ScriptPath`.
+
+- Changed the `Vector` function `ClampMagnitude` so its parameter order makes sense, it's now `Vector:ClampMagnitude(lowerMagnitudeLimit, upperMagnitudeLimit)`.
+
+- Changed the `MovableMan` function `AddItem` so it now only accepts `HeldDevice`s and sub-classes (i.e. `HDFirearm`, `ThrownDevice`, `TDExplosive`), because it always expected that anyway, and it's good to enforce it.
+
+- `Scene` background layer presets in INI are now defined as `SLBackground` rather than `SceneLayer`.
+
+- `TerrainDebris` INI property `OnlyOnSurface = 0/1` replaced with `DebrisPlacementMode = 0-6`.  
+	Placement modes are:  
+	```
+	0 (NoPlacementRestrictions) // Debris will be placed anywhere where there is target material (currently not strictly enforced when being offset by min/max depth, so can end up being placed mid-air/cavity unless set to OnlyBuried = 1).
+
+	1 (OnSurfaceOnly) // Debris will be placed only on the surface (scanning from top to bottom) where no background cavity material (material index 1) was encountered before the target material.
+
+	2 (OnCavitySurfaceOnly) // Debris will be placed only on the surface (scanning from top to bottom) where background cavity material (material index 1) was encountered before the target material.
+
+	3 (OnSurfaceAndCavitySurface) // Debris will be placed only on the surface (scanning from top to bottom) regardless whether background cavity material (material index 1) was encountered before the target material.
+
+	4 (OnOverhangOnly) // Debris will be placed only on overhangs (scanning from bottom to top) where no background cavity material (material index 1) was encountered before the target material.
+
+	5 (OnCavityOverhangOnly) // Debris will be placed only on overhangs (scanning from bottom to top) where background cavity material (material index 1) was encountered before the target material.
+
+	6 (OnOverhangAndCavityOverhang) // Debris will be placed only on overhangs (scanning from bottom to top) regardless whether background cavity material (material index 1) was encountered before the target material.
+	```
+
+- `Material` INI property `TextureFile` renamed to `FGTextureFile` to accommodate new background texture property.
+
+- `TerrainObject`s no longer have a hard requirement for `FG` and `Mat` layer sprites. Any layer may be omitted as long as at least one is defined.
+
+- `Scene` layer data will now be saved as compressed PNG to reduce file sizes of MetaGame saves and is threaded to prevent the game from freezing when layer data is being saved. 
+
+- Lua function `BuyMenuGUI:SetHeaderImage` renamed to `SetBannerImage`.
+
+- Lua functions run by `PieSlice`s will now have the following signature: `pieSliceFunction(pieMenuOwner, pieMenu, pieSlice)`. The details for these are as follows:  
+	`pieMenuOwner` - The `Actor` owner of this `PieMenu`, or the `MovableObject` affected object of it if it has no owner.
+	`pieMenu` - The `PieMenu` that is being used, and is calling this function. Note that this may be a sub-`PieMenu`.  
+	`pieSlice` - The `PieSlice` that has been activated to call this function.  
+
+- `OnPieMenu(self)` event function has been changed to `WhilePieMenuOpen(self, openedPieMenu)` and will run as long as the `PieMenu` is open.
+
+- Any `Attachable` on an `Actor` (not just `HeldDevice`s) can now have a `WhilePieMenuOpen(self, openedPieMenu)` function, and can add `PieSlice`s and run functions when they're pressed.
+
+- `PieSliceIndex` enum has been renamed to `SliceType` to better match the source. More relevantly for modders, its values have also been renamed, they are as follows:	 
+	```
+	(0)  NoType
+
+	// The following are used for inventory management:
+	(1)  Pickup
+	(2)  Drop
+	(3)  NextItem
+	(4)  PreviousItem
+	(5)  Reload
+
+	// The following are used for menu and GUI activation:
+	(6)  BuyMenu
+	(7)  FullInventory
+	(8)  Stats
+	(9)  Map
+	(10) Ceasefire
+
+	// The following is used for squad management:
+	(11) FormSquad
+
+	// The following are used for AI mode management:
+	(12) AIModes
+	(13) Sentry
+	(14) Patrol
+	(15) BrainHunt
+	(16) GoldDig
+	(17) GoTo
+	(18) Return
+	(19) Stay
+	(20) Deliver
+	(21) Scuttle
+
+	// The following are used for game editors:
+	(22) EditorDone
+	(23) EditorLoad
+	(24) EditorSave
+	(25) EditorNew
+	(26) EditorPick
+	(27) EditorMove
+	(28) EditorRemove
+	(29) EditorInFront
+	(30) EditorBehind
+	(31) EditorZoomIn
+	(32) EditorZoomOut
+	(33) EditorTeam1
+	(34) EditorTeam2
+	(35) EditorTeam3
+	(36) EditorTeam4
+	```
+
+- Major improvements to pathfinding performance and AI decision making.
+
+- Having the pie menu open no longer blocks user input when using mouse+keyboard or a controller.
+
+- `MOSRotating` based presets without an `AtomGroup` definition will now crash with error message during loading.
+
+- Over-indentation in INI will crash with error message if detected during loading instead of skipping entire blocks or in some cases the rest of the file.  
+	There is never a case where there should be a positive difference of more than one tab between lines, but this means that lines like `IncludeFile` which would previously load fine even if over-indented will also crash, but you should never have those indented to begin with.  
+
+	Examples of structure that will cause a crash:  
+	```ini
+	AddSomething = Something
+			PresetName = Thing // Over-indented. Will crash.
+		SomeProperty = Whatever
+
+	AddSomething = Something
+		PresetName = Thing
+		SomeObjectProperty = Something
+				CopyOf = Thing // Over-indented. Will crash.
+	```
+
+- Improve accuracy of the `MSPF` measurement in performance stats, which also improves the accuracy of the `FPS` measurement.  
+	The `MSPF` measurement now displays 3 values:  
+	`Frame` (previously `MSPF`) - The total frame time (game loop iteration), in milliseconds.  
+	`Update` - The total time spent updating the sim during the frame (as the sim can be updated multiple times per frame), in milliseconds.  
+	`Draw` - The time spend drawing during the frame, in milliseconds.
+
+- Advanced performance stats (graphs) will now scale to `RealToSimCap`.
+
+- The keyboard shortcut for clearing the console is now `F10`, since `F5` is used for quick-saving (`F9` quick-loads).
+
+- `BitmapPrimitive` drawing functions now accept `MOSprite` instead of `Entity` for the object they get the bitmap to draw from.  
+	This changes nothing regarding the bindings, but will now print an error to the console when attempting to draw a non-`MOSprite` based object (e.g. `MOPixel`), instead of silently skipping it.
+
+- Unless set to dual-reload, one-handed `HDFirearms` will now reload one-at-a-time. To maintain this behaviour in Lua scripts, it is recommend to use `AHuman:ReloadFirearms()` instead of reloading `HeldDevices` directly, as the latter will ignore restrictions.
+
+- Made a lot of changes to `Arms` - they can now only hold `HeldDevices` (and subclasses like `HDFirearms` and `ThrownDevices`), and `AHumans` have a lot of `Arm` animations, including sway when walking and holding something, smoother `Arm` movement and reload animations.  
+	They now have the following INI properties:  
+	```
+	MaxLength - The max length of the Arm in pixels.
+	MoveSpeed - How quickly the Arm moves between targets. 0 means no movement, 1 means instant movement.
+	HandIdleOffset - The idle offset this Arm's hand will move to if it has no targets, and nothing else affecting its idle offset (e.g. it's not holding or supporting a HeldDevice). IdleOffset is also allowed for compatibility.
+	HandSprite - The sprite file for this Arm's hand. Hand is also allowed for compatibility.
+	GripStrength - The Arm's grip strength when holding HeldDevices. Further described below, in the entry where it was added.
+	ThrowStrength - The Arm's throw strength when throwing ThrownDevices. Further described below, in the entry where it was added.
+	HeldDevice - Allows you to set the HeldDevice attached to this Arm.
+	```
+	They now have the following Lua properties and functions:  
+	**`MaxLength`** (R) - Allows getting the `Arm`'s maximum length.  
+	**`MoveSpeed`** (R/W) - Allows getting and setting the `Arm`'s movement speed. 0 means no movement, 1 means instant movement.  
+	**`HandIdleOffset`** (R/W) - Allows getting and setting the `Arm`'s default idle hand offset, i.e. where the hand will go when it has no targets and isn't holding or supporting anything.  
+	**`HandPos`** (R/W) - Gets and sets the current position of the hand. Note that this will override any animations and move the hand to the position instantly, so it's generally not recommended.  
+	**`HasAnyHandTargets`** (R) - Gets whether or not this `Arm` has any hand targets, i.e. any positions the `Arm` is supposed to try to move its hand to.  
+	**`NumberOfHandTargets`** (R) - Gets the number of hand targets this `Arm` has.  
+	**`NextHandTargetDescription`** (R/W) - Gets the description of the next target this `Arm`'s hand is moving to, or an empty string if there are no targets.  
+	**`NextHandTargetPosition`** (R/W) - Gets the position of the next target this `Arm`'s hand is moving to, or `Vector(0, 0)` if there are no targets.  
+	**`HandHasReachedCurrentTarget`** (R) - Gets whether or not this `Arm`'s hand has reached its current target. This may not be reliably accessible from Lua since it can often get reset before being read from Lua, if the target has no delay. Note that this will be true if there are no targets but that hand has reached its appropriate idle offset.  
+	**`GripStrength`** (R/W) - Gets and sets the `Arm`'s grip strength when holding `HeldDevices`. Further described below, in the entry where it was added.  
+	**`ThrowStrength`** (R/W) - Gets and sets the `Arm`'s throw strength when throwing `ThrownDevices`. Further described below, in the entry where it was added.  
+	**`HeldDevice`** (R/W) - Gets and sets the `HeldDevice` held by this `Arm`.  
+	**`SupportedHeldDevice`** (R) - Gets the `HeldDevice` this `Arm` is supporting. For obvious reasons, this will be empty if this is not the BG `Arm` or if it has a `HeldDevice` of its own.  
+	**`AddHandTarget(description, positionOnScene)`**  - Adds a target for this `Arm`'s hand to move to. The target goes to the back of the queue, allowing for multiple animations to be added in succession. The description is arbitrary, but useful for identification, and if the target being added has the same description as the target at the end of the queue, they will be merged to avoid duplication.  
+	**`AddHandTarget(description, positionOnScene, delayAtTarget)`**  - Adds a target for this `Arm`'s hand to move to as above, but the hand will wait at the target for the specified amount of time.  
+	**`RemoveNextHandTarget()`**  - Removes the next hand target from the queue, if there are any.  
+	**`ClearHandTargets()`**  - Empties the queue of hand targets. Once the queue is empty, the hand will move towards its appropriate idle offset.
+
+- The following `SceneMan` functions have been moved to `CameraMan`:
+	```lua
+	SetOffset(offsetVector, screenId);
+	GetScreenOcclusion(screenId);
+	SetScreenOcclusion(occlusionVector, screenId);
+	GetScrollTarget(screenId);
+	SetScrollTarget(targetPosition, screenId);
+	TargetDistanceScalar(point);
+	CheckOffset(screenId);
+	SetScroll(center, screenId);
+	```
+
+- `HDFirearm` Lua property `ReloadTime` is no longer writable. Use `BaseReloadTime` instead. INI property `ReloadTime` has been renamed to `BaseReloadTime`, though `ReloadTime` still works as well.
+
+- `GameActivity` default gold INI properties have been renamed, so they all have `Difficulty` at the end. The full set of properties is:  
+	`DefaultGoldCakeDifficulty`, `DefaultGoldEasyDifficulty`, `DefaultGoldMediumDifficulty`, `DefaultGoldHardDifficulty`, `DefaultGoldNutsDifficulty`, `DefaultGoldMaxDifficulty`.
+
+- `UInputMan` Lua functions `KeyPressed`, `KeyReleased` and `KeyHeld` now take `SDL_Keycode` values instead of Allegro scancodes.  
+	Keycodes take keyboard layout into account and should be the preferred way of detecting input.
+
+	If detecting by scancode (physical key location independent of layout) is absolutely necessary, the following functions have been added:  
+	`ScancodePressed`, `ScancodeReleased`, `ScancodeHeld`
+
+	Info on the keycode and scancode Lua tables and how to access them be found here: [SDL Keycode and Scancode enum values in Lua](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/wiki/SDL-Keycode-and-Scancode-enum-values-in-Lua).
+
+- Replace `PrintScreen` with `F12` for dumping a single screenshot, as `PrintScreen` was unreliable.
+
+- `AHuman`, `ACrab` and `ACRockt` will now attempt to fallback to using each `Leg`'s `Foot` attachable's `AtomGroup` as the appropriate `FootGroup`.  
+	This allows using auto-generated `AtomGroup`s instead of manually defining each `Atom` in a `FootGroup` when creating actors with larger or irregularly shaped feet simply by removing the `FootGroup` properties from the actor preset.
+
+- Failing to create actor `FootGroup`s during loading will now crash with error message instead of straight to desktop.
+
+- `Gib` property `InheritsVel` now works as a `float` scalar from 0 to 1, defining the portion of velocity inherited from the parent object.
+
+- Jetpack burst fuel consumption is now scaled according to the total burst size instead of always being tenfold.  
+	Bursts during downtime from burst spacing are now less punishing, scaling according to half of the burst size.
+
+- New `Activity` Lua function `activity:SetPlayerHadBrain(player, whetherOrNotPlayerHadBrain)`, which sets whether or not the given player had a brain. Probably mostly useful for dealing with loading a game with multiple players, where one player is dead and you have to sort out brain assignment.
+
+</details>
+
+<details><summary><b>Fixed</b></summary>
+
+- Improved support for varied resolutions and aspect ratios. 1366x768 users rejoice.
+
+- Multi-display fullscreen now works regardless of window position or which screen in the arrangement is set as primary.  
+	Still limited to horizontal arrangements that are top or bottom edge aligned (or anywhere in between for arrangements with different height displays).
+
+- Controller hot-plug and disconnect is now properly detected at any point and will attempt to reconnect devices to the same gamepad slot.
+
+- Fixed material view not drawing correctly when viewed in split-screen. ([Issue #54](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/54))
+
+- Fix `TerrainObject`s not wrapping when placed over the Y seam on Y-wrapped scenes.
+
+- Fix black striping in online multiplayer when client screen width isn't divisible by transmitted box width.
+
+- Fixed issue where actors refused to pathfind around enemy doors. ([Issue #396](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/396))
+
+- Fix advanced performance stats (graphs) peak values stuck at 0.
+
+- Fix `MOSRotating` `GetWounds()` Lua function missing its implementation.
+
+- Fixed `Entity.ModuleName` returning an empty string for `Entities` defined in `Base.rte`. They now return "Base.rte", as they should.
+
+- Fixed `MOSRotating`s registering all penetrations in one frame even when exceeding gibbing conditions. They now omit all collisions after being flagged for deletion, allowing particles like grenade fragments to penetrate other objects.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+- Removed `SLTerrain` and `SLBackground` INI property `Offset`. Internal and shouldn't have been exposed.
+
+- Removed `SLTerrain` INI alt property `AddTerrainObject`. Use `PlaceTerrainObject` for consistency with similar properties.
+
+- Removed `TerrainObject` INI property `DisplayAsTerrain`. Wasn't implemented and did nothing.
+
+- Removed `SceneMan` Lua function `AddTerrainObject`. `SceneMan:AddSceneObject` should be used instead.
+
+- Removed `Activity` Lua function `EnteredOrbit`. This tells the `Activity` to consider an `ACraft` as having entered orbit, and should never actually have been accessible to Lua.
+
+- Removed `OnPieMenu` listeners for `Activity`s and `GlobalScript`s, and removed the `ProvidesPieMenuContext` concept and everything around it. These things should no longer be necessary since you can modify `PieMenu`s on the fly at any time, and they made this already complex set of code even more complicated.
+
+- Removed `SceneMan` Lua functions `SetOffsetX(x, screenId)` and `SetOffsetY(y, screenId)`. Use `CameraMan:SetOffset(offsetVector, screenId)` instead.
+
+- Removed `whichStick` parameter for the following `UInputMan` Lua functions:  
+	`JoyDirectionPressed`, `JoyDirectionReleased`, `JoyDirectionHeld`, `AnalogAxisValue`  
+	No longer used or meaningful.
+
+- Removed `UInputMan` Lua function `WhichKeyHeld`.
+
+- Dedicated fullscreen has been removed (again) along with the following `Settings.ini` properties:
+	`ForceVirtualFullScreenGfxDriver`, `ForceDedicatedFullScreenGfxDriver`
+
+</details>
+
+***
+
 ## [0.1.0 pre-release 4.0][0.1.0-pre4.0] - 2022/02/28
 
 <details><summary><b>Added</b></summary>
@@ -140,7 +1029,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	**`ADoor`** - `DoorMoveStartSound`, `DoorMoveSound`, `DoorDirectionChangeSound`, `DoorMoveEndSound`
   
 - Added Lua function `RoundFloatToPrecision`. Utility function to round and format floating point numbers for display in strings.  
-`RoundFloatToPrecision(floatValue, digitsPastDecimal, roundingMode) -- Rounding mode 0 for system default, 1 for floored remainder, 2 for ceiled remainder.`
+`RoundFloatToPrecision(floatValue, digitsPastDecimal, roundingMode) -- Rounding mode 0 for system default, 1 for floored remainder, 2 for ceiled remainder, 3 for ceiled remainder with the last decimal place rounded to the nearest 0 or 5 (i.e. if option 2 gave 10.1, this would give 10.5, if it gave 10.369 this would give 10.370, etc.)`
 
 - The Lua console (and all text boxes) now support using `Ctrl` to move the cursor around and select or delete text.
 
@@ -256,6 +1145,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Added `Area` Lua function `area:RemoveBox(boxToRemove)` which removes the given `Box` from the `Area`. Note that this removal is done by comparing the `Box`'s `Corner`, `Width` and `Height`, so you're actually removing the first `Box` that matches the passed-in boxToRemove.
 
+- Added `Area` Lua property `area.FirstBox` that returns the first `Box` in this `Area`. Useful for `Areas` that only have one `Box`.
+
+- Added `Area` Lua properties for `area.Center` and `area.RandomPoint`. They're exactly the same as the existing `area:GetCenterPoint()` and `area:GetRandomPoint()` functions, but a bit more convenient.
+
+- Added `SceneMan` Lua function `SceneMan:WrapBox(boxToWrap)` which takes a `Box` and, if it passes over the seam, splits it into multiple boxes and returns them. Useful for creating `Boxes` without having to worry about the seam.
+
 - Added Lua binding for `AudioMan:StopMusic()`, which stops all playing music. `AudioMan:StopAll()` used to do this, but now it actually stops all sounds and music.
 
 - New `Actor` Lua (R) property `SharpAimProgress`, which returns the current sharp-aiming progress as a scalar from 0 to 1.
@@ -294,6 +1189,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `AHuman` Lua (R) property `EquippedMass`, which returns the total mass of any `HeldDevice`s currently equipped by the actor.
 
 - New Settings.ini flag `UseExperimentalMultiplayerSpeedBoosts = 1/0`. When turned on, it will use some code that **may** speed up multiplayer.
+
+- New `FrameMan` Lua function `SplitStringToFitWidth(stringToSplit, widthLimit, useSmallFont)`, which lets you split up a string so it fits within a given width limit for the specified font. Does not try to perfectly fit strings, and can be wonky if the width limit is small. Mostly used to ensure text fits on the screen!
 
 </details>
 
@@ -374,7 +1271,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 		
 - Reworked wound management:  
 	Wound management is now always done with `MOSRotating` functions, instead of requiring different ones for `Actors`. This means TotalWoundCount and RemoveAnyRandomWounds no longer exist.  
-	You can get all wounds with `GetWounds`, get the wound count with `GetWoundCount` (or using the pre-existing WoundCount property), get the gib wound limit with `GetGibWoundLimit` (or using the pre-existing GibWoundLimit property), and remove wounds with `RemoveWounds`.  
+	In place of these functions, you can get all wounds with `GetWounds`, you can get the wound count with `GetWoundCount` (or using the pre-existing WoundCount property), and remove wounds with `RemoveWounds`. You can also get the total gib wound limit with `GetGibWoundLimit` (or using the pre-existing GibWoundLimit property).  
 	All of these functions have two variants, one lets you just specify any normal arguments (e.g. number of wounds to remove), the other lets you also specify whether you want to include any of the following, in order: `Attachables` with a positive `DamageMultiplier` (i.e. `Attachables` that damage their parent), `Attachables` with a negative `DamageMultiplier` (i.e. `Attachables` that heal their parent) or `Attachables` with no `DamageMultiplier` (i.e. `Attachables` that don't affect their parent).  
 	Without any arguments, `GetWoundCount` and `RemoveWounds` will only include `Attachables` with a positive `DamageMultiplier` in their counting calculations, and `GetGibWoundLimit` will not include any `Attachables` in its counting calculations. The property variants (e.g. `mosr.WoundCount`) behave the same way as the no-argument versions.  
 	Note that this process is recursive, so if an `Attachable` that satisfies the conditions has `Attachable`s that also satisfy the conditions, their wounds will be included in the results.
@@ -456,6 +1353,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Renamed Lua methods `GetRadRotated` and `GetDegRotated` to `GetRadRotatedCopy` and `GetDegRotatedCopy` for clarity.
 
 - Added support for multiple lines in DataModule descriptions in their Index.inis. See earlier entry on multiple lines in descriptions for details on how to use this.
+
+- `FrameMan` screen text will now always try to fit on the screen, splitting into multiple lines if needed. If you want more control of this, split your screen text manually with the `"\n"` new line character.
 
 </details>
 
@@ -1212,3 +2111,4 @@ Note: For a log of changes made prior to the commencement of the open source com
 [0.1.0-pre2]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre2
 [0.1.0-pre3.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre3.0
 [0.1.0-pre4.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
+[0.1.0-pre5.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.0

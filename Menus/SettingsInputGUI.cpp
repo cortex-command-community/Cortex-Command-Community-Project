@@ -18,19 +18,19 @@ namespace RTE {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 			std::string playerNum = std::to_string(player + 1);
 
-			m_PlayerInputSettingsBoxes.at(player).SelectedDeviceLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelP" + playerNum + "SelectedDevice"));
+			m_PlayerInputSettingsBoxes[player].SelectedDeviceLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelP" + playerNum + "SelectedDevice"));
 
-			m_PlayerInputSettingsBoxes.at(player).NextDeviceButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "NextDevice"));
-			m_PlayerInputSettingsBoxes.at(player).PrevDeviceButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "PrevDevice"));
-			m_PlayerInputSettingsBoxes.at(player).ConfigureControlsButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "Config"));
-			m_PlayerInputSettingsBoxes.at(player).ResetControlsButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "Clear"));
+			m_PlayerInputSettingsBoxes[player].NextDeviceButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "NextDevice"));
+			m_PlayerInputSettingsBoxes[player].PrevDeviceButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "PrevDevice"));
+			m_PlayerInputSettingsBoxes[player].ConfigureControlsButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "Config"));
+			m_PlayerInputSettingsBoxes[player].ResetControlsButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "Clear"));
 
-			m_PlayerInputSettingsBoxes.at(player).SensitivityLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelP" + playerNum + "Sensitivity"));
-			m_PlayerInputSettingsBoxes.at(player).SensitivitySlider = dynamic_cast<GUISlider *>(m_GUIControlManager->GetControl("SliderP" + playerNum + "Sensitivity"));
+			m_PlayerInputSettingsBoxes[player].SensitivityLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelP" + playerNum + "Sensitivity"));
+			m_PlayerInputSettingsBoxes[player].SensitivitySlider = dynamic_cast<GUISlider *>(m_GUIControlManager->GetControl("SliderP" + playerNum + "Sensitivity"));
 
-			m_PlayerInputSettingsBoxes.at(player).DeadZoneControlsBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxP" + playerNum + "DeadzoneControls"));
-			m_PlayerInputSettingsBoxes.at(player).CircleDeadZoneRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneCircle"));
-			m_PlayerInputSettingsBoxes.at(player).SquareDeadZoneRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneSquare"));
+			m_PlayerInputSettingsBoxes[player].DeadZoneControlsBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxP" + playerNum + "DeadzoneControls"));
+			m_PlayerInputSettingsBoxes[player].CircleDeadZoneRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneCircle"));
+			m_PlayerInputSettingsBoxes[player].SquareDeadZoneRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneSquare"));
 		}
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 			UpdatePlayerSelectedDeviceLabel(player);
@@ -127,12 +127,11 @@ namespace RTE {
 			case InputDevice::DEVICE_KEYB_ONLY:
 				break;
 			case InputDevice::DEVICE_MOUSE_KEYB:
-				// Mouse sensitivity doesn't seem to really work so keep the controls disabled for now, also it's shared between all mouse+keyboard using players.
-				/*
+				// Mouse sensitivity is shared between all mouse+keyboard players and has effect only in Activities.
 				m_PlayerInputSettingsBoxes.at(player).SensitivityLabel->SetVisible(true);
 				m_PlayerInputSettingsBoxes.at(player).SensitivitySlider->SetVisible(true);
-				m_PlayerInputSettingsBoxes.at(player).SensitivitySlider->SetMaximum(100);
-				*/
+				m_PlayerInputSettingsBoxes.at(player).SensitivitySlider->SetMinimum(1);
+				m_PlayerInputSettingsBoxes.at(player).SensitivitySlider->SetMaximum(200);
 				break;
 			case InputDevice::DEVICE_GAMEPAD_1:
 			case InputDevice::DEVICE_GAMEPAD_2:
@@ -140,7 +139,7 @@ namespace RTE {
 			case InputDevice::DEVICE_GAMEPAD_4:
 				m_PlayerInputSettingsBoxes.at(player).SensitivityLabel->SetVisible(true);
 				m_PlayerInputSettingsBoxes.at(player).SensitivitySlider->SetVisible(true);
-				m_PlayerInputSettingsBoxes.at(player).SensitivitySlider->SetMaximum(50);
+				m_PlayerInputSettingsBoxes.at(player).SensitivitySlider->SetMaximum(85);
 				m_PlayerInputSettingsBoxes.at(player).DeadZoneControlsBox->SetVisible(true);
 				break;
 			default:
@@ -193,30 +192,30 @@ namespace RTE {
 		}
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 			if (guiEvent.GetType() == GUIEvent::Command) {
-				if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes.at(player).NextDeviceButton) {
+				if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].NextDeviceButton) {
 					g_GUISound.ButtonPressSound()->Play();
 					SetPlayerNextOrPrevInputDevice(player, true);
-				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes.at(player).PrevDeviceButton) {
+				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].PrevDeviceButton) {
 					g_GUISound.ButtonPressSound()->Play();
 					SetPlayerNextOrPrevInputDevice(player, false);
-				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes.at(player).ConfigureControlsButton) {
+				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].ConfigureControlsButton) {
 					g_GUISound.ButtonPressSound()->Play();
 					m_InputMappingConfigMenu->SetEnabled(true, player);
-				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes.at(player).ResetControlsButton) {
+				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].ResetControlsButton) {
 					g_GUISound.ButtonPressSound()->Play();
 					ResetPlayerInputSettings(player);
 				}
 			} else if (guiEvent.GetType() == GUIEvent::Notification) {
-				if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes.at(player).SensitivitySlider) {
+				if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].SensitivitySlider) {
 					if (g_UInputMan.GetControlScheme(player)->GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-						g_UInputMan.SetMouseSensitivity(static_cast<float>(m_PlayerInputSettingsBoxes.at(player).SensitivitySlider->GetValue()) / 100.0F);
+						g_UInputMan.SetMouseSensitivity(static_cast<float>(m_PlayerInputSettingsBoxes[player].SensitivitySlider->GetValue()) / 100.0F);
 					} else {
-						g_UInputMan.GetControlScheme(player)->SetJoystickDeadzone(static_cast<float>(m_PlayerInputSettingsBoxes.at(player).SensitivitySlider->GetValue()) / 100.0F);
+						g_UInputMan.GetControlScheme(player)->SetJoystickDeadzone(static_cast<float>(m_PlayerInputSettingsBoxes[player].SensitivitySlider->GetValue()) / 100.0F);
 					}
 					UpdatePlayerInputSensitivityControlValues(player);
-				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes.at(player).CircleDeadZoneRadioButton && guiEvent.GetMsg() == GUIRadioButton::Pushed) {
+				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].CircleDeadZoneRadioButton && guiEvent.GetMsg() == GUIRadioButton::Pushed) {
 					g_UInputMan.GetControlScheme(player)->SetJoystickDeadzoneType(DeadZoneType::CIRCLE);
-				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes.at(player).SquareDeadZoneRadioButton && guiEvent.GetMsg() == GUIRadioButton::Pushed) {
+				} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].SquareDeadZoneRadioButton && guiEvent.GetMsg() == GUIRadioButton::Pushed) {
 					g_UInputMan.GetControlScheme(player)->SetJoystickDeadzoneType(DeadZoneType::SQUARE);
 				}
 			}

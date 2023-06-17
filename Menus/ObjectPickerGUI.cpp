@@ -1,5 +1,7 @@
 #include "ObjectPickerGUI.h"
 
+#include "CameraMan.h"
+#include "WindowMan.h"
 #include "FrameMan.h"
 #include "PresetMan.h"
 #include "ActivityMan.h"
@@ -9,7 +11,7 @@
 #include "GUI.h"
 #include "AllegroBitmap.h"
 #include "AllegroScreen.h"
-#include "AllegroInput.h"
+#include "GUIInputWrapper.h"
 #include "GUIControlManager.h"
 #include "GUICollectionBox.h"
 #include "GUIListBox.h"
@@ -54,7 +56,7 @@ namespace RTE {
 
 		m_ExpandedModules.resize(g_PresetMan.GetTotalModuleCount());
 		std::fill(m_ExpandedModules.begin(), m_ExpandedModules.end(), false);
-		m_ExpandedModules.at(0) = true; // Base.rte is always expanded
+		m_ExpandedModules[0] = true; // Base.rte is always expanded
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +66,7 @@ namespace RTE {
 		m_Controller = controller;
 
 		if (!m_GUIScreen) { m_GUIScreen = std::make_unique<AllegroScreen>(g_FrameMan.GetBackBuffer8()); }
-		if (!m_GUIInput) { m_GUIInput = std::make_unique<AllegroInput>(controller->GetPlayer()); }
+		if (!m_GUIInput) { m_GUIInput = std::make_unique<GUIInputWrapper>(controller->GetPlayer()); }
 		if (!m_GUIControlManager) { m_GUIControlManager = std::make_unique<GUIControlManager>(); }
 		RTEAssert(m_GUIControlManager->Create(m_GUIScreen.get(), m_GUIInput.get(), "Base.rte/GUIs/Skins", "DefaultSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/DefaultSkin.ini");
 
@@ -79,7 +81,7 @@ namespace RTE {
 		if (g_FrameMan.IsInMultiplayerMode()) {
 			dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("base"))->SetSize(g_FrameMan.GetPlayerFrameBufferWidth(controller->GetPlayer()), g_FrameMan.GetPlayerFrameBufferHeight(controller->GetPlayer()));
 		} else {
-			dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("base"))->SetSize(g_FrameMan.GetResX(), g_FrameMan.GetResY());
+			dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 		}
 
 		if (!m_ParentBox) { m_ParentBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("PickerGUIBox")); }
@@ -147,7 +149,26 @@ namespace RTE {
 	void ObjectPickerGUI::SetNativeTechModule(int whichModule) {
 		if (whichModule >= 0 && whichModule < g_PresetMan.GetTotalModuleCount()) {
 			m_NativeTechModuleID = whichModule;
-			if (m_NativeTechModuleID > 0) { SetObjectsListModuleGroupExpanded(m_NativeTechModuleID); }
+			if (m_NativeTechModuleID > 0) {
+				SetObjectsListModuleGroupExpanded(m_NativeTechModuleID);
+
+				if (!g_SettingsMan.FactionBuyMenuThemesDisabled()) {
+					if (const DataModule *techModule = g_PresetMan.GetDataModule(whichModule); techModule->IsFaction()) {
+						const DataModule::BuyMenuTheme &techBuyMenuTheme = techModule->GetFactionBuyMenuTheme();
+
+						if (!techBuyMenuTheme.SkinFilePath.empty()) {
+							// Not specifying the skin file directory allows us to load image files from the whole working directory in the skin file instead of just the specified directory.
+							m_GUIControlManager->ChangeSkin("", techBuyMenuTheme.SkinFilePath);
+
+							// Popup box text is GUILabel so we need to override the "Label" section font with the "DescriptionBoxText" section font so we can use a different font without screwing with all the other labels.
+							std::string themeDescriptionBoxTextFont;
+							m_GUIControlManager->GetSkin()->GetValue("DescriptionBoxText", "Font", &themeDescriptionBoxTextFont);
+							m_PopupText->SetFont(m_GUIControlManager->GetSkin()->GetFont(themeDescriptionBoxTextFont));
+						}
+						if (techBuyMenuTheme.BackgroundColorIndex >= 0) { m_ParentBox->SetDrawColor(std::clamp(techBuyMenuTheme.BackgroundColorIndex, 0, 255)); }
+					}
+				}
+			}
 		}
 	}
 
@@ -235,7 +256,7 @@ namespace RTE {
 				if (!dynamic_cast<BunkerAssemblyScheme *>(objectListEntry)) { onlyAssemblySchemesInGroup = false; }
 
 				const SceneObject *sceneObject = dynamic_cast<SceneObject *>(objectListEntry);
-				if (sceneObject && sceneObject->IsBuyable() && !sceneObject->IsBuyableInBuyMenuOnly()) {
+				if (sceneObject && sceneObject->IsBuyable() && !sceneObject->IsBuyableInBuyMenuOnly() && !sceneObject->IsBuyableInScriptOnly()) {
 					hasObjectsToShow = true;
 					break;
 				}
@@ -359,7 +380,7 @@ namespace RTE {
 					}
 				} else {
 					for (int moduleID = 0; moduleID < moduleList.size(); ++moduleID) {
-						if (moduleID == 0 || moduleID == m_NativeTechModuleID) { g_PresetMan.GetAllOfGroup(moduleList.at(moduleID), groupListItem->m_Name, m_ShowType, moduleID); }
+						if (moduleID == 0 || moduleID == m_NativeTechModuleID || g_PresetMan.GetDataModule(moduleID)->IsMerchant()) { g_PresetMan.GetAllOfGroup(moduleList.at(moduleID), groupListItem->m_Name, m_ShowType, moduleID); }
 					}
 				}
 			} else {
@@ -377,7 +398,7 @@ namespace RTE {
 			std::list<SceneObject *> objectList;
 			for (Entity *moduleListEntryEntity : moduleList.at(moduleID)) {
 				SceneObject *sceneObject = dynamic_cast<SceneObject *>(moduleListEntryEntity);
-				if (sceneObject && sceneObject->IsBuyable() && !sceneObject->IsBuyableInBuyMenuOnly()) { objectList.emplace_back(sceneObject); }
+				if (sceneObject && sceneObject->IsBuyable() && !sceneObject->IsBuyableInBuyMenuOnly() && !sceneObject->IsBuyableInScriptOnly()) { objectList.emplace_back(sceneObject); }
 			}
 			if (!objectList.empty()) {
 				if (moduleID != 0) { AddObjectsListModuleGroup(moduleID); }
@@ -502,7 +523,7 @@ namespace RTE {
 		while (m_GUIControlManager->GetEvent(&guiEvent)) {
 			if (guiEvent.GetType() == GUIEvent::Notification) {
 				if (guiEvent.GetControl() == m_GroupsList) {
-					if (guiEvent.GetMsg() == GUIListBox::MouseDown) {
+					if (guiEvent.GetMsg() == GUIListBox::MouseDown && (guiEvent.GetData() & GUIListBox::MOUSE_LEFT)) {
 						SelectGroupByIndex(m_GroupsList->GetSelectedIndex());
 					} else if (guiEvent.GetMsg() == GUIListBox::MouseMove) {
 						const GUIListPanel::Item *groupListItem = m_GroupsList->GetItem(m_CursorPos.GetFloorIntX(), m_CursorPos.GetFloorIntY());
@@ -513,7 +534,7 @@ namespace RTE {
 						SelectGroupByIndex(m_ShownGroupIndex, false);
 					}
 				} else if (guiEvent.GetControl() == m_ObjectsList) {
-					if (guiEvent.GetMsg() == GUIListBox::MouseDown) {
+					if (guiEvent.GetMsg() == GUIListBox::MouseDown && (guiEvent.GetData() & GUIListBox::MOUSE_LEFT)) {
 						m_ObjectsList->ScrollToSelected();
 						if (const GUIListPanel::Item *objectListItem = m_ObjectsList->GetSelected()) {
 							if (objectListItem->m_ExtraIndex >= 0) {
@@ -549,7 +570,7 @@ namespace RTE {
 			float travelCompletionDistance = std::floor(static_cast<float>(enabledPos - m_ParentBox->GetXPos()) * m_OpenCloseSpeed);
 
 			m_ParentBox->SetPositionAbs(m_ParentBox->GetXPos() + static_cast<int>(travelCompletionDistance), 0);
-			g_SceneMan.SetScreenOcclusion(Vector(static_cast<float>(m_ParentBox->GetXPos() - g_FrameMan.GetPlayerFrameBufferWidth(m_Controller->GetPlayer())), 0), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_Controller->GetPlayer()));
+			g_CameraMan.SetScreenOcclusion(Vector(static_cast<float>(m_ParentBox->GetXPos() - g_FrameMan.GetPlayerFrameBufferWidth(m_Controller->GetPlayer())), 0), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_Controller->GetPlayer()));
 
 			if (m_ParentBox->GetXPos() <= enabledPos) {
 				m_ParentBox->SetEnabled(true);
@@ -563,7 +584,7 @@ namespace RTE {
 			float travelCompletionDistance = std::ceil(static_cast<float>(disabledPos - m_ParentBox->GetXPos()) * m_OpenCloseSpeed);
 
 			m_ParentBox->SetPositionAbs(m_ParentBox->GetXPos() + static_cast<int>(travelCompletionDistance), 0);
-			g_SceneMan.SetScreenOcclusion(Vector(static_cast<float>(m_ParentBox->GetXPos() - g_FrameMan.GetPlayerFrameBufferWidth(m_Controller->GetPlayer())), 0), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_Controller->GetPlayer()));
+			g_CameraMan.SetScreenOcclusion(Vector(static_cast<float>(m_ParentBox->GetXPos() - g_FrameMan.GetPlayerFrameBufferWidth(m_Controller->GetPlayer())), 0), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_Controller->GetPlayer()));
 
 			if (m_ParentBox->GetXPos() >= g_FrameMan.GetPlayerFrameBufferWidth(m_Controller->GetPlayer())) {
 				m_ParentBox->SetVisible(false);
@@ -577,6 +598,12 @@ namespace RTE {
 	void ObjectPickerGUI::Draw(BITMAP *drawBitmap) const {
 		AllegroScreen drawScreen(drawBitmap);
 		m_GUIControlManager->Draw(&drawScreen);
-		if (IsEnabled() && m_Controller->IsMouseControlled()) { draw_sprite(drawBitmap, s_Cursor, m_CursorPos.GetFloorIntX(), m_CursorPos.GetFloorIntY()); }
+		if (IsEnabled() && m_Controller->IsMouseControlled()) {
+			if (g_SettingsMan.FactionBuyMenuThemeCursorsDisabled()) {
+				draw_sprite(drawBitmap, s_Cursor, m_CursorPos.GetFloorIntX(), m_CursorPos.GetFloorIntY());
+			} else {
+				m_GUIControlManager->DrawMouse();
+			}
+		}
 	}
 }

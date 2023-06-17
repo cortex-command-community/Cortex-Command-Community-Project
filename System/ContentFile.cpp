@@ -3,8 +3,10 @@
 #include "PresetMan.h"
 #include "ConsoleMan.h"
 
+#include "png.h"
 #include "fmod/fmod.hpp"
 #include "fmod/fmod_errors.h"
+#include "boost/functional/hash.hpp"
 
 namespace RTE {
 
@@ -20,16 +22,18 @@ namespace RTE {
 		m_DataPath.clear();
 		m_DataPathExtension.clear();
 		m_DataPathWithoutExtension.clear();
+		m_DataPathIsImageFile = false;
 		m_FormattedReaderPosition.clear();
 		m_DataPathAndReaderPosition.clear();
 		m_DataModuleID = 0;
+
+		m_ImageFileInfo.fill(-1);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int ContentFile::Create(const char *filePath) {
 		SetDataPath(filePath);
-		SetFormattedReaderPosition(GetFormattedReaderPosition());
 
 		return 0;
 	}
@@ -49,7 +53,7 @@ namespace RTE {
 
 	void ContentFile::FreeAllLoaded() {
 		for (int depth = BitDepths::Eight; depth < BitDepths::BitDepthCount; ++depth) {
-			for (const auto &[bitmapPath, bitmapPtr] : s_LoadedBitmaps.at(depth)) {
+			for (const auto &[bitmapPath, bitmapPtr] : s_LoadedBitmaps[depth]) {
 				destroy_bitmap(bitmapPtr);
 			}
 		}
@@ -78,19 +82,30 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ContentFile::GetDataModuleID() const { return (m_DataModuleID < 0) ? g_PresetMan.GetModuleIDFromPath(m_DataPath) : m_DataModuleID; }
+	int ContentFile::GetDataModuleID() const {
+		return (m_DataModuleID < 0) ? g_PresetMan.GetModuleIDFromPath(m_DataPath) : m_DataModuleID;
+	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ContentFile::SetDataPath(const std::string &newDataPath) {
-		m_DataPath = CorrectBackslashesInPath(newDataPath);
+		m_DataPath = g_PresetMan.GetFullModulePath(newDataPath);
 		m_DataPathExtension = std::filesystem::path(m_DataPath).extension().string();
 
 		RTEAssert(!m_DataPathExtension.empty(), "Failed to find file extension when trying to find file with path and name:\n" + m_DataPath + "\n" + GetFormattedReaderPosition());
 
+		m_DataPathIsImageFile = m_DataPathExtension == ".png" || m_DataPathExtension == ".bmp";
+
 		m_DataPathWithoutExtension = m_DataPath.substr(0, m_DataPath.length() - m_DataPathExtension.length());
 		s_PathHashes[GetHash()] = m_DataPath;
 		m_DataModuleID = g_PresetMan.GetModuleIDFromPath(m_DataPath);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	size_t ContentFile::GetHash() const {
+		// Use boost::hash for compiler independent hashing.
+		return boost::hash<std::string>()(m_DataPath);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,18 +117,119 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	int ContentFile::GetImageFileInfo(ImageFileInfoType infoTypeToGet) {
+		bool fetchFileInfo = false;
+		for (const int &fileInfoEntry : m_ImageFileInfo) {
+			if (fileInfoEntry == -1) {
+				fetchFileInfo = true;
+				break;
+			}
+		}
+		if (fetchFileInfo) {
+			FILE *imageFile = fopen(m_DataPath.c_str(), "rb");
+			RTEAssert(imageFile, "Failed to open file prior to reading info of image file with following path and name:\n\n" + m_DataPath + "\n\nThe file may not exist or be corrupt.");
+
+			if (m_DataPathExtension == ".png") {
+				ReadAndStorePNGFileInfo(imageFile);
+			} else if (m_DataPathExtension == ".bmp") {
+				ReadAndStoreBMPFileInfo(imageFile);
+			} else {
+				RTEAbort("Somehow ended up attempting to read image file info for an unsupported image file type.\nThe file path and name were:\n\n" + m_DataPath);
+			}
+			fclose(imageFile);
+		}
+		return m_ImageFileInfo[infoTypeToGet];
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void ContentFile::ReadAndStorePNGFileInfo(FILE *imageFile) {
+		std::array<uint8_t, 8> fileSignature = {};
+
+		// Read the first 8 bytes to then verify they match the PNG file signature which is { 137, 80, 78, 71, 13, 10, 26, 10 } or { '\211', 'P', 'N', 'G', '\r', '\n', '\032', '\n' }.
+		fread(fileSignature.data(), sizeof(uint8_t), fileSignature.size(), imageFile);
+		if (png_sig_cmp(fileSignature.data(), 0, fileSignature.size()) == 0) {
+			png_structp pngReadStruct = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+			png_infop pngInfo = png_create_info_struct(pngReadStruct);
+
+			png_init_io(pngReadStruct, imageFile);
+			// Set the PNG reader to skip the first 8 bytes since we already handled them.
+			png_set_sig_bytes(pngReadStruct, fileSignature.size());
+			png_read_info(pngReadStruct, pngInfo);
+
+			m_ImageFileInfo[ImageFileInfoType::ImageBitDepth] = static_cast<int>(png_get_bit_depth(pngReadStruct, pngInfo));
+			m_ImageFileInfo[ImageFileInfoType::ImageWidth] = static_cast<int>(png_get_image_width(pngReadStruct, pngInfo));
+			m_ImageFileInfo[ImageFileInfoType::ImageHeight] = static_cast<int>(png_get_image_height(pngReadStruct, pngInfo));
+
+			png_destroy_read_struct(&pngReadStruct, &pngInfo, nullptr);
+		} else {
+			RTEAbort("Encountered invalid PNG file signature while attempting to read info of image file with following path and name:\n\n" + m_DataPath + "\n\nThe file may be corrupt or is not a PNG file.");
+		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void ContentFile::ReadAndStoreBMPFileInfo(FILE *imageFile) {
+		std::array<uint8_t, 2> bmpSignature = { 0x42, 0x4D }; // { 'B', 'M' }.
+		std::array<uint8_t, 2> fileSignature = {};
+
+		// Read the first 2 bytes to then verify they match the BMP file signature.
+		fread(fileSignature.data(), sizeof(uint8_t), fileSignature.size(), imageFile);
+		if (fileSignature == bmpSignature) {
+			std::array<uint8_t, 4> bmpData = {};
+
+			const auto toInt32 = [](uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3) {
+				return (static_cast<int32_t>(b0)) | (static_cast<int32_t>(b1) << 8) | (static_cast<int32_t>(b2) << 16) | (static_cast<int32_t>(b3) << 24);
+			};
+
+			// Skip the next 16 bytes. Dimensions data starts at the 18th byte.
+			fseek(imageFile, 16, SEEK_CUR);
+
+			fread(bmpData.data(), sizeof(uint8_t), bmpData.size(), imageFile);
+			m_ImageFileInfo[ImageFileInfoType::ImageWidth] = toInt32(bmpData[0], bmpData[1], bmpData[2], bmpData[3]);
+
+			fread(bmpData.data(), sizeof(uint8_t), bmpData.size(), imageFile);
+			m_ImageFileInfo[ImageFileInfoType::ImageHeight] = toInt32(bmpData[0], bmpData[1], bmpData[2], bmpData[3]);
+
+			// Skip the next 2 bytes. Bit depth data starts at the 28th byte.
+			fseek(imageFile, 2, SEEK_CUR);
+
+			// Bit depth is stored as 2 bytes, so ignore the last 2 in the array when converting to int32.
+			fread(bmpData.data(), sizeof(uint8_t), bmpData.size(), imageFile);
+			m_ImageFileInfo[ImageFileInfoType::ImageBitDepth] = toInt32(bmpData[0], bmpData[1], 0, 0);
+		} else {
+			RTEAbort("Encountered invalid BMP file signature while attempting to read info of image file with following path and name:\n\n" + m_DataPath + "\n\nThe file may be corrupt or is not a BMP file.");
+		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void ContentFile::ReloadAllBitmaps() {
+		for (const std::unordered_map<std::string, BITMAP *> &bitmapCache : s_LoadedBitmaps) {
+			for (const auto &[filePath, oldBitmap] : bitmapCache) {
+				ReloadBitmap(filePath);
+			}
+		}
+		g_ConsoleMan.PrintString("SYSTEM: Sprites reloaded");
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	BITMAP * ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std::string &dataPathToSpecificFrame) {
 		if (m_DataPath.empty()) {
 			return nullptr;
 		}
 		BITMAP *returnBitmap = nullptr;
-		const int bitDepth = (conversionMode == COLORCONV_8_TO_32) ? BitDepths::ThirtyTwo : BitDepths::Eight;
+		const int bitDepth = conversionMode == COLORCONV_8_TO_32 ? BitDepths::ThirtyTwo : BitDepths::Eight;
 		std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
-		SetFormattedReaderPosition(GetFormattedReaderPosition());
+
+		if (g_PresetMan.GetReloadEntityPresetCalledThisUpdate()) {
+			ReloadBitmap(dataPathToLoad, conversionMode);
+		}
 
 		// Check if the file has already been read and loaded from the disk and, if so, use that data.
-		std::unordered_map<std::string, BITMAP *>::iterator foundBitmap = s_LoadedBitmaps.at(bitDepth).find(dataPathToLoad);
-		if (foundBitmap != s_LoadedBitmaps.at(bitDepth).end()) {
+		std::unordered_map<std::string, BITMAP *>::iterator foundBitmap = s_LoadedBitmaps[bitDepth].find(dataPathToLoad);
+		if (storeBitmap && foundBitmap != s_LoadedBitmaps[bitDepth].end()) {
 			returnBitmap = (*foundBitmap).second;
 		} else {
 			if (!System::PathExistsCaseSensitive(dataPathToLoad)) {
@@ -121,7 +237,7 @@ namespace RTE {
 				const std::string altFileExtension = (m_DataPathExtension == ".png") ? ".bmp" : ".png";
 
 				if (System::PathExistsCaseSensitive(dataPathWithoutExtension + altFileExtension)) {
-					g_ConsoleMan.AddLoadWarningLogEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
+					g_ConsoleMan.AddLoadWarningLogExtensionMismatchEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
 					SetDataPath(m_DataPathWithoutExtension + altFileExtension);
 					dataPathToLoad = dataPathWithoutExtension + altFileExtension;
 				} else {
@@ -131,7 +247,7 @@ namespace RTE {
 			returnBitmap = LoadAndReleaseBitmap(conversionMode, dataPathToLoad); // NOTE: This takes ownership of the bitmap file
 
 			// Insert the bitmap into the map, PASSING OVER OWNERSHIP OF THE LOADED DATAFILE
-			if (storeBitmap) { s_LoadedBitmaps.at(bitDepth).try_emplace(dataPathToLoad, returnBitmap); }
+			if (storeBitmap) { s_LoadedBitmaps[bitDepth].try_emplace(dataPathToLoad, returnBitmap); }
 		}
 		return returnBitmap;
 	}
@@ -143,7 +259,6 @@ namespace RTE {
 			return;
 		}
 		vectorToFill.reserve(frameCount);
-		SetFormattedReaderPosition(GetFormattedReaderPosition());
 
 		if (frameCount == 1) {
 			// Check for 000 in the file name in case it is part of an animation but the FrameCount was set to 1. Do not warn about this because it's normal operation, but warn about incorrect extension.
@@ -153,7 +268,7 @@ namespace RTE {
 				if (System::PathExistsCaseSensitive(m_DataPathWithoutExtension + "000" + m_DataPathExtension)) {
 					SetDataPath(m_DataPathWithoutExtension + "000" + m_DataPathExtension);
 				} else if (System::PathExistsCaseSensitive(m_DataPathWithoutExtension + "000" + altFileExtension)) {
-					g_ConsoleMan.AddLoadWarningLogEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
+					g_ConsoleMan.AddLoadWarningLogExtensionMismatchEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
 					SetDataPath(m_DataPathWithoutExtension + "000" + altFileExtension);
 				}
 			}
@@ -174,14 +289,13 @@ namespace RTE {
 			return nullptr;
 		}
 		const std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
-		SetFormattedReaderPosition(GetFormattedReaderPosition());
 
 		BITMAP *returnBitmap = nullptr;
 
 		PALETTE currentPalette;
 		get_palette(currentPalette);
 
-		set_color_conversion((conversionMode == 0) ? COLORCONV_MOST : conversionMode);
+		set_color_conversion((conversionMode == COLORCONV_NONE) ? COLORCONV_MOST : conversionMode);
 		returnBitmap = load_bitmap(dataPathToLoad.c_str(), currentPalette);
 		RTEAssert(returnBitmap, "Failed to load image file with following path and name:\n\n" + m_DataPathAndReaderPosition + "\nThe file may be corrupt, incorrectly converted or saved with unsupported parameters.");
 
@@ -214,13 +328,13 @@ namespace RTE {
 		if (m_DataPath.empty() || !g_AudioMan.IsAudioEnabled()) {
 			return nullptr;
 		}
-
 		if (!System::PathExistsCaseSensitive(m_DataPath)) {
 			bool foundAltExtension = false;
 			for (const std::string &altFileExtension : c_SupportedAudioFormats) {
-				if (System::PathExistsCaseSensitive(m_DataPathWithoutExtension + altFileExtension)) {
-					g_ConsoleMan.AddLoadWarningLogEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
-					SetDataPath(m_DataPathWithoutExtension + altFileExtension);
+				const std::string altDataPathToLoad = m_DataPathWithoutExtension + altFileExtension;
+				if (System::PathExistsCaseSensitive(altDataPathToLoad)) {
+					g_ConsoleMan.AddLoadWarningLogExtensionMismatchEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
+					SetDataPath(altDataPathToLoad);
 					foundAltExtension = true;
 					break;
 				}
@@ -250,5 +364,30 @@ namespace RTE {
 			return returnSample;
 		}
 		return returnSample;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void ContentFile::ReloadBitmap(const std::string &filePath, int conversionMode) {
+		const int bitDepth = (conversionMode == COLORCONV_8_TO_32) ? BitDepths::ThirtyTwo : BitDepths::Eight;
+
+		auto bmpItr = s_LoadedBitmaps[bitDepth].find(filePath);
+		if (bmpItr == s_LoadedBitmaps[bitDepth].end()) {
+			return;
+		}
+
+		PALETTE currentPalette;
+		get_palette(currentPalette);
+		set_color_conversion((conversionMode == COLORCONV_NONE) ? COLORCONV_MOST : conversionMode);
+
+		BITMAP *loadedBitmap = (*bmpItr).second;
+		BITMAP *newBitmap = load_bitmap(filePath.c_str(), currentPalette);
+		BITMAP swap;
+
+		std::memcpy(&swap, loadedBitmap, sizeof(BITMAP));
+		std::memcpy(loadedBitmap, newBitmap, sizeof(BITMAP));
+		std::memcpy(newBitmap, &swap, sizeof(BITMAP));
+
+		destroy_bitmap(newBitmap);
 	}
 }

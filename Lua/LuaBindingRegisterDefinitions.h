@@ -1,34 +1,8 @@
 #ifndef _RTELUAREGISTERDEFINITIONS_
 #define _RTELUAREGISTERDEFINITIONS_
 
-#include "LuaBindDefinitions.h"
-
-#include "GameActivity.h"
-#include "MetaPlayer.h"
-#include "SLTerrain.h"
-
-#include "GUIBanner.h"
-#include "BuyMenuGUI.h"
-#include "SceneEditorGUI.h"
-
-#include "ActivityMan.h"
-#include "AudioMan.h"
-#include "ConsoleMan.h"
-#include "FrameMan.h"
-#include "MetaMan.h"
-#include "MovableMan.h"
-#include "PostProcessMan.h"
-#include "PresetMan.h"
-#include "PrimitiveMan.h"
-#include "SceneMan.h"
-#include "SettingsMan.h"
-#include "TimerMan.h"
-#include "UInputMan.h"
-
-#include "Box.h"
-#include "Controller.h"
-#include "DataModule.h"
-#include "PieSlice.h"
+#include "LuabindDefinitions.h"
+#include "LuaAdapterDefinitions.h"
 
 namespace RTE {
 
@@ -48,16 +22,16 @@ namespace RTE {
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of an abstract type.
 	/// </summary>
-	#define AbstractTypeLuaClassDefinition(TYPE, PARENTTYPE)	\
-		luabind::class_<TYPE, PARENTTYPE>(#TYPE)				\
+	#define AbstractTypeLuaClassDefinition(TYPE, PARENTTYPE) \
+		luabind::class_<TYPE, PARENTTYPE>(#TYPE) \
 			.property("ClassName", &TYPE::GetClassName)
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a concrete type.
 	/// </summary>
-	#define ConcreteTypeLuaClassDefinition(TYPE, PARENTTYPE)				\
-		luabind::class_<TYPE, PARENTTYPE>(#TYPE)							\
-			.def("Clone", &Clone##TYPE, luabind::adopt(luabind::result))	\
+	#define ConcreteTypeLuaClassDefinition(TYPE, PARENTTYPE) \
+		luabind::class_<TYPE, PARENTTYPE>(#TYPE)													\
+			.def("Clone", &LuaAdaptersEntityClone::Clone##TYPE, luabind::adopt(luabind::result))	\
 			.property("ClassName", &TYPE::GetClassName)
 
 	/// <summary>
@@ -69,23 +43,23 @@ namespace RTE {
 	/// <summary>
 	/// Convenience macro for calling a register function of an abstract type, along with registering global bindings for adapters relevant to the type.
 	/// </summary>
-	#define RegisterLuaBindingsOfAbstractType(OWNINGSCOPE, TYPE)															\
-		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (TYPE *(*)(Entity *))&To##TYPE),						\
-		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (const TYPE *(*)(const Entity *))&ToConst##TYPE),	\
+	#define RegisterLuaBindingsOfAbstractType(OWNINGSCOPE, TYPE) \
+		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE),						\
+		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE),		\
 		OWNINGSCOPE::Register##TYPE##LuaBindings()
 
 	/// <summary>
 	/// Convenience macro for calling a register function of a concrete type, along with registering global bindings for adapters relevant to the type.
 	/// </summary>
-	#define RegisterLuaBindingsOfConcreteType(OWNINGSCOPE, TYPE)																									\
-		luabind::def((std::string("Create") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string, std::string))&Create##TYPE, luabind::adopt(luabind::result)),	\
-		luabind::def((std::string("Create") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string))&Create##TYPE, luabind::adopt(luabind::result)),					\
-		luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string, int))&Random##TYPE, luabind::adopt(luabind::result)),			\
-		luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string, std::string))&Random##TYPE, luabind::adopt(luabind::result)),	\
-		luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string))&Random##TYPE, luabind::adopt(luabind::result)),					\
-		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (TYPE *(*)(Entity *))&To##TYPE),																\
-		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (const TYPE *(*)(const Entity *))&ToConst##TYPE),											\
-		luabind::def((std::string("Is") + std::string(#TYPE)).c_str(), (bool(*)(const Entity *))&Is##TYPE),															\
+	#define RegisterLuaBindingsOfConcreteType(OWNINGSCOPE, TYPE) \
+		luabind::def((std::string("Create") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string, std::string))&LuaAdaptersEntityCreate::Create##TYPE, luabind::adopt(luabind::result)),		\
+		luabind::def((std::string("Create") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string))&LuaAdaptersEntityCreate::Create##TYPE, luabind::adopt(luabind::result)),					\
+		luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string, int))&LuaAdaptersEntityCreate::Random##TYPE, luabind::adopt(luabind::result)),				\
+		luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string, std::string))&LuaAdaptersEntityCreate::Random##TYPE, luabind::adopt(luabind::result)),		\
+		luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string))&LuaAdaptersEntityCreate::Random##TYPE, luabind::adopt(luabind::result)),					\
+		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE),																	\
+		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE),													\
+		luabind::def((std::string("Is") + std::string(#TYPE)).c_str(), (bool(*)(const Entity *))&LuaAdaptersEntityCast::Is##TYPE),																\
 		OWNINGSCOPE::Register##TYPE##LuaBindings()
 #pragma endregion
 
@@ -96,7 +70,6 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(Box);
 		LuaBindingRegisterFunctionDeclarationForType(Controller);
 		LuaBindingRegisterFunctionDeclarationForType(DataModule);
-		LuaBindingRegisterFunctionDeclarationForType(PieSlice);
 		LuaBindingRegisterFunctionDeclarationForType(Timer);
 		LuaBindingRegisterFunctionDeclarationForType(Vector);
 	};
@@ -107,6 +80,7 @@ namespace RTE {
 	struct ManagerLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(ActivityMan);
 		LuaBindingRegisterFunctionDeclarationForType(AudioMan);
+		LuaBindingRegisterFunctionDeclarationForType(CameraMan);
 		LuaBindingRegisterFunctionDeclarationForType(ConsoleMan);
 		LuaBindingRegisterFunctionDeclarationForType(FrameMan);
 		LuaBindingRegisterFunctionDeclarationForType(MetaMan);
@@ -137,6 +111,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(Attachable);
 		LuaBindingRegisterFunctionDeclarationForType(Deployment);
 		LuaBindingRegisterFunctionDeclarationForType(Emission);
+		LuaBindingRegisterFunctionDeclarationForType(Gib);
 		LuaBindingRegisterFunctionDeclarationForType(GlobalScript);
 		LuaBindingRegisterFunctionDeclarationForType(HDFirearm);
 		LuaBindingRegisterFunctionDeclarationForType(HeldDevice);
@@ -151,10 +126,14 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(MOSRotating);
 		LuaBindingRegisterFunctionDeclarationForType(MovableObject);
 		LuaBindingRegisterFunctionDeclarationForType(PEmitter);
+		LuaBindingRegisterFunctionDeclarationForType(PieSlice);
+		LuaBindingRegisterFunctionDeclarationForType(PieMenu);
 		LuaBindingRegisterFunctionDeclarationForType(Round);
 		LuaBindingRegisterFunctionDeclarationForType(Scene);
 		LuaBindingRegisterFunctionDeclarationForType(SceneArea);
+		LuaBindingRegisterFunctionDeclarationForType(SceneLayer);
 		LuaBindingRegisterFunctionDeclarationForType(SceneObject);
+		LuaBindingRegisterFunctionDeclarationForType(SLBackground);
 		LuaBindingRegisterFunctionDeclarationForType(SoundContainer);
 		LuaBindingRegisterFunctionDeclarationForType(SoundSet);
 		LuaBindingRegisterFunctionDeclarationForType(TDExplosive);
@@ -181,15 +160,49 @@ namespace RTE {
 	};
 
 	/// <summary>
-	/// Struct that contains Lua binding registration functions for types that don't really belong in any of the other binding structs.
+	/// Struct that contains Lua binding registration functions for GraphicalPrimitive classes.
 	/// </summary>
-	struct MiscLuaBindings {
-		LuaBindingRegisterFunctionDeclarationForType(AlarmEvent);
+	struct PrimitiveLuaBindings {
+		LuaBindingRegisterFunctionDeclarationForType(GraphicalPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(LinePrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(ArcPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(SplinePrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(BoxPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(BoxFillPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(RoundedBoxPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(RoundedBoxFillPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(CirclePrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(CircleFillPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(EllipsePrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(EllipseFillPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(TrianglePrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(TriangleFillPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(TextPrimitive);
+		LuaBindingRegisterFunctionDeclarationForType(BitmapPrimitive);
+	};
+
+	/// <summary>
+	/// Struct that contains Lua binding registration functions for various input enumerations.
+	/// </summary>
+	struct InputLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(InputDevice);
 		LuaBindingRegisterFunctionDeclarationForType(InputElements);
 		LuaBindingRegisterFunctionDeclarationForType(MouseButtons);
 		LuaBindingRegisterFunctionDeclarationForType(JoyButtons);
 		LuaBindingRegisterFunctionDeclarationForType(JoyDirections);
+		LuaBindingRegisterFunctionDeclarationForType(SDL_Scancode);
+		LuaBindingRegisterFunctionDeclarationForType(SDL_Keycode);
+		LuaBindingRegisterFunctionDeclarationForType(SDL_GameControllerButton);
+		LuaBindingRegisterFunctionDeclarationForType(SDL_GameControllerAxis);
+	};
+
+	/// <summary>
+	/// Struct that contains Lua binding registration functions for types that don't really belong in any of the other binding structs.
+	/// </summary>
+	struct MiscLuaBindings {
+		LuaBindingRegisterFunctionDeclarationForType(AlarmEvent);
+		LuaBindingRegisterFunctionDeclarationForType(Directions);
+		LuaBindingRegisterFunctionDeclarationForType(DrawBlendMode);
 	};
 }
 #endif

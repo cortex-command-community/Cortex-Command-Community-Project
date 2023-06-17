@@ -13,15 +13,18 @@
 
 #include "AreaPickerGUI.h"
 
+#include "CameraMan.h"
+#include "WindowMan.h"
 #include "FrameMan.h"
 #include "PresetMan.h"
 #include "ActivityMan.h"
 #include "UInputMan.h"
+#include "SceneMan.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
 #include "AllegroScreen.h"
-#include "AllegroInput.h"
+#include "GUIInputWrapper.h"
 #include "GUIControlManager.h"
 #include "GUICollectionBox.h"
 #include "GUITab.h"
@@ -68,7 +71,7 @@ void AreaPickerGUI::Clear()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Makes the AreaPickerGUI area ready for use.
 
-int AreaPickerGUI::Create(Controller *pController, string onlyOfType)
+int AreaPickerGUI::Create(Controller *pController, std::string onlyOfType)
 {
     RTEAssert(pController, "No controller sent to AreaPickerGUI on creation!");
     m_pController = pController;
@@ -76,7 +79,7 @@ int AreaPickerGUI::Create(Controller *pController, string onlyOfType)
     if (!m_pGUIScreen)
         m_pGUIScreen = new AllegroScreen(g_FrameMan.GetBackBuffer8());
     if (!m_pGUIInput)
-        m_pGUIInput = new AllegroInput(pController->GetPlayer());
+        m_pGUIInput = new GUIInputWrapper(pController->GetPlayer());
     if (!m_pGUIController)
         m_pGUIController = new GUIControlManager();
 	if (!m_pGUIController->Create(m_pGUIScreen, m_pGUIInput, "Base.rte/GUIs/Skins", "DefaultSkin.ini")) {
@@ -92,7 +95,7 @@ int AreaPickerGUI::Create(Controller *pController, string onlyOfType)
     }
 
     // Stretch the invisible root box to fill the screen
-    dynamic_cast<GUICollectionBox *>(m_pGUIController->GetControl("base"))->SetSize(g_FrameMan.GetResX(), g_FrameMan.GetResY());
+    dynamic_cast<GUICollectionBox *>(m_pGUIController->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
     // Make sure we have convenient points to teh containing GUI colleciton boxes that we will manipulate the positions of
     if (!m_pParentBox)
@@ -116,7 +119,7 @@ int AreaPickerGUI::Create(Controller *pController, string onlyOfType)
     // If we're not split screen horizontally, then stretch out the layout for all the relevant controls
     if (!g_FrameMan.GetHSplit())
     {
-        int stretchAmount = g_FrameMan.GetResY() / 2;
+        int stretchAmount = g_WindowMan.GetResY() / 2;
         m_pParentBox->SetSize(m_pParentBox->GetWidth(), m_pParentBox->GetHeight() + stretchAmount);
         m_pAreasList->SetSize(m_pAreasList->GetWidth(), m_pAreasList->GetHeight() + stretchAmount);
         m_pDeleteAreaButton->SetPositionAbs(m_pDeleteAreaButton->GetXPos(), m_pDeleteAreaButton->GetYPos() + stretchAmount);
@@ -263,7 +266,7 @@ Scene::Area * AreaPickerGUI::GetPrevArea()
 // Description:     Adds all areas of a specific type already defined in PresetMan
 //                  to the current Areas list
 
-void AreaPickerGUI::UpdateAreasList(string selectAreaName)
+void AreaPickerGUI::UpdateAreasList(std::string selectAreaName)
 {
     m_pAreasList->ClearList();
 
@@ -272,7 +275,7 @@ void AreaPickerGUI::UpdateAreasList(string selectAreaName)
         Scene *pScene = g_SceneMan.GetScene();
         int indexToSelect = 0;
         // Add all the current Scene's Area:s to the list!
-        for (list<Scene::Area>::iterator itr = pScene->m_AreaList.begin(); itr != pScene->m_AreaList.end(); ++itr)
+        for (std::list<Scene::Area>::iterator itr = pScene->m_AreaList.begin(); itr != pScene->m_AreaList.end(); ++itr)
         {
             m_pAreasList->AddItem((*itr).GetName());
             // If an Area's name matches the one we're supposed to leave selected after update, then save teh index
@@ -322,7 +325,7 @@ void AreaPickerGUI::Update()
         occlusion.m_X = m_pParentBox->GetXPos() - g_FrameMan.GetPlayerScreenWidth();
 
         m_pParentBox->SetPositionAbs(position.m_X, position.m_Y);
-        g_SceneMan.SetScreenOcclusion(occlusion, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+        g_CameraMan.SetScreenOcclusion(occlusion, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
 
         if (m_pParentBox->GetXPos() <= enabledPos)
             m_PickerEnabled = ENABLED;
@@ -334,7 +337,7 @@ void AreaPickerGUI::Update()
 
         float toGo = std::ceil((disabledPos - (float)m_pParentBox->GetXPos()) * m_MenuSpeed);
         m_pParentBox->SetPositionAbs(m_pParentBox->GetXPos() + toGo, 0);
-        g_SceneMan.SetScreenOcclusion(Vector(m_pParentBox->GetXPos() - g_FrameMan.GetPlayerScreenWidth(), 0), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+        g_CameraMan.SetScreenOcclusion(Vector(m_pParentBox->GetXPos() - g_FrameMan.GetPlayerScreenWidth(), 0), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
 
         if (m_pParentBox->GetXPos() >= g_FrameMan.GetPlayerScreenWidth())
         {
@@ -516,9 +519,7 @@ void AreaPickerGUI::Update()
 
             if (anEvent.GetControl() == m_pAreasList)
             {
-                // Doubleclick
-//                if(anEvent.GetMsg() == GUIListBox::DoubleClicked)
-                if(anEvent.GetMsg() == GUIListBox::MouseDown)
+                if(anEvent.GetMsg() == GUIListBox::MouseDown && (anEvent.GetData() & GUIListBox::MOUSE_LEFT))
                 {
                     GUIListPanel::Item *pItem = m_pAreasList->GetSelected();
                     if (pItem)

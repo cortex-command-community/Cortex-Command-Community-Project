@@ -1,5 +1,6 @@
 #include "ScenarioGUI.h"
 
+#include "WindowMan.h"
 #include "FrameMan.h"
 #include "PresetMan.h"
 #include "ActivityMan.h"
@@ -14,7 +15,7 @@
 #include "GUI.h"
 #include "AllegroBitmap.h"
 #include "AllegroScreen.h"
-#include "AllegroInput.h"
+#include "GUIInputWrapper.h"
 #include "GUICollectionBox.h"
 #include "GUIComboBox.h"
 #include "GUIButton.h"
@@ -25,6 +26,8 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ScenarioGUI::Clear() {
+		m_RootBoxMaxWidth = 0;
+
 		m_UpdateResult = ScenarioMenuUpdateResult::NoEvent;
 
 		m_ScenarioActivities.clear();
@@ -50,13 +53,15 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ScenarioGUI::Create(AllegroScreen *guiScreen, AllegroInput *guiInput) {
+	void ScenarioGUI::Create(AllegroScreen *guiScreen, GUIInputWrapper *guiInput) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
 		RTEAssert(m_GUIControlManager->Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "MainMenuSubMenuSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/MainMenuSubMenuSkin.ini");
 		m_GUIControlManager->Load("Base.rte/GUIs/ScenarioGUI.ini");
 
+		m_RootBoxMaxWidth = g_WindowMan.FullyCoversAllDisplays() ? g_WindowMan.GetPrimaryWindowDisplayWidth() / g_WindowMan.GetResMultiplier() : g_WindowMan.GetResX();
+
 		m_RootBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("root"));
-		m_RootBox->Resize(g_FrameMan.GetResX(), g_FrameMan.GetResY());
+		m_RootBox->Resize(m_RootBoxMaxWidth, g_WindowMan.GetResY());
 		m_ActivityConfigBoxRootBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("ConfigRoot"));
 		m_ActivityConfigBoxRootBox->Resize(m_RootBox->GetWidth(), m_RootBox->GetHeight());
 		m_BackToMainButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("BackToMainButton"));
@@ -96,7 +101,7 @@ namespace RTE {
 		m_StartActivityConfigButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonStartActivityConfig"));
 
 		m_DefaultScenePreview.Create(ContentFile("Base.rte/GUIs/DefaultPreview.png"), 5);
-		m_DefaultScenePreview.SetSpriteAnimMode(MOSprite::SpriteAnimMode::ALWAYSLOOP);
+		m_DefaultScenePreview.SetSpriteAnimMode(SpriteAnimMode::ALWAYSLOOP);
 		m_DefaultScenePreview.SetSpriteAnimDuration(200);
 		m_DefaultScenePreview.SetPos(Vector(static_cast<float>(m_ScenePreviewImageBox->GetXPos() + (m_ScenePreviewImageBox->GetWidth() / 2)), static_cast<float>(m_ScenePreviewImageBox->GetYPos() + (m_ScenePreviewImageBox->GetHeight() / 2))));
 
@@ -176,7 +181,11 @@ namespace RTE {
 			}
 
 			m_SceneNameLabel->SetText(m_SelectedScene->GetPresetName());
-			m_SceneDescriptionLabel->SetText(m_SelectedScene->GetDescription());
+
+			Vector sceneSizeMeters = m_SelectedScene->GetDimensions() / c_PPM;
+			std::string sceneDimensions = "Site Dimensions: " + std::to_string(sceneSizeMeters.GetFloorIntX()) + " x " + std::to_string(sceneSizeMeters.GetFloorIntY()) + " meters";
+
+			m_SceneDescriptionLabel->SetText(m_SelectedScene->GetDescription() + "\n\n" + sceneDimensions);
 
 			// TODO: Some stupidity going on so have to do this twice, otherwise everything resizes correctly but some description text gets cut off as if it didn't.
 			for (int i = 0; i < 2; ++i) {
@@ -221,7 +230,7 @@ namespace RTE {
 		std::vector<Scene *> filteredScenes;
 		for (Entity *presetEntity : presetList) {
 			Scene *presetScene = dynamic_cast<Scene *>(presetEntity);
-			if (presetScene && !presetScene->GetLocation().IsZero() && !presetScene->IsMetagameInternal() && (presetScene->GetMetasceneParent().empty() || g_SettingsMan.ShowMetascenes())) { filteredScenes.emplace_back(presetScene); }
+			if (presetScene && !presetScene->GetLocation().IsZero() && !presetScene->IsMetagameInternal() && !presetScene->IsSavedGameInternal() && (presetScene->GetMetasceneParent().empty() || g_SettingsMan.ShowMetascenes())) { filteredScenes.emplace_back(presetScene); }
 		}
 		AdjustSitePointOffsetsOnPlanet(filteredScenes);
 
@@ -260,8 +269,8 @@ namespace RTE {
 			if (std::abs(sceneListEntry->GetLocation().GetY()) < m_PlanetRadius + 100 && std::abs(sceneListEntry->GetLocation().GetX()) < m_PlanetRadius + 100) {
 				if (sceneYPos < 10) {
 					sceneListEntry->SetLocationOffset(sceneListEntry->GetLocationOffset() + Vector(0, static_cast<float>(10 - sceneYPos)));
-				} else if (sceneYPos > g_FrameMan.GetResY() - 10) {
-					sceneListEntry->SetLocationOffset(sceneListEntry->GetLocationOffset() + Vector(0, static_cast<float>(g_FrameMan.GetResY() - 10 - sceneYPos)));
+				} else if (sceneYPos > g_WindowMan.GetResY() - 10) {
+					sceneListEntry->SetLocationOffset(sceneListEntry->GetLocationOffset() + Vector(0, static_cast<float>(g_WindowMan.GetResY() - 10 - sceneYPos)));
 				} else {
 					sceneListEntry->SetLocationOffset(Vector(0, 0));
 				}
@@ -278,8 +287,7 @@ namespace RTE {
 						Vector pos1 = sceneListEntry1->GetLocation() + sceneListEntry1->GetLocationOffset();
 						Vector pos2 = sceneListEntry2->GetLocation() + sceneListEntry2->GetLocationOffset();
 						Vector overlap = pos1 - pos2;
-						float overlapMagnitude = overlap.GetMagnitude();
-						if (overlapMagnitude < requiredDistance) {
+						if (overlap.MagnitudeIsLessThan(requiredDistance)) {
 							foundOverlap = true;
 							float overlapX = overlap.GetX();
 							float xDirMult = 0;
@@ -297,7 +305,7 @@ namespace RTE {
 							}
 							if (yDirMult != 0) {
 								sceneListEntry1->SetLocationOffset(sceneListEntry1->GetLocationOffset() + Vector(-overlapX + (requiredDistance * xDirMult), -overlapY + (requiredDistance * yDirMult)));
-							} else if (overlapMagnitude == 0.0F) {
+							} else if (overlap.IsZero()) {
 								sceneListEntry1->SetLocationOffset(sceneListEntry1->GetLocationOffset() + Vector((pos1.GetX() > 0) ? -requiredDistance : requiredDistance, (pos1.GetY() > 0) ? -requiredDistance : requiredDistance));
 							} else {
 								sceneListEntry1->SetLocationOffset(sceneListEntry1->GetLocationOffset() + Vector(overlapX, overlapY));
@@ -382,7 +390,7 @@ namespace RTE {
 		if (g_ConsoleMan.IsEnabled() && !g_ConsoleMan.IsReadOnly()) {
 			return m_UpdateResult;
 		}
-		if (g_UInputMan.KeyPressed(KEY_ESC)) {
+		if (g_UInputMan.KeyPressed(SDLK_ESCAPE)) {
 			g_GUISound.BackButtonPressSound()->Play();
 			if (m_ActivityConfigBox->IsEnabled()) {
 				m_ActivityConfigBox->SetEnabled(false);
@@ -411,6 +419,10 @@ namespace RTE {
 					m_ScenePreviewAnimTimer.Reset();
 				}
 			}
+
+			// Only show the resume button if the current Activity is a GameActivity. Editor or Multiplayer Activities are resumed from the main menu, so the resume button shouldn't show for them.
+			const GameActivity *currentActivity = dynamic_cast<GameActivity *>(g_ActivityMan.GetActivity());
+			m_ResumeButton->SetVisible(currentActivity && (currentActivity->GetActivityState() == Activity::Running || currentActivity->GetActivityState() == Activity::Editing));
 			if (m_ResumeButton->GetVisible()) { m_GUIControlManager->GetManager()->SetFocus((m_BlinkTimer.AlternateReal(500)) ? m_ResumeButton : nullptr); }
 		} else {
 			m_RootBox->SetVisible(false);
@@ -427,11 +439,11 @@ namespace RTE {
 		bool foundAnyHover = false;
 		if (m_ActivityScenes && !m_DraggedBox && !m_ActivityInfoBox->PointInside(mouseX, mouseY) && !m_SceneInfoBox->PointInside(mouseX, mouseY)) {
 			Scene *candidateScene = nullptr;
-			float shortestDist = 10.0F;
+			float sqrShortestDistance = 10.0F * 10.0F;
 			for (Scene *activityScene : *m_ActivityScenes) {
-				float distance = (m_PlanetCenter + activityScene->GetLocation() + activityScene->GetLocationOffset() - Vector(static_cast<float>(mouseX), static_cast<float>(mouseY))).GetMagnitude();
-				if (distance < shortestDist) {
-					shortestDist = distance;
+				float sqrDistance = (m_PlanetCenter + activityScene->GetLocation() + activityScene->GetLocationOffset() - Vector(static_cast<float>(mouseX), static_cast<float>(mouseY))).GetSqrMagnitude();
+				if (sqrDistance < sqrShortestDistance) {
+					sqrShortestDistance = sqrDistance;
 					candidateScene = activityScene;
 					foundAnyHover = true;
 				}
@@ -443,8 +455,8 @@ namespace RTE {
 				m_SitePointNameLabel->SetText(m_HoveredScene->GetPresetName());
 				Vector sceneLabelPos = m_PlanetCenter + Vector(m_HoveredScene->GetLocation() + m_HoveredScene->GetLocationOffset()) - Vector(static_cast<float>(m_SitePointNameLabel->GetWidth() / 2), 0) - Vector(0, static_cast<float>(m_SitePointNameLabel->GetHeight()) * 1.5F);
 				int padding = 5;
-				sceneLabelPos.SetX(static_cast<float>(std::clamp(sceneLabelPos.GetFloorIntX(), padding, g_FrameMan.GetResX() - m_SitePointNameLabel->GetWidth() - padding)));
-				sceneLabelPos.SetY(static_cast<float>(std::clamp(sceneLabelPos.GetFloorIntY(), padding, g_FrameMan.GetResY() - m_SitePointNameLabel->GetHeight() - padding)));
+				sceneLabelPos.SetX(static_cast<float>(std::clamp(sceneLabelPos.GetFloorIntX(), padding, m_RootBoxMaxWidth - m_SitePointNameLabel->GetWidth() - padding)));
+				sceneLabelPos.SetY(static_cast<float>(std::clamp(sceneLabelPos.GetFloorIntY(), padding, g_WindowMan.GetResY() - m_SitePointNameLabel->GetHeight() - padding)));
 				m_SitePointNameLabel->SetPositionAbs(sceneLabelPos.GetFloorIntX(), sceneLabelPos.GetFloorIntY());
 				m_SitePointNameLabel->SetVisible(true);
 			}
@@ -483,14 +495,14 @@ namespace RTE {
 				}
 			}
 		}
-		if (g_UInputMan.MouseButtonPressed(UInputMan::MenuCursorButtons::MENU_PRIMARY)) {
+		if (g_UInputMan.MenuButtonPressed(UInputMan::MenuCursorButtons::MENU_PRIMARY)) {
 			if (m_HoveredScene) {
 				g_GUISound.ItemChangeSound()->Play();
 				SetSelectedScene(m_HoveredScene);
 			} else {
 				SetDraggedBox(mouseX, mouseY);
 			}
-		} else if (g_UInputMan.MouseButtonReleased(UInputMan::MenuCursorButtons::MENU_PRIMARY)) {
+		} else if (g_UInputMan.MenuButtonReleased(UInputMan::MenuCursorButtons::MENU_PRIMARY)) {
 			m_DraggedBox = nullptr;
 		}
 		if (g_UInputMan.MenuButtonHeld(UInputMan::MenuCursorButtons::MENU_PRIMARY)) { DragBox(mouseX, mouseY); }

@@ -28,7 +28,9 @@ namespace RTE
 
 class MovableObject;
 class Actor;
+class HeldDevice;
 class MOPixel;
+class MOSprite;
 class AHuman;
 class SceneLayer;
 
@@ -149,6 +151,23 @@ public:
 
     int GetMOIDCount() { return m_MOIDIndex.size(); }
 
+    /// <summary>
+    /// Tests whether the given MovableObject is currently at the specified pixel coordinates.
+    /// </summary>
+    /// <param name="mo">The MovableObject to test.</param>
+    /// <param name="pixelX">The X coordinate of the Scene pixel to test.</param>
+    /// <param name="pixelY">The Y coordinate of the Scene pixel to test.</param>
+    /// <returns>Whether the given MovableObject is currently at the specified pixel coordinates.</returns>
+    bool HitTestMOAtPixel(const MovableObject &mo, int pixelX, int pixelY) const;
+
+    /// <summary>
+    /// Gets a MOID from pixel coordinates in the Scene.
+    /// </summary>
+    /// <param name="pixelX">The X coordinate of the Scene pixel to get the MOID of.</param>
+    /// <param name="pixelY">The Y coordinate of the Scene pixel to get the MOID of.</param>
+    /// <param name="moidList">The collection of MOIDs to check the against the specified coordinates.</param>
+    /// <returns>The topmost MOID currently at the specified pixel coordinates.</returns>
+    MOID GetMOIDPixel(int pixelX, int pixelY, const std::vector<int> &moidList);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetTeamMOIDCount
@@ -238,24 +257,30 @@ public:
 
     Actor * GetPrevTeamActor(int team = 0, Actor *pBeforeThis = 0);
 
+	/// <summary>
+	/// Get a pointer to an Actor in the internal Actor list that is of a specifc team and closest to a specific scene point.
+	/// </summary>
+	/// <param name="team">Which team to try to get an Actor for. 0 means first team, 1 means 2nd.</param>
+	/// <param name="player">The player to get the Actor for. This affects which brain can be marked.</param>
+	/// <param name="scenePoint">The Scene point to search for the closest to.</param>
+	/// <param name="maxRadius">The maximum radius around that scene point to search.</param>
+	/// <param name="getDistance">A Vector to be filled out with the distance of the returned closest to the search point. Will be unaltered if no object was found within radius.</param>
+	/// <param name="excludeThis">An Actor to exclude from the search. OWNERSHIP IS NOT TRANSFERRED!</param>
+	/// <returns>An Actor pointer to the requested team's Actor closest to the Scene point, but not outside the max radius. If no Actor other than the excluded one was found within the radius of the point, nullptr is returned.</returns>
+	Actor * GetClosestTeamActor(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, const Actor *excludeThis = nullptr) { return GetClosestTeamActor(team, player, scenePoint, maxRadius, getDistance, false, excludeThis); }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetClosestTeamActor
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Get a pointer to an Actor in the internal Actor list that is of a
-//                  specifc team and closest to a specific scene point.
-// Arguments:       Which team to try to get an Actor for. 0 means first team, 1 means 2nd.
-//                  The player to get the Actor for. This affects which brain can be marked.
-//                  The Scene point to search for the closest to.
-//                  The maximum radius around that scene point to search.
-//                  A float to be filled out with the distance of the returned closest to
-//                  the search point. Will be unaltered if no object was found within radius.
-//                  An Actor to exclude from the search. OWNERSHIP IS NOT TRANSFERRED!
-// Return value:    An Actor pointer to the requested team's Actor closest to the Scene
-//                  point, but not outside the max radius. If no Actor other than the
-//                  excluded one was found within the radius of the point, 0 is returned.
-
-    Actor * GetClosestTeamActor(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, const Actor *pExcludeThis = 0);
+	/// <summary>
+	/// Get a pointer to an Actor in the internal Actor list that is of a specifc team and closest to a specific scene point.
+	/// </summary>
+	/// <param name="team">Which team to try to get an Actor for. 0 means first team, 1 means 2nd.</param>
+	/// <param name="player">The player to get the Actor for. This affects which brain can be marked.</param>
+	/// <param name="scenePoint">The Scene point to search for the closest to.</param>
+	/// <param name="maxRadius">The maximum radius around that scene point to search.</param>
+	/// <param name="getDistance">A Vector to be filled out with the distance of the returned closest to the search point. Will be unaltered if no object was found within radius.</param>
+	/// <param name="onlyPlayerControllableActors">Whether to only get Actors that are flagged as player controllable.</param>
+	/// <param name="excludeThis">An Actor to exclude from the search. OWNERSHIP IS NOT TRANSFERRED!</param>
+	/// <returns>An Actor pointer to the requested team's Actor closest to the Scene point, but not outside the max radius. If no Actor other than the excluded one was found within the radius of the point, nullptr is returned.</returns>
+	Actor * GetClosestTeamActor(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, bool onlyPlayerControllableActors, const Actor *excludeThis = nullptr);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -421,55 +446,30 @@ public:
 
     void SortTeamRoster(int team) { m_SortTeamRoster[team] = true; }
 
+    /// <summary>
+    /// Adds a MovableObject to this, after it is determined what it is and the best way to add it is. E.g. if it's an Actor, it will be added as such. Ownership IS transferred!
+    /// </summary>
+    /// <param name="movableObjectToAdd">A pointer to the MovableObject to add. Ownership IS transferred!</param>
+    /// <returns>Whether the MovableObject was successfully added or not. Note that Ownership IS transferred either way, but the MovableObject will be deleted if this is not successful.</returns>
+    bool AddMO(MovableObject *movableObjectToAdd);
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddMO
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds a MovableObject to this, after it is determined what it is and the
-//                  best way to add it is. E.g. if it's an Actor, it will be added as such.
-//                  Ownership IS transferred! TODO: ITEMS ARE NOT SORTED OUT YET
-// Arguments:       A pointer to the MovableObject to add. Ownership IS transferred!
-// Return value:    Whether the MovableObject was successfully added or not. Either way,
-//                  ownership was transferred. If no success, the object was deleted.
+    /// <summary>
+    /// Adds an Actor to the internal list of Actors. Destruction and deletion will be taken care of automatically. Ownership IS transferred!
+    /// </summary>
+    /// <param name="actorToAdd">A pointer to the Actor to add. Ownership IS transferred!</param>
+    void AddActor(Actor *actorToAdd);
 
+    /// <summary>
+    /// Adds a pickup-able item to the internal list of items. Destruction and deletion will be taken care of automatically. Ownership IS transferred!
+    /// </summary>
+	/// <param name="itemToAdd">A pointer to the item to add. Ownership IS transferred!</param>
+    void AddItem(HeldDevice *itemToAdd);
 
-    bool AddMO(MovableObject *pMOToAdd);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddActor
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds an Actor to the internal list of MO:s. Destruction and 
-//                  deletion will be taken care of automatically. Do NOT delete the passed
-//                  MO after adding it here! i.e. Ownership IS transferred!
-// Arguments:       A pointer to the Actor to add.
-// Return value:    None.
-
-    void AddActor(Actor *pActorToAdd);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddItem
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds a pickup-able item to the internal list of items. Destruction and 
-//                  deletion will be taken care of automatically. Do NOT delete the passed
-//                  MO after adding it here! i.e. Ownership IS transferred!
-// Arguments:       A pointer to the item MovableObject to add. Ownership is transferred.
-// Return value:    None.
-
-    void AddItem(MovableObject *pItemToAdd);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddParticle
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds a MovableObject to the internal list of MO:s. Destruction and 
-//                  deletion will be taken care of automatically. Do NOT delete the passed
-//                  MO after adding it here! i.e. Ownership IS transferred!
-// Arguments:       A pointer to the MovableObject to add. Ownership is transferred.
-// Return value:    None.
-
-    void AddParticle(MovableObject *pMOToAdd);
+    /// <summary>
+    /// Adds a MovableObject to the internal list of particles. Destruction and deletion will be taken care of automatically. Ownership IS transferred!
+    /// </summary>
+    /// <param name="particleToAdd">A pointer to the MovableObject to add. Ownership is transferred!</param>
+    void AddParticle(MovableObject *particleToAdd);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -610,6 +610,14 @@ public:
 
     bool IsOfActor(MOID checkMOID);
 
+    /// <summary>
+    /// Gives a unique, contiguous id per-actor. This is regenerated every frame.
+    /// </summary>
+    /// <param name="actor">The actor to get a contiguous id for.</param>
+    /// <returns>A contiguous id for the actor. Returns -1 if the actor doesn't exist in MovableMan.</returns>
+    /// <remarks>This function is used for AI throttling.</remarks>
+    int GetContiguousActorID(const Actor *actor) const;
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetRootMOID
@@ -635,11 +643,11 @@ public:
 
     bool RemoveMO(MovableObject *pMOToRem);
 
-    /// <summary>
-    /// Kills and destroys all Actors of a specific Team.
-    /// </summary>
-    /// <param name="teamToKill">The team to annihilate. If NoTeam is passed in, then NO Actors die.</param>
-    /// <returns>How many Actors were killed.</returns>
+	/// <summary>
+	/// Kills and destroys all Actors of a specific Team.
+	/// </summary>
+	/// <param name="teamToKill">The team to annihilate. If NoTeam is passed in, then NO Actors die.</param>
+	/// <returns>How many Actors were killed.</returns>
     int KillAllTeamActors(int teamToKill) const;
 
 	/// <summary>
@@ -649,54 +657,44 @@ public:
 	/// <returns>How many Actors were killed.</returns>
 	int KillAllEnemyActors(int teamNotToKill = Activity::NoTeam) const;
 
+    /// <summary>
+    /// Adds all Actors in MovableMan to the given list.
+    /// </summary>
+    /// <param name="transferOwnership">Whether or not ownership of the Actors should be transferred from MovableMan to the list.</param>
+    /// <param name="actorList">The list to be filled with Actors.</param>
+    /// <param name="onlyTeam">The team to get Actors of. If NoTeam, then all teams will be used.</param>
+    /// <param name="noBrains">Whether or not to get brain Actors.</param>
+	/// <returns>The number of Actors added to the list.</returns>
+    int GetAllActors(bool transferOwnership, std::list<SceneObject *> &actorList, int onlyTeam = -1, bool noBrains = false);
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          EjectAllActors
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds to a list ALL Actors in the world and removes them from the
-//                  MovableMan. Ownership IS transferred!
-// Arguments:       The list of Actors to put the evacuated Actor instances in.
-//                  The team to only eject Actors of. If NoTeam, then all will be grabbed.
-//                  Whether to not grab any brains at all.
-// Return value:    How many Actors was transferred to the list.
+    /// </summary>
+    /// <param name="transferOwnership">Whether or not ownershp of the items shoudl be transferred from MovableMan to the list.</param>
+    /// <param name="itemList">The list to be filled with items.</param>
+	/// <returns>The number of items added to the list.</returns>
+    int GetAllItems(bool transferOwnership, std::list<SceneObject *> &itemList);
 
-    int EjectAllActors(std::list<SceneObject *> &actorList, int onlyTeam = -1, bool noBrains = false);
+    /// <summary>
+    /// Adds all particles in MovableMan to the given list.
+    /// </summary>
+    /// <param name="transferOwnership">Whether or not ownership of the particles should be transferred from MovableMan to the list.</param>
+    /// <param name="particleList">The list to be filled with particles.</param>
+    /// <returns>The number of particles added to the list.</returns>
+    int GetAllParticles(bool transferOwnership, std::list<SceneObject *> &particleList);
 
+	/// <summary>
+	/// Opens all doors and keeps them open until this is called again with false.
+	/// </summary>
+	/// <param name="open">Whether to open all doors (true), or close all doors (false).</param>
+	/// <param name="team">Which team to open doors for. NoTeam means all teams.</param>
+    void OpenAllDoors(bool open = true, int team = Activity::NoTeam) const;
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          EjectAllItems
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds to a list ALL Items in the world and removes them from the
-//                  MovableMan. Ownership IS transferred!
-// Arguments:       The list of MovableObject:s to put the evacuated MovableObject instances
-//                  in.
-// Return value:    How many Items were transferred to the list.
-
-    int EjectAllItems(std::list<SceneObject *> &itemList);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OpenAllDoors
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Opens all doors and keeps them open until this is called again with false.
-// Arguments:       Whether to open all doors (true), or undo this action (false)
-//                  Which team to do this for. NoTeam means all teams.
-// Return value:    None.
-
-    void OpenAllDoors(bool open = true, int team = Activity::NoTeam);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OverrideMaterialDoors
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Temporarily erases any material door representations of a specific team.
-//                  Used for making pathfinding work better, allowing teammember to navigate
-//                  through friendly bases.
-// Arguments:       Whether to enable the override (true), or undo this action (false)
-//                  Which team to do this for. NoTeam means all teams.
-// Return value:    None.
-
-    void OverrideMaterialDoors(bool enable, int team = Activity::NoTeam);
+	/// <summary>
+	/// Temporarily erases or redraws any material door representations of a specific team.
+	/// Used to make pathfinding work better, allowing Actors to navigate through firendly bases despite the door material layer.
+	/// </summary>
+	/// <param name="eraseDoorMaterial">Whether to erase door material, thereby overriding it, or redraw it and undo the override.</param>
+    /// <param name="team">Which team to do this for, NoTeam means all teams.</param>
+    void OverrideMaterialDoors(bool eraseDoorMaterial, int team = Activity::NoTeam) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -718,29 +716,6 @@ public:
 // Return value:    The const list of AlarmEvent:s.
 
     const std::list<AlarmEvent> & GetAlarmEvents() const { return m_AlarmEvents; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetSloMoThreshold
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the number of new MO:s that need to be added in a single update
-//                  to trigger the slo motion effect.
-// Arguments:       None.
-// Return value:    The number of MO's needed to be added to the MovableMan in a single
-//                  update to trigger the slo-mo effect
-
-    int GetSloMoThreshold() { return m_SloMoThreshold; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetSloMoDuration
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the amount of time, in ms, that the slow-motion effect is active
-//                  once it's triggered.
-// Arguments:       None.
-// Return value:    The amount of time the slow-motion effect runs for, in ms sim time.
-
-    int GetSloMoDuration() { return m_SloMoDuration; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -905,7 +880,56 @@ public:
 
 	unsigned int GetSimUpdateFrameNumber() const { return m_SimUpdateFrameNumber; }
 
-	void OnPieMenu(Actor *pActor);
+	/// <summary>
+	/// Gets pointers to the MOs that are within the given Box, and whose team is not ignored.
+	/// </summary>
+	/// <param name="box">The Box to get MOs within.</param>
+	/// <param name="ignoreTeam">The team to ignore.</param>
+	/// <param name="getsHitByMOsOnly">Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.</param>
+	/// <returns>Pointers to the MOs that are within the given Box, and whose team is not ignored.</returns>
+	const std::vector<MovableObject *> *GetMOsInBox(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const;
+
+    /// <summary>
+    /// Gets pointers to the MOs that are within the given Box, and whose team is not ignored.
+    /// </summary>
+    /// <param name="box">The Box to get MOs within.</param>
+    /// <param name="ignoreTeam">The team to ignore.</param>
+    /// <returns>Pointers to the MOs that are within the given Box, and whose team is not ignored.</returns>
+	const std::vector<MovableObject *> *GetMOsInBox(const Box &box, int ignoreTeam) const { return GetMOsInBox(box, ignoreTeam, false); }
+
+	/// <summary>
+	/// Gets pointers to the MOs that are within the given Box.
+	/// </summary>
+	/// <param name="box">The Box to get MOs within.</param>
+	/// <returns>Pointers to the MOs that are within the given Box.</returns>
+    const std::vector<MovableObject *> * GetMOsInBox(const Box &box) const { return GetMOsInBox(box, Activity::NoTeam); }
+
+	/// <summary>
+	/// Gets pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.
+	/// </summary>
+	/// <param name="centre">The position to check for MOs in.</param>
+	/// <param name="radius">The radius to check for MOs within.</param>
+	/// <param name="ignoreTeam">The team to ignore.</param>
+	/// <param name="getsHitByMOsOnly">Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.</param>
+	/// <returns>Pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.</returns>
+	const std::vector<MovableObject *> *GetMOsInRadius(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const;
+
+	/// <summary>
+	/// Gets pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.
+	/// </summary>
+	/// <param name="centre">The position to check for MOs in.</param>
+	/// <param name="radius">The radius to check for MOs within.</param>
+	/// <param name="ignoreTeam">The team to ignore.</param>
+	/// <returns>Pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.</returns>
+	const std::vector<MovableObject *> *GetMOsInRadius(const Vector &centre, float radius, int ignoreTeam) const { return GetMOsInRadius(centre, radius, ignoreTeam, false); }
+
+	/// <summary>
+	/// Gets pointers to the MOs that are within the specified radius of the given centre position.
+	/// </summary>
+	/// <param name="centre">The position to check for MOs in.</param>
+	/// <param name="radius">The radius to check for MOs within.</param>
+	/// <returns>Pointers to the MOs that are within the specified radius of the given centre position.</returns>
+    const std::vector<MovableObject *> * GetMOsInRadius(const Vector &centre, float radius) const { return GetMOsInRadius(centre, radius, Activity::NoTeam); }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -915,6 +939,8 @@ protected:
 
     // All actors in the scene
     std::deque<Actor *> m_Actors;
+    // A map to give a unique contiguous identifier per-actor. This is re-created per frame.
+    std::unordered_map<const Actor *, int> m_ContiguousActorIDs;
     // List of items that are pickup-able by actors
     std::deque<MovableObject *> m_Items;
     // List of free, dead particles flying around
@@ -932,11 +958,6 @@ protected:
 	// Every team's MO footprint
 	int m_TeamMOIDCount[Activity::MaxTeamCount];
 
-    // Optimization implementation
-    // MO's that have already been asked whether they exist in the manager this frame, and the search result.
-    // Gets cleaned out each frame. Does NOT own any instances.
-    std::deque<std::pair<const MovableObject *, bool> > m_ValiditySearchResults;
-
     // The alarm events on the scene where something alarming happened, for use with AI firings awareness os they react to shots fired etc.
     // This is the last frame's events, is the one for Actors to poll for events, should be cleaned out and refilled each frame.
     std::list<AlarmEvent> m_AlarmEvents;
@@ -946,18 +967,12 @@ protected:
 
     // The list created each frame to register all the current MO's
     std::vector<MovableObject *> m_MOIDIndex;
+
     // The ration of terrain pixels to be converted into MOPixel:s upon
     // deep impact of MO.
     float m_SplashRatio;
     // The maximum number of loose items allowed.
     int m_MaxDroppedItems;
-
-    // Timer for measuring periods of slo-mo effects
-    Timer m_SloMoTimer;
-    // The threshold for how many new MOs in one frame will trigger the slo-mo effect
-    int m_SloMoThreshold;
-    // The amount of time, in ms, that the slo-mo effect should be in effect when it is triggered
-    int m_SloMoDuration;
 
     // Whether settling of particles is enabled or not
     bool m_SettlingEnabled;

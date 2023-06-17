@@ -3,11 +3,12 @@
 
 #include "Icon.h"
 #include "Controller.h"
+#include "GenericSavedData.h"
 
 namespace RTE {
 
 	class Scene;
-	class Actor;
+	class ACraft;
 
 	/// <summary>
 	/// Base class for all Activities, including game modes and editors.
@@ -133,6 +134,12 @@ namespace RTE {
 		void SetActivityState(ActivityState newState) { m_ActivityState = newState; }
 
 		/// <summary>
+		/// Gets whether or not this Activity can be saved.
+		/// </summary>
+		/// <returns>Whether or not this Activity can be saved.</returns>
+		virtual bool ActivityCanBeSaved() const { return false; }
+
+		/// <summary>
 		/// Indicates whether the Activity is currently running or not (not editing, over or paused)
 		/// </summary>
 		/// <returns>Whether the Activity is running or not.</returns>
@@ -177,7 +184,7 @@ namespace RTE {
 		/// <summary>
 		/// Tells if a particular Scene supports this specific Activity on it. Usually that means certain Areas need to be defined in the Scene.
 		/// </summary>
-		/// <param name="scene">The Scene to check if it supports this Activity. Ownership IS NOT TRANSFERRED!</param>
+		/// <param name="scene">The Scene to check if it supports this Activity. Ownership is NOT transferred!</param>
 		/// <param name="teams">How many teams we're checking for. Some scenes may support and Activity but only for a limited number of teams. If -1, not applicable.</param>
 		/// <returns>Whether the Scene has the right stuff.</returns>
 		virtual bool SceneIsCompatible(Scene *scene, int teams = -1) { return scene && teams <= m_MinTeamsRequired; }
@@ -205,6 +212,18 @@ namespace RTE {
 		/// </summary>
 		/// <param name="sceneName">The new name of the scene to load next game.</param>
 		void SetSceneName(const std::string sceneName) { m_SceneName = sceneName; }
+
+		/// <summary>
+		/// Gets whether craft must be considered orbited if they reach the map border on non-wrapped maps.
+		/// </summary>
+		/// <returns>Whether craft are considered orbited when at the border of a non-wrapping map.</returns>
+		bool GetCraftOrbitAtTheEdge() const { return m_CraftOrbitAtTheEdge; }
+
+		/// <summary>
+		/// Sets whether craft must be considered orbited if they reach the map border on non-wrapped maps.
+		/// </summary>
+		/// <param name="value">Whether to consider orbited or not.</param>
+		void SetCraftOrbitAtTheEdge(bool value) { m_CraftOrbitAtTheEdge = value; }
 #pragma endregion
 
 #pragma region Virtual Override Methods
@@ -268,7 +287,7 @@ namespace RTE {
 		/// <param name="isHuman">Whether this player is Human.</param>
 		/// <param name="team">Which Team this player belongs to.</param>
 		/// <param name="funds">How many funds this player contributes to its Team's total funds.</param>
-		/// <param name="teamIcon">The team flag icon of this player - OWNERSHIP IS NOT TRANSFERRED.</param>
+		/// <param name="teamIcon">The team flag icon of this player. Ownership is NOT transferred!</param>
 		/// <returns>The new total number of active players in the current game.</returns>
 		int AddPlayer(int playerToAdd, bool isHuman, int team, float funds, const Icon *teamIcon = 0);
 
@@ -389,6 +408,12 @@ namespace RTE {
 		bool TeamActive(int team) const { return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamActive[team] : false; }
 
 		/// <summary>
+		/// Sets the given team as active, even if it shouldn't be considered as such normally. Useful for Activities that don't want to define/show all used teams.
+		/// </summary>
+		/// <param name="team">The team to force as active.</param>
+		void ForceSetTeamAsActive(int team) { if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) { m_TeamActive[team] = true; } }
+
+		/// <summary>
 		/// Indicates whether a team is player controlled or not.
 		/// </summary>
 		/// <param name="team">The team number to check.</param>
@@ -484,7 +509,7 @@ namespace RTE {
 		int AIBrainCount() const { return GetBrainCount(false); }
 
 		/// <summary>
-		/// Gets the current Brain actor for a specific player. 
+		/// Gets the current Brain actor for a specific player.
 		/// </summary>
 		/// <param name="player">Which player to get the brain actor for.</param>
 		/// <returns>A pointer to the Brain Actor. Ownership is NOT transferred!</returns>
@@ -614,7 +639,7 @@ namespace RTE {
 		void ReassignSquadLeader(const int player, const int team);
 
 		/// <summary>
-		/// Forces the ActivityMan to focus player control to a specific Actor for a specific team. OWNERSHIP IS NOT TRANSFERRED!
+		/// Forces the ActivityMan to focus player control to a specific Actor for a specific team. Ownership is NOT transferred!
 		/// </summary>
 		/// <param name="actor">Which Actor to switch focus to. The team of this Actor will be set once it is passed in. The actor should have been added to MovableMan already.</param>
 		/// <param name="player">Player to force for.</param>
@@ -639,29 +664,51 @@ namespace RTE {
 		virtual void SwitchToNextActor(int player, int team, Actor *actorToSkip = 0) { SwitchToPrevOrNextActor(true, player, team, actorToSkip); }
 
 		/// <summary>
-		/// Indicates an Actor as having left the game scene and entered orbit.  OWNERSHIP IS NOT transferred, as the Actor's inventory is just 'unloaded'.
+		/// Forces player to lose control of the currently selected Actor, as if it had died.
 		/// </summary>
-		/// <param name="orbitedCraft">The actor instance that entered orbit. Ownership IS NOT TRANSFERRED!</param>
-		virtual void EnteredOrbit(Actor *orbitedCraft);
+		/// <param name="player">Which player to lose control of their selected Actor.</param>
+		virtual void LoseControlOfActor(int player);
 
 		/// <summary>
-		/// Gets whether craft must be considered orbited if they reach the map border on non-wrapped maps.
+		/// Handles when an ACraft has left the game scene and entered orbit, though does not delete it. Ownership is NOT transferred, as the ACraft's inventory is just 'unloaded'.
 		/// </summary>
-		/// <returns>Whether craft are considered orbited when at the border of a non-wrapping map.</returns>
-		bool GetCraftOrbitAtTheEdge() const { return m_CraftOrbitAtTheEdge; }
+		/// <param name="orbitedCraft">The ACraft instance that entered orbit. Ownership is NOT transferred!</param>
+		virtual void HandleCraftEnteringOrbit (ACraft *orbitedCraft);
+#pragma endregion
+
+#pragma region Save and Load Handling
+		/// <summary>
+		/// Saves a string which will be stored in our ini.
+		/// </summary>
+		/// <param name="key">The key of the saved string.</param>
+		/// <param name="value">The string to save.</param>
+		void SaveString(const std::string &key, const std::string &value) { m_SavedValues.m_SavedStrings.m_Data[key] = value; };
 
 		/// <summary>
-		/// Sets whether craft must be considered orbited if they reach the map border on non-wrapped maps.
+		/// Loads and returns a previously saved string.
 		/// </summary>
-		/// <param name="value">Whether to consider orbited or not.</param>
-		void SetCraftOrbitAtTheEdge(bool value) { m_CraftOrbitAtTheEdge = value; }
+		/// <param name="key">The key of the string to load.</param>
+		const std::string & LoadString(const std::string &key) { return m_SavedValues.m_SavedStrings.m_Data[key]; };
+
+		/// <summary>
+		/// Saves a number which will be stored in our ini.
+		/// </summary>
+		/// <param name="key">The key of the saved number.</param>
+		/// <param name="value">The number to save.</param>
+		void SaveNumber(const std::string &key, float value) { m_SavedValues.m_SavedNumbers.m_Data[key] = value; };
+
+		/// <summary>
+		/// Loads and returns a previously saved number.
+		/// </summary>
+		/// <param name="key">The key of the string to load.</param>
+		float LoadNumber(const std::string &key) { return m_SavedValues.m_SavedNumbers.m_Data[key]; };
 #pragma endregion
 
 	protected:
 
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
-		ActivityState m_ActivityState; //!< Current state of this Activity.	
+		ActivityState m_ActivityState; //!< Current state of this Activity.
 		bool m_Paused; //!< Whether this Activity is paused or not.
 
 		std::string m_Description; //!< User-friendly description of what this Activity is all about.
@@ -680,13 +727,14 @@ namespace RTE {
 
 		int m_PlayerScreen[Players::MaxPlayerCount]; //!< The screen index of each player - only applicable to human players. -1 if AI or other.
 		ViewState m_ViewState[Players::MaxPlayerCount]; //!< What to be viewing for each player.
+		Timer m_DeathTimer[Players::MaxPlayerCount]; //!< Timers for measuring death view delays.
 
 		std::string m_TeamNames[Teams::MaxTeamCount]; //!< Names for each team.
 		Icon m_TeamIcons[Teams::MaxTeamCount]; //!< Icons for each team.
 
 		int m_TeamCount; //!< The number of teams in the current Activity.
 		bool m_TeamActive[Teams::MaxTeamCount]; //!< Whether a specific team is active or not in this Activity.
-		int m_Team[Players::MaxPlayerCount]; //!< The designated team of each player.	
+		int m_Team[Players::MaxPlayerCount]; //!< The designated team of each player.
 		int m_TeamDeaths[Teams::MaxTeamCount]; //!< The count of how many actors have died on this team.
 		int m_TeamAISkillLevels[Teams::MaxTeamCount]; //!< AI skill levels for teams.
 
@@ -703,6 +751,13 @@ namespace RTE {
 		Controller m_PlayerController[Players::MaxPlayerCount]; //!< The Controllers of all the players for the GUIs.
 
 		Timer m_MessageTimer[Players::MaxPlayerCount]; //!< Message timer for each player.
+
+		/// <summary>
+		/// Generic additional saved strings/numbers, which are used for scripts primarily.
+		/// They live here in the base class because GAScripted doesn't have a lua interface although it's a little messy.
+		/// On the bright side, this would allows other parts of the code to add some metadata to stamp extra information onto an activity if needed, that'll be ignored otherwise.
+		/// </summary>
+		GenericSavedData m_SavedValues;
 
 	private:
 

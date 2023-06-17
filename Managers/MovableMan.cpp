@@ -22,12 +22,14 @@
 #include "Controller.h"
 #include "AtomGroup.h"
 #include "Actor.h"
+#include "HeldDevice.h"
 #include "ADoor.h"
 #include "Atom.h"
+#include "Scene.h"
 
 namespace RTE {
 
-const string MovableMan::c_ClassName = "MovableMan";
+const std::string MovableMan::c_ClassName = "MovableMan";
 
 
 // Comparison functor for sorting movable objects by their X position using STL's sort
@@ -45,6 +47,7 @@ struct MOXPosComparison {
 void MovableMan::Clear()
 {
     m_Actors.clear();
+    m_ContiguousActorIDs.clear();
     m_Items.clear();
     m_Particles.clear();
     m_AddedActors.clear();
@@ -58,15 +61,11 @@ void MovableMan::Clear()
     m_SortTeamRoster[Activity::TeamTwo] = false;
     m_SortTeamRoster[Activity::TeamThree] = false;
     m_SortTeamRoster[Activity::TeamFour] = false;
-    m_ValiditySearchResults.clear();
     m_AddedAlarmEvents.clear();
     m_AlarmEvents.clear();
     m_MOIDIndex.clear();
     m_SplashRatio = 0.75;
     m_MaxDroppedItems = 25;
-    m_SloMoTimer.Reset();
-    m_SloMoThreshold = 100;
-    m_SloMoDuration = 1000;
     m_SettlingEnabled = true;
     m_MOSubtractionEnabled = true;
 }
@@ -81,10 +80,6 @@ int MovableMan::Initialize()
 {
 // TODO: Increase this number, or maybe only for certain classes?
     Entity::ClassInfo::FillAllPools();
-
-    // Set the time limit to 0 so it will report as being past it from the get go
-    m_SloMoTimer.SetSimTimeLimitMS(0);
-    m_SloMoTimer.SetRealTimeLimitMS(0);
 
     return 0;
 }
@@ -128,11 +123,11 @@ int MovableMan::Save(Writer &writer) const
     Serializable::Save(writer);
 
     writer << m_Actors.size();
-    for (deque<Actor *>::const_iterator itr = m_Actors.begin(); itr != m_Actors.end(); ++itr)
+    for (std::deque<Actor *>::const_iterator itr = m_Actors.begin(); itr != m_Actors.end(); ++itr)
         writer << **itr;
 
     writer << m_Particles.size();
-    for (deque<MovableObject *>::const_iterator itr2 = m_Particles.begin(); itr2 != m_Particles.end(); ++itr2)
+    for (std::deque<MovableObject *>::const_iterator itr2 = m_Particles.begin(); itr2 != m_Particles.end(); ++itr2)
         writer << **itr2;
 
     return 0;
@@ -146,11 +141,11 @@ int MovableMan::Save(Writer &writer) const
 
 void MovableMan::Destroy()
 {
-    for (deque<Actor *>::iterator it1 = m_Actors.begin(); it1 != m_Actors.end(); ++it1)
+    for (std::deque<Actor *>::iterator it1 = m_Actors.begin(); it1 != m_Actors.end(); ++it1)
         delete (*it1);
-    for (deque<MovableObject *>::iterator it2 = m_Items.begin(); it2 != m_Items.end(); ++it2)
+    for (std::deque<MovableObject *>::iterator it2 = m_Items.begin(); it2 != m_Items.end(); ++it2)
         delete (*it2);
-    for (deque<MovableObject *>::iterator it3 = m_Particles.begin(); it3 != m_Particles.end(); ++it3)
+    for (std::deque<MovableObject *>::iterator it3 = m_Particles.begin(); it3 != m_Particles.end(); ++it3)
         delete (*it3);
 
     Clear();
@@ -169,6 +164,55 @@ MovableObject * MovableMan::GetMOFromID(MOID whichID) {
 	return nullptr;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool MovableMan::HitTestMOAtPixel(const MovableObject &mo, int pixelX, int pixelY) const {
+    if (!mo.GetsHitByMOs() || mo.GetRootParent()->GetTraveling()) {
+        return false;
+    }
+
+    if (const MOSprite *moSprite = dynamic_cast<const MOSprite *>(&mo); moSprite) {
+        Vector distanceBetweenTestPositionAndMO = g_SceneMan.ShortestDistance(moSprite->GetPos(), Vector(static_cast<float>(pixelX), static_cast<float>(pixelY)));
+        if (distanceBetweenTestPositionAndMO.MagnitudeIsLessThan(moSprite->GetRadius())) {
+            // Check the scene position in the current local space of the MO, accounting for Position, Sprite Offset, Angle and HFlipped.
+			//TODO Account for Scale as well someday, maybe.
+            Matrix rotation = moSprite->GetRotMatrix(); // <- Copy to non-const variable so / operator overload works.
+            Vector entryPos = (distanceBetweenTestPositionAndMO / rotation).GetXFlipped(moSprite->IsHFlipped()) - moSprite->GetSpriteOffset();
+			int localX = entryPos.GetFloorIntX();
+            int localY = entryPos.GetFloorIntY();
+
+            BITMAP *sprite = moSprite->GetSpriteFrame(moSprite->GetFrame());
+            return is_inside_bitmap(sprite, localX, localY, 0) && _getpixel(sprite, localX, localY) != ColorKeys::g_MaskColor;
+        }
+    } else if (const MOPixel *moPixel = dynamic_cast<const MOPixel *>(&mo); moPixel) {
+        const Vector &pos = moPixel->GetPos();
+        return pos.GetFloorIntX() == pixelX && pos.GetFloorIntY() == pixelY;
+    }
+
+    return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MOID MovableMan::GetMOIDPixel(int pixelX, int pixelY, const std::vector<int> &moidList) {
+    // Note - We loop through the MOs in reverse to make sure that the topmost (last drawn) MO that overlaps the specified coordinates is the one returned.
+    for (auto itr = moidList.rbegin(), itrEnd = moidList.rend(); itr < itrEnd; ++itr) {
+        MOID moid = *itr;
+
+        const MovableObject *mo = GetMOFromID(moid);
+        RTEAssert(mo, "Null MO found in MOID list!");
+		if (mo && mo->GetScale() == 0) {
+			return g_NoMOID;
+		}
+        if (mo && HitTestMOAtPixel(*mo, pixelX, pixelY)) {
+            return moid;
+        }
+    }
+
+    return g_NoMOID;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          RegisterObject
@@ -200,6 +244,22 @@ void MovableMan::UnregisterObject(MovableObject * mo)
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::vector<MovableObject *> * MovableMan::GetMOsInBox(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const {
+    std::vector<MovableObject *> *vectorForLua = new std::vector<MovableObject *>();
+    *vectorForLua = std::move(g_SceneMan.GetMOIDGrid().GetMOsInBox(box, ignoreTeam, getsHitByMOsOnly));
+    return vectorForLua;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::vector<MovableObject *> * MovableMan::GetMOsInRadius(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const {
+    std::vector<MovableObject *> *vectorForLua = new std::vector<MovableObject *>();
+    *vectorForLua = std::move(g_SceneMan.GetMOIDGrid().GetMOsInRadius(centre, radius, ignoreTeam, getsHitByMOsOnly));
+    return vectorForLua;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          PurgeAllMOs
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -208,11 +268,11 @@ void MovableMan::UnregisterObject(MovableObject * mo)
 
 void MovableMan::PurgeAllMOs()
 {
-    for (deque<Actor *>::iterator it1 = m_Actors.begin(); it1 != m_Actors.end(); ++it1)
+    for (std::deque<Actor *>::iterator it1 = m_Actors.begin(); it1 != m_Actors.end(); ++it1)
         delete (*it1);
-    for (deque<MovableObject *>::iterator it2 = m_Items.begin(); it2 != m_Items.end(); ++it2)
+    for (std::deque<MovableObject *>::iterator it2 = m_Items.begin(); it2 != m_Items.end(); ++it2)
         delete (*it2);
-    for (deque<MovableObject *>::iterator it3 = m_Particles.begin(); it3 != m_Particles.end(); ++it3)
+    for (std::deque<MovableObject *>::iterator it3 = m_Particles.begin(); it3 != m_Particles.end(); ++it3)
         delete (*it3);
 
     m_Actors.clear();
@@ -229,15 +289,9 @@ void MovableMan::PurgeAllMOs()
     m_SortTeamRoster[Activity::TeamTwo] = false;
     m_SortTeamRoster[Activity::TeamThree] = false;
     m_SortTeamRoster[Activity::TeamFour] = false;
-    m_ValiditySearchResults.clear();
     m_AddedAlarmEvents.clear();
     m_AlarmEvents.clear();
     m_MOIDIndex.clear();
-
-    // Set the time limit to 0 so it will report as being past it from the start of simulation
-    m_SloMoTimer.SetRealTimeLimitMS(0);
-    m_SloMoTimer.SetSimTimeLimitMS(0);
-
 	m_KnownObjects.clear();
 }
 
@@ -254,7 +308,7 @@ Actor * MovableMan::GetNextActorInGroup(std::string group, Actor *pAfterThis)
         return 0;
 
     // Begin at the beginning
-    deque<Actor *>::const_iterator aIt = m_Actors.begin();
+    std::deque<Actor *>::const_iterator aIt = m_Actors.begin();
 
     // Search for the actor to start search from, if specified
     if (pAfterThis)
@@ -310,7 +364,7 @@ Actor * MovableMan::GetPrevActorInGroup(std::string group, Actor *pBeforeThis)
         return 0;
 
     // Begin at the reverse beginning
-    deque<Actor *>::reverse_iterator aIt = m_Actors.rbegin();
+    std::deque<Actor *>::reverse_iterator aIt = m_Actors.rbegin();
 
     // Search for the actor to start search from, if specified
     if (pBeforeThis)
@@ -366,7 +420,7 @@ Actor * MovableMan::GetNextTeamActor(int team, Actor *pAfterThis)
         return 0;
 /*
     // Begin at the beginning
-    deque<Actor *>::const_iterator aIt = m_Actors.begin();
+    std::deque<Actor *>::const_iterator aIt = m_Actors.begin();
 
     // Search for the actor to start search from, if specified
     if (pAfterThis)
@@ -412,7 +466,7 @@ Actor * MovableMan::GetNextTeamActor(int team, Actor *pAfterThis)
     m_ActorRoster[team].sort(MOXPosComparison());
 
     // Begin at the beginning
-    list<Actor *>::const_iterator aIt = m_ActorRoster[team].begin();
+    std::list<Actor *>::const_iterator aIt = m_ActorRoster[team].begin();
 
     // Search for the actor to start search from, if specified
     if (pAfterThis)
@@ -451,7 +505,7 @@ Actor * MovableMan::GetPrevTeamActor(int team, Actor *pBeforeThis)
         return 0;
 /* Obsolete, now uses team rosters which are sorted
     // Begin at the reverse beginning
-    deque<Actor *>::const_reverse_iterator aIt = m_Actors.rbegin();
+    std::deque<Actor *>::const_reverse_iterator aIt = m_Actors.rbegin();
 
     // Search for the actor to start search from, if specified
     if (pBeforeThis)
@@ -497,7 +551,7 @@ Actor * MovableMan::GetPrevTeamActor(int team, Actor *pBeforeThis)
     m_ActorRoster[team].sort(MOXPosComparison());
 
     // Begin at the reverse beginning of roster
-    list<Actor *>::reverse_iterator aIt = m_ActorRoster[team].rbegin();
+    std::list<Actor *>::reverse_iterator aIt = m_ActorRoster[team].rbegin();
 
     // Search for the actor to start search from, if specified
     if (pBeforeThis)
@@ -530,33 +584,30 @@ Actor * MovableMan::GetPrevTeamActor(int team, Actor *pBeforeThis)
 // Description:     Get a pointer to an Actor in the internal Actor list that is of a
 //                  specifc team and closest to a specific scene point.
 
-Actor * MovableMan::GetClosestTeamActor(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, const Actor *pExcludeThis)
+Actor * MovableMan::GetClosestTeamActor(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, bool onlyPlayerControllableActors, const Actor *excludeThis)
 {
     if (team < Activity::NoTeam || team >= Activity::MaxTeamCount || m_Actors.empty() || m_ActorRoster[team].empty())
         return 0;
 
     Activity *pActivity = g_ActivityMan.GetActivity();
 
-    Vector distanceVec;
-    float distance;
-    float shortestDistance = maxRadius;
+    float sqrShortestDistance = static_cast<float>(maxRadius * maxRadius);
     Actor *pClosestActor = 0;
 
     // If we're looking for a noteam actor, then go through the entire actor list instead
     if (team == Activity::NoTeam)
     {
-        for (deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
+        for (std::deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
         {
-            if ((*aIt) == pExcludeThis || (*aIt)->GetTeam() != Activity::NoTeam)
+            if ((*aIt) == excludeThis || (*aIt)->GetTeam() != Activity::NoTeam || (onlyPlayerControllableActors && !(*aIt)->IsPlayerControllable())) {
                 continue;
-
-            distanceVec = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint);
-            distance = distanceVec.GetMagnitude();
+            }
 
             // Check if even within search radius
-            if (distance < shortestDistance)
+            float sqrDistance = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY()).GetSqrMagnitude();
+            if (sqrDistance < sqrShortestDistance)
             {
-                shortestDistance = distance;
+                sqrShortestDistance = sqrDistance;
                 pClosestActor = *aIt;
             }
         }
@@ -564,18 +615,19 @@ Actor * MovableMan::GetClosestTeamActor(int team, int player, const Vector &scen
     // A specific team, so use the rosters instead
     else
     {
-        for (list<Actor *>::iterator aIt = m_ActorRoster[team].begin(); aIt != m_ActorRoster[team].end(); ++aIt)
+        for (std::list<Actor *>::iterator aIt = m_ActorRoster[team].begin(); aIt != m_ActorRoster[team].end(); ++aIt)
         {
-			if ((*aIt) == pExcludeThis || (player != NoPlayer && ((*aIt)->GetController()->IsPlayerControlled(player) || (pActivity && pActivity->IsOtherPlayerBrain(*aIt, player))))) {
+			if ((*aIt) == excludeThis || (onlyPlayerControllableActors && !(*aIt)->IsPlayerControllable()) || (player != NoPlayer && ((*aIt)->GetController()->IsPlayerControlled(player) || (pActivity && pActivity->IsOtherPlayerBrain(*aIt, player))))) {
 				continue;
 			}
-            distanceVec = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint);
-            distance = distanceVec.GetMagnitude();
+
+            Vector distanceVec = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY());
 
             // Check if even within search radius
-            if (distance < shortestDistance)
+            float sqrDistance = distanceVec.GetSqrMagnitude();
+            if (sqrDistance < sqrShortestDistance)
             {
-                shortestDistance = distance;
+                sqrShortestDistance = sqrDistance;
                 pClosestActor = *aIt;
 				getDistance.SetXY(distanceVec.GetX(), distanceVec.GetY());
             }
@@ -599,23 +651,21 @@ Actor * MovableMan::GetClosestEnemyActor(int team, const Vector &scenePoint, int
     
     Activity *pActivity = g_ActivityMan.GetActivity();
     
-    Vector distanceVec;
-    float distance;
-    float shortestDistance = maxRadius;
+    float sqrShortestDistance = static_cast<float>(maxRadius * maxRadius);
     Actor *pClosestActor = 0;
     
-    for (deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
+    for (std::deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
     {
         if ((*aIt)->GetTeam() == team)
             continue;
 
-        distanceVec = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint);
-        distance = distanceVec.GetMagnitude();
+        Vector distanceVec = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY());
         
         // Check if even within search radius
-        if (distance < shortestDistance)
+        float sqrDistance = distanceVec.GetSqrMagnitude();
+        if (sqrDistance < sqrShortestDistance)
         {
-            shortestDistance = distance;
+            sqrShortestDistance = sqrDistance;
             pClosestActor = *aIt;
             getDistance.SetXY(distanceVec.GetX(), distanceVec.GetY());
         }
@@ -638,23 +688,21 @@ Actor * MovableMan::GetClosestActor(const Vector &scenePoint, int maxRadius, Vec
 
     Activity *pActivity = g_ActivityMan.GetActivity();
 
-    Vector distanceVec;
-    float distance;
-    float shortestDistance = maxRadius;
+    float sqrShortestDistance = static_cast<float>(maxRadius * maxRadius);
     Actor *pClosestActor = 0;
 
-    for (deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
+    for (std::deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
     {
         if ((*aIt) == pExcludeThis)
             continue;
 
-        distanceVec = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint);
-        distance = distanceVec.GetMagnitude();
+        Vector distanceVec = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY());
 
         // Check if even within search radius
-        if (distance < shortestDistance)
+        float sqrDistance = distanceVec.GetSqrMagnitude();
+        if (sqrDistance < sqrShortestDistance)
         {
-            shortestDistance = distance;
+            sqrShortestDistance = sqrDistance;
             pClosestActor = *aIt;
 			getDistance.SetXY(distanceVec.GetX(), distanceVec.GetY());
         }
@@ -672,26 +720,24 @@ Actor * MovableMan::GetClosestActor(const Vector &scenePoint, int maxRadius, Vec
 
 Actor * MovableMan::GetClosestBrainActor(int team, const Vector &scenePoint) const
 {
-    if (team < Activity::TeamOne || team >= Activity::MaxTeamCount || m_Actors.empty() ||  m_ActorRoster[team].empty())
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount || m_ActorRoster[team].empty())
         return 0;
 
-    Vector distanceVec;
-    float distance;
-    float shortestDistance = g_SceneMan.GetSceneDim().GetLargest();
+    float sqrShortestDistance = std::numeric_limits<float>::infinity();
+    sqrShortestDistance *= sqrShortestDistance;
+
     Actor *pClosestBrain = 0;
 
-    for (list<Actor *>::const_iterator aIt = m_ActorRoster[team].begin(); aIt != m_ActorRoster[team].end(); ++aIt)
+    for (std::list<Actor *>::const_iterator aIt = m_ActorRoster[team].begin(); aIt != m_ActorRoster[team].end(); ++aIt)
     {
         if (!(*aIt)->HasObjectInGroup("Brains"))
             continue;
 
-        distanceVec = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint);
-        distance = distanceVec.GetMagnitude();
-
         // Check if closer than best so far
-        if (distance < shortestDistance)
+        float sqrDistance = g_SceneMan.ShortestDistance((*aIt)->GetPos(), scenePoint, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY()).GetSqrMagnitude();
+        if (sqrDistance < sqrShortestDistance)
         {
-            shortestDistance = distance;
+            sqrShortestDistance = sqrDistance;
             pClosestBrain = *aIt;
         }
     }
@@ -711,8 +757,9 @@ Actor * MovableMan::GetClosestOtherBrainActor(int notOfTeam, const Vector &scene
     if (notOfTeam < Activity::TeamOne || notOfTeam >= Activity::MaxTeamCount || m_Actors.empty())
         return 0;
 
-    float testDistance = g_SceneMan.GetSceneDim().GetLargest();
-    float shortestDistance = g_SceneMan.GetSceneDim().GetLargest();
+    float sqrShortestDistance = std::numeric_limits<float>::infinity();
+    sqrShortestDistance *= sqrShortestDistance;
+
     Actor *pClosestBrain = 0;
     Actor *pContenderBrain = 0;
 
@@ -721,11 +768,11 @@ Actor * MovableMan::GetClosestOtherBrainActor(int notOfTeam, const Vector &scene
         if (t != notOfTeam)
         {
             pContenderBrain = GetClosestBrainActor(t, scenePoint);
-            testDistance = (pContenderBrain->GetPos() - scenePoint).GetMagnitude();
-            if (testDistance < shortestDistance)
+            float sqrDistance = (pContenderBrain->GetPos() - scenePoint).GetSqrMagnitude();
+            if (sqrDistance < sqrShortestDistance)
             {
+                sqrShortestDistance = sqrDistance;
                 pClosestBrain = pContenderBrain;
-                shortestDistance = testDistance;
             }
         }
     }
@@ -744,7 +791,7 @@ Actor * MovableMan::GetUnassignedBrain(int team) const
     if (/*m_Actors.empty() || */m_ActorRoster[team].empty())
         return 0;
 
-    for (list<Actor *>::const_iterator aIt = m_ActorRoster[team].begin(); aIt != m_ActorRoster[team].end(); ++aIt)
+    for (std::list<Actor *>::const_iterator aIt = m_ActorRoster[team].begin(); aIt != m_ActorRoster[team].end(); ++aIt)
     {
         if ((*aIt)->HasObjectInGroup("Brains") && !g_ActivityMan.GetActivity()->IsAssignedBrain(*aIt))
             return *aIt;
@@ -752,7 +799,7 @@ Actor * MovableMan::GetUnassignedBrain(int team) const
 
     // Also need to look through all the actors added this frame, one might be a brain.
     int actorTeam = Activity::NoTeam;
-    for (deque<Actor *>::const_iterator aaIt = m_AddedActors.begin(); aaIt != m_AddedActors.end(); ++aaIt)
+    for (std::deque<Actor *>::const_iterator aaIt = m_AddedActors.begin(); aaIt != m_AddedActors.end(); ++aaIt)
     {
         int actorTeam = (*aaIt)->GetTeam();
         // Accept no-team brains too - ACTUALLY, DON'T
@@ -763,158 +810,86 @@ Actor * MovableMan::GetUnassignedBrain(int team) const
     return 0;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddMO
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds a MovableObject to this, after it is determined what it is and the
-//                  best way to add it is. E.g. if it's an Actor, it will be added as such.
-//                  Ownership IS transferred!
-
-bool MovableMan::AddMO(MovableObject *pMOToAdd) {
-    if (!pMOToAdd) {
+bool MovableMan::AddMO(MovableObject *movableObjectToAdd) {
+    if (!movableObjectToAdd) {
         return false;
     }
 
-    pMOToAdd->SetAsAddedToMovableMan();
+    if (Actor *actorToAdd = dynamic_cast<Actor *>(movableObjectToAdd)) {
+        AddActor(actorToAdd);
+        return true;
+    } else if (HeldDevice *heldDeviceToAdd = dynamic_cast<HeldDevice *>(movableObjectToAdd)) {
+        AddItem(heldDeviceToAdd);
+        return true;
+    }
+    AddParticle(movableObjectToAdd);
 
-    // Find out what kind it is and apply accordingly
-    if (Actor *pActor = dynamic_cast<Actor *>(pMOToAdd)) {
-        AddActor(pActor);
-        return true;
-    } else if (HeldDevice *pHeldDevice = dynamic_cast<HeldDevice *>(pMOToAdd)) {
-        AddItem(pHeldDevice);
-        return true;
-    } else {
-        AddParticle(pMOToAdd);
-        return true;
-    }
-/*
-// TODO: sort out helddevices too?
-    else if (MovableObject *pMO = dynamic_cast<MovableObject *>(pMOToAdd))
-    {
-        AddParticle(pMO);
-        return true;
-    }
-    // Weird type, get rid of since we have ownership
-    else
-    {
-        delete pMOToAdd;
-        pMOToAdd = 0;
-    }
-*/
-    return false;
+    return true;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddActor
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds an Actor to the internal list of MO:s. Destruction and 
-//                  deletion will be taken care of automatically. Do NOT delete the passed
-//                  MO after adding it here!
+void MovableMan::AddActor(Actor *actorToAdd) {
+	if (actorToAdd) {
+		actorToAdd->SetAsAddedToMovableMan();
+		actorToAdd->CorrectAttachableAndWoundPositionsAndRotations();
 
-void MovableMan::AddActor(Actor *pActorToAdd)
-{
-    if (pActorToAdd)
-    {
-//        pActorToAdd->SetPrevPos(pActorToAdd->GetPos());
-//        pActorToAdd->Update();
-//        pActorToAdd->PostTravel();
-        pActorToAdd->SetAsAddedToMovableMan();
-
-        // Filter out stupid fast objects
-        if (pActorToAdd->IsTooFast())
-            pActorToAdd->SetToDelete(true);
-        else
-        {
-            // Should not be done to doors, which will get jolted around when they shouldn't!
-            if (!dynamic_cast<ADoor *>(pActorToAdd))
-                pActorToAdd->MoveOutOfTerrain(g_MaterialGrass);
-            if (pActorToAdd->IsStatus(Actor::INACTIVE))
-                pActorToAdd->SetStatus(Actor::STABLE);
-            pActorToAdd->NotResting();
-            pActorToAdd->NewFrame();
-            pActorToAdd->SetAge(0);
+		if (actorToAdd->IsTooFast()) {
+			actorToAdd->SetToDelete(true);
+		} else {
+			if (!dynamic_cast<ADoor *>(actorToAdd)) { actorToAdd->MoveOutOfTerrain(g_MaterialGrass); }
+			if (actorToAdd->IsStatus(Actor::INACTIVE)) { actorToAdd->SetStatus(Actor::STABLE); }
+			actorToAdd->NotResting();
+			actorToAdd->NewFrame();
+			actorToAdd->SetAge(0);
         }
-        m_AddedActors.push_back(pActorToAdd);
 
-		AddActorToTeamRoster(pActorToAdd);
+        m_AddedActors.push_back(actorToAdd);
+		AddActorToTeamRoster(actorToAdd);
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddItem
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds a pickup-able item to the internal list of items. Destruction and 
-//                  deletion will be taken care of automatically. Do NOT delete the passed
-//                  MO after adding it here! i.e. Ownership IS transferred!
+void MovableMan::AddItem(HeldDevice *itemToAdd) {
+    if (itemToAdd) {
+		itemToAdd->SetAsAddedToMovableMan();
+		itemToAdd->CorrectAttachableAndWoundPositionsAndRotations();
 
-void MovableMan::AddItem(MovableObject *pItemToAdd)
-{
-    if (pItemToAdd)
-    {
-//        pItemToAdd->SetPrevPos(pItemToAdd->GetPos());
-//        pItemToAdd->Update();
-//        pItemToAdd->PostTravel();
-        pItemToAdd->SetAsAddedToMovableMan();
-
-        // Filter out stupid fast objects
-        if (pItemToAdd->IsTooFast())
-            pItemToAdd->SetToDelete(true);
-        else
-        {
-            // Move out so not embedded in terrain - and if we can't, DON'T delete it now, but mark for deletion at the end of frame!$@
-            // Deleting it now causes crashes as it may have had its MOID registered and things collidng withthat MOID area would be led to deleted memory
-// Don't delete; buried stuff is cool, also causes problems becuase it thinks hollowed out material is not air and therefore  makes objects inside bunkers disappear!
-//        if (!pItemToAdd->MoveOutOfTerrain(g_MaterialGrass))
-//            pItemToAdd->SetToDelete();
-            if (!pItemToAdd->IsSetToDelete()) { pItemToAdd->MoveOutOfTerrain(g_MaterialGrass); }
-
-            pItemToAdd->NotResting();
-            pItemToAdd->NewFrame();
-            pItemToAdd->SetAge(0);
+		if (itemToAdd->IsTooFast()) {
+			itemToAdd->SetToDelete(true);
+		}  else {
+            if (!itemToAdd->IsSetToDelete()) { itemToAdd->MoveOutOfTerrain(g_MaterialGrass); }
+			itemToAdd->NotResting();
+			itemToAdd->NewFrame();
+			itemToAdd->SetAge(0);
         }
-        m_AddedItems.push_back(pItemToAdd);
+        m_AddedItems.push_back(itemToAdd);
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddParticle
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds a MovableObject to the internal list of MO:s. Destruction and 
-//                  deletion will be taken care of automatically. Do NOT delete the passed
-//                  MO after adding it here! i.e. Ownership IS transferred!
+void MovableMan::AddParticle(MovableObject *particleToAdd){
+    if (particleToAdd) {
+        particleToAdd->SetAsAddedToMovableMan();
+		if (MOSRotating *particleToAddAsMOSRotating = dynamic_cast<MOSRotating *>(particleToAdd)) { particleToAddAsMOSRotating->CorrectAttachableAndWoundPositionsAndRotations(); }
 
-void MovableMan::AddParticle(MovableObject *pMOToAdd)
-{
-    if (pMOToAdd)
-    {
-//        pMOToAdd->SetPrevPos(pMOToAdd->GetPos());
-//        pMOToAdd->Update();
-//        pMOToAdd->Travel();
-//        pMOToAdd->PostTravel();
-        pMOToAdd->SetAsAddedToMovableMan();
-
-        // Filter out stupid fast objects
-        if (pMOToAdd->IsTooFast())
-            pMOToAdd->SetToDelete(true);
-        else
-        {
-            // Move out so not embedded in terrain
-// This is a bit slow to be doing on every particle added!
-//            pMOToAdd->MoveOutOfTerrain(g_MaterialGrass);
-
-            pMOToAdd->NotResting();
-            pMOToAdd->NewFrame();
-            pMOToAdd->SetAge(0);
+		if (particleToAdd->IsTooFast()) {
+			particleToAdd->SetToDelete(true);
+		} else {
+			//TODO consider moving particles out of grass. It's old code that was removed because it's slow to do this for every particle.
+            particleToAdd->NotResting();
+            particleToAdd->NewFrame();
+            particleToAdd->SetAge(0);
         }
-        if (pMOToAdd->IsDevice())
-            m_AddedItems.push_back(pMOToAdd);
-        else
-            m_AddedParticles.push_back(pMOToAdd);
+		if (particleToAdd->IsDevice()) {
+			m_AddedItems.push_back(particleToAdd);
+		} else {
+			m_AddedParticles.push_back(particleToAdd);
+		}
     }
 }
 
@@ -932,7 +907,7 @@ bool MovableMan::RemoveActor(MovableObject *pActorToRem)
 
     if (pActorToRem)
     {
-        for (deque<Actor *>::iterator itr = m_Actors.begin(); itr != m_Actors.end(); ++itr)
+        for (std::deque<Actor *>::iterator itr = m_Actors.begin(); itr != m_Actors.end(); ++itr)
         {
             if (*itr == pActorToRem)
             {
@@ -944,7 +919,7 @@ bool MovableMan::RemoveActor(MovableObject *pActorToRem)
         // Try the newly added actors if we couldn't find it in the regular deque
         if (!removed)
         {
-            for (deque<Actor *>::iterator itr = m_AddedActors.begin(); itr != m_AddedActors.end(); ++itr)
+            for (std::deque<Actor *>::iterator itr = m_AddedActors.begin(); itr != m_AddedActors.end(); ++itr)
             {
                 if (*itr == pActorToRem)
                 {
@@ -955,6 +930,7 @@ bool MovableMan::RemoveActor(MovableObject *pActorToRem)
             }
         }
 		RemoveActorFromTeamRoster(dynamic_cast<Actor *>(pActorToRem));
+		pActorToRem->SetAsAddedToMovableMan(false);
     }
     return removed;
 }
@@ -973,7 +949,7 @@ bool MovableMan::RemoveItem(MovableObject *pItemToRem)
 
     if (pItemToRem)
     {
-        for (deque<MovableObject *>::iterator itr = m_Items.begin(); itr != m_Items.end(); ++itr)
+        for (std::deque<MovableObject *>::iterator itr = m_Items.begin(); itr != m_Items.end(); ++itr)
         {
             if (*itr == pItemToRem)
             {
@@ -985,7 +961,7 @@ bool MovableMan::RemoveItem(MovableObject *pItemToRem)
         // Try the newly added items if we couldn't find it in the regular deque
         if (!removed)
         {
-            for (deque<MovableObject *>::iterator itr = m_AddedItems.begin(); itr != m_AddedItems.end(); ++itr)
+            for (std::deque<MovableObject *>::iterator itr = m_AddedItems.begin(); itr != m_AddedItems.end(); ++itr)
             {
                 if (*itr == pItemToRem)
                 {
@@ -995,6 +971,7 @@ bool MovableMan::RemoveItem(MovableObject *pItemToRem)
                 }
             }
         }
+		pItemToRem->SetAsAddedToMovableMan(false);
     }
     return removed;
 }
@@ -1056,9 +1033,22 @@ void MovableMan::ChangeActorTeam(Actor * pActor, int team)
 	if (!pActor)
 		return;
 
+	if (pActor->IsPlayerControlled()) { g_ActivityMan.GetActivity()->LoseControlOfActor(pActor->GetController()->GetPlayer()); }
+
 	RemoveActorFromTeamRoster(pActor);
 	pActor->SetTeam(team);
 	AddActorToTeamRoster(pActor);
+
+	// Because doors affect the team-based pathfinders, we need to tell them there's been a change.
+	// This is hackily done by erasing the door material, updating the pathfinders, then redrawing it and updating them again so they properly account for the door's new team.
+	if (ADoor *actorAsADoor = dynamic_cast<ADoor *>(pActor); actorAsADoor && actorAsADoor->GetDoorMaterialDrawn()) {
+		actorAsADoor->TempEraseOrRedrawDoorMaterial(true);
+		g_SceneMan.GetTerrain()->AddUpdatedMaterialArea(actorAsADoor->GetBoundingBox());
+		g_SceneMan.GetScene()->UpdatePathFinding();
+		actorAsADoor->TempEraseOrRedrawDoorMaterial(false);
+		g_SceneMan.GetTerrain()->AddUpdatedMaterialArea(actorAsADoor->GetBoundingBox());
+		g_SceneMan.GetScene()->UpdatePathFinding();
+	}
 }
 
 
@@ -1075,7 +1065,7 @@ bool MovableMan::RemoveParticle(MovableObject *pMOToRem)
 
     if (pMOToRem)
     {
-        for (deque<MovableObject *>::iterator itr = m_Particles.begin(); itr != m_Particles.end(); ++itr)
+        for (std::deque<MovableObject *>::iterator itr = m_Particles.begin(); itr != m_Particles.end(); ++itr)
         {
             if (*itr == pMOToRem)
             {
@@ -1087,7 +1077,7 @@ bool MovableMan::RemoveParticle(MovableObject *pMOToRem)
         // Try the newly added particles if we couldn't find it in the regular deque
         if (!removed)
         {
-            for (deque<MovableObject *>::iterator itr = m_AddedParticles.begin(); itr != m_AddedParticles.end(); ++itr)
+            for (std::deque<MovableObject *>::iterator itr = m_AddedParticles.begin(); itr != m_AddedParticles.end(); ++itr)
             {
                 if (*itr == pMOToRem)
                 {
@@ -1097,6 +1087,7 @@ bool MovableMan::RemoveParticle(MovableObject *pMOToRem)
                 }
             }
         }
+		pMOToRem->SetAsAddedToMovableMan(false);
     }
     return removed;
 }
@@ -1109,14 +1100,10 @@ bool MovableMan::RemoveParticle(MovableObject *pMOToRem)
 //                  associated with them. This shuold only be used for testing, as it will
 //                  crash the app if validation fails.
 
-bool MovableMan::ValidateMOIDs()
-{
+bool MovableMan::ValidateMOIDs() {
 #ifdef DEBUG_BUILD
-    float test;
-    for (vector<MovableObject *>::iterator itr = m_MOIDIndex.begin(); itr != m_MOIDIndex.end(); ++itr)
-    {
-        if (*itr)
-            test = (*itr)->GetGoldValue();
+    for (const MovableObject *mo : m_MOIDIndex) {
+        RTEAssert(mo, "Null MO found!");
     }
 #endif
     return true;
@@ -1127,37 +1114,10 @@ bool MovableMan::ValidateMOIDs()
 // Method:          ValidMO
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Indicates whether the passed in MovableObject pointer points to an
-//                  MO that's currently active in the simulation, and kept by this
-//                  MovableMan. Internal optimization is made so that the same MO can
-//                  efficiently be checked many times during the same frame.
+//                  MO that's currently active in the simulation, and kept by this MovableMan.
 
-bool MovableMan::ValidMO(const MovableObject *pMOToCheck)
-{
-    bool found = false;
-
-    if (pMOToCheck)
-    {
-
-        // See if this MO has been found earlier this frame
-        for (deque<pair <const MovableObject *, bool> >::iterator itr = m_ValiditySearchResults.begin(); !found && itr != m_ValiditySearchResults.end(); ++itr)
-        {
-            // If the MO is found to have been searched for earlier this frame, then just return the search results
-            if (itr->first == pMOToCheck)
-                return itr->second;
-        }
-
-        // Check actors
-        found = found ? true : IsActor(pMOToCheck);
-        // Check Items
-        found = found ? true : IsDevice(pMOToCheck);
-        // Check particles
-        found = found ? true : IsParticle(pMOToCheck);
-
-        // Save search result for future requests this frame
-        m_ValiditySearchResults.push_back(pair<const MovableObject *, bool>(pMOToCheck, found));
-    }
-
-    return found;
+bool MovableMan::ValidMO(const MovableObject *pMOToCheck) {
+	return pMOToCheck && pMOToCheck->ExistsInMovableMan();
 }
 
 
@@ -1173,7 +1133,7 @@ bool MovableMan::IsActor(const MovableObject *pMOToCheck)
 
     if (pMOToCheck)
     {
-        for (deque<Actor *>::iterator itr = m_Actors.begin(); !found && itr != m_Actors.end(); ++itr)
+        for (std::deque<Actor *>::iterator itr = m_Actors.begin(); !found && itr != m_Actors.end(); ++itr)
         {
             if (*itr == pMOToCheck)
             {
@@ -1184,7 +1144,7 @@ bool MovableMan::IsActor(const MovableObject *pMOToCheck)
         // Try the actors just added this frame
         if (!found)
         {
-            for (deque<Actor *>::iterator itr = m_AddedActors.begin(); !found && itr != m_AddedActors.end(); ++itr)
+            for (std::deque<Actor *>::iterator itr = m_AddedActors.begin(); !found && itr != m_AddedActors.end(); ++itr)
             {
                 if (*itr == pMOToCheck)
                 {
@@ -1210,7 +1170,7 @@ bool MovableMan::IsDevice(const MovableObject *pMOToCheck)
 
     if (pMOToCheck)
     {
-        for (deque<MovableObject *>::iterator itr = m_Items.begin(); !found && itr != m_Items.end(); ++itr)
+        for (std::deque<MovableObject *>::iterator itr = m_Items.begin(); !found && itr != m_Items.end(); ++itr)
         {
             if (*itr == pMOToCheck)
             {
@@ -1221,7 +1181,7 @@ bool MovableMan::IsDevice(const MovableObject *pMOToCheck)
         // Try the items just added this frame
         if (!found)
         {
-            for (deque<MovableObject *>::iterator itr = m_AddedItems.begin(); !found && itr != m_AddedItems.end(); ++itr)
+            for (std::deque<MovableObject *>::iterator itr = m_AddedItems.begin(); !found && itr != m_AddedItems.end(); ++itr)
             {
                 if (*itr == pMOToCheck)
                 {
@@ -1247,7 +1207,7 @@ bool MovableMan::IsParticle(const MovableObject *pMOToCheck)
 
     if (pMOToCheck)
     {
-        for (deque<MovableObject *>::iterator itr = m_Particles.begin(); !found && itr != m_Particles.end(); ++itr)
+        for (std::deque<MovableObject *>::iterator itr = m_Particles.begin(); !found && itr != m_Particles.end(); ++itr)
         {
             if (*itr == pMOToCheck)
             {
@@ -1258,7 +1218,7 @@ bool MovableMan::IsParticle(const MovableObject *pMOToCheck)
         // Try the items just added this frame
         if (!found)
         {
-            for (deque<MovableObject *>::iterator itr = m_AddedParticles.begin(); !found && itr != m_AddedParticles.end(); ++itr)
+            for (std::deque<MovableObject *>::iterator itr = m_AddedParticles.begin(); !found && itr != m_AddedParticles.end(); ++itr)
             {
                 if (*itr == pMOToCheck)
                 {
@@ -1291,7 +1251,7 @@ bool MovableMan::IsOfActor(MOID checkMOID)
         MOID rootMOID = pMO->GetRootID();
         if (checkMOID != g_NoMOID)
         {
-            for (deque<Actor *>::iterator itr = m_Actors.begin(); !found && itr != m_Actors.end(); ++itr)
+            for (std::deque<Actor *>::iterator itr = m_Actors.begin(); !found && itr != m_Actors.end(); ++itr)
             {
                 if ((*itr)->GetID() == checkMOID || (*itr)->GetID() == rootMOID)
                 {
@@ -1302,7 +1262,7 @@ bool MovableMan::IsOfActor(MOID checkMOID)
             // Check actors just added this frame
             if (!found)
             {
-                for (deque<Actor *>::iterator itr = m_AddedActors.begin(); !found && itr != m_AddedActors.end(); ++itr)
+                for (std::deque<Actor *>::iterator itr = m_AddedActors.begin(); !found && itr != m_AddedActors.end(); ++itr)
                 {
                     if ((*itr)->GetID() == checkMOID || (*itr)->GetID() == rootMOID)
                     {
@@ -1316,6 +1276,16 @@ bool MovableMan::IsOfActor(MOID checkMOID)
     return found;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+int MovableMan::GetContiguousActorID(const Actor *actor) const {
+    auto itr = m_ContiguousActorIDs.find(actor);
+    if (itr == m_ContiguousActorIDs.end()) {
+        return -1;
+    }
+
+    return itr->second;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetRootMOID
@@ -1400,90 +1370,120 @@ int MovableMan::KillAllEnemyActors(int teamNotToKill) const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          EjectAllActors
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds to a list ALL Actors in the world and removes them from the
-//                  MovableMan. Ownership IS transferred!
-
-int MovableMan::EjectAllActors(list<SceneObject *> &actorList, int onlyTeam, bool noBrains)
+int MovableMan::GetAllActors(bool transferOwnership, std::list<SceneObject *> &actorList, int onlyTeam, bool noBrains)
 {
     int addedCount = 0;
 
     // Add all regular Actors
-    for (deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
+    for (std::deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
     {
+        Actor *actor = *aIt;
         // Only grab ones of a specific team; delete all others
-        if ((onlyTeam == Activity::NoTeam || (*aIt)->GetTeam() == onlyTeam) && (!noBrains || !(*aIt)->HasObjectInGroup("Brains")))
+        if ((onlyTeam == Activity::NoTeam || actor->GetTeam() == onlyTeam) && (!noBrains || !actor->HasObjectInGroup("Brains")))
         {
-            actorList.push_back((*aIt));
+            actorList.push_back(actor);
             addedCount++;
         }
-        else
-            delete *aIt;
+        else if (transferOwnership)
+        {
+            delete actor;
+        }
     }
-    // Clear the internal Actor list; we transferred the ownership of them
-    m_Actors.clear();
 
     // Add all Actors added this frame
-    for (deque<Actor *>::iterator aIt = m_AddedActors.begin(); aIt != m_AddedActors.end(); ++aIt)
+    for (std::deque<Actor *>::iterator aIt = m_AddedActors.begin(); aIt != m_AddedActors.end(); ++aIt)
     {
+        Actor *actor = *aIt;
         // Only grab ones of a specific team; delete all others
-        if ((onlyTeam == Activity::NoTeam || (*aIt)->GetTeam() == onlyTeam) && (!noBrains || !(*aIt)->HasObjectInGroup("Brains")))
+        if ((onlyTeam == Activity::NoTeam || actor->GetTeam() == onlyTeam) && (!noBrains || !actor->HasObjectInGroup("Brains")))
         {
-            actorList.push_back((*aIt));
+            actorList.push_back(actor);
             addedCount++;
         }
-        else
-            delete *aIt;
+        else if (transferOwnership)
+        {
+            delete actor;
+        }
     }
-    // Clear the internal Actor list; we transferred the ownership of them
-    m_AddedActors.clear();
 
-    // Also clear the actor rosters
-    for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
-        m_ActorRoster[team].clear();
+    if (transferOwnership)
+    {
+        // Clear the internal Actor list; we transferred the ownership of them
+        m_Actors.clear();
+        // Clear the internal Actor list; we transferred the ownership of them
+        m_AddedActors.clear();
+
+        // Also clear the actor rosters
+        for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
+        {
+            m_ActorRoster[team].clear();
+        }
+    }
 
     return addedCount;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          EjectAllItems
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds to a list ALL Items in the world and removes them from the
-//                  MovableMan. Ownership IS transferred!
-
-int MovableMan::EjectAllItems(list<SceneObject *> &itemList)
+int MovableMan::GetAllItems(bool transferOwnership, std::list<SceneObject *> &itemList)
 {
     int addedCount = 0;
 
     // Add all regular Items
-    for (deque<MovableObject *>::iterator iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt)
+    for (std::deque<MovableObject *>::iterator iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt)
     {
         itemList.push_back((*iIt));
         addedCount++;
     }
-    // Clear the internal Actor list; we transferred the ownership of them
-    m_Items.clear();
 
     // Add all Items added this frame
-    for (deque<MovableObject *>::iterator iIt = m_AddedItems.begin(); iIt != m_AddedItems.end(); ++iIt)
+    for (std::deque<MovableObject *>::iterator iIt = m_AddedItems.begin(); iIt != m_AddedItems.end(); ++iIt)
     {
         itemList.push_back((*iIt));
         addedCount++;
     }
-    // Clear the internal Item list; we transferred the ownership of them
-    m_AddedItems.clear();
+
+    if (transferOwnership)
+    {
+        // Clear the internal Item list; we transferred the ownership of them
+        m_Items.clear();
+        m_AddedItems.clear();
+    }
 
     return addedCount;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetTeamMOIDCount
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns MO count for specified team
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int MovableMan::GetAllParticles(bool transferOwnership, std::list<SceneObject *> &particleList)
+{
+    int addedCount = 0;
+
+    // Add all regular particles
+    for (std::deque<MovableObject *>::iterator iIt = m_Particles.begin(); iIt != m_Particles.end(); ++iIt)
+    {
+        particleList.push_back((*iIt));
+        addedCount++;
+    }
+
+    // Add all particles added this frame
+    for (std::deque<MovableObject *>::iterator iIt = m_AddedParticles.begin(); iIt != m_AddedParticles.end(); ++iIt)
+    {
+        particleList.push_back((*iIt));
+        addedCount++;
+    }
+
+    if (transferOwnership)
+    {
+        // Clear the internal Particle list; we transferred the ownership of them
+        m_Particles.clear();
+        m_AddedParticles.clear();
+    }
+
+    return addedCount;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int MovableMan::GetTeamMOIDCount(int team) const
 {
@@ -1493,78 +1493,43 @@ int MovableMan::GetTeamMOIDCount(int team) const
 		return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OpenAllDoors
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Opens all doors and keeps them open until this is called again with false.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MovableMan::OpenAllDoors(bool open, int team)
-{
-    ADoor *pDoor = 0;
-    for (deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
-    {
-        pDoor = dynamic_cast<ADoor *>(*aIt);
-        if (pDoor && (team == Activity::NoTeam || pDoor->GetTeam() == team))
-        {
-            // Update first so the door attachable piece is in the right position and doesn't take out a werid chunk of the terrain
-            pDoor->Update();
-            if (open)
-                pDoor->OpenDoor();
-            else
-                pDoor->CloseDoor();
-            pDoor->SetClosedByDefault(!open);
-        }
-    }
-    // Also check all doors added this frame
-    for (deque<Actor *>::iterator aIt = m_AddedActors.begin(); aIt != m_AddedActors.end(); ++aIt)
-    {
-        pDoor = dynamic_cast<ADoor *>(*aIt);
-        if (pDoor && (team == Activity::NoTeam || pDoor->GetTeam() == team))
-        {
-            // Update first so the door attachable piece is in the right position and doesn't take out a werid chunk of the terrain
-            pDoor->Update();
-            if (open)
-                pDoor->OpenDoor();
-            else
-                pDoor->CloseDoor();
-            pDoor->SetClosedByDefault(!open);
-        }
-    }
+void MovableMan::OpenAllDoors(bool open, int team) const {
+	for (std::deque<Actor *> actorDeque : { m_Actors, m_AddedActors }) {
+		for (Actor *actor : actorDeque) {
+			if (ADoor *actorAsADoor = dynamic_cast<ADoor *>(actor); actorAsADoor && (team == Activity::NoTeam || actorAsADoor->GetTeam() == team)) {
+				if (actorAsADoor->GetDoorState() != (open ? ADoor::DoorState::OPEN : ADoor::DoorState::CLOSED)) {
+					actorAsADoor->Update();
+					actorAsADoor->SetClosedByDefault(!open);
+				}
+				actorAsADoor->ResetSensorTimer();
+				if (open) {
+					actorAsADoor->OpenDoor();
+				} else {
+					actorAsADoor->CloseDoor();
+				}
+			}
+		}
+	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OverrideMaterialDoors
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Temporarily erases any material door representations of a specific team.
-//                  Used for making pathfinding work better, allowing teammember to navigate
-//                  through friendly bases.
-
-void MovableMan::OverrideMaterialDoors(bool enable, int team)
-{
-    ADoor *pDoor = 0;
-    for (deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
-    {
-        pDoor = dynamic_cast<ADoor *>(*aIt);
-        if (pDoor && (team == Activity::NoTeam || pDoor->GetTeam() == team))
-        {
-            // Update first so the door attachable piece is in the right position and doesn't take out a werid chunk of the terrain
-            pDoor->Update();
-            pDoor->TempEraseOrRedrawDoorMaterial(enable);
-        }
-    }
-    // Also check all doors added this frame
-    for (deque<Actor *>::iterator aIt = m_AddedActors.begin(); aIt != m_AddedActors.end(); ++aIt)
-    {
-        pDoor = dynamic_cast<ADoor *>(*aIt);
-        if (pDoor && (team == Activity::NoTeam || pDoor->GetTeam() == team))
-        {
-            // Update first so the door attachable piece is in the right position and doesn't take out a werid chunk of the terrain
-            pDoor->Update();
-            pDoor->TempEraseOrRedrawDoorMaterial(enable);
-        }
-    }
+// TODO: Completely tear out and delete this.
+// It shouldn't belong to MovableMan, instead it probably ought to be on the pathfinder. On that note, pathfinders shouldn't be part of the scene!
+// AIMan? PathingMan? Something like that. Ideally, we completely tear out this hack, and allow for doors in a completely different way.
+void MovableMan::OverrideMaterialDoors(bool eraseDoorMaterial, int team) const {
+	for (std::deque<Actor *> actorDeque : { m_Actors, m_AddedActors }) {
+		for (Actor *actor : actorDeque) {
+			if (ADoor *actorAsDoor = dynamic_cast<ADoor *>(actor); actorAsDoor && (team == Activity::NoTeam || actorAsDoor->GetTeam() == team)) {
+				actorAsDoor->TempEraseOrRedrawDoorMaterial(eraseDoorMaterial);
+			}
+		}
+	}
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1575,46 +1540,20 @@ void MovableMan::OverrideMaterialDoors(bool enable, int team)
 
 void MovableMan::RedrawOverlappingMOIDs(MovableObject *pOverlapsThis)
 {
-    for (deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
+    for (std::deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
     {
         (*aIt)->DrawMOIDIfOverlapping(pOverlapsThis);
     }
 
-    for (deque<MovableObject *>::iterator iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt)
+    for (std::deque<MovableObject *>::iterator iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt)
     {
         (*iIt)->DrawMOIDIfOverlapping(pOverlapsThis);
     }
 
-    for (deque<MovableObject *>::iterator parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt)
+    for (std::deque<MovableObject *>::iterator parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt)
     {
         (*parIt)->DrawMOIDIfOverlapping(pOverlapsThis);
     }
-}
-
-
-void MovableMan::OnPieMenu(Actor * pActor)
-{
-	deque<Actor *>::iterator aIt;
-	deque<MovableObject *>::iterator iIt;
-	deque<MovableObject *>::iterator parIt;
-
-	for (aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
-	{
-		if ((*aIt)->ProvidesPieMenuContext())
-			(*aIt)->OnPieMenu(pActor);
-	}
-
-	for (iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt)
-	{
-		if ((*iIt)->ProvidesPieMenuContext())
-			(*iIt)->OnPieMenu(pActor);
-	}
-
-	for (parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt)
-	{
-		if ((*parIt)->ProvidesPieMenuContext())
-			(*parIt)->OnPieMenu(pActor);
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1631,24 +1570,24 @@ void MovableMan::Update()
 	m_SimUpdateFrameNumber++;
 
     // Clear the MO color layer only if this is a drawn update
-    if (g_TimerMan.DrawnSimUpdate())
+    if (g_TimerMan.DrawnSimUpdate()) {
         g_SceneMan.ClearMOColorLayer();
+    }
 
     // If this is the first sim update since a drawn one, then clear the post effects
-    if (g_TimerMan.SimUpdatesSinceDrawn() == 0)
-		g_PostProcessMan.ClearScenePostEffects();
+    if (g_TimerMan.SimUpdatesSinceDrawn() == 0) {
+        g_PostProcessMan.ClearScenePostEffects();
+    }
 
     // Reset the draw HUD roster line settings
     m_SortTeamRoster[Activity::TeamOne] = false;
     m_SortTeamRoster[Activity::TeamTwo] = false;
     m_SortTeamRoster[Activity::TeamThree] = false;
     m_SortTeamRoster[Activity::TeamFour] = false;
-    // Clear out MO finding optimization buffer - will be added to each frame as thigns are searched for as curently exisitng in the manager
-    m_ValiditySearchResults.clear();
 
     // Move all last frame's alarm events into the proper buffer, and clear out the new one to fill up with this frame's
     m_AlarmEvents.clear();
-    for (list<AlarmEvent>::iterator aeItr = m_AddedAlarmEvents.begin(); aeItr != m_AddedAlarmEvents.end(); ++aeItr)
+    for (std::list<AlarmEvent>::iterator aeItr = m_AddedAlarmEvents.begin(); aeItr != m_AddedAlarmEvents.end(); ++aeItr)
         m_AlarmEvents.push_back(*aeItr);
     m_AddedAlarmEvents.clear();
 
@@ -1656,12 +1595,12 @@ void MovableMan::Update()
     g_SceneMan.LockScene();
 
     // Will use some common iterators
-    deque<Actor *>::iterator aIt;
-    deque<Actor *>::iterator amidIt;
-    deque<MovableObject *>::iterator iIt;
-    deque<MovableObject *>::iterator imidIt;
-    deque<MovableObject *>::iterator parIt;
-    deque<MovableObject *>::iterator midIt;
+    std::deque<Actor *>::iterator aIt;
+    std::deque<Actor *>::iterator amidIt;
+    std::deque<MovableObject *>::iterator iIt;
+    std::deque<MovableObject *>::iterator imidIt;
+    std::deque<MovableObject *>::iterator parIt;
+    std::deque<MovableObject *>::iterator midIt;
 
     ////////////////////////////////////////////////////////////////////////////
     // First Pass
@@ -1785,17 +1724,6 @@ void MovableMan::Update()
     // Clear the MOID layer before starting to delete stuff which may be in the MOIDIndex
 
     g_SceneMan.ClearAllMOIDDrawings();
-//    g_SceneMan.MOIDClearCheck();
-
-    ///////////////////////////////////////////////////
-    // Determine whether we should go into a brief period of slo-mo for when the sim gets hit heavily all of a sudden
-
-    if (m_AddedActors.size() + m_AddedActors.size() + m_AddedParticles.size() > m_SloMoThreshold)
-    {
-        m_SloMoTimer.SetSimTimeLimitMS(m_SloMoDuration);
-        m_SloMoTimer.Reset();
-    }
-    g_TimerMan.SetOneSimUpdatePerFrame(!m_SloMoTimer.IsPastSimTimeLimit());
 
     //////////////////////////////////////////////////////////////////////
     // TRANSFER ALL MOs ADDED THIS FRAME
@@ -1964,7 +1892,7 @@ void MovableMan::Update()
 				}
 				(*parIt)->SetPos(parPos.GetFloored());
 			}
-			if ((*parIt)->GetDrawPriority() >= terrMat->GetPriority()) { g_SceneMan.GetTerrain()->ApplyMovableObject(*parIt); }
+			if ((*parIt)->GetDrawPriority() >= terrMat->GetPriority()) { (*parIt)->DrawToTerrain(g_SceneMan.GetTerrain()); }
 			delete *(parIt++);
 		}
 		m_Particles.erase(midIt, m_Particles.end());
@@ -1975,8 +1903,6 @@ void MovableMan::Update()
     ////////////////////////////////////////////////////////////////////////
     // Draw the MO matter and IDs to their layers for next frame
 
-// Not anymore, we're using ClearAllMOIDDrawings instead.. much more efficient
-//    g_SceneMan.ClearMOIDLayer();
     UpdateDrawMOIDs(g_SceneMan.GetMOIDBitmap());
 
 	// COUNT MOID USAGE PER TEAM  //////////////////////////////////////////////////
@@ -1986,7 +1912,7 @@ void MovableMan::Update()
 		for (team = Activity::TeamOne; team < Activity::MaxTeamCount; team++)
 			m_TeamMOIDCount[team] = 0;
 		
-		for (vector<MovableObject *>::iterator itr = m_MOIDIndex.begin(); itr != m_MOIDIndex.end(); ++itr)
+		for (std::vector<MovableObject *>::iterator itr = m_MOIDIndex.begin(); itr != m_MOIDIndex.end(); ++itr)
 		{
 			if (*itr)
 			{
@@ -2028,10 +1954,10 @@ void MovableMan::Update()
 void MovableMan::DrawMatter(BITMAP *pTargetBitmap, Vector &targetPos)
 {
     // Draw objects to accumulation bitmap
-    for (deque<Actor *>::iterator aIt = --m_Actors.end(); aIt != --m_Actors.begin(); --aIt)
+    for (std::deque<Actor *>::iterator aIt = --m_Actors.end(); aIt != --m_Actors.begin(); --aIt)
         (*aIt)->Draw(pTargetBitmap, targetPos, g_DrawMaterial);
 
-    for (deque<MovableObject *>::iterator parIt = --m_Particles.end(); parIt != --m_Particles.begin(); --parIt)
+    for (std::deque<MovableObject *>::iterator parIt = --m_Particles.end(); parIt != --m_Particles.begin(); --parIt)
         (*parIt)->Draw(pTargetBitmap, targetPos, g_DrawMaterial);
 }
 
@@ -2045,7 +1971,7 @@ void MovableMan::DrawMatter(BITMAP *pTargetBitmap, Vector &targetPos)
 void MovableMan::VerifyMOIDIndex()
 {
 	int count = 0;
-	for (vector<MovableObject *>::iterator aIt = m_MOIDIndex.begin(); aIt != m_MOIDIndex.end(); ++aIt)
+	for (std::vector<MovableObject *>::iterator aIt = m_MOIDIndex.begin(); aIt != m_MOIDIndex.end(); ++aIt)
 	{
 		if (*aIt)
 		{
@@ -2057,13 +1983,13 @@ void MovableMan::VerifyMOIDIndex()
 	}
 
 
-	for (deque<MovableObject *>::iterator itr = m_Items.begin(); itr != m_Items.end(); ++itr)
+	for (std::deque<MovableObject *>::iterator itr = m_Items.begin(); itr != m_Items.end(); ++itr)
 	{
 		RTEAssert((*itr)->GetID() == g_NoMOID || (*itr)->GetID() < GetMOIDCount(), "MOIDIndex broken!");
 		RTEAssert((*itr)->GetRootID() == g_NoMOID || ((*itr)->GetRootID() >= 0 && (*itr)->GetRootID() < g_MovableMan.GetMOIDCount()), "MOIDIndex broken!");
 	}
 	// Try the items just added this frame
-	for (deque<MovableObject *>::iterator itr = m_AddedItems.begin(); itr != m_AddedItems.end(); ++itr)
+	for (std::deque<MovableObject *>::iterator itr = m_AddedItems.begin(); itr != m_AddedItems.end(); ++itr)
 	{
 		RTEAssert((*itr)->GetID() == g_NoMOID || (*itr)->GetID() < GetMOIDCount(), "MOIDIndex broken!");
 		RTEAssert((*itr)->GetRootID() == g_NoMOID || ((*itr)->GetRootID() >= 0 && (*itr)->GetRootID() < g_MovableMan.GetMOIDCount()), "MOIDIndex broken!");
@@ -2078,52 +2004,46 @@ void MovableMan::VerifyMOIDIndex()
 
 void MovableMan::UpdateDrawMOIDs(BITMAP *pTargetBitmap)
 {
-    int aCount = m_Actors.size();
-    int iCount = m_Items.size();
-    int parCount = m_Particles.size();
-
-    // Clear the index each frame and do it over because MO's get added and
-    // deleted between each frame.
+    // Clear the index each frame and do it over because MO's get added and deleted between each frame.
     m_MOIDIndex.clear();
+    m_ContiguousActorIDs.clear();
+
     // Add a null and start counter at 1 because MOID == 0 means no MO.
     // - Update: This isnt' true anymore, but still keep 0 free just to be safe
     m_MOIDIndex.push_back(0);
 
     MOID currentMOID = 1;
-    int i = 0;
 
-    for (i = 0; i < aCount; ++i) {
-		if (m_Actors[i]->GetsHitByMOs() && !m_Actors[i]->IsSetToDelete())
-        {
-			Vector notUsed;
-            m_Actors[i]->UpdateMOID(m_MOIDIndex);
-            m_Actors[i]->Draw(pTargetBitmap, notUsed, g_DrawMOID, true);
+    int actorID = 0;
+    for (Actor *actor : m_Actors) {
+        m_ContiguousActorIDs[actor] = actorID++;
+		if (!actor->IsSetToDelete()) {
+            actor->UpdateMOID(m_MOIDIndex);
+            actor->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
             currentMOID = m_MOIDIndex.size();
+        } else {
+            actor->SetAsNoID();
         }
-        else
-            m_Actors[i]->SetAsNoID();
     }
-    for (i = 0; i < iCount; ++i)
-    {
-        if (m_Items[i]->GetsHitByMOs() && !m_Items[i]->IsSetToDelete())
-        {
-            m_Items[i]->UpdateMOID(m_MOIDIndex);
-            m_Items[i]->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+
+    for (MovableObject *item : m_Items) {
+        if (!item->IsSetToDelete()) {
+            item->UpdateMOID(m_MOIDIndex);
+            item->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
             currentMOID = m_MOIDIndex.size();
+        } else {
+            item->SetAsNoID();
         }
-        else
-            m_Items[i]->SetAsNoID();
     }
-    for (i = 0; i < parCount; ++i)
-    {
-        if (m_Particles[i]->GetsHitByMOs() && !m_Particles[i]->IsSetToDelete())
-        {
-            m_Particles[i]->UpdateMOID(m_MOIDIndex);
-            m_Particles[i]->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+
+    for (MovableObject *particle : m_Particles) {
+        if (!particle->IsSetToDelete()) {
+            particle->UpdateMOID(m_MOIDIndex);
+            particle->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
             currentMOID = m_MOIDIndex.size();
+        } else {
+            particle->SetAsNoID();
         }
-        else
-            m_Particles[i]->SetAsNoID();
     }
 }
 
@@ -2137,13 +2057,13 @@ void MovableMan::UpdateDrawMOIDs(BITMAP *pTargetBitmap)
 void MovableMan::Draw(BITMAP *pTargetBitmap, const Vector &targetPos)
 {
     // Draw objects to accumulation bitmap, in reverse order so actors appear on top.
-    for (deque<MovableObject *>::iterator parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt)
+    for (std::deque<MovableObject *>::iterator parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt)
         (*parIt)->Draw(pTargetBitmap, targetPos);
 
-	for (deque<MovableObject *>::reverse_iterator itmIt = m_Items.rbegin(); itmIt != m_Items.rend(); ++itmIt)
+	for (std::deque<MovableObject *>::reverse_iterator itmIt = m_Items.rbegin(); itmIt != m_Items.rend(); ++itmIt)
         (*itmIt)->Draw(pTargetBitmap, targetPos);
 
-    for (deque<Actor *>::reverse_iterator aIt = m_Actors.rbegin(); aIt != m_Actors.rend(); ++aIt)
+    for (std::deque<Actor *>::reverse_iterator aIt = m_Actors.rbegin(); aIt != m_Actors.rend(); ++aIt)
         (*aIt)->Draw(pTargetBitmap, targetPos);
 }
 
@@ -2157,10 +2077,10 @@ void MovableMan::Draw(BITMAP *pTargetBitmap, const Vector &targetPos)
 void MovableMan::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int which, bool playerControlled)
 {
     // Draw HUD elements
-	for (deque<MovableObject *>::reverse_iterator itmIt = m_Items.rbegin(); itmIt != m_Items.rend(); ++itmIt)
+	for (std::deque<MovableObject *>::reverse_iterator itmIt = m_Items.rbegin(); itmIt != m_Items.rend(); ++itmIt)
         (*itmIt)->DrawHUD(pTargetBitmap, targetPos, which);
 
-    for (deque<Actor *>::reverse_iterator aIt = m_Actors.rbegin(); aIt != m_Actors.rend(); ++aIt)
+    for (std::deque<Actor *>::reverse_iterator aIt = m_Actors.rbegin(); aIt != m_Actors.rend(); ++aIt)
         (*aIt)->DrawHUD(pTargetBitmap, targetPos, which);
 }
 

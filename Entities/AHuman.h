@@ -90,6 +90,7 @@ EntityAllocation(AHuman);
 AddScriptFunctionNames(Actor, "OnStride");
 SerializableOverrideMethods;
 ClassInfoGetters;
+DefaultPieMenuNameGetter("Default Human Pie Menu");
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Constructor:     AHuman
@@ -153,16 +154,6 @@ ClassInfoGetters;
 // Return value:    None.
 
     void Destroy(bool notInherited = false) override;
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetGoldCarried
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets how many ounces of gold this Actor is carrying.
-// Arguments:       None.
-// Return value:    The current amount of carried gold, in Oz.
-
-    float GetGoldCarried() const override { return m_GoldCarried + m_GoldInInventoryChunk; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -387,6 +378,39 @@ ClassInfoGetters;
 	/// <param name="newValue">The ratio at which this jetpack follows the aim angle of the user.</param>
 	void SetJetAngleRange(float newValue) { m_JetAngleRange = newValue; }
 
+	/// Gets this AHuman's UpperBodyState.
+	/// </summary>
+	/// <returns>This AHuman's UpperBodyState.</returns>
+	UpperBodyState GetUpperBodyState() const { return m_ArmsState; }
+
+	/// <summary>
+	/// Sets this AHuman's UpperBodyState to the new state.
+	/// </summary>
+	/// <param name="newUpperBodyState">This AHuman's new UpperBodyState.</param>
+	void SetUpperBodyState(UpperBodyState newUpperBodyState) { m_ArmsState = newUpperBodyState; }
+
+	/// Gets this AHuman's MovementState.
+	/// </summary>
+	/// <returns>This AHuman's MovementState.</returns>
+	MovementState GetMovementState() const { return m_MoveState; }
+
+	/// <summary>
+	/// Sets this AHuman's MovementState to the new state.
+	/// </summary>
+	/// <param name="newMovementState">This AHuman's new MovementState.</param>
+	void SetMovementState(MovementState newMovementState) { m_MoveState = newMovementState; }
+
+	/// Gets this AHuman's ProneState.
+	/// </summary>
+	/// <returns>This AHuman's ProneState.</returns>
+	ProneState GetProneState() const { return m_ProneState; }
+
+	/// <summary>
+	/// Sets this AHuman's ProneState to the new state.
+	/// </summary>
+	/// <param name="newProneState">This AHuman's new ProneState.</param>
+	void SetProneState(ProneState newProneState) { m_ProneState = newProneState; }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  CollideAtPoint
@@ -401,27 +425,12 @@ ClassInfoGetters;
 
     bool CollideAtPoint(HitData &hitData) override;
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  AddPieMenuSlices
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds all slices this needs on a pie menu.
-// Arguments:       The pie menu to add slices to. Ownership is NOT transferred!
-// Return value:    Whether any slices were added.
-
-   bool AddPieMenuSlices(PieMenuGUI *pPieMenu) override;
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  HandlePieCommand
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Handles and does whatever a specific activated Pie Menu slice does to
-//                  this.
-// Arguments:       The pie menu command to handle. See the PieSliceIndex enum.
-// Return value:    Whetehr any slice was handled. False if no matching slice handler was
-//                  found, or there was no slice currently activated by the pie menu.
-
-    bool HandlePieCommand(PieSlice::PieSliceIndex pieSliceIndex) override;
+    /// <summary>
+    /// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
+    /// </summary>
+    /// <param name="pieSliceType">The SliceType of the PieSlice being handled.</param>
+    /// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
+    bool HandlePieCommand(PieSlice::SliceType pieSliceType) override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -433,6 +442,23 @@ ClassInfoGetters;
 // Return value:    None.
 
 	void AddInventoryItem(MovableObject *pItemToAdd) override;
+
+	/// <summary>
+	/// Swaps the next MovableObject carried by this AHuman and puts one not currently carried into the back of the inventory of this.
+	/// For safety reasons, this will dump any non-HeldDevice inventory items it finds into MovableMan, ensuring the returned item is a HeldDevice (but not casted to one, for overload purposes).
+	/// </summary>
+	/// <param name="inventoryItemToSwapIn">A pointer to the external MovableObject to swap in. Ownership IS transferred.</param>
+	/// <param name="muteSound">Whether or not to mute the sound on this event.</param>
+	/// <returns>The next HeldDevice in this AHuman's inventory, if there are any.</returns>
+	MovableObject * SwapNextInventory(MovableObject *inventoryItemToSwapIn = nullptr, bool muteSound = false) override;
+
+	/// <summary>
+	/// Swaps the previous MovableObject carried by this AHuman and puts one not currently carried into the back of the inventory of this.
+	/// For safety reasons, this will dump any non-HeldDevice inventory items it finds into MovableMan, ensuring the returned item is a HeldDevice (but not casted to one, for overload purposes).
+	/// </summary>
+	/// <param name="inventoryItemToSwapIn">A pointer to the external MovableObject to swap in. Ownership IS transferred.</param>
+	/// <returns>The previous HeldDevice in this AHuman's inventory, if there are any.</returns>
+	MovableObject * SwapPrevInventory(MovableObject *inventoryItemToSwapIn = nullptr) override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -452,21 +478,21 @@ ClassInfoGetters;
 // Virtual Method:  EquipDeviceInGroup
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Switches the currently held device (if any) to the first found device
-//                  of the specified group in the inventory. If the held device already 
+//                  of the specified group in the inventory. If the held device already
 //                  is of that group, or no device is in inventory, nothing happens.
 // Arguments:       The group the device must belong to.
 //                  Whether to actually equip any matching item found in the inventory,
 //                  or just report that it's there or not.
 // Return value:    Whether a firearm was successfully switched to, or already held.
 
-    bool EquipDeviceInGroup(string group, bool doEquip = true);
+    bool EquipDeviceInGroup(std::string group, bool doEquip = true);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual Method:  EquipLoadedFirearmInGroup
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Switches the currently held device (if any) to the first loaded HDFirearm
-//                  of the specified group in the inventory. If no such weapon is in the 
+//                  of the specified group in the inventory. If no such weapon is in the
 //                  inventory, nothing happens.
 // Arguments:       The group the HDFirearm must belong to. "Any" for all groups.
 //                  The group the HDFirearm must *not* belong to. "None" for no group.
@@ -474,21 +500,26 @@ ClassInfoGetters;
 //                  or just report that it's there or not.
 // Return value:    Whether a firearm was successfully switched to, or already held.
 
-    bool EquipLoadedFirearmInGroup(string group, string exludeGroup, bool doEquip = true);
+    bool EquipLoadedFirearmInGroup(std::string group, std::string exludeGroup, bool doEquip = true);
 
+	/// <summary>
+	/// Switches the equipped HeldDevice (if any) to the first found device with the specified preset name in the inventory.
+	/// If the equipped HeldDevice is of that module and preset name, nothing happens.
+	/// </summary>
+	/// <param name="presetName">The preset name of the HeldDevice to equip.</param>
+	/// <param name="doEquip">Whether to actually equip any matching item found in the inventory, or just report whether or not it's there.</param>
+	/// <returns>Whether a matching HeldDevice was successfully found/switched -o, or already held.</returns>
+	bool EquipNamedDevice(const std::string &presetName, bool doEquip) { return EquipNamedDevice("", presetName, doEquip); }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  EquipNamedDevice
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Switches the currently held device (if any) to the first found device
-//                  of with the specified preset name in the inventory. If the held device already 
-//                  is of that preset name, or no device is in inventory, nothing happens.
-// Arguments:       The preset name the device must have.
-//                  Whether to actually equip any matching item found in the inventory,
-//                  or just report that it's there or not.
-// Return value:    Whether a device was successfully switched to, or already held.
-
-    bool EquipNamedDevice(const string name, bool doEquip);
+	/// <summary>
+	/// Switches the equipped HeldDevice (if any) to the first found device with the specified module and preset name in the inventory.
+	/// If the equipped HeldDevice is of that module and preset name, nothing happens.
+	/// </summary>
+	/// <param name="moduleName">The module name of the HeldDevice to equip.</param>
+	/// <param name="presetName">The preset name of the HeldDevice to equip.</param>
+	/// <param name="doEquip">Whether to actually equip any matching item found in the inventory, or just report whether or not it's there.</param>
+	/// <returns>Whether a matching HeldDevice was successfully found/switched -o, or already held.</returns>
+	bool EquipNamedDevice(const std::string &moduleName, const std::string &presetName, bool doEquip);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -503,29 +534,18 @@ ClassInfoGetters;
 
 	bool EquipThrowable(bool doEquip = true);
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  EquipDiggingTool
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Switches the currently held device (if any) to the first found digging
-//                  tool in the inventory. If the held device already is a digging tool,
-//                  or no digging tool is in inventory, nothing happens.
-// Arguments:       Whether to actually equip any matching item found in the inventory,
-//                  or just report that it's there or not.
-// Return value:    Whether a digging tool was successfully switched to.
-
+	/// <summary>
+	/// Switches the currently held device (if any) to the strongest digging tool in the inventory.
+	/// </summary>
+	/// <param name="doEquip">Whether to actually equip the strongest digging tool, or just report whether a digging tool was found.</param>
+	/// <returns>Whether or not the strongest digging tool was successfully equipped.</returns>
 	bool EquipDiggingTool(bool doEquip = true);
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          EstimateDigStrenght
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Estimates what material strength any digger this actor is carrying
-//                  can penetrate.
-// Arguments:       None.
-// Return value:    One or the maximum material strength this actor's digger can penetrate.
-
-    float EstimateDigStrenght();
+    /// <summary>
+    /// Estimates what material strength any digger this AHuman is carrying can penetrate.
+    /// </summary>
+    /// <returns>The maximum material strength this AHuman's digger can penetrate, or a default dig strength if they don't have a digger.</returns>
+    float EstimateDigStrength() const override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -584,28 +604,19 @@ ClassInfoGetters;
 	/// <summary>
 	/// Unequips whatever is in either of the arms and puts them into the inventory.
 	/// </summary>
-	void UnequipArms() { UnequipFGArm(); UnequipBGArm(); }
+	void UnequipArms() { UnequipBGArm(); UnequipFGArm(); }
 
+	/// <summary>
+	/// Gets the FG Arm's HeldDevice. Ownership is NOT transferred.
+	/// </summary>
+	/// <returns>The FG Arm's HeldDevice.</returns>
+	HeldDevice * GetEquippedItem() const { return m_pFGArm ? m_pFGArm->GetHeldDevice() : nullptr; }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:  GetEquippedItem
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns whatever is equipped in the FG Arm, if anything. OWNERSHIP IS NOT TRANSFERRED!
-// Arguments:       None.
-// Return value:    The currently equipped item, if any.
-
-	MovableObject * GetEquippedItem() const;
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:  GetEquippedBGItem
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns whatever is equipped in the BG Arm, if anything. OWNERSHIP IS NOT TRANSFERRED!
-// Arguments:       None.
-// Return value:    The currently equipped item, if any.
-
-	MovableObject * GetEquippedBGItem() const;
-
+	/// <summary>
+	/// Gets the BG Arm's HeldDevice. Ownership is NOT transferred.
+	/// </summary>
+	/// <returns>The BG Arm's HeldDevice.</returns>
+	HeldDevice * GetEquippedBGItem() const { return m_pBGArm ? m_pBGArm->GetHeldDevice() : nullptr; }
 
 	/// <summary>
 	/// Gets the total mass of this AHuman's currently equipped devices.
@@ -648,11 +659,17 @@ ClassInfoGetters;
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:  FirearmNeedsReload
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates whether the currently held HDFirearm's is almost out of ammo.
+// Description:     Indicates whether any currently held HDFirearms are almost out of ammo.
 // Arguments:       None.
 // Return value:    Whether a currently HDFirearm (if any) has less than half of ammo left.
 
 	bool FirearmNeedsReload() const;
+
+	/// <summary>
+	/// Indicates whether currently held HDFirearms are reloading. If the parameter is true, it will only return true if all firearms are reloading, otherwise it will return whether any firearm is reloading.
+	/// </summary>
+	/// <returns>Whether or not currently held HDFirearms are reloading.</returns>
+	bool FirearmsAreReloading(bool onlyIfAllFirearmsAreReloading) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -679,11 +696,11 @@ ClassInfoGetters;
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:  ReloadFirearm
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Reloads the currently held firearm, if any.
-// Arguments:       None.
+// Description:     Reloads the currently held firearm, if any. Will only reload the BG Firearm if the FG one is full already, to support reloading guns one at a time.
+// Arguments:       Whether or not to only reload empty fireams.
 // Return value:    None.
 
-	void ReloadFirearms() const;
+	void ReloadFirearms(bool onlyReloadEmptyFirearms = false);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -815,13 +832,6 @@ ClassInfoGetters;
 
 	void Update() override;
 
-    /// <summary>
-    /// Executes the Lua-defined OnPieMenu event handler for this AHuman.
-    /// </summary>
-    /// <param name="pieMenuActor">The actor which triggered the pie menu event.</param>
-    /// <returns>An error return value signaling sucess or any particular failure. Anything below 0 is an error signal.</returns>
-	int OnPieMenu(Actor *pieMenuActor) override;
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Draw
@@ -885,7 +895,7 @@ ClassInfoGetters;
 // Method:  GetLimbPathPushForce
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Gets the default force that a limb traveling walking LimbPath can push against
-//                  stuff in the scene with. 
+//                  stuff in the scene with.
 // Arguments:       None.
 // Return value:    The default set force maximum, in kg * m/s^2.
 
@@ -896,7 +906,7 @@ ClassInfoGetters;
 // Method:  SetLimbPathPushForce
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Sets the default force that a limb traveling walking LimbPath can push against
-//                  stuff in the scene with. 
+//                  stuff in the scene with.
 // Arguments:       The default set force maximum, in kg * m/s^2.
 // Return value:    None
 
@@ -907,14 +917,14 @@ ClassInfoGetters;
     /// </summary>
     /// <param name="movementState">The MovementState to get the rot angle target for.</param>
     /// <returns>The target rot angle for the given MovementState.</returns>
-    float GetRotAngleTarget(MovementState movementState) { return m_RotAngleTargets.at(movementState); }
+    float GetRotAngleTarget(MovementState movementState) { return m_RotAngleTargets[movementState]; }
 
     /// <summary>
     /// Sets the target rot angle for the given MovementState.
     /// </summary>
     /// <param name="movementState">The MovementState to get the rot angle target for.</param>
     /// <param name="newRotAngleTarget">The new rot angle target to use.</param>
-    void SetRotAngleTarget(MovementState movementState, float newRotAngleTarget) { m_RotAngleTargets.at(movementState) = newRotAngleTarget; }
+    void SetRotAngleTarget(MovementState movementState, float newRotAngleTarget) { m_RotAngleTargets[movementState] = newRotAngleTarget; }
 
 	/// <summary>
 	/// Gets the duration it takes this AHuman to fully charge a throw.
@@ -929,16 +939,28 @@ ClassInfoGetters;
 	void SetThrowPrepTime(long newPrepTime) { m_ThrowPrepTime = newPrepTime; }
 
 	/// <summary>
-	/// Gets the rate at which this AHuman is set to swing its arms while walking.
+	/// Gets the rate at which this AHuman's Arms will swing with Leg movement, if they're not holding or supporting a HeldDevice.
 	/// </summary>
 	/// <returns>The arm swing rate of this AHuman.</returns>
 	float GetArmSwingRate() const { return m_ArmSwingRate; }
 
 	/// <summary>
-	/// Sets the rate at which this AHuman is set to swing its arms while walking.
+	/// Sets the rate at which this AHuman's Arms will swing with Leg movement, if they're not holding or supporting a HeldDevice.
 	/// </summary>
 	/// <param name="newValue">The new arm swing rate for this AHuman.</param>
 	void SetArmSwingRate(float newValue) { m_ArmSwingRate = newValue; }
+
+	/// <summary>
+	/// Gets the rate at which this AHuman's Arms will sway with Leg movement, if they're holding or supporting a HeldDevice.
+	/// </summary>
+	/// <returns>The device arm sway rate of this AHuman.</returns>
+	float GetDeviceArmSwayRate() const { return m_DeviceArmSwayRate; }
+
+	/// <summary>
+	/// Sets the rate at which this AHuman's Arms will sway with Leg movement, if they're holding or supporting a HeldDevice.
+	/// </summary>
+	/// <param name="newValue">The new device arm sway rate for this AHuman.</param>
+	void SetDeviceArmSwayRate(float newValue) { m_DeviceArmSwayRate = newValue; }
 
 	/// <summary>
 	/// Gets this AHuman's stride sound. Ownership is NOT transferred!
@@ -956,17 +978,6 @@ ClassInfoGetters;
 // Protected member variable and method declarations
 
 protected:
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ChunkGold
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Converts an appropriate amount of gold tracked by Actor, and puts it
-//                  in a MovableObject which is put into inventory.
-// Arguments:       None.
-// Return value:    None.
-
-    void ChunkGold();
 
 
 	/// <summary>
@@ -1010,6 +1021,9 @@ protected:
 	float m_JetReplenishRate; //!< A multiplier affecting how fast the jetpack fuel will replenish when not in use. 1 means that jet time replenishes at 2x speed in relation to depletion.
 	// Ratio at which the jetpack angle follows aim angle
 	float m_JetAngleRange;
+	bool m_CanActivateBGItem; //!< A flag for whether or not the BG item is waiting to be activated separately. Used for dual-wielding. TODO: Should this be able to be toggled off per actor, device, or controller?
+	bool m_TriggerPulled; //!< Internal flag for whether this AHuman is currently holding down the trigger of a HDFirearm. Used for dual-wielding.
+	bool m_WaitingToReloadOffhand; //!< A flag for whether or not the offhand HeldDevice is waiting to be reloaded.
     // Blink timer
     Timer m_IconBlinkTimer;
     // Current upper body state.
@@ -1034,8 +1048,6 @@ protected:
     bool m_StrideStart;
     // Times the stride to see if it is taking too long and needs restart
     Timer m_StrideTimer;
-    // How much gold is carried in an MovableObject in inventory, separate from the actor gold tally.
-    int m_GoldInInventoryChunk;
     // For timing throws
     Timer m_ThrowTmr;
 	// The duration it takes this AHuman to fully charge a throw.
@@ -1045,7 +1057,8 @@ protected:
 	float m_BGArmFlailScalar; //!< The rate at which this AHuman's BG Arm follows the the bodily rotation. Set to a negative value for a "counterweight" effect.
 	Timer m_EquipHUDTimer; //!< Timer for showing the name of any newly equipped Device.
 	std::array<Matrix, 2> m_WalkAngle; //!< An array of rot angle targets for different movement states.
-	float m_ArmSwingRate; //!< Controls the rate at which this AHuman's arms follow the movement of its legs.
+	float m_ArmSwingRate; //!< Controls the rate at which this AHuman's Arms follow the movement of its Legs while they're not holding device(s).
+	float m_DeviceArmSwayRate; //!< Controls the rate at which this AHuman's Arms follow the movement of its Legs while they're holding device(s). One-handed devices sway half as much as two-handed ones. Defaults to three quarters of Arm swing rate.
 
     ////////////////
     // AI States
@@ -1120,6 +1133,15 @@ protected:
     Timer m_PatrolTimer;
     // Timer for how long to be firing the jetpack in a direction
     Timer m_JumpTimer;
+
+#pragma region Event Handling
+	/// <summary>
+	/// Event listener to be run while this AHuman's PieMenu is opened.
+	/// </summary>
+	/// <param name="pieMenu">The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.</param>
+	/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+	int WhilePieMenuOpenListener(const PieMenu *pieMenu) override;
+#pragma endregion
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

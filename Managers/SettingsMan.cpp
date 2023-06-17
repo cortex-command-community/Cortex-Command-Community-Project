@@ -1,6 +1,8 @@
 #include "SettingsMan.h"
 #include "ConsoleMan.h"
+#include "CameraMan.h"
 #include "MovableMan.h"
+#include "WindowMan.h"
 #include "FrameMan.h"
 #include "PostProcessMan.h"
 #include "AudioMan.h"
@@ -16,18 +18,20 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsMan::Clear() {
-		m_SettingsPath = "Base.rte/Settings.ini";
+		m_SettingsPath = System::GetUserdataDirectory() + "Settings.ini";
 		m_SettingsNeedOverwrite = false;
 
 		m_FlashOnBrainDamage = true;
-		m_BlipOnRevealUnseen = true;
-		m_UnheldItemsHUDDisplayRange = 25;
+		m_BlipOnRevealUnseen = false;
+		m_UnheldItemsHUDDisplayRange = 25 * c_PPM;
 		m_AlwaysDisplayUnheldItemsInStrategicMode = true;
+		m_SubPieMenuHoverOpenDelay = 1000;
 		m_EndlessMetaGameMode = false;
 		m_EnableCrabBombs = false;
 		m_CrabBombThreshold = 42;
 		m_ShowEnemyHUD = true;
 		m_EnableSmartBuyMenuNavigation = true;
+		m_AutomaticGoldDeposit = true;
 
 		m_NetworkServerAddress = "127.0.0.1:8000";
 		m_PlayerNetworkName = "Dummy";
@@ -40,8 +44,13 @@ namespace RTE {
 		m_ShowForeignItems = true;
 		m_ShowMetaScenes = false;
 
-		m_RecommendedMOIDCount = 240;
+		m_RecommendedMOIDCount = 512;
 		m_SimplifiedCollisionDetection = false;
+		m_SceneBackgroundAutoScaleMode = 1;
+		m_DisableFactionBuyMenuThemes = false;
+		m_DisableFactionBuyMenuThemeCursors = false;
+		m_PathFinderGridNodeSize = c_PPM;
+		m_AIUpdateInterval = 2;
 
 		m_SkipIntro = false;
 		m_ShowToolTips = true;
@@ -64,7 +73,7 @@ namespace RTE {
 	int SettingsMan::Initialize() {
 		if (const char *settingsTempPath = std::getenv("CCCP_SETTINGSPATH")) { m_SettingsPath = std::string(settingsTempPath); }
 
-		Reader settingsReader(m_SettingsPath, false, nullptr, true);
+		Reader settingsReader(m_SettingsPath, false, nullptr, true, true);
 
 		if (!settingsReader.ReaderOK()) {
 			Writer settingsWriter(m_SettingsPath);
@@ -95,17 +104,15 @@ namespace RTE {
 		if (propName == "PaletteFile") {
 			reader >> g_FrameMan.m_PaletteFile;
 		} else if (propName == "ResolutionX") {
-			reader >> g_FrameMan.m_ResX;
+			reader >> g_WindowMan.m_ResX;
 		} else if (propName == "ResolutionY") {
-			reader >> g_FrameMan.m_ResY;
+			reader >> g_WindowMan.m_ResY;
 		} else if (propName == "ResolutionMultiplier") {
-			reader >> g_FrameMan.m_ResMultiplier;
-		} else if (propName == "DisableMultiScreenResolutionValidation") {
-			reader >> g_FrameMan.m_DisableMultiScreenResolutionValidation;
-		} else if (propName == "ForceVirtualFullScreenGfxDriver") {
-			reader >> g_FrameMan.m_ForceVirtualFullScreenGfxDriver;
-		} else if (propName == "ForceDedicatedFullScreenGfxDriver") {
-			reader >> g_FrameMan.m_ForceDedicatedFullScreenGfxDriver;
+			reader >> g_WindowMan.m_ResMultiplier;
+		} else if (propName == "EnableVSync") {
+			reader >> g_WindowMan.m_EnableVSync;
+		} else if (propName == "IgnoreMultiDisplays") {
+			reader >> g_WindowMan.m_IgnoreMultiDisplays;
 		} else if (propName == "TwoPlayerSplitscreenVertSplit") {
 			reader >> g_FrameMan.m_TwoPlayerVSplit;
 		} else if (propName == "MasterVolume") {
@@ -143,10 +150,8 @@ namespace RTE {
 			SetUnheldItemsHUDDisplayRange(std::stof(reader.ReadPropValue()));
 		} else if (propName == "AlwaysDisplayUnheldItemsInStrategicMode") {
 			reader >> m_AlwaysDisplayUnheldItemsInStrategicMode;
-		} else if (propName == "SloMoThreshold") {
-			reader >> g_MovableMan.m_SloMoThreshold;
-		} else if (propName == "SloMoDurationMS") {
-			reader >> g_MovableMan.m_SloMoDuration;
+		} else if (propName == "SubPieMenuHoverOpenDelay") {
+			reader >> m_SubPieMenuHoverOpenDelay;
 		} else if (propName == "EndlessMode") {
 			reader >> m_EndlessMetaGameMode;
 		} else if (propName == "EnableCrabBombs") {
@@ -157,6 +162,22 @@ namespace RTE {
 			reader >> m_ShowEnemyHUD;
 		} else if (propName == "SmartBuyMenuNavigation") {
 			reader >> m_EnableSmartBuyMenuNavigation;
+		} else if (propName == "ScrapCompactingHeight") {
+			reader >> g_SceneMan.m_ScrapCompactingHeight;
+		} else if (propName == "AutomaticGoldDeposit") {
+			reader >> m_AutomaticGoldDeposit;
+		} else if (propName == "ScreenShakeStrength") {
+			reader >> g_CameraMan.m_ScreenShakeStrength;
+		} else if (propName == "ScreenShakeDecay") {
+			reader >> g_CameraMan.m_ScreenShakeDecay;
+		} else if (propName == "MaxScreenShakeTime") {
+			reader >> g_CameraMan.m_MaxScreenShakeTime;
+		} else if (propName == "DefaultShakePerUnitOfGibEnergy") {
+			reader >> g_CameraMan.m_DefaultShakePerUnitOfGibEnergy;
+		} else if (propName == "DefaultShakePerUnitOfRecoilEnergy") {
+			reader >> g_CameraMan.m_DefaultShakePerUnitOfRecoilEnergy;
+		} else if (propName == "DefaultShakeFromRecoilMaximum") {
+			reader >> g_CameraMan.m_DefaultShakeFromRecoilMaximum;
 		} else if (propName == "LaunchIntoActivity") {
 			reader >> g_ActivityMan.m_LaunchIntoActivity;
 		} else if (propName == "DefaultActivityType") {
@@ -171,6 +192,16 @@ namespace RTE {
 			reader >> m_RecommendedMOIDCount;
 		} else if (propName == "SimplifiedCollisionDetection") {
 			reader >> m_SimplifiedCollisionDetection;
+		} else if (propName == "SceneBackgroundAutoScaleMode") {
+			SetSceneBackgroundAutoScaleMode(std::stoi(reader.ReadPropValue()));
+		} else if (propName == "DisableFactionBuyMenuThemes") {
+			reader >> m_DisableFactionBuyMenuThemes;
+		} else if (propName == "DisableFactionBuyMenuThemeCursors") {
+			reader >> m_DisableFactionBuyMenuThemeCursors;
+		} else if (propName == "PathFinderGridNodeSize") {
+			reader >> m_PathFinderGridNodeSize;
+		} else if (propName == "AIUpdateInterval") {
+			reader >> m_AIUpdateInterval;
 		} else if (propName == "EnableParticleSettling") {
 			reader >> g_MovableMan.m_SettlingEnabled;
 		} else if (propName == "EnableMOSubtraction") {
@@ -241,6 +272,8 @@ namespace RTE {
 			reader >> g_NetworkServer.m_UseHighCompression;
 		} else if (propName == "ServerUseFastCompression") {
 			reader >> g_NetworkServer.m_UseFastCompression;
+		} else if (propName == "ServerUseDeltaCompression") {
+			reader >> g_NetworkServer.m_UseDeltaCompression;
 		} else if (propName == "ServerHighCompressionLevel") {
 			reader >> g_NetworkServer.m_HighCompressionLevel;
 		} else if (propName == "ServerFastAccelerationFactor") {
@@ -265,8 +298,8 @@ namespace RTE {
 			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 				std::string playerNum = std::to_string(player + 1);
 				if (propName == "Player" + playerNum + "Scheme") {
-					g_UInputMan.m_ControlScheme.at(player).Reset();
-					reader >> g_UInputMan.m_ControlScheme.at(player);
+					g_UInputMan.m_ControlScheme[player].Reset();
+					reader >> g_UInputMan.m_ControlScheme[player];
 					break;
 				}
 			}
@@ -285,12 +318,11 @@ namespace RTE {
 		writer.NewLineString("// Display Settings", false);
 		writer.NewLine(false);
 		writer.NewPropertyWithValue("PaletteFile", g_FrameMan.m_PaletteFile);
-		writer.NewPropertyWithValue("ResolutionX", g_FrameMan.m_ResX);
-		writer.NewPropertyWithValue("ResolutionY", g_FrameMan.m_ResY);
-		writer.NewPropertyWithValue("ResolutionMultiplier", g_FrameMan.m_ResMultiplier);
-		writer.NewPropertyWithValue("DisableMultiScreenResolutionValidation", g_FrameMan.m_DisableMultiScreenResolutionValidation);
-		writer.NewPropertyWithValue("ForceVirtualFullScreenGfxDriver", g_FrameMan.m_ForceVirtualFullScreenGfxDriver);
-		writer.NewPropertyWithValue("ForceDedicatedFullScreenGfxDriver", g_FrameMan.m_ForceDedicatedFullScreenGfxDriver);
+		writer.NewPropertyWithValue("ResolutionX", g_WindowMan.m_ResX);
+		writer.NewPropertyWithValue("ResolutionY", g_WindowMan.m_ResY);
+		writer.NewPropertyWithValue("ResolutionMultiplier", g_WindowMan.m_ResMultiplier);
+		writer.NewPropertyWithValue("EnableVSync", g_WindowMan.m_EnableVSync);
+		writer.NewPropertyWithValue("IgnoreMultiDisplays", g_WindowMan.m_IgnoreMultiDisplays);
 		writer.NewPropertyWithValue("TwoPlayerSplitscreenVertSplit", g_FrameMan.m_TwoPlayerVSplit);
 
 		writer.NewLine(false, 2);
@@ -306,7 +338,7 @@ namespace RTE {
 		writer.NewPropertyWithValue("SoundPanningEffectStrength", g_AudioMan.m_SoundPanningEffectStrength);
 
 		//////////////////////////////////////////////////
-		//TODO These need to be removed when our soundscape is sorted out. They're only here temporarily to allow for easier tweaking by pawnis.
+		//TODO These need to be removed when our soundscape is sorted out. They're only here temporarily to allow for easier tweaking.
 		writer.NewPropertyWithValue("ListenerZOffset", g_AudioMan.m_ListenerZOffset);
 		writer.NewPropertyWithValue("MinimumDistanceForPanning", g_AudioMan.m_MinimumDistanceForPanning);
 		//////////////////////////////////////////////////
@@ -321,13 +353,25 @@ namespace RTE {
 		writer.NewPropertyWithValue("MaxUnheldItems", g_MovableMan.m_MaxDroppedItems);
 		writer.NewPropertyWithValue("UnheldItemsHUDDisplayRange", m_UnheldItemsHUDDisplayRange);
 		writer.NewPropertyWithValue("AlwaysDisplayUnheldItemsInStrategicMode", m_AlwaysDisplayUnheldItemsInStrategicMode);
-		writer.NewPropertyWithValue("SloMoThreshold", g_MovableMan.m_SloMoThreshold);
-		writer.NewPropertyWithValue("SloMoDurationMS", g_MovableMan.m_SloMoDuration);
+		writer.NewPropertyWithValue("SubPieMenuHoverOpenDelay", m_SubPieMenuHoverOpenDelay);
 		writer.NewPropertyWithValue("EndlessMetaGameMode", m_EndlessMetaGameMode);
 		writer.NewPropertyWithValue("EnableCrabBombs", m_EnableCrabBombs);
 		writer.NewPropertyWithValue("CrabBombThreshold", m_CrabBombThreshold);
 		writer.NewPropertyWithValue("ShowEnemyHUD", m_ShowEnemyHUD);
 		writer.NewPropertyWithValue("SmartBuyMenuNavigation", m_EnableSmartBuyMenuNavigation);
+		writer.NewPropertyWithValue("ScrapCompactingHeight", g_SceneMan.m_ScrapCompactingHeight);
+		writer.NewPropertyWithValue("AutomaticGoldDeposit", m_AutomaticGoldDeposit);
+
+		writer.NewLine(false, 2);
+		writer.NewDivider(false);
+		writer.NewLineString("// Screen Shake Settings", false);
+		writer.NewLine(false);
+		writer.NewPropertyWithValue("ScreenShakeStrength", g_CameraMan.m_ScreenShakeStrength);
+		writer.NewPropertyWithValue("ScreenShakeDecay", g_CameraMan.m_ScreenShakeDecay);
+		writer.NewPropertyWithValue("MaxScreenShakeTime", g_CameraMan.m_MaxScreenShakeTime);
+		writer.NewPropertyWithValue("DefaultShakePerUnitOfGibEnergy", g_CameraMan.m_DefaultShakePerUnitOfGibEnergy);
+		writer.NewPropertyWithValue("DefaultShakePerUnitOfRecoilEnergy", g_CameraMan.m_DefaultShakePerUnitOfRecoilEnergy);
+		writer.NewPropertyWithValue("DefaultShakeFromRecoilMaximum", g_CameraMan.m_DefaultShakeFromRecoilMaximum);
 
 		writer.NewLine(false, 2);
 		writer.NewDivider(false);
@@ -345,6 +389,11 @@ namespace RTE {
 		writer.NewPropertyWithValue("DisableLuaJIT", g_LuaMan.m_DisableLuaJIT);
 		writer.NewPropertyWithValue("RecommendedMOIDCount", m_RecommendedMOIDCount);
 		writer.NewPropertyWithValue("SimplifiedCollisionDetection", m_SimplifiedCollisionDetection);
+		writer.NewPropertyWithValue("SceneBackgroundAutoScaleMode", m_SceneBackgroundAutoScaleMode);
+		writer.NewPropertyWithValue("DisableFactionBuyMenuThemes", m_DisableFactionBuyMenuThemes);
+		writer.NewPropertyWithValue("DisableFactionBuyMenuThemeCursors", m_DisableFactionBuyMenuThemeCursors);
+		writer.NewPropertyWithValue("PathFinderGridNodeSize", m_PathFinderGridNodeSize);
+		writer.NewPropertyWithValue("AIUpdateInterval", m_AIUpdateInterval);
 		writer.NewPropertyWithValue("EnableParticleSettling", g_MovableMan.m_SettlingEnabled);
 		writer.NewPropertyWithValue("EnableMOSubtraction", g_MovableMan.m_MOSubtractionEnabled);
 		writer.NewPropertyWithValue("DeltaTime", g_TimerMan.GetDeltaTimeSecs());
@@ -405,6 +454,7 @@ namespace RTE {
 		writer.NewPropertyWithValue("ServerBoxHeight", g_NetworkServer.m_BoxHeight);
 		writer.NewPropertyWithValue("ServerUseHighCompression", g_NetworkServer.m_UseHighCompression);
 		writer.NewPropertyWithValue("ServerUseFastCompression", g_NetworkServer.m_UseFastCompression);
+		writer.NewPropertyWithValue("ServerUseDeltaCompression", g_NetworkServer.m_UseDeltaCompression);
 		writer.NewPropertyWithValue("ServerHighCompressionLevel", g_NetworkServer.m_HighCompressionLevel);
 		writer.NewPropertyWithValue("ServerFastAccelerationFactor", g_NetworkServer.m_FastAccelerationFactor);
 		writer.NewPropertyWithValue("ServerUseInterlacing", g_NetworkServer.m_UseInterlacing);
@@ -458,7 +508,7 @@ namespace RTE {
 			writer.NewDivider(false);
 			writer.NewLineString("// Player " + playerNum, false);
 			writer.NewLine(false);
-			writer.NewPropertyWithValue("Player" + playerNum + "Scheme", g_UInputMan.m_ControlScheme.at(player));
+			writer.NewPropertyWithValue("Player" + playerNum + "Scheme", g_UInputMan.m_ControlScheme[player]);
 		}
 
 		writer.ObjectEnd();

@@ -10,7 +10,13 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Game Version
-	static constexpr const char *c_GameVersion = "Pre-Release 4.0";
+	static constexpr const char *c_GameVersion = "Pre-Release 5.0";
+#pragma endregion
+
+#pragma region Userdata Constants
+	static const std::string c_UserScenesModuleName = "UserScenes.rte"; //!< Module name where user created Scenes are saved.
+	static const std::string c_UserScriptedSavesModuleName = "UserSavedGames.rte"; //!< Module name where user scripted Activity saves are saved.
+	static const std::string c_UserConquestSavesModuleName = "UserSavesConquest.rte"; //!< Module name where user conquest saves are saved.
 #pragma endregion
 
 #pragma region Physics Constants
@@ -22,9 +28,21 @@ namespace RTE {
 	static constexpr int c_DefaultAtomGroupResolution = 5; //!< The global default AtomGroup resolution setting.
 #pragma endregion
 
+#pragma region Time Constants
+	static constexpr float c_DefaultDeltaTimeS = 0.0166666F; //!< The default simulation update step size, in seconds.
+	static constexpr float c_DefaultRealToSimCap = 0.0333333F; //!< The default cap of number of ticks that the real time can add to the tick accumulator each update.
+#pragma endregion
+
+#pragma region AI Constants
+    static constexpr float c_PathFindingDefaultDigStrength = 35.0F; //!< A default pathfinder penetration value that'll allow pathing through corpses, debris, and such stuff.
+#pragma endregion
+
 #pragma region Graphics Constants
 	static constexpr int c_DefaultResX = 960; //!< Default game window width.
 	static constexpr int c_DefaultResY = 540; //!< Default game window height.
+
+	static constexpr int c_MinResX = 640; //!< Minimum game window width.
+	static constexpr int c_MinResY = 384; //!< Minimum game window height.
 
 	static constexpr int c_ScenePreviewWidth = 170; //< Width of the scene preview bitmap.
 	static constexpr int c_ScenePreviewHeight = 80; //< Height of the scene preview bitmap.
@@ -34,7 +52,10 @@ namespace RTE {
 	static constexpr unsigned short c_MOIDLayerBitDepth = 16; //!< Bit depth of MOID layer bitmap.
 	static constexpr unsigned short c_GoldMaterialID = 2; //!< Index of gold material in the material palette.
 
+	static constexpr int c_BlendAmountStep = 5; //!< The multiple to round blend amounts to when creating new color maps. This is to reduce the ridiculous amount of color map variants that can be created.
+
 	enum ColorKeys {
+		g_InvalidColor = -1,
 		g_MaskColor = 0, //!< Mask color for all 8bpp bitmaps (palette index 0 (255,0,255)). This color is fully transparent.
 		//g_MOIDMaskColor = 0, //!< Mask color for 8bpp MOID layer bitmaps (palette index 0 (255,0,255)). This color is fully transparent.
 		g_MOIDMaskColor = 0xF81F, //!< Mask color for 16bpp MOID layer bitmaps (255,0,255). This color is fully transparent.
@@ -42,12 +63,56 @@ namespace RTE {
 		g_BlackColor = 245,
 		g_WhiteColor = 254,
 		g_RedColor = 13,
+		g_GreenColor = 147,
 		g_YellowGlowColor = 117,
 		g_NoMOID = 255
 	};
 
-	enum DotGlowColor { NoDot = 0, YellowDot, RedDot, BlueDot };
-	enum TransparencyPreset { LessTrans = 0, HalfTrans, MoreTrans };
+	enum MaterialColorKeys {
+		g_MaterialAir = 0,
+		g_MaterialOutOfBounds = 1,
+		g_MaterialCavity = 1,
+		g_MaterialGold = 2,
+		g_MaterialSand = 8,
+		g_MaterialGrass = 128,
+		g_MaterialRubber = 176,
+		g_MaterialDoor = 181
+	};
+
+	enum DotGlowColor { NoDot, YellowDot, RedDot, BlueDot };
+
+	enum DrawBlendMode {
+		NoBlend,
+		BlendBurn,
+		BlendColor,
+		BlendDifference,
+		BlendDissolve,
+		BlendDodge,
+		BlendInvert,
+		BlendLuminance,
+		BlendMultiply,
+		BlendSaturation,
+		BlendScreen,
+		BlendTransparency,
+		BlendModeCount
+	};
+
+	enum BlendAmountLimits { MinBlend = 0, MaxBlend = 100 };
+
+	enum TransparencyPreset { LessTrans = 25, HalfTrans = 50, MoreTrans = 75 };
+
+	enum SpriteAnimMode {
+		NOANIM,
+		ALWAYSLOOP,
+		ALWAYSRANDOM,
+		ALWAYSPINGPONG,
+		LOOPWHENACTIVE,
+		LOOPWHENOPENCLOSE,
+		PINGPONGOPENCLOSE,
+		OVERLIFETIME,
+		ONCOLLIDE,
+		SpriteAnimModeCount
+	};
 
 	// GUI colors
 	#define c_GUIColorWhite makecol(255, 255, 255)
@@ -67,6 +132,7 @@ namespace RTE {
 
 #pragma region Math Constants
 	static constexpr float c_TwoPI = 6.28318531F;
+	static constexpr float c_OneAndAHalfPI = 4.71238898F;
 	static constexpr float c_PI = 3.14159265F;
 	static constexpr float c_HalfPI = 1.57079633F;
 	static constexpr float c_QuarterPI = 0.78539816F;
@@ -90,9 +156,15 @@ namespace RTE {
 
 #pragma region Network Constants
 	static constexpr unsigned short c_MaxClients = 4;
-	static constexpr unsigned short c_FramesToRemember = 3;
-	static constexpr unsigned short c_MaxLayersStoredForNetwork = 10;
+	static constexpr unsigned short c_FramesToRemember = 2;
+	static constexpr unsigned short c_MaxLayersStoredForNetwork = 5;
 	static constexpr unsigned short c_MaxPixelLineBufferSize = 8192;
+
+	// Defaults are picked so that if the box can't be compressed it should somewhat fit into one UDP packet.
+	// Reducing box area introduces slight overhead due to more messages and hence more headers being sent.
+	// Box area must be divisible by 8 bytes for copying reasons.
+	static constexpr int c_ServerDefaultBoxWidth = 32;
+	static constexpr int c_ServerDefaultBoxHeight = 44;
 #pragma endregion
 
 #pragma region Input Constants
@@ -176,9 +248,9 @@ namespace RTE {
 	/// </summary>
 	enum MouseButtons {
 		MOUSE_NONE = -1,
-		MOUSE_LEFT = 0,
-		MOUSE_RIGHT,
+		MOUSE_LEFT = 1,
 		MOUSE_MIDDLE,
+		MOUSE_RIGHT,
 		MAX_MOUSE_BUTTONS
 	};
 
@@ -199,6 +271,15 @@ namespace RTE {
 		JOY_10,
 		JOY_11,
 		JOY_12,
+		JOY_13,
+		JOY_15,
+		JOY_16,
+		JOY_17,
+		JOY_18,
+		JOY_19,
+		JOY_20,
+		JOY_21,
+		JOY_22,
 		MAX_JOY_BUTTONS
 	};
 
@@ -229,9 +310,25 @@ namespace RTE {
 	};
 
 	/// <summary>
-	/// Enumeration for cardinal directions, as well as None and Any.
+	/// Enumeration and supporting maps for cardinal directions, as well as None and Any.
 	/// </summary>
 	enum Directions { None = -1, Up, Down, Left, Right, Any };
+
+	static const std::unordered_map<std::string_view, Directions> c_DirectionNameToDirectionsMap = {
+		{"None", Directions::None},
+		{"Up", Directions::Up},
+		{"Down", Directions::Down},
+		{"Left", Directions::Left},
+		{"Right", Directions::Right},
+		{"Any", Directions::Any}
+	};
+
+	static const std::unordered_map<Directions, const float> c_DirectionsToRadiansMap = {
+		{Directions::Up, c_HalfPI},
+		{Directions::Down, c_OneAndAHalfPI},
+		{Directions::Left, c_PI},
+		{Directions::Right, 0.0F}
+	};
 #pragma endregion
 
 #pragma region Un-Definitions

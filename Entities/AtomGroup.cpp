@@ -1,4 +1,6 @@
 #include "AtomGroup.h"
+
+#include "Actor.h"
 #include "SLTerrain.h"
 #include "MOSRotating.h"
 #include "LimbPath.h"
@@ -7,6 +9,12 @@
 namespace RTE {
 
 	ConcreteClassInfo(AtomGroup, Entity, 500);
+
+	const std::unordered_map<std::string, AtomGroup::AreaDistributionType> AtomGroup::c_AreaDistributionTypeMap = {
+		{"Linear", AtomGroup::AreaDistributionType::Linear},
+		{"Circle", AtomGroup::AreaDistributionType::Circle},
+		{"Square", AtomGroup::AreaDistributionType::Square}
+	};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -21,6 +29,8 @@ namespace RTE {
 		m_JointOffset.Reset();
 		m_LimbPos.Reset();
 		m_MomentOfInertia = 0;
+		m_AreaDistributionType = AreaDistributionType::Circle;
+		m_AreaDistributionSurfaceAreaMultiplier = 0.5F; // Assume an oval of half our depth to width
 		m_IgnoreMOIDs.clear();
 	}
 
@@ -55,6 +65,8 @@ namespace RTE {
 		m_Resolution = reference.m_Resolution;
 		m_Depth = reference.m_Depth;
 		m_JointOffset = reference.m_JointOffset;
+		m_AreaDistributionType = reference.m_AreaDistributionType;
+		m_AreaDistributionSurfaceAreaMultiplier = reference.m_AreaDistributionSurfaceAreaMultiplier;
 
 		m_Atoms.clear();
 		m_SubGroups.clear();
@@ -127,6 +139,20 @@ namespace RTE {
 			m_Atoms.push_back(atom);
 		} else if (propName == "JointOffset") {
 			reader >> m_JointOffset;
+		} else if (propName == "AreaDistributionType") {
+			std::string areaDistributionTypeString = reader.ReadPropValue();
+			auto itr = c_AreaDistributionTypeMap.find(areaDistributionTypeString);
+			if (itr != c_AreaDistributionTypeMap.end()) {
+				m_AreaDistributionType = itr->second;
+			} else {
+				try {
+					m_AreaDistributionType = static_cast<AreaDistributionType>(std::stoi(areaDistributionTypeString));
+				} catch (const std::invalid_argument &) {
+					reader.ReportError("AreaDistributionType " + areaDistributionTypeString + " is invalid.");
+				}
+			}
+		} else if (propName == "AreaDistributionSurfaceAreaMultiplier") {
+			reader >> m_AreaDistributionSurfaceAreaMultiplier;
 		} else {
 			return Entity::ReadProperty(propName, reader);
 		}
@@ -158,6 +184,11 @@ namespace RTE {
 		writer.NewProperty("JointOffset");
 		writer << m_JointOffset;
 
+		writer.NewProperty("AreaDistributionType");
+		writer << static_cast<std::underlying_type_t<AreaDistributionType>>(m_AreaDistributionType);
+		writer.NewProperty("AreaDistributionSurfaceAreaMultiplier");
+		writer << m_AreaDistributionSurfaceAreaMultiplier;
+
 		return 0;
 	}
 
@@ -173,15 +204,24 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	void AtomGroup::SetAtomList(const std::list<Atom *> &newAtoms) {
+		for (const Atom *atom : m_Atoms) {
+			delete atom;
+		}
+		m_Atoms = newAtoms;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	float AtomGroup::CalculateMaxRadius() const {
-		float magnitude;
-		float longest = 0.0F;
+		float sqrMagnitude = 0.0F;
+		float sqrLongest = 0.0F;
 
 		for (const Atom *atom : m_Atoms) {
-			magnitude = atom->GetOffset().GetMagnitude();
-			if (magnitude > longest) { longest = magnitude; }
+			sqrMagnitude = atom->GetOffset().GetSqrMagnitude();
+			if (sqrMagnitude > sqrLongest) { sqrLongest = sqrMagnitude; }
 		}
-		return longest;
+		return std::sqrt(sqrLongest);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -322,10 +362,15 @@ namespace RTE {
 
 		HitData hitData;
 
-		std::map<MOID, std::list<Atom *>> hitMOAtoms;
-		std::list<Atom *> hitTerrAtoms;
-		std::list<Atom *> penetratingAtoms;
-		std::list<Atom *> hitResponseAtoms;
+		// Thread locals for performance (avoid memory allocs)
+		thread_local std::unordered_map<MOID, std::vector<Atom *>> hitMOAtoms;
+		hitMOAtoms.clear();
+		thread_local std::vector<Atom *> hitTerrAtoms;
+		hitTerrAtoms.clear();
+		thread_local std::vector<Atom *> penetratingAtoms;
+		penetratingAtoms.clear();
+		thread_local std::vector<Atom *> hitResponseAtoms;
+		hitResponseAtoms.clear();
 
 		// Lock all bitmaps involved outside the loop - only relevant for video bitmaps so disabled at the moment.
 		//if (!scenePreLocked) { g_SceneMan.LockScene(); }
@@ -399,7 +444,7 @@ namespace RTE {
 				segRatio = 1.0F;
 			}
 			segProgress = 0.0F;
-		
+
 			if (linSegTraj.IsZero() && rotDelta == 0) {
 				break;
 			}
@@ -430,7 +475,7 @@ namespace RTE {
 				hitTerrAtoms.clear();
 				penetratingAtoms.clear();
 				hitResponseAtoms.clear();
-				
+
 				int atomsHitMOsCount = 0;
 
 				for (Atom *atom : m_Atoms) {
@@ -447,15 +492,7 @@ namespace RTE {
 								MovableObject *moCollidedWith = g_MovableMan.GetMOFromID(tempMOID);
 								if (moCollidedWith && moCollidedWith->HitWhatMOID() == g_NoMOID) { moCollidedWith->SetHitWhatMOID(m_OwnerMOSR->m_MOID); }
 
-								// See if we already have another Atom hitting this MO in this step. If not, then create a new list unique for that MO's ID and insert into the map of MO-hitting Atoms.
-								if (!(hitMOAtoms.count(tempMOID))) {
-									std::list<Atom *> newList;
-									newList.push_back(atom);
-									hitMOAtoms.insert({ tempMOID, newList });
-								} else {
-									// If another Atom of this group has already hit this same MO during this step, go ahead and add the new Atom to the corresponding map for that MOID.
-									hitMOAtoms.at(tempMOID).push_back(atom);
-								}
+								hitMOAtoms[tempMOID].push_back(atom);
 
 								// Add the hit MO to the ignore list of ignored MOIDs
 								//AddMOIDToIgnore(tempMOID);
@@ -509,19 +546,19 @@ namespace RTE {
 				do {
 					somethingPenetrated = false;
 
-					const float massDistribution = mass / static_cast<float>(hitTerrAtoms.size() * (m_Resolution ? m_Resolution : 1));
+					const float massDistribution = mass / GetSurfaceArea(hitTerrAtoms.size() * (m_Resolution ? m_Resolution : 1));
 					const float momentInertiaDistribution = m_MomentOfInertia / static_cast<float>(hitTerrAtoms.size() * (m_Resolution ? m_Resolution : 1));
 
 					// Determine which of the colliding Atoms will penetrate the terrain.
-					for (std::list<Atom*>::iterator atomItr = hitTerrAtoms.begin(); atomItr != hitTerrAtoms.end(); ) {
+					for (std::vector<Atom*>::iterator atomItr = hitTerrAtoms.begin(); atomItr != hitTerrAtoms.end(); ) {
 						// Calculate and store the accurate hit radius of the Atom in relation to the CoM
 						hitData.HitRadius[HITOR] = m_OwnerMOSR->RotateOffset((*atomItr)->GetOffset()) * c_MPP;
 						// Figure out the pre-collision velocity of the hitting Atom due to body translation and rotation.
 						hitData.HitVel[HITOR] = velocity + hitData.HitRadius[HITOR].GetPerpendicular() * angularVel;
 
-						const float radMag = hitData.HitRadius[HITOR].GetMagnitude();
+						const float sqrRadMag = hitData.HitRadius[HITOR].GetSqrMagnitude();
 						// These are set temporarily here, will be re-set later when the normal of the hit terrain bitmap (ortho pixel side) is known.
-						hitData.HitDenominator = (1.0F / massDistribution) + ((radMag * radMag) / momentInertiaDistribution);
+						hitData.HitDenominator = (1.0F / massDistribution) + (sqrRadMag / momentInertiaDistribution);
 						hitData.PreImpulse[HITOR] = hitData.HitVel[HITOR] / hitData.HitDenominator;
 						// Set the Atom with the HitData with all the info we have so far.
 						(*atomItr)->SetHitData(hitData);
@@ -547,7 +584,7 @@ namespace RTE {
 					}
 
 					// Calculate the distributed mass that each bouncing Atom has.
-					//massDistribution = mass /*/ (hitTerrAtoms.size() * (m_Resolution ? m_Resolution : 1))*/;
+					//massDistribution = mass /*/ GetSurfaceArea(hitTerrAtoms.size() * (m_Resolution ? m_Resolution : 1))*/;
 					//momentInertiaDistribution = m_MomentOfInertia/* / (hitTerrAtoms.size() * (m_Resolution ? m_Resolution : 1))*/;
 
 					const float hitFactor = 1.0F / static_cast<float>(hitTerrAtoms.size());
@@ -595,8 +632,8 @@ namespace RTE {
 
 						if (g_SceneMan.TryPenetrate(penetratingAtom->GetCurrentPos().GetFloorIntX(), penetratingAtom->GetCurrentPos().GetFloorIntY(), hitData.PreImpulse[HITOR], hitData.HitVel[HITOR], retardation, 1.0F, 1/*(*penetratingAtom)->GetNumPenetrations()*/)) {
 							// Recalculate these here without the distributed mass and MI.
-							const float radMag = hitData.HitRadius[HITOR].GetMagnitude();
-							hitData.HitDenominator = (1.0F / mass) + ((radMag * radMag) / m_MomentOfInertia);
+							const float sqrRadMag = hitData.HitRadius[HITOR].GetSqrMagnitude();
+							hitData.HitDenominator = (1.0F / mass) + (sqrRadMag / m_MomentOfInertia);
 							hitData.PreImpulse[HITOR] = hitData.HitVel[HITOR] / hitData.HitDenominator;
 							hitData.TotalMass[HITOR] = mass;
 							hitData.MomInertia[HITOR] = m_MomentOfInertia;
@@ -623,7 +660,7 @@ namespace RTE {
 					hitData.MomInertia[HITOR] = m_MomentOfInertia;
 					hitData.ImpulseFactor[HITOR] = 1.0F / static_cast<float>(atomsHitMOsCount);
 
-					for (const map<MOID, std::list<Atom *>>::value_type &MOAtomMapEntry : hitMOAtoms) {
+					for (auto &MOAtomMapEntry : hitMOAtoms) {
 						// The denominator that the MovableObject being hit should divide its mass with for each Atom of this AtomGroup that is colliding with it during this step.
 						hitData.ImpulseFactor[HITEE] = 1.0F / static_cast<float>(MOAtomMapEntry.second.size());
 
@@ -669,7 +706,7 @@ namespace RTE {
 				}
 
 				// Make sub-pixel progress if there was a hit on the very first step.
-				//if (segProgress == 0) { segProgress = 0.1 / (float)stepsOnSeg; }                 
+				//if (segProgress == 0) { segProgress = 0.1 / (float)stepsOnSeg; }
 
 				// Now calculate the total time left to travel, according to the progress made.
 				timeLeft -= timeLeft * (segProgress * segRatio);
@@ -765,11 +802,15 @@ namespace RTE {
 
 		HitData hitData;
 
-		std::map<MOID, std::set<Atom *>> MOIgnoreMap;
-		std::map<MOID, std::deque<std::pair<Atom *, Vector>>> hitMOAtoms;
-		std::deque<std::pair<Atom *, Vector>> hitTerrAtoms;
-		std::deque<std::pair<Atom *, Vector>> penetratingAtoms;
-		std::deque<std::pair<Vector, Vector>> impulseForces; // First Vector is the impulse force in kg * m/s, the second is force point, or its offset from the origin of the AtomGroup.
+		// Thread locals for performance reasons (avoid memory allocs)
+		thread_local std::unordered_map<MOID, std::unordered_set<Atom *>> MOIgnoreMap;
+		MOIgnoreMap.clear();
+		thread_local std::unordered_map<MOID, std::vector<std::pair<Atom *, Vector>>> hitMOAtoms;
+		hitMOAtoms.clear();
+		thread_local std::deque<std::pair<Atom *, Vector>> hitTerrAtoms;
+		hitTerrAtoms.clear();
+		thread_local std::deque<std::pair<Atom *, Vector>> penetratingAtoms;
+		penetratingAtoms.clear();
 
 		// Lock all bitmaps involved outside the loop - only relevant for video bitmaps so disabled at the moment.
 		//if (!scenePreLocked) { g_SceneMan.LockScene(); }
@@ -783,19 +824,10 @@ namespace RTE {
 			for (Atom *atom : m_Atoms) {
 				const Vector flippedOffset = atom->GetOffset().GetXFlipped(m_OwnerMOSR->m_HFlipped);
 				// See if the Atom is starting out on top of another MO
-				MOID tempMOID = g_SceneMan.GetMOIDPixel(intPos[X] + flippedOffset.GetFloorIntX(), intPos[Y] + flippedOffset.GetFloorIntY());
+				MOID tempMOID = g_SceneMan.GetMOIDPixel(intPos[X] + flippedOffset.GetFloorIntX(), intPos[Y] + flippedOffset.GetFloorIntY(), m_OwnerMOSR->GetTeam());
 
 				if (tempMOID != g_NoMOID) {
-					// Make the appropriate entry in the MO-Atom interaction ignore map
-					if (MOIgnoreMap.count(tempMOID) != 0) {
-						// Found an entry for this MOID, so add the Atom entry to it
-						MOIgnoreMap.at(tempMOID).insert(atom);
-					} else {
-						// There wasn't already an entry for this MOID, so create one and add the Atom to it.
-						std::set<Atom *> newSet;
-						newSet.insert(atom);
-						MOIgnoreMap.insert({ tempMOID, newSet });
-					}
+					MOIgnoreMap[tempMOID].insert(atom);
 				}
 			}
 		}
@@ -821,7 +853,6 @@ namespace RTE {
 
 			hitTerrAtoms.clear();
 			penetratingAtoms.clear();
-			impulseForces.clear();
 
 			int dom = 0;
 			int sub = 0;
@@ -891,21 +922,14 @@ namespace RTE {
 					// First check if we hit any MO's, if applicable.
 					bool ignoreHit = false;
 					if (hitMOs) {
-						tempMOID = g_SceneMan.GetMOIDPixel(intPos[X] + flippedOffset.GetFloorIntX(), intPos[Y] + flippedOffset.GetFloorIntY());
+						tempMOID = g_SceneMan.GetMOIDPixel(intPos[X] + flippedOffset.GetFloorIntX(), intPos[Y] + flippedOffset.GetFloorIntY(), m_OwnerMOSR->GetTeam());
 						// Check the ignore map for Atoms that should ignore hits against certain MOs.
 						if (tempMOID != g_NoMOID && (MOIgnoreMap.count(tempMOID) != 0)) { ignoreHit = MOIgnoreMap.at(tempMOID).count(atom) != 0; }
 					}
 
 					if (hitMOs && tempMOID && !ignoreHit) {
-						// See if we already have another Atom hitting this MO in this step. If not, then create a new deque unique for that MO's ID and insert into the map of MO-hitting Atoms.
-						if (hitMOAtoms.count(tempMOID) == 0) {
-							std::deque<std::pair<Atom *, Vector>> newDeque;
-							newDeque.push_back({ atom, flippedOffset });
-							hitMOAtoms.insert({ tempMOID, newDeque });
-						} else {
-							// If another Atom of this group has already hit this same MO during this step, go ahead and add the new Atom to the corresponding deque for that MOID.
-							hitMOAtoms.at(tempMOID).push_back({ atom, flippedOffset });
-						}
+						hitMOAtoms[tempMOID].push_back({ atom, flippedOffset });
+
 						// Count the number of Atoms of this group that hit MOs this step. Used to properly distribute the mass of the owner MO in later collision responses during this step.
 						atomsHitMOsCount++;
 					// If no MO has ever been hit yet during this step, then keep checking for terrain hits.
@@ -960,7 +984,7 @@ namespace RTE {
 					//float hitorMass = mass / ((atomsHitMOsCount/* + hitTerrAtoms.size()*/) * (m_Resolution ? m_Resolution : 1));
 					//float hiteeMassDenom = 0;
 
-					for (const std::map<MOID, std::deque<std::pair<Atom *, Vector>>>::value_type &MOAtomMapEntry : hitMOAtoms) {
+					for (const auto &MOAtomMapEntry : hitMOAtoms) {
 						// The denominator that the MovableObject being hit should divide its mass with for each Atom of this AtomGroup that is colliding with it during this step.
 						hitData.ImpulseFactor[HITEE] = 1.0F / static_cast<float>(MOAtomMapEntry.second.size());
 
@@ -978,14 +1002,14 @@ namespace RTE {
 							hitData.BitmapNormal.Reset();
 
 							// Check for the collision point in the dominant direction of travel.
-							if (delta[dom] && ((dom == X && g_SceneMan.GetMOIDPixel(hitPos[X], intPos[Y]) != g_NoMOID) || (dom == Y && g_SceneMan.GetMOIDPixel(intPos[X], hitPos[Y]) != g_NoMOID))) {
+							if (delta[dom] && ((dom == X && g_SceneMan.GetMOIDPixel(hitPos[X], intPos[Y], m_OwnerMOSR->GetTeam()) != g_NoMOID) || (dom == Y && g_SceneMan.GetMOIDPixel(intPos[X], hitPos[Y], m_OwnerMOSR->GetTeam()) != g_NoMOID))) {
 								hit[dom] = true;
 								hitData.HitPoint = (dom == X) ? Vector(static_cast<float>(hitPos[X]), static_cast<float>(intPos[Y])) : Vector(static_cast<float>(intPos[X]), static_cast<float>(hitPos[Y]));
 								hitData.BitmapNormal[dom] = static_cast<float>(-increment[dom]);
 							}
 
 							// Check for the collision point in the submissive direction of travel.
-							if (subStepped && delta[sub] && ((sub == X && g_SceneMan.GetMOIDPixel(hitPos[X], intPos[Y]) != g_NoMOID) || (sub == Y && g_SceneMan.GetMOIDPixel(intPos[X], hitPos[Y]) != g_NoMOID))) {
+							if (subStepped && delta[sub] && ((sub == X && g_SceneMan.GetMOIDPixel(hitPos[X], intPos[Y], m_OwnerMOSR->GetTeam()) != g_NoMOID) || (sub == Y && g_SceneMan.GetMOIDPixel(intPos[X], hitPos[Y], m_OwnerMOSR->GetTeam()) != g_NoMOID))) {
 								hit[sub] = true;
 
 								//if (hitData.HitPoint.IsZero()) {
@@ -1014,7 +1038,7 @@ namespace RTE {
 							hitPos[X] -= atomOffset.GetFloorIntX();
 							hitPos[Y] -= atomOffset.GetFloorIntY();
 
-							MOID hitMOID = g_SceneMan.GetMOIDPixel(hitData.HitPoint.GetFloorIntX(), hitData.HitPoint.GetFloorIntY());
+							MOID hitMOID = g_SceneMan.GetMOIDPixel(hitData.HitPoint.GetFloorIntX(), hitData.HitPoint.GetFloorIntY(), m_OwnerMOSR->GetTeam());
 
 							if (hitMOID != g_NoMOID) {
 								hitData.Body[HITOR] = m_OwnerMOSR;
@@ -1027,7 +1051,8 @@ namespace RTE {
 								hitData.Body[HITEE]->CollideAtPoint(hitData);
 
 								// Save the impulse force resulting from the MO collision response calculation.
-								impulseForces.push_back(make_pair(hitData.ResImpulse[HITOR], atomOffset));
+								ownerVel += hitData.ResImpulse[HITOR] / mass;
+								returnPush += hitData.ResImpulse[HITOR];
 							}
 						}
 					}
@@ -1039,16 +1064,15 @@ namespace RTE {
 				// TERRAIN COLLISION RESPONSE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 				bool somethingPenetrated = false;
-				float massDist = 0;
 
 				// Determine which of the colliding Atoms will penetrate the terrain.
 				do {
 					somethingPenetrated = false;
 
-					massDist = mass / static_cast<float>(hitTerrAtoms.size() * (m_Resolution ? m_Resolution : 1));
+					float massDistribution = mass / GetSurfaceArea(hitTerrAtoms.size() * (m_Resolution ? m_Resolution : 1));
 
 					for (std::deque<std::pair<Atom *, Vector>>::iterator atomItr = hitTerrAtoms.begin(); atomItr != hitTerrAtoms.end(); ) {
-						if (g_SceneMan.WillPenetrate(intPos[X] + (*atomItr).second.GetFloorIntX(), intPos[Y] + (*atomItr).second.GetFloorIntY(), forceVel, massDist)) {
+						if (g_SceneMan.WillPenetrate(intPos[X] + (*atomItr).second.GetFloorIntX(), intPos[Y] + (*atomItr).second.GetFloorIntY(), forceVel, massDistribution)) {
 							// Move the penetrating Atom to the penetrating list from the collision list.
 							penetratingAtoms.push_back({ (*atomItr).first, (*atomItr).second });
 							atomItr = hitTerrAtoms.erase(atomItr);
@@ -1073,8 +1097,7 @@ namespace RTE {
 					// Call the call-on-bounce function, if requested.
 					//if (m_OwnerMOSR && callOnBounce) { halted = m_OwnerMOSR->OnBounce(position); }
 
-					// Calculate the distributed mass that each bouncing Atom has.
-					massDist = mass / static_cast<float>((hitTerrAtoms.size()/* + atomsHitMOsCount*/) * (m_Resolution ? m_Resolution : 1));
+					float massDistribution = mass / GetSurfaceArea((hitTerrAtoms.size()/* + atomsHitMOsCount*/) * (m_Resolution ? m_Resolution : 1));
 
 					// Gather the collision response effects so that the impulse force can be calculated.
 					for (const std::pair<Atom *, Vector> &hitTerrAtomsEntry : hitTerrAtoms) {
@@ -1123,7 +1146,9 @@ namespace RTE {
 						}
 
 						// Compute and store this Atom's collision response impulse force.
-						impulseForces.push_back({ (newVel - forceVel) * massDist, atomOffset });
+						Vector impulse = (newVel - forceVel) * massDistribution;
+						ownerVel += impulse / mass;
+						returnPush += impulse;
 
 						// Extract the current Atom's offset from the int positions.
 						intPos[X] -= atomOffset.GetFloorIntX();
@@ -1144,12 +1169,13 @@ namespace RTE {
 					// Call the call-on-sink function, if requested.
 					//if (m_OwnerMOSR && callOnSink) { halted = m_OwnerMOSR->OnSink(position); }
 
-					massDist = mass / static_cast<float>(penetratingAtoms.size() * (m_Resolution ? m_Resolution : 1));
+					float massDistribution = mass / GetSurfaceArea(penetratingAtoms.size() * (m_Resolution ? m_Resolution : 1));
 
 					// Apply the collision response effects.
 					for (const std::pair<Atom *, Vector> &penetratingAtomsEntry : penetratingAtoms) {
-						if (g_SceneMan.TryPenetrate(intPos[X] + penetratingAtomsEntry.second.GetFloorIntX(), intPos[Y] + penetratingAtomsEntry.second.GetFloorIntY(), forceVel * massDist, forceVel, retardation, 1.0F, penetratingAtomsEntry.first->GetNumPenetrations())) {
-							impulseForces.push_back({ forceVel * massDist * retardation, penetratingAtomsEntry.second });
+						if (g_SceneMan.TryPenetrate(intPos[X] + penetratingAtomsEntry.second.GetFloorIntX(), intPos[Y] + penetratingAtomsEntry.second.GetFloorIntY(), forceVel * massDistribution, forceVel, retardation, 1.0F, penetratingAtomsEntry.first->GetNumPenetrations())) {
+							ownerVel += (forceVel * massDistribution * retardation) / mass;
+							returnPush += forceVel * massDistribution * retardation;
 						}
 					}
 				}
@@ -1162,13 +1188,6 @@ namespace RTE {
 					position += legProgress;
 					didWrap = didWrap || g_SceneMan.WrapPosition(position);
 
-					// Apply velocity averages to the final resulting velocity for this leg.
-					for (const std::pair<Vector, Vector> &impulseForcesEntry : impulseForces) {
-						// Cap the impulse to what the max push force is
-						//impulseForcesEntry.first.CapMagnitude(pushForce * (travelTime/* - timeLeft*/));
-						ownerVel += impulseForcesEntry.first / mass;
-						returnPush += impulseForcesEntry.first;
-					}
 					// Stunt travel time if there is no more velocity
 					if (ownerVel.IsZero()) { timeLeft = 0; }
 				}
@@ -1176,8 +1195,6 @@ namespace RTE {
 			}
 			++legCount;
 		} while ((hit[X] || hit[Y]) && timeLeft > 0.0F && /*!trajectory.GetFloored().IsZero() &&*/ !halted && hitCount < 3);
-
-		//if (!scenePreLocked) { g_SceneMan.UnlockScene(); }
 
 		// Travel along the remaining trajectory.
 		if (!(hit[X] || hit[Y]) && !halted) {
@@ -1190,25 +1207,36 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool AtomGroup::PushAsLimb(const Vector &jointPos, const Vector &velocity, const Matrix &rotation, LimbPath &limbPath, const float travelTime, bool *restarted, bool affectRotation) {
+	bool AtomGroup::PushAsLimb(const Vector &jointPos, const Vector &velocity, const Matrix &rotation, LimbPath &limbPath, const float travelTime, bool *restarted, bool affectRotation, Vector rotationOffset) {
 		RTEAssert(m_OwnerMOSR, "Tried to push-as-limb an AtomGroup that has no parent!");
 
 		bool didWrap = false;
 		Vector pushImpulse;
 
-		limbPath.SetJointPos(jointPos);
+		// Fixup for walking backwards
+		Vector adjustedJointPos = jointPos;
+		if (limbPath.GetHFlip() != m_OwnerMOSR->IsHFlipped()) {
+			// Adjust for joint offset
+			adjustedJointPos.m_X -= m_JointOffset.GetXFlipped(!limbPath.GetHFlip()).GetX();
+
+			// Adjust for walkpath itself being offcentre
+			adjustedJointPos.m_X -= limbPath.GetMiddleX();
+		}
+
+		limbPath.SetJointPos(adjustedJointPos);
 		limbPath.SetJointVel(velocity);
 		limbPath.SetRotation(rotation);
+		limbPath.SetRotationOffset(rotationOffset);
 		limbPath.SetFrameTime(travelTime);
 
-		Vector limbDist = g_SceneMan.ShortestDistance(jointPos, m_LimbPos, g_SceneMan.SceneWrapsX());
+		Vector limbDist = g_SceneMan.ShortestDistance(adjustedJointPos, m_LimbPos, g_SceneMan.SceneWrapsX());
 
 		// Pull back or reset the limb if it strayed off the path.
-		if (limbDist.GetMagnitude() > m_OwnerMOSR->GetRadius()) { 
-			if (limbDist.GetMagnitude() > m_OwnerMOSR->GetDiameter()) {
+		if (limbDist.MagnitudeIsGreaterThan(m_OwnerMOSR->GetRadius())) {
+			if (limbDist.MagnitudeIsGreaterThan(m_OwnerMOSR->GetDiameter())) {
 				limbPath.Terminate();
 			} else {
-				m_LimbPos = jointPos + limbDist.SetMagnitude(m_OwnerMOSR->GetRadius());
+				m_LimbPos = adjustedJointPos + limbDist.SetMagnitude(m_OwnerMOSR->GetRadius());
 			}
 		}
 
@@ -1226,7 +1254,19 @@ namespace RTE {
 
 		if (pushImpulse.GetLargest() > 10000.0F) { pushImpulse.Reset(); }
 
-		m_OwnerMOSR->AddImpulseForce(pushImpulse, affectRotation ? (g_SceneMan.ShortestDistance(m_OwnerMOSR->GetPos(), jointPos) * c_MPP) : Vector());
+		if (Actor *owner = dynamic_cast<Actor*>(m_OwnerMOSR)) {
+			bool againstTravelDirection = owner->GetController()->IsState(MOVE_LEFT)  && pushImpulse.m_X > 0.0F ||
+			                              owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F;
+			if (againstTravelDirection) {
+				// Filter some of our impulse out. We're pushing against an obstacle, but we don't want to kick backwards!
+				// Translate it into to upwards motion to step over what we're walking into instead ;)
+				const float againstIntendedDirectionMultiplier = 0.5F;
+				pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+				pushImpulse.m_X *= againstIntendedDirectionMultiplier;
+			}
+		}
+
+		m_OwnerMOSR->AddImpulseForce(pushImpulse, affectRotation ? (g_SceneMan.ShortestDistance(m_OwnerMOSR->GetPos(), adjustedJointPos) * c_MPP) : Vector());
 
 		return true;
 	}
@@ -1246,7 +1286,7 @@ namespace RTE {
 
 		Vector limbRange = m_LimbPos - jointPos;
 
-		if (limbRange.GetMagnitude() > limbRadius) {
+		if (limbRange.MagnitudeIsGreaterThan(limbRadius)) {
 			limbRange.SetMagnitude(limbRadius);
 			m_LimbPos = jointPos + limbRange;
 		}
@@ -1315,7 +1355,7 @@ namespace RTE {
 			atomOffset = m_OwnerMOSR->RotateOffset(atom->GetOffset());
 			atom->SetupPos(position + atomOffset);
 			atomPos = atom->GetCurrentPos();
-			hitMaterial = g_SceneMan.GetTerrain()->GetPixel(atomPos.GetFloorIntX(), atomPos.GetFloorIntY());
+			hitMaterial = g_SceneMan.GetTerrain()->GetMaterialPixel(atomPos.GetFloorIntX(), atomPos.GetFloorIntY());
 			if (hitMaterial != g_MaterialAir && strengthThreshold > 0.0F && g_SceneMan.GetMaterialFromID(hitMaterial)->GetIntegrity() > strengthThreshold) {
 				intersectingAtoms.push_back(atom);
 			}
@@ -1343,7 +1383,7 @@ namespace RTE {
 		exitDirection.SetMagnitude(m_OwnerMOSR->GetDiameter());
 
 		// See which of the intersecting Atoms has the longest to travel along the exit direction before it clears
-		float longestDistance = 0.0F;
+		float sqrLongestDistance = 0.0F;
 
 		Vector clearPos = Vector();
 		Vector atomExitVector = Vector();
@@ -1361,16 +1401,17 @@ namespace RTE {
 
 			if (rayHit) {
 				atomExitVector = clearPos - atomPos;
-				if (atomExitVector.GetMagnitude() > longestDistance) {
+				float sqrAtomExitDist = atomExitVector.GetSqrMagnitude();
+				if (sqrAtomExitDist > sqrLongestDistance) {
 					// We found the Atom with the longest to travel along the exit direction to clear, so that's the distance to move the whole object to clear all its Atoms.
-					longestDistance = atomExitVector.GetMagnitude();
+					sqrLongestDistance = sqrAtomExitDist;
 					totalExitVector = atomExitVector;
 				}
 			}
 		}
 
 		// If the exit vector is too large, then avoid the jarring jump and report that we didn't make it out
-		if (totalExitVector.GetMagnitude() > m_OwnerMOSR->GetIndividualRadius()) {
+		if (totalExitVector.MagnitudeIsGreaterThan(m_OwnerMOSR->GetIndividualRadius())) {
 			return false;
 		}
 
@@ -1400,7 +1441,7 @@ namespace RTE {
 			atomOffset = m_OwnerMOSR->RotateOffset(atom->GetOffset());
 			atom->SetupPos(position + atomOffset);
 			atomPos = atom->GetCurrentPos();
-			hitMOID = g_SceneMan.GetMOIDPixel(atomPos.GetFloorIntX(), atomPos.GetFloorIntY());
+			hitMOID = g_SceneMan.GetMOIDPixel(atomPos.GetFloorIntX(), atomPos.GetFloorIntY(), m_OwnerMOSR->GetTeam());
 
 			if (hitMOID != g_NoMOID && !atom->IsIgnoringMOID(hitMOID)) {
 				// Save the correct MOID to search for other atom intersections with
@@ -1414,7 +1455,9 @@ namespace RTE {
 				if (tempMO->GetsHitByMOs()) {
 					// Make that MO draw itself again in the MOID layer so we can find its true edges
 					intersectedMO = tempMO;
+#ifdef DRAW_MOID_LAYER
 					intersectedMO->Draw(g_SceneMan.GetMOIDBitmap(), Vector(), g_DrawMOID, true);
+#endif
 					break;
 				}
 			}
@@ -1434,7 +1477,7 @@ namespace RTE {
 		// Restart and go through all Atoms to find all intersecting the specific intersected MO
 		for (Atom *atom : m_Atoms) {
 			atomPos = atom->GetCurrentPos();
-			if (g_SceneMan.GetMOIDPixel(atomPos.GetFloorIntX(), atomPos.GetFloorIntY()) == currentMOID) {
+			if (g_SceneMan.GetMOIDPixel(atomPos.GetFloorIntX(), atomPos.GetFloorIntY(), m_OwnerMOSR->GetTeam()) == currentMOID) {
 				// Add atom to list of intersecting ones
 				intersectingAtoms.push_back(atom);
 			}
@@ -1460,14 +1503,15 @@ namespace RTE {
 		Vector clearPos = Vector();
 
 		// See which of the intersecting Atoms has the longest to travel along the exit direction before it clears
-		float longestDistance = 0.0F;
+		float sqrLongestDistance = 0.0F;
 		for (const Atom *intersectingAtom : intersectingAtoms) {
 			atomPos = intersectingAtom->GetCurrentPos();
 			if (g_SceneMan.CastFindMORay(atomPos, exitDirection, g_NoMOID, clearPos, 0, true, 0)) {
 				atomExitVector = clearPos - atomPos.GetFloored();
-				if (atomExitVector.GetMagnitude() > longestDistance) {
+				float sqrAtomExitDist = atomExitVector.GetSqrMagnitude();
+				if (sqrAtomExitDist > sqrLongestDistance) {
 					// We found the Atom with the longest to travel along the exit direction to clear, so that's the distance to move the whole object to clear all its Atoms.
-					longestDistance = atomExitVector.GetMagnitude();
+					sqrLongestDistance = sqrAtomExitDist;
 					totalExitVector = atomExitVector;
 				}
 			}
@@ -1498,10 +1542,10 @@ namespace RTE {
 		}
 
 		// Now actually apply the exit vectors to both, but only if the jump isn't too jarring
-		if (thisExit.GetMagnitude() < m_OwnerMOSR->GetIndividualRadius()) { position += thisExit; }
-		if (!intersectedExit.IsZero() && intersectedExit.GetMagnitude() < intersectedMO->GetRadius()) { intersectedMO->SetPos(intersectedMO->GetPos() + intersectedExit); }
+		if (thisExit.MagnitudeIsLessThan(m_OwnerMOSR->GetIndividualRadius())) { position += thisExit; }
+		if (!intersectedExit.IsZero() && intersectedExit.MagnitudeIsLessThan(intersectedMO->GetRadius())) { intersectedMO->SetPos(intersectedMO->GetPos() + intersectedExit); }
 
-		if (m_OwnerMOSR->CanBeSquished() && RatioInTerrain() > 0.75F) /* && totalExitVector.GetMagnitude() > m_OwnerMOSR->GetDiameter()) */ {
+		if (m_OwnerMOSR->CanBeSquished() && RatioInTerrain() > 0.75F) /* && totalExitVector.MagnitudeIsGreaterThan(m_OwnerMOSR->GetDiameter())) */ {
 			// Move back before gibbing so gibs don't end up inside terrain
 			position -= thisExit;
 			m_OwnerMOSR->GibThis(-totalExitVector);
@@ -1509,7 +1553,7 @@ namespace RTE {
 
 		MOSRotating *intersectedMOS = dynamic_cast<MOSRotating *>(intersectedMO);
 
-		if (intersectedMOS && intersectedMOS->CanBeSquished() && intersectedMOS->GetAtomGroup()->RatioInTerrain() > 0.75F) /* && totalExitVector.GetMagnitude() > intersectedMO->GetDiameter()) */ {
+		if (intersectedMOS && intersectedMOS->CanBeSquished() && intersectedMOS->GetAtomGroup()->RatioInTerrain() > 0.75F) /* && totalExitVector.MagnitudeIsGreaterThan(intersectedMO->GetDiameter())) */ {
 			// Move back before gibbing so gibs don't end up inside terrain
 			intersectedMO->SetPos(intersectedMO->GetPos() - intersectedExit);
 			intersectedMOS->GibThis(totalExitVector);
@@ -1517,6 +1561,31 @@ namespace RTE {
 
 		// TODO: Figure out if a check for clearness after moving the position is actually needed and add one so this return is accurate.
 		return intersectingAtoms.empty();
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	float AtomGroup::GetSurfaceArea(int pixelWidth) const {
+		float distributionAmount;
+
+		switch (m_AreaDistributionType) {
+			case AreaDistributionType::Linear:
+				distributionAmount = static_cast<float>(pixelWidth);
+				break;
+			case AreaDistributionType::Circle: {
+					const float radius = static_cast<float>(pixelWidth) * 0.5F;
+					distributionAmount = c_PI * radius * radius;
+					break;
+				}
+			case AreaDistributionType::Square:
+				distributionAmount = static_cast<float>(pixelWidth * pixelWidth);
+				break;
+			default:
+				RTEAbort("Unexpected area distribution type!");
+				distributionAmount = 1.0F;
+		}
+
+		return distributionAmount * m_AreaDistributionSurfaceAreaMultiplier;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1551,7 +1620,7 @@ namespace RTE {
 		const int spriteWidth = refSprite->w * static_cast<int>(m_OwnerMOSR->GetScale());
 		const int spriteHeight = refSprite->h * static_cast<int>(m_OwnerMOSR->GetScale());
 
-		// Only try to generate AtomGroup if scaled width and height are > 0 as we're playing with fire trying to create 0x0 bitmap. 
+		// Only try to generate AtomGroup if scaled width and height are > 0 as we're playing with fire trying to create 0x0 bitmap.
 		if (spriteWidth > 0 && spriteHeight > 0) {
 			int x;
 			int y;
@@ -1644,7 +1713,7 @@ namespace RTE {
 					}
 				}
 
-				// Scan HORIZONTALLY from RIGHT to LEFT and place Atoms in depth beyond the silhouette edge. 
+				// Scan HORIZONTALLY from RIGHT to LEFT and place Atoms in depth beyond the silhouette edge.
 				for (y = 0; y < spriteHeight; y += m_Resolution) {
 					inside = false;
 					for (x = spriteWidth - 1; x >= 0; --x) {

@@ -1,8 +1,12 @@
 #ifndef _RTEINCLUDES_
 #define _RTEINCLUDES_
 
+// Convenience macro to not have to write this out.
+#define _LINUX_OR_MACOSX_ (__unix__ || (__APPLE__ && __MACH__))
+
 // This restores features removed from the C++17 standard (auto_ptr and some other stuff). This is needed for LuaBind to work because it relies on it heavily.
 #define _HAS_AUTO_PTR_ETC 1
+#define _LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR
 
 // Disable a bunch of unneeded crap in WinAPI (on top of WIN32_LEAN_AND_MEAN)
 #ifdef _WIN32
@@ -77,19 +81,24 @@
 #include <random>
 #include <array>
 #include <filesystem>
+#include <atomic>
+#include <execution>
 
-// TODO: Get rid of these once alias qualifiers are added.
-using std::string;
-using std::list;
-using std::pair;
-using std::deque;
-using std::map;
-using std::set;
-using std::vector;
-using std::ios_base;
-using std::array;
-using std::make_pair;
-using std::min;
-using std::max;
+namespace std {
 
+	/// <summary>
+	/// Custom std::hash specialization to allow using std::array as key in hash table based containers.
+	/// </summary>
+	template <typename Type, size_t Size> struct hash<array<Type, Size>> {
+		size_t operator()(const array<Type, Size> &arr) const {
+			hash<Type> hasher;
+			size_t outHash = 0;
+			for (size_t i = 0; i < Size; ++i) {
+				// Stolen from java.lang.String.hashCode. It seems to be a popular number, because it is prime, and 31 * x can be implemented quite efficiently as (x << 5) - x.
+				outHash = outHash * 31 + hasher(arr[i]);
+			}
+			return outHash;
+		}
+	};
+}
 #endif

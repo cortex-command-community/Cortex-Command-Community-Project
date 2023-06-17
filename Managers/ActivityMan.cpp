@@ -1,15 +1,18 @@
 #include "ActivityMan.h"
 #include "Activity.h"
 
+#include "CameraMan.h"
 #include "ConsoleMan.h"
 #include "PresetMan.h"
 #include "UInputMan.h"
 #include "AudioMan.h"
+#include "WindowMan.h"
 #include "FrameMan.h"
 #include "PostProcessMan.h"
 #include "MetaMan.h"
 
 #include "GAScripted.h"
+#include "SLTerrain.h"
 
 #include "EditorActivity.h"
 #include "SceneEditor.h"
@@ -31,6 +34,9 @@ namespace RTE {
 		m_DefaultActivityName = "Tutorial Mission";
 		m_Activity = nullptr;
 		m_StartActivity = nullptr;
+		m_ActivityAllowsSaving = false;
+		m_ActiveSavingThreadCount = 0;
+		m_IsLoading = false;
 		m_InActivity = false;
 		m_ActivityNeedsRestart = false;
 		m_ActivityNeedsResume = false;
@@ -53,6 +59,135 @@ namespace RTE {
 			return true;
 		}
 		return false;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool ActivityMan::SaveCurrentGame(const std::string &fileName) {
+		if (IsSaving() || m_IsLoading) {
+			RTEError::ShowMessageBox("Cannot Save Game\nA game is currently being saved/loaded, try again shortly.");
+			return false;
+		}
+
+		Scene *scene = g_SceneMan.GetScene();
+		GAScripted *activity = dynamic_cast<GAScripted *>(g_ActivityMan.GetActivity());
+
+		if (!scene || !activity || (activity && activity->GetActivityState() == Activity::ActivityState::Over)) {
+			g_ConsoleMan.PrintString("ERROR: Cannot save when there's no game running, or the game is finished!");
+			return false;
+		}
+		if (!g_ActivityMan.GetActivityAllowsSaving()) {
+			RTEError::ShowMessageBox("Cannot Save Game - This Activity Does Not Support Saving!\n\nMake sure it's a scripted activity, and that it has an OnSave function.\nNote that multiplayer and conquest games cannot be saved like this.");
+			return false;
+		}
+		if (scene->SaveData(c_UserScriptedSavesModuleName + "/" + fileName) < 0) {
+			// This print is actually pointless because game will abort if it fails to save layer bitmaps. It stays here for now because in reality the game doesn't properly abort if the layer bitmaps fail to save. It is what it is.
+			g_ConsoleMan.PrintString("ERROR: Failed to save scene bitmaps while saving!");
+			return false;
+		}
+
+		IncrementSavingThreadCount();
+
+		// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
+		std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
+
+		// Delete any existing objects from our scene - we don't want to replace broken doors or repair any stuff when we load.
+		modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, true);
+
+		// Become our own original preset, instead of being a copy of the Scene we got cloned from, so we don't still pick up the PlacedObjectSets from our parent when loading.
+		modifiableScene->SetPresetName(fileName);
+		modifiableScene->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
+		modifiableScene->SetSavedGameInternal(true);
+
+		// Make sure the terrain is also treated as an original preset, otherwise it will screw up if we save then load then save again, since it'll try to be a CopyOf of itself.
+		modifiableScene->GetTerrain()->SetPresetName(fileName);
+		modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
+
+		// Block the main thread for a bit to let the Writer access the relevant data.
+		std::unique_ptr<Writer> writer(std::make_unique<Writer>(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ini"));
+		writer->NewPropertyWithValue("Activity", activity);
+
+		// Pull all stuff from MovableMan into the Scene for saving, so existing Actors/ADoors are saved, without transferring ownership, so the game can continue.
+		// This is done after the activity is saved, in case the activity wants to add anything to the scene while saving.
+		modifiableScene->RetrieveSceneObjects(false);
+		for (SceneObject *objectToSave : *modifiableScene->GetPlacedObjects(Scene::PlacedObjectSets::PLACEONLOAD)) {
+			if (MovableObject *objectToSaveAsMovableObject = dynamic_cast<MovableObject *>(objectToSave)) {
+				objectToSaveAsMovableObject->OnGameSave();
+			}
+		}
+
+		writer->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
+		writer->NewPropertyWithValue("PlaceObjectsIfSceneIsRestarted", g_SceneMan.GetPlaceObjectsOnLoad());
+		writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
+		writer->NewPropertyWithValue("Scene", modifiableScene.get());
+
+		auto saveWriterData = [this](std::unique_ptr<Writer> writerToSave) {
+			// Explicitly flush to disk. This'll happen anyways at the end of this scope, but otherwise this lambda looks rather empty :)
+			writerToSave->EndWrite();
+			DecrementSavingThreadCount();
+		};
+
+		// Make a thread to flush the data to the disk, and detach it so it can run concurrently with the game simulation.
+		std::thread saveThread(saveWriterData, std::move(writer));
+		saveThread.detach();
+
+		// We didn't transfer ownership, so we must be very careful that sceneAltered's deletion doesn't touch the stuff we got from MovableMan.
+		modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, false);
+
+		g_ConsoleMan.PrintString("SYSTEM: Game saved to \"" + fileName + "\"!");
+		return true;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool ActivityMan::LoadAndLaunchGame(const std::string &fileName) {
+		if (IsSaving() || m_IsLoading) {
+			RTEError::ShowMessageBox("Cannot Load Game\nA game is currently being saved/loaded, try again shortly.");
+			return false;
+		}
+		m_IsLoading = true;
+
+		std::unique_ptr<Scene> scene(std::make_unique<Scene>());
+		std::unique_ptr<GAScripted> activity(std::make_unique<GAScripted>());
+
+		Reader reader(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ini", true, nullptr, false);
+		if (!reader.ReaderOK()) {
+			g_ConsoleMan.PrintString("ERROR: Game loading failed! Make sure you have a saved game called \"" + fileName + "\"");
+			return false;
+		}
+
+		std::string originalScenePresetName = fileName;
+		bool placeObjectsIfSceneIsRestarted = true;
+		bool placeUnitsIfSceneIsRestarted = true;
+		while (reader.NextProperty()) {
+			std::string propName = reader.ReadPropName();
+			if (propName == "Activity") {
+				reader >> activity.get();
+			} else if (propName == "OriginalScenePresetName") {
+				reader >> originalScenePresetName;
+			} else if (propName == "PlaceObjectsIfSceneIsRestarted") {
+				reader >> placeObjectsIfSceneIsRestarted;
+			} else if (propName == "PlaceUnitsIfSceneIsRestarted") {
+				reader >> placeUnitsIfSceneIsRestarted;
+			} else if (propName == "Scene") {
+				reader >> scene.get();
+			}
+		}
+
+		// SetSceneToLoad() doesn't Clone(), but when the Activity starts, it will eventually call LoadScene(), which does a Clone() of scene internally.
+		g_SceneMan.SetSceneToLoad(scene.get(), true, true);
+		// Saved Scenes get their presetname set to their filename to ensure they're separate from the preset Scene they're based off of.
+		// However, saving a game you've already saved will end up with its OriginalScenePresetName set to the filename, which will screw up restarting the Activity, so we set its PresetName here.
+		scene->SetPresetName(originalScenePresetName);
+		// For starting Activity, we need to directly clone the Activity we want to start.
+		g_ActivityMan.StartActivity(dynamic_cast<GAScripted*>(activity->Clone()));
+		// When this method exits, our Scene object will be destroyed, which will cause problems if you try to restart it. To avoid this, set the Scene to load to the preset object with the same name.
+		g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
+
+		g_ConsoleMan.PrintString("SYSTEM: Game \"" + fileName + "\" loaded!");
+
+		m_IsLoading = false;
+		return true;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -160,8 +295,10 @@ namespace RTE {
 	int ActivityMan::StartActivity(Activity *activity) {
 		RTEAssert(activity, "Trying to start a null activity!");
 
-		// Stop all music played by the current activity. It will be re-started by the new Activity. 
+		// Stop all music played by the current activity. It will be re-started by the new Activity.
 		g_AudioMan.StopMusic();
+
+		m_ActivityAllowsSaving = false;
 
 		m_StartActivity.reset(activity);
 		m_Activity.reset(dynamic_cast<Activity *>(m_StartActivity->Clone()));
@@ -202,7 +339,7 @@ namespace RTE {
 		if (const Entity *entity = g_PresetMan.GetEntityPreset(className, presetName)) {
 			Activity *newActivity = dynamic_cast<Activity *>(entity->Clone());
 			if (GameActivity *newActivityAsGameActivity = dynamic_cast<GameActivity *>(newActivity)) {
-				newActivityAsGameActivity->SetStartingGold(newActivityAsGameActivity->GetDefaultGoldMedium());
+				newActivityAsGameActivity->SetStartingGold(newActivityAsGameActivity->GetDefaultGoldMediumDifficulty());
 				if (newActivityAsGameActivity->GetStartingGold() <= 0) {
 					newActivityAsGameActivity->SetStartingGold(static_cast<int>(newActivityAsGameActivity->GetTeamFunds(0)));
 				} else {
@@ -255,8 +392,8 @@ namespace RTE {
 			m_InActivity = true;
 			m_ActivityNeedsResume = false;
 
-			g_FrameMan.ClearBackBuffer8();
-			g_FrameMan.FlipFrameBuffers();
+			g_FrameMan.ClearBackBuffer32();
+			g_WindowMan.UploadFrame();
 
 			PauseActivity(false);
 			g_TimerMan.PauseSim(false);
@@ -269,8 +406,8 @@ namespace RTE {
 		m_ActivityNeedsRestart = false;
 		g_ConsoleMan.PrintString("SYSTEM: Activity was reset!");
 
-		g_FrameMan.ClearBackBuffer8();
-		g_FrameMan.FlipFrameBuffers();
+		g_FrameMan.ClearBackBuffer32();
+		g_WindowMan.UploadFrame();
 
 		g_AudioMan.StopAll();
 		g_MovableMan.PurgeAllMOs();
@@ -279,8 +416,15 @@ namespace RTE {
 
 		// TODO: Deal with GUI resetting here!$@#") // Figure out what the hell this is about.
 
-		// Need to pass in a clone of the activity because the original will be deleted and re-set during StartActivity.
-		int activityStarted = m_StartActivity ? StartActivity(dynamic_cast<Activity *>(m_StartActivity->Clone())) : StartActivity(m_DefaultActivityType, m_DefaultActivityName);
+		int activityStarted;
+		if (m_StartActivity) {
+			// Need to pass in a clone of the activity because the original will be deleted and re-set during StartActivity.
+			Activity *startActivityToUse = dynamic_cast<Activity *>(m_StartActivity->Clone());
+			startActivityToUse->SetActivityState(Activity::ActivityState::NotStarted);
+			activityStarted = StartActivity(startActivityToUse);
+		} else {
+			activityStarted = StartActivity(m_DefaultActivityType, m_DefaultActivityName);
+		}
 		g_TimerMan.PauseSim(false);
 		if (activityStarted >= 0) {
 			m_InActivity = true;

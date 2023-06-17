@@ -69,6 +69,7 @@ public:
 	EntityAllocation(ACrab);
 	SerializableOverrideMethods;
 	ClassInfoGetters;
+	DefaultPieMenuNameGetter(HasObjectInGroup("Turrets") ? "Default Turret Pie Menu" : "Default Crab Pie Menu");
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Constructor:     ACrab
@@ -133,15 +134,6 @@ public:
 
 	void Destroy(bool notInherited = false) override;
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetGoldCarried
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets how many ounces of gold this Actor is carrying.
-// Arguments:       None.
-// Return value:    The current amount of carried gold, in Oz.
-
-	float GetGoldCarried() const override { return m_GoldCarried + m_GoldInInventoryChunk; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  GetEyePos
@@ -296,27 +288,12 @@ public:
 
 	bool CollideAtPoint(HitData &hitData) override;
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  AddPieMenuSlices
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds all slices this needs on a pie menu.
-// Arguments:       The pie menu to add slices to. Ownership is NOT transferred!
-// Return value:    Whether any slices were added.
-
-	bool AddPieMenuSlices(PieMenuGUI *pPieMenu) override;
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  HandlePieCommand
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Handles and does whatever a specific activated Pie Menu slice does to
-//                  this.
-// Arguments:       The pie menu command to handle. See the PieSliceIndex enum.
-// Return value:    Whetehr any slice was handled. False if no matching slice handler was
-//                  found, or there was no slice currently activated by the pie menu.
-
-	bool HandlePieCommand(PieSlice::PieSliceIndex pieSliceIndex) override;
+	/// <summary>
+	/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
+	/// </summary>
+	/// <param name="pieSliceType">The SliceType of the PieSlice being handled.</param>
+	/// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
+	bool HandlePieCommand(PieSlice::SliceType pieSliceType) override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -536,7 +513,7 @@ int FirearmActivationDelay() const;
 // Method:  GetLimbPathPushForce
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Gets the default force that a limb traveling walking LimbPath can push against
-//                  stuff in the scene with. 
+//                  stuff in the scene with.
 // Arguments:       None.
 // Return value:    The default set force maximum, in kg * m/s^2.
 
@@ -547,7 +524,7 @@ int FirearmActivationDelay() const;
 // Method:  SetLimbPathPushForce
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Sets the default force that a limb traveling walking LimbPath can push against
-//                  stuff in the scene with. 
+//                  stuff in the scene with.
 // Arguments:       The default set force maximum, in kg * m/s^2.
 // Return value:    None
 
@@ -565,6 +542,30 @@ int FirearmActivationDelay() const;
 	/// </summary>
 	/// <param name="newSound">The new SoundContainer for this ACrab's stride sound.</param>
 	void SetStrideSound(SoundContainer *newSound) { m_StrideSound = newSound; }
+
+	/// <summary>
+	/// Gets the upper limit of this ACrab's aim range.
+	/// </summary>
+	/// <returns>The upper limit of this ACrab's aim range.</returns>
+	float GetAimRangeUpperLimit() const { return m_AimRangeUpperLimit; }
+
+	/// <summary>
+	/// Sets the upper limit of this ACrab's aim range.
+	/// </summary>
+	/// <param name="aimRangeUpperLimit">The new upper limit of this ACrab's aim range.</param>
+	void SetAimRangeUpperLimit(float aimRangeUpperLimit) { m_AimRangeUpperLimit = aimRangeUpperLimit; }
+
+	/// <summary>
+	/// Gets the lower limit of this ACrab's aim range.
+	/// </summary>
+	/// <returns>The lower limit of this ACrab's aim range.</returns>
+	float GetAimRangeLowerLimit() const { return m_AimRangeLowerLimit; }
+
+	/// <summary>
+	/// Sets the lower limit of this ACrab's aim range.
+	/// </summary>
+	/// <param name="aimRangeLowerLimit">The new lower limit of this ACrab's aim range.</param>
+	void SetAimRangeLowerLimit(float aimRangeLowerLimit) { m_AimRangeLowerLimit = aimRangeLowerLimit; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protected member variable and method declarations
@@ -619,8 +620,6 @@ protected:
 	bool m_StrideStart[SIDECOUNT];
 	// Times the strides to make sure they get restarted if they end up too long
 	Timer m_StrideTimer[SIDECOUNT];
-	// How much gold is carried in an MovableObject in inventory, separate from the actor gold tally.
-	int m_GoldInInventoryChunk;
 	// The maximum angle MountedMO can be aimed up, positive values only, in radians
 	float m_AimRangeUpperLimit;
 	// The maximum angle MountedMO can be aimed down, positive values only, in radians
@@ -693,6 +692,15 @@ protected:
 	Timer m_PatrolTimer;
 	// Timer for how long to be firing the jetpack in a direction
 	Timer m_JumpTimer;
+
+#pragma region Event Handling
+	/// <summary>
+	/// Event listener to be run while this ACrab's PieMenu is opened.
+	/// </summary>
+	/// <param name="pieMenu">The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.</param>
+	/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+	int WhilePieMenuOpenListener(const PieMenu *pieMenu) override;
+#pragma endregion
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

@@ -16,7 +16,6 @@
 
 #include "Attachable.h"
 #include "Actor.h"
-#include "PieMenuGUI.h"
 
 namespace RTE
 {
@@ -249,23 +248,41 @@ ClassInfoGetters;
 
     void SetSharpLength(float newLength) { m_MaxSharpLength = newLength; }
 
+	/// <summary>
+	/// Gets whether this HeldDevice can be supported when held.
+	/// </summary>
+	/// <returns>Whether this HeldDevice can be supported when held.</returns>
+	bool IsSupportable() const { return m_Supportable; }
 
 	/// <summary>
-	/// Gets whether this HeldDevice is currently supported by a second hand.
+	/// Sets whether this HeldDevice can be supported when held.
 	/// </summary>
-	/// <returns>Whether the device is supported or not.</returns>
-	bool GetSupported() const { return m_Supported; }
+	/// <param name="shouldBeSupportable">Whether this HeldDevice can be supported when held.</param>
+	void SetSupportable(bool shouldBeSupportable) { m_Supportable = shouldBeSupportable; }
 
+	/// <summary>
+	/// Gets whether this HeldDevice is currently supported by a second Arm.
+	/// </summary>
+	/// <returns>Whether this HeldDevice is supported or not.</returns>
+	bool GetSupported() const { return m_Supportable && m_Supported; }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  SetSupported
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets whether this HeldDevice is currently supported by a second hand
-//                  or not.
-// Arguments:       If it should be supported or not.
-// Return value:    None.
+    /// <summary>
+    /// Sets whether this HeldDevice is currently supported by a second Arm.
+    /// </summary>
+	/// <param name="supported">Whether this HeldDevice is being supported.</param>
+    void SetSupported(bool supported) { m_Supported = m_Supportable && supported; }
 
-    void SetSupported(bool supported) { m_Supported = supported; }
+	/// <summary>
+	/// Gets whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
+	/// </summary>
+	/// <returns>Whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).</returns>
+	bool GetSupportAvailable() const { return m_Supportable && m_SupportAvailable; }
+
+	/// <summary>
+	/// Sets whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
+	/// </summary>
+	/// <param name="supported">Whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).</param>
+	void SetSupportAvailable(bool supportAvailable) { m_SupportAvailable = m_Supportable && supportAvailable; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -419,17 +436,6 @@ ClassInfoGetters;
 // Return value:    None.
 
     void SetOneHanded(bool newValue) { m_OneHanded = newValue; }
-	
-	
-	
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:  AddPieMenuSlices
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds all slices this needs on a pie menu.
-// Arguments:       The pie menu to add slices to. Ownership is NOT transferred!
-// Return value:    Whether any slices were added.
-
-   bool AddPieMenuSlices(PieMenuGUI *pPieMenu);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -487,6 +493,12 @@ ClassInfoGetters;
 // Return value:    Whether being activated.
 
     virtual bool IsActivated() const { return m_Activated; }
+
+	/// <summary>
+	/// Gets the activation Timer for this HeldDevice.
+	/// </summary>
+	/// <returns>The activation Timer for this HeldDevice.</returns>
+	const Timer & GetActivationTimer() const { return m_ActivationTimer;}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -636,8 +648,9 @@ protected:
     float m_SharpAim;
     // How much farther the player can see when aiming this sharply.
     float m_MaxSharpLength;
-    // If this HeldDevice is currently being supported by a second hand.
-    bool m_Supported;
+	bool m_Supportable; //!< Whether or not this HeldDevice can be supported.
+    bool m_Supported; //!< Whether or not this HeldDevice is currently being supported by another Arm.
+	bool m_SupportAvailable; //!< Whether or not this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
     bool m_IsUnPickupable; //!< Whether or not this HeldDevice should be able to be picked up at all.
 	//TODO: move this smelly thing elsewhere
 	std::array<bool, Players::MaxPlayerCount> m_SeenByPlayer; //!< An array of players that can currently see the pickup HUD of this HeldDevice.
@@ -645,8 +658,6 @@ protected:
     float m_GripStrengthMultiplier; //!< The multiplier for how well this HeldDevice can be gripped by Arms.
     // Blink timer for the icon
     Timer m_BlinkTimer;
-    // Extra pie menu options that this should add to any actor who holds this device
-    std::list<PieSlice> m_PieSlices;
     // How loud this device is when activated. 0 means perfectly quiet 0.5 means half of normal (normal equals audiable from ~half a screen)
     float m_Loudness;
     // If this weapon belongs to the "Explosive Weapons" group or not

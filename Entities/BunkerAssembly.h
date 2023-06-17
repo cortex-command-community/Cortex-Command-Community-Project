@@ -14,18 +14,13 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
 
-#include "RTETools.h"
 #include "TerrainObject.h"
-#include "Vector.h"
-#include "SceneMan.h"
-#include "BunkerAssemblyScheme.h"
-#include "Deployment.h"
-//#include "MovableMan.h"
 
 namespace RTE
 {
 
-class ContentFile;
+class BunkerAssemblyScheme;
+class Deployment;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -133,7 +128,7 @@ ClassInfoGetters;
 // Return value:    
 //                  
 
-    string GetParentAssemblySchemeName() const { return m_ParentAssemblyScheme; }
+	std::string GetParentAssemblySchemeName() const { return m_ParentAssemblyScheme; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -210,7 +205,7 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    Symmetric assembly name.
 
-	string GetSymmetricAssemblyName() const { return m_SymmetricAssembly; };
+	std::string GetSymmetricAssemblyName() const { return m_SymmetricAssembly; };
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -220,7 +215,7 @@ ClassInfoGetters;
 // Arguments:       Symmetric assembly name.
 // Return value:    None.
 
-	void SetSymmetricAssemblyName(string newSymmetricAssembly) { m_SymmetricAssembly = newSymmetricAssembly; };
+	void SetSymmetricAssemblyName(std::string newSymmetricAssembly) { m_SymmetricAssembly = newSymmetricAssembly; };
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Draw
@@ -256,7 +251,7 @@ protected:
 	// Bitmap shown during draw and icon creation
 	BITMAP * m_pPresentationBitmap;
 	//Assembly symmetric to this one
-	string m_SymmetricAssembly;
+	std::string m_SymmetricAssembly;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Private member variable and method declarations

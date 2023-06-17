@@ -12,6 +12,8 @@
 // Inclusions of header files
 
 #include "AreaEditor.h"
+
+#include "WindowMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "UInputMan.h"
@@ -26,14 +28,8 @@
 #include "DataModule.h"
 
 #include "GUI.h"
-#include "GUIFont.h"
-#include "AllegroScreen.h"
 #include "AllegroBitmap.h"
-#include "AllegroInput.h"
-#include "GUIControlManager.h"
 #include "GUICollectionBox.h"
-#include "GUITab.h"
-#include "GUIListBox.h"
 #include "GUITextBox.h"
 #include "GUIButton.h"
 #include "GUILabel.h"
@@ -171,7 +167,7 @@ int AreaEditor::Start()
     // Resize the invisible root container so it matches the screen rez
     GUICollectionBox *pRootBox = dynamic_cast<GUICollectionBox *>(m_pGUIController->GetControl("base"));
     if (pRootBox)
-        pRootBox->SetSize(g_FrameMan.GetResX(), g_FrameMan.GetResY());
+        pRootBox->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
     // Make sure we have convenient points to the containing GUI dialog boxes that we will manipulate the positions of
     if (!m_pNewDialogBox)
@@ -194,6 +190,8 @@ int AreaEditor::Start()
         m_pLoadDialogBox->SetVisible(false);
     }
     m_pLoadNameCombo = dynamic_cast<GUIComboBox *>(m_pGUIController->GetControl("LoadSceneCB"));
+	m_pLoadNameCombo->SetDropHeight(std::min(m_pLoadNameCombo->GetDropHeight(), g_WindowMan.GetResY() / 2));
+	m_pLoadDialogBox->SetSize(m_pLoadDialogBox->GetWidth(), m_pLoadDialogBox->GetHeight() + m_pLoadNameCombo->GetDropHeight()); // Make sure the dropdown can fit, no matter how tall it is.
     m_pLoadButton = dynamic_cast<GUIButton *>(m_pGUIController->GetControl("LoadSceneButton"));
     m_pLoadCancel = dynamic_cast<GUIButton *>(m_pGUIController->GetControl("LoadCancelButton"));
 
@@ -260,7 +258,7 @@ void AreaEditor::End()
 {
     EditorActivity::End();
 
-    
+
 
     m_ActivityState = ActivityState::Over;
 }
@@ -318,7 +316,7 @@ void AreaEditor::Update()
     m_NeedSave = m_pEditorGUI->EditMade() || m_NeedSave;
 
     // Get any mode change commands that the user gave the Editor GUI
-    if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::PieSliceIndex::PSI_NEW && m_EditorMode != NEWDIALOG)
+    if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorNew && m_EditorMode != NEWDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::NEWDIALOG;
@@ -327,20 +325,20 @@ void AreaEditor::Update()
         // Will turn on dirtyness immediately as New button is pressed below
         m_NeedSave = false;
     }
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::PieSliceIndex::PSI_LOAD && m_EditorMode != LOADDIALOG)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorLoad && m_EditorMode != LOADDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::LOADDIALOG;
         m_ModeChange = true;
     }
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::PieSliceIndex::PSI_SAVE && m_EditorMode != SAVEDIALOG)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorSave && m_EditorMode != SAVEDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::SAVEDIALOG;
         m_ModeChange = true;
     }
     // Test the scene by starting a Skirmish Defense with it, after saving
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::PieSliceIndex::PSI_DONE || m_EditorMode == TESTINGOBJECT)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorDone || m_EditorMode == TESTINGOBJECT)
     {
         m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::INACTIVE);
 
@@ -593,98 +591,77 @@ void AreaEditor::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int whi
 
 void AreaEditor::Draw(BITMAP* pTargetBitmap, const Vector &targetPos)
 {
-    EditorActivity::Draw(pTargetBitmap, targetPos);    
+    EditorActivity::Draw(pTargetBitmap, targetPos);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SaveScene
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Saves the current scene to an appropriate ini file, and asks user if
-//                  they want to overwrite first if scene of this name exists.
+bool AreaEditor::SaveScene(const std::string &saveAsName, bool forceOverwrite) {
+	Scene *editedScene = g_SceneMan.GetScene();
+	editedScene->SetPresetName(saveAsName);
 
-bool AreaEditor::SaveScene(string saveAsName, bool forceOverwrite)
-{
-    // Set the name of the current scene in effect
-    g_SceneMan.GetScene()->SetPresetName(saveAsName);
+	std::string dataModuleName = g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName();
+	bool savingToUserScenesModule = (dataModuleName == c_UserScenesModuleName);
 
-	if (g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == "Scenes.rte")
-	{
-		string sceneFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/" + saveAsName + ".ini");
-		string previewFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/" + saveAsName + ".preview.bmp");
-		if (g_PresetMan.AddEntityPreset(g_SceneMan.GetScene(), m_ModuleSpaceID, forceOverwrite, sceneFilePath))
-		{
-			// Save preview
-			g_SceneMan.GetScene()->SavePreview(previewFilePath);
+	std::string dataModuleFullPath = g_PresetMan.GetFullModulePath(dataModuleName);
+	std::string sceneSavePath;
+	std::string previewSavePath;
 
-			// Does ini already exist? If yes, then no need to add it to a scenes.ini etc
-			bool sceneFileExisted = exists(sceneFilePath.c_str());
-			// Create the writer
-			Writer sceneWriter(sceneFilePath.c_str(), false);
-			sceneWriter.NewProperty("AddScene");
-			// Write the scene out to the new ini
-			sceneWriter << g_SceneMan.GetScene();
-			return m_HasEverBeenSaved = true;
-		}
-		else
-		{
-			// Gotto ask if we can overwrite the existing scene
-			m_PreviousMode = EditorActivity::SAVEDIALOG;
-			m_EditorMode = EditorActivity::OVERWRITEDIALOG;
-			m_ModeChange = true;
-		}
-	}
-	else
-	{
-		// Try to save to the data module
-		string sceneFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes/" + saveAsName + ".ini");
-		string previewFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes/" + saveAsName + ".preview.bmp");
-		if (g_PresetMan.AddEntityPreset(g_SceneMan.GetScene(), m_ModuleSpaceID, forceOverwrite, sceneFilePath))
-		{
-            // Save preview
-            g_SceneMan.GetScene()->SavePreview(previewFilePath);
-
-            // Does ini already exist? If yes, then no need to add it to a scenes.ini etc
-            bool sceneFileExisted = exists(sceneFilePath.c_str());
-            // Create the writer
-            Writer sceneWriter(sceneFilePath.c_str(), false);
-            sceneWriter.NewProperty("AddScene");
-            // TODO: Check if the ini file already exists, and then ask if overwrite
-                    // Write the scene out to the new ini
-            sceneWriter << g_SceneMan.GetScene();
-
-            if (!sceneFileExisted)
-            {
-                // First find/create  a .rte/Scenes.ini file to include the new .ini into
-                string scenesFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes.ini");
-                bool scenesFileExisted = exists(scenesFilePath.c_str());
-                Writer scenesWriter(scenesFilePath.c_str(), true);
-                scenesWriter.NewProperty("\nIncludeFile");
-                scenesWriter << sceneFilePath;
-
-                // Also add a line to the end of the modules' Index.ini to include the newly created Scenes.ini next startup
-                // If it's already included, it doens't matter, the definitions will just bounce the second time
-                if (!scenesFileExisted)
-                {
-                    string indexFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Index.ini");
-                    Writer indexWriter(indexFilePath.c_str(), true);
-                    // Add extra tab since the DataModule has everything indented
-                    indexWriter.NewProperty("\tIncludeFile");
-                    indexWriter << scenesFilePath;
-                }
-            }
-			return m_HasEverBeenSaved = true;
-		}
-		else
-		{
-			// Gotto ask if we can overwrite the existing scene
-			m_PreviousMode = EditorActivity::SAVEDIALOG;
-			m_EditorMode = EditorActivity::OVERWRITEDIALOG;
-			m_ModeChange = true;
-		}
+	if (savingToUserScenesModule) {
+		sceneSavePath = dataModuleFullPath + "/" + saveAsName + ".ini";
+		previewSavePath = dataModuleFullPath + "/" + saveAsName + ".preview.png";
+	} else {
+		sceneSavePath = dataModuleFullPath + "/Scenes/" + saveAsName + ".ini";
+		previewSavePath = dataModuleFullPath + "/Scenes/" + saveAsName + ".preview.png";
 	}
 
-    return false;
+	if (g_PresetMan.AddEntityPreset(editedScene, m_ModuleSpaceID, forceOverwrite, sceneSavePath)) {
+		if (Writer sceneWriter(sceneSavePath, false); !sceneWriter.WriterOK()) {
+			RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + sceneSavePath + "\n\nTHE EDITED SCENE PRESET WAS NOT SAVED!!!");
+		} else {
+			// TODO: Check if the ini file already exists, and then ask if overwrite.
+			sceneWriter.NewPropertyWithValue("AddScene", editedScene);
+			sceneWriter.EndWrite();
+
+			editedScene->SavePreview(previewSavePath);
+			m_HasEverBeenSaved = true;
+
+			if (!savingToUserScenesModule) {
+				// First find/create a Scenes.ini file to include the new .ini into.
+				std::string scenesFilePath(dataModuleFullPath + "/Scenes.ini");
+				bool scenesFileExists = System::PathExistsCaseSensitive(scenesFilePath);
+
+				if (Writer scenesFileWriter(scenesFilePath, true); !scenesFileWriter.WriterOK()) {
+					RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + scenesFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
+				} else {
+					scenesFileWriter.NewPropertyWithValue("IncludeFile", sceneSavePath);
+					scenesFileWriter.EndWrite();
+
+					// Append to the end of the modules' Index.ini to include the newly created Scenes.ini next startup.
+					// If it's somehow already included without actually existing, it doesn't matter, the definitions will just bounce the second time.
+					if (!scenesFileExists) {
+						std::string indexFilePath = dataModuleFullPath + "/Index.ini";
+
+						if (Writer indexWriter(indexFilePath, true); !indexWriter.WriterOK()) {
+							RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + indexFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
+						} else {
+							// Add extra tab since the DataModule has everything indented.
+							indexWriter.NewProperty("\tIncludeFile");
+							indexWriter << scenesFilePath;
+							indexWriter.EndWrite();
+						}
+					}
+				}
+			}
+			return true;
+		}
+	} else {
+		// Got to ask if we can overwrite the existing preset.
+		m_PreviousMode = EditorMode::SAVEDIALOG;
+		m_EditorMode = EditorMode::OVERWRITEDIALOG;
+		m_ModeChange = true;
+	}
+	return false;
 }
 
 
@@ -712,16 +689,16 @@ void AreaEditor::UpdateLoadDialog()
     m_pLoadNameCombo->ClearList();
 
     // Get the list of all read in scenes
-    list<Entity *> sceneList;
+    std::list<Entity *> sceneList;
     g_PresetMan.GetAllOfType(sceneList, "Scene");
 
     // Go through the list and add their names to the combo box
-    for (list<Entity *>::iterator itr = sceneList.begin(); itr != sceneList.end(); ++itr)
+    for (std::list<Entity *>::iterator itr = sceneList.begin(); itr != sceneList.end(); ++itr)
     {
 		Scene * pScene = dynamic_cast<Scene *>(*itr);
 		if (pScene)
         // Don't add the special "Editor Scene" or metascenes, users shouldn't be messing with them
-        if (pScene->GetPresetName() != "Editor Scene" && !pScene->IsMetagameInternal() && (pScene->GetMetasceneParent() == "" || g_SettingsMan.ShowMetascenes()))
+        if (pScene->GetPresetName() != "Editor Scene" && !pScene->IsMetagameInternal() && !pScene->IsSavedGameInternal() && (pScene->GetMetasceneParent() == "" || g_SettingsMan.ShowMetascenes()))
             m_pLoadNameCombo->AddItem(pScene->GetPresetName());
     }
 
@@ -738,7 +715,7 @@ void AreaEditor::UpdateLoadDialog()
 void AreaEditor::UpdateSaveDialog()
 {
     m_pSaveNameBox->SetText((g_SceneMan.GetScene()->GetPresetName() == "None" || !m_HasEverBeenSaved) ? "New Scene" : g_SceneMan.GetScene()->GetPresetName());
-	if (g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == "Scenes.rte")
+	if (g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == c_UserScenesModuleName)
 		m_pSaveModuleLabel->SetText("Will save in " + g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/");
 	else
 		m_pSaveModuleLabel->SetText("Will save in " + g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes");
@@ -755,7 +732,7 @@ void AreaEditor::UpdateChangesDialog()
     if (m_HasEverBeenSaved)
     {
         dynamic_cast<GUILabel *>(m_pGUIController->GetControl("ChangesExpLabel"))->SetText("Do you want to save your changes to:");
-		if (g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == "Scenes.rte")
+		if (g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == c_UserScenesModuleName)
 			m_pChangesNameLabel->SetText(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/" + g_SceneMan.GetScene()->GetPresetName());
 		else
 			m_pChangesNameLabel->SetText(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes/" + g_SceneMan.GetScene()->GetPresetName());
@@ -775,7 +752,7 @@ void AreaEditor::UpdateChangesDialog()
 
 void AreaEditor::UpdateOverwriteDialog()
 {
-	if (g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == "Scenes.rte")
+	if (g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == c_UserScenesModuleName)
 		m_pOverwriteNameLabel->SetText(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/" + g_SceneMan.GetScene()->GetPresetName());
 	else
 		m_pOverwriteNameLabel->SetText(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes/" + g_SceneMan.GetScene()->GetPresetName());

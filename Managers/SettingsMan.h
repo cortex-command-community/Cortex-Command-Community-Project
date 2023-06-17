@@ -68,6 +68,60 @@ namespace RTE {
 		/// </summary>
 		/// <returns>Whether simplified collision detection is enabled or not.</returns>
 		bool SimplifiedCollisionDetection() const { return m_SimplifiedCollisionDetection; }
+
+		/// <summary>
+		/// Gets the Scene background layer auto-scaling mode.
+		/// </summary>
+		/// <returns>The Scene background layer auto-scaling mode. 0 for off, 1 for fit screen dimensions and 2 for always upscaled to x2.</returns>
+		int GetSceneBackgroundAutoScaleMode() const { return m_SceneBackgroundAutoScaleMode; }
+
+		/// <summary>
+		/// Sets the Scene background layer auto-scaling mode.
+		/// </summary>
+		/// <param name="newMode">The new Scene background layer auto-scaling mode. 0 for off, 1 for fit screen dimensions and 2 for always upscaled to x2.</param>
+		void SetSceneBackgroundAutoScaleMode(int newMode) { m_SceneBackgroundAutoScaleMode = std::clamp(newMode, 0, 2); }
+
+		/// <summary>
+		/// Gets whether faction BuyMenu theme support is disabled.
+		/// </summary>
+		/// <returns>Whether faction BuyMenu theme support is disabled.</returns>
+		bool FactionBuyMenuThemesDisabled() const { return m_DisableFactionBuyMenuThemes; }
+
+		/// <summary>
+		/// Sets whether faction BuyMenu theme support is disabled.
+		/// </summary>
+		/// <param name="disable">Whether faction BuyMenu theme support is disabled or not.</param>
+		void SetFactionBuyMenuThemesDisabled(bool disable) { m_DisableFactionBuyMenuThemes = disable; }
+
+		/// <summary>
+		/// Gets whether custom cursor support in faction BuyMenu themes is disabled.
+		/// </summary>
+		/// <returns>Whether faction BuyMenu theme support is disabled.</returns>
+		bool FactionBuyMenuThemeCursorsDisabled() const { return m_DisableFactionBuyMenuThemeCursors; }
+
+		/// <summary>
+		/// Sets whether custom cursor support in faction BuyMenu themes is disabled.
+		/// </summary>
+		/// <param name="disable">Whether custom cursor support in faction BuyMenu themes is disabled or not.</param>
+		void SetFactionBuyMenuThemeCursorsDisabled(bool disable) { m_DisableFactionBuyMenuThemeCursors = disable; }
+
+		/// <summary>
+		/// Gets the PathFinder grid node size.
+		/// </summary>
+		/// <returns>The PathFinder grid node size.</returns>
+		int GetPathFinderGridNodeSize() const { return m_PathFinderGridNodeSize; }
+
+		/// <summary>
+		/// Gets the AI update interval.
+		/// </summary>
+		/// <returns>How often Actor's AI is updated, in simulation updates.</returns>
+		int GetAIUpdateInterval() const { return m_AIUpdateInterval; }
+
+		/// <summary>
+		/// Sets the AI update interval.
+		/// </summary>
+		/// <param name="newAIUpdateInterval">How often Actor's AI will now be updated, in simulation updates.</param>
+		void SetAIUpdateInterval(int newAIUpdateInterval) { m_AIUpdateInterval = newAIUpdateInterval; }
 #pragma endregion
 
 #pragma region Gameplay Settings
@@ -118,6 +172,18 @@ namespace RTE {
 		/// </summary>
 		/// <param name="shouldShowUnheldItemsInStrategicMode">Whether or not devices on Scene should always show their pick-up HUD when the player is in strategic mode.</param>
 		void SetAlwaysDisplayUnheldItemsInStrategicMode(bool shouldShowUnheldItemsInStrategicMode) { m_AlwaysDisplayUnheldItemsInStrategicMode = shouldShowUnheldItemsInStrategicMode; }
+
+		/// <summary>
+		/// Gets the number of MS a PieSlice with a sub-PieMenu needs to be hovered over for the sub-PieMenu to open.
+		/// </summary>
+		/// <returns>The number of MS a PieSlice with a sub-PieMenu needs to be hovered over for the sub-PieMenu to open.</returns>
+		int GetSubPieMenuHoverOpenDelay() const { return m_SubPieMenuHoverOpenDelay; }
+
+		/// <summary>
+		/// Sets the number of MS a PieSlice with a sub-PieMenu needs to be hovered over for the sub-PieMenu to open.
+		/// </summary>
+		/// <param name="newSubPieMenuHoverOpenDelay">The number of MS a PieSlice with a sb-PieMenu needs to be hovered over for the sub-PieMenu to open.</param>
+		void SetSubPieMenuHoverOpenDelay(int newSubPieMenuHoverOpenDelay) { m_SubPieMenuHoverOpenDelay = newSubPieMenuHoverOpenDelay; }
 
 		/// <summary>
 		/// Whether red and white flashes appear when brain is damaged.
@@ -190,6 +256,12 @@ namespace RTE {
 		/// </summary>
 		/// <param name="enable">Whether to enable smart BuyMenu navigation or not.</param>
 		void SetSmartBuyMenuNavigation(bool enable) { m_EnableSmartBuyMenuNavigation = enable; }
+
+		/// <summary>
+		/// Gets whether gold gathered by Actors is automatically added into team funds.
+		/// </summary>
+		/// <returns>Whether gold gathered by Actors is automatically added into team funds.</returns>
+		bool GetAutomaticGoldDeposit() const { return m_AutomaticGoldDeposit; }
 #pragma endregion
 
 #pragma region Network Settings
@@ -439,11 +511,13 @@ namespace RTE {
 		bool m_BlipOnRevealUnseen; //!< Blip if unseen is revealed.
 		float m_UnheldItemsHUDDisplayRange; //!< Range in which devices on Scene will show the pick-up HUD, in pixels. 0 means HUDs are hidden, -1 means unlimited range.
 		bool m_AlwaysDisplayUnheldItemsInStrategicMode; //!< Whether or not devices on Scene should always show their pick-up HUD when when the player is in strategic mode.
+		int m_SubPieMenuHoverOpenDelay; //!< The number of MS a PieSlice with a sub-PieMenu needs to be hovered over for the sub-PieMenu to open.
 		bool m_EndlessMetaGameMode; //!< Endless MetaGame mode.
 		bool m_EnableCrabBombs; //!< Whether all actors (except Brains and Doors) should be annihilated if a number exceeding the crab bomb threshold is released at once.
 		int m_CrabBombThreshold; //!< The number of crabs needed to be released at once to trigger the crab bomb effect.
 		bool m_ShowEnemyHUD; //!< Whether the HUD of enemy actors should be visible to the player.
 		bool m_EnableSmartBuyMenuNavigation; //!< Whether swapping to equipment mode and back should change active tabs in the BuyMenu.
+		bool m_AutomaticGoldDeposit; //!< Whether gold gathered by Actors is automatically added into team funds. False means that gold needs to be manually transported into orbit via Craft.
 
 		std::string m_PlayerNetworkName; //!< Player name used in network multiplayer matches.
 		std::string m_NetworkServerAddress; //!< LAN server address to connect to.
@@ -457,6 +531,11 @@ namespace RTE {
 
 		int m_RecommendedMOIDCount; //!< Recommended max MOID's before removing actors from scenes.
 		bool m_SimplifiedCollisionDetection; //!< Whether simplified collision detection (reduced MOID layer sampling) is enabled.
+		int m_SceneBackgroundAutoScaleMode; //!< Scene background layer auto-scaling mode. 0 for off, 1 for fit screen dimensions and 2 for always upscaled to x2.
+		bool m_DisableFactionBuyMenuThemes; //!< Whether faction BuyMenu theme support is disabled.
+		bool m_DisableFactionBuyMenuThemeCursors; //!< Whether custom cursor support in faction BuyMenu themes is disabled.
+		int m_PathFinderGridNodeSize; //!< The grid size used by the PathFinder, in pixels.
+		int m_AIUpdateInterval; //!< How often actor's AI should be updated, i.e. every n simulation updates.
 
 		bool m_SkipIntro; //!< Whether to play the intro of the game or skip directly to the main menu.
 		bool m_ShowToolTips; //!< Whether ToolTips are enabled or not.

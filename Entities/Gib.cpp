@@ -9,14 +9,14 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Gib::Clear() {
-		m_GibParticle = 0;
+		m_GibParticle = nullptr;
 		m_Offset.Reset();
 		m_Count = 1;
 		m_Spread = 0.1F;
 		m_MinVelocity = 0;
 		m_MaxVelocity = 0;
 		m_LifeVariation = 0.1F;
-		m_InheritsVel = true;
+		m_InheritsVel = 1.0F;
 		m_IgnoresTeamHits = false;
 		m_SpreadMode = SpreadMode::SpreadRandom;
 	}
@@ -75,11 +75,10 @@ namespace RTE {
 
 		writer.NewProperty("GibParticle");
 		// All of this is needed to make a preset look like not original and save as CopyOf instead of separate preset.
-		Entity *gibEntity = m_GibParticle->Clone();
+		std::unique_ptr<Entity> gibEntity(m_GibParticle->Clone());
 		gibEntity->ResetOriginalPresetFlag();
-		writer << gibEntity;
-		delete gibEntity;
-		gibEntity = 0;
+		gibEntity->Entity::Save(writer);
+		writer.ObjectEnd();
 
 		writer.NewProperty("Offset");
 		writer << m_Offset;
@@ -91,9 +90,9 @@ namespace RTE {
 		writer.NewProperty("Spread");
 		writer << m_Spread;
 		writer.NewProperty("MinVelocity");
-		writer << m_MinVelocity;
+		writer << GetMinVelocity();
 		writer.NewProperty("MaxVelocity");
-		writer << m_MaxVelocity;
+		writer << GetMaxVelocity();
 		writer.NewProperty("LifeVariation");
 		writer << m_LifeVariation;
 		writer.NewProperty("InheritsVel");

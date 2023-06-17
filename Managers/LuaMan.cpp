@@ -1,10 +1,10 @@
 #include "LuaMan.h"
-
+#include "LuabindObjectWrapper.h"
 #include "LuaBindingRegisterDefinitions.h"
-#include "LuaAdapters.h"
-#include "LuaAdaptersEntities.h"
 
 namespace RTE {
+
+	const std::unordered_set<std::string> LuaMan::c_FileAccessModes = { "r", "r+", "w", "w+", "a", "a+" };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -12,8 +12,6 @@ namespace RTE {
 		m_MasterState = nullptr;
 		m_DisableLuaJIT = false;
 		m_LastError.clear();
-		m_NextPresetID = 0;
-		m_NextObjectID = 0;
 		m_TempEntity = nullptr;
 		m_TempEntityVector.clear();
 
@@ -59,27 +57,35 @@ namespace RTE {
 			luabind::class_<LuaMan>("LuaManager")
 				.property("TempEntity", &LuaMan::GetTempEntity)
 				.def_readonly("TempEntities", &LuaMan::m_TempEntityVector, luabind::return_stl_iterator)
+				.def("GetDirectoryList", &LuaMan::DirectoryList, luabind::return_stl_iterator)
+				.def("GetFileList", &LuaMan::FileList, luabind::return_stl_iterator)
 				.def("FileOpen", &LuaMan::FileOpen)
 				.def("FileClose", &LuaMan::FileClose)
 				.def("FileReadLine", &LuaMan::FileReadLine)
 				.def("FileWriteLine", &LuaMan::FileWriteLine)
 				.def("FileEOF", &LuaMan::FileEOF),
 
-			luabind::def("DeleteEntity", &DeleteEntity, luabind::adopt(_1)), // NOT a member function, so adopting _1 instead of the _2 for the first param, since there's no "this" pointer!!
+			luabind::def("DeleteEntity", &LuaAdaptersUtility::DeleteEntity, luabind::adopt(_1)), // NOT a member function, so adopting _1 instead of the _2 for the first param, since there's no "this" pointer!!
+			luabind::def("SelectRand", (int(*)(int, int)) & RandomNum),
 			luabind::def("RangeRand", (double(*)(double, double)) &RandomNum),
-			luabind::def("PosRand", &PosRand),
-			luabind::def("NormalRand", &NormalRand),
-			luabind::def("SelectRand", (int(*)(int, int)) &RandomNum),
+			luabind::def("PosRand", &LuaAdaptersUtility::PosRand),
+			luabind::def("NormalRand", &LuaAdaptersUtility::NormalRand),
 			luabind::def("LERP", &LERP),
 			luabind::def("EaseIn", &EaseIn),
 			luabind::def("EaseOut", &EaseOut),
 			luabind::def("EaseInOut", &EaseInOut),
 			luabind::def("Clamp", &Limit),
-			luabind::def("GetPPM", &GetPPM),
-			luabind::def("GetMPP", &GetMPP),
-			luabind::def("GetPPL", &GetPPL),
-			luabind::def("GetLPP", &GetLPP),
+			luabind::def("NormalizeAngleBetween0And2PI", &NormalizeAngleBetween0And2PI),
+			luabind::def("NormalizeAngleBetweenNegativePIAndPI", &NormalizeAngleBetweenNegativePIAndPI),
+			luabind::def("AngleWithinRange", &AngleWithinRange),
+			luabind::def("ClampAngle", &ClampAngle),
+			luabind::def("GetPPM", &LuaAdaptersUtility::GetPPM),
+			luabind::def("GetMPP", &LuaAdaptersUtility::GetMPP),
+			luabind::def("GetPPL", &LuaAdaptersUtility::GetPPL),
+			luabind::def("GetLPP", &LuaAdaptersUtility::GetLPP),
+			luabind::def("GetPathFindingDefaultDigStrength", &LuaAdaptersUtility::GetPathFindingDefaultDigStrength),
 			luabind::def("RoundFloatToPrecision", &RoundFloatToPrecision),
+			luabind::def("RoundToNearestMultiple", &RoundToNearestMultiple),
 
 			RegisterLuaBindingsOfType(SystemLuaBindings, Vector),
 			RegisterLuaBindingsOfType(SystemLuaBindings, Box),
@@ -115,15 +121,19 @@ namespace RTE {
 			RegisterLuaBindingsOfConcreteType(EntityLuaBindings, HDFirearm),
 			RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ThrownDevice),
 			RegisterLuaBindingsOfConcreteType(EntityLuaBindings, TDExplosive),
+			RegisterLuaBindingsOfConcreteType(EntityLuaBindings, PieSlice),
+			RegisterLuaBindingsOfConcreteType(EntityLuaBindings, PieMenu),
+			RegisterLuaBindingsOfType(EntityLuaBindings, Gib),
 			RegisterLuaBindingsOfType(SystemLuaBindings, Controller),
 			RegisterLuaBindingsOfType(SystemLuaBindings, Timer),
 			RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Scene),
 			RegisterLuaBindingsOfType(EntityLuaBindings, SceneArea),
+			RegisterLuaBindingsOfType(EntityLuaBindings, SceneLayer),
+			RegisterLuaBindingsOfType(EntityLuaBindings, SLBackground),
 			RegisterLuaBindingsOfAbstractType(EntityLuaBindings, Deployment),
 			RegisterLuaBindingsOfType(SystemLuaBindings, DataModule),
 			RegisterLuaBindingsOfType(ActivityLuaBindings, Activity),
 			RegisterLuaBindingsOfAbstractType(ActivityLuaBindings, GameActivity),
-			RegisterLuaBindingsOfType(SystemLuaBindings, PieSlice),
 			RegisterLuaBindingsOfAbstractType(EntityLuaBindings, GlobalScript),
 			RegisterLuaBindingsOfType(EntityLuaBindings, MetaPlayer),
 			RegisterLuaBindingsOfType(GUILuaBindings, GUIBanner),
@@ -131,6 +141,7 @@ namespace RTE {
 			RegisterLuaBindingsOfType(GUILuaBindings, SceneEditorGUI),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, ActivityMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, AudioMan),
+			RegisterLuaBindingsOfType(ManagerLuaBindings, CameraMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, MetaMan),
@@ -142,12 +153,34 @@ namespace RTE {
 			RegisterLuaBindingsOfType(ManagerLuaBindings, SettingsMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, TimerMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, UInputMan),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, GraphicalPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, LinePrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, ArcPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, SplinePrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, BoxPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, BoxFillPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, RoundedBoxPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, RoundedBoxFillPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, CirclePrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, CircleFillPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, EllipsePrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, EllipseFillPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, TrianglePrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, TriangleFillPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, TextPrimitive),
+			RegisterLuaBindingsOfType(PrimitiveLuaBindings, BitmapPrimitive),
+			RegisterLuaBindingsOfType(InputLuaBindings, InputDevice),
+			RegisterLuaBindingsOfType(InputLuaBindings, InputElements),
+			RegisterLuaBindingsOfType(InputLuaBindings, JoyButtons),
+			RegisterLuaBindingsOfType(InputLuaBindings, JoyDirections),
+			RegisterLuaBindingsOfType(InputLuaBindings, MouseButtons),
+			RegisterLuaBindingsOfType(InputLuaBindings, SDL_Keycode),
+			RegisterLuaBindingsOfType(InputLuaBindings, SDL_Scancode),
+			RegisterLuaBindingsOfType(InputLuaBindings, SDL_GameControllerButton),
+			RegisterLuaBindingsOfType(InputLuaBindings, SDL_GameControllerAxis),
 			RegisterLuaBindingsOfType(MiscLuaBindings, AlarmEvent),
-			RegisterLuaBindingsOfType(MiscLuaBindings, InputDevice),
-			RegisterLuaBindingsOfType(MiscLuaBindings, InputElements),
-			RegisterLuaBindingsOfType(MiscLuaBindings, JoyButtons),
-			RegisterLuaBindingsOfType(MiscLuaBindings, JoyDirections),
-			RegisterLuaBindingsOfType(MiscLuaBindings, MouseButtons)
+			RegisterLuaBindingsOfType(MiscLuaBindings, Directions),
+			RegisterLuaBindingsOfType(MiscLuaBindings, DrawBlendMode)
 		];
 
 		// Assign the manager instances to globals in the lua master state
@@ -162,17 +195,23 @@ namespace RTE {
 		luabind::globals(m_MasterState)["ActivityMan"] = &g_ActivityMan;
 		luabind::globals(m_MasterState)["MetaMan"] = &g_MetaMan;
 		luabind::globals(m_MasterState)["MovableMan"] = &g_MovableMan;
+		luabind::globals(m_MasterState)["CameraMan"] = &g_CameraMan;
 		luabind::globals(m_MasterState)["ConsoleMan"] = &g_ConsoleMan;
 		luabind::globals(m_MasterState)["LuaMan"] = &g_LuaMan;
 		luabind::globals(m_MasterState)["SettingsMan"] = &g_SettingsMan;
 
 		luaL_dostring(m_MasterState,
-			// Override print() in the lua state to output to the console.
-			"print = function(toPrint) ConsoleMan:PrintString(\"PRINT: \" .. tostring(toPrint)); end;\n"
 			// Add cls() as a shortcut to ConsoleMan:Clear().
-			"cls = function() ConsoleMan:Clear(); end;"
-			// Add package path to the defaults.
-			"package.path = package.path .. \";Base.rte/?.lua\";\n"
+			"cls = function() ConsoleMan:Clear(); end"
+			"\n"
+			// Override "print" in the lua state to output to the console.
+			"print = function(stringToPrint) ConsoleMan:PrintString(\"PRINT: \" .. tostring(stringToPrint)); end"
+			"\n"
+			// Override "math.random" in the lua state to use RTETools MT19937 implementation. Preserve return types of original to not break all the things.
+			"math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return SelectRand(lower, upper); elseif lower ~= nil then return SelectRand(1, lower); else return PosRand(); end end"
+			"\n"
+			// Override "dofile" to be able to account for Data/ or Mods/ directory.
+			"OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;"
 		);
 	}
 
@@ -195,31 +234,42 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::string LuaMan::GetNewPresetID() {
-		char newID[16];
-		std::snprintf(newID, sizeof(newID), "Pre%05li", m_NextPresetID);
-
-		m_NextPresetID++;
-		return std::string(newID);
+	void LuaMan::SetTempEntityVector(const std::vector<const Entity *> &entityVector) {
+		m_TempEntityVector.reserve(entityVector.size());
+		for (const Entity *entity : entityVector) {
+			m_TempEntityVector.emplace_back(const_cast<Entity *>(entity));
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::string LuaMan::GetNewObjectID() {
-		char newID[16];
-		std::snprintf(newID, sizeof(newID), "Obj%05li", m_NextObjectID);
+	void LuaMan::SetLuaPath(const std::string &filePath) {
+		const std::string moduleName = g_PresetMan.GetModuleNameFromPath(filePath);
+		const std::string moduleFolder = g_PresetMan.IsModuleOfficial(moduleName) ? System::GetDataDirectory() : System::GetModDirectory();
+		const std::string scriptPath = moduleFolder + moduleName + "/?.lua";
 
-		m_NextObjectID++;
-		return std::string(newID);
+		lua_getglobal(m_MasterState, "package");
+		lua_getfield(m_MasterState, -1, "path"); // get field "path" from table at top of stack (-1).
+		std::string currentPath = lua_tostring(m_MasterState, -1); // grab path string from top of stack.
+
+		// check if scriptPath is already in there, if not add it.
+		if (currentPath.find(scriptPath) == std::string::npos) {
+			currentPath.append(";" + scriptPath);
+		}
+
+		lua_pop(m_MasterState, 1); // get rid of the string on the stack we just pushed previously.
+		lua_pushstring(m_MasterState, currentPath.c_str()); // push the new one.
+		lua_setfield(m_MasterState, -2, "path"); // set the field "path" in table at -2 with value at top of stack.
+		lua_pop(m_MasterState, 1); // get rid of package table from top of stack.
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaMan::RunScriptedFunction(const std::string &functionName, const std::string &selfObjectName, std::vector<std::string> variablesToSafetyCheck, std::vector<Entity *> functionEntityArguments, std::vector<std::string> functionLiteralArguments) {
+	int LuaMan::RunScriptFunctionString(const std::string &functionName, const std::string &selfObjectName, const std::vector<std::string_view> &variablesToSafetyCheck, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) {
 		std::stringstream scriptString;
 		if (!variablesToSafetyCheck.empty()) {
 			scriptString << "if ";
-			for (const std::string &variableToSafetyCheck : variablesToSafetyCheck) {
+			for (const std::string_view &variableToSafetyCheck : variablesToSafetyCheck) {
 				if (&variableToSafetyCheck != &variablesToSafetyCheck[0]) { scriptString << " and "; }
 				scriptString << variableToSafetyCheck;
 			}
@@ -227,23 +277,31 @@ namespace RTE {
 		}
 		if (!functionEntityArguments.empty()) { scriptString << "local entityArguments = LuaMan.TempEntities; "; }
 
-		scriptString << functionName + "(" + selfObjectName;
+		scriptString << functionName + "(";
+		if (!selfObjectName.empty()) { scriptString << selfObjectName; }
+		bool isFirstFunctionArgument = selfObjectName.empty();
 		if (!functionEntityArguments.empty()) {
 			SetTempEntityVector(functionEntityArguments);
 			for (const Entity *functionEntityArgument : functionEntityArguments) {
-				scriptString << ", (To" + functionEntityArgument->GetClassName() + " and To" + functionEntityArgument->GetClassName() + "(entityArguments()) or entityArguments())";
+				if (!isFirstFunctionArgument) { scriptString << ", "; }
+				scriptString << "(To" + functionEntityArgument->GetClassName() + " and To" + functionEntityArgument->GetClassName() + "(entityArguments()) or entityArguments())";
+				isFirstFunctionArgument = false;
 			}
 		}
 		if (!functionLiteralArguments.empty()) {
-			for (const std::string &functionLiteralArgument : functionLiteralArguments) {
-				scriptString << ", " + functionLiteralArgument;
+			for (const std::string_view &functionLiteralArgument : functionLiteralArguments) {
+				if (!isFirstFunctionArgument) { scriptString << ", "; }
+				scriptString << std::string(functionLiteralArgument);
+				isFirstFunctionArgument = false;
 			}
 		}
 		scriptString << ");";
 
 		if (!variablesToSafetyCheck.empty()) { scriptString << " end;"; }
 
-		return RunScriptString(scriptString.str());
+		int result = RunScriptString(scriptString.str());
+		m_TempEntityVector.clear();
+		return result;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,13 +332,60 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	int LuaMan::RunScriptFunctionObject(const LuabindObjectWrapper *functionObject, const std::string &selfGlobalTableName, const std::string &selfGlobalTableKey, const std::vector<const Entity*> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) {
+		int status = 0;
+
+		lua_pushcfunction(m_MasterState, &AddFileAndLineToError);
+		functionObject->GetLuabindObject()->push(m_MasterState);
+
+		int argumentCount = functionEntityArguments.size() + functionLiteralArguments.size();
+		if (!selfGlobalTableName.empty() && TableEntryIsDefined(selfGlobalTableName, selfGlobalTableKey)) {
+			lua_getglobal(m_MasterState, selfGlobalTableName.c_str());
+			lua_getfield(m_MasterState, -1, selfGlobalTableKey.c_str());
+			lua_remove(m_MasterState, -2);
+			argumentCount++;
+		}
+
+		for (const Entity *functionEntityArgument : functionEntityArguments) {
+			std::unique_ptr<LuabindObjectWrapper> downCastEntityAsLuabindObjectWrapper(LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions.at(functionEntityArgument->GetClassName())(const_cast<Entity *>(functionEntityArgument), m_MasterState));
+			downCastEntityAsLuabindObjectWrapper->GetLuabindObject()->push(m_MasterState);
+		}
+
+		for (const std::string_view &functionLiteralArgument : functionLiteralArguments) {
+			char *stringToDoubleConversionFailed = nullptr;
+			if (functionLiteralArgument == "nil") {
+				lua_pushnil(m_MasterState);
+			} else if (functionLiteralArgument == "true" || functionLiteralArgument == "false") {
+				lua_pushboolean(m_MasterState, functionLiteralArgument == "true" ? 1 : 0);
+			} else if (double argumentAsNumber = std::strtod(functionLiteralArgument.data(), &stringToDoubleConversionFailed); !*stringToDoubleConversionFailed) {
+				lua_pushnumber(m_MasterState, argumentAsNumber);
+			} else {
+				lua_pushlstring(m_MasterState, functionLiteralArgument.data(), functionLiteralArgument.size());
+			}
+		}
+
+		if (lua_pcall(m_MasterState, argumentCount, LUA_MULTRET, -argumentCount - 2) > 0) {
+			m_LastError = lua_tostring(m_MasterState, -1);
+			lua_pop(m_MasterState, 1);
+			g_ConsoleMan.PrintString("ERROR: " + m_LastError);
+			ClearErrors();
+			status = -1;
+		}
+		lua_pop(m_MasterState, 1);
+
+		return status;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	int LuaMan::RunScriptFile(const std::string &filePath, bool consoleErrors) {
-		if (filePath.empty()) {
+		const std::string fullScriptPath = g_PresetMan.GetFullModulePath(filePath);
+		if (fullScriptPath.empty()) {
 			m_LastError = "Can't run a script file with an empty filepath!";
 			return -1;
 		}
 
-		if (!System::PathExistsCaseSensitive(filePath)) {
+		if (!System::PathExistsCaseSensitive(fullScriptPath)) {
 			m_LastError = "Script file: " + filePath + " doesn't exist!";
 			if (consoleErrors) {
 				g_ConsoleMan.PrintString("ERROR: " + m_LastError);
@@ -292,8 +397,9 @@ namespace RTE {
 		int error = 0;
 
 		lua_pushcfunction(m_MasterState, &AddFileAndLineToError);
+		SetLuaPath(fullScriptPath);
 		// Load the script file's contents onto the stack and then execute it with pcall. Pcall will call the file and line error handler if there's an error by pointing 2 up the stack to it.
-		if (luaL_loadfile(m_MasterState, filePath.c_str()) || lua_pcall(m_MasterState, 0, LUA_MULTRET, -2)) {
+		if (luaL_loadfile(m_MasterState, fullScriptPath.c_str()) || lua_pcall(m_MasterState, 0, LUA_MULTRET, -2)) {
 			m_LastError = lua_tostring(m_MasterState, -1);
 			lua_pop(m_MasterState, 1);
 			if (consoleErrors) {
@@ -306,6 +412,24 @@ namespace RTE {
 		lua_pop(m_MasterState, 1);
 
 		return error;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	int LuaMan::RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper *> &outFunctionNamesAndObjects) {
+		if (int error = RunScriptFile(filePath); error < 0) {
+			return error;
+		}
+
+		for (const std::string &functionName : functionNamesToLookFor) {
+			luabind::object functionObject = luabind::globals(m_MasterState)[functionName];
+			if (luabind::type(functionObject) == LUA_TFUNCTION) {
+				luabind::object *functionObjectCopyForStoring = new luabind::object(functionObject);
+				outFunctionNamesAndObjects.try_emplace(functionName, new LuabindObjectWrapper(functionObjectCopyForStoring, filePath));
+			}
+		}
+
+		return 0;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -378,29 +502,86 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	const std::vector<std::string> & LuaMan::DirectoryList(const std::string &filePath) {
+		m_FileOrDirectoryPaths.clear();
+
+		for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(System::GetWorkingDirectory() + filePath)) {
+			if (directoryEntry.is_directory()) { m_FileOrDirectoryPaths.emplace_back(directoryEntry.path().filename().generic_string()); }
+		}
+		return m_FileOrDirectoryPaths;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	const std::vector<std::string> & LuaMan::FileList(const std::string &filePath) {
+		m_FileOrDirectoryPaths.clear();
+
+		for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(System::GetWorkingDirectory() + filePath)) {
+			if (directoryEntry.is_regular_file()) { m_FileOrDirectoryPaths.emplace_back(directoryEntry.path().filename().generic_string()); }
+		}
+		return m_FileOrDirectoryPaths;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	int LuaMan::FileOpen(const std::string &fileName, const std::string &accessMode) {
+		if (c_FileAccessModes.find(accessMode) == c_FileAccessModes.end()) {
+			g_ConsoleMan.PrintString("ERROR: Cannot open file, invalid file access mode specified.");
+			return -1;
+		}
+
 		int fileIndex = -1;
 		for (int i = 0; i < c_MaxOpenFiles; ++i) {
-			if (!m_OpenedFiles.at(i)) {
+			if (!m_OpenedFiles[i]) {
 				fileIndex = i;
 				break;
 			}
 		}
 		if (fileIndex == -1) {
-			g_ConsoleMan.PrintString("ERROR: Can't open file, maximum number of files already open.");
+			g_ConsoleMan.PrintString("ERROR: Cannot open file, maximum number of files already open.");
 			return -1;
 		}
 
 		std::string fullPath = System::GetWorkingDirectory() + fileName;
-		if ((fullPath.find("..") == std::string::npos) && (System::PathExistsCaseSensitive(std::filesystem::path(fileName).lexically_normal().generic_string())) && (fullPath.find(System::GetModulePackageExtension()) != std::string::npos)) {
-			if (FILE *file = fopen(fullPath.c_str(), accessMode.c_str())) {
-				m_OpenedFiles.at(fileIndex) = file;
+		if ((fullPath.find("..") == std::string::npos) && (fullPath.find(System::GetModulePackageExtension()) != std::string::npos)) {
+
+#ifdef _WIN32
+			FILE *file = fopen(fullPath.c_str(), accessMode.c_str());
+#else
+			FILE *file = [&fullPath, &accessMode]() -> FILE* {
+				std::filesystem::path inspectedPath = System::GetWorkingDirectory();
+				const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
+
+				for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
+					bool pathPartExists = false;
+
+					// Check if a path part (directory or file) exists in the filesystem.
+					for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
+						if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), (*relativeFilePathIterator).generic_string())) {
+							inspectedPath = filesystemEntryPath;
+							pathPartExists = true;
+							break;
+						}
+					}
+					if (!pathPartExists) {
+						// If this is the last part, then all directories in relativeFilePath exist, but the file doesn't.
+						if (std::next(relativeFilePathIterator) == relativeFilePath.end()) {
+							return fopen((inspectedPath / relativeFilePath.filename()).generic_string().c_str(), accessMode.c_str());
+						}
+						// Some directory in relativeFilePath doesn't exist, so the file can't be created.
+						return nullptr;
+					}
+				}
+				// If the file exists, open it.
+				return fopen(inspectedPath.generic_string().c_str(), accessMode.c_str());
+			}();
+#endif
+			if (file) {
+				m_OpenedFiles[fileIndex] = file;
 				return fileIndex;
 			}
 		}
-#ifndef RELEASE_BUILD
 		g_ConsoleMan.PrintString("ERROR: Failed to open file " + fileName);
-#endif
 		return -1;
 	}
 
@@ -408,8 +589,8 @@ namespace RTE {
 
 	void LuaMan::FileClose(int fileIndex) {
 		if (fileIndex > -1 && fileIndex < c_MaxOpenFiles && m_OpenedFiles.at(fileIndex)) {
-			fclose(m_OpenedFiles.at(fileIndex));
-			m_OpenedFiles.at(fileIndex) = nullptr;
+			fclose(m_OpenedFiles[fileIndex]);
+			m_OpenedFiles[fileIndex] = nullptr;
 		}
 	}
 
@@ -426,7 +607,7 @@ namespace RTE {
 	std::string LuaMan::FileReadLine(int fileIndex) {
 		if (fileIndex > -1 && fileIndex < c_MaxOpenFiles && m_OpenedFiles.at(fileIndex)) {
 			char buf[4096];
-			if (fgets(buf, sizeof(buf), m_OpenedFiles.at(fileIndex)) != nullptr) {
+			if (fgets(buf, sizeof(buf), m_OpenedFiles[fileIndex]) != nullptr) {
 				return buf;
 			}
 #ifndef RELEASE_BUILD
@@ -442,7 +623,7 @@ namespace RTE {
 
 	void LuaMan::FileWriteLine(int fileIndex, const std::string &line) {
 		if (fileIndex > -1 && fileIndex < c_MaxOpenFiles && m_OpenedFiles.at(fileIndex)) {
-			if (fputs(line.c_str(), m_OpenedFiles.at(fileIndex)) == EOF) {
+			if (fputs(line.c_str(), m_OpenedFiles[fileIndex]) == EOF) {
 				g_ConsoleMan.PrintString("ERROR: Failed to write to file. File might have been opened without writing permissions or is corrupt.");
 			}
 		} else {
@@ -454,7 +635,7 @@ namespace RTE {
 
 	bool LuaMan::FileEOF(int fileIndex) {
 		if (fileIndex > -1 && fileIndex < c_MaxOpenFiles && m_OpenedFiles.at(fileIndex)) {
-			return feof(m_OpenedFiles.at(fileIndex));
+			return feof(m_OpenedFiles[fileIndex]);
 		}
 		g_ConsoleMan.PrintString("ERROR: Tried to check EOF for an invalid or closed file.");
 		return false;
@@ -464,5 +645,35 @@ namespace RTE {
 
 	void LuaMan::Update() const {
 		lua_gc(m_MasterState, LUA_GCSTEP, 1);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	std::string LuaMan::DescribeLuaStack() {
+		int indexOfTopOfStack = lua_gettop(m_MasterState);
+		if (indexOfTopOfStack == 0) {
+			return "The Lua stack is empty.";
+		}
+		std::stringstream stackDescription;
+		stackDescription << "The Lua stack contains " + std::to_string(indexOfTopOfStack) + " elements. From top to bottom, they are:\n";
+
+		for (int i = indexOfTopOfStack; i > 0; --i) {
+			switch (int type = lua_type(m_MasterState, i)) {
+				case LUA_TBOOLEAN:
+					stackDescription << (lua_toboolean(m_MasterState, i) ? "true" : "false");
+					break;
+				case LUA_TNUMBER:
+					stackDescription << std::to_string(lua_tonumber(m_MasterState, i));
+					break;
+				case LUA_TSTRING:
+					stackDescription << lua_tostring(m_MasterState, i);
+					break;
+				default:
+					stackDescription << lua_typename(m_MasterState, type);
+					break;
+			}
+			if (i - 1 > 0) { stackDescription << "\n"; }
+		}
+		return stackDescription.str();
 	}
 }

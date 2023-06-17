@@ -115,16 +115,23 @@ int ACRocket::Create(const ACRocket &reference) {
     m_pBodyAG = dynamic_cast<AtomGroup *>(reference.m_pBodyAG->Clone());
     m_pBodyAG->SetOwner(this);
 
-    if (reference.m_pRFootGroup)
-    {
-        m_pRFootGroup = dynamic_cast<AtomGroup *>(reference.m_pRFootGroup->Clone());
-        m_pRFootGroup->SetOwner(this);
-    }
-    if (reference.m_pLFootGroup)
-    {
-        m_pLFootGroup = dynamic_cast<AtomGroup *>(reference.m_pLFootGroup->Clone());
-        m_pLFootGroup->SetOwner(this);
-    }
+	if (reference.m_pLFootGroup) {
+		m_pLFootGroup = dynamic_cast<AtomGroup *>(reference.m_pLFootGroup->Clone());
+	} else if (m_pLLeg) {
+		m_pLFootGroup = m_pLLeg->GetFootGroupFromFootAtomGroup();
+	}
+	if (m_pLFootGroup) {
+		m_pLFootGroup->SetOwner(this);
+	}
+
+	if (reference.m_pRFootGroup) {
+		m_pRFootGroup = dynamic_cast<AtomGroup *>(reference.m_pRFootGroup->Clone());
+	} else if (m_pRLeg) {
+		m_pRFootGroup = m_pRLeg->GetFootGroupFromFootAtomGroup();
+	}
+	if (m_pRFootGroup) {
+		m_pRFootGroup->SetOwner(this);
+	}
 
     m_GearState = reference.m_GearState;
 
@@ -244,7 +251,7 @@ void ACRocket::Destroy(bool notInherited)
     delete m_pBodyAG;
     delete m_pRFootGroup;
     delete m_pLFootGroup;
-    
+
 //    for (deque<LimbPath *>::iterator itr = m_WalkPaths.begin();
 //         itr != m_WalkPaths.end(); ++itr)
 //        delete *itr;
@@ -309,7 +316,6 @@ bool ACRocket::OnSink(const Vector &pos)
 
 void ACRocket::UpdateAI()
 {
-    float velMag = m_Vel.GetMagnitude();
     float angle = m_Rotation.GetRadAngle();
 
     // This is the limit where increased thrust should be applied to assure a soft landing
@@ -320,15 +326,18 @@ void ACRocket::UpdateAI()
     float altitude = GetAltitude(g_SceneMan.GetSceneHeight() / 2, 10);
 
     // Stuck detection
-    if (velMag > 1.0)
+    float moveThreshold = 1.0F;
+    if (m_Vel.MagnitudeIsGreaterThan(moveThreshold))
+    {
         m_StuckTimer.Reset();
+    }
 
     /////////////////////////////
     // AI Modes affect the delivery state
 
     if (m_AIMode == AIMODE_DELIVER)
     {
-        
+
     }
 
     ////////////////////////////
@@ -429,7 +438,7 @@ void ACRocket::UpdateAI()
     // STABILIZATION
 
     // Don't mess if we're unloading or automatically stabilizing
-    if (AutoStabilizing() || (m_DeliveryState == UNLOAD && velMag < 5.0))
+    if (AutoStabilizing() || (m_DeliveryState == UNLOAD && m_Vel.MagnitudeIsLessThan(5.0F)))
         m_LateralMoveState = LAT_STILL;
     else
     {
@@ -488,7 +497,7 @@ void ACRocket::Update()
     // Controller update and handling
 
     if ((m_Status == STABLE || m_Status == UNSTABLE) && !m_Controller.IsDisabled()) {
-		if (m_pMThruster) { 
+		if (m_pMThruster) {
 			if (m_MaxGimbalAngle != 0) { m_pMThruster->SetInheritedRotAngleOffset(std::sin(m_Rotation.GetRadAngle()) * m_MaxGimbalAngle - c_HalfPI); }
 
 			if (m_Controller.IsState(MOVE_UP) || m_Controller.IsState(AIM_UP)) {
@@ -561,9 +570,14 @@ void ACRocket::Update()
 
         m_Paths[RIGHT][m_GearState].SetHFlip(m_HFlipped);
         m_Paths[LEFT][m_GearState].SetHFlip(!m_HFlipped);
-        
-        if (m_pRLeg) { m_pRFootGroup->PushAsLimb(m_Pos.GetFloored() + RotateOffset(m_pRLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[RIGHT][m_GearState], deltaTime, nullptr, true); }
-        if (m_pLLeg) { m_pLFootGroup->PushAsLimb(m_Pos.GetFloored() + RotateOffset(m_pLLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[LEFT][m_GearState], deltaTime, nullptr, true); }
+
+		if (!m_LimbPushForcesAndCollisionsDisabled) {
+			if (m_pRLeg) { m_pRFootGroup->PushAsLimb(m_Pos.GetFloored() + RotateOffset(m_pRLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[RIGHT][m_GearState], deltaTime, nullptr, true); }
+			if (m_pLLeg) { m_pLFootGroup->PushAsLimb(m_Pos.GetFloored() + RotateOffset(m_pLLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[LEFT][m_GearState], deltaTime, nullptr, true); }
+		} else {
+			if (m_pRLeg) { m_pRFootGroup->PushAsLimb(m_Pos.GetFloored() + RotateOffset(m_pRLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[RIGHT][m_GearState], deltaTime, nullptr, true); }
+			if (m_pLLeg) { m_pLFootGroup->PushAsLimb(m_Pos.GetFloored() + RotateOffset(m_pLLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[LEFT][m_GearState], deltaTime, nullptr, true); }
+		}
 	}
 
     /////////////////////////////////

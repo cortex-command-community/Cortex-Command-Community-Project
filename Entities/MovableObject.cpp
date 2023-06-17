@@ -12,6 +12,7 @@
 // Inclusions of header files
 
 #include "MovableObject.h"
+
 #include "PresetMan.h"
 #include "SceneMan.h"
 #include "ConsoleMan.h"
@@ -19,6 +20,7 @@
 #include "LuaMan.h"
 #include "Atom.h"
 #include "Actor.h"
+#include "SLTerrain.h"
 
 namespace RTE {
 
@@ -39,6 +41,7 @@ void MovableObject::Clear()
     m_Vel.Reset();
     m_PrevPos.Reset();
     m_PrevVel.Reset();
+	m_DistanceTravelled = 0;
     m_Scale = 1.0;
     m_GlobalAccScalar = 1.0;
     m_AirResistance = 0;
@@ -68,15 +71,15 @@ void MovableObject::Clear()
     m_MOID = g_NoMOID;
     m_RootMOID = g_NoMOID;
     m_HasEverBeenAddedToMovableMan = false;
+	m_ExistsInMovableMan = false;
     m_MOIDFootprint = 0;
     m_AlreadyHitBy.clear();
-    m_VelOscillations = 0;
+	m_VelOscillations = 0;
     m_ToSettle = false;
     m_ToDelete = false;
     m_HUDVisible = true;
     m_AllLoadedScripts.clear();
     m_FunctionsAndScripts.clear();
-    m_ScriptPresetName.clear();
     m_ScriptObjectName.clear();
     m_ScreenEffectFile.Reset();
     m_pScreenEffect = 0;
@@ -107,7 +110,8 @@ void MovableObject::Clear()
 	m_TerrainMatHit = g_MaterialAir;
 	m_ParticleUniqueIDHit = 0;
 
-	m_ProvidesPieMenuContext = false;
+	m_SimUpdatesBetweenScriptedUpdates = 1;
+    m_SimUpdatesSinceLastScriptedUpdate = 0;
 }
 
 
@@ -216,7 +220,6 @@ int MovableObject::Create(const MovableObject &reference)
     m_CanBeSquished = reference.m_CanBeSquished;
     m_HUDVisible = reference.m_HUDVisible;
 
-    m_ScriptPresetName = reference.m_ScriptPresetName;
     for (auto &[scriptPath, scriptEnabled] : reference.m_AllLoadedScripts) {
         LoadScript(scriptPath, scriptEnabled);
     }
@@ -224,7 +227,7 @@ int MovableObject::Create(const MovableObject &reference)
     if (reference.m_pScreenEffect)
     {
         m_ScreenEffectFile = reference.m_ScreenEffectFile;
-        m_pScreenEffect = reference.m_pScreenEffect;
+        m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
 
     }
 	m_EffectRotAngle = reference.m_EffectRotAngle;
@@ -253,10 +256,11 @@ int MovableObject::Create(const MovableObject &reference)
 	m_TerrainMatHit = reference.m_TerrainMatHit;
 	m_ParticleUniqueIDHit = reference.m_ParticleUniqueIDHit;
 
+	m_SimUpdatesBetweenScriptedUpdates = reference.m_SimUpdatesBetweenScriptedUpdates;
+	m_SimUpdatesSinceLastScriptedUpdate = reference.m_SimUpdatesSinceLastScriptedUpdate;
+
 	m_UniqueID = MovableObject::GetNextUniqueID();
 	g_MovableMan.RegisterObject(this);
-
-	m_ProvidesPieMenuContext = reference.m_ProvidesPieMenuContext;
 
     return 0;
 }
@@ -284,7 +288,7 @@ int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader
 	{
 		reader >> m_AirResistance;
 		// Backwards compatibility after we made this value scaled over time
-		m_AirResistance /= 0.01666;
+		m_AirResistance /= 0.01666F;
 	}
 	else if (propName == "AirThreshold")
 		reader >> m_AirThreshold;
@@ -294,7 +298,11 @@ int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader
 		reader >> m_RestThreshold;
 	else if (propName == "LifeTime")
 		reader >> m_Lifetime;
-	else if (propName == "Sharpness")
+	else if (propName == "Age") {
+		double age;
+		reader >> age;
+		m_AgeTimer.SetElapsedSimTimeMS(age);
+	} else if (propName == "Sharpness")
 		reader >> m_Sharpness;
 	else if (propName == "HitsMOs")
 		reader >> m_HitsMOs;
@@ -326,17 +334,9 @@ int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader
 		reader >> m_CanBeSquished;
 	else if (propName == "HUDVisible")
 		reader >> m_HUDVisible;
-	else if (propName == "ProvidesPieMenuContext")
-		reader >> m_ProvidesPieMenuContext;
-	else if (propName == "AddPieSlice")
-	{
-		PieSlice newSlice;
-		reader >> newSlice;
-		PieMenuGUI::StoreCustomLuaPieSlice(newSlice);
-	}
 	else if (propName == "ScriptPath") {
-		std::string scriptPath = CorrectBackslashesInPath(reader.ReadPropValue());
-        switch (LoadScript(CorrectBackslashesInPath(scriptPath))) {
+		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
+        switch (LoadScript(scriptPath)) {
             case 0:
                 break;
             case -1:
@@ -401,6 +401,8 @@ int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader
         reader >> m_ApplyWoundBurstDamageOnCollision;
 	else if (propName == "IgnoreTerrain")
 		reader >> m_IgnoreTerrain;
+    else if (propName == "SimUpdatesBetweenScriptedUpdates")
+        reader >> m_SimUpdatesBetweenScriptedUpdates;
 	else
         return SceneObject::ReadProperty(propName, reader);
 
@@ -418,7 +420,9 @@ int MovableObject::Save(Writer &writer) const
 {
     SceneObject::Save(writer);
 // TODO: Make proper save system that knows not to save redundant data!
-/*
+// Note - this function isn't even called when saving a scene. Turns out that scene special-cases this stuff, see Scene::Save()
+// In future, perhaps we ought to not do that. Who knows?
+
     writer.NewProperty("Mass");
     writer << m_Mass;
     writer.NewProperty("Velocity");
@@ -428,7 +432,7 @@ int MovableObject::Save(Writer &writer) const
     writer.NewProperty("GlobalAccScalar");
     writer << m_GlobalAccScalar;
     writer.NewProperty("AirResistance");
-    writer << m_AirResistance;
+    writer << (m_AirResistance * 0.01666F); // Backwards compatibility after we made this value scaled over time
     writer.NewProperty("AirThreshold");
     writer << m_AirThreshold;
     writer.NewProperty("PinStrength");
@@ -455,10 +459,11 @@ int MovableObject::Save(Writer &writer) const
     writer << m_CanBeSquished;
     writer.NewProperty("HUDVisible");
     writer << m_HUDVisible;
-    if (!m_ScriptPath.empty())
-    {
-        writer.NewProperty("ScriptPath");
-        writer << m_ScriptPath;
+    for (const auto &[scriptPath, scriptEnabled] : m_AllLoadedScripts) {
+        if (!scriptPath.empty()) {
+            writer.NewProperty("ScriptPath");
+            writer << scriptPath;
+        }
     }
     writer.NewProperty("ScreenEffect");
     writer << m_ScreenEffectFile;
@@ -472,7 +477,21 @@ int MovableObject::Save(Writer &writer) const
     writer << (float)m_EffectStopStrength / 255.0f;
     writer.NewProperty("EffectAlwaysShows");
     writer << m_EffectAlwaysShows;
-*/
+    writer.NewProperty("DamageOnCollision");
+    writer << m_DamageOnCollision;
+    writer.NewProperty("DamageOnPenetration");
+    writer << m_DamageOnPenetration;
+    writer.NewProperty("WoundDamageMultiplier");
+    writer << m_WoundDamageMultiplier;
+    writer.NewProperty("ApplyWoundDamageOnCollision");
+    writer << m_ApplyWoundDamageOnCollision;
+    writer.NewProperty("ApplyWoundBurstDamageOnCollision");
+    writer << m_ApplyWoundBurstDamageOnCollision;
+    writer.NewProperty("IgnoreTerrain");
+    writer << m_IgnoreTerrain;
+    writer.NewProperty("SimUpdatesBetweenScriptedUpdates");
+    writer << m_SimUpdatesBetweenScriptedUpdates;
+
     return 0;
 }
 
@@ -490,81 +509,47 @@ void MovableObject::Destroy(bool notInherited) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int MovableObject::InitializeObjectScripts() {
-    m_ScriptObjectName = GetClassName() + "s." + g_LuaMan.GetNewObjectID();
-
-    g_LuaMan.SetTempEntity(this);
-
-    if (g_LuaMan.RunScriptString(m_ScriptObjectName + " = To" + GetClassName() + "(LuaMan.TempEntity);") < 0) {
-        m_ScriptObjectName = "ERROR";
-        return -2;
-    }
-
-	if (!(*m_FunctionsAndScripts.find("Create")).second.empty() && RunScriptedFunctionInAppropriateScripts("Create", true, true) < 0) {
-		m_ScriptObjectName = "ERROR";
+int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledScript) {
+	if (scriptPath.empty()) {
+		return -1;
+	} else if (!System::PathExistsCaseSensitive(scriptPath)) {
+		return -2;
+	} else if (HasScript(scriptPath)) {
 		return -3;
 	}
-    return 0;
-}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	std::string luaClearSupportedFunctionsString;
+	luaClearSupportedFunctionsString.reserve(160);
+	for (const std::string &functionName : GetSupportedScriptFunctionNames()) {
+		luaClearSupportedFunctionsString += functionName + " = nil;";
+	}
+	if (g_LuaMan.RunScriptString(luaClearSupportedFunctionsString) < 0) {
+		return -4;
+	}
 
-int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledScript) {
-    if (scriptPath.empty()) {
-        return -1;
-    } else if (!System::PathExistsCaseSensitive(scriptPath)) {
-        return -2;
-    } else if (HasScript(scriptPath)) {
-        return -3;
-    }
-    m_AllLoadedScripts.insert({scriptPath, loadAsEnabledScript});
+	for (const std::string &functionName : GetSupportedScriptFunctionNames()) {
+		if (m_FunctionsAndScripts.find(functionName) == m_FunctionsAndScripts.end()) {
+			m_FunctionsAndScripts.try_emplace(functionName);
+		}
+	}
 
-    // Clear the temporary variable names that will hold the functions read in from the file
-    for (const std::string &functionName : GetSupportedScriptFunctionNames()) {
-        if (g_LuaMan.RunScriptString(functionName + " = nil;") < 0) {
-            return -4;
-        }
-    }
-    // Create a new table for all presets and object instances of this class, to organize things a bit
-    if (g_LuaMan.RunScriptString(GetClassName() + "s = " + GetClassName() + "s or {};") < 0) {
-        return -4;
-    }
+	m_AllLoadedScripts.try_emplace(scriptPath, loadAsEnabledScript);
 
-    // Run the specified lua file to load everything in it into the global namespace for assignment
-    if (g_LuaMan.RunScriptFile(scriptPath) < 0) {
-        return -5;
-    }
+	std::unordered_map<std::string, LuabindObjectWrapper *> scriptFileFunctions;
+	if (g_LuaMan.RunScriptFileAndRetrieveFunctions(scriptPath, GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
+		return -5;
+	}
+	for (const auto &[functionName, functionObject] : scriptFileFunctions) {
+		m_FunctionsAndScripts.at(functionName).emplace_back(std::unique_ptr<LuabindObjectWrapper>(functionObject));
+	}
 
-    // If there's no ScriptPresetName this is the first script being loaded for this preset, or scripts have been reloaded.
-    // Generate a ScriptPresetName, setup a table for the preset's functions, and clear the instance object name so it gets created in the first run of UpdateScripts
-    if (m_ScriptPresetName.empty()) {
-        m_ScriptPresetName = GetClassName() + "s." + g_LuaMan.GetNewPresetID();
+	g_LuaMan.RunScriptString(luaClearSupportedFunctionsString);
 
-        if (g_LuaMan.RunScriptString(m_ScriptPresetName + " = {};") < 0) {
-            return -4;
-        }
+	if (ObjectScriptsInitialized()) {
+		RunFunctionOfScript(scriptPath, "Create");
+	}
 
-        m_ScriptObjectName.clear();
-    }
-
-    // Assign the different functions read in from the script to their permanent locations in the preset's table
-    for (const std::string &functionName : GetSupportedScriptFunctionNames()) {
-        if (m_FunctionsAndScripts.find(functionName) == m_FunctionsAndScripts.end()) {
-            m_FunctionsAndScripts.insert({functionName, std::vector<std::string>()});
-        }
-        if (g_LuaMan.GlobalIsDefined(functionName)) {
-            m_FunctionsAndScripts.find(functionName)->second.emplace_back(scriptPath);
-            int error = g_LuaMan.RunScriptString(
-                m_ScriptPresetName + "." + functionName + " = " + m_ScriptPresetName + "." + functionName + " or {}; " +
-                m_ScriptPresetName + "." + functionName + "[\"" + scriptPath + "\"] = " + functionName + ";"
-            );
-
-            if (error < 0) {
-                return -4;
-            }
-        }
-    }
-    return 0;
+	return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -574,105 +559,60 @@ int MovableObject::ReloadScripts() {
         return 0;
     }
 
-    /// <summary>
-    /// Internal lambda function to clear a given object's script configurations, and then load them all again in order to reset them.
-    /// </summary>
-    auto clearScriptConfigurationAndLoadPreexistingScripts = [](MovableObject *object, bool isPresetObject) {
-        std::map<std::string, bool> loadedScriptsCopy = object->m_AllLoadedScripts;
-        object->m_AllLoadedScripts.clear();
-        object->m_FunctionsAndScripts.clear();
-        if (isPresetObject) {
-            object->m_ScriptPresetName.clear();
-        } else {
-            object->m_ScriptObjectName.clear();
-        }
+	int status = 0;
 
-        int status = 0;
-        for (const auto &[scriptPath, scriptEnabled] : loadedScriptsCopy) {
-            status = object->LoadScript(scriptPath, scriptEnabled);
-            if (status < 0) {
-                return status;
-            }
-        }
-        return status;
-    };
+	//TODO consider getting rid of this const_cast. It would require either code duplication or creating some non-const methods (specifically of PresetMan::GetEntityPreset, which may be unsafe. Could be this gross exceptional handling is the best way to go.
+	MovableObject *movableObjectPreset = const_cast<MovableObject *>(dynamic_cast<const MovableObject *>(g_PresetMan.GetEntityPreset(GetClassName(), GetPresetName(), GetModuleID())));
+	if (this != movableObjectPreset) {
+		movableObjectPreset->ReloadScripts();
+	}
 
-    //TODO consider getting rid of this const_cast. It would require either code duplication or creating some none const methods (specifically of PresetMan::GetEntityPreset, which may be unsafe. Could be this gross exceptional handling is the best way to go.
-    MovableObject *movableObjectPreset = const_cast<MovableObject *>(dynamic_cast<const MovableObject *>(g_PresetMan.GetEntityPreset(GetClassName(), GetPresetName(), GetModuleID())));
-    int status = 0;
-    if (movableObjectPreset == this) { status = clearScriptConfigurationAndLoadPreexistingScripts(movableObjectPreset, true); }
-    if (status == 0 && movableObjectPreset != this) {
-        if (movableObjectPreset) { m_ScriptPresetName = movableObjectPreset->m_ScriptPresetName; }
-        status = clearScriptConfigurationAndLoadPreexistingScripts(this, false);
-    }
+	std::unordered_map<std::string, bool> loadedScriptsCopy = m_AllLoadedScripts;
+	m_AllLoadedScripts.clear();
+	m_FunctionsAndScripts.clear();
+	for (const auto &[scriptPath, scriptEnabled] : loadedScriptsCopy) {
+		status = LoadScript(scriptPath, scriptEnabled);
+		// If the script fails to load because of an error in its Lua, we need to manually add the script path so it's not lost forever.
+		if (status == -5) {
+			m_AllLoadedScripts.try_emplace(scriptPath, scriptEnabled);
+		} else if (status < 0) {
+			break;
+		}
+	}
 
     return status;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool MovableObject::AddScript(const std::string &scriptPath) {
-    switch (LoadScript(CorrectBackslashesInPath(scriptPath))) {
-        case 0:
-            // If we have a ScriptObjectName that means Create has already been run for pre-existing scripts. Run it right away for this one.
-            if (ObjectScriptsInitialized()) {
-                RunScriptedFunction(scriptPath, "Create");
-                return false;
-            }
-            return true;
-        case -1:
-            g_ConsoleMan.PrintString("ERROR: The script path " + scriptPath + " was empty.");
-            break;
-        case -2:
-            g_ConsoleMan.PrintString("ERROR: The script path " + scriptPath + "  did not point to a valid file.");
-            break;
-        case -3:
-            g_ConsoleMan.PrintString("ERROR: The script path " + scriptPath + " is already loaded onto this object.");
-            break;
-        case -4:
-            g_ConsoleMan.PrintString("ERROR: Failed to do necessary setup to add scripts while attempting to add the script with path " + scriptPath + ". This has nothing to do with your script, please report it to a developer.");
-            break;
-        case -5:
-            g_ConsoleMan.PrintString("ERROR: The file with script path " + scriptPath +" could not be run. Please check that this is a valid Lua file.");
-            break;
-        default:
-            RTEAbort("Reached default case while adding script. This should never happen!");
-            break;
-    }
-    return false;
+int MovableObject::InitializeObjectScripts() {
+	g_LuaMan.SetTempEntity(this);
+
+	m_ScriptObjectName = "_ScriptedObjects[\"" + std::to_string(m_UniqueID) + "\"]";
+	if (g_LuaMan.RunScriptString("_ScriptedObjects = _ScriptedObjects or {}; " + m_ScriptObjectName + " = To" + GetClassName() + "(LuaMan.TempEntity); ") < 0) {
+		RTEAbort("Failed to initialize object scripts for " + GetModuleAndPresetName() + ". Please report this to a developer.");
+	}
+
+	if (!m_FunctionsAndScripts.at("Create").empty() && RunScriptedFunctionInAppropriateScripts("Create", false, true) < 0) {
+		m_ScriptObjectName = "ERROR";
+		return -1;
+	}
+
+	return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool MovableObject::EnableScript(const std::string &scriptPath) {
-    if (m_AllLoadedScripts.empty() || m_ScriptPresetName.empty()) {
+bool MovableObject::EnableOrDisableScript(const std::string &scriptPath, bool enableScript) {
+    if (m_AllLoadedScripts.empty()) {
         return false;
     }
 
-    std::map<std::string, bool>::iterator scriptEntryIterator = m_AllLoadedScripts.find(scriptPath);
-    if (scriptEntryIterator != m_AllLoadedScripts.end() && scriptEntryIterator->second == false) {
-        if (ObjectScriptsInitialized() && RunScriptedFunction(scriptPath, "OnScriptEnable") < 0) {
-            return false;
-        }
-        scriptEntryIterator->second = true;
-        return true;
-    }
-    return false;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool MovableObject::DisableScript(const std::string &scriptPath) {
-    if (m_AllLoadedScripts.empty() || m_ScriptPresetName.empty()) {
-        return false;
-    }
-
-    std::map<std::string, bool>::iterator scriptEntryIterator = m_AllLoadedScripts.find(scriptPath);
-    if (scriptEntryIterator != m_AllLoadedScripts.end() && scriptEntryIterator->second == true) {
-        if (ObjectScriptsInitialized() && RunScriptedFunction(scriptPath, "OnScriptDisable") < 0) {
-            return false;
-        }
-        scriptEntryIterator->second = false;
+	if (auto scriptEntryIterator = m_AllLoadedScripts.find(scriptPath); scriptEntryIterator != m_AllLoadedScripts.end() && scriptEntryIterator->second == !enableScript) {
+		if (ObjectScriptsInitialized() && RunFunctionOfScript(scriptPath, enableScript ? "OnScriptEnable" : "OnScriptDisable") < 0) {
+			return false;
+		}
+        scriptEntryIterator->second = enableScript;
         return true;
     }
     return false;
@@ -682,47 +622,28 @@ bool MovableObject::DisableScript(const std::string &scriptPath) {
 
 void MovableObject::EnableOrDisableAllScripts(bool enableScripts) {
     for (const auto &[scriptPath, scriptIsEnabled] : m_AllLoadedScripts) {
-        if (enableScripts && !scriptIsEnabled) {
-            EnableScript(scriptPath);
-        } else if (!enableScripts && scriptIsEnabled) {
-            DisableScript(scriptPath);
-        }
+		if (enableScripts != scriptIsEnabled) {
+			EnableOrDisableScript(scriptPath, enableScripts);
+		}
     }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int MovableObject::RunScriptedFunction(const std::string &scriptPath, const std::string &functionName, const std::vector<Entity *> &functionEntityArguments, const std::vector<std::string> &functionLiteralArguments) const {
-    if (m_AllLoadedScripts.empty() || m_ScriptPresetName.empty() || !ObjectScriptsInitialized()) {
-        return -1;
-    }
-
-    std::string presetAndFunctionName = m_ScriptPresetName + "." + functionName;
-    std::string fullFunctionName = presetAndFunctionName + "[\"" + scriptPath + "\"]";
-
-    int status = g_LuaMan.RunScriptedFunction(fullFunctionName, m_ScriptObjectName, {presetAndFunctionName, m_ScriptObjectName, fullFunctionName}, functionEntityArguments, functionLiteralArguments);
-    if (status < 0 && m_AllLoadedScripts.size() > 1) {
-        g_ConsoleMan.PrintString("ERROR: An error occured while trying to run the " + functionName + " function for script at path " + scriptPath);
-        return -2;
-    }
-
-    return 0;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts, bool stopOnError, const std::vector<Entity *> &functionEntityArguments, const std::vector<std::string> &functionLiteralArguments) {
+int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts, bool stopOnError, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) {
     int status = 0;
-    if (m_AllLoadedScripts.empty() || m_ScriptPresetName.empty() || m_FunctionsAndScripts.find(functionName) == m_FunctionsAndScripts.end()) {
+
+    auto itr = m_FunctionsAndScripts.find(functionName);
+    if (itr == m_FunctionsAndScripts.end() || itr->second.empty()) {
         status = -1;
     } else if (!ObjectScriptsInitialized()) {
         status = InitializeObjectScripts();
     }
 
     if (status >= 0) {
-        for (const std::string &scriptPath : m_FunctionsAndScripts.at(functionName)) {
-            if (runOnDisabledScripts || m_AllLoadedScripts.at(scriptPath) == true) {
-                status = RunScriptedFunction(scriptPath, functionName, functionEntityArguments, functionLiteralArguments);
+        for (const std::unique_ptr<LuabindObjectWrapper> &functionObjectWrapper : itr->second) {
+            if (runOnDisabledScripts || m_AllLoadedScripts.at(functionObjectWrapper->GetFilePath()) == true) {
+				status = g_LuaMan.RunScriptFunctionObject(functionObjectWrapper.get(), "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments);
                 if (status < 0 && stopOnError) {
                     return status;
                 }
@@ -730,6 +651,25 @@ int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &fu
         }
     }
     return status;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int MovableObject::RunFunctionOfScript(const std::string &scriptPath, const std::string &functionName, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) const {
+	if (m_AllLoadedScripts.empty() || !ObjectScriptsInitialized()) {
+		return -1;
+	}
+
+	for (const std::unique_ptr<LuabindObjectWrapper> &functionObjectWrapper : m_FunctionsAndScripts.at(functionName)) {
+		if (scriptPath == functionObjectWrapper->GetFilePath() && g_LuaMan.RunScriptFunctionObject(functionObjectWrapper.get(), "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments) < 0) {
+			if (m_AllLoadedScripts.size() > 1) {
+				g_ConsoleMan.PrintString("ERROR: An error occured while trying to run the " + functionName + " function for script at path " + scriptPath);
+			}
+			return -2;
+		}
+	}
+
+	return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -748,7 +688,7 @@ MovableObject::MovableObject(const MovableObject &reference):
     m_AgeTimer(reference.GetAge()),
     m_Lifetime(reference.GetLifetime())
 {
-    
+
 }
 */
 
@@ -763,54 +703,30 @@ float MovableObject::GetAltitude(int max, int accuracy)
     return g_SceneMan.FindAltitude(m_Pos, max, accuracy);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  RestDetection
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Does the calculations necessary to detect whether this MO appears to
-//                  have has settled in the world and is at rest or not. IsAtRest()
-//                  retreves the answer.
-
-void MovableObject::RestDetection()
-{
-    if (m_PinStrength)
-        return;
-
-    // Translational settling detection
-    if ((m_Vel.Dot(m_PrevVel) < 0)) {
-        if (m_VelOscillations >= 2 && m_RestThreshold >= 0)
-            m_ToSettle = true;
-        else
-            ++m_VelOscillations;
-    }
-    else
-        m_VelOscillations = 0;
-
-//    if (fabs(m_Vel.m_X) >= 0.25 || fabs(m_Vel.m_Y) >= 0.25)
-//        m_RestTimer.Reset();
-
-    if (fabs(m_Pos.m_X - m_PrevPos.m_X) >= 1.0f || fabs(m_Pos.m_Y - m_PrevPos.m_Y) >= 1.0f)
-        m_RestTimer.Reset();
+void MovableObject::RestDetection() {
+	// Translational settling detection.
+	if (m_Vel.Dot(m_PrevVel) < 0) {
+		++m_VelOscillations;
+	} else {
+		m_VelOscillations = 0;
+	}
+	if ((m_Pos - m_PrevPos).MagnitudeIsGreaterThan(1.0F)) { m_RestTimer.Reset(); }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  IsAtRest
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates wheter the MovableObject has been at rest (no velocity) for
-//                  more than one (1) second.
-
-bool MovableObject::IsAtRest()
-{
-    if (m_PinStrength)
-        return false;
-
-    if (m_RestThreshold < 0)
-        return false;
-    else
-        return m_RestTimer.IsPastSimMS(m_RestThreshold);
+bool MovableObject::IsAtRest() {
+	if (m_RestThreshold < 0 || m_PinStrength) {
+		return false;
+	} else {
+		if (m_VelOscillations > 2) {
+			return true;
+		}
+		return m_RestTimer.IsPastSimMS(m_RestThreshold);
+	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  OnMOHit
@@ -838,6 +754,15 @@ void MovableObject::SetHitWhatTerrMaterial(unsigned char matID) {
     RunScriptedFunctionInAppropriateScripts("OnCollideWithTerrain", false, false, {}, {std::to_string(m_TerrainMatHit)});
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Vector MovableObject::GetTotalForce() {
+	Vector totalForceVector;
+	for (const auto &[force, forceOffset] : m_Forces) {
+		totalForceVector += force;
+	}
+	return totalForceVector;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  ApplyForces
@@ -866,13 +791,11 @@ void MovableObject::ApplyForces()
     if (m_AirResistance > 0 && m_Vel.GetLargest() >= m_AirThreshold)
         m_Vel *= 1.0 - (m_AirResistance * deltaTime);
 
-    // Apply the translational effects of all the forces accumulated during the Update()
-    for (deque<pair<Vector, Vector> >::iterator fItr = m_Forces.begin(); fItr != m_Forces.end(); ++fItr)
-    {
-        // Continuous force application to transformational velocity.
-        // (F = m * a -> a = F / m).
-        m_Vel += ((*fItr).first / (GetMass() != 0 ? GetMass() : 0.0001F) * deltaTime);
-    }
+	// Apply the translational effects of all the forces accumulated during the Update().
+	if (m_Forces.size() > 0) {
+		// Continuous force application to transformational velocity (F = m * a -> a = F / m).
+		m_Vel += GetTotalForce() / (GetMass() != 0 ? GetMass() : 0.0001F) * deltaTime;
+	}
 
     // Clear out the forces list
     m_Forces.clear();
@@ -898,7 +821,7 @@ void MovableObject::ApplyImpulses()
 //    float totalImpulses.
 
     // Apply the translational effects of all the impulses accumulated during the Update()
-    for (deque<pair<Vector, Vector> >::iterator iItr = m_ImpulseForces.begin(); iItr != m_ImpulseForces.end(); ++iItr) {
+    for (auto iItr = m_ImpulseForces.begin(); iItr != m_ImpulseForces.end(); ++iItr) {
         // Impulse force application to the transformational velocity of this MO.
         // Don't timescale these because they're already in kg * m/s (as opposed to kg * m/s^2).
         m_Vel += (*iItr).first / (GetMass() != 0 ? GetMass() : 0.0001F);
@@ -919,11 +842,12 @@ void MovableObject::PreTravel()
 {
 	// Temporarily remove the representation of this from the scene MO sampler
 	if (m_GetsHitByMOs) {
-		if (g_SettingsMan.SimplifiedCollisionDetection()) {
-			m_IsTraveling = true;
-		} else {
+        m_IsTraveling = true;
+#ifdef DRAW_MOID_LAYER
+		if (!g_SettingsMan.SimplifiedCollisionDetection()) {
 			Draw(g_SceneMan.GetMOIDBitmap(), Vector(), DrawMode::g_DrawNoMOID, true);
 		}
+#endif
 	}
 
     // Save previous position and velocities before moving
@@ -943,7 +867,7 @@ void MovableObject::PreTravel()
 
 void MovableObject::Travel()
 {
-    
+
 }
 
 
@@ -956,38 +880,45 @@ void MovableObject::Travel()
 void MovableObject::PostTravel()
 {
     // Toggle whether this gets hit by other AtomGroup MOs depending on whether it's going slower than a set threshold
-    if (m_IgnoresAGHitsWhenSlowerThan > 0)
-        m_IgnoresAtomGroupHits = m_Vel.GetLargest() < m_IgnoresAGHitsWhenSlowerThan;
+    if (m_IgnoresAGHitsWhenSlowerThan > 0) {
+        m_IgnoresAtomGroupHits = m_Vel.MagnitudeIsLessThan(m_IgnoresAGHitsWhenSlowerThan);
+    }
 
 	if (m_GetsHitByMOs) {
         if (!GetParent()) {
-			if (g_SettingsMan.SimplifiedCollisionDetection()) {
-				m_IsTraveling = false;
-			} else {
-				Draw(g_SceneMan.GetMOIDBitmap(), Vector(), DrawMode::g_DrawMOID, true);
+            m_IsTraveling = false;
+#ifdef DRAW_MOID_LAYER
+			if (!g_SettingsMan.SimplifiedCollisionDetection()) {
+                Draw(g_SceneMan.GetMOIDBitmap(), Vector(), DrawMode::g_DrawMOID, true);
 			}
+#endif
 		}
 		m_AlreadyHitBy.clear();
 	}
 	m_IsUpdated = true;
 
     // Check for age expiration
-    if (m_Lifetime && m_AgeTimer.GetElapsedSimTimeMS() > m_Lifetime)
+    if (m_Lifetime && m_AgeTimer.GetElapsedSimTimeMS() > m_Lifetime) {
         m_ToDelete = true;
+    }
 
-    // Check for stupid positions and velocities, but critical stuff can't go too fast
-    if (!g_SceneMan.IsWithinBounds(m_Pos.m_X, m_Pos.m_Y, 100))
+    // Check for stupid positions
+    if (!GetParent() && !g_SceneMan.IsWithinBounds(m_Pos.m_X, m_Pos.m_Y, 1000)) {
         m_ToDelete = true;
+    }
 
     // Fix speeds that are too high
     FixTooFast();
 
     // Never let mission critical stuff settle or delete
-    if (m_MissionCritical)
+    if (m_MissionCritical) {
         m_ToSettle = false;
+    }
 
     // Reset the terrain intersection warning
     m_CheckTerrIntersection = false;
+
+	m_DistanceTravelled += m_Vel.GetMagnitude() * c_PPM * g_TimerMan.GetDeltaTimeSecs();
 }
 
 /*
@@ -1006,34 +937,51 @@ void MovableObject::Update()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void MovableObject::Update() {
+	if (m_RandomizeEffectRotAngleEveryFrame) { m_EffectRotAngle = c_PI * 2.0F * RandomNormalNum(); }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
+    if (mode == g_DrawMOID && m_MOID == g_NoMOID) {
+        return;
+    }
+
+    g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, m_Pos - targetPos, 1.0F);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int MovableObject::UpdateScripts() {
-    if (m_AllLoadedScripts.empty() || m_ScriptPresetName.empty()) {
-        return -1;
-    }
+	m_SimUpdatesSinceLastScriptedUpdate++;
 
-    int status = !g_LuaMan.ExpressionIsTrue(m_ScriptPresetName, false) ? ReloadScripts() : 0;
-    status = (status >= 0 && !ObjectScriptsInitialized()) ? InitializeObjectScripts() : status;
-    status = (status >= 0) ? RunScriptedFunctionInAppropriateScripts("Update", false, true) : status;
+	if (m_AllLoadedScripts.empty()) {
+		return -1;
+	}
 
-    return status;
+	int status = 0;
+	if (!ObjectScriptsInitialized()) {
+		status = InitializeObjectScripts();
+	}
+
+	if (m_SimUpdatesSinceLastScriptedUpdate < m_SimUpdatesBetweenScriptedUpdates) {
+		return 1;
+	}
+
+	m_SimUpdatesSinceLastScriptedUpdate = 0;
+
+	if (status >= 0) {
+		status = RunScriptedFunctionInAppropriateScripts("Update", false, true);
+	}
+
+	return status;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int MovableObject::OnPieMenu(Actor *pieMenuActor) {
-    if (!pieMenuActor) {
-        return -1;
-    }
-
-    return RunScriptedFunctionInAppropriateScripts("OnPieMenu", false, false, {pieMenuActor});
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MovableObject::Update()
-{
-	if (m_RandomizeEffectRotAngleEveryFrame)
-		m_EffectRotAngle = c_PI * 2.0F * RandomNormalNum();
+int MovableObject::WhilePieMenuOpenListener(const PieMenu *pieMenu) {
+	return RunScriptedFunctionInAppropriateScripts("WhilePieMenuOpen", false, false, { pieMenu });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1041,7 +989,7 @@ void MovableObject::Update()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Updates this' and its childrens MOID status. Supposed to be done every frame.
 
-void MovableObject::UpdateMOID(vector<MovableObject *> &MOIDIndex, MOID rootMOID, bool makeNewMOID)
+void MovableObject::UpdateMOID(std::vector<MovableObject *> &MOIDIndex, MOID rootMOID, bool makeNewMOID)
 {
     // Register the own MOID
     RegMOID(MOIDIndex, rootMOID, makeNewMOID);
@@ -1074,7 +1022,7 @@ void MovableObject::GetMOIDs(std::vector<MOID> &MOIDs) const
 //                  itself and its children for this frame.
 //                  BITMAP of choice.
 
-void MovableObject::RegMOID(vector<MovableObject *> &MOIDIndex, MOID rootMOID, bool makeNewMOID) {
+void MovableObject::RegMOID(std::vector<MovableObject *> &MOIDIndex, MOID rootMOID, bool makeNewMOID) {
     if (!makeNewMOID && GetParent()) {
         m_MOID = GetParent()->GetID();
     } else {
@@ -1085,6 +1033,70 @@ void MovableObject::RegMOID(vector<MovableObject *> &MOIDIndex, MOID rootMOID, b
     }
 
     m_RootMOID = rootMOID == g_NoMOID ? m_MOID : rootMOID;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool MovableObject::DrawToTerrain(SLTerrain *terrain) {
+	if (!terrain) {
+		return false;
+	}
+	if (dynamic_cast<MOSprite *>(this)) {
+		auto wrappedMaskedBlit = [](BITMAP *sourceBitmap, BITMAP *destinationBitmap, const Vector &bitmapPos, bool swapSourceWithDestination) {
+			std::array<BITMAP *, 2> bitmaps = { sourceBitmap, destinationBitmap };
+			std::array<Vector, 5> srcPos = {
+				Vector(bitmapPos.GetX(), bitmapPos.GetY()),
+				Vector(bitmapPos.GetX() + static_cast<float>(g_SceneMan.GetSceneWidth()), bitmapPos.GetY()),
+				Vector(bitmapPos.GetX() - static_cast<float>(g_SceneMan.GetSceneWidth()), bitmapPos.GetY()),
+				Vector(bitmapPos.GetX(), bitmapPos.GetY() + static_cast<float>(g_SceneMan.GetSceneHeight())),
+				Vector(bitmapPos.GetX(), bitmapPos.GetY() - static_cast<float>(g_SceneMan.GetSceneHeight()))
+			};
+			std::array<Vector, 5> destPos;
+			destPos.fill(Vector());
+
+			if (swapSourceWithDestination) {
+				std::swap(bitmaps[0], bitmaps[1]);
+				std::swap(srcPos, destPos);
+			}
+			masked_blit(bitmaps[0], bitmaps[1], srcPos[0].GetFloorIntX(), srcPos[0].GetFloorIntY(), destPos[0].GetFloorIntX(), destPos[0].GetFloorIntY(), destinationBitmap->w, destinationBitmap->h);
+			if (g_SceneMan.SceneWrapsX()) {
+				if (bitmapPos.GetFloorIntX() < 0) {
+					masked_blit(bitmaps[0], bitmaps[1], srcPos[1].GetFloorIntX(), srcPos[1].GetFloorIntY(), destPos[1].GetFloorIntX(), destPos[1].GetFloorIntY(), destinationBitmap->w, destinationBitmap->h);
+				} else if (bitmapPos.GetFloorIntX() + destinationBitmap->w > g_SceneMan.GetSceneWidth()) {
+					masked_blit(bitmaps[0], bitmaps[1], srcPos[2].GetFloorIntX(), srcPos[2].GetFloorIntY(), destPos[2].GetFloorIntX(), destPos[2].GetFloorIntY(), destinationBitmap->w, destinationBitmap->h);
+				}
+			}
+			if (g_SceneMan.SceneWrapsY()) {
+				if (bitmapPos.GetFloorIntY() < 0) {
+					masked_blit(bitmaps[0], bitmaps[1], srcPos[3].GetFloorIntX(), srcPos[3].GetFloorIntY(), destPos[3].GetFloorIntX(), destPos[3].GetFloorIntY(), destinationBitmap->w, destinationBitmap->h);
+				} else if (bitmapPos.GetFloorIntY() + destinationBitmap->h > g_SceneMan.GetSceneHeight()) {
+					masked_blit(bitmaps[0], bitmaps[1], srcPos[4].GetFloorIntX(), srcPos[4].GetFloorIntY(), destPos[4].GetFloorIntX(), destPos[4].GetFloorIntY(), destinationBitmap->w, destinationBitmap->h);
+				}
+			}
+		};
+		BITMAP *tempBitmap = g_SceneMan.GetIntermediateBitmapForSettlingIntoTerrain(static_cast<int>(GetDiameter()));
+		Vector tempBitmapPos = m_Pos.GetFloored() - Vector(static_cast<float>(tempBitmap->w / 2), static_cast<float>(tempBitmap->w / 2));
+
+		clear_bitmap(tempBitmap);
+		// Draw the object to the temp bitmap, then draw the foreground layer on top of it, then draw it to the foreground layer.
+		Draw(tempBitmap, tempBitmapPos, DrawMode::g_DrawColor, true);
+		wrappedMaskedBlit(terrain->GetFGColorBitmap(), tempBitmap, tempBitmapPos, false);
+		wrappedMaskedBlit(terrain->GetFGColorBitmap(), tempBitmap, tempBitmapPos, true);
+
+		clear_bitmap(tempBitmap);
+		// Draw the object to the temp bitmap, then draw the material layer on top of it, then draw it to the material layer.
+		Draw(tempBitmap, tempBitmapPos, DrawMode::g_DrawMaterial, true);
+		wrappedMaskedBlit(terrain->GetMaterialBitmap(), tempBitmap, tempBitmapPos, false);
+		wrappedMaskedBlit(terrain->GetMaterialBitmap(), tempBitmap, tempBitmapPos, true);
+
+		terrain->AddUpdatedMaterialArea(Box(tempBitmapPos, static_cast<float>(tempBitmap->w), static_cast<float>(tempBitmap->h)));
+		g_SceneMan.RegisterTerrainChange(tempBitmapPos.GetFloorIntX(), tempBitmapPos.GetFloorIntY(), tempBitmap->w, tempBitmap->h, ColorKeys::g_MaskColor, false);
+	} else {
+		Draw(terrain->GetFGColorBitmap(), Vector(), DrawMode::g_DrawColor, true);
+		Draw(terrain->GetMaterialBitmap(), Vector(), DrawMode::g_DrawMaterial, true);
+		g_SceneMan.RegisterTerrainChange(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), 1, 1, DrawMode::g_DrawColor, false);
+	}
+	return true;
 }
 
 } // namespace RTE

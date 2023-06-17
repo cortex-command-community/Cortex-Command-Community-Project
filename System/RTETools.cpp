@@ -8,13 +8,23 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SeedRNG() {
-		// Pre-Seed generation
-		std::array<int, 624> seedData;
-		std::random_device randomDevice;
-		std::generate_n(seedData.data(), seedData.size(), std::ref(randomDevice));
+		// Use a constant seed for determinism.
+		static constexpr uint32_t constSeed = []() {
+			// VERY IMPORTANT, DO NOT CHANGE THIS!...
+			// ...it's the name of my childhood pet ;)
+			std::string_view seedString = "Bubble";
 
-		std::seed_seq sequence(std::begin(seedData), std::end(seedData));
-		g_RNG.seed(sequence);
+			// Biggest prime in a int64_t, because we want all bits to potentially be set (so let us overflow).
+			const uint64_t hugePrime = 18446744073709551557;
+
+			uint64_t seedResult = 0;
+			for (char c : seedString) {
+				seedResult += static_cast<uint64_t>(c) * hugePrime;
+			}
+			return static_cast<uint32_t>(seedResult);
+		}();
+
+		g_RNG.seed(constSeed);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +108,51 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	float NormalizeAngleBetween0And2PI(float angle) {
+		while (angle < 0) {
+			angle += c_TwoPI;
+		}
+		return (angle > c_TwoPI) ? fmodf(angle + c_TwoPI, c_TwoPI) : angle;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	float NormalizeAngleBetweenNegativePIAndPI(float angle) {
+		while (angle < 0) {
+			angle += c_TwoPI;
+		}
+		return (angle > c_PI) ? fmodf(angle + c_PI, c_TwoPI) - c_PI : angle;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool AngleWithinRange(float angleToCheck, float startAngle, float endAngle) {
+		angleToCheck = NormalizeAngleBetween0And2PI(angleToCheck);
+		startAngle = NormalizeAngleBetween0And2PI(startAngle);
+		endAngle = NormalizeAngleBetween0And2PI(endAngle);
+
+		return endAngle >= startAngle ? (angleToCheck >= startAngle && angleToCheck <= endAngle) : (angleToCheck >= startAngle || angleToCheck <= endAngle);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	float ClampAngle(float angleToClamp, float startAngle, float endAngle) {
+		angleToClamp = NormalizeAngleBetween0And2PI(angleToClamp);
+
+		if (!AngleWithinRange(angleToClamp, startAngle, endAngle)) {
+			startAngle = NormalizeAngleBetween0And2PI(startAngle);
+			endAngle = NormalizeAngleBetween0And2PI(endAngle);
+
+			float shortestDistanceToStartAngle = std::min(c_TwoPI - std::abs(angleToClamp - startAngle), std::abs(angleToClamp - startAngle));
+			float shortestDistanceToEndAngle = std::min(c_TwoPI - std::abs(angleToClamp - endAngle), std::abs(angleToClamp - endAngle));
+			angleToClamp = shortestDistanceToStartAngle < shortestDistanceToEndAngle ? startAngle : endAngle;
+		}
+
+		return angleToClamp;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	bool WithinBox(Vector &point, float left, float top, float right, float bottom) {
 		return point.m_X >= left && point.m_X < right && point.m_Y >= top && point.m_Y < bottom;
 	}
@@ -129,6 +184,12 @@ namespace RTE {
 					break;
 				case 2:
 					roundingBuffer = std::ceil(roundingBuffer);
+					break;
+				case 3:
+					roundingBuffer = std::ceil(roundingBuffer);
+					if (int remainder = static_cast<int>(roundingBuffer) % 10; remainder > 0) {
+						roundingBuffer = roundingBuffer - static_cast<float>(remainder) + (remainder <= 5 ? 5.0F : 10.0F);
+					}
 					break;
 				default:
 					RTEAbort("Error in RoundFloatToPrecision: INVALID ROUNDING MODE");

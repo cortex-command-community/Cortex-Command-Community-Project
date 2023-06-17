@@ -13,6 +13,7 @@
 
 #include "AssemblyEditorGUI.h"
 
+#include "CameraMan.h"
 #include "FrameMan.h"
 #include "PresetMan.h"
 #include "ActivityMan.h"
@@ -20,6 +21,7 @@
 #include "SceneEditor.h"
 #include "UInputMan.h"
 
+#include "Deployment.h"
 #include "Controller.h"
 #include "SceneObject.h"
 #include "MOSprite.h"
@@ -31,7 +33,6 @@
 #include "ACrab.h"
 #include "SLTerrain.h"
 #include "ObjectPickerGUI.h"
-#include "PieMenuGUI.h"
 #include "Scene.h"
 #include "SettingsMan.h"
 
@@ -64,8 +65,7 @@ void AssemblyEditorGUI::Clear()
     m_RepeatTimer.Reset();
     m_RevealTimer.Reset();
     m_RevealIndex = 0;
-    m_pPieMenu = 0;
-    m_ActivatedPieSliceType = PieSlice::PieSliceIndex::PSI_NONE;
+	m_PieMenu = nullptr;
     m_pPicker = 0;
     m_NativeTechModule = 0;
     m_ForeignCostMult = 4.0;
@@ -99,15 +99,9 @@ int AssemblyEditorGUI::Create(Controller *pController, FeatureSets featureSet, i
 
     m_FeatureSet = featureSet;
 
-    // Allocate and (re)create the Editor GUIs
-    if (!m_pPieMenu)
-        m_pPieMenu = new PieMenuGUI();
-    else
-        m_pPieMenu->Destroy();
-    m_pPieMenu->Create(pController);
-
-    // Init the pie menu
-    UpdatePieMenu();
+	if (m_PieMenu) { m_PieMenu = nullptr; }
+	m_PieMenu = std::unique_ptr<PieMenu>(dynamic_cast<PieMenu *>(g_PresetMan.GetEntityPreset("PieMenu", "Assembly Editor Pie Menu")->Clone()));
+	m_PieMenu->SetMenuController(pController);
 
     // Update the brain path
     UpdateBrainPath();
@@ -169,7 +163,6 @@ int AssemblyEditorGUI::Create(Controller *pController, FeatureSets featureSet, i
 
 void AssemblyEditorGUI::Destroy()
 {
-    delete m_pPieMenu;
     delete m_pPicker;
     delete m_pCurrentObject;
 	delete m_pCurrentScheme;
@@ -187,7 +180,7 @@ void AssemblyEditorGUI::Destroy()
 void AssemblyEditorGUI::SetController(Controller *pController)
 {
     m_pController = pController;
-    m_pPieMenu->SetController(pController);
+	m_PieMenu->SetMenuController(pController);
     m_pPicker->SetController(pController);
 }
 
@@ -237,6 +230,16 @@ bool AssemblyEditorGUI::SetCurrentObject(SceneObject *pNewObject)
 
 
     return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Method:          GetActivatedPieSlice
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Gets any Pie menu slice command activated last update.
+
+PieSlice::SliceType AssemblyEditorGUI::GetActivatedPieSlice() const {
+    return m_PieMenu->GetPieCommand();
 }
 
 
@@ -306,7 +309,7 @@ void AssemblyEditorGUI::Update()
     // Update the user controller
 //    m_pController->Update();
 
-	string selectedAssembly = "\nSelected scheme: ";
+    std::string selectedAssembly = "\nSelected scheme: ";
 
 	if (m_pCurrentScheme)
 	{
@@ -364,43 +367,45 @@ void AssemblyEditorGUI::Update()
     // Analog cursor input
 
     Vector analogInput;
-    if (m_pController->GetAnalogMove().GetMagnitude() > 0.1)
+    if (m_pController->GetAnalogMove().MagnitudeIsGreaterThan(0.1F))
         analogInput = m_pController->GetAnalogMove();
-//    else if (m_pController->GetAnalogAim().GetMagnitude() > 0.1)
+//    else if (m_pController->GetAnalogAim().MagnitudeIsGreaterThan(0.1F))
 //        analogInput = m_pController->GetAnalogAim();
 
     /////////////////////////////////////////////
     // PIE MENU
 
-    m_pPieMenu->Update();
+	m_PieMenu->Update();
 
     // Show the pie menu only when the secondary button is held down
-    if (m_pController->IsState(PRESS_SECONDARY) && m_EditorGUIMode != INACTIVE && m_EditorGUIMode != PICKINGOBJECT)
-    {
-        m_pPieMenu->SetEnabled(true);
-        m_pPieMenu->SetPos(m_GridSnapping ? g_SceneMan.SnapPosition(m_CursorPos) : m_CursorPos);
+    if (m_pController->IsState(PRESS_SECONDARY) && m_EditorGUIMode != INACTIVE && m_EditorGUIMode != PICKINGOBJECT) {
+		m_PieMenu->SetPos(m_GridSnapping ? g_SceneMan.SnapPosition(m_CursorPos) : m_CursorPos);
+		m_PieMenu->SetEnabled(true);
+
+		PieSlice *saveSlice = m_PieMenu->GetFirstPieSliceByType(PieSlice::SliceType::EditorSave);
+		if (saveSlice) {
+			saveSlice->SetEnabled(m_pCurrentScheme != nullptr);
+			saveSlice->SetDescription(m_pCurrentScheme != nullptr ? "Save Assembly" : "Can't Save Assembly, Scheme Not Selected!");
+		}
     }
 
-    if (!m_pController->IsState(PIE_MENU_ACTIVE) || m_EditorGUIMode == INACTIVE || m_EditorGUIMode == PICKINGOBJECT)
-        m_pPieMenu->SetEnabled(false);
+	if (!m_pController->IsState(PIE_MENU_ACTIVE) || m_EditorGUIMode == INACTIVE || m_EditorGUIMode == PICKINGOBJECT) { m_PieMenu->SetEnabled(false); }
 
     ///////////////////////////////////////
     // Handle pie menu selections
 
-    m_ActivatedPieSliceType = m_pPieMenu->GetPieCommand();
-    if (m_pPieMenu->GetPieCommand() != PieSlice::PieSliceIndex::PSI_NONE)
-    {
-        if (m_pPieMenu->GetPieCommand() == PieSlice::PieSliceIndex::PSI_PICK)
-            m_EditorGUIMode = PICKINGOBJECT;
-        else if (m_pPieMenu->GetPieCommand() == PieSlice::PieSliceIndex::PSI_MOVE)
-            m_EditorGUIMode = MOVINGOBJECT;
-        else if (m_pPieMenu->GetPieCommand() == PieSlice::PieSliceIndex::PSI_REMOVE)
-            m_EditorGUIMode = DELETINGOBJECT;
-        else if (m_pPieMenu->GetPieCommand() == PieSlice::PieSliceIndex::PSI_DONE)
-            m_EditorGUIMode = DONEEDITING;
+    if (m_PieMenu->GetPieCommand() != PieSlice::SliceType::NoType) {
+		if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorPick) {
+			m_EditorGUIMode = PICKINGOBJECT;
+		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorMove) {
+			m_EditorGUIMode = MOVINGOBJECT;
+		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorRemove) {
+			m_EditorGUIMode = DELETINGOBJECT;
+		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorDone) {
+			m_EditorGUIMode = DONEEDITING;
+		}
 
         UpdateBrainPath();
-        UpdatePieMenu();
         m_ModeChanged = true;
     }
 
@@ -427,27 +432,26 @@ void AssemblyEditorGUI::Update()
             m_pCurrentObject->Update();
             // Update the path to the brain, or clear it if there's none
             UpdateBrainPath();
-                
+
             // If done picking, revert to moving object mode
             if (m_pPicker->DonePicking())
             {
                 m_EditorGUIMode = ADDINGOBJECT;
                 UpdateBrainPath();
-                UpdatePieMenu();
                 m_ModeChanged = true;
             }
         }
     }
 
     if (!m_pPicker->IsVisible())
-        g_SceneMan.SetScreenOcclusion(Vector(), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+        g_CameraMan.SetScreenOcclusion(Vector(), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
     else
         g_FrameMan.SetScreenText("Pick what you want to place next" + selectedAssembly, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
 
     /////////////////////////////////////
     // ADDING OBJECT MODE
 
-    if (m_EditorGUIMode == ADDINGOBJECT && !m_pPieMenu->IsEnabled())
+    if (m_EditorGUIMode == ADDINGOBJECT && !m_PieMenu->IsEnabled())
     {
         if (m_ModeChanged)
         {
@@ -525,7 +529,6 @@ void AssemblyEditorGUI::Update()
             m_EditorGUIMode = PLACINGOBJECT;
             m_PreviousMode = ADDINGOBJECT;
             m_ModeChanged = true;
-            UpdatePieMenu();
             g_GUISound.PlacementBlip()->Play();
         }
 
@@ -611,14 +614,12 @@ void AssemblyEditorGUI::Update()
         {
             m_EditorGUIMode = m_PreviousMode;
             m_ModeChanged = true;
-            UpdatePieMenu();
         }
         // If previous mode was moving, tear the gib loose if the button is released to soo
         else if (m_PreviousMode == MOVINGOBJECT && m_pController->IsState(RELEASE_PRIMARY) && !m_BlinkTimer.IsPastRealMS(150))
         {
             m_EditorGUIMode = ADDINGOBJECT;
             m_ModeChanged = true;
-            UpdatePieMenu();
         }
         // Only place if the picker and pie menus are completely out of view, to avoid immediate placing after picking
         else if (m_pCurrentObject && m_pController->IsState(RELEASE_PRIMARY) && !m_pPicker->IsVisible())
@@ -646,7 +647,7 @@ void AssemblyEditorGUI::Update()
 					if (pPickedSceneObject)
 					{
 						pAHuman = dynamic_cast<const AHuman *>(pPickedSceneObject);
-						
+
 						if (!pAHuman)
 						{
 							// Maybe we clicked the underlying bunker module, search for actor in range
@@ -682,7 +683,7 @@ void AssemblyEditorGUI::Update()
 						SceneObject *pBrain = g_SceneMan.GetScene()->GetResidentBrain(m_pController->GetPlayer());
 						if (pBrain)
 						{
-							if (g_SceneMan.ShortestDistance(pBrain->GetPos(), m_CursorPos,true).GetMagnitude() < 20)
+							if (g_SceneMan.ShortestDistance(pBrain->GetPos(), m_CursorPos,true).MagnitudeIsLessThan(20.0F))
 							{
 								AHuman * pBrainAHuman = dynamic_cast<AHuman *>(pBrain);
 								if (pBrainAHuman)
@@ -709,16 +710,16 @@ void AssemblyEditorGUI::Update()
 
 				// Look through available assemblies and set the name appropriately
 				int number = 1;
-				list<Entity *> assemblies;
+                std::list<Entity *> assemblies;
 				g_PresetMan.GetAllOfGroup(assemblies, pBAS->GetPresetName(), "BunkerAssembly", -1);
 				for (int i = 1; i < 256; i++)
-				{	
+				{
 					number = i;
 					char currentName[256];
 
 					std::snprintf(currentName, sizeof(currentName), "%s - %d", m_CurrentAssemblyName.c_str(), 1);
 
-					for (list<Entity *>::iterator itr = assemblies.begin(); itr != assemblies.end(); itr++)
+					for (std::list<Entity *>::iterator itr = assemblies.begin(); itr != assemblies.end(); itr++)
 					{
 						std::snprintf(currentName, sizeof(currentName), "%s - %d", m_CurrentAssemblyName.c_str(), number);
 						if ((*itr)->GetPresetName() == currentName)
@@ -747,7 +748,7 @@ void AssemblyEditorGUI::Update()
 			{
 				//Clear current scheme and assign new one
 				delete m_pCurrentScheme;
-				
+
 				const Entity *pPreset = g_PresetMan.GetEntityPreset("BunkerAssemblyScheme", pBA->GetParentAssemblySchemeName(), -1);
 				if (pPreset)
 				{
@@ -758,7 +759,7 @@ void AssemblyEditorGUI::Update()
 				//Place objects inlcuded in bunker assembly
 				const std::list<SceneObject *> *objects = pBA->GetPlacedObjects();
 				
-		        for (list<SceneObject *>::const_iterator oItr = objects->begin(); oItr != objects->end(); ++oItr)
+		        for (std::list<SceneObject *>::const_iterator oItr = objects->begin(); oItr != objects->end(); ++oItr)
 				{
 					SceneObject *pSO = dynamic_cast<SceneObject *>((*oItr)->Clone());
 
@@ -770,7 +771,7 @@ void AssemblyEditorGUI::Update()
 					{
 						if (pos.m_X < 0)
 							pos.m_X += g_SceneMan.GetScene()->GetWidth();
-						
+
 						if (pos.m_X >= g_SceneMan.GetScene()->GetWidth())
 							pos.m_X -= g_SceneMan.GetScene()->GetWidth();
 					}
@@ -779,7 +780,7 @@ void AssemblyEditorGUI::Update()
 					{
 						if (pos.m_Y < 0)
 							pos.m_Y += g_SceneMan.GetScene()->GetHeight();
-						
+
 						if (pos.m_Y >= g_SceneMan.GetScene()->GetHeight())
 							pos.m_Y -= g_SceneMan.GetScene()->GetHeight();
 					}
@@ -812,7 +813,6 @@ void AssemblyEditorGUI::Update()
             // Go back to previous mode
             m_EditorGUIMode = m_PreviousMode;
             m_ModeChanged = true;
-            UpdatePieMenu();
         }
 
         // Set the facing of AHumans based on right/left cursor movements
@@ -829,7 +829,7 @@ void AssemblyEditorGUI::Update()
     /////////////////////////////////////////////////////////////
     // POINTING AT MODES
 
-    else if ((m_EditorGUIMode == MOVINGOBJECT || m_EditorGUIMode == DELETINGOBJECT) && !m_pPieMenu->IsEnabled())
+    else if ((m_EditorGUIMode == MOVINGOBJECT || m_EditorGUIMode == DELETINGOBJECT) && !m_PieMenu->IsEnabled())
     {
         m_DrawCurrentObject = false;
 
@@ -882,7 +882,6 @@ void AssemblyEditorGUI::Update()
                     m_EditorGUIMode = PLACINGOBJECT;
                     m_PreviousMode = MOVINGOBJECT;
                     m_ModeChanged = true;
-                    UpdatePieMenu();
                     m_BlinkTimer.Reset();
                     g_GUISound.PlacementBlip()->Play();
                     g_GUISound.PlacementGravel()->Play();
@@ -940,7 +939,7 @@ void AssemblyEditorGUI::Update()
     bool cursorWrapped = g_SceneMan.ForceBounds(m_CursorPos);
 // TODO: make setscrolltarget with 'sloppy' target
     // Scroll to the cursor's scene position
-    g_SceneMan.SetScrollTarget(m_CursorPos, 0.3, cursorWrapped, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+    g_CameraMan.SetScrollTarget(m_CursorPos, 0.3, cursorWrapped, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
     // Apply the cursor position to the currently held object
     if (m_pCurrentObject && m_DrawCurrentObject)
     {
@@ -979,12 +978,12 @@ void AssemblyEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) con
         int i = 0;
         Actor *pActor = 0;
 //        HeldDevice *pDevice = 0;
-        for (list<SceneObject *>::const_iterator itr = pSceneObjectList->begin(); itr != pSceneObjectList->end(); ++itr, ++i)
+        for (std::list<SceneObject *>::const_iterator itr = pSceneObjectList->begin(); itr != pSceneObjectList->end(); ++itr, ++i)
         {
             // Draw the currently held object into the order of the list if it is to be placed inside
             if (m_pCurrentObject && m_DrawCurrentObject && i == m_ObjectListOrder)
             {
-                g_FrameMan.SetTransTable(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? LessTrans : HalfTrans);
+                g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
                 m_pCurrentObject->Draw(pTargetBitmap, targetPos, g_DrawTrans);
                 pActor = dynamic_cast<Actor *>(m_pCurrentObject);
                 if (pActor)
@@ -993,12 +992,12 @@ void AssemblyEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) con
 
             // Is the placed object an actor?
             pActor = dynamic_cast<Actor *>(*itr);
-//            pItem = dynamic_cast<MovableObject *>(*itr);            
+//            pItem = dynamic_cast<MovableObject *>(*itr);
 
             // Blink trans if we are supposed to blink this one
             if ((*itr) == m_pObjectToBlink)
             {
-                g_FrameMan.SetTransTable(m_BlinkTimer.AlternateReal(333) ? LessTrans : HalfTrans);
+                g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
                 (*itr)->Draw(pTargetBitmap, targetPos, g_DrawTrans);
             }
             // Drawing of already placed objects that aren't highlighted or anything
@@ -1026,7 +1025,7 @@ void AssemblyEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) con
     // If the held object will be placed at the end of the list, draw it last to the scene, transperent blinking
 	else if (m_pCurrentObject && (m_ObjectListOrder < 0 || (pSceneObjectList && m_ObjectListOrder == pSceneObjectList->size())))
     {
-        g_FrameMan.SetTransTable(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? LessTrans : HalfTrans);
+        g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
         m_pCurrentObject->Draw(pTargetBitmap, targetPos, g_DrawTrans);
         Actor *pActor = dynamic_cast<Actor *>(m_pCurrentObject);
         if (pActor)
@@ -1039,44 +1038,7 @@ void AssemblyEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) con
     m_pPicker->Draw(pTargetBitmap);
 
     // Draw the pie menu
-    m_pPieMenu->Draw(pTargetBitmap, targetPos);
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePieMenu
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the PieMenu config based ont eh current editor state.
-
-void AssemblyEditorGUI::UpdatePieMenu()
-{
-    m_pPieMenu->ResetSlices();
-
-    // Add pie menu slices and align them
-    if (m_FeatureSet == ONLOADEDIT)
-    {
-		PieSlice loadSceneSlice("Load Scene", PieSlice::PieSliceIndex::PSI_LOAD, PieSlice::SliceDirection::UP);
-		m_pPieMenu->AddSlice(loadSceneSlice);
-		
-        PieSlice moveObjectsSlice("Move Objects", PieSlice::PieSliceIndex::PSI_MOVE, PieSlice::SliceDirection::LEFT);
-		m_pPieMenu->AddSlice(moveObjectsSlice);
-		
-		PieSlice removeObjectsSlice("Remove Objects", PieSlice::PieSliceIndex::PSI_REMOVE, PieSlice::SliceDirection::LEFT);
-        m_pPieMenu->AddSlice(removeObjectsSlice);
-		PieSlice addNewSlice("Add New Object", PieSlice::PieSliceIndex::PSI_PICK, PieSlice::SliceDirection::RIGHT);
-		m_pPieMenu->AddSlice(addNewSlice);
-		
-		if (!m_pCurrentScheme)
-		{
-			PieSlice saveSceneSlice("Can's save, scheme not selected", PieSlice::PieSliceIndex::PSI_SAVE, PieSlice::SliceDirection::DOWN);
-			saveSceneSlice.SetEnabled(false);
-			m_pPieMenu->AddSlice(saveSceneSlice);
-		} else {
-			PieSlice saveSceneSlice("Save Assembly", PieSlice::PieSliceIndex::PSI_SAVE, PieSlice::SliceDirection::DOWN);
-			m_pPieMenu->AddSlice(saveSceneSlice);
-		}
-    }
-    m_pPieMenu->RealignSlices();
+	m_PieMenu->Draw(pTargetBitmap, targetPos);
 }
 
 
@@ -1091,14 +1053,14 @@ bool AssemblyEditorGUI::UpdateBrainPath()
     // First see if we have a brain in hand
     if (m_pCurrentObject && m_pCurrentObject->IsInGroup("Brains"))
     {
-        m_BrainSkyPathCost = g_SceneMan.GetScene()->CalculatePath(m_CursorPos, Vector(m_CursorPos.m_X, 0), m_BrainSkyPath);
+        m_BrainSkyPathCost = g_SceneMan.GetScene()->CalculatePath(m_CursorPos, Vector(m_CursorPos.m_X, 0), m_BrainSkyPath, c_PathFindingDefaultDigStrength, static_cast<Activity::Teams>(m_pController->GetTeam()));
         return true;
     }
 
     // If not, then do we have a resident?
     SceneObject *pBrain = g_SceneMan.GetScene()->GetResidentBrain(m_pController->GetPlayer());
     if (pBrain)
-        m_BrainSkyPathCost = g_SceneMan.GetScene()->CalculatePath(pBrain->GetPos(), Vector(pBrain->GetPos().m_X, 0), m_BrainSkyPath);
+        m_BrainSkyPathCost = g_SceneMan.GetScene()->CalculatePath(pBrain->GetPos(), Vector(pBrain->GetPos().m_X, 0), m_BrainSkyPath, c_PathFindingDefaultDigStrength, static_cast<Activity::Teams>(m_pController->GetTeam()));
     else
     {
         m_BrainSkyPath.clear();

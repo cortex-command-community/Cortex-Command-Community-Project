@@ -1,5 +1,6 @@
+// Make sure that binding definition files are always set to NOT use pre-compiled headers and conformance mode (/permissive) otherwise everything will be on fire!
+
 #include "LuaBindingRegisterDefinitions.h"
-#include "LuaAdapters.h"
 
 namespace RTE {
 
@@ -20,7 +21,9 @@ namespace RTE {
 		.def("PauseActivity", &ActivityMan::PauseActivity)
 		.def("EndActivity", &ActivityMan::EndActivity)
 		.def("ActivityRunning", &ActivityMan::ActivityRunning)
-		.def("ActivityPaused", &ActivityMan::ActivityPaused);
+		.def("ActivityPaused", &ActivityMan::ActivityPaused)
+		.def("SaveGame", &ActivityMan::SaveCurrentGame)
+		.def("LoadGame", &ActivityMan::LoadAndLaunchGame);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,7 +81,8 @@ namespace RTE {
 		.def("SaveBitmapToPNG", &FrameMan::SaveBitmapToPNG)
 		.def("FlashScreen", &FrameMan::FlashScreen)
 		.def("CalculateTextHeight", &FrameMan::CalculateTextHeight)
-		.def("CalculateTextWidth", &FrameMan::CalculateTextWidth);
+		.def("CalculateTextWidth", &FrameMan::CalculateTextWidth)
+		.def("SplitStringToFitWidth", &FrameMan::SplitStringToFitWidth);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,7 +126,8 @@ namespace RTE {
 		.def("GetPrevActorInGroup", &MovableMan::GetPrevActorInGroup)
 		.def("GetNextTeamActor", &MovableMan::GetNextTeamActor)
 		.def("GetPrevTeamActor", &MovableMan::GetPrevTeamActor)
-		.def("GetClosestTeamActor", &MovableMan::GetClosestTeamActor)
+		.def("GetClosestTeamActor", (Actor * (MovableMan::*)(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, const Actor *excludeThis))&MovableMan::GetClosestTeamActor)
+		.def("GetClosestTeamActor", (Actor * (MovableMan::*)(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, bool onlyPlayerControllableActors, const Actor *excludeThis))&MovableMan::GetClosestTeamActor)
 		.def("GetClosestEnemyActor", &MovableMan::GetClosestEnemyActor)
 		.def("GetFirstTeamActor", &MovableMan::GetFirstTeamActor)
 		.def("GetClosestActor", &MovableMan::GetClosestActor)
@@ -151,11 +156,17 @@ namespace RTE {
 		.def("IsParticleSettlingEnabled", &MovableMan::IsParticleSettlingEnabled)
 		.def("EnableParticleSettling", &MovableMan::EnableParticleSettling)
 		.def("IsMOSubtractionEnabled", &MovableMan::IsMOSubtractionEnabled)
+		.def("GetMOsInBox", (const std::vector<MovableObject *> * (MovableMan::*)(const Box &box) const)&MovableMan::GetMOsInBox, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+		.def("GetMOsInBox", (const std::vector<MovableObject *> * (MovableMan::*)(const Box &box, int ignoreTeam) const)&MovableMan::GetMOsInBox, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+		.def("GetMOsInBox", (const std::vector<MovableObject *> * (MovableMan::*)(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInBox, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 
-		.def("AddMO", &AddMO, luabind::adopt(_2))
-		.def("AddActor", &AddActor, luabind::adopt(_2))
-		.def("AddItem", &AddItem, luabind::adopt(_2))
-		.def("AddParticle", &AddParticle, luabind::adopt(_2));
+		.def("AddMO", &LuaAdaptersMovableMan::AddMO, luabind::adopt(_2))
+		.def("AddActor", &LuaAdaptersMovableMan::AddActor, luabind::adopt(_2))
+		.def("AddItem", &LuaAdaptersMovableMan::AddItem, luabind::adopt(_2))
+		.def("AddParticle", &LuaAdaptersMovableMan::AddParticle, luabind::adopt(_2));
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +184,7 @@ namespace RTE {
 
 		.def_readwrite("Modules", &PresetMan::m_pDataModules, luabind::return_stl_iterator)
 
-		.def("LoadDataModule", (bool (PresetMan::*)(std::string))&PresetMan::LoadDataModule)
+		.def("LoadDataModule", (bool (PresetMan::*)(const std::string &))&PresetMan::LoadDataModule)
 		.def("GetDataModule", &PresetMan::GetDataModule)
 		.def("GetModuleID", &PresetMan::GetModuleID)
 		.def("GetModuleIDFromPath", &PresetMan::GetModuleIDFromPath)
@@ -188,7 +199,12 @@ namespace RTE {
 		.def("GetRandomOfGroupInModuleSpace", &PresetMan::GetRandomOfGroupInModuleSpace)
 		.def("GetEntityDataLocation", &PresetMan::GetEntityDataLocation)
 		.def("ReadReflectedPreset", &PresetMan::ReadReflectedPreset)
-		.def("ReloadAllScripts", &PresetMan::ReloadAllScripts);
+		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset1)
+		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset2)
+		.def("ReloadAllScripts", &PresetMan::ReloadAllScripts)
+		.def("IsModuleOfficial", &PresetMan::IsModuleOfficial)
+		.def("IsModuleUserdata", &PresetMan::IsModuleUserdata)
+		.def("GetFullModulePath", &PresetMan::GetFullModulePath);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -197,7 +213,9 @@ namespace RTE {
 		return luabind::class_<PrimitiveMan>("PrimitiveManager")
 
 		.def("DrawLinePrimitive", (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawLinePrimitive)
+		.def("DrawLinePrimitive", (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color, int thickness))&PrimitiveMan::DrawLinePrimitive)
 		.def("DrawLinePrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawLinePrimitive)
+		.def("DrawLinePrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color, int thickness))&PrimitiveMan::DrawLinePrimitive)
 		.def("DrawArcPrimitive", (void (PrimitiveMan::*)(const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color))&PrimitiveMan::DrawArcPrimitive)
 		.def("DrawArcPrimitive", (void (PrimitiveMan::*)(const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color, int thickness))&PrimitiveMan::DrawArcPrimitive)
 		.def("DrawArcPrimitive", (void (PrimitiveMan::*)(int player, const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color))&PrimitiveMan::DrawArcPrimitive)
@@ -225,13 +243,27 @@ namespace RTE {
 		.def("DrawTriangleFillPrimitive", (void (PrimitiveMan::*)(const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTriangleFillPrimitive)
 		.def("DrawTriangleFillPrimitive", (void (PrimitiveMan::*)(int player, const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTriangleFillPrimitive)
 		.def("DrawTextPrimitive", (void (PrimitiveMan::*)(const Vector &start, const std::string &text, bool isSmall, int alignment))&PrimitiveMan::DrawTextPrimitive)
+		.def("DrawTextPrimitive", (void (PrimitiveMan::*)(const Vector &start, const std::string &text, bool isSmall, int alignment, float rotAngle))&PrimitiveMan::DrawTextPrimitive)
 		.def("DrawTextPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &text, bool isSmall, int alignment))&PrimitiveMan::DrawTextPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, Entity *entity, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, Entity *entity, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, Entity *entity, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, Entity *entity, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
+		.def("DrawTextPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &text, bool isSmall, int alignment, float rotAngle))&PrimitiveMan::DrawTextPrimitive)
+		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, const MOSprite *moSprite, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive)
+		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, const MOSprite *moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
+		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const MOSprite *moSprite, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive)
+		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const MOSprite *moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
+		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, const std::string &filePath, float rotAngle))&PrimitiveMan::DrawBitmapPrimitive)
+		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, const std::string &filePath, float rotAngle, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
+		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &filePath, float rotAngle))&PrimitiveMan::DrawBitmapPrimitive)
+		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &filePath, float rotAngle, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
 		.def("DrawIconPrimitive", (void (PrimitiveMan::*)(const Vector &start, Entity *entity))&PrimitiveMan::DrawIconPrimitive)
-		.def("DrawIconPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, Entity *entity))&PrimitiveMan::DrawIconPrimitive);
+		.def("DrawIconPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, Entity *entity))&PrimitiveMan::DrawIconPrimitive)
+
+		.def("DrawPolygonPrimitive", &LuaAdaptersPrimitiveMan::DrawPolygonPrimitive)
+		.def("DrawPolygonPrimitive", &LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer)
+		.def("DrawPolygonFillPrimitive", &LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive)
+		.def("DrawPolygonFillPrimitive", &LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer)
+		.def("DrawPrimitives", &LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency)
+		.def("DrawPrimitives", &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending)
+		.def("DrawPrimitives", &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,26 +281,18 @@ namespace RTE {
 		.property("GlobalAcc", &SceneMan::GetGlobalAcc)
 		.property("OzPerKg", &SceneMan::GetOzPerKg)
 		.property("KgPerOz", &SceneMan::GetKgPerOz)
+		.property("ScrapCompactingHeight", &SceneMan::GetScrapCompactingHeight, &SceneMan::SetScrapCompactingHeight)
 
 		.def("LoadScene", (int (SceneMan::*)(std::string, bool, bool))&SceneMan::LoadScene)
 		.def("LoadScene", (int (SceneMan::*)(std::string, bool))&SceneMan::LoadScene)
-		.def("GetOffset", &SceneMan::GetOffset)
-		.def("SetOffset", (void (SceneMan::*)(const Vector &, int))&SceneMan::SetOffset)
-		.def("SetOffsetX", &SceneMan::SetOffsetX)
-		.def("SetOffsetY", &SceneMan::SetOffsetY)
-		.def("GetScreenOcclusion", &SceneMan::GetScreenOcclusion)
-		.def("SetScreenOcclusion", &SceneMan::SetScreenOcclusion)
+
 		.def("GetTerrain", &SceneMan::GetTerrain)
 		.def("GetMaterial", &SceneMan::GetMaterial)
 		.def("GetMaterialFromID", &SceneMan::GetMaterialFromID)
 		.def("GetTerrMatter", &SceneMan::GetTerrMatter)
-		.def("GetMOIDPixel", &SceneMan::GetMOIDPixel)
+		.def("GetMOIDPixel", (MOID (SceneMan::*)(int, int))&SceneMan::GetMOIDPixel)
+		.def("GetMOIDPixel", (MOID (SceneMan::*)(int, int, int))&SceneMan::GetMOIDPixel)
 		.def("SetLayerDrawMode", &SceneMan::SetLayerDrawMode)
-		.def("SetScroll", &SceneMan::SetScroll)
-		.def("SetScrollTarget", &SceneMan::SetScrollTarget)
-		.def("GetScrollTarget", &SceneMan::GetScrollTarget)
-		.def("TargetDistanceScalar", &SceneMan::TargetDistanceScalar)
-		.def("CheckOffset", &SceneMan::CheckOffset)
 		.def("LoadUnseenLayer", &SceneMan::LoadUnseenLayer)
 		.def("MakeAllUnseen", &SceneMan::MakeAllUnseen)
 		.def("AnythingUnseen", &SceneMan::AnythingUnseen)
@@ -286,7 +310,8 @@ namespace RTE {
 		.def("CastNotMaterialRay", (bool (SceneMan::*)(const Vector &, const Vector &, unsigned char, Vector &, int, bool))&SceneMan::CastNotMaterialRay)
 		.def("CastNotMaterialRay", (float (SceneMan::*)(const Vector &, const Vector &, unsigned char, int, bool))&SceneMan::CastNotMaterialRay)
 		.def("CastStrengthSumRay", &SceneMan::CastStrengthSumRay)
-		.def("CastMaxStrengthRay", &SceneMan::CastMaxStrengthRay)
+		.def("CastMaxStrengthRay", (float (SceneMan::*) (const Vector &, const Vector &, int, unsigned char))&SceneMan::CastMaxStrengthRay)
+		.def("CastMaxStrengthRay", (float (SceneMan::*) (const Vector &, const Vector &, int))&SceneMan::CastMaxStrengthRay)
 		.def("CastStrengthRay", &SceneMan::CastStrengthRay)
 		.def("CastWeaknessRay", &SceneMan::CastWeaknessRay)
 		.def("CastMORay", &SceneMan::CastMORay)
@@ -302,21 +327,42 @@ namespace RTE {
 		.def("WrapPosition", (bool (SceneMan::*)(Vector &))&SceneMan::WrapPosition)//, out_value(_2))
 		.def("SnapPosition", &SceneMan::SnapPosition)
 		.def("ShortestDistance", &SceneMan::ShortestDistance)
+		.def("WrapBox", &LuaAdaptersSceneMan::WrapBoxes, luabind::return_stl_iterator)
 		.def("ObscuredPoint", (bool (SceneMan::*)(Vector &, int))&SceneMan::ObscuredPoint)//, out_value(_2))
 		.def("ObscuredPoint", (bool (SceneMan::*)(int, int, int))&SceneMan::ObscuredPoint)
 		.def("AddSceneObject", &SceneMan::AddSceneObject, luabind::adopt(_2))
-		.def("AddTerrainObject", &SceneMan::AddTerrainObject, luabind::adopt(_2))
-		.def("CheckAndRemoveOrphans", (int (SceneMan::*)(int, int, int, int, bool))&SceneMan::RemoveOrphans);
+		.def("CheckAndRemoveOrphans", (int (SceneMan::*)(int, int, int, int, bool))&SceneMan::RemoveOrphans)
+		.def("DislodgePixel", &SceneMan::DislodgePixel);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, CameraMan) {
+		return luabind::class_<CameraMan>("CameraManager")
+
+			.def("GetOffset", &CameraMan::GetOffset)
+			.def("SetOffset", &CameraMan::SetOffset)
+			.def("GetScreenOcclusion", &CameraMan::GetScreenOcclusion)
+			.def("SetScreenOcclusion", &CameraMan::SetScreenOcclusion)
+			.def("GetScrollTarget", &CameraMan::GetScrollTarget)
+			.def("SetScrollTarget", &CameraMan::SetScrollTarget)
+			.def("TargetDistanceScalar", &CameraMan::TargetDistanceScalar)
+			.def("CheckOffset", &CameraMan::CheckOffset)
+			.def("SetScroll", &CameraMan::SetScroll)
+			.def("AddScreenShake", (void (CameraMan::*)(float, int))&CameraMan::AddScreenShake)
+			.def("AddScreenShake", (void (CameraMan::*)(float, const Vector &))&CameraMan::AddScreenShake);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SettingsMan) {
 		return luabind::class_<SettingsMan>("SettingsManager")
 
 		.property("PrintDebugInfo", &SettingsMan::PrintDebugInfo, &SettingsMan::SetPrintDebugInfo)
 		.property("RecommendedMOIDCount", &SettingsMan::RecommendedMOIDCount)
-		.property("ShowEnemyHUD", &SettingsMan::ShowEnemyHUD);
+		.property("AIUpdateInterval", &SettingsMan::GetAIUpdateInterval, &SettingsMan::SetAIUpdateInterval)
+		.property("ShowEnemyHUD", &SettingsMan::ShowEnemyHUD)
+		.property("AutomaticGoldDeposit", &SettingsMan::GetAutomaticGoldDeposit);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -326,12 +372,14 @@ namespace RTE {
 
 		.property("TimeScale", &TimerMan::GetTimeScale, &TimerMan::SetTimeScale)
 		.property("RealToSimCap", &TimerMan::GetRealToSimCap, &TimerMan::SetRealToSimCap)
-		.property("DeltaTimeTicks", &TimerMan::GetDeltaTimeTicks, &TimerMan::SetDeltaTimeTicks)
+		.property("DeltaTimeTicks", &LuaAdaptersTimerMan::GetDeltaTimeTicks, &TimerMan::SetDeltaTimeTicks)
 		.property("DeltaTimeSecs", &TimerMan::GetDeltaTimeSecs, &TimerMan::SetDeltaTimeSecs)
 		.property("DeltaTimeMS", &TimerMan::GetDeltaTimeMS)
+		.property("AIDeltaTimeSecs", &TimerMan::GetAIDeltaTimeSecs)
+		.property("AIDeltaTimeMS", &TimerMan::GetAIDeltaTimeMS)
 		.property("OneSimUpdatePerFrame", &TimerMan::IsOneSimUpdatePerFrame, &TimerMan::SetOneSimUpdatePerFrame)
 
-		.property("TicksPerSecond", &GetTicksPerSecond)
+		.property("TicksPerSecond", &LuaAdaptersTimerMan::GetTicksPerSecond)
 
 		.def("TimeForSimUpdate", &TimerMan::TimeForSimUpdate)
 		.def("DrawnSimUpdate", &TimerMan::DrawnSimUpdate);
@@ -350,10 +398,12 @@ namespace RTE {
 		.def("ElementPressed", &UInputMan::ElementPressed)
 		.def("ElementReleased", &UInputMan::ElementReleased)
 		.def("ElementHeld", &UInputMan::ElementHeld)
-		.def("KeyPressed", &UInputMan::KeyPressed)
-		.def("KeyReleased", &UInputMan::KeyReleased)
-		.def("KeyHeld", &UInputMan::KeyHeld)
-		.def("WhichKeyHeld", &UInputMan::WhichKeyHeld)
+		.def("KeyPressed", (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyPressed)
+		.def("KeyReleased", (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyReleased)
+		.def("KeyHeld", (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyHeld)
+		.def("ScancodePressed", (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyPressed)
+		.def("ScancodeReleased", (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyReleased)
+		.def("ScancodeHeld", (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyHeld)
 		.def("MouseButtonPressed", &UInputMan::MouseButtonPressed)
 		.def("MouseButtonReleased", &UInputMan::MouseButtonReleased)
 		.def("MouseButtonHeld", &UInputMan::MouseButtonHeld)
@@ -369,7 +419,6 @@ namespace RTE {
 		.def("AnalogAimValues", &UInputMan::AnalogAimValues)
 		.def("SetMouseValueMagnitude", &UInputMan::SetMouseValueMagnitude)
 		.def("AnalogAxisValue", &UInputMan::AnalogAxisValue)
-		.def("AnalogStickValues", &UInputMan::AnalogStickValues)
 		.def("MouseUsedByPlayer", &UInputMan::MouseUsedByPlayer)
 		.def("AnyMouseButtonPress", &UInputMan::AnyMouseButtonPress)
 		.def("GetMouseMovement", &UInputMan::GetMouseMovement)
@@ -384,8 +433,8 @@ namespace RTE {
 		.def("AnyPress", &UInputMan::AnyPress)
 		.def("AnyStartPress", &UInputMan::AnyStartPress)
 
-		.def("MouseButtonPressed", &MouseButtonPressed)
-		.def("MouseButtonReleased", &MouseButtonReleased)
-		.def("MouseButtonHeld", &MouseButtonHeld);
+		.def("MouseButtonPressed", &LuaAdaptersUInputMan::MouseButtonPressed)
+		.def("MouseButtonReleased", &LuaAdaptersUInputMan::MouseButtonReleased)
+		.def("MouseButtonHeld", &LuaAdaptersUInputMan::MouseButtonHeld);
 	}
 }

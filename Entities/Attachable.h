@@ -2,6 +2,7 @@
 #define _RTEATTACHABLE_
 
 #include "MOSRotating.h"
+#include "PieSlice.h"
 
 namespace RTE {
 
@@ -66,7 +67,7 @@ namespace RTE {
 		MOSRotating * GetParent() override { return m_Parent; }
 
 		/// <summary>
-		/// Gets the MOSRotating which is the parent of this Attachable. 
+		/// Gets the MOSRotating which is the parent of this Attachable.
 		/// </summary>
 		/// <returns>A pointer to the parent of this Attachable.</returns>
 		const MOSRotating * GetParent() const override { return m_Parent; }
@@ -135,16 +136,28 @@ namespace RTE {
 		void SetDrawnNormallyByParent(bool drawnNormallyByParent) { m_DrawnNormallyByParent = drawnNormallyByParent; }
 
 		/// <summary>
-		/// Gets whether this Attachable will be deleted when it's removed from its parent. Has no effect until the Attachable is added to a parent.
+		/// Gets whether this Attachable will be deleted when removed from its parent. Has no effect until the Attachable has been added to a parent.
 		/// </summary>
-		/// <returns>Whether this Attachable is marked to be deleted when it's removed from its parent or not.</returns>
+		/// <returns>Whether this Attachable is marked to be deleted when removed from its parent or not.</returns>
 		bool GetDeleteWhenRemovedFromParent() const { return m_DeleteWhenRemovedFromParent; }
 
 		/// <summary>
-		/// Sets whether this Attachable will be deleted when it's removed from its parent.
+		/// Sets whether this Attachable will be deleted when removed from its parent.
 		/// </summary>
-		/// <param name="deleteWhenRemovedFromParent">Whether this Attachable should be deleted when it's removed from its parent.</param>
-		virtual void SetDeleteWhenRemovedFromParent(bool deleteWhenRemovedFromParent) { m_DeleteWhenRemovedFromParent = deleteWhenRemovedFromParent; }
+		/// <param name="deleteWhenRemovedFromParent">Whether this Attachable should be deleted when removed from its parent.</param>
+		void SetDeleteWhenRemovedFromParent(bool deleteWhenRemovedFromParent) { m_DeleteWhenRemovedFromParent = deleteWhenRemovedFromParent; }
+
+		/// <summary>
+		/// Gets whether this Attachable will gib when removed from its parent. Has no effect until the Attachable has been added to a parent.
+		/// </summary>
+		/// <returns>Whether this Attachable is marked to gib when removed from its parent or not.</returns>
+		bool GetGibWhenRemovedFromParent() const { return m_GibWhenRemovedFromParent; }
+
+		/// <summary>
+		/// Sets whether this Attachable will gib when removed from its parent.
+		/// </summary>
+		/// <param name="gibWhenRemovedFromParent">Whether this Attachable should gib when removed from its parent.</param>
+		void SetGibWhenRemovedFromParent(bool gibWhenRemovedFromParent) { m_GibWhenRemovedFromParent = gibWhenRemovedFromParent; }
 
 		/// <summary>
 		/// Gets whether forces transferred from this Attachable should be applied at its parent's offset (rotated to match the parent) where they will produce torque, or directly at its parent's position.
@@ -220,11 +233,11 @@ namespace RTE {
 		float GetJointStiffness() const { return m_JointStiffness; }
 
 		/// <summary>
-		/// Sets the stiffness scalar of the joint of this Attachable, normalized between 0 and 1.0.
+		/// Sets the stiffness scalar of the joint of this Attachable, limited between 0 and 1.0.
 		/// 1.0 means impulse forces on this attachable will be transferred to the parent with 100% strength, 0 means they will not transfer at all.
 		/// </summary>
 		/// <param name="jointStiffness">A float describing the normalized stiffness scalar of this Attachable's joint. It will automatically be limited between 0 and 1.0.</param>
-		void SetJointStiffness(float jointStiffness) { m_JointStiffness = Limit(jointStiffness, 1.0F, 0.0F); }
+		virtual void SetJointStiffness(float jointStiffness) { m_JointStiffness = std::clamp(jointStiffness, 0.0F, 1.0F); }
 
 		/// <summary>
 		/// Gets the offset of the joint (the point around which this Attachable and its parent hinge) from this Attachable's center of mass/origin.
@@ -390,9 +403,29 @@ namespace RTE {
 		/// </summary>
 		/// <returns>Whether this Attachable is currently able to collide with terrain, taking into account its terrain collision settings and those of its parent and so on.</returns>
 		bool CanCollideWithTerrain() const;
+
+		/// <summary>
+		/// Gets whether this Attachable currently ignores collisions with single-atom particles.
+		/// </summary>
+		/// <return>>Whether this attachable ignores collisions with single-atom particles.</return>
+		bool GetIgnoresParticlesWhileAttached() const { return m_IgnoresParticlesWhileAttached; }
+
+		/// <summary>
+		/// Sets whether this Attachable currently ignores collisions with single-atom particles.
+		/// </summary>
+		/// <param name="collidesWithTerrainWhileAttached">Whether this attachable ignores collisions with single-atom particles.</param>
+		void SetIgnoresParticlesWhileAttached(bool ignoresParticlesWhileAttached) { m_IgnoresParticlesWhileAttached = ignoresParticlesWhileAttached; }
 #pragma endregion
 
 #pragma region Override Methods
+		/// <summary>
+		/// Calculates the collision response when another MO's Atom collides with this MO's physical representation.
+		/// The effects will be applied directly to this MO, and also represented in the passed in HitData. 
+		/// </summary>
+		/// <param name="hitData">Reference to the HitData struct which describes the collision. This will be modified to represent the results of the collision.</param>
+		/// <returns>Whether the collision has been deemed valid. If false, then disregard any impulses in the HitData.</returns>
+		bool CollideAtPoint(HitData &hitData) override;
+
 		/// <summary>
 		/// Determines whether a particle which has hit this MO will penetrate, and if so, whether it gets lodged or exits on the other side of this MO.
 		/// Appropriate effects will be determined and applied ONLY IF there was penetration! If not, nothing will be affected.
@@ -528,7 +561,8 @@ namespace RTE {
 		Vector m_ParentOffset; //!< The offset from the parent's Pos to the joint point this Attachable is attached with.
 		bool m_DrawAfterParent; //!< Whether to draw this Attachable after (in front of) or before (behind) the parent.
 		bool m_DrawnNormallyByParent; //!< Whether this Attachable will be drawn normally when attached, or will require special handling by some non-MOSR parent type.
-		bool m_DeleteWhenRemovedFromParent; //!< Whether this Attachable should be deleted when it's removed from its parent.
+		bool m_DeleteWhenRemovedFromParent; //!< Whether this Attachable should be deleted when removed from its parent.
+		bool m_GibWhenRemovedFromParent; //!< Whether this Attachable should gib when removed from its parent.
 		bool m_ApplyTransferredForcesAtOffset; //!< Whether forces transferred from this Attachable should be applied at the rotated parent offset (which will produce torque), or directly at the parent's position. Mostly useful to make jetpacks and similar emitters viable.
 
 		float m_GibWithParentChance; //!< The percentage chance that this Attachable will gib when its parent does. 0 means never, 1 means always.
@@ -553,6 +587,9 @@ namespace RTE {
 
 		long m_AtomSubgroupID; //!< The Atom IDs this' atoms will have when attached and added to a parent's AtomGroup.
 		bool m_CollidesWithTerrainWhileAttached; //!< Whether this attachable currently has terrain collisions enabled while it's attached to a parent.
+		bool m_IgnoresParticlesWhileAttached; //!< Whether this Attachable should ignore collisions with single-atom MOs while attached.
+
+		std::vector<std::unique_ptr<PieSlice>> m_PieSlices; //!< The vector of PieSlices belonging to this Attachable. Added to and removed from the RootParent as appropriate, when a parent is set.
 
 		Vector m_PrevParentOffset; //!< The previous frame's parent offset.
 		Vector m_PrevJointOffset; //!< The previous frame's joint offset.
@@ -578,6 +615,14 @@ namespace RTE {
 		/// <param name="addAtoms">Whether to add this Attachable's Atoms to the root parent's AtomGroup or remove them.</param>
 		/// <param name="propagateToChildAttachables">Whether this Atom addition or removal should be propagated to any child Attachables (as appropriate).</param>
 		void AddOrRemoveAtomsFromRootParentAtomGroup(bool addAtoms, bool propagateToChildAttachables);
+
+		/// <summary>
+		/// Add or removes this Attachable's PieSlices and PieMenu listeners, as well as those of any of its child Attachables, from the given PieMenu (should be the root parent's PieMenu).
+		/// Note that listeners are only added for Attachables that have at least one script file with the appropriate Lua function.
+		/// </summary>
+		/// <param name="pieMenuToModify">The PieMenu to modify, passed in to keep the recursion simple and clean.</param>
+		/// <param name="addToPieMenu">Whether to add this Attachable's PieSlices and listeners to, or remove them from, the root parent's PieMenu.</param>
+		void AddOrRemovePieSlicesAndListenersFromPieMenu(PieMenu *pieMenuToModify, bool addToPieMenu);
 
 		/// <summary>
 		/// Clears all the member variables of this Attachable, effectively resetting the members of this abstraction level only.

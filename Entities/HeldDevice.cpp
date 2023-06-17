@@ -12,6 +12,8 @@
 // Inclusions of header files
 
 #include "HeldDevice.h"
+
+#include "CameraMan.h"
 #include "MovableMan.h"
 #include "AtomGroup.h"
 #include "Arm.h"
@@ -46,7 +48,9 @@ void HeldDevice::Clear()
     m_SharpStanceOffset.Reset();
     m_SharpAim = 0.0F;
     m_MaxSharpLength = 0;
+	m_Supportable = true;
     m_Supported = false;
+	m_SupportAvailable = false;
     m_SupportOffset.Reset();
 	m_SeenByPlayer.fill(false);
     m_IsUnPickupable = false;
@@ -54,7 +58,6 @@ void HeldDevice::Clear()
     m_GripStrengthMultiplier = 1.0F;
     m_BlinkTimer.Reset();
 	m_BlinkTimer.SetSimTimeLimitMS(1000);
-    m_PieSlices.clear();
     m_Loudness = -1;
 
     // NOTE: This special override of a parent class member variable avoids needing an extra variable to avoid overwriting INI values.
@@ -143,6 +146,7 @@ int HeldDevice::Create(const HeldDevice &reference)
     m_StanceOffset = reference.m_StanceOffset;
     m_SharpStanceOffset = reference.m_SharpStanceOffset;
     m_SupportOffset = reference.m_SupportOffset;
+	m_Supportable = reference.m_Supportable;
     m_IsUnPickupable = reference.m_IsUnPickupable;
     for (std::string referenceActorWhoCanPickThisUp : reference.m_PickupableByPresetNames) {
         m_PickupableByPresetNames.insert(referenceActorWhoCanPickThisUp);
@@ -151,11 +155,10 @@ int HeldDevice::Create(const HeldDevice &reference)
 
     m_SharpAim = reference.m_SharpAim;
     m_MaxSharpLength = reference.m_MaxSharpLength;
+	m_Supportable = reference.m_Supportable;
     m_Supported = reference.m_Supported;
+	m_SupportAvailable = reference.m_SupportAvailable;
     m_Loudness = reference.m_Loudness;
-
-    for (list<PieSlice>::const_iterator itr = reference.m_PieSlices.begin(); itr != reference.m_PieSlices.end(); ++itr)
-        m_PieSlices.push_back(*itr);
 
     return 0;
 }
@@ -181,7 +184,9 @@ int HeldDevice::ReadProperty(const std::string_view &propName, Reader &reader)
         reader >> m_StanceOffset;
     else if (propName == "SharpStanceOffset")
         reader >> m_SharpStanceOffset;
-    else if (propName == "SupportOffset")
+	else if (propName == "Supportable") {
+		reader >> m_Supportable;
+	} else if (propName == "SupportOffset")
         reader >> m_SupportOffset;
     else if (propName == "PickupableBy") {
         std::string pickupableByValue = reader.ReadPropValue();
@@ -207,16 +212,15 @@ int HeldDevice::ReadProperty(const std::string_view &propName, Reader &reader)
         reader >> m_GripStrengthMultiplier;
     } else if (propName == "SharpLength")
         reader >> m_MaxSharpLength;
-    else if (propName == "Loudness")
+    else if (propName == "Loudness") {
         reader >> m_Loudness;
-    else if (propName == "AddPieSlice")
-    {
-        PieSlice newSlice;
-        reader >> newSlice;
-        m_PieSlices.push_back(newSlice);
-		PieMenuGUI::StoreCustomLuaPieSlice(newSlice);
-    }
-    else
+	} else if (propName == "SpecialBehaviour_Activated") {
+		reader >> m_Activated;
+	} else if (propName == "SpecialBehaviour_ActivationTimerElapsedSimTimeMS") {
+		double elapsedSimTimeMS;
+		reader >> elapsedSimTimeMS;
+		m_ActivationTimer.SetElapsedSimTimeMS(elapsedSimTimeMS);
+	} else
         return Attachable::ReadProperty(propName, reader);
 
     return 0;
@@ -244,6 +248,7 @@ int HeldDevice::Save(Writer &writer) const
     writer << m_StanceOffset;
     writer.NewProperty("SharpStanceOffset");
     writer << m_SharpStanceOffset;
+	writer.NewPropertyWithValue("Supportable", m_Supportable);
     writer.NewProperty("SupportOffset");
     writer << m_SupportOffset;
     writer.NewProperty("GripStrengthMultiplier");
@@ -252,11 +257,6 @@ int HeldDevice::Save(Writer &writer) const
     writer << m_MaxSharpLength;
     writer.NewProperty("Loudness");
     writer << m_Loudness;
-    for (list<PieSlice>::const_iterator itr = m_PieSlices.begin(); itr != m_PieSlices.end(); ++itr)
-    {
-        writer.NewProperty("AddPieSlice");
-        writer << *itr;
-    }
 
     return 0;
 }
@@ -333,21 +333,6 @@ void HeldDevice::RemovePickupableByPresetName(const std::string &actorPresetName
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  AddPieMenuSlices
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds all slices this needs on a pie menu.
-
-bool HeldDevice::AddPieMenuSlices(PieMenuGUI *pPieMenu)
-{
-    // Add the custom scripted options of this specific device
-    for (list<PieSlice>::iterator itr = m_PieSlices.begin(); itr != m_PieSlices.end(); ++itr)
-        pPieMenu->AddSlice(*itr);
-
-    return false;
-}
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  CollideAtPoint
@@ -414,8 +399,7 @@ bool HeldDevice::TransferJointImpulses(Vector &jointImpulses, float jointStiffne
     if (parentAsArm && parentAsArm->GetGripStrength() > 0 && jointStrengthValueToUse < 0) {
         jointStrengthValueToUse = parentAsArm->GetGripStrength() * m_GripStrengthMultiplier;
         if (m_Supported) {
-            const AHuman *rootParentAsAHuman = dynamic_cast<AHuman *>(GetRootParent());
-            if (rootParentAsAHuman != nullptr) { jointStrengthValueToUse += rootParentAsAHuman->GetBGArm() ? rootParentAsAHuman->GetBGArm()->GetGripStrength() * m_GripStrengthMultiplier : 0.0F; }
+            if (const AHuman *rootParentAsAHuman = dynamic_cast<AHuman *>(GetRootParent())) { jointStrengthValueToUse += rootParentAsAHuman->GetBGArm() ? rootParentAsAHuman->GetBGArm()->GetGripStrength() * m_GripStrengthMultiplier : 0.0F; }
         }
     }
     bool intact = Attachable::TransferJointImpulses(jointImpulses, jointStiffnessValueToUse, jointStrengthValueToUse, gibImpulseLimitValueToUse);
@@ -545,8 +529,11 @@ void HeldDevice::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int whi
 			m_SeenByPlayer.fill(false);
 			m_BlinkTimer.Reset();
 		} else {
-			// Only draw if the team viewing this has seen the space where this is located.
 			int viewingPlayer = g_ActivityMan.GetActivity()->PlayerOfScreen(whichScreen);
+            if (viewingPlayer == -1) {
+                return;
+            }
+            // Only draw if the team viewing this has seen the space where this is located.
 			int viewingTeam = g_ActivityMan.GetActivity()->GetTeamOfPlayer(viewingPlayer);
 			if (viewingTeam == Activity::NoTeam || g_SceneMan.IsUnseen(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), viewingTeam)) {
 				return;
@@ -582,11 +569,13 @@ void HeldDevice::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int whi
 					const GameActivity *gameActivity = dynamic_cast<const GameActivity *>(activity);
 					if (gameActivity && gameActivity->GetViewState(viewingPlayer) == GameActivity::ViewState::ActorSelect) { unheldItemDisplayRange = -1.0F; }
 				}
-				// Note - to avoid item HUDs flickering in and out, we need to add a little leeway when hiding them if they're already displayed.
-				if (m_SeenByPlayer.at(viewingPlayer) && unheldItemDisplayRange > 0) { unheldItemDisplayRange += 3.0F; }
-				m_SeenByPlayer.at(viewingPlayer) = unheldItemDisplayRange < 0 || (unheldItemDisplayRange > 0 && g_SceneMan.ShortestDistance(m_Pos, g_SceneMan.GetScrollTarget(whichScreen), g_SceneMan.SceneWrapsX()).GetMagnitude() < unheldItemDisplayRange);
+				if (!m_SeenByPlayer[viewingPlayer]) {
+					m_SeenByPlayer[viewingPlayer] = unheldItemDisplayRange < 0 || (unheldItemDisplayRange > 0 && m_Vel.MagnitudeIsLessThan(2.0F) && g_SceneMan.ShortestDistance(m_Pos, g_CameraMan.GetScrollTarget(whichScreen), g_SceneMan.SceneWrapsX()).MagnitudeIsLessThan(unheldItemDisplayRange));
+				} else {
+					// Note - to avoid item HUDs flickering in and out, we need to add a little leeway when hiding them if they're already displayed.
+					if (unheldItemDisplayRange > 0) { unheldItemDisplayRange += 4.0F; }
+					m_SeenByPlayer.at(viewingPlayer) = unheldItemDisplayRange < 0 || (unheldItemDisplayRange > 0 && g_SceneMan.ShortestDistance(m_Pos, g_CameraMan.GetScrollTarget(whichScreen), g_SceneMan.SceneWrapsX()).MagnitudeIsLessThan(unheldItemDisplayRange));
 
-				if (m_SeenByPlayer.at(viewingPlayer)) {
 					char pickupArrowString[64];
 					pickupArrowString[0] = 0;
 					if (m_BlinkTimer.GetElapsedSimTimeMS() < 250) {

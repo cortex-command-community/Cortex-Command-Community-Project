@@ -11,17 +11,20 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
 #include "NetworkServer.h"
+#include "NetworkClient.h"
 
 #include "SceneMan.h"
 #include "PresetMan.h"
 #include "FrameMan.h"
 #include "ActivityMan.h"
 #include "UInputMan.h"
+#include "CameraMan.h"
 #include "ConsoleMan.h"
 #include "PrimitiveMan.h"
 #include "SettingsMan.h"
 #include "Scene.h"
 #include "SLTerrain.h"
+#include "SLBackground.h"
 #include "TerrainObject.h"
 #include "MovableObject.h"
 #include "ContentFile.h"
@@ -37,49 +40,21 @@ namespace RTE
 {
 
 #define CLEANAIRINTERVAL 200000
-#define COMPACTINGHEIGHT 25
 
 const std::string SceneMan::c_ClassName = "SceneMan";
+std::vector<std::pair<int, BITMAP *>> SceneMan::m_IntermediateSettlingBitmaps;
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          IntersectionCut
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     If this and the passed in IntRect intersect, this will be modified to
-//                  represent the boolean AND of the two. If it doens't intersect, nothing
-//                  happens and false is returned.
-
-bool IntRect::IntersectionCut(const IntRect &rhs)
-{
-    if (Intersects(rhs))
-    {
-        m_Left = MAX(m_Left, rhs.m_Left);
-        m_Right = MIN(m_Right, rhs.m_Right);
-        m_Top = MAX(m_Top, rhs.m_Top);
-        m_Bottom = MIN(m_Bottom, rhs.m_Bottom);
-        return true;
-    }
-
-    return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Clear
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all the member variables of this SceneMan, effectively
-//                  resetting the members of this abstraction level only.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::Clear()
 {
     m_DefaultSceneName = "Tutorial Bunker";
-    m_pSceneToLoad = 0;
+    m_pSceneToLoad = nullptr;
     m_PlaceObjects = true;
 	m_PlaceUnits = true;
-    m_pCurrentScene = 0;
-    m_pMOColorLayer = 0;
-    m_pMOIDLayer = 0;
-    m_MOIDDrawings.clear();
+    m_pCurrentScene = nullptr;
+    m_pMOColorLayer = nullptr;
+    m_pMOIDLayer = nullptr;
     m_pDebugLayer = nullptr;
     m_LastRayHitPos.Reset();
 
@@ -91,20 +66,7 @@ void SceneMan::Clear()
 
 	m_MaterialCopiesVector.clear();
 
-    for (int i = 0; i < c_MaxScreenCount; ++i) {
-        m_Offset[i].Reset();
-        m_DeltaOffset[i].Reset();
-        m_ScrollTarget[i].Reset();
-        m_ScreenTeam[i] = Activity::NoTeam;
-        m_ScrollSpeed[i] = 0.1;
-        m_ScrollTimer[i].Reset();
-        m_ScreenOcclusion[i].Reset();
-        m_TargetWrapped[i] = false;
-        m_SeamCrossCount[i][X] = 0;
-        m_SeamCrossCount[i][Y] = 0;
-    }
-
-    m_pUnseenRevealSound = 0;
+    m_pUnseenRevealSound = nullptr;
     m_DrawRayCastVisualizations = false;
     m_DrawPixelCheckVisualizations = false;
     m_LastUpdatedScreen = 0;
@@ -115,12 +77,29 @@ void SceneMan::Clear()
 	if (m_pOrphanSearchBitmap)
 		destroy_bitmap(m_pOrphanSearchBitmap);
 	m_pOrphanSearchBitmap = create_bitmap_ex(8, MAXORPHANRADIUS , MAXORPHANRADIUS);
+
+	m_ScrapCompactingHeight = 25;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the SceneMan object ready for use.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SceneMan::Initialize() const {
+	// Can't create these earlier in the static declaration because allegro_init needs to be called before create_bitmap
+	m_IntermediateSettlingBitmaps = {
+		{ 16, create_bitmap_ex(8, 16, 16) },
+		{ 32, create_bitmap_ex(8, 32, 32) },
+		{ 48, create_bitmap_ex(8, 48, 48) },
+		{ 64, create_bitmap_ex(8, 64, 64) },
+		{ 96, create_bitmap_ex(8, 96, 96) },
+		{ 128, create_bitmap_ex(8, 128, 128) },
+		{ 192, create_bitmap_ex(8, 192, 192) },
+		{ 256, create_bitmap_ex(8, 256, 256) },
+		{ 384, create_bitmap_ex(8, 384, 384) },
+		{ 512, create_bitmap_ex(8, 512, 512) }
+	};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::Create(std::string readerFile)
 {
@@ -134,13 +113,8 @@ int SceneMan::Create(std::string readerFile)
     return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddMaterialCopy
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Creates a copy of passed material and stores it into internal vector 
-//					to make sure there's only one material owner. Ownership not transfered.
-// Arguments:       Material to add.
-// Return value:    Pointer to stored material.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Material * SceneMan::AddMaterialCopy(Material *mat)
 {
 	Material * matCopy = dynamic_cast<Material *>(mat->Clone());
@@ -150,11 +124,7 @@ Material * SceneMan::AddMaterialCopy(Material *mat)
 	return matCopy;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  LoadScene
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Actually loads a new Scene into memory. has to be done before using
-//                  this object.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::LoadScene(Scene *pNewScene, bool placeObjects, bool placeUnits) {
 	if (!pNewScene) {
@@ -206,7 +176,7 @@ int SceneMan::LoadScene(Scene *pNewScene, bool placeObjects, bool placeUnits) {
     delete m_pMOColorLayer;
     BITMAP *pBitmap = create_bitmap_ex(8, GetSceneWidth(), GetSceneHeight());
     clear_to_color(pBitmap, g_MaskColor);
-    m_pMOColorLayer = new SceneLayer();
+    m_pMOColorLayer = new SceneLayerTracked();
     m_pMOColorLayer->Create(pBitmap, true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
     pBitmap = 0;
 
@@ -214,9 +184,12 @@ int SceneMan::LoadScene(Scene *pNewScene, bool placeObjects, bool placeUnits) {
     delete m_pMOIDLayer;
     pBitmap = create_bitmap_ex(c_MOIDLayerBitDepth, GetSceneWidth(), GetSceneHeight());
     clear_to_color(pBitmap, g_NoMOID);
-    m_pMOIDLayer = new SceneLayer();
+    m_pMOIDLayer = new SceneLayerTracked();
     m_pMOIDLayer->Create(pBitmap, false, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
     pBitmap = 0;
+
+	const int cellSize = 20;
+	m_MOIDsGrid = SpatialPartitionGrid(GetSceneWidth(), GetSceneHeight(), cellSize);
 
     // Create the Debug SceneLayer
     if (m_DrawRayCastVisualizations || m_DrawPixelCheckVisualizations) {
@@ -237,11 +210,7 @@ int SceneMan::LoadScene(Scene *pNewScene, bool placeObjects, bool placeUnits) {
     return 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  SetSceneToLoad
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets a scene to load later, by preset name.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::SetSceneToLoad(std::string sceneName, bool placeObjects, bool placeUnits)
 {
@@ -260,11 +229,7 @@ int SceneMan::SetSceneToLoad(std::string sceneName, bool placeObjects, bool plac
     return 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  LoadScene
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Actually loads the Scene set to be loaded in SetSceneToLoad.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::LoadScene()
 {
@@ -286,11 +251,7 @@ int SceneMan::LoadScene()
     return LoadScene(dynamic_cast<Scene *>(m_pSceneToLoad->Clone()), m_PlaceObjects, m_PlaceUnits);
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  LoadScene
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Loads a Scene right now, by preset name.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::LoadScene(std::string sceneName, bool placeObjects, bool placeUnits)
 {
@@ -303,29 +264,14 @@ int SceneMan::LoadScene(std::string sceneName, bool placeObjects, bool placeUnit
     return error;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  ReadProperty
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Reads a property value from a reader stream. If the name isn't
-//                  recognized by this class, then ReadProperty of the parent class
-//                  is called. If the property isn't recognized by any of the base classes,
-//                  false is returned, and the reader's position is untouched.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-    if (propName == "AddScene")
-        g_PresetMan.GetEntityPreset(reader);
-    else if (propName == "AddTerrain")
-        g_PresetMan.GetEntityPreset(reader);
-    else if (propName == "AddTerrainDebris")
-        g_PresetMan.GetEntityPreset(reader);
-    else if (propName == "AddTerrainObject")
-        g_PresetMan.GetEntityPreset(reader);
-    else if (propName == "AddMaterial")
+    if (propName == "AddMaterial")
     {
         // Get this before reading Object, since if it's the last one in its datafile, the stream will show the parent file instead
-        string objectFilePath = reader.GetCurrentFilePath();
+        std::string objectFilePath = reader.GetCurrentFilePath();
 
         // Don't use the << operator, because it adds the material to the PresetMan before we get a chance to set the proper ID!
         Material *pNewMat = new Material;
@@ -345,8 +291,14 @@ int SceneMan::ReadProperty(const std::string_view &propName, Reader &reader)
 
                 // Assign the final ID to the material and register it in the palette
                 pNewMat->SetIndex(tryId);
+
+                // Ensure out-of-bounds material is unbreakable
+                if (tryId == MaterialColorKeys::g_MaterialOutOfBounds) {
+                    RTEAssert(pNewMat->GetIntegrity() == std::numeric_limits<float>::max(), "Material with index " + std::to_string(MaterialColorKeys::g_MaterialOutOfBounds) + " (i.e out-of-bounds material) has a finite integrity!\n This should be infinity (-1).");
+                }
+
                 m_apMatPalette.at(tryId) = pNewMat;
-                m_MatNameMap.insert(pair<string, unsigned char>(string(pNewMat->GetPresetName()), pNewMat->GetIndex()));
+                m_MatNameMap.insert(std::pair<std::string, unsigned char>(std::string(pNewMat->GetPresetName()), pNewMat->GetIndex()));
                 // Now add the instance, when ID has been registered!
                 g_PresetMan.AddEntityPreset(pNewMat, reader.GetReadModuleID(), reader.GetPresetOverwriting(), objectFilePath);
                 ++m_MaterialCount;
@@ -370,12 +322,7 @@ int SceneMan::ReadProperty(const std::string_view &propName, Reader &reader)
     return 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Save
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Saves the complete state of this SceneMan with a Writer for
-//                  later recreation with Create(Reader &reader);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::Save(Writer &writer) const {
 	g_ConsoleMan.PrintString("ERROR: Tried to save SceneMan, screen does not make sense");
@@ -389,11 +336,7 @@ int SceneMan::Save(Writer &writer) const {
 	return 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Destroy
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Destroys and resets (through Clear()) the SceneMan object.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::Destroy()
 {
@@ -409,14 +352,14 @@ void SceneMan::Destroy()
 	destroy_bitmap(m_pOrphanSearchBitmap);
 	m_pOrphanSearchBitmap = 0;
 
+	for (const auto &[bitmapSize, bitmapPtr] : m_IntermediateSettlingBitmaps) {
+		destroy_bitmap(bitmapPtr);
+	}
+
     Clear();
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetSceneDim
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the total dimensions (width and height) of the scene, in pixels.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Vector SceneMan::GetSceneDim() const
 {
@@ -427,11 +370,7 @@ Vector SceneMan::GetSceneDim() const
     return Vector();
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetSceneWidth
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the total width of the scene, in pixels.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::GetSceneWidth() const
 {
@@ -444,11 +383,7 @@ int SceneMan::GetSceneWidth() const
     return 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetSceneHeight
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the total height of the scene, in pixels.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::GetSceneHeight() const
 {
@@ -458,11 +393,7 @@ int SceneMan::GetSceneHeight() const
     return 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SceneWrapsX
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates whether the scene wraps its scrolling around the X axis.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::SceneWrapsX() const
 {
@@ -475,11 +406,7 @@ bool SceneMan::SceneWrapsX() const
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SceneWrapsY
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates whether the scene wraps its scrolling around the Y axis.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::SceneWrapsY() const
 {
@@ -488,11 +415,7 @@ bool SceneMan::SceneWrapsY() const
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetTerrain
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the SLTerrain.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SLTerrain * SceneMan::GetTerrain()
 {
@@ -503,46 +426,28 @@ SLTerrain * SceneMan::GetTerrain()
     return 0;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetMOColorBitmap
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the bitmap of the intermediary collection SceneLayer that all
-//                  MovableObject:s draw themselves onto before it itself gets drawn onto
-//                  the screen back buffer.
+BITMAP * SceneMan::GetMOColorBitmap() const {
+    return m_pMOColorLayer->GetBitmap();
+}
 
-BITMAP * SceneMan::GetMOColorBitmap() const { return m_pMOColorLayer->GetBitmap(); }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetDebugBitmap
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the bitmap of the SceneLayer that debug graphics is drawn onto.
-//                  Will only return valid BITMAP if building with DEBUG_BUILD.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BITMAP *SceneMan::GetDebugBitmap() const {
     RTEAssert(m_pDebugLayer, "Tried to get debug bitmap but debug layer doesn't exist. Note that the debug layer is only created under certain circumstances.");
     return m_pDebugLayer->GetBitmap();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+BITMAP * SceneMan::GetMOIDBitmap() const {
+    return m_pMOIDLayer->GetBitmap();
+}
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetMOIDBitmap
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the bitmap of the SceneLayer that all MovableObject:s draw their
-//                  current (for the frame only!) MOID's onto.
-
-BITMAP * SceneMan::GetMOIDBitmap() const { return m_pMOIDLayer->GetBitmap(); }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TEMP!
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          MOIDClearCheck
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes sure the MOID bitmap layer is completely of NoMOID color.
-//                  If found to be not, dumps MOID layer and the FG actor color layer for
-//                  debugging.
-
 bool SceneMan::MOIDClearCheck()
 {
     BITMAP *pMOIDMap = m_pMOIDLayer->GetBitmap();
@@ -563,12 +468,7 @@ bool SceneMan::MOIDClearCheck()
     return true;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetTerrMatter
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets a specific pixel from the total material representation of
-//                  this Scene. LockScene() must be called before using this method.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned char SceneMan::GetTerrMatter(int pixelX, int pixelY)
 {
@@ -583,7 +483,6 @@ unsigned char SceneMan::GetTerrMatter(int pixelX, int pixelY)
     // If it's still below or to the sides out of bounds after
     // what is supposed to be wrapped, shit is out of bounds.
     if (pixelX < 0 || pixelX >= pTMatBitmap->w || pixelY >= pTMatBitmap->h)
-//        return g_MaterialOutOfBounds;
         return g_MaterialAir;
 
     // If above terrain bitmap, return air material.
@@ -593,26 +492,25 @@ unsigned char SceneMan::GetTerrMatter(int pixelX, int pixelY)
     return getpixel(pTMatBitmap, pixelX, pixelY);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetMOIDPixel
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets a MOID from pixel coordinates in the Scene. LockScene() must be
-//                  called before using this method.
-
-MOID SceneMan::GetMOIDPixel(int pixelX, int pixelY)
+MOID SceneMan::GetMOIDPixel(int pixelX, int pixelY, int ignoreTeam)
 {
     WrapPosition(pixelX, pixelY);
 
     if (m_pDebugLayer && m_DrawPixelCheckVisualizations) { m_pDebugLayer->SetPixel(pixelX, pixelY, 5); }
 
-    if (pixelX < 0 ||
-       pixelX >= m_pMOIDLayer->GetBitmap()->w ||
-       pixelY < 0 ||
-       pixelY >= m_pMOIDLayer->GetBitmap()->h)
+    if (pixelX < 0 || pixelX >= m_pMOIDLayer->GetBitmap()->w || pixelY < 0 || pixelY >= m_pMOIDLayer->GetBitmap()->h) {
         return g_NoMOID;
+    }
 
+#ifdef DRAW_MOID_LAYER
 	MOID moid = getpixel(m_pMOIDLayer->GetBitmap(), pixelX, pixelY);
+#else
+    const std::vector<MOID> &moidList = m_MOIDsGrid.GetMOIDsAtPosition(pixelX, pixelY, ignoreTeam, true);
+    MOID moid = g_MovableMan.GetMOIDPixel(pixelX, pixelY, moidList);
+#endif
+
 	if (g_SettingsMan.SimplifiedCollisionDetection()) {
 		if (moid != ColorKeys::g_NoMOID && moid != ColorKeys::g_MOIDMaskColor) {
 			const MOSprite *mo = dynamic_cast<MOSprite *>(g_MovableMan.GetMOFromID(moid));
@@ -620,20 +518,16 @@ MOID SceneMan::GetMOIDPixel(int pixelX, int pixelY)
 		} else {
 			return ColorKeys::g_NoMOID;
 		}
-	} else {
-		return moid;
 	}
+
+	return moid;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetMaterial
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets a specific material by name. Ownership is NOT transferred!
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Material const * SceneMan::GetMaterial(const std::string &matName)
 {
-    map<std::string, unsigned char>::iterator itr = m_MatNameMap.find(matName);
+    std::map<std::string, unsigned char>::iterator itr = m_MatNameMap.find(matName);
     if (itr == m_MatNameMap.end())
     {
         g_ConsoleMan.PrintString("ERROR: Material of name: " + matName + " not found!");
@@ -643,11 +537,7 @@ Material const * SceneMan::GetMaterial(const std::string &matName)
         return m_apMatPalette.at((*itr).second);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetGlobalAcc
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the global acceleration (in m/s^2) that is applied to all movable
-//                  objects' velocities during every frame. Typically models gravity.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Vector SceneMan::GetGlobalAcc() const
 {
@@ -655,195 +545,12 @@ Vector SceneMan::GetGlobalAcc() const
     return m_pCurrentScene->GetGlobalAcc();
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetOffset
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the offset (scroll position) of the terrain.
-
-void SceneMan::SetOffset(const long offsetX, const long offsetY, int screen)
-{
-    if (screen >= c_MaxScreenCount)
-        return;
-
-    m_Offset[screen].m_X = offsetX;
-    m_Offset[screen].m_Y = offsetY;
-    CheckOffset(screen);
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetScroll
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the offset (scroll position) of the terrain to center on
-//                  specific world coordinates. If the coordinate to center on is close
-//                  to the terrain border edges, the view will not scroll outside the
-//                  borders.
-
-void SceneMan::SetScroll(const Vector &center, int screen)
-{
-    if (screen >= c_MaxScreenCount)
-        return;
-
-	if (g_FrameMan.IsInMultiplayerMode())
-	{
-		m_Offset[screen].m_X = center.GetFloorIntX() - (g_FrameMan.GetPlayerFrameBufferWidth(screen) / 2);
-		m_Offset[screen].m_Y = center.GetFloorIntY() - (g_FrameMan.GetPlayerFrameBufferHeight(screen) / 2);
-	}
-	else 
-	{
-		m_Offset[screen].m_X = center.GetFloorIntX() - (g_FrameMan.GetResX() / 2);
-		m_Offset[screen].m_Y = center.GetFloorIntY() - (g_FrameMan.GetResY() / 2);
-	}
-
-    CheckOffset(screen);
-
-// *** Temp hack
-//    m_OffsetX = -m_OffsetX;
-//    m_OffsetY = -m_OffsetY;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetScrollTarget
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Interpolates a smooth scroll of the view to a new offset over time.
-
-void SceneMan::SetScrollTarget(const Vector &targetCenter,
-                               float speed,
-                               bool targetWrapped,
-                               int screen)
-{
-    // See if it would make sense to automatically wrap
-    if (!targetWrapped)
-    {
-        SLTerrain *pTerrain = m_pCurrentScene->GetTerrain();
-        // If the difference is more than half the scene width, then wrap
-        if ((pTerrain->WrapsX() && fabs(targetCenter.m_X - m_ScrollTarget[screen].m_X) > pTerrain->GetBitmap()->w / 2) ||
-            (pTerrain->WrapsY() && fabs(targetCenter.m_Y - m_ScrollTarget[screen].m_Y) > pTerrain->GetBitmap()->h / 2))
-            targetWrapped = true;
-    }
-
-    m_ScrollTarget[screen].m_X = targetCenter.m_X;
-    m_ScrollTarget[screen].m_Y = targetCenter.m_Y;
-    m_ScrollSpeed[screen] = speed;
-    // Don't override a set wrapping, it will be reset to false upon a drawn frame
-    m_TargetWrapped[screen] = m_TargetWrapped[screen] || targetWrapped;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const Vector & SceneMan::GetScrollTarget(int screen) const {
-	 const Vector & offsetTarget = (g_NetworkClient.IsConnectedAndRegistered()) ? g_NetworkClient.GetFrameTarget() : m_ScrollTarget[screen];
-	 return offsetTarget;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          TargetDistanceScalar
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates a scalar of how distant a certain point in the world is
-//                  from the currently closest scroll target of all active screens.
-
-float SceneMan::TargetDistanceScalar(Vector point)
-{
-    if (!m_pCurrentScene)
-        return 0;
-
-    int screenCount = g_FrameMan.GetScreenCount();
-    int screenRadius = MAX(g_FrameMan.GetPlayerScreenWidth(), g_FrameMan.GetPlayerScreenHeight()) / 2;
-    int sceneRadius = MAX(m_pCurrentScene->GetWidth(), m_pCurrentScene->GetHeight()) / 2;
-    // Avoid divide by zero problems if scene and screen radius are the same
-    if (screenRadius == sceneRadius)
-        sceneRadius += 100;
-    float distance = 0;
-    float scalar = 0;
-    float closestScalar = 1.0;
-
-    for (int screen = 0; screen < screenCount; ++screen)
-    {
-        distance = ShortestDistance(point, m_ScrollTarget[screen]).GetMagnitude();
-
-        // Check if we're off the screen and then fall off
-        if (distance > screenRadius)
-        {
-            // Get ratio of how close to the very opposite of teh scene the point is
-            scalar = 0.5 + 0.5 * (distance - screenRadius) / (sceneRadius - screenRadius);
-        }
-        // Full audio if within the screen
-        else
-            scalar = 0;
-
-        // See if this screen's distance scalar is the closest one yet
-        if (scalar < closestScalar)
-            closestScalar = scalar;
-    }
-
-    // Return the scalar that was shows the closest scroll target of any current screen to the point
-    return closestScalar;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CheckOffset
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes sure the current offset won't create a view of outside the scene.
-//                  If that is found to be the case, the offset is corrected so that the
-//                  view rectangle is as close to the old offset as possible, but still
-//                  entirely within the scene world.
-
-void SceneMan::CheckOffset(int screen)
-{
-    RTEAssert(m_pCurrentScene, "Trying to check offset before there is a scene or terrain!");
-
-    // Handy
-    SLTerrain *pTerrain = m_pCurrentScene->GetTerrain();
-    RTEAssert(pTerrain, "Trying to get terrain matter before there is a scene or terrain!");
-
-    if (!pTerrain->WrapsX() && m_Offset[screen].m_X < 0)
-        m_Offset[screen].m_X = 0;
-
-    if (!pTerrain->WrapsY() && m_Offset[screen].m_Y < 0)
-        m_Offset[screen].m_Y = 0;
-
-    int frameWidth = g_FrameMan.GetResX();
-    int frameHeight = g_FrameMan.GetResY();
-    frameWidth = frameWidth / (g_FrameMan.GetVSplit() ? 2 : 1);
-    frameHeight = frameHeight / (g_FrameMan.GetHSplit() ? 2 : 1);
-
-	if (g_FrameMan.IsInMultiplayerMode())
-	{
-		frameWidth = g_FrameMan.GetPlayerFrameBufferWidth(screen);
-		frameHeight = g_FrameMan.GetPlayerFrameBufferHeight(screen);
-	}
-
-    if (!pTerrain->WrapsX() && m_Offset[screen].m_X >= pTerrain->GetBitmap()->w - frameWidth)
-        m_Offset[screen].m_X = pTerrain->GetBitmap()->w - frameWidth;
-
-    if (!pTerrain->WrapsY() && m_Offset[screen].m_Y >= pTerrain->GetBitmap()->h - frameHeight)
-        m_Offset[screen].m_Y = pTerrain->GetBitmap()->h - frameHeight;
-
-    if (!pTerrain->WrapsX() && m_Offset[screen].m_X >= pTerrain->GetBitmap()->w - frameWidth)
-        m_Offset[screen].m_X = pTerrain->GetBitmap()->w - frameWidth;
-
-    if (!pTerrain->WrapsY() && m_Offset[screen].m_Y >= pTerrain->GetBitmap()->h - frameHeight)
-        m_Offset[screen].m_Y = pTerrain->GetBitmap()->h - frameHeight;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          LockScene
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Locks all dynamic internal scene bitmaps so that manipulaitons of the
-//                  scene's color and matter representations can take place.
-//                  Doing it in a separate method like this is more efficient because
-//                  many bitmap manipulaitons can be performed between a lock and unlock.
-//                  UnlockScene() should always be called after accesses are completed.
 
 void SceneMan::LockScene()
 {
 //    RTEAssert(!m_pCurrentScene->IsLocked(), "Hey, locking already locked scene!");
-    if (!m_pCurrentScene->IsLocked())
+    if (m_pCurrentScene && !m_pCurrentScene->IsLocked())
     {
         m_pCurrentScene->Lock();
         m_pMOColorLayer->LockBitmaps();
@@ -851,19 +558,12 @@ void SceneMan::LockScene()
     }
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UnlockScene
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Unlocks the scene's bitmaps and prevents access to display memory.
-//                  Doing it in a separate method like this is more efficient because
-//                  many bitmap accesses can be performed between a lock and an unlock.
-//                  UnlockScene() should only be called after LockScene().
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::UnlockScene()
 {
 //    RTEAssert(m_pCurrentScene->IsLocked(), "Hey, unlocking already unlocked scene!");
-    if (m_pCurrentScene->IsLocked())
+    if (m_pCurrentScene && m_pCurrentScene->IsLocked())
     {
         m_pCurrentScene->Unlock();
         m_pMOColorLayer->UnlockBitmaps();
@@ -871,102 +571,51 @@ void SceneMan::UnlockScene()
     }
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SceneIsLocked
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates whether the entire scene is currently locked or not.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::SceneIsLocked() const
 {
-    RTEAssert(m_pCurrentScene, "Trying to check offset before there is a scene or terrain!");
+    RTEAssert(m_pCurrentScene, "Trying to check if scene is locked before there is a scene or terrain!");
     return m_pCurrentScene->IsLocked();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RegisterMOIDDrawing
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Registers an area of the MOID layer to be cleared upon finishing this
-//                  sim update. Should be done every time anything is drawn the MOID layer.
-
-void SceneMan::RegisterMOIDDrawing(const Vector &center, float radius)
-{
-    if (radius != 0)
-        RegisterMOIDDrawing(center.m_X - radius, center.m_Y - radius, center.m_X + radius, center.m_Y + radius);
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ClearAllMOIDDrawings
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all registered drawn areas of the MOID layer to the g_NoMOID
-//                  color and clears the registrations too. Should be done each sim update.
-
-void SceneMan::ClearAllMOIDDrawings()
-{
-    for (list<IntRect>::iterator itr = m_MOIDDrawings.begin(); itr != m_MOIDDrawings.end(); ++itr)
-        ClearMOIDRect(itr->m_Left, itr->m_Top, itr->m_Right, itr->m_Bottom);
-
-    m_MOIDDrawings.clear();
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ClearMOIDRect
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Resets a specific rectangle of the scene's MOID layer to not contain
-//                  any MOID data anymore. Sets it all to NoMOID. Will take care of wrapping.
-
-void SceneMan::ClearMOIDRect(int left, int top, int right, int bottom)
-{
-    // Draw the first unwrapped rect
-    rectfill(m_pMOIDLayer->GetBitmap(), left, top, right, bottom, g_NoMOID);
-
-    // Draw wrapped rectangles
-    if (g_SceneMan.SceneWrapsX())
-    {
-        int sceneWidth = m_pCurrentScene->GetWidth();
-
-        if (left < 0)
-        {
-            int wrapLeft = left + sceneWidth;
-            int wrapRight = sceneWidth - 1;
-            rectfill(m_pMOIDLayer->GetBitmap(), wrapLeft, top, wrapRight, bottom, g_NoMOID);
+void SceneMan::RegisterDrawing(const BITMAP *bitmap, int moid, int left, int top, int right, int bottom) {
+    if (m_pMOColorLayer && m_pMOColorLayer->GetBitmap() == bitmap) {
+        m_pMOColorLayer->RegisterDrawing(left, top, right, bottom);
+    } else if (m_pMOIDLayer && m_pMOIDLayer->GetBitmap() == bitmap) {
+#ifdef DRAW_MOID_LAYER
+        m_pMOIDLayer->RegisterDrawing(left, top, right, bottom);
+#else
+        const MovableObject *mo = g_MovableMan.GetMOFromID(moid);
+        if (mo) {
+            IntRect rect(left, top, right, bottom);
+            m_MOIDsGrid.Add(rect, *mo);
         }
-        if (right >= sceneWidth)
-        {
-            int wrapLeft = 0;
-            int wrapRight = right - sceneWidth;
-            rectfill(m_pMOIDLayer->GetBitmap(), wrapLeft, top, wrapRight, bottom, g_NoMOID);
-        }
-    }
-    if (g_SceneMan.SceneWrapsY())
-    {
-        int sceneHeight = m_pCurrentScene->GetHeight();
-
-        if (top < 0)
-        {
-            int wrapTop = top + sceneHeight;
-            int wrapBottom = sceneHeight - 1;
-            rectfill(m_pMOIDLayer->GetBitmap(), left, wrapTop, right, wrapBottom, g_NoMOID);
-        }
-        if (bottom >= sceneHeight)
-        {
-            int wrapTop = 0;
-            int wrapBottom = bottom - sceneHeight;
-            rectfill(m_pMOIDLayer->GetBitmap(), left, wrapTop, right, wrapBottom, g_NoMOID);
-        }
+#endif
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          WillPenetrate
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Test whether a pixel of the scene would be knocked loose and
-//                  turned into a MO by a certian impulse force. Scene needs to be locked
-//                  to do this!
+void SceneMan::RegisterDrawing(const BITMAP *bitmap, int moid, const Vector &center, float radius) {
+    if (radius != 0.0F) {
+		RegisterDrawing(bitmap, moid, static_cast<int>(std::floor(center.m_X - radius)), static_cast<int>(std::floor(center.m_Y - radius)), static_cast<int>(std::floor(center.m_X + radius)), static_cast<int>(std::floor(center.m_Y + radius)));
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SceneMan::ClearAllMOIDDrawings() {
+#ifdef DRAW_MOID_LAYER
+    m_pMOIDLayer->ClearBitmap(g_NoMOID);
+#else
+    m_MOIDsGrid.Reset();
+#endif
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::WillPenetrate(const int posX,
                              const int posY,
@@ -977,16 +626,12 @@ bool SceneMan::WillPenetrate(const int posX,
     if (!m_pCurrentScene->GetTerrain()->IsWithinBounds(posX, posY))
         return false;
 
-    float impMag = impulse.GetMagnitude();
     unsigned char materialID = getpixel(m_pCurrentScene->GetTerrain()->GetMaterialBitmap(), posX, posY);
-
-    return impMag >= GetMaterialFromID(materialID)->GetIntegrity();
+    float integrity = GetMaterialFromID(materialID)->GetIntegrity();
+    return impulse.MagnitudeIsGreaterThan(integrity);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RemoveOrphans
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the area of an orphaned region at specified coordinates and remoes the region if requested.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::RemoveOrphans(int posX, int posY, int radius, int maxArea, bool remove)
 {
@@ -1004,13 +649,10 @@ int SceneMan::RemoveOrphans(int posX, int posY, int radius, int maxArea, bool re
 	return area;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RemoveOrphans
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the area of an orphaned region at specified coordinates. 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int SceneMan::RemoveOrphans(int posX, int posY, 
-							int centerPosX, int centerPosY, 
+int SceneMan::RemoveOrphans(int posX, int posY,
+							int centerPosX, int centerPosY,
 							int accumulatedArea, int radius, int maxArea, bool remove)
 {
 	int area = 0;
@@ -1029,7 +671,7 @@ int SceneMan::RemoveOrphans(int posX, int posY,
 		bmpX = posX - (centerPosX - radius / 2);
 		bmpY = posY - (centerPosY - radius / 2);
 
-		// We reached the border of orphan-searching area and 
+		// We reached the border of orphan-searching area and
 		// there are still material pixels there -> the area is not an orphaned teran piece, abort search
 		if (bmpX <= 0 || bmpY <= 0 || bmpX >= radius - 1 || bmpY >= radius - 1)
 			return MAXORPHANRADIUS * MAXORPHANRADIUS + 1;
@@ -1098,7 +740,9 @@ int SceneMan::RemoveOrphans(int posX, int posY,
 	return area;
 }
 
-void SceneMan::RegisterTerrainChange(int x, int y, int w, int h, unsigned char color, bool back) 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SceneMan::RegisterTerrainChange(int x, int y, int w, int h, unsigned char color, bool back)
 {
 	if (!g_NetworkServer.IsServerModeEnabled())
 		return;
@@ -1137,7 +781,7 @@ void SceneMan::RegisterTerrainChange(int x, int y, int w, int h, unsigned char c
 			if (x + w >= GetSceneWidth())
 			{
 				// Left part, on the scene
-				TerrainChange tc1;
+				NetworkServer::NetworkTerrainChange tc1;
 				tc1.x = x;
 				tc1.y = y;
 				tc1.w = GetSceneWidth() - x;
@@ -1151,7 +795,7 @@ void SceneMan::RegisterTerrainChange(int x, int y, int w, int h, unsigned char c
 					return;
 
 				// Right part, out of scene
-				TerrainChange tc2;
+				NetworkServer::NetworkTerrainChange tc2;
 				tc2.x = 0;
 				tc2.y = y;
 				tc2.w = w - (GetSceneWidth() - x);
@@ -1166,7 +810,7 @@ void SceneMan::RegisterTerrainChange(int x, int y, int w, int h, unsigned char c
 			if (x < 0)
 			{
 				// Right part, on the scene
-				TerrainChange tc2;
+				NetworkServer::NetworkTerrainChange tc2;
 				tc2.x = 0;
 				tc2.y = y;
 				tc2.w = w + x;
@@ -1180,7 +824,7 @@ void SceneMan::RegisterTerrainChange(int x, int y, int w, int h, unsigned char c
 					return;
 
 				// Left part, out of the scene
-				TerrainChange tc1;
+				NetworkServer::NetworkTerrainChange tc1;
 				tc1.x = GetSceneWidth() + x;
 				tc1.y = y;
 				tc1.w = -x;
@@ -1193,7 +837,7 @@ void SceneMan::RegisterTerrainChange(int x, int y, int w, int h, unsigned char c
 		}
 	}
 
-	TerrainChange tc;
+	NetworkServer::NetworkTerrainChange tc;
 	tc.x = x;
 	tc.y = y;
 	tc.w = w;
@@ -1203,15 +847,7 @@ void SceneMan::RegisterTerrainChange(int x, int y, int w, int h, unsigned char c
 	g_NetworkServer.RegisterTerrainChange(tc);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          TryPenetrate
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculate whether a pixel of the scene would be knocked loose and
-//                  turned into a MO by another particle of a certain material going at a
-//                  certain velocity. If so, the incoming particle will knock loose the
-//                  specified pixel in the scene and momentarily take its place.
-//                  Use PenetrationResult() to retrieve the resulting effects on the
-//                  incoming particle if it manages to knock the scene pixel out.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::TryPenetrate(int posX,
                             int posY,
@@ -1239,12 +875,11 @@ bool SceneMan::TryPenetrate(int posX,
     Material const * sceneMat = GetMaterialFromID(materialID);
     Material const * spawnMat;
 
-    float sprayScale = 0.1;
-//    float spraySpread = 10.0;
-    float impMag = impulse.GetMagnitude();
+	float sprayScale = 0.1F;
+	float sqrImpMag = impulse.GetSqrMagnitude();
 
     // Test if impulse force is enough to penetrate
-    if (impMag >= sceneMat->GetIntegrity())
+    if (sqrImpMag >= (sceneMat->GetIntegrity() * sceneMat->GetIntegrity()))
     {
         if (numPenetrations <= 3)
         {
@@ -1305,11 +940,10 @@ bool SceneMan::TryPenetrate(int posX,
 
         // Save the impulse force effects of the penetrating particle.
 //        retardation = -sceneMat.density;
-        retardation = -(sceneMat->GetIntegrity() / impMag);
+        retardation = -(sceneMat->GetIntegrity() / std::sqrt(sqrImpMag));
 
-        // If this is a scrap pixel, or there is no background pixel 'supporting' the knocked-loose pixel, make the column above also turn into particles
-        if (sceneMat->IsScrap() || _getpixel(m_pCurrentScene->GetTerrain()->GetBGColorBitmap(), posX, posY) == g_MaskColor)
-        {
+		// If this is a scrap pixel, or there is no background pixel 'supporting' the knocked-loose pixel, make the column above also turn into particles.
+		if (m_ScrapCompactingHeight > 0 && (sceneMat->IsScrap() || _getpixel(m_pCurrentScene->GetTerrain()->GetBGColorBitmap(), posX, posY) == g_MaskColor)) {
             // Get quicker direct access to bitmaps
             BITMAP *pFGColor = m_pCurrentScene->GetTerrain()->GetFGColorBitmap();
             BITMAP *pBGColor = m_pCurrentScene->GetTerrain()->GetBGColorBitmap();
@@ -1318,58 +952,42 @@ bool SceneMan::TryPenetrate(int posX,
             int testMaterialID = g_MaterialAir;
             MOPixel *pixelMO = 0;
             Color spawnColor;
-            float sprayMag = velocity.GetLargest() * sprayScale;
-            Vector sprayVel;
+			float sprayMag = std::sqrt(velocity.GetMagnitude() * sprayScale);
+			Vector sprayVel;
 
-            // Look at pixel above to see if it isn't air and has support, or should fall down
-            for (int testY = posY - 1; testY > posY - COMPACTINGHEIGHT && testY >= 0; --testY)
-            {
-                // Check if there is a material pixel above
-                if ((testMaterialID = _getpixel(pMaterial, posX, testY)) != g_MaterialAir)
-                {
-                    sceneMat = GetMaterialFromID(testMaterialID);
+			for (int testY = posY - 1; testY > posY - m_ScrapCompactingHeight && testY >= 0; --testY) {
+				if ((testMaterialID = _getpixel(pMaterial, posX, testY)) != g_MaterialAir) {
+					sceneMat = GetMaterialFromID(testMaterialID);
 
-                    // No support in the background layer, or is scrap material, so make particle of some of them
-                    if (sceneMat->IsScrap() || _getpixel(pBGColor, posX, testY) == g_MaskColor)
-                    {
-                        //  Only generate  particles of some of 'em
-                        if (RandomNum() > 0.75F)
-                        {
-                            // Figure out the mateiral and color of the new spray particle
-                            spawnMat = sceneMat->GetSpawnMaterial() ? GetMaterialFromID(sceneMat->GetSpawnMaterial()) : sceneMat;
-                            if (spawnMat->UsesOwnColor())
-                                spawnColor = spawnMat->GetColor();
-                            else
-                                spawnColor.SetRGBWithIndex(m_pCurrentScene->GetTerrain()->GetFGColorPixel(posX, testY));
+					if (sceneMat->IsScrap() || _getpixel(pBGColor, posX, testY) == g_MaskColor) {
+						if (RandomNum() < 0.7F) {
+							spawnMat = sceneMat->GetSpawnMaterial() ? GetMaterialFromID(sceneMat->GetSpawnMaterial()) : sceneMat;
+							if (spawnMat->UsesOwnColor()) {
+								spawnColor = spawnMat->GetColor();
+							} else {
+								spawnColor.SetRGBWithIndex(m_pCurrentScene->GetTerrain()->GetFGColorPixel(posX, testY));
+							}
+							if (spawnColor.GetIndex() != g_MaskColor) {
+								// Send terrain pixels flying at a diminishing rate the higher the column goes.
+								sprayVel.SetXY(0, -sprayMag * (1.0F - (static_cast<float>(posY - testY) / static_cast<float>(m_ScrapCompactingHeight))));
+								sprayVel.RadRotate(RandomNum(-c_HalfPI, c_HalfPI));
 
-                            // No point generating a key-colored MOPixel
-                            if (spawnColor.GetIndex() != g_MaskColor)
-                            {
-                                // Figure out the randomized velocity the spray should have upward
-								sprayVel.SetXY(sprayMag* RandomNormalNum() * 0.5F, (-sprayMag * 0.5F) + (-sprayMag * RandomNum(0.0F, 0.5F)));
-
-                                // Create the new spray pixel
 								pixelMO = new MOPixel(spawnColor, spawnMat->GetPixelDensity(), Vector(posX, testY), sprayVel, new Atom(Vector(), spawnMat->GetIndex(), 0, spawnColor, 2), 0);
 
-                                // Let it loose into the world
-                                pixelMO->SetToHitMOs(spawnMat->GetIndex() == c_GoldMaterialID);
-                                pixelMO->SetToGetHitByMOs(false);
-                                g_MovableMan.AddParticle(pixelMO);
-                                pixelMO = 0;
-                            }
-
-							// Remove orphaned terrain left from hits and scrap damage
-							RemoveOrphans(posX + testY%2 ? -1 : 1, testY, 5, 25, true);
+								pixelMO->SetToHitMOs(spawnMat->GetIndex() == c_GoldMaterialID);
+								pixelMO->SetToGetHitByMOs(false);
+								g_MovableMan.AddParticle(pixelMO);
+								pixelMO = 0;
+							}
+							RemoveOrphans(posX + testY % 2 ? -1 : 1, testY, removeOrphansRadius + 5, removeOrphansMaxArea + 10, true);
 						}
 
-                        // Clear the terrain pixel now when the particle has been generated from it
 						RegisterTerrainChange(posX, testY, 1, 1, g_MaskColor, false);
-                        _putpixel(pFGColor, posX, testY, g_MaskColor);
-                        _putpixel(pMaterial, posX, testY, g_MaterialAir);
-                    }
-                    // There is support, so stop checking
-                    else
-                        break;
+						_putpixel(pFGColor, posX, testY, g_MaskColor);
+						_putpixel(pMaterial, posX, testY, g_MaterialAir);
+					} else {
+						break;
+					}
                 }
             }
         }
@@ -1388,37 +1006,50 @@ bool SceneMan::TryPenetrate(int posX,
     return false;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          MakeAllUnseen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets one team's view of the scene to be unseen, using a generated map
-//                  of a specific resolution chunkiness.
+MovableObject * SceneMan::DislodgePixel(int posX, int posY) {
+	int materialID = getpixel(m_pCurrentScene->GetTerrain()->GetMaterialBitmap(), posX, posY);
+	if (materialID <= MaterialColorKeys::g_MaterialAir) {
+		return nullptr;
+	}
+	const Material *sceneMat = GetMaterialFromID(static_cast<uint8_t>(materialID));
+	const Material *spawnMat = sceneMat->GetSpawnMaterial() ? GetMaterialFromID(sceneMat->GetSpawnMaterial()) : sceneMat;
+
+	Color spawnColor;
+	if (spawnMat->UsesOwnColor()) {
+		spawnColor = spawnMat->GetColor();
+	} else {
+		spawnColor.SetRGBWithIndex(m_pCurrentScene->GetTerrain()->GetFGColorPixel(posX, posY));
+	}
+	// No point generating a key-colored MOPixel.
+	if (spawnColor.GetIndex() == ColorKeys::g_MaskColor) {
+		return nullptr;
+	}
+	Atom *pixelAtom = new Atom(Vector(), spawnMat->GetIndex(), nullptr, spawnColor, 2);
+	MOPixel *pixelMO = new MOPixel(spawnColor, spawnMat->GetPixelDensity(), Vector(static_cast<float>(posX), static_cast<float>(posY)), Vector(), pixelAtom, 0);
+	pixelMO->SetToHitMOs(spawnMat->GetIndex() == c_GoldMaterialID);
+	g_MovableMan.AddParticle(pixelMO);
+
+	m_pCurrentScene->GetTerrain()->SetFGColorPixel(posX, posY, ColorKeys::g_MaskColor);
+	RegisterTerrainChange(posX, posY, 1, 1, ColorKeys::g_MaskColor, false);
+	m_pCurrentScene->GetTerrain()->SetMaterialPixel(posX, posY, MaterialColorKeys::g_MaterialAir);
+
+	return pixelMO;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::MakeAllUnseen(Vector pixelSize, const int team)
 {
     RTEAssert(m_pCurrentScene, "Messing with scene before the scene exists!");
-	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) 
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return;
 
     m_pCurrentScene->FillUnseenLayer(pixelSize, team);
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          MakeAllSeen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets one team's view of the scene to be all seen.
-// Arguments:       The team we're talking about.
-// Return value:    None.
-
-    void MakeAllSeen(const int team);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          LoadUnseenLayer
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Loads a bitmap from file and use it as the unseen layer for a team.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::LoadUnseenLayer(std::string bitmapPath, int team)
 {
@@ -1435,31 +1066,22 @@ bool SceneMan::LoadUnseenLayer(std::string bitmapPath, int team)
     return true;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AnythingUnseen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Tells whether a team has anything still unseen on the scene.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::AnythingUnseen(const int team)
 {
-    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists!");
+    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when checking if anything is unseen!");
 
     return m_pCurrentScene->GetUnseenLayer(team) != 0;
 // TODO: Actually check all pixels on the map too?
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetUnseenResolution
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Shows what the resolution factor of the unseen map to the entire Scene
-//                  is, in both axes.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Vector SceneMan::GetUnseenResolution(const int team) const
 {
-    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists!");
-	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) 
+    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when getting unseen resolution!");
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return Vector(1, 1);
 
     SceneLayer *pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
@@ -1469,50 +1091,42 @@ Vector SceneMan::GetUnseenResolution(const int team) const
     return Vector(1, 1);
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          IsUnseen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Checks whether a pixel is in an unseen area on of a specific team.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::IsUnseen(const int posX, const int posY, const int team)
 {
-    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists!");
-	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) 
+    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when checking if a position is unseen!");
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return false;
 
     SceneLayer *pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
     if (pUnseenLayer)
     {
         // Translate to the scaled unseen layer's coordinates
-        Vector scale = pUnseenLayer->GetScaleInverse();
-        int scaledX = posX * scale.m_X;
-        int scaledY = posY * scale.m_Y;
+        Vector scale = pUnseenLayer->GetScaleFactor();
+        int scaledX = posX / scale.m_X;
+        int scaledY = posY / scale.m_Y;
         return getpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY) != g_MaskColor;
     }
 
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RevealUnseen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Reveals a pixel on the unseen map for a specific team, if there is any.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::RevealUnseen(const int posX, const int posY, const int team)
 {
-    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists!");
-	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) 
+    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when revealing an unseen position!");
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return false;
 
     SceneLayer *pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
     if (pUnseenLayer)
     {
         // Translate to the scaled unseen layer's coordinates
-        Vector scale = pUnseenLayer->GetScaleInverse();
-        int scaledX = posX * scale.m_X;
-        int scaledY = posY * scale.m_Y;
+        Vector scale = pUnseenLayer->GetScaleFactor();
+        int scaledX = posX / scale.m_X;
+        int scaledY = posY / scale.m_Y;
 
         // Make sure we're actually revealing an unseen pixel that is ON the bitmap!
         int pixel = getpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY);
@@ -1533,25 +1147,21 @@ bool SceneMan::RevealUnseen(const int posX, const int posY, const int team)
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RestoreUnseen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Hides a pixel on the unseen map for a specific team, if there is any.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team)
 {
-    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists!");
-	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) 
+    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when making a position unseen!");
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return false;
 
     SceneLayer *pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
     if (pUnseenLayer)
     {
         // Translate to the scaled unseen layer's coordinates
-        Vector scale = pUnseenLayer->GetScaleInverse();
-        int scaledX = posX * scale.m_X;
-        int scaledY = posY * scale.m_Y;
+        Vector scale = pUnseenLayer->GetScaleFactor();
+        int scaledX = posX / scale.m_X;
+        int scaledY = posY / scale.m_Y;
 
         // Make sure we're actually revealing an unseen pixel that is ON the bitmap!
         int pixel = getpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY);
@@ -1572,67 +1182,53 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team)
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RevealUnseenBox
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Reveals a box on the unseen map for a specific team, if there is any.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team)
 {
-    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists!");
-	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) 
+    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when revealing an unseen area!");
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return;
 
     SceneLayer *pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
     if (pUnseenLayer)
     {
         // Translate to the scaled unseen layer's coordinates
-        Vector scale = pUnseenLayer->GetScaleInverse();
-        int scaledX = posX * scale.m_X;
-        int scaledY = posY * scale.m_Y;
-        int scaledW = width * scale.m_X;
-        int scaledH = height * scale.m_Y;
+        Vector scale = pUnseenLayer->GetScaleFactor();
+        int scaledX = posX / scale.m_X;
+        int scaledY = posY / scale.m_Y;
+        int scaledW = width / scale.m_X;
+        int scaledH = height / scale.m_Y;
 
         // Fill the box
         rectfill(pUnseenLayer->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
     }
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RestoreUnseenBox
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Restore a box on the unseen map for a specific team, if there is any.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width, const int height, const int team)
 {
-    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists!");
-	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) 
+    RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when making an area unseen!");
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return;
 
     SceneLayer *pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
     if (pUnseenLayer)
     {
         // Translate to the scaled unseen layer's coordinates
-        Vector scale = pUnseenLayer->GetScaleInverse();
-        int scaledX = posX * scale.m_X;
-        int scaledY = posY * scale.m_Y;
-        int scaledW = width * scale.m_X;
-        int scaledH = height * scale.m_Y;
+        Vector scale = pUnseenLayer->GetScaleFactor();
+        int scaledX = posX / scale.m_X;
+        int scaledY = posY / scale.m_Y;
+        int scaledW = width / scale.m_X;
+        int scaledH = height / scale.m_Y;
 
         // Fill the box
         rectfill(pUnseenLayer->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_BlackColor);
     }
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastUnseenRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and reveals or hides pixels on the unseen layer of a team
-//                  as long as the accumulated material strengths traced through the terrain
-//                  don't exceed a specific value.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //TODO Every raycast should use some shared line drawing method (or maybe something more efficient if it exists, that needs looking into) instead of having a ton of duplicated code.
 bool SceneMan::CastUnseenRay(int team, const Vector &start, const Vector &ray, Vector &endPos, int strengthLimit, int skip, bool reveal)
@@ -1653,7 +1249,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector &start, const Vector &ray, V
     intPos[Y] = std::floor(start.m_Y);
     delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
     delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-    
+
     if (delta[X] == 0 &&  delta[Y] == 0)
         return false;
 
@@ -1738,37 +1334,21 @@ bool SceneMan::CastUnseenRay(int team, const Vector &start, const Vector &ray, V
     return affectedAny;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastSeeRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and reveals pixels on the unseen layer of a team
-//                  as long as the accumulated material strengths traced through the terrain
-//                  don't exceed a specific value.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::CastSeeRay(int team, const Vector &start, const Vector &ray, Vector &endPos, int strengthLimit, int skip)
 {
 	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, true);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastUnseeRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and hides pixels on the unseen layer of a team
-//                  as long as the accumulated material strengths traced through the terrain
-//                  don't exceed a specific value.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::CastUnseeRay(int team, const Vector &start, const Vector &ray, Vector &endPos, int strengthLimit, int skip)
 {
 	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, false);
 }
 
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastMaterialRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and gets the location of the first encountered
-//                  pixel of a specific material in the terrain.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::CastMaterialRay(const Vector &start, const Vector &ray, unsigned char material, Vector &result, int skip, bool wrap)
 {
@@ -1781,7 +1361,7 @@ bool SceneMan::CastMaterialRay(const Vector &start, const Vector &ray, unsigned 
     intPos[Y] = std::floor(start.m_Y);
     delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
     delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-    
+
     if (delta[X] == 0 &&  delta[Y] == 0)
         return false;
 
@@ -1861,11 +1441,7 @@ bool SceneMan::CastMaterialRay(const Vector &start, const Vector &ray, unsigned 
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastMaterialRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and returns how far along that ray there is an
-//                  encounter with a pixel of a specific material in the terrain.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SceneMan::CastMaterialRay(const Vector &start, const Vector &ray, unsigned char material, int skip)
 {
@@ -1881,12 +1457,7 @@ float SceneMan::CastMaterialRay(const Vector &start, const Vector &ray, unsigned
     return -1;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastNotMaterialRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and gets the location of the first encountered
-//                  pixel that is NOT of a specific material in the scene's terrain.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::CastNotMaterialRay(const Vector &start, const Vector &ray, unsigned char material, Vector &result, int skip, bool checkMOs)
 {
@@ -1959,7 +1530,7 @@ bool SceneMan::CastNotMaterialRay(const Vector &start, const Vector &ray, unsign
             // See if we found the looked-for pixel of the correct material,
             // Or an MO is blocking the way
             if (GetTerrMatter(intPos[X], intPos[Y]) != material ||
-                (checkMOs && g_SceneMan.GetMOIDPixel(intPos[X], intPos[Y]) != g_NoMOID))
+                (checkMOs && g_SceneMan.GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam) != g_NoMOID))
             {
                 // Save result and report success
                 foundPixel = true;
@@ -1977,12 +1548,7 @@ bool SceneMan::CastNotMaterialRay(const Vector &start, const Vector &ray, unsign
     return foundPixel;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastNotMaterialRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and returns how far along that ray there is an
-//                  encounter with a pixel of OTHER than a specific material in the terrain.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SceneMan::CastNotMaterialRay(const Vector &start, const Vector &ray, unsigned char material, int skip, bool checkMOs)
 {
@@ -1998,12 +1564,7 @@ float SceneMan::CastNotMaterialRay(const Vector &start, const Vector &ray, unsig
     return -1;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastStrengthSumRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and returns how the sum of all encountered pixels'
-//                  material strength values. This will take wrapping into account.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SceneMan::CastStrengthSumRay(const Vector &start, const Vector &end, int skip, unsigned char ignoreMaterial)
 {
@@ -2020,7 +1581,7 @@ float SceneMan::CastStrengthSumRay(const Vector &start, const Vector &end, int s
     intPos[Y] = std::floor(start.m_Y);
     delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
     delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-    
+
     if (delta[X] == 0 &&  delta[Y] == 0)
         return false;
 
@@ -2081,8 +1642,9 @@ float SceneMan::CastStrengthSumRay(const Vector &start, const Vector &end, int s
 
             // Sum all strengths
             materialID = GetTerrMatter(intPos[X], intPos[Y]);
-            if (materialID != g_MaterialAir && materialID != ignoreMaterial)
+            if (materialID != g_MaterialAir && materialID != ignoreMaterial) {
                 strengthSum += GetMaterialFromID(materialID)->GetIntegrity();
+            }
 
             skipped = 0;
 
@@ -2093,32 +1655,30 @@ float SceneMan::CastStrengthSumRay(const Vector &start, const Vector &end, int s
     return strengthSum;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastMaxStrengthRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and returns the strongest of all encountered pixels'
-//                  material strength values exept doors.
-//                  This will take wrapping into account.
+float SceneMan::CastMaxStrengthRay(const Vector &start, const Vector &end, int skip, unsigned char ignoreMaterial) {
+    return CastMaxStrengthRayMaterial(start, end, skip, ignoreMaterial)->GetIntegrity();
+}
 
-float SceneMan::CastMaxStrengthRay(const Vector &start, const Vector &end, int skip)
-{
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const Material * SceneMan::CastMaxStrengthRayMaterial(const Vector &start, const Vector &end, int skip, unsigned char ignoreMaterial) {
     Vector ray = g_SceneMan.ShortestDistance(start, end);
-    float maxStrength = 0;
+    const Material *strongestMaterial = GetMaterialFromID(MaterialColorKeys::g_MaterialAir);
 
     int error, dom, sub, domSteps, skipped = skip;
     int intPos[2], delta[2], delta2[2], increment[2];
     bool foundPixel = false;
-    unsigned char materialID;
-    Material foundMaterial;
 
     intPos[X] = std::floor(start.m_X);
     intPos[Y] = std::floor(start.m_Y);
     delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
     delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-    
-    if (delta[X] == 0 &&  delta[Y] == 0)
-        return false;
+
+	if (delta[X] == 0 && delta[Y] == 0) {
+		return strongestMaterial;
+	}
 
     /////////////////////////////////////////////////////
     // Bresenham's line drawing algorithm preparation
@@ -2176,27 +1736,24 @@ float SceneMan::CastMaxStrengthRay(const Vector &start, const Vector &end, int s
             g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
 
             // Sum all strengths
-            materialID = GetTerrMatter(intPos[X], intPos[Y]);
-            if (materialID != g_MaterialDoor)
-                maxStrength = std::max(maxStrength, GetMaterialFromID(materialID)->GetIntegrity());
+            unsigned char materialID = GetTerrMatter(intPos[X], intPos[Y]);
+            if (materialID != g_MaterialAir && materialID != ignoreMaterial) {
+                const Material *foundMaterial = GetMaterialFromID(materialID);
+                if (foundMaterial->GetIntegrity() > strongestMaterial->GetIntegrity()) {
+                    strongestMaterial = foundMaterial;
+                }
+            }
 
             skipped = 0;
 
             if (m_pDebugLayer && m_DrawRayCastVisualizations) { m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13); }
         }
     }
-    
-    return maxStrength;
+
+    return strongestMaterial;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastStrengthRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and shows where along that ray there is an
-//                  encounter with a pixel of a material with strength more than or equal
-//                  to a specific value.
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::CastStrengthRay(const Vector &start, const Vector &ray, float strength, Vector &result, int skip, unsigned char ignoreMaterial, bool wrap)
 {
@@ -2210,7 +1767,7 @@ bool SceneMan::CastStrengthRay(const Vector &start, const Vector &ray, float str
     intPos[Y] = std::floor(start.m_Y);
     delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
     delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-    
+
     if (delta[X] == 0 &&  delta[Y] == 0)
         return false;
 
@@ -2300,13 +1857,7 @@ bool SceneMan::CastStrengthRay(const Vector &start, const Vector &ray, float str
     return foundPixel;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastWeaknessRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and shows where along that ray there is an
-//                  encounter with a pixel of a material with strength less than or equal
-//                  to a specific value.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::CastWeaknessRay(const Vector &start, const Vector &ray, float strength, Vector &result, int skip, bool wrap)
 {
@@ -2320,7 +1871,7 @@ bool SceneMan::CastWeaknessRay(const Vector &start, const Vector &ray, float str
     intPos[Y] = std::floor(start.m_Y);
     delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
     delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-    
+
     if (delta[X] == 0 &&  delta[Y] == 0)
         return false;
 
@@ -2406,13 +1957,7 @@ bool SceneMan::CastWeaknessRay(const Vector &start, const Vector &ray, float str
     return foundPixel;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastMORay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and returns MOID of the first non-ignored
-//                  non-NoMOID MO encountered. If a non-air terrain pixel is encountered
-//                  first, 0 will be returned.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MOID SceneMan::CastMORay(const Vector &start, const Vector &ray, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip)
 {
@@ -2425,7 +1970,7 @@ MOID SceneMan::CastMORay(const Vector &start, const Vector &ray, MOID ignoreMOID
     intPos[Y] = std::floor(start.m_Y);
     delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
     delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-    
+
     if (delta[X] == 0 && delta[Y] == 0)
         return g_NoMOID;
 
@@ -2485,9 +2030,10 @@ MOID SceneMan::CastMORay(const Vector &start, const Vector &ray, MOID ignoreMOID
             g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
 
             // Detect MOIDs
-            hitMOID = GetMOIDPixel(intPos[X], intPos[Y]);
+            hitMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
             if (hitMOID != g_NoMOID && hitMOID != ignoreMOID && g_MovableMan.GetRootMOID(hitMOID) != ignoreMOID)
             {
+#ifdef DRAW_MOID_LAYER // Unnecessary with non-drawn MOIDs - they'll be culled out at the spatial partition level.
                 // Check if we're supposed to ignore the team of what we hit
                 if (ignoreTeam != Activity::NoTeam)
                 {
@@ -2507,6 +2053,7 @@ MOID SceneMan::CastMORay(const Vector &start, const Vector &ray, MOID ignoreMOID
                 }
                 // Legit hit
                 else
+#endif
                 {
                     // Save last ray pos
                     m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
@@ -2536,11 +2083,7 @@ MOID SceneMan::CastMORay(const Vector &start, const Vector &ray, MOID ignoreMOID
     return g_NoMOID;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastFindMORay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and shows where a specific MOID has been found.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::CastFindMORay(const Vector &start, const Vector &ray, MOID targetMOID, Vector &resultPos, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip)
 {
@@ -2553,7 +2096,7 @@ bool SceneMan::CastFindMORay(const Vector &start, const Vector &ray, MOID target
     intPos[Y] = std::floor(start.m_Y);
     delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
     delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-    
+
     if (delta[X] == 0 && delta[Y] == 0)
         return g_NoMOID;
 
@@ -2612,7 +2155,7 @@ bool SceneMan::CastFindMORay(const Vector &start, const Vector &ray, MOID target
             g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
 
             // Detect MOIDs
-            hitMOID = GetMOIDPixel(intPos[X], intPos[Y]);
+            hitMOID = GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam);
             if (hitMOID == targetMOID || g_MovableMan.GetRootMOID(hitMOID) == targetMOID)
             {
                 // Found target MOID, so save result and report success
@@ -2644,12 +2187,7 @@ bool SceneMan::CastFindMORay(const Vector &start, const Vector &ray, MOID target
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CastObstacleRay
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Traces along a vector and returns the length of how far the trace went
-//                  without hitting any non-ignored terrain material or MOID at all.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SceneMan::CastObstacleRay(const Vector &start, const Vector &ray, Vector &obstaclePos, Vector &freePos, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, int skip)
 {
@@ -2664,38 +2202,36 @@ float SceneMan::CastObstacleRay(const Vector &start, const Vector &ray, Vector &
     // The fraction of a pixel that we start from, to be added to the integer result positions for accuracy
     Vector startFraction(start.m_X - intPos[X], start.m_Y - intPos[Y]);
 
-    if (delta[X] == 0 && delta[Y] == 0)
-        return false;
+    if (delta[X] == 0 && delta[Y] == 0) {
+        return -1.0f;
+    }
 
     /////////////////////////////////////////////////////
     // Bresenham's line drawing algorithm preparation
 
-    if (delta[X] < 0)
-    {
+    if (delta[X] < 0) {
         increment[X] = -1;
         delta[X] = -delta[X];
-    }
-    else
+    } else {
         increment[X] = 1;
+    }
 
-    if (delta[Y] < 0)
-    {
+    if (delta[Y] < 0) {
         increment[Y] = -1;
         delta[Y] = -delta[Y];
-    }
-    else
+    } else {
         increment[Y] = 1;
+    }
 
     // Scale by 2, for better accuracy of the error at the first pixel
-    delta2[X] = delta[X] << 1;
-    delta2[Y] = delta[Y] << 1;
+    delta2[X] = delta[X] * 2;
+    delta2[Y] = delta[Y] * 2;
 
     // If X is dominant, Y is submissive, and vice versa.
     if (delta[X] > delta[Y]) {
         dom = X;
         sub = Y;
-    }
-    else {
+    } else {
         dom = Y;
         sub = X;
     }
@@ -2722,7 +2258,7 @@ float SceneMan::CastObstacleRay(const Vector &start, const Vector &ray, Vector &
             g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
 
             unsigned char checkMat = GetTerrMatter(intPos[X], intPos[Y]);
-            MOID checkMOID = GetMOIDPixel(intPos[X], intPos[Y]);
+            MOID checkMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
 
             // Translate any found MOID into the root MOID of that hit MO
             if (checkMOID != g_NoMOID)
@@ -2731,64 +2267,63 @@ float SceneMan::CastObstacleRay(const Vector &start, const Vector &ray, Vector &
                 if (pHitMO)
                 {
                     checkMOID = pHitMO->GetRootID();
+#ifdef DRAW_MOID_LAYER // Unnecessary with non-drawn MOIDs - they'll be culled out at the spatial partition level.
                     // Check if we're supposed to ignore the team of what we hit
                     if (ignoreTeam != Activity::NoTeam)
                     {
                         pHitMO = pHitMO->GetRootParent();
                         // We are indeed supposed to ignore this object because of its ignoring of its specific team
-                        if (pHitMO && pHitMO->IgnoresTeamHits() && pHitMO->GetTeam() == ignoreTeam)
+                        if (pHitMO && pHitMO->IgnoresTeamHits() && pHitMO->GetTeam() == ignoreTeam) {
                             checkMOID = g_NoMOID;
+                        }
                     }
+#endif
                 }
             }
 
             // See if we found the looked-for pixel of the correct material,
             // Or an MO is blocking the way
-            if ((checkMat != g_MaterialAir && checkMat != ignoreMaterial) || (checkMOID != g_NoMOID && checkMOID != ignoreMOID))
-            {
+            if ((checkMat != g_MaterialAir && checkMat != ignoreMaterial) || (checkMOID != g_NoMOID && checkMOID != ignoreMOID)) {
                 hitObstacle = true;
                 obstaclePos.SetXY(intPos[X], intPos[Y]);
                 // Save last ray pos
                 m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                 break;
-            }
-            else
+            } else {
                 freePos.SetXY(intPos[X], intPos[Y]);
+            }
 
             skipped = 0;
 
             if (m_pDebugLayer && m_DrawRayCastVisualizations) { m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13); }
-        }
-        else
+        } else {
             freePos.SetXY(intPos[X], intPos[Y]);
+        }
     }
 
     // Add the pixel fraction to the free position if there were any free pixels
-    if (domSteps != 0)
+    if (domSteps != 0) {
         freePos += startFraction;
+    }
 
     if (hitObstacle)
     {
         // Add the pixel fraction to the obstacle position, to acoid losing precision
         obstaclePos += startFraction;
-        // If there was an obstacle on the start position, return 0 as the distance to obstacle
-        if (domSteps == 0)
-            return 0;
-        // Calculate the length between the start and the found material pixel coords
-        else
+        if (domSteps == 0) {
+            // If there was an obstacle on the start position, return 0 as the distance to obstacle
+            return 0.0F;
+        } else {
+            // Calculate the length between the start and the found material pixel coords
             return g_SceneMan.ShortestDistance(obstaclePos, start).GetMagnitude();
+        }
     }
 
     // Didn't hit anything but air
-    return -1.0;
+    return -1.0F;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          FindAltitude
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates the altitide of a certain point above the terrain, measured
-//                  in pixels.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SceneMan::FindAltitude(const Vector &from, int max, int accuracy)
 {
@@ -2803,12 +2338,7 @@ float SceneMan::FindAltitude(const Vector &from, int max, int accuracy)
     return result;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OverAltitude
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates the altitide of a certain point above the terrain, measured
-//                  in pixels, and then tells if that point is over a certain value.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::OverAltitude(const Vector &point, int threshold, int accuracy)
 {
@@ -2817,12 +2347,7 @@ bool SceneMan::OverAltitude(const Vector &point, int threshold, int accuracy)
     return g_SceneMan.CastNotMaterialRay(temp, Vector(0, threshold), g_MaterialAir, accuracy) < 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          MovePointToGround
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Takes an arbitrary point in the air and calculates it to be straight
-//                  down at a certain maximum distance from the ground.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Vector SceneMan::MovePointToGround(const Vector &from, int maxAltitude, int accuracy)
 {
@@ -2835,61 +2360,7 @@ Vector SceneMan::MovePointToGround(const Vector &from, int maxAltitude, int accu
     return groundPoint;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          StructuralCalc
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates the structural integrity of the Terrain during a set time
-//                  and turns structurally unsound areas into MovableObject:s.
-
-void SceneMan::StructuralCalc(unsigned long calcTime) {
-
-// TODO: Develop this!")
-    return;
-
-
-    if (calcTime <= 0)
-        return;
-    // Pad the time a little for FPS smoothness.
-    calcTime -= 1;
-    m_CalcTimer.Reset();
-
-    SLTerrain *pTerrain = g_SceneMan.GetTerrain();
-    BITMAP *pColBitmap = pTerrain->GetFGColorBitmap();
-    BITMAP *pMatBitmap = pTerrain->GetMaterialBitmap();
-    BITMAP *pStructBitmap = pTerrain->GetStructuralBitmap();
-    int posX, posY, height = pColBitmap->h, width = pColBitmap->w;
-
-    // Lock all bitmaps involved, outside the loop.
-    acquire_bitmap(pColBitmap);
-    acquire_bitmap(pMatBitmap);
-    acquire_bitmap(pStructBitmap);
-
-    // Preprocess bottom row to have full support.
-    for (posX = width - 1; posX >= 0; --posX)
-        putpixel(pStructBitmap, posX, height - 1, 255);
-
-    // Start on the second row from bottom.
-    for (posY = height - 2; posY >= 0 && !m_CalcTimer.IsPastSimMS(calcTime); --posY) {
-        for (posX = width - 1; posX >= 0; --posX) {
-            getpixel(pColBitmap, posX, posY);
-            getpixel(pMatBitmap, posX, posY);
-            getpixel(pStructBitmap, posX, posY);
-        }
-    }
-
-    // Unlock all bitmaps involved.
-    release_bitmap(pColBitmap);
-    release_bitmap(pMatBitmap);
-    release_bitmap(pStructBitmap);
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          IsWithinBounds
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns whether the integer coordinates passed in are within the
-//                  bounds of the current Scene, considering its wrapping.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::IsWithinBounds(const int pixelX, const int pixelY, const int margin)
 {
@@ -2899,12 +2370,7 @@ bool SceneMan::IsWithinBounds(const int pixelX, const int pixelY, const int marg
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ForceBounds
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Wraps or bounds a position coordinate if it is off bounds of the
-//                  Scene, depending on the wrap settings of this Scene.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::ForceBounds(int &posX, int &posY)
 {
@@ -2912,12 +2378,7 @@ bool SceneMan::ForceBounds(int &posX, int &posY)
     return m_pCurrentScene->GetTerrain()->ForceBounds(posX, posY);
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ForceBounds
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Wraps or bounds a position coordinate if it is off bounds of the
-//                  Scene, depending on the wrap settings of this Scene.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::ForceBounds(Vector &pos)
 {
@@ -2934,12 +2395,7 @@ bool SceneMan::ForceBounds(Vector &pos)
     return wrapped;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          WrapPosition
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Only wraps a position coordinate if it is off bounds of the Scene
-//                  and wrapping in the corresponding axes are turned on.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::WrapPosition(int &posX, int &posY)
 {
@@ -2947,12 +2403,7 @@ bool SceneMan::WrapPosition(int &posX, int &posY)
     return m_pCurrentScene->GetTerrain()->WrapPosition(posX, posY);
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          WrapPosition
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Only wraps a position coordinate if it is off bounds of the Scene
-//                  and wrapping in the corresponding axes are turned on.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::WrapPosition(Vector &pos)
 {
@@ -2969,11 +2420,7 @@ bool SceneMan::WrapPosition(Vector &pos)
     return wrapped;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SnapPosition
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns a position snapped to the current scene grid.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Vector SceneMan::SnapPosition(const Vector &pos, bool snap)
 {
@@ -2988,13 +2435,7 @@ Vector SceneMan::SnapPosition(const Vector &pos, bool snap)
     return snappedPos;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ShortestDistance
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates the shortest distance between two points in scene
-//                  coordinates, taking into account all wrapping and out of bounds of the
-//                  two points.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Vector SceneMan::ShortestDistance(Vector pos1, Vector pos2, bool checkBounds)
 {
@@ -3042,13 +2483,7 @@ Vector SceneMan::ShortestDistance(Vector pos1, Vector pos2, bool checkBounds)
     return distance;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ShortestDistanceX
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates the shortest distance between two X values in scene
-//                  coordinates, taking into account all wrapping and out of bounds of the
-//                  two values.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SceneMan::ShortestDistanceX(float val1, float val2, bool checkBounds, int direction)
 {
@@ -3092,13 +2527,7 @@ float SceneMan::ShortestDistanceX(float val1, float val2, bool checkBounds, int 
     return distance;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ShortestDistanceY
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates the shortest distance between two Y values in scene
-//                  coordinates, taking into account all wrapping and out of bounds of the
-//                  two values.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SceneMan::ShortestDistanceY(float val1, float val2, bool checkBounds, int direction)
 {
@@ -3142,16 +2571,11 @@ float SceneMan::ShortestDistanceY(float val1, float val2, bool checkBounds, int 
     return distance;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ObscuredPoint
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Tells whether a point on the scene is obscured by MOID or Terrain
-//                  non-air material.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SceneMan::ObscuredPoint(int x, int y, int team)
 {
-    bool obscured = m_pMOIDLayer->GetPixel(x, y) != g_NoMOID || m_pCurrentScene->GetTerrain()->GetPixel(x, y) != g_MaterialAir;
+    bool obscured = m_pCurrentScene->GetTerrain()->GetPixel(x, y) != g_MaterialAir || GetMOIDPixel(x, y, Activity::NoTeam) != g_NoMOID;
 
     if (team != Activity::NoTeam)
         obscured = obscured || IsUnseen(x, y, team);
@@ -3159,14 +2583,7 @@ bool SceneMan::ObscuredPoint(int x, int y, int team)
     return obscured;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          WrapRect
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Takes a rect and adds all possible scenewrapped appearances of that rect
-//                  to a passed-in list. IF if a passed in rect straddles the seam of a
-//                  wrapped scene axis, it will be added twice to the output list. If it
-//                  doesn't straddle any seam, it will be only added once.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int SceneMan::WrapRect(const IntRect &wrapRect, std::list<IntRect> &outputList)
 {
@@ -3219,16 +2636,9 @@ int SceneMan::WrapRect(const IntRect &wrapRect, std::list<IntRect> &outputList)
     return addedTimes;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          WrapBox
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Takes a Box and adds all possible scenewrapped appearances of that Box
-//                  to a passed-in list. IF if a passed in rect straddles the seam of a
-//                  wrapped scene axis, it will be added twice to the output list. If it
-//                  doesn't straddle any seam, it will be only added once.
-
-int SceneMan::WrapBox(const Box &wrapBox, list<Box> &outputList)
+int SceneMan::WrapBox(const Box &wrapBox, std::list<Box> &outputList)
 {
     // Unflip the input box, or checking will be tedious
     Box flipBox(wrapBox);
@@ -3279,315 +2689,144 @@ int SceneMan::WrapBox(const Box &wrapBox, list<Box> &outputList)
     return addedTimes;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddTerrainObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Takes TerrainObject and applies it to the terrain
-//					OWNERSHIP NOT TRANSFERED!
-
-bool SceneMan::AddTerrainObject(TerrainObject *pObject)
-{
-    if (!pObject)
-        return false;
-
-    bool result =  m_pCurrentScene->GetTerrain()->ApplyObject(pObject);
-	if (result)
-	{
-		Vector corner = pObject->GetPos() + pObject->GetBitmapOffset();
-		Box box = Box(corner, pObject->GetBitmapWidth(), pObject->GetBitmapHeight());
-		
-		m_pCurrentScene->GetTerrain()->CleanAirBox(box, GetScene()->WrapsX(), GetScene()->WrapsY());
+bool SceneMan::AddSceneObject(SceneObject *sceneObject) {
+	bool result = false;
+	if (sceneObject) {
+		if (MovableObject *sceneObjectAsMovableObject = dynamic_cast<MovableObject *>(sceneObject)) {
+			return g_MovableMan.AddMO(sceneObjectAsMovableObject);
+		} else if (TerrainObject *sceneObjectAsTerrainObject = dynamic_cast<TerrainObject *>(sceneObject)) {
+			result = m_pCurrentScene && sceneObjectAsTerrainObject->PlaceOnTerrain(m_pCurrentScene->GetTerrain());
+			if (result) {
+				Box airBox(sceneObjectAsTerrainObject->GetPos() + sceneObjectAsTerrainObject->GetBitmapOffset(), static_cast<float>(sceneObjectAsTerrainObject->GetBitmapWidth()), static_cast<float>(sceneObjectAsTerrainObject->GetBitmapHeight()));
+				m_pCurrentScene->GetTerrain()->CleanAirBox(airBox, GetScene()->WrapsX(), GetScene()->WrapsY());
+			}
+		}
 	}
+	delete sceneObject;
 	return result;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddSceneObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Takes any scene object and adds it to the scene in the appropriate way.
-//                  If it's a TerrainObject, then it gets applied to the terrain, if it's
-//                  an MO, it gets added to the correct type group in MovableMan.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool SceneMan::AddSceneObject(SceneObject *pObject)
-{
-    if (!pObject)
-        return false;
-
-    // Find out what kind it is and apply accordingly
-    if (MovableObject *pMO = dynamic_cast<MovableObject *>(pObject))
-    {
-        // No need to clean up here, AddMO takes ownership and takes care of it in either case
-        return g_MovableMan.AddMO(pMO);
-    }
-    else if (TerrainObject *pTO = dynamic_cast<TerrainObject *>(pObject))
-    {
-        bool result = m_pCurrentScene->GetTerrain()->ApplyObject(pTO);
-        // Have to clean up the added object here, since ApplyObject doesn't take ownership
-        delete pTO;
-        pObject = pTO = 0;
-        return result;
-    }
-
-    delete pObject;
-    pObject = 0;
-    return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the state of this SceneMan. Supposed to be done every frame
-//                  before drawing.
-
-void SceneMan::Update(int screen)
-{
-    if (m_pCurrentScene == nullptr) {
-        return;
-    }
-
-    // Record screen was the last updated screen
-    m_LastUpdatedScreen = screen;
-
-    // Update the scene, only if doing the first screen, since it only needs done once per update
-    if (screen == 0)
-        m_pCurrentScene->Update();
-
-    // Handy
-    SLTerrain *pTerrain = m_pCurrentScene->GetTerrain();
-
-    // Learn about the unseen layer, if any
-    int team = m_ScreenTeam[screen];
-    SceneLayer *pUnseenLayer = team != Activity::NoTeam ? m_pCurrentScene->GetUnseenLayer(team) : 0;
-
-    ////////////////////////////////
-    // Scrolling interpolation
-
-    // Only adjust wrapping if this is the frame to be drawn
-    if (g_TimerMan.DrawnSimUpdate())
-    {
-        // Adjust for wrapping, if the scrolltarget jumped a seam this frame, as reported by
-        // whatever client set it (the scrolltarget) this frame. This is to avoid big,
-        // scene-wide jumps in scrolling when traversing the seam.
-        if (m_TargetWrapped[screen])
-        {
-            if (pTerrain->WrapsX())
-            {
-                if (m_ScrollTarget[screen].m_X < (pTerrain->GetBitmap()->w / 2))
-                {
-                    m_Offset[screen].m_X -= pTerrain->GetBitmap()->w;
-                    m_SeamCrossCount[screen][X] += 1;
-                }
-                else
-                {
-                    m_Offset[screen].m_X += pTerrain->GetBitmap()->w;
-                    m_SeamCrossCount[screen][X] -= 1;
-                }
-            }
-
-            if (pTerrain->WrapsY())
-            {
-                if (m_ScrollTarget[screen].m_Y < (pTerrain->GetBitmap()->h / 2))
-                {
-                    m_Offset[screen].m_Y -= pTerrain->GetBitmap()->h;
-                    m_SeamCrossCount[screen][Y] += 1;
-                }
-                else
-                {
-                    m_Offset[screen].m_Y += pTerrain->GetBitmap()->h;
-                    m_SeamCrossCount[screen][Y] -= 1;
-                }
-            }
-        }
-        m_TargetWrapped[screen] = false;
-    }
-
-    Vector oldOffset(m_Offset[screen]);
-
-    // Get the offset target, since the scroll target is centered on the target in scene units.
-    Vector offsetTarget;
-	if (g_FrameMan.IsInMultiplayerMode())
-	{
-		offsetTarget.m_X = m_ScrollTarget[screen].m_X - (g_FrameMan.GetPlayerFrameBufferWidth(screen) / 2);
-		offsetTarget.m_Y = m_ScrollTarget[screen].m_Y - (g_FrameMan.GetPlayerFrameBufferHeight(screen) / 2);
-	}
-	else 
-	{
-		offsetTarget.m_X = m_ScrollTarget[screen].m_X - (g_FrameMan.GetResX() / (g_FrameMan.GetVSplit() ? 4 : 2));
-		offsetTarget.m_Y = m_ScrollTarget[screen].m_Y - (g_FrameMan.GetResY() / (g_FrameMan.GetHSplit() ? 4 : 2));
+void SceneMan::Update(int screenId) {
+	if (!m_pCurrentScene) {
+		return;
 	}
 
-    // Take the occlusion of the screens into account,
-    // so that the scrolltarget is still centered on the terrain-visible portion of the screen.
-    offsetTarget -= m_ScreenOcclusion[screen] / 2;
+	m_LastUpdatedScreen = screenId;
 
-    if (offsetTarget.GetFloored() != m_Offset[screen].GetFloored())
-    {
-        Vector scrollVec(offsetTarget - m_Offset[screen]);
-        // Figure out the scroll progress this frame, and cap it at 1.0
-        float scrollProgress = m_ScrollSpeed[screen] * m_ScrollTimer[screen].GetElapsedRealTimeMS() * 0.05;
-        if (scrollProgress > 1.0)
-            scrollProgress = 1.0;
-// TODO: Check if rounding is appropriate?
-        SetOffset(m_Offset[screen] + (scrollVec * scrollProgress).GetRounded(), screen);
+	// Update the scene, only if doing the first screen, since it only needs done once per update.
+	if (screenId == 0) {
+		m_pCurrentScene->Update();
+	}
+
+    g_CameraMan.Update(screenId);
+
+    const Vector &offset = g_CameraMan.GetOffset(screenId);
+	m_pMOColorLayer->SetOffset(offset);
+	m_pMOIDLayer->SetOffset(offset);
+	if (m_pDebugLayer) {
+        m_pDebugLayer->SetOffset(offset);
     }
 
-    /////////////////////////////////
-    // Apply offsets to SceneLayer:s
+	SLTerrain *terrain = m_pCurrentScene->GetTerrain();
+	terrain->SetOffset(offset);
+	terrain->Update();
 
-    m_pMOColorLayer->SetOffset(m_Offset[screen]);
-    m_pMOIDLayer->SetOffset(m_Offset[screen]);
+	// Background layers may scroll in fractions of the real offset and need special care to avoid jumping after having traversed wrapped edges, so they need the total offset without taking wrapping into account.
+    const Vector &unwrappedOffset = g_CameraMan.GetUnwrappedOffset(screenId);
+	for (SLBackground *backgroundLayer : m_pCurrentScene->GetBackLayers()) {
+		backgroundLayer->SetOffset(unwrappedOffset);
+		backgroundLayer->Update();
+	}
 
-    if (m_pDebugLayer) { m_pDebugLayer->SetOffset(m_Offset[screen]); }
-
-    pTerrain->SetOffset(m_Offset[screen]);
-    pTerrain->Update();
-
-    // Scroll the unexplored/unseen layer, if there is one
-    if (pUnseenLayer)
-    {
-        // Update the unseen obstruction layer for this team's screen view
-        pUnseenLayer->SetOffset(m_Offset[screen]);
+	// Update the unseen obstruction layer for this team's screen view, if there is one.
+    const int teamId = g_CameraMan.GetScreenTeam(screenId);
+	if (SceneLayer *unseenLayer = (teamId != Activity::NoTeam) ? m_pCurrentScene->GetUnseenLayer(teamId) : nullptr) {
+        unseenLayer->SetOffset(offset);
     }
 
-    // Background layers may scroll in fractions of the real offset, and need special care to avoid jumping after having traversed wrapped edges
-    // Reconstruct and give them the total offset, not taking any wrappings into account
-    Vector offsetUnwrapped = m_Offset[screen];
-    offsetUnwrapped.m_X += pTerrain->GetBitmap()->w * m_SeamCrossCount[screen][X];
-    offsetUnwrapped.m_Y += pTerrain->GetBitmap()->h * m_SeamCrossCount[screen][Y];
-
-    for (list<SceneLayer *>::iterator itr = m_pCurrentScene->GetBackLayers().begin(); itr != m_pCurrentScene->GetBackLayers().end(); ++itr)
-        (*itr)->SetOffset(offsetUnwrapped);
-
-    // Calculate delta offset.
-    m_DeltaOffset[screen] = m_Offset[screen] - oldOffset;
-
-    // Reset the timer so we can know the real time diff next frame
-    m_ScrollTimer[screen].Reset();
-
-    // Clean the color layer of the Terrain
-    if (m_CleanTimer.GetElapsedSimTimeMS() > CLEANAIRINTERVAL)
-    {
-        pTerrain->CleanAir();
-        m_CleanTimer.Reset();
-    }
+	if (m_CleanTimer.GetElapsedSimTimeMS() > CLEANAIRINTERVAL) {
+		terrain->CleanAir();
+		m_CleanTimer.Reset();
+	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this SceneMan's current graphical representation to a
-//                  BITMAP of choice.
+void SceneMan::Draw(BITMAP *targetBitmap, BITMAP *targetGUIBitmap, const Vector &targetPos, bool skipBackgroundLayers, bool skipTerrain) {
+	if (!m_pCurrentScene) {
+		return;
+	}
+	SLTerrain *terrain = m_pCurrentScene->GetTerrain();
+	// Set up the target box to draw to on the target bitmap, if it is larger than the scene in either dimension.
+	Box targetBox(Vector(), static_cast<float>(targetBitmap->w), static_cast<float>(targetBitmap->h));
 
-void SceneMan::Draw(BITMAP *pTargetBitmap, BITMAP *pTargetGUIBitmap, const Vector &targetPos, bool skipSkybox, bool skipTerrain)
-{
-    if (m_pCurrentScene == nullptr) {
-        return;
-    }
-    // Handy
-    SLTerrain *pTerrain = m_pCurrentScene->GetTerrain();
+	if (!terrain->WrapsX() && targetBitmap->w > GetSceneWidth()) {
+		targetBox.SetCorner(Vector(static_cast<float>((targetBitmap->w - GetSceneWidth()) / 2), targetBox.GetCorner().GetY()));
+		targetBox.SetWidth(static_cast<float>(GetSceneWidth()));
+	}
+	if (!terrain->WrapsY() && targetBitmap->h > GetSceneHeight()) {
+		targetBox.SetCorner(Vector(targetBox.GetCorner().GetX(), static_cast<float>((targetBitmap->h - GetSceneHeight()) / 2)));
+		targetBox.SetHeight(static_cast<float>(GetSceneHeight()));
+	}
 
-    // Learn about the unseen layer, if any
-    int team = m_ScreenTeam[m_LastUpdatedScreen];
-    SceneLayer *pUnseenLayer = team != Activity::NoTeam ? m_pCurrentScene->GetUnseenLayer(team) : 0;
+	switch (m_LayerDrawMode) {
+		case LayerDrawMode::g_LayerTerrainMatter:
+			terrain->SetLayerToDraw(SLTerrain::LayerType::MaterialLayer);
+			terrain->Draw(targetBitmap, targetBox);
+			break;
+#ifdef DRAW_MOID_LAYER
+		case LayerDrawMode::g_LayerMOID:
+			m_pMOIDLayer->Draw(targetBitmap, targetBox);
+			break;
+#endif
+		default:
+			if (!skipBackgroundLayers) {
+				for (std::list<SLBackground *>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); ++backgroundLayer) {
+					(*backgroundLayer)->Draw(targetBitmap, targetBox);
+				}
+			}
+			if (!skipTerrain) {
+				terrain->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
+				terrain->Draw(targetBitmap, targetBox);
+			}
+			m_pMOColorLayer->Draw(targetBitmap, targetBox);
 
-    // Set up the target box to draw to on the target bitmap, if it is larger than the scene in either dimension
-    Box targetBox(Vector(0, 0), pTargetBitmap->w, pTargetBitmap->h);
-
-    if (!pTerrain->WrapsX() && pTargetBitmap->w > GetSceneWidth())
-    {
-        targetBox.m_Corner.m_X = (pTargetBitmap->w - GetSceneWidth()) / 2;
-        targetBox.m_Width = GetSceneWidth();
-    }
-    if (!pTerrain->WrapsY() && pTargetBitmap->h > GetSceneHeight())
-    {
-        targetBox.m_Corner.m_Y = (pTargetBitmap->h - GetSceneHeight()) / 2;
-        targetBox.m_Height = GetSceneHeight();
-    }
-
-    switch (m_LayerDrawMode)
-    {
-        case g_LayerTerrainMatter:
-            pTerrain->SetToDrawMaterial(true);
-            pTerrain->Draw(pTargetBitmap, targetBox);
-            break;
-        case g_LayerMOID:
-            m_pMOIDLayer->Draw(pTargetBitmap, targetBox);
-            break;
-        // Draw normally
-        default:
-			if (skipSkybox)
-			{
-
-			} 
-			else
-			{
-				// Background Layers
-				for (list<SceneLayer *>::reverse_iterator itr = m_pCurrentScene->GetBackLayers().rbegin(); itr != m_pCurrentScene->GetBackLayers().rend(); ++itr)
-					(*itr)->Draw(pTargetBitmap, targetBox);
+			if (!skipTerrain) {
+				terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
+				terrain->Draw(targetBitmap, targetBox);
+			}
+            if (!g_FrameMan.IsInMultiplayerMode()) {
+                int teamId = g_CameraMan.GetScreenTeam(m_LastUpdatedScreen);
+				if (SceneLayer *unseenLayer = (teamId != Activity::NoTeam) ? m_pCurrentScene->GetUnseenLayer(teamId) : nullptr) {
+                    unseenLayer->Draw(targetBitmap, targetBox);
+                }
 			}
 
-			if (!skipTerrain)
-				// Terrain background
-				pTerrain->DrawBackground(pTargetBitmap, targetBox);
-            // Movables' color layer
-            m_pMOColorLayer->Draw(pTargetBitmap, targetBox);
-            // Terrain foreground
-            pTerrain->SetToDrawMaterial(false);
-			if (!skipTerrain)
-				pTerrain->Draw(pTargetBitmap, targetBox);
+			g_MovableMan.DrawHUD(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+			g_PrimitiveMan.DrawPrimitives(m_LastUpdatedScreen, targetGUIBitmap, targetPos);
+			g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
 
-            // Obscure unexplored/unseen areas
-            if (pUnseenLayer && !g_FrameMan.IsInMultiplayerMode())
-            {
-                // Draw the unseen obstruction layer so it obscures the team's view
-                pUnseenLayer->DrawScaled(pTargetBitmap, targetBox);
+			if (m_pDebugLayer) {
+                m_pDebugLayer->Draw(targetBitmap, targetBox);
             }
 
-            // Actor and gameplay HUDs and GUIs
-            g_MovableMan.DrawHUD(pTargetGUIBitmap, targetPos, m_LastUpdatedScreen);
-			g_PrimitiveMan.DrawPrimitives(m_LastUpdatedScreen, pTargetGUIBitmap, targetPos);
-//            g_ActivityMan.GetActivity()->Draw(pTargetBitmap, targetPos, m_LastUpdatedScreen);
-            g_ActivityMan.GetActivity()->DrawGUI(pTargetGUIBitmap, targetPos, m_LastUpdatedScreen);
-
-//            std::snprintf(str, sizeof(str), "Normal Layer Draw Mode\nHit M to cycle modes");
-
-            if (m_pDebugLayer) { m_pDebugLayer->Draw(pTargetBitmap, targetBox); }
-    }
+			break;
+	}
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ClearMOColorLayer
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears the color MO layer. Should be done every frame.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::ClearMOColorLayer()
 {
-    clear_to_color(m_pMOColorLayer->GetBitmap(), g_MaskColor);
-
-    if (m_pDebugLayer) { clear_to_color(m_pDebugLayer->GetBitmap(), g_MaskColor); }
+    m_pMOColorLayer->ClearBitmap(g_MaskColor);
+    if (m_pDebugLayer) { m_pDebugLayer->ClearBitmap(g_MaskColor); }
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ClearMOIDLayer
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears the MOID layer. Should be done every frame.
-//					Looks like it never actually called anymore
-
-void SceneMan::ClearMOIDLayer()
-{
-    clear_to_color(m_pMOIDLayer->GetBitmap(), g_NoMOID);
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ClearSeenPixels
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears the list of pixels on the unseen map that have been revealed.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::ClearSeenPixels()
 {
@@ -3604,4 +2843,15 @@ void SceneMan::ClearCurrentScene() {
     m_pCurrentScene = nullptr;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+BITMAP * SceneMan::GetIntermediateBitmapForSettlingIntoTerrain(int moDiameter) const {
+	int bitmapSizeNeeded = static_cast<int>(std::ceil(static_cast<float>(moDiameter) / 16.0F)) * 16;
+	for (const auto &[bitmapSize, bitmapPtr] : m_IntermediateSettlingBitmaps) {
+		if (std::min(bitmapSize, bitmapSizeNeeded) >= bitmapSizeNeeded) {
+			return bitmapPtr;
+		}
+	}
+	return m_IntermediateSettlingBitmaps.back().second;
+}
 } // namespace RTE

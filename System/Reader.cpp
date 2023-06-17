@@ -1,4 +1,5 @@
 #include "Reader.h"
+#include "ConsoleMan.h"
 #include "PresetMan.h"
 #include "SettingsMan.h"
 
@@ -22,20 +23,29 @@ namespace RTE {
 		m_OverwriteExisting = false;
 		m_SkipIncludes = false;
 		m_CanFail = false;
+		m_NonModulePath = false;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Reader::Create(const std::string &fileName, bool overwrites, const ProgressCallback &progressCallback, bool failOK) {
-		m_FilePath = std::filesystem::path(fileName).generic_string();
-
-		if (m_FilePath.empty()) {
+		if (fileName.empty()) {
 			return -1;
 		}
-		// Extract the file name and module name from the path
-		m_FileName = m_FilePath.substr(m_FilePath.find_last_of("/\\") + 1);
-		m_DataModuleName = m_FilePath.substr(0, m_FilePath.find_first_of("/\\"));
-		m_DataModuleID = g_PresetMan.GetModuleID(m_DataModuleName);
+
+		if (m_NonModulePath) {
+			m_FilePath = std::filesystem::path(fileName).generic_string();
+			// Associate non-module paths with Base to prevent implosions when dealing with creating Entities.
+			m_DataModuleName = "Base.rte";
+			m_DataModuleID = 0;
+		} else {
+			m_FilePath = g_PresetMan.GetFullModulePath(fileName);
+
+			// Extract the file name and module name from the path
+			m_FileName = m_FilePath.substr(m_FilePath.find_last_of("/\\") + 1);
+			m_DataModuleName = g_PresetMan.GetModuleNameFromPath(m_FilePath);
+			m_DataModuleID = g_PresetMan.GetModuleID(m_DataModuleName);
+		}
 
 		m_CanFail = failOK;
 
@@ -110,12 +120,13 @@ namespace RTE {
 			if (peek == '\n' || peek == '\r' || peek == '\t') {
 				ReportError("Property name wasn't followed by a value");
 			}
+
 			temp = static_cast<char>(m_Stream->get());
 			if (m_Stream->eof()) {
 				EndIncludeFile();
 				break;
 			}
-			if (!m_Stream->good()) { ReportError("Stream failed for some reason"); }
+			if (!m_Stream->good() || temp == -1) { ReportError("Stream failed for some reason"); }
 			retString.append(1, temp);
 		}
 		// Trim the string of whitespace
@@ -179,6 +190,7 @@ namespace RTE {
 	bool Reader::DiscardEmptySpace() {
 		char peek;
 		int indent = 0;
+		int leadingSpaceCount = 0;
 		bool discardedLine = false;
 
 		while (true) {
@@ -193,6 +205,7 @@ namespace RTE {
 
 			// Discard spaces
 			if (peek == ' ') {
+				leadingSpaceCount++;
 				m_Stream->ignore(1);
 			// Discard tabs, and count them
 			} else if (peek == '\t') {
@@ -209,26 +222,45 @@ namespace RTE {
 					}
 				}
 				indent = 0;
+				leadingSpaceCount = 0;
 				discardedLine = true;
 				m_Stream->ignore(1);
 
 			// Comment line?
 			} else if (m_Stream->peek() == '/') {
 				char temp = static_cast<char>(m_Stream->get());
-				char temp2;
 
 				// Confirm that it's a comment line, if so discard it and continue
 				if (m_Stream->peek() == '/') {
 					while (m_Stream->peek() != '\n' && m_Stream->peek() != '\r' && !m_Stream->eof()) { m_Stream->ignore(1); }
 				// Block comment
 				} else if (m_Stream->peek() == '*') {
-					// Find the matching "*/"
-					while (!((temp2 = static_cast<char>(m_Stream->get())) == '*' && m_Stream->peek() == '/') && !m_Stream->eof()) {
-						// Count the lines within the comment though
+					int openBlockComments = 1;
+					m_BlockCommentOpenTagLines.emplace(m_CurrentLine);
+
+					char temp2 = 0;
+					while (openBlockComments > 0 && !m_Stream->eof()) {
+						temp2 = static_cast<char>(m_Stream->get());
 						if (temp2 == '\n') { ++m_CurrentLine; }
+
+						// Find the matching close tag.
+						if (!(temp2 == '*' && m_Stream->peek() == '/')) {
+							// Check if a nested block comment open tag.
+							if (temp2 == '/' && m_Stream->peek() == '*') {
+								openBlockComments++;
+								m_BlockCommentOpenTagLines.emplace(m_CurrentLine);
+							}
+						} else {
+							openBlockComments--;
+							m_BlockCommentOpenTagLines.pop();
+						}
 					}
-					// Discard that final '/'
-					if (!m_Stream->eof()) { m_Stream->ignore(1); }
+					// Discard that final '/'.
+					if (!m_Stream->eof()) {
+						m_Stream->ignore(1);
+					} else if (openBlockComments > 0) {
+						ReportError("File stream ended with an open block comment!\nCouldn't find closing tag for block comment opened on line " + std::to_string(m_BlockCommentOpenTagLines.top()) + ".\n");
+					}
 
 				// Not a comment, so it's data, so quit.
 				} else {
@@ -242,8 +274,10 @@ namespace RTE {
 
 		// This precaution enables us to use DiscardEmptySpace repeatedly without messing up the indentation tracking logic
 		if (discardedLine) {
+			if (leadingSpaceCount > 0) { ReportError("Encountered space characters used for indentation where a tab character was expected!\nPlease make sure the preset definition structure is correct.\n"); }
 			// Get indentation difference from the last line of the last call to DiscardEmptySpace(), and the last line of this call to DiscardEmptySpace().
 			m_IndentDifference = indent - m_PreviousIndent;
+			if (m_IndentDifference > 1) { ReportError("Over indentation detected!\nPlease make sure the preset definition structure is correct.\n"); }
 			// Save the last tab count
 			m_PreviousIndent = indent;
 		}
@@ -267,7 +301,7 @@ namespace RTE {
 		if (m_ReportProgress) { m_ReportProgress(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine) + " includes:", false); }
 
 		// Get the file path from the current stream before pushing it into the StreamStack, otherwise we can't open a new stream after releasing it because we can't read.
-		std::string includeFilePath = std::filesystem::path(ReadPropValue()).generic_string();
+		std::string includeFilePath = g_PresetMan.GetFullModulePath(ReadPropValue());
 
 		// Push the current stream onto the StreamStack for future retrieval when the new include file has run out of data.
 		m_StreamStack.push(StreamInfo(m_Stream.release(), m_FilePath, m_CurrentLine, m_PreviousIndent));

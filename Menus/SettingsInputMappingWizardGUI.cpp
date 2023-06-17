@@ -87,12 +87,12 @@ namespace RTE {
 		m_WizardPresetSelectScreen.StartConfigAnalogXBTypeButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonConfigAnalogTypeXB"));
 
 		// Ownership of the AllegroBitmaps is passed to the GUIControlManager.
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxConfigDPadTypeDiagram"))->SetDrawImage(new AllegroBitmap(m_DPadDiagramBitmaps.at(0)));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPresetDPadSNESDiagram"))->SetDrawImage(new AllegroBitmap(m_DPadDiagramBitmaps.at(0)));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxConfigAnalogTypeDSDiagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogDSDiagramBitmaps.at(0)));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPresetAnalogDS4Diagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogDSDiagramBitmaps.at(0)));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxConfigAnalogTypeXBDiagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogXBDiagramBitmaps.at(0)));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPresetAnalogXB360Diagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogXBDiagramBitmaps.at(0)));
+		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxConfigDPadTypeDiagram"))->SetDrawImage(new AllegroBitmap(m_DPadDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPresetDPadSNESDiagram"))->SetDrawImage(new AllegroBitmap(m_DPadDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxConfigAnalogTypeDSDiagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogDSDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPresetAnalogDS4Diagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogDSDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxConfigAnalogTypeXBDiagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogXBDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPresetAnalogXB360Diagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogXBDiagramBitmaps[0]));
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,7 +129,7 @@ namespace RTE {
 			m_ConfigFinished = false;
 			m_NewInputSchemeApplied = false;
 
-			g_UInputMan.SetGUIInputInstanceToCaptureKeyStateFrom(nullptr);
+			g_UInputMan.SetSkipHandlingSpecialInput(false);
 		}
 	}
 
@@ -161,15 +161,15 @@ namespace RTE {
 			switch (m_ConfiguringGamepadType) {
 				case SettingsInputMappingWizardGUI::DPad:
 					inputDeviceName = "Gamepad (Classic D-Pad Style)";
-					m_WizardManualConfigScreen.GamepadConfigRecommendedDiagramBox->Resize(m_DPadDiagramBitmaps.at(0)->w, m_DPadDiagramBitmaps.at(0)->h);
+					m_WizardManualConfigScreen.GamepadConfigRecommendedDiagramBox->Resize(m_DPadDiagramBitmaps[0]->w, m_DPadDiagramBitmaps[0]->h);
 					break;
 				case SettingsInputMappingWizardGUI::AnalogDualShock:
 					inputDeviceName = "Dual Analog Gamepad (DualShock Style)";
-					m_WizardManualConfigScreen.GamepadConfigRecommendedDiagramBox->Resize(m_DualAnalogDSDiagramBitmaps.at(0)->w, m_DualAnalogDSDiagramBitmaps.at(0)->h);
+					m_WizardManualConfigScreen.GamepadConfigRecommendedDiagramBox->Resize(m_DualAnalogDSDiagramBitmaps[0]->w, m_DualAnalogDSDiagramBitmaps[0]->h);
 					break;
 				case SettingsInputMappingWizardGUI::AnalogXbox:
 					inputDeviceName = "Dual Analog Gamepad (Xbox Style)";
-					m_WizardManualConfigScreen.GamepadConfigRecommendedDiagramBox->Resize(m_DualAnalogXBDiagramBitmaps.at(0)->w, m_DualAnalogXBDiagramBitmaps.at(0)->h);
+					m_WizardManualConfigScreen.GamepadConfigRecommendedDiagramBox->Resize(m_DualAnalogXBDiagramBitmaps[0]->w, m_DualAnalogXBDiagramBitmaps[0]->h);
 					break;
 				default:
 					RTEAbort("Invalid GamepadType passed to SettingsInputMappingWizardGUI::ShowManualConfigScreen!");
@@ -185,7 +185,7 @@ namespace RTE {
 		}
 		m_WizardManualConfigScreen.ConfigDeviceTypeLabel->SetText(inputDeviceName);
 
-		g_UInputMan.SetGUIInputInstanceToCaptureKeyStateFrom(m_GUIControlManager->GetManager()->GetInputController());
+		g_UInputMan.SetSkipHandlingSpecialInput(true);
 
 		ResetManualConfigSequence();
 		m_ConfiguringManually = true;
@@ -216,12 +216,10 @@ namespace RTE {
 	void SettingsInputMappingWizardGUI::ApplyGamepadInputPreset(GamepadType gamepadType) {
 		switch (gamepadType) {
 			case GamepadType::DPad:
-				// TODO: Doesn't have an actual preset at the moment so don't apply any.
-				//m_ConfiguringPlayerScheme->SetPreset(InputScheme::InputPreset::PresetGamepadSNES);
+				m_ConfiguringPlayerScheme->SetPreset(InputScheme::InputPreset::PresetGamepadSNES);
 				break;
 			case GamepadType::AnalogDualShock:
-				// TODO: Doesn't have an actual preset at the moment so don't apply any.
-				//m_ConfiguringPlayerScheme->SetPreset(InputScheme::InputPreset::PresetGamepadDS4);
+				m_ConfiguringPlayerScheme->SetPreset(InputScheme::InputPreset::PresetGamepadDS4);
 				break;
 			case GamepadType::AnalogXbox:
 				m_ConfiguringPlayerScheme->SetPreset(InputScheme::InputPreset::PresetGamepadXbox360);

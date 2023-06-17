@@ -12,8 +12,8 @@
 // Inclusions of header files
 
 #include "AreaEditorGUI.h"
-#include "GUISound.h"
 
+#include "CameraMan.h"
 #include "FrameMan.h"
 #include "PresetMan.h"
 #include "ActivityMan.h"
@@ -26,8 +26,8 @@
 #include "ACrab.h"
 #include "SLTerrain.h"
 #include "AreaPickerGUI.h"
-#include "PieMenuGUI.h"
 #include "Scene.h"
+#include "GUISound.h"
 
 using namespace RTE;
 
@@ -48,8 +48,7 @@ void AreaEditorGUI::Clear()
     m_BlinkMode = NOBLINK;
     m_RepeatStartTimer.Reset();
     m_RepeatTimer.Reset();
-    m_pPieMenu = 0;
-    m_ActivatedPieSliceType = PieSlice::PieSliceIndex::PSI_NONE;
+	m_PieMenu = nullptr;
     m_pPicker = 0;
     m_GridSnapping = true;
     m_CursorPos.Reset();
@@ -73,15 +72,10 @@ int AreaEditorGUI::Create(Controller *pController, bool fullFeatured, int whichM
 
     m_FullFeatured = fullFeatured;
 
-    // Allocate and (re)create the Editor GUIs
-    if (!m_pPieMenu)
-        m_pPieMenu = new PieMenuGUI();
-    else
-        m_pPieMenu->Destroy();
-    m_pPieMenu->Create(pController);
-
-    // Init the pie menu
-    UpdatePieMenu();
+	if (m_PieMenu) { m_PieMenu = nullptr; }
+	std::string pieMenuName = m_FullFeatured ? "Area Editor Full Pie Menu" : "Area Editor Minimal Pie Menu";
+	m_PieMenu = std::unique_ptr<PieMenu>(dynamic_cast<PieMenu *>(g_PresetMan.GetEntityPreset("PieMenu", pieMenuName)->Clone()));
+	m_PieMenu->SetMenuController(pController);
 
     // Allocate and (re)create the Editor GUIs
     if (!m_pPicker)
@@ -112,7 +106,6 @@ int AreaEditorGUI::Create(Controller *pController, bool fullFeatured, int whichM
 
 void AreaEditorGUI::Destroy()
 {
-    delete m_pPieMenu;
     delete m_pPicker;
 
     Clear();
@@ -128,7 +121,7 @@ void AreaEditorGUI::Destroy()
 void AreaEditorGUI::SetController(Controller *pController)
 {
     m_pController = pController;
-    m_pPieMenu->SetController(pController);
+	m_PieMenu->SetMenuController(pController);
     m_pPicker->SetController(pController);
 }
 
@@ -143,6 +136,16 @@ void AreaEditorGUI::SetController(Controller *pController)
 void AreaEditorGUI::SetPosOnScreen(int newPosX, int newPosY)
 {
     m_pPicker->SetPosOnScreen(newPosX, newPosY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Method:          GetActivatedPieSlice
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Gets any Pie menu slice command activated last update.
+
+PieSlice::SliceType AreaEditorGUI::GetActivatedPieSlice() const {
+	return m_PieMenu->GetPieCommand();
 }
 
 
@@ -179,7 +182,7 @@ void AreaEditorGUI::SetCurrentArea(Scene::Area *pArea)
 // Description:     Updates the list that the GUI's Area picker has, from the current
 //                  scene state.
 
-void AreaEditorGUI::UpdatePickerList(string selectAreaName)
+void AreaEditorGUI::UpdatePickerList(std::string selectAreaName)
 {
     m_pPicker->UpdateAreasList(selectAreaName);
 }
@@ -267,42 +270,34 @@ void AreaEditorGUI::Update()
     // Analog cursor input
 
     Vector analogInput;
-    if (m_pController->GetAnalogMove().GetMagnitude() > 0.1)
+    if (m_pController->GetAnalogMove().MagnitudeIsGreaterThan(0.1F))
         analogInput = m_pController->GetAnalogMove();
-//    else if (m_pController->GetAnalogAim().GetMagnitude() > 0.1)
+//    else if (m_pController->GetAnalogAim().MagnitudeIsGreaterThan(0.1F))
 //        analogInput = m_pController->GetAnalogAim();
 
     /////////////////////////////////////////////
     // PIE MENU
 
-    m_pPieMenu->Update();
+    m_PieMenu->Update();
 
     // Show the pie menu only when the secondary button is held down
-    if (m_pController->IsState(PRESS_SECONDARY) && m_EditorGUIMode != INACTIVE && m_EditorGUIMode != PICKINGAREA)
-    {
-        m_pPieMenu->SetEnabled(true);
-        m_pPieMenu->SetPos(m_GridSnapping ? g_SceneMan.SnapPosition(m_CursorPos) : m_CursorPos);
+    if (m_pController->IsState(PRESS_SECONDARY) && m_EditorGUIMode != INACTIVE && m_EditorGUIMode != PICKINGAREA) {
+		m_PieMenu->SetPos(m_GridSnapping ? g_SceneMan.SnapPosition(m_CursorPos) : m_CursorPos);
+		m_PieMenu->SetEnabled(true);
     }
 
-    if (!m_pController->IsState(PIE_MENU_ACTIVE) || m_EditorGUIMode == INACTIVE || m_EditorGUIMode == PICKINGAREA)
-        m_pPieMenu->SetEnabled(false);
+	if (!m_pController->IsState(PIE_MENU_ACTIVE) || m_EditorGUIMode == INACTIVE || m_EditorGUIMode == PICKINGAREA) { m_PieMenu->SetEnabled(false); }
 
-    ///////////////////////////////////////
-    // Handle pie menu selections
-
-    m_ActivatedPieSliceType = m_pPieMenu->GetPieCommand();
-    if (m_pPieMenu->GetPieCommand() != PieSlice::PieSliceIndex::PSI_NONE)
-    {
-        if (m_pPieMenu->GetPieCommand() == PieSlice::PieSliceIndex::PSI_PICK)
-            m_EditorGUIMode = PICKINGAREA;
-        else if (m_pPieMenu->GetPieCommand() == PieSlice::PieSliceIndex::PSI_MOVE)
-            m_EditorGUIMode = PREADDMOVEBOX;
-        else if (m_pPieMenu->GetPieCommand() == PieSlice::PieSliceIndex::PSI_REMOVE)
-            m_EditorGUIMode = DELETINGBOX;
-        else if (m_pPieMenu->GetPieCommand() == PieSlice::PieSliceIndex::PSI_DONE)
-            m_EditorGUIMode = DONEEDITING;
-        
-        UpdatePieMenu();
+    if (m_PieMenu->GetPieCommand() != PieSlice::SliceType::NoType) {
+		if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorPick) {
+			m_EditorGUIMode = PICKINGAREA;
+		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorMove) {
+			m_EditorGUIMode = PREADDMOVEBOX;
+		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorRemove) {
+			m_EditorGUIMode = DELETINGBOX;
+		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorDone) {
+			m_EditorGUIMode = DONEEDITING;
+		}
     }
 
     //////////////////////////////////////////
@@ -326,13 +321,12 @@ void AreaEditorGUI::Update()
             if (m_pPicker->DonePicking())
             {
                 m_EditorGUIMode = PREADDMOVEBOX;
-                UpdatePieMenu();
             }
         }
     }
 
     if (!m_pPicker->IsVisible())
-        g_SceneMan.SetScreenOcclusion(Vector(), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+        g_CameraMan.SetScreenOcclusion(Vector(), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
 
     if (m_EditorGUIMode != PICKINGAREA)
     {
@@ -363,7 +357,7 @@ void AreaEditorGUI::Update()
     /////////////////////////////////////
     // ADDING or MOVING BOX MODE
 
-    if (m_pCurrentArea && m_EditorGUIMode == PREADDMOVEBOX && !m_pPieMenu->IsEnabled())
+    if (m_pCurrentArea && m_EditorGUIMode == PREADDMOVEBOX && !m_PieMenu->IsEnabled())
     {
         g_FrameMan.SetScreenText("Click and drag to ADD a new box to the Area - Drag existing ones to MOVE them", g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
 
@@ -435,7 +429,6 @@ void AreaEditorGUI::Update()
                 m_PreviousMode = PREADDMOVEBOX;
             }
 
-            UpdatePieMenu();
             g_GUISound.PlacementBlip()->Play();
         }
         // Just hovering over things, show what would be moved if we started dragging
@@ -452,7 +445,7 @@ void AreaEditorGUI::Update()
     /////////////////////////////////////////////////////////////
     // POINTING AT/DRAGGING MODES WITHOUT SNAPPING
 
-    else if (m_pCurrentArea && (m_EditorGUIMode == MOVINGBOX || m_EditorGUIMode == ADDINGBOX || m_EditorGUIMode == DELETINGBOX) && !m_pPieMenu->IsEnabled())
+    else if (m_pCurrentArea && (m_EditorGUIMode == MOVINGBOX || m_EditorGUIMode == ADDINGBOX || m_EditorGUIMode == DELETINGBOX) && !m_PieMenu->IsEnabled())
     {
         // Trap the mouse cursor
         g_UInputMan.TrapMousePos(true, m_pController->GetPlayer());
@@ -575,7 +568,7 @@ void AreaEditorGUI::Update()
     bool cursorWrapped = g_SceneMan.ForceBounds(m_CursorPos);
 // TODO: make setscrolltarget with 'sloppy' target
     // Scroll to the cursor's scene position
-    g_SceneMan.SetScrollTarget(m_CursorPos, 0.3, cursorWrapped, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+    g_CameraMan.SetScrollTarget(m_CursorPos, 0.3, cursorWrapped, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
 }
 
 
@@ -591,7 +584,7 @@ void AreaEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) const
         return;
 
     // List to capture scene-wrapped boxes
-    list<Box> wrappedBoxes;
+    std::list<Box> wrappedBoxes;
 
     // First draw all the objects placed in the scene by the Scene Editor
     const std::list<SceneObject *> *pSceneObjectList = g_SceneMan.GetScene()->GetPlacedObjects(Scene::PLACEONLOAD);
@@ -599,7 +592,7 @@ void AreaEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) const
     {
         // Draw all already placed Objects, and the currently held one in the order it is about to be placed in the scene
         int i = 0;
-        for (list<SceneObject *>::const_iterator itr = pSceneObjectList->begin(); itr != pSceneObjectList->end(); ++itr, ++i)
+        for (std::list<SceneObject *>::const_iterator itr = pSceneObjectList->begin(); itr != pSceneObjectList->end(); ++itr, ++i)
         {
            (*itr)->Draw(pTargetBitmap, targetPos);
             // Draw basic HUD if an actor
@@ -615,19 +608,19 @@ void AreaEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) const
     if (m_FullFeatured)
     {
         // Set the drawin mode to be transparent and use the
-//        g_FrameMan.SetTransTable(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? LessTrans : HalfTrans);
-        g_FrameMan.SetTransTable(MoreTrans);
+//        g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
+        g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
         drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
 
         // Draw all already placed Box:es, and the currently edited one
-        for (vector<Box>::const_iterator bItr = pBoxList->begin(); bItr != pBoxList->end(); ++bItr)
+        for (std::vector<Box>::const_iterator bItr = pBoxList->begin(); bItr != pBoxList->end(); ++bItr)
         {
             // Handle wrapped boxes properly
             wrappedBoxes.clear();
             g_SceneMan.WrapBox(*bItr, wrappedBoxes);
 
             // Iterate through the wrapped boxes - will only be one if there's no wrapping
-            for (list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
+            for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
             {
                 // Draw the rectangle of each Box, adjusted for the offet of the target bitmap in the scene
                 adjCorner = (*wItr).GetCorner() - targetPos;
@@ -645,7 +638,7 @@ void AreaEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) const
         g_SceneMan.WrapBox(m_EditedBox, wrappedBoxes);
 
         // Iterate through the wrapped boxes - will only be one if there's no wrapping
-        for (list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
+        for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
         {
             adjCorner = (*wItr).GetCorner() - targetPos;
             // Special 'X' drawing when deleting
@@ -673,62 +666,5 @@ void AreaEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) const
     m_pPicker->Draw(pTargetBitmap);
 
     // Draw the pie menu
-    m_pPieMenu->Draw(pTargetBitmap, targetPos);
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePieMenu
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the PieMenu config based ont eh current editor state.
-
-void AreaEditorGUI::UpdatePieMenu()
-{
-    m_pPieMenu->ResetSlices();
-
-    // Add pie menu slices and align them
-    if (m_FullFeatured)
-    {
-		PieSlice newAreaSlice("New Area", PieSlice::PieSliceIndex::PSI_NEW, PieSlice::SliceDirection::UP);
-        m_pPieMenu->AddSlice(newAreaSlice);
-        PieSlice loadSceneSlice("Load Scene", PieSlice::PieSliceIndex::PSI_LOAD, PieSlice::SliceDirection::UP);
-		m_pPieMenu->AddSlice(loadSceneSlice);
-		
-		PieSlice testSceneSlice("Test Scene", PieSlice::PieSliceIndex::PSI_DONE, PieSlice::SliceDirection::UP);
-        m_pPieMenu->AddSlice(testSceneSlice);
-        PieSlice addMoveSlice("Add/Move Box", PieSlice::PieSliceIndex::PSI_MOVE, PieSlice::SliceDirection::LEFT);
-		m_pPieMenu->AddSlice(addMoveSlice);
-		
-		PieSlice removeBoxSlice("Remove Box", PieSlice::PieSliceIndex::PSI_REMOVE, PieSlice::SliceDirection::LEFT);
-        m_pPieMenu->AddSlice(removeBoxSlice);
-		
-		PieSlice selectAreaSlice("Select Area", PieSlice::PieSliceIndex::PSI_PICK, PieSlice::SliceDirection::RIGHT);
-        m_pPieMenu->AddSlice(selectAreaSlice);
-		
-		PieSlice saveSceneSlice("Save Scene", PieSlice::PieSliceIndex::PSI_SAVE, PieSlice::SliceDirection::DOWN);
-        m_pPieMenu->AddSlice(saveSceneSlice);
-        if (m_pCurrentArea)
-        {
-            if (dynamic_cast<Actor *>(m_pCurrentArea))
-            {
-				PieSlice team1Slice("Team 1 Actor", PieSlice::PieSliceIndex::PSI_TEAM1, PieSlice::SliceDirection::DOWN);
-                m_pPieMenu->AddSlice(team1Slice);
-				PieSlice team2Slice("Team 2 Actor", PieSlice::PieSliceIndex::PSI_TEAM2, PieSlice::SliceDirection::DOWN);
-                m_pPieMenu->AddSlice(team2Slice);
-            }
-        }
-    }
-    else
-    {
-		PieSlice moveAreaSlice("(Re)Move Area", PieSlice::PieSliceIndex::PSI_REMOVE, PieSlice::SliceDirection::UP, false);
-        m_pPieMenu->AddSlice(moveAreaSlice);
-        PieSlice doneSlice("DONE Building!", PieSlice::PieSliceIndex::PSI_DONE, PieSlice::SliceDirection::LEFT);
-		m_pPieMenu->AddSlice(doneSlice);
-		
-		PieSlice pickAreaSlice("Pick Area", PieSlice::PieSliceIndex::PSI_PICK, PieSlice::SliceDirection::RIGHT);
-        m_pPieMenu->AddSlice(pickAreaSlice);
-        PieSlice saveSceneSlice("Save Scene", PieSlice::PieSliceIndex::PSI_SAVE, PieSlice::SliceDirection::DOWN, false);
-		m_pPieMenu->AddSlice(saveSceneSlice);
-    }
-    m_pPieMenu->RealignSlices();
+	m_PieMenu->Draw(pTargetBitmap, targetPos);
 }

@@ -12,8 +12,9 @@
 // Inclusions of header files
 
 #include "MOSprite.h"
-#include "PresetMan.h"
+
 #include "AEmitter.h"
+#include "PresetMan.h"
 
 namespace RTE {
 
@@ -46,7 +47,7 @@ void MOSprite::Clear()
     m_PrevRotation.Reset();
     m_AngularVel = 0;
     m_PrevAngVel = 0;
-    m_AngOscillations = 0;
+	m_AngOscillations = 0;
     m_SettleMaterialDisabled = false;
     m_pEntryWound = 0;
     m_pExitWound = 0;
@@ -67,14 +68,14 @@ int MOSprite::Create()
 	m_aSprite.clear();
     m_SpriteFile.GetAsAnimation(m_aSprite, m_FrameCount);
 
-    if (!m_aSprite.empty() && m_aSprite.at(0))
+    if (!m_aSprite.empty() && m_aSprite[0])
     {
         // Set default sprite offset
-        if (m_SpriteOffset.IsZero()) { m_SpriteOffset.SetXY(static_cast<float>(-m_aSprite.at(0)->w) / 2.0F, static_cast<float>(-m_aSprite.at(0)->h) / 2.0F); }
+        if (m_SpriteOffset.IsZero()) { m_SpriteOffset.SetXY(static_cast<float>(-m_aSprite[0]->w) / 2.0F, static_cast<float>(-m_aSprite[0]->h) / 2.0F); }
 
         // Calc maximum dimensions from the Pos, based on the sprite
-        float maxX = std::max(std::fabs(m_SpriteOffset.GetX()), std::fabs(static_cast<float>(m_aSprite.at(0)->w) + m_SpriteOffset.GetX()));
-        float maxY = std::max(std::fabs(m_SpriteOffset.GetY()), std::fabs(static_cast<float>(m_aSprite.at(0)->h) + m_SpriteOffset.GetY()));
+        float maxX = std::max(std::fabs(m_SpriteOffset.GetX()), std::fabs(static_cast<float>(m_aSprite[0]->w) + m_SpriteOffset.GetX()));
+        float maxY = std::max(std::fabs(m_SpriteOffset.GetY()), std::fabs(static_cast<float>(m_aSprite[0]->h) + m_SpriteOffset.GetY()));
         m_SpriteRadius = std::sqrt((maxX * maxX) + (maxY * maxY));
         m_SpriteDiameter = m_SpriteRadius * 2.0F;
     }
@@ -103,13 +104,13 @@ int MOSprite::Create(ContentFile spriteFile,
     m_FrameCount = frameCount;
 	m_aSprite.clear();
     m_SpriteFile.GetAsAnimation(m_aSprite, m_FrameCount);
-    m_SpriteOffset.SetXY(static_cast<float>(-m_aSprite.at(0)->w) / 2.0F, static_cast<float>(-m_aSprite.at(0)->h) / 2.0F);
+    m_SpriteOffset.SetXY(static_cast<float>(-m_aSprite[0]->w) / 2.0F, static_cast<float>(-m_aSprite[0]->h) / 2.0F);
 
     m_HFlipped = false;
 
     // Calc maximum dimensions from the Pos, based on the sprite
-    float maxX = std::max(std::fabs(m_SpriteOffset.GetX()), std::fabs(static_cast<float>(m_aSprite.at(0)->w) + m_SpriteOffset.GetX()));
-    float maxY = std::max(std::fabs(m_SpriteOffset.GetY()), std::fabs(static_cast<float>(m_aSprite.at(0)->h) + m_SpriteOffset.GetY()));
+    float maxX = std::max(std::fabs(m_SpriteOffset.GetX()), std::fabs(static_cast<float>(m_aSprite[0]->w) + m_SpriteOffset.GetX()));
+    float maxY = std::max(std::fabs(m_SpriteOffset.GetY()), std::fabs(static_cast<float>(m_aSprite[0]->h) + m_SpriteOffset.GetY()));
     m_SpriteRadius = std::sqrt((maxX * maxX) + (maxY * maxY));
     m_SpriteDiameter = m_SpriteRadius * 2.0F;
 
@@ -572,37 +573,39 @@ void MOSprite::Draw(BITMAP *pTargetBitmap,
 
     for (int i = 0; i < passes; ++i)
     {
-        if (mode == g_DrawMaterial) {
-            RTEAbort("Ordered to draw an MOSprite in its material, which is not possible!");
+        int spriteX = aDrawPos[i].GetFloorIntX();
+        int spriteY = aDrawPos[i].GetFloorIntY();
+        switch (mode) {
+            case g_DrawMaterial:
+                RTEAbort("Ordered to draw an MOSprite in its material, which is not possible!");
+                break;
+            case g_DrawWhite:
+                draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY, g_WhiteColor, -1);
+                break;
+            case g_DrawMOID:
+#ifdef DRAW_MOID_LAYER
+                draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY, m_MOID, -1);
+#endif
+                break;
+            case g_DrawNoMOID:
+                draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY, g_NoMOID, -1);
+                break;
+            case g_DrawTrans:
+                draw_trans_sprite(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
+                break;
+            case g_DrawAlpha:
+                set_alpha_blender();
+                draw_trans_sprite(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
+                break;
+            default:
+                if (!m_HFlipped) {
+                    draw_sprite(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
+                } else {
+                    draw_sprite_h_flip(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
+                }
         }
-        else if (mode == g_DrawAir)
-            draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), g_MaterialAir, -1);
-        else if (mode == g_DrawMask)
-            draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), g_MaskColor, -1);
-        else if (mode == g_DrawWhite)
-            draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), g_WhiteColor, -1);
-        else if (mode == g_DrawMOID)
-        {
-            int spriteX = aDrawPos[i].GetFloorIntX();
-            int spriteY = aDrawPos[i].GetFloorIntY();
-            draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY, m_MOID, -1);
-            g_SceneMan.RegisterMOIDDrawing(spriteX, spriteY, spriteX + m_aSprite[m_Frame]->w, spriteY + m_aSprite[m_Frame]->h);
-		}
-        else if (mode == g_DrawNoMOID)
-            draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), g_NoMOID, -1);
-        else if (mode == g_DrawTrans)
-            draw_trans_sprite(pTargetBitmap, m_aSprite[m_Frame], aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY());
-        else if (mode == g_DrawAlpha)
-        {
-            set_alpha_blender();
-            draw_trans_sprite(pTargetBitmap, m_aSprite[m_Frame], aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY());
-        }
-        else {
-            if (!m_HFlipped)
-                draw_sprite(pTargetBitmap, m_aSprite[m_Frame], aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY());
-            else
-                draw_sprite_h_flip(pTargetBitmap, m_aSprite[m_Frame], aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY());
-        }
+
+        g_SceneMan.RegisterDrawing(pTargetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, spriteX, spriteY, spriteX + m_aSprite[m_Frame]->w, spriteY + m_aSprite[m_Frame]->h);
     }
 }
 

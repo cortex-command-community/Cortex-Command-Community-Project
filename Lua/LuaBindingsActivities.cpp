@@ -1,3 +1,5 @@
+// Make sure that binding definition files are always set to NOT use pre-compiled headers and conformance mode (/permissive) otherwise everything will be on fire!
+
 #include "LuaBindingRegisterDefinitions.h"
 
 namespace RTE {
@@ -22,6 +24,7 @@ namespace RTE {
 		.def("PlayerActive", &Activity::PlayerActive)
 		.def("PlayerHuman", &Activity::PlayerHuman)
 		.def("TeamActive", &Activity::TeamActive)
+		.def("ForceSetTeamAsActive", &Activity::ForceSetTeamAsActive)
 		.def("GetTeamOfPlayer", &Activity::GetTeamOfPlayer)
 		.def("SetTeamOfPlayer", &Activity::SetTeamOfPlayer)
 		.def("PlayersInTeamCount", &Activity::PlayersInTeamCount)
@@ -31,6 +34,7 @@ namespace RTE {
 		.def("GetPlayerBrain", &Activity::GetPlayerBrain)
 		.def("SetPlayerBrain", &Activity::SetPlayerBrain)
 		.def("PlayerHadBrain", &Activity::PlayerHadBrain)
+		.def("SetPlayerHadBrain", &Activity::SetPlayerHadBrain)
 		.def("SetBrainEvacuated", &Activity::SetBrainEvacuated)
 		.def("BrainWasEvacuated", &Activity::BrainWasEvacuated)
 		.def("IsAssignedBrain", &Activity::IsAssignedBrain)
@@ -50,12 +54,15 @@ namespace RTE {
 		.def("IsRunning", &Activity::IsRunning)
 		.def("IsPaused", &Activity::IsPaused)
 		.def("IsOver", &Activity::IsOver)
-		.def("EnteredOrbit", &Activity::EnteredOrbit)
 		.def("SwitchToActor", &Activity::SwitchToActor)
 		.def("SwitchToNextActor", &Activity::SwitchToNextActor)
 		.def("SwitchToPrevActor", &Activity::SwitchToPrevActor)
 		.def("IsHumanTeam", &Activity::IsHumanTeam)
 		.def("ResetMessageTimer", &Activity::ResetMessageTimer)
+		.def("SaveString", &Activity::SaveString)
+		.def("LoadString", &Activity::LoadString)
+		.def("SaveNumber", &Activity::SaveNumber)
+		.def("LoadNumber", &Activity::LoadNumber)
 
 		.enum_("Players")[
 			luabind::value("PLAYER_NONE", Players::NoPlayer),
@@ -131,7 +138,6 @@ namespace RTE {
 		.def_readwrite("GameTimer", &GameActivity::m_GameTimer)
 		.def_readwrite("GameOverTimer", &GameActivity::m_GameOverTimer)
 		.def_readwrite("GameOverPeriod", &GameActivity::m_GameOverPeriod)
-		.def_readwrite("PieMenuSlices", &GameActivity::m_CurrentPieMenuSlices, luabind::return_stl_iterator)
 
 		.def("SetObservationTarget", &GameActivity::SetObservationTarget)
 		.def("SetDeathViewTarget", &GameActivity::SetDeathViewTarget)
@@ -173,9 +179,6 @@ namespace RTE {
 		.def("UpdateEditing", &GameActivity::UpdateEditing)
 		.def("DisableAIs", &GameActivity::DisableAIs)
 		.def("InitAIs", &GameActivity::InitAIs)
-		.def("AddPieMenuSlice", &GameActivity::AddPieMenuSlice)
-		.def("AlterPieMenuSlice", &GameActivity::AlterPieMenuSlice)
-		.def("RemovePieMenuSlice", &GameActivity::RemovePieMenuSlice)
 
 		.enum_("ObjectiveArrowDir")[
 			luabind::value("ARROWDOWN", GameActivity::ObjectiveArrowDir::ARROWDOWN),

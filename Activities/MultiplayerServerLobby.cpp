@@ -28,18 +28,14 @@
 #include "GUI.h"
 #include "AllegroBitmap.h"
 #include "AllegroScreen.h"
-#include "AllegroInput.h"
+#include "GUIInputWrapper.h"
 #include "GUIControlManager.h"
 #include "GUICollectionBox.h"
 #include "GUIComboBox.h"
 #include "GUICheckbox.h"
-#include "GUITab.h"
-#include "GUIListBox.h"
-#include "GUITextBox.h"
 #include "GUIButton.h"
 #include "GUILabel.h"
 #include "GUISlider.h"
-#include "PieMenuGUI.h"
 
 #include "NetworkServer.h"
 
@@ -222,7 +218,7 @@ namespace RTE {
 		if (!m_pGUIScreen)
 			m_pGUIScreen = new AllegroScreen(g_FrameMan.GetBackBuffer8());
 		if (!m_pGUIInput)
-			m_pGUIInput = new AllegroInput(-1, true);
+			m_pGUIInput = new GUIInputWrapper(-1, true);
 		if (!m_pGUIController)
 			m_pGUIController = new GUIControlManager();
 		if (!m_pGUIController->Create(m_pGUIScreen, m_pGUIInput, "Base.rte/GUIs/Skins", "DefaultSkin.ini")) {
@@ -375,13 +371,13 @@ namespace RTE {
 			m_pSceneSelect->ClearList();
 
 			// Pull out the list of Scenes that are compatible with this Activity
-			map<Activity *, list<Scene *> >::iterator asItr;
+			std::map<Activity *, std::list<Scene *> >::iterator asItr;
 			if (m_Activities.end() != (asItr = m_Activities.find(const_cast<Activity *>(pSelected))))
 			{
 				m_pScenes = &((*asItr).second);
 
 				// Fill scenes combo with compatible scenes
-				for (list<Scene *>::iterator pItr = m_pScenes->begin(); pItr != m_pScenes->end(); ++pItr)
+				for (std::list<Scene *>::iterator pItr = m_pScenes->begin(); pItr != m_pScenes->end(); ++pItr)
 				{
 					Scene *pScene = (*pItr);
 					m_pSceneSelect->AddItem(pScene->GetPresetName(), "", 0, pScene);
@@ -449,33 +445,33 @@ namespace RTE {
 		// Set gold slider value if activity sepcifies default gold amounts for difficulties
 		if (m_pDifficultySlider->GetValue() < DifficultySetting::CakeDifficulty)
 		{
-			if (pSelectedGA->GetDefaultGoldCake() > -1)
-				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldCake());
+			if (pSelectedGA->GetDefaultGoldCakeDifficulty() > -1)
+				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldCakeDifficulty());
 		}
 		else if (m_pDifficultySlider->GetValue() < DifficultySetting::EasyDifficulty)
 		{
-			if (pSelectedGA->GetDefaultGoldEasy() > -1)
-				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldEasy());
+			if (pSelectedGA->GetDefaultGoldEasyDifficulty() > -1)
+				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldEasyDifficulty());
 		}
 		else if (m_pDifficultySlider->GetValue() < DifficultySetting::MediumDifficulty)
 		{
-			if (pSelectedGA->GetDefaultGoldMedium() > -1)
-				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldMedium());
+			if (pSelectedGA->GetDefaultGoldMediumDifficulty() > -1)
+				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldMediumDifficulty());
 		}
 		else if (m_pDifficultySlider->GetValue() < DifficultySetting::HardDifficulty)
 		{
-			if (pSelectedGA->GetDefaultGoldHard() > -1)
-				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldHard());
+			if (pSelectedGA->GetDefaultGoldHardDifficulty() > -1)
+				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldHardDifficulty());
 		}
 		else if (m_pDifficultySlider->GetValue() < DifficultySetting::NutsDifficulty)
 		{
-			if (pSelectedGA->GetDefaultGoldNuts() > -1)
-				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldNuts());
+			if (pSelectedGA->GetDefaultGoldNutsDifficulty() > -1)
+				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldNutsDifficulty());
 		}
 		else
 		{
-			if (pSelectedGA->GetDefaultGoldNuts() > -1)
-				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldNuts());
+			if (pSelectedGA->GetDefaultGoldNutsDifficulty() > -1)
+				m_pGoldSlider->SetValue(pSelectedGA->GetDefaultGoldNutsDifficulty());
 		}
 		m_pGoldSlider->SetEnabled(pSelectedGA->GetGoldSwitchEnabled());
 	}
@@ -1015,17 +1011,17 @@ namespace RTE {
 		m_Activities.clear();
 
 		// Get the list of all read in Scene presets
-		list<Entity *> presetList;
+		std::list<Entity *> presetList;
 		g_PresetMan.GetAllOfType(presetList, "Scene");
-		list<Scene *> filteredScenes;
+		std::list<Scene *> filteredScenes;
 		Scene *pScene = 0;
 
 		// Go through the list and cast all the pointers to scenes so we have a handy list
-		for (list<Entity *>::iterator pItr = presetList.begin(); pItr != presetList.end(); ++pItr)
+		for (std::list<Entity *>::iterator pItr = presetList.begin(); pItr != presetList.end(); ++pItr)
 		{
 			pScene = dynamic_cast<Scene *>(*pItr);
 			// Only add non-editor and non-special scenes, or ones that don't have locations defined, or have Test in their names, or are metascenes
-			if (pScene && !pScene->GetLocation().IsZero() && !pScene->IsMetagameInternal() && (pScene->GetMetasceneParent() == "" || g_SettingsMan.ShowMetascenes()))
+			if (pScene && !pScene->GetLocation().IsZero() && !pScene->IsMetagameInternal() && !pScene->IsSavedGameInternal() && (pScene->GetMetasceneParent() == "" || g_SettingsMan.ShowMetascenes()))
 				filteredScenes.push_back(pScene);
 		}
 
@@ -1042,17 +1038,17 @@ namespace RTE {
 		m_pActivitySelect->ClearList();
 		int index = 0;
 		int skirmishIndex = -1;
-		for (list<Entity *>::iterator pItr = presetList.begin(); pItr != presetList.end(); ++pItr)
+		for (std::list<Entity *>::iterator pItr = presetList.begin(); pItr != presetList.end(); ++pItr)
 		{
 			bool isMetaActivity = false;
 
 			pActivity = dynamic_cast<Activity *>(*pItr);
 			// Only add non-editor and non-special activities
-			if (pActivity/* && pActivity->GetClassName() != "GATutorial" */&& pActivity->GetClassName().find("Editor") == string::npos)
+			if (pActivity/* && pActivity->GetClassName() != "GATutorial" */&& pActivity->GetClassName().find("Editor") == std::string::npos)
 			{
 				// Prepare a new entry in the list of Activity:ies that we have
-				pair<Activity *, list<Scene *> > newPair(pActivity, list<Scene *>());
-				for (list<Scene *>::iterator sItr = filteredScenes.begin(); sItr != filteredScenes.end(); ++sItr)
+				std::pair<Activity *, std::list<Scene *> > newPair(pActivity, std::list<Scene *>());
+				for (std::list<Scene *>::iterator sItr = filteredScenes.begin(); sItr != filteredScenes.end(); ++sItr)
 				{
 					// Check if the Scene has the required Area:s and such needed for this Activity
 					if (pActivity->SceneIsCompatible(*sItr))
@@ -1169,7 +1165,7 @@ namespace RTE {
 		// Move the dialog to the center of the player 0 screen so it could operate in absoute mouse coordintaes of the player 0 screen
 		// During draw we move the dialog to 0,0 before drawing to draw it properly into the intermediate buffer co we can draw it centered on other player's screens.
 		BITMAP* drawBitmap = m_pUIDrawBitmap;
-		BITMAP* finalDestBitmap = g_FrameMan.GetNetworkBackBufferIntermediate8Current(0);
+		BITMAP* finalDestBitmap = g_FrameMan.GetNetworkBackBufferIntermediateGUI8Current(0);
 
 		int offsetX = finalDestBitmap->w / 2 - m_pRootBox->GetWidth() / 2;
 		int offsetY = finalDestBitmap->h / 2 - m_pRootBox->GetHeight() / 2;
@@ -1300,7 +1296,7 @@ namespace RTE {
 		for (int i = 0; i < 4; i++)
 		{
 			if (i < c_MaxClients)
-				finalDestBitmap = g_FrameMan.GetNetworkBackBufferIntermediate8Current(i);
+				finalDestBitmap = g_FrameMan.GetNetworkBackBufferIntermediateGUI8Current(i);
 			else
 				finalDestBitmap = pTargetBitmap;
 

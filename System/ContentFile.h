@@ -88,17 +88,10 @@ namespace RTE {
 		void SetDataPath(const std::string &newDataPath);
 
 		/// <summary>
-		/// Sets the DataPath combined with the file and line it's being created from. This is used in cases we can't get the file and line from Serializable::Create(&reader).
-		/// For example when creating a ContentFile for the sound during the readSound lambda in SoundContainer::ReadAndGetSound.
-		/// </summary>
-		/// <param name="newPosition">The file and line that are currently being read.</param>
-		void SetFormattedReaderPosition(const std::string &newPosition);
-
-		/// <summary>
 		/// Creates a hash value out of a path to a ContentFile.
 		/// </summary>
 		/// <returns>Hash value of a path to a ContentFile.</returns>
-		size_t GetHash() const { return std::hash<std::string>()(m_DataPath); }
+		size_t GetHash() const;
 
 		/// <summary>
 		/// Converts hash values into file paths to ContentFiles.
@@ -108,7 +101,52 @@ namespace RTE {
 		static std::string GetPathFromHash(size_t hash) { return (s_PathHashes.find(hash) == s_PathHashes.end()) ? "" : s_PathHashes[hash]; }
 #pragma endregion
 
+#pragma region Logging
+		/// <summary>
+		/// Gets the file and line that are currently being read. Formatted to be used for logging warnings and errors.
+		/// </summary>
+		/// <returns>A string containing the currently read file path and the line being read.</returns>
+		const std::string & GetFormattedReaderPosition() const { return m_FormattedReaderPosition; }
+
+		/// <summary>
+		/// Sets the file and line that are currently being read. Formatted to be used for logging warnings and errors.
+		/// </summary>
+		/// <param name="newPosition">A string containing the currently read file path and the line being read.</returns>
+		void SetFormattedReaderPosition(const std::string &newPosition) override;
+#pragma endregion
+
+#pragma region Image Info Getters
+		/// <summary>
+		/// Gets whether the data file at this ContentFile's path is a supported image format.
+		/// </summary>
+		/// <returns>Whether the data file at this ContentFile's path is a supported image format.</returns>
+		bool DataPathIsImageFile() const { return m_DataPathIsImageFile; }
+
+		/// <summary>
+		/// Gets the bit depth of the image file at this ContentFile's path.
+		/// </summary>
+		/// <returns>The bit depth of the image file at this ContentFile's path, or -1 if the file is not an image format.</returns>
+		int GetImageBitDepth() { return m_DataPathIsImageFile ? GetImageFileInfo(ImageFileInfoType::ImageBitDepth) : -1; }
+
+		/// <summary>
+		/// Gets the width of the image file at this ContentFile's path.
+		/// </summary>
+		/// <returns>The width of the image file at this ContentFile's path, in pixels, or -1 if the file is not an image format.</returns>
+		int GetImageWidth() { return m_DataPathIsImageFile ? GetImageFileInfo(ImageFileInfoType::ImageWidth) : -1; }
+
+		/// <summary>
+		/// Gets the height of the image file at this ContentFile's path.
+		/// </summary>
+		/// <returns>The height of the image file at this ContentFile's path, in pixels, or -1 if the file is not an image format.</returns>
+		int GetImageHeight() { return m_DataPathIsImageFile ? GetImageFileInfo(ImageFileInfoType::ImageHeight) : -1; }
+#pragma endregion
+
 #pragma region Data Handling
+		/// <summary>
+		/// Reloads all BITMAPs in the cache from disk, allowing any changes to be reflected at runtime.
+		/// </summary>
+		static void ReloadAllBitmaps();
+
 		/// <summary>
 		/// Gets the data represented by this ContentFile object as an Allegro BITMAP, loading it into the static maps if it's not already loaded. Note that ownership of the BITMAP is NOT transferred!
 		/// </summary>
@@ -145,29 +183,56 @@ namespace RTE {
 		FMOD::Sound * GetAsSound(bool abortGameForInvalidSound = true, bool asyncLoading = true);
 #pragma endregion
 
-	protected:
+	private:
 
 		/// <summary>
 		/// Enumeration for loading BITMAPs by bit depth. NOTE: This can't be lower down because s_LoadedBitmaps relies on this definition.
 		/// </summary>
 		enum BitDepths { Eight = 0, ThirtyTwo, BitDepthCount };
 
+		/// <summary>
+		/// Enumeration for the image file information types that can be stored.
+		/// </summary>
+		enum ImageFileInfoType { ImageBitDepth, ImageWidth, ImageHeight, ImageInfoTypeCount };
+
+		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
+
 		static std::unordered_map<size_t, std::string> s_PathHashes; //!< Static map containing the hash values of paths of all loaded data files.
-		static std::array<std::unordered_map<std::string, BITMAP *>, BitDepthCount> s_LoadedBitmaps; //!< Static map containing all the already loaded BITMAPs and their paths for each bit depth.
+		static std::array<std::unordered_map<std::string, BITMAP *>, BitDepths::BitDepthCount> s_LoadedBitmaps; //!< Static map containing all the already loaded BITMAPs and their paths for each bit depth.
 		static std::unordered_map<std::string, FMOD::Sound *> s_LoadedSamples; //!< Static map containing all the already loaded FSOUND_SAMPLEs and their paths.
 
 		std::string m_DataPath; //!< The path to this ContentFile's data file. In the case of an animation, this filename/name will be appended with 000, 001, 002 etc.
 		std::string m_DataPathExtension; //!< The extension of the data file of this ContentFile's path.
 		std::string m_DataPathWithoutExtension; //!< The path to this ContentFile's data file without the file's extension.
 
+		bool m_DataPathIsImageFile; //!< Whether the data file at this ContentFile's path is a supported image format.
+		std::array<int, ImageFileInfoType::ImageInfoTypeCount> m_ImageFileInfo; //!< Array that holds image file information read directly from the data file on disk.
+
 		std::string m_FormattedReaderPosition; //!< A string containing the currently read file path and the line being read. Formatted to be used for logging.
 		std::string m_DataPathAndReaderPosition; //!< The path to this ContentFile's data file combined with the ini file and line it is being read from. This is used for logging.
 
 		int m_DataModuleID; //!< Data Module ID of where this was loaded from.
 
-	private:
+#pragma region Image Info Getters
+		/// <summary>
+		/// Gets the specified image info from this ContentFile's data file on disk.
+		/// </summary>
+		/// <param name="infoTypeToGet">The image info type to get. See ImageFileInfoType enumeration.</param>
+		/// <returns>An integer value with the requested image info.</returns>
+		int GetImageFileInfo(ImageFileInfoType infoTypeToGet);
 
-		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
+		/// <summary>
+		/// Reads a PNG file from disk and stores the relevant information without actually loading the whole file into memory.
+		/// </summary>
+		/// <param name="imageFile">Pointer to the file stream to read.</param>
+		void ReadAndStorePNGFileInfo(FILE *imageFile);
+
+		/// <summary>
+		/// Reads a BMP file from disk and stores the relevant information without actually loading the whole file into memory.
+		/// </summary>
+		/// <param name="imageFile">Pointer to the file stream to read.</param>
+		void ReadAndStoreBMPFileInfo(FILE *imageFile);
+#pragma endregion
 
 #pragma region Data Handling
 		/// <summary>
@@ -186,6 +251,13 @@ namespace RTE {
 		/// <param name="asyncLoading">Whether to enable FMOD asynchronous loading or not. Should be disabled for loading audio files with Lua AddSound.</param>
 		/// <returns>Pointer to the FSOUND_SAMPLE loaded from disk.</returns>
 		FMOD::Sound * LoadAndReleaseSound(bool abortGameForInvalidSound = true, bool asyncLoading = true);
+
+		/// <summary>
+		/// Reloads a specific BITMAP in the cache from disk, allowing any changes to be reflected at runtime.
+		/// </summary>
+		/// <param name="filePath">The filepath to the bitmap we want to reload.</param>
+		/// <param name="conversionMode">The Allegro color conversion mode to use when reloading this bitmap.</param>
+		static void ReloadBitmap(const std::string &filePath, int conversionMode = 0);
 #pragma endregion
 
 		/// <summary>

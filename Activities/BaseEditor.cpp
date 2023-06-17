@@ -12,6 +12,8 @@
 // Inclusions of header files
 
 #include "BaseEditor.h"
+
+#include "CameraMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "UInputMan.h"
@@ -28,20 +30,6 @@
 #include "HeldDevice.h"
 #include "Scene.h"
 #include "DataModule.h"
-
-#include "GUI.h"
-#include "GUIFont.h"
-#include "AllegroScreen.h"
-#include "AllegroBitmap.h"
-#include "AllegroInput.h"
-#include "GUIControlManager.h"
-#include "GUICollectionBox.h"
-#include "GUITab.h"
-#include "GUIListBox.h"
-#include "GUITextBox.h"
-#include "GUIButton.h"
-#include "GUILabel.h"
-#include "GUIComboBox.h"
 
 #include "SceneEditorGUI.h"
 
@@ -195,8 +183,8 @@ int BaseEditor::Start()
         m_ViewState[editingPlayer] = ViewState::Normal;
         g_FrameMan.ClearScreenText(ScreenOfPlayer(editingPlayer));
         // Set the team associations with the first screen so that the correct unseen are shows up
-        g_SceneMan.SetScreenTeam(ScreenOfPlayer(editingPlayer), m_Team[editingPlayer]);
-        g_SceneMan.SetScreenOcclusion(Vector(), ScreenOfPlayer(editingPlayer));
+        g_CameraMan.SetScreenTeam(m_Team[editingPlayer], ScreenOfPlayer(editingPlayer));
+        g_CameraMan.SetScreenOcclusion(Vector(), ScreenOfPlayer(editingPlayer));
 
         m_PlayerController[editingPlayer].Reset();
         m_PlayerController[editingPlayer].Create(Controller::CIM_PLAYER, editingPlayer);
@@ -253,7 +241,7 @@ int BaseEditor::Start()
 
     // The get a list of all the placed objects in the Scene and set them to not kick around
     const std::list<SceneObject *> *pSceneObjectList = g_SceneMan.GetScene()->GetPlacedObjects(Scene::BLUEPRINT);
-    for (list<SceneObject *>::const_iterator itr = pSceneObjectList->begin(); itr != pSceneObjectList->end(); ++itr)
+    for (std::list<SceneObject *>::const_iterator itr = pSceneObjectList->begin(); itr != pSceneObjectList->end(); ++itr)
     {
         Actor *pActor = dynamic_cast<Actor *>(*itr);
         if (pActor)
@@ -321,7 +309,7 @@ void BaseEditor::Update()
 
     // Get any mode change commands that the user gave the Editor GUI
     // Done with editing for now; save and return to campaign screen
-    if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::PieSliceIndex::PSI_DONE)
+    if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorDone)
     {
         m_pEditorGUI->SetEditorGUIMode(SceneEditorGUI::INACTIVE);
 
@@ -365,7 +353,7 @@ void BaseEditor::Draw(BITMAP* pTargetBitmap, const Vector &targetPos)
 // Description:     Saves the current scene to an appropriate ini file, and asks user if
 //                  they want to overwrite first if scene of this name exists.
 
-bool BaseEditor::SaveScene(string saveAsName, bool forceOverwrite)
+bool BaseEditor::SaveScene(std::string saveAsName, bool forceOverwrite)
 {
 /*
     // Set the name of the current scene in effect
@@ -375,7 +363,7 @@ bool BaseEditor::SaveScene(string saveAsName, bool forceOverwrite)
     if (g_PresetMan.AddEntityPreset(g_SceneMan.GetScene(), m_ModuleSpaceID, forceOverwrite, sceneFilePath))
     {
         // Does ini already exist? If yes, then no need to add it to a scenes.ini etc
-        bool sceneFileExisted = exists(sceneFilePath.c_str());
+        bool sceneFileExisted = System::PathExistsCaseSensitive(sceneFilePath.c_str());
         // Create the writer
         Writer sceneWriter(sceneFilePath.c_str(), false);
         sceneWriter.NewProperty("AddScene");
@@ -387,7 +375,7 @@ bool BaseEditor::SaveScene(string saveAsName, bool forceOverwrite)
         {
             // First find/create  a .rte/Scenes.ini file to include the new .ini into
             string scenesFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes.ini");
-            bool scenesFileExisted = exists(scenesFilePath.c_str());
+            bool scenesFileExisted = System::PathExistsCaseSensitive(scenesFilePath.c_str());
             Writer scenesWriter(scenesFilePath.c_str(), true);
             scenesWriter.NewProperty("\nIncludeFile");
             scenesWriter << sceneFilePath;

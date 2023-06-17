@@ -30,7 +30,7 @@ namespace RTE
 
 class SceneObject;
 class ObjectPickerGUI;
-class PieMenuGUI;
+class PieMenu;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -173,9 +173,9 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Gets any Pie menu slice command activated last update.
 // Arguments:       None.
-// Return value:    The enum'd int of any slice activated. See the PieSliceIndex enum.
+// Return value:    The enum'd int of any slice activated. See the PieSlice::SliceType enum.
 
-    PieSlice::PieSliceIndex GetActivatedPieSlice() { return m_ActivatedPieSliceType; }
+	PieSlice::SliceType GetActivatedPieSlice() const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -306,7 +306,7 @@ public:
 // Arguments:       None.
 // Return value:    Name of currently edited assembly.
 
-	string GetCurrentAssemblyName() { return m_CurrentAssemblyName; }
+    std::string GetCurrentAssemblyName() { return m_CurrentAssemblyName; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -316,7 +316,7 @@ public:
 // Arguments:       New name for assembly.
 // Return value:    None.
 
-	void SetCurrentAssemblyName(string newName) { m_CurrentAssemblyName = newName; }
+	void SetCurrentAssemblyName(std::string newName) { m_CurrentAssemblyName = newName; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -381,9 +381,7 @@ protected:
 	// Whether we need a clear path to orbit to place brain
 	bool m_RequireClearPathToOrbit;
 
-    // The pie menu
-    PieMenuGUI *m_pPieMenu;
-    PieSlice::PieSliceIndex m_ActivatedPieSliceType; //!< The activated PieSliceType, reset every frame.
+	std::unique_ptr<PieMenu> m_PieMenu; //!< The PieMenu for this AssemblyEditorGUI.
     // The object picker
     ObjectPickerGUI *m_pPicker;
     // The ID of the DataModule that contains the native Tech of the Player using this menu
@@ -423,7 +421,7 @@ protected:
 	//Edited scheme type
 	BunkerAssemblyScheme *m_pCurrentScheme;
 	//Edited assembly name
-	string m_CurrentAssemblyName;
+    std::string m_CurrentAssemblyName;
 
 
 

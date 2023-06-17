@@ -6,11 +6,14 @@
 *.obj
 *.vs
 *.APS
+*.user
 
 compile_commands.json
 /.ccls-cache
 
 /build*
+
+/enc_temp_folder
 
 /_Bin
 /NATPunchServer/Server/NATCompleteServer/Debug
@@ -18,3 +21,5 @@ compile_commands.json
 /Documentation/Doxygen/Output
 MemCleanupInfo.txt
 RTEA.vcxproj.user
+.DS_Store
+.vscode

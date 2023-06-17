@@ -26,18 +26,11 @@
 #include "DataModule.h"
 
 #include "GUI.h"
-#include "GUIFont.h"
 #include "AllegroScreen.h"
-#include "AllegroBitmap.h"
-#include "AllegroInput.h"
+#include "GUIInputWrapper.h"
 #include "GUIControlManager.h"
 #include "GUICollectionBox.h"
-#include "GUITab.h"
-#include "GUIListBox.h"
-#include "GUITextBox.h"
-#include "GUIButton.h"
-#include "GUILabel.h"
-#include "GUIComboBox.h"
+
 
 namespace RTE {
 
@@ -61,6 +54,7 @@ void EditorActivity::Clear()
     m_ModuleSpaceID = 0;
     m_NeedSave = false;
     m_HasEverBeenSaved = false;
+    m_PieMenu = nullptr;
     m_pGUIScreen = 0;
     m_pGUIInput = 0;
     m_pGUIController = 0;
@@ -119,6 +113,7 @@ int EditorActivity::Create(const EditorActivity &reference)
     m_EditorMode = reference.m_EditorMode;
     m_ModuleSpaceID = reference.m_ModuleSpaceID;
     m_NeedSave = reference.m_NeedSave;
+	if (reference.m_PieMenu) { m_PieMenu = std::unique_ptr<PieMenu>(dynamic_cast<PieMenu *>(reference.m_PieMenu->Clone())); }
 
     return 0;
 }
@@ -205,7 +200,7 @@ int EditorActivity::Start()
     g_UInputMan.DisableMouseMoving(true);
     g_UInputMan.DisableMouseMoving(false);
 
-    m_ActivityState = ActivityState::Editing;
+	m_ActivityState = ActivityState::Editing;
     m_Paused = true;
 //    g_TimerMan.PauseSim(true);
     m_ModeChange = true;
@@ -223,7 +218,7 @@ int EditorActivity::Start()
     if (!m_pGUIScreen)
         m_pGUIScreen = new AllegroScreen(g_FrameMan.GetBackBuffer8());
     if (!m_pGUIInput)
-        m_pGUIInput = new AllegroInput(-1, true); 
+        m_pGUIInput = new GUIInputWrapper(-1, true);
     if (!m_pGUIController)
         m_pGUIController = new GUIControlManager();
     if (!m_pGUIController->Create(m_pGUIScreen, m_pGUIInput, "Base.rte/GUIs/Skins", "DefaultSkin.ini")) {

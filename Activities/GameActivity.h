@@ -28,7 +28,7 @@ namespace RTE
 
 class Actor;
 class ACraft;
-class PieMenuGUI;
+class PieMenu;
 class InventoryMenuGUI;
 class BuyMenuGUI;
 class SceneEditorGUI;
@@ -435,7 +435,7 @@ public:
 //                  represent.
 // Return value:    The new total value of what's in the override purchase list.
 
-    int SetOverridePurchaseList(string loadoutName, int player);
+    int SetOverridePurchaseList(std::string loadoutName, int player);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -597,7 +597,7 @@ public:
 // Description:     Returns the name of the tech module selected for this team during scenario setup
 // Arguments:       Team to return tech module for
 // Return value:    Tech module name, for example Dummy.rte, or empty string if there is no team
-	std::string GetTeamTech(int team) { return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamTech[team] : ""; }
+	std::string GetTeamTech(int team) const { return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamTech[team] : ""; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          SetTeamTech
@@ -724,7 +724,7 @@ public:
 // Description:     
 // Arguments:       None.
 // Return value:	
-	int GetDefaultGoldCake() const { return m_DefaultGoldCake; }
+	int GetDefaultGoldCakeDifficulty() const { return m_DefaultGoldCakeDifficulty; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -733,7 +733,7 @@ public:
 // Description:     
 // Arguments:       None.
 // Return value:	
-	int GetDefaultGoldEasy() const { return m_DefaultGoldEasy; }
+	int GetDefaultGoldEasyDifficulty() const { return m_DefaultGoldEasyDifficulty; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -742,7 +742,7 @@ public:
 // Description:     
 // Arguments:       None.
 // Return value:	
-	int GetDefaultGoldMedium() const { return m_DefaultGoldMedium; }
+	int GetDefaultGoldMediumDifficulty() const { return m_DefaultGoldMediumDifficulty; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -751,7 +751,7 @@ public:
 // Description:     
 // Arguments:       None.
 // Return value:	
-	int GetDefaultGoldHard() const { return m_DefaultGoldHard; }
+	int GetDefaultGoldHardDifficulty() const { return m_DefaultGoldHardDifficulty; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -760,7 +760,14 @@ public:
 // Description:     
 // Arguments:       None.
 // Return value:	
-	int GetDefaultGoldNuts() const { return m_DefaultGoldNuts; }
+	int GetDefaultGoldNutsDifficulty() const { return m_DefaultGoldNutsDifficulty; }
+
+
+	/// <summary>
+	/// Gets the default gold for max difficulty.
+	/// </summary>
+	/// <returns>The default gold for max difficulty.</returns>
+	int GetDefaultGoldMaxDifficulty() const { return m_DefaultGoldMaxDifficulty; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -868,41 +875,6 @@ public:
 // Return value:    None
 
 	void SetNetworkPlayerName(int player, std::string name);
-
-    virtual void OnPieMenu(Actor *actor) { /* Does nothing, kept here for program control flow. Method is not pure virtual to avoid a bunch of junk implementations in non-scritped activities. */};
-
-	void AddPieMenuSlice(std::string description, std::string functionName, PieSlice::SliceDirection direction, bool isEnabled)
-	{ 
-		if (m_CurrentPieMenuPlayer >= Players::PlayerOne && m_CurrentPieMenuPlayer < Players::MaxPlayerCount)
-			m_pPieMenu[m_CurrentPieMenuPlayer]->AddPieSliceLua(description, functionName, direction, isEnabled);
-	};
-
-	void AlterPieMenuSlice(std::string description, std::string functionName, PieSlice::SliceDirection direction, bool isEnabled)
-	{
-		if (m_CurrentPieMenuPlayer >= Players::PlayerOne && m_CurrentPieMenuPlayer < Players::MaxPlayerCount)
-			m_pPieMenu[m_CurrentPieMenuPlayer]->AlterPieSliceLua(description, functionName, direction, isEnabled);
-	};
-
-    PieSlice RemovePieMenuSlice(std::string description, std::string functionName)
-	{
-		if (m_CurrentPieMenuPlayer >= Players::PlayerOne && m_CurrentPieMenuPlayer < Players::MaxPlayerCount)
-			return m_pPieMenu[m_CurrentPieMenuPlayer]->RemovePieSliceLua(description, functionName);
-		return PieSlice("", PieSlice::PieSliceIndex::PSI_NONE, PieSlice::SliceDirection::NONE, false);
-	};
-
-	std::vector<PieSlice *> GetCurrentPieMenuSlices(int player) const
-	{ 
-		//if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-			return m_pPieMenu[player]->GetCurrentSlices();
-		//return 0;
-	}
-
-	/*std::vector<PieSlice> * GetAvailablePieMenuSlices(int player) const 
-	{ 
-		if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-			return &m_pPieMenu[player]->GetAvailableSlices();
-		return 0;
-	}*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protected member variable and method declarations
@@ -1046,8 +1018,6 @@ protected:
     Vector m_ObservationTarget[Players::MaxPlayerCount];
     // The player death sceneman scroll targets, for when a player-controlled actor dies and the view should go to his last position
     Vector m_DeathViewTarget[Players::MaxPlayerCount];
-    // Timers for measuring death cam delays.
-    Timer m_DeathTimer[Players::MaxPlayerCount];
     // Times the delay between regular actor swtich, and going into manual siwtch mode
     Timer m_ActorSelectTimer[Players::MaxPlayerCount];
     // The cursor for selecting new Actors
@@ -1058,8 +1028,7 @@ protected:
     Vector m_LandingZone[Players::MaxPlayerCount];
     // Whether the last craft was set to return or not after delivering
     bool m_AIReturnCraft[Players::MaxPlayerCount];
-    // The pie menus for each player
-    PieMenuGUI *m_pPieMenu[Players::MaxPlayerCount];
+    std::array<std::unique_ptr<PieMenu>, Players::MaxPlayerCount> m_StrategicModePieMenu; //!< The strategic mode PieMenus for each Player.
     // The inventory menu gui for each player
     InventoryMenuGUI *m_InventoryMenuGUI[Players::MaxPlayerCount];
     // The in-game buy GUIs for each player
@@ -1103,11 +1072,12 @@ protected:
 	// Default deploy units swutch value, default -1 (unspecified)
 	int m_DefaultDeployUnits;
 	// Default gold amount for different difficulties, defalt -1 (unspecified)
-	int m_DefaultGoldCake;
-	int m_DefaultGoldEasy;
-	int m_DefaultGoldMedium;
-	int m_DefaultGoldHard;
-	int m_DefaultGoldNuts;
+	int m_DefaultGoldCakeDifficulty;
+	int m_DefaultGoldEasyDifficulty;
+	int m_DefaultGoldMediumDifficulty;
+	int m_DefaultGoldHardDifficulty;
+	int m_DefaultGoldNutsDifficulty;
+	int m_DefaultGoldMaxDifficulty;
 	// Whether those switches are enabled or disabled in scenario setup dialog, true by default
 	bool m_FogOfWarSwitchEnabled;
 	bool m_DeployUnitsSwitchEnabled;
@@ -1117,6 +1087,7 @@ protected:
 
     // The cursor animations for the LZ indicators
     std::vector<BITMAP *> m_aLZCursor[4];
+	std::array<int, Players::MaxPlayerCount> m_LZCursorWidth; //!< The width of each players' LZ cursor.
     // The cursor animations for the objective indications
     std::vector<BITMAP *> m_aObjCursor[4];
 
@@ -1132,10 +1103,6 @@ protected:
     long m_GameOverPeriod;
     // The winning team number, when the game is over
     int m_WinnerTeam;
-
-	std::vector<PieSlice *> m_CurrentPieMenuSlices;
-
-	int m_CurrentPieMenuPlayer;
 
 	std::string m_NetworkPlayerNames[Players::MaxPlayerCount];
 

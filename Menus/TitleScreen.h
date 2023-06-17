@@ -152,6 +152,8 @@ namespace RTE {
 
 		int m_FadeAmount; //!< The amount of blending to use when drawing the screen overlay bitmap.
 
+		int m_TitleScreenMaxWidth; //!< The maximum width of the title screen. This is to constrain the title screen to the primary display while in multi-display fullscreen, otherwise positioning can get stupid.
+
 		std::vector<Star> m_BackdropStars; //!< Vector that contains all the individual Stars that are present in the title screen scene background.
 		SceneLayer m_Nebula; //!< The title screen scene nebula background layer.
 		MOSParticle m_Moon; //!< The title screen scene moon.
@@ -179,7 +181,6 @@ namespace RTE {
 		float m_SectionProgress; //!< Progress made on a section, from 0.0 to 1.0.
 
 		Vector m_ScrollOffset; //!< The scrolling position of the whole title screen scene.
-		float m_BackdropScrollRatio; //!< The scrolling ratio of the whole title screen scene background (nebula and stars).
 		float m_PlanetViewScrollOffsetY; //!< The title screen scene scroll position when in planet overview menus.
 
 		bool m_FinishedPlayingIntro; //!< Whether the intro sequence finished playing.

@@ -82,7 +82,7 @@ public:
         float m_FundsAmount;
         float m_FundsTarget;
         Vector m_PlanetPoint;
-        string m_SiteName;
+        std::string m_SiteName;
         // NOT owned here
         const Scene *m_pScene;
         int m_Color;
@@ -96,7 +96,7 @@ public:
                  float startMeterAt,
                  float meterAmount,
                  const Vector &planetPoint,
-                 string siteName,
+                 std::string siteName,
                  // Ownership NOT passed in
                  const Scene *pScene,
                  int color,
@@ -564,10 +564,10 @@ protected:
 // Method:          UpdateIncomeCounting
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Updates the Count Income animation
-// Arguments:       Whether to just set up the lines and funds as if we had a new round.
+// Arguments:       Whether to just set up the lines and funds as if we had a new round. Also skips changing funds to avoid an income/cost duplication glitch when saving a game at the start of a round.
 // Return value:    None.
 
-    void UpdateIncomeCounting(bool initOverride = false);
+	void UpdateIncomeCounting(bool initOverride = false);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -767,7 +767,7 @@ protected:
 //                  How high above the location to show the text, adjustment from a good default.
 // Return value:    None.
 
-    void UpdateSiteNameLabel(bool visible, string text = "", const Vector &location = Vector(), float height = 1.0);
+    void UpdateSiteNameLabel(bool visible, std::string text = "", const Vector &location = Vector(), float height = 1.0);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1015,6 +1015,7 @@ protected:
         ANIMMODECOUNT
     };
 
+	int m_RootBoxMaxWidth; //!< The maximum width the root CollectionBox that holds all this menu's GUI elements. This is to constrain this menu to the primary window's display (left-most) while in multi-display fullscreen, otherwise positioning can get stupid.
 
     // Controller which controls this menu. Not owned
     Controller *m_pController;

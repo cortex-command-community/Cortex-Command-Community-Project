@@ -38,7 +38,7 @@ namespace RTE {
 ConcreteClassInfo(GATutorial, GameActivity, 0);
 
 
-GATutorial::TutStep::TutStep(string text, int stepDuration, string screensPath, int frameCount, int frameDuration)
+GATutorial::TutStep::TutStep(std::string text, int stepDuration, std::string screensPath, int frameCount, int frameDuration)
 {
     m_Text = text;
     m_Duration = stepDuration;
@@ -87,6 +87,7 @@ void GATutorial::Clear()
     for (int stage = 0; stage < FIGHTSTAGECOUNT; ++stage)
         m_FightTriggers[stage].Reset();
 
+	m_EnemyCount = 0;
     m_CurrentFightStage = NOFIGHT;
     m_pCPUBrain = 0;
 }
@@ -141,6 +142,7 @@ int GATutorial::Create(const GATutorial &reference)
     for (int stage = 0; stage < FIGHTSTAGECOUNT; ++stage)
         m_FightTriggers[stage] = reference.m_FightTriggers[stage];
 
+	m_EnemyCount = reference.m_EnemyCount;
     m_CurrentFightStage = reference.m_CurrentFightStage;
 // DOn't, owned and need to make deep copy in that case
 //    m_pCPUBrain;
@@ -260,7 +262,9 @@ int GATutorial::Start()
         if (team == m_CPUTeam && !m_pCPUBrain)
         {
 // TODO: Make special CPU brain actor which will only appear in CPU brain fights, and have to be placed in the scenes
-            if (!(m_pCPUBrain = g_MovableMan.GetUnassignedBrain(m_CPUTeam)))
+            m_pCPUBrain = g_MovableMan.GetUnassignedBrain(team);
+            m_pCPUBrain = m_pCPUBrain ? m_pCPUBrain : g_MovableMan.GetFirstBrainActor(team); // Try getting our assigned brain
+            if (!m_pCPUBrain)
             {
                 // Couldn't find an available brain in the scene, so make one and place it
                 m_pCPUBrain = dynamic_cast<Actor *>(g_PresetMan.GetEntityPreset("Actor", "Brain Case")->Clone());
@@ -291,6 +295,7 @@ int GATutorial::Start()
                     pOtherBrain = 0;
                 }
             }
+			m_EnemyCount = g_MovableMan.GetTeamRoster(m_CPUTeam)->size();
         }
         // Give the player some scratch
         else
@@ -312,7 +317,7 @@ int GATutorial::Start()
         SetBrainLZWidth(player, 0);
 
         // If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
-        if (!(m_Brain[player] = g_MovableMan.GetUnassignedBrain(m_Team[player])))
+        if (!m_Brain[player])
         {
             g_ConsoleMan.PrintString("ERROR: Can't find brain for tutorial game mode!");
         }
@@ -320,11 +325,6 @@ int GATutorial::Start()
         else
         {
             m_TutorialPlayer = player;
-            SwitchToActor(m_Brain[player], player, m_Team[player]);
-            m_ActorCursor[player] = m_Brain[player]->GetPos();
-            m_LandingZone[player].m_X = m_Brain[player]->GetPos().m_X;
-            // Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-            m_ObservationTarget[player] = m_Brain[player]->GetPos();
         }
 /*
         if (m_ActivityState == ActivityState::Editing)
@@ -340,9 +340,9 @@ int GATutorial::Start()
 
     // COMMON SCREENS
     std::vector<BITMAP *> apScreens = ContentFile("Missions.rte/Objects/Tutorial/ScreenStatic.png").GetAsAnimation(3);
-    m_apCommonScreens[SCREENOFF] = apScreens.at(0);
-    m_apCommonScreens[STATICLITTLE] = apScreens.at(1);
-    m_apCommonScreens[STATICLARGE] = apScreens.at(2);
+    m_apCommonScreens[SCREENOFF] = apScreens[0];
+    m_apCommonScreens[STATICLITTLE] = apScreens[1];
+    m_apCommonScreens[STATICLARGE] = apScreens[2];
 
     // ROOM SIGNS
     ContentFile signFile;
@@ -357,8 +357,8 @@ int GATutorial::Start()
         else if (room == ROOM3)
             signFile.SetDataPath("Missions.rte/Objects/Tutorial/TutEntryD.png");
 		std::vector<BITMAP *> apSigns = signFile.GetAsAnimation(2);
-        m_aapRoomSigns[room][UNLIT] = apSigns.at(0);
-        m_aapRoomSigns[room][LIT] = apSigns.at(1);
+        m_aapRoomSigns[room][UNLIT] = apSigns[0];
+        m_aapRoomSigns[room][LIT] = apSigns[1];
     }
 
     m_RoomSignPositions[ROOM0].SetXY(744, 695);
@@ -770,23 +770,19 @@ void GATutorial::Update()
     ////////////////////////
     // FIGHT LOGIC
 
-    if (m_ControlledActor[m_TutorialPlayer])
-    {
-        // Triggered defending stage
-        if (m_CurrentFightStage == NOFIGHT && m_FightTriggers[DEFENDING].IsWithinBox(m_ControlledActor[m_TutorialPlayer]->GetPos()))
-        {
-            // Take over control of screen messages
-            m_MessageTimer[m_TutorialPlayer].Reset();
-            // Display the text of the current step
-            g_FrameMan.ClearScreenText(ScreenOfPlayer(m_TutorialPlayer));
-            g_FrameMan.SetScreenText("DEFEND YOUR BRAIN AGAINST THE INCOMING FORCES!", ScreenOfPlayer(m_TutorialPlayer), 500, 8000, true);
-            // This will make all the enemy team AI's go into brain hunt mode
-            GameActivity::InitAIs();
-            DisableAIs(false, Teams::TeamTwo);
+    // Triggered defending stage
+	if (m_CurrentFightStage == NOFIGHT && ((m_ControlledActor[m_TutorialPlayer] && m_FightTriggers[DEFENDING].IsWithinBox(m_ControlledActor[m_TutorialPlayer]->GetPos())) || g_MovableMan.GetTeamRoster(m_CPUTeam)->size() < m_EnemyCount)) {
+        // Take over control of screen messages
+        m_MessageTimer[m_TutorialPlayer].Reset();
+        // Display the text of the current step
+        g_FrameMan.ClearScreenText(ScreenOfPlayer(m_TutorialPlayer));
+        g_FrameMan.SetScreenText("DEFEND YOUR BRAIN AGAINST THE INCOMING FORCES!", ScreenOfPlayer(m_TutorialPlayer), 500, 8000, true);
+        // This will make all the enemy team AI's go into brain hunt mode
+        GameActivity::InitAIs();
+        DisableAIs(false, Teams::TeamTwo);
 
-            // Advance the stage
-            m_CurrentFightStage = DEFENDING;
-        }
+        // Advance the stage
+        m_CurrentFightStage = DEFENDING;
     }
 
     ///////////////////////////////////////////
@@ -841,7 +837,7 @@ void GATutorial::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int whi
         float revealed = m_StepTimer.GetElapsedRealTimeMS() / revealPeriod;
         if (revealed > 1.0)
             revealed = 1.0;
-        string revealText = m_TutAreaSteps[m_CurrentArea][m_CurrentStep].m_Text.substr(0, (m_TutAreaSteps[m_CurrentArea][m_CurrentStep].m_Text.size() + 3) * revealed);
+        std::string revealText = m_TutAreaSteps[m_CurrentArea][m_CurrentStep].m_Text.substr(0, (m_TutAreaSteps[m_CurrentArea][m_CurrentStep].m_Text.size() + 3) * revealed);
         // Dot blinking logic
         if (revealed == 1.0)
         {
@@ -925,8 +921,8 @@ void GATutorial::SetupAreas()
     int preset = g_UInputMan.GetControlScheme(m_TutorialPlayer)->GetPreset();
 
     // Adjust for special commands when using the keyboard-only setup
-    string JumpName = MAPNAME(INPUT_L_UP);
-    string CrouchName = MAPNAME(INPUT_L_DOWN);
+    std::string JumpName = MAPNAME(INPUT_L_UP);
+    std::string CrouchName = MAPNAME(INPUT_L_DOWN);
     if (device == DEVICE_KEYB_ONLY)
     {
         JumpName = MAPNAME(INPUT_JUMP);
@@ -934,8 +930,8 @@ void GATutorial::SetupAreas()
     }
 
     // If no preset, adjust the pie menu and fire names when using the defaults on a gamepad.. otherwise it'll show up as an unhelpful "Joystick"
-    string PieName = MAPNAME(INPUT_PIEMENU);
-    string FireName = MAPNAME(INPUT_FIRE);
+    std::string PieName = MAPNAME(INPUT_PIEMENU);
+    std::string FireName = MAPNAME(INPUT_FIRE);
     if (device >= DEVICE_GAMEPAD_1 && preset == InputScheme::InputPreset::NoPreset)
     {
         PieName = "Pie Menu Trigger";
@@ -1046,7 +1042,7 @@ void GATutorial::SetupAreas()
     m_TutAreaSteps[ROOFTOP].push_back(TutStep("If you dig up gold, it is added to your team's funds", 4000, "Missions.rte/Objects/Tutorial/Funds.png", 2, 250));
     m_TutAreaSteps[ROOFTOP].push_back(TutStep("Funds can be spent in the Buy Menu", 4000, "Missions.rte/Objects/Tutorial/Funds.png", 1, 333));
     m_TutAreaSteps[ROOFTOP].push_back(TutStep("Which is opened through the Command Menu", 4000, "Missions.rte/Objects/Tutorial/MenuBuyMenu.png", 1, 500));
-    m_TutAreaSteps[ROOFTOP].push_back(TutStep("Hold [" + PieName + "] and point up-left to 'Buy Menu'", 6000, "Missions.rte/Objects/Tutorial/MenuBuyMenu.png", 2, 500));
+    m_TutAreaSteps[ROOFTOP].push_back(TutStep("Hold [" + PieName + "] and point up and left to 'Buy Menu'", 6000, "Missions.rte/Objects/Tutorial/MenuBuyMenu.png", 2, 500));
     m_TutAreaSteps[ROOFTOP].push_back(TutStep("The Buy Menu works like a shopping cart", 6000, "Missions.rte/Objects/Tutorial/BuyMenuCargo.png", 1, 500));
     m_TutAreaSteps[ROOFTOP].push_back(TutStep("Add to the Cargo list the items you want delivered", 6000, "Missions.rte/Objects/Tutorial/BuyMenuCargo.png", 2, 500));
     m_TutAreaSteps[ROOFTOP].push_back(TutStep("Then use the BUY button, or click outside the menu", 4000, "Missions.rte/Objects/Tutorial/BuyMenuBuy.png", 2, 500));
@@ -1065,12 +1061,12 @@ void GATutorial::SetupAreas()
     m_TextOffsets[ROOFEAST].SetXY(m_apCommonScreens[0]->w / 2, -16);
     // Set up the steps
     m_TutAreaSteps[ROOFEAST].clear();
-    m_TutAreaSteps[ROOFEAST].push_back(TutStep("Hold [" + PieName + "] and point up-right to 'Form Squad'", 4000, "Missions.rte/Objects/Tutorial/MenuTeam.png", 2, 500));
+    m_TutAreaSteps[ROOFEAST].push_back(TutStep("Hold [" + PieName + "] and point down and right to 'Form Squad'", 4000, "Missions.rte/Objects/Tutorial/MenuTeam.png", 2, 500));
     m_TutAreaSteps[ROOFEAST].push_back(TutStep("Adjust selection circle to select nearby bodies", 4000, "Missions.rte/Objects/Tutorial/TeamSelect.png", 4, 500));
     m_TutAreaSteps[ROOFEAST].push_back(TutStep("All selected units will follow you, and engage on their own", 4000, "Missions.rte/Objects/Tutorial/TeamFollow.png", 2, 500));
-    m_TutAreaSteps[ROOFEAST].push_back(TutStep("Units with weapons similar to the leader's will fire in unison with him.", 4000, "Missions.rte/Objects/Tutorial/TeamFollow.png", 2, 500));
-    m_TutAreaSteps[ROOFEAST].push_back(TutStep("Hold [" + PieName + "] and point up-right again to disband squad", 4000, "Missions.rte/Objects/Tutorial/MenuTeam.png", 2, 500));
-    m_TutAreaSteps[ROOFEAST].push_back(TutStep("Next, you can go to the east for a TRIAL BATTLE!", 8000, "Missions.rte/Objects/Tutorial/ArrowRight.png", 2));
+    m_TutAreaSteps[ROOFEAST].push_back(TutStep("Units with similar weapons will fire in unison with the leader", 4000, "Missions.rte/Objects/Tutorial/TeamFollow.png", 2, 500));
+    m_TutAreaSteps[ROOFEAST].push_back(TutStep("Hold [" + PieName + "] and point down and right again to disband squad", 4000, "Missions.rte/Objects/Tutorial/MenuTeam.png", 2, 500));
+    m_TutAreaSteps[ROOFEAST].push_back(TutStep("Next, you can head east for a TRIAL BATTLE!", 8000, "Missions.rte/Objects/Tutorial/ArrowRight.png", 2));
 
     m_AreaTimer.Reset();
     m_StepTimer.Reset();

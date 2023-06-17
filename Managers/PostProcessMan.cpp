@@ -1,4 +1,6 @@
 #include "PostProcessMan.h"
+
+#include "CameraMan.h"
 #include "FrameMan.h"
 #include "Scene.h"
 #include "ContentFile.h"
@@ -19,7 +21,7 @@ namespace RTE {
 		m_BlueGlowHash = 0;
 		m_TempEffectBitmaps.clear();
 		for (int i = 0; i < c_MaxScreenCount; ++i) {
-			m_ScreenRelativeEffects.at(i).clear();
+			m_ScreenRelativeEffects[i].clear();
 		}
 	}
 
@@ -64,8 +66,8 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PostProcessMan::AdjustEffectsPosToPlayerScreen(int playerScreen, BITMAP *targetBitmap, const Vector &targetBitmapOffset, std::list<PostEffect> &screenRelativeEffectsList, std::list<Box> &screenRelativeGlowBoxesList) const {
-		int screenOcclusionOffsetX = g_SceneMan.GetScreenOcclusion(playerScreen).GetFloorIntX();
-		int screenOcclusionOffsetY = g_SceneMan.GetScreenOcclusion(playerScreen).GetFloorIntY();
+		int screenOcclusionOffsetX = g_CameraMan.GetScreenOcclusion(playerScreen).GetFloorIntX();
+		int screenOcclusionOffsetY = g_CameraMan.GetScreenOcclusion(playerScreen).GetFloorIntY();
 		int occludedOffsetX = targetBitmap->w + screenOcclusionOffsetX;
 		int occludedOffsetY = targetBitmap->h + screenOcclusionOffsetY;
 

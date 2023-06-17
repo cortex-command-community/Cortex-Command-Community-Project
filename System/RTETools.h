@@ -12,43 +12,11 @@ namespace RTE {
 
 	extern std::mt19937 g_RNG; //!< The random number generator used for all random functions.
 
-#pragma region Physics Constants Getters
-	/// <summary>
-	/// Gets the ratio between the physics engine's meters and on-screen pixels.
-	/// </summary>
-	/// <returns>A float describing the current MPP ratio.</returns>
-	inline float GetMPP() { return c_MPP; }
-
-	/// <summary>
-	/// Gets the ratio between on-screen pixels and the physics engine's meters.
-	/// </summary>
-	/// <returns>A float describing the current PPM ratio.</returns>
-	inline float GetPPM() { return c_PPM; }
-
-	/// <summary>
-	/// Gets the ratio between the physics engine's Liters and on-screen pixels.
-	/// </summary>
-	/// <returns>A float describing the current LPP ratio.</returns>
-	inline float GetLPP() { return c_LPP; }
-
-	/// <summary>
-	/// Gets the ratio between the on-screen pixels and the physics engine's Liters.
-	/// </summary>
-	/// <returns>A float describing the current PPL ratio.</returns>
-	inline float GetPPL() { return c_PPL; }
-#pragma endregion
-
 #pragma region Random Numbers
 	/// <summary>
 	/// Seed the mt19937 random number generator. mt19937 is the standard mersenne_twister_engine.
 	/// </summary>
 	void SeedRNG();
-
-	/// <summary>
-	/// Seed the mt19937 random number generator. mt19937 is the standard mersenne_twister_engine.
-	/// </summary>
-	/// <param name="seed">Seed for the random number generator.</param>
-	inline void SeedRNG(unsigned int seed) { g_RNG.seed(seed); }
 
 	/// <summary>
 	/// Function template which returns a uniformly distributed random number in the range [-1, 1].
@@ -172,6 +140,59 @@ namespace RTE {
 	float Limit(float value, float upperLimit, float lowerLimit);
 #pragma endregion
 
+#pragma region Rounding
+	/// <summary>
+	/// Rounds a float to a set fixed point precision (digits after decimal point) with option to always ceil or always floor the remainder.
+	/// </summary>
+	/// <param name="inputFloat">The input float to round.</param>
+	/// <param name="roundingMode">Method of rounding to use. 0 for system default, 1 for floored remainder, 2 for ceiled remainder.</param>
+	/// <returns>A string of the float, rounded and displayed to chosen precision.</returns>
+	std::string RoundFloatToPrecision(float input, int precision, int roundingMode = 0);
+
+	/// <summary>
+	/// Rounds an integer to the specified nearest multiple.
+	/// For example, if the arguments are 63 and 5, the returned value will be 65.
+	/// </summary>
+	/// <param name="num">The number to round to the nearest multiple.</param>
+	/// <param name="multiple">The multiple to round to.</param>
+	/// <returns>An integer rounded to the specified nearest multiple.</returns>
+	inline int RoundToNearestMultiple(int num, int multiple) { return static_cast<int>(std::round(static_cast<float>(num) / static_cast<float>(multiple)) * static_cast<float>(multiple)); }
+#pragma endregion
+
+#pragma region Angle Helpers
+	/// <summary>
+	/// Returns a copy of the angle normalized so it's between 0 and 2PI.
+	/// </summary>
+	/// <param name="angle">The angle to normalize, in radians.</param>
+	/// <returns>The angle, normalized so it's between 0 and 2PI</returns>
+	float NormalizeAngleBetween0And2PI(float angle);
+
+	/// <summary>
+	/// Returns a copy of the angle normalized so it's between -PI and PI.
+	/// </summary>
+	/// <param name="angle">The angle to normalize, in radians.</param>
+	/// <returns>The angle, normalized so it's between -PI and PI</returns>
+	float NormalizeAngleBetweenNegativePIAndPI(float angle);
+
+	/// <summary>
+	/// Returns whether or not the angle to check is between the start and end angles. Note that, because of how angles work (when normalized), the start angle may be greater than the end angle.
+	/// </summary>
+	/// <param name="angleToCheck">The angle to check, in radians.</param>
+	/// <param name="startAngle">The starting angle for the range.</param>
+	/// <param name="endAngle">The ending angle for the range.</param>
+	/// <returns>Whether or not the angle to check is between the start and end angle.</returns>
+	bool AngleWithinRange(float angleToCheck, float startAngle, float endAngle);
+
+	/// <summary>
+	/// Clamps the passed in angle between the specified lower and upper limits, in a CCW direction.
+	/// </summary>
+	/// <param name="angleToClamp">The angle to clamp.</param>
+	/// <param name="startAngle">The lower limit for clamping.</param>
+	/// <param name="endAngle">The upper limit for clamping.</param>
+	/// <returns>The angle, clamped between the start and end angle.</returns>
+	float ClampAngle(float angleToClamp, float startAngle, float endAngle);
+#pragma endregion
+
 #pragma region Detection
 	/// <summary>
 	/// Tells whether a point is within a specified box.
@@ -216,14 +237,16 @@ namespace RTE {
 	/// <param name="angleRadians">The angle in radians to be converted.</param>
 	/// <returns>The converted angle in degrees.</returns>
 	inline float RadiansToDegrees(float angleRadians) { return angleRadians / c_PI * 180.0F; }
+#pragma endregion
 
+#pragma region Comparison
 	/// <summary>
-	/// Rounds a float to a set fixed point precision (digits after decimal point) with option to always ceil or always floor the remainder.
+	/// Checks whether two strings are equal when the casing is disregarded.
 	/// </summary>
-	/// <param name="inputFloat">The input float to round.</param>
-	/// <param name="roundingMode">Method of rounding to use. 0 for system default, 1 for floored remainder, 2 for ceiled remainder.</param>
-	/// <returns>A string of the float, rounded and displayed to chosen precision.</returns>
-	std::string RoundFloatToPrecision(float input, int precision, int roundingMode = 0);
+	/// <param name="strA">First string.</param>
+	/// <param name="strB">Second string.</param>
+	/// <returns>Whether the two strings are equal case insensitively.</returns>
+	inline bool StringsEqualCaseInsensitive(const std::string_view &strA, const std::string_view &strB) { return std::equal(strA.begin(), strA.end(), strB.begin(), strB.end(), [](char strAChar, char strBChar) { return std::tolower(strAChar) == std::tolower(strBChar); }); }
 #pragma endregion
 
 #pragma region Misc
@@ -239,6 +262,14 @@ namespace RTE {
 			outputVector.emplace_back(doublePointerArray[i]);
 		}
 		return outputVector;
+	}
+
+	/// <summary>
+	/// Returns the sign of the given input value.
+	/// </summary>
+	/// <returns>The sign as an integer -1, 0 or +1.</returns>
+	template <typename Type> int Sign(const Type &value) {
+		return (Type(0) < value) - (Type(0) > value);
 	}
 #pragma endregion
 }

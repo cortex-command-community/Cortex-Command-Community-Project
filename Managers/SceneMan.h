@@ -18,6 +18,7 @@
 #include "Timer.h"
 #include "Box.h"
 #include "Singleton.h"
+#include "SpatialPartitionGrid.h"
 
 #include "ActivityMan.h"
 
@@ -28,6 +29,7 @@ namespace RTE
 
 class Scene;
 class SceneLayer;
+class SceneLayerTracked;
 class SLTerrain;
 class SceneObject;
 class TerrainObject;
@@ -41,59 +43,15 @@ enum LayerDrawMode
 {
     g_LayerNormal = 0,
     g_LayerTerrainMatter,
-    g_LayerMOID
-};
 
-enum
-{
-    REGULAR_MAT_OFFSET = 8,
-    g_MaterialAir = 0,
-    g_MaterialDefault = 1,
-    g_MaterialOutOfBounds = 1,
-    g_MaterialCavity = 1,
-    g_MaterialGold = 2,
-    g_MaterialGrass = 128,
-    g_MaterialFlesh = 145,
-    g_MaterialSand = 8,
-    g_MaterialDoor = 181
+#ifdef DRAW_MOID_LAYER
+	g_LayerMOID
+#endif
 };
 
 #define SCENEGRIDSIZE 24
 #define SCENESNAPSIZE 12
 #define MAXORPHANRADIUS 11
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Struct:          IntRect
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     A simple rectangle with integer coordinates.
-// Parent(s):       None.
-// Class history:   8/4/2007 IntRect created.
-
-struct IntRect
-{
-    int m_Left;
-    int m_Top;
-    int m_Right;
-    int m_Bottom;
-
-    IntRect() { m_Left = m_Top = m_Right = m_Bottom = 0; }
-    IntRect(int left, int top, int right, int bottom) { m_Left = left; m_Top = top; m_Right = right; m_Bottom = bottom; }
-    bool Intersects(const IntRect &rhs) { return m_Left < rhs.m_Right && m_Right > rhs.m_Left && m_Top < rhs.m_Bottom && m_Bottom > rhs.m_Top; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          IntersectionCut
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     If this and the passed in IntRect intersect, this will be modified to
-//                  represent the boolean AND of the two. If it doens't intersect, nothing
-//                  happens and false is returned.
-// Arguments:       The other IntRect to cut against.
-// Return value:    Whether an intersection was detected and this was cut down to the AND.
-
-    bool IntersectionCut(const IntRect &rhs);
-
-
-};
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -133,6 +91,12 @@ public:
 // Arguments:       None.
 
 	~SceneMan() { Destroy(); }
+
+
+	/// <summary>
+	/// Makes the SceneMan object ready for use.
+	/// </summary>
+	void Initialize() const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -216,6 +180,18 @@ public:
 // Return value:    The instance reference of the Scene, ownership IS NOT (!!) transferred!
 
 	const Scene * GetSceneToLoad() { return m_pSceneToLoad; }
+
+	/// <summary>
+	/// Gets whether objects are placed when the Scene is initially started. Used for saving/loading games.
+	/// </summary>
+	/// <returns>Whether objects are placed when the Scene is initially started.</returns>
+	bool GetPlaceObjectsOnLoad() const { return m_PlaceObjects; }
+
+	/// <summary>
+	/// Gets whether units are placed when the Scene is initially started. Used for saving/loading games.
+	/// </summary>
+	/// <returns>Whether units are placed when the Scene is initially started.</returns>
+	bool GetPlaceUnitsOnLoad() const { return m_PlaceUnits; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -368,62 +344,6 @@ public:
 
     bool SceneWrapsY() const;
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetOffset
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the offset (scroll position) of the terrain.
-// Arguments:       None.
-// Return value:    A Vector describing the offset (scroll) of the terrain in pixels.
-
-    Vector GetOffset(int screen = 0) const { return m_Offset[screen]/* - m_DeltaOffset*/; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetOffsetX
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the horizontal offset (scroll position) of the terrain.
-// Arguments:       None.
-// Return value:    A long describing the horizontal offset (scroll) of the terrain in
-//                  pixels.
-
-    long GetOffsetX(int screen = 0) const { return m_Offset[screen].m_X; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetOffsetY
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the vertical offset (scroll position) of the terrain.
-// Arguments:       None.
-// Return value:    A long describing the vertical offset (scroll) of the terrain in
-//                  pixels.
-
-    long GetOffsetY(int screen = 0) const { return m_Offset[screen].m_Y; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetDeltaOffset
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the difference in current offset and that of the Update() before.
-// Arguments:       None.
-// Return value:    A Vector describing the delta offset in pixels.
-
-    const Vector & GetDeltaOffset(int screen = 0) const { return m_DeltaOffset[screen]; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetScreenOcclusion
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the amount that a specific screen is occluded by a GUI panel or
-//                  something of the sort. This will affect how the scroll target
-//                  translates into the offset of the screen, in order to keep the target
-//                  centered on the screen.
-// Arguments:       Which screen you want to get the occlusion value of.
-// Return value:    A Vector that indicates the amount of occlusion of the screen.
-
-    Vector & GetScreenOcclusion(int screen = 0) { return m_ScreenOcclusion[screen]; }
-
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetTerrain
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -502,15 +422,28 @@ public:
     unsigned char GetTerrMatter(int pixelX, int pixelY);
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetMOIDPixel
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets a MOID from pixel coordinates in the Scene. LockScene() must be
-//                  called before using this method.
-// Arguments:       The X and Y coordinates of screen Scene pixel to get the MO from.
-// Return value:    The MOID currently at the specified pixel location.
+	/// <summary>
+	/// Gets a MOID from pixel coordinates in the Scene. LockScene() must be called before using this method.
+	/// </summary>
+	/// <param name="pixelX">The X coordinate of the Scene pixel to test.</param>
+	/// <param name="pixelY">The Y coordinate of the Scene pixel to test.</param>
+	/// <param name="ignoreTeam">The team to ignore.</param>
+	/// <returns>The MOID currently at the specified pixel coordinates.</returns>
+    MOID GetMOIDPixel(int pixelX, int pixelY, int ignoreTeam);
 
-    MOID GetMOIDPixel(int pixelX, int pixelY);
+    /// <summary>
+    /// Gets a MOID from pixel coordinates in the Scene. LockScene() must be called before using this method.
+    /// </summary>
+    /// <param name="pixelX">The X coordinate of the Scene pixel to test.</param>
+    /// <param name="pixelY">The Y coordinate of the Scene pixel to test.</param>
+    /// <returns>The MOID currently at the specified pixel coordinates.</returns>
+    MOID GetMOIDPixel(int pixelX, int pixelY) { return GetMOIDPixel(pixelX, pixelY, Activity::NoTeam); }
+
+    /// <summary>
+    /// Gets this Scene's MOID SpatialPartitionGrid.
+    /// </summary>
+    /// <returns>This Scene's MOID SpatialPartitionGrid.</returns>
+    const SpatialPartitionGrid & GetMOIDGrid() const { return m_MOIDsGrid; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -532,8 +465,8 @@ public:
 // Return value:    A float describing the Oz/Kg ratio.
 
     float GetOzPerKg() const { return 35.27396; }
-        
-    
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetKgPerOz
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -555,168 +488,6 @@ public:
 
     void SetLayerDrawMode(int mode) { m_LayerDrawMode = mode; }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetOffset
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the offset (scroll position) of the terrain.
-// Arguments:       Two longs that specify the new offset values.
-//                  Which screen you want to set the offset of.
-// Return value:    None.
-
-    void SetOffset(const long offsetX, const long offsetY, int screen = 0);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetOffset
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the offset (scroll position) of the terrain.
-// Arguments:       A Vector that specifies the new offset.
-//                  Which screen you want to set the offset of.
-// Return value:    None.
-
-    void SetOffset(const Vector &offset, int screen = 0) { m_Offset[screen] = offset.GetFloored(); CheckOffset(screen); }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetOffsetX
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the horizontal offset (scroll position) of the terrain.
-// Arguments:       A long that specifies the new horizontal offset value.
-//                  Which screen you want to set the offset of.
-// Return value:    None.
-
-    void SetOffsetX(const long offsetX, int screen = 0) { m_Offset[screen].m_X = offsetX; CheckOffset(screen); }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetOffsetY
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the vertical offset (scroll position) of the terrain.
-// Arguments:       A long that specifies the new vertical offset value.
-//                  Which screen you want to set the offset of.
-// Return value:    None.
-
-    void SetOffsetY(const long offsetY, int screen = 0) { m_Offset[screen].m_Y = offsetY; CheckOffset(screen); }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetScroll
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the offset (scroll position) of the terrain to center on
-//                  specific world coordinates. If the coordinate to center on is close
-//                  to the terrain border edges, the view will not scroll outside the
-//                  borders.
-// Arguments:       A Vector that specifies the coordinates to center the terrain scroll
-//                  on.
-//                  Which screen you want to set the offset of.
-// Return value:    None.
-
-    void SetScroll(const Vector &center, int screen = 0);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetScreenTeam
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the team associated with a specific screen
-// Arguments:       Which screen you want to set the team of.
-//                  The team to set it to.
-// Return value:    None.
-
-    void SetScreenTeam(int screen, int team) { m_ScreenTeam[screen] = team; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetScreenOcclusion
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the amount that a specific screen is occluded by a GUI panel or
-//                  something of the sort. This will affect how the scroll target
-//                  translates into the offset of the screen, in order to keep the target
-//                  centered on the screen.
-// Arguments:       A Vector that specifies the amount of occlusion of the screen.
-//                  Which screen you want to set the occlusion of.
-// Return value:    None.
-
-    void SetScreenOcclusion(const Vector &occlusion, int screen = 0) { m_ScreenOcclusion[screen] = occlusion; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetScrollTarget
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Interpolates a smooth scroll of the view from wherever it is now,
-//                  towards centering on a new scroll target over time.
-// Arguments:       The new target vector in *scene coordinates*.
-//                  The normalized speed at screen the view scrolls. 0 being no movement,
-//                  and 1.0 being instant movement to the target in one frame.
-//                  Whether the target was wrapped around the scene this frame or not.
-//                  Which screen you want to set the offset of.
-// Return value:    None.
-
-    void SetScrollTarget(const Vector &targetCenter,
-                         float speed = 0.1,
-                         bool targetWrapped = false,
-                         int screen = 0);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetScreenTeam
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the team associated with a specific screen
-// Arguments:       Which screen you want to get the team of.
-// Return value:    The team associated with that team.
-
-    int GetScreenTeam(int screen) { return m_ScreenTeam[screen]; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetScrollTarget
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the currently set scroll target, screen is where the center of the
-//                  specific screen is trying to line up with.
-// Arguments:       Which screen to get the target for.
-// Return value:    Current target vector in *scene coordinates*.
-
-	const Vector & GetScrollTarget(int screen = 0) const;
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          TargetDistanceScalar
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates a scalar of how distant a certain point in the world is
-//                  from the currently closest scroll target of all active screens.
-// Arguments:       Which world coordinate point to check distance to/from.
-// Return value:    A normalized scalar representing the distance between the closest
-//                  scroll target of all active screens, to the passed in point. 0 means
-//                  it's the point is within half a screen's width of the target, and
-//                  1.0 means it's on the clear opposite side of the scene.
-
-    float TargetDistanceScalar(Vector point);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CheckOffset
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes sure the current offset won't create a view of outside the scene.
-//                  If that is found to be the case, the offset is corrected so that the
-//                  view rectangle is as close to the old offset as possible, but still
-//                  entirely within the scene world.
-// Arguments:       Which screen you want to set the offset of.
-// Return value:    None.
-
-    void CheckOffset(int screen = 0);
-
-/*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          IsScrolling
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates whether the view is currently doing a scroll interpolation
-//                  animation, or not.
-// Arguments:       None.
-// Return value:    Whether currently scrolling or not.
-
-    bool IsScrolling() { return m_ScrollTimeLeft != 0; }
-*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          LockScene
@@ -754,29 +525,25 @@ public:
 
     bool SceneIsLocked() const;
 
+    /// <summary>
+    /// Registers an area to be drawn upon, so it can be tracked and cleared later.
+    /// </summary>
+    /// <param name="bitmap">The bitmap being drawn upon.</param>
+    /// <param name="moid">The MOID, if we're drawing MOIDs.</param>
+    /// <param name="left">The left boundary of the draw area.</param>
+    /// <param name="top">The top boundary of the drawn area.</param>
+    /// <param name="right">The right boundary of the draw area.</param>
+    /// <param name="bottom">The bottom boundary of the draw area.</param>
+    void RegisterDrawing(const BITMAP *bitmap, int moid, int left, int top, int right, int bottom);
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RegisterMOIDDrawing
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Registers an area of the MOID layer to be cleared upon finishing this
-//                  sim update. Should be done every time anything is drawn the MOID layer.
-// Arguments:       The coordinates of the new area on the MOID layer to clear upon the
-//                  end of this sim update.
-// Return value:    None.
-
-    void RegisterMOIDDrawing(int left, int top, int right, int bottom) { m_MOIDDrawings.push_back(IntRect(left, top, right, bottom)); }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RegisterMOIDDrawing
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Registers an area of the MOID layer to be cleared upon finishing this
-//                  sim update. Should be done every time anything is drawn the MOID layer.
-// Arguments:       The center coordinates and a radius around it of the new area on the
-//                  MOID layer to clear upon the end of this sim update.
-// Return value:    None.
-  
-    void RegisterMOIDDrawing(const Vector &center, float radius);
+    /// <summary>
+    /// Registers an area of to be drawn upon, so it can be tracked and cleared later.
+    /// </summary>
+    /// <param name="bitmap">The bitmap being drawn upon.</param>
+    /// <param name="moid">The MOID, if we're drawing MOIDs.</param>
+    /// <param name="center">The centre position of the drawn area.</param>
+    /// <param name="radius">The radius of the drawn area.</param>
+    void RegisterDrawing(const BITMAP *bitmap, int moid, const Vector &center, float radius);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -788,17 +555,6 @@ public:
 // Return value:    None.
 
     void ClearAllMOIDDrawings();
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ClearMOIDRect
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Resets a specific rectangle of the scene's MOID layer to not contain
-//                  any MOID data anymore. Sets it all to NoMOID. Will take care of wrapping.
-// Arguments:       The coordinates of the rectangle to be reset to NoMOID.
-// Return value:    None.
-
-    void ClearMOIDRect(int left, int top, int right, int bottom);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -851,7 +607,7 @@ public:
 //                  hit, the terrain pixel will be knocked loose an turned into an MO.
 //                  The velocity of the the point hitting the terrain here.
 //                  A float reference screen will be set to the factor with screen to
-//                  multiply the collision velocity to get the resulting retardation 
+//                  multiply the collision velocity to get the resulting retardation
 //                  (negative acceleration) that occurs when a penetration happens.
 //                  The normalized probability ratio between 0.0 and 1.0 that determines
 //                  the chance of a penetration to remove a pixel from the scene and
@@ -879,7 +635,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          RemoveOrphans
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the area of an orphaned region at specified coordinates. 
+// Description:     Returns the area of an orphaned region at specified coordinates.
 // Arguments:       Coordinates to check for region, whether the orphaned region should be converted into MOPixels and region removed.
 //					Area of orphaned object calculated during recursve function call to check if we're out of limits
 //					Size of the are to look for orphaned objects
@@ -893,7 +649,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          RemoveOrphans
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the area of an orphaned region at specified coordinates. 
+// Description:     Returns the area of an orphaned region at specified coordinates.
 // Arguments:       Coordinates to check for region, whether the orphaned region should be converted into MOPixels and region removed.
 //					Coordinates of initial terrain penetration to check, which serves as a center of orphaned object detection.
 //					Area of orphaned object calculated during recursve function call to check if we're out of limits
@@ -911,6 +667,14 @@ public:
 					  int radius,
 					  int maxArea,
 					  bool remove = false);
+
+	/// <summary>
+	/// Removes a pixel from the terrain and adds it to MovableMan.
+	/// </summary>
+	/// <param name="posX">The X coordinate of the terrain pixel.</param>
+	/// <param name="posX">The Y coordinate of the terrain pixel.</param>
+	/// <returns>The newly dislodged pixel, if one was found.</returns>
+	MovableObject * DislodgePixel(int posX, int posY);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          MakeAllUnseen
@@ -1034,7 +798,7 @@ public:
 //                  The vector to trace along.
 //                  A Vector that will be set to the position of where the sight ray was
 //                  terminated. If it reached the end, it will be set to the end of the ray.
-//                  The material strength limit where 
+//                  The material strength limit where
 //                  For every pixel checked along the line, how many to skip between them
 //                  for optimization reasons. 0 = every pixel is checked.
 //					Whether the ray should reveal or restore unseen layer
@@ -1054,7 +818,7 @@ public:
 //                  The vector to trace along.
 //                  A Vector that will be set to the position of where the sight ray was
 //                  terminated. If it reached the end, it will be set to the end of the ray.
-//                  The material strength limit where 
+//                  The material strength limit where
 //                  For every pixel checked along the line, how many to skip between them
 //                  for optimization reasons. 0 = every pixel is checked.
 // Return value:    Whether any unseen pixels were revealed as a result of this seeing.
@@ -1072,7 +836,7 @@ public:
 //                  The vector to trace along.
 //                  A Vector that will be set to the position of where the sight ray was
 //                  terminated. If it reached the end, it will be set to the end of the ray.
-//                  The material strength limit where 
+//                  The material strength limit where
 //                  For every pixel checked along the line, how many to skip between them
 //                  for optimization reasons. 0 = every pixel is checked.
 // Return value:    Whether any unseen pixels were revealed as a result of this seeing.
@@ -1173,16 +937,32 @@ public:
 // Method:          CastMaxStrengthRay
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Traces along a vector and returns the strongest of all encountered pixels'
-//                  material strength values exept doors.
+//                  material strength values.
 //                  This will take wrapping into account.
 // Arguments:       The starting position.
 //                  The ending position.
 //                  For every pixel checked along the line, how many to skip between them
 //                  for optimization reasons. 0 = every pixel is checked.
+//                  A material ID to ignore, IN ADDITION to Air. This defaults to doors, for legacy script purposes
 // Return value:    The max of all encountered pixels' material strength vales. So if it was
 //                  all Air, then 0 is returned (Air's strength value is 0).
 
-    float CastMaxStrengthRay(const Vector &start, const Vector &end, int skip);
+    // We use two accessors instead of default parameters, for lua compat
+    float CastMaxStrengthRay(const Vector &start, const Vector &end, int skip, unsigned char ignoreMaterial);
+    float CastMaxStrengthRay(const Vector &start, const Vector &end, int skip) { return CastMaxStrengthRay(start, end, skip, g_MaterialDoor); };
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Method:          CastMaxStrengthRayMaterial
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Traces along a vector and returns the strongest of all encountered pixels' materials
+//                  This will take wrapping into account.
+// Arguments:       The starting position.
+//                  The ending position.
+//                  For every pixel checked along the line, how many to skip between them
+//                  for optimization reasons. 0 = every pixel is checked.
+//                  A material ID to ignore, IN ADDITION to Air.
+// Return value:    The strongest material encountered
+    const Material * CastMaxStrengthRayMaterial(const Vector &start, const Vector &end, int skip, unsigned char ignoreMaterial);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1345,23 +1125,12 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Method:          StructuralCalc
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Calculates the structural integrity of the Terrain during a set time
-//                  and turns structurally unsound areas into MovableObject:s.
-// Arguments:       The amount of time in ms to use for these calculations this frame.
-// Return value:    None.
-
-    void StructuralCalc(unsigned long calcTime);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Method:          IsWithinBounds
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Returns whether the integer coordinates passed in are within the
 //                  bounds of the current Scene, considering its wrapping.
 // Arguments:       Int coordinates.
-//                  A margin 
+//                  A margin
 // Return value:    Whether within bounds or not, considering wrapping.
 
     bool IsWithinBounds(const int pixelX, const int pixelY, const int margin = 0);
@@ -1546,17 +1315,6 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddTerrainObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Takes TerrainObject and applies it to the terrain
-//					OWNERSHIP NOT TRANSFERED!
-// Arguments:       TerrainObject to add.
-// Return value:    True on success.
-
-	bool AddTerrainObject(TerrainObject *pObject);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Method:          AddSceneObject
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Takes any scene object and adds it to the scene in the appropriate way.
@@ -1577,7 +1335,7 @@ public:
 // Arguments:       Which screen to update for.
 // Return value:    None.
 
-    void Update(int screen = 0);
+    void Update(int screenId = 0);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1591,7 +1349,7 @@ public:
 //                  is located.
 // Return value:    None.
 
-    void Draw(BITMAP *pTargetBitmap, BITMAP *pTargetGUIBitmap,  const Vector &targetPos = Vector(), bool skipSkybox = false, bool skipTerrain = false);
+	void Draw(BITMAP *targetBitmap, BITMAP *targetGUIBitmap,  const Vector &targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1602,16 +1360,6 @@ public:
 // Return value:    None.
 
     void ClearMOColorLayer();
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ClearMOIDLayer
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears the MOID layer. Should be done every frame.
-// Arguments:       None.
-// Return value:    None.
-
-    void ClearMOIDLayer();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1627,8 +1375,8 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          AddMaterialCopy
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Creates a copy of passed material and stores it into internal vector 
-//					to make sure there's only one material owner		
+// Description:     Creates a copy of passed material and stores it into internal vector
+//					to make sure there's only one material owner
 // Arguments:       Material to add.
 // Return value:    Pointer to stored material.
 
@@ -1639,35 +1387,44 @@ public:
 // Method:          RegisterTerrainChange
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Registers terrain change event for the network server to be then sent to clients.
-// Arguments:       x,y - scene coordinates of change, w,h - size of the changed region, 
-//					color - changed color for one-pixel events, 
+// Arguments:       x,y - scene coordinates of change, w,h - size of the changed region,
+//					color - changed color for one-pixel events,
 //					back - if true, then background bitmap was changed if false then foreground.
 // Return value:    None.
 
 	void RegisterTerrainChange(int x, int y, int w, int h, unsigned char color, bool back);
 
 
-	//	Struct to register terrain change events
-	struct TerrainChange
-	{
-		int x;
-		int y;
-		int w;
-		int h;
-		unsigned char color;
-		bool back;
-	};
+	/// <summary>
+	/// Gets an intermediate bitmap that is used for drawing a settled MovableObject into the terrain.
+	/// </summary>
+	/// <param name="moDiameter">The diameter of the MovableObject to calculate the required bitmap size.</param>
+	/// <returns>Pointer to the temp BITMAP of the appropriate size. Ownership is NOT transferred!</returns>
+	BITMAP * GetIntermediateBitmapForSettlingIntoTerrain(int moDiameter) const;
 
 	/// <summary>
 	/// Sets the current scene pointer to null
 	/// </summary>
 	void ClearCurrentScene();
 
+	/// <summary>
+	/// Gets the maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
+	/// </summary>
+	/// <returns>The compacting height of scrap terrain.</returns>
+	int GetScrapCompactingHeight() const { return m_ScrapCompactingHeight; }
+
+	/// <summary>
+	/// Sets the maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
+	/// </summary>
+	/// <param name="newHeight">The new compacting height, in pixels.</param>
+	void SetScrapCompactingHeight(int newHeight) { m_ScrapCompactingHeight = newHeight; }
+
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Protected member variable and method declarations
 
   protected:
 
+	static std::vector<std::pair<int, BITMAP *>> m_IntermediateSettlingBitmaps; //!< Intermediate bitmaps of different sizes that are used to draw settled MovableObjects into the terrain.
 
     // Default Scene name to load if nothing else is specified
     std::string m_DefaultSceneName;
@@ -1681,11 +1438,11 @@ public:
     // Current scene being used
     Scene *m_pCurrentScene;
     // Color MO layer
-    SceneLayer *m_pMOColorLayer;
+    SceneLayerTracked *m_pMOColorLayer;
     // MovableObject ID layer
-    SceneLayer *m_pMOIDLayer;
-    // All the areas drawn within on the MOID layer since last Update
-    std::list<IntRect> m_MOIDDrawings;
+    SceneLayerTracked *m_pMOIDLayer;
+    // A spatial partitioning grid of MOIDs, used to optimize collision and distance queries
+    SpatialPartitionGrid m_MOIDsGrid;
 
     // Debug layer for seeing cast rays etc
     SceneLayer *m_pDebugLayer;
@@ -1704,28 +1461,6 @@ public:
 	// Non original materials added by inheritance
 	std::vector<Material *> m_MaterialCopiesVector;
 
-    // The position of the upper left corner of the view.
-    Vector m_Offset[c_MaxScreenCount];
-    // The difference in current offset and the Update() before.
-    Vector m_DeltaOffset[c_MaxScreenCount];
-    // The final offset target of the current scroll interpolation, in scene coordinates!
-    Vector m_ScrollTarget[c_MaxScreenCount];
-    // The team associated with each screen.
-    int m_ScreenTeam[c_MaxScreenCount];
-    // The amount screen a screen is occluded or covered by GUI, etc
-    Vector m_ScreenOcclusion[c_MaxScreenCount];
-    // The normalized speed at screen the view scrolls.
-    // 0 being no movement, and 1.0 being instant movement to the target in one frame.
-    float m_ScrollSpeed[c_MaxScreenCount];
-    // Scroll timer for making scrolling work framerate independently
-    Timer m_ScrollTimer[c_MaxScreenCount];
-    // Whether the ScrollTarget got wrapped around the world this frame or not.
-    bool m_TargetWrapped[c_MaxScreenCount];
-    // Keeps track of how many times and in screen directions the wrapping seam has been crossed.
-    // This is used fo keeping the background layers' scroll from jumping when wrapping around.
-    // X and Y
-    int m_SeamCrossCount[c_MaxScreenCount][2];
-
     // Sound of an unseen pixel on an unseen layer being revealed.
     SoundContainer *m_pUnseenRevealSound;
 
@@ -1738,7 +1473,7 @@ public:
     // Second pass is where structurally unsound areas of the Terrain are turned into
     // MovableObject:s.
     bool m_SecondStructPass;
-        
+
     // The Timer that keeps track of how much time there is left for
     // structural calculations each frame.
     Timer m_CalcTimer;
@@ -1747,6 +1482,8 @@ public:
     Timer m_CleanTimer;
 	// Bitmap to look for orphaned regions
 	BITMAP * m_pOrphanSearchBitmap;
+
+	int m_ScrapCompactingHeight; //!< The maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1766,7 +1503,6 @@ private:
 
     void Clear();
 
-    
     // Disallow the use of some implicit methods.
 	SceneMan(const SceneMan &reference) = delete;
 	SceneMan & operator=(const SceneMan &rhs) = delete;

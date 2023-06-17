@@ -1,15 +1,17 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MultiplayerGame.cpp
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     
+// Description:
 // Project:         Retro Terrain Engine
-// Author(s):       
+// Author(s):
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
 
 #include "MultiplayerGame.h"
+
+#include "WindowMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "UInputMan.h"
@@ -27,19 +29,14 @@
 #include "GUI.h"
 #include "GUIFont.h"
 #include "AllegroScreen.h"
-#include "AllegroBitmap.h"
-#include "AllegroInput.h"
+#include "GUIInputWrapper.h"
 #include "GUIControlManager.h"
 #include "GUICollectionBox.h"
-#include "GUITab.h"
-#include "GUIListBox.h"
 #include "GUITextBox.h"
 #include "GUIButton.h"
 #include "GUILabel.h"
-#include "GUIComboBox.h"
 
 #include "MultiplayerGameGUI.h"
-#include "PieMenuGUI.h"
 
 #include "NetworkClient.h"
 
@@ -170,7 +167,7 @@ namespace RTE {
 		if (!m_pGUIScreen)
 			m_pGUIScreen = new AllegroScreen(g_FrameMan.GetBackBuffer8());
 		if (!m_pGUIInput)
-			m_pGUIInput = new AllegroInput(-1, true);
+			m_pGUIInput = new GUIInputWrapper(-1, true);
 		if (!m_pGUIController)
 			m_pGUIController = new GUIControlManager();
 		if (!m_pGUIController->Create(m_pGUIScreen, m_pGUIInput, "Base.rte/GUIs/Skins", "DefaultSkin.ini")) {
@@ -183,34 +180,45 @@ namespace RTE {
 		// Resize the invisible root container so it matches the screen rez
 		GUICollectionBox *pRootBox = dynamic_cast<GUICollectionBox *>(m_pGUIController->GetControl("base"));
 		if (pRootBox)
-			pRootBox->SetSize(g_FrameMan.GetResX(), g_FrameMan.GetResY());
+			pRootBox->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
 		m_BackToMainButton = dynamic_cast<GUIButton *>(m_pGUIController->GetControl("ButtonBackToMain"));
 
 		GUICollectionBox *pDialogBox = dynamic_cast<GUICollectionBox *>(m_pGUIController->GetControl("ConnectDialogBox"));
 		if (pDialogBox)
 		{
-			pDialogBox->SetPositionAbs(g_FrameMan.GetResX() / 2 - pDialogBox->GetWidth() / 2, g_FrameMan.GetResY() / 2 - pDialogBox->GetHeight() / 2);
-			m_BackToMainButton->SetPositionAbs((g_FrameMan.GetResX() - m_BackToMainButton->GetWidth()) / 2, pDialogBox->GetYPos() + pDialogBox->GetHeight() + 10);
+			pDialogBox->SetPositionAbs(g_WindowMan.GetResX() / 2 - pDialogBox->GetWidth() / 2, g_WindowMan.GetResY() / 2 - pDialogBox->GetHeight() / 2);
+			m_BackToMainButton->SetPositionAbs((g_WindowMan.GetResX() - m_BackToMainButton->GetWidth()) / 2, pDialogBox->GetYPos() + pDialogBox->GetHeight() + 10);
 		}
 
 		m_pServerNameTextBox = dynamic_cast<GUITextBox *>(m_pGUIController->GetControl("ServerNameTB"));
 		m_pPlayerNameTextBox = dynamic_cast<GUITextBox *>(m_pGUIController->GetControl("PlayerNameTB"));
 		m_pConnectButton = dynamic_cast<GUIButton *>(m_pGUIController->GetControl("ConnectButton"));
 
+		/*
 		m_pNATServiceServerNameTextBox = dynamic_cast<GUITextBox *>(m_pGUIController->GetControl("NATServiceNameTB"));
 		m_pNATServerNameTextBox = dynamic_cast<GUITextBox *>(m_pGUIController->GetControl("NATServiceServerNameTB"));
 		m_pNATServerPasswordTextBox = dynamic_cast<GUITextBox *>(m_pGUIController->GetControl("NATServiceServerPasswordTB"));
 		m_pConnectNATButton = dynamic_cast<GUIButton *>(m_pGUIController->GetControl("ConnectNATButton"));
 
+		m_pNATServiceServerNameTextBox->SetVisible(false);
+		m_pNATServerNameTextBox->SetVisible(false);
+		m_pNATServerPasswordTextBox->SetVisible(false);
+		m_pConnectNATButton->SetVisible(false);
+		*/
+
+		//NOTE Instruction labels aren't dynamic so they don't really need to be gotten. Status label should be empty unless there's a status to report.
 		m_pStatusLabel = dynamic_cast<GUILabel *>(m_pGUIController->GetControl("StatusLabel"));
+		m_pStatusLabel->SetText("");
 
 		m_pServerNameTextBox->SetText(g_SettingsMan.GetNetworkServerAddress());
 		m_pPlayerNameTextBox->SetText(g_SettingsMan.GetPlayerNetworkName());
 
+		/*
 		m_pNATServiceServerNameTextBox->SetText(g_SettingsMan.GetNATServiceAddress());
 		m_pNATServerNameTextBox->SetText(g_SettingsMan.GetNATServerName());
 		m_pNATServerPasswordTextBox->SetText(g_SettingsMan.GetNATServerPassword());
+		*/
 
 		return error;
 	}
@@ -298,10 +306,10 @@ namespace RTE {
 						std::string serverName;
 						int port;
 
-						string::size_type portPos = string::npos;
+						std::string::size_type portPos = std::string::npos;
 
 						portPos = m_pServerNameTextBox->GetText().find(":");
-						if (portPos != string::npos)
+						if (portPos != std::string::npos)
 						{
 							serverName = m_pServerNameTextBox->GetText().substr(0, portPos);
 							std::string portStr = m_pServerNameTextBox->GetText().substr(portPos + 1, m_pServerNameTextBox->GetText().length() - 2);
@@ -310,7 +318,7 @@ namespace RTE {
 							if (port == 0)
 								port = 8000;
 						}
-						else 
+						else
 						{
 							serverName = m_pServerNameTextBox->GetText();
 							port = 8000;
@@ -322,7 +330,7 @@ namespace RTE {
 
 						g_NetworkClient.Connect(serverName, port, playerName);
 						bool saveSettings = false;
-						
+
 						if (g_SettingsMan.GetPlayerNetworkName() != m_pPlayerNameTextBox->GetText())
 						{
 							g_SettingsMan.SetPlayerNetworkName(m_pPlayerNameTextBox->GetText());
@@ -350,10 +358,10 @@ namespace RTE {
 						std::string serverName;
 						int port;
 
-						string::size_type portPos = string::npos;
+						std::string::size_type portPos = std::string::npos;
 
 						portPos = m_pNATServiceServerNameTextBox->GetText().find(":");
-						if (portPos != string::npos)
+						if (portPos != std::string::npos)
 						{
 							serverName = m_pNATServiceServerNameTextBox->GetText().substr(0, portPos);
 							std::string portStr = m_pNATServiceServerNameTextBox->GetText().substr(portPos + 1, m_pNATServiceServerNameTextBox->GetText().length() - 2);

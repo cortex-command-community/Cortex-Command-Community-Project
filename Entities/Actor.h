@@ -15,14 +15,19 @@
 // Inclusions of header files
 
 #include "MOSRotating.h"
-#include "PieMenuGUI.h"
+#include "PieMenu.h"
 
 namespace RTE
 {
 
+
+#pragma region Global Macro Definitions
+	#define DefaultPieMenuNameGetter(DEFAULTPIEMENUNAME) \
+		std::string GetDefaultPieMenuName() const override { return DEFAULTPIEMENUNAME; }
+#pragma endregion
+
 class AtomGroup;
 class HeldDevice;
-class PieMenuGUI;
 
 #define AILINEDOTSPACING 16
 
@@ -70,7 +75,7 @@ public:
 
 // Concrete allocation and cloning definitions
 EntityAllocation(Actor);
-AddScriptFunctionNames(MOSRotating, "UpdateAI");
+AddScriptFunctionNames(MOSRotating, "UpdateAI", "OnControllerInputModeChange");
 SerializableOverrideMethods;
 ClassInfoGetters;
 
@@ -138,14 +143,6 @@ ClassInfoGetters;
     void Destroy(bool notInherited = false) override;
 
     /// <summary>
-    /// Loads the script at the given script path onto the object, checking for appropriately named functions within it.
-    /// </summary>
-    /// <param name="scriptPath">The path to the script to load.</param>
-    /// <param name="loadAsEnabledScript">Whether or not the script should load as enabled. Defaults to true.</param>
-    /// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-	int LoadScript(std::string const &scriptPath, bool loadAsEnabledScript = false) override;
-
-    /// <summary>
     /// Gets the mass of this Actor's inventory. Does not include any equipped item (for actor subtypes that have that).
     /// </summary>
     /// <returns>The mass of this Actor's inventory.</returns>
@@ -186,6 +183,18 @@ ClassInfoGetters;
 // Return value:    Whether a player can control this at all.
 
     virtual bool IsControllable() const { return true; }
+
+	/// <summary>
+	/// Gets whether or not this Actor can be controlled by human players. Note that this does not protect the Actor's Controller from having its input mode forced to CIM_PLAYER (e.g. via Lua).
+	/// </summary>
+	/// <returns>Whether or not this Actor can be controlled by human players.</returns>
+	bool IsPlayerControllable() const { return m_PlayerControllable; }
+
+	/// <summary>
+	/// Sets whether or not this Actor can be controlled by human players.
+	/// </summary>
+	/// <param name="playerControllable">Whether or not this Actor should be able to be controlled by human players.</param>
+	void SetPlayerControllable(bool playerControllable) { m_PlayerControllable = playerControllable; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -255,7 +264,7 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    The current amount of carried gold, in Oz.
 
-    virtual float GetGoldCarried() const { return m_GoldCarried; }
+	float GetGoldCarried() const { return m_GoldCarried; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -358,6 +367,18 @@ ClassInfoGetters;
 	/// <param name="newOffset">A new holster offset.</param>
 	void SetHolsterOffset(Vector newOffset) { m_HolsterOffset = newOffset; }
 
+	/// <summary>
+	/// Gets the offset position of where this Actor reloads his devices from.
+	/// </summary>
+	/// <returns>The offset position of the where this Actor reloads his devices from.</returns>
+	Vector GetReloadOffset() const { return m_ReloadOffset; }
+
+	/// <summary>
+	/// Sets the offset position of the where this Actor reloads his devices from.
+	/// </summary>
+	/// <param name="newOffset">The new offset position of where this Actor reloads his devices from.</param>
+	void SetReloadOffset(Vector newOffset) { m_ReloadOffset = newOffset; }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetViewPoint
@@ -391,7 +412,7 @@ ClassInfoGetters;
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetSharpAimProgress
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the normalized amount of sharp aim that has been achieved by this. 
+// Description:     Gets the normalized amount of sharp aim that has been achieved by this.
 // Arguments:       None.
 // Return value:    Sharp aim progress between 0 - 1.0. 1.0 is fully aimed.
 
@@ -437,7 +458,7 @@ ClassInfoGetters;
 // Arguments:       A Status enumeration.
 // Return value:    None.
 
-    void SetStatus(Actor::Status newStatus) { m_Status = newStatus; }
+	void SetStatus(Actor::Status newStatus) { m_Status = newStatus; if (newStatus == Actor::Status::UNSTABLE) { m_StableRecoverTimer.Reset(); } }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -525,18 +546,6 @@ ClassInfoGetters;
 
     virtual bool Look(float FOVSpread, float range);
 
-/* Old version, we don't let the actors carry gold anymore, goes directly to the team funds instead
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddGold
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds a certain amount of ounces of gold to teh currently carried
-//                  amount.
-// Arguments:       The amount in Oz with which to change the current gol dtally of this
-//                  Actor.
-// Return value:    None.
-
-    void AddGold(float goldOz) { m_GoldCarried += std::ceil(goldOz); m_GoldPicked = true; }
-*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          AddGold
@@ -548,17 +557,10 @@ ClassInfoGetters;
     void AddGold(float goldOz);
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  RestDetection
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Does the calculations necessary to detect whether this MO appears to
-//                  have has settled in the world and is at rest or not. IsAtRest()
-//                  retreves the answer.
-// Arguments:       None.
-// Return value:    None.
-
-    void RestDetection() override;
-
+	/// <summary>
+	/// Does the calculations necessary to detect whether this Actor is at rest or not. IsAtRest() retrieves the answer.
+	/// </summary>
+	void RestDetection() override;
 
 	/// <summary>
 	/// Adds health points to this Actor's current health value.
@@ -593,33 +595,12 @@ ClassInfoGetters;
 
     bool IsDead() const { return m_Status == DEAD; }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  PieNeedsUpdate
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates that the pie menu associated with this Actor needs updating.
-// Arguments:       None.
-// Return value:    Whether the pie menu needs updating.
-
-    bool PieNeedsUpdate() { return m_PieNeedsUpdate; };
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  AddPieMenuSlices
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds all slices this needs on a pie menu.
-// Arguments:       The pie menu to add slices to. Ownership is NOT transferred!
-// Return value:    Whether any slices were added.
-
-	virtual bool AddPieMenuSlices(PieMenuGUI *pPieMenu);
-
-
     /// <summary>
-    /// Handles and does whatever a specific activated Pie Menu slice does to this.
+    /// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
     /// </summary>
-    /// <param name="pieSliceIndex">The pie menu command to handle. See the enum in PieSlice.</param>
-    /// <returns>Whether any slice was handled. False if no matching slice handler was found, or there was no slice currently activated by the pie menu.</returns>
-    virtual bool HandlePieCommand(PieSlice::PieSliceIndex pieSliceIndex) { return false; }
+    /// <param name="pieSliceType">The SliceType of the PieSlice being handled.</param>
+    /// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
+    virtual bool HandlePieCommand(PieSlice::SliceType pieSliceType) { return false; }
 
 /*
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -704,7 +685,7 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    The furthest set AI waypoint of this.
 
-	Vector GetLastAIWaypoint() { if (!m_Waypoints.empty()) { return m_Waypoints.back().first; } else if (!m_MovePath.empty()) { return m_MovePath.back(); } return m_Pos; }
+	Vector GetLastAIWaypoint() const { if (!m_Waypoints.empty()) { return m_Waypoints.back().first; } else if (!m_MovePath.empty()) { return m_MovePath.back(); } return m_Pos; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -714,8 +695,13 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    The furthest set AI MO waypoint of this.
 
-	MOID GetAIMOWaypointID();
+	MOID GetAIMOWaypointID() const;
 
+	/// <summary>
+	/// Gets the list of waypoints for this Actor.
+	/// </summary>
+	/// <returns>The list of waypoints for this Actor.</returns>
+	const std::list<std::pair<Vector, const MovableObject *>> & GetWaypointList() const { return m_Waypoints; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  GetWaypointsSize
@@ -759,6 +745,12 @@ ClassInfoGetters;
 
 	void AddToMovePathEnd(Vector newCoordinate) { m_MovePath.push_back(newCoordinate); }
 
+	/// <summary>
+	/// Gets the last position in this Actor's move path.
+	/// </summary>
+	/// <returns>The last position in this Actor's move path.</returns>
+	Vector GetMovePathEnd() const { return m_MovePath.back(); }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:  RemoveMovePathBeginning
@@ -782,6 +774,12 @@ ClassInfoGetters;
 //                  is empty.
 
 	bool RemoveMovePathEnd() { if (!m_MovePath.empty()) { m_MovePath.pop_back(); return true; } return false; }
+
+	/// <summary>
+	/// Gets a pointer to the MovableObject move target of this Actor.
+	/// </summary>
+	/// <returns>A pointer to the MovableObject move target of this Actor.</returns>
+	const MovableObject * GetMOMoveTarget() const { return m_pMOMoveTarget; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -847,7 +845,7 @@ ClassInfoGetters;
 // Arguments:       An pointer to the new item to add. Ownership IS TRANSFERRED!
 // Return value:    None..
 
-    virtual void AddInventoryItem(MovableObject *pItemToAdd) { if (pItemToAdd) { m_Inventory.emplace_back(pItemToAdd); } }
+    virtual void AddInventoryItem(MovableObject *pItemToAdd) { AddToInventoryBack(pItemToAdd); }
 
 
 
@@ -858,7 +856,14 @@ ClassInfoGetters;
 // Arguments:       Preset name of an item to remove.
 // Return value:    None.
 
-	void RemoveInventoryItem(string presetName);
+	void RemoveInventoryItem(const std::string &presetName) { RemoveInventoryItem("", presetName); }
+
+	/// <summary>
+	/// Removes the first inventory item with the given module name and preset name.
+	/// </summary>
+	/// <param name="moduleName">The module name of the item to remove.</param>
+	/// <param name="presetName">The preset name of the item to remove.</param>
+	void RemoveInventoryItem(const std::string &moduleName, const std::string &presetName);
 
     /// <summary>
     /// Removes and returns the inventory item at the given index. Ownership IS transferred.
@@ -879,7 +884,7 @@ ClassInfoGetters;
 // Return value:    The next MovableObject in this Actor's inventory. Ownership IS xferred!
 //                  If there are no MovableObject:s in inventory, 0 will be returned.
 
-	MovableObject * SwapNextInventory(MovableObject *pSwapIn = 0, bool muteSound = false);
+	virtual MovableObject * SwapNextInventory(MovableObject *pSwapIn = nullptr, bool muteSound = false);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -892,7 +897,7 @@ ClassInfoGetters;
 // Return value:    The prev MovableObject in this Actor's inventory. Ownership IS xferred!
 //                  If there are no MovableObject:s in inventory, 0 will be returned.
 
-	MovableObject * SwapPrevInventory(MovableObject *pSwapIn = 0);
+	virtual MovableObject * SwapPrevInventory(MovableObject *pSwapIn = nullptr);
 
     /// <summary>
     /// Swaps the inventory items at the given indices. Will return false if a given index is invalid.
@@ -923,6 +928,10 @@ ClassInfoGetters;
 
     virtual void DropAllInventory();
 
+	/// <summary>
+	/// Converts all of the Gold carried by this Actor into MovableObjects and ejects them into the Scene.
+	/// </summary>
+    virtual void DropAllGold();
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:  GetInventorySize
@@ -951,13 +960,25 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    A const pointer to the inventory deque of this. OWNERSHIP IS NOT TRANSFERRED!
 
-	const std::deque<MovableObject *> * GetInventory() { return &m_Inventory; }
+	const std::deque<MovableObject *> * GetInventory() const { return &m_Inventory; }
 
 	/// <summary>
 	/// Returns the maximum total mass this Actor can carry in its inventory.
 	/// </summary>
 	/// <returns>The maximum carriable mass of this Actor.</returns>
 	float GetMaxInventoryMass() const { return m_MaxInventoryMass; }
+
+    /// <summary>
+	/// Attempts to add an item to the front of our inventory.
+	/// </summary>
+	/// <returns>Whether we succeeded in adding the item. We may fail if the object doesn't exist or is set to delete.</returns>
+	bool AddToInventoryFront(MovableObject *itemToAdd);
+
+    /// <summary>
+	/// Attempts to add an item to the back of our inventory.
+	/// </summary>
+	/// <returns>Whether we succeeded in adding the item. We may fail if the object doesn't exist or is set to delete.</returns>
+	bool AddToInventoryBack(MovableObject *itemToAdd);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1101,6 +1122,24 @@ ClassInfoGetters;
 //                  frame.
 
     virtual bool UpdateMovePath();
+
+    /// <summary>
+    /// Estimates what material strength this actor can penetrate.
+    /// </summary>
+	/// <returns>The actor's dig strength.</returns>
+    virtual float EstimateDigStrength() const;
+
+    /// <summary>
+    /// Gets this Actor's base dig strength, or the strength of terrain they can expect to walk through without tools.
+    /// </summary>
+	/// <returns>The actors base dig strength.</returns>
+    float GetAIBaseDigStrength() const { return m_AIBaseDigStrength; }
+
+    /// <summary>
+    /// Sets this Actor's base dig strength, or the strength of terrain they can expect to walk through without tools.
+    /// </summary>
+	/// <param name="newAIBaseDigStrength">The new base dig strength for this Actor.</param>
+    void SetAIBaseDigStrength(float newAIBaseDigStrength) { m_AIBaseDigStrength = newAIBaseDigStrength; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1323,6 +1362,48 @@ ClassInfoGetters;
 	/// <param name="newRecoverDelay">The recovery delay, in MS.</param>
 	void SetStableRecoverDelay(int newRecoverDelay) { m_StableRecoverDelay = newRecoverDelay; }
 
+	/// <summary>
+	/// Gets whether or not this Actor has the organic flag set and should be considered as organic.
+	/// </summary>
+	/// <returns>Whether or not this Actor has the organic flag set and should be considered as organic.</returns>
+	bool IsOrganic() const { return m_Organic; }
+
+	/// <summary>
+	/// Gets whether or not this Actor has the mechanical flag set and should be considered as mechanical.
+	/// </summary>
+	/// <returns>Whether or not this Actor has the mechanical flag set and should be considered as mechanical.</returns>
+	bool IsMechanical() const { return m_Mechanical; }
+
+	/// <summary>
+	/// Gets whether or not this Actor's limb push forces have been disabled.
+	/// </summary>
+	/// <returns>Whether or not this Actor's limb push forces have been disabled.</returns>
+	bool GetLimbPushForcesAndCollisionsDisabled() const { return m_LimbPushForcesAndCollisionsDisabled; }
+
+	/// <summary>
+	/// Sets whether or not this Actor's limb push forces should be disabled.
+	/// </summary>
+	/// <param name="newLimbPushForcesAndCollisionsDisabled">Whether or not this Actor's limb push forces should be disabled.</param>
+	void SetLimbPushForcesAndCollisionsDisabled(bool newLimbPushForcesAndCollisionsDisabled) { m_LimbPushForcesAndCollisionsDisabled = newLimbPushForcesAndCollisionsDisabled; }
+
+	/// <summary>
+	/// Gets the default PieMenu name for this type.
+	/// </summary>
+	/// <returns>The default PieMenu name for this type.</returns>
+	virtual std::string GetDefaultPieMenuName() const { return "Default Actor Pie Menu"; }
+
+    /// <summary>
+    /// Gets a pointer to the PieMenu for this Actor. Ownership is NOT transferred.
+    /// </summary>
+    /// <returns>The PieMenu for this Actor.</returns>
+    PieMenu * GetPieMenu() const { return m_PieMenu.get(); }
+
+	/// <summary>
+	/// Sets the PieMenu for this Actor. Ownership IS transferred.
+	/// </summary>
+	/// <param name="newPieMenu">The new PieMenu for this Actor.</param>
+	void SetPieMenu(PieMenu *newPieMenu) { m_PieMenu = std::unique_ptr<PieMenu>(newPieMenu); m_PieMenu->Create(this); m_PieMenu->AddWhilePieMenuOpenListener(this, std::bind(&Actor::WhilePieMenuOpenListener, this, m_PieMenu.get())); }
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protected member variable and method declarations
 
@@ -1349,6 +1430,7 @@ protected:
 
     AtomGroup *m_pHitBody;
     Controller m_Controller;
+	bool m_PlayerControllable; //!< Whether or not this Actor can be controlled by human players.
 
     // Sounds
     SoundContainer *m_BodyHitSound;
@@ -1373,7 +1455,6 @@ protected:
     Vector m_LastSecondPos;
     // Movement since last whole second
     Vector m_RecentMovement;
-    float m_RecentMovementMag;
     // Threshold for taking damage from travel impulses, in kg * m/s
     float m_TravelImpulseDamage;
     // Timer for timing the delay before regaining stability after losing it
@@ -1431,6 +1512,7 @@ protected:
 //    float
     // The offset position of the holster where this Actor draws his devices from.
     Vector m_HolsterOffset;
+	Vector m_ReloadOffset; //!< The offset position of where this Actor reloads his devices from.
     // The point at which this actor is viewing, or the scene frame
     // should be centered on if tracking this Actor's view.
     // In absolute scene coordinates.
@@ -1440,23 +1522,18 @@ protected:
     float m_MaxInventoryMass; //!< The mass limit for this Actor's inventory. -1 means there's no limit.
     // The device that can/will be picked up
     HeldDevice *m_pItemInReach;
-    // Whether the pie menu associated with this needs updating
-    bool m_PieNeedsUpdate;
     // HUD positioning aid
     int m_HUDStack;
     // For how much longer to draw this as white. 0 means don't draw as white
     int m_FlashWhiteMS;
     // The timer that measures and deducts past time from the remaining white flash time
     Timer m_WhiteFlashTimer;
-    // Extra pie menu options that this should add to any Pie Menu that focuses on this
-    std::list<PieSlice> m_PieSlices;
-    // What material strength this actor is capable of digging trough.
-    float m_DigStrength;
 	// ID of deployment which spawned this actor
 	unsigned int m_DeploymentID;
     // How many passenger slots this actor will take in a craft
     int m_PassengerSlots;
-
+    // Most actors can walk through stuff that's soft enough, so we start with a base penetration amount
+    float m_AIBaseDigStrength;
 
     ////////////////////
     // AI States
@@ -1494,8 +1571,6 @@ protected:
     static std::vector<BITMAP *> m_apAlarmExclamation;
     // Whether the static icons have been loaded yet or not
     static bool m_sIconsLoaded;
-    // Whether a Lua update AI function was provided in this' script file
-    bool m_ScriptedAIUpdate;
     // The current mode the AI is set to perform as
     AIMode m_AIMode;
     // The list of waypoints remaining between which the paths are made. If this is empty, the last path is in teh MovePath
@@ -1527,9 +1602,9 @@ protected:
     TeamBlockState m_TeamBlockState;
     // Times how long after an obstruction is cleared to start proceeding again
     Timer m_BlockTimer;
-    // The closest the actor has ever come to the current waypoint it's going for. Used to checking if we shuold re-update the movepath
+    // The closest the actor has ever come to the current waypoint it's going for, squared. Used to checking if we shuold re-update the movepath
     // It's useful for when the path seems to be broken or unreachable
-    float m_BestTargetProximity;
+    float m_BestTargetProximitySqr;
     // Timer used to check on larger movement progress toward the goal
     Timer m_ProgressTimer;
     // Timer used to time how long we've been stuck in the same spot.
@@ -1537,10 +1612,17 @@ protected:
     // Timer for measuring interval between height checks
     Timer m_FallTimer;
 
+	bool m_Organic; //!< Flag for whether or not this Actor is organic. Useful for lua purposes and mod support.
+	bool m_Mechanical; //!< Flag for whether or not this Actor is robotic. Useful for lua purposes and mod support.
+
+	bool m_LimbPushForcesAndCollisionsDisabled; //<! Whether or limb push forces and collisions have been disabled (likely for Lua purposes).
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Private member variable and method declarations
 
 private:
+
+    std::unique_ptr<PieMenu> m_PieMenu;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Clear

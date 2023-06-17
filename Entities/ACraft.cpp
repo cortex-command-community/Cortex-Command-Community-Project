@@ -19,7 +19,6 @@
 #include "AEmitter.h"
 #include "HDFirearm.h"
 #include "Controller.h"
-#include "PieMenuGUI.h"
 #include "SceneMan.h"
 #include "Scene.h"
 #include "SettingsMan.h"
@@ -30,7 +29,7 @@
 namespace RTE {
 
 AbstractClassInfo(ACraft, Actor);
-const string ACraft::Exit::c_ClassName = "Exit";
+const std::string ACraft::Exit::c_ClassName = "Exit";
 
 bool ACraft::s_CrabBombInEffect = false;
 
@@ -176,13 +175,15 @@ MOSRotating * ACraft::Exit::SuckInMOs(ACraft *pExitOwner)
     // If we're sucking on an MO already
     if (m_pIncomingMO)
     {
+        const float suckageRange = m_Range * 1.5F;
+
         // Check that it's still active and valid (not destroyed)
         if (!(g_MovableMan.IsDevice(m_pIncomingMO) || g_MovableMan.IsActor(m_pIncomingMO)))
         {
             m_pIncomingMO = 0;
         }
         // See if it's now out of range of suckage
-        else if ((exitPos - m_pIncomingMO->GetPos()).GetMagnitude() > (m_Range * 1.5))
+        else if ((exitPos - m_pIncomingMO->GetPos()).MagnitudeIsGreaterThan(suckageRange))
         {
             m_pIncomingMO = 0;
         }
@@ -201,8 +202,11 @@ MOSRotating * ACraft::Exit::SuckInMOs(ACraft *pExitOwner)
             // Figure the distance left for the object to go to reach the exit
             Vector toGo = exitPos - m_pIncomingMO->GetPos();
             // If the object is still a bit away from the exit goal, override velocity of the object to head straight into the exit
-            if (toGo.GetMagnitude() > 1.0f)
+            const float threshold = 1.0F;
+            if (toGo.MagnitudeIsGreaterThan(threshold))
+            {
                 m_pIncomingMO->SetVel(toGo.SetMagnitude(m_Velocity.GetMagnitude()));
+            }
 
             // Turn off collisions between the object and the craft sucking it in
             m_pIncomingMO->SetWhichMOToNotHit(pExitOwner, 3);
@@ -299,6 +303,10 @@ int ACraft::Create()
     if (Actor::Create() < 0)
         return -1;
 
+	if (m_AIMode == Actor::AIMODE_NONE) {
+		m_AIMode = Actor::AIMODE_DELIVER;
+	}
+
     m_CurrentExit = m_Exits.begin();
 
     return 0;
@@ -323,9 +331,9 @@ int ACraft::Create(const ACraft &reference)
 	} else if (reference.m_HatchOpenSound) {
 		m_HatchCloseSound = dynamic_cast<SoundContainer *>(reference.m_HatchOpenSound->Clone());
 	}
-	for (deque<MovableObject *>::const_iterator niItr = reference.m_CollectedInventory.begin(); niItr != reference.m_CollectedInventory.end(); ++niItr)
+	for (std::deque<MovableObject *>::const_iterator niItr = reference.m_CollectedInventory.begin(); niItr != reference.m_CollectedInventory.end(); ++niItr)
         m_CollectedInventory.push_back(dynamic_cast<MovableObject *>((*niItr)->Clone()));
-    for (list<Exit>::const_iterator eItr = reference.m_Exits.begin(); eItr != reference.m_Exits.end(); ++eItr)
+    for (std::list<Exit>::const_iterator eItr = reference.m_Exits.begin(); eItr != reference.m_Exits.end(); ++eItr)
         m_Exits.push_back(*eItr);
     m_CurrentExit = m_Exits.begin();
     m_ExitInterval = reference.m_ExitInterval;
@@ -408,7 +416,7 @@ int ACraft::Save(Writer &writer) const
     writer << m_HatchOpenSound;
     writer.NewProperty("HatchCloseSound");
     writer << m_HatchCloseSound;
-    for (list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr)
+    for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr)
     {
         writer.NewProperty("AddExit");
         writer << (*itr);
@@ -462,7 +470,7 @@ float ACraft::GetTotalValue(int nativeModule, float foreignMult, float nativeMul
     float totalValue = Actor::GetTotalValue(nativeModule, foreignMult, nativeMult);
 
     MOSprite *pItem = 0;
-    for (deque<MovableObject *>::const_iterator itr = m_CollectedInventory.begin(); itr != m_CollectedInventory.end(); ++itr)
+    for (std::deque<MovableObject *>::const_iterator itr = m_CollectedInventory.begin(); itr != m_CollectedInventory.end(); ++itr)
     {
         pItem = dynamic_cast<MOSprite *>(*itr);
         if (pItem)
@@ -479,12 +487,12 @@ float ACraft::GetTotalValue(int nativeModule, float foreignMult, float nativeMul
 // Description:     Shows whether this carries a specifically named object in its inventory.
 //                  Also looks through the inventories of potential passengers, as applicable.
 
-bool ACraft::HasObject(string objectName) const
+bool ACraft::HasObject(std::string objectName) const
 {
     if (Actor::HasObject(objectName))
         return true;
 
-    for (deque<MovableObject *>::const_iterator itr = m_CollectedInventory.begin(); itr != m_CollectedInventory.end(); ++itr)
+    for (std::deque<MovableObject *>::const_iterator itr = m_CollectedInventory.begin(); itr != m_CollectedInventory.end(); ++itr)
     {
         if ((*itr) && (*itr)->HasObject(objectName))
             return true;
@@ -506,7 +514,7 @@ bool ACraft::HasObjectInGroup(std::string groupName) const
     if (Actor::HasObjectInGroup(groupName))
         return true;
 
-    for (deque<MovableObject *>::const_iterator itr = m_CollectedInventory.begin(); itr != m_CollectedInventory.end(); ++itr)
+    for (std::deque<MovableObject *>::const_iterator itr = m_CollectedInventory.begin(); itr != m_CollectedInventory.end(); ++itr)
     {
         if ((*itr) && (*itr)->HasObjectInGroup(groupName))
             return true;
@@ -527,7 +535,7 @@ void ACraft::SetTeam(int team)
 
     // Also set all actors in the new inventory
     Actor *pActor = 0;
-    for (deque<MovableObject *>::iterator itr = m_CollectedInventory.begin(); itr != m_CollectedInventory.end(); ++itr)
+    for (std::deque<MovableObject *>::iterator itr = m_CollectedInventory.begin(); itr != m_CollectedInventory.end(); ++itr)
     {
         pActor = dynamic_cast<Actor *>(*itr);
         if (pActor)
@@ -535,65 +543,31 @@ void ACraft::SetTeam(int team)
     }
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  AddPieMenuSlices
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds all slices this needs on a pie menu.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool ACraft::AddPieMenuSlices(PieMenuGUI *pPieMenu)
-{
-	PieSlice deliverSlice("Deliver Cargo", PieSlice::PieSliceIndex::PSI_DELIVER, PieSlice::SliceDirection::RIGHT);
-    pPieMenu->AddSlice(deliverSlice);
-    PieSlice returnSlice("Return", PieSlice::PieSliceIndex::PSI_RETURN, PieSlice::SliceDirection::UP);
-	pPieMenu->AddSlice(returnSlice);
-	
-	PieSlice staySlice("Stay", PieSlice::PieSliceIndex::PSI_STAY, PieSlice::SliceDirection::DOWN);
-    pPieMenu->AddSlice(staySlice);
-    PieSlice scuttleSlice("Scuttle!", PieSlice::PieSliceIndex::PSI_SCUTTLE, PieSlice::SliceDirection::LEFT);
-	pPieMenu->AddSlice(scuttleSlice);
-
-    Actor::AddPieMenuSlices(pPieMenu);
-
-    return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  HandlePieCommand
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Handles and does whatever a specific activated Pie Menu slice does to
-//                  this.
-
-bool ACraft::HandlePieCommand(PieSlice::PieSliceIndex pieSliceIndex)
-{
-    if (pieSliceIndex != PieSlice::PieSliceIndex::PSI_NONE)
-    {
-        if (pieSliceIndex == PieSlice::PieSliceIndex::PSI_DELIVER)
-        {
+bool ACraft::HandlePieCommand(PieSlice::SliceType pieSliceIndex) {
+    if (pieSliceIndex != PieSlice::SliceType::NoType) {
+        if (pieSliceIndex == PieSlice::SliceType::Deliver) {
             m_AIMode = AIMODE_DELIVER;
             m_DeliveryState = FALL;
             m_HasDelivered = false;
-        }
-        else if (pieSliceIndex == PieSlice::PieSliceIndex::PSI_RETURN)
-        {
+        } else if (pieSliceIndex == PieSlice::SliceType::Return) {
             m_AIMode = AIMODE_RETURN;
             m_DeliveryState = LAUNCH;
-        }
-        else if (pieSliceIndex == PieSlice::PieSliceIndex::PSI_STAY)
-        {
+        } else if (pieSliceIndex == PieSlice::SliceType::Stay) {
             m_AIMode = AIMODE_STAY;
             m_DeliveryState = FALL;
-        }
-        else if (pieSliceIndex == PieSlice::PieSliceIndex::PSI_SCUTTLE)
+        } else if (pieSliceIndex == PieSlice::SliceType::Scuttle) {
             m_AIMode = AIMODE_SCUTTLE;
-        else
+        } else {
             return Actor::HandlePieCommand(pieSliceIndex);
-
+        }
         m_StuckTimer.Reset();
     }
-
     return false;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -631,8 +605,9 @@ void ACraft::CloseHatch()
         m_HatchTimer.Reset();
 
         // When closing, move all newly added inventory to the regular inventory list so it'll be ejected next time doors open
-        for (deque<MovableObject *>::const_iterator niItr = m_CollectedInventory.begin(); niItr != m_CollectedInventory.end(); ++niItr)
-            m_Inventory.push_back(*niItr);
+        for (std::deque<MovableObject *>::const_iterator niItr = m_CollectedInventory.begin(); niItr != m_CollectedInventory.end(); ++niItr) {
+            AddToInventoryBack(*niItr);
+        }
 
         // Clear the new inventory hold, it's all been moved to the regular inventory
         m_CollectedInventory.clear();
@@ -656,11 +631,22 @@ void ACraft::AddInventoryItem(MovableObject *pItemToAdd)
     {
         // If the hatch is open, then only add the new item to the intermediate new inventory list
         // so that it doesn't get chucked out right away again
-        if (m_HatchState == OPEN || m_HatchState == OPENING)
-            m_CollectedInventory.push_back(pItemToAdd);
-        // If doors are already closed, it's safe to put the item directly the regular inventory
-        else
-            m_Inventory.push_back(pItemToAdd);
+		if (m_HatchState == OPEN || m_HatchState == OPENING) {
+			m_CollectedInventory.push_back(pItemToAdd);
+		} else {
+			// If doors are already closed, it's safe to put the item directly the regular inventory
+			AddToInventoryBack(pItemToAdd);
+		}
+		if (Actor *itemAsActor = dynamic_cast<Actor*>(pItemToAdd); itemAsActor && itemAsActor->GetGoldCarried() > 0) {
+			m_GoldCarried += itemAsActor->GetGoldCarried();
+			itemAsActor->SetGoldCarried(0);
+			m_GoldPicked = true;
+			if (g_ActivityMan.GetActivity()->IsHumanTeam(m_Team)) {
+				for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
+					if (g_ActivityMan.GetActivity()->GetTeamOfPlayer(player) == m_Team) { g_GUISound.FundsChangedSound()->Play(player); }
+				}
+			}
+		}
     }
 }
 
@@ -682,7 +668,7 @@ void ACraft::DropAllInventory()
             return;
 
         bool exitExists = false;
-        list<Exit>::iterator exit = m_Exits.begin();
+        std::list<Exit>::iterator exit = m_Exits.begin();
         // Check which exits are clear of the terrain, if any
         for (; exit != m_Exits.end(); ++exit)
         {
@@ -702,7 +688,7 @@ void ACraft::DropAllInventory()
         float antiGravBoost = 0;
         Actor *pPassenger = 0;
         bool droppedSomething = false;
-        for (deque<MovableObject *>::iterator exitee = m_Inventory.begin(); exitee != m_Inventory.end(); ++exitee)
+        for (std::deque<MovableObject *>::iterator exitee = m_Inventory.begin(); exitee != m_Inventory.end(); ++exitee)
         {
             // Select next clear exit
             do
@@ -767,7 +753,7 @@ void ACraft::DropAllInventory()
                 // Avoid this immediate collisions with it
                 SetWhichMOToNotHit(*exitee, 0.5f);
                 // Add to scene
-                g_MovableMan.AddItem(*exitee);
+                g_MovableMan.AddMO(*exitee);
                 // Remove passenger from inventory
                 m_Inventory.erase(exitee);
                 // Reset timer interval and quit until next one is due
@@ -892,12 +878,12 @@ void ACraft::Update()
     // Set viewpoint based on how we are aiming etc.
     m_ViewPoint = m_Pos.GetFloored();
 	// Add velocity also so the viewpoint moves ahead at high speeds
-	if (m_Vel.GetMagnitude() > 10) { m_ViewPoint += m_Vel * std::sqrt(m_Vel.GetMagnitude() * 0.1F); }
+	if (m_Vel.MagnitudeIsGreaterThan(10.0F)) { m_ViewPoint += m_Vel * std::sqrt(m_Vel.GetMagnitude() * 0.1F); }
 
     ///////////////////////////////////////////////////
     // Crash detection and handling
-
-    if (m_DeepHardness > 5 && m_Vel.GetMagnitude() > 1.0)
+    const float crashSpeedThreshold = 1.0F;
+    if (m_DeepHardness > 5 && m_Vel.MagnitudeIsGreaterThan(crashSpeedThreshold))
     {
         m_Health -= m_DeepHardness * 0.03;
 // TODO: HELLA GHETTO, REWORK
@@ -920,7 +906,7 @@ void ACraft::Update()
         else if (m_Status == STABLE && m_ExitTimer.IsPastSimMS(EXITSUCKDELAYMS))
         {
             // See if any of the exits have sucked in an MO
-            for (list<Exit>::iterator exit = m_Exits.begin(); exit != m_Exits.end(); ++exit)
+            for (std::list<Exit>::iterator exit = m_Exits.begin(); exit != m_Exits.end(); ++exit)
             {
                 // If exit sucked in an MO, add it to invetory
                 MOSRotating *pNewObject = exit->SuckInMOs(this);
@@ -961,7 +947,7 @@ void ACraft::Update()
 
     if (m_Pos.m_Y < -m_CharHeight)
     {
-        g_ActivityMan.GetActivity()->EnteredOrbit(this);
+        g_ActivityMan.GetActivity()->HandleCraftEnteringOrbit(this);
         // Play fading away thruster sound
 //        if (m_pMThruster && m_pMThruster->IsEmitting())
 //            m_pMThruster->(pTargetBitmap, targetPos, mode, onlyPhysical);
@@ -974,7 +960,7 @@ void ACraft::Update()
 		{
 			if (m_Pos.m_X < -GetSpriteWidth() || m_Pos.m_X > g_SceneMan.GetSceneWidth() + GetSpriteWidth())
 			{
-				g_ActivityMan.GetActivity()->EnteredOrbit(this);
+				g_ActivityMan.GetActivity()->HandleCraftEnteringOrbit(this);
 				m_ToDelete = true;
 			}
 		}
@@ -1018,9 +1004,6 @@ void ACraft::Update()
 void ACraft::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int whichScreen, bool playerControlled) {
 	m_HUDStack = -m_CharHeight / 2;
 
-    if (!m_HUDVisible)
-        return;
-
     // Only do HUD if on a team
     if (m_Team < 0)
         return;
@@ -1032,6 +1015,10 @@ void ACraft::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int whichSc
 	}
 
     Actor::DrawHUD(pTargetBitmap, targetPos, whichScreen);
+
+	if (!m_HUDVisible) {
+		return;
+	}
 
     GUIFont *pSymbolFont = g_FrameMan.GetLargeFont();
     GUIFont *pSmallFont = g_FrameMan.GetSmallFont();
@@ -1063,7 +1050,7 @@ void ACraft::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int whichSc
         Vector exitCorner;
         Vector arrowVec;
         // Draw the actual dotted lines
-        for (list<Exit>::iterator exit = m_Exits.begin(); exit != m_Exits.end(); ++exit)
+        for (std::list<Exit>::iterator exit = m_Exits.begin(); exit != m_Exits.end(); ++exit)
         {
             if (exit->CheckIfClear(m_Pos, m_Rotation, 18))
             {
