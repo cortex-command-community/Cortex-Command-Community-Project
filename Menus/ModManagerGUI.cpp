@@ -1,6 +1,7 @@
 #include "ModManagerGUI.h"
 
 #include "SettingsMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "WindowMan.h"
 #include "DataModule.h"
@@ -59,13 +60,13 @@ namespace RTE {
 		for (int i = 0; i < g_PresetMan.GetTotalModuleCount(); ++i) {
 			if (i >= g_PresetMan.GetOfficialModuleCount() && i < g_PresetMan.GetTotalModuleCount()) {
 				if (const DataModule *dataModule = g_PresetMan.GetDataModule(i); dataModule && !dataModule->IsUserdata()) {
-					ModRecord modRecord = { dataModule->GetFileName(), dataModule->GetFriendlyName(), dataModule->GetDescription(), g_SettingsMan.IsModDisabled(dataModule->GetFileName()) };
+					ModRecord modRecord = { dataModule->GetFileName(), dataModule->GetFriendlyName(), dataModule->GetDescription(), g_ModuleMan.IsModDisabled(dataModule->GetFileName()) };
 					m_KnownMods.emplace_back(modRecord);
 				}
 			}
 		}
 		// Add missing data from disabled mods settings
-		for (const auto &[modPath, modDisabled] : g_SettingsMan.GetDisabledModsMap()) {
+		for (const auto &[modPath, modDisabled] : g_ModuleMan.GetDisabledModsMap()) {
 			bool found = false;
 			for (const ModRecord &knowModListEntry : m_KnownMods) {
 				if (modPath == knowModListEntry.ModulePath) {
@@ -113,7 +114,7 @@ namespace RTE {
 	void ModManagerGUI::ToggleMod() {
 		int index = m_ModsListBox->GetSelectedIndex();
 		if (index > -1) {
-			std::map<std::string, bool> &disabledModsList = g_SettingsMan.GetDisabledModsMap();
+			std::map<std::string, bool> &disabledModsList = g_ModuleMan.GetDisabledModsMap();
 			GUIListPanel::Item *selectedItem = m_ModsListBox->GetSelected();
 			ModRecord &modRecord = m_KnownMods.at(selectedItem->m_ExtraIndex);
 

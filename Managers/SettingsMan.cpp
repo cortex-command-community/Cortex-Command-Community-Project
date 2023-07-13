@@ -1,4 +1,5 @@
 #include "SettingsMan.h"
+#include "ModuleMan.h"
 #include "ConsoleMan.h"
 #include "CameraMan.h"
 #include "MovableMan.h"
@@ -64,7 +65,6 @@ namespace RTE {
 		m_PrintDebugInfo = false;
 		m_MeasureModuleLoadTime = false;
 
-		m_DisabledMods.clear();
 		m_EnabledGlobalScripts.clear();
 	}
 
@@ -289,7 +289,7 @@ namespace RTE {
 		} else if (propName == "VisibleAssemblyGroup") {
 			m_VisibleAssemblyGroupsList.push_back(reader.ReadPropValue());
 		} else if (propName == "DisableMod") {
-			m_DisabledMods.try_emplace(reader.ReadPropValue(), true);
+			g_ModuleMan.m_DisabledMods.try_emplace(reader.ReadPropValue(), true);
 		} else if (propName == "EnableGlobalScript") {
 			m_EnabledGlobalScripts.try_emplace(reader.ReadPropValue(), true);
 		} else if (propName == "MouseSensitivity") {
@@ -472,12 +472,12 @@ namespace RTE {
 			}
 		}
 
-		if (!m_DisabledMods.empty()) {
+		if (!g_ModuleMan.m_DisabledMods.empty()) {
 			writer.NewLine(false, 2);
 			writer.NewDivider(false);
 			writer.NewLineString("// Disabled Mods", false);
 			writer.NewLine(false);
-			for (const auto &[modPath, modDisabled] : m_DisabledMods) {
+			for (const auto &[modPath, modDisabled] : g_ModuleMan.m_DisabledMods) {
 				if (modDisabled) { writer.NewPropertyWithValue("DisableMod", modPath); }
 			}
 		}

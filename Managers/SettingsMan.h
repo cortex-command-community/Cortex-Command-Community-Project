@@ -360,19 +360,6 @@ namespace RTE {
 
 #pragma region Mod and Script Management
 		/// <summary>
-		/// Gets the map of mods which are disabled.
-		/// </summary>
-		/// <returns>Map of mods which are disabled.</returns>
-		std::map<std::string, bool> & GetDisabledModsMap() { return m_DisabledMods; }
-
-		/// <summary>
-		/// Gets whether the specified mod is disabled in the settings.
-		/// </summary>
-		/// <param name="modModule">Mod to check.</param>
-		/// <returns>Whether the mod is disabled via settings.</returns>
-		bool IsModDisabled(const std::string &modModule) const { return (m_DisabledMods.find(modModule) != m_DisabledMods.end()) ? m_DisabledMods.at(modModule) : false; }
-
-		/// <summary>
 		/// Gets the map of global scripts which are enabled.
 		/// </summary>
 		/// <returns>Map of global scripts which are enabled.</returns>
@@ -550,7 +537,6 @@ namespace RTE {
 		bool m_MeasureModuleLoadTime; //!< Whether to measure the duration of data module loading (extraction included). For benchmarking purposes.
 
 		std::list<std::string> m_VisibleAssemblyGroupsList; //!< List of assemblies groups always shown in editors.
-		std::map<std::string, bool> m_DisabledMods; //!< Map of the module names we disabled.
 		std::map<std::string, bool> m_EnabledGlobalScripts; //!< Map of the global script names we enabled.
 
 	private:
