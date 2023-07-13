@@ -597,6 +597,7 @@
     <ClInclude Include="GUI\GUIWriter.h" />
     <ClInclude Include="Managers\CameraMan.h" />
     <ClInclude Include="Managers\MenuMan.h" />
+    <ClInclude Include="Managers\ModuleMan.h" />
     <ClInclude Include="Managers\NetworkClient.h" />
     <ClInclude Include="Managers\NetworkServer.h" />
     <ClInclude Include="Managers\PerformanceMan.h" />
@@ -826,6 +827,7 @@
     <ClCompile Include="GUI\GUISound.cpp" />
     <ClCompile Include="GUI\GUIWriter.cpp" />
     <ClCompile Include="Managers\MenuMan.cpp" />
+    <ClCompile Include="Managers\ModuleMan.cpp" />
     <ClCompile Include="Managers\NetworkClient.cpp" />
     <ClCompile Include="Managers\NetworkServer.cpp" />
     <ClCompile Include="Managers\PerformanceMan.cpp" />
