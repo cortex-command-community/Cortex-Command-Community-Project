@@ -567,6 +567,9 @@
     <ClInclude Include="Resources\Credits.h">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="Managers\ModuleMan.h">
+      <Filter>Managers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\Box.cpp">
@@ -1096,6 +1099,9 @@
       <Filter>GUI\Wrappers</Filter>
     </ClCompile>
     <ClCompile Include="Managers\WindowMan.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\ModuleMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
   </ItemGroup>
