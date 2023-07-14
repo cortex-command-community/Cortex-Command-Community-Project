@@ -7,8 +7,6 @@
 #include "MOSprite.h"
 #include "MOPixel.h"
 #include "Atom.h"
-#include "DataModule.h"
-#include "PresetMan.h"
 
 namespace RTE {
 

@@ -29,7 +29,6 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Scene.h"
-#include "DataModule.h"
 
 #include "SceneEditorGUI.h"
 
@@ -343,7 +342,7 @@ void BaseEditor::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int whi
 
 void BaseEditor::Draw(BITMAP* pTargetBitmap, const Vector &targetPos)
 {
-    Activity::Draw(pTargetBitmap, targetPos);    
+    Activity::Draw(pTargetBitmap, targetPos);
 }
 
 
@@ -384,7 +383,7 @@ bool BaseEditor::SaveScene(std::string saveAsName, bool forceOverwrite)
             // If it's already included, it doens't matter, the definitions will just bounce the second time
             if (!scenesFileExisted)
             {
-                string indexFilePath(g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Index.ini"); 
+                string indexFilePath(g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Index.ini");
                 Writer indexWriter(indexFilePath.c_str(), true);
                 // Add extra tab since the DataModule has everything indented
                 indexWriter.NewProperty("\tIncludeFile");

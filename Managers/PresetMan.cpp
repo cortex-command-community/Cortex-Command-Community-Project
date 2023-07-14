@@ -4,7 +4,6 @@
 #include "SettingsMan.h"
 #include "ConsoleMan.h"
 
-#include "DataModule.h"
 #include "SceneObject.h"
 #include "Loadout.h"
 #include "ACraft.h"

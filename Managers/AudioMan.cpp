@@ -9,7 +9,6 @@
 #include "ActivityMan.h"
 #include "SoundContainer.h"
 #include "GUISound.h"
-#include "PresetMan.h"
 
 namespace RTE {
 

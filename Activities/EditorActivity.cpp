@@ -23,7 +23,6 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Scene.h"
-#include "DataModule.h"
 
 #include "GUI.h"
 #include "AllegroScreen.h"
@@ -250,7 +249,7 @@ void EditorActivity::End()
 {
     Activity::End();
 
-    
+
 
     m_ActivityState = ActivityState::Over;
 }
@@ -626,7 +625,7 @@ void EditorActivity::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int
 
 void EditorActivity::Draw(BITMAP *pTargetBitmap, const Vector &targetPos)
 {
-    
+
 }
 
 } // namespace RTE

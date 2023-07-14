@@ -35,7 +35,6 @@
 #include "GUIButton.h"
 #include "GUILabel.h"
 
-#include "DataModule.h"
 #include "Controller.h"
 #include "SceneObject.h"
 #include "MovableObject.h"

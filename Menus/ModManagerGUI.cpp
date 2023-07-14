@@ -4,7 +4,6 @@
 #include "ModuleMan.h"
 #include "PresetMan.h"
 #include "WindowMan.h"
-#include "DataModule.h"
 #include "GlobalScript.h"
 
 #include "GUI.h"

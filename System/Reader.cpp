@@ -1,6 +1,5 @@
 #include "Reader.h"
 #include "ConsoleMan.h"
-#include "PresetMan.h"
 #include "ModuleMan.h"
 #include "SettingsMan.h"
 

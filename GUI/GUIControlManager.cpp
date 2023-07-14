@@ -1,5 +1,4 @@
 #include "GUI.h"
-#include "PresetMan.h"
 #include "ModuleMan.h"
 
 using namespace RTE;

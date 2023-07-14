@@ -3,7 +3,6 @@
 #include "ModuleMan.h"
 #include "PresetMan.h"
 #include "ConsoleMan.h"
-#include "DataModule.h"
 
 namespace RTE {
 

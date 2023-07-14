@@ -21,7 +21,6 @@
 #include "Actor.h"
 #include "ACraft.h"
 #include "ActivityMan.h"
-#include "DataModule.h"
 
 namespace RTE {
 

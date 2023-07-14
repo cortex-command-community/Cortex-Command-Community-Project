@@ -1,6 +1,4 @@
 #include "MetaPlayer.h"
-#include "DataModule.h"
-#include "PresetMan.h"
 #include "ModuleMan.h"
 #include "ActivityMan.h"
 

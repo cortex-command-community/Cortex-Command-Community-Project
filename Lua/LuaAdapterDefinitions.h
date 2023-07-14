@@ -21,7 +21,6 @@
 
 #include "Box.h"
 #include "Controller.h"
-#include "DataModule.h"
 #include "GraphicalPrimitive.h"
 
 #include "GUIBanner.h"

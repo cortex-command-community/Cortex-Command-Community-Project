@@ -50,7 +50,6 @@
 #include "BaseEditor.h"
 #include "Scene.h"
 #include "SLTerrain.h"
-#include "DataModule.h"
 #include "Loadout.h"
 
 using namespace RTE;
