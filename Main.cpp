@@ -94,7 +94,7 @@ namespace RTE {
 		g_ActivityMan.Destroy();
 		g_GUISound.Destroy();
 		g_AudioMan.Destroy();
-		g_PresetMan.Destroy();
+		g_ModuleMan.Destroy();
 		g_UInputMan.Destroy();
 		g_PostProcessMan.Destroy();
 		g_FrameMan.Destroy();
