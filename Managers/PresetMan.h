@@ -85,7 +85,7 @@ namespace RTE {
 		//                  derived type or instance name was found. Ownership is NOT transferred!
 		const Entity * GetEntityPreset(std::string type, std::string preset, int whichModule = -1);
 		// Helper for passing in string module name instead of ID
-		const Entity * GetEntityPreset(std::string type, std::string preset, std::string module) { return GetEntityPreset(type, preset, GetModuleID(module)); }
+		const Entity * GetEntityPreset(std::string type, std::string preset, std::string module);
 
 
 		//////////////////////////////////////////////////////////////////////////////////////////

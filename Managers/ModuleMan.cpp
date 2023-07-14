@@ -1,4 +1,11 @@
+// Suppress compiler warning about unrecognized escape sequence in LoadAllDataModules.
+#pragma warning( disable : 4129 )
+
 #include "ModuleMan.h"
+#include "SettingsMan.h"
+#include "ConsoleMan.h"
+
+#include "LoadingScreen.h"
 
 namespace RTE {
 
@@ -217,7 +224,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::string PresetMan::GetModuleNameFromPath(const std::string &dataPath) const {
+	std::string ModuleMan::GetModuleNameFromPath(const std::string &dataPath) const {
 		if (dataPath.empty()) {
 			return "";
 		}
@@ -241,7 +248,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int PresetMan::GetModuleIDFromPath(const std::string &dataPath) {
+	int ModuleMan::GetModuleIDFromPath(const std::string &dataPath) {
 		if (dataPath.empty()) {
 			return -1;
 		}
@@ -250,7 +257,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::string PresetMan::GetFullModulePath(const std::string &modulePath) const {
+	std::string ModuleMan::GetFullModulePath(const std::string &modulePath) const {
 		const std::string modulePathGeneric = std::filesystem::path(modulePath).generic_string();
 		const std::string pathTopDir = modulePathGeneric.substr(0, modulePathGeneric.find_first_of("/\\") + 1);
 		const std::string moduleName = GetModuleNameFromPath(modulePathGeneric);
@@ -267,7 +274,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PresetMan::FindAndExtractZippedModules() const {
+	void ModuleMan::FindAndExtractZippedModules() const {
 		for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(System::GetWorkingDirectory() + System::GetModDirectory())) {
 			std::string zippedModulePath = std::filesystem::path(directoryEntry).generic_string();
 			if (zippedModulePath.ends_with(System::GetZippedModulePackageExtension())) {

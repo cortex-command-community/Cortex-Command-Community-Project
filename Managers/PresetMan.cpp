@@ -1,12 +1,8 @@
-// Suppress compiler warning about unrecognized escape sequence in PresetMan::LoadAllDataModules.
-#pragma warning( disable : 4129 )
-
 #include "PresetMan.h"
 
-#include "SettingsMan.h"
 #include "ModuleMan.h"
+#include "SettingsMan.h"
 #include "ConsoleMan.h"
-#include "LoadingScreen.h"
 
 #include "DataModule.h"
 #include "SceneObject.h"
@@ -66,6 +62,12 @@ namespace RTE {
 		}
 
 		return pRetEntity;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	const Entity * PresetMan::GetEntityPreset(std::string type, std::string preset, std::string module) {
+		return GetEntityPreset(type, preset, GetModuleID(module));
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

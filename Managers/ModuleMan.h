@@ -30,7 +30,7 @@ namespace RTE {
 		void Destroy();
 #pragma endregion
 
-#pragma region Getters
+#pragma region Getters and Setters
 		/// <summary>
 		/// Gets the map of mods which are disabled.
 		/// </summary>
@@ -132,6 +132,16 @@ namespace RTE {
 		int GetOfficialModuleCount() { return m_OfficialModuleCount; }
 
 
+
+
+		/// <summary>
+		/// Sets the single module to be loaded after the official modules. This will be the ONLY non-official module to be loaded.
+		/// </summary>
+		/// <param name="moduleName">Name of the module to load.</param>
+		void SetSingleModuleToLoad(std::string moduleName) { m_SingleModuleToLoad = moduleName; }
+#pragma endregion
+
+#pragma region Contrete Methods
 		/// <summary>
 		/// Reads an entire DataModule and adds it to this. NOTE that official modules can't be loaded after any non-official ones!
 		/// </summary>
@@ -154,15 +164,6 @@ namespace RTE {
 		/// </summary>
 		/// <returns></returns>
 		bool LoadAllDataModules();
-
-		/// <summary>
-		/// Sets the single module to be loaded after the official modules. This will be the ONLY non-official module to be loaded.
-		/// </summary>
-		/// <param name="moduleName">Name of the module to load.</param>
-		void SetSingleModuleToLoad(std::string moduleName) { m_SingleModuleToLoad = moduleName; }
-
-
-
 #pragma endregion
 
 	private:
