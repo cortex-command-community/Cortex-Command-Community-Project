@@ -244,8 +244,8 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaMan::SetLuaPath(const std::string &filePath) {
-		const std::string moduleName = g_PresetMan.GetModuleNameFromPath(filePath);
-		const std::string moduleFolder = g_PresetMan.IsModuleOfficial(moduleName) ? System::GetDataDirectory() : System::GetModDirectory();
+		const std::string moduleName = g_ModuleMan.GetModuleNameFromPath(filePath);
+		const std::string moduleFolder = g_ModuleMan.IsModuleOfficial(moduleName) ? System::GetDataDirectory() : System::GetModDirectory();
 		const std::string scriptPath = moduleFolder + moduleName + "/?.lua";
 
 		lua_getglobal(m_MasterState, "package");
@@ -379,7 +379,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int LuaMan::RunScriptFile(const std::string &filePath, bool consoleErrors) {
-		const std::string fullScriptPath = g_PresetMan.GetFullModulePath(filePath);
+		const std::string fullScriptPath = g_ModuleMan.GetFullModulePath(filePath);
 		if (fullScriptPath.empty()) {
 			m_LastError = "Can't run a script file with an empty filepath!";
 			return -1;
@@ -542,7 +542,7 @@ namespace RTE {
 			return -1;
 		}
 
-		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(fileName);
+		std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(fileName);
 		if ((fullPath.find("..") == std::string::npos) && (fullPath.find(System::GetModulePackageExtension()) != std::string::npos)) {
 
 #ifdef _WIN32

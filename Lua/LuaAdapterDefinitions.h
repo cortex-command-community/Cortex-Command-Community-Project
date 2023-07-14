@@ -11,6 +11,7 @@
 #include "MetaMan.h"
 #include "MovableMan.h"
 #include "PostProcessMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "PrimitiveMan.h"
 #include "SceneMan.h"

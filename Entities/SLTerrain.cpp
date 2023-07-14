@@ -1,4 +1,5 @@
 #include "SLTerrain.h"
+#include "ModuleMan.h"
 #include "TerrainFrosting.h"
 #include "TerrainDebris.h"
 #include "TerrainObject.h"
@@ -142,7 +143,7 @@ namespace RTE {
 		BITMAP *defaultBGLayerTexture = m_DefaultBGTextureFile.GetAsBitmap();
 
 		const std::array<Material *, c_PaletteEntriesNumber> &materialPalette = g_SceneMan.GetMaterialPalette();
-		const std::array<unsigned char, c_PaletteEntriesNumber> &materialMappings = g_PresetMan.GetDataModule(m_BitmapFile.GetDataModuleID())->GetAllMaterialMappings();
+		const std::array<unsigned char, c_PaletteEntriesNumber> &materialMappings = g_ModuleMan.GetDataModule(m_BitmapFile.GetDataModuleID())->GetAllMaterialMappings();
 
 		std::array<BITMAP *, c_PaletteEntriesNumber> materialFGTextures;
 		materialFGTextures.fill(nullptr);

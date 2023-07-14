@@ -3,6 +3,7 @@
 
 #include "CameraMan.h"
 #include "ConsoleMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "UInputMan.h"
 #include "AudioMan.h"
@@ -96,15 +97,15 @@ namespace RTE {
 
 		// Become our own original preset, instead of being a copy of the Scene we got cloned from, so we don't still pick up the PlacedObjectSets from our parent when loading.
 		modifiableScene->SetPresetName(fileName);
-		modifiableScene->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
+		modifiableScene->MigrateToModule(g_ModuleMan.GetModuleID(c_UserScriptedSavesModuleName));
 		modifiableScene->SetSavedGameInternal(true);
 
 		// Make sure the terrain is also treated as an original preset, otherwise it will screw up if we save then load then save again, since it'll try to be a CopyOf of itself.
 		modifiableScene->GetTerrain()->SetPresetName(fileName);
-		modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
+		modifiableScene->GetTerrain()->MigrateToModule(g_ModuleMan.GetModuleID(c_UserScriptedSavesModuleName));
 
 		// Block the main thread for a bit to let the Writer access the relevant data.
-		std::unique_ptr<Writer> writer(std::make_unique<Writer>(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ini"));
+		std::unique_ptr<Writer> writer(std::make_unique<Writer>(g_ModuleMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ini"));
 		writer->NewPropertyWithValue("Activity", activity);
 
 		// Pull all stuff from MovableMan into the Scene for saving, so existing Actors/ADoors are saved, without transferring ownership, so the game can continue.
@@ -150,7 +151,7 @@ namespace RTE {
 		std::unique_ptr<Scene> scene(std::make_unique<Scene>());
 		std::unique_ptr<GAScripted> activity(std::make_unique<GAScripted>());
 
-		Reader reader(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ini", true, nullptr, true);
+		Reader reader(g_ModuleMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ini", true, nullptr, true);
 		if (!reader.ReaderOK()) {
 			RTEError::ShowMessageBox("ERROR: Game loading failed! Make sure you have a saved game called \"" + fileName + "\"");
 			return false;

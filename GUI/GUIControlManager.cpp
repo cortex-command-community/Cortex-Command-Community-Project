@@ -1,5 +1,6 @@
 #include "GUI.h"
 #include "PresetMan.h"
+#include "ModuleMan.h"
 
 using namespace RTE;
 
@@ -405,7 +406,7 @@ bool GUIControlManager::Save(GUIWriter *W) {
 
 bool GUIControlManager::Load(const std::string &Filename, bool keepOld) {
 	GUIReader reader;
-	const std::string pathFile = g_PresetMan.GetFullModulePath(Filename);
+	const std::string pathFile = g_ModuleMan.GetFullModulePath(Filename);
 	if (reader.Create(pathFile.c_str()) != 0) {
 		return false;
 	}

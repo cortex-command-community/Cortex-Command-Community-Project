@@ -14,6 +14,7 @@
 #include "GibEditor.h"
 
 #include "WindowMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "UInputMan.h"
@@ -438,7 +439,7 @@ void GibEditor::Update()
                 GUIListPanel::Item *pItem = m_pNewModuleCombo->GetItem(m_pNewModuleCombo->GetSelectedIndex());
                 if (pItem && !pItem->m_Name.empty())
                 {
-                    m_ModuleSpaceID = g_PresetMan.GetModuleID(pItem->m_Name);
+                    m_ModuleSpaceID = g_ModuleMan.GetModuleID(pItem->m_Name);
 
                     // Allocate Scene
                     Scene *pNewScene = new Scene();
@@ -714,8 +715,8 @@ bool GibEditor::SaveObject(const std::string &saveAsName, bool forceOverwrite) {
 	// Replace the gibs of the object with the proxies that have been edited in the GUI.
 	StuffEditedGibs(m_pEditedObject);
 
-	std::string dataModuleName = g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName();
-	std::string dataModuleFullPath = g_PresetMan.GetFullModulePath(dataModuleName);
+	std::string dataModuleName = g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName();
+	std::string dataModuleFullPath = g_ModuleMan.GetFullModulePath(dataModuleName);
 	std::string newDataDir = dataModuleFullPath + "/NewData";
 	std::string objectSavePath = newDataDir + "/" + saveAsName + ".ini";
 
@@ -816,8 +817,8 @@ void GibEditor::UpdateNewDialog()
     // Only refill modules if empty
     if (m_pNewModuleCombo->GetCount() <= 0)
     {
-        for (int module = 0; module < g_PresetMan.GetTotalModuleCount(); ++module)
-            m_pNewModuleCombo->AddItem(g_PresetMan.GetDataModule(module)->GetFileName());
+        for (int module = 0; module < g_ModuleMan.GetTotalModuleCount(); ++module)
+            m_pNewModuleCombo->AddItem(g_ModuleMan.GetDataModule(module)->GetFileName());
 
         // Select the first one
         m_pNewModuleCombo->SetSelectedIndex(0);
@@ -827,7 +828,7 @@ void GibEditor::UpdateNewDialog()
     int selectedModuleID = -1;
     GUIListPanel::Item *pItem = m_pNewModuleCombo->GetItem(m_pNewModuleCombo->GetSelectedIndex());
     if (pItem && !pItem->m_Name.empty())
-        selectedModuleID = g_PresetMan.GetModuleID(pItem->m_Name);
+        selectedModuleID = g_ModuleMan.GetModuleID(pItem->m_Name);
 
     // Refill Terrains
     m_pNewTerrainCombo->ClearList();
@@ -889,7 +890,7 @@ void GibEditor::UpdateSaveDialog()
 
     m_pSaveNameBox->SetText((m_pEditedObject->GetPresetName() == "None" || !m_HasEverBeenSaved) ? "New Object" : m_pEditedObject->GetPresetName());
 // TODO: Really?
-    m_pSaveModuleLabel->SetText("Will save in " + g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/");
+    m_pSaveModuleLabel->SetText("Will save in " + g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/");
 }
 
 
@@ -906,7 +907,7 @@ void GibEditor::UpdateChangesDialog()
     if (m_HasEverBeenSaved)
     {
         dynamic_cast<GUILabel *>(m_pGUIController->GetControl("ChangesExpLabel"))->SetText("Do you want to save your changes to:");
-        m_pChangesNameLabel->SetText(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/" + m_pEditedObject->GetPresetName() + ".ini");
+        m_pChangesNameLabel->SetText(g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/" + m_pEditedObject->GetPresetName() + ".ini");
     }
     else
     {
@@ -924,7 +925,7 @@ void GibEditor::UpdateChangesDialog()
 void GibEditor::UpdateOverwriteDialog()
 {
     if (m_pEditedObject)
-        m_pOverwriteNameLabel->SetText(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/" + m_pEditedObject->GetPresetName() + ".ini");
+        m_pOverwriteNameLabel->SetText(g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/" + m_pEditedObject->GetPresetName() + ".ini");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

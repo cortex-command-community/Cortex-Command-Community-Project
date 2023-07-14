@@ -13,6 +13,7 @@
 
 #include "MovableObject.h"
 
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "SceneMan.h"
 #include "ConsoleMan.h"
@@ -335,7 +336,7 @@ int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader
 	else if (propName == "HUDVisible")
 		reader >> m_HUDVisible;
 	else if (propName == "ScriptPath") {
-		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
+		std::string scriptPath = g_ModuleMan.GetFullModulePath(reader.ReadPropValue());
         switch (LoadScript(scriptPath)) {
             case 0:
                 break;

@@ -1,5 +1,6 @@
 #include "ScenarioActivityConfigGUI.h"
 
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "UInputMan.h"
 
@@ -74,8 +75,8 @@ namespace RTE {
 			m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-All-", "", nullptr, nullptr, -2);
 			m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
 		}
-		for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-			if (const DataModule *dataModule = g_PresetMan.GetDataModule(moduleID)) {
+		for (int moduleID = 0; moduleID < g_ModuleMan.GetTotalModuleCount(); ++moduleID) {
+			if (const DataModule *dataModule = g_ModuleMan.GetDataModule(moduleID)) {
 				if (dataModule->IsFaction()) {
 					for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 						m_TeamTechComboBoxes[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
@@ -222,9 +223,9 @@ namespace RTE {
 				if (techItem->m_ExtraIndex == -2) {
 					gameActivity->SetTeamTech(team, "-All-");
 				} else if (techItem->m_ExtraIndex == -1) {
-					gameActivity->SetTeamTech(team, g_PresetMan.GetDataModuleName(m_TeamTechComboBoxes.at(team)->GetItem(RandomNum<int>(2, m_TeamTechComboBoxes.at(team)->GetListPanel()->GetItemList()->size() - 1))->m_ExtraIndex));
+					gameActivity->SetTeamTech(team, g_ModuleMan.GetDataModuleName(m_TeamTechComboBoxes.at(team)->GetItem(RandomNum<int>(2, m_TeamTechComboBoxes.at(team)->GetListPanel()->GetItemList()->size() - 1))->m_ExtraIndex));
 				} else {
-					gameActivity->SetTeamTech(team, g_PresetMan.GetDataModuleName(techItem->m_ExtraIndex));
+					gameActivity->SetTeamTech(team, g_ModuleMan.GetDataModuleName(techItem->m_ExtraIndex));
 				}
 			}
 			gameActivity->SetTeamAISkill(team, (m_TeamAISkillSliders.at(team)->IsEnabled()) ? m_TeamAISkillSliders.at(team)->GetValue() : Activity::AISkillSetting::DefaultSkill);

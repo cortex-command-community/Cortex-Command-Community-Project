@@ -22,41 +22,43 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::AddEntityPreset(Entity *pEntToAdd, int whichModule, bool overwriteSame, std::string readFromFile) {
-		RTEAssert(whichModule >= 0 && whichModule < m_pDataModules.size(), "Tried to access an out of bounds data module number!");
+		RTEAssert(whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
-		return m_pDataModules[whichModule]->AddEntityPreset(pEntToAdd, overwriteSame, readFromFile);
+		return g_ModuleMan.GetLoadedDataModules()[whichModule]->AddEntityPreset(pEntToAdd, overwriteSame, readFromFile);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const Entity * PresetMan::GetEntityPreset(std::string type, std::string preset, int whichModule) {
-		RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
+		RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
 		const Entity *pRetEntity = 0;
+
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
 
 		// Preset name might have "[ModuleName]/" preceding it, detect it here and select proper module!
 		int slashPos = preset.find_first_of('/');
 		if (slashPos != std::string::npos) {
 			// Get the module ID and cut off the module specifier in the string
-			whichModule = GetModuleID(preset.substr(0, slashPos));
+			whichModule = g_ModuleMan.GetModuleID(preset.substr(0, slashPos));
 			preset = preset.substr(slashPos + 1);
 		}
 
 		// All modules
 		if (whichModule < 0) {
 			// Search all modules
-			for (int i = 0; i < m_pDataModules.size() && !pRetEntity; ++i) {
-				pRetEntity = m_pDataModules[i]->GetEntityPreset(type, preset);
+			for (int i = 0; i < loadedModules.size() && !pRetEntity; ++i) {
+				pRetEntity = loadedModules[i]->GetEntityPreset(type, preset);
 			}
 		} else {
 			// Try to get it from the asked for module
-			pRetEntity = m_pDataModules[whichModule]->GetEntityPreset(type, preset);
+			pRetEntity = loadedModules[whichModule]->GetEntityPreset(type, preset);
 
 			// If couldn't find it in there, then try all the official modules!
 			if (!pRetEntity) {
-				RTEAssert(m_OfficialModuleCount <= m_pDataModules.size(), "More official modules than modules loaded?!");
-				for (int i = 0; i < m_OfficialModuleCount && !pRetEntity; ++i) {
-					pRetEntity = m_pDataModules[i]->GetEntityPreset(type, preset);
+				RTEAssert(g_ModuleMan.GetOfficialModuleCount() <= loadedModules.size(), "More official modules than modules loaded?!");
+				for (int i = 0; i < g_ModuleMan.GetOfficialModuleCount() && !pRetEntity; ++i) {
+					pRetEntity = loadedModules[i]->GetEntityPreset(type, preset);
 				}
 			}
 		}
@@ -67,7 +69,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const Entity * PresetMan::GetEntityPreset(std::string type, std::string preset, std::string module) {
-		return GetEntityPreset(type, preset, GetModuleID(module));
+		return GetEntityPreset(type, preset, g_ModuleMan.GetModuleID(module));
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +77,7 @@ namespace RTE {
 	const Entity * PresetMan::GetEntityPreset(Reader &reader) {
 		// The reader is aware of which DataModule it is reading within
 		int whichModule = reader.GetReadModuleID();
-		RTEAssert(whichModule >= 0 && whichModule < m_pDataModules.size(), "Reader has an out of bounds module number!");
+		RTEAssert(whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount(), "Reader has an out of bounds module number!");
 
 		std::string ClassName;
 		const Entity::ClassInfo *pClass = 0;
@@ -84,6 +86,8 @@ namespace RTE {
 		// Load class name and then preset instance
 		reader >> ClassName;
 		pClass = Entity::ClassInfo::GetClass(ClassName);
+
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
 
 		if (pClass && pClass->IsConcrete()) {
 			// Instantiate
@@ -95,20 +99,20 @@ namespace RTE {
 			// Try to read in the preset instance's data from the reader
 			if (pNewInstance && pNewInstance->Create(reader, false) < 0) {
 				// Abort loading if we can't create entity and it's not in a module that allows ignoring missing items.
-				if (!g_PresetMan.GetDataModule(whichModule)->GetIgnoreMissingItems()) {
+				if (!g_ModuleMan.GetDataModule(whichModule)->GetIgnoreMissingItems()) {
 					RTEAbort("Reading of a preset instance \"" + pNewInstance->GetPresetName() + "\" of class " + pNewInstance->GetClassName() + " failed in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
 				}
 			} else if (pNewInstance) {
 				// Try to add the instance to the collection
-				m_pDataModules[whichModule]->AddEntityPreset(pNewInstance, reader.GetPresetOverwriting(), entityFilePath);
+				loadedModules[whichModule]->AddEntityPreset(pNewInstance, reader.GetPresetOverwriting(), entityFilePath);
 
 				// Regardless of whether there was a collision or not, use whatever now exists in the instance map of that class and name
-				pReturnPreset = m_pDataModules[whichModule]->GetEntityPreset(pNewInstance->GetClassName(), pNewInstance->GetPresetName());
+				pReturnPreset = loadedModules[whichModule]->GetEntityPreset(pNewInstance->GetClassName(), pNewInstance->GetPresetName());
 				// If the instance wasn't found in the specific DataModule, try to find it in all the official ones instead
 				if (!pReturnPreset) {
-					RTEAssert(m_OfficialModuleCount <= m_pDataModules.size(), "More official modules than modules loaded?!");
-					for (int i = 0; i < m_OfficialModuleCount && !pReturnPreset; ++i) {
-						pReturnPreset = m_pDataModules[i]->GetEntityPreset(pNewInstance->GetClassName(), pNewInstance->GetPresetName());
+					RTEAssert(g_ModuleMan.GetOfficialModuleCount() <= loadedModules.size(), "More official modules than modules loaded?!");
+					for (int i = 0; i < g_ModuleMan.GetOfficialModuleCount() && !pReturnPreset; ++i) {
+						pReturnPreset = loadedModules[i]->GetEntityPreset(pNewInstance->GetClassName(), pNewInstance->GetPresetName());
 					}
 				}
 			}
@@ -125,7 +129,7 @@ namespace RTE {
 	Entity * PresetMan::ReadReflectedPreset(Reader &reader) {
 		// The reader is aware of which DataModule it's reading within
 		int whichModule = reader.GetReadModuleID();
-		RTEAssert(whichModule >= 0 && whichModule < m_pDataModules.size(), "Reader has an out of bounds module number!");
+		RTEAssert(whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount(), "Reader has an out of bounds module number!");
 
 		std::string ClassName;
 		const Entity::ClassInfo *pClass = 0;
@@ -133,6 +137,8 @@ namespace RTE {
 		// Load class name and then preset instance
 		reader >> ClassName;
 		pClass = Entity::ClassInfo::GetClass(ClassName);
+
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
 
 		if (pClass && pClass->IsConcrete()) {
 			// Instantiate
@@ -143,13 +149,13 @@ namespace RTE {
 
 			// Try to read in the preset instance's data from the reader
 			if (pNewInstance && pNewInstance->Create(reader, false) < 0) {
-				if (!g_PresetMan.GetDataModule(whichModule)->GetIgnoreMissingItems()) {
+				if (!g_ModuleMan.GetDataModule(whichModule)->GetIgnoreMissingItems()) {
 					RTEAbort("Reading of a preset instance \"" + pNewInstance->GetPresetName() + "\" of class " + pNewInstance->GetClassName() + " failed in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
 				}
 			} else {
 				// Try to add the instance to the collection.
 				// Note that we'll return this instance regardless of whether the adding was succesful or not
-				m_pDataModules[whichModule]->AddEntityPreset(pNewInstance, reader.GetPresetOverwriting(), entityFilePath);
+				loadedModules[whichModule]->AddEntityPreset(pNewInstance, reader.GetPresetOverwriting(), entityFilePath);
 				return pNewInstance;
 			}
 		}
@@ -166,17 +172,19 @@ namespace RTE {
 
 		bool foundAny = false;
 
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
+
 		// All modules
 		if (whichModule < 0) {
 			// Send the list to each module
-			for (int i = 0; i < m_pDataModules.size(); ++i) {
-				foundAny = m_pDataModules[i]->GetAllOfType(entityList, type) || foundAny;
+			for (int i = 0; i < loadedModules.size(); ++i) {
+				foundAny = loadedModules[i]->GetAllOfType(entityList, type) || foundAny;
 			}
 		}
 		// Specific module
 		else {
-			RTEAssert(whichModule < m_pDataModules.size(), "Trying to get from an out of bounds DataModule ID!");
-			foundAny = m_pDataModules[whichModule]->GetAllOfType(entityList, type);
+			RTEAssert(whichModule < loadedModules.size(), "Trying to get from an out of bounds DataModule ID!");
+			foundAny = loadedModules[whichModule]->GetAllOfType(entityList, type);
 		}
 
 		return foundAny;
@@ -196,7 +204,7 @@ namespace RTE {
 			foundAny = GetAllOfType(entityList, type, whichModuleSpace);
 		} else {
 			// Get all entitys of the specific type in the official modules loaded before the specified one
-			for (int module = 0; module < m_OfficialModuleCount && module < whichModuleSpace; ++module) {
+			for (int module = 0; module < g_ModuleMan.GetOfficialModuleCount() && module < whichModuleSpace; ++module) {
 				foundAny = GetAllOfType(entityList, type, module) || foundAny;
 			}
 			// Now get the groups of the specified module (official or not)
@@ -212,13 +220,15 @@ namespace RTE {
 		RTEAssert(!groups.empty(), "Looking for empty groups in PresetMan::GetAllOfGroups!");
 		bool foundAny = false;
 
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
+
 		if (whichModule < 0) {
-			for (DataModule *dataModule : m_pDataModules) {
+			for (DataModule *dataModule : loadedModules) {
 				foundAny = dataModule->GetAllOfGroups(entityList, groups, type) || foundAny;
 			}
 		} else {
-			RTEAssert(whichModule < m_pDataModules.size(), "Trying to get from an out of bounds DataModule ID in PresetMan::GetAllOfGroups!");
-			foundAny = m_pDataModules[whichModule]->GetAllOfGroups(entityList, groups, type);
+			RTEAssert(whichModule < loadedModules.size(), "Trying to get from an out of bounds DataModule ID in PresetMan::GetAllOfGroups!");
+			foundAny = loadedModules[whichModule]->GetAllOfGroups(entityList, groups, type);
 		}
 		return foundAny;
 	}
@@ -234,13 +244,15 @@ namespace RTE {
 
 		bool foundAny = false;
 
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
+
 		if (whichModule < 0) {
-			for (DataModule *dataModule : m_pDataModules) {
+			for (DataModule *dataModule : loadedModules) {
 				foundAny = dataModule->GetAllNotOfGroups(entityList, groups, type) || foundAny;
 			}
 		} else {
-			RTEAssert(whichModule < m_pDataModules.size(), "Trying to get from an out of bounds DataModule ID in PresetMan::GetAllNotOfGroups!");
-			foundAny = m_pDataModules[whichModule]->GetAllNotOfGroups(entityList, groups, type);
+			RTEAssert(whichModule < loadedModules.size(), "Trying to get from an out of bounds DataModule ID in PresetMan::GetAllNotOfGroups!");
+			foundAny = loadedModules[whichModule]->GetAllNotOfGroups(entityList, groups, type);
 		}
 		return foundAny;
 	}
@@ -254,16 +266,18 @@ namespace RTE {
 		// The total list we'll select a random one from
 		std::list<Entity *> entityList;
 
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
+
 		// All modules
 		if (whichModule < 0) {
 			// Get from all modules
-			for (int i = 0; i < m_pDataModules.size(); ++i) {
+			for (int i = 0; i < g_ModuleMan.GetTotalModuleCount(); ++i) {
 				// Send the list to each module, let them add
-				foundAny = m_pDataModules[i]->GetAllOfGroups(entityList, { group }, type) || foundAny;
+				foundAny = loadedModules[i]->GetAllOfGroups(entityList, { group }, type) || foundAny;
 			}
 		} else {
-			RTEAssert(whichModule < m_pDataModules.size(), "Trying to get from an out of bounds DataModule ID!");
-			foundAny = m_pDataModules[whichModule]->GetAllOfGroups(entityList, { group }, type);
+			RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Trying to get from an out of bounds DataModule ID!");
+			foundAny = loadedModules[whichModule]->GetAllOfGroups(entityList, { group }, type);
 		}
 
 		// Didn't find any of that group in those module(s)
@@ -295,16 +309,18 @@ namespace RTE {
 		std::list<Entity *> entityList;
 		std::list<Entity *> tempList;
 
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
+
 		// All modules
 		if (whichModule < 0) {
-			for (DataModule *dataModule : m_pDataModules) {
+			for (DataModule *dataModule : loadedModules) {
 				if (dataModule->IsFaction()) {
 					foundAny = dataModule->GetAllOfGroups(tempList, { group }, type) || foundAny;
 				}
 			}
 		} else {
-			RTEAssert(whichModule < m_pDataModules.size(), "Trying to get from an out of bounds DataModule ID!");
-			foundAny = m_pDataModules[whichModule]->GetAllOfGroups(tempList, { group }, type);
+			RTEAssert(whichModule < loadedModules.size(), "Trying to get from an out of bounds DataModule ID!");
+			foundAny = loadedModules[whichModule]->GetAllOfGroups(tempList, { group }, type);
 		}
 
 		//Filter found entities, we need only buyables
@@ -397,7 +413,7 @@ namespace RTE {
 			foundAny = GetAllOfGroup(entityList, group, type, whichModuleSpace);
 		} else {
 			// Get all entitys of the specific group the official modules loaded before the specified one
-			for (int module = 0; module < m_OfficialModuleCount && module < whichModuleSpace; ++module) {
+			for (int module = 0; module < g_ModuleMan.GetOfficialModuleCount() && module < whichModuleSpace; ++module) {
 				foundAny = GetAllOfGroup(entityList, group, type, module) || foundAny;
 			}
 
@@ -422,7 +438,7 @@ namespace RTE {
 			foundAny = GetAllOfGroup(entityList, group, type, whichModuleSpace);
 		} else {
 			// Get all entitys of the specific group the official modules loaded before the specified one
-			for (int module = 0; module < m_OfficialModuleCount && module < whichModuleSpace; ++module) {
+			for (int module = 0; module < g_ModuleMan.GetOfficialModuleCount() && module < whichModuleSpace; ++module) {
 				foundAny = GetAllOfGroup(entityList, group, type, module) || foundAny;
 			}
 
@@ -452,25 +468,27 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string PresetMan::GetEntityDataLocation(std::string type, std::string preset, int whichModule) {
-		RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
+		RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
 		std::string pRetPath = "";
+
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
 
 		// All modules
 		if (whichModule < 0) {
 			// Search all modules
-			for (int i = 0; i < m_pDataModules.size() && pRetPath.empty(); ++i) {
-				pRetPath = m_pDataModules[i]->GetEntityDataLocation(type, preset);
+			for (int i = 0; i < loadedModules.size() && pRetPath.empty(); ++i) {
+				pRetPath = loadedModules[i]->GetEntityDataLocation(type, preset);
 			}
 		} else {
 			// Try to get it from the asked for module
-			pRetPath = m_pDataModules[whichModule]->GetEntityDataLocation(type, preset);
+			pRetPath = loadedModules[whichModule]->GetEntityDataLocation(type, preset);
 
 			// If couldn't find it in there, then try all the official modules!
 			if (pRetPath.empty()) {
-				RTEAssert(m_OfficialModuleCount <= m_pDataModules.size(), "More official modules than modules loaded?!");
-				for (int i = 0; i < m_OfficialModuleCount && pRetPath.empty(); ++i) {
-					pRetPath = m_pDataModules[i]->GetEntityDataLocation(type, preset);
+				RTEAssert(g_ModuleMan.GetOfficialModuleCount() <= loadedModules.size(), "More official modules than modules loaded?!");
+				for (int i = 0; i < g_ModuleMan.GetOfficialModuleCount() && pRetPath.empty(); ++i) {
+					pRetPath = loadedModules[i]->GetEntityDataLocation(type, preset);
 				}
 			}
 		}
@@ -482,7 +500,7 @@ namespace RTE {
 
 	void PresetMan::ReloadAllScripts() const {
 		g_LuaMan.ClearUserModuleCache();
-		for (const DataModule *dataModule : m_pDataModules) {
+		for (const DataModule *dataModule : g_ModuleMan.GetLoadedDataModules()) {
 			dataModule->ReloadAllScripts();
 		}
 		g_ConsoleMan.PrintString("SYSTEM: Scripts reloaded!");
@@ -498,7 +516,7 @@ namespace RTE {
 
 		int moduleId = -1;
 		if (moduleName != "") {
-			moduleId = GetModuleID(moduleName);
+			moduleId = g_ModuleMan.GetModuleID(moduleName);
 			if (moduleId < 0) {
 				g_ConsoleMan.PrintString("ERROR: Failed to find data module with name \"" + moduleName + "\" while attempting to reload an Entity preset with name \"" + presetName + "\" of type \"" + className + "\"!");
 				return false;
@@ -552,15 +570,15 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::AddMaterialMapping(int fromID, int toID, int whichModule) {
-		RTEAssert(whichModule >= m_OfficialModuleCount && whichModule < m_pDataModules.size(), "Tried to make a material mapping in an offical or out-of-bounds DataModule!");
+		RTEAssert(whichModule >= g_ModuleMan.GetOfficialModuleCount() && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to make a material mapping in an offical or out-of-bounds DataModule!");
 
-		return m_pDataModules[whichModule]->AddMaterialMapping(fromID, toID);
+		return g_ModuleMan.GetLoadedDataModules()[whichModule]->AddMaterialMapping(fromID, toID);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PresetMan::RegisterGroup(std::string newGroup, int whichModule) {
-		RTEAssert(whichModule >= 0 && whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
+		RTEAssert(whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
 		// Register in the handy total list
 		m_TotalGroupRegister.push_back(newGroup);
@@ -568,15 +586,17 @@ namespace RTE {
 		m_TotalGroupRegister.unique();
 
 		// Register in the specified module too
-		m_pDataModules[whichModule]->RegisterGroup(newGroup);
+		g_ModuleMan.GetLoadedDataModules()[whichModule]->RegisterGroup(newGroup);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::GetGroups(std::list<std::string> &groupList, int whichModule, std::string withType) const {
-		RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
+		RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
 		bool foundAny = false;
+
+		auto loadedModules = g_ModuleMan.GetLoadedDataModules();
 
 		// Asked for ALL groups ever registered
 		if (whichModule < 0) {
@@ -589,15 +609,15 @@ namespace RTE {
 				foundAny = !m_TotalGroupRegister.empty();
 			} else {
 				// Filter out groups without any entitys of the specified type
-				for (int module = 0; module < (int)m_pDataModules.size(); ++module) {
-					foundAny = m_pDataModules[module]->GetGroupsWithType(groupList, withType) || foundAny;
+				for (int module = 0; module < loadedModules.size(); ++module) {
+					foundAny = loadedModules[module]->GetGroupsWithType(groupList, withType) || foundAny;
 				}
 			}
-		} else if (!m_pDataModules[whichModule]->GetGroupRegister()->empty()) {
+		} else if (!loadedModules[whichModule]->GetGroupRegister()->empty()) {
 			// Asked for specific DataModule's groups
 			// Get ALL groups of that module
 			if (withType == "All" || withType.empty()) {
-				const std::list<std::string> *pGroupList = m_pDataModules[whichModule]->GetGroupRegister();
+				const std::list<std::string> *pGroupList = loadedModules[whichModule]->GetGroupRegister();
 				for (std::list<std::string>::const_iterator gItr = pGroupList->begin(); gItr != pGroupList->end(); ++gItr) {
 					groupList.push_back(*gItr);
 				}
@@ -605,7 +625,7 @@ namespace RTE {
 				foundAny = !pGroupList->empty();
 			} else {
 				// Get only modules that contain an entity of valid type
-				foundAny = m_pDataModules[whichModule]->GetGroupsWithType(groupList, withType) || foundAny;
+				foundAny = loadedModules[whichModule]->GetGroupsWithType(groupList, withType) || foundAny;
 			}
 		}
 
@@ -615,7 +635,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::GetModuleSpaceGroups(std::list<std::string> &groupList, int whichModule, std::string withType) const {
-		RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
+		RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
 		bool foundAny = false;
 
@@ -630,14 +650,14 @@ namespace RTE {
 				foundAny = !m_TotalGroupRegister.empty();
 			} else {
 				// Get type filtered groups from ALL data modules
-				for (int module = 0; module < (int)m_pDataModules.size(); ++module) {
+				for (int module = 0; module < g_ModuleMan.GetTotalModuleCount(); ++module) {
 					foundAny = GetGroups(groupList, module, withType) || foundAny;
 				}
 			}
 		} else {
 			// Getting modulespace of specific module
 			// Get all groups of the official modules that are loaded before the specified one
-			for (int module = 0; module < m_OfficialModuleCount && module < whichModule; ++module)
+			for (int module = 0; module < g_ModuleMan.GetOfficialModuleCount() && module < whichModule; ++module)
 				foundAny = GetGroups(groupList, module, withType) || foundAny;
 
 			// Now get the groups of the specified module (official or not)
@@ -654,7 +674,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Actor * PresetMan::GetLoadout(std::string loadoutName, std::string module, bool spawnDropShip) {
-		return GetLoadout(loadoutName, GetModuleID(module), spawnDropShip);
+		return GetLoadout(loadoutName, g_ModuleMan.GetModuleID(module), spawnDropShip);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

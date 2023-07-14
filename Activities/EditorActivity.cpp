@@ -409,7 +409,7 @@ void EditorActivity::Update()
                 GUIListPanel::Item *pItem = m_pNewModuleCombo->GetItem(m_pNewModuleCombo->GetSelectedIndex());
                 if (pItem && !pItem->m_Name.empty())
                 {
-                    m_ModuleSpaceID = g_PresetMan.GetModuleID(pItem->m_Name);
+                    m_ModuleSpaceID = g_ModuleMan.GetModuleID(pItem->m_Name);
 
                     // Allocate Scene
                     Scene *pNewScene = new Scene();

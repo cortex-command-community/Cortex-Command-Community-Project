@@ -33,6 +33,7 @@
 #include "MenuMan.h"
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "UInputMan.h"
 #include "PerformanceMan.h"
@@ -135,7 +136,7 @@ namespace RTE {
 			if (!lastArg && !singleModuleSet && currentArg == "-module") {
 				std::string moduleToLoad = argValue[++i];
 				if (moduleToLoad.find(System::GetModulePackageExtension()) == moduleToLoad.length() - System::GetModulePackageExtension().length()) {
-					g_PresetMan.SetSingleModuleToLoad(moduleToLoad);
+					g_ModuleMan.SetSingleModuleToLoad(moduleToLoad);
 					singleModuleSet = true;
 				}
 			}
@@ -378,7 +379,7 @@ int main(int argc, char **argv) {
 
 	HandleMainArgs(argc, argv);
 
-	g_PresetMan.LoadAllDataModules();
+	g_ModuleMan.LoadAllDataModules();
 
 	if (!System::IsInExternalModuleValidationMode()) {
 		// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.

@@ -72,6 +72,13 @@ namespace RTE {
 		const DataModule * GetDataModule(int whichModule = 0);
 
 
+		/// <summary>
+		/// Gets all the loaded DataModules.
+		/// </summary>
+		/// <returns></returns>
+		std::vector<DataModule *> & GetLoadedDataModules() { return m_pDataModules; }
+
+
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Method:          GetDataModuleName
 		//////////////////////////////////////////////////////////////////////////////////////////
