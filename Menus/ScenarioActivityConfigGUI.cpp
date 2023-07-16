@@ -222,9 +222,9 @@ namespace RTE {
 				if (techItem->m_ExtraIndex == -2) {
 					gameActivity->SetTeamTech(team, "-All-");
 				} else if (techItem->m_ExtraIndex == -1) {
-					gameActivity->SetTeamTech(team, g_ModuleMan.GetDataModuleName(m_TeamTechComboBoxes.at(team)->GetItem(RandomNum<int>(2, m_TeamTechComboBoxes.at(team)->GetListPanel()->GetItemList()->size() - 1))->m_ExtraIndex));
+					gameActivity->SetTeamTech(team, g_ModuleMan.GetModuleName(m_TeamTechComboBoxes.at(team)->GetItem(RandomNum<int>(2, m_TeamTechComboBoxes.at(team)->GetListPanel()->GetItemList()->size() - 1))->m_ExtraIndex));
 				} else {
-					gameActivity->SetTeamTech(team, g_ModuleMan.GetDataModuleName(techItem->m_ExtraIndex));
+					gameActivity->SetTeamTech(team, g_ModuleMan.GetModuleName(techItem->m_ExtraIndex));
 				}
 			}
 			gameActivity->SetTeamAISkill(team, (m_TeamAISkillSliders.at(team)->IsEnabled()) ? m_TeamAISkillSliders.at(team)->GetValue() : Activity::AISkillSetting::DefaultSkill);

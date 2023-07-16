@@ -33,6 +33,43 @@ namespace RTE {
 
 #pragma region Getters and Setters
 		/// <summary>
+		/// Sets the single module to be loaded after the official modules. This will be the ONLY non-official module to be loaded.
+		/// </summary>
+		/// <param name="moduleName">Name of the module to load.</param>
+		void SetSingleModuleToLoad(const std::string_view &moduleName) { m_SingleModuleToLoad = moduleName; }
+
+		/// <summary>
+		/// Gets the total number of OFFICIAL modules loaded so far.
+		/// </summary>
+		/// <returns>The number of official modules loaded so far.</returns>
+		size_t GetOfficialModuleCount() const { return m_OfficialModuleCount; }
+
+		/// <summary>
+		/// Gets the total number of modules loaded so far, official or not.
+		/// </summary>
+		/// <returns>The number of modules loaded so far, both official and non.</returns>
+		size_t GetTotalModuleCount() const { return m_LoadedDataModules.size(); }
+
+
+
+
+
+
+
+		/// <summary>
+		/// Gets all the loaded DataModules.
+		/// </summary>
+		/// <returns>All the loaded DataModules.</returns>
+		std::vector<DataModule *> & GetLoadedDataModules() { return m_LoadedDataModules; }
+
+
+
+
+
+
+
+
+		/// <summary>
 		/// Gets the map of mods which are disabled.
 		/// </summary>
 		/// <returns>Map of mods which are disabled.</returns>
@@ -64,39 +101,46 @@ namespace RTE {
 
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDataModule
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a specific loaded DataModule
-		// Arguments:       The ID of the module to get.
-		// Return value:    The requested DataModule. Ownership is NOT transferred!
+
+		/// <summary>
+		/// Gets a specific loaded DataModule.
+		/// </summary>
+		/// <param name="whichModule">The ID of the module to get.</param>
+		/// <returns>The requested DataModule. Ownership is NOT transferred!</returns>
 		const DataModule * GetDataModule(int whichModule = 0);
 
 
+
+
+
+
+
+
+
+
+
+
+
 		/// <summary>
-		/// Gets all the loaded DataModules.
+		/// Gets the ID of a loaded DataModule.
 		/// </summary>
-		/// <returns></returns>
-		std::vector<DataModule *> & GetLoadedDataModules() { return m_pDataModules; }
-
-
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDataModuleName
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a name specific loaded DataModule
-		// Arguments:       The ID of the module to get.
-		// Return value:    The requested DataModule name.
-		const std::string GetDataModuleName(int whichModule = 0);
-
-
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetModuleID
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the ID of a loaded DataModule.
-		// Arguments:       The name of the DataModule to get the ID from, including the ".rte"
-		// Return value:    The requested ID. If no module of the name was found, -1 will be returned.
+		/// <param name="moduleName">The name of the DataModule to get the ID from, including the ".rte".</param>
+		/// <returns>The requested ID. If no module of the name was found, -1 will be returned.</returns>
 		int GetModuleID(std::string moduleName);
 
+		/// <summary>
+		/// Gets the ID of a loaded DataModule from a full data file path.
+		/// </summary>
+		/// <param name="dataPath">The full path to a data file inside the data module ID you want to get.</param>
+		/// <returns>The requested ID. If no module of the name was found, -1 will be returned.</returns>
+		int GetModuleIDFromPath(const std::string &dataPath);
+
+		/// <summary>
+		/// Gets a name specific loaded DataModule.
+		/// </summary>
+		/// <param name="whichModule">The ID of the module to get.</param>
+		/// <returns>The requested DataModule name.</returns>
+		const std::string GetModuleName(int whichModule = 0);
 
 		/// <summary>
 		///  Gets the Name of a loaded DataModule, from a full data file path.
@@ -106,15 +150,6 @@ namespace RTE {
 		std::string GetModuleNameFromPath(const std::string &dataPath) const;
 
 		/// <summary>
-		/// Gets the ID of a loaded DataModule from a full data file path.
-		/// </summary>
-		/// <param name="dataPath">The full path to a data file inside the data module ID you want to get.</param>
-		/// <returns>The requested ID. If no module of the name was found, -1 will be returned.</returns>
-		int GetModuleIDFromPath(const std::string &dataPath);
-
-
-
-		/// <summary>
 		/// Returns the Full path to the module including Data/, Userdata/ or Mods/.
 		/// </summary>
 		/// <param name="modulePath">The Path to be completed.</param>
@@ -122,31 +157,17 @@ namespace RTE {
 		std::string GetFullModulePath(const std::string &modulePath) const;
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTotalModuleCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the total number of modules loaded so far, official or not.
-		// Arguments:       None.
-		// Return value:    The number of modules loaded so far, both official and non.
-		int GetTotalModuleCount() { return m_pDataModules.size(); }
-
-
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetOfficialModuleCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the total number of OFFICIAL modules loaded so far.
-		// Arguments:       None.
-		// Return value:    The number of official modules loaded so far.
-		int GetOfficialModuleCount() { return m_OfficialModuleCount; }
 
 
 
 
-		/// <summary>
-		/// Sets the single module to be loaded after the official modules. This will be the ONLY non-official module to be loaded.
-		/// </summary>
-		/// <param name="moduleName">Name of the module to load.</param>
-		void SetSingleModuleToLoad(std::string moduleName) { m_SingleModuleToLoad = moduleName; }
+
+
+
+
+
+
+
 #pragma endregion
 
 #pragma region Contrete Methods
@@ -174,8 +195,9 @@ namespace RTE {
 		static const std::array<std::string, 10> c_OfficialModules; //!< Array storing the names of all the official modules.
 		static const std::array<std::pair<std::string, std::string>, 3> c_UserdataModules; //!< Array storing the names of all the userdata modules.
 
-		std::vector<DataModule *> m_pDataModules; //!< Owned and loaded DataModules.
-		std::map<std::string, size_t> m_DataModuleIDs; //!< Names of all DataModules mapped to indices into the m_pDataModules vector. The names are all lowercase name so we can more easily find them in case-agnostic fashion.
+		std::vector<DataModule *> m_LoadedDataModules; //!< Owned and loaded DataModules.
+
+		std::map<std::string, size_t> m_DataModuleIDs; //!< Names of all DataModules mapped to indices into the m_LoadedDataModules vector. The names are all lowercase name so we can more easily find them in case-agnostic fashion.
 
 		/// <summary>
 		/// How many modules are 'official' and shipped with the game, and guaranteed to not have name conflicts among them.
@@ -187,10 +209,18 @@ namespace RTE {
 
 		std::map<std::string, bool> m_DisabledMods; //!< Map of the module names that are disabled.
 
+#pragma region Module Loading Breakdown
+		/// <summary>
+		///
+		/// </summary>
+		/// <returns></returns>
+		void LoadOfficialModules();
+
 		/// <summary>
 		/// Iterates through the working directory to find any files matching the zipped module package extension (.rte.zip) and proceeds to extract them.
 		/// </summary>
 		void FindAndExtractZippedModules() const;
+#pragma endregion
 
 		/// <summary>
 		/// Clears all the member variables of this ModuleMan.

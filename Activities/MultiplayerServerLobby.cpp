@@ -969,7 +969,7 @@ namespace RTE {
 					if (pTechItem->m_ExtraIndex == -2)
 						pGameActivity->SetTeamTech(team, "-All-");
 					else
-						pGameActivity->SetTeamTech(team, g_ModuleMan.GetDataModuleName(pTechItem->m_ExtraIndex));
+						pGameActivity->SetTeamTech(team, g_ModuleMan.GetModuleName(pTechItem->m_ExtraIndex));
 			}
 
 			// Set up AI skill levels
