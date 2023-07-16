@@ -145,6 +145,7 @@ namespace RTE {
 			RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, MetaMan),
+			RegisterLuaBindingsOfType(ManagerLuaBindings, ModuleMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, MovableMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PostProcessMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PresetMan),
