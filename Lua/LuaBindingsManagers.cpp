@@ -107,6 +107,7 @@ namespace RTE {
 		return luabind::class_<ModuleMan>("ModuleManager")
 
 		.def_readwrite("Modules", &ModuleMan::m_LoadedDataModules, luabind::return_stl_iterator)
+
 		.def("GetDataModule", &ModuleMan::GetDataModule)
 		.def("GetModuleID", &ModuleMan::GetModuleID)
 		.def("GetModuleIDFromPath", &ModuleMan::GetModuleIDFromPath)
@@ -198,8 +199,6 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 		return luabind::class_<PresetMan>("PresetManager")
 
-
-		//.def("LoadDataModule", (bool (PresetMan::*)(const std::string &))&PresetMan::LoadDataModule)
 		.def("AddPreset", &PresetMan::AddEntityPreset)
 		.def("GetPreset", (const Entity *(PresetMan::*)(std::string, std::string, int))&PresetMan::GetEntityPreset)
 		.def("GetPreset", (const Entity *(PresetMan::*)(std::string, std::string, std::string))&PresetMan::GetEntityPreset)

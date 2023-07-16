@@ -161,13 +161,6 @@ namespace RTE {
 		bool LoadDataModule(const std::string &moduleName, bool official, bool userdata = false, const ProgressCallback &progressCallback = nullptr);
 
 		/// <summary>
-		/// Reads an entire DataModule and adds it to this. NOTE that official modules can't be loaded after any non-official ones!
-		/// </summary>
-		/// <param name="moduleName">The module name to read, e.g. "Base.rte".</param>
-		/// <returns>Whether the DataModule was read and added correctly.</returns>
-		bool LoadDataModule(const std::string &moduleName) { return LoadDataModule(moduleName, false); }
-
-		/// <summary>
 		/// Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
 		/// </summary>
 		/// <returns></returns>
