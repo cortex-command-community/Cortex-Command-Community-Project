@@ -379,7 +379,11 @@ int main(int argc, char **argv) {
 
 	HandleMainArgs(argc, argv);
 
+	int64_t moduleLoadStartTime = g_TimerMan.GetAbsoluteTime();
 	g_ModuleMan.LoadAllDataModules();
+	if (g_SettingsMan.IsMeasuringModuleLoadTime()) {
+		g_ConsoleMan.PrintString("SYSTEM: Module load duration is: " + std::to_string((g_TimerMan.GetAbsoluteTime() - moduleLoadStartTime) / 1000) + "ms");
+	}
 
 	if (!System::IsInExternalModuleValidationMode()) {
 		// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.

@@ -115,8 +115,6 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ModuleMan::LoadAllDataModules() {
-		auto moduleLoadTimerStart = std::chrono::steady_clock::now();
-
 		// Destroy any possible loaded modules
 		Destroy();
 
@@ -169,11 +167,6 @@ namespace RTE {
 					return false;
 				}
 			}
-		}
-
-		if (g_SettingsMan.IsMeasuringModuleLoadTime()) {
-			std::chrono::milliseconds moduleLoadElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - moduleLoadTimerStart);
-			g_ConsoleMan.PrintString("Module load duration is: " + std::to_string(moduleLoadElapsedTime.count()) + "ms");
 		}
 		return true;
 	}
