@@ -126,16 +126,19 @@ namespace RTE {
 		bool singleModuleSet = false;
 
 		for (int i = 0; i < argCount;) {
-			std::string currentArg = argValue[i];
+			std::string_view currentArg = argValue[i];
 			bool lastArg = i + 1 == argCount;
 
-			if (currentArg == "-cout") { System::EnableLoggingToCLI(); }
-
-			if (currentArg == "-ext-validate") { System::EnableExternalModuleValidationMode(); }
+			if (currentArg == "-cout") {
+				System::EnableLoggingToCLI();
+			}
+			if (currentArg == "-ext-validate") {
+				System::EnableExternalModuleValidationMode();
+			}
 
 			if (!lastArg && !singleModuleSet && currentArg == "-module") {
-				std::string moduleToLoad = argValue[++i];
-				if (moduleToLoad.find(System::GetModulePackageExtension()) == moduleToLoad.length() - System::GetModulePackageExtension().length()) {
+				std::string_view moduleToLoad = argValue[++i];
+				if (moduleToLoad.ends_with(System::GetModulePackageExtension())) {
 					g_ModuleMan.SetSingleModuleToLoad(moduleToLoad);
 					singleModuleSet = true;
 				}
