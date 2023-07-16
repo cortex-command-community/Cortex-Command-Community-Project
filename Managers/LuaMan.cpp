@@ -188,6 +188,7 @@ namespace RTE {
 		luabind::globals(m_MasterState)["FrameMan"] = &g_FrameMan;
 		luabind::globals(m_MasterState)["PostProcessMan"] = &g_PostProcessMan;
 		luabind::globals(m_MasterState)["PrimitiveMan"] = &g_PrimitiveMan;
+		luabind::globals(m_MasterState)["ModuleMan"] = &g_ModuleMan;
 		luabind::globals(m_MasterState)["PresetMan"] = &g_PresetMan;
 		luabind::globals(m_MasterState)["AudioMan"] = &g_AudioMan;
 		luabind::globals(m_MasterState)["UInputMan"] = &g_UInputMan;

@@ -103,6 +103,22 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ModuleMan) {
+		return luabind::class_<ModuleMan>("ModuleManager")
+
+		.def_readwrite("Modules", &ModuleMan::m_LoadedDataModules, luabind::return_stl_iterator)
+		.def("GetDataModule", &ModuleMan::GetDataModule)
+		.def("GetModuleID", &ModuleMan::GetModuleID)
+		.def("GetModuleIDFromPath", &ModuleMan::GetModuleIDFromPath)
+		.def("GetTotalModuleCount", &ModuleMan::GetTotalModuleCount)
+		.def("GetOfficialModuleCount", &ModuleMan::GetOfficialModuleCount)
+		.def("IsModuleOfficial", &ModuleMan::IsModuleOfficial)
+		.def("IsModuleUserdata", &ModuleMan::IsModuleUserdata)
+		.def("GetFullModulePath", &ModuleMan::GetFullModulePath);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
 		return luabind::class_<MovableMan>("MovableManager")
 
@@ -182,14 +198,8 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 		return luabind::class_<PresetMan>("PresetManager")
 
-		//.def_readwrite("Modules", &PresetMan::m_pDataModules, luabind::return_stl_iterator)
 
 		//.def("LoadDataModule", (bool (PresetMan::*)(const std::string &))&PresetMan::LoadDataModule)
-		//.def("GetDataModule", &PresetMan::GetDataModule)
-		//.def("GetModuleID", &PresetMan::GetModuleID)
-		//.def("GetModuleIDFromPath", &PresetMan::GetModuleIDFromPath)
-		//.def("GetTotalModuleCount", &PresetMan::GetTotalModuleCount)
-		//.def("GetOfficialModuleCount", &PresetMan::GetOfficialModuleCount)
 		.def("AddPreset", &PresetMan::AddEntityPreset)
 		.def("GetPreset", (const Entity *(PresetMan::*)(std::string, std::string, int))&PresetMan::GetEntityPreset)
 		.def("GetPreset", (const Entity *(PresetMan::*)(std::string, std::string, std::string))&PresetMan::GetEntityPreset)
@@ -201,11 +211,7 @@ namespace RTE {
 		.def("ReadReflectedPreset", &PresetMan::ReadReflectedPreset)
 		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset1)
 		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset2)
-		.def("ReloadAllScripts", &PresetMan::ReloadAllScripts)
-		//.def("IsModuleOfficial", &PresetMan::IsModuleOfficial)
-		//.def("IsModuleUserdata", &PresetMan::IsModuleUserdata)
-		//.def("GetFullModulePath", &PresetMan::GetFullModulePath);
-		;
+		.def("ReloadAllScripts", &PresetMan::ReloadAllScripts);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

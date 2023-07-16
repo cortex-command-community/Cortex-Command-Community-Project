@@ -13,6 +13,7 @@ namespace RTE {
 	/// </summary>
 	class ModuleMan : public Singleton<ModuleMan> {
 		friend class SettingsMan;
+		friend struct ManagerLuaBindings;
 
 	public:
 
