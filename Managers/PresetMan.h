@@ -48,17 +48,18 @@ namespace RTE {
 		/// <param name="groupList">The list that all found groups will be added to. OWNERSHIP IS NOT TRANSFERRED!</param>
 		/// <param name="whichModule">Which module to get the groups for. -1 means get ALL groups ever registered.</param>
 		/// <param name="withType">Pass a type name here and only groups with Entities of that type will be included. "All" means don't consider what types are in the groups.</param>
+		/// <param name="moduleSpace">Whether to get all groups in official modules, in addition to the specified module.</param>
 		/// <returns>Whether any groups were found and added to the list.</returns>
-		bool GetGroups(std::list<std::string> &groupList, int whichModule = -1, const std::string &withType = "All") const;
+		bool GetGroups(std::list<std::string> &groupList, int whichModule = -1, const std::string &withType = "All", bool moduleSpace = false) const;
 
 		/// <summary>
 		/// Fills out a list with all groups registered in all official modules, PLUS a specific non-official module as well.
 		/// </summary>
 		/// <param name="groupList">The list that all found groups will be added to. OWNERSHIP IS NOT TRANSFERRED!</param>
-		/// <param name="whichModule">Which module to get the groups for, in addition to all groups in official modules loaded earlier than the one specified here. -1 means get ALL groups ever registered.</param>
+		/// <param name="whichModule">Which module to get the groups for, in addition to all groups in official modules. -1 means get ALL groups ever registered.</param>
 		/// <param name="withType">Pass a type name here and only groups with Entities of that type will be included. "All" means don't consider what types are in the groups.</param>
 		/// <returns>Whether any groups were found and added to the list.</returns>
-		bool GetModuleSpaceGroups(std::list<std::string> &groupList, int whichModule, const std::string &withType = "All") const;
+		bool GetModuleSpaceGroups(std::list<std::string> &groupList, int whichModuleSpace, const std::string &withType = "All") const { return GetGroups(groupList, whichModuleSpace, withType, true); }
 #pragma endregion
 
 #pragma region Preset Getters
@@ -105,17 +106,18 @@ namespace RTE {
 		/// <param name="entityList">Reference to a list which will get all matching Entities added to it. Ownership of the list or the Entities placed in it are NOT transferred!</param>
 		/// <param name="typeName">The type name of the Entities to get.</param>
 		/// <param name="whichModule">Whether to only get those of one specific DataModule (0-n), or all (-1).</param>
+		/// <param name="moduleSpace">Whether to get all instances in official modules, in addition to the specified module.</param>
 		/// <returns>Whether any Entities were found and added to the list.</returns>
-		bool GetAllOfType(std::list<Entity *> &entityList, const std::string &typeName, int whichModule = -1) const;
+		bool GetAllOfType(std::list<Entity *> &entityList, const std::string &typeName, int whichModule = -1, bool moduleSpace = false) const;
 
 		/// <summary>
 		/// Adds to a list all previously read in (defined) Entities which are of a specific type, and only exist in a specific module space.
 		/// </summary>
 		/// <param name="entityList">Reference to a list which will get all matching Entities added to it. Ownership of the list or the Entities placed in it are NOT transferred!</param>
 		/// <param name="typeName">The type name of the Entities to get.</param>
-		/// <param name="whichModuleSpace">Which module to get the instances for, in addition to all groups in official modules loaded earlier than the one specified here. -1 means get ALL groups ever registered.</param>
+		/// <param name="whichModuleSpace">Which module to get the instances for, in addition to all groups in official modules. -1 means get ALL groups ever registered.</param>
 		/// <returns>Whether any Entities were found and added to the list.</returns>
-		bool GetAllOfTypeInModuleSpace(std::list<Entity *> &entityList, const std::string &typeName, int whichModuleSpace) const;
+		bool GetAllOfTypeInModuleSpace(std::list<Entity *> &entityList, const std::string &typeName, int whichModuleSpace) const { return GetAllOfType(entityList, typeName, whichModuleSpace, true); }
 #pragma endregion
 
 #pragma region Preset-by-Group Getters
@@ -130,24 +132,25 @@ namespace RTE {
 		bool GetAllOfGroup(std::list<Entity *> &entityList, const std::string &groupName, const std::string &typeName = "All", int whichModule = -1) const { return GetAllOfGroups(entityList, { groupName }, typeName, whichModule); }
 
 		/// <summary>
+		/// Adds to a list all previously read in (defined) Entities which are associated with a specific group, and only exist in a specific module space.
+		/// </summary>
+		/// <param name="entityList">Reference to a list which will get all matching Entities added to it. Ownership of the list or the Entities placed in it are NOT transferred!</param>
+		/// <param name="groupName">The group to look for. "All" will look in all.</param>
+		/// <param name="typeName">The name of the least common denominator type of the Entities to get. "All" will look at all types.</param>
+		/// <param name="whichModuleSpace">Which module to get the instances for, in addition to all groups in official modules. -1 means get ALL groups ever registered.</param>
+		/// <returns>Whether any Entities were found and added to the list.</returns>
+		bool GetAllOfGroupInModuleSpace(std::list<Entity *> &entityList, const std::string &groupName, const std::string &typeName, int whichModuleSpace) const { return GetAllOfGroups(entityList, { groupName }, typeName, whichModuleSpace, true); }
+
+		/// <summary>
 		/// Adds to a list all previously read in (defined) Entities which are associated with several specific groups.
 		/// </summary>
 		/// <param name="entityList">Reference to a list which will get all matching Entities added to it. Ownership of the list or the Entities placed in it are NOT transferred!</param>
 		/// <param name="groupNames">The groups to look for. "All" will look in all.</param>
 		/// <param name="typeName">The name of the least common denominator type of the Entities you want. "All" will look at all types.</param>
 		/// <param name="whichModule">Whether to only get those of one specific DataModule (0-n), or all (-1).</param>
+		/// <param name="moduleSpace">Whether to get all instances in official modules, in addition to the specified module.</param>
 		/// <returns>Whether any Entities were found and added to the list.</returns>
-		bool GetAllOfGroups(std::list<Entity *> &entityList, const std::vector<std::string> &groupNames, const std::string &typeName = "All", int whichModule = -1) const;
-
-		/// <summary>
-		/// Adds to a list all previously read in (defined) Entities which are associated with a specific group, and only exist in a specific module space.
-		/// </summary>
-		/// <param name="entityList">Reference to a list which will get all matching Entities added to it. Ownership of the list or the Entities placed in it are NOT transferred!</param>
-		/// <param name="groupName">The group to look for. "All" will look in all.</param>
-		/// <param name="typeName">The name of the least common denominator type of the Entities to get. "All" will look at all types.</param>
-		/// <param name="whichModuleSpace">Which module to get the instances for, in addition to all groups in official modules loaded earlier than the one specified here. -1 means get ALL groups ever registered.</param>
-		/// <returns>Whether any Entities were found and added to the list.</returns>
-		bool GetAllOfGroupInModuleSpace(std::list<Entity *> &entityList, const std::string &groupName, const std::string &typeName, int whichModuleSpace) const;
+		bool GetAllOfGroups(std::list<Entity *> &entityList, const std::vector<std::string> &groupNames, const std::string &typeName = "All", int whichModule = -1, bool moduleSpace = false) const;
 
 		/// <summary>
 		/// Adds to a list all previously read in (defined) Entities which are not associated with a specific group.
@@ -177,17 +180,18 @@ namespace RTE {
 		/// <param name="groupName">The group to randomly select an Entity from. "All" will look in all.</param>
 		/// <param name="typeName">The name of the least common denominator type of the Entity to get. "All" will look at all types.</param>
 		/// <param name="whichModule">Whether to only get those of one specific DataModule (0-n), or all (-1).</param>
+		/// <param name="moduleSpace">Whether to get all instances in official modules, in addition to the group in the specified module.</param>
 		/// <returns>The Entity preset that was randomly selected. Ownership is NOT transferred!</returns>
-		Entity * GetRandomOfGroup(const std::string &groupName, const std::string &typeName = "All", int whichModule = -1);
+		Entity * GetRandomOfGroup(const std::string &groupName, const std::string &typeName = "All", int whichModule = -1, bool moduleSpace = false);
 
 		/// <summary>
 		/// Returns a previously read in (defined) Entity which is associated with a specific group, randomly selected and only exist in a specific module space.
 		/// </summary>
 		/// <param name="groupName">The group to randomly select an Entity from. "All" will look in all.</param>
 		/// <param name="typeName">The name of the least common denominator type of the Entity to get. "All" will look at all types.</param>
-		/// <param name="whichModuleSpace">Which module to get the instances for, in addition to all groups in official modules loaded earlier than the one specified here. -1 means get ALL groups ever registered.</param>
+		/// <param name="whichModuleSpace">Which module to get the instances for, in addition to all groups in official modules. -1 means get ALL groups ever registered.</param>
 		/// <returns>The Entity preset that was randomly selected. Ownership is NOT transferred!</returns>
-		Entity * GetRandomOfGroupInModuleSpace(const std::string &groupName, const std::string &typeName, int whichModuleSpace);
+		Entity * GetRandomOfGroupInModuleSpace(const std::string &groupName, const std::string &typeName, int whichModuleSpace) { return GetRandomOfGroup(groupName, typeName, whichModuleSpace, true); }
 
 		/// <summary>
 		/// Returns a previously read in (defined) Entity which is randomly selected from a specific group only if it belongs to some tech.

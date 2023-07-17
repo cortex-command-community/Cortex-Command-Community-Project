@@ -23,86 +23,38 @@ namespace RTE {
 	void PresetMan::RegisterGroup(const std::string &newGroup, int whichModule) {
 		RTEAssert(whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
-		m_TotalGroupRegister.push_back(newGroup);
+		g_ModuleMan.GetLoadedDataModules()[whichModule]->RegisterGroup(newGroup);
+
+		m_TotalGroupRegister.emplace_back(newGroup);
 		m_TotalGroupRegister.sort();
 		m_TotalGroupRegister.unique();
-
-		// Register in the specified module too.
-		g_ModuleMan.GetLoadedDataModules()[whichModule]->RegisterGroup(newGroup);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool PresetMan::GetGroups(std::list<std::string> &groupList, int whichModule, const std::string &withType) const {
+	bool PresetMan::GetGroups(std::list<std::string> &groupList, int whichModule, const std::string &withType, bool moduleSpace) const {
 		RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
 		bool foundAny = false;
 		auto &loadedModules = g_ModuleMan.GetLoadedDataModules();
 
 		if (whichModule < 0) {
-			if (withType == "All" || withType.empty()) {
-
-				for (const std::string &groupName : m_TotalGroupRegister) {
-					groupList.emplace_back(groupName);
-				}
-				foundAny = !m_TotalGroupRegister.empty();
-			} else {
-				for (DataModule *dataModule : loadedModules) {
-					foundAny = dataModule->GetGroupsWithType(groupList, withType) || foundAny;
-				}
-			}
-		} else if (!loadedModules[whichModule]->GetGroupRegister()->empty()) {
-			if (withType == "All" || withType.empty()) {
-
-				auto moduleGroupList = loadedModules[whichModule]->GetGroupRegister();
-				for (const std::string &groupName : *moduleGroupList) {
-					groupList.emplace_back(groupName);
-				}
-				foundAny = !moduleGroupList->empty();
-			} else {
-				foundAny = loadedModules[whichModule]->GetGroupsWithType(groupList, withType) || foundAny;
-			}
-		}
-
-		return foundAny;
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	bool PresetMan::GetModuleSpaceGroups(std::list<std::string> &groupList, int whichModule, const std::string &withType) const {
-		RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
-
-		bool foundAny = false;
-
-		// If all, then just copy the total register
-		if (whichModule < 0) {
-			// Just get all groups ever registered
-			if (withType == "All" || withType.empty()) {
-				for (std::list<std::string>::const_iterator gItr = m_TotalGroupRegister.begin(); gItr != m_TotalGroupRegister.end(); ++gItr) {
-					groupList.push_back(*gItr);
-				}
-
-				foundAny = !m_TotalGroupRegister.empty();
-			} else {
-				// Get type filtered groups from ALL data modules
-				for (int module = 0; module < g_ModuleMan.GetTotalModuleCount(); ++module) {
-					foundAny = GetGroups(groupList, module, withType) || foundAny;
-				}
+			for (DataModule *dataModule : loadedModules) {
+				foundAny = dataModule->GetGroupsWithType(groupList, withType) || foundAny;
 			}
 		} else {
-			// Getting module space of specific module
-			// Get all groups of the official modules that are loaded before the specified one
-			for (int module = 0; module < g_ModuleMan.GetOfficialModuleCount() && module < whichModule; ++module)
-				foundAny = GetGroups(groupList, module, withType) || foundAny;
-
-			// Now get the groups of the specified module (official or not)
-			foundAny = GetGroups(groupList, whichModule, withType) || foundAny;
-
-			// Make sure there are no dupe groups in the list
+			if (moduleSpace) {
+				for (size_t officialModuleID = 0; officialModuleID < g_ModuleMan.GetOfficialModuleCount(); ++officialModuleID) {
+					foundAny = loadedModules[officialModuleID]->GetGroupsWithType(groupList, withType) || foundAny;
+				}
+			}
+			foundAny = loadedModules[whichModule]->GetGroupsWithType(groupList, withType) || foundAny;
+		}
+		if (!groupList.empty() && (withType == "All" || withType.empty())) {
+			// DataModule::GetGroupsWithType doesn't sort and filter dupes when getting all groups, so do it here.
 			groupList.sort();
 			groupList.unique();
 		}
-
 		return foundAny;
 	}
 
@@ -237,170 +189,85 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool PresetMan::GetAllOfType(std::list<Entity *> &entityList, const std::string &type, int whichModule) const {
-		if (type.empty()) {
+	bool PresetMan::GetAllOfType(std::list<Entity *> &entityList, const std::string &typeName, int whichModule, bool moduleSpace) const {
+		RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Trying to get from an out of bounds DataModule ID!");
+
+		if (typeName.empty()) {
 			return false;
 		}
 
 		bool foundAny = false;
-
-		auto &loadedModules = g_ModuleMan.GetLoadedDataModules();
-
-		// All modules
-		if (whichModule < 0) {
-			// Send the list to each module
-			for (int i = 0; i < loadedModules.size(); ++i) {
-				foundAny = loadedModules[i]->GetAllOfType(entityList, type) || foundAny;
-			}
-		}
-		// Specific module
-		else {
-			RTEAssert(whichModule < loadedModules.size(), "Trying to get from an out of bounds DataModule ID!");
-			foundAny = loadedModules[whichModule]->GetAllOfType(entityList, type);
-		}
-
-		return foundAny;
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	bool PresetMan::GetAllOfTypeInModuleSpace(std::list<Entity *> &entityList, const std::string &type, int whichModuleSpace) const {
-		if (type.empty()) {
-			return false;
-		}
-
-		bool foundAny = false;
-
-		// All modules
-		if (whichModuleSpace < 0) {
-			foundAny = GetAllOfType(entityList, type, whichModuleSpace);
-		} else {
-			// Get all entitys of the specific type in the official modules loaded before the specified one
-			for (int module = 0; module < g_ModuleMan.GetOfficialModuleCount() && module < whichModuleSpace; ++module) {
-				foundAny = GetAllOfType(entityList, type, module) || foundAny;
-			}
-			// Now get the groups of the specified module (official or not)
-			foundAny = GetAllOfType(entityList, type, whichModuleSpace) || foundAny;
-		}
-
-		return foundAny;
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	bool PresetMan::GetAllOfGroups(std::list<Entity *> &entityList, const std::vector<std::string> &groups, const std::string &type, int whichModule) const {
-		RTEAssert(!groups.empty(), "Looking for empty groups in PresetMan::GetAllOfGroups!");
-		bool foundAny = false;
-
 		auto &loadedModules = g_ModuleMan.GetLoadedDataModules();
 
 		if (whichModule < 0) {
 			for (DataModule *dataModule : loadedModules) {
-				foundAny = dataModule->GetAllOfGroups(entityList, groups, type) || foundAny;
+				foundAny = dataModule->GetAllOfType(entityList, typeName) || foundAny;
 			}
 		} else {
-			RTEAssert(whichModule < loadedModules.size(), "Trying to get from an out of bounds DataModule ID in PresetMan::GetAllOfGroups!");
-			foundAny = loadedModules[whichModule]->GetAllOfGroups(entityList, groups, type);
+			if (moduleSpace) {
+				for (size_t officialModuleID = 0; officialModuleID < g_ModuleMan.GetOfficialModuleCount(); ++officialModuleID) {
+					foundAny = loadedModules[officialModuleID]->GetAllOfType(entityList, typeName) || foundAny;
+				}
+			}
+			foundAny = loadedModules[whichModule]->GetAllOfType(entityList, typeName);
 		}
 		return foundAny;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool PresetMan::GetAllNotOfGroups(std::list<Entity *> &entityList, const std::vector<std::string> &groups, const std::string &type, int whichModule) const {
-		if (groups.empty()) {
+	bool PresetMan::GetAllOfGroups(std::list<Entity *> &entityList, const std::vector<std::string> &groupNames, const std::string &typeName, int whichModule, bool moduleSpace) const {
+		RTEAssert(!groupNames.empty(), "Looking for empty groups in PresetMan::GetAllOfGroups!");
+
+		bool foundAny = false;
+		auto &loadedModules = g_ModuleMan.GetLoadedDataModules();
+
+		if (whichModule < 0) {
+			for (DataModule *dataModule : loadedModules) {
+				foundAny = dataModule->GetAllOfGroups(entityList, groupNames, typeName) || foundAny;
+			}
+		} else {
+			RTEAssert(whichModule < loadedModules.size(), "Trying to get from an out of bounds DataModule ID in PresetMan::GetAllOfGroups!");
+
+			if (moduleSpace) {
+				for (size_t officialModuleID = 0; officialModuleID < g_ModuleMan.GetOfficialModuleCount(); ++officialModuleID) {
+					foundAny = loadedModules[officialModuleID]->GetAllOfGroups(entityList, groupNames, typeName) || foundAny;
+				}
+			}
+			foundAny = loadedModules[whichModule]->GetAllOfGroups(entityList, groupNames, typeName);
+		}
+		return foundAny;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool PresetMan::GetAllNotOfGroups(std::list<Entity *> &entityList, const std::vector<std::string> &groupNames, const std::string &typeName, int whichModule) const {
+		if (groupNames.empty()) {
 			RTEAbort("Looking for empty groups in PresetMan::GetAllNotOfGroups!");
-		} else if (std::find(groups.begin(), groups.end(), "All") != groups.end()) {
+		} else if (std::find(groupNames.begin(), groupNames.end(), "All") != groupNames.end()) {
 			RTEAbort("Trying to exclude all groups while looking for presets in PresetMan::GetAllNotOfGroups!");
 		}
 
 		bool foundAny = false;
-
 		auto &loadedModules = g_ModuleMan.GetLoadedDataModules();
 
 		if (whichModule < 0) {
 			for (DataModule *dataModule : loadedModules) {
-				foundAny = dataModule->GetAllNotOfGroups(entityList, groups, type) || foundAny;
+				foundAny = dataModule->GetAllNotOfGroups(entityList, groupNames, typeName) || foundAny;
 			}
 		} else {
 			RTEAssert(whichModule < loadedModules.size(), "Trying to get from an out of bounds DataModule ID in PresetMan::GetAllNotOfGroups!");
-			foundAny = loadedModules[whichModule]->GetAllNotOfGroups(entityList, groups, type);
+			foundAny = loadedModules[whichModule]->GetAllNotOfGroups(entityList, groupNames, typeName);
 		}
 		return foundAny;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool PresetMan::GetAllOfGroupInModuleSpace(std::list<Entity *> &entityList, const std::string &group, const std::string &type, int whichModuleSpace) const {
-		RTEAssert(!group.empty(), "Looking for empty group!");
-
-		bool foundAny = false;
-
-		// All modules
-		if (whichModuleSpace < 0) {
-			foundAny = GetAllOfGroup(entityList, group, type, whichModuleSpace);
-		} else {
-			// Get all entitys of the specific group the official modules loaded before the specified one
-			for (int module = 0; module < g_ModuleMan.GetOfficialModuleCount() && module < whichModuleSpace; ++module) {
-				foundAny = GetAllOfGroup(entityList, group, type, module) || foundAny;
-			}
-
-			// Now get the groups of the specified module (official or not)
-			foundAny = GetAllOfGroup(entityList, group, type, whichModuleSpace) || foundAny;
-		}
-
-		return foundAny;
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	Entity * PresetMan::GetRandomOfGroup(const std::string &groupName, const std::string &typeName, int whichModule) {
+	Entity * PresetMan::GetRandomOfGroup(const std::string &groupName, const std::string &typeName, int whichModule, bool moduleSpace) {
 		RTEAssert(!groupName.empty(), "Looking for empty group!");
 
-		bool foundAny = false;
-		std::list<Entity *> entityList;
-
-		auto &loadedModules = g_ModuleMan.GetLoadedDataModules();
-
-		if (whichModule < 0) {
-			for (int i = 0; i < g_ModuleMan.GetTotalModuleCount(); ++i) {
-				// Send the list to each module, let them add
-				foundAny = loadedModules[i]->GetAllOfGroups(entityList, { groupName }, typeName) || foundAny;
-			}
-		} else {
-			RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Trying to get from an out of bounds DataModule ID!");
-			foundAny = loadedModules[whichModule]->GetAllOfGroups(entityList, { groupName }, typeName);
-		}
-
-		if (foundAny) {
-			auto entityItr = entityList.begin();
-			std::advance(entityItr, RandomNum<int>(0, entityList.size() - 1));
-
-			return (*entityItr);
-		}
-		return nullptr;
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	Entity * PresetMan::GetRandomOfGroupInModuleSpace(const std::string &groupName, const std::string &typeName, int whichModuleSpace) {
-		RTEAssert(!groupName.empty(), "Looking for empty group!");
-
-		bool foundAny = false;
-		std::list<Entity *> entityList;
-
-		if (whichModuleSpace < 0) {
-			foundAny = GetAllOfGroup(entityList, groupName, typeName, whichModuleSpace);
-		} else {
-			// Get all Entities of the specific group the official modules loaded before the specified one.
-			for (int moduleID = 0; moduleID < g_ModuleMan.GetOfficialModuleCount() && moduleID < whichModuleSpace; ++moduleID) {
-				foundAny = GetAllOfGroup(entityList, groupName, typeName, moduleID) || foundAny;
-			}
-			// Now get the groups of the specified module (official or not).
-			foundAny = GetAllOfGroup(entityList, groupName, typeName, whichModuleSpace) || foundAny;
-		}
-
-		if (foundAny) {
+		if (std::list<Entity *> entityList; GetAllOfGroups(entityList, { groupName }, typeName, whichModule, moduleSpace)) {
 			auto entityItr = entityList.begin();
 			std::advance(entityItr, RandomNum<int>(0, entityList.size() - 1));
 
@@ -415,13 +282,11 @@ namespace RTE {
 		RTEAssert(!groupName.empty(), "Looking for empty group!");
 
 		bool foundAny = false;
-		// The total list we'll select a random one from
 		std::list<Entity *> entityList;
 		std::list<Entity *> tempList;
 
 		auto &loadedModules = g_ModuleMan.GetLoadedDataModules();
 
-		// All modules
 		if (whichModule < 0) {
 			for (DataModule *dataModule : loadedModules) {
 				if (dataModule->IsFaction()) {
@@ -433,81 +298,65 @@ namespace RTE {
 			foundAny = loadedModules[whichModule]->GetAllOfGroups(tempList, { groupName }, typeName);
 		}
 
-		//Filter found entities, we need only buyables
+		// Filter found entities, we need only buyables.
 		if (foundAny) {
-			//Do not filter anything if we're looking for brains
+			foundAny = false;
+
 			if (groupName == "Brains") {
-				foundAny = false;
-				for (std::list<Entity *>::iterator oItr = tempList.begin(); oItr != tempList.end(); ++oItr) {
-					entityList.push_back(*oItr);
+				// Do not filter anything if we're looking for brains.
+				for (Entity *entity : tempList) {
+					entityList.emplace_back(entity);
 					foundAny = true;
 				}
 			} else {
-				foundAny = false;
-				for (std::list<Entity *>::iterator oItr = tempList.begin(); oItr != tempList.end(); ++oItr) {
-					SceneObject * pSObject = dynamic_cast<SceneObject *>(*oItr);
-					// Buyable and not brain?
-					if (pSObject && pSObject->IsBuyable() && !pSObject->IsBuyableInObjectPickerOnly() && !pSObject->IsInGroup("Brains")) {
-						entityList.push_back(*oItr);
+				for (Entity *entity : tempList) {
+					const SceneObject *entityAsSceneObject = dynamic_cast<SceneObject *>(entity);
+					if (entityAsSceneObject && entityAsSceneObject->IsBuyable() && !entityAsSceneObject->IsBuyableInObjectPickerOnly() && !entityAsSceneObject->IsInGroup("Brains")) {
+						entityList.emplace_back(entity);
 						foundAny = true;
 					}
 				}
 			}
 		}
 
-		// Didn't find any of that group in those module(s)
-		if (!foundAny) {
-			return nullptr;
-		}
+		if (foundAny) {
+			if (whichModule < 0) {
+				auto entityItr = entityList.begin();
+				std::advance(entityItr, RandomNum<int>(0, entityList.size() - 1));
+				return (*entityItr);
+			} else {
+				// Use random weights if looking in specific modules.
+				int totalWeight = 0;
+				for (const Entity *entity : entityList) {
+					totalWeight += entity->GetRandomWeight();
+				}
+				if (totalWeight == 0) {
+					return nullptr;
+				}
 
-		// Pick one and return it
-		int current = 0;
-		int selection = RandomNum<int>(0, entityList.size() - 1);
+				int current = 0;
+				int selection = RandomNum(0, totalWeight - 1);
+				for (Entity *entity : entityList) {
+					bool found = false;
 
-		int totalWeight = 0;
-		for (std::list<Entity *>::iterator itr = entityList.begin(); itr != entityList.end(); ++itr) {
-			totalWeight += (*itr)->GetRandomWeight();
-		}
+					if (entity->GetRandomWeight() > 0) {
+						int bucketCounter = 0;
 
-		// Use random weights if looking in specific modules
-		if (whichModule >= 0) {
-			if (totalWeight == 0) {
-				return nullptr;
-			}
-
-			selection = RandomNum(0, totalWeight - 1);
-
-			for (std::list<Entity *>::iterator itr = entityList.begin(); itr != entityList.end(); ++itr) {
-				bool found = false;
-				int bucketCounter = 0;
-
-				if ((*itr)->GetRandomWeight() > 0) {
-					while (bucketCounter < (*itr)->GetRandomWeight()) {
-						if (current == selection) {
-							found = true;
-							break;
+						while (bucketCounter < entity->GetRandomWeight()) {
+							if (current == selection) {
+								found = true;
+								break;
+							}
+							current++;
+							bucketCounter++;
 						}
-
-						current++;
-						bucketCounter++;
+					}
+					if (found) {
+						return entity;
 					}
 				}
-
-				if (found) {
-					return (*itr);
-				}
-			}
-		} else {
-			for (std::list<Entity *>::iterator itr = entityList.begin(); itr != entityList.end(); ++itr) {
-				if (current == selection) {
-					return (*itr);
-				}
-
-				current++;
 			}
 		}
-
-		RTEAssert(0, "Tried selecting randomly but didn't?");
 		return nullptr;
 	}
 
