@@ -213,7 +213,7 @@ namespace RTE {
 			"math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return SelectRand(lower, upper); elseif lower ~= nil then return SelectRand(1, lower); else return PosRand(); end end"
 			"\n"
 			// Override "dofile" to be able to account for Data/ or Mods/ directory.
-			"OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;"
+			"OriginalDoFile = dofile; dofile = function(filePath) filePath = ModuleMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;"
 		);
 	}
 
