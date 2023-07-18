@@ -11,7 +11,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void DataModule::Clear() {
-		m_IsUserdata = false;
+		m_ModuleType = DataModuleType::Unofficial;
 		m_FileName.clear();
 		m_FriendlyName.clear();
 		m_Author.clear();
@@ -56,7 +56,7 @@ namespace RTE {
 			size_t lastPeriodPosition = m_SupportedGameVersion.find_last_of(".");
 			std::string supportedMajorGameVersion = m_SupportedGameVersion.substr(0, lastPeriodPosition);
 			std::string supportedMinorGameVersion = lastPeriodPosition == std::string::npos ? ".0" : m_SupportedGameVersion.substr(lastPeriodPosition, m_SupportedGameVersion.length());
-			if (m_ModuleID >= g_ModuleMan.GetOfficialModuleCount() && !m_IsUserdata && (supportedMajorGameVersion != c_MajorGameVersion || supportedMinorGameVersion > c_MinorGameVersion)) {
+			if (m_ModuleType == DataModuleType::Unofficial && (supportedMajorGameVersion != c_MajorGameVersion || supportedMinorGameVersion > c_MinorGameVersion)) {
 				RTEAssert(!m_SupportedGameVersion.empty(), m_FileName + " does not specify a supported Cortex Command version, so it is not compatible with this version of Cortex Command (" + c_MajorGameVersion + c_MinorGameVersion + ").\nPlease contact the mod author or ask for help in the CCCP discord server.");
 				RTEAssert(supportedMinorGameVersion <= c_MinorGameVersion, m_FileName + " supports Cortex Command version " + m_SupportedGameVersion + ", which is ahead of this version of Cortex Command (" + c_MajorGameVersion + c_MinorGameVersion + ").\nPlease update your game to the newest version to use this mod.");
 				RTEAbort(m_FileName + " supports Cortex Command version " + m_SupportedGameVersion + ", so it is not compatible with this version of Cortex Command (" + c_MajorGameVersion + c_MinorGameVersion + ").\nPlease contact the mod author or ask for help in the CCCP discord server.");
@@ -78,7 +78,7 @@ namespace RTE {
 		std::string moduleNameWithPackageExtension = System::GetUserdataDirectory() + moduleName + (moduleName.ends_with(System::GetModulePackageExtension()) ? "" : System::GetModulePackageExtension());
 		if (Writer writer(moduleNameWithPackageExtension + "/Index.ini", false, true); writer.WriterOK()) {
 			DataModule newModule;
-			newModule.m_IsUserdata = true;
+			newModule.m_ModuleType = DataModuleType::Userdata;
 			newModule.m_FriendlyName = friendlyName;
 			newModule.m_IgnoreMissingItems = ignoreMissingItems;
 			newModule.m_ScanFolderContents = scanFolderContents;
@@ -201,7 +201,7 @@ namespace RTE {
 
 		writer.NewPropertyWithValue("ModuleName", m_FriendlyName);
 
-		if (!m_IsUserdata) {
+		if (!IsUserdata()) {
 			writer.NewPropertyWithValue("Author", m_Author);
 			writer.NewPropertyWithValue("Description", m_Description);
 			writer.NewPropertyWithValue("IsFaction", m_IsFaction);

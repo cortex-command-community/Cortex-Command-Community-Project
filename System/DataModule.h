@@ -23,6 +23,15 @@ namespace RTE {
 		SerializableOverrideMethods;
 
 		/// <summary>
+		/// Enumeration for the different types of DataModules.
+		/// </summary>
+		enum class DataModuleType {
+			Unofficial, // Mods and any other modules not shipped with the game.
+			Official,
+			Userdata // Userdata written by the game (e.g saved games or editor scenes) that should be ignored anywhere where that is relevant.
+		};
+
+		/// <summary>
 		/// Struct that holds data about the custom BuyMenu/ObjectPicker theme of this DataModule.
 		/// Themes are used when a DataModule is considered a faction and is selected to be played as in an Activity.
 		/// </summary>
@@ -102,15 +111,16 @@ namespace RTE {
 
 #pragma region Module Information Getters
 		/// <summary>
+		/// Gets whether this DataModule is an official module.
+		/// </summary>
+		/// <returns>Whether this DataModule is an official module.</returns>
+		bool IsOfficial() const { return m_ModuleType == DataModuleType::Official; }
+
+		/// <summary>
 		/// Gets whether this DataModule is a userdata module.
 		/// </summary>
 		/// <returns>Whether this DataModule is used for userdata written by the game.</returns>
-		bool IsUserdata() const { return m_IsUserdata; }
-
-		/// <summary>
-		/// Sets this DataModule as a userdata module.
-		/// </summary>
-		void SetAsUserdata() { m_IsUserdata = true; }
+		bool IsUserdata() const { return m_ModuleType == DataModuleType::Userdata; }
 
 		/// <summary>
 		/// Gets the file name of this DataModule, e.g. "MyMod.rte".
@@ -309,7 +319,7 @@ namespace RTE {
 			std::string m_FileReadFrom; //!< Where the instance was read from.
 		};
 
-		bool m_IsUserdata; //!< Whether this DataModule contains userdata written by the game (e.g saved games or editor scenes), meaning it is not an official nor a 3rd party module and is ignored anywhere where that is relevant.
+		DataModuleType m_ModuleType; //!< The type of this DataModule. See DataModuleType enumeration.
 		bool m_ScanFolderContents; //!< Indicates whether module loader should scan for any .ini's inside module folder instead of loading files defined in IncludeFile only.
 		bool m_IgnoreMissingItems; //!< Indicates whether module loader should ignore missing items in this module.
 
