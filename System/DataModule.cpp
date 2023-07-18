@@ -37,7 +37,6 @@ namespace RTE {
 
 	int DataModule::Create(const std::string &moduleName, const ProgressCallback &progressCallback) {
 		m_FileName = std::filesystem::path(moduleName).generic_string();
-		m_ModuleID = g_ModuleMan.GetModuleID(moduleName);
 		m_CrabToHumanSpawnRatio = 0;
 
 		// Report that we're starting to read a new DataModule
@@ -103,7 +102,6 @@ namespace RTE {
 
 	int DataModule::ReadModuleProperties(const std::string &moduleName, const ProgressCallback &progressCallback) {
 		m_FileName = moduleName;
-		m_ModuleID = g_ModuleMan.GetModuleID(moduleName);
 		m_CrabToHumanSpawnRatio = 0;
 
 		// Report that we're starting to read a new DataModule

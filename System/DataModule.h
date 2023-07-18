@@ -15,6 +15,7 @@ namespace RTE {
 	/// A representation of a DataModule containing zero or many Material, Effect, Ammo, Device, Actor, or Scene definitions.
 	/// </summary>
 	class DataModule : public Serializable {
+		friend class ModuleMan;
 		friend struct SystemLuaBindings;
 
 	public:
