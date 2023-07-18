@@ -13,7 +13,6 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PresetMan::Clear() {
-		m_TotalGroupRegister.clear();
 		m_ReloadEntityPresetCalledThisUpdate = false;
 		m_LastReloadedEntityPresetInfo.fill("");
 	}
@@ -24,10 +23,6 @@ namespace RTE {
 		RTEAssert(whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
 		g_ModuleMan.GetLoadedDataModules()[whichModule]->RegisterGroup(newGroup);
-
-		m_TotalGroupRegister.emplace_back(newGroup);
-		m_TotalGroupRegister.sort();
-		m_TotalGroupRegister.unique();
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

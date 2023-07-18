@@ -290,8 +290,6 @@ namespace RTE {
 
 	private:
 
-		std::list<std::string> m_TotalGroupRegister; //!< List of all Entity groups ever registered, all uniques. This is just a handy total of all the groups registered in all the individual DataModules.
-
 		bool m_ReloadEntityPresetCalledThisUpdate; //!< A flag for whether or not ReloadEntityPreset was called this update.
 		std::array<std::string, 3> m_LastReloadedEntityPresetInfo; //!< Array storing the last reloaded Entity preset info (ClassName, PresetName and DataModule). Used for quick reloading via key combination.
 
