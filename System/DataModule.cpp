@@ -73,24 +73,6 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool DataModule::CreateOnDiskAsUserdata(const std::string &moduleName, const std::string_view &friendlyName, bool ignoreMissingItems, bool scanFolderContents) {
-		std::string moduleNameWithPackageExtension = System::GetUserdataDirectory() + moduleName + (moduleName.ends_with(System::GetModulePackageExtension()) ? "" : System::GetModulePackageExtension());
-		if (Writer writer(moduleNameWithPackageExtension + "/Index.ini", false, true); writer.WriterOK()) {
-			DataModule newModule;
-			newModule.m_ModuleType = DataModuleType::Userdata;
-			newModule.m_FriendlyName = friendlyName;
-			newModule.m_IgnoreMissingItems = ignoreMissingItems;
-			newModule.m_ScanFolderContents = scanFolderContents;
-			newModule.Save(writer);
-			writer.EndWrite();
-		} else {
-			return false;
-		}
-		return true;
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void DataModule::Destroy() {
 		for (const PresetEntry &preset : m_PresetList){
 			delete preset.m_EntityPreset;

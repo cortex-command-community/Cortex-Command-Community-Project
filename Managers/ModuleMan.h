@@ -216,6 +216,12 @@ namespace RTE {
 		void LoadOfficialModules();
 
 		/// <summary>
+		/// Loads all the userdata DataModules individually with LoadDataModule. Creates any missing userdata DataModules on disk if necessary.
+		/// </summary>
+		/// <returns></returns>
+		bool LoadUserdataModules();
+
+		/// <summary>
 		/// Iterates through the working directory to find any files matching the zipped module package extension (.rte.zip) and proceeds to extract them.
 		/// </summary>
 		void FindAndExtractZippedModules() const;

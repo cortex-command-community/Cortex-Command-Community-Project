@@ -272,14 +272,31 @@ namespace RTE {
 			}
 
 			// Load userdata modules AFTER all other techs etc are loaded; might be referring to stuff in user mods.
-			for (const auto &[userdataModuleName, userdataModuleFriendlyName] : c_UserdataModules) {
-				if (!std::filesystem::exists(System::GetWorkingDirectory() + System::GetUserdataDirectory() + userdataModuleName)) {
-					bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
-					DataModule::CreateOnDiskAsUserdata(userdataModuleName, userdataModuleFriendlyName, scanContentsAndIgnoreMissing, scanContentsAndIgnoreMissing);
+			return LoadUserdataModules();
+		}
+		return true;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool ModuleMan::LoadUserdataModules() {
+		for (const auto &[userdataModuleName, userdataModuleFriendlyName] : c_UserdataModules) {
+			if (std::string userDataModulePath = System::GetWorkingDirectory() + System::GetUserdataDirectory() + userdataModuleName; !std::filesystem::exists(userDataModulePath)) {
+				if (Writer writer(userDataModulePath + "/Index.ini", false, true); writer.WriterOK()) {
+					DataModule newUserdataModule;
+					newUserdataModule.m_FriendlyName = userdataModuleFriendlyName;
+					newUserdataModule.m_ModuleType = DataModule::DataModuleType::Userdata;
+
+					if (userdataModuleName == c_UserScenesModuleName) {
+						newUserdataModule.m_IgnoreMissingItems = true;
+						newUserdataModule.m_ScanFolderContents = true;
+					}
+					newUserdataModule.Save(writer);
+					writer.EndWrite();
 				}
-				if (!LoadDataModule(userdataModuleName, false, true, LoadingScreen::LoadingSplashProgressReport)) {
-					return false;
-				}
+			}
+			if (!LoadDataModule(userdataModuleName, DataModule::DataModuleType::Userdata, LoadingScreen::LoadingSplashProgressReport)) {
+				RTEAbort("Failed to load userdata DataModule \"" + userdataModuleName + "\"!\n\nThis generally shouldn't happen, but it looks like it did.\nPlease delete this module in the Userdata directory to rebuild it.");
 			}
 		}
 		return true;
