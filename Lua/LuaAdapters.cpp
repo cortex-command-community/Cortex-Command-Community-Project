@@ -2,7 +2,7 @@
 
 #include "LuaAdapterDefinitions.h"
 
-#include "LuabindObjectWrapper.h"
+#include "SolObjectWrapper.h"
 
 #include "PresetMan.h"
 #include "PrimitiveMan.h"
@@ -55,7 +55,7 @@
 
 namespace RTE {
 
-	std::unordered_map<std::string, std::function<LuabindObjectWrapper * (Entity *, lua_State *)>> LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions = {};
+	std::unordered_map<std::string, std::function<SolObjectWrapper * (Entity *, lua_State *)>> LuaAdaptersEntityCast::s_EntityToSolObjectCastFunctions = {};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -183,12 +183,12 @@ namespace RTE {
 	bool LuaAdaptersEntityCast::Is##TYPE(Entity *entity) { \
 		return dynamic_cast<TYPE *>(entity) ? true : false; \
 	} \
-	LuabindObjectWrapper * LuaAdaptersEntityCast::ToLuabindObject##TYPE (Entity *entity, lua_State *luaState) { \
-		return new LuabindObjectWrapper(new luabind::object(luaState, dynamic_cast<TYPE *>(entity)), ""); \
+	SolObjectWrapper * LuaAdaptersEntityCast::ToSolObject##TYPE (Entity *entity, lua_State *luaState) { \
+		return new SolObjectWrapper(new sol::object(sol::make_object(luaState, dynamic_cast<TYPE *>(entity))), ""); \
 	} \
-	/* Bullshit semi-hack to automatically populate the Luabind Object cast function map that is used in LuaMan::RunScriptFunctionObject */ \
-	static const bool EntityToLuabindObjectCastMapAutoInserterForType##TYPE = []() { \
-		LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions.try_emplace(std::string(#TYPE), &LuaAdaptersEntityCast::ToLuabindObject##TYPE); \
+	/* Bullshit semi-hack to automatically populate the Sol Object cast function map that is used in LuaMan::RunScriptFunctionObject */ \
+	static const bool EntityToSolObjectCastMapAutoInserterForType##TYPE = []() { \
+		LuaAdaptersEntityCast::s_EntityToSolObjectCastFunctions.try_emplace(std::string(#TYPE), &LuaAdaptersEntityCast::ToSolObject##TYPE); \
 		return true; \
 	}()
 
@@ -339,7 +339,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersScene::CalculatePathAsync2(Scene *luaSelfObject, const luabind::object &callbackParam, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team) {
+	void LuaAdaptersScene::CalculatePathAsync2(Scene *luaSelfObject, const sol::function &callbackParam, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team) {
 		team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
 		
 		// So, luabind::object is a weak reference, holding just a stack and a position in the stack
@@ -352,8 +352,12 @@ namespace RTE {
 		LuaStateWrapper* luaState = g_LuaMan.GetThreadCurrentLuaState();
 		static int currentCallbackId = 0;
 		int thisCallbackId = currentCallbackId++;
-		if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
-			luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
+		if (callbackParam.valid()) {
+			// TODO check if this is okay!
+			sol::state_view solState(luaState->GetLuaState());
+			sol::function addAsyncCallbackLuaFunc = solState["_AddAsyncPathCallback"];
+			addAsyncCallbackLuaFunc.call(thisCallbackId, callbackParam);
+			//luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
 		}
 
 		auto callLuaCallback = [luaState, thisCallbackId, movePathToGround](std::shared_ptr<volatile PathRequest> pathRequestVol) {
@@ -366,7 +370,9 @@ namespace RTE {
 					}
 				}
 			
-				luabind::call_function<void>(luaState->GetLuaState(), "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
+				sol::state_view solState(luaState->GetLuaState());
+				sol::function triggerAsyncCallbackLuaFunc = solState["_TriggerAsyncPathCallback"];
+				triggerAsyncCallbackLuaFunc.call(thisCallbackId, pathRequest);
 			});
 		};
 
@@ -609,43 +615,43 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitive(PrimitiveMan &primitiveMan, const Vector &centerPos, int color, const luabind::object &verticesTable) {
+	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitive(PrimitiveMan &primitiveMan, const Vector &centerPos, int color, const sol::object &verticesTable) {
 		primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, centerPos, color, ConvertLuaTableToVectorOfType<Vector *>(verticesTable), false);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &centerPos, int color, const luabind::object &verticesTable) {
+	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &centerPos, int color, const sol::object &verticesTable) {
 		primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, centerPos, color, ConvertLuaTableToVectorOfType<Vector *>(verticesTable), false);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive(PrimitiveMan &primitiveMan, const Vector &startPos, int color, const luabind::object &verticesTable) {
+	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive(PrimitiveMan &primitiveMan, const Vector &startPos, int color, const sol::object &verticesTable) {
 		primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, startPos, color, ConvertLuaTableToVectorOfType<Vector *>(verticesTable), true);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &startPos, int color, const luabind::object &verticesTable) {
+	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &startPos, int color, const sol::object &verticesTable) {
 		primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, startPos, color, ConvertLuaTableToVectorOfType<Vector *>(verticesTable), true);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency(PrimitiveMan &primitiveMan, int transValue, const luabind::object &primitivesTable) {
+	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency(PrimitiveMan &primitiveMan, int transValue, const sol::object &primitivesTable) {
 		primitiveMan.SchedulePrimitivesForBlendedDrawing(DrawBlendMode::BlendTransparency, transValue, transValue, transValue, BlendAmountLimits::MinBlend, ConvertLuaTableToVectorOfType<GraphicalPrimitive *>(primitivesTable));
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending(PrimitiveMan &primitiveMan, int blendMode, int blendAmount, const luabind::object &primitivesTable) {
+	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending(PrimitiveMan &primitiveMan, int blendMode, int blendAmount, const sol::object &primitivesTable) {
 		primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmount, blendAmount, blendAmount, blendAmount, ConvertLuaTableToVectorOfType<GraphicalPrimitive *>(primitivesTable));
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel(PrimitiveMan &primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabind::object &primitivesTable) {
+	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel(PrimitiveMan &primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const sol::object &primitivesTable) {
 		primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmountR, blendAmountG, blendAmountB, blendAmountA, ConvertLuaTableToVectorOfType<GraphicalPrimitive *>(primitivesTable));
 	}
 

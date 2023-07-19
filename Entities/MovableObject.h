@@ -18,7 +18,7 @@
 #include "Vector.h"
 #include "Matrix.h"
 #include "Timer.h"
-#include "LuabindObjectWrapper.h"
+#include "SolObjectWrapper.h"
 #include "Material.h"
 #include "MovableMan.h"
 
@@ -1962,7 +1962,7 @@ protected:
 
     std::string m_ScriptObjectName; //!< The name of this object for script usage.
     std::unordered_map<std::string, bool> m_AllLoadedScripts; //!< A map of script paths to the enabled state of the given script.
-    std::unordered_map<std::string, std::vector<std::unique_ptr<LuabindObjectWrapper>>> m_FunctionsAndScripts; //!< A map of function names to vectors of LuabindObjectWrappers that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
+    std::unordered_map<std::string, std::vector<std::unique_ptr<SolObjectWrapper>>> m_FunctionsAndScripts; //!< A map of function names to vectors of SolObjectWrappers that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
 
     // Special post processing flash effect file and Bitmap. Shuold be loaded from a 32bpp bitmap
     ContentFile m_ScreenEffectFile;

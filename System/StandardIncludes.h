@@ -84,6 +84,8 @@
 #include <atomic>
 #include <execution>
 
+#include "MOSRotating.h"
+
 namespace std {
 
 	/// <summary>

@@ -5,16 +5,14 @@
 
 #include "Activity.h"
 
+#include "sol/forward.hpp"
+
 #ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 struct lua_State;
-
-namespace luabind {
-	class object;
-}
 
 namespace RTE {
 
@@ -62,7 +60,7 @@ namespace RTE {
 	class UInputMan;
 	class PresetMan;
 
-	class LuabindObjectWrapper;
+	class SolObjectWrapper;
 
 #pragma region Entity Lua Adapter Macros
 	struct LuaAdaptersEntityCreate {
@@ -156,9 +154,9 @@ namespace RTE {
 			static TYPE * To##TYPE(Entity *entity);																\
 			static const TYPE * ToConst##TYPE(const Entity *entity);											\
 			static bool Is##TYPE(Entity *entity);																\
-			static LuabindObjectWrapper * ToLuabindObject##TYPE(Entity *entity, lua_State *luaState)
+			static SolObjectWrapper * ToSolObject##TYPE(Entity *entity, lua_State *luaState)
 
-		static std::unordered_map<std::string, std::function<LuabindObjectWrapper * (Entity *, lua_State *)>> s_EntityToLuabindObjectCastFunctions; //!< Map of preset names to casting methods for ensuring objects are downcast properly when passed into Lua.
+		static std::unordered_map<std::string, std::function<SolObjectWrapper * (Entity *, lua_State *)>> s_EntityToSolObjectCastFunctions; //!< Map of preset names to casting methods for ensuring objects are downcast properly when passed into Lua.
 
 		LuaEntityCastFunctionsDeclarationsForType(Entity);
 		LuaEntityCastFunctionsDeclarationsForType(SoundContainer);
@@ -284,8 +282,8 @@ namespace RTE {
 		static int CalculatePath1(Scene *luaSelfObject, const Vector &start, const Vector &end, bool movePathToGround, float digStrength) { return CalculatePath2(luaSelfObject, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
 		static int CalculatePath2(Scene *luaSelfObject, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team);
 
-		static void CalculatePathAsync1(Scene *luaSelfObject, const luabind::object &callback, const Vector &start, const Vector &end, bool movePathToGround, float digStrength) { return CalculatePathAsync2(luaSelfObject, callback, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
-		static void CalculatePathAsync2(Scene *luaSelfObject, const luabind::object &callback, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team);
+		static void CalculatePathAsync1(Scene *luaSelfObject, const sol::function &callback, const Vector &start, const Vector &end, bool movePathToGround, float digStrength) { return CalculatePathAsync2(luaSelfObject, callback, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
+		static void CalculatePathAsync2(Scene *luaSelfObject, const sol::function &callback, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team);
 	};
 #pragma endregion
 
@@ -467,7 +465,7 @@ namespace RTE {
 		/// <param name="centerPos">Position of primitive's center in Scene coordinates.</param>
 		/// <param name="color">Color to draw primitive with.</param>
 		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
-		static void DrawPolygonPrimitive(PrimitiveMan &primitiveMan, const Vector &centerPos, int color, const luabind::object &verticesTable);
+		static void DrawPolygonPrimitive(PrimitiveMan &primitiveMan, const Vector &centerPos, int color, const sol::object &verticesTable);
 
 		/// <summary>
 		/// Schedule to draw a polygon primitive visible only to a specified player.
@@ -477,7 +475,7 @@ namespace RTE {
 		/// <param name="centerPos">Position of primitive's center in Scene coordinates.</param>
 		/// <param name="color">Color to draw primitive with.</param>
 		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
-		static void DrawPolygonPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &centerPos, int color, const luabind::object &verticesTable);
+		static void DrawPolygonPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &centerPos, int color, const sol::object &verticesTable);
 
 		/// <summary>
 		/// Schedule to draw a filled polygon primitive.
@@ -486,7 +484,7 @@ namespace RTE {
 		/// <param name="startPos">Start position of the primitive in Scene coordinates.</param>
 		/// <param name="color">Color to draw primitive with.</param>
 		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
-		static void DrawPolygonFillPrimitive(PrimitiveMan &primitiveMan, const Vector &startPos, int color, const luabind::object &verticesTable);
+		static void DrawPolygonFillPrimitive(PrimitiveMan &primitiveMan, const Vector &startPos, int color, const sol::object &verticesTable);
 
 		/// <summary>
 		/// Schedule to draw a filled polygon primitive visible only to a specified player.
@@ -496,7 +494,7 @@ namespace RTE {
 		/// <param name="startPos">Start position of the primitive in Scene coordinates.</param>
 		/// <param name="color">Color to draw primitive with.</param>
 		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
-		static void DrawPolygonFillPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &startPos, int color, const luabind::object &verticesTable);
+		static void DrawPolygonFillPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &startPos, int color, const sol::object &verticesTable);
 
 		/// <summary>
 		/// Schedules to draw multiple primitives of varying type with transparency enabled.
@@ -504,7 +502,7 @@ namespace RTE {
 		/// <param name="primitiveMan">A reference to PrimitiveMan, provided by Lua.</param>
 		/// <param name="transValue">The transparency value the primitives should be drawn at. From 0 (opaque) to 100 (transparent).</param>
 		/// <param name="primitivesTable">A Lua table of primitives to schedule drawing for.</param>
-		static void DrawPrimitivesWithTransparency(PrimitiveMan &primitiveMan, int transValue, const luabind::object &primitivesTable);
+		static void DrawPrimitivesWithTransparency(PrimitiveMan &primitiveMan, int transValue, const sol::object &primitivesTable);
 
 		/// <summary>
 		/// Schedule to draw multiple primitives of varying type with blending enabled.
@@ -513,7 +511,7 @@ namespace RTE {
 		/// <param name="blendMode">The blending mode the primitives should be drawn with. See DrawBlendMode enumeration.</param>
 		/// <param name="blendAmount">The blending amount for all the channels. 0-100.</param>
 		/// <param name="primitivesTable">A Lua table of primitives to schedule drawing for.</param>
-		static void DrawPrimitivesWithBlending(PrimitiveMan &primitiveMan, int blendMode, int blendAmount, const luabind::object &primitivesTable);
+		static void DrawPrimitivesWithBlending(PrimitiveMan &primitiveMan, int blendMode, int blendAmount, const sol::object &primitivesTable);
 
 		/// <summary>
 		/// Schedule to draw multiple primitives of varying type with blending enabled.
@@ -525,7 +523,7 @@ namespace RTE {
 		/// <param name="blendAmountB">The blending amount for the Blue channel. 0-100.</param>
 		/// <param name="blendAmountA">The blending amount for the Alpha channel. 0-100.</param>
 		/// <param name="primitivesTable">A Lua table of primitives to schedule drawing for.</param>
-		static void DrawPrimitivesWithBlendingPerChannel(PrimitiveMan &primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabind::object &primitivesTable);
+		static void DrawPrimitivesWithBlendingPerChannel(PrimitiveMan &primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const sol::object &primitivesTable);
 	};
 #pragma endregion
 

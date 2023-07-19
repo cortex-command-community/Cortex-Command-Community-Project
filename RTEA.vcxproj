@@ -591,10 +591,10 @@
     <ClInclude Include="GUI\Wrappers\AllegroScreen.h" />
     <ClInclude Include="GUI\Wrappers\GUIInputWrapper.h" />
     <ClInclude Include="Lua\LuaAdapterDefinitions.h" />
-    <ClInclude Include="Lua\LuabindObjectWrapper.h" />
     <ClInclude Include="Lua\LuabindDefinitions.h" />
     <ClInclude Include="Lua\LuaBindingRegisterDefinitions.h" />
     <ClInclude Include="GUI\GUIWriter.h" />
+    <ClInclude Include="Lua\SolObjectWrapper.h" />
     <ClInclude Include="Managers\CameraMan.h" />
     <ClInclude Include="Managers\MenuMan.h" />
     <ClInclude Include="Managers\NetworkClient.h" />
@@ -760,61 +760,21 @@
     <ClCompile Include="GUI\Wrappers\AllegroBitmap.cpp" />
     <ClCompile Include="GUI\Wrappers\AllegroScreen.cpp" />
     <ClCompile Include="GUI\Wrappers\GUIInputWrapper.cpp" />
-    <ClCompile Include="Lua\LuaAdapters.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Lua\LuabindObjectWrapper.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsActivities.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsEntities.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsGUI.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsManagers.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsMisc.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsInput.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsPrimitives.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsSystem.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
-    <ClCompile Include="Managers\LuaMan.cpp">
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
-    </ClCompile>
+    <ClCompile Include="Lua\LuaAdapters.cpp" />
+    <ClCompile Include="Lua\LuaBindingsActors.cpp" />
+    <ClCompile Include="Lua\LuaBindingsPhysics.cpp" />
+    <ClCompile Include="Lua\LuaBindingsScene.cpp" />
+    <ClCompile Include="Lua\LuaBindingsWeapons.cpp" />
+    <ClCompile Include="Lua\LuaBindingsActivities.cpp" />
+    <ClCompile Include="Lua\LuaBindingsEntities.cpp" />
+    <ClCompile Include="Lua\LuaBindingsGUI.cpp" />
+    <ClCompile Include="Lua\LuaBindingsManagers.cpp" />
+    <ClCompile Include="Lua\LuaBindingsMisc.cpp" />
+    <ClCompile Include="Lua\LuaBindingsInput.cpp" />
+    <ClCompile Include="Lua\LuaBindingsPrimitives.cpp" />
+    <ClCompile Include="Lua\LuaBindingsSystem.cpp" />
+    <ClCompile Include="Lua\SolObjectWrapper.cpp" />
+    <ClCompile Include="Managers\LuaMan.cpp" />
     <ClCompile Include="Entities\Activity.cpp" />
     <ClCompile Include="Entities\ADSensor.cpp" />
     <ClCompile Include="Entities\Emission.cpp" />

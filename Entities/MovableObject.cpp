@@ -572,12 +572,12 @@ int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledS
 
 	m_AllLoadedScripts.try_emplace(scriptPath, loadAsEnabledScript);
 
-	std::unordered_map<std::string, LuabindObjectWrapper *> scriptFileFunctions;
+	std::unordered_map<std::string, SolObjectWrapper *> scriptFileFunctions;
 	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
 		return -5;
 	}
 	for (const auto &[functionName, functionObject] : scriptFileFunctions) {
-		m_FunctionsAndScripts.at(functionName).emplace_back(std::unique_ptr<LuabindObjectWrapper>(functionObject));
+		m_FunctionsAndScripts.at(functionName).emplace_back(std::unique_ptr<SolObjectWrapper>(functionObject));
 	}
 
 	usedState.RunScriptString(luaClearSupportedFunctionsString);
@@ -691,7 +691,7 @@ int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &fu
     }
 
     if (status >= 0) {
-        for (const std::unique_ptr<LuabindObjectWrapper> &functionObjectWrapper : itr->second) {
+        for (const std::unique_ptr<SolObjectWrapper> &functionObjectWrapper : itr->second) {
             bool scriptIsThreadSafe = g_LuaMan.IsScriptThreadSafe(functionObjectWrapper->GetFilePath());
             bool scriptIsSuitableForThread = scriptsToRun == ThreadScriptsToRun::SingleThreaded ? !scriptIsThreadSafe :
                                              scriptsToRun == ThreadScriptsToRun::MultiThreaded  ? scriptIsThreadSafe :
@@ -723,7 +723,7 @@ int MovableObject::RunFunctionOfScript(const std::string &scriptPath, const std:
     LuaStateWrapper& usedState = GetAndLockStateForScript(scriptPath);
     std::lock_guard<std::recursive_mutex> lock(usedState.GetMutex(), std::adopt_lock);
 
-	for (const std::unique_ptr<LuabindObjectWrapper> &functionObjectWrapper : m_FunctionsAndScripts.at(functionName)) {
+	for (const std::unique_ptr<SolObjectWrapper> &functionObjectWrapper : m_FunctionsAndScripts.at(functionName)) {
 		if (scriptPath == functionObjectWrapper->GetFilePath() && usedState.RunScriptFunctionObject(functionObjectWrapper.get(), "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments) < 0) {
 			if (m_AllLoadedScripts.size() > 1) {
 				g_ConsoleMan.PrintString("ERROR: An error occured while trying to run the " + functionName + " function for script at path " + scriptPath);

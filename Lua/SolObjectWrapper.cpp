@@ -1,7 +1,8 @@
 // Make sure that this wrapper file is always set to NOT use pre-compiled headers and conformance mode (/permissive) otherwise everything will be on fire cause luabind is a nightmare!
 
-#include "LuabindObjectWrapper.h"
-#include "luabind/object.hpp"
+#include "SolObjectWrapper.h"
+
+#include "sol/sol.hpp"
 
 namespace RTE {
 
@@ -12,12 +13,12 @@ namespace RTE {
 // As such, we don't actually delete the object until we're in a safe environment outside the multithreaded parts
 // Note - this is required even though we force objects in multithreaded environments to be within our Lua state
 // This is because we may assign an object to another state in a singlethreaded context, before the GC runs in the multithreaded context
-static std::vector<luabind::adl::object *> s_QueuedDeletions;
+static std::vector<sol::object *> s_QueuedDeletions;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LuabindObjectWrapper::ApplyQueuedDeletions() {
-	for (luabind::adl::object *obj : s_QueuedDeletions) {
+void SolObjectWrapper::ApplyQueuedDeletions() {
+	for (sol::object *obj : s_QueuedDeletions) {
 		delete obj;
 	}
 
@@ -26,11 +27,11 @@ void LuabindObjectWrapper::ApplyQueuedDeletions() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LuabindObjectWrapper::~LuabindObjectWrapper() {
+SolObjectWrapper::~SolObjectWrapper() {
 	static std::mutex mut;
     std::lock_guard<std::mutex> guard(mut);
 
-    s_QueuedDeletions.push_back(m_LuabindObject);
+    s_QueuedDeletions.push_back(m_SolObject);
 }
 
 }

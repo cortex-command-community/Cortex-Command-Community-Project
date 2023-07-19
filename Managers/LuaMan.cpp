@@ -1,6 +1,6 @@
 #include "LuaMan.h"
 
-#include "LuabindObjectWrapper.h"
+#include "SolObjectWrapper.h"
 #include "LuaBindingRegisterDefinitions.h"
 #include "LuaAdapterDefinitions.h"
 
@@ -62,6 +62,8 @@
 #include "TimerMan.h"
 #include "UInputMan.h"
 
+#include "sol/sol.hpp"
+
 namespace RTE {
 
 	const std::unordered_set<std::string> LuaMan::c_FileAccessModes = { "r", "r+", "w", "w+", "a", "a+" };
@@ -79,7 +81,6 @@ namespace RTE {
 
 	void LuaStateWrapper::Initialize() {
 		m_State = luaL_newstate();
-		luabind::open(m_State);
 
 		const luaL_Reg libsToLoad[] = {
 			{ LUA_COLIBNAME, luaopen_base },
@@ -602,14 +603,14 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper *functionObject, const std::string &selfGlobalTableName, const std::string &selfGlobalTableKey, const std::vector<const Entity*> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) {
+	int LuaStateWrapper::RunScriptFunctionObject(const SolObjectWrapper *functionObject, const std::string &selfGlobalTableName, const std::string &selfGlobalTableKey, const std::vector<const Entity*> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) {
 		int status = 0;
 
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 		s_currentLuaState = this;
 
 		lua_pushcfunction(m_State, &AddFileAndLineToError);
-		functionObject->GetLuabindObject()->push(m_State);
+		functionObject->GetSolObject()->push(m_State);
 
 		int argumentCount = functionEntityArguments.size() + functionLiteralArguments.size();
 		if (!selfGlobalTableName.empty() && TableEntryIsDefined(selfGlobalTableName, selfGlobalTableKey)) {
@@ -620,8 +621,8 @@ namespace RTE {
 		}
 
 		for (const Entity *functionEntityArgument : functionEntityArguments) {
-			std::unique_ptr<LuabindObjectWrapper> downCastEntityAsLuabindObjectWrapper(LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions.at(functionEntityArgument->GetClassName())(const_cast<Entity *>(functionEntityArgument), m_State));
-			downCastEntityAsLuabindObjectWrapper->GetLuabindObject()->push(m_State);
+			std::unique_ptr<SolObjectWrapper> downCastEntityAsSolObjectWrapper(LuaAdaptersEntityCast::s_EntityToSolObjectCastFunctions.at(functionEntityArgument->GetClassName())(const_cast<Entity *>(functionEntityArgument), m_State));
+			downCastEntityAsSolObjectWrapper->GetSolObject()->push(m_State);
 		}
 
 		for (const std::string_view &functionLiteralArgument : functionLiteralArguments) {
@@ -692,7 +693,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper *> &outFunctionNamesAndObjects) {
+	int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, SolObjectWrapper *> &outFunctionNamesAndObjects) {
 		if (int error = RunScriptFile(filePath); error < 0) {
 			return error;
 		}
@@ -700,11 +701,13 @@ namespace RTE {
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 		s_currentLuaState = this;
 
+		sol::state_view solState(m_State);
+
 		for (const std::string &functionName : functionNamesToLookFor) {
-			luabind::object functionObject = luabind::globals(m_State)[functionName];
-			if (luabind::type(functionObject) == LUA_TFUNCTION) {
-				luabind::object *functionObjectCopyForStoring = new luabind::object(functionObject);
-				outFunctionNamesAndObjects.try_emplace(functionName, new LuabindObjectWrapper(functionObjectCopyForStoring, filePath));
+			sol::function functionObject = solState[functionName];
+			if (functionObject.valid()) {
+				sol::object *functionObjectCopyForStoring = new sol::object(functionObject);
+				outFunctionNamesAndObjects.try_emplace(functionName, new SolObjectWrapper(functionObjectCopyForStoring, filePath));
 			}
 		}
 
@@ -994,7 +997,7 @@ namespace RTE {
 		}
 
 		// Apply all deletions queued from lua
-    	LuabindObjectWrapper::ApplyQueuedDeletions();
+    	SolObjectWrapper::ApplyQueuedDeletions();
 	}
 
 }

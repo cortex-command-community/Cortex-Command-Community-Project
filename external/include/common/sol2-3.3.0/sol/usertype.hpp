@@ -127,16 +127,14 @@ namespace sol {
 
 		// RTE specific changes!
 		// We have enums in classes, which is useful, so let's expose that
-		// This causes a compiler warning for returning the address of a local. I, eh, am not certain what to think about that.
-		// I believe that should be an issue with existing Sol, so ?
 		template <bool read_only = true, typename... Args>
-		table& new_enum(const string_view& name, Args&&... args) {
-			return basic_metatable<base_type>::new_enum(name, std::forward<Args>(args)...);
+		void new_enum(const string_view& name, Args&&... args) {
+			basic_metatable<base_type>::new_enum(name, std::forward<Args>(args)...);
 		}
 
 		template <typename T, bool read_only = true>
-		table& new_enum(const string_view& name, std::initializer_list<std::pair<string_view, T>> items) {
-			return basic_metatable<base_type>::new_enum(name, std::move(items));
+		void new_enum(const string_view& name, std::initializer_list<std::pair<string_view, T>> items) {
+			basic_metatable<base_type>::new_enum(name, std::move(items));
 		}
 		// RTE changes end
 	};

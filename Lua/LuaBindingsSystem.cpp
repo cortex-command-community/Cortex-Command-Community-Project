@@ -25,7 +25,7 @@ namespace RTE {
 			Box(const Box&)
 		>());
 
-		luaType[sol::meta_function::equal_to] = sol::resolve<bool(const Box&, const Box&)>(RTE::operator==);
+		luaType[sol::meta_function::equal_to] = [](const Box& lhs, const Box& rhs) { return lhs == rhs; };
 
 		luaType["ClassName"] = sol::property(&Box::GetClassName);
 		luaType["Corner"] = sol::property(&Box::GetCorner, &Box::SetCorner);
@@ -195,12 +195,12 @@ namespace RTE {
 			Vector(float, float)
 		>());
 
-		luaType[sol::meta_function::equal_to] = sol::resolve<bool(const Vector&, const Vector&)>(RTE::operator==);
-		luaType[sol::meta_function::addition] = sol::resolve<Vector(const Vector&, const Vector&)>(RTE::operator+);
-		luaType[sol::meta_function::subtraction] = sol::resolve<Vector(const Vector&, const Vector&)>(RTE::operator-);
-		luaType[sol::meta_function::multiplication] = sol::resolve<Vector(const Vector&, const Vector&)>(RTE::operator*);
-		luaType[sol::meta_function::division] = sol::resolve<Vector(const Vector&, const Vector&)>(RTE::operator/);
-		luaType[sol::meta_function::to_string] = sol::resolve<std::ostream& (std::ostream&, const Vector&)>(RTE::operator<<);
+		luaType[sol::meta_function::equal_to] = [](const Vector& lhs, const Vector& rhs) { return lhs == rhs; };
+		luaType[sol::meta_function::addition] = [](const Vector& lhs, const Vector& rhs) { return lhs + rhs; };
+		luaType[sol::meta_function::subtraction] = [](const Vector& lhs, const Vector& rhs) { return lhs - rhs; };
+		luaType[sol::meta_function::multiplication] = [](const Vector& lhs, const Vector& rhs) { return lhs * rhs; };
+		luaType[sol::meta_function::division] = [](const Vector& lhs, const Vector& rhs) { return lhs / rhs; };
+		luaType[sol::meta_function::to_string] = [](const Vector& obj) { std::stringstream stream; stream << obj; return stream.str(); };
 
 		luaType["ClassName"] = sol::property(&Vector::GetClassName);
 		luaType["RoundedX"] = sol::property(&Vector::GetRoundIntX);

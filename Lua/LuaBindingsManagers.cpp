@@ -32,10 +32,10 @@ namespace RTE {
 		luaType["DefaultActivityType"] = sol::property(&ActivityMan::GetDefaultActivityType, &ActivityMan::SetDefaultActivityType);
 		luaType["DefaultActivityName"] = sol::property(&ActivityMan::GetDefaultActivityName, &ActivityMan::SetDefaultActivityName);
 
-		luaType["SetStartActivity"] = &ActivityMan::SetStartActivity, luabind::adopt(_2);
+		luaType["SetStartActivity"] = &ActivityMan::SetStartActivity;//; //, luabind::adopt(_2);
 		luaType["GetStartActivity"] = &ActivityMan::GetStartActivity;
 		luaType["GetActivity"] = &ActivityMan::GetActivity;
-		luaType["StartActivity"] = (int (ActivityMan::*)(Activity*)) &ActivityMan::StartActivity, luabind::adopt(_2);
+		luaType["StartActivity"] = (int (ActivityMan::*)(Activity*)) &ActivityMan::StartActivity;//; //, luabind::adopt(_2);
 		luaType["StartActivity"] = (int (ActivityMan::*)(const std::string &, const std::string &))&ActivityMan::StartActivity;
 		luaType["RestartActivity"] = &ActivityMan::RestartActivity;
 		luaType["PauseActivity"] = &ActivityMan::PauseActivity;
@@ -68,9 +68,9 @@ namespace RTE {
 		luaType["QueueMusicStream"] = &AudioMan::QueueMusicStream;
 		luaType["QueueSilence"] = &AudioMan::QueueSilence;
 		luaType["ClearMusicQueue"] = &AudioMan::ClearMusicQueue;
-		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath)) &AudioMan::PlaySound, luabind::adopt(luabind::result);
-		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position)) &AudioMan::PlaySound, luabind::adopt(luabind::result);
-		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position, int player)) &AudioMan::PlaySound, luabind::adopt(luabind::result);
+		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath)) &AudioMan::PlaySound;//; //, luabind::adopt(luabind::result);
+		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position)) &AudioMan::PlaySound;//; //, luabind::adopt(luabind::result);
+		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position, int player)) &AudioMan::PlaySound;//; //, luabind::adopt(luabind::result);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,10 +183,10 @@ namespace RTE {
 		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam) const)&MovableMan::GetMOsInRadius;
 		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInRadius;
 
-		luaType["AddMO"] = &LuaAdaptersMovableMan::AddMO, luabind::adopt(_2);
-		luaType["AddActor"] = &LuaAdaptersMovableMan::AddActor, luabind::adopt(_2);
-		luaType["AddItem"] = &LuaAdaptersMovableMan::AddItem, luabind::adopt(_2);
-		luaType["AddParticle"] = &LuaAdaptersMovableMan::AddParticle, luabind::adopt(_2);
+		luaType["AddMO"] = &LuaAdaptersMovableMan::AddMO; //, luabind::adopt(_2);
+		luaType["AddActor"] = &LuaAdaptersMovableMan::AddActor; //, luabind::adopt(_2);
+		luaType["AddItem"] = &LuaAdaptersMovableMan::AddItem; //, luabind::adopt(_2);
+		luaType["AddParticle"] = &LuaAdaptersMovableMan::AddParticle; //, luabind::adopt(_2);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,8 +213,8 @@ namespace RTE {
 		luaType["AddPreset"] = &PresetMan::AddEntityPreset;
 		luaType["GetPreset"] = (const Entity *(PresetMan::*)(std::string, std::string, int))&PresetMan::GetEntityPreset;
 		luaType["GetPreset"] = (const Entity *(PresetMan::*)(std::string, std::string, std::string))&PresetMan::GetEntityPreset;
-		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, std::string, bool))&PresetMan::GetLoadout, luabind::adopt(luabind::result);
-		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, int, bool))&PresetMan::GetLoadout, luabind::adopt(luabind::result);
+		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, std::string, bool))&PresetMan::GetLoadout; //, luabind::adopt(luabind::result);
+		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, int, bool))&PresetMan::GetLoadout; //, luabind::adopt(luabind::result);
 		luaType["GetRandomOfGroup"] = &PresetMan::GetRandomOfGroup;
 		luaType["GetRandomOfGroupInModuleSpace"] = &PresetMan::GetRandomOfGroupInModuleSpace;
 		luaType["GetEntityDataLocation"] = &PresetMan::GetEntityDataLocation;
@@ -348,7 +348,7 @@ namespace RTE {
 		luaType["WrapBox"] = &LuaAdaptersSceneMan::WrapBoxes;
 		luaType["ObscuredPoint"] = (bool (SceneMan::*)(Vector &, int))&SceneMan::ObscuredPoint;
 		luaType["ObscuredPoint"] = (bool (SceneMan::*)(int, int, int))&SceneMan::ObscuredPoint;
-		luaType["AddSceneObject"] = &SceneMan::AddSceneObject, luabind::adopt(_2);
+		luaType["AddSceneObject"] = &SceneMan::AddSceneObject; //, luabind::adopt(_2);
 		luaType["CheckAndRemoveOrphans"] = (int (SceneMan::*)(int, int, int, int, bool))&SceneMan::RemoveOrphans;
 		luaType["DislodgePixel"] = &SceneMan::DislodgePixel;
 	}

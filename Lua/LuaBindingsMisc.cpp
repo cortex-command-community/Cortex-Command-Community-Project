@@ -2,7 +2,16 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "LuaAdapterDefinitions.h"
+
 #include "MovableMan.h"
+#include "MetaPlayer.h"
+#include "PieMenu.h"
+#include "PieSlice.h"
+#include "Actor.h"
+#include "MovableObject.h"
+#include "SoundContainer.h"
+#include "GlobalScript.h"
 
 namespace RTE {
 
@@ -52,5 +61,202 @@ namespace RTE {
 			{ "Transparency", DrawBlendMode::BlendTransparency },
 			{ "BlendModeCount", DrawBlendMode::BlendModeCount }
 		});
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MetaPlayer) {
+		auto luaType = SimpleTypeLuaClassDefinition(MetaPlayer);
+
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			MetaPlayer()
+		>());
+
+		luaType["NativeTechModule"] = sol::property(&MetaPlayer::GetNativeTechModule);
+		luaType["ForeignCostMultiplier"] = sol::property(&MetaPlayer::GetForeignCostMultiplier);
+		luaType["NativeCostMultiplier"] = sol::property(&MetaPlayer::GetNativeCostMultiplier);
+		luaType["InGamePlayer"] = sol::property(&MetaPlayer::GetInGamePlayer);
+		luaType["BrainPoolCount"] = sol::property(&MetaPlayer::GetBrainPoolCount, &MetaPlayer::SetBrainPoolCount);
+
+		luaType["ChangeBrainPoolCount"] = &MetaPlayer::ChangeBrainPoolCount;
+	}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieSlice) {
+		auto luaType = ConcreteTypeLuaClassDefinition(PieSlice, Entity);
+
+		luaType["Type"] = sol::property(&PieSlice::GetType, &PieSlice::SetType);
+		luaType["Direction"] = sol::property(&PieSlice::GetDirection, &PieSlice::SetDirection);
+		luaType["CanBeMiddleSlice"] = sol::property(&PieSlice::GetCanBeMiddleSlice, &PieSlice::SetCanBeMiddleSlice);
+		luaType["OriginalSource"] = sol::property(&PieSlice::GetOriginalSource);
+		luaType["Enabled"] = sol::property(&PieSlice::IsEnabled, &PieSlice::SetEnabled);
+
+		luaType["ScriptPath"] = sol::property(&PieSlice::GetScriptPath, &PieSlice::SetScriptPath);
+		luaType["FunctionName"] = sol::property(&PieSlice::GetFunctionName, &PieSlice::SetFunctionName);
+		luaType["SubPieMenu"] = sol::property(&PieSlice::GetSubPieMenu, &PieSlice::SetSubPieMenu);
+
+		luaType["DrawFlippedToMatchAbsoluteAngle"] = sol::property(&PieSlice::GetDrawFlippedToMatchAbsoluteAngle, &PieSlice::SetDrawFlippedToMatchAbsoluteAngle);
+
+		luaType["ReloadScripts"] = &PieSlice::ReloadScripts;
+
+		luaType.new_enum("SliceType", EnumList(PieSlice::SliceType) {
+			{ "NoType", PieSlice::SliceType::NoType },
+			{ "Pickup", PieSlice::SliceType::Pickup },
+			{ "Drop", PieSlice::SliceType::Drop },
+			{ "NextItem", PieSlice::SliceType::NextItem },
+			{ "PreviousItem", PieSlice::SliceType::PreviousItem },
+			{ "Reload", PieSlice::SliceType::Reload },
+			{ "BuyMenu", PieSlice::SliceType::BuyMenu },
+			{ "Stats", PieSlice::SliceType::Stats },
+			{ "Map", PieSlice::SliceType::Map },
+			{ "FormSquad", PieSlice::SliceType::FormSquad },
+			{ "Ceasefire", PieSlice::SliceType::Ceasefire },
+			{ "Sentry", PieSlice::SliceType::Sentry },
+			{ "Patrol", PieSlice::SliceType::Patrol },
+			{ "BrainHunt", PieSlice::SliceType::BrainHunt },
+			{ "GoldDig", PieSlice::SliceType::GoldDig },
+			{ "GoTo", PieSlice::SliceType::GoTo },
+			{ "Return", PieSlice::SliceType::Return },
+			{ "Stay", PieSlice::SliceType::Stay },
+			{ "Deliver", PieSlice::SliceType::Deliver },
+			{ "Scuttle", PieSlice::SliceType::Scuttle },
+			{ "Done", PieSlice::SliceType::EditorDone },
+			{ "Load", PieSlice::SliceType::EditorLoad },
+			{ "Save", PieSlice::SliceType::EditorSave },
+			{ "New", PieSlice::SliceType::EditorNew },
+			{ "Pick", PieSlice::SliceType::EditorPick },
+			{ "Move", PieSlice::SliceType::EditorMove },
+			{ "Remove", PieSlice::SliceType::EditorRemove },
+			{ "InFront", PieSlice::SliceType::EditorInFront },
+			{ "Behind", PieSlice::SliceType::EditorBehind },
+			{ "ZoomIn", PieSlice::SliceType::EditorZoomIn },
+			{ "ZoomOut", PieSlice::SliceType::EditorZoomOut },
+			{ "Team1", PieSlice::SliceType::EditorTeam1 },
+			{ "Team2", PieSlice::SliceType::EditorTeam2 },
+			{ "Team3", PieSlice::SliceType::EditorTeam3 },
+			{ "Team4", PieSlice::SliceType::EditorTeam4 }
+		});
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieMenu) {
+		auto luaType = ConcreteTypeLuaClassDefinition(PieMenu, Entity);
+
+		luaType["Owner"] = sol::property(&PieMenu::GetOwner);
+		luaType["Controller"] = sol::property(&PieMenu::GetController);
+		luaType["AffectedObject"] = sol::property(&PieMenu::GetAffectedObject);
+		luaType["Pos"] = sol::property(&PieMenu::GetPos);
+		luaType["RotAngle"] = sol::property(&PieMenu::GetRotAngle, &PieMenu::SetRotAngle);
+		luaType["FullInnerRadius"] = sol::property(&PieMenu::GetFullInnerRadius, &PieMenu::SetFullInnerRadius);
+
+		luaType["PieSlices"] = sol::property(&PieMenu::GetPieSlices);
+
+		luaType["IsSubPieMenu"] = &PieMenu::IsSubPieMenu;
+
+		luaType["IsEnabled"] = &PieMenu::IsEnabled;
+		luaType["IsEnabling"] = &PieMenu::IsEnabling;
+		luaType["IsDisabling"] = &PieMenu::IsDisabling;
+		luaType["IsEnablingOrDisabling"] = &PieMenu::IsEnablingOrDisabling;
+		luaType["IsVisible"] = &PieMenu::IsVisible;
+		luaType["HasSubPieMenuOpen"] = &PieMenu::HasSubPieMenuOpen;
+
+		luaType["SetAnimationModeToNormal"] = &PieMenu::SetAnimationModeToNormal;
+		luaType["DoDisableAnimation"] = &PieMenu::DoDisableAnimation;
+		luaType["Wobble"] = &PieMenu::Wobble;
+		luaType["FreezeAtRadius"] = &PieMenu::FreezeAtRadius;
+
+		luaType["GetPieCommand"] = &PieMenu::GetPieCommand;
+		luaType["GetFirstPieSliceByPresetName"] = &PieMenu::GetFirstPieSliceByPresetName;
+		luaType["GetFirstPieSliceByType"] = &PieMenu::GetFirstPieSliceByType;
+		luaType["AddPieSlice"] = &PieMenu::AddPieSlice; //, luabind::adopt(_2);
+		luaType["AddPieSlice"] = &LuaAdaptersPieMenu::AddPieSlice; //, luabind::adopt(_2);
+		luaType["AddPieSliceIfPresetNameIsUnique"] = &PieMenu::AddPieSliceIfPresetNameIsUnique; //, luabind::adopt(_2);
+		luaType["AddPieSliceIfPresetNameIsUnique"] = &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1; //, luabind::adopt(_2);
+		luaType["AddPieSliceIfPresetNameIsUnique"] = &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2; //, luabind::adopt(_2);
+		luaType["RemovePieSlice"] = &PieMenu::RemovePieSlice; //, luabind::adopt(luabind::return_value);
+		luaType["RemovePieSlicesByPresetName"] = &PieMenu::RemovePieSlicesByPresetName;
+		luaType["RemovePieSlicesByType"] = &PieMenu::RemovePieSlicesByType;
+		luaType["RemovePieSlicesByOriginalSource"] = &PieMenu::RemovePieSlicesByOriginalSource;
+		luaType["ReplacePieSlice"] = &PieMenu::ReplacePieSlice; //, luabind::adopt(luabind::result) + luabind::adopt(_3);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
+		auto luaType = ConcreteTypeLuaClassDefinition(SoundContainer, Entity);
+
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			SoundContainer()
+		>());
+
+		luaType["SoundOverlapMode"] = sol::property(&SoundContainer::GetSoundOverlapMode, &SoundContainer::SetSoundOverlapMode);
+		luaType["Immobile"] = sol::property(&SoundContainer::IsImmobile, &SoundContainer::SetImmobile);
+		luaType["AttenuationStartDistance"] = sol::property(&SoundContainer::GetAttenuationStartDistance, &SoundContainer::SetAttenuationStartDistance);
+		luaType["Loops"] = sol::property(&SoundContainer::GetLoopSetting, &SoundContainer::SetLoopSetting);
+		luaType["Priority"] = sol::property(&SoundContainer::GetPriority, &SoundContainer::SetPriority);
+		luaType["AffectedByGlobalPitch"] = sol::property(&SoundContainer::IsAffectedByGlobalPitch, &SoundContainer::SetAffectedByGlobalPitch);
+		luaType["Pos"] = sol::property(&SoundContainer::GetPosition, &SoundContainer::SetPosition);
+		luaType["Volume"] = sol::property(&SoundContainer::GetVolume, &SoundContainer::SetVolume);
+		luaType["Pitch"] = sol::property(&SoundContainer::GetPitch, &SoundContainer::SetPitch);
+		luaType["PitchVariation"] = sol::property(&SoundContainer::GetPitchVariation, &SoundContainer::SetPitchVariation);
+
+		luaType["HasAnySounds"] = &SoundContainer::HasAnySounds;
+		luaType["GetTopLevelSoundSet"] = &SoundContainer::GetTopLevelSoundSet;
+		luaType["SetTopLevelSoundSet"] = &SoundContainer::SetTopLevelSoundSet;
+		luaType["IsBeingPlayed"] = &SoundContainer::IsBeingPlayed;
+		luaType["Play"] = (bool (SoundContainer::*)()) & SoundContainer::Play;
+		luaType["Play"] = (bool (SoundContainer::*)(const int player)) & SoundContainer::Play;
+		luaType["Play"] = (bool (SoundContainer::*)(const Vector & position)) & SoundContainer::Play;
+		luaType["Play"] = (bool (SoundContainer::*)(const Vector & position, int player)) & SoundContainer::Play;
+		luaType["Stop"] = (bool (SoundContainer::*)()) & SoundContainer::Stop;
+		luaType["Stop"] = (bool (SoundContainer::*)(int player)) & SoundContainer::Stop;
+		luaType["Restart"] = (bool (SoundContainer::*)()) & SoundContainer::Restart;
+		luaType["Restart"] = (bool (SoundContainer::*)(int player)) & SoundContainer::Restart;
+		luaType["FadeOut"] = &SoundContainer::FadeOut;
+
+		luaType.new_enum("SoundOverlapMode", EnumList(SoundContainer::SoundOverlapMode) {
+			{ "OVERLAP", SoundContainer::SoundOverlapMode::OVERLAP },
+			{ "RESTART", SoundContainer::SoundOverlapMode::RESTART },
+			{ "IGNORE_PLAY", SoundContainer::SoundOverlapMode::IGNORE_PLAY }
+		});
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundSet) {
+		auto luaType = SimpleTypeLuaClassDefinition(SoundSet);
+
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			SoundSet()
+		>());
+
+		luaType["SoundSelectionCycleMode"] = sol::property(&SoundSet::GetSoundSelectionCycleMode, &SoundSet::SetSoundSelectionCycleMode);
+
+		luaType["SubSoundSets"] = sol::readonly(&SoundSet::m_SubSoundSets);
+
+		luaType["HasAnySounds"] = &SoundSet::HasAnySounds;
+		luaType["SelectNextSounds"] = &SoundSet::SelectNextSounds;
+		luaType["AddSound"] = (void (SoundSet::*)(const std::string & soundFilePath)) & SoundSet::AddSound;
+		luaType["AddSound"] = (void (SoundSet::*)(const std::string & soundFilePath, const Vector & offset, float minimumAudibleDistance, float attenuationStartDistance)) & SoundSet::AddSound;
+		luaType["RemoveSound"] = (bool (SoundSet::*)(const std::string & soundFilePath)) & SoundSet::RemoveSound;
+		luaType["RemoveSound"] = (bool (SoundSet::*)(const std::string & soundFilePath, bool removeFromSubSoundSets)) & SoundSet::RemoveSound;
+		luaType["AddSoundSet"] = &SoundSet::AddSoundSet;
+
+		luaType.new_enum("SoundSelectionCycleMode", EnumList(SoundSet::SoundSelectionCycleMode) {
+			{ "RANDOM", SoundSet::SoundSelectionCycleMode::RANDOM },
+			{ "FORWARDS", SoundSet::SoundSelectionCycleMode::FORWARDS },
+			{ "ALL", SoundSet::SoundSelectionCycleMode::ALL }
+		});
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, GlobalScript) {
+		auto luaType = AbstractTypeLuaClassDefinition(GlobalScript, Entity);
+
+		luaType["Deactivate"] = &LuaAdaptersGlobalScript::Deactivate;
 	}
 }

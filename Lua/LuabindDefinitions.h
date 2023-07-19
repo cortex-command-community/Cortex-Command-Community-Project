@@ -1,20 +1,7 @@
 #ifndef _RTELUABINDDEFINITIONS_
 #define _RTELUABINDDEFINITIONS_
 
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS 1
-
-// Todo - figure out luabind error callbacks and blah-de-blah
-//#define LUABIND_NO_EXCEPTIONS
-
 #include "lua.hpp"
-#include "luabind.hpp"
-#include "luabind/object.hpp"
-#include "luabind/operator.hpp"
-#include "luabind/copy_policy.hpp"
-#include "luabind/adopt_policy.hpp"
-#include "luabind/out_value_policy.hpp"
-#include "luabind/iterator_policy.hpp"
-#include "luabind/return_reference_to_policy.hpp"
 
 #include "sol/sol.hpp"
 
@@ -48,11 +35,11 @@ namespace RTE {
 	/// <param name="luaTable">The Lua table object to convert to vector.</param>
 	/// <returns>A C++ vector containing all the objects from the Lua table. Ownership is transferred!</returns>
 	/// <remarks>In case of type mismatch (by specifying wrong type or a mix of types in the Lua table) object_cast will print an error to the console and throw, so no need to check what it returns before emplacing.</remarks>
-	template <typename Type> static std::vector<Type> ConvertLuaTableToVectorOfType(const luabind::object &luaObject) {
+	template <typename Type> static std::vector<Type> ConvertLuaTableToVectorOfType(const sol::table &luaObject) {
 		std::vector<Type> outVector = {};
-		if (luaObject.is_valid() && luabind::type(luaObject) == LUA_TTABLE) {
-			for (luabind::iterator tableItr(luaObject), tableEnd; tableItr != tableEnd; ++tableItr) {
-				outVector.emplace_back(luabind::object_cast<Type>(*tableItr, luabind::adopt(luabind::result)));
+		if (luaObject.valid()) {
+			for (auto object : luaObject.pairs()) {
+				outVector.emplace_back(object.second.as<Type>()); //, luabind::adopt(luabind::result)));
 			}
 		}
 		return outVector;

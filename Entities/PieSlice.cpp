@@ -56,7 +56,7 @@ namespace RTE {
 
 		m_FunctionName = reference.m_FunctionName;
 		if (reference.m_LuabindFunctionObject) {
-			m_LuabindFunctionObject = std::make_unique<LuabindObjectWrapper>(nullptr, reference.m_LuabindFunctionObject->GetFilePath());
+			m_LuabindFunctionObject = std::make_unique<SolObjectWrapper>(nullptr, reference.m_LuabindFunctionObject->GetFilePath());
 			ReloadScripts();
 		}
 
@@ -100,7 +100,7 @@ namespace RTE {
 		} else if (propName == "ScriptPath") {
 			std::string scriptPath;
 			reader >> scriptPath;
-			m_LuabindFunctionObject = std::make_unique<LuabindObjectWrapper>(nullptr, scriptPath);
+			m_LuabindFunctionObject = std::make_unique<SolObjectWrapper>(nullptr, scriptPath);
 			if (!m_FunctionName.empty()) {
 				ReloadScripts();
 			}
@@ -172,11 +172,11 @@ namespace RTE {
 
 		if (m_LuabindFunctionObject) {
 			std::string filePath = m_LuabindFunctionObject->GetFilePath();
-			std::unordered_map<std::string, LuabindObjectWrapper *> scriptFileFunctions;
+			std::unordered_map<std::string, SolObjectWrapper *> scriptFileFunctions;
 
 			status = g_LuaMan.GetMasterScriptState().RunScriptFileAndRetrieveFunctions(filePath, { m_FunctionName }, scriptFileFunctions);
 			if (scriptFileFunctions.find(m_FunctionName) != scriptFileFunctions.end()) {
-				m_LuabindFunctionObject = std::unique_ptr<LuabindObjectWrapper>(scriptFileFunctions.at(m_FunctionName));
+				m_LuabindFunctionObject = std::unique_ptr<SolObjectWrapper>(scriptFileFunctions.at(m_FunctionName));
 			}
 		}
 
