@@ -141,7 +141,7 @@ namespace RTE {
 		BITMAP *defaultBGLayerTexture = m_DefaultBGTextureFile.GetAsBitmap();
 
 		const std::array<Material *, c_PaletteEntriesNumber> &materialPalette = g_SceneMan.GetMaterialPalette();
-		const std::array<unsigned char, c_PaletteEntriesNumber> &materialMappings = g_ModuleMan.GetDataModule(m_BitmapFile.GetDataModuleID())->GetAllMaterialMappings();
+		const std::array<unsigned char, c_PaletteEntriesNumber> &materialMappings = g_ModuleMan.GetDataModule(g_ModuleMan.GetModuleIDFromPath(m_BitmapFile.GetDataPath()))->GetAllMaterialMappings();
 
 		std::array<BITMAP *, c_PaletteEntriesNumber> materialFGTextures;
 		materialFGTextures.fill(nullptr);

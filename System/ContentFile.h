@@ -70,12 +70,6 @@ namespace RTE {
 
 #pragma region Getters and Setters
 		/// <summary>
-		/// Gets the ID of the Data Module this file is inside.
-		/// </summary>
-		/// <returns>The ID of the DataModule containing this' file.</returns>
-		int GetDataModuleID() const;
-
-		/// <summary>
 		/// Gets the file path of the content file represented by this ContentFile object.
 		/// </summary>
 		/// <returns>A string with the file name path.</returns>
@@ -210,8 +204,6 @@ namespace RTE {
 
 		std::string m_FormattedReaderPosition; //!< A string containing the currently read file path and the line being read. Formatted to be used for logging.
 		std::string m_DataPathAndReaderPosition; //!< The path to this ContentFile's data file combined with the ini file and line it is being read from. This is used for logging.
-
-		int m_DataModuleID; //!< Data Module ID of where this was loaded from.
 
 #pragma region Image Info Getters
 		/// <summary>

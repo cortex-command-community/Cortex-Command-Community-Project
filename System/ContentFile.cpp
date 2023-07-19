@@ -26,7 +26,6 @@ namespace RTE {
 		m_DataPathIsImageFile = false;
 		m_FormattedReaderPosition.clear();
 		m_DataPathAndReaderPosition.clear();
-		m_DataModuleID = 0;
 
 		m_ImageFileInfo.fill(-1);
 	}
@@ -45,7 +44,6 @@ namespace RTE {
 		m_DataPath = reference.m_DataPath;
 		m_DataPathExtension = reference.m_DataPathExtension;
 		m_DataPathWithoutExtension = reference.m_DataPathWithoutExtension;
-		m_DataModuleID = reference.m_DataModuleID;
 
 		return 0;
 	}
@@ -83,12 +81,6 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ContentFile::GetDataModuleID() const {
-		return (m_DataModuleID < 0) ? g_ModuleMan.GetModuleIDFromPath(m_DataPath) : m_DataModuleID;
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ContentFile::SetDataPath(const std::string &newDataPath) {
 		m_DataPath = g_ModuleMan.GetFullModulePath(newDataPath);
 		m_DataPathExtension = std::filesystem::path(m_DataPath).extension().string();
@@ -99,7 +91,6 @@ namespace RTE {
 
 		m_DataPathWithoutExtension = m_DataPath.substr(0, m_DataPath.length() - m_DataPathExtension.length());
 		s_PathHashes[GetHash()] = m_DataPath;
-		m_DataModuleID = g_ModuleMan.GetModuleIDFromPath(m_DataPath);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
