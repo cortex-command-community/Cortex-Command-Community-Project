@@ -462,7 +462,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::AddMaterialMapping(uint8_t fromID, uint8_t toID, int whichModule) const {
-		RTEAssert(whichModule >= g_ModuleMan.GetOfficialModuleCount() && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to make a material mapping in an official or out-of-bounds DataModule!");
+		//RTEAssert(whichModule >= g_ModuleMan.GetOfficialModuleCount() && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to make a material mapping in an official or out-of-bounds DataModule!");
 
 		return g_ModuleMan.GetLoadedDataModules()[whichModule]->AddMaterialMapping(fromID, toID);
 	}

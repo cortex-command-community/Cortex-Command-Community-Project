@@ -383,10 +383,7 @@ namespace RTE {
 					}
 				}
 			} else {
-				for (int moduleID = 0; moduleID < g_ModuleMan.GetOfficialModuleCount() && moduleID < m_ModuleSpaceID; ++moduleID) {
-					g_PresetMan.GetAllOfGroup(moduleList.at(moduleID), groupListItem->m_Name, m_ShowType, moduleID);
-				}
-				g_PresetMan.GetAllOfGroup(moduleList.at(m_ModuleSpaceID), groupListItem->m_Name, m_ShowType, m_ModuleSpaceID);
+				g_PresetMan.GetAllOfGroupInModuleSpace(moduleList.at(m_ModuleSpaceID), groupListItem->m_Name, m_ShowType, m_ModuleSpaceID);
 			}
 		}
 

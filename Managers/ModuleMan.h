@@ -39,12 +39,6 @@ namespace RTE {
 		void SetSingleModuleToLoad(const std::string_view &moduleName) { m_SingleModuleToLoad = moduleName; }
 
 		/// <summary>
-		/// Gets the total number of OFFICIAL modules loaded so far.
-		/// </summary>
-		/// <returns>The number of official modules loaded so far.</returns>
-		size_t GetOfficialModuleCount() const { return m_OfficialModuleCount; }
-
-		/// <summary>
 		/// Gets the total number of modules loaded so far, official or not.
 		/// </summary>
 		/// <returns>The number of modules loaded so far, both official and non.</returns>
@@ -194,12 +188,6 @@ namespace RTE {
 		static const std::array<std::string, 10> c_OfficialModules; //!< Array storing the names of all the official modules.
 		static const std::array<std::pair<std::string, std::string>, 3> c_UserdataModules; //!< Array storing the names of all the userdata modules.
 
-
-		/// <summary>
-		/// How many modules are 'official' and shipped with the game, and guaranteed to not have name conflicts among them.
-		/// All official modules are in the beginning of the m_TypeMap, so this count shows how many into that vector they represent
-		/// </summary>
-		int m_OfficialModuleCount;
 		std::unordered_map<int, DataModule *> m_LoadedDataModules; //!< Map of all loaded DataModules by their ID. Owned by this.
 
 		std::string m_SingleModuleToLoad; //!< Name of the single module to load after the official modules.

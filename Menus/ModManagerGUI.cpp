@@ -56,12 +56,9 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModManagerGUI::PopulateKnownModsList() {
-		for (int i = 0; i < g_ModuleMan.GetTotalModuleCount(); ++i) {
-			if (i >= g_ModuleMan.GetOfficialModuleCount() && i < g_ModuleMan.GetTotalModuleCount()) {
-				if (const DataModule *dataModule = g_ModuleMan.GetDataModule(i); dataModule && !dataModule->IsUserdata()) {
-					ModRecord modRecord = { dataModule->GetFileName(), dataModule->GetFriendlyName(), dataModule->GetDescription(), g_ModuleMan.IsModDisabled(dataModule->GetFileName()) };
-					m_KnownMods.emplace_back(modRecord);
-				}
+		for (const auto &[moduleID, dataModule] : g_ModuleMan.GetLoadedDataModules()) {
+			if (!dataModule->IsOfficial() && !dataModule->IsUserdata()) {
+				m_KnownMods.emplace_back(dataModule->GetFileName(), dataModule->GetFriendlyName(), dataModule->GetDescription(), g_ModuleMan.IsModDisabled(dataModule->GetFileName()));
 			}
 		}
 		// Add missing data from disabled mods settings

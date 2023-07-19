@@ -112,7 +112,6 @@ namespace RTE {
 		.def("GetModuleID", &ModuleMan::GetModuleID)
 		.def("GetModuleIDFromPath", &ModuleMan::GetModuleIDFromPath)
 		.def("GetTotalModuleCount", &ModuleMan::GetTotalModuleCount)
-		.def("GetOfficialModuleCount", &ModuleMan::GetOfficialModuleCount)
 		.def("IsModuleOfficial", &ModuleMan::IsModuleOfficial)
 		.def("IsModuleUserdata", &ModuleMan::IsModuleUserdata)
 		.def("GetFullModulePath", &ModuleMan::GetFullModulePath);

@@ -23,8 +23,6 @@ namespace RTE {
 
 	void ModuleMan::Clear() {
 		m_LoadedDataModules.clear();
-		m_OfficialModuleCount = 0;
-
 		m_DisabledMods.clear();
 	}
 
@@ -262,11 +260,8 @@ namespace RTE {
 				if (std::regex_match(directoryEntryPath, std::regex(".*\.rte"))) {
 					std::string moduleName = directoryEntryPath.substr(directoryEntryPath.find_last_of('/') + 1, std::string::npos);
 					if (!g_ModuleMan.IsModDisabled(moduleName) && !IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
-						int moduleID = GetModuleID(moduleName);
 						// NOTE: LoadDataModule can return false (especially since it may try to load already loaded modules, which is okay) and shouldn't cause stop, so we can ignore its return value here.
-						if (moduleID < 0 || moduleID >= GetOfficialModuleCount()) {
-							LoadDataModule(moduleName, false, false, LoadingScreen::LoadingSplashProgressReport);
-						}
+						LoadDataModule(moduleName, DataModule::DataModuleType::Unofficial, LoadingScreen::LoadingSplashProgressReport);
 					}
 				}
 			}
