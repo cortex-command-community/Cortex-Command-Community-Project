@@ -164,7 +164,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool ModuleMan::LoadDataModule(const std::string &moduleName, bool official, bool userdata, const ProgressCallback &progressCallback) {
+	bool ModuleMan::LoadDataModule(const std::string &moduleName, DataModule::DataModuleType moduleType, const ProgressCallback &progressCallback) {
 		if (moduleName.empty()) {
 			return false;
 		}
@@ -225,7 +225,7 @@ namespace RTE {
 
 	void ModuleMan::LoadOfficialModules() {
 		for (const std::string &officialModule : c_OfficialModules) {
-			if (!LoadDataModule(officialModule, true, false, LoadingScreen::LoadingSplashProgressReport)) {
+			if (!LoadDataModule(officialModule, DataModule::DataModuleType::Official, LoadingScreen::LoadingSplashProgressReport)) {
 				RTEAbort("Failed to load official DataModule \"" + officialModule + "\"!");
 			}
 		}
@@ -241,7 +241,7 @@ namespace RTE {
 
 		// If a single module is specified, skip loading all other unofficial modules and load specified module only.
 		if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
-			if (!LoadDataModule(m_SingleModuleToLoad, false, false, LoadingScreen::LoadingSplashProgressReport)) {
+			if (!LoadDataModule(m_SingleModuleToLoad, DataModule::DataModuleType::Unofficial, LoadingScreen::LoadingSplashProgressReport)) {
 				g_ConsoleMan.PrintString("ERROR: Failed to load DataModule \"" + m_SingleModuleToLoad + "\"! Only official modules were loaded!");
 				return false;
 			}
