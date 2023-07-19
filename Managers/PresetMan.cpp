@@ -19,10 +19,8 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PresetMan::RegisterGroup(const std::string &newGroup, int whichModule) {
-		RTEAssert(whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
-
-		g_ModuleMan.GetLoadedDataModules()[whichModule]->RegisterGroup(newGroup);
+	void PresetMan::RegisterGroup(const std::string &newGroup, int whichModule) const {
+		g_ModuleMan.GetDataModule(whichModule)->RegisterGroup(newGroup);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

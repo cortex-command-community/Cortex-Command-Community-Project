@@ -40,7 +40,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="groupName">The group to register.</param>
 		/// <param name="whichModule">The ID of the module in which at least one Entity of this group can be found.</param>
-		void RegisterGroup(const std::string &groupName, int whichModule);
+		void RegisterGroup(const std::string &groupName, int whichModule) const;
 
 		/// <summary>
 		/// Fills out a list with all groups registered in a specific module.

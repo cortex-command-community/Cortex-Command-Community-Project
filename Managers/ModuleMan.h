@@ -42,11 +42,7 @@ namespace RTE {
 		/// Gets the total number of modules loaded so far, official or not.
 		/// </summary>
 		/// <returns>The number of modules loaded so far, both official and non.</returns>
-		size_t GetTotalModuleCount() const { return m_LoadedDataModules.size(); }
-
-
-
-
+		int GetTotalModuleCount() const { return m_LoadedDataModules.size(); }
 
 
 
@@ -101,8 +97,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="whichModule">The ID of the module to get.</param>
 		/// <returns>The requested DataModule. Ownership is NOT transferred!</returns>
-		const DataModule * GetDataModule(int whichModule = 0);
-
+		DataModule * GetDataModule(int whichModule = 0);
 
 
 
@@ -150,18 +145,6 @@ namespace RTE {
 		/// <returns>The complete path to the file, including Data/, Userdata/ or Mods/ based on whether or not it's part of an official module or userdata.</returns>
 		std::string GetFullModulePath(const std::string &modulePath) const;
 
-
-
-
-
-
-
-
-
-
-
-
-
 #pragma endregion
 
 #pragma region Contrete Methods
@@ -196,9 +179,8 @@ namespace RTE {
 
 #pragma region Module Loading Breakdown
 		/// <summary>
-		///
+		/// Loads all the official DataModules individually with LoadDataModule.
 		/// </summary>
-		/// <returns></returns>
 		void LoadOfficialModules();
 
 		/// <summary>
