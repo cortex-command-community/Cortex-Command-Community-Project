@@ -23,7 +23,6 @@ namespace RTE {
 
 	void ModuleMan::Clear() {
 		m_LoadedDataModules.clear();
-		m_DataModuleIDs.clear();
 		m_OfficialModuleCount = 0;
 
 		m_DisabledMods.clear();

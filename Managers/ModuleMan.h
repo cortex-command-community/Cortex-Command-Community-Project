@@ -60,7 +60,7 @@ namespace RTE {
 		/// Gets all the loaded DataModules.
 		/// </summary>
 		/// <returns>All the loaded DataModules.</returns>
-		std::vector<DataModule *> & GetLoadedDataModules() { return m_LoadedDataModules; }
+		std::unordered_map<int, DataModule *> & GetLoadedDataModules() { return m_LoadedDataModules; }
 
 
 
@@ -194,15 +194,13 @@ namespace RTE {
 		static const std::array<std::string, 10> c_OfficialModules; //!< Array storing the names of all the official modules.
 		static const std::array<std::pair<std::string, std::string>, 3> c_UserdataModules; //!< Array storing the names of all the userdata modules.
 
-		std::vector<DataModule *> m_LoadedDataModules; //!< Owned and loaded DataModules.
-
-		std::map<std::string, size_t> m_DataModuleIDs; //!< Names of all DataModules mapped to indices into the m_LoadedDataModules vector. The names are all lowercase name so we can more easily find them in case-agnostic fashion.
 
 		/// <summary>
 		/// How many modules are 'official' and shipped with the game, and guaranteed to not have name conflicts among them.
 		/// All official modules are in the beginning of the m_TypeMap, so this count shows how many into that vector they represent
 		/// </summary>
 		int m_OfficialModuleCount;
+		std::unordered_map<int, DataModule *> m_LoadedDataModules; //!< Map of all loaded DataModules by their ID. Owned by this.
 
 		std::string m_SingleModuleToLoad; //!< Name of the single module to load after the official modules.
 
