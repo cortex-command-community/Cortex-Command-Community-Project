@@ -203,7 +203,7 @@
       <OmitDefaultLibName>false</OmitDefaultLibName>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ConformanceMode>true</ConformanceMode>
-      <IncludeInUnityFile>false</IncludeInUnityFile>
+      <IncludeInUnityFile>true</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
     </ClCompile>
     <Link>
@@ -306,7 +306,7 @@
       <OmitDefaultLibName>false</OmitDefaultLibName>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ConformanceMode>true</ConformanceMode>
-      <IncludeInUnityFile>false</IncludeInUnityFile>
+      <IncludeInUnityFile>true</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
     </ClCompile>
     <Link>
@@ -425,7 +425,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <OmitDefaultLibName>false</OmitDefaultLibName>
       <ConformanceMode>true</ConformanceMode>
-      <IncludeInUnityFile>false</IncludeInUnityFile>
+      <IncludeInUnityFile>true</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
     </ClCompile>
     <Link>
@@ -543,7 +543,7 @@
       <StringPooling>true</StringPooling>
       <OmitDefaultLibName>false</OmitDefaultLibName>
       <ConformanceMode>true</ConformanceMode>
-      <IncludeInUnityFile>false</IncludeInUnityFile>
+      <IncludeInUnityFile>true</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
     </ClCompile>
     <Link>
@@ -760,21 +760,49 @@
     <ClCompile Include="GUI\Wrappers\AllegroBitmap.cpp" />
     <ClCompile Include="GUI\Wrappers\AllegroScreen.cpp" />
     <ClCompile Include="GUI\Wrappers\GUIInputWrapper.cpp" />
-    <ClCompile Include="Lua\LuaAdapters.cpp" />
-    <ClCompile Include="Lua\LuaBindingsActors.cpp" />
-    <ClCompile Include="Lua\LuaBindingsPhysics.cpp" />
-    <ClCompile Include="Lua\LuaBindingsScene.cpp" />
-    <ClCompile Include="Lua\LuaBindingsWeapons.cpp" />
-    <ClCompile Include="Lua\LuaBindingsActivities.cpp" />
-    <ClCompile Include="Lua\LuaBindingsEntities.cpp" />
-    <ClCompile Include="Lua\LuaBindingsGUI.cpp" />
-    <ClCompile Include="Lua\LuaBindingsManagers.cpp" />
-    <ClCompile Include="Lua\LuaBindingsMisc.cpp" />
-    <ClCompile Include="Lua\LuaBindingsInput.cpp" />
-    <ClCompile Include="Lua\LuaBindingsPrimitives.cpp" />
-    <ClCompile Include="Lua\LuaBindingsSystem.cpp" />
+    <ClCompile Include="Lua\LuaAdapters.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsActors.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsPhysics.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsScene.cpp">
+     <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsWeapons.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsActivities.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsEntities.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsGUI.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsManagers.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsMisc.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsInput.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsPrimitives.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsSystem.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
     <ClCompile Include="Lua\SolObjectWrapper.cpp" />
-    <ClCompile Include="Managers\LuaMan.cpp" />
+    <ClCompile Include="Managers\LuaMan.cpp">
+      <IncludeInUnityFile>false</IncludeInUnityFile>
+    </ClCompile>
     <ClCompile Include="Entities\Activity.cpp" />
     <ClCompile Include="Entities\ADSensor.cpp" />
     <ClCompile Include="Entities\Emission.cpp" />
