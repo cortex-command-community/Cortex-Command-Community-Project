@@ -240,9 +240,10 @@ namespace RTE {
 		LoadOfficialModules();
 
 		// If a single module is specified, skip loading all other unofficial modules and load specified module only.
-		if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
+		if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad) && !IsModuleUserdata(m_SingleModuleToLoad)) {
 			if (!LoadDataModule(m_SingleModuleToLoad, DataModule::DataModuleType::Unofficial, LoadingScreen::LoadingSplashProgressReport)) {
 				g_ConsoleMan.PrintString("ERROR: Failed to load DataModule \"" + m_SingleModuleToLoad + "\"! Only official modules were loaded!");
+				g_ConsoleMan.SetEnabled(true);
 				return false;
 			}
 		} else {
