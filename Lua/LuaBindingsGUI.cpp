@@ -2,6 +2,11 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "GUIBanner.h"
+#include "BuyMenuGUI.h"
+#include "SceneEditorGUI.h"
+#include "GameActivity.h"
+
 namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -2,7 +2,6 @@
 #define _RTELUAREGISTERDEFINITIONS_
 
 #include "LuabindDefinitions.h"
-#include "LuaAdapterDefinitions.h"
 
 namespace RTE {
 
@@ -79,13 +78,13 @@ namespace RTE {
 	/// </summary>
 	#define RegisterLuaBindingsOfConcreteType(SOLSTATE, OWNINGSCOPE, TYPE) \
 		SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string, std::string))&LuaAdaptersEntityCreate::Create##TYPE;	\
-		SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string))&LuaAdaptersEntityCreate::Create##TYPE;					\
+		SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string))&LuaAdaptersEntityCreate::Create##TYPE;				\
 		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string, int))&LuaAdaptersEntityCreate::Random##TYPE;			\
 		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string, std::string))&LuaAdaptersEntityCreate::Random##TYPE;	\
-		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string))&LuaAdaptersEntityCreate::Random##TYPE;					\
-		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE;								\
-		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE;				\
-		SOLSTATE[(std::string("Is") + std::string(#TYPE)).c_str()] = (bool(*)(const Entity *))&LuaAdaptersEntityCast::Is##TYPE;							\
+		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string))&LuaAdaptersEntityCreate::Random##TYPE;				\
+		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE;												\
+		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE;							\
+		SOLSTATE[(std::string("Is") + std::string(#TYPE)).c_str()] = (bool(*)(const Entity *))&LuaAdaptersEntityCast::Is##TYPE;											\
 		OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 #pragma endregion
 

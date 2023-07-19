@@ -2,6 +2,8 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "Constants.h"
+
 #include "SDL_scancode.h"
 #include "SDL_keycode.h"
 #include "SDL_gamecontroller.h"

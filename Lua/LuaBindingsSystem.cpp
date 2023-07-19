@@ -2,6 +2,14 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "Actor.h"
+#include "Box.h"
+#include "Controller.h"
+#include "DataModule.h"
+#include "Timer.h"
+#include "Vector.h"
+#include "PathFinder.h"
+
 namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

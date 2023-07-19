@@ -3,78 +3,7 @@
 
 #include "LuabindDefinitions.h"
 
-#include "ActivityMan.h"
-#include "AudioMan.h"
-#include "CameraMan.h"
-#include "ConsoleMan.h"
-#include "FrameMan.h"
-#include "MetaMan.h"
-#include "MovableMan.h"
-#include "PostProcessMan.h"
-#include "PresetMan.h"
-#include "PrimitiveMan.h"
-#include "SceneMan.h"
-#include "SettingsMan.h"
-#include "TimerMan.h"
-#include "UInputMan.h"
-
-#include "Box.h"
-#include "Controller.h"
-#include "DataModule.h"
-#include "GraphicalPrimitive.h"
-#include "PathFinder.h"
-
-#include "GUIBanner.h"
-#include "BuyMenuGUI.h"
-#include "SceneEditorGUI.h"
-
-#include "GameActivity.h"
-#include "GAScripted.h"
-#include "ActorEditor.h"
-
-#include "Entity.h"
-#include "ACDropShip.h"
-#include "ACrab.h"
-#include "ACraft.h"
-#include "ACRocket.h"
-#include "Actor.h"
-#include "ADoor.h"
-#include "AEmitter.h"
-#include "AHuman.h"
-#include "Arm.h"
-#include "AtomGroup.h"
-#include "Attachable.h"
-#include "Deployment.h"
-#include "Emission.h"
-#include "Gib.h"
-#include "GlobalScript.h"
-#include "HDFirearm.h"
-#include "HeldDevice.h"
-#include "Leg.h"
-#include "LimbPath.h"
-#include "Magazine.h"
-#include "Material.h"
-#include "MetaPlayer.h"
-#include "MOSParticle.h"
-#include "MOPixel.h"
-#include "MOSprite.h"
-#include "MOSRotating.h"
-#include "MovableObject.h"
-#include "PEmitter.h"
-#include "Round.h"
-#include "Scene.h"
-#include "SceneObject.h"
-#include "SLBackground.h"
-#include "SLTerrain.h"
-#include "SoundContainer.h"
-#include "TerrainObject.h"
-#include "TDExplosive.h"
-#include "ThrownDevice.h"
-#include "Turret.h"
-#include "PieMenu.h"
-#include "PieSlice.h"
-
-#include "System/MicroPather/micropather.h"
+#include "Activity.h"
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic push
@@ -83,7 +12,55 @@
 
 struct lua_State;
 
+namespace luabind {
+	class object;
+}
+
 namespace RTE {
+
+	class Entity;
+	class SoundContainer;
+	class SceneObject;
+	class MovableObject;
+	class Attachable;
+	class Arm;
+	class Leg;
+	class Emission;
+	class AEmitter;
+	class Turret;
+	class Actor;
+	class ADoor;
+	class AHuman;
+	class ACrab;
+	class ACraft;
+	class ACDropShip;
+	class ACRocket;
+	class MOSParticle;
+	class MOSRotating;
+	class MOPixel;
+	class MOSprite;
+	class Scene;
+	class Deployment;
+	class GameActivity;
+	class GlobalScript;
+	class GAScripted;
+	class HeldDevice;
+	class Round;
+	class Magazine;
+	class HDFirearm;
+	class ThrownDevice;
+	class TDExplosive;
+	class TerrainObject;
+	class PEmitter;
+	class PieSlice;
+	class PieMenu;
+	class Vector;
+	class Box;
+	class MovableMan;
+	class SceneMan;
+	class PrimitiveMan;
+	class UInputMan;
+	class PresetMan;
 
 	class LuabindObjectWrapper;
 

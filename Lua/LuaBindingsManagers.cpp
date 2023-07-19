@@ -2,6 +2,26 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "LuaAdapterDefinitions.h"
+
+#include "ActivityMan.h"
+#include "AudioMan.h"
+#include "CameraMan.h"
+#include "ConsoleMan.h"
+#include "FrameMan.h"
+#include "MetaMan.h"
+#include "MovableMan.h"
+#include "PostProcessMan.h"
+#include "PresetMan.h"
+#include "PrimitiveMan.h"
+#include "SceneMan.h"
+#include "SettingsMan.h"
+#include "TimerMan.h"
+#include "UInputMan.h"
+
+#include "DataModule.h"
+#include "SLTerrain.h"
+
 namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -321,9 +341,7 @@ namespace RTE {
 		luaType["FindAltitude"] = &SceneMan::FindAltitude;
 		luaType["MovePointToGround"] = &SceneMan::MovePointToGround;
 		luaType["IsWithinBounds"] = &SceneMan::IsWithinBounds;
-		luaType["ForceBounds"] = (bool (SceneMan::*)(int &, int &))&SceneMan::ForceBounds;
 		luaType["ForceBounds"] = (bool (SceneMan::*)(Vector &))&SceneMan::ForceBounds;
-		luaType["WrapPosition"] = (bool (SceneMan::*)(int &, int &))&SceneMan::WrapPosition;
 		luaType["WrapPosition"] = (bool (SceneMan::*)(Vector &))&SceneMan::WrapPosition;
 		luaType["SnapPosition"] = &SceneMan::SnapPosition;
 		luaType["ShortestDistance"] = &SceneMan::ShortestDistance;
