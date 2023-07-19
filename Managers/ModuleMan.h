@@ -73,6 +73,12 @@ namespace RTE {
 		/// <returns>The requested DataModule. Ownership is NOT transferred!</returns>
 		DataModule * GetDataModule(int whichModule = 0);
 
+		/// <summary>
+		/// Gets a specific loaded DataModule.
+		/// </summary>
+		/// <param name="whichModule">The name of the DataModule to get, including the ".rte".</param>
+		/// <returns>The requested DataModule. Ownership is NOT transferred!</returns>
+		DataModule * GetDataModule(const std::string_view &moduleName) { return GetDataModule(GetModuleID(moduleName)); }
 #pragma endregion
 
 #pragma region DataModule Info Getters

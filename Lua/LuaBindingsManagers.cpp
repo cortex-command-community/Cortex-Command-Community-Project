@@ -108,7 +108,8 @@ namespace RTE {
 
 		.def_readwrite("Modules", &ModuleMan::m_LoadedDataModules, luabind::return_stl_iterator)
 
-		.def("GetDataModule", &ModuleMan::GetDataModule)
+		.def("GetDataModule", (DataModule * (ModuleMan::*)(int))&ModuleMan::GetDataModule)
+		.def("GetDataModule", (DataModule * (ModuleMan::*)(const std::string_view &))&ModuleMan::GetDataModule)
 		.def("GetModuleID", &ModuleMan::GetModuleID)
 		.def("GetModuleIDFromPath", &ModuleMan::GetModuleIDFromPath)
 		.def("GetTotalModuleCount", &ModuleMan::GetTotalModuleCount)
