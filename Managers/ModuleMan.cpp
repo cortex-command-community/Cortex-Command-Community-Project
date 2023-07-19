@@ -1,6 +1,3 @@
-// Suppress compiler warning about unrecognized escape sequence in LoadAllDataModules.
-#pragma warning( disable : 4129 )
-
 #include "ModuleMan.h"
 #include "SettingsMan.h"
 #include "ConsoleMan.h"
