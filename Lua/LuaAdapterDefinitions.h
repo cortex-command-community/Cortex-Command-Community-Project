@@ -95,12 +95,12 @@ namespace RTE {
 		/// Or even: myNewActor = CreateActor("Soldier Light");
 		/// Or for a randomly selected Preset within a group: myNewActor = RandomActor("Light Troops");
 		/// </summary>
-		#define LuaEntityCreateFunctionsDeclarationsForType(TYPE)								\
-			static TYPE * Create##TYPE(std::string preseName, std::string moduleName);			\
-			static TYPE * Create##TYPE(std::string preset);										\
-			static TYPE * Random##TYPE(std::string groupName, int moduleSpaceID);				\
-			static TYPE * Random##TYPE(std::string groupName, std::string dataModuleName);		\
-			static TYPE * Random##TYPE(std::string groupName)
+		#define LuaEntityCreateFunctionsDeclarationsForType(TYPE)											\
+			static std::unique_ptr<TYPE> Create##TYPE(std::string preseName, std::string moduleName);		\
+			static std::unique_ptr<TYPE> Create##TYPE(std::string preset);									\
+			static std::unique_ptr<TYPE> Random##TYPE(std::string groupName, int moduleSpaceID);			\
+			static std::unique_ptr<TYPE> Random##TYPE(std::string groupName, std::string dataModuleName);	\
+			static std::unique_ptr<TYPE> Random##TYPE(std::string groupName)
 
 		LuaEntityCreateFunctionsDeclarationsForType(SoundContainer);
 		LuaEntityCreateFunctionsDeclarationsForType(Attachable);
@@ -136,7 +136,7 @@ namespace RTE {
 		/// Convenience macro to generate a preset clone adapter function for a type.
 		/// </summary>
 		#define LuaEntityCloneFunctionDeclarationForType(TYPE) \
-			static TYPE * Clone##TYPE(const TYPE *thisEntity)
+			static std::unique_ptr<TYPE> Clone##TYPE(const TYPE *thisEntity)
 
 		LuaEntityCloneFunctionDeclarationForType(Entity);
 		LuaEntityCloneFunctionDeclarationForType(SoundContainer);
@@ -314,7 +314,7 @@ namespace RTE {
 
 #pragma region Actor Lua Adapters
 	struct LuaAdaptersActor {
-		static std::vector<Vector> * GetSceneWaypoints(Actor *luaSelfObject);
+		static std::vector<Vector> GetSceneWaypoints(Actor *luaSelfObject);
 	};
 #pragma endregion
 
@@ -349,8 +349,8 @@ namespace RTE {
 #pragma region MOSRotating Lua Adapters
 	struct LuaAdaptersMOSRotating {
 		static void GibThis(MOSRotating *luaSelfObject);
-		static std::vector<AEmitter *> * GetWounds1(const MOSRotating *luaSelfObject);
-		static std::vector<AEmitter *> * GetWounds2(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables);
+		static std::vector<AEmitter *> GetWounds1(const MOSRotating *luaSelfObject);
+		static std::vector<AEmitter *> GetWounds2(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables);
 		// Need a seperate implementation function without the return so we can safely recurse.
 		static void GetWoundsImpl(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables, std::vector<AEmitter *> &wounds);
 	};
@@ -588,7 +588,7 @@ namespace RTE {
 		/// Explicit deletion of any Entity instance that Lua owns. It will probably be handled by the GC, but this makes it instantaneous.
 		/// </summary>
 		/// <param name="entityToDelete">The Entity to delete.</param>
-		static void DeleteEntity(Entity *entityToDelete);
+		static void DeleteEntity(std::unique_ptr<Entity> &entityToDelete);
 	};
 #pragma endregion
 }

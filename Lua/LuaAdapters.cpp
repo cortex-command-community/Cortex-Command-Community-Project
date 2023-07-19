@@ -10,39 +10,39 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define LuaEntityCreateFunctionsDefinitionsForType(TYPE) \
-	TYPE * LuaAdaptersEntityCreate::Create##TYPE(std::string preseName, std::string moduleName) { \
-		const Entity *entityPreset = g_PresetMan.GetEntityPreset(#TYPE, preseName, moduleName); \
+	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Create##TYPE(std::string presetName, std::string moduleName) { \
+		const Entity *entityPreset = g_PresetMan.GetEntityPreset(#TYPE, presetName, moduleName); \
 		if (!entityPreset) { \
-			g_ConsoleMan.PrintString(std::string("ERROR: There is no ") + std::string(#TYPE) + std::string(" of the Preset name \"") + preseName + std::string("\" defined in the \"") + moduleName + std::string("\" Data Module!")); \
-			return nullptr; \
+			g_ConsoleMan.PrintString(std::string("ERROR: There is no ") + std::string(#TYPE) + std::string(" of the Preset name \"") + presetName + std::string("\" defined in the \"") + moduleName + std::string("\" Data Module!")); \
+			return std::unique_ptr<TYPE>(nullptr); \
 		} \
-		return dynamic_cast<TYPE *>(entityPreset->Clone()); \
+		return std::unique_ptr<TYPE>(dynamic_cast<TYPE *>(entityPreset->Clone())); \
 	} \
-	TYPE * LuaAdaptersEntityCreate::Create##TYPE(std::string preset) { \
+	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Create##TYPE(std::string preset) { \
 		return Create##TYPE(preset, "All"); \
 	} \
-	TYPE * LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, int moduleSpaceID) { \
+	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, int moduleSpaceID) { \
 		const Entity *entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
 		if (!entityPreset) { entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); } \
 		if (!entityPreset) { entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); } \
 		if (!entityPreset) { \
 			g_ConsoleMan.PrintString(std::string("WARNING: Could not find any ") + std::string(#TYPE) + std::string(" defined in a Group called \"") + groupName + std::string("\" in module ") + g_PresetMan.GetDataModuleName(moduleSpaceID) + "!");	\
-			return nullptr; \
+			return std::unique_ptr<TYPE>(nullptr); \
 		} \
-		return dynamic_cast<TYPE *>(entityPreset->Clone()); \
+		return std::unique_ptr<TYPE>(dynamic_cast<TYPE *>(entityPreset->Clone())); \
 	} \
-	TYPE * LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, std::string dataModuleName) { \
+	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, std::string dataModuleName) { \
 		int moduleSpaceID = g_PresetMan.GetModuleID(dataModuleName); \
 		const Entity *entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
 		if (!entityPreset) { entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); } \
 		if (!entityPreset) { entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); } \
 		if (!entityPreset) { \
 			g_ConsoleMan.PrintString(std::string("WARNING: Could not find any ") + std::string(#TYPE) + std::string(" defined in a Group called \"") + groupName + std::string("\" in module ") + dataModuleName + "!"); \
-			return nullptr; \
+			return std::unique_ptr<TYPE>(nullptr); \
 		} \
-		return dynamic_cast<TYPE *>(entityPreset->Clone()); \
+		return std::unique_ptr<TYPE>(dynamic_cast<TYPE *>(entityPreset->Clone())); \
 	} \
-	TYPE * LuaAdaptersEntityCreate::Random##TYPE(std::string groupName) { \
+	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Random##TYPE(std::string groupName) { \
 		return Random##TYPE(groupName, "All"); \
 	}
 
@@ -77,12 +77,12 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define LuaEntityCloneFunctionDefinitionForType(TYPE) \
-	TYPE * LuaAdaptersEntityClone::Clone##TYPE(const TYPE *thisEntity) { \
+	std::unique_ptr<TYPE> LuaAdaptersEntityClone::Clone##TYPE(const TYPE *thisEntity) { \
 		if (thisEntity) { \
-			return dynamic_cast<TYPE *>(thisEntity->Clone()); \
+			return std::unique_ptr<TYPE>(dynamic_cast<TYPE *>(thisEntity->Clone())); \
 		} \
 		g_ConsoleMan.PrintString(std::string("ERROR: Tried to clone a ") + std::string(#TYPE) + std::string(" reference that is nil!")); \
-		return nullptr; \
+		return std::unique_ptr<TYPE>(nullptr); \
 	}
 
 	LuaEntityCloneFunctionDefinitionForType(Entity);
@@ -258,12 +258,12 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::vector<Vector> * LuaAdaptersActor::GetSceneWaypoints(Actor *luaSelfObject) {
-		std::vector<Vector> *sceneWaypoints = new std::vector<Vector>();
-		sceneWaypoints->reserve(luaSelfObject->GetWaypointsSize());
+	std::vector<Vector> LuaAdaptersActor::GetSceneWaypoints(Actor *luaSelfObject) {
+		std::vector<Vector> sceneWaypoints = std::vector<Vector>();
+		sceneWaypoints.reserve(luaSelfObject->GetWaypointsSize());
 		for (auto &[sceneWaypoint, movableObjectWaypoint] : luaSelfObject->GetWaypointList()) {
 			if (movableObjectWaypoint == nullptr) {
-				sceneWaypoints->emplace_back(sceneWaypoint);
+				sceneWaypoints.emplace_back(sceneWaypoint);
 			}
 		}
 		return sceneWaypoints;
@@ -389,15 +389,15 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::vector<AEmitter *> * LuaAdaptersMOSRotating::GetWounds1(const MOSRotating *luaSelfObject) {
+	std::vector<AEmitter *> LuaAdaptersMOSRotating::GetWounds1(const MOSRotating *luaSelfObject) {
 		return GetWounds2(luaSelfObject, true, false, false);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::vector<AEmitter *> * LuaAdaptersMOSRotating::GetWounds2(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) {
-		auto *wounds = new std::vector<AEmitter *>();
-		GetWoundsImpl(luaSelfObject, includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables, *wounds);
+	std::vector<AEmitter *> LuaAdaptersMOSRotating::GetWounds2(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) {
+		auto wounds = std::vector<AEmitter *>();
+		GetWoundsImpl(luaSelfObject, includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables, wounds);
 		return wounds;
 	}
 
@@ -631,9 +631,9 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersUtility::DeleteEntity(Entity *entityToDelete) {
-		delete entityToDelete;
-		entityToDelete = nullptr;
+	void LuaAdaptersUtility::DeleteEntity(std::unique_ptr<Entity> &entityToDelete) {
+		delete entityToDelete.release();
 	}
+
 #pragma endregion
 }

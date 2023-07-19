@@ -11,56 +11,82 @@ namespace RTE {
 	/// Convenience macro for declaring a binding register function.
 	/// </summary>
 	#define LuaBindingRegisterFunctionDeclarationForType(TYPE) \
-		static luabind::scope Register##TYPE##LuaBindings()
+		static void Register##TYPE##LuaBindings(sol::state_view& solState)
 
 	/// <summary>
 	/// Convenience macro for defining a binding register function.
 	/// </summary>
 	#define LuaBindingRegisterFunctionDefinitionForType(OWNINGSCOPE, TYPE) \
-		luabind::scope OWNINGSCOPE::Register##TYPE##LuaBindings()
+		void OWNINGSCOPE::Register##TYPE##LuaBindings(sol::state_view& solState)
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of an abstract type.
 	/// </summary>
-	#define AbstractTypeLuaClassDefinition(TYPE, PARENTTYPE) \
-		luabind::class_<TYPE, PARENTTYPE>(#TYPE) \
-			.property("ClassName", &TYPE::GetClassName)
+	#define AbstractTypeLuaClassDefinition(TYPE, PARENTTYPE)	\
+		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,	\
+			"ClassName", sol::property(&TYPE::GetClassName),	\
+			sol::base_classes, sol::bases<PARENTTYPE>())
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a concrete type.
 	/// </summary>
-	#define ConcreteTypeLuaClassDefinition(TYPE, PARENTTYPE) \
-		luabind::class_<TYPE, PARENTTYPE>(#TYPE)													\
-			.def("Clone", &LuaAdaptersEntityClone::Clone##TYPE, luabind::adopt(luabind::result))	\
-			.property("ClassName", &TYPE::GetClassName)
+	#define ConcreteTypeLuaClassDefinition(TYPE, PARENTTYPE)	\
+		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor, \
+			"ClassName", sol::property(&TYPE::GetClassName),	\
+			"Clone", &LuaAdaptersEntityClone::Clone##TYPE,		\
+			sol::base_classes, sol::bases<PARENTTYPE>())
+
+	/// <summary>
+	/// Convenience macro for a LuaBind scope definition of a POD struct type.
+	/// </summary>
+#define SimpleTypeLuaClassDefinition(TYPE) \
+		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor)
+
+	/// <summary>
+	/// Convenience macro for a LuaBind scope definition of a POD struct type, with a different lua name to type name.
+	/// </summary>
+#define SimpleNamedTypeLuaClassDefinition(TYPE, NAME) \
+		solState.new_usertype<TYPE>(NAME, sol::no_constructor)
+
+	/// <summary>
+	/// Convenience macro for a LuaBind scope definition of an enum type.
+	/// </summary>
+#define EnumTypeLuaClassDefinition(NAME, ...) \
+		solState.new_enum(NAME, __VA_ARGS__)
+
+	/// <summary>
+	/// Convenience macro for a LuaBind scope definition of an enum type.
+	/// </summary>
+#define EnumList(TYPE) \
+		std::initializer_list<std::pair<sol::string_view, TYPE>>
 
 	/// <summary>
 	/// Convenience macro for calling a register function of a type.
 	/// </summary>
-	#define RegisterLuaBindingsOfType(OWNINGSCOPE, TYPE) \
-		OWNINGSCOPE::Register##TYPE##LuaBindings()
+	#define RegisterLuaBindingsOfType(SOLSTATE, OWNINGSCOPE, TYPE) \
+		OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 
 	/// <summary>
 	/// Convenience macro for calling a register function of an abstract type, along with registering global bindings for adapters relevant to the type.
 	/// </summary>
-	#define RegisterLuaBindingsOfAbstractType(OWNINGSCOPE, TYPE) \
-		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE),						\
-		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE),		\
-		OWNINGSCOPE::Register##TYPE##LuaBindings()
+	#define RegisterLuaBindingsOfAbstractType(SOLSTATE, OWNINGSCOPE, TYPE) \
+		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE;						\
+		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE;	\
+		OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 
 	/// <summary>
 	/// Convenience macro for calling a register function of a concrete type, along with registering global bindings for adapters relevant to the type.
 	/// </summary>
-	#define RegisterLuaBindingsOfConcreteType(OWNINGSCOPE, TYPE) \
-		luabind::def((std::string("Create") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string, std::string))&LuaAdaptersEntityCreate::Create##TYPE, luabind::adopt(luabind::result)),		\
-		luabind::def((std::string("Create") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string))&LuaAdaptersEntityCreate::Create##TYPE, luabind::adopt(luabind::result)),					\
-		luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string, int))&LuaAdaptersEntityCreate::Random##TYPE, luabind::adopt(luabind::result)),				\
-		luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string, std::string))&LuaAdaptersEntityCreate::Random##TYPE, luabind::adopt(luabind::result)),		\
-		luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE *(*)(std::string))&LuaAdaptersEntityCreate::Random##TYPE, luabind::adopt(luabind::result)),					\
-		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE),																	\
-		luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE),													\
-		luabind::def((std::string("Is") + std::string(#TYPE)).c_str(), (bool(*)(const Entity *))&LuaAdaptersEntityCast::Is##TYPE),																\
-		OWNINGSCOPE::Register##TYPE##LuaBindings()
+	#define RegisterLuaBindingsOfConcreteType(SOLSTATE, OWNINGSCOPE, TYPE) \
+		SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string, std::string))&LuaAdaptersEntityCreate::Create##TYPE;	\
+		SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string))&LuaAdaptersEntityCreate::Create##TYPE;					\
+		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string, int))&LuaAdaptersEntityCreate::Random##TYPE;			\
+		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string, std::string))&LuaAdaptersEntityCreate::Random##TYPE;	\
+		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string))&LuaAdaptersEntityCreate::Random##TYPE;					\
+		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE;								\
+		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE;				\
+		SOLSTATE[(std::string("Is") + std::string(#TYPE)).c_str()] = (bool(*)(const Entity *))&LuaAdaptersEntityCast::Is##TYPE;							\
+		OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 #pragma endregion
 
 	/// <summary>

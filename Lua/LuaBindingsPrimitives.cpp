@@ -7,127 +7,157 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, GraphicalPrimitive) {
-		return luabind::class_<GraphicalPrimitive>("GraphicalPrimitive");
+		auto luaType = SimpleTypeLuaClassDefinition(GraphicalPrimitive);;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, LinePrimitive) {
-		return luabind::class_<LinePrimitive, GraphicalPrimitive>("LinePrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(LinePrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const Vector &, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			LinePrimitive(int, const Vector&, const Vector&, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, ArcPrimitive) {
-		return luabind::class_<ArcPrimitive, GraphicalPrimitive>("ArcPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(ArcPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, float, float, int, int, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			ArcPrimitive(int, const Vector&, float, float, int, int, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, SplinePrimitive) {
-		return luabind::class_<SplinePrimitive, GraphicalPrimitive>("SplinePrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(SplinePrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const Vector &, const Vector &, const Vector &, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			ArcPrimitive(int, const Vector&, const Vector&, const Vector&, const Vector&, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BoxPrimitive) {
-		return luabind::class_<BoxPrimitive, GraphicalPrimitive>("BoxPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(BoxPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const Vector &, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			BoxPrimitive(int, const Vector&, const Vector&, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BoxFillPrimitive) {
-		return luabind::class_<BoxFillPrimitive, GraphicalPrimitive>("BoxFillPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(BoxFillPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const Vector &, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			BoxFillPrimitive(int, const Vector&, const Vector&, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, RoundedBoxPrimitive) {
-		return luabind::class_<RoundedBoxPrimitive, GraphicalPrimitive>("RoundedBoxPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(RoundedBoxPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const Vector &, int , unsigned char >());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			RoundedBoxPrimitive(int, const Vector&, const Vector&, int, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, RoundedBoxFillPrimitive) {
-		return luabind::class_<RoundedBoxFillPrimitive, GraphicalPrimitive>("RoundedBoxFillPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(RoundedBoxFillPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const Vector &, int, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			RoundedBoxFillPrimitive(int, const Vector&, const Vector&, int, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, CirclePrimitive) {
-		return luabind::class_<CirclePrimitive, GraphicalPrimitive>("CirclePrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(CirclePrimitive);
 
-		.def(luabind::constructor<int, const Vector &, int, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			CirclePrimitive(int, const Vector&, int, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, CircleFillPrimitive) {
-		return luabind::class_<CircleFillPrimitive, GraphicalPrimitive>("CircleFillPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(CircleFillPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, int, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			CircleFillPrimitive(int, const Vector&, int, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, EllipsePrimitive) {
-		return luabind::class_<EllipsePrimitive, GraphicalPrimitive>("EllipsePrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(EllipsePrimitive);
 
-		.def(luabind::constructor<int, const Vector &, int, int, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			EllipsePrimitive(int, const Vector&, int, int, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, EllipseFillPrimitive) {
-		return luabind::class_<EllipseFillPrimitive, GraphicalPrimitive>("EllipseFillPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(EllipseFillPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, int, int, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			EllipseFillPrimitive(int, const Vector&, int, int, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TrianglePrimitive) {
-		return luabind::class_<TrianglePrimitive, GraphicalPrimitive>("TrianglePrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(TrianglePrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const Vector &, const Vector &, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			TrianglePrimitive(int, const Vector&, const Vector&, const Vector&, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TriangleFillPrimitive) {
-		return luabind::class_<TriangleFillPrimitive, GraphicalPrimitive>("TriangleFillPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(TriangleFillPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const Vector &, const Vector &, unsigned char>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			TriangleFillPrimitive(int, const Vector&, const Vector&, const Vector&, unsigned char)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TextPrimitive) {
-		return luabind::class_<TextPrimitive, GraphicalPrimitive>("TextPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(TextPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const std::string &, bool, int, float>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			TextPrimitive(int, const Vector&, const std::string&, bool, int, float)
+		>());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BitmapPrimitive) {
-		return luabind::class_<BitmapPrimitive, GraphicalPrimitive>("BitmapPrimitive")
+		auto luaType = SimpleTypeLuaClassDefinition(BitmapPrimitive);
 
-		.def(luabind::constructor<int, const Vector &, const MOSprite *, float, int, bool, bool>())
-		.def(luabind::constructor<int, const Vector &, const std::string &, float, bool, bool>());
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			BitmapPrimitive(int, const Vector&, const MOSprite*, float, int, bool, bool),
+			BitmapPrimitive(int, const Vector&, const std::string&, float, bool, bool)
+		>());
 	}
 }

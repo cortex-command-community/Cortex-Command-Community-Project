@@ -7,1443 +7,1456 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Entity) {
-		return luabind::class_<Entity>("Entity")
+		auto luaType = SimpleTypeLuaClassDefinition(Entity);
 
-		.def(luabind::tostring(luabind::const_self))
+		luaType[sol::meta_function::to_string] = sol::resolve<std::ostream & (std::ostream&, const Entity&)>(RTE::operator<<);
 
-		.property("ClassName", &Entity::GetClassName)
-		.property("PresetName", &Entity::GetPresetName, &LuaAdaptersEntity::SetPresetName)
-		.property("Description", &Entity::GetDescription, &Entity::SetDescription)
-		.property("IsOriginalPreset", &Entity::IsOriginalPreset)
-		.property("ModuleID", &Entity::GetModuleID)
-		.property("ModuleName", &Entity::GetModuleName)
-		.property("RandomWeight", &Entity::GetRandomWeight)
-		.property("Groups", &Entity::GetGroups, luabind::return_stl_iterator)
+		luaType["ClassName"] = sol::property(&Entity::GetClassName);
+		luaType["PresetName"] = sol::property(&Entity::GetPresetName, &LuaAdaptersEntity::SetPresetName);
+		luaType["Description"] = sol::property(&Entity::GetDescription, &Entity::SetDescription);
+		luaType["IsOriginalPreset"] = sol::property(&Entity::IsOriginalPreset);
+		luaType["ModuleID"] = sol::property(&Entity::GetModuleID);
+		luaType["ModuleName"] = sol::property(&Entity::GetModuleName);
+		luaType["RandomWeight"] = sol::property(&Entity::GetRandomWeight);
+		luaType["Groups"] = sol::property(&Entity::GetGroups);
 
-		.def("Clone", &LuaAdaptersEntityClone::CloneEntity)
-		.def("Reset", &Entity::Reset)
-		.def("GetModuleAndPresetName", &Entity::GetModuleAndPresetName)
-		.def("AddToGroup", &Entity::AddToGroup)
-		.def("RemoveFromGroup", &Entity::RemoveFromGroup)
-		.def("IsInGroup", &Entity::IsInGroup);
+		luaType["Clone"] = &LuaAdaptersEntityClone::CloneEntity;
+		luaType["Reset"] = &Entity::Reset;
+		luaType["GetModuleAndPresetName"] = &Entity::GetModuleAndPresetName;
+		luaType["AddToGroup"] = &Entity::AddToGroup;
+		luaType["RemoveFromGroup"] = &Entity::RemoveFromGroup;
+		luaType["IsInGroup"] = &Entity::IsInGroup;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACDropShip) {
-		return ConcreteTypeLuaClassDefinition(ACDropShip, ACraft)
+		auto luaType = ConcreteTypeLuaClassDefinition(ACDropShip, ACraft);
 
-		.property("RightEngine", &ACDropShip::GetRightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetRightThruster)
-		.property("LeftEngine", &ACDropShip::GetLeftThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetLeftThruster)
-		.property("RightThruster", &ACDropShip::GetURightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetURightThruster)
-		.property("LeftThruster", &ACDropShip::GetULeftThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetULeftThruster)
-		.property("RightHatch", &ACDropShip::GetRightHatch, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetRightHatch)
-		.property("LeftHatch", &ACDropShip::GetLeftHatch, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetLeftHatch)
-		.property("MaxEngineAngle", &ACDropShip::GetMaxEngineAngle, &ACDropShip::SetMaxEngineAngle)
-		.property("LateralControlSpeed", &ACDropShip::GetLateralControlSpeed, &ACDropShip::SetLateralControlSpeed)
-		.property("LateralControl", &ACDropShip::GetLateralControl)
-		.property("HoverHeightModifier", &ACDropShip::GetHoverHeightModifier, &ACDropShip::SetHoverHeightModifier)
+		luaType["RightEngine"] = sol::property(&ACDropShip::GetRightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetRightThruster);
+		luaType["LeftEngine"] = sol::property(&ACDropShip::GetLeftThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetLeftThruster);
+		luaType["RightThruster"] = sol::property(&ACDropShip::GetURightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetURightThruster);
+		luaType["LeftThruster"] = sol::property(&ACDropShip::GetULeftThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetULeftThruster);
+		luaType["RightHatch"] = sol::property(&ACDropShip::GetRightHatch, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetRightHatch);
+		luaType["LeftHatch"] = sol::property(&ACDropShip::GetLeftHatch, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetLeftHatch);
+		luaType["MaxEngineAngle"] = sol::property(&ACDropShip::GetMaxEngineAngle, &ACDropShip::SetMaxEngineAngle);
+		luaType["LateralControlSpeed"] = sol::property(&ACDropShip::GetLateralControlSpeed, &ACDropShip::SetLateralControlSpeed);
+		luaType["LateralControl"] = sol::property(&ACDropShip::GetLateralControl);
+		luaType["HoverHeightModifier"] = sol::property(&ACDropShip::GetHoverHeightModifier, &ACDropShip::SetHoverHeightModifier);
 
-		.def("DetectObstacle", &ACDropShip::DetectObstacle)
-		.def("GetAltitude", &ACDropShip::GetAltitude);
+		luaType["DetectObstacle"] = &ACDropShip::DetectObstacle;
+		luaType["GetAltitude"] = &ACDropShip::GetAltitude;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACrab) {
-		return ConcreteTypeLuaClassDefinition(ACrab, Actor)
+		auto luaType = ConcreteTypeLuaClassDefinition(ACrab, Actor);
 
-		.def(luabind::constructor<>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			ACrab()
+		>());
 
-		.property("Turret", &ACrab::GetTurret, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetTurret)
-		.property("Jetpack", &ACrab::GetJetpack, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetJetpack)
-		.property("LeftFGLeg", &ACrab::GetLeftFGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetLeftFGLeg)
-		.property("LeftBGLeg", &ACrab::GetLeftBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetLeftBGLeg)
-		.property("RightFGLeg", &ACrab::GetRightFGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetRightFGLeg)
-		.property("RightBGLeg", &ACrab::GetRightBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetRightBGLeg)
-		.property("StrideSound", &ACrab::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetStrideSound)
-		.property("JetTimeTotal", &ACrab::GetJetTimeTotal, &ACrab::SetJetTimeTotal)
-		.property("JetTimeLeft", &ACrab::GetJetTimeLeft)
-		.property("JetReplenishRate", &ACrab::GetJetReplenishRate, &ACrab::SetJetReplenishRate)
-		.property("JetAngleRange", &ACrab::GetJetAngleRange, &ACrab::SetJetAngleRange)
-		.property("EquippedItem", &ACrab::GetEquippedItem)
-		.property("FirearmIsReady", &ACrab::FirearmIsReady)
-		.property("FirearmIsEmpty", &ACrab::FirearmIsEmpty)
-		.property("FirearmNeedsReload", &ACrab::FirearmNeedsReload)
-		.property("FirearmIsSemiAuto", &ACrab::FirearmIsSemiAuto)
-		.property("FirearmActivationDelay", &ACrab::FirearmActivationDelay)
-		.property("LimbPathPushForce", &ACrab::GetLimbPathPushForce, &ACrab::SetLimbPathPushForce)
-		.property("AimRangeUpperLimit", &ACrab::GetAimRangeUpperLimit, &ACrab::SetAimRangeUpperLimit)
-		.property("AimRangeLowerLimit", &ACrab::GetAimRangeLowerLimit, &ACrab::SetAimRangeLowerLimit)
+		luaType["Turret"] = sol::property(&ACrab::GetTurret, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetTurret);
+		luaType["Jetpack"] = sol::property(&ACrab::GetJetpack, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetJetpack);
+		luaType["LeftFGLeg"] = sol::property(&ACrab::GetLeftFGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetLeftFGLeg);
+		luaType["LeftBGLeg"] = sol::property(&ACrab::GetLeftBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetLeftBGLeg);
+		luaType["RightFGLeg"] = sol::property(&ACrab::GetRightFGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetRightFGLeg);
+		luaType["RightBGLeg"] = sol::property(&ACrab::GetRightBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetRightBGLeg);
+		luaType["StrideSound"] = sol::property(&ACrab::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetStrideSound);
+		luaType["JetTimeTotal"] = sol::property(&ACrab::GetJetTimeTotal, &ACrab::SetJetTimeTotal);
+		luaType["JetTimeLeft"] = sol::property(&ACrab::GetJetTimeLeft);
+		luaType["JetReplenishRate"] = sol::property(&ACrab::GetJetReplenishRate, &ACrab::SetJetReplenishRate);
+		luaType["JetAngleRange"] = sol::property(&ACrab::GetJetAngleRange, &ACrab::SetJetAngleRange);
+		luaType["EquippedItem"] = sol::property(&ACrab::GetEquippedItem);
+		luaType["FirearmIsReady"] = sol::property(&ACrab::FirearmIsReady);
+		luaType["FirearmIsEmpty"] = sol::property(&ACrab::FirearmIsEmpty);
+		luaType["FirearmNeedsReload"] = sol::property(&ACrab::FirearmNeedsReload);
+		luaType["FirearmIsSemiAuto"] = sol::property(&ACrab::FirearmIsSemiAuto);
+		luaType["FirearmActivationDelay"] = sol::property(&ACrab::FirearmActivationDelay);
+		luaType["LimbPathPushForce"] = sol::property(&ACrab::GetLimbPathPushForce, &ACrab::SetLimbPathPushForce);
+		luaType["AimRangeUpperLimit"] = sol::property(&ACrab::GetAimRangeUpperLimit, &ACrab::SetAimRangeUpperLimit);
+		luaType["AimRangeLowerLimit"] = sol::property(&ACrab::GetAimRangeLowerLimit, &ACrab::SetAimRangeLowerLimit);
 
-		.def("ReloadFirearms", &ACrab::ReloadFirearms)
-		.def("IsWithinRange", &ACrab::IsWithinRange)
-		.def("Look", &ACrab::Look)
-		.def("LookForMOs", &ACrab::LookForMOs)
-		.def("GetLimbPath", &ACrab::GetLimbPath)
-		.def("GetLimbPathSpeed", &ACrab::GetLimbPathSpeed)
-		.def("SetLimbPathSpeed", &ACrab::SetLimbPathSpeed)
+		luaType["ReloadFirearms"] = &ACrab::ReloadFirearms;
+		luaType["IsWithinRange"] = &ACrab::IsWithinRange;
+		luaType["Look"] = &ACrab::Look;
+		luaType["LookForMOs"] = &ACrab::LookForMOs;
+		luaType["GetLimbPath"] = &ACrab::GetLimbPath;
+		luaType["GetLimbPathSpeed"] = &ACrab::GetLimbPathSpeed;
+		luaType["SetLimbPathSpeed"] = &ACrab::SetLimbPathSpeed;
 
-		.enum_("MovementState")[
-			luabind::value("STAND", ACrab::MovementState::STAND),
-			luabind::value("WALK", ACrab::MovementState::WALK),
-			luabind::value("JUMP", ACrab::MovementState::JUMP),
-			luabind::value("DISLODGE", ACrab::MovementState::DISLODGE),
-			luabind::value("MOVEMENTSTATECOUNT", ACrab::MovementState::MOVEMENTSTATECOUNT)
-		]
-		.enum_("Side")[
-			luabind::value("LEFTSIDE", ACrab::Side::LEFTSIDE),
-			luabind::value("RIGHTSIDE", ACrab::Side::RIGHTSIDE),
-			luabind::value("SIDECOUNT", ACrab::Side::SIDECOUNT)
-		]
-		.enum_("Layer")[
-			luabind::value("FGROUND", ACrab::Layer::FGROUND),
-			luabind::value("BGROUND", ACrab::Layer::BGROUND)
-		]
-		.enum_("DeviceHandlingState")[
-			luabind::value("STILL", ACrab::DeviceHandlingState::STILL),
-			luabind::value("POINTING", ACrab::DeviceHandlingState::POINTING),
-			luabind::value("SCANNING", ACrab::DeviceHandlingState::SCANNING),
-			luabind::value("AIMING", ACrab::DeviceHandlingState::AIMING),
-			luabind::value("FIRING", ACrab::DeviceHandlingState::FIRING),
-			luabind::value("THROWING", ACrab::DeviceHandlingState::THROWING),
-			luabind::value("DIGGING", ACrab::DeviceHandlingState::DIGGING)
-		]
-		.enum_("SweepState")[
-			luabind::value("NOSWEEP", ACrab::SweepState::NOSWEEP),
-			luabind::value("SWEEPINGUP", ACrab::SweepState::SWEEPINGUP),
-			luabind::value("SWEEPUPPAUSE", ACrab::SweepState::SWEEPUPPAUSE),
-			luabind::value("SWEEPINGDOWN", ACrab::SweepState::SWEEPINGDOWN),
-			luabind::value("SWEEPDOWNPAUSE", ACrab::SweepState::SWEEPDOWNPAUSE)
-		]
-		.enum_("DigState")[
-			luabind::value("NOTDIGGING", ACrab::DigState::NOTDIGGING),
-			luabind::value("PREDIG", ACrab::DigState::PREDIG),
-			luabind::value("STARTDIG", ACrab::DigState::STARTDIG),
-			luabind::value("TUNNELING", ACrab::DigState::TUNNELING),
-			luabind::value("FINISHINGDIG", ACrab::DigState::FINISHINGDIG),
-			luabind::value("PAUSEDIGGER", ACrab::DigState::PAUSEDIGGER)
-		]
-		.enum_("JumpState")[
-			luabind::value("NOTJUMPING", ACrab::JumpState::NOTJUMPING),
-			luabind::value("FORWARDJUMP", ACrab::JumpState::FORWARDJUMP),
-			luabind::value("PREJUMP", ACrab::JumpState::PREUPJUMP),
-			luabind::value("UPJUMP", ACrab::JumpState::UPJUMP),
-			luabind::value("APEXJUMP", ACrab::JumpState::APEXJUMP),
-			luabind::value("LANDJUMP", ACrab::JumpState::LANDJUMP)
-		];
+		luaType.new_enum("MovementState", EnumList(ACrab::MovementState) {
+			{ "STAND", ACrab::MovementState::STAND },
+			{ "WALK", ACrab::MovementState::WALK },
+			{ "JUMP", ACrab::MovementState::JUMP },
+			{ "DISLODGE", ACrab::MovementState::DISLODGE },
+			{ "MOVEMENTSTATECOUNT", ACrab::MovementState::MOVEMENTSTATECOUNT }
+		});
+		luaType.new_enum("Side", EnumList(ACrab::Side) {
+			{ "LEFTSIDE", ACrab::Side::LEFTSIDE },
+			{ "RIGHTSIDE", ACrab::Side::RIGHTSIDE },
+			{ "SIDECOUNT", ACrab::Side::SIDECOUNT }
+		});
+		luaType.new_enum("Layer", EnumList(ACrab::Layer) {
+			{ "FGROUND", ACrab::Layer::FGROUND },
+			{ "BGROUND", ACrab::Layer::BGROUND }
+		});
+		luaType.new_enum("DeviceHandlingState", EnumList(ACrab::DeviceHandlingState) {
+			{ "STILL", ACrab::DeviceHandlingState::STILL },
+			{ "POINTING", ACrab::DeviceHandlingState::POINTING },
+			{ "SCANNING", ACrab::DeviceHandlingState::SCANNING },
+			{ "AIMING", ACrab::DeviceHandlingState::AIMING },
+			{ "FIRING", ACrab::DeviceHandlingState::FIRING },
+			{ "THROWING", ACrab::DeviceHandlingState::THROWING },
+			{ "DIGGING", ACrab::DeviceHandlingState::DIGGING }
+		});
+		luaType.new_enum("SweepState", EnumList(ACrab::SweepState) {
+			{ "NOSWEEP", ACrab::SweepState::NOSWEEP },
+			{ "SWEEPINGUP", ACrab::SweepState::SWEEPINGUP },
+			{ "SWEEPUPPAUSE", ACrab::SweepState::SWEEPUPPAUSE },
+			{ "SWEEPINGDOWN", ACrab::SweepState::SWEEPINGDOWN },
+			{ "SWEEPDOWNPAUSE", ACrab::SweepState::SWEEPDOWNPAUSE }
+		});
+		luaType.new_enum("DigState", EnumList(ACrab::DigState) {
+			{ "NOTDIGGING", ACrab::DigState::NOTDIGGING },
+			{ "PREDIG", ACrab::DigState::PREDIG },
+			{ "STARTDIG", ACrab::DigState::STARTDIG },
+			{ "TUNNELING", ACrab::DigState::TUNNELING },
+			{ "FINISHINGDIG", ACrab::DigState::FINISHINGDIG },
+			{ "PAUSEDIGGER", ACrab::DigState::PAUSEDIGGER }
+		});
+		luaType.new_enum("JumpState", EnumList(ACrab::JumpState) {
+			{ "NOTJUMPING", ACrab::JumpState::NOTJUMPING },
+			{ "FORWARDJUMP", ACrab::JumpState::FORWARDJUMP },
+			{ "PREJUMP", ACrab::JumpState::PREUPJUMP },
+			{ "UPJUMP", ACrab::JumpState::UPJUMP },
+			{ "APEXJUMP", ACrab::JumpState::APEXJUMP },
+			{ "LANDJUMP", ACrab::JumpState::LANDJUMP }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACraft) {
-		return AbstractTypeLuaClassDefinition(ACraft, Actor)
+		auto luaType = AbstractTypeLuaClassDefinition(ACraft, Actor);
 
-		.property("HatchState", &ACraft::GetHatchState)
-		.property("HatchOpenSound", &ACraft::GetHatchOpenSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchOpenSound)
-		.property("HatchCloseSound", &ACraft::GetHatchCloseSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchCloseSound)
-		.property("CrashSound", &ACraft::GetCrashSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetCrashSound)
-		.property("MaxPassengers", &ACraft::GetMaxPassengers)
-		.property("DeliveryDelayMultiplier", &ACraft::GetDeliveryDelayMultiplier)
-		.property("ScuttleOnDeath", &ACraft::GetScuttleOnDeath, &ACraft::SetScuttleOnDeath)
-		.property("HatchDelay", &ACraft::GetHatchDelay, &ACraft::SetHatchDelay)
+		luaType["HatchState"] = sol::property(&ACraft::GetHatchState);
+		luaType["HatchOpenSound"] = sol::property(&ACraft::GetHatchOpenSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchOpenSound);
+		luaType["HatchCloseSound"] = sol::property(&ACraft::GetHatchCloseSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchCloseSound);
+		luaType["CrashSound"] = sol::property(&ACraft::GetCrashSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetCrashSound);
+		luaType["MaxPassengers"] = sol::property(&ACraft::GetMaxPassengers);
+		luaType["DeliveryDelayMultiplier"] = sol::property(&ACraft::GetDeliveryDelayMultiplier);
+		luaType["ScuttleOnDeath"] = sol::property(&ACraft::GetScuttleOnDeath, &ACraft::SetScuttleOnDeath);
+		luaType["HatchDelay"] = sol::property(&ACraft::GetHatchDelay, &ACraft::SetHatchDelay);
 
-		.def("OpenHatch", &ACraft::OpenHatch)
-		.def("CloseHatch", &ACraft::CloseHatch)
+		luaType["OpenHatch"] = &ACraft::OpenHatch;
+		luaType["CloseHatch"] = &ACraft::CloseHatch;
 
-		.enum_("HatchState")[
-			luabind::value("CLOSED", ACraft::HatchState::CLOSED),
-			luabind::value("OPENING", ACraft::HatchState::OPENING),
-			luabind::value("OPEN", ACraft::HatchState::OPEN),
-			luabind::value("CLOSING", ACraft::HatchState::CLOSING),
-			luabind::value("HatchStateCount", ACraft::HatchState::HatchStateCount)
-		]
-		.enum_("Side")[
-			luabind::value("RIGHT", ACraft::Side::RIGHT),
-			luabind::value("LEFT", ACraft::Side::LEFT)
-		]
-
-		.enum_("CraftDeliverySequence")[
-			luabind::value("FALL", ACraft::CraftDeliverySequence::FALL),
-			luabind::value("LAND", ACraft::CraftDeliverySequence::LAND),
-			luabind::value("STANDBY", ACraft::CraftDeliverySequence::STANDBY),
-			luabind::value("UNLOAD", ACraft::CraftDeliverySequence::UNLOAD),
-			luabind::value("LAUNCH", ACraft::CraftDeliverySequence::LAUNCH),
-			luabind::value("UNSTICK", ACraft::CraftDeliverySequence::UNSTICK)
-		]
-		.enum_("AltitudeMoveState")[
-			luabind::value("HOVER", ACraft::AltitudeMoveState::HOVER),
-			luabind::value("DESCEND", ACraft::AltitudeMoveState::DESCEND),
-			luabind::value("ASCEND", ACraft::AltitudeMoveState::ASCEND)
-		];
+		luaType.new_enum("HatchState", EnumList(ACraft::HatchState) {
+			{ "CLOSED", ACraft::HatchState::CLOSED },
+			{ "OPENING", ACraft::HatchState::OPENING },
+			{ "OPEN", ACraft::HatchState::OPEN },
+			{ "CLOSING", ACraft::HatchState::CLOSING },
+			{ "HatchStateCount", ACraft::HatchState::HatchStateCount }
+		});
+		luaType.new_enum("Side", EnumList(ACraft::Side) {
+			{ "RIGHT", ACraft::Side::RIGHT },
+			{ "LEFT", ACraft::Side::LEFT }
+		});
+		luaType.new_enum("CraftDeliverySequence", EnumList(ACraft::CraftDeliverySequence) {
+			{ "FALL", ACraft::CraftDeliverySequence::FALL },
+			{ "LAND", ACraft::CraftDeliverySequence::LAND },
+			{ "STANDBY", ACraft::CraftDeliverySequence::STANDBY },
+			{ "UNLOAD", ACraft::CraftDeliverySequence::UNLOAD },
+			{ "LAUNCH", ACraft::CraftDeliverySequence::LAUNCH },
+			{ "UNSTICK", ACraft::CraftDeliverySequence::UNSTICK }
+		});
+		luaType.new_enum("AltitudeMoveState", EnumList(ACraft::AltitudeMoveState) {
+			{ "HOVER", ACraft::AltitudeMoveState::HOVER },
+			{ "DESCEND", ACraft::AltitudeMoveState::DESCEND },
+			{ "ASCEND", ACraft::AltitudeMoveState::ASCEND }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACRocket) {
-		return ConcreteTypeLuaClassDefinition(ACRocket, ACraft)
+		auto luaType = ConcreteTypeLuaClassDefinition(ACRocket, ACraft);
 
-		.property("RightLeg", &ACRocket::GetRightLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetRightLeg)
-		.property("LeftLeg", &ACRocket::GetLeftLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetLeftLeg)
-		.property("MainEngine", &ACRocket::GetMainThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetMainThruster)
-		.property("LeftEngine", &ACRocket::GetLeftThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetLeftThruster)
-		.property("RightEngine", &ACRocket::GetRightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetRightThruster)
-		.property("LeftThruster", &ACRocket::GetULeftThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetULeftThruster)
-		.property("RightThruster", &ACRocket::GetURightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetURightThruster)
-		.property("GearState", &ACRocket::GetGearState)
+		luaType["RightLeg"] = sol::property(&ACRocket::GetRightLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetRightLeg);
+		luaType["LeftLeg"] = sol::property(&ACRocket::GetLeftLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetLeftLeg);
+		luaType["MainEngine"] = sol::property(&ACRocket::GetMainThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetMainThruster);
+		luaType["LeftEngine"] = sol::property(&ACRocket::GetLeftThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetLeftThruster);
+		luaType["RightEngine"] = sol::property(&ACRocket::GetRightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetRightThruster);
+		luaType["LeftThruster"] = sol::property(&ACRocket::GetULeftThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetULeftThruster);
+		luaType["RightThruster"] = sol::property(&ACRocket::GetURightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetURightThruster);
+		luaType["GearState"] = sol::property(&ACRocket::GetGearState);
 
-		.enum_("LandingGearState")[
-			luabind::value("RAISED", ACRocket::LandingGearState::RAISED),
-			luabind::value("LOWERED", ACRocket::LandingGearState::LOWERED),
-			luabind::value("LOWERING", ACRocket::LandingGearState::LOWERING),
-			luabind::value("RAISING", ACRocket::LandingGearState::RAISING),
-			luabind::value("GearStateCount", ACRocket::LandingGearState::GearStateCount)
-		];
+		luaType.new_enum("LandingGearState", EnumList(ACRocket::LandingGearState) {
+			{ "RAISED", ACRocket::LandingGearState::RAISED },
+			{ "LOWERED", ACRocket::LandingGearState::LOWERED },
+			{ "LOWERING", ACRocket::LandingGearState::LOWERING },
+			{ "RAISING", ACRocket::LandingGearState::RAISING },
+			{ "GearStateCount", ACRocket::LandingGearState::GearStateCount }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
-		return ConcreteTypeLuaClassDefinition(Actor, MOSRotating)
+		auto luaType = ConcreteTypeLuaClassDefinition(Actor, MOSRotating);
 
-		.def(luabind::constructor<>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			Actor()
+		>());
 
-		.property("PlayerControllable", &Actor::IsPlayerControllable, &Actor::SetPlayerControllable)
-		.property("BodyHitSound", &Actor::GetBodyHitSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetBodyHitSound)
-		.property("AlarmSound", &Actor::GetAlarmSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetAlarmSound)
-		.property("PainSound", &Actor::GetPainSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetPainSound)
-		.property("DeathSound", &Actor::GetDeathSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetDeathSound)
-		.property("DeviceSwitchSound", &Actor::GetDeviceSwitchSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetDeviceSwitchSound)
-		.property("ImpulseDamageThreshold", &Actor::GetTravelImpulseDamage, &Actor::SetTravelImpulseDamage)
-		.property("StableRecoveryDelay", &Actor::GetStableRecoverDelay, &Actor::SetStableRecoverDelay)
-		.property("Status", &Actor::GetStatus, &Actor::SetStatus)
-		.property("Health", &Actor::GetHealth, &Actor::SetHealth)
-		.property("PrevHealth", &Actor::GetPrevHealth)
-		.property("MaxHealth", &Actor::GetMaxHealth, &Actor::SetMaxHealth)
-		.property("InventoryMass", &Actor::GetInventoryMass)
-		.property("GoldCarried", &Actor::GetGoldCarried, &Actor::SetGoldCarried)
-		.property("AimRange", &Actor::GetAimRange, &Actor::SetAimRange)
-		.property("CPUPos", &Actor::GetCPUPos)
-		.property("EyePos", &Actor::GetEyePos)
-		.property("HolsterOffset", &Actor::GetHolsterOffset, &Actor::SetHolsterOffset)
-		.property("ReloadOffset", &Actor::GetReloadOffset, &Actor::SetReloadOffset)
-		.property("ViewPoint", &Actor::GetViewPoint, &Actor::SetViewPoint)
-		.property("ItemInReach", &Actor::GetItemInReach, &Actor::SetItemInReach)
-		.property("SharpAimProgress", &Actor::GetSharpAimProgress)
-		.property("Height", &Actor::GetHeight)
-		.property("AIMode", &Actor::GetAIMode, &Actor::SetAIMode)
-		.property("DeploymentID", &Actor::GetDeploymentID)
-		.property("PassengerSlots", &Actor::GetPassengerSlots, &Actor::SetPassengerSlots)
-		.property("Perceptiveness", &Actor::GetPerceptiveness, &Actor::SetPerceptiveness)
-		.property("CanRevealUnseen", &Actor::GetCanRevealUnseen, &Actor::SetCanRevealUnseen)
-		.property("InventorySize", &Actor::GetInventorySize)
-		.property("MaxInventoryMass", &Actor::GetMaxInventoryMass)
-		.property("MovePathSize", &Actor::GetMovePathSize)
-		.property("MovePathEnd", &Actor::GetMovePathEnd)
-		.property("IsWaitingOnNewMovePath", &Actor::IsWaitingOnNewMovePath)
-		.property("AimDistance", &Actor::GetAimDistance, &Actor::SetAimDistance)
-		.property("SightDistance", &Actor::GetSightDistance, &Actor::SetSightDistance)
-		.property("PieMenu", &Actor::GetPieMenu, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetPieMenu)
-		.property("AIBaseDigStrength", &Actor::GetAIBaseDigStrength, &Actor::SetAIBaseDigStrength)
-		.property("DigStrength", &Actor::EstimateDigStrength)
-		.property("SceneWaypoints", &LuaAdaptersActor::GetSceneWaypoints, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-		.property("LimbPushForcesAndCollisionsDisabled", &Actor::GetLimbPushForcesAndCollisionsDisabled, &Actor::SetLimbPushForcesAndCollisionsDisabled)
+		luaType["PlayerControllable"] = sol::property(&Actor::IsPlayerControllable, &Actor::SetPlayerControllable);
+		luaType["BodyHitSound"] = sol::property(&Actor::GetBodyHitSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetBodyHitSound);
+		luaType["AlarmSound"] = sol::property(&Actor::GetAlarmSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetAlarmSound);
+		luaType["PainSound"] = sol::property(&Actor::GetPainSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetPainSound);
+		luaType["DeathSound"] = sol::property(&Actor::GetDeathSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetDeathSound);
+		luaType["DeviceSwitchSound"] = sol::property(&Actor::GetDeviceSwitchSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetDeviceSwitchSound);
+		luaType["ImpulseDamageThreshold"] = sol::property(&Actor::GetTravelImpulseDamage, &Actor::SetTravelImpulseDamage);
+		luaType["StableRecoveryDelay"] = sol::property(&Actor::GetStableRecoverDelay, &Actor::SetStableRecoverDelay);
+		luaType["Status"] = sol::property(&Actor::GetStatus, &Actor::SetStatus);
+		luaType["Health"] = sol::property(&Actor::GetHealth, &Actor::SetHealth);
+		luaType["PrevHealth"] = sol::property(&Actor::GetPrevHealth);
+		luaType["MaxHealth"] = sol::property(&Actor::GetMaxHealth, &Actor::SetMaxHealth);
+		luaType["InventoryMass"] = sol::property(&Actor::GetInventoryMass);
+		luaType["GoldCarried"] = sol::property(&Actor::GetGoldCarried, &Actor::SetGoldCarried);
+		luaType["AimRange"] = sol::property(&Actor::GetAimRange, &Actor::SetAimRange);
+		luaType["CPUPos"] = sol::property(&Actor::GetCPUPos);
+		luaType["EyePos"] = sol::property(&Actor::GetEyePos);
+		luaType["HolsterOffset"] = sol::property(&Actor::GetHolsterOffset, &Actor::SetHolsterOffset);
+		luaType["ReloadOffset"] = sol::property(&Actor::GetReloadOffset, &Actor::SetReloadOffset);
+		luaType["ViewPoint"] = sol::property(&Actor::GetViewPoint, &Actor::SetViewPoint);
+		luaType["ItemInReach"] = sol::property(&Actor::GetItemInReach, &Actor::SetItemInReach);
+		luaType["SharpAimProgress"] = sol::property(&Actor::GetSharpAimProgress);
+		luaType["Height"] = sol::property(&Actor::GetHeight);
+		luaType["AIMode"] = sol::property(&Actor::GetAIMode, &Actor::SetAIMode);
+		luaType["DeploymentID"] = sol::property(&Actor::GetDeploymentID);
+		luaType["PassengerSlots"] = sol::property(&Actor::GetPassengerSlots, &Actor::SetPassengerSlots);
+		luaType["Perceptiveness"] = sol::property(&Actor::GetPerceptiveness, &Actor::SetPerceptiveness);
+		luaType["CanRevealUnseen"] = sol::property(&Actor::GetCanRevealUnseen, &Actor::SetCanRevealUnseen);
+		luaType["InventorySize"] = sol::property(&Actor::GetInventorySize);
+		luaType["MaxInventoryMass"] = sol::property(&Actor::GetMaxInventoryMass);
+		luaType["MovePathSize"] = sol::property(&Actor::GetMovePathSize);
+		luaType["MovePathEnd"] = sol::property(&Actor::GetMovePathEnd);
+		luaType["IsWaitingOnNewMovePath"] = sol::property(&Actor::IsWaitingOnNewMovePath);
+		luaType["AimDistance"] = sol::property(&Actor::GetAimDistance, &Actor::SetAimDistance);
+		luaType["SightDistance"] = sol::property(&Actor::GetSightDistance, &Actor::SetSightDistance);
+		luaType["PieMenu"] = sol::property(&Actor::GetPieMenu, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetPieMenu);
+		luaType["AIBaseDigStrength"] = sol::property(&Actor::GetAIBaseDigStrength, &Actor::SetAIBaseDigStrength);
+		luaType["DigStrength"] = sol::property(&Actor::EstimateDigStrength);
+		luaType["SceneWaypoints"] = sol::property(&LuaAdaptersActor::GetSceneWaypoints);
+		luaType["LimbPushForcesAndCollisionsDisabled"] = sol::property(&Actor::GetLimbPushForcesAndCollisionsDisabled, &Actor::SetLimbPushForcesAndCollisionsDisabled);
 
-		.def_readwrite("MOMoveTarget", &Actor::m_pMOMoveTarget)
-		.def_readwrite("MovePath", &Actor::m_MovePath, luabind::return_stl_iterator)
-		.def_readwrite("Inventory", &Actor::m_Inventory, luabind::return_stl_iterator)
+		luaType["MOMoveTarget"] = &Actor::m_pMOMoveTarget;
+		luaType["MovePath"] = &Actor::m_MovePath;
+		luaType["Inventory"] = &Actor::m_Inventory;
 
-		.def("GetController", &Actor::GetController)
-		.def("IsPlayerControlled", &Actor::IsPlayerControlled)
-		.def("IsControllable", &Actor::IsControllable)
-		.def("SetControllerMode", &Actor::SetControllerMode)
-		.def("SwapControllerModes", &Actor::SwapControllerModes)
-		.def("GetStableVelocityThreshold", &Actor::GetStableVel)
-		.def("SetStableVelocityThreshold", (void (Actor::*)(float, float))&Actor::SetStableVel)
-		.def("SetStableVelocityThreshold", (void (Actor::*)(Vector))&Actor::SetStableVel)
-		.def("GetAimAngle", &Actor::GetAimAngle)
-		.def("SetAimAngle", &Actor::SetAimAngle)
-		.def("HasObject", &Actor::HasObject)
-		.def("HasObjectInGroup", &Actor::HasObjectInGroup)
-		.def("IsWithinRange", &Actor::IsWithinRange)
-		.def("AddGold", &Actor::AddGold)
-		.def("AddHealth", &Actor::AddHealth)
-		.def("IsStatus", &Actor::IsStatus)
-		.def("IsDead", &Actor::IsDead)
-		.def("AddAISceneWaypoint", &Actor::AddAISceneWaypoint)
-		.def("AddAIMOWaypoint", &Actor::AddAIMOWaypoint)
-		.def("ClearAIWaypoints", &Actor::ClearAIWaypoints)
-		.def("GetLastAIWaypoint", &Actor::GetLastAIWaypoint)
-		.def("GetAIMOWaypointID", &Actor::GetAIMOWaypointID)
-		.def("GetWaypointListSize", &Actor::GetWaypointsSize)
-		.def("ClearMovePath", &Actor::ClearMovePath)
-		.def("AddToMovePathBeginning", &Actor::AddToMovePathBeginning)
-		.def("AddToMovePathEnd", &Actor::AddToMovePathEnd)
-		.def("RemoveMovePathBeginning", &Actor::RemoveMovePathBeginning)
-		.def("RemoveMovePathEnd", &Actor::RemoveMovePathEnd)
-		.def("AddInventoryItem", &Actor::AddInventoryItem, luabind::adopt(_2))
-		.def("RemoveInventoryItem", (void (Actor::*)(const std::string &))&Actor::RemoveInventoryItem)
-		.def("RemoveInventoryItem", (void (Actor::*)(const std::string &, const std::string &))&Actor::RemoveInventoryItem)
-		.def("SwapNextInventory", &Actor::SwapNextInventory)
-		.def("SwapPrevInventory", &Actor::SwapPrevInventory)
-		.def("DropAllInventory", &Actor::DropAllInventory)
-		.def("DropAllGold", &Actor::DropAllGold)
-		.def("IsInventoryEmpty", &Actor::IsInventoryEmpty)
-		.def("FlashWhite", &Actor::FlashWhite)
-		.def("DrawWaypoints", &Actor::DrawWaypoints)
-		.def("SetMovePathToUpdate", &Actor::SetMovePathToUpdate)
-		.def("UpdateMovePath", &Actor::UpdateMovePath)
-		.def("SetAlarmPoint", &Actor::AlarmPoint)
-		.def("GetAlarmPoint", &Actor::GetAlarmPoint)
-		.def("IsOrganic", &Actor::IsOrganic)
-		.def("IsMechanical", &Actor::IsMechanical)
+		luaType["GetController"] = &Actor::GetController;
+		luaType["IsPlayerControlled"] = &Actor::IsPlayerControlled;
+		luaType["IsControllable"] = &Actor::IsControllable;
+		luaType["SetControllerMode"] = &Actor::SetControllerMode;
+		luaType["SwapControllerModes"] = &Actor::SwapControllerModes;
+		luaType["GetStableVelocityThreshold"] = &Actor::GetStableVel;
+		luaType["SetStableVelocityThreshold"] = (void (Actor::*)(float, float))&Actor::SetStableVel;
+		luaType["SetStableVelocityThreshold"] = (void (Actor::*)(Vector))&Actor::SetStableVel;
+		luaType["GetAimAngle"] = &Actor::GetAimAngle;
+		luaType["SetAimAngle"] = &Actor::SetAimAngle;
+		luaType["HasObject"] = &Actor::HasObject;
+		luaType["HasObjectInGroup"] = &Actor::HasObjectInGroup;
+		luaType["IsWithinRange"] = &Actor::IsWithinRange;
+		luaType["AddGold"] = &Actor::AddGold;
+		luaType["AddHealth"] = &Actor::AddHealth;
+		luaType["IsStatus"] = &Actor::IsStatus;
+		luaType["IsDead"] = &Actor::IsDead;
+		luaType["AddAISceneWaypoint"] = &Actor::AddAISceneWaypoint;
+		luaType["AddAIMOWaypoint"] = &Actor::AddAIMOWaypoint;
+		luaType["ClearAIWaypoints"] = &Actor::ClearAIWaypoints;
+		luaType["GetLastAIWaypoint"] = &Actor::GetLastAIWaypoint;
+		luaType["GetAIMOWaypointID"] = &Actor::GetAIMOWaypointID;
+		luaType["GetWaypointListSize"] = &Actor::GetWaypointsSize;
+		luaType["ClearMovePath"] = &Actor::ClearMovePath;
+		luaType["AddToMovePathBeginning"] = &Actor::AddToMovePathBeginning;
+		luaType["AddToMovePathEnd"] = &Actor::AddToMovePathEnd;
+		luaType["RemoveMovePathBeginning"] = &Actor::RemoveMovePathBeginning;
+		luaType["RemoveMovePathEnd"] = &Actor::RemoveMovePathEnd;
+		luaType["AddInventoryItem"] = &Actor::AddInventoryItem, luabind::adopt(_2);
+		luaType["RemoveInventoryItem"] = (void (Actor::*)(const std::string &))&Actor::RemoveInventoryItem;
+		luaType["RemoveInventoryItem"] = (void (Actor::*)(const std::string &, const std::string &))&Actor::RemoveInventoryItem;
+		luaType["SwapNextInventory"] = &Actor::SwapNextInventory;
+		luaType["SwapPrevInventory"] = &Actor::SwapPrevInventory;
+		luaType["DropAllInventory"] = &Actor::DropAllInventory;
+		luaType["DropAllGold"] = &Actor::DropAllGold;
+		luaType["IsInventoryEmpty"] = &Actor::IsInventoryEmpty;
+		luaType["FlashWhite"] = &Actor::FlashWhite;
+		luaType["DrawWaypoints"] = &Actor::DrawWaypoints;
+		luaType["SetMovePathToUpdate"] = &Actor::SetMovePathToUpdate;
+		luaType["UpdateMovePath"] = &Actor::UpdateMovePath;
+		luaType["SetAlarmPoint"] = &Actor::AlarmPoint;
+		luaType["GetAlarmPoint"] = &Actor::GetAlarmPoint;
+		luaType["IsOrganic"] = &Actor::IsOrganic;
+		luaType["IsMechanical"] = &Actor::IsMechanical;
 
-		.enum_("Status")[
-			luabind::value("STABLE", Actor::Status::STABLE),
-			luabind::value("UNSTABLE", Actor::Status::UNSTABLE),
-			luabind::value("INACTIVE", Actor::Status::INACTIVE),
-			luabind::value("DYING", Actor::Status::DYING),
-			luabind::value("DEAD", Actor::Status::DEAD)
-		]
-		.enum_("AIMode")[
-			luabind::value("AIMODE_NONE", Actor::AIMode::AIMODE_NONE),
-			luabind::value("AIMODE_SENTRY", Actor::AIMode::AIMODE_SENTRY),
-			luabind::value("AIMODE_PATROL", Actor::AIMode::AIMODE_PATROL),
-			luabind::value("AIMODE_GOTO", Actor::AIMode::AIMODE_GOTO),
-			luabind::value("AIMODE_BRAINHUNT", Actor::AIMode::AIMODE_BRAINHUNT),
-			luabind::value("AIMODE_GOLDDIG", Actor::AIMode::AIMODE_GOLDDIG),
-			luabind::value("AIMODE_RETURN", Actor::AIMode::AIMODE_RETURN),
-			luabind::value("AIMODE_STAY", Actor::AIMode::AIMODE_STAY),
-			luabind::value("AIMODE_SCUTTLE", Actor::AIMode::AIMODE_SCUTTLE),
-			luabind::value("AIMODE_DELIVER", Actor::AIMode::AIMODE_DELIVER),
-			luabind::value("AIMODE_BOMB", Actor::AIMode::AIMODE_BOMB),
-			luabind::value("AIMODE_SQUAD", Actor::AIMode::AIMODE_SQUAD),
-			luabind::value("AIMODE_COUNT", Actor::AIMode::AIMODE_COUNT)
-		]
-		.enum_("ActionState")[
-			luabind::value("MOVING", Actor::ActionState::MOVING),
-			luabind::value("MOVING_FAST", Actor::ActionState::MOVING_FAST),
-			luabind::value("FIRING", Actor::ActionState::FIRING),
-			luabind::value("ActionStateCount", Actor::ActionState::ActionStateCount)
-		]
-		.enum_("AimState")[
-			luabind::value("AIMSTILL", Actor::AimState::AIMSTILL),
-			luabind::value("AIMUP", Actor::AimState::AIMUP),
-			luabind::value("AIMDOWN", Actor::AimState::AIMDOWN),
-			luabind::value("AimStateCount", Actor::AimState::AimStateCount)
-		]
-		.enum_("LateralMoveState")[
-			luabind::value("LAT_STILL", Actor::LateralMoveState::LAT_STILL),
-			luabind::value("LAT_LEFT", Actor::LateralMoveState::LAT_LEFT),
-			luabind::value("LAT_RIGHT", Actor::LateralMoveState::LAT_RIGHT)
-		]
-		.enum_("ObstacleState")[
-			luabind::value("PROCEEDING", Actor::ObstacleState::PROCEEDING),
-			luabind::value("BACKSTEPPING", Actor::ObstacleState::BACKSTEPPING),
-			luabind::value("DIGPAUSING", Actor::ObstacleState::DIGPAUSING),
-			luabind::value("JUMPING", Actor::ObstacleState::JUMPING),
-			luabind::value("SOFTLANDING", Actor::ObstacleState::SOFTLANDING)
-		]
-		.enum_("TeamBlockState")[
-			luabind::value("NOTBLOCKED", Actor::TeamBlockState::NOTBLOCKED),
-			luabind::value("BLOCKED", Actor::TeamBlockState::BLOCKED),
-			luabind::value("IGNORINGBLOCK", Actor::TeamBlockState::IGNORINGBLOCK),
-			luabind::value("FOLLOWWAIT", Actor::TeamBlockState::FOLLOWWAIT)
-		];
+		luaType.new_enum("Status", EnumList(Actor::Status) {
+			{ "STABLE", Actor::Status::STABLE },
+			{ "UNSTABLE", Actor::Status::UNSTABLE },
+			{ "INACTIVE", Actor::Status::INACTIVE },
+			{ "DYING", Actor::Status::DYING },
+			{ "DEAD", Actor::Status::DEAD }
+		});
+		luaType.new_enum("AIMode", EnumList(Actor::AIMode) {
+			{ "AIMODE_NONE", Actor::AIMode::AIMODE_NONE },
+			{ "AIMODE_SENTRY", Actor::AIMode::AIMODE_SENTRY },
+			{ "AIMODE_PATROL", Actor::AIMode::AIMODE_PATROL },
+			{ "AIMODE_GOTO", Actor::AIMode::AIMODE_GOTO },
+			{ "AIMODE_BRAINHUNT", Actor::AIMode::AIMODE_BRAINHUNT },
+			{ "AIMODE_GOLDDIG", Actor::AIMode::AIMODE_GOLDDIG },
+			{ "AIMODE_RETURN", Actor::AIMode::AIMODE_RETURN },
+			{ "AIMODE_STAY", Actor::AIMode::AIMODE_STAY },
+			{ "AIMODE_SCUTTLE", Actor::AIMode::AIMODE_SCUTTLE },
+			{ "AIMODE_DELIVER", Actor::AIMode::AIMODE_DELIVER },
+			{ "AIMODE_BOMB", Actor::AIMode::AIMODE_BOMB },
+			{ "AIMODE_SQUAD", Actor::AIMode::AIMODE_SQUAD },
+			{ "AIMODE_COUNT", Actor::AIMode::AIMODE_COUNT }
+		});
+		luaType.new_enum("ActionState", EnumList(Actor::ActionState) {
+			{ "MOVING", Actor::ActionState::MOVING },
+			{ "MOVING_FAST", Actor::ActionState::MOVING_FAST },
+			{ "FIRING", Actor::ActionState::FIRING },
+			{ "ActionStateCount", Actor::ActionState::ActionStateCount }
+		});
+		luaType.new_enum("AimState", EnumList(Actor::AimState) {
+			{ "AIMSTILL", Actor::AimState::AIMSTILL },
+			{ "AIMUP", Actor::AimState::AIMUP },
+			{ "AIMDOWN", Actor::AimState::AIMDOWN },
+			{ "AimStateCount", Actor::AimState::AimStateCount }
+		});
+		luaType.new_enum("LateralMoveState", EnumList(Actor::LateralMoveState) {
+			{ "LAT_STILL", Actor::LateralMoveState::LAT_STILL },
+			{ "LAT_LEFT", Actor::LateralMoveState::LAT_LEFT },
+			{ "LAT_RIGHT", Actor::LateralMoveState::LAT_RIGHT }
+		});
+		luaType.new_enum("ObstacleState", EnumList(Actor::ObstacleState) {
+			{ "PROCEEDING", Actor::ObstacleState::PROCEEDING },
+			{ "BACKSTEPPING", Actor::ObstacleState::BACKSTEPPING },
+			{ "DIGPAUSING", Actor::ObstacleState::DIGPAUSING },
+			{ "JUMPING", Actor::ObstacleState::JUMPING },
+			{ "SOFTLANDING", Actor::ObstacleState::SOFTLANDING }
+		});
+		luaType.new_enum("TeamBlockState", EnumList(Actor::TeamBlockState) {
+			{ "NOTBLOCKED", Actor::TeamBlockState::NOTBLOCKED },
+			{ "BLOCKED", Actor::TeamBlockState::BLOCKED },
+			{ "IGNORINGBLOCK", Actor::TeamBlockState::IGNORINGBLOCK },
+			{ "FOLLOWWAIT", Actor::TeamBlockState::FOLLOWWAIT }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ADoor) {
-		return ConcreteTypeLuaClassDefinition(ADoor, Actor)
+		auto luaType = ConcreteTypeLuaClassDefinition(ADoor, Actor);
 
-		.property("Door", &ADoor::GetDoor, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoor)
-		.property("DoorMoveStartSound", &ADoor::GetDoorMoveStartSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoorMoveStartSound)
-		.property("DoorMoveSound", &ADoor::GetDoorMoveSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoorMoveSound)
-		.property("DoorDirectionChangeSound", &ADoor::GetDoorDirectionChangeSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoorDirectionChangeSound)
-		.property("DoorMoveEndSound", &ADoor::GetDoorMoveEndSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoorMoveEndSound)
+		luaType["Door"] = sol::property(&ADoor::GetDoor, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoor);
+		luaType["DoorMoveStartSound"] = sol::property(&ADoor::GetDoorMoveStartSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoorMoveStartSound);
+		luaType["DoorMoveSound"] = sol::property(&ADoor::GetDoorMoveSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoorMoveSound);
+		luaType["DoorDirectionChangeSound"] = sol::property(&ADoor::GetDoorDirectionChangeSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoorDirectionChangeSound);
+		luaType["DoorMoveEndSound"] = sol::property(&ADoor::GetDoorMoveEndSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoorMoveEndSound);
 
-		.def("GetDoorState", &ADoor::GetDoorState)
-		.def("OpenDoor", &ADoor::OpenDoor)
-		.def("CloseDoor", &ADoor::CloseDoor)
-		.def("StopDoor", &ADoor::StopDoor)
-		.def("SetClosedByDefault", &ADoor::SetClosedByDefault)
+		luaType["GetDoorState"] = &ADoor::GetDoorState;
+		luaType["OpenDoor"] = &ADoor::OpenDoor;
+		luaType["CloseDoor"] = &ADoor::CloseDoor;
+		luaType["StopDoor"] = &ADoor::StopDoor;
+		luaType["SetClosedByDefault"] = &ADoor::SetClosedByDefault;
 
-		.enum_("DoorState")[
-			luabind::value("CLOSED", ADoor::DoorState::CLOSED),
-			luabind::value("OPENING", ADoor::DoorState::OPENING),
-			luabind::value("OPEN", ADoor::DoorState::OPEN),
-			luabind::value("CLOSING", ADoor::DoorState::CLOSING),
-			luabind::value("STOPPED", ADoor::DoorState::STOPPED)
-		];
+		luaType.new_enum("DoorState", EnumList(ADoor::DoorState) {
+			{ "CLOSED", ADoor::DoorState::CLOSED },
+			{ "OPENING", ADoor::DoorState::OPENING },
+			{ "OPEN", ADoor::DoorState::OPEN },
+			{ "CLOSING", ADoor::DoorState::CLOSING },
+			{ "STOPPED", ADoor::DoorState::STOPPED }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEmitter) {
-		return ConcreteTypeLuaClassDefinition(AEmitter, Attachable)
+		auto luaType = ConcreteTypeLuaClassDefinition(AEmitter, Attachable);
 
-		.property("EmissionSound", &AEmitter::GetEmissionSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetEmissionSound)
-		.property("BurstSound", &AEmitter::GetBurstSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetBurstSound)
-		.property("EndSound", &AEmitter::GetEndSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetEndSound)
-		.property("BurstScale", &AEmitter::GetBurstScale, &AEmitter::SetBurstScale)
-		.property("EmitAngle", &AEmitter::GetEmitAngle, &AEmitter::SetEmitAngle)
-		.property("GetThrottle", &AEmitter::GetThrottle, &AEmitter::SetThrottle)
-		.property("Throttle", &AEmitter::GetThrottle, &AEmitter::SetThrottle)
-		.property("ThrottleFactor", &AEmitter::GetThrottleFactor)
-		.property("NegativeThrottleMultiplier", &AEmitter::GetNegativeThrottleMultiplier, &AEmitter::SetNegativeThrottleMultiplier)
-		.property("PositiveThrottleMultiplier", &AEmitter::GetPositiveThrottleMultiplier, &AEmitter::SetPositiveThrottleMultiplier)
-		.property("BurstSpacing", &AEmitter::GetBurstSpacing, &AEmitter::SetBurstSpacing)
-		.property("BurstDamage", &AEmitter::GetBurstDamage, &AEmitter::SetBurstDamage)
-		.property("EmitterDamageMultiplier", &AEmitter::GetEmitterDamageMultiplier, &AEmitter::SetEmitterDamageMultiplier)
-		.property("EmitCount", &AEmitter::GetEmitCount)
-		.property("EmitCountLimit", &AEmitter::GetEmitCountLimit, &AEmitter::SetEmitCountLimit)
-		.property("EmitDamage", &AEmitter::GetEmitDamage, &AEmitter::SetEmitDamage)
-		.property("EmitOffset", &AEmitter::GetEmitOffset, &AEmitter::SetEmitOffset)
-		.property("Flash", &AEmitter::GetFlash, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetFlash)
-		.property("FlashScale", &AEmitter::GetFlashScale, &AEmitter::SetFlashScale)
-		.property("TotalParticlesPerMinute", &AEmitter::GetTotalParticlesPerMinute)
-		.property("TotalBurstSize", &AEmitter::GetTotalBurstSize)
+		luaType["EmissionSound"] = sol::property(&AEmitter::GetEmissionSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetEmissionSound);
+		luaType["BurstSound"] = sol::property(&AEmitter::GetBurstSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetBurstSound);
+		luaType["EndSound"] = sol::property(&AEmitter::GetEndSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetEndSound);
+		luaType["BurstScale"] = sol::property(&AEmitter::GetBurstScale, &AEmitter::SetBurstScale);
+		luaType["EmitAngle"] = sol::property(&AEmitter::GetEmitAngle, &AEmitter::SetEmitAngle);
+		luaType["GetThrottle"] = sol::property(&AEmitter::GetThrottle, &AEmitter::SetThrottle);
+		luaType["Throttle"] = sol::property(&AEmitter::GetThrottle, &AEmitter::SetThrottle);
+		luaType["ThrottleFactor"] = sol::property(&AEmitter::GetThrottleFactor);
+		luaType["NegativeThrottleMultiplier"] = sol::property(&AEmitter::GetNegativeThrottleMultiplier, &AEmitter::SetNegativeThrottleMultiplier);
+		luaType["PositiveThrottleMultiplier"] = sol::property(&AEmitter::GetPositiveThrottleMultiplier, &AEmitter::SetPositiveThrottleMultiplier);
+		luaType["BurstSpacing"] = sol::property(&AEmitter::GetBurstSpacing, &AEmitter::SetBurstSpacing);
+		luaType["BurstDamage"] = sol::property(&AEmitter::GetBurstDamage, &AEmitter::SetBurstDamage);
+		luaType["EmitterDamageMultiplier"] = sol::property(&AEmitter::GetEmitterDamageMultiplier, &AEmitter::SetEmitterDamageMultiplier);
+		luaType["EmitCount"] = sol::property(&AEmitter::GetEmitCount);
+		luaType["EmitCountLimit"] = sol::property(&AEmitter::GetEmitCountLimit, &AEmitter::SetEmitCountLimit);
+		luaType["EmitDamage"] = sol::property(&AEmitter::GetEmitDamage, &AEmitter::SetEmitDamage);
+		luaType["EmitOffset"] = sol::property(&AEmitter::GetEmitOffset, &AEmitter::SetEmitOffset);
+		luaType["Flash"] = sol::property(&AEmitter::GetFlash, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetFlash);
+		luaType["FlashScale"] = sol::property(&AEmitter::GetFlashScale, &AEmitter::SetFlashScale);
+		luaType["TotalParticlesPerMinute"] = sol::property(&AEmitter::GetTotalParticlesPerMinute);
+		luaType["TotalBurstSize"] = sol::property(&AEmitter::GetTotalBurstSize);
 
-		.def_readwrite("Emissions", &AEmitter::m_EmissionList, luabind::return_stl_iterator)
+		luaType["Emissions"] = &AEmitter::m_EmissionList;
 
-		.def("IsEmitting", &AEmitter::IsEmitting)
-		.def("EnableEmission", &AEmitter::EnableEmission)
-		.def("GetEmitVector", &AEmitter::GetEmitVector)
-		.def("GetRecoilVector", &AEmitter::GetRecoilVector)
-		.def("EstimateImpulse", &AEmitter::EstimateImpulse)
-		.def("TriggerBurst", &AEmitter::TriggerBurst)
-		.def("IsSetToBurst", &AEmitter::IsSetToBurst)
-		.def("CanTriggerBurst", &AEmitter::CanTriggerBurst);
+		luaType["IsEmitting"] = &AEmitter::IsEmitting;
+		luaType["EnableEmission"] = &AEmitter::EnableEmission;
+		luaType["GetEmitVector"] = &AEmitter::GetEmitVector;
+		luaType["GetRecoilVector"] = &AEmitter::GetRecoilVector;
+		luaType["EstimateImpulse"] = &AEmitter::EstimateImpulse;
+		luaType["TriggerBurst"] = &AEmitter::TriggerBurst;
+		luaType["IsSetToBurst"] = &AEmitter::IsSetToBurst;
+		luaType["CanTriggerBurst"] = &AEmitter::CanTriggerBurst;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
-		return ConcreteTypeLuaClassDefinition(AHuman, Actor)
+		auto luaType = ConcreteTypeLuaClassDefinition(AHuman, Actor);
 
-		.def(luabind::constructor<>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			AHuman()
+		>());
 
-		.property("Head", &AHuman::GetHead, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetHead)
-		.property("Jetpack", &AHuman::GetJetpack, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetJetpack)
-		.property("FGArm", &AHuman::GetFGArm, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGArm)
-		.property("BGArm", &AHuman::GetBGArm, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGArm)
-		.property("FGLeg", &AHuman::GetFGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGLeg)
-		.property("BGLeg", &AHuman::GetBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGLeg)
-		.property("FGFoot", &AHuman::GetFGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGFoot)
-		.property("BGFoot", &AHuman::GetBGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGFoot)
-		.property("StrideSound", &AHuman::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetStrideSound)
-		.property("JetTimeTotal", &AHuman::GetJetTimeTotal, &AHuman::SetJetTimeTotal)
-		.property("JetTimeLeft", &AHuman::GetJetTimeLeft, &AHuman::SetJetTimeLeft)
-		.property("JetReplenishRate", &AHuman::GetJetReplenishRate, &AHuman::SetJetReplenishRate)
-		.property("JetAngleRange", &AHuman::GetJetAngleRange, &AHuman::SetJetAngleRange)
-		.property("UpperBodyState", &AHuman::GetUpperBodyState, &AHuman::SetUpperBodyState)
-		.property("MovementState", &AHuman::GetMovementState, &AHuman::SetMovementState)
-		.property("ProneState", &AHuman::GetProneState, &AHuman::SetProneState)
-		.property("ThrowPrepTime", &AHuman::GetThrowPrepTime, &AHuman::SetThrowPrepTime)
-		.property("ThrowProgress", &AHuman::GetThrowProgress)
-		.property("EquippedItem", &AHuman::GetEquippedItem)
-		.property("EquippedBGItem", &AHuman::GetEquippedBGItem)
-		.property("EquippedMass", &AHuman::GetEquippedMass)
-		.property("FirearmIsReady", &AHuman::FirearmIsReady)
-		.property("ThrowableIsReady", &AHuman::ThrowableIsReady)
-		.property("FirearmIsEmpty", &AHuman::FirearmIsEmpty)
-		.property("FirearmNeedsReload", &AHuman::FirearmNeedsReload)
-		.property("FirearmIsSemiAuto", &AHuman::FirearmIsSemiAuto)
-		.property("FirearmActivationDelay", &AHuman::FirearmActivationDelay)
-		.property("LimbPathPushForce", &AHuman::GetLimbPathPushForce, &AHuman::SetLimbPathPushForce)
-		.property("IsClimbing", &AHuman::IsClimbing)
-		.property("ArmSwingRate", &AHuman::GetArmSwingRate, &AHuman::SetArmSwingRate)
-		.property("DeviceArmSwayRate", &AHuman::GetDeviceArmSwayRate, &AHuman::SetDeviceArmSwayRate)
+		luaType["Head"] = sol::property(&AHuman::GetHead, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetHead);
+		luaType["Jetpack"] = sol::property(&AHuman::GetJetpack, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetJetpack);
+		luaType["FGArm"] = sol::property(&AHuman::GetFGArm, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGArm);
+		luaType["BGArm"] = sol::property(&AHuman::GetBGArm, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGArm);
+		luaType["FGLeg"] = sol::property(&AHuman::GetFGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGLeg);
+		luaType["BGLeg"] = sol::property(&AHuman::GetBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGLeg);
+		luaType["FGFoot"] = sol::property(&AHuman::GetFGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGFoot);
+		luaType["BGFoot"] = sol::property(&AHuman::GetBGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGFoot);
+		luaType["StrideSound"] = sol::property(&AHuman::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetStrideSound);
+		luaType["JetTimeTotal"] = sol::property(&AHuman::GetJetTimeTotal, &AHuman::SetJetTimeTotal);
+		luaType["JetTimeLeft"] = sol::property(&AHuman::GetJetTimeLeft, &AHuman::SetJetTimeLeft);
+		luaType["JetReplenishRate"] = sol::property(&AHuman::GetJetReplenishRate, &AHuman::SetJetReplenishRate);
+		luaType["JetAngleRange"] = sol::property(&AHuman::GetJetAngleRange, &AHuman::SetJetAngleRange);
+		luaType["UpperBodyState"] = sol::property(&AHuman::GetUpperBodyState, &AHuman::SetUpperBodyState);
+		luaType["MovementState"] = sol::property(&AHuman::GetMovementState, &AHuman::SetMovementState);
+		luaType["ProneState"] = sol::property(&AHuman::GetProneState, &AHuman::SetProneState);
+		luaType["ThrowPrepTime"] = sol::property(&AHuman::GetThrowPrepTime, &AHuman::SetThrowPrepTime);
+		luaType["ThrowProgress"] = sol::property(&AHuman::GetThrowProgress);
+		luaType["EquippedItem"] = sol::property(&AHuman::GetEquippedItem);
+		luaType["EquippedBGItem"] = sol::property(&AHuman::GetEquippedBGItem);
+		luaType["EquippedMass"] = sol::property(&AHuman::GetEquippedMass);
+		luaType["FirearmIsReady"] = sol::property(&AHuman::FirearmIsReady);
+		luaType["ThrowableIsReady"] = sol::property(&AHuman::ThrowableIsReady);
+		luaType["FirearmIsEmpty"] = sol::property(&AHuman::FirearmIsEmpty);
+		luaType["FirearmNeedsReload"] = sol::property(&AHuman::FirearmNeedsReload);
+		luaType["FirearmIsSemiAuto"] = sol::property(&AHuman::FirearmIsSemiAuto);
+		luaType["FirearmActivationDelay"] = sol::property(&AHuman::FirearmActivationDelay);
+		luaType["LimbPathPushForce"] = sol::property(&AHuman::GetLimbPathPushForce, &AHuman::SetLimbPathPushForce);
+		luaType["IsClimbing"] = sol::property(&AHuman::IsClimbing);
+		luaType["ArmSwingRate"] = sol::property(&AHuman::GetArmSwingRate, &AHuman::SetArmSwingRate);
+		luaType["DeviceArmSwayRate"] = sol::property(&AHuman::GetDeviceArmSwayRate, &AHuman::SetDeviceArmSwayRate);
 
-		.def("EquipFirearm", &AHuman::EquipFirearm)
-		.def("EquipThrowable", &AHuman::EquipThrowable)
-		.def("EquipDiggingTool", &AHuman::EquipDiggingTool)
-		.def("EquipShield", &AHuman::EquipShield)
-		.def("EquipShieldInBGArm", &AHuman::EquipShieldInBGArm)
-		.def("EquipDeviceInGroup", &AHuman::EquipDeviceInGroup)
-		.def("EquipNamedDevice", (bool (AHuman::*)(const std::string &, bool))&AHuman::EquipNamedDevice)
-		.def("EquipNamedDevice", (bool (AHuman::*)(const std::string &, const std::string &, bool))&AHuman::EquipNamedDevice)
-		.def("EquipLoadedFirearmInGroup", &AHuman::EquipLoadedFirearmInGroup)
-		.def("UnequipFGArm", &AHuman::UnequipFGArm)
-		.def("UnequipBGArm", &AHuman::UnequipBGArm)
-		.def("UnequipArms", &AHuman::UnequipArms)
-		.def("ReloadFirearms", &LuaAdaptersAHuman::ReloadFirearms)
-		.def("ReloadFirearms", &AHuman::ReloadFirearms)
-		.def("FirearmsAreReloading", &AHuman::FirearmsAreReloading)
-		.def("IsWithinRange", &AHuman::IsWithinRange)
-		.def("Look", &AHuman::Look)
-		.def("LookForGold", &AHuman::LookForGold)
-		.def("LookForMOs", &AHuman::LookForMOs)
-		.def("GetLimbPath", &AHuman::GetLimbPath)
-		.def("GetLimbPathSpeed", &AHuman::GetLimbPathSpeed)
-		.def("SetLimbPathSpeed", &AHuman::SetLimbPathSpeed)
-		.def("GetRotAngleTarget", &AHuman::GetRotAngleTarget)
-		.def("SetRotAngleTarget", &AHuman::SetRotAngleTarget)
-		.def("GetWalkAngle", &AHuman::GetWalkAngle)
-		.def("SetWalkAngle", &AHuman::SetWalkAngle)
+		luaType["EquipFirearm"] = &AHuman::EquipFirearm;
+		luaType["EquipThrowable"] = &AHuman::EquipThrowable;
+		luaType["EquipDiggingTool"] = &AHuman::EquipDiggingTool;
+		luaType["EquipShield"] = &AHuman::EquipShield;
+		luaType["EquipShieldInBGArm"] = &AHuman::EquipShieldInBGArm;
+		luaType["EquipDeviceInGroup"] = &AHuman::EquipDeviceInGroup;
+		luaType["EquipNamedDevice"] = (bool (AHuman::*)(const std::string &, bool))&AHuman::EquipNamedDevice;
+		luaType["EquipNamedDevice"] = (bool (AHuman::*)(const std::string &, const std::string &, bool))&AHuman::EquipNamedDevice;
+		luaType["EquipLoadedFirearmInGroup"] = &AHuman::EquipLoadedFirearmInGroup;
+		luaType["UnequipFGArm"] = &AHuman::UnequipFGArm;
+		luaType["UnequipBGArm"] = &AHuman::UnequipBGArm;
+		luaType["UnequipArms"] = &AHuman::UnequipArms;
+		luaType["ReloadFirearms"] = &LuaAdaptersAHuman::ReloadFirearms;
+		luaType["ReloadFirearms"] = &AHuman::ReloadFirearms;
+		luaType["FirearmsAreReloading"] = &AHuman::FirearmsAreReloading;
+		luaType["IsWithinRange"] = &AHuman::IsWithinRange;
+		luaType["Look"] = &AHuman::Look;
+		luaType["LookForGold"] = &AHuman::LookForGold;
+		luaType["LookForMOs"] = &AHuman::LookForMOs;
+		luaType["GetLimbPath"] = &AHuman::GetLimbPath;
+		luaType["GetLimbPathSpeed"] = &AHuman::GetLimbPathSpeed;
+		luaType["SetLimbPathSpeed"] = &AHuman::SetLimbPathSpeed;
+		luaType["GetRotAngleTarget"] = &AHuman::GetRotAngleTarget;
+		luaType["SetRotAngleTarget"] = &AHuman::SetRotAngleTarget;
+		luaType["GetWalkAngle"] = &AHuman::GetWalkAngle;
+		luaType["SetWalkAngle"] = &AHuman::SetWalkAngle;
 
-		.enum_("UpperBodyState")[
-			luabind::value("WEAPON_READY", AHuman::UpperBodyState::WEAPON_READY),
-			luabind::value("AIMING_SHARP", AHuman::UpperBodyState::AIMING_SHARP),
-			luabind::value("HOLSTERING_BACK", AHuman::UpperBodyState::HOLSTERING_BACK),
-			luabind::value("HOLSTERING_BELT", AHuman::UpperBodyState::HOLSTERING_BELT),
-			luabind::value("DEHOLSTERING_BACK", AHuman::UpperBodyState::DEHOLSTERING_BACK),
-			luabind::value("DEHOLSTERING_BELT", AHuman::UpperBodyState::DEHOLSTERING_BELT),
-			luabind::value("THROWING_PREP", AHuman::UpperBodyState::THROWING_PREP),
-			luabind::value("THROWING_RELEASE",AHuman::UpperBodyState::THROWING_RELEASE)
-		]
-		.enum_("MovementState")[
-			luabind::value("NOMOVE", AHuman::MovementState::NOMOVE),
-			luabind::value("STAND", AHuman::MovementState::STAND),
-			luabind::value("WALK", AHuman::MovementState::WALK),
-			luabind::value("CROUCH", AHuman::MovementState::CROUCH),
-			luabind::value("CRAWL", AHuman::MovementState::CRAWL),
-			luabind::value("ARMCRAWL", AHuman::MovementState::ARMCRAWL),
-			luabind::value("CLIMB", AHuman::MovementState::CLIMB),
-			luabind::value("JUMP", AHuman::MovementState::JUMP),
-			luabind::value("DISLODGE", AHuman::MovementState::DISLODGE),
-			luabind::value("MOVEMENTSTATECOUNT", AHuman::MovementState::MOVEMENTSTATECOUNT)
-		]
-		.enum_("ProneState")[
-			luabind::value("NOTPRONE", AHuman::ProneState::NOTPRONE),
-			luabind::value("GOPRONE", AHuman::ProneState::GOPRONE),
-			luabind::value("PRONE", AHuman::ProneState::PRONE),
-			luabind::value("PRONESTATECOUNT", AHuman::ProneState::PRONESTATECOUNT)
-		]
-		.enum_("Layer")[
-			luabind::value("FGROUND", AHuman::Layer::FGROUND),
-			luabind::value("BGROUND", AHuman::Layer::BGROUND)
-		]
-		.enum_("DeviceHandlingState")[
-			luabind::value("STILL", AHuman::DeviceHandlingState::STILL),
-			luabind::value("POINTING", AHuman::DeviceHandlingState::POINTING),
-			luabind::value("SCANNING", AHuman::DeviceHandlingState::SCANNING),
-			luabind::value("AIMING", AHuman::DeviceHandlingState::AIMING),
-			luabind::value("FIRING", AHuman::DeviceHandlingState::FIRING),
-			luabind::value("THROWING", AHuman::DeviceHandlingState::THROWING),
-			luabind::value("DIGGING", AHuman::DeviceHandlingState::DIGGING)
-		]
-		.enum_("SweepState")[
-			luabind::value("NOSWEEP", AHuman::SweepState::NOSWEEP),
-			luabind::value("SWEEPINGUP", AHuman::SweepState::SWEEPINGUP),
-			luabind::value("SWEEPUPPAUSE", AHuman::SweepState::SWEEPUPPAUSE),
-			luabind::value("SWEEPINGDOWN", AHuman::SweepState::SWEEPINGDOWN),
-			luabind::value("SWEEPDOWNPAUSE", AHuman::SweepState::SWEEPDOWNPAUSE)
-		]
-		.enum_("DigState")[
-			luabind::value("NOTDIGGING", AHuman::DigState::NOTDIGGING),
-			luabind::value("PREDIG", AHuman::DigState::PREDIG),
-			luabind::value("STARTDIG", AHuman::DigState::STARTDIG),
-			luabind::value("TUNNELING", AHuman::DigState::TUNNELING),
-			luabind::value("FINISHINGDIG", AHuman::DigState::FINISHINGDIG),
-			luabind::value("PAUSEDIGGER", AHuman::DigState::PAUSEDIGGER)
-		]
-		.enum_("JumpState")[
-			luabind::value("NOTJUMPING", AHuman::JumpState::NOTJUMPING),
-			luabind::value("FORWARDJUMP", AHuman::JumpState::FORWARDJUMP),
-			luabind::value("PREJUMP", AHuman::JumpState::PREUPJUMP),
-			luabind::value("UPJUMP", AHuman::JumpState::UPJUMP),
-			luabind::value("APEXJUMP", AHuman::JumpState::APEXJUMP),
-			luabind::value("LANDJUMP", AHuman::JumpState::LANDJUMP)
-		];
+		luaType.new_enum("UpperBodyState", EnumList(AHuman::UpperBodyState) {
+			{ "WEAPON_READY", AHuman::UpperBodyState::WEAPON_READY },
+			{ "AIMING_SHARP", AHuman::UpperBodyState::AIMING_SHARP },
+			{ "HOLSTERING_BACK", AHuman::UpperBodyState::HOLSTERING_BACK },
+			{ "HOLSTERING_BELT", AHuman::UpperBodyState::HOLSTERING_BELT },
+			{ "DEHOLSTERING_BACK", AHuman::UpperBodyState::DEHOLSTERING_BACK },
+			{ "DEHOLSTERING_BELT", AHuman::UpperBodyState::DEHOLSTERING_BELT },
+			{ "THROWING_PREP", AHuman::UpperBodyState::THROWING_PREP },
+			{ "THROWING_RELEASE", AHuman::UpperBodyState::THROWING_RELEASE }
+		});
+		luaType.new_enum("MovementState", EnumList(AHuman::MovementState) {
+			{ "NOMOVE", AHuman::MovementState::NOMOVE },
+			{ "STAND", AHuman::MovementState::STAND },
+			{ "WALK", AHuman::MovementState::WALK },
+			{ "CROUCH", AHuman::MovementState::CROUCH },
+			{ "CRAWL", AHuman::MovementState::CRAWL },
+			{ "ARMCRAWL", AHuman::MovementState::ARMCRAWL },
+			{ "CLIMB", AHuman::MovementState::CLIMB },
+			{ "JUMP", AHuman::MovementState::JUMP },
+			{ "DISLODGE", AHuman::MovementState::DISLODGE },
+			{ "MOVEMENTSTATECOUNT", AHuman::MovementState::MOVEMENTSTATECOUNT }
+		});
+		luaType.new_enum("ProneState", EnumList(AHuman::ProneState) {
+			{ "NOTPRONE", AHuman::ProneState::NOTPRONE },
+			{ "GOPRONE", AHuman::ProneState::GOPRONE },
+			{ "PRONE", AHuman::ProneState::PRONE },
+			{ "PRONESTATECOUNT", AHuman::ProneState::PRONESTATECOUNT }
+		});
+		luaType.new_enum("Layer", EnumList(AHuman::Layer) {
+			{ "FGROUND", AHuman::Layer::FGROUND },
+			{ "BGROUND", AHuman::Layer::BGROUND }
+		});
+		luaType.new_enum("DeviceHandlingState", EnumList(AHuman::DeviceHandlingState) {
+			{ "STILL", AHuman::DeviceHandlingState::STILL },
+			{ "POINTING", AHuman::DeviceHandlingState::POINTING },
+			{ "SCANNING", AHuman::DeviceHandlingState::SCANNING },
+			{ "AIMING", AHuman::DeviceHandlingState::AIMING },
+			{ "FIRING", AHuman::DeviceHandlingState::FIRING },
+			{ "THROWING", AHuman::DeviceHandlingState::THROWING },
+			{ "DIGGING", AHuman::DeviceHandlingState::DIGGING }
+		});
+		luaType.new_enum("SweepState", EnumList(AHuman::SweepState) {
+			{ "NOSWEEP", AHuman::SweepState::NOSWEEP },
+			{ "SWEEPINGUP", AHuman::SweepState::SWEEPINGUP },
+			{ "SWEEPUPPAUSE", AHuman::SweepState::SWEEPUPPAUSE },
+			{ "SWEEPINGDOWN", AHuman::SweepState::SWEEPINGDOWN },
+			{ "SWEEPDOWNPAUSE", AHuman::SweepState::SWEEPDOWNPAUSE }
+		});
+		luaType.new_enum("DigState", EnumList(AHuman::DigState) {
+			{ "NOTDIGGING", AHuman::DigState::NOTDIGGING },
+			{ "PREDIG", AHuman::DigState::PREDIG },
+			{ "STARTDIG", AHuman::DigState::STARTDIG },
+			{ "TUNNELING", AHuman::DigState::TUNNELING },
+			{ "FINISHINGDIG", AHuman::DigState::FINISHINGDIG },
+			{ "PAUSEDIGGER", AHuman::DigState::PAUSEDIGGER }
+		});
+		luaType.new_enum("JumpState", EnumList(AHuman::JumpState) {
+			{ "NOTJUMPING", AHuman::JumpState::NOTJUMPING },
+			{ "FORWARDJUMP", AHuman::JumpState::FORWARDJUMP },
+			{ "PREJUMP", AHuman::JumpState::PREUPJUMP },
+			{ "UPJUMP", AHuman::JumpState::UPJUMP },
+			{ "APEXJUMP", AHuman::JumpState::APEXJUMP },
+			{ "LANDJUMP", AHuman::JumpState::LANDJUMP }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Arm) {
-		return ConcreteTypeLuaClassDefinition(Arm, Attachable)
+		auto luaType = ConcreteTypeLuaClassDefinition(Arm, Attachable);
 
-			.property("MaxLength", &Arm::GetMaxLength)
-			.property("MoveSpeed", &Arm::GetMoveSpeed, &Arm::SetMoveSpeed)
+		luaType["MaxLength"] = sol::property(&Arm::GetMaxLength);
+		luaType["MoveSpeed"] = sol::property(&Arm::GetMoveSpeed, &Arm::SetMoveSpeed);
 
-			.property("HandIdleOffset", &Arm::GetHandIdleOffset, &Arm::SetHandIdleOffset)
+		luaType["HandIdleOffset"] = sol::property(&Arm::GetHandIdleOffset, &Arm::SetHandIdleOffset);
 
-			.property("HandPos", &Arm::GetHandPos, &Arm::SetHandPos)
-			.property("HasAnyHandTargets", &Arm::HasAnyHandTargets)
-			.property("NumberOfHandTargets", &Arm::GetNumberOfHandTargets)
-			.property("NextHandTargetDescription", &Arm::GetNextHandTargetDescription)
-			.property("NextHandTargetPosition", &Arm::GetNextHandTargetPosition)
-			.property("HandHasReachedCurrentTarget", &Arm::GetHandHasReachedCurrentTarget)
+		luaType["HandPos"] = sol::property(&Arm::GetHandPos, &Arm::SetHandPos);
+		luaType["HasAnyHandTargets"] = sol::property(&Arm::HasAnyHandTargets);
+		luaType["NumberOfHandTargets"] = sol::property(&Arm::GetNumberOfHandTargets);
+		luaType["NextHandTargetDescription"] = sol::property(&Arm::GetNextHandTargetDescription);
+		luaType["NextHandTargetPosition"] = sol::property(&Arm::GetNextHandTargetPosition);
+		luaType["HandHasReachedCurrentTarget"] = sol::property(&Arm::GetHandHasReachedCurrentTarget);
 
-			.property("GripStrength", &Arm::GetGripStrength, &Arm::SetGripStrength)
-			.property("ThrowStrength", &Arm::GetThrowStrength, &Arm::SetThrowStrength)
+		luaType["GripStrength"] = sol::property(&Arm::GetGripStrength, &Arm::SetGripStrength);
+		luaType["ThrowStrength"] = sol::property(&Arm::GetThrowStrength, &Arm::SetThrowStrength);
 
-			.property("HeldDevice", &Arm::GetHeldDevice, &LuaAdaptersPropertyOwnershipSafetyFaker::ArmSetHeldDevice)
-			.property("SupportedHeldDevice", &Arm::GetHeldDeviceThisArmIsTryingToSupport)
+		luaType["HeldDevice"] = sol::property(&Arm::GetHeldDevice, &LuaAdaptersPropertyOwnershipSafetyFaker::ArmSetHeldDevice);
+		luaType["SupportedHeldDevice"] = sol::property(&Arm::GetHeldDeviceThisArmIsTryingToSupport);
 
-			.def("AddHandTarget", (void (Arm::*)(const std::string &description, const Vector &handTargetPositionToAdd))&Arm::AddHandTarget)
-			.def("AddHandTarget", (void (Arm::*)(const std::string &description, const Vector &handTargetPositionToAdd, float delayAtTarget))&Arm::AddHandTarget)
-			.def("RemoveNextHandTarget", &Arm::RemoveNextHandTarget)
-			.def("ClearHandTargets", &Arm::ClearHandTargets);
+		luaType["AddHandTarget"] = (void (Arm::*)(const std::string &description, const Vector &handTargetPositionToAdd))&Arm::AddHandTarget;
+		luaType["AddHandTarget"] = (void (Arm::*)(const std::string &description, const Vector &handTargetPositionToAdd, float delayAtTarget))&Arm::AddHandTarget;
+		luaType["RemoveNextHandTarget"] = &Arm::RemoveNextHandTarget;
+		luaType["ClearHandTargets"] = &Arm::ClearHandTargets;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Attachable) {
-		return ConcreteTypeLuaClassDefinition(Attachable, MOSRotating)
+		auto luaType = ConcreteTypeLuaClassDefinition(Attachable, MOSRotating);
 
-		.property("ParentOffset", &Attachable::GetParentOffset, &Attachable::SetParentOffset)
-		.property("JointStrength", &Attachable::GetJointStrength, &Attachable::SetJointStrength)
-		.property("JointStiffness", &Attachable::GetJointStiffness, &Attachable::SetJointStiffness)
-		.property("JointOffset", &Attachable::GetJointOffset, &Attachable::SetJointOffset)
-		.property("JointPos", &Attachable::GetJointPos)
-		.property("DeleteWhenRemovedFromParent", &Attachable::GetDeleteWhenRemovedFromParent, &Attachable::SetDeleteWhenRemovedFromParent)
-		.property("GibWhenRemovedFromParent", &Attachable::GetGibWhenRemovedFromParent, &Attachable::SetGibWhenRemovedFromParent)
-		.property("ApplyTransferredForcesAtOffset", &Attachable::GetApplyTransferredForcesAtOffset, &Attachable::SetApplyTransferredForcesAtOffset)
-		.property("BreakWound", &Attachable::GetBreakWound, &LuaAdaptersPropertyOwnershipSafetyFaker::AttachableSetBreakWound)
-		.property("ParentBreakWound", &Attachable::GetParentBreakWound, &LuaAdaptersPropertyOwnershipSafetyFaker::AttachableSetParentBreakWound)
-		.property("InheritsHFlipped", &Attachable::InheritsHFlipped, &Attachable::SetInheritsHFlipped)
-		.property("InheritsRotAngle", &Attachable::InheritsRotAngle, &Attachable::SetInheritsRotAngle)
-		.property("InheritedRotAngleOffset", &Attachable::GetInheritedRotAngleOffset, &Attachable::SetInheritedRotAngleOffset)
-		.property("AtomSubgroupID", &Attachable::GetAtomSubgroupID)
-		.property("CollidesWithTerrainWhileAttached", &Attachable::GetCollidesWithTerrainWhileAttached, &Attachable::SetCollidesWithTerrainWhileAttached)
-		.property("IgnoresParticlesWhileAttached", &Attachable::GetIgnoresParticlesWhileAttached, &Attachable::SetIgnoresParticlesWhileAttached)
-		.property("CanCollideWithTerrain", &Attachable::CanCollideWithTerrain)
-		.property("DrawnAfterParent", &Attachable::IsDrawnAfterParent, &Attachable::SetDrawnAfterParent)
-		.property("InheritsFrame", &Attachable::InheritsFrame, &Attachable::SetInheritsFrame)
+		luaType["ParentOffset"] = sol::property(&Attachable::GetParentOffset, &Attachable::SetParentOffset);
+		luaType["JointStrength"] = sol::property(&Attachable::GetJointStrength, &Attachable::SetJointStrength);
+		luaType["JointStiffness"] = sol::property(&Attachable::GetJointStiffness, &Attachable::SetJointStiffness);
+		luaType["JointOffset"] = sol::property(&Attachable::GetJointOffset, &Attachable::SetJointOffset);
+		luaType["JointPos"] = sol::property(&Attachable::GetJointPos);
+		luaType["DeleteWhenRemovedFromParent"] = sol::property(&Attachable::GetDeleteWhenRemovedFromParent, &Attachable::SetDeleteWhenRemovedFromParent);
+		luaType["GibWhenRemovedFromParent"] = sol::property(&Attachable::GetGibWhenRemovedFromParent, &Attachable::SetGibWhenRemovedFromParent);
+		luaType["ApplyTransferredForcesAtOffset"] = sol::property(&Attachable::GetApplyTransferredForcesAtOffset, &Attachable::SetApplyTransferredForcesAtOffset);
+		luaType["BreakWound"] = sol::property(&Attachable::GetBreakWound, &LuaAdaptersPropertyOwnershipSafetyFaker::AttachableSetBreakWound);
+		luaType["ParentBreakWound"] = sol::property(&Attachable::GetParentBreakWound, &LuaAdaptersPropertyOwnershipSafetyFaker::AttachableSetParentBreakWound);
+		luaType["InheritsHFlipped"] = sol::property(&Attachable::InheritsHFlipped, &Attachable::SetInheritsHFlipped);
+		luaType["InheritsRotAngle"] = sol::property(&Attachable::InheritsRotAngle, &Attachable::SetInheritsRotAngle);
+		luaType["InheritedRotAngleOffset"] = sol::property(&Attachable::GetInheritedRotAngleOffset, &Attachable::SetInheritedRotAngleOffset);
+		luaType["AtomSubgroupID"] = sol::property(&Attachable::GetAtomSubgroupID);
+		luaType["CollidesWithTerrainWhileAttached"] = sol::property(&Attachable::GetCollidesWithTerrainWhileAttached, &Attachable::SetCollidesWithTerrainWhileAttached);
+		luaType["IgnoresParticlesWhileAttached"] = sol::property(&Attachable::GetIgnoresParticlesWhileAttached, &Attachable::SetIgnoresParticlesWhileAttached);
+		luaType["CanCollideWithTerrain"] = sol::property(&Attachable::CanCollideWithTerrain);
+		luaType["DrawnAfterParent"] = sol::property(&Attachable::IsDrawnAfterParent, &Attachable::SetDrawnAfterParent);
+		luaType["InheritsFrame"] = sol::property(&Attachable::InheritsFrame, &Attachable::SetInheritsFrame);
 
-		.def("IsAttached", &Attachable::IsAttached)
-		.def("IsAttachedTo", &Attachable::IsAttachedTo)
+		luaType["IsAttached"] = &Attachable::IsAttached;
+		luaType["IsAttachedTo"] = &Attachable::IsAttachedTo;
 
-		.def("RemoveFromParent", &LuaAdaptersAttachable::RemoveFromParent1, luabind::adopt(luabind::return_value))
-		.def("RemoveFromParent", &LuaAdaptersAttachable::RemoveFromParent2, luabind::adopt(luabind::return_value));
+		luaType["RemoveFromParent"] = &LuaAdaptersAttachable::RemoveFromParent1, luabind::adopt(luabind::return_value);
+		luaType["RemoveFromParent"] = &LuaAdaptersAttachable::RemoveFromParent2, luabind::adopt(luabind::return_value);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Deployment) {
-		return AbstractTypeLuaClassDefinition(Deployment, SceneObject)
+		auto luaType = AbstractTypeLuaClassDefinition(Deployment, SceneObject);
 
-		.property("ID", &Deployment::GetID)
-		.property("HFlipped", &Deployment::IsHFlipped)
-		.property("SpawnRadius", &Deployment::GetSpawnRadius)
+		luaType["ID"] = sol::property(&Deployment::GetID);
+		luaType["HFlipped"] = sol::property(&Deployment::IsHFlipped);
+		luaType["SpawnRadius"] = sol::property(&Deployment::GetSpawnRadius);
 
-		.def("GetLoadoutName", &Deployment::GetLoadoutName)
-		.def("CreateDeployedActor", (Actor * (Deployment::*)())&Deployment::CreateDeployedActor, luabind::adopt(luabind::result))
-		.def("CreateDeployedObject", (SceneObject * (Deployment::*)())&Deployment::CreateDeployedObject, luabind::adopt(luabind::result));
+		luaType["GetLoadoutName"] = &Deployment::GetLoadoutName;
+		luaType["CreateDeployedActor"] = (Actor * (Deployment::*)())&Deployment::CreateDeployedActor, luabind::adopt(luabind::result);
+		luaType["CreateDeployedObject"] = (SceneObject * (Deployment::*)())&Deployment::CreateDeployedObject, luabind::adopt(luabind::result);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Emission) {
-		return AbstractTypeLuaClassDefinition(Emission, Entity)
+		auto luaType = AbstractTypeLuaClassDefinition(Emission, Entity);
 
-		.property("ParticlesPerMinute", &Emission::GetRate, &Emission::SetRate)
-		.property("MinVelocity", &Emission::GetMinVelocity, &Emission::SetMinVelocity)
-		.property("MaxVelocity", &Emission::GetMaxVelocity, &Emission::SetMaxVelocity)
-		.property("PushesEmitter", &Emission::PushesEmitter, &Emission::SetPushesEmitter)
-		.property("LifeVariation", &Emission::GetLifeVariation, &Emission::SetLifeVariation)
-		.property("BurstSize", &Emission::GetBurstSize, &Emission::SetBurstSize)
-		.property("Spread", &Emission::GetSpread, &Emission::SetSpread)
-		.property("Offset", &Emission::GetOffset, &Emission::SetOffset)
+		luaType["ParticlesPerMinute"] = sol::property(&Emission::GetRate, &Emission::SetRate);
+		luaType["MinVelocity"] = sol::property(&Emission::GetMinVelocity, &Emission::SetMinVelocity);
+		luaType["MaxVelocity"] = sol::property(&Emission::GetMaxVelocity, &Emission::SetMaxVelocity);
+		luaType["PushesEmitter"] = sol::property(&Emission::PushesEmitter, &Emission::SetPushesEmitter);
+		luaType["LifeVariation"] = sol::property(&Emission::GetLifeVariation, &Emission::SetLifeVariation);
+		luaType["BurstSize"] = sol::property(&Emission::GetBurstSize, &Emission::SetBurstSize);
+		luaType["Spread"] = sol::property(&Emission::GetSpread, &Emission::SetSpread);
+		luaType["Offset"] = sol::property(&Emission::GetOffset, &Emission::SetOffset);
 
-		.def("ResetEmissionTimers", &Emission::ResetEmissionTimers);
+		luaType["ResetEmissionTimers"] = &Emission::ResetEmissionTimers;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Gib) {
-		return luabind::class_<Gib>("Gib")
+		auto luaType = SimpleTypeLuaClassDefinition(Gib);
 
-		.property("ParticlePreset", &Gib::GetParticlePreset, &Gib::SetParticlePreset)
-		.property("MinVelocity", &Gib::GetMinVelocity, &Gib::SetMinVelocity)
-		.property("MaxVelocity", &Gib::GetMaxVelocity, &Gib::SetMaxVelocity)
-		.property("SpreadMode", &Gib::GetSpreadMode, &Gib::SetSpreadMode)
+		luaType["ParticlePreset"] = sol::property(&Gib::GetParticlePreset, &Gib::SetParticlePreset);
+		luaType["MinVelocity"] = sol::property(&Gib::GetMinVelocity, &Gib::SetMinVelocity);
+		luaType["MaxVelocity"] = sol::property(&Gib::GetMaxVelocity, &Gib::SetMaxVelocity);
+		luaType["SpreadMode"] = sol::property(&Gib::GetSpreadMode, &Gib::SetSpreadMode);
 
-		.def_readwrite("Offset", &Gib::m_Offset)
-		.def_readwrite("Count", &Gib::m_Count)
-		.def_readwrite("Spread", &Gib::m_Spread)
-		.def_readwrite("LifeVariation", &Gib::m_LifeVariation)
-		.def_readwrite("InheritsVel", &Gib::m_InheritsVel)
-		.def_readwrite("IgnoresTeamHits", &Gib::m_IgnoresTeamHits)
+		luaType["Offset"] = &Gib::m_Offset;
+		luaType["Count"] = &Gib::m_Count;
+		luaType["Spread"] = &Gib::m_Spread;
+		luaType["LifeVariation"] = &Gib::m_LifeVariation;
+		luaType["InheritsVel"] = &Gib::m_InheritsVel;
+		luaType["IgnoresTeamHits"] = &Gib::m_IgnoresTeamHits;
 
-		.enum_("SpreadMode")[
-			luabind::value("SpreadRandom", Gib::SpreadMode::SpreadRandom),
-			luabind::value("SpreadEven", Gib::SpreadMode::SpreadEven),
-			luabind::value("SpreadSpiral", Gib::SpreadMode::SpreadSpiral)
-		];
+		luaType.new_enum("SpreadMode", EnumList(Gib::SpreadMode) {
+			{ "SpreadRandom", Gib::SpreadMode::SpreadRandom },
+			{ "SpreadEven", Gib::SpreadMode::SpreadEven },
+			{ "SpreadSpiral", Gib::SpreadMode::SpreadSpiral }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, GlobalScript) {
-		return AbstractTypeLuaClassDefinition(GlobalScript, Entity)
+		auto luaType = AbstractTypeLuaClassDefinition(GlobalScript, Entity);
 
-		.def("Deactivate", &LuaAdaptersGlobalScript::Deactivate);
+		luaType["Deactivate"] = &LuaAdaptersGlobalScript::Deactivate;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HDFirearm) {
-		return ConcreteTypeLuaClassDefinition(HDFirearm, HeldDevice)
+		auto luaType = ConcreteTypeLuaClassDefinition(HDFirearm, HeldDevice);
 
-		.property("RateOfFire", &HDFirearm::GetRateOfFire, &HDFirearm::SetRateOfFire)
-		.property("MSPerRound", &HDFirearm::GetMSPerRound)
-		.property("FullAuto", &HDFirearm::IsFullAuto, &HDFirearm::SetFullAuto)
-		.property("Reloadable", &HDFirearm::IsReloadable, &HDFirearm::SetReloadable)
-		.property("DualReloadable", &HDFirearm::IsDualReloadable, &HDFirearm::SetDualReloadable)
-		.property("OneHandedReloadTimeMultiplier", &HDFirearm::GetOneHandedReloadTimeMultiplier, &HDFirearm::SetOneHandedReloadTimeMultiplier)
-		.property("ReloadAngle", &HDFirearm::GetReloadAngle, &HDFirearm::SetReloadAngle)
-		.property("OneHandedReloadAngle", &HDFirearm::GetOneHandedReloadAngle, &HDFirearm::SetOneHandedReloadAngle)
-		.property("CurrentReloadAngle", &HDFirearm::GetCurrentReloadAngle)
-		.property("RoundInMagCount", &HDFirearm::GetRoundInMagCount)
-		.property("RoundInMagCapacity", &HDFirearm::GetRoundInMagCapacity)
-		.property("Magazine", &HDFirearm::GetMagazine, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetMagazine)
-		.property("Flash", &HDFirearm::GetFlash, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetFlash)
-		.property("PreFireSound", &HDFirearm::GetPreFireSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetPreFireSound)
-		.property("FireSound", &HDFirearm::GetFireSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetFireSound)
-		.property("FireEchoSound", &HDFirearm::GetFireEchoSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetFireEchoSound)
-		.property("ActiveSound", &HDFirearm::GetActiveSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetActiveSound)
-		.property("DeactivationSound", &HDFirearm::GetDeactivationSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetDeactivationSound)
-		.property("EmptySound", &HDFirearm::GetEmptySound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetEmptySound)
-		.property("ReloadStartSound", &HDFirearm::GetReloadStartSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetReloadStartSound)
-		.property("ReloadEndSound", &HDFirearm::GetReloadEndSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetReloadEndSound)
-		.property("ActivationDelay", &HDFirearm::GetActivationDelay, &HDFirearm::SetActivationDelay)
-		.property("DeactivationDelay", &HDFirearm::GetDeactivationDelay, &HDFirearm::SetDeactivationDelay)
-		.property("BaseReloadTime", &HDFirearm::GetBaseReloadTime, &HDFirearm::SetBaseReloadTime)
-		.property("ReloadTime", &HDFirearm::GetReloadTime)
-		.property("ReloadProgress", &HDFirearm::GetReloadProgress)
-		.property("ShakeRange", &HDFirearm::GetShakeRange, &HDFirearm::SetShakeRange)
-		.property("SharpShakeRange", &HDFirearm::GetSharpShakeRange, &HDFirearm::SetSharpShakeRange)
-		.property("NoSupportFactor", &HDFirearm::GetNoSupportFactor, &HDFirearm::SetNoSupportFactor)
-		.property("ParticleSpreadRange", &HDFirearm::GetParticleSpreadRange, &HDFirearm::SetParticleSpreadRange)
-		.property("ShellVelVariation", &HDFirearm::GetShellVelVariation, &HDFirearm::SetShellVelVariation)
-		.property("FiredOnce", &HDFirearm::FiredOnce)
-		.property("FiredFrame", &HDFirearm::FiredFrame)
-		.property("CanFire", &HDFirearm::CanFire)
-		.property("RoundsFired", &HDFirearm::RoundsFired)
-		.property("IsAnimatedManually", &HDFirearm::IsAnimatedManually, &HDFirearm::SetAnimatedManually)
-		.property("RecoilTransmission", &HDFirearm::GetJointStiffness, &HDFirearm::SetJointStiffness)
+		luaType["RateOfFire"] = sol::property(&HDFirearm::GetRateOfFire, &HDFirearm::SetRateOfFire);
+		luaType["MSPerRound"] = sol::property(&HDFirearm::GetMSPerRound);
+		luaType["FullAuto"] = sol::property(&HDFirearm::IsFullAuto, &HDFirearm::SetFullAuto);
+		luaType["Reloadable"] = sol::property(&HDFirearm::IsReloadable, &HDFirearm::SetReloadable);
+		luaType["DualReloadable"] = sol::property(&HDFirearm::IsDualReloadable, &HDFirearm::SetDualReloadable);
+		luaType["OneHandedReloadTimeMultiplier"] = sol::property(&HDFirearm::GetOneHandedReloadTimeMultiplier, &HDFirearm::SetOneHandedReloadTimeMultiplier);
+		luaType["ReloadAngle"] = sol::property(&HDFirearm::GetReloadAngle, &HDFirearm::SetReloadAngle);
+		luaType["OneHandedReloadAngle"] = sol::property(&HDFirearm::GetOneHandedReloadAngle, &HDFirearm::SetOneHandedReloadAngle);
+		luaType["CurrentReloadAngle"] = sol::property(&HDFirearm::GetCurrentReloadAngle);
+		luaType["RoundInMagCount"] = sol::property(&HDFirearm::GetRoundInMagCount);
+		luaType["RoundInMagCapacity"] = sol::property(&HDFirearm::GetRoundInMagCapacity);
+		luaType["Magazine"] = sol::property(&HDFirearm::GetMagazine, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetMagazine);
+		luaType["Flash"] = sol::property(&HDFirearm::GetFlash, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetFlash);
+		luaType["PreFireSound"] = sol::property(&HDFirearm::GetPreFireSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetPreFireSound);
+		luaType["FireSound"] = sol::property(&HDFirearm::GetFireSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetFireSound);
+		luaType["FireEchoSound"] = sol::property(&HDFirearm::GetFireEchoSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetFireEchoSound);
+		luaType["ActiveSound"] = sol::property(&HDFirearm::GetActiveSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetActiveSound);
+		luaType["DeactivationSound"] = sol::property(&HDFirearm::GetDeactivationSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetDeactivationSound);
+		luaType["EmptySound"] = sol::property(&HDFirearm::GetEmptySound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetEmptySound);
+		luaType["ReloadStartSound"] = sol::property(&HDFirearm::GetReloadStartSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetReloadStartSound);
+		luaType["ReloadEndSound"] = sol::property(&HDFirearm::GetReloadEndSound, &LuaAdaptersPropertyOwnershipSafetyFaker::HDFirearmSetReloadEndSound);
+		luaType["ActivationDelay"] = sol::property(&HDFirearm::GetActivationDelay, &HDFirearm::SetActivationDelay);
+		luaType["DeactivationDelay"] = sol::property(&HDFirearm::GetDeactivationDelay, &HDFirearm::SetDeactivationDelay);
+		luaType["BaseReloadTime"] = sol::property(&HDFirearm::GetBaseReloadTime, &HDFirearm::SetBaseReloadTime);
+		luaType["ReloadTime"] = sol::property(&HDFirearm::GetReloadTime);
+		luaType["ReloadProgress"] = sol::property(&HDFirearm::GetReloadProgress);
+		luaType["ShakeRange"] = sol::property(&HDFirearm::GetShakeRange, &HDFirearm::SetShakeRange);
+		luaType["SharpShakeRange"] = sol::property(&HDFirearm::GetSharpShakeRange, &HDFirearm::SetSharpShakeRange);
+		luaType["NoSupportFactor"] = sol::property(&HDFirearm::GetNoSupportFactor, &HDFirearm::SetNoSupportFactor);
+		luaType["ParticleSpreadRange"] = sol::property(&HDFirearm::GetParticleSpreadRange, &HDFirearm::SetParticleSpreadRange);
+		luaType["ShellVelVariation"] = sol::property(&HDFirearm::GetShellVelVariation, &HDFirearm::SetShellVelVariation);
+		luaType["FiredOnce"] = sol::property(&HDFirearm::FiredOnce);
+		luaType["FiredFrame"] = sol::property(&HDFirearm::FiredFrame);
+		luaType["CanFire"] = sol::property(&HDFirearm::CanFire);
+		luaType["RoundsFired"] = sol::property(&HDFirearm::RoundsFired);
+		luaType["IsAnimatedManually"] = sol::property(&HDFirearm::IsAnimatedManually, &HDFirearm::SetAnimatedManually);
+		luaType["RecoilTransmission"] = sol::property(&HDFirearm::GetJointStiffness, &HDFirearm::SetJointStiffness);
 
-		.def("GetAIFireVel", &HDFirearm::GetAIFireVel)
-		.def("GetAIBulletLifeTime", &HDFirearm::GetAIBulletLifeTime)
-		.def("GetBulletAccScalar", &HDFirearm::GetBulletAccScalar)
-		.def("GetAIBlastRadius", &HDFirearm::GetAIBlastRadius)
-		.def("GetAIPenetration", &HDFirearm::GetAIPenetration)
-		.def("CompareTrajectories", &HDFirearm::CompareTrajectories)
-		.def("GetNextMagazineName", &HDFirearm::GetNextMagazineName)
-		.def("SetNextMagazineName", &HDFirearm::SetNextMagazineName);
+		luaType["GetAIFireVel"] = &HDFirearm::GetAIFireVel;
+		luaType["GetAIBulletLifeTime"] = &HDFirearm::GetAIBulletLifeTime;
+		luaType["GetBulletAccScalar"] = &HDFirearm::GetBulletAccScalar;
+		luaType["GetAIBlastRadius"] = &HDFirearm::GetAIBlastRadius;
+		luaType["GetAIPenetration"] = &HDFirearm::GetAIPenetration;
+		luaType["CompareTrajectories"] = &HDFirearm::CompareTrajectories;
+		luaType["GetNextMagazineName"] = &HDFirearm::GetNextMagazineName;
+		luaType["SetNextMagazineName"] = &HDFirearm::SetNextMagazineName;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
-		return ConcreteTypeLuaClassDefinition(HeldDevice, Attachable)
+		auto luaType = ConcreteTypeLuaClassDefinition(HeldDevice, Attachable);
 
-		.property("SupportPos", &HeldDevice::GetSupportPos)
-		.property("MagazinePos", &HeldDevice::GetMagazinePos)
-		.property("MuzzlePos", &HeldDevice::GetMuzzlePos)
-		.property("MuzzleOffset", &HeldDevice::GetMuzzleOffset, &HeldDevice::SetMuzzleOffset)
-		.property("StanceOffset", &HeldDevice::GetStanceOffset, &HeldDevice::SetStanceOffset)
-		.property("SharpStanceOffset", &HeldDevice::GetSharpStanceOffset, &HeldDevice::SetSharpStanceOffset)
-		.property("SharpLength", &HeldDevice::GetSharpLength, &HeldDevice::SetSharpLength)
-		.property("SharpLength", &HeldDevice::GetSharpLength, &HeldDevice::SetSharpLength)
-		.property("Supportable", &HeldDevice::IsSupportable, &HeldDevice::SetSupportable)
-		.property("SupportOffset", &HeldDevice::GetSupportOffset, &HeldDevice::SetSupportOffset)
-		.property("HasPickupLimitations", &HeldDevice::HasPickupLimitations)
-		.property("UnPickupable", &HeldDevice::IsUnPickupable, &HeldDevice::SetUnPickupable)
-		.property("GripStrengthMultiplier", &HeldDevice::GetGripStrengthMultiplier, &HeldDevice::SetGripStrengthMultiplier)
-		.property("Supported", &HeldDevice::GetSupported, &HeldDevice::SetSupported)
+		luaType["SupportPos"] = sol::property(&HeldDevice::GetSupportPos);
+		luaType["MagazinePos"] = sol::property(&HeldDevice::GetMagazinePos);
+		luaType["MuzzlePos"] = sol::property(&HeldDevice::GetMuzzlePos);
+		luaType["MuzzleOffset"] = sol::property(&HeldDevice::GetMuzzleOffset, &HeldDevice::SetMuzzleOffset);
+		luaType["StanceOffset"] = sol::property(&HeldDevice::GetStanceOffset, &HeldDevice::SetStanceOffset);
+		luaType["SharpStanceOffset"] = sol::property(&HeldDevice::GetSharpStanceOffset, &HeldDevice::SetSharpStanceOffset);
+		luaType["SharpLength"] = sol::property(&HeldDevice::GetSharpLength, &HeldDevice::SetSharpLength);
+		luaType["SharpLength"] = sol::property(&HeldDevice::GetSharpLength, &HeldDevice::SetSharpLength);
+		luaType["Supportable"] = sol::property(&HeldDevice::IsSupportable, &HeldDevice::SetSupportable);
+		luaType["SupportOffset"] = sol::property(&HeldDevice::GetSupportOffset, &HeldDevice::SetSupportOffset);
+		luaType["HasPickupLimitations"] = sol::property(&HeldDevice::HasPickupLimitations);
+		luaType["UnPickupable"] = sol::property(&HeldDevice::IsUnPickupable, &HeldDevice::SetUnPickupable);
+		luaType["GripStrengthMultiplier"] = sol::property(&HeldDevice::GetGripStrengthMultiplier, &HeldDevice::SetGripStrengthMultiplier);
+		luaType["Supported"] = sol::property(&HeldDevice::GetSupported, &HeldDevice::SetSupported);
 
-		.def("IsWeapon", &HeldDevice::IsWeapon)
-		.def("IsTool", &HeldDevice::IsTool)
-		.def("IsShield", &HeldDevice::IsShield)
-		.def("IsDualWieldable", &HeldDevice::IsDualWieldable)
-		.def("SetDualWieldable", &HeldDevice::SetDualWieldable)
-		.def("IsOneHanded", &HeldDevice::IsOneHanded)
-		.def("SetOneHanded", &HeldDevice::SetOneHanded)
-		.def("Activate", &HeldDevice::Activate)
-		.def("Deactivate", &HeldDevice::Deactivate)
-		.def("Reload", &HeldDevice::Reload)
-		.def("IsActivated", &HeldDevice::IsActivated)
-		.def("IsReloading", &HeldDevice::IsReloading)
-		.def("DoneReloading", &HeldDevice::DoneReloading)
-		.def("NeedsReloading", &HeldDevice::NeedsReloading)
-		.def("IsFull", &HeldDevice::IsFull)
-		.def("IsEmpty", &HeldDevice::IsEmpty)
-		.def("IsPickupableBy", &HeldDevice::IsPickupableBy)
-		.def("AddPickupableByPresetName", &HeldDevice::AddPickupableByPresetName)
-		.def("RemovePickupableByPresetName", &HeldDevice::RemovePickupableByPresetName);
+		luaType["IsWeapon"] = &HeldDevice::IsWeapon;
+		luaType["IsTool"] = &HeldDevice::IsTool;
+		luaType["IsShield"] = &HeldDevice::IsShield;
+		luaType["IsDualWieldable"] = &HeldDevice::IsDualWieldable;
+		luaType["SetDualWieldable"] = &HeldDevice::SetDualWieldable;
+		luaType["IsOneHanded"] = &HeldDevice::IsOneHanded;
+		luaType["SetOneHanded"] = &HeldDevice::SetOneHanded;
+		luaType["Activate"] = &HeldDevice::Activate;
+		luaType["Deactivate"] = &HeldDevice::Deactivate;
+		luaType["Reload"] = &HeldDevice::Reload;
+		luaType["IsActivated"] = &HeldDevice::IsActivated;
+		luaType["IsReloading"] = &HeldDevice::IsReloading;
+		luaType["DoneReloading"] = &HeldDevice::DoneReloading;
+		luaType["NeedsReloading"] = &HeldDevice::NeedsReloading;
+		luaType["IsFull"] = &HeldDevice::IsFull;
+		luaType["IsEmpty"] = &HeldDevice::IsEmpty;
+		luaType["IsPickupableBy"] = &HeldDevice::IsPickupableBy;
+		luaType["AddPickupableByPresetName"] = &HeldDevice::AddPickupableByPresetName;
+		luaType["RemovePickupableByPresetName"] = &HeldDevice::RemovePickupableByPresetName;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Leg) {
-		return ConcreteTypeLuaClassDefinition(Leg, Attachable)
+		auto luaType = ConcreteTypeLuaClassDefinition(Leg, Attachable);
 
-		.property("Foot", &Leg::GetFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::LegSetFoot);
+		luaType["Foot"] = sol::property(&Leg::GetFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::LegSetFoot);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, LimbPath) {
-		return luabind::class_<LimbPath>("LimbPath")
+		auto luaType = SimpleTypeLuaClassDefinition(LimbPath);
 
-		.property("StartOffset", &LimbPath::GetStartOffset, &LimbPath::SetStartOffset)
-		.property("SegmentCount", &LimbPath::GetSegCount)
+		luaType["StartOffset"] = sol::property(&LimbPath::GetStartOffset, &LimbPath::SetStartOffset);
+		luaType["SegmentCount"] = sol::property(&LimbPath::GetSegCount);
 
-		.def("GetSegment", &LimbPath::GetSegment);
+		luaType["GetSegment"] = &LimbPath::GetSegment;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Magazine) {
-		return ConcreteTypeLuaClassDefinition(Magazine, Attachable)
+		auto luaType = ConcreteTypeLuaClassDefinition(Magazine, Attachable);
 
-		.property("NextRound", &Magazine::GetNextRound)
-		.property("RoundCount", &Magazine::GetRoundCount, &Magazine::SetRoundCount)
-		.property("IsEmpty", &Magazine::IsEmpty)
-		.property("IsFull", &Magazine::IsFull)
-		.property("IsOverHalfFull", &Magazine::IsOverHalfFull)
-		.property("Capacity", &Magazine::GetCapacity)
-		.property("Discardable", &Magazine::IsDiscardable);
+		luaType["NextRound"] = sol::property(&Magazine::GetNextRound);
+		luaType["RoundCount"] = sol::property(&Magazine::GetRoundCount, &Magazine::SetRoundCount);
+		luaType["IsEmpty"] = sol::property(&Magazine::IsEmpty);
+		luaType["IsFull"] = sol::property(&Magazine::IsFull);
+		luaType["IsOverHalfFull"] = sol::property(&Magazine::IsOverHalfFull);
+		luaType["Capacity"] = sol::property(&Magazine::GetCapacity);
+		luaType["Discardable"] = sol::property(&Magazine::IsDiscardable);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Material) {
-		return luabind::class_<Material, Entity>("Material")
+		auto luaType = SimpleTypeLuaClassDefinition(Material);
 
-		.property("ID", &Material::GetIndex)
-		.property("Restitution", &Material::GetRestitution)
-		.property("Bounce", &Material::GetRestitution)
-		.property("Friction", &Material::GetFriction)
-		.property("Stickiness", &Material::GetStickiness)
-		.property("Strength", &Material::GetIntegrity)
-		.property("StructuralIntegrity", &Material::GetIntegrity)
-		.property("DensityKGPerVolumeL", &Material::GetVolumeDensity)
-		.property("DensityKGPerPixel", &Material::GetPixelDensity)
-		.property("SettleMaterial", &Material::GetSettleMaterial)
-		.property("SpawnMaterial", &Material::GetSpawnMaterial)
-		.property("TransformsInto", &Material::GetSpawnMaterial)
-		.property("IsScrap", &Material::IsScrap);
+		luaType["ID"] = sol::property(&Material::GetIndex);
+		luaType["Restitution"] = sol::property(&Material::GetRestitution);
+		luaType["Bounce"] = sol::property(&Material::GetRestitution);
+		luaType["Friction"] = sol::property(&Material::GetFriction);
+		luaType["Stickiness"] = sol::property(&Material::GetStickiness);
+		luaType["Strength"] = sol::property(&Material::GetIntegrity);
+		luaType["StructuralIntegrity"] = sol::property(&Material::GetIntegrity);
+		luaType["DensityKGPerVolumeL"] = sol::property(&Material::GetVolumeDensity);
+		luaType["DensityKGPerPixel"] = sol::property(&Material::GetPixelDensity);
+		luaType["SettleMaterial"] = sol::property(&Material::GetSettleMaterial);
+		luaType["SpawnMaterial"] = sol::property(&Material::GetSpawnMaterial);
+		luaType["TransformsInto"] = sol::property(&Material::GetSpawnMaterial);
+		luaType["IsScrap"] = sol::property(&Material::IsScrap);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MetaPlayer) {
-		return luabind::class_<MetaPlayer>("MetaPlayer")
+		auto luaType = SimpleTypeLuaClassDefinition(MetaPlayer);
 
-		.def(luabind::constructor<>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			MetaPlayer()
+		>());
 
-		.property("NativeTechModule", &MetaPlayer::GetNativeTechModule)
-		.property("ForeignCostMultiplier", &MetaPlayer::GetForeignCostMultiplier)
-		.property("NativeCostMultiplier", &MetaPlayer::GetNativeCostMultiplier)
-		.property("InGamePlayer", &MetaPlayer::GetInGamePlayer)
-		.property("BrainPoolCount", &MetaPlayer::GetBrainPoolCount, &MetaPlayer::SetBrainPoolCount)
+		luaType["NativeTechModule"] = sol::property(&MetaPlayer::GetNativeTechModule);
+		luaType["ForeignCostMultiplier"] = sol::property(&MetaPlayer::GetForeignCostMultiplier);
+		luaType["NativeCostMultiplier"] = sol::property(&MetaPlayer::GetNativeCostMultiplier);
+		luaType["InGamePlayer"] = sol::property(&MetaPlayer::GetInGamePlayer);
+		luaType["BrainPoolCount"] = sol::property(&MetaPlayer::GetBrainPoolCount, &MetaPlayer::SetBrainPoolCount);
 
-		.def("ChangeBrainPoolCount", &MetaPlayer::ChangeBrainPoolCount);
+		luaType["ChangeBrainPoolCount"] = &MetaPlayer::ChangeBrainPoolCount;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOPixel) {
-		return ConcreteTypeLuaClassDefinition(MOPixel, MovableObject)
+		auto luaType = ConcreteTypeLuaClassDefinition(MOPixel, MovableObject);
 
-		.property("TrailLength", &MOPixel::GetTrailLength, &MOPixel::SetTrailLength);
+		luaType["TrailLength"] = sol::property(&MOPixel::GetTrailLength, &MOPixel::SetTrailLength);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSParticle) {
-		return ConcreteTypeLuaClassDefinition(MOSParticle, MOSprite);
+		auto luaType = ConcreteTypeLuaClassDefinition(MOSParticle, MOSprite);;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSprite) {
-		return AbstractTypeLuaClassDefinition(MOSprite, MovableObject)
+		auto luaType = AbstractTypeLuaClassDefinition(MOSprite, MovableObject);
 
-		.property("Diameter", &MOSprite::GetDiameter)
-		.property("BoundingBox", &MOSprite::GetBoundingBox)
-		.property("FrameCount", &MOSprite::GetFrameCount)
-		.property("SpriteOffset", &MOSprite::GetSpriteOffset, &MOSprite::SetSpriteOffset)
-		.property("HFlipped", &MOSprite::IsHFlipped, &MOSprite::SetHFlipped)
-		.property("FlipFactor", &MOSprite::GetFlipFactor)
-		.property("RotAngle", &MOSprite::GetRotAngle, &MOSprite::SetRotAngle)
-		.property("PrevRotAngle", &MOSprite::GetPrevRotAngle)
-		.property("AngularVel", &MOSprite::GetAngularVel, &MOSprite::SetAngularVel)
-		.property("Frame", &MOSprite::GetFrame, &MOSprite::SetFrame)
-		.property("SpriteAnimMode", &MOSprite::GetSpriteAnimMode, &MOSprite::SetSpriteAnimMode)
-		.property("SpriteAnimDuration", &MOSprite::GetSpriteAnimDuration, &MOSprite::SetSpriteAnimDuration)
+		luaType["Diameter"] = sol::property(&MOSprite::GetDiameter);
+		luaType["BoundingBox"] = sol::property(&MOSprite::GetBoundingBox);
+		luaType["FrameCount"] = sol::property(&MOSprite::GetFrameCount);
+		luaType["SpriteOffset"] = sol::property(&MOSprite::GetSpriteOffset, &MOSprite::SetSpriteOffset);
+		luaType["HFlipped"] = sol::property(&MOSprite::IsHFlipped, &MOSprite::SetHFlipped);
+		luaType["FlipFactor"] = sol::property(&MOSprite::GetFlipFactor);
+		luaType["RotAngle"] = sol::property(&MOSprite::GetRotAngle, &MOSprite::SetRotAngle);
+		luaType["PrevRotAngle"] = sol::property(&MOSprite::GetPrevRotAngle);
+		luaType["AngularVel"] = sol::property(&MOSprite::GetAngularVel, &MOSprite::SetAngularVel);
+		luaType["Frame"] = sol::property(&MOSprite::GetFrame, &MOSprite::SetFrame);
+		luaType["SpriteAnimMode"] = sol::property(&MOSprite::GetSpriteAnimMode, &MOSprite::SetSpriteAnimMode);
+		luaType["SpriteAnimDuration"] = sol::property(&MOSprite::GetSpriteAnimDuration, &MOSprite::SetSpriteAnimDuration);
 
-		.def("SetNextFrame", &MOSprite::SetNextFrame)
-		.def("IsTooFast", &MOSprite::IsTooFast)
-		.def("IsOnScenePoint", &MOSprite::IsOnScenePoint)
-		.def("RotateOffset", &MOSprite::RotateOffset)
-		.def("UnRotateOffset", &MOSprite::UnRotateOffset)
-		.def("FacingAngle", &MOSprite::FacingAngle)
-		.def("GetSpriteWidth", &MOSprite::GetSpriteWidth)
-		.def("GetSpriteHeight", &MOSprite::GetSpriteHeight)
-		.def("GetIconWidth", &MOSprite::GetIconWidth)
-		.def("GetIconHeight", &MOSprite::GetIconHeight)
-		.def("SetEntryWound", &MOSprite::SetEntryWound)
-		.def("SetExitWound", &MOSprite::SetExitWound)
-		.def("GetEntryWoundPresetName", &MOSprite::GetEntryWoundPresetName)
-		.def("GetExitWoundPresetName", &MOSprite::GetExitWoundPresetName)
+		luaType["SetNextFrame"] = &MOSprite::SetNextFrame;
+		luaType["IsTooFast"] = &MOSprite::IsTooFast;
+		luaType["IsOnScenePoint"] = &MOSprite::IsOnScenePoint;
+		luaType["RotateOffset"] = &MOSprite::RotateOffset;
+		luaType["UnRotateOffset"] = &MOSprite::UnRotateOffset;
+		luaType["FacingAngle"] = &MOSprite::FacingAngle;
+		luaType["GetSpriteWidth"] = &MOSprite::GetSpriteWidth;
+		luaType["GetSpriteHeight"] = &MOSprite::GetSpriteHeight;
+		luaType["GetIconWidth"] = &MOSprite::GetIconWidth;
+		luaType["GetIconHeight"] = &MOSprite::GetIconHeight;
+		luaType["SetEntryWound"] = &MOSprite::SetEntryWound;
+		luaType["SetExitWound"] = &MOSprite::SetExitWound;
+		luaType["GetEntryWoundPresetName"] = &MOSprite::GetEntryWoundPresetName;
+		luaType["GetExitWoundPresetName"] = &MOSprite::GetExitWoundPresetName;
 
-		.enum_("SpriteAnimMode")[
-			luabind::value("NOANIM", SpriteAnimMode::NOANIM),
-			luabind::value("ALWAYSLOOP", SpriteAnimMode::ALWAYSLOOP),
-			luabind::value("ALWAYSRANDOM", SpriteAnimMode::ALWAYSRANDOM),
-			luabind::value("ALWAYSPINGPONG", SpriteAnimMode::ALWAYSPINGPONG),
-			luabind::value("LOOPWHENACTIVE", SpriteAnimMode::LOOPWHENACTIVE),
-			luabind::value("LOOPWHENOPENCLOSE", SpriteAnimMode::LOOPWHENOPENCLOSE),
-			luabind::value("PINGPONGOPENCLOSE", SpriteAnimMode::PINGPONGOPENCLOSE),
-			luabind::value("OVERLIFETIME", SpriteAnimMode::OVERLIFETIME),
-			luabind::value("ONCOLLIDE", SpriteAnimMode::ONCOLLIDE)
-		];
+		luaType.new_enum("SpriteAnimMode", EnumList(SpriteAnimMode) {
+			{ "NOANIM", SpriteAnimMode::NOANIM },
+			{ "ALWAYSLOOP", SpriteAnimMode::ALWAYSLOOP },
+			{ "ALWAYSRANDOM", SpriteAnimMode::ALWAYSRANDOM },
+			{ "ALWAYSPINGPONG", SpriteAnimMode::ALWAYSPINGPONG },
+			{ "LOOPWHENACTIVE", SpriteAnimMode::LOOPWHENACTIVE },
+			{ "LOOPWHENOPENCLOSE", SpriteAnimMode::LOOPWHENOPENCLOSE },
+			{ "PINGPONGOPENCLOSE", SpriteAnimMode::PINGPONGOPENCLOSE },
+			{ "OVERLIFETIME", SpriteAnimMode::OVERLIFETIME },
+			{ "ONCOLLIDE", SpriteAnimMode::ONCOLLIDE }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
-		return ConcreteTypeLuaClassDefinition(MOSRotating, MOSprite)
+		auto luaType = ConcreteTypeLuaClassDefinition(MOSRotating, MOSprite);
 
-		//.property("Material", &MOSRotating::GetMaterial)
-		.property("IndividualRadius", &MOSRotating::GetIndividualRadius)
-		.property("IndividualDiameter", &MOSRotating::GetIndividualDiameter)
-		.property("IndividualMass", &MOSRotating::GetIndividualMass)
-		.property("RecoilForce", &MOSRotating::GetRecoilForce)
-		.property("RecoilOffset", &MOSRotating::GetRecoilOffset)
-		.property("TravelImpulse", &MOSRotating::GetTravelImpulse, &MOSRotating::SetTravelImpulse)
-		.property("GibWoundLimit", (int (MOSRotating:: *)() const) &MOSRotating::GetGibWoundLimit, &MOSRotating::SetGibWoundLimit)
-		.property("GibSound", &MOSRotating::GetGibSound, &LuaAdaptersPropertyOwnershipSafetyFaker::MOSRotatingSetGibSound)
-		.property("GibImpulseLimit", &MOSRotating::GetGibImpulseLimit, &MOSRotating::SetGibImpulseLimit)
-		.property("WoundCountAffectsImpulseLimitRatio", &MOSRotating::GetWoundCountAffectsImpulseLimitRatio)
-		.property("GibAtEndOfLifetime", &MOSRotating::GetGibAtEndOfLifetime, &MOSRotating::SetGibAtEndOfLifetime)
-		.property("DamageMultiplier", &MOSRotating::GetDamageMultiplier, &MOSRotating::SetDamageMultiplier)
-		.property("WoundCount", (int (MOSRotating:: *)() const) &MOSRotating::GetWoundCount)
-		.property("OrientToVel", &MOSRotating::GetOrientToVel, &MOSRotating::SetOrientToVel)
+		//luaType["Material"] = sol::property(&MOSRotating::GetMaterial);
+		luaType["IndividualRadius"] = sol::property(&MOSRotating::GetIndividualRadius);
+		luaType["IndividualDiameter"] = sol::property(&MOSRotating::GetIndividualDiameter);
+		luaType["IndividualMass"] = sol::property(&MOSRotating::GetIndividualMass);
+		luaType["RecoilForce"] = sol::property(&MOSRotating::GetRecoilForce);
+		luaType["RecoilOffset"] = sol::property(&MOSRotating::GetRecoilOffset);
+		luaType["TravelImpulse"] = sol::property(&MOSRotating::GetTravelImpulse, &MOSRotating::SetTravelImpulse);
+		luaType["GibWoundLimit"] = sol::property((int (MOSRotating:: *)() const) &MOSRotating::GetGibWoundLimit, &MOSRotating::SetGibWoundLimit);
+		luaType["GibSound"] = sol::property(&MOSRotating::GetGibSound, &LuaAdaptersPropertyOwnershipSafetyFaker::MOSRotatingSetGibSound);
+		luaType["GibImpulseLimit"] = sol::property(&MOSRotating::GetGibImpulseLimit, &MOSRotating::SetGibImpulseLimit);
+		luaType["WoundCountAffectsImpulseLimitRatio"] = sol::property(&MOSRotating::GetWoundCountAffectsImpulseLimitRatio);
+		luaType["GibAtEndOfLifetime"] = sol::property(&MOSRotating::GetGibAtEndOfLifetime, &MOSRotating::SetGibAtEndOfLifetime);
+		luaType["DamageMultiplier"] = sol::property(&MOSRotating::GetDamageMultiplier, &MOSRotating::SetDamageMultiplier);
+		luaType["WoundCount"] = sol::property((int (MOSRotating:: *)() const) &MOSRotating::GetWoundCount);
+		luaType["OrientToVel"] = sol::property(&MOSRotating::GetOrientToVel, &MOSRotating::SetOrientToVel);
 
-		.def_readonly("Attachables", &MOSRotating::m_Attachables, luabind::return_stl_iterator)
-		.def_readonly("Wounds", &MOSRotating::m_Wounds, luabind::return_stl_iterator)
-		.def_readonly("Gibs", &MOSRotating::m_Gibs, luabind::return_stl_iterator)
+		luaType["Attachables"] = sol::readonly(&MOSRotating::m_Attachables);
+		luaType["Wounds"] = sol::readonly(&MOSRotating::m_Wounds);
+		luaType["Gibs"] = sol::readonly(&MOSRotating::m_Gibs);
 
-		.def("AddRecoil", &MOSRotating::AddRecoil)
-		.def("SetRecoil", &MOSRotating::SetRecoil)
-		.def("IsRecoiled", &MOSRotating::IsRecoiled)
-		.def("EnableDeepCheck", &MOSRotating::EnableDeepCheck)
-		.def("ForceDeepCheck", &MOSRotating::ForceDeepCheck)
-		.def("GibThis", &MOSRotating::GibThis)
-		.def("MoveOutOfTerrain", &MOSRotating::MoveOutOfTerrain)
-		.def("GetGibWoundLimit", (int (MOSRotating:: *)() const) &MOSRotating::GetGibWoundLimit)
-		.def("GetGibWoundLimit", (int (MOSRotating:: *)(bool positiveDamage, bool negativeDamage, bool noDamage) const) &MOSRotating::GetGibWoundLimit)
-		.def("GetWoundCount", (int (MOSRotating:: *)() const) &MOSRotating::GetWoundCount)
-		.def("GetWoundCount", (int (MOSRotating:: *)(bool positiveDamage, bool negativeDamage, bool noDamage) const) &MOSRotating::GetWoundCount)
-		.def("GetWounds", &LuaAdaptersMOSRotating::GetWounds1, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-		.def("GetWounds", &LuaAdaptersMOSRotating::GetWounds2, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-		.def("AddWound", &MOSRotating::AddWound, luabind::adopt(_2))
-		.def("RemoveWounds", (float (MOSRotating:: *)(int numberOfWoundsToRemove)) &MOSRotating::RemoveWounds)
-		.def("RemoveWounds", (float (MOSRotating:: *)(int numberOfWoundsToRemove, bool positiveDamage, bool negativeDamage, bool noDamage)) &MOSRotating::RemoveWounds)
-		.def("IsOnScenePoint", &MOSRotating::IsOnScenePoint)
-		.def("EraseFromTerrain", &MOSRotating::EraseFromTerrain)
-		.def("GetStringValue", &MOSRotating::GetStringValue)
-		.def("GetNumberValue", &MOSRotating::GetNumberValue)
-		.def("GetObjectValue", &MOSRotating::GetObjectValue)
-		.def("SetStringValue", &MOSRotating::SetStringValue)
-		.def("SetNumberValue", &MOSRotating::SetNumberValue)
-		.def("SetObjectValue", &MOSRotating::SetObjectValue)
-		.def("RemoveStringValue", &MOSRotating::RemoveStringValue)
-		.def("RemoveNumberValue", &MOSRotating::RemoveNumberValue)
-		.def("RemoveObjectValue", &MOSRotating::RemoveObjectValue)
-		.def("StringValueExists", &MOSRotating::StringValueExists)
-		.def("NumberValueExists", &MOSRotating::NumberValueExists)
-		.def("ObjectValueExists", &MOSRotating::ObjectValueExists)
-		.def("AddAttachable", (void (MOSRotating::*)(Attachable *attachableToAdd))&MOSRotating::AddAttachable, luabind::adopt(_2))
-		.def("AddAttachable", (void (MOSRotating::*)(Attachable *attachableToAdd, const Vector &parentOffset))&MOSRotating::AddAttachable, luabind::adopt(_2))
-		.def("RemoveAttachable", (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value))
-		.def("RemoveAttachable", (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value))
-		.def("RemoveAttachable", (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove))&MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value))
-		.def("RemoveAttachable", (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable)
-		.def("AddEmitter", (void (MOSRotating::*)(Attachable *attachableToAdd))&MOSRotating::AddAttachable, luabind::adopt(_2))
-		.def("AddEmitter", (void (MOSRotating::*)(Attachable *attachableToAdd, const Vector &parentOffset))&MOSRotating::AddAttachable, luabind::adopt(_2))
-		.def("RemoveEmitter", (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value))
-		.def("RemoveEmitter", (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value))
-		.def("RemoveEmitter", (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value))
-		.def("RemoveEmitter", (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value))
+		luaType["AddRecoil"] = &MOSRotating::AddRecoil;
+		luaType["SetRecoil"] = &MOSRotating::SetRecoil;
+		luaType["IsRecoiled"] = &MOSRotating::IsRecoiled;
+		luaType["EnableDeepCheck"] = &MOSRotating::EnableDeepCheck;
+		luaType["ForceDeepCheck"] = &MOSRotating::ForceDeepCheck;
+		luaType["GibThis"] = &MOSRotating::GibThis;
+		luaType["MoveOutOfTerrain"] = &MOSRotating::MoveOutOfTerrain;
+		luaType["GetGibWoundLimit"] = (int (MOSRotating:: *)() const) &MOSRotating::GetGibWoundLimit;
+		luaType["GetGibWoundLimit"] = (int (MOSRotating:: *)(bool positiveDamage, bool negativeDamage, bool noDamage) const) &MOSRotating::GetGibWoundLimit;
+		luaType["GetWoundCount"] = (int (MOSRotating:: *)() const) &MOSRotating::GetWoundCount;
+		luaType["GetWoundCount"] = (int (MOSRotating:: *)(bool positiveDamage, bool negativeDamage, bool noDamage) const) &MOSRotating::GetWoundCount;
+		luaType["GetWounds"] = &LuaAdaptersMOSRotating::GetWounds1;
+		luaType["GetWounds"] = &LuaAdaptersMOSRotating::GetWounds2;
+		luaType["AddWound"] = &MOSRotating::AddWound, luabind::adopt(_2);
+		luaType["RemoveWounds"] = (float (MOSRotating:: *)(int numberOfWoundsToRemove)) &MOSRotating::RemoveWounds;
+		luaType["RemoveWounds"] = (float (MOSRotating:: *)(int numberOfWoundsToRemove, bool positiveDamage, bool negativeDamage, bool noDamage)) &MOSRotating::RemoveWounds;
+		luaType["IsOnScenePoint"] = &MOSRotating::IsOnScenePoint;
+		luaType["EraseFromTerrain"] = &MOSRotating::EraseFromTerrain;
+		luaType["GetStringValue"] = &MOSRotating::GetStringValue;
+		luaType["GetNumberValue"] = &MOSRotating::GetNumberValue;
+		luaType["GetObjectValue"] = &MOSRotating::GetObjectValue;
+		luaType["SetStringValue"] = &MOSRotating::SetStringValue;
+		luaType["SetNumberValue"] = &MOSRotating::SetNumberValue;
+		luaType["SetObjectValue"] = &MOSRotating::SetObjectValue;
+		luaType["RemoveStringValue"] = &MOSRotating::RemoveStringValue;
+		luaType["RemoveNumberValue"] = &MOSRotating::RemoveNumberValue;
+		luaType["RemoveObjectValue"] = &MOSRotating::RemoveObjectValue;
+		luaType["StringValueExists"] = &MOSRotating::StringValueExists;
+		luaType["NumberValueExists"] = &MOSRotating::NumberValueExists;
+		luaType["ObjectValueExists"] = &MOSRotating::ObjectValueExists;
+		luaType["AddAttachable"] = (void (MOSRotating::*)(Attachable *attachableToAdd))&MOSRotating::AddAttachable, luabind::adopt(_2);
+		luaType["AddAttachable"] = (void (MOSRotating::*)(Attachable *attachableToAdd, const Vector &parentOffset))&MOSRotating::AddAttachable, luabind::adopt(_2);
+		luaType["RemoveAttachable"] = (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value);
+		luaType["RemoveAttachable"] = (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value);
+		luaType["RemoveAttachable"] = (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove))&MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value);
+		luaType["RemoveAttachable"] = (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable;
+		luaType["AddEmitter"] = (void (MOSRotating::*)(Attachable *attachableToAdd))&MOSRotating::AddAttachable, luabind::adopt(_2);
+		luaType["AddEmitter"] = (void (MOSRotating::*)(Attachable *attachableToAdd, const Vector &parentOffset))&MOSRotating::AddAttachable, luabind::adopt(_2);
+		luaType["RemoveEmitter"] = (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value);
+		luaType["RemoveEmitter"] = (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value);
+		luaType["RemoveEmitter"] = (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value);
+		luaType["RemoveEmitter"] = (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value);
 
-		.def("GibThis", &LuaAdaptersMOSRotating::GibThis);
+		luaType["GibThis"] = &LuaAdaptersMOSRotating::GibThis;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
-		return AbstractTypeLuaClassDefinition(MovableObject, SceneObject)
+		auto luaType = AbstractTypeLuaClassDefinition(MovableObject, SceneObject);
 
-		.property("Material", &MovableObject::GetMaterial)
-		.property("Mass", &MovableObject::GetMass, &MovableObject::SetMass)
-		.property("Pos", &MovableObject::GetPos, &MovableObject::SetPos)
-		.property("Vel", &MovableObject::GetVel, &MovableObject::SetVel)
-		.property("PrevPos", &MovableObject::GetPrevPos)
-		.property("PrevVel", &MovableObject::GetPrevVel)
-		.property("DistanceTravelled", &MovableObject::GetDistanceTravelled)
-		.property("AngularVel", &MovableObject::GetAngularVel, &MovableObject::SetAngularVel)
-		.property("Radius", &MovableObject::GetRadius)
-		.property("Diameter", &MovableObject::GetDiameter)
-		.property("Scale", &MovableObject::GetScale, &MovableObject::SetScale)
-		.property("EffectRotAngle", &MovableObject::GetEffectRotAngle, &MovableObject::SetEffectRotAngle)
-		.property("GlobalAccScalar", &MovableObject::GetGlobalAccScalar, &MovableObject::SetGlobalAccScalar)
-		.property("AirResistance", &MovableObject::GetAirResistance, &MovableObject::SetAirResistance)
-		.property("AirThreshold", &MovableObject::GetAirThreshold, &MovableObject::SetAirThreshold)
-		.property("Age", &MovableObject::GetAge, &MovableObject::SetAge)
-		.property("Lifetime", &MovableObject::GetLifetime, &MovableObject::SetLifetime)
-		.property("ID", &MovableObject::GetID)
-		.property("UniqueID", &MovableObject::GetUniqueID)
-		.property("RootID", &MovableObject::GetRootID)
-		.property("MOIDFootprint", &MovableObject::GetMOIDFootprint)
-		.property("Sharpness", &MovableObject::GetSharpness, &MovableObject::SetSharpness)
-		.property("HasEverBeenAddedToMovableMan", &MovableObject::HasEverBeenAddedToMovableMan)
-		.property("AboveHUDPos", &MovableObject::GetAboveHUDPos)
-		.property("HitsMOs", &MovableObject::HitsMOs, &MovableObject::SetToHitMOs)
-		.property("GetsHitByMOs", &MovableObject::GetsHitByMOs, &MovableObject::SetToGetHitByMOs)
-		.property("IgnoresTeamHits", &MovableObject::IgnoresTeamHits, &MovableObject::SetIgnoresTeamHits)
-		.property("IgnoresWhichTeam", &MovableObject::IgnoresWhichTeam)
-		.property("IgnoreTerrain", &MovableObject::IgnoreTerrain, &MovableObject::SetIgnoreTerrain)
-		.property("ToSettle", &MovableObject::ToSettle, &MovableObject::SetToSettle)
-		.property("ToDelete", &MovableObject::ToDelete, &MovableObject::SetToDelete)
-		.property("MissionCritical", &MovableObject::IsMissionCritical, &MovableObject::SetMissionCritical)
-		.property("HUDVisible", &MovableObject::GetHUDVisible, &MovableObject::SetHUDVisible)
-		.property("PinStrength", &MovableObject::GetPinStrength, &MovableObject::SetPinStrength)
-		.property("RestThreshold", &MovableObject::GetRestThreshold, &MovableObject::SetRestThreshold)
-		.property("DamageOnCollision", &MovableObject::DamageOnCollision, &MovableObject::SetDamageOnCollision)
-		.property("DamageOnPenetration", &MovableObject::DamageOnPenetration, &MovableObject::SetDamageOnPenetration)
-		.property("WoundDamageMultiplier", &MovableObject::WoundDamageMultiplier, &MovableObject::SetWoundDamageMultiplier)
-		.property("HitWhatMOID", &MovableObject::HitWhatMOID)
-		.property("HitWhatTerrMaterial", &MovableObject::HitWhatTerrMaterial)
-		.property("HitWhatParticleUniqueID", &MovableObject::HitWhatParticleUniqueID)
-		.property("ApplyWoundDamageOnCollision", &MovableObject::GetApplyWoundDamageOnCollision, &MovableObject::SetApplyWoundDamageOnCollision)
-		.property("ApplyWoundBurstDamageOnCollision", &MovableObject::GetApplyWoundBurstDamageOnCollision, &MovableObject::SetApplyWoundBurstDamageOnCollision)
-		.property("SimUpdatesBetweenScriptedUpdates", &MovableObject::GetSimUpdatesBetweenScriptedUpdates, &MovableObject::SetSimUpdatesBetweenScriptedUpdates)
+		luaType["Material"] = sol::property(&MovableObject::GetMaterial);
+		luaType["Mass"] = sol::property(&MovableObject::GetMass, &MovableObject::SetMass);
+		luaType["Pos"] = sol::property(&MovableObject::GetPos, &MovableObject::SetPos);
+		luaType["Vel"] = sol::property(&MovableObject::GetVel, &MovableObject::SetVel);
+		luaType["PrevPos"] = sol::property(&MovableObject::GetPrevPos);
+		luaType["PrevVel"] = sol::property(&MovableObject::GetPrevVel);
+		luaType["DistanceTravelled"] = sol::property(&MovableObject::GetDistanceTravelled);
+		luaType["AngularVel"] = sol::property(&MovableObject::GetAngularVel, &MovableObject::SetAngularVel);
+		luaType["Radius"] = sol::property(&MovableObject::GetRadius);
+		luaType["Diameter"] = sol::property(&MovableObject::GetDiameter);
+		luaType["Scale"] = sol::property(&MovableObject::GetScale, &MovableObject::SetScale);
+		luaType["EffectRotAngle"] = sol::property(&MovableObject::GetEffectRotAngle, &MovableObject::SetEffectRotAngle);
+		luaType["GlobalAccScalar"] = sol::property(&MovableObject::GetGlobalAccScalar, &MovableObject::SetGlobalAccScalar);
+		luaType["AirResistance"] = sol::property(&MovableObject::GetAirResistance, &MovableObject::SetAirResistance);
+		luaType["AirThreshold"] = sol::property(&MovableObject::GetAirThreshold, &MovableObject::SetAirThreshold);
+		luaType["Age"] = sol::property(&MovableObject::GetAge, &MovableObject::SetAge);
+		luaType["Lifetime"] = sol::property(&MovableObject::GetLifetime, &MovableObject::SetLifetime);
+		luaType["ID"] = sol::property(&MovableObject::GetID);
+		luaType["UniqueID"] = sol::property(&MovableObject::GetUniqueID);
+		luaType["RootID"] = sol::property(&MovableObject::GetRootID);
+		luaType["MOIDFootprint"] = sol::property(&MovableObject::GetMOIDFootprint);
+		luaType["Sharpness"] = sol::property(&MovableObject::GetSharpness, &MovableObject::SetSharpness);
+		luaType["HasEverBeenAddedToMovableMan"] = sol::property(&MovableObject::HasEverBeenAddedToMovableMan);
+		luaType["AboveHUDPos"] = sol::property(&MovableObject::GetAboveHUDPos);
+		luaType["HitsMOs"] = sol::property(&MovableObject::HitsMOs, &MovableObject::SetToHitMOs);
+		luaType["GetsHitByMOs"] = sol::property(&MovableObject::GetsHitByMOs, &MovableObject::SetToGetHitByMOs);
+		luaType["IgnoresTeamHits"] = sol::property(&MovableObject::IgnoresTeamHits, &MovableObject::SetIgnoresTeamHits);
+		luaType["IgnoresWhichTeam"] = sol::property(&MovableObject::IgnoresWhichTeam);
+		luaType["IgnoreTerrain"] = sol::property(&MovableObject::IgnoreTerrain, &MovableObject::SetIgnoreTerrain);
+		luaType["ToSettle"] = sol::property(&MovableObject::ToSettle, &MovableObject::SetToSettle);
+		luaType["ToDelete"] = sol::property(&MovableObject::ToDelete, &MovableObject::SetToDelete);
+		luaType["MissionCritical"] = sol::property(&MovableObject::IsMissionCritical, &MovableObject::SetMissionCritical);
+		luaType["HUDVisible"] = sol::property(&MovableObject::GetHUDVisible, &MovableObject::SetHUDVisible);
+		luaType["PinStrength"] = sol::property(&MovableObject::GetPinStrength, &MovableObject::SetPinStrength);
+		luaType["RestThreshold"] = sol::property(&MovableObject::GetRestThreshold, &MovableObject::SetRestThreshold);
+		luaType["DamageOnCollision"] = sol::property(&MovableObject::DamageOnCollision, &MovableObject::SetDamageOnCollision);
+		luaType["DamageOnPenetration"] = sol::property(&MovableObject::DamageOnPenetration, &MovableObject::SetDamageOnPenetration);
+		luaType["WoundDamageMultiplier"] = sol::property(&MovableObject::WoundDamageMultiplier, &MovableObject::SetWoundDamageMultiplier);
+		luaType["HitWhatMOID"] = sol::property(&MovableObject::HitWhatMOID);
+		luaType["HitWhatTerrMaterial"] = sol::property(&MovableObject::HitWhatTerrMaterial);
+		luaType["HitWhatParticleUniqueID"] = sol::property(&MovableObject::HitWhatParticleUniqueID);
+		luaType["ApplyWoundDamageOnCollision"] = sol::property(&MovableObject::GetApplyWoundDamageOnCollision, &MovableObject::SetApplyWoundDamageOnCollision);
+		luaType["ApplyWoundBurstDamageOnCollision"] = sol::property(&MovableObject::GetApplyWoundBurstDamageOnCollision, &MovableObject::SetApplyWoundBurstDamageOnCollision);
+		luaType["SimUpdatesBetweenScriptedUpdates"] = sol::property(&MovableObject::GetSimUpdatesBetweenScriptedUpdates, &MovableObject::SetSimUpdatesBetweenScriptedUpdates);
 
-		.def("GetParent", (MOSRotating * (MovableObject::*)())&MovableObject::GetParent)
-		.def("GetParent", (const MOSRotating * (MovableObject::*)() const)&MovableObject::GetParent)
-		.def("GetRootParent", (MovableObject * (MovableObject::*)())&MovableObject::GetRootParent)
-		.def("GetRootParent", (const MovableObject * (MovableObject::*)() const)&MovableObject::GetRootParent)
-		.def("ReloadScripts", &MovableObject::ReloadScripts)
-		.def("HasScript", &LuaAdaptersMovableObject::HasScript)
-		.def("AddScript", &LuaAdaptersMovableObject::AddScript)
-		.def("ScriptEnabled", &MovableObject::ScriptEnabled)
-		.def("EnableScript", &LuaAdaptersMovableObject::EnableScript)
-		.def("DisableScript", &LuaAdaptersMovableObject::DisableScript)
-		.def("EnableOrDisableAllScripts", &MovableObject::EnableOrDisableAllScripts)
-		.def("GetAltitude", &MovableObject::GetAltitude)
-		.def("GetWhichMOToNotHit", &MovableObject::GetWhichMOToNotHit)
-		.def("SetWhichMOToNotHit", &MovableObject::SetWhichMOToNotHit)
-		.def("IsSetToDelete", &MovableObject::IsSetToDelete)
-		.def("IsMissionCritical", &MovableObject::IsMissionCritical)
-		.def("IsGeneric", &MovableObject::IsGeneric)
-		.def("IsActor", &MovableObject::IsActor)
-		.def("IsDevice", &MovableObject::IsDevice)
-		.def("IsHeldDevice", &MovableObject::IsHeldDevice)
-		.def("IsThrownDevice", &MovableObject::IsThrownDevice)
-		.def("IsGold", &MovableObject::IsGold)
-		.def("IsThrownDevice", &MovableObject::IsThrownDevice)
-		.def("HasObject", &MovableObject::HasObject)
-		.def("HasObjectInGroup", &MovableObject::HasObjectInGroup)
-		.def("AddForce", &MovableObject::AddForce)
-		.def("AddAbsForce", &MovableObject::AddAbsForce)
-		.def("AddImpulseForce", &MovableObject::AddImpulseForce)
-		.def("AddAbsImpulseForce", &MovableObject::AddAbsImpulseForce)
-		.def("ClearForces", &MovableObject::ClearForces)
-		.def("ClearImpulseForces", &MovableObject::ClearImpulseForces)
-		.def("GetForcesCount", &MovableObject::GetForcesCount)
-		.def("GetForceVector", &MovableObject::GetForceVector)
-		.def("GetForceOffset", &MovableObject::GetForceOffset)
-		.def("SetForceVector", &MovableObject::SetForceVector)
-		.def("SetForceOffset", &MovableObject::SetForceOffset)
-		.def("GetImpulsesCount", &MovableObject::GetImpulsesCount)
-		.def("GetImpulseVector", &MovableObject::GetImpulseVector)
-		.def("GetImpulseOffset", &MovableObject::GetImpulseOffset)
-		.def("SetImpulseVector", &MovableObject::SetImpulseVector)
-		.def("SetImpulseOffset", &MovableObject::SetImpulseOffset)
-		.def("RestDetection", &MovableObject::RestDetection)
-		.def("NotResting", &MovableObject::NotResting)
-		.def("IsAtRest", &MovableObject::IsAtRest)
-		.def("MoveOutOfTerrain", &MovableObject::MoveOutOfTerrain)
-		.def("RotateOffset", &MovableObject::RotateOffset);
+		luaType["GetParent"] = (MOSRotating * (MovableObject::*)())&MovableObject::GetParent;
+		luaType["GetParent"] = (const MOSRotating * (MovableObject::*)() const)&MovableObject::GetParent;
+		luaType["GetRootParent"] = (MovableObject * (MovableObject::*)())&MovableObject::GetRootParent;
+		luaType["GetRootParent"] = (const MovableObject * (MovableObject::*)() const)&MovableObject::GetRootParent;
+		luaType["ReloadScripts"] = &MovableObject::ReloadScripts;
+		luaType["HasScript"] = &LuaAdaptersMovableObject::HasScript;
+		luaType["AddScript"] = &LuaAdaptersMovableObject::AddScript;
+		luaType["ScriptEnabled"] = &MovableObject::ScriptEnabled;
+		luaType["EnableScript"] = &LuaAdaptersMovableObject::EnableScript;
+		luaType["DisableScript"] = &LuaAdaptersMovableObject::DisableScript;
+		luaType["EnableOrDisableAllScripts"] = &MovableObject::EnableOrDisableAllScripts;
+		luaType["GetAltitude"] = &MovableObject::GetAltitude;
+		luaType["GetWhichMOToNotHit"] = &MovableObject::GetWhichMOToNotHit;
+		luaType["SetWhichMOToNotHit"] = &MovableObject::SetWhichMOToNotHit;
+		luaType["IsSetToDelete"] = &MovableObject::IsSetToDelete;
+		luaType["IsMissionCritical"] = &MovableObject::IsMissionCritical;
+		luaType["IsGeneric"] = &MovableObject::IsGeneric;
+		luaType["IsActor"] = &MovableObject::IsActor;
+		luaType["IsDevice"] = &MovableObject::IsDevice;
+		luaType["IsHeldDevice"] = &MovableObject::IsHeldDevice;
+		luaType["IsThrownDevice"] = &MovableObject::IsThrownDevice;
+		luaType["IsGold"] = &MovableObject::IsGold;
+		luaType["IsThrownDevice"] = &MovableObject::IsThrownDevice;
+		luaType["HasObject"] = &MovableObject::HasObject;
+		luaType["HasObjectInGroup"] = &MovableObject::HasObjectInGroup;
+		luaType["AddForce"] = &MovableObject::AddForce;
+		luaType["AddAbsForce"] = &MovableObject::AddAbsForce;
+		luaType["AddImpulseForce"] = &MovableObject::AddImpulseForce;
+		luaType["AddAbsImpulseForce"] = &MovableObject::AddAbsImpulseForce;
+		luaType["ClearForces"] = &MovableObject::ClearForces;
+		luaType["ClearImpulseForces"] = &MovableObject::ClearImpulseForces;
+		luaType["GetForcesCount"] = &MovableObject::GetForcesCount;
+		luaType["GetForceVector"] = &MovableObject::GetForceVector;
+		luaType["GetForceOffset"] = &MovableObject::GetForceOffset;
+		luaType["SetForceVector"] = &MovableObject::SetForceVector;
+		luaType["SetForceOffset"] = &MovableObject::SetForceOffset;
+		luaType["GetImpulsesCount"] = &MovableObject::GetImpulsesCount;
+		luaType["GetImpulseVector"] = &MovableObject::GetImpulseVector;
+		luaType["GetImpulseOffset"] = &MovableObject::GetImpulseOffset;
+		luaType["SetImpulseVector"] = &MovableObject::SetImpulseVector;
+		luaType["SetImpulseOffset"] = &MovableObject::SetImpulseOffset;
+		luaType["RestDetection"] = &MovableObject::RestDetection;
+		luaType["NotResting"] = &MovableObject::NotResting;
+		luaType["IsAtRest"] = &MovableObject::IsAtRest;
+		luaType["MoveOutOfTerrain"] = &MovableObject::MoveOutOfTerrain;
+		luaType["RotateOffset"] = &MovableObject::RotateOffset;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
-		return ConcreteTypeLuaClassDefinition(PEmitter, MOSParticle)
+		auto luaType = ConcreteTypeLuaClassDefinition(PEmitter, MOSParticle);
 
-		.property("BurstScale", &PEmitter::GetBurstScale, &PEmitter::SetBurstScale)
-		.property("EmitAngle", &PEmitter::GetEmitAngle, &PEmitter::SetEmitAngle)
-		.property("GetThrottle", &PEmitter::GetThrottle, &PEmitter::SetThrottle)
-		.property("Throttle", &PEmitter::GetThrottle, &PEmitter::SetThrottle)
-		.property("ThrottleFactor", &PEmitter::GetThrottleFactor)
-		.property("BurstSpacing", &PEmitter::GetBurstSpacing, &PEmitter::SetBurstSpacing)
-		.property("EmitCountLimit", &PEmitter::GetEmitCountLimit, &PEmitter::SetEmitCountLimit)
-		.property("FlashScale", &PEmitter::GetFlashScale, &PEmitter::SetFlashScale)
+		luaType["BurstScale"] = sol::property(&PEmitter::GetBurstScale, &PEmitter::SetBurstScale);
+		luaType["EmitAngle"] = sol::property(&PEmitter::GetEmitAngle, &PEmitter::SetEmitAngle);
+		luaType["GetThrottle"] = sol::property(&PEmitter::GetThrottle, &PEmitter::SetThrottle);
+		luaType["Throttle"] = sol::property(&PEmitter::GetThrottle, &PEmitter::SetThrottle);
+		luaType["ThrottleFactor"] = sol::property(&PEmitter::GetThrottleFactor);
+		luaType["BurstSpacing"] = sol::property(&PEmitter::GetBurstSpacing, &PEmitter::SetBurstSpacing);
+		luaType["EmitCountLimit"] = sol::property(&PEmitter::GetEmitCountLimit, &PEmitter::SetEmitCountLimit);
+		luaType["FlashScale"] = sol::property(&PEmitter::GetFlashScale, &PEmitter::SetFlashScale);
 
-		.def_readwrite("Emissions", &PEmitter::m_EmissionList, luabind::return_stl_iterator)
+		luaType["Emissions"] = &PEmitter::m_EmissionList;
 
-		.def("IsEmitting", &PEmitter::IsEmitting)
-		.def("EnableEmission", &PEmitter::EnableEmission)
-		.def("GetEmitVector", &PEmitter::GetEmitVector)
-		.def("GetRecoilVector", &PEmitter::GetRecoilVector)
-		.def("EstimateImpulse", &PEmitter::EstimateImpulse)
-		.def("TriggerBurst", &PEmitter::TriggerBurst)
-		.def("IsSetToBurst", &PEmitter::IsSetToBurst)
-		.def("CanTriggerBurst", &PEmitter::CanTriggerBurst);
+		luaType["IsEmitting"] = &PEmitter::IsEmitting;
+		luaType["EnableEmission"] = &PEmitter::EnableEmission;
+		luaType["GetEmitVector"] = &PEmitter::GetEmitVector;
+		luaType["GetRecoilVector"] = &PEmitter::GetRecoilVector;
+		luaType["EstimateImpulse"] = &PEmitter::EstimateImpulse;
+		luaType["TriggerBurst"] = &PEmitter::TriggerBurst;
+		luaType["IsSetToBurst"] = &PEmitter::IsSetToBurst;
+		luaType["CanTriggerBurst"] = &PEmitter::CanTriggerBurst;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieSlice) {
-		return ConcreteTypeLuaClassDefinition(PieSlice, Entity)
+		auto luaType = ConcreteTypeLuaClassDefinition(PieSlice, Entity);
 
-		.property("Type", &PieSlice::GetType, &PieSlice::SetType)
-		.property("Direction", &PieSlice::GetDirection, &PieSlice::SetDirection)
-		.property("CanBeMiddleSlice", &PieSlice::GetCanBeMiddleSlice, &PieSlice::SetCanBeMiddleSlice)
-		.property("OriginalSource", &PieSlice::GetOriginalSource)
-		.property("Enabled", &PieSlice::IsEnabled, &PieSlice::SetEnabled)
+		luaType["Type"] = sol::property(&PieSlice::GetType, &PieSlice::SetType);
+		luaType["Direction"] = sol::property(&PieSlice::GetDirection, &PieSlice::SetDirection);
+		luaType["CanBeMiddleSlice"] = sol::property(&PieSlice::GetCanBeMiddleSlice, &PieSlice::SetCanBeMiddleSlice);
+		luaType["OriginalSource"] = sol::property(&PieSlice::GetOriginalSource);
+		luaType["Enabled"] = sol::property(&PieSlice::IsEnabled, &PieSlice::SetEnabled);
 
-		.property("ScriptPath", &PieSlice::GetScriptPath, &PieSlice::SetScriptPath)
-		.property("FunctionName", &PieSlice::GetFunctionName, &PieSlice::SetFunctionName)
-		.property("SubPieMenu", &PieSlice::GetSubPieMenu, &PieSlice::SetSubPieMenu)
+		luaType["ScriptPath"] = sol::property(&PieSlice::GetScriptPath, &PieSlice::SetScriptPath);
+		luaType["FunctionName"] = sol::property(&PieSlice::GetFunctionName, &PieSlice::SetFunctionName);
+		luaType["SubPieMenu"] = sol::property(&PieSlice::GetSubPieMenu, &PieSlice::SetSubPieMenu);
 
-		.property("DrawFlippedToMatchAbsoluteAngle", &PieSlice::GetDrawFlippedToMatchAbsoluteAngle, &PieSlice::SetDrawFlippedToMatchAbsoluteAngle)
+		luaType["DrawFlippedToMatchAbsoluteAngle"] = sol::property(&PieSlice::GetDrawFlippedToMatchAbsoluteAngle, &PieSlice::SetDrawFlippedToMatchAbsoluteAngle);
 
-		.def("ReloadScripts", &PieSlice::ReloadScripts)
+		luaType["ReloadScripts"] = &PieSlice::ReloadScripts;
 
-		.enum_("SliceType")[
-			luabind::value("NoType", PieSlice::SliceType::NoType),
-			luabind::value("Pickup", PieSlice::SliceType::Pickup),
-			luabind::value("Drop", PieSlice::SliceType::Drop),
-			luabind::value("NextItem", PieSlice::SliceType::NextItem),
-			luabind::value("PreviousItem", PieSlice::SliceType::PreviousItem),
-			luabind::value("Reload", PieSlice::SliceType::Reload),
-			luabind::value("BuyMenu", PieSlice::SliceType::BuyMenu),
-			luabind::value("Stats", PieSlice::SliceType::Stats),
-			luabind::value("Map", PieSlice::SliceType::Map),
-			luabind::value("FormSquad", PieSlice::SliceType::FormSquad),
-			luabind::value("Ceasefire", PieSlice::SliceType::Ceasefire),
-			luabind::value("Sentry", PieSlice::SliceType::Sentry),
-			luabind::value("Patrol", PieSlice::SliceType::Patrol),
-			luabind::value("BrainHunt", PieSlice::SliceType::BrainHunt),
-			luabind::value("GoldDig", PieSlice::SliceType::GoldDig),
-			luabind::value("GoTo", PieSlice::SliceType::GoTo),
-			luabind::value("Return", PieSlice::SliceType::Return),
-			luabind::value("Stay", PieSlice::SliceType::Stay),
-			luabind::value("Deliver", PieSlice::SliceType::Deliver),
-			luabind::value("Scuttle", PieSlice::SliceType::Scuttle),
-			luabind::value("Done", PieSlice::SliceType::EditorDone),
-			luabind::value("Load", PieSlice::SliceType::EditorLoad),
-			luabind::value("Save", PieSlice::SliceType::EditorSave),
-			luabind::value("New", PieSlice::SliceType::EditorNew),
-			luabind::value("Pick", PieSlice::SliceType::EditorPick),
-			luabind::value("Move", PieSlice::SliceType::EditorMove),
-			luabind::value("Remove", PieSlice::SliceType::EditorRemove),
-			luabind::value("InFront", PieSlice::SliceType::EditorInFront),
-			luabind::value("Behind", PieSlice::SliceType::EditorBehind),
-			luabind::value("ZoomIn", PieSlice::SliceType::EditorZoomIn),
-			luabind::value("ZoomOut", PieSlice::SliceType::EditorZoomOut),
-			luabind::value("Team1", PieSlice::SliceType::EditorTeam1),
-			luabind::value("Team2", PieSlice::SliceType::EditorTeam2),
-			luabind::value("Team3", PieSlice::SliceType::EditorTeam3),
-			luabind::value("Team4", PieSlice::SliceType::EditorTeam4)
-		];
+		luaType.new_enum("SliceType", EnumList(PieSlice::SliceType) {
+			{ "NoType", PieSlice::SliceType::NoType },
+			{ "Pickup", PieSlice::SliceType::Pickup },
+			{ "Drop", PieSlice::SliceType::Drop },
+			{ "NextItem", PieSlice::SliceType::NextItem },
+			{ "PreviousItem", PieSlice::SliceType::PreviousItem },
+			{ "Reload", PieSlice::SliceType::Reload },
+			{ "BuyMenu", PieSlice::SliceType::BuyMenu },
+			{ "Stats", PieSlice::SliceType::Stats },
+			{ "Map", PieSlice::SliceType::Map },
+			{ "FormSquad", PieSlice::SliceType::FormSquad },
+			{ "Ceasefire", PieSlice::SliceType::Ceasefire },
+			{ "Sentry", PieSlice::SliceType::Sentry },
+			{ "Patrol", PieSlice::SliceType::Patrol },
+			{ "BrainHunt", PieSlice::SliceType::BrainHunt },
+			{ "GoldDig", PieSlice::SliceType::GoldDig },
+			{ "GoTo", PieSlice::SliceType::GoTo },
+			{ "Return", PieSlice::SliceType::Return },
+			{ "Stay", PieSlice::SliceType::Stay },
+			{ "Deliver", PieSlice::SliceType::Deliver },
+			{ "Scuttle", PieSlice::SliceType::Scuttle },
+			{ "Done", PieSlice::SliceType::EditorDone },
+			{ "Load", PieSlice::SliceType::EditorLoad },
+			{ "Save", PieSlice::SliceType::EditorSave },
+			{ "New", PieSlice::SliceType::EditorNew },
+			{ "Pick", PieSlice::SliceType::EditorPick },
+			{ "Move", PieSlice::SliceType::EditorMove },
+			{ "Remove", PieSlice::SliceType::EditorRemove },
+			{ "InFront", PieSlice::SliceType::EditorInFront },
+			{ "Behind", PieSlice::SliceType::EditorBehind },
+			{ "ZoomIn", PieSlice::SliceType::EditorZoomIn },
+			{ "ZoomOut", PieSlice::SliceType::EditorZoomOut },
+			{ "Team1", PieSlice::SliceType::EditorTeam1 },
+			{ "Team2", PieSlice::SliceType::EditorTeam2 },
+			{ "Team3", PieSlice::SliceType::EditorTeam3 },
+			{ "Team4", PieSlice::SliceType::EditorTeam4 }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieMenu) {
-		return ConcreteTypeLuaClassDefinition(PieMenu, Entity)
+		auto luaType = ConcreteTypeLuaClassDefinition(PieMenu, Entity);
 
-		.property("Owner", &PieMenu::GetOwner)
-		.property("Controller", &PieMenu::GetController)
-		.property("AffectedObject", &PieMenu::GetAffectedObject)
-		.property("Pos", &PieMenu::GetPos)
-		.property("RotAngle", &PieMenu::GetRotAngle, &PieMenu::SetRotAngle)
-		.property("FullInnerRadius", &PieMenu::GetFullInnerRadius, &PieMenu::SetFullInnerRadius)
+		luaType["Owner"] = sol::property(&PieMenu::GetOwner);
+		luaType["Controller"] = sol::property(&PieMenu::GetController);
+		luaType["AffectedObject"] = sol::property(&PieMenu::GetAffectedObject);
+		luaType["Pos"] = sol::property(&PieMenu::GetPos);
+		luaType["RotAngle"] = sol::property(&PieMenu::GetRotAngle, &PieMenu::SetRotAngle);
+		luaType["FullInnerRadius"] = sol::property(&PieMenu::GetFullInnerRadius, &PieMenu::SetFullInnerRadius);
 
-		.property("PieSlices", &PieMenu::GetPieSlices, luabind::return_stl_iterator)
+		luaType["PieSlices"] = sol::property(&PieMenu::GetPieSlices);
 
-		.def("IsSubPieMenu", &PieMenu::IsSubPieMenu)
+		luaType["IsSubPieMenu"] = &PieMenu::IsSubPieMenu;
 
-		.def("IsEnabled", &PieMenu::IsEnabled)
-		.def("IsEnabling", &PieMenu::IsEnabling)
-		.def("IsDisabling", &PieMenu::IsDisabling)
-		.def("IsEnablingOrDisabling", &PieMenu::IsEnablingOrDisabling)
-		.def("IsVisible", &PieMenu::IsVisible)
-		.def("HasSubPieMenuOpen", &PieMenu::HasSubPieMenuOpen)
+		luaType["IsEnabled"] = &PieMenu::IsEnabled;
+		luaType["IsEnabling"] = &PieMenu::IsEnabling;
+		luaType["IsDisabling"] = &PieMenu::IsDisabling;
+		luaType["IsEnablingOrDisabling"] = &PieMenu::IsEnablingOrDisabling;
+		luaType["IsVisible"] = &PieMenu::IsVisible;
+		luaType["HasSubPieMenuOpen"] = &PieMenu::HasSubPieMenuOpen;
 
-		.def("SetAnimationModeToNormal", &PieMenu::SetAnimationModeToNormal)
-		.def("DoDisableAnimation", &PieMenu::DoDisableAnimation)
-		.def("Wobble", &PieMenu::Wobble)
-		.def("FreezeAtRadius", &PieMenu::FreezeAtRadius)
+		luaType["SetAnimationModeToNormal"] = &PieMenu::SetAnimationModeToNormal;
+		luaType["DoDisableAnimation"] = &PieMenu::DoDisableAnimation;
+		luaType["Wobble"] = &PieMenu::Wobble;
+		luaType["FreezeAtRadius"] = &PieMenu::FreezeAtRadius;
 
-		.def("GetPieCommand", &PieMenu::GetPieCommand)
-		.def("GetFirstPieSliceByPresetName", &PieMenu::GetFirstPieSliceByPresetName)
-		.def("GetFirstPieSliceByType", &PieMenu::GetFirstPieSliceByType)
-		.def("AddPieSlice", &PieMenu::AddPieSlice, luabind::adopt(_2))
-		.def("AddPieSlice", &LuaAdaptersPieMenu::AddPieSlice, luabind::adopt(_2))
-		.def("AddPieSliceIfPresetNameIsUnique", &PieMenu::AddPieSliceIfPresetNameIsUnique, luabind::adopt(_2))
-		.def("AddPieSliceIfPresetNameIsUnique", &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1, luabind::adopt(_2))
-		.def("AddPieSliceIfPresetNameIsUnique", &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2, luabind::adopt(_2))
-		.def("RemovePieSlice", &PieMenu::RemovePieSlice, luabind::adopt(luabind::return_value))
-		.def("RemovePieSlicesByPresetName", &PieMenu::RemovePieSlicesByPresetName)
-		.def("RemovePieSlicesByType", &PieMenu::RemovePieSlicesByType)
-		.def("RemovePieSlicesByOriginalSource", &PieMenu::RemovePieSlicesByOriginalSource)
-		.def("ReplacePieSlice", &PieMenu::ReplacePieSlice, luabind::adopt(luabind::result) + luabind::adopt(_3));
+		luaType["GetPieCommand"] = &PieMenu::GetPieCommand;
+		luaType["GetFirstPieSliceByPresetName"] = &PieMenu::GetFirstPieSliceByPresetName;
+		luaType["GetFirstPieSliceByType"] = &PieMenu::GetFirstPieSliceByType;
+		luaType["AddPieSlice"] = &PieMenu::AddPieSlice, luabind::adopt(_2);
+		luaType["AddPieSlice"] = &LuaAdaptersPieMenu::AddPieSlice, luabind::adopt(_2);
+		luaType["AddPieSliceIfPresetNameIsUnique"] = &PieMenu::AddPieSliceIfPresetNameIsUnique, luabind::adopt(_2);
+		luaType["AddPieSliceIfPresetNameIsUnique"] = &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1, luabind::adopt(_2);
+		luaType["AddPieSliceIfPresetNameIsUnique"] = &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2, luabind::adopt(_2);
+		luaType["RemovePieSlice"] = &PieMenu::RemovePieSlice, luabind::adopt(luabind::return_value);
+		luaType["RemovePieSlicesByPresetName"] = &PieMenu::RemovePieSlicesByPresetName;
+		luaType["RemovePieSlicesByType"] = &PieMenu::RemovePieSlicesByType;
+		luaType["RemovePieSlicesByOriginalSource"] = &PieMenu::RemovePieSlicesByOriginalSource;
+		luaType["ReplacePieSlice"] = &PieMenu::ReplacePieSlice, luabind::adopt(luabind::result) + luabind::adopt(_3);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Round) {
-		return ConcreteTypeLuaClassDefinition(Round, Entity)
+		auto luaType = ConcreteTypeLuaClassDefinition(Round, Entity);
 
-		.property("NextParticle", &Round::GetNextParticle)
-		.property("Shell", &Round::GetShell)
-		.property("FireVel", &Round::GetFireVel)
-		.property("InheritsFirerVelocity", &Round::GetInheritsFirerVelocity)
-		.property("ShellVel", &Round::GetShellVel)
-		.property("Separation", &Round::GetSeparation)
-		.property("ParticleCount", &Round::ParticleCount)
-		.property("AILifeTime", &Round::GetAILifeTime)
-		.property("AIFireVel", &Round::GetAIFireVel)
-		.property("IsEmpty", &Round::IsEmpty);
+		luaType["NextParticle"] = sol::property(&Round::GetNextParticle);
+		luaType["Shell"] = sol::property(&Round::GetShell);
+		luaType["FireVel"] = sol::property(&Round::GetFireVel);
+		luaType["InheritsFirerVelocity"] = sol::property(&Round::GetInheritsFirerVelocity);
+		luaType["ShellVel"] = sol::property(&Round::GetShellVel);
+		luaType["Separation"] = sol::property(&Round::GetSeparation);
+		luaType["ParticleCount"] = sol::property(&Round::ParticleCount);
+		luaType["AILifeTime"] = sol::property(&Round::GetAILifeTime);
+		luaType["AIFireVel"] = sol::property(&Round::GetAIFireVel);
+		luaType["IsEmpty"] = sol::property(&Round::IsEmpty);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
-		return ConcreteTypeLuaClassDefinition(Scene, Entity)
+		auto luaType = ConcreteTypeLuaClassDefinition(Scene, Entity);
 
-		.property("Location", &Scene::GetLocation, &Scene::SetLocation)
-		//.property("Terrain", &Scene::GetTerrain)
-		.property("Dimensions", &Scene::GetDimensions)
-		.property("Width", &Scene::GetWidth)
-		.property("Height", &Scene::GetHeight)
-		.property("WrapsX", &Scene::WrapsX)
-		.property("WrapsY", &Scene::WrapsY)
-		.property("TeamOwnership", &Scene::GetTeamOwnership, &Scene::SetTeamOwnership)
-		.property("GlobalAcc", &Scene::GetGlobalAcc, &Scene::SetGlobalAcc)
-		.property("ScenePathSize", &Scene::GetScenePathSize)
+		luaType["Location"] = sol::property(&Scene::GetLocation, &Scene::SetLocation);
+		//luaType["Terrain"] = sol::property(&Scene::GetTerrain);
+		luaType["Dimensions"] = sol::property(&Scene::GetDimensions);
+		luaType["Width"] = sol::property(&Scene::GetWidth);
+		luaType["Height"] = sol::property(&Scene::GetHeight);
+		luaType["WrapsX"] = sol::property(&Scene::WrapsX);
+		luaType["WrapsY"] = sol::property(&Scene::WrapsY);
+		luaType["TeamOwnership"] = sol::property(&Scene::GetTeamOwnership, &Scene::SetTeamOwnership);
+		luaType["GlobalAcc"] = sol::property(&Scene::GetGlobalAcc, &Scene::SetGlobalAcc);
+		luaType["ScenePathSize"] = sol::property(&Scene::GetScenePathSize);
 
-		.def_readwrite("Deployments", &Scene::m_Deployments, luabind::return_stl_iterator)
+		luaType["Deployments"] = &Scene::m_Deployments;
 
-		.def_readonly("BackgroundLayers", &Scene::m_BackLayerList, luabind::return_stl_iterator)
+		luaType["BackgroundLayers"] = sol::readonly(&Scene::m_BackLayerList);
 
-		.def("GetScenePath", &Scene::GetScenePath, luabind::return_stl_iterator)
-		.def("GetBuildBudget", &Scene::GetBuildBudget)
-		.def("SetBuildBudget", &Scene::SetBuildBudget)
-		.def("IsScanScheduled", &Scene::IsScanScheduled)
-		.def("SetScheduledScan", &Scene::SetScheduledScan)
-		.def("ClearPlacedObjectSet", &Scene::ClearPlacedObjectSet)
-		.def("PlaceResidentBrain", &Scene::PlaceResidentBrain)
-		.def("PlaceResidentBrains", &Scene::PlaceResidentBrains)
-		.def("RetrieveResidentBrains", &Scene::RetrieveResidentBrains)
-		.def("GetResidentBrain", &Scene::GetResidentBrain)
-		.def("SetResidentBrain", &Scene::SetResidentBrain)
-		.def_readwrite("Areas", &Scene::m_AreaList, luabind::return_stl_iterator)
-		.def("SetArea", &Scene::SetArea)
-		.def("HasArea", &Scene::HasArea)
-		.def("GetArea", (Scene::Area * (Scene:: *)(const std::string &areaName)) &Scene::GetArea)
-		.def("GetOptionalArea", &Scene::GetOptionalArea)
-		.def("WithinArea", &Scene::WithinArea)
-		.def("ResetPathFinding", &Scene::ResetPathFinding)
-		.def("UpdatePathFinding", &Scene::UpdatePathFinding)
-		.def("PathFindingUpdated", &Scene::PathFindingUpdated)
-		.def("CalculatePath", &LuaAdaptersScene::CalculatePath1)
-		.def("CalculatePath", &LuaAdaptersScene::CalculatePath2)
-		.def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync1)
-		.def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync2)
+		luaType["GetScenePath"] = &Scene::GetScenePath;
+		luaType["GetBuildBudget"] = &Scene::GetBuildBudget;
+		luaType["SetBuildBudget"] = &Scene::SetBuildBudget;
+		luaType["IsScanScheduled"] = &Scene::IsScanScheduled;
+		luaType["SetScheduledScan"] = &Scene::SetScheduledScan;
+		luaType["ClearPlacedObjectSet"] = &Scene::ClearPlacedObjectSet;
+		luaType["PlaceResidentBrain"] = &Scene::PlaceResidentBrain;
+		luaType["PlaceResidentBrains"] = &Scene::PlaceResidentBrains;
+		luaType["RetrieveResidentBrains"] = &Scene::RetrieveResidentBrains;
+		luaType["GetResidentBrain"] = &Scene::GetResidentBrain;
+		luaType["SetResidentBrain"] = &Scene::SetResidentBrain;
+		luaType["Areas"] = &Scene::m_AreaList;
+		luaType["SetArea"] = &Scene::SetArea;
+		luaType["HasArea"] = &Scene::HasArea;
+		luaType["GetArea"] = (Scene::Area * (Scene:: *)(const std::string &areaName)) &Scene::GetArea;
+		luaType["GetOptionalArea"] = &Scene::GetOptionalArea;
+		luaType["WithinArea"] = &Scene::WithinArea;
+		luaType["ResetPathFinding"] = &Scene::ResetPathFinding;
+		luaType["UpdatePathFinding"] = &Scene::UpdatePathFinding;
+		luaType["PathFindingUpdated"] = &Scene::PathFindingUpdated;
+		luaType["CalculatePath"] = &LuaAdaptersScene::CalculatePath1;
+		luaType["CalculatePath"] = &LuaAdaptersScene::CalculatePath2;
+		luaType["CalculatePathAsync"] = &LuaAdaptersScene::CalculatePathAsync1;
+		luaType["CalculatePathAsync"] = &LuaAdaptersScene::CalculatePathAsync2;
 
-		.enum_("PlacedObjectSets")[
-			luabind::value("PLACEONLOAD", Scene::PlacedObjectSets::PLACEONLOAD),
-			luabind::value("BLUEPRINT", Scene::PlacedObjectSets::BLUEPRINT),
-			luabind::value("AIPLAN", Scene::PlacedObjectSets::AIPLAN),
-			luabind::value("PLACEDSETSCOUNT", Scene::PlacedObjectSets::PLACEDSETSCOUNT)
-		];
+		luaType.new_enum("PlacedObjectSets", EnumList(Scene::PlacedObjectSets) {
+			{ "PLACEONLOAD", Scene::PlacedObjectSets::PLACEONLOAD },
+			{ "BLUEPRINT", Scene::PlacedObjectSets::BLUEPRINT },
+			{ "AIPLAN", Scene::PlacedObjectSets::AIPLAN },
+			{ "PLACEDSETSCOUNT", Scene::PlacedObjectSets::PLACEDSETSCOUNT }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
-		return luabind::class_<Scene::Area>("Area")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(Scene::Area, "Area");
 
-		.def(luabind::constructor<>())
-		.def(luabind::constructor<std::string>())
-		.def(luabind::constructor<const Scene::Area &>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			Scene::Area(),
+			Scene::Area(std::string),
+			Scene::Area(const Scene::Area&)
+		>());
 
-		.property("ClassName", &Scene::Area::GetClassName)
-		.property("Name", &Scene::Area::GetName)
-		.property("FirstBox", &Scene::Area::GetFirstBox)
-		.property("Center", &Scene::Area::GetCenterPoint)
-		.property("RandomPoint", &Scene::Area::GetRandomPoint)
+		luaType["ClassName"] = sol::property(&Scene::Area::GetClassName);
+		luaType["Name"] = sol::property(&Scene::Area::GetName);
+		luaType["FirstBox"] = sol::property(&Scene::Area::GetFirstBox);
+		luaType["Center"] = sol::property(&Scene::Area::GetCenterPoint);
+		luaType["RandomPoint"] = sol::property(&Scene::Area::GetRandomPoint);
 
-		.def("Reset", &Scene::Area::Reset)
-		.def_readwrite("Boxes", &Scene::Area::m_BoxList, luabind::return_stl_iterator)
-		.def("AddBox", &Scene::Area::AddBox)
-		.def("RemoveBox", &Scene::Area::RemoveBox)
-		.def("HasNoArea", &Scene::Area::HasNoArea)
-		.def("IsInside", &Scene::Area::IsInside)
-		.def("IsInsideX", &Scene::Area::IsInsideX)
-		.def("IsInsideY", &Scene::Area::IsInsideY)
-		.def("GetBoxInside", &Scene::Area::GetBoxInside)
-		.def("RemoveBoxInside", &Scene::Area::RemoveBoxInside)
-		.def("GetCenterPoint", &Scene::Area::GetCenterPoint)
-		.def("GetRandomPoint", &Scene::Area::GetRandomPoint);
+		luaType["Reset"] = &Scene::Area::Reset;
+		luaType["Boxes"] = &Scene::Area::m_BoxList;
+		luaType["AddBox"] = &Scene::Area::AddBox;
+		luaType["RemoveBox"] = &Scene::Area::RemoveBox;
+		luaType["HasNoArea"] = &Scene::Area::HasNoArea;
+		luaType["IsInside"] = &Scene::Area::IsInside;
+		luaType["IsInsideX"] = &Scene::Area::IsInsideX;
+		luaType["IsInsideY"] = &Scene::Area::IsInsideY;
+		luaType["GetBoxInside"] = &Scene::Area::GetBoxInside;
+		luaType["RemoveBoxInside"] = &Scene::Area::RemoveBoxInside;
+		luaType["GetCenterPoint"] = &Scene::Area::GetCenterPoint;
+		luaType["GetRandomPoint"] = &Scene::Area::GetRandomPoint;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneLayer) {
-		return luabind::class_<SceneLayer, Entity>("SceneLayer");
+		auto luaType = SimpleTypeLuaClassDefinition(SceneLayer);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
-		return AbstractTypeLuaClassDefinition(SceneObject, Entity)
+		auto luaType = AbstractTypeLuaClassDefinition(SceneObject, Entity);
 
-		.property("Pos", &SceneObject::GetPos, &SceneObject::SetPos)
-		.property("HFlipped", &SceneObject::IsHFlipped, &SceneObject::SetHFlipped)
-		.property("RotAngle", &SceneObject::GetRotAngle, &SceneObject::SetRotAngle)
-		.property("Team", &SceneObject::GetTeam, &SceneObject::SetTeam)
-		.property("PlacedByPlayer", &SceneObject::GetPlacedByPlayer, &SceneObject::SetPlacedByPlayer)
-		.property("IsBuyable", &SceneObject::IsBuyable)
+		luaType["Pos"] = sol::property(&SceneObject::GetPos, &SceneObject::SetPos);
+		luaType["HFlipped"] = sol::property(&SceneObject::IsHFlipped, &SceneObject::SetHFlipped);
+		luaType["RotAngle"] = sol::property(&SceneObject::GetRotAngle, &SceneObject::SetRotAngle);
+		luaType["Team"] = sol::property(&SceneObject::GetTeam, &SceneObject::SetTeam);
+		luaType["PlacedByPlayer"] = sol::property(&SceneObject::GetPlacedByPlayer, &SceneObject::SetPlacedByPlayer);
+		luaType["IsBuyable"] = sol::property(&SceneObject::IsBuyable);
 
-		.def("IsOnScenePoint", &SceneObject::IsOnScenePoint)
-		.def("GetGoldValue", &SceneObject::GetGoldValueOld)
-		.def("GetGoldValue", &SceneObject::GetGoldValue)
-		.def("SetGoldValue", &SceneObject::SetGoldValue)
-		.def("GetGoldValueString", &SceneObject::GetGoldValueString)
-		.def("GetTotalValue", &SceneObject::GetTotalValue)
+		luaType["IsOnScenePoint"] = &SceneObject::IsOnScenePoint;
+		luaType["GetGoldValue"] = &SceneObject::GetGoldValueOld;
+		luaType["GetGoldValue"] = &SceneObject::GetGoldValue;
+		luaType["SetGoldValue"] = &SceneObject::SetGoldValue;
+		luaType["GetGoldValueString"] = &SceneObject::GetGoldValueString;
+		luaType["GetTotalValue"] = &SceneObject::GetTotalValue;
 
-		.def("GetTotalValue", &LuaAdaptersSceneObject::GetTotalValue);
+		luaType["GetTotalValue"] = &LuaAdaptersSceneObject::GetTotalValue;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SLBackground) {
-		return luabind::class_<SLBackground, SceneLayer>("SLBackground")
+		auto luaType = SimpleTypeLuaClassDefinition(SLBackground);
 
-		.property("Frame", &SLBackground::GetFrame, &SLBackground::SetFrame)
-		.property("SpriteAnimMode", &SLBackground::GetSpriteAnimMode, &SLBackground::SetSpriteAnimMode)
-		.property("SpriteAnimDuration", &SLBackground::GetSpriteAnimDuration, &SLBackground::SetSpriteAnimDuration)
-		.property("IsAnimatedManually", &SLBackground::IsAnimatedManually, &SLBackground::SetAnimatedManually)
-		.property("AutoScrollX", &SLBackground::GetAutoScrollX, &SLBackground::SetAutoScrollX)
-		.property("AutoScrollY", &SLBackground::GetAutoScrollY, &SLBackground::SetAutoScrollY)
-		.property("AutoScrollInterval", &SLBackground::GetAutoScrollStepInterval, &SLBackground::SetAutoScrollStepInterval)
-		.property("AutoScrollStep", &SLBackground::GetAutoScrollStep, &SLBackground::SetAutoScrollStep)
-		.property("AutoScrollStepX", &SLBackground::GetAutoScrollStepX, &SLBackground::SetAutoScrollStepX)
-		.property("AutoScrollStepY", &SLBackground::GetAutoScrollStepY, &SLBackground::SetAutoScrollStepY)
+		luaType["Frame"] = sol::property(&SLBackground::GetFrame, &SLBackground::SetFrame);
+		luaType["SpriteAnimMode"] = sol::property(&SLBackground::GetSpriteAnimMode, &SLBackground::SetSpriteAnimMode);
+		luaType["SpriteAnimDuration"] = sol::property(&SLBackground::GetSpriteAnimDuration, &SLBackground::SetSpriteAnimDuration);
+		luaType["IsAnimatedManually"] = sol::property(&SLBackground::IsAnimatedManually, &SLBackground::SetAnimatedManually);
+		luaType["AutoScrollX"] = sol::property(&SLBackground::GetAutoScrollX, &SLBackground::SetAutoScrollX);
+		luaType["AutoScrollY"] = sol::property(&SLBackground::GetAutoScrollY, &SLBackground::SetAutoScrollY);
+		luaType["AutoScrollInterval"] = sol::property(&SLBackground::GetAutoScrollStepInterval, &SLBackground::SetAutoScrollStepInterval);
+		luaType["AutoScrollStep"] = sol::property(&SLBackground::GetAutoScrollStep, &SLBackground::SetAutoScrollStep);
+		luaType["AutoScrollStepX"] = sol::property(&SLBackground::GetAutoScrollStepX, &SLBackground::SetAutoScrollStepX);
+		luaType["AutoScrollStepY"] = sol::property(&SLBackground::GetAutoScrollStepY, &SLBackground::SetAutoScrollStepY);
 
-		.def("IsAutoScrolling", &SLBackground::IsAutoScrolling);
+		luaType["IsAutoScrolling"] = &SLBackground::IsAutoScrolling;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
-		return ConcreteTypeLuaClassDefinition(SoundContainer, Entity)
+		auto luaType = ConcreteTypeLuaClassDefinition(SoundContainer, Entity);
 
-		.def(luabind::constructor<>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			Scene::Area()
+		>());
 
-		.property("SoundOverlapMode", &SoundContainer::GetSoundOverlapMode, &SoundContainer::SetSoundOverlapMode)
-		.property("Immobile", &SoundContainer::IsImmobile, &SoundContainer::SetImmobile)
-		.property("AttenuationStartDistance", &SoundContainer::GetAttenuationStartDistance, &SoundContainer::SetAttenuationStartDistance)
-		.property("Loops", &SoundContainer::GetLoopSetting, &SoundContainer::SetLoopSetting)
-		.property("Priority", &SoundContainer::GetPriority, &SoundContainer::SetPriority)
-		.property("AffectedByGlobalPitch", &SoundContainer::IsAffectedByGlobalPitch, &SoundContainer::SetAffectedByGlobalPitch)
-		.property("Pos", &SoundContainer::GetPosition, &SoundContainer::SetPosition)
-		.property("Volume", &SoundContainer::GetVolume, &SoundContainer::SetVolume)
-		.property("Pitch", &SoundContainer::GetPitch, &SoundContainer::SetPitch)
-		.property("PitchVariation", &SoundContainer::GetPitchVariation, &SoundContainer::SetPitchVariation)
+		luaType["SoundOverlapMode"] = sol::property(&SoundContainer::GetSoundOverlapMode, &SoundContainer::SetSoundOverlapMode);
+		luaType["Immobile"] = sol::property(&SoundContainer::IsImmobile, &SoundContainer::SetImmobile);
+		luaType["AttenuationStartDistance"] = sol::property(&SoundContainer::GetAttenuationStartDistance, &SoundContainer::SetAttenuationStartDistance);
+		luaType["Loops"] = sol::property(&SoundContainer::GetLoopSetting, &SoundContainer::SetLoopSetting);
+		luaType["Priority"] = sol::property(&SoundContainer::GetPriority, &SoundContainer::SetPriority);
+		luaType["AffectedByGlobalPitch"] = sol::property(&SoundContainer::IsAffectedByGlobalPitch, &SoundContainer::SetAffectedByGlobalPitch);
+		luaType["Pos"] = sol::property(&SoundContainer::GetPosition, &SoundContainer::SetPosition);
+		luaType["Volume"] = sol::property(&SoundContainer::GetVolume, &SoundContainer::SetVolume);
+		luaType["Pitch"] = sol::property(&SoundContainer::GetPitch, &SoundContainer::SetPitch);
+		luaType["PitchVariation"] = sol::property(&SoundContainer::GetPitchVariation, &SoundContainer::SetPitchVariation);
 
-		.def("HasAnySounds", &SoundContainer::HasAnySounds)
-		.def("GetTopLevelSoundSet", &SoundContainer::GetTopLevelSoundSet)
-		.def("SetTopLevelSoundSet", &SoundContainer::SetTopLevelSoundSet)
-		.def("IsBeingPlayed", &SoundContainer::IsBeingPlayed)
-		.def("Play", (bool (SoundContainer:: *)()) &SoundContainer::Play)
-		.def("Play", (bool (SoundContainer:: *)(const int player)) &SoundContainer::Play)
-		.def("Play", (bool (SoundContainer:: *)(const Vector &position)) &SoundContainer::Play)
-		.def("Play", (bool (SoundContainer:: *)(const Vector &position, int player)) &SoundContainer::Play)
-		.def("Stop", (bool (SoundContainer:: *)()) &SoundContainer::Stop)
-		.def("Stop", (bool (SoundContainer:: *)(int player)) &SoundContainer::Stop)
-		.def("Restart", (bool (SoundContainer:: *)()) &SoundContainer::Restart)
-		.def("Restart", (bool (SoundContainer:: *)(int player)) &SoundContainer::Restart)
-		.def("FadeOut", &SoundContainer::FadeOut)
+		luaType["HasAnySounds"] = &SoundContainer::HasAnySounds;
+		luaType["GetTopLevelSoundSet"] = &SoundContainer::GetTopLevelSoundSet;
+		luaType["SetTopLevelSoundSet"] = &SoundContainer::SetTopLevelSoundSet;
+		luaType["IsBeingPlayed"] = &SoundContainer::IsBeingPlayed;
+		luaType["Play"] = (bool (SoundContainer:: *)()) &SoundContainer::Play;
+		luaType["Play"] = (bool (SoundContainer:: *)(const int player)) &SoundContainer::Play;
+		luaType["Play"] = (bool (SoundContainer:: *)(const Vector &position)) &SoundContainer::Play;
+		luaType["Play"] = (bool (SoundContainer:: *)(const Vector &position, int player)) &SoundContainer::Play;
+		luaType["Stop"] = (bool (SoundContainer:: *)()) &SoundContainer::Stop;
+		luaType["Stop"] = (bool (SoundContainer:: *)(int player)) &SoundContainer::Stop;
+		luaType["Restart"] = (bool (SoundContainer:: *)()) &SoundContainer::Restart;
+		luaType["Restart"] = (bool (SoundContainer:: *)(int player)) &SoundContainer::Restart;
+		luaType["FadeOut"] = &SoundContainer::FadeOut;
 
-		.enum_("SoundOverlapMode")[
-			luabind::value("OVERLAP", SoundContainer::SoundOverlapMode::OVERLAP),
-			luabind::value("RESTART", SoundContainer::SoundOverlapMode::RESTART),
-			luabind::value("IGNORE_PLAY", SoundContainer::SoundOverlapMode::IGNORE_PLAY)
-		];
+		luaType.new_enum("SoundOverlapMode", EnumList(SoundContainer::SoundOverlapMode) {
+			{ "OVERLAP", SoundContainer::SoundOverlapMode::OVERLAP },
+			{ "RESTART", SoundContainer::SoundOverlapMode::RESTART },
+			{ "IGNORE_PLAY", SoundContainer::SoundOverlapMode::IGNORE_PLAY }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundSet) {
-		return luabind::class_<SoundSet>("SoundSet")
+		auto luaType = SimpleTypeLuaClassDefinition(SoundSet);
 
-		.def(luabind::constructor<>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			SoundSet()
+		>());
 
-		.property("SoundSelectionCycleMode", &SoundSet::GetSoundSelectionCycleMode, &SoundSet::SetSoundSelectionCycleMode)
+		luaType["SoundSelectionCycleMode"] = sol::property(&SoundSet::GetSoundSelectionCycleMode, &SoundSet::SetSoundSelectionCycleMode);
 
-		.def_readonly("SubSoundSets", &SoundSet::m_SubSoundSets, luabind::return_stl_iterator)
+		luaType["SubSoundSets"] = sol::readonly(&SoundSet::m_SubSoundSets);
 
-		.def("HasAnySounds", &SoundSet::HasAnySounds)
-		.def("SelectNextSounds", &SoundSet::SelectNextSounds)
-		.def("AddSound", (void (SoundSet:: *)(const std::string &soundFilePath)) &SoundSet::AddSound)
-		.def("AddSound", (void (SoundSet:: *)(const std::string &soundFilePath, const Vector &offset, float minimumAudibleDistance, float attenuationStartDistance)) &SoundSet::AddSound)
-		.def("RemoveSound", (bool (SoundSet:: *)(const std::string &soundFilePath)) &SoundSet::RemoveSound)
-		.def("RemoveSound", (bool (SoundSet:: *)(const std::string &soundFilePath, bool removeFromSubSoundSets)) &SoundSet::RemoveSound)
-		.def("AddSoundSet", &SoundSet::AddSoundSet)
+		luaType["HasAnySounds"] = &SoundSet::HasAnySounds;
+		luaType["SelectNextSounds"] = &SoundSet::SelectNextSounds;
+		luaType["AddSound"] = (void (SoundSet:: *)(const std::string &soundFilePath)) &SoundSet::AddSound;
+		luaType["AddSound"] = (void (SoundSet:: *)(const std::string &soundFilePath, const Vector &offset, float minimumAudibleDistance, float attenuationStartDistance)) &SoundSet::AddSound;
+		luaType["RemoveSound"] = (bool (SoundSet:: *)(const std::string &soundFilePath)) &SoundSet::RemoveSound;
+		luaType["RemoveSound"] = (bool (SoundSet:: *)(const std::string &soundFilePath, bool removeFromSubSoundSets)) &SoundSet::RemoveSound;
+		luaType["AddSoundSet"] = &SoundSet::AddSoundSet;
 
-		.enum_("SoundSelectionCycleMode")[
-			luabind::value("RANDOM", SoundSet::SoundSelectionCycleMode::RANDOM),
-			luabind::value("FORWARDS", SoundSet::SoundSelectionCycleMode::FORWARDS),
-			luabind::value("ALL", SoundSet::SoundSelectionCycleMode::ALL)
-		];
+		luaType.new_enum("SoundSelectionCycleMode", EnumList(SoundSet::SoundSelectionCycleMode) {
+			{ "RANDOM", SoundSet::SoundSelectionCycleMode::RANDOM },
+			{ "FORWARDS", SoundSet::SoundSelectionCycleMode::FORWARDS },
+			{ "ALL", SoundSet::SoundSelectionCycleMode::ALL }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, TDExplosive) {
-		return ConcreteTypeLuaClassDefinition(TDExplosive, ThrownDevice)
+		auto luaType = ConcreteTypeLuaClassDefinition(TDExplosive, ThrownDevice);
 
-		.property("IsAnimatedManually", &TDExplosive::IsAnimatedManually, &TDExplosive::SetAnimatedManually);
+		luaType["IsAnimatedManually"] = sol::property(&TDExplosive::IsAnimatedManually, &TDExplosive::SetAnimatedManually);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, TerrainObject) {
-		return ConcreteTypeLuaClassDefinition(TerrainObject, SceneObject)
+		auto luaType = ConcreteTypeLuaClassDefinition(TerrainObject, SceneObject);
 
-		.def("GetBitmapOffset", &TerrainObject::GetBitmapOffset)
-		.def("GetBitmapWidth", &TerrainObject::GetBitmapWidth)
-		.def("GetBitmapHeight", &TerrainObject::GetBitmapHeight);
+		luaType["GetBitmapOffset"] = &TerrainObject::GetBitmapOffset;
+		luaType["GetBitmapWidth"] = &TerrainObject::GetBitmapWidth;
+		luaType["GetBitmapHeight"] = &TerrainObject::GetBitmapHeight;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ThrownDevice) {
-		return ConcreteTypeLuaClassDefinition(ThrownDevice, HeldDevice)
+		auto luaType = ConcreteTypeLuaClassDefinition(ThrownDevice, HeldDevice);
 
-		.property("MinThrowVel", &ThrownDevice::GetMinThrowVel, &ThrownDevice::SetMinThrowVel)
-		.property("MaxThrowVel", &ThrownDevice::GetMaxThrowVel, &ThrownDevice::SetMaxThrowVel)
-		.property("StartThrowOffset", &ThrownDevice::GetStartThrowOffset, &ThrownDevice::SetStartThrowOffset)
-		.property("EndThrowOffset", &ThrownDevice::GetEndThrowOffset, &ThrownDevice::SetEndThrowOffset)
+		luaType["MinThrowVel"] = sol::property(&ThrownDevice::GetMinThrowVel, &ThrownDevice::SetMinThrowVel);
+		luaType["MaxThrowVel"] = sol::property(&ThrownDevice::GetMaxThrowVel, &ThrownDevice::SetMaxThrowVel);
+		luaType["StartThrowOffset"] = sol::property(&ThrownDevice::GetStartThrowOffset, &ThrownDevice::SetStartThrowOffset);
+		luaType["EndThrowOffset"] = sol::property(&ThrownDevice::GetEndThrowOffset, &ThrownDevice::SetEndThrowOffset);
 
-		.def("GetCalculatedMaxThrowVelIncludingArmThrowStrength", &ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength);
+		luaType["GetCalculatedMaxThrowVelIncludingArmThrowStrength"] = &ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Turret) {
-		return ConcreteTypeLuaClassDefinition(Turret, Attachable)
+		auto luaType = ConcreteTypeLuaClassDefinition(Turret, Attachable);
 
-		.property("MountedDevice", &Turret::GetFirstMountedDevice, &LuaAdaptersPropertyOwnershipSafetyFaker::TurretSetFirstMountedDevice)
-		.property("MountedDeviceRotationOffset", &Turret::GetMountedDeviceRotationOffset, &Turret::SetMountedDeviceRotationOffset)
+		luaType["MountedDevice"] = sol::property(&Turret::GetFirstMountedDevice, &LuaAdaptersPropertyOwnershipSafetyFaker::TurretSetFirstMountedDevice);
+		luaType["MountedDeviceRotationOffset"] = sol::property(&Turret::GetMountedDeviceRotationOffset, &Turret::SetMountedDeviceRotationOffset);
 
-		.def("GetMountedDevices", &Turret::GetMountedDevices, luabind::return_stl_iterator)
-		.def("AddMountedDevice", &Turret::AddMountedDevice, luabind::adopt(_2))
-		.def("AddMountedDevice", &LuaAdaptersTurret::AddMountedFirearm, luabind::adopt(_2));
+		luaType["GetMountedDevices"] = &Turret::GetMountedDevices;
+		luaType["AddMountedDevice"] = &Turret::AddMountedDevice, luabind::adopt(_2);
+		luaType["AddMountedDevice"] = &LuaAdaptersTurret::AddMountedFirearm, luabind::adopt(_2);
 	}
 }

@@ -7,185 +7,189 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, Activity) {
-		return AbstractTypeLuaClassDefinition(Activity, Entity)
+		auto luaType = AbstractTypeLuaClassDefinition(Activity, Entity);
 
-		.def(luabind::constructor<>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			Activity()
+		>());
 
-		.property("Description", &Activity::GetDescription)
-		.property("InCampaignStage", &Activity::GetInCampaignStage, &Activity::SetInCampaignStage)
-		.property("ActivityState", &Activity::GetActivityState, &Activity::SetActivityState)
-		.property("SceneName", &Activity::GetSceneName, &Activity::SetSceneName)
-		.property("PlayerCount", &Activity::GetPlayerCount)
-		.property("HumanCount", &Activity::GetHumanCount)
-		.property("TeamCount", &Activity::GetTeamCount)
-		.property("Difficulty", &Activity::GetDifficulty, &Activity::SetDifficulty)
+		luaType["Description"] = sol::property(&Activity::GetDescription);
+		luaType["InCampaignStage"] = sol::property(&Activity::GetInCampaignStage, &Activity::SetInCampaignStage);
+		luaType["ActivityState"] = sol::property(&Activity::GetActivityState, &Activity::SetActivityState);
+		luaType["SceneName"] = sol::property(&Activity::GetSceneName, &Activity::SetSceneName);
+		luaType["PlayerCount"] = sol::property(&Activity::GetPlayerCount);
+		luaType["HumanCount"] = sol::property(&Activity::GetHumanCount);
+		luaType["TeamCount"] = sol::property(&Activity::GetTeamCount);
+		luaType["Difficulty"] = sol::property(&Activity::GetDifficulty, &Activity::SetDifficulty);
 
-		.def("DeactivatePlayer", &Activity::DeactivatePlayer)
-		.def("PlayerActive", &Activity::PlayerActive)
-		.def("PlayerHuman", &Activity::PlayerHuman)
-		.def("TeamActive", &Activity::TeamActive)
-		.def("ForceSetTeamAsActive", &Activity::ForceSetTeamAsActive)
-		.def("GetTeamOfPlayer", &Activity::GetTeamOfPlayer)
-		.def("SetTeamOfPlayer", &Activity::SetTeamOfPlayer)
-		.def("PlayersInTeamCount", &Activity::PlayersInTeamCount)
-		.def("ScreenOfPlayer", &Activity::ScreenOfPlayer)
-		.def("GetViewState", &Activity::GetViewState)
-		.def("SetViewState", &Activity::SetViewState)
-		.def("GetPlayerBrain", &Activity::GetPlayerBrain)
-		.def("SetPlayerBrain", &Activity::SetPlayerBrain)
-		.def("PlayerHadBrain", &Activity::PlayerHadBrain)
-		.def("SetPlayerHadBrain", &Activity::SetPlayerHadBrain)
-		.def("SetBrainEvacuated", &Activity::SetBrainEvacuated)
-		.def("BrainWasEvacuated", &Activity::BrainWasEvacuated)
-		.def("IsAssignedBrain", &Activity::IsAssignedBrain)
-		.def("IsBrainOfWhichPlayer", &Activity::IsBrainOfWhichPlayer)
-		.def("IsOtherPlayerBrain", &Activity::IsOtherPlayerBrain)
-		.def("HumanBrainCount", &Activity::HumanBrainCount)
-		.def("AIBrainCount", &Activity::AIBrainCount)
-		.def("GetControlledActor", &Activity::GetControlledActor)
-		.def("GetPlayerController", &Activity::GetPlayerController)
-		.def("SetTeamFunds", &Activity::SetTeamFunds)
-		.def("GetTeamFunds", &Activity::GetTeamFunds)
-		.def("SetTeamAISkill", &Activity::SetTeamAISkill)
-		.def("GetTeamAISkill", &Activity::GetTeamAISkill)
-		.def("ChangeTeamFunds", &Activity::ChangeTeamFunds)
-		.def("TeamFundsChanged", &Activity::TeamFundsChanged)
-		.def("ReportDeath", &Activity::ReportDeath)
-		.def("GetTeamDeathCount", &Activity::GetTeamDeathCount)
-		.def("IsRunning", &Activity::IsRunning)
-		.def("IsPaused", &Activity::IsPaused)
-		.def("IsOver", &Activity::IsOver)
-		.def("SwitchToActor", &Activity::SwitchToActor)
-		.def("SwitchToNextActor", &Activity::SwitchToNextActor)
-		.def("SwitchToPrevActor", &Activity::SwitchToPrevActor)
-		.def("IsHumanTeam", &Activity::IsHumanTeam)
-		.def("ResetMessageTimer", &Activity::ResetMessageTimer)
-		.def("SaveString", &Activity::SaveString)
-		.def("LoadString", &Activity::LoadString)
-		.def("SaveNumber", &Activity::SaveNumber)
-		.def("LoadNumber", &Activity::LoadNumber)
+		luaType["DeactivatePlayer"] = &Activity::DeactivatePlayer;
+		luaType["PlayerActive"] = &Activity::PlayerActive;
+		luaType["PlayerHuman"] = &Activity::PlayerHuman;
+		luaType["TeamActive"] = &Activity::TeamActive;
+		luaType["ForceSetTeamAsActive"] = &Activity::ForceSetTeamAsActive;
+		luaType["GetTeamOfPlayer"] = &Activity::GetTeamOfPlayer;
+		luaType["SetTeamOfPlayer"] = &Activity::SetTeamOfPlayer;
+		luaType["PlayersInTeamCount"] = &Activity::PlayersInTeamCount;
+		luaType["ScreenOfPlayer"] = &Activity::ScreenOfPlayer;
+		luaType["GetViewState"] = &Activity::GetViewState;
+		luaType["SetViewState"] = &Activity::SetViewState;
+		luaType["GetPlayerBrain"] = &Activity::GetPlayerBrain;
+		luaType["SetPlayerBrain"] = &Activity::SetPlayerBrain;
+		luaType["PlayerHadBrain"] = &Activity::PlayerHadBrain;
+		luaType["SetPlayerHadBrain"] = &Activity::SetPlayerHadBrain;
+		luaType["SetBrainEvacuated"] = &Activity::SetBrainEvacuated;
+		luaType["BrainWasEvacuated"] = &Activity::BrainWasEvacuated;
+		luaType["IsAssignedBrain"] = &Activity::IsAssignedBrain;
+		luaType["IsBrainOfWhichPlayer"] = &Activity::IsBrainOfWhichPlayer;
+		luaType["IsOtherPlayerBrain"] = &Activity::IsOtherPlayerBrain;
+		luaType["HumanBrainCount"] = &Activity::HumanBrainCount;
+		luaType["AIBrainCount"] = &Activity::AIBrainCount;
+		luaType["GetControlledActor"] = &Activity::GetControlledActor;
+		luaType["GetPlayerController"] = &Activity::GetPlayerController;
+		luaType["SetTeamFunds"] = &Activity::SetTeamFunds;
+		luaType["GetTeamFunds"] = &Activity::GetTeamFunds;
+		luaType["SetTeamAISkill"] = &Activity::SetTeamAISkill;
+		luaType["GetTeamAISkill"] = &Activity::GetTeamAISkill;
+		luaType["ChangeTeamFunds"] = &Activity::ChangeTeamFunds;
+		luaType["TeamFundsChanged"] = &Activity::TeamFundsChanged;
+		luaType["ReportDeath"] = &Activity::ReportDeath;
+		luaType["GetTeamDeathCount"] = &Activity::GetTeamDeathCount;
+		luaType["IsRunning"] = &Activity::IsRunning;
+		luaType["IsPaused"] = &Activity::IsPaused;
+		luaType["IsOver"] = &Activity::IsOver;
+		luaType["SwitchToActor"] = &Activity::SwitchToActor;
+		luaType["SwitchToNextActor"] = &Activity::SwitchToNextActor;
+		luaType["SwitchToPrevActor"] = &Activity::SwitchToPrevActor;
+		luaType["IsHumanTeam"] = &Activity::IsHumanTeam;
+		luaType["ResetMessageTimer"] = &Activity::ResetMessageTimer;
+		luaType["SaveString"] = &Activity::SaveString;
+		luaType["LoadString"] = &Activity::LoadString;
+		luaType["SaveNumber"] = &Activity::SaveNumber;
+		luaType["LoadNumber"] = &Activity::LoadNumber;
 
-		.enum_("Players")[
-			luabind::value("PLAYER_NONE", Players::NoPlayer),
-			luabind::value("PLAYER_1", Players::PlayerOne),
-			luabind::value("PLAYER_2", Players::PlayerTwo),
-			luabind::value("PLAYER_3", Players::PlayerThree),
-			luabind::value("PLAYER_4", Players::PlayerFour),
-			luabind::value("MAXPLAYERCOUNT", Players::MaxPlayerCount)
-		]
-		.enum_("ActivityState")[
-			luabind::value("NOACTIVITY", Activity::ActivityState::NoActivity),
-			luabind::value("NOTSTARTED", Activity::ActivityState::NotStarted),
-			luabind::value("STARTING", Activity::ActivityState::Starting),
-			luabind::value("EDITING", Activity::ActivityState::Editing),
-			luabind::value("PREGAME", Activity::ActivityState::PreGame),
-			luabind::value("RUNNING", Activity::ActivityState::Running),
-			luabind::value("INERROR", Activity::ActivityState::HasError),
-			luabind::value("OVER", Activity::ActivityState::Over)
-		]
-		.enum_("Team")[
-			luabind::value("NOTEAM", Activity::Teams::NoTeam),
-			luabind::value("TEAM_1", Activity::Teams::TeamOne),
-			luabind::value("TEAM_2", Activity::Teams::TeamTwo),
-			luabind::value("TEAM_3", Activity::Teams::TeamThree),
-			luabind::value("TEAM_4", Activity::Teams::TeamFour),
-			luabind::value("MAXTEAMCOUNT", Activity::Teams::MaxTeamCount)
-		]
-		.enum_("ViewState")[
-			luabind::value("NORMAL", Activity::ViewState::Normal),
-			luabind::value("OBSERVE", Activity::ViewState::Observe),
-			luabind::value("DEATHWATCH", Activity::ViewState::DeathWatch),
-			luabind::value("ACTORSELECT", Activity::ViewState::ActorSelect),
-			luabind::value("AISENTRYPOINT", Activity::ViewState::AISentryPoint),
-			luabind::value("AIPATROLPOINTS", Activity::ViewState::AIPatrolPoints),
-			luabind::value("AIGOLDDIGPOINT", Activity::ViewState::AIGoldDigPoint),
-			luabind::value("AIGOTOPOINT", Activity::ViewState::AIGoToPoint),
-			luabind::value("LZSELECT", Activity::ViewState::LandingZoneSelect)
-		]
-		.enum_("DifficultySetting")[
-			luabind::value("MINDIFFICULTY", Activity::DifficultySetting::MinDifficulty),
-			luabind::value("CAKEDIFFICULTY", Activity::DifficultySetting::CakeDifficulty),
-			luabind::value("EASYDIFFICULTY", Activity::DifficultySetting::EasyDifficulty),
-			luabind::value("MEDIUMDIFFICULTY", Activity::DifficultySetting::MediumDifficulty),
-			luabind::value("HARDDIFFICULTY", Activity::DifficultySetting::HardDifficulty),
-			luabind::value("NUTSDIFFICULTY", Activity::DifficultySetting::NutsDifficulty),
-			luabind::value("MAXDIFFICULTY", Activity::DifficultySetting::MaxDifficulty)
-		]
-		.enum_("AISkillSetting")[
-			luabind::value("MINSKILL", Activity::AISkillSetting::MinSkill),
-			luabind::value("INFERIORSKILL", Activity::AISkillSetting::InferiorSkill),
-			luabind::value("DEFAULTSKILL", Activity::AISkillSetting::DefaultSkill),
-			luabind::value("AVERAGESKILL", Activity::AISkillSetting::AverageSkill),
-			luabind::value("GOODSKILL", Activity::AISkillSetting::GoodSkill),
-			luabind::value("UNFAIRSKILL", Activity::AISkillSetting::UnfairSkill)
-		];
+		luaType.new_enum("Players", EnumList(Players) {
+			{ "PLAYER_NONE", Players::NoPlayer },
+			{ "PLAYER_1", Players::PlayerOne },
+			{ "PLAYER_2", Players::PlayerTwo },
+			{ "PLAYER_3", Players::PlayerThree },
+			{ "PLAYER_4", Players::PlayerFour },
+			{ "MAXPLAYERCOUNT", Players::MaxPlayerCount }
+		});
+		luaType.new_enum("ActivityState", EnumList(Activity::ActivityState) {
+			{ "NOACTIVITY", Activity::ActivityState::NoActivity },
+			{ "NOTSTARTED", Activity::ActivityState::NotStarted },
+			{ "STARTING", Activity::ActivityState::Starting },
+			{ "EDITING", Activity::ActivityState::Editing },
+			{ "PREGAME", Activity::ActivityState::PreGame },
+			{ "RUNNING", Activity::ActivityState::Running },
+			{ "INERROR", Activity::ActivityState::HasError },
+			{ "OVER", Activity::ActivityState::Over }
+		});
+		luaType.new_enum("Team", EnumList(Activity::Teams) {
+			{ "NOTEAM", Activity::Teams::NoTeam },
+			{ "TEAM_1", Activity::Teams::TeamOne },
+			{ "TEAM_2", Activity::Teams::TeamTwo },
+			{ "TEAM_3", Activity::Teams::TeamThree },
+			{ "TEAM_4", Activity::Teams::TeamFour },
+			{ "MAXTEAMCOUNT", Activity::Teams::MaxTeamCount }
+		});
+		luaType.new_enum("ViewState", EnumList(Activity::ViewState) {
+			{ "NORMAL", Activity::ViewState::Normal },
+			{ "OBSERVE", Activity::ViewState::Observe },
+			{ "DEATHWATCH", Activity::ViewState::DeathWatch },
+			{ "ACTORSELECT", Activity::ViewState::ActorSelect },
+			{ "AISENTRYPOINT", Activity::ViewState::AISentryPoint },
+			{ "AIPATROLPOINTS", Activity::ViewState::AIPatrolPoints },
+			{ "AIGOLDDIGPOINT", Activity::ViewState::AIGoldDigPoint },
+			{ "AIGOTOPOINT", Activity::ViewState::AIGoToPoint },
+			{ "LZSELECT", Activity::ViewState::LandingZoneSelect }
+		});
+		luaType.new_enum("DifficultySetting", EnumList(Activity::DifficultySetting) {
+			{ "MINDIFFICULTY", Activity::DifficultySetting::MinDifficulty },
+			{ "CAKEDIFFICULTY", Activity::DifficultySetting::CakeDifficulty },
+			{ "EASYDIFFICULTY", Activity::DifficultySetting::EasyDifficulty },
+			{ "MEDIUMDIFFICULTY", Activity::DifficultySetting::MediumDifficulty },
+			{ "HARDDIFFICULTY", Activity::DifficultySetting::HardDifficulty },
+			{ "NUTSDIFFICULTY", Activity::DifficultySetting::NutsDifficulty },
+			{ "MAXDIFFICULTY", Activity::DifficultySetting::MaxDifficulty }
+		});
+		luaType.new_enum("AISkillSetting", EnumList(Activity::AISkillSetting) {
+			{ "MINSKILL", Activity::AISkillSetting::MinSkill },
+			{ "INFERIORSKILL", Activity::AISkillSetting::InferiorSkill },
+			{ "DEFAULTSKILL", Activity::AISkillSetting::DefaultSkill },
+			{ "AVERAGESKILL", Activity::AISkillSetting::AverageSkill },
+			{ "GOODSKILL", Activity::AISkillSetting::GoodSkill },
+			{ "UNFAIRSKILL", Activity::AISkillSetting::UnfairSkill }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, GameActivity) {
-		return luabind::class_<GameActivity, Activity>("GameActivity")
+		auto luaType = SimpleTypeLuaClassDefinition(GameActivity);
 
-		.def(luabind::constructor<>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			GameActivity()
+		>());
 
-		.property("WinnerTeam", &GameActivity::GetWinnerTeam, &GameActivity::SetWinnerTeam)
-		.property("CPUTeam", &GameActivity::GetCPUTeam, &GameActivity::SetCPUTeam)
-		.property("DeliveryDelay", &GameActivity::GetDeliveryDelay, &GameActivity::SetDeliveryDelay)
-		.property("BuyMenuEnabled", &GameActivity::GetBuyMenuEnabled, &GameActivity::SetBuyMenuEnabled)
-		.property("CraftsOrbitAtTheEdge", &GameActivity::GetCraftOrbitAtTheEdge, &GameActivity::SetCraftOrbitAtTheEdge)
+		luaType["WinnerTeam"] = sol::property(&GameActivity::GetWinnerTeam, &GameActivity::SetWinnerTeam);
+		luaType["CPUTeam"] = sol::property(&GameActivity::GetCPUTeam, &GameActivity::SetCPUTeam);
+		luaType["DeliveryDelay"] = sol::property(&GameActivity::GetDeliveryDelay, &GameActivity::SetDeliveryDelay);
+		luaType["BuyMenuEnabled"] = sol::property(&GameActivity::GetBuyMenuEnabled, &GameActivity::SetBuyMenuEnabled);
+		luaType["CraftsOrbitAtTheEdge"] = sol::property(&GameActivity::GetCraftOrbitAtTheEdge, &GameActivity::SetCraftOrbitAtTheEdge);
 
-		//.def_readwrite("ActorCursor", &GameActivity::m_ActorCursor)
-		.def_readwrite("CursorTimer", &GameActivity::m_CursorTimer)
-		.def_readwrite("GameTimer", &GameActivity::m_GameTimer)
-		.def_readwrite("GameOverTimer", &GameActivity::m_GameOverTimer)
-		.def_readwrite("GameOverPeriod", &GameActivity::m_GameOverPeriod)
+		//luaType["ActorCursor"] = &GameActivity::m_ActorCursor;
+		luaType["CursorTimer"] = &GameActivity::m_CursorTimer;
+		luaType["GameTimer"] = &GameActivity::m_GameTimer;
+		luaType["GameOverTimer"] = &GameActivity::m_GameOverTimer;
+		luaType["GameOverPeriod"] = &GameActivity::m_GameOverPeriod;
 
-		.def("SetObservationTarget", &GameActivity::SetObservationTarget)
-		.def("SetDeathViewTarget", &GameActivity::SetDeathViewTarget)
-		.def("SetLandingZone", &GameActivity::SetLandingZone)
-		.def("GetLandingZone", &GameActivity::GetLandingZone)
-		.def("SetActorSelectCursor", &GameActivity::SetActorSelectCursor)
-		.def("GetBuyGUI", &GameActivity::GetBuyGUI)
-		.def("GetEditorGUI", &GameActivity::GetEditorGUI)
-		.def("OtherTeam", &GameActivity::OtherTeam)
-		.def("OneOrNoneTeamsLeft", &GameActivity::OneOrNoneTeamsLeft)
-		.def("WhichTeamLeft", &GameActivity::WhichTeamLeft)
-		.def("NoTeamLeft", &GameActivity::NoTeamLeft)
-		.def("OnlyOneTeamLeft", &GameActivity::OneOrNoneTeamsLeft) // Backwards compat
-		.def("GetBanner", &GameActivity::GetBanner)
-		.def("SetLZArea", &GameActivity::SetLZArea)
-		.def("GetLZArea", &GameActivity::GetLZArea)
-		.def("SetBrainLZWidth", &GameActivity::SetBrainLZWidth)
-		.def("GetBrainLZWidth", &GameActivity::GetBrainLZWidth)
-		.def("GetActiveCPUTeamCount", &GameActivity::GetActiveCPUTeamCount)
-		.def("GetActiveHumanTeamCount", &GameActivity::GetActiveHumanTeamCount)
-		.def("AddObjectivePoint", &GameActivity::AddObjectivePoint)
-		.def("YSortObjectivePoints", &GameActivity::YSortObjectivePoints)
-		.def("ClearObjectivePoints", &GameActivity::ClearObjectivePoints)
-		.def("AddOverridePurchase", &GameActivity::AddOverridePurchase)
-		.def("SetOverridePurchaseList", (int (GameActivity::*)(const Loadout *, int))&GameActivity::SetOverridePurchaseList)
-		.def("SetOverridePurchaseList", (int (GameActivity::*)(std::string, int))&GameActivity::SetOverridePurchaseList)
-		.def("ClearOverridePurchase", &GameActivity::ClearOverridePurchase)
-		.def("CreateDelivery", (bool (GameActivity::*)(int))&GameActivity::CreateDelivery)
-		.def("CreateDelivery", (bool (GameActivity::*)(int, int))&GameActivity::CreateDelivery)
-		.def("CreateDelivery", (bool (GameActivity::*)(int, int, Vector&))&GameActivity::CreateDelivery)
-		.def("CreateDelivery", (bool (GameActivity::*)(int, int, Actor*))&GameActivity::CreateDelivery)
-		.def("GetDeliveryCount", &GameActivity::GetDeliveryCount)
-		.def("GetTeamTech", &GameActivity::GetTeamTech)
-		.def("SetTeamTech", &GameActivity::SetTeamTech)
-		.def("GetCrabToHumanSpawnRatio", &GameActivity::GetCrabToHumanSpawnRatio)
-		.def("TeamIsCPU", &GameActivity::TeamIsCPU)
-		.def("GetStartingGold", &GameActivity::GetStartingGold)
-		.def("GetFogOfWarEnabled", &GameActivity::GetFogOfWarEnabled)
-		.def("UpdateEditing", &GameActivity::UpdateEditing)
-		.def("DisableAIs", &GameActivity::DisableAIs)
-		.def("InitAIs", &GameActivity::InitAIs)
+		luaType["SetObservationTarget"] = &GameActivity::SetObservationTarget;
+		luaType["SetDeathViewTarget"] = &GameActivity::SetDeathViewTarget;
+		luaType["SetLandingZone"] = &GameActivity::SetLandingZone;
+		luaType["GetLandingZone"] = &GameActivity::GetLandingZone;
+		luaType["SetActorSelectCursor"] = &GameActivity::SetActorSelectCursor;
+		luaType["GetBuyGUI"] = &GameActivity::GetBuyGUI;
+		luaType["GetEditorGUI"] = &GameActivity::GetEditorGUI;
+		luaType["OtherTeam"] = &GameActivity::OtherTeam;
+		luaType["OneOrNoneTeamsLeft"] = &GameActivity::OneOrNoneTeamsLeft;
+		luaType["WhichTeamLeft"] = &GameActivity::WhichTeamLeft;
+		luaType["NoTeamLeft"] = &GameActivity::NoTeamLeft;
+		luaType["OnlyOneTeamLeft"] = &GameActivity::OneOrNoneTeamsLeft; // Backwards compat
+		luaType["GetBanner"] = &GameActivity::GetBanner;
+		luaType["SetLZArea"] = &GameActivity::SetLZArea;
+		luaType["GetLZArea"] = &GameActivity::GetLZArea;
+		luaType["SetBrainLZWidth"] = &GameActivity::SetBrainLZWidth;
+		luaType["GetBrainLZWidth"] = &GameActivity::GetBrainLZWidth;
+		luaType["GetActiveCPUTeamCount"] = &GameActivity::GetActiveCPUTeamCount;
+		luaType["GetActiveHumanTeamCount"] = &GameActivity::GetActiveHumanTeamCount;
+		luaType["AddObjectivePoint"] = &GameActivity::AddObjectivePoint;
+		luaType["YSortObjectivePoints"] = &GameActivity::YSortObjectivePoints;
+		luaType["ClearObjectivePoints"] = &GameActivity::ClearObjectivePoints;
+		luaType["AddOverridePurchase"] = &GameActivity::AddOverridePurchase;
+		luaType["SetOverridePurchaseList"] = (int (GameActivity::*)(const Loadout *, int))&GameActivity::SetOverridePurchaseList;
+		luaType["SetOverridePurchaseList"] = (int (GameActivity::*)(std::string, int))&GameActivity::SetOverridePurchaseList;
+		luaType["ClearOverridePurchase"] = &GameActivity::ClearOverridePurchase;
+		luaType["CreateDelivery"] = (bool (GameActivity::*)(int))&GameActivity::CreateDelivery;
+		luaType["CreateDelivery"] = (bool (GameActivity::*)(int, int))&GameActivity::CreateDelivery;
+		luaType["CreateDelivery"] = (bool (GameActivity::*)(int, int, Vector&))&GameActivity::CreateDelivery;
+		luaType["CreateDelivery"] = (bool (GameActivity::*)(int, int, Actor*))&GameActivity::CreateDelivery;
+		luaType["GetDeliveryCount"] = &GameActivity::GetDeliveryCount;
+		luaType["GetTeamTech"] = &GameActivity::GetTeamTech;
+		luaType["SetTeamTech"] = &GameActivity::SetTeamTech;
+		luaType["GetCrabToHumanSpawnRatio"] = &GameActivity::GetCrabToHumanSpawnRatio;
+		luaType["TeamIsCPU"] = &GameActivity::TeamIsCPU;
+		luaType["GetStartingGold"] = &GameActivity::GetStartingGold;
+		luaType["GetFogOfWarEnabled"] = &GameActivity::GetFogOfWarEnabled;
+		luaType["UpdateEditing"] = &GameActivity::UpdateEditing;
+		luaType["DisableAIs"] = &GameActivity::DisableAIs;
+		luaType["InitAIs"] = &GameActivity::InitAIs;
 
-		.enum_("ObjectiveArrowDir")[
-			luabind::value("ARROWDOWN", GameActivity::ObjectiveArrowDir::ARROWDOWN),
-			luabind::value("ARROWLEFT", GameActivity::ObjectiveArrowDir::ARROWLEFT),
-			luabind::value("ARROWRIGHT", GameActivity::ObjectiveArrowDir::ARROWRIGHT),
-			luabind::value("ARROWUP", GameActivity::ObjectiveArrowDir::ARROWUP)
-		];
+		luaType.new_enum("ObjectiveArrowDir", EnumList(GameActivity::ObjectiveArrowDir) {
+			{ "ARROWDOWN", GameActivity::ObjectiveArrowDir::ARROWDOWN },
+			{ "ARROWLEFT", GameActivity::ObjectiveArrowDir::ARROWLEFT },
+			{ "ARROWRIGHT", GameActivity::ObjectiveArrowDir::ARROWRIGHT },
+			{ "ARROWUP", GameActivity::ObjectiveArrowDir::ARROWUP }
+		});
 	}
 }

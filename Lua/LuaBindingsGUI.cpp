@@ -7,97 +7,97 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, GUIBanner) {
-		return luabind::class_<GUIBanner>("GUIBanner")
+		auto luaType = SimpleTypeLuaClassDefinition(GUIBanner);
 
-		.property("BannerText", &GUIBanner::GetBannerText)
-		.property("AnimState", &GUIBanner::GetAnimState)
-		.property("Kerning", &GUIBanner::GetKerning, &GUIBanner::SetKerning)
+		luaType["BannerText"] = sol::property(&GUIBanner::GetBannerText);
+		luaType["AnimState"] = sol::property(&GUIBanner::GetAnimState);
+		luaType["Kerning"] = sol::property(&GUIBanner::GetKerning, &GUIBanner::SetKerning);
 
-		.def("IsVisible", &GUIBanner::IsVisible)
-		.def("ShowText", &GUIBanner::ShowText)
-		.def("HideText", &GUIBanner::HideText)
-		.def("ClearText", &GUIBanner::ClearText)
+		luaType["IsVisible"] = &GUIBanner::IsVisible;
+		luaType["ShowText"] = &GUIBanner::ShowText;
+		luaType["HideText"] = &GUIBanner::HideText;
+		luaType["ClearText"] = &GUIBanner::ClearText;
 
-		.enum_("AnimMode")[
-			luabind::value("BLINKING", GUIBanner::AnimMode::BLINKING),
-			luabind::value("FLYBYLEFTWARD", GUIBanner::AnimMode::FLYBYLEFTWARD),
-			luabind::value("FLYBYRIGHTWARD", GUIBanner::AnimMode::FLYBYRIGHTWARD),
-			luabind::value("ANIMMODECOUNT", GUIBanner::AnimMode::ANIMMODECOUNT)
-		]
-		.enum_("AnimState")[
-			luabind::value("NOTSTARTED", GUIBanner::AnimState::NOTSTARTED),
-			luabind::value("SHOWING", GUIBanner::AnimState::SHOWING),
-			luabind::value("SHOW", GUIBanner::AnimState::SHOW),
-			luabind::value("HIDING", GUIBanner::AnimState::HIDING),
-			luabind::value("OVER", GUIBanner::AnimState::OVER),
-			luabind::value("ANIMSTATECOUNT", GUIBanner::AnimState::ANIMSTATECOUNT)
-		]
-		.enum_("BannerColor")[
-			luabind::value("RED", GameActivity::BannerColor::RED),
-			luabind::value("YELLOW", GameActivity::BannerColor::YELLOW)
-		];
+		luaType.new_enum("AnimMode", EnumList(GUIBanner::AnimMode) {
+			{ "BLINKING", GUIBanner::AnimMode::BLINKING },
+			{ "FLYBYLEFTWARD", GUIBanner::AnimMode::FLYBYLEFTWARD },
+			{ "FLYBYRIGHTWARD", GUIBanner::AnimMode::FLYBYRIGHTWARD },
+			{ "ANIMMODECOUNT", GUIBanner::AnimMode::ANIMMODECOUNT }
+		});
+		luaType.new_enum("AnimState", EnumList(GUIBanner::AnimState) {
+			{ "NOTSTARTED", GUIBanner::AnimState::NOTSTARTED },
+			{ "SHOWING", GUIBanner::AnimState::SHOWING },
+			{ "SHOW", GUIBanner::AnimState::SHOW },
+			{ "HIDING", GUIBanner::AnimState::HIDING },
+			{ "OVER", GUIBanner::AnimState::OVER },
+			{ "ANIMSTATECOUNT", GUIBanner::AnimState::ANIMSTATECOUNT }
+		});
+		luaType.new_enum("BannerColor", EnumList(GameActivity::BannerColor) {
+			{ "RED", GameActivity::BannerColor::RED },
+			{ "YELLOW", GameActivity::BannerColor::YELLOW }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, BuyMenuGUI) {
-		return luabind::class_<BuyMenuGUI>("BuyMenuGUI")
+		auto luaType = SimpleTypeLuaClassDefinition(BuyMenuGUI);
 
-		.property("ShowOnlyOwnedItems", &BuyMenuGUI::GetOnlyShowOwnedItems, &BuyMenuGUI::SetOnlyShowOwnedItems)
-		.property("EnforceMaxPassengersConstraint", &BuyMenuGUI::EnforceMaxPassengersConstraint, &BuyMenuGUI::SetEnforceMaxPassengersConstraint)
-		.property("EnforceMaxMassConstraint", &BuyMenuGUI::EnforceMaxMassConstraint, &BuyMenuGUI::SetEnforceMaxMassConstraint)
+		luaType["ShowOnlyOwnedItems"] = sol::property(&BuyMenuGUI::GetOnlyShowOwnedItems, &BuyMenuGUI::SetOnlyShowOwnedItems);
+		luaType["EnforceMaxPassengersConstraint"] = sol::property(&BuyMenuGUI::EnforceMaxPassengersConstraint, &BuyMenuGUI::SetEnforceMaxPassengersConstraint);
+		luaType["EnforceMaxMassConstraint"] = sol::property(&BuyMenuGUI::EnforceMaxMassConstraint, &BuyMenuGUI::SetEnforceMaxMassConstraint);
 
-		.def("SetMetaPlayer", &BuyMenuGUI::SetMetaPlayer)
-		.def("SetNativeTechModule", &BuyMenuGUI::SetNativeTechModule)
-		.def("SetForeignCostMultiplier", &BuyMenuGUI::SetForeignCostMultiplier)
-		.def("SetModuleExpanded", &BuyMenuGUI::SetModuleExpanded)
-		.def("LoadAllLoadoutsFromFile", &BuyMenuGUI::LoadAllLoadoutsFromFile)
-		.def("AddAllowedItem", &BuyMenuGUI::AddAllowedItem)
-		.def("RemoveAllowedItem", &BuyMenuGUI::RemoveAllowedItem)
-		.def("ClearAllowedItems", &BuyMenuGUI::ClearAllowedItems)
-		.def("AddAlwaysAllowedItem", &BuyMenuGUI::AddAlwaysAllowedItem)
-		.def("RemoveAlwaysAllowedItem", &BuyMenuGUI::RemoveAlwaysAllowedItem)
-		.def("ClearAlwaysAllowedItems", &BuyMenuGUI::ClearAlwaysAllowedItems)
-		.def("AddProhibitedItem", &BuyMenuGUI::AddProhibitedItem)
-		.def("RemoveProhibitedItem", &BuyMenuGUI::RemoveProhibitedItem)
-		.def("ClearProhibitedItems", &BuyMenuGUI::ClearProhibitedItems)
-		.def("ForceRefresh", &BuyMenuGUI::ForceRefresh)
-		.def("SetOwnedItemsAmount", &BuyMenuGUI::SetOwnedItemsAmount)
-		.def("GetOwnedItemsAmount", &BuyMenuGUI::GetOwnedItemsAmount)
-		.def("SetBannerImage", &BuyMenuGUI::SetBannerImage)
-		.def("SetLogoImage", &BuyMenuGUI::SetLogoImage)
-		.def("ClearCartList", &BuyMenuGUI::ClearCartList)
-		.def("LoadDefaultLoadoutToCart", &BuyMenuGUI::LoadDefaultLoadoutToCart);
+		luaType["SetMetaPlayer"] = &BuyMenuGUI::SetMetaPlayer;
+		luaType["SetNativeTechModule"] = &BuyMenuGUI::SetNativeTechModule;
+		luaType["SetForeignCostMultiplier"] = &BuyMenuGUI::SetForeignCostMultiplier;
+		luaType["SetModuleExpanded"] = &BuyMenuGUI::SetModuleExpanded;
+		luaType["LoadAllLoadoutsFromFile"] = &BuyMenuGUI::LoadAllLoadoutsFromFile;
+		luaType["AddAllowedItem"] = &BuyMenuGUI::AddAllowedItem;
+		luaType["RemoveAllowedItem"] = &BuyMenuGUI::RemoveAllowedItem;
+		luaType["ClearAllowedItems"] = &BuyMenuGUI::ClearAllowedItems;
+		luaType["AddAlwaysAllowedItem"] = &BuyMenuGUI::AddAlwaysAllowedItem;
+		luaType["RemoveAlwaysAllowedItem"] = &BuyMenuGUI::RemoveAlwaysAllowedItem;
+		luaType["ClearAlwaysAllowedItems"] = &BuyMenuGUI::ClearAlwaysAllowedItems;
+		luaType["AddProhibitedItem"] = &BuyMenuGUI::AddProhibitedItem;
+		luaType["RemoveProhibitedItem"] = &BuyMenuGUI::RemoveProhibitedItem;
+		luaType["ClearProhibitedItems"] = &BuyMenuGUI::ClearProhibitedItems;
+		luaType["ForceRefresh"] = &BuyMenuGUI::ForceRefresh;
+		luaType["SetOwnedItemsAmount"] = &BuyMenuGUI::SetOwnedItemsAmount;
+		luaType["GetOwnedItemsAmount"] = &BuyMenuGUI::GetOwnedItemsAmount;
+		luaType["SetBannerImage"] = &BuyMenuGUI::SetBannerImage;
+		luaType["SetLogoImage"] = &BuyMenuGUI::SetLogoImage;
+		luaType["ClearCartList"] = &BuyMenuGUI::ClearCartList;
+		luaType["LoadDefaultLoadoutToCart"] = &BuyMenuGUI::LoadDefaultLoadoutToCart;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, SceneEditorGUI) {
-		return luabind::class_<SceneEditorGUI>("SceneEditorGUI")
+		auto luaType = SimpleTypeLuaClassDefinition(SceneEditorGUI);
 
-		.property("EditorMode", &SceneEditorGUI::GetEditorGUIMode, &SceneEditorGUI::SetEditorGUIMode)
+		luaType["EditorMode"] = sol::property(&SceneEditorGUI::GetEditorGUIMode, &SceneEditorGUI::SetEditorGUIMode);
 
-		.def("SetCursorPos", &SceneEditorGUI::SetCursorPos)
-		.def("GetCurrentObject", &SceneEditorGUI::GetCurrentObject)
-		.def("SetCurrentObject", &SceneEditorGUI::SetCurrentObject)
-		.def("SetModuleSpace", &SceneEditorGUI::SetModuleSpace)
-		.def("SetNativeTechModule", &SceneEditorGUI::SetNativeTechModule)
-		.def("SetForeignCostMultiplier", &SceneEditorGUI::SetForeignCostMultiplier)
-		.def("TestBrainResidence", &SceneEditorGUI::TestBrainResidence)
-		.def("Update", &SceneEditorGUI::Update) //Gacyr Note: I hate this being here but it's necessary for some metagame bullshit.
+		luaType["SetCursorPos"] = &SceneEditorGUI::SetCursorPos;
+		luaType["GetCurrentObject"] = &SceneEditorGUI::GetCurrentObject;
+		luaType["SetCurrentObject"] = &SceneEditorGUI::SetCurrentObject;
+		luaType["SetModuleSpace"] = &SceneEditorGUI::SetModuleSpace;
+		luaType["SetNativeTechModule"] = &SceneEditorGUI::SetNativeTechModule;
+		luaType["SetForeignCostMultiplier"] = &SceneEditorGUI::SetForeignCostMultiplier;
+		luaType["TestBrainResidence"] = &SceneEditorGUI::TestBrainResidence;
+		luaType["Update"] = &SceneEditorGUI::Update; //Gacyr Note: I hate this being here but it's necessary for some metagame bullshit.
 
-		.enum_("EditorGUIMode")[
-			luabind::value("INACTIVE", SceneEditorGUI::EditorGUIMode::INACTIVE),
-			luabind::value("PICKINGOBJECT", SceneEditorGUI::EditorGUIMode::PICKINGOBJECT),
-			luabind::value("ADDINGOBJECT", SceneEditorGUI::EditorGUIMode::ADDINGOBJECT),
-			luabind::value("INSTALLINGBRAIN", SceneEditorGUI::EditorGUIMode::INSTALLINGBRAIN),
-			luabind::value("PLACINGOBJECT", SceneEditorGUI::EditorGUIMode::PLACINGOBJECT),
-			luabind::value("MOVINGOBJECT", SceneEditorGUI::EditorGUIMode::MOVINGOBJECT),
-			luabind::value("DELETINGOBJECT", SceneEditorGUI::EditorGUIMode::DELETINGOBJECT),
-			luabind::value("PLACEINFRONT", SceneEditorGUI::EditorGUIMode::PLACEINFRONT),
-			luabind::value("PLACEBEHIND", SceneEditorGUI::EditorGUIMode::PLACEBEHIND),
-			luabind::value("DONEEDITING", SceneEditorGUI::EditorGUIMode::DONEEDITING),
-			luabind::value("EDITORGUIMODECOUNT", SceneEditorGUI::EditorGUIMode::EDITORGUIMODECOUNT)
-		];
+		luaType.new_enum("EditorGUIMode", EnumList(SceneEditorGUI::EditorGUIMode) {
+			{ "INACTIVE", SceneEditorGUI::EditorGUIMode::INACTIVE },
+			{ "PICKINGOBJECT", SceneEditorGUI::EditorGUIMode::PICKINGOBJECT },
+			{ "ADDINGOBJECT", SceneEditorGUI::EditorGUIMode::ADDINGOBJECT },
+			{ "INSTALLINGBRAIN", SceneEditorGUI::EditorGUIMode::INSTALLINGBRAIN },
+			{ "PLACINGOBJECT", SceneEditorGUI::EditorGUIMode::PLACINGOBJECT },
+			{ "MOVINGOBJECT", SceneEditorGUI::EditorGUIMode::MOVINGOBJECT },
+			{ "DELETINGOBJECT", SceneEditorGUI::EditorGUIMode::DELETINGOBJECT },
+			{ "PLACEINFRONT", SceneEditorGUI::EditorGUIMode::PLACEINFRONT },
+			{ "PLACEBEHIND", SceneEditorGUI::EditorGUIMode::PLACEBEHIND },
+			{ "DONEEDITING", SceneEditorGUI::EditorGUIMode::DONEEDITING },
+			{ "EDITORGUIMODECOUNT", SceneEditorGUI::EditorGUIMode::EDITORGUIMODECOUNT }
+		});
 	}
 }

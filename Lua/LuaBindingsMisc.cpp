@@ -7,50 +7,48 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, AlarmEvent) {
-		return luabind::class_<AlarmEvent>("AlarmEvent")
+		auto luaType = SimpleTypeLuaClassDefinition(AlarmEvent);
 
-		.def(luabind::constructor<>())
-		.def(luabind::constructor<const Vector &, int, float>())
+		luaType.set(sol::meta_function::construct, sol::constructors<
+			AlarmEvent(), 
+			AlarmEvent(const Vector&, int, float)
+		>());
 
-		.def_readwrite("ScenePos", &AlarmEvent::m_ScenePos)
-		.def_readwrite("Team", &AlarmEvent::m_Team)
-		.def_readwrite("Range", &AlarmEvent::m_Range);
+		luaType["ScenePos"] = &AlarmEvent::m_ScenePos;
+		luaType["Team"] = &AlarmEvent::m_Team;
+		luaType["Range"] = &AlarmEvent::m_Range;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, Directions) {
-		return luabind::class_<directions>("Directions")
-
-		.enum_("Directions")[
-			luabind::value("None", Directions::None),
-			luabind::value("Up", Directions::Up),
-			luabind::value("Down", Directions::Down),
-			luabind::value("Left", Directions::Left),
-			luabind::value("Right", Directions::Right),
-			luabind::value("Any", Directions::Any)
-		];
+		EnumTypeLuaClassDefinition("Directions", EnumList(Directions) {
+			{ "None", Directions::None },
+			{ "Up", Directions::Up },
+			{ "Down", Directions::Down },
+			{ "Left", Directions::Left },
+			{ "Right", Directions::Right },
+			{ "Any", Directions::Any }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, DrawBlendMode) {
-		return luabind::class_<blend_modes>("DrawBlendMode")
-
-		.enum_("DrawBlendMode")[
-			luabind::value("NoBlend", DrawBlendMode::NoBlend),
-			luabind::value("Burn", DrawBlendMode::BlendBurn),
-			luabind::value("Color", DrawBlendMode::BlendColor),
-			luabind::value("Difference", DrawBlendMode::BlendDifference),
-			luabind::value("Dissolve", DrawBlendMode::BlendDissolve),
-			luabind::value("Dodge", DrawBlendMode::BlendDodge),
-			luabind::value("Invert", DrawBlendMode::BlendInvert),
-			luabind::value("Luminance", DrawBlendMode::BlendLuminance),
-			luabind::value("Multiply", DrawBlendMode::BlendMultiply),
-			luabind::value("Saturation", DrawBlendMode::BlendSaturation),
-			luabind::value("Screen", DrawBlendMode::BlendScreen),
-			luabind::value("Transparency", DrawBlendMode::BlendTransparency),
-			luabind::value("BlendModeCount", DrawBlendMode::BlendModeCount)
-		];
+		EnumTypeLuaClassDefinition("DrawBlendMode", EnumList(DrawBlendMode) {
+			{ "NoBlend", DrawBlendMode::NoBlend },
+			{ "Burn", DrawBlendMode::BlendBurn },
+			{ "Color", DrawBlendMode::BlendColor },
+			{ "Difference", DrawBlendMode::BlendDifference },
+			{ "Dissolve", DrawBlendMode::BlendDissolve },
+			{ "Dodge", DrawBlendMode::BlendDodge },
+			{ "Invert", DrawBlendMode::BlendInvert },
+			{ "Luminance", DrawBlendMode::BlendLuminance },
+			{ "Multiply", DrawBlendMode::BlendMultiply },
+			{ "Saturation", DrawBlendMode::BlendSaturation },
+			{ "Screen", DrawBlendMode::BlendScreen },
+			{ "Transparency", DrawBlendMode::BlendTransparency },
+			{ "BlendModeCount", DrawBlendMode::BlendModeCount }
+		});
 	}
 }
