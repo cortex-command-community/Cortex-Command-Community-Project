@@ -78,23 +78,23 @@ namespace RTE {
 		luaType["GetLimbPathSpeed"] = &ACrab::GetLimbPathSpeed;
 		luaType["SetLimbPathSpeed"] = &ACrab::SetLimbPathSpeed;
 
-		luaType.new_enum("MovementState", EnumList(ACrab::MovementState) {
+		luaType.new_enum<ACrab::MovementState>("MovementState", {
 			{ "STAND", ACrab::MovementState::STAND },
 			{ "WALK", ACrab::MovementState::WALK },
 			{ "JUMP", ACrab::MovementState::JUMP },
 			{ "DISLODGE", ACrab::MovementState::DISLODGE },
 			{ "MOVEMENTSTATECOUNT", ACrab::MovementState::MOVEMENTSTATECOUNT }
 		});
-		luaType.new_enum("Side", EnumList(ACrab::Side) {
+		luaType.new_enum<ACrab::Side>("Side", {
 			{ "LEFTSIDE", ACrab::Side::LEFTSIDE },
 			{ "RIGHTSIDE", ACrab::Side::RIGHTSIDE },
 			{ "SIDECOUNT", ACrab::Side::SIDECOUNT }
 		});
-		luaType.new_enum("Layer", EnumList(ACrab::Layer) {
+		luaType.new_enum<ACrab::Layer>("Layer", {
 			{ "FGROUND", ACrab::Layer::FGROUND },
 			{ "BGROUND", ACrab::Layer::BGROUND }
 		});
-		luaType.new_enum("DeviceHandlingState", EnumList(ACrab::DeviceHandlingState) {
+		luaType.new_enum<ACrab::DeviceHandlingState>("DeviceHandlingState", {
 			{ "STILL", ACrab::DeviceHandlingState::STILL },
 			{ "POINTING", ACrab::DeviceHandlingState::POINTING },
 			{ "SCANNING", ACrab::DeviceHandlingState::SCANNING },
@@ -103,14 +103,14 @@ namespace RTE {
 			{ "THROWING", ACrab::DeviceHandlingState::THROWING },
 			{ "DIGGING", ACrab::DeviceHandlingState::DIGGING }
 		});
-		luaType.new_enum("SweepState", EnumList(ACrab::SweepState) {
+		luaType.new_enum<ACrab::SweepState>("SweepState", {
 			{ "NOSWEEP", ACrab::SweepState::NOSWEEP },
 			{ "SWEEPINGUP", ACrab::SweepState::SWEEPINGUP },
 			{ "SWEEPUPPAUSE", ACrab::SweepState::SWEEPUPPAUSE },
 			{ "SWEEPINGDOWN", ACrab::SweepState::SWEEPINGDOWN },
 			{ "SWEEPDOWNPAUSE", ACrab::SweepState::SWEEPDOWNPAUSE }
 		});
-		luaType.new_enum("DigState", EnumList(ACrab::DigState) {
+		luaType.new_enum<ACrab::DigState>("DigState", {
 			{ "NOTDIGGING", ACrab::DigState::NOTDIGGING },
 			{ "PREDIG", ACrab::DigState::PREDIG },
 			{ "STARTDIG", ACrab::DigState::STARTDIG },
@@ -118,7 +118,7 @@ namespace RTE {
 			{ "FINISHINGDIG", ACrab::DigState::FINISHINGDIG },
 			{ "PAUSEDIGGER", ACrab::DigState::PAUSEDIGGER }
 		});
-		luaType.new_enum("JumpState", EnumList(ACrab::JumpState) {
+		luaType.new_enum<ACrab::JumpState>("JumpState", {
 			{ "NOTJUMPING", ACrab::JumpState::NOTJUMPING },
 			{ "FORWARDJUMP", ACrab::JumpState::FORWARDJUMP },
 			{ "PREJUMP", ACrab::JumpState::PREUPJUMP },
@@ -145,18 +145,18 @@ namespace RTE {
 		luaType["OpenHatch"] = &ACraft::OpenHatch;
 		luaType["CloseHatch"] = &ACraft::CloseHatch;
 
-		luaType.new_enum("HatchState", EnumList(ACraft::HatchState) {
+		luaType.new_enum<ACraft::HatchState>("HatchState", {
 			{ "CLOSED", ACraft::HatchState::CLOSED },
 			{ "OPENING", ACraft::HatchState::OPENING },
 			{ "OPEN", ACraft::HatchState::OPEN },
 			{ "CLOSING", ACraft::HatchState::CLOSING },
 			{ "HatchStateCount", ACraft::HatchState::HatchStateCount }
 		});
-		luaType.new_enum("Side", EnumList(ACraft::Side) {
+		luaType.new_enum<ACraft::Side>("Side", {
 			{ "RIGHT", ACraft::Side::RIGHT },
 			{ "LEFT", ACraft::Side::LEFT }
 		});
-		luaType.new_enum("CraftDeliverySequence", EnumList(ACraft::CraftDeliverySequence) {
+		luaType.new_enum<ACraft::CraftDeliverySequence>("CraftDeliverySequence", {
 			{ "FALL", ACraft::CraftDeliverySequence::FALL },
 			{ "LAND", ACraft::CraftDeliverySequence::LAND },
 			{ "STANDBY", ACraft::CraftDeliverySequence::STANDBY },
@@ -164,7 +164,7 @@ namespace RTE {
 			{ "LAUNCH", ACraft::CraftDeliverySequence::LAUNCH },
 			{ "UNSTICK", ACraft::CraftDeliverySequence::UNSTICK }
 		});
-		luaType.new_enum("AltitudeMoveState", EnumList(ACraft::AltitudeMoveState) {
+		luaType.new_enum<ACraft::AltitudeMoveState>("AltitudeMoveState", {
 			{ "HOVER", ACraft::AltitudeMoveState::HOVER },
 			{ "DESCEND", ACraft::AltitudeMoveState::DESCEND },
 			{ "ASCEND", ACraft::AltitudeMoveState::ASCEND }
@@ -185,7 +185,7 @@ namespace RTE {
 		luaType["RightThruster"] = sol::property(&ACRocket::GetURightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetURightThruster);
 		luaType["GearState"] = sol::property(&ACRocket::GetGearState);
 
-		luaType.new_enum("LandingGearState", EnumList(ACRocket::LandingGearState) {
+		luaType.new_enum<ACRocket::LandingGearState>("LandingGearState", {
 			{ "RAISED", ACRocket::LandingGearState::RAISED },
 			{ "LOWERED", ACRocket::LandingGearState::LOWERED },
 			{ "LOWERING", ACRocket::LandingGearState::LOWERING },
@@ -293,14 +293,14 @@ namespace RTE {
 		luaType["IsOrganic"] = &Actor::IsOrganic;
 		luaType["IsMechanical"] = &Actor::IsMechanical;
 
-		luaType.new_enum("Status", EnumList(Actor::Status) {
+		luaType.new_enum<Actor::Status>("Status", {
 			{ "STABLE", Actor::Status::STABLE },
 			{ "UNSTABLE", Actor::Status::UNSTABLE },
 			{ "INACTIVE", Actor::Status::INACTIVE },
 			{ "DYING", Actor::Status::DYING },
 			{ "DEAD", Actor::Status::DEAD }
 		});
-		luaType.new_enum("AIMode", EnumList(Actor::AIMode) {
+		luaType.new_enum<Actor::AIMode>("AIMode", {
 			{ "AIMODE_NONE", Actor::AIMode::AIMODE_NONE },
 			{ "AIMODE_SENTRY", Actor::AIMode::AIMODE_SENTRY },
 			{ "AIMODE_PATROL", Actor::AIMode::AIMODE_PATROL },
@@ -315,31 +315,31 @@ namespace RTE {
 			{ "AIMODE_SQUAD", Actor::AIMode::AIMODE_SQUAD },
 			{ "AIMODE_COUNT", Actor::AIMode::AIMODE_COUNT }
 		});
-		luaType.new_enum("ActionState", EnumList(Actor::ActionState) {
+		luaType.new_enum<Actor::ActionState>("ActionState", {
 			{ "MOVING", Actor::ActionState::MOVING },
 			{ "MOVING_FAST", Actor::ActionState::MOVING_FAST },
 			{ "FIRING", Actor::ActionState::FIRING },
 			{ "ActionStateCount", Actor::ActionState::ActionStateCount }
 		});
-		luaType.new_enum("AimState", EnumList(Actor::AimState) {
+		luaType.new_enum<Actor::AimState>("AimState", {
 			{ "AIMSTILL", Actor::AimState::AIMSTILL },
 			{ "AIMUP", Actor::AimState::AIMUP },
 			{ "AIMDOWN", Actor::AimState::AIMDOWN },
 			{ "AimStateCount", Actor::AimState::AimStateCount }
 		});
-		luaType.new_enum("LateralMoveState", EnumList(Actor::LateralMoveState) {
+		luaType.new_enum<Actor::LateralMoveState>("LateralMoveState", {
 			{ "LAT_STILL", Actor::LateralMoveState::LAT_STILL },
 			{ "LAT_LEFT", Actor::LateralMoveState::LAT_LEFT },
 			{ "LAT_RIGHT", Actor::LateralMoveState::LAT_RIGHT }
 		});
-		luaType.new_enum("ObstacleState", EnumList(Actor::ObstacleState) {
+		luaType.new_enum<Actor::ObstacleState>("ObstacleState", {
 			{ "PROCEEDING", Actor::ObstacleState::PROCEEDING },
 			{ "BACKSTEPPING", Actor::ObstacleState::BACKSTEPPING },
 			{ "DIGPAUSING", Actor::ObstacleState::DIGPAUSING },
 			{ "JUMPING", Actor::ObstacleState::JUMPING },
 			{ "SOFTLANDING", Actor::ObstacleState::SOFTLANDING }
 		});
-		luaType.new_enum("TeamBlockState", EnumList(Actor::TeamBlockState) {
+		luaType.new_enum<Actor::TeamBlockState>("TeamBlockState", {
 			{ "NOTBLOCKED", Actor::TeamBlockState::NOTBLOCKED },
 			{ "BLOCKED", Actor::TeamBlockState::BLOCKED },
 			{ "IGNORINGBLOCK", Actor::TeamBlockState::IGNORINGBLOCK },
@@ -364,7 +364,7 @@ namespace RTE {
 		luaType["StopDoor"] = &ADoor::StopDoor;
 		luaType["SetClosedByDefault"] = &ADoor::SetClosedByDefault;
 
-		luaType.new_enum("DoorState", EnumList(ADoor::DoorState) {
+		luaType.new_enum<ADoor::DoorState>("DoorState", {
 			{ "CLOSED", ADoor::DoorState::CLOSED },
 			{ "OPENING", ADoor::DoorState::OPENING },
 			{ "OPEN", ADoor::DoorState::OPEN },
@@ -441,7 +441,7 @@ namespace RTE {
 		luaType["GetWalkAngle"] = &AHuman::GetWalkAngle;
 		luaType["SetWalkAngle"] = &AHuman::SetWalkAngle;
 
-		luaType.new_enum("UpperBodyState", EnumList(AHuman::UpperBodyState) {
+		luaType.new_enum<AHuman::UpperBodyState>("UpperBodyState", {
 			{ "WEAPON_READY", AHuman::UpperBodyState::WEAPON_READY },
 			{ "AIMING_SHARP", AHuman::UpperBodyState::AIMING_SHARP },
 			{ "HOLSTERING_BACK", AHuman::UpperBodyState::HOLSTERING_BACK },
@@ -451,7 +451,7 @@ namespace RTE {
 			{ "THROWING_PREP", AHuman::UpperBodyState::THROWING_PREP },
 			{ "THROWING_RELEASE", AHuman::UpperBodyState::THROWING_RELEASE }
 		});
-		luaType.new_enum("MovementState", EnumList(AHuman::MovementState) {
+		luaType.new_enum<AHuman::MovementState>("MovementState", {
 			{ "NOMOVE", AHuman::MovementState::NOMOVE },
 			{ "STAND", AHuman::MovementState::STAND },
 			{ "WALK", AHuman::MovementState::WALK },
@@ -463,17 +463,17 @@ namespace RTE {
 			{ "DISLODGE", AHuman::MovementState::DISLODGE },
 			{ "MOVEMENTSTATECOUNT", AHuman::MovementState::MOVEMENTSTATECOUNT }
 		});
-		luaType.new_enum("ProneState", EnumList(AHuman::ProneState) {
+		luaType.new_enum<AHuman::ProneState>("ProneState", {
 			{ "NOTPRONE", AHuman::ProneState::NOTPRONE },
 			{ "GOPRONE", AHuman::ProneState::GOPRONE },
 			{ "PRONE", AHuman::ProneState::PRONE },
 			{ "PRONESTATECOUNT", AHuman::ProneState::PRONESTATECOUNT }
 		});
-		luaType.new_enum("Layer", EnumList(AHuman::Layer) {
+		luaType.new_enum<AHuman::Layer>("Layer", {
 			{ "FGROUND", AHuman::Layer::FGROUND },
 			{ "BGROUND", AHuman::Layer::BGROUND }
 		});
-		luaType.new_enum("DeviceHandlingState", EnumList(AHuman::DeviceHandlingState) {
+		luaType.new_enum<AHuman::DeviceHandlingState>("DeviceHandlingState", {
 			{ "STILL", AHuman::DeviceHandlingState::STILL },
 			{ "POINTING", AHuman::DeviceHandlingState::POINTING },
 			{ "SCANNING", AHuman::DeviceHandlingState::SCANNING },
@@ -482,14 +482,14 @@ namespace RTE {
 			{ "THROWING", AHuman::DeviceHandlingState::THROWING },
 			{ "DIGGING", AHuman::DeviceHandlingState::DIGGING }
 		});
-		luaType.new_enum("SweepState", EnumList(AHuman::SweepState) {
+		luaType.new_enum<AHuman::SweepState>("SweepState", {
 			{ "NOSWEEP", AHuman::SweepState::NOSWEEP },
 			{ "SWEEPINGUP", AHuman::SweepState::SWEEPINGUP },
 			{ "SWEEPUPPAUSE", AHuman::SweepState::SWEEPUPPAUSE },
 			{ "SWEEPINGDOWN", AHuman::SweepState::SWEEPINGDOWN },
 			{ "SWEEPDOWNPAUSE", AHuman::SweepState::SWEEPDOWNPAUSE }
 		});
-		luaType.new_enum("DigState", EnumList(AHuman::DigState) {
+		luaType.new_enum<AHuman::DigState>("DigState", {
 			{ "NOTDIGGING", AHuman::DigState::NOTDIGGING },
 			{ "PREDIG", AHuman::DigState::PREDIG },
 			{ "STARTDIG", AHuman::DigState::STARTDIG },
@@ -497,7 +497,7 @@ namespace RTE {
 			{ "FINISHINGDIG", AHuman::DigState::FINISHINGDIG },
 			{ "PAUSEDIGGER", AHuman::DigState::PAUSEDIGGER }
 		});
-		luaType.new_enum("JumpState", EnumList(AHuman::JumpState) {
+		luaType.new_enum<AHuman::JumpState>("JumpState", {
 			{ "NOTJUMPING", AHuman::JumpState::NOTJUMPING },
 			{ "FORWARDJUMP", AHuman::JumpState::FORWARDJUMP },
 			{ "PREJUMP", AHuman::JumpState::PREUPJUMP },

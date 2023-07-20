@@ -33,7 +33,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, Directions) {
-		EnumTypeLuaClassDefinition("Directions", EnumList(Directions) {
+		EnumTypeLuaClassDefinition(Directions, "Directions", {
 			{ "None", Directions::None },
 			{ "Up", Directions::Up },
 			{ "Down", Directions::Down },
@@ -46,7 +46,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, DrawBlendMode) {
-		EnumTypeLuaClassDefinition("DrawBlendMode", EnumList(DrawBlendMode) {
+		EnumTypeLuaClassDefinition(DrawBlendMode, "DrawBlendMode", {
 			{ "NoBlend", DrawBlendMode::NoBlend },
 			{ "Burn", DrawBlendMode::BlendBurn },
 			{ "Color", DrawBlendMode::BlendColor },
@@ -101,7 +101,7 @@ namespace RTE {
 
 		luaType["ReloadScripts"] = &PieSlice::ReloadScripts;
 
-		luaType.new_enum("SliceType", EnumList(PieSlice::SliceType) {
+		luaType.new_enum<PieSlice::SliceType>("SliceType", {
 			{ "NoType", PieSlice::SliceType::NoType },
 			{ "Pickup", PieSlice::SliceType::Pickup },
 			{ "Drop", PieSlice::SliceType::Drop },
@@ -217,7 +217,7 @@ namespace RTE {
 		luaType["Restart"] = (bool (SoundContainer::*)(int player)) & SoundContainer::Restart;
 		luaType["FadeOut"] = &SoundContainer::FadeOut;
 
-		luaType.new_enum("SoundOverlapMode", EnumList(SoundContainer::SoundOverlapMode) {
+		luaType.new_enum<SoundContainer::SoundOverlapMode>("SoundOverlapMode", {
 			{ "OVERLAP", SoundContainer::SoundOverlapMode::OVERLAP },
 			{ "RESTART", SoundContainer::SoundOverlapMode::RESTART },
 			{ "IGNORE_PLAY", SoundContainer::SoundOverlapMode::IGNORE_PLAY }
@@ -245,7 +245,7 @@ namespace RTE {
 		luaType["RemoveSound"] = (bool (SoundSet::*)(const std::string & soundFilePath, bool removeFromSubSoundSets)) & SoundSet::RemoveSound;
 		luaType["AddSoundSet"] = &SoundSet::AddSoundSet;
 
-		luaType.new_enum("SoundSelectionCycleMode", EnumList(SoundSet::SoundSelectionCycleMode) {
+		luaType.new_enum<SoundSet::SoundSelectionCycleMode>("SoundSelectionCycleMode", {
 			{ "RANDOM", SoundSet::SoundSelectionCycleMode::RANDOM },
 			{ "FORWARDS", SoundSet::SoundSelectionCycleMode::FORWARDS },
 			{ "ALL", SoundSet::SoundSelectionCycleMode::ALL }

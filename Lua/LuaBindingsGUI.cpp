@@ -23,13 +23,13 @@ namespace RTE {
 		luaType["HideText"] = &GUIBanner::HideText;
 		luaType["ClearText"] = &GUIBanner::ClearText;
 
-		luaType.new_enum("AnimMode", EnumList(GUIBanner::AnimMode) {
+		luaType.new_enum<GUIBanner::AnimMode>("AnimMode", {
 			{ "BLINKING", GUIBanner::AnimMode::BLINKING },
 			{ "FLYBYLEFTWARD", GUIBanner::AnimMode::FLYBYLEFTWARD },
 			{ "FLYBYRIGHTWARD", GUIBanner::AnimMode::FLYBYRIGHTWARD },
 			{ "ANIMMODECOUNT", GUIBanner::AnimMode::ANIMMODECOUNT }
 		});
-		luaType.new_enum("AnimState", EnumList(GUIBanner::AnimState) {
+		luaType.new_enum<GUIBanner::AnimState>("AnimState", {
 			{ "NOTSTARTED", GUIBanner::AnimState::NOTSTARTED },
 			{ "SHOWING", GUIBanner::AnimState::SHOWING },
 			{ "SHOW", GUIBanner::AnimState::SHOW },
@@ -37,7 +37,7 @@ namespace RTE {
 			{ "OVER", GUIBanner::AnimState::OVER },
 			{ "ANIMSTATECOUNT", GUIBanner::AnimState::ANIMSTATECOUNT }
 		});
-		luaType.new_enum("BannerColor", EnumList(GameActivity::BannerColor) {
+		luaType.new_enum<GameActivity::BannerColor>("BannerColor", {
 			{ "RED", GameActivity::BannerColor::RED },
 			{ "YELLOW", GameActivity::BannerColor::YELLOW }
 		});
@@ -91,7 +91,7 @@ namespace RTE {
 		luaType["TestBrainResidence"] = &SceneEditorGUI::TestBrainResidence;
 		luaType["Update"] = &SceneEditorGUI::Update; //Gacyr Note: I hate this being here but it's necessary for some metagame bullshit.
 
-		luaType.new_enum("EditorGUIMode", EnumList(SceneEditorGUI::EditorGUIMode) {
+		luaType.new_enum<SceneEditorGUI::EditorGUIMode>("EditorGUIMode", {
 			{ "INACTIVE", SceneEditorGUI::EditorGUIMode::INACTIVE },
 			{ "PICKINGOBJECT", SceneEditorGUI::EditorGUIMode::PICKINGOBJECT },
 			{ "ADDINGOBJECT", SceneEditorGUI::EditorGUIMode::ADDINGOBJECT },

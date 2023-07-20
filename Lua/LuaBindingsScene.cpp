@@ -93,7 +93,7 @@ namespace RTE {
 		luaType["CalculatePathAsync"] = &LuaAdaptersScene::CalculatePathAsync1;
 		luaType["CalculatePathAsync"] = &LuaAdaptersScene::CalculatePathAsync2;
 
-		luaType.new_enum("PlacedObjectSets", EnumList(Scene::PlacedObjectSets) {
+		luaType.new_enum<Scene::PlacedObjectSets>("PlacedObjectSets", {
 			{ "PLACEONLOAD", Scene::PlacedObjectSets::PLACEONLOAD },
 			{ "BLUEPRINT", Scene::PlacedObjectSets::BLUEPRINT },
 			{ "AIPLAN", Scene::PlacedObjectSets::AIPLAN },

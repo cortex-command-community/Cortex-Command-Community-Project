@@ -74,7 +74,7 @@ namespace RTE {
 		luaType["SaveNumber"] = &Activity::SaveNumber;
 		luaType["LoadNumber"] = &Activity::LoadNumber;
 
-		luaType.new_enum("Players", EnumList(Players) {
+		luaType.new_enum<Players>("Players", {
 			{ "PLAYER_NONE", Players::NoPlayer },
 			{ "PLAYER_1", Players::PlayerOne },
 			{ "PLAYER_2", Players::PlayerTwo },
@@ -82,7 +82,7 @@ namespace RTE {
 			{ "PLAYER_4", Players::PlayerFour },
 			{ "MAXPLAYERCOUNT", Players::MaxPlayerCount }
 		});
-		luaType.new_enum("ActivityState", EnumList(Activity::ActivityState) {
+		luaType.new_enum<Activity::ActivityState>("ActivityState", {
 			{ "NOACTIVITY", Activity::ActivityState::NoActivity },
 			{ "NOTSTARTED", Activity::ActivityState::NotStarted },
 			{ "STARTING", Activity::ActivityState::Starting },
@@ -92,7 +92,7 @@ namespace RTE {
 			{ "INERROR", Activity::ActivityState::HasError },
 			{ "OVER", Activity::ActivityState::Over }
 		});
-		luaType.new_enum("Team", EnumList(Activity::Teams) {
+		luaType.new_enum<Activity::Teams>("Team", {
 			{ "NOTEAM", Activity::Teams::NoTeam },
 			{ "TEAM_1", Activity::Teams::TeamOne },
 			{ "TEAM_2", Activity::Teams::TeamTwo },
@@ -100,7 +100,7 @@ namespace RTE {
 			{ "TEAM_4", Activity::Teams::TeamFour },
 			{ "MAXTEAMCOUNT", Activity::Teams::MaxTeamCount }
 		});
-		luaType.new_enum("ViewState", EnumList(Activity::ViewState) {
+		luaType.new_enum<Activity::ViewState>("ViewState", {
 			{ "NORMAL", Activity::ViewState::Normal },
 			{ "OBSERVE", Activity::ViewState::Observe },
 			{ "DEATHWATCH", Activity::ViewState::DeathWatch },
@@ -111,7 +111,7 @@ namespace RTE {
 			{ "AIGOTOPOINT", Activity::ViewState::AIGoToPoint },
 			{ "LZSELECT", Activity::ViewState::LandingZoneSelect }
 		});
-		luaType.new_enum("DifficultySetting", EnumList(Activity::DifficultySetting) {
+		luaType.new_enum<Activity::DifficultySetting>("DifficultySetting", {
 			{ "MINDIFFICULTY", Activity::DifficultySetting::MinDifficulty },
 			{ "CAKEDIFFICULTY", Activity::DifficultySetting::CakeDifficulty },
 			{ "EASYDIFFICULTY", Activity::DifficultySetting::EasyDifficulty },
@@ -120,7 +120,7 @@ namespace RTE {
 			{ "NUTSDIFFICULTY", Activity::DifficultySetting::NutsDifficulty },
 			{ "MAXDIFFICULTY", Activity::DifficultySetting::MaxDifficulty }
 		});
-		luaType.new_enum("AISkillSetting", EnumList(Activity::AISkillSetting) {
+		luaType.new_enum<Activity::AISkillSetting>("AISkillSetting", {
 			{ "MINSKILL", Activity::AISkillSetting::MinSkill },
 			{ "INFERIORSKILL", Activity::AISkillSetting::InferiorSkill },
 			{ "DEFAULTSKILL", Activity::AISkillSetting::DefaultSkill },
@@ -192,7 +192,7 @@ namespace RTE {
 		luaType["DisableAIs"] = &GameActivity::DisableAIs;
 		luaType["InitAIs"] = &GameActivity::InitAIs;
 
-		luaType.new_enum("ObjectiveArrowDir", EnumList(GameActivity::ObjectiveArrowDir) {
+		luaType.new_enum<GameActivity::ObjectiveArrowDir>("ObjectiveArrowDir", {
 			{ "ARROWDOWN", GameActivity::ObjectiveArrowDir::ARROWDOWN },
 			{ "ARROWLEFT", GameActivity::ObjectiveArrowDir::ARROWLEFT },
 			{ "ARROWRIGHT", GameActivity::ObjectiveArrowDir::ARROWRIGHT },

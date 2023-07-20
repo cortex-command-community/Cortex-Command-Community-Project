@@ -46,7 +46,7 @@ namespace RTE {
 		luaType["InheritsVel"] = &Gib::m_InheritsVel;
 		luaType["IgnoresTeamHits"] = &Gib::m_IgnoresTeamHits;
 
-		luaType.new_enum("SpreadMode", EnumList(Gib::SpreadMode) {
+		luaType.new_enum<Gib::SpreadMode>("SpreadMode", {
 			{ "SpreadRandom", Gib::SpreadMode::SpreadRandom },
 			{ "SpreadEven", Gib::SpreadMode::SpreadEven },
 			{ "SpreadSpiral", Gib::SpreadMode::SpreadSpiral }
@@ -183,7 +183,7 @@ namespace RTE {
 		luaType["GetEntryWoundPresetName"] = &MOSprite::GetEntryWoundPresetName;
 		luaType["GetExitWoundPresetName"] = &MOSprite::GetExitWoundPresetName;
 
-		luaType.new_enum("SpriteAnimMode", EnumList(SpriteAnimMode) {
+		luaType.new_enum<SpriteAnimMode>("SpriteAnimMode", {
 			{ "NOANIM", SpriteAnimMode::NOANIM },
 			{ "ALWAYSLOOP", SpriteAnimMode::ALWAYSLOOP },
 			{ "ALWAYSRANDOM", SpriteAnimMode::ALWAYSRANDOM },

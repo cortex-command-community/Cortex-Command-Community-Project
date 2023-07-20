@@ -13,7 +13,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, InputDevice) {
-		auto luaType = EnumTypeLuaClassDefinition("InputDevice", EnumList(InputDevice) {
+		auto luaType = EnumTypeLuaClassDefinition(InputDevice, "InputDevice", {
 			{ "DEVICE_KEYB_ONLY", InputDevice::DEVICE_KEYB_ONLY },
 			{ "DEVICE_MOUSE_KEYB", InputDevice::DEVICE_MOUSE_KEYB },
 			{ "DEVICE_GAMEPAD_1", InputDevice::DEVICE_GAMEPAD_1 },
@@ -27,7 +27,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, InputElements) {
-		auto luaType = EnumTypeLuaClassDefinition("InputElements", EnumList(InputElements) {
+		auto luaType = EnumTypeLuaClassDefinition(InputElements, "InputElements", {
 			{ "INPUT_L_UP", InputElements::INPUT_L_UP },
 			{ "INPUT_L_DOWN", InputElements::INPUT_L_DOWN },
 			{ "INPUT_L_LEFT", InputElements::INPUT_L_LEFT },
@@ -56,7 +56,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, MouseButtons) {
-		auto luaType = EnumTypeLuaClassDefinition("MouseButtons", EnumList(MouseButtons) {
+		auto luaType = EnumTypeLuaClassDefinition(MouseButtons, "MouseButtons", {
 			{ "MOUSE_NONE", MouseButtons::MOUSE_NONE },
 			{ "MOUSE_LEFT", MouseButtons::MOUSE_LEFT },
 			{ "MOUSE_RIGHT", MouseButtons::MOUSE_RIGHT },
@@ -68,7 +68,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, JoyButtons) {
-		auto luaType = EnumTypeLuaClassDefinition("JoyButtons", EnumList(JoyButtons) {
+		auto luaType = EnumTypeLuaClassDefinition(JoyButtons, "JoyButtons", {
 			{ "JOY_NONE", JoyButtons::JOY_NONE },
 			{ "JOY_1", JoyButtons::JOY_1 },
 			{ "JOY_2", JoyButtons::JOY_2 },
@@ -89,7 +89,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, JoyDirections) {
-		auto luaType = EnumTypeLuaClassDefinition("JoyDirections", EnumList(JoyDirections) {
+		auto luaType = EnumTypeLuaClassDefinition(JoyDirections, "JoyDirections", {
 			{ "JOYDIR_ONE", JoyDirections::JOYDIR_ONE },
 			{ "JOYDIR_TWO", JoyDirections::JOYDIR_TWO }
 		});
@@ -99,7 +99,7 @@ namespace RTE {
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, SDL_Keycode) {
 		// Make sure to update https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/SDL-Keycode-and-Scancode-enum-values-in-Lua#key-codes if any changes are made.
-		auto luaType = EnumTypeLuaClassDefinition("Key", EnumList(SDL_Keycode) {
+		auto luaType = EnumTypeLuaClassDefinition(SDL_Keycode, "Key", {
 			{ "UNKNOWN", SDLK_UNKNOWN },
 			{ "RETURN", SDLK_RETURN },
 			{ "ESCAPE", SDLK_ESCAPE },
@@ -343,7 +343,7 @@ namespace RTE {
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, SDL_Scancode) {
 		// Make sure to update https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/SDL-Keycode-and-Scancode-enum-values-in-Lua#scan-codes if any changes are made.
-		auto luaType = EnumTypeLuaClassDefinition("Scancode", EnumList(SDL_Scancode) {
+		auto luaType = EnumTypeLuaClassDefinition(SDL_Scancode, "Scancode", {
 			{ "UNKNOWN", SDL_SCANCODE_UNKNOWN },
 			{ "A", SDL_SCANCODE_A },
 			{ "B", SDL_SCANCODE_B },
@@ -594,7 +594,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, SDL_GameControllerButton) {
-		auto luaType = EnumTypeLuaClassDefinition("GamepadButton", EnumList(SDL_GameControllerButton) {
+		auto luaType = EnumTypeLuaClassDefinition(SDL_GameControllerButton, "GamepadButton", {
 			{ "INVALID", SDL_CONTROLLER_BUTTON_INVALID },
 			{ "A", SDL_CONTROLLER_BUTTON_A },
 			{ "B", SDL_CONTROLLER_BUTTON_B },
@@ -618,7 +618,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, SDL_GameControllerAxis) {
-		auto luaType = EnumTypeLuaClassDefinition("GamepadAxis", EnumList(SDL_GameControllerAxis) {
+		auto luaType = EnumTypeLuaClassDefinition(SDL_GameControllerAxis, "GamepadAxis", {
 			{ "INVALID", SDL_CONTROLLER_AXIS_INVALID },
 			{ "LEFTX", SDL_CONTROLLER_AXIS_LEFTX },
 			{ "LEFTY", SDL_CONTROLLER_AXIS_LEFTY },

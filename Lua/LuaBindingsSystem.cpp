@@ -72,60 +72,60 @@ namespace RTE {
 		luaType["SetState"] = &Controller::SetState;
 		luaType["IsState"] = &Controller::IsState;
 
-		luaType.new_enum("ControlState",
-			"PRIMARY_ACTION", ControlState::PRIMARY_ACTION,
-			"SECONDARY_ACTION", ControlState::SECONDARY_ACTION,
-			"MOVE_IDLE", ControlState::MOVE_IDLE,
-			"MOVE_RIGHT", ControlState::MOVE_RIGHT,
-			"MOVE_LEFT", ControlState::MOVE_LEFT,
-			"MOVE_UP", ControlState::MOVE_UP,
-			"MOVE_DOWN", ControlState::MOVE_DOWN,
-			"MOVE_FAST", ControlState::MOVE_FAST,
-			"BODY_JUMPSTART", ControlState::BODY_JUMPSTART,
-			"BODY_JUMP", ControlState::BODY_JUMP,
-			"BODY_CROUCH", ControlState::BODY_CROUCH,
-			"AIM_UP", ControlState::AIM_UP,
-			"AIM_DOWN", ControlState::AIM_DOWN,
-			"AIM_SHARP", ControlState::AIM_SHARP,
-			"WEAPON_FIRE", ControlState::WEAPON_FIRE,
-			"WEAPON_RELOAD", ControlState::WEAPON_RELOAD,
-			"PIE_MENU_OPENED", ControlState::PIE_MENU_OPENED,
-			"PIE_MENU_ACTIVE", ControlState::PIE_MENU_ACTIVE,
-			"WEAPON_CHANGE_NEXT", ControlState::WEAPON_CHANGE_NEXT,
-			"WEAPON_CHANGE_PREV", ControlState::WEAPON_CHANGE_PREV,
-			"WEAPON_PICKUP", ControlState::WEAPON_PICKUP,
-			"WEAPON_DROP", ControlState::WEAPON_DROP,
-			"ACTOR_NEXT", ControlState::ACTOR_NEXT,
-			"ACTOR_PREV", ControlState::ACTOR_PREV,
-			"ACTOR_BRAIN", ControlState::ACTOR_BRAIN,
-			"ACTOR_NEXT_PREP", ControlState::ACTOR_NEXT_PREP,
-			"ACTOR_PREV_PREP", ControlState::ACTOR_PREV_PREP,
-			"HOLD_RIGHT", ControlState::HOLD_RIGHT,
-			"HOLD_LEFT", ControlState::HOLD_LEFT,
-			"HOLD_UP", ControlState::HOLD_UP,
-			"HOLD_DOWN", ControlState::HOLD_DOWN,
-			"PRESS_PRIMARY", ControlState::PRESS_PRIMARY,
-			"PRESS_SECONDARY", ControlState::PRESS_SECONDARY,
-			"PRESS_RIGHT", ControlState::PRESS_RIGHT,
-			"PRESS_LEFT", ControlState::PRESS_LEFT,
-			"PRESS_UP", ControlState::PRESS_UP,
-			"PRESS_DOWN", ControlState::PRESS_DOWN,
-			"RELEASE_PRIMARY", ControlState::RELEASE_PRIMARY,
-			"RELEASE_SECONDARY", ControlState::RELEASE_SECONDARY,
-			"PRESS_FACEBUTTON", ControlState::PRESS_FACEBUTTON,
-			"RELEASE_FACEBUTTON", ControlState::RELEASE_FACEBUTTON,
-			"SCROLL_UP", ControlState::SCROLL_UP,
-			"SCROLL_DOWN", ControlState::SCROLL_DOWN,
-			"DEBUG_ONE", ControlState::DEBUG_ONE,
-			"CONTROLSTATECOUNT", ControlState::CONTROLSTATECOUNT
-		);
-		luaType.new_enum("InputMode",
-			"CIM_DISABLED", Controller::InputMode::CIM_DISABLED,
-			"CIM_PLAYER", Controller::InputMode::CIM_PLAYER,
-			"CIM_AI", Controller::InputMode::CIM_AI,
-			"CIM_NETWORK", Controller::InputMode::CIM_NETWORK,
-			"CIM_INPUTMODECOUNT", Controller::InputMode::CIM_INPUTMODECOUNT
-		);
+		luaType.new_enum<ControlState>("ControlState", {
+			{ "PRIMARY_ACTION", ControlState::PRIMARY_ACTION },
+			{ "SECONDARY_ACTION", ControlState::SECONDARY_ACTION },
+			{ "MOVE_IDLE", ControlState::MOVE_IDLE },
+			{ "MOVE_RIGHT", ControlState::MOVE_RIGHT },
+			{ "MOVE_LEFT", ControlState::MOVE_LEFT },
+			{ "MOVE_UP", ControlState::MOVE_UP },
+			{ "MOVE_DOWN", ControlState::MOVE_DOWN },
+			{ "MOVE_FAST", ControlState::MOVE_FAST },
+			{ "BODY_JUMPSTART", ControlState::BODY_JUMPSTART },
+			{ "BODY_JUMP", ControlState::BODY_JUMP },
+			{ "BODY_CROUCH", ControlState::BODY_CROUCH },
+			{ "AIM_UP", ControlState::AIM_UP },
+			{ "AIM_DOWN", ControlState::AIM_DOWN },
+			{ "AIM_SHARP", ControlState::AIM_SHARP },
+			{ "WEAPON_FIRE", ControlState::WEAPON_FIRE },
+			{ "WEAPON_RELOAD", ControlState::WEAPON_RELOAD },
+			{ "PIE_MENU_OPENED", ControlState::PIE_MENU_OPENED },
+			{ "PIE_MENU_ACTIVE", ControlState::PIE_MENU_ACTIVE },
+			{ "WEAPON_CHANGE_NEXT", ControlState::WEAPON_CHANGE_NEXT },
+			{ "WEAPON_CHANGE_PREV", ControlState::WEAPON_CHANGE_PREV },
+			{ "WEAPON_PICKUP", ControlState::WEAPON_PICKUP },
+			{ "WEAPON_DROP", ControlState::WEAPON_DROP },
+			{ "ACTOR_NEXT", ControlState::ACTOR_NEXT },
+			{ "ACTOR_PREV", ControlState::ACTOR_PREV },
+			{ "ACTOR_BRAIN", ControlState::ACTOR_BRAIN },
+			{ "ACTOR_NEXT_PREP", ControlState::ACTOR_NEXT_PREP },
+			{ "ACTOR_PREV_PREP", ControlState::ACTOR_PREV_PREP },
+			{ "HOLD_RIGHT", ControlState::HOLD_RIGHT },
+			{ "HOLD_LEFT", ControlState::HOLD_LEFT },
+			{ "HOLD_UP", ControlState::HOLD_UP },
+			{ "HOLD_DOWN", ControlState::HOLD_DOWN },
+			{ "PRESS_PRIMARY", ControlState::PRESS_PRIMARY },
+			{ "PRESS_SECONDARY", ControlState::PRESS_SECONDARY },
+			{ "PRESS_RIGHT", ControlState::PRESS_RIGHT },
+			{ "PRESS_LEFT", ControlState::PRESS_LEFT },
+			{ "PRESS_UP", ControlState::PRESS_UP },
+			{ "PRESS_DOWN", ControlState::PRESS_DOWN },
+			{ "RELEASE_PRIMARY", ControlState::RELEASE_PRIMARY },
+			{ "RELEASE_SECONDARY", ControlState::RELEASE_SECONDARY },
+			{ "PRESS_FACEBUTTON", ControlState::PRESS_FACEBUTTON },
+			{ "RELEASE_FACEBUTTON", ControlState::RELEASE_FACEBUTTON },
+			{ "SCROLL_UP", ControlState::SCROLL_UP },
+			{ "SCROLL_DOWN", ControlState::SCROLL_DOWN },
+			{ "DEBUG_ONE", ControlState::DEBUG_ONE },
+			{ "CONTROLSTATECOUNT", ControlState::CONTROLSTATECOUNT }
+		});
+		luaType.new_enum<Controller::InputMode>("InputMode", {
+			{ "CIM_DISABLED", Controller::InputMode::CIM_DISABLED },
+			{ "CIM_PLAYER", Controller::InputMode::CIM_PLAYER },
+			{ "CIM_AI", Controller::InputMode::CIM_AI },
+			{ "CIM_NETWORK", Controller::InputMode::CIM_NETWORK },
+			{ "CIM_INPUTMODECOUNT", Controller::InputMode::CIM_INPUTMODECOUNT }
+		});
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,10 +262,10 @@ namespace RTE {
 		luaType["Status"] = sol::readonly(&PathRequest::status);
 		luaType["TotalCost"] = sol::readonly(&PathRequest::totalCost);
 
-		luaType.new_enum("Status",
-			"Solved", micropather::MicroPather::SOLVED,
-			"NoSolution", micropather::MicroPather::NO_SOLUTION,
-			"StartEndSame", micropather::MicroPather::START_END_SAME
-		);
+		luaType.new_enum<micropather::MicroPather::Status>("Status", {
+			{ "Solved", micropather::MicroPather::Status::SOLVED },
+			{ "NoSolution", micropather::MicroPather::Status::NO_SOLUTION },
+			{ "StartEndSame", micropather::MicroPather::Status::START_END_SAME }
+		});
 	}
 }

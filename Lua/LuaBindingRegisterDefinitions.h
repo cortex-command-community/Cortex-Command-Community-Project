@@ -50,14 +50,8 @@ namespace RTE {
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of an enum type.
 	/// </summary>
-#define EnumTypeLuaClassDefinition(NAME, ...) \
-		solState.new_enum(NAME, __VA_ARGS__)
-
-	/// <summary>
-	/// Convenience macro for a LuaBind scope definition of an enum type.
-	/// </summary>
-#define EnumList(TYPE) \
-		std::initializer_list<std::pair<sol::string_view, TYPE>>
+#define EnumTypeLuaClassDefinition(TYPE, NAME, ...) \
+		solState.new_enum<TYPE>(NAME, __VA_ARGS__)
 
 	/// <summary>
 	/// Convenience macro for calling a register function of a type.
