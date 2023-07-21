@@ -93,12 +93,13 @@ namespace RTE {
 		luaType["CalculatePathAsync"] = &LuaAdaptersScene::CalculatePathAsync1;
 		luaType["CalculatePathAsync"] = &LuaAdaptersScene::CalculatePathAsync2;
 
-		luaType.new_enum<Scene::PlacedObjectSets>("PlacedObjectSets", {
-			{ "PLACEONLOAD", Scene::PlacedObjectSets::PLACEONLOAD },
-			{ "BLUEPRINT", Scene::PlacedObjectSets::BLUEPRINT },
-			{ "AIPLAN", Scene::PlacedObjectSets::AIPLAN },
-			{ "PLACEDSETSCOUNT", Scene::PlacedObjectSets::PLACEDSETSCOUNT }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("PlacedObjectSets");
+			enumTable["PLACEONLOAD"] = Scene::PlacedObjectSets::PLACEONLOAD;
+			enumTable["BLUEPRINT"] = Scene::PlacedObjectSets::BLUEPRINT;
+			enumTable["AIPLAN"] = Scene::PlacedObjectSets::AIPLAN;
+			enumTable["PLACEDSETSCOUNT"] = Scene::PlacedObjectSets::PLACEDSETSCOUNT;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

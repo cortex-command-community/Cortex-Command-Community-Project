@@ -74,60 +74,66 @@ namespace RTE {
 		luaType["SaveNumber"] = &Activity::SaveNumber;
 		luaType["LoadNumber"] = &Activity::LoadNumber;
 
-		luaType.new_enum<Players>("Players", {
-			{ "PLAYER_NONE", Players::NoPlayer },
-			{ "PLAYER_1", Players::PlayerOne },
-			{ "PLAYER_2", Players::PlayerTwo },
-			{ "PLAYER_3", Players::PlayerThree },
-			{ "PLAYER_4", Players::PlayerFour },
-			{ "MAXPLAYERCOUNT", Players::MaxPlayerCount }
-		});
-		luaType.new_enum<Activity::ActivityState>("ActivityState", {
-			{ "NOACTIVITY", Activity::ActivityState::NoActivity },
-			{ "NOTSTARTED", Activity::ActivityState::NotStarted },
-			{ "STARTING", Activity::ActivityState::Starting },
-			{ "EDITING", Activity::ActivityState::Editing },
-			{ "PREGAME", Activity::ActivityState::PreGame },
-			{ "RUNNING", Activity::ActivityState::Running },
-			{ "INERROR", Activity::ActivityState::HasError },
-			{ "OVER", Activity::ActivityState::Over }
-		});
-		luaType.new_enum<Activity::Teams>("Team", {
-			{ "NOTEAM", Activity::Teams::NoTeam },
-			{ "TEAM_1", Activity::Teams::TeamOne },
-			{ "TEAM_2", Activity::Teams::TeamTwo },
-			{ "TEAM_3", Activity::Teams::TeamThree },
-			{ "TEAM_4", Activity::Teams::TeamFour },
-			{ "MAXTEAMCOUNT", Activity::Teams::MaxTeamCount }
-		});
-		luaType.new_enum<Activity::ViewState>("ViewState", {
-			{ "NORMAL", Activity::ViewState::Normal },
-			{ "OBSERVE", Activity::ViewState::Observe },
-			{ "DEATHWATCH", Activity::ViewState::DeathWatch },
-			{ "ACTORSELECT", Activity::ViewState::ActorSelect },
-			{ "AISENTRYPOINT", Activity::ViewState::AISentryPoint },
-			{ "AIPATROLPOINTS", Activity::ViewState::AIPatrolPoints },
-			{ "AIGOLDDIGPOINT", Activity::ViewState::AIGoldDigPoint },
-			{ "AIGOTOPOINT", Activity::ViewState::AIGoToPoint },
-			{ "LZSELECT", Activity::ViewState::LandingZoneSelect }
-		});
-		luaType.new_enum<Activity::DifficultySetting>("DifficultySetting", {
-			{ "MINDIFFICULTY", Activity::DifficultySetting::MinDifficulty },
-			{ "CAKEDIFFICULTY", Activity::DifficultySetting::CakeDifficulty },
-			{ "EASYDIFFICULTY", Activity::DifficultySetting::EasyDifficulty },
-			{ "MEDIUMDIFFICULTY", Activity::DifficultySetting::MediumDifficulty },
-			{ "HARDDIFFICULTY", Activity::DifficultySetting::HardDifficulty },
-			{ "NUTSDIFFICULTY", Activity::DifficultySetting::NutsDifficulty },
-			{ "MAXDIFFICULTY", Activity::DifficultySetting::MaxDifficulty }
-		});
-		luaType.new_enum<Activity::AISkillSetting>("AISkillSetting", {
-			{ "MINSKILL", Activity::AISkillSetting::MinSkill },
-			{ "INFERIORSKILL", Activity::AISkillSetting::InferiorSkill },
-			{ "DEFAULTSKILL", Activity::AISkillSetting::DefaultSkill },
-			{ "AVERAGESKILL", Activity::AISkillSetting::AverageSkill },
-			{ "GOODSKILL", Activity::AISkillSetting::GoodSkill },
-			{ "UNFAIRSKILL", Activity::AISkillSetting::UnfairSkill }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("Players");
+			enumTable["PLAYER_NONE"] = Players::NoPlayer;
+			enumTable["PLAYER_1"] = Players::PlayerOne;
+			enumTable["PLAYER_2"] = Players::PlayerTwo;
+			enumTable["PLAYER_3"] = Players::PlayerThree;
+			enumTable["PLAYER_4"] = Players::PlayerFour;
+			enumTable["MAXPLAYERCOUNT"] = Players::MaxPlayerCount;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("ActivityState");
+			enumTable["NOACTIVITY"] = Activity::ActivityState::NoActivity;
+			enumTable["NOTSTARTED"] = Activity::ActivityState::NotStarted;
+			enumTable["STARTING"] = Activity::ActivityState::Starting;
+			enumTable["EDITING"] = Activity::ActivityState::Editing;
+			enumTable["PREGAME"] = Activity::ActivityState::PreGame;
+			enumTable["RUNNING"] = Activity::ActivityState::Running;
+			enumTable["INERROR"] = Activity::ActivityState::HasError;
+			enumTable["OVER"] = Activity::ActivityState::Over;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("Team");
+			enumTable["NOTEAM"] = Activity::Teams::NoTeam;
+			enumTable["TEAM_1"] = Activity::Teams::TeamOne;
+			enumTable["TEAM_2"] = Activity::Teams::TeamTwo;
+			enumTable["TEAM_3"] = Activity::Teams::TeamThree;
+			enumTable["TEAM_4"] = Activity::Teams::TeamFour;
+			enumTable["MAXTEAMCOUNT"] = Activity::Teams::MaxTeamCount;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("ViewState");
+			enumTable["NORMAL"] = Activity::ViewState::Normal;
+			enumTable["OBSERVE"] = Activity::ViewState::Observe;
+			enumTable["DEATHWATCH"] = Activity::ViewState::DeathWatch;
+			enumTable["ACTORSELECT"] = Activity::ViewState::ActorSelect;
+			enumTable["AISENTRYPOINT"] = Activity::ViewState::AISentryPoint;
+			enumTable["AIPATROLPOINTS"] = Activity::ViewState::AIPatrolPoints;
+			enumTable["AIGOLDDIGPOINT"] = Activity::ViewState::AIGoldDigPoint;
+			enumTable["AIGOTOPOINT"] = Activity::ViewState::AIGoToPoint;
+			enumTable["LZSELECT"] = Activity::ViewState::LandingZoneSelect;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("DifficultySetting");
+			enumTable["MINDIFFICULTY"] = Activity::DifficultySetting::MinDifficulty;
+			enumTable["CAKEDIFFICULTY"] = Activity::DifficultySetting::CakeDifficulty;
+			enumTable["EASYDIFFICULTY"] = Activity::DifficultySetting::EasyDifficulty;
+			enumTable["MEDIUMDIFFICULTY"] = Activity::DifficultySetting::MediumDifficulty;
+			enumTable["HARDDIFFICULTY"] = Activity::DifficultySetting::HardDifficulty;
+			enumTable["NUTSDIFFICULTY"] = Activity::DifficultySetting::NutsDifficulty;
+			enumTable["MAXDIFFICULTY"] = Activity::DifficultySetting::MaxDifficulty;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("AISkillSetting");
+			enumTable["MINSKILL"] = Activity::AISkillSetting::MinSkill;
+			enumTable["INFERIORSKILL"] = Activity::AISkillSetting::InferiorSkill;
+			enumTable["DEFAULTSKILL"] = Activity::AISkillSetting::DefaultSkill;
+			enumTable["AVERAGESKILL"] = Activity::AISkillSetting::AverageSkill;
+			enumTable["GOODSKILL"] = Activity::AISkillSetting::GoodSkill;
+			enumTable["UNFAIRSKILL"] = Activity::AISkillSetting::UnfairSkill;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,11 +198,12 @@ namespace RTE {
 		luaType["DisableAIs"] = &GameActivity::DisableAIs;
 		luaType["InitAIs"] = &GameActivity::InitAIs;
 
-		luaType.new_enum<GameActivity::ObjectiveArrowDir>("ObjectiveArrowDir", {
-			{ "ARROWDOWN", GameActivity::ObjectiveArrowDir::ARROWDOWN },
-			{ "ARROWLEFT", GameActivity::ObjectiveArrowDir::ARROWLEFT },
-			{ "ARROWRIGHT", GameActivity::ObjectiveArrowDir::ARROWRIGHT },
-			{ "ARROWUP", GameActivity::ObjectiveArrowDir::ARROWUP }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("ObjectiveArrowDir");
+			enumTable["ARROWDOWN"] = GameActivity::ObjectiveArrowDir::ARROWDOWN;
+			enumTable["ARROWLEFT"] = GameActivity::ObjectiveArrowDir::ARROWLEFT;
+			enumTable["ARROWRIGHT"] = GameActivity::ObjectiveArrowDir::ARROWRIGHT;
+			enumTable["ARROWUP"] = GameActivity::ObjectiveArrowDir::ARROWUP;
+		}
 	}
 }

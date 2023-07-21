@@ -101,43 +101,44 @@ namespace RTE {
 
 		luaType["ReloadScripts"] = &PieSlice::ReloadScripts;
 
-		luaType.new_enum<PieSlice::SliceType>("SliceType", {
-			{ "NoType", PieSlice::SliceType::NoType },
-			{ "Pickup", PieSlice::SliceType::Pickup },
-			{ "Drop", PieSlice::SliceType::Drop },
-			{ "NextItem", PieSlice::SliceType::NextItem },
-			{ "PreviousItem", PieSlice::SliceType::PreviousItem },
-			{ "Reload", PieSlice::SliceType::Reload },
-			{ "BuyMenu", PieSlice::SliceType::BuyMenu },
-			{ "Stats", PieSlice::SliceType::Stats },
-			{ "Map", PieSlice::SliceType::Map },
-			{ "FormSquad", PieSlice::SliceType::FormSquad },
-			{ "Ceasefire", PieSlice::SliceType::Ceasefire },
-			{ "Sentry", PieSlice::SliceType::Sentry },
-			{ "Patrol", PieSlice::SliceType::Patrol },
-			{ "BrainHunt", PieSlice::SliceType::BrainHunt },
-			{ "GoldDig", PieSlice::SliceType::GoldDig },
-			{ "GoTo", PieSlice::SliceType::GoTo },
-			{ "Return", PieSlice::SliceType::Return },
-			{ "Stay", PieSlice::SliceType::Stay },
-			{ "Deliver", PieSlice::SliceType::Deliver },
-			{ "Scuttle", PieSlice::SliceType::Scuttle },
-			{ "Done", PieSlice::SliceType::EditorDone },
-			{ "Load", PieSlice::SliceType::EditorLoad },
-			{ "Save", PieSlice::SliceType::EditorSave },
-			{ "New", PieSlice::SliceType::EditorNew },
-			{ "Pick", PieSlice::SliceType::EditorPick },
-			{ "Move", PieSlice::SliceType::EditorMove },
-			{ "Remove", PieSlice::SliceType::EditorRemove },
-			{ "InFront", PieSlice::SliceType::EditorInFront },
-			{ "Behind", PieSlice::SliceType::EditorBehind },
-			{ "ZoomIn", PieSlice::SliceType::EditorZoomIn },
-			{ "ZoomOut", PieSlice::SliceType::EditorZoomOut },
-			{ "Team1", PieSlice::SliceType::EditorTeam1 },
-			{ "Team2", PieSlice::SliceType::EditorTeam2 },
-			{ "Team3", PieSlice::SliceType::EditorTeam3 },
-			{ "Team4", PieSlice::SliceType::EditorTeam4 }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("SliceType");
+			enumTable["NoType"] = PieSlice::SliceType::NoType;
+			enumTable["Pickup"] = PieSlice::SliceType::Pickup;
+			enumTable["Drop"] = PieSlice::SliceType::Drop;
+			enumTable["NextItem"] = PieSlice::SliceType::NextItem;
+			enumTable["PreviousItem"] = PieSlice::SliceType::PreviousItem;
+			enumTable["Reload"] = PieSlice::SliceType::Reload;
+			enumTable["BuyMenu"] = PieSlice::SliceType::BuyMenu;
+			enumTable["Stats"] = PieSlice::SliceType::Stats;
+			enumTable["Map"] = PieSlice::SliceType::Map;
+			enumTable["FormSquad"] = PieSlice::SliceType::FormSquad;
+			enumTable["Ceasefire"] = PieSlice::SliceType::Ceasefire;
+			enumTable["Sentry"] = PieSlice::SliceType::Sentry;
+			enumTable["Patrol"] = PieSlice::SliceType::Patrol;
+			enumTable["BrainHunt"] = PieSlice::SliceType::BrainHunt;
+			enumTable["GoldDig"] = PieSlice::SliceType::GoldDig;
+			enumTable["GoTo"] = PieSlice::SliceType::GoTo;
+			enumTable["Return"] = PieSlice::SliceType::Return;
+			enumTable["Stay"] = PieSlice::SliceType::Stay;
+			enumTable["Deliver"] = PieSlice::SliceType::Deliver;
+			enumTable["Scuttle"] = PieSlice::SliceType::Scuttle;
+			enumTable["Done"] = PieSlice::SliceType::EditorDone;
+			enumTable["Load"] = PieSlice::SliceType::EditorLoad;
+			enumTable["Save"] = PieSlice::SliceType::EditorSave;
+			enumTable["New"] = PieSlice::SliceType::EditorNew;
+			enumTable["Pick"] = PieSlice::SliceType::EditorPick;
+			enumTable["Move"] = PieSlice::SliceType::EditorMove;
+			enumTable["Remove"] = PieSlice::SliceType::EditorRemove;
+			enumTable["InFront"] = PieSlice::SliceType::EditorInFront;
+			enumTable["Behind"] = PieSlice::SliceType::EditorBehind;
+			enumTable["ZoomIn"] = PieSlice::SliceType::EditorZoomIn;
+			enumTable["ZoomOut"] = PieSlice::SliceType::EditorZoomOut;
+			enumTable["Team1"] = PieSlice::SliceType::EditorTeam1;
+			enumTable["Team2"] = PieSlice::SliceType::EditorTeam2;
+			enumTable["Team3"] = PieSlice::SliceType::EditorTeam3;
+			enumTable["Team4"] = PieSlice::SliceType::EditorTeam4;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,11 +218,12 @@ namespace RTE {
 		luaType["Restart"] = (bool (SoundContainer::*)(int player)) & SoundContainer::Restart;
 		luaType["FadeOut"] = &SoundContainer::FadeOut;
 
-		luaType.new_enum<SoundContainer::SoundOverlapMode>("SoundOverlapMode", {
-			{ "OVERLAP", SoundContainer::SoundOverlapMode::OVERLAP },
-			{ "RESTART", SoundContainer::SoundOverlapMode::RESTART },
-			{ "IGNORE_PLAY", SoundContainer::SoundOverlapMode::IGNORE_PLAY }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("SoundOverlapMode");
+			enumTable["OVERLAP"] = SoundContainer::SoundOverlapMode::OVERLAP;
+			enumTable["RESTART"] = SoundContainer::SoundOverlapMode::RESTART;
+			enumTable["IGNORE_PLAY"] = SoundContainer::SoundOverlapMode::IGNORE_PLAY;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,11 +247,12 @@ namespace RTE {
 		luaType["RemoveSound"] = (bool (SoundSet::*)(const std::string & soundFilePath, bool removeFromSubSoundSets)) & SoundSet::RemoveSound;
 		luaType["AddSoundSet"] = &SoundSet::AddSoundSet;
 
-		luaType.new_enum<SoundSet::SoundSelectionCycleMode>("SoundSelectionCycleMode", {
-			{ "RANDOM", SoundSet::SoundSelectionCycleMode::RANDOM },
-			{ "FORWARDS", SoundSet::SoundSelectionCycleMode::FORWARDS },
-			{ "ALL", SoundSet::SoundSelectionCycleMode::ALL }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("SoundSelectionCycleMode");
+			enumTable["RANDOM"] = SoundSet::SoundSelectionCycleMode::RANDOM;
+			enumTable["FORWARDS"] = SoundSet::SoundSelectionCycleMode::FORWARDS;
+			enumTable["ALL"] = SoundSet::SoundSelectionCycleMode::ALL;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

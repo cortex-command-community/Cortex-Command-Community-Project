@@ -78,54 +78,61 @@ namespace RTE {
 		luaType["GetLimbPathSpeed"] = &ACrab::GetLimbPathSpeed;
 		luaType["SetLimbPathSpeed"] = &ACrab::SetLimbPathSpeed;
 
-		luaType.new_enum<ACrab::MovementState>("MovementState", {
-			{ "STAND", ACrab::MovementState::STAND },
-			{ "WALK", ACrab::MovementState::WALK },
-			{ "JUMP", ACrab::MovementState::JUMP },
-			{ "DISLODGE", ACrab::MovementState::DISLODGE },
-			{ "MOVEMENTSTATECOUNT", ACrab::MovementState::MOVEMENTSTATECOUNT }
-		});
-		luaType.new_enum<ACrab::Side>("Side", {
-			{ "LEFTSIDE", ACrab::Side::LEFTSIDE },
-			{ "RIGHTSIDE", ACrab::Side::RIGHTSIDE },
-			{ "SIDECOUNT", ACrab::Side::SIDECOUNT }
-		});
-		luaType.new_enum<ACrab::Layer>("Layer", {
-			{ "FGROUND", ACrab::Layer::FGROUND },
-			{ "BGROUND", ACrab::Layer::BGROUND }
-		});
-		luaType.new_enum<ACrab::DeviceHandlingState>("DeviceHandlingState", {
-			{ "STILL", ACrab::DeviceHandlingState::STILL },
-			{ "POINTING", ACrab::DeviceHandlingState::POINTING },
-			{ "SCANNING", ACrab::DeviceHandlingState::SCANNING },
-			{ "AIMING", ACrab::DeviceHandlingState::AIMING },
-			{ "FIRING", ACrab::DeviceHandlingState::FIRING },
-			{ "THROWING", ACrab::DeviceHandlingState::THROWING },
-			{ "DIGGING", ACrab::DeviceHandlingState::DIGGING }
-		});
-		luaType.new_enum<ACrab::SweepState>("SweepState", {
-			{ "NOSWEEP", ACrab::SweepState::NOSWEEP },
-			{ "SWEEPINGUP", ACrab::SweepState::SWEEPINGUP },
-			{ "SWEEPUPPAUSE", ACrab::SweepState::SWEEPUPPAUSE },
-			{ "SWEEPINGDOWN", ACrab::SweepState::SWEEPINGDOWN },
-			{ "SWEEPDOWNPAUSE", ACrab::SweepState::SWEEPDOWNPAUSE }
-		});
-		luaType.new_enum<ACrab::DigState>("DigState", {
-			{ "NOTDIGGING", ACrab::DigState::NOTDIGGING },
-			{ "PREDIG", ACrab::DigState::PREDIG },
-			{ "STARTDIG", ACrab::DigState::STARTDIG },
-			{ "TUNNELING", ACrab::DigState::TUNNELING },
-			{ "FINISHINGDIG", ACrab::DigState::FINISHINGDIG },
-			{ "PAUSEDIGGER", ACrab::DigState::PAUSEDIGGER }
-		});
-		luaType.new_enum<ACrab::JumpState>("JumpState", {
-			{ "NOTJUMPING", ACrab::JumpState::NOTJUMPING },
-			{ "FORWARDJUMP", ACrab::JumpState::FORWARDJUMP },
-			{ "PREJUMP", ACrab::JumpState::PREUPJUMP },
-			{ "UPJUMP", ACrab::JumpState::UPJUMP },
-			{ "APEXJUMP", ACrab::JumpState::APEXJUMP },
-			{ "LANDJUMP", ACrab::JumpState::LANDJUMP }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("MovementState");
+			enumTable["STAND"] = ACrab::MovementState::STAND;
+			enumTable["WALK"] = ACrab::MovementState::WALK;
+			enumTable["JUMP"] = ACrab::MovementState::JUMP;
+			enumTable["DISLODGE"] = ACrab::MovementState::DISLODGE;
+			enumTable["MOVEMENTSTATECOUNT"] = ACrab::MovementState::MOVEMENTSTATECOUNT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("Side");
+			enumTable["LEFTSIDE"] = ACrab::Side::LEFTSIDE;
+			enumTable["RIGHTSIDE"] = ACrab::Side::RIGHTSIDE;
+			enumTable["SIDECOUNT"] = ACrab::Side::SIDECOUNT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("Layer");
+			enumTable["FGROUND"] = ACrab::Layer::FGROUND;
+			enumTable["BGROUND"] = ACrab::Layer::BGROUND;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("DeviceHandlingState");
+			enumTable["STILL"] = ACrab::DeviceHandlingState::STILL;
+			enumTable["POINTING"] = ACrab::DeviceHandlingState::POINTING;
+			enumTable["SCANNING"] = ACrab::DeviceHandlingState::SCANNING;
+			enumTable["AIMING"] = ACrab::DeviceHandlingState::AIMING;
+			enumTable["FIRING"] = ACrab::DeviceHandlingState::FIRING;
+			enumTable["THROWING"] = ACrab::DeviceHandlingState::THROWING;
+			enumTable["DIGGING"] = ACrab::DeviceHandlingState::DIGGING;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("SweepState");
+			enumTable["NOSWEEP"] = ACrab::SweepState::NOSWEEP;
+			enumTable["SWEEPINGUP"] = ACrab::SweepState::SWEEPINGUP;
+			enumTable["SWEEPUPPAUSE"] = ACrab::SweepState::SWEEPUPPAUSE;
+			enumTable["SWEEPINGDOWN"] = ACrab::SweepState::SWEEPINGDOWN;
+			enumTable["SWEEPDOWNPAUSE"] = ACrab::SweepState::SWEEPDOWNPAUSE;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("DigState");
+			enumTable["NOTDIGGING"] = ACrab::DigState::NOTDIGGING;
+			enumTable["PREDIG"] = ACrab::DigState::PREDIG;
+			enumTable["STARTDIG"] = ACrab::DigState::STARTDIG;
+			enumTable["TUNNELING"] = ACrab::DigState::TUNNELING;
+			enumTable["FINISHINGDIG"] = ACrab::DigState::FINISHINGDIG;
+			enumTable["PAUSEDIGGER"] = ACrab::DigState::PAUSEDIGGER;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("JumpState");
+			enumTable["NOTJUMPING"] = ACrab::JumpState::NOTJUMPING;
+			enumTable["FORWARDJUMP"] = ACrab::JumpState::FORWARDJUMP;
+			enumTable["PREJUMP"] = ACrab::JumpState::PREUPJUMP;
+			enumTable["UPJUMP"] = ACrab::JumpState::UPJUMP;
+			enumTable["APEXJUMP"] = ACrab::JumpState::APEXJUMP;
+			enumTable["LANDJUMP"] = ACrab::JumpState::LANDJUMP;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,30 +152,34 @@ namespace RTE {
 		luaType["OpenHatch"] = &ACraft::OpenHatch;
 		luaType["CloseHatch"] = &ACraft::CloseHatch;
 
-		luaType.new_enum<ACraft::HatchState>("HatchState", {
-			{ "CLOSED", ACraft::HatchState::CLOSED },
-			{ "OPENING", ACraft::HatchState::OPENING },
-			{ "OPEN", ACraft::HatchState::OPEN },
-			{ "CLOSING", ACraft::HatchState::CLOSING },
-			{ "HatchStateCount", ACraft::HatchState::HatchStateCount }
-		});
-		luaType.new_enum<ACraft::Side>("Side", {
-			{ "RIGHT", ACraft::Side::RIGHT },
-			{ "LEFT", ACraft::Side::LEFT }
-		});
-		luaType.new_enum<ACraft::CraftDeliverySequence>("CraftDeliverySequence", {
-			{ "FALL", ACraft::CraftDeliverySequence::FALL },
-			{ "LAND", ACraft::CraftDeliverySequence::LAND },
-			{ "STANDBY", ACraft::CraftDeliverySequence::STANDBY },
-			{ "UNLOAD", ACraft::CraftDeliverySequence::UNLOAD },
-			{ "LAUNCH", ACraft::CraftDeliverySequence::LAUNCH },
-			{ "UNSTICK", ACraft::CraftDeliverySequence::UNSTICK }
-		});
-		luaType.new_enum<ACraft::AltitudeMoveState>("AltitudeMoveState", {
-			{ "HOVER", ACraft::AltitudeMoveState::HOVER },
-			{ "DESCEND", ACraft::AltitudeMoveState::DESCEND },
-			{ "ASCEND", ACraft::AltitudeMoveState::ASCEND }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("HatchState");
+			enumTable["CLOSED"] = ACraft::HatchState::CLOSED;
+			enumTable["OPENING"] = ACraft::HatchState::OPENING;
+			enumTable["OPEN"] = ACraft::HatchState::OPEN;
+			enumTable["CLOSING"] = ACraft::HatchState::CLOSING;
+			enumTable["HatchStateCount"] = ACraft::HatchState::HatchStateCount;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("Side");
+			enumTable["RIGHT"] = ACraft::Side::RIGHT;
+			enumTable["LEFT"] = ACraft::Side::LEFT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("CraftDeliverySequence");
+			enumTable["FALL"] = ACraft::CraftDeliverySequence::FALL;
+			enumTable["LAND"] = ACraft::CraftDeliverySequence::LAND;
+			enumTable["STANDBY"] = ACraft::CraftDeliverySequence::STANDBY;
+			enumTable["UNLOAD"] = ACraft::CraftDeliverySequence::UNLOAD;
+			enumTable["LAUNCH"] = ACraft::CraftDeliverySequence::LAUNCH;
+			enumTable["UNSTICK"] = ACraft::CraftDeliverySequence::UNSTICK;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("AltitudeMoveState");
+			enumTable["HOVER"] = ACraft::AltitudeMoveState::HOVER;
+			enumTable["DESCEND"] = ACraft::AltitudeMoveState::DESCEND;
+			enumTable["ASCEND"] = ACraft::AltitudeMoveState::ASCEND;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,13 +196,14 @@ namespace RTE {
 		luaType["RightThruster"] = sol::property(&ACRocket::GetURightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetURightThruster);
 		luaType["GearState"] = sol::property(&ACRocket::GetGearState);
 
-		luaType.new_enum<ACRocket::LandingGearState>("LandingGearState", {
-			{ "RAISED", ACRocket::LandingGearState::RAISED },
-			{ "LOWERED", ACRocket::LandingGearState::LOWERED },
-			{ "LOWERING", ACRocket::LandingGearState::LOWERING },
-			{ "RAISING", ACRocket::LandingGearState::RAISING },
-			{ "GearStateCount", ACRocket::LandingGearState::GearStateCount }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("LandingGearState");
+			enumTable["RAISED"] = ACRocket::LandingGearState::RAISED;
+			enumTable["LOWERED"] = ACRocket::LandingGearState::LOWERED;
+			enumTable["LOWERING"] = ACRocket::LandingGearState::LOWERING;
+			enumTable["RAISING"] = ACRocket::LandingGearState::RAISING;
+			enumTable["GearStateCount"] = ACRocket::LandingGearState::GearStateCount;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -293,58 +305,65 @@ namespace RTE {
 		luaType["IsOrganic"] = &Actor::IsOrganic;
 		luaType["IsMechanical"] = &Actor::IsMechanical;
 
-		luaType.new_enum<Actor::Status>("Status", {
-			{ "STABLE", Actor::Status::STABLE },
-			{ "UNSTABLE", Actor::Status::UNSTABLE },
-			{ "INACTIVE", Actor::Status::INACTIVE },
-			{ "DYING", Actor::Status::DYING },
-			{ "DEAD", Actor::Status::DEAD }
-		});
-		luaType.new_enum<Actor::AIMode>("AIMode", {
-			{ "AIMODE_NONE", Actor::AIMode::AIMODE_NONE },
-			{ "AIMODE_SENTRY", Actor::AIMode::AIMODE_SENTRY },
-			{ "AIMODE_PATROL", Actor::AIMode::AIMODE_PATROL },
-			{ "AIMODE_GOTO", Actor::AIMode::AIMODE_GOTO },
-			{ "AIMODE_BRAINHUNT", Actor::AIMode::AIMODE_BRAINHUNT },
-			{ "AIMODE_GOLDDIG", Actor::AIMode::AIMODE_GOLDDIG },
-			{ "AIMODE_RETURN", Actor::AIMode::AIMODE_RETURN },
-			{ "AIMODE_STAY", Actor::AIMode::AIMODE_STAY },
-			{ "AIMODE_SCUTTLE", Actor::AIMode::AIMODE_SCUTTLE },
-			{ "AIMODE_DELIVER", Actor::AIMode::AIMODE_DELIVER },
-			{ "AIMODE_BOMB", Actor::AIMode::AIMODE_BOMB },
-			{ "AIMODE_SQUAD", Actor::AIMode::AIMODE_SQUAD },
-			{ "AIMODE_COUNT", Actor::AIMode::AIMODE_COUNT }
-		});
-		luaType.new_enum<Actor::ActionState>("ActionState", {
-			{ "MOVING", Actor::ActionState::MOVING },
-			{ "MOVING_FAST", Actor::ActionState::MOVING_FAST },
-			{ "FIRING", Actor::ActionState::FIRING },
-			{ "ActionStateCount", Actor::ActionState::ActionStateCount }
-		});
-		luaType.new_enum<Actor::AimState>("AimState", {
-			{ "AIMSTILL", Actor::AimState::AIMSTILL },
-			{ "AIMUP", Actor::AimState::AIMUP },
-			{ "AIMDOWN", Actor::AimState::AIMDOWN },
-			{ "AimStateCount", Actor::AimState::AimStateCount }
-		});
-		luaType.new_enum<Actor::LateralMoveState>("LateralMoveState", {
-			{ "LAT_STILL", Actor::LateralMoveState::LAT_STILL },
-			{ "LAT_LEFT", Actor::LateralMoveState::LAT_LEFT },
-			{ "LAT_RIGHT", Actor::LateralMoveState::LAT_RIGHT }
-		});
-		luaType.new_enum<Actor::ObstacleState>("ObstacleState", {
-			{ "PROCEEDING", Actor::ObstacleState::PROCEEDING },
-			{ "BACKSTEPPING", Actor::ObstacleState::BACKSTEPPING },
-			{ "DIGPAUSING", Actor::ObstacleState::DIGPAUSING },
-			{ "JUMPING", Actor::ObstacleState::JUMPING },
-			{ "SOFTLANDING", Actor::ObstacleState::SOFTLANDING }
-		});
-		luaType.new_enum<Actor::TeamBlockState>("TeamBlockState", {
-			{ "NOTBLOCKED", Actor::TeamBlockState::NOTBLOCKED },
-			{ "BLOCKED", Actor::TeamBlockState::BLOCKED },
-			{ "IGNORINGBLOCK", Actor::TeamBlockState::IGNORINGBLOCK },
-			{ "FOLLOWWAIT", Actor::TeamBlockState::FOLLOWWAIT }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("Status");
+			enumTable["STABLE"] = Actor::Status::STABLE;
+			enumTable["UNSTABLE"] = Actor::Status::UNSTABLE;
+			enumTable["INACTIVE"] = Actor::Status::INACTIVE;
+			enumTable["DYING"] = Actor::Status::DYING;
+			enumTable["DEAD"] = Actor::Status::DEAD;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("AIMode");
+			enumTable["AIMODE_NONE"] = Actor::AIMode::AIMODE_NONE;
+			enumTable["AIMODE_SENTRY"] = Actor::AIMode::AIMODE_SENTRY;
+			enumTable["AIMODE_PATROL"] = Actor::AIMode::AIMODE_PATROL;
+			enumTable["AIMODE_GOTO"] = Actor::AIMode::AIMODE_GOTO;
+			enumTable["AIMODE_BRAINHUNT"] = Actor::AIMode::AIMODE_BRAINHUNT;
+			enumTable["AIMODE_GOLDDIG"] = Actor::AIMode::AIMODE_GOLDDIG;
+			enumTable["AIMODE_RETURN"] = Actor::AIMode::AIMODE_RETURN;
+			enumTable["AIMODE_STAY"] = Actor::AIMode::AIMODE_STAY;
+			enumTable["AIMODE_SCUTTLE"] = Actor::AIMode::AIMODE_SCUTTLE;
+			enumTable["AIMODE_DELIVER"] = Actor::AIMode::AIMODE_DELIVER;
+			enumTable["AIMODE_BOMB"] = Actor::AIMode::AIMODE_BOMB;
+			enumTable["AIMODE_SQUAD"] = Actor::AIMode::AIMODE_SQUAD;
+			enumTable["AIMODE_COUNT"] = Actor::AIMode::AIMODE_COUNT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("ActionState");
+			enumTable["MOVING"] = Actor::ActionState::MOVING;
+			enumTable["MOVING_FAST"] = Actor::ActionState::MOVING_FAST;
+			enumTable["FIRING"] = Actor::ActionState::FIRING;
+			enumTable["ActionStateCount"] = Actor::ActionState::ActionStateCount;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("AimState");
+			enumTable["AIMSTILL"] = Actor::AimState::AIMSTILL;
+			enumTable["AIMUP"] = Actor::AimState::AIMUP;
+			enumTable["AIMDOWN"] = Actor::AimState::AIMDOWN;
+			enumTable["AimStateCount"] = Actor::AimState::AimStateCount;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("LateralMoveState");
+			enumTable["LAT_STILL"] = Actor::LateralMoveState::LAT_STILL;
+			enumTable["LAT_LEFT"] = Actor::LateralMoveState::LAT_LEFT;
+			enumTable["LAT_RIGHT"] = Actor::LateralMoveState::LAT_RIGHT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("ObstacleState");
+			enumTable["PROCEEDING"] = Actor::ObstacleState::PROCEEDING;
+			enumTable["BACKSTEPPING"] = Actor::ObstacleState::BACKSTEPPING;
+			enumTable["DIGPAUSING"] = Actor::ObstacleState::DIGPAUSING;
+			enumTable["JUMPING"] = Actor::ObstacleState::JUMPING;
+			enumTable["SOFTLANDING"] = Actor::ObstacleState::SOFTLANDING;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("TeamBlockState");
+			enumTable["NOTBLOCKED"] = Actor::TeamBlockState::NOTBLOCKED;
+			enumTable["BLOCKED"] = Actor::TeamBlockState::BLOCKED;
+			enumTable["IGNORINGBLOCK"] = Actor::TeamBlockState::IGNORINGBLOCK;
+			enumTable["FOLLOWWAIT"] = Actor::TeamBlockState::FOLLOWWAIT;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,13 +383,14 @@ namespace RTE {
 		luaType["StopDoor"] = &ADoor::StopDoor;
 		luaType["SetClosedByDefault"] = &ADoor::SetClosedByDefault;
 
-		luaType.new_enum<ADoor::DoorState>("DoorState", {
-			{ "CLOSED", ADoor::DoorState::CLOSED },
-			{ "OPENING", ADoor::DoorState::OPENING },
-			{ "OPEN", ADoor::DoorState::OPEN },
-			{ "CLOSING", ADoor::DoorState::CLOSING },
-			{ "STOPPED", ADoor::DoorState::STOPPED }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("DoorState");
+			enumTable["CLOSED"] = ADoor::DoorState::CLOSED;
+			enumTable["OPENING"] = ADoor::DoorState::OPENING;
+			enumTable["OPEN"] = ADoor::DoorState::OPEN;
+			enumTable["CLOSING"] = ADoor::DoorState::CLOSING;
+			enumTable["STOPPED"] = ADoor::DoorState::STOPPED;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -441,70 +461,78 @@ namespace RTE {
 		luaType["GetWalkAngle"] = &AHuman::GetWalkAngle;
 		luaType["SetWalkAngle"] = &AHuman::SetWalkAngle;
 
-		luaType.new_enum<AHuman::UpperBodyState>("UpperBodyState", {
-			{ "WEAPON_READY", AHuman::UpperBodyState::WEAPON_READY },
-			{ "AIMING_SHARP", AHuman::UpperBodyState::AIMING_SHARP },
-			{ "HOLSTERING_BACK", AHuman::UpperBodyState::HOLSTERING_BACK },
-			{ "HOLSTERING_BELT", AHuman::UpperBodyState::HOLSTERING_BELT },
-			{ "DEHOLSTERING_BACK", AHuman::UpperBodyState::DEHOLSTERING_BACK },
-			{ "DEHOLSTERING_BELT", AHuman::UpperBodyState::DEHOLSTERING_BELT },
-			{ "THROWING_PREP", AHuman::UpperBodyState::THROWING_PREP },
-			{ "THROWING_RELEASE", AHuman::UpperBodyState::THROWING_RELEASE }
-		});
-		luaType.new_enum<AHuman::MovementState>("MovementState", {
-			{ "NOMOVE", AHuman::MovementState::NOMOVE },
-			{ "STAND", AHuman::MovementState::STAND },
-			{ "WALK", AHuman::MovementState::WALK },
-			{ "CROUCH", AHuman::MovementState::CROUCH },
-			{ "CRAWL", AHuman::MovementState::CRAWL },
-			{ "ARMCRAWL", AHuman::MovementState::ARMCRAWL },
-			{ "CLIMB", AHuman::MovementState::CLIMB },
-			{ "JUMP", AHuman::MovementState::JUMP },
-			{ "DISLODGE", AHuman::MovementState::DISLODGE },
-			{ "MOVEMENTSTATECOUNT", AHuman::MovementState::MOVEMENTSTATECOUNT }
-		});
-		luaType.new_enum<AHuman::ProneState>("ProneState", {
-			{ "NOTPRONE", AHuman::ProneState::NOTPRONE },
-			{ "GOPRONE", AHuman::ProneState::GOPRONE },
-			{ "PRONE", AHuman::ProneState::PRONE },
-			{ "PRONESTATECOUNT", AHuman::ProneState::PRONESTATECOUNT }
-		});
-		luaType.new_enum<AHuman::Layer>("Layer", {
-			{ "FGROUND", AHuman::Layer::FGROUND },
-			{ "BGROUND", AHuman::Layer::BGROUND }
-		});
-		luaType.new_enum<AHuman::DeviceHandlingState>("DeviceHandlingState", {
-			{ "STILL", AHuman::DeviceHandlingState::STILL },
-			{ "POINTING", AHuman::DeviceHandlingState::POINTING },
-			{ "SCANNING", AHuman::DeviceHandlingState::SCANNING },
-			{ "AIMING", AHuman::DeviceHandlingState::AIMING },
-			{ "FIRING", AHuman::DeviceHandlingState::FIRING },
-			{ "THROWING", AHuman::DeviceHandlingState::THROWING },
-			{ "DIGGING", AHuman::DeviceHandlingState::DIGGING }
-		});
-		luaType.new_enum<AHuman::SweepState>("SweepState", {
-			{ "NOSWEEP", AHuman::SweepState::NOSWEEP },
-			{ "SWEEPINGUP", AHuman::SweepState::SWEEPINGUP },
-			{ "SWEEPUPPAUSE", AHuman::SweepState::SWEEPUPPAUSE },
-			{ "SWEEPINGDOWN", AHuman::SweepState::SWEEPINGDOWN },
-			{ "SWEEPDOWNPAUSE", AHuman::SweepState::SWEEPDOWNPAUSE }
-		});
-		luaType.new_enum<AHuman::DigState>("DigState", {
-			{ "NOTDIGGING", AHuman::DigState::NOTDIGGING },
-			{ "PREDIG", AHuman::DigState::PREDIG },
-			{ "STARTDIG", AHuman::DigState::STARTDIG },
-			{ "TUNNELING", AHuman::DigState::TUNNELING },
-			{ "FINISHINGDIG", AHuman::DigState::FINISHINGDIG },
-			{ "PAUSEDIGGER", AHuman::DigState::PAUSEDIGGER }
-		});
-		luaType.new_enum<AHuman::JumpState>("JumpState", {
-			{ "NOTJUMPING", AHuman::JumpState::NOTJUMPING },
-			{ "FORWARDJUMP", AHuman::JumpState::FORWARDJUMP },
-			{ "PREJUMP", AHuman::JumpState::PREUPJUMP },
-			{ "UPJUMP", AHuman::JumpState::UPJUMP },
-			{ "APEXJUMP", AHuman::JumpState::APEXJUMP },
-			{ "LANDJUMP", AHuman::JumpState::LANDJUMP }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("UpperBodyState");
+			enumTable["WEAPON_READY"] = AHuman::UpperBodyState::WEAPON_READY;
+			enumTable["AIMING_SHARP"] = AHuman::UpperBodyState::AIMING_SHARP;
+			enumTable["HOLSTERING_BACK"] = AHuman::UpperBodyState::HOLSTERING_BACK;
+			enumTable["HOLSTERING_BELT"] = AHuman::UpperBodyState::HOLSTERING_BELT;
+			enumTable["DEHOLSTERING_BACK"] = AHuman::UpperBodyState::DEHOLSTERING_BACK;
+			enumTable["DEHOLSTERING_BELT"] = AHuman::UpperBodyState::DEHOLSTERING_BELT;
+			enumTable["THROWING_PREP"] = AHuman::UpperBodyState::THROWING_PREP;
+			enumTable["THROWING_RELEASE"] = AHuman::UpperBodyState::THROWING_RELEASE;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("MovementState");
+			enumTable["NOMOVE"] = AHuman::MovementState::NOMOVE;
+			enumTable["STAND"] = AHuman::MovementState::STAND;
+			enumTable["WALK"] = AHuman::MovementState::WALK;
+			enumTable["CROUCH"] = AHuman::MovementState::CROUCH;
+			enumTable["CRAWL"] = AHuman::MovementState::CRAWL;
+			enumTable["ARMCRAWL"] = AHuman::MovementState::ARMCRAWL;
+			enumTable["CLIMB"] = AHuman::MovementState::CLIMB;
+			enumTable["JUMP"] = AHuman::MovementState::JUMP;
+			enumTable["DISLODGE"] = AHuman::MovementState::DISLODGE;
+			enumTable["MOVEMENTSTATECOUNT"] = AHuman::MovementState::MOVEMENTSTATECOUNT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("ProneState");
+			enumTable["NOTPRONE"] = AHuman::ProneState::NOTPRONE;
+			enumTable["GOPRONE"] = AHuman::ProneState::GOPRONE;
+			enumTable["PRONE"] = AHuman::ProneState::PRONE;
+			enumTable["PRONESTATECOUNT"] = AHuman::ProneState::PRONESTATECOUNT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("Layer");
+			enumTable["FGROUND"] = AHuman::Layer::FGROUND;
+			enumTable["BGROUND"] = AHuman::Layer::BGROUND;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("DeviceHandlingState");
+			enumTable["STILL"] = AHuman::DeviceHandlingState::STILL;
+			enumTable["POINTING"] = AHuman::DeviceHandlingState::POINTING;
+			enumTable["SCANNING"] = AHuman::DeviceHandlingState::SCANNING;
+			enumTable["AIMING"] = AHuman::DeviceHandlingState::AIMING;
+			enumTable["FIRING"] = AHuman::DeviceHandlingState::FIRING;
+			enumTable["THROWING"] = AHuman::DeviceHandlingState::THROWING;
+			enumTable["DIGGING"] = AHuman::DeviceHandlingState::DIGGING;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("SweepState");
+			enumTable["NOSWEEP"] = AHuman::SweepState::NOSWEEP;
+			enumTable["SWEEPINGUP"] = AHuman::SweepState::SWEEPINGUP;
+			enumTable["SWEEPUPPAUSE"] = AHuman::SweepState::SWEEPUPPAUSE;
+			enumTable["SWEEPINGDOWN"] = AHuman::SweepState::SWEEPINGDOWN;
+			enumTable["SWEEPDOWNPAUSE"] = AHuman::SweepState::SWEEPDOWNPAUSE;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("DigState");
+			enumTable["NOTDIGGING"] = AHuman::DigState::NOTDIGGING;
+			enumTable["PREDIG"] = AHuman::DigState::PREDIG;
+			enumTable["STARTDIG"] = AHuman::DigState::STARTDIG;
+			enumTable["TUNNELING"] = AHuman::DigState::TUNNELING;
+			enumTable["FINISHINGDIG"] = AHuman::DigState::FINISHINGDIG;
+			enumTable["PAUSEDIGGER"] = AHuman::DigState::PAUSEDIGGER;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("JumpState");
+			enumTable["NOTJUMPING"] = AHuman::JumpState::NOTJUMPING;
+			enumTable["FORWARDJUMP"] = AHuman::JumpState::FORWARDJUMP;
+			enumTable["PREJUMP"] = AHuman::JumpState::PREUPJUMP;
+			enumTable["UPJUMP"] = AHuman::JumpState::UPJUMP;
+			enumTable["APEXJUMP"] = AHuman::JumpState::APEXJUMP;
+			enumTable["LANDJUMP"] = AHuman::JumpState::LANDJUMP;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

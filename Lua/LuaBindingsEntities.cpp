@@ -46,11 +46,12 @@ namespace RTE {
 		luaType["InheritsVel"] = &Gib::m_InheritsVel;
 		luaType["IgnoresTeamHits"] = &Gib::m_IgnoresTeamHits;
 
-		luaType.new_enum<Gib::SpreadMode>("SpreadMode", {
-			{ "SpreadRandom", Gib::SpreadMode::SpreadRandom },
-			{ "SpreadEven", Gib::SpreadMode::SpreadEven },
-			{ "SpreadSpiral", Gib::SpreadMode::SpreadSpiral }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("SpreadMode");
+			enumTable["SpreadRandom"] = Gib::SpreadMode::SpreadRandom;
+			enumTable["SpreadEven"] = Gib::SpreadMode::SpreadEven;
+			enumTable["SpreadSpiral"] = Gib::SpreadMode::SpreadSpiral;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,16 +184,17 @@ namespace RTE {
 		luaType["GetEntryWoundPresetName"] = &MOSprite::GetEntryWoundPresetName;
 		luaType["GetExitWoundPresetName"] = &MOSprite::GetExitWoundPresetName;
 
-		luaType.new_enum<SpriteAnimMode>("SpriteAnimMode", {
-			{ "NOANIM", SpriteAnimMode::NOANIM },
-			{ "ALWAYSLOOP", SpriteAnimMode::ALWAYSLOOP },
-			{ "ALWAYSRANDOM", SpriteAnimMode::ALWAYSRANDOM },
-			{ "ALWAYSPINGPONG", SpriteAnimMode::ALWAYSPINGPONG },
-			{ "LOOPWHENACTIVE", SpriteAnimMode::LOOPWHENACTIVE },
-			{ "LOOPWHENOPENCLOSE", SpriteAnimMode::LOOPWHENOPENCLOSE },
-			{ "PINGPONGOPENCLOSE", SpriteAnimMode::PINGPONGOPENCLOSE },
-			{ "OVERLIFETIME", SpriteAnimMode::OVERLIFETIME },
-			{ "ONCOLLIDE", SpriteAnimMode::ONCOLLIDE }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("SpriteAnimMode");
+			enumTable["NOANIM"] = SpriteAnimMode::NOANIM;
+			enumTable["ALWAYSLOOP"] = SpriteAnimMode::ALWAYSLOOP;
+			enumTable["ALWAYSRANDOM"] = SpriteAnimMode::ALWAYSRANDOM;
+			enumTable["ALWAYSPINGPONG"] = SpriteAnimMode::ALWAYSPINGPONG;
+			enumTable["LOOPWHENACTIVE"] = SpriteAnimMode::LOOPWHENACTIVE;
+			enumTable["LOOPWHENOPENCLOSE"] = SpriteAnimMode::LOOPWHENOPENCLOSE;
+			enumTable["PINGPONGOPENCLOSE"] = SpriteAnimMode::PINGPONGOPENCLOSE;
+			enumTable["OVERLIFETIME"] = SpriteAnimMode::OVERLIFETIME;
+			enumTable["ONCOLLIDE"] = SpriteAnimMode::ONCOLLIDE;
+		}
 	}
 }

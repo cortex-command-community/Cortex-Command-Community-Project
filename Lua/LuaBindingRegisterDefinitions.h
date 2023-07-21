@@ -21,31 +21,44 @@ namespace RTE {
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of an abstract type.
 	/// </summary>
-	#define AbstractTypeLuaClassDefinition(TYPE, PARENTTYPE)	\
-		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,	\
-			"ClassName", sol::property(&TYPE::GetClassName),	\
-			sol::base_classes, sol::bases<PARENTTYPE>())
+	#define AbstractTypeLuaClassDefinition(TYPE, PARENTTYPE)		\
+		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,		\
+			"ClassName", sol::property(&TYPE::GetClassName),		\
+			sol::base_classes, sol::bases<PARENTTYPE>());			\
+		const char* _bindingClassTypeName = #TYPE	
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a concrete type.
 	/// </summary>
-	#define ConcreteTypeLuaClassDefinition(TYPE, PARENTTYPE)	\
-		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor, \
-			"ClassName", sol::property(&TYPE::GetClassName),	\
-			"Clone", &LuaAdaptersEntityClone::Clone##TYPE,		\
-			sol::base_classes, sol::bases<PARENTTYPE>())
+	#define ConcreteTypeLuaClassDefinition(TYPE, PARENTTYPE)		\
+		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,		\
+			"ClassName", sol::property(&TYPE::GetClassName),		\
+			"Clone", &LuaAdaptersEntityClone::Clone##TYPE,			\
+			sol::base_classes, sol::bases<PARENTTYPE>());			\
+			const char* _bindingClassTypeName = #TYPE
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a POD struct type.
 	/// </summary>
-#define SimpleTypeLuaClassDefinition(TYPE) \
-		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor)
+#define SimpleTypeLuaClassDefinition(TYPE)							\
+		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor);	\
+		const char* _bindingClassTypeName = #TYPE
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a POD struct type, with a different lua name to type name.
 	/// </summary>
-#define SimpleNamedTypeLuaClassDefinition(TYPE, NAME) \
-		solState.new_usertype<TYPE>(NAME, sol::no_constructor)
+#define SimpleNamedTypeLuaClassDefinition(TYPE, NAME)				\
+		solState.new_usertype<TYPE>(NAME, sol::no_constructor);		\
+		const char* _bindingClassTypeName = #TYPE
+
+	/// <summary>
+	/// Convenience macro for legacy LuaBind scope definition of an enum type.
+	/// This is used to spit the enum members into the class directly, instead of properly scoped
+	/// Like the differerence between enum class and enum:
+	/// "Activity.Teams.NOTEAM" would just be "Activity.NOTEAM".
+	/// </summary>
+#define LegacyEnumTypeTable(NAME_UNUSED) \
+		solState[_bindingClassTypeName]
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of an enum type.

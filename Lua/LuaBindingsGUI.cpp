@@ -23,24 +23,27 @@ namespace RTE {
 		luaType["HideText"] = &GUIBanner::HideText;
 		luaType["ClearText"] = &GUIBanner::ClearText;
 
-		luaType.new_enum<GUIBanner::AnimMode>("AnimMode", {
-			{ "BLINKING", GUIBanner::AnimMode::BLINKING },
-			{ "FLYBYLEFTWARD", GUIBanner::AnimMode::FLYBYLEFTWARD },
-			{ "FLYBYRIGHTWARD", GUIBanner::AnimMode::FLYBYRIGHTWARD },
-			{ "ANIMMODECOUNT", GUIBanner::AnimMode::ANIMMODECOUNT }
-		});
-		luaType.new_enum<GUIBanner::AnimState>("AnimState", {
-			{ "NOTSTARTED", GUIBanner::AnimState::NOTSTARTED },
-			{ "SHOWING", GUIBanner::AnimState::SHOWING },
-			{ "SHOW", GUIBanner::AnimState::SHOW },
-			{ "HIDING", GUIBanner::AnimState::HIDING },
-			{ "OVER", GUIBanner::AnimState::OVER },
-			{ "ANIMSTATECOUNT", GUIBanner::AnimState::ANIMSTATECOUNT }
-		});
-		luaType.new_enum<GameActivity::BannerColor>("BannerColor", {
-			{ "RED", GameActivity::BannerColor::RED },
-			{ "YELLOW", GameActivity::BannerColor::YELLOW }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("AnimMode");
+			enumTable["BLINKING"] = GUIBanner::AnimMode::BLINKING;
+			enumTable["FLYBYLEFTWARD"] = GUIBanner::AnimMode::FLYBYLEFTWARD;
+			enumTable["FLYBYRIGHTWARD"] = GUIBanner::AnimMode::FLYBYRIGHTWARD;
+			enumTable["ANIMMODECOUNT"] = GUIBanner::AnimMode::ANIMMODECOUNT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("AnimState");
+			enumTable["NOTSTARTED"] = GUIBanner::AnimState::NOTSTARTED;
+			enumTable["SHOWING"] = GUIBanner::AnimState::SHOWING;
+			enumTable["SHOW"] = GUIBanner::AnimState::SHOW;
+			enumTable["HIDING"] = GUIBanner::AnimState::HIDING;
+			enumTable["OVER"] = GUIBanner::AnimState::OVER;
+			enumTable["ANIMSTATECOUNT"] = GUIBanner::AnimState::ANIMSTATECOUNT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("BannerColor");
+			enumTable["RED"] = GameActivity::BannerColor::RED;
+			enumTable["YELLOW"] = GameActivity::BannerColor::YELLOW;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,18 +94,19 @@ namespace RTE {
 		luaType["TestBrainResidence"] = &SceneEditorGUI::TestBrainResidence;
 		luaType["Update"] = &SceneEditorGUI::Update; //Gacyr Note: I hate this being here but it's necessary for some metagame bullshit.
 
-		luaType.new_enum<SceneEditorGUI::EditorGUIMode>("EditorGUIMode", {
-			{ "INACTIVE", SceneEditorGUI::EditorGUIMode::INACTIVE },
-			{ "PICKINGOBJECT", SceneEditorGUI::EditorGUIMode::PICKINGOBJECT },
-			{ "ADDINGOBJECT", SceneEditorGUI::EditorGUIMode::ADDINGOBJECT },
-			{ "INSTALLINGBRAIN", SceneEditorGUI::EditorGUIMode::INSTALLINGBRAIN },
-			{ "PLACINGOBJECT", SceneEditorGUI::EditorGUIMode::PLACINGOBJECT },
-			{ "MOVINGOBJECT", SceneEditorGUI::EditorGUIMode::MOVINGOBJECT },
-			{ "DELETINGOBJECT", SceneEditorGUI::EditorGUIMode::DELETINGOBJECT },
-			{ "PLACEINFRONT", SceneEditorGUI::EditorGUIMode::PLACEINFRONT },
-			{ "PLACEBEHIND", SceneEditorGUI::EditorGUIMode::PLACEBEHIND },
-			{ "DONEEDITING", SceneEditorGUI::EditorGUIMode::DONEEDITING },
-			{ "EDITORGUIMODECOUNT", SceneEditorGUI::EditorGUIMode::EDITORGUIMODECOUNT }
-		});
+		{
+			sol::table enumTable = LegacyEnumTypeTable("EditorGUIMode");
+			enumTable["INACTIVE"] = SceneEditorGUI::EditorGUIMode::INACTIVE;
+			enumTable["PICKINGOBJECT"] = SceneEditorGUI::EditorGUIMode::PICKINGOBJECT;
+			enumTable["ADDINGOBJECT"] = SceneEditorGUI::EditorGUIMode::ADDINGOBJECT;
+			enumTable["INSTALLINGBRAIN"] = SceneEditorGUI::EditorGUIMode::INSTALLINGBRAIN;
+			enumTable["PLACINGOBJECT"] = SceneEditorGUI::EditorGUIMode::PLACINGOBJECT;
+			enumTable["MOVINGOBJECT"] = SceneEditorGUI::EditorGUIMode::MOVINGOBJECT;
+			enumTable["DELETINGOBJECT"] = SceneEditorGUI::EditorGUIMode::DELETINGOBJECT;
+			enumTable["PLACEINFRONT"] = SceneEditorGUI::EditorGUIMode::PLACEINFRONT;
+			enumTable["PLACEBEHIND"] = SceneEditorGUI::EditorGUIMode::PLACEBEHIND;
+			enumTable["DONEEDITING"] = SceneEditorGUI::EditorGUIMode::DONEEDITING;
+			enumTable["EDITORGUIMODECOUNT"] = SceneEditorGUI::EditorGUIMode::EDITORGUIMODECOUNT;
+		}
 	}
 }
