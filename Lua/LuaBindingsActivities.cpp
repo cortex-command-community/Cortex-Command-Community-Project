@@ -16,7 +16,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, Activity) {
 		auto luaType = AbstractTypeLuaClassDefinition(Activity, Entity);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			Activity()
 		>());
 
@@ -142,7 +142,7 @@ namespace RTE {
 		auto luaType = SimpleTypeLuaClassDefinition(GameActivity);
 		MarkLuaDynamicObject(luaType);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			GameActivity()
 		>());
 

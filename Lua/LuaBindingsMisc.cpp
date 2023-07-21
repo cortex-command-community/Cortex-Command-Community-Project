@@ -20,7 +20,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, AlarmEvent) {
 		auto luaType = SimpleTypeLuaClassDefinition(AlarmEvent);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			AlarmEvent(), 
 			AlarmEvent(const Vector&, int, float)
 		>());
@@ -68,7 +68,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MetaPlayer) {
 		auto luaType = SimpleTypeLuaClassDefinition(MetaPlayer);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			MetaPlayer()
 		>());
 
@@ -189,7 +189,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 		auto luaType = ConcreteTypeLuaClassDefinition(SoundContainer, Entity);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			SoundContainer()
 		>());
 
@@ -231,7 +231,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundSet) {
 		auto luaType = SimpleTypeLuaClassDefinition(SoundSet);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			SoundSet()
 		>());
 

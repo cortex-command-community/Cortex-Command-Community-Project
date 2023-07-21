@@ -17,7 +17,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Box) {
 		auto luaType = SimpleTypeLuaClassDefinition(Box);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			Box(),
 			Box(const Vector&, const Vector&),
 			Box(float, float, float, float&),
@@ -50,7 +50,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
 		auto luaType = SimpleTypeLuaClassDefinition(Controller);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			Controller()
 		>());
 
@@ -151,7 +151,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
 		auto luaType = SimpleTypeLuaClassDefinition(Timer);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			Timer(),
 			Timer(double),
 			Timer(double, double)
@@ -192,7 +192,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Vector) {
 		auto luaType = SimpleTypeLuaClassDefinition(Vector);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			Vector(),
 			Vector(float, float)
 		>());

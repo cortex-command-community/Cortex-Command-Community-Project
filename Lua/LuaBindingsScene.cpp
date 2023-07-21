@@ -107,7 +107,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(Scene::Area, "Area");
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			Scene::Area(),
 			Scene::Area(std::string),
 			Scene::Area(const Scene::Area&)

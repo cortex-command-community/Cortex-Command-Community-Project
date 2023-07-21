@@ -45,7 +45,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACrab) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ACrab, Actor);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			ACrab()
 		>());
 
@@ -211,7 +211,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Actor, MOSRotating);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			Actor()
 		>());
 
@@ -398,7 +398,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 		auto luaType = ConcreteTypeLuaClassDefinition(AHuman, Actor);
 
-		luaType.set(sol::meta_function::construct, sol::constructors<
+		luaType.set(sol::call_constructor, sol::constructors<
 			AHuman()
 		>());
 
