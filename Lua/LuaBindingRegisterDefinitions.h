@@ -23,8 +23,8 @@ namespace RTE {
 	/// </summary>
 	#define AbstractTypeLuaClassDefinition(TYPE, PARENTTYPE)		\
 		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,		\
-			"ClassName", sol::property(&TYPE::GetClassName),		\
-			sol::base_classes, sol::bases<PARENTTYPE>());			\
+			sol::base_classes, sol::bases<PARENTTYPE>(),			\
+			"ClassName", sol::property(&TYPE::GetClassName));		\
 		const char* _bindingClassTypeName = #TYPE	
 
 	/// <summary>
@@ -32,10 +32,10 @@ namespace RTE {
 	/// </summary>
 	#define ConcreteTypeLuaClassDefinition(TYPE, PARENTTYPE)		\
 		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,		\
+			sol::base_classes, sol::bases<PARENTTYPE>(),			\
 			"ClassName", sol::property(&TYPE::GetClassName),		\
-			"Clone", &LuaAdaptersEntityClone::Clone##TYPE,			\
-			sol::base_classes, sol::bases<PARENTTYPE>());			\
-			const char* _bindingClassTypeName = #TYPE
+			"Clone", &LuaAdaptersEntityClone::Clone##TYPE);			\
+		const char* _bindingClassTypeName = #TYPE
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a POD struct type.
