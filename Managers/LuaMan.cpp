@@ -111,7 +111,7 @@ namespace RTE {
 		// Register our lua manager
 		sol::usertype<LuaStateWrapper> usertype = solState.new_usertype<LuaStateWrapper>("LuaManager", sol::no_constructor);
 		usertype["TempEntity"] = sol::property(&LuaStateWrapper::GetTempEntity);
-		usertype["TempEntities"] = sol::readonly_property(&LuaStateWrapper::m_TempEntityVector);
+		usertype["TempEntities"] = sol::readonly(&LuaStateWrapper::m_TempEntityVector);
 		usertype["SelectRand"] = &LuaStateWrapper::SelectRand;
 		usertype["RangeRand"] = &LuaStateWrapper::RangeRand;
 		usertype["PosRand"] = &LuaStateWrapper::PosRand;
@@ -222,7 +222,7 @@ namespace RTE {
 		RegisterLuaBindingsOfType(solState, MiscLuaBindings, DrawBlendMode);
 
 		// Assign the manager instances to globals in the lua master state
-		solState["LuaMan"] = &g_LuaMan;
+		solState["LuaMan"] = this;
 		solState["TimerMan"] = &g_TimerMan;
 		solState["FrameMan"] = &g_FrameMan;
 		solState["PostProcessMan"] = &g_PostProcessMan;
