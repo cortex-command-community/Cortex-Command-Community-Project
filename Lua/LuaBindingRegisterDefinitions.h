@@ -18,6 +18,10 @@ namespace RTE {
 	#define LuaBindingRegisterFunctionDefinitionForType(OWNINGSCOPE, TYPE) \
 		void OWNINGSCOPE::Register##TYPE##LuaBindings(sol::state_view& solState)
 
+	#define MarkLuaDynamicObject(LUATYPE) 								\
+		LUATYPE[sol::meta_function::index] 		= &Entity::DynamicGet;	\
+	    LUATYPE[sol::meta_function::new_index] 	= &Entity::DynamicSet	\
+
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of an abstract type.
 	/// </summary>
@@ -34,7 +38,7 @@ namespace RTE {
 		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,		\
 			sol::base_classes, sol::bases<PARENTTYPE>(),			\
 			"ClassName", sol::property(&TYPE::GetClassName),		\
-			"Clone", &LuaAdaptersEntityClone::Clone##TYPE);			\
+			"Clone",	 &LuaAdaptersEntityClone::Clone##TYPE);		\
 		const char* _bindingClassTypeName = #TYPE
 
 	/// <summary>
