@@ -118,6 +118,21 @@ namespace RTE {
 		std::string GetFullModulePath(const std::string &modulePath) const;
 #pragma endregion
 
+#pragma region DataModule Management
+		/// <summary>
+		/// Gets the DataModule names that are disabled and should not be loaded at startup.
+		/// </summary>
+		/// <returns>Map of mods which are disabled.</returns>
+		std::unordered_set<std::string> & GetDisabledDataModuleNames() { return m_DisabledDataModuleNames; }
+
+		/// <summary>
+		/// Gets whether the specified mod is disabled in the settings.
+		/// </summary>
+		/// <param name="moduleName">Mod to check.</param>
+		/// <returns>Whether the module is disabled via settings.</returns>
+		bool IsModuleEnabled(const std::string_view &moduleName) const;
+#pragma endregion
+
 #pragma region Contrete Methods
 		/// <summary>
 		/// Reads an entire DataModule and adds it to this. NOTE that official modules can't be loaded after any non-official ones!
@@ -134,18 +149,7 @@ namespace RTE {
 		bool LoadAllDataModules();
 #pragma endregion
 
-		/// <summary>
-		/// Gets the map of mods which are disabled.
-		/// </summary>
-		/// <returns>Map of mods which are disabled.</returns>
-		std::map<std::string, bool> & GetDisabledModsMap() { return m_DisabledMods; }
 
-		/// <summary>
-		/// Gets whether the specified mod is disabled in the settings.
-		/// </summary>
-		/// <param name="modModule">Mod to check.</param>
-		/// <returns>Whether the mod is disabled via settings.</returns>
-		bool IsModDisabled(const std::string &modModule) const;
 
 	private:
 
@@ -154,9 +158,8 @@ namespace RTE {
 
 		std::unordered_map<int, DataModule *> m_LoadedDataModules; //!< Map of all loaded DataModules by their ID. Owned by this.
 
+		std::unordered_set<std::string> m_DisabledDataModuleNames; //!< The DataModule names that are disabled and should not be loaded at startup.
 		std::string m_SingleModuleToLoad; //!< Name of the single module to load after the official modules.
-
-		std::map<std::string, bool> m_DisabledMods; //!< Map of the module names that are disabled.
 
 #pragma region Module Loading Breakdown
 		/// <summary>

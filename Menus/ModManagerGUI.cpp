@@ -58,21 +58,20 @@ namespace RTE {
 	void ModManagerGUI::PopulateKnownModsList() {
 		for (const auto &[moduleID, dataModule] : g_ModuleMan.GetLoadedDataModules()) {
 			if (!dataModule->IsOfficial() && !dataModule->IsUserdata()) {
-				m_KnownMods.emplace_back(dataModule->GetFileName(), dataModule->GetFriendlyName(), dataModule->GetDescription(), g_ModuleMan.IsModDisabled(dataModule->GetFileName()));
+				m_KnownMods.emplace_back(dataModule->GetFileName(), dataModule->GetFriendlyName(), dataModule->GetDescription(), g_ModuleMan.IsModuleEnabled(dataModule->GetFileName()));
 			}
 		}
 		// Add missing data from disabled mods settings
-		for (const auto &[modPath, modDisabled] : g_ModuleMan.GetDisabledModsMap()) {
+		for (const std::string &disabledModuleName : g_ModuleMan.GetDisabledDataModuleNames()) {
 			bool found = false;
 			for (const ModRecord &knowModListEntry : m_KnownMods) {
-				if (modPath == knowModListEntry.ModulePath) {
+				if (disabledModuleName == knowModListEntry.ModulePath) {
 					found = true;
 					break;
 				}
 			}
 			if (!found) {
-				ModRecord disabledModRecord = { modPath, "N/A, Module not loaded", "N/A, Module not loaded", modDisabled };
-				m_KnownMods.emplace_back(disabledModRecord);
+				m_KnownMods.emplace_back(disabledModuleName, "N/A, Module not loaded", "N/A, Module not loaded", false);
 			}
 		}
 		std::sort(m_KnownMods.begin(), m_KnownMods.end());
@@ -110,21 +109,17 @@ namespace RTE {
 	void ModManagerGUI::ToggleMod() {
 		int index = m_ModsListBox->GetSelectedIndex();
 		if (index > -1) {
-			std::map<std::string, bool> &disabledModsList = g_ModuleMan.GetDisabledModsMap();
+			std::unordered_set<std::string> &disabledModsList = g_ModuleMan.GetDisabledDataModuleNames();
 			GUIListPanel::Item *selectedItem = m_ModsListBox->GetSelected();
 			ModRecord &modRecord = m_KnownMods.at(selectedItem->m_ExtraIndex);
 
-			modRecord.Disabled = !modRecord.Disabled;
-			if (modRecord.Disabled) {
-				m_ToggleModButton->SetText("Enable Mod");
-				if (disabledModsList.find(modRecord.ModulePath) != disabledModsList.end()) {
-					disabledModsList.at(modRecord.ModulePath) = true;
-				} else {
-					disabledModsList.try_emplace(modRecord.ModulePath, true);
-				}
-			} else {
+			modRecord.Enabled = !modRecord.Enabled;
+			if (modRecord.Enabled) {
 				m_ToggleModButton->SetText("Disable Mod");
-				disabledModsList.at(modRecord.ModulePath) = false;
+				disabledModsList.erase(disabledModsList.find(modRecord.ModulePath));
+			} else {
+				m_ToggleModButton->SetText("Enable Mod");
+				disabledModsList.emplace(modRecord.ModulePath);
 			}
 			selectedItem->m_Name = modRecord.GetDisplayString();
 			m_ModsListBox->SetSelectedIndex(index);
@@ -186,7 +181,7 @@ namespace RTE {
 				if (guiEvent.GetControl() == m_ModsListBox && (guiEvent.GetMsg() == GUIListBox::Select && m_ModsListBox->GetSelectedIndex() > -1)) {
 					const ModRecord &modRecord = m_KnownMods.at(m_ModsListBox->GetSelected()->m_ExtraIndex);
 					m_ModOrScriptDescriptionLabel->SetText(modRecord.Description);
-					m_ToggleModButton->SetText(modRecord.Disabled ? "Enable Mod" : "Disable Mod");
+					m_ToggleModButton->SetText(modRecord.Enabled ? "Disable Mod" : "Enable Mod");
 				} else if (guiEvent.GetControl() == m_ScriptsListBox && (guiEvent.GetMsg() == GUIListBox::Select && m_ScriptsListBox->GetSelectedIndex() > -1)) {
 					const ScriptRecord &scriptRecord = m_KnownScripts.at(m_ScriptsListBox->GetSelected()->m_ExtraIndex);
 					m_ModOrScriptDescriptionLabel->SetText(scriptRecord.Description);

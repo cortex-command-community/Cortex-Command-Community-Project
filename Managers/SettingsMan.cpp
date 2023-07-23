@@ -289,7 +289,7 @@ namespace RTE {
 		} else if (propName == "VisibleAssemblyGroup") {
 			m_VisibleAssemblyGroupsList.push_back(reader.ReadPropValue());
 		} else if (propName == "DisableMod") {
-			g_ModuleMan.m_DisabledMods.try_emplace(reader.ReadPropValue(), true);
+			g_ModuleMan.m_DisabledDataModuleNames.emplace(reader.ReadPropValue());
 		} else if (propName == "EnableGlobalScript") {
 			m_EnabledGlobalScripts.try_emplace(reader.ReadPropValue(), true);
 		} else if (propName == "MouseSensitivity") {
@@ -472,13 +472,13 @@ namespace RTE {
 			}
 		}
 
-		if (!g_ModuleMan.m_DisabledMods.empty()) {
+		if (!g_ModuleMan.m_DisabledDataModuleNames.empty()) {
 			writer.NewLine(false, 2);
 			writer.NewDivider(false);
 			writer.NewLineString("// Disabled Mods", false);
 			writer.NewLine(false);
-			for (const auto &[modPath, modDisabled] : g_ModuleMan.m_DisabledMods) {
-				if (modDisabled) { writer.NewPropertyWithValue("DisableMod", modPath); }
+			for (const std::string &disabledModuleName : g_ModuleMan.m_DisabledDataModuleNames) {
+				writer.NewPropertyWithValue("DisableMod", disabledModuleName);
 			}
 		}
 

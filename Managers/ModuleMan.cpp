@@ -18,7 +18,7 @@ namespace RTE {
 
 	void ModuleMan::Clear() {
 		m_LoadedDataModules.clear();
-		m_DisabledMods.clear();
+		m_DisabledDataModuleNames.clear();
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,8 +158,6 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ModuleMan::LoadAllDataModules() {
-		Destroy();
-
 		LoadOfficialModules();
 
 		// If a single module is specified, skip loading all other unofficial modules and load specified module only.
@@ -230,7 +228,7 @@ namespace RTE {
 			std::string directoryEntryPath = directoryEntry.path().generic_string();
 			if (directoryEntryPath.ends_with(".rte")) {
 				std::string moduleName = directoryEntryPath.substr(directoryEntryPath.find_last_of('/') + 1, std::string::npos);
-				if (!g_ModuleMan.IsModDisabled(moduleName) && !IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
+				if (g_ModuleMan.IsModuleEnabled(moduleName) && !IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
 					// NOTE: LoadDataModule can return false (especially since it may try to load already loaded modules, which is okay) and shouldn't cause stop, so we can ignore its return value here.
 					LoadDataModule(moduleName, DataModule::DataModuleType::Unofficial, LoadingScreen::LoadingSplashProgressReport);
 				}
@@ -253,7 +251,11 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool ModuleMan::IsModDisabled(const std::string &modModule) const {
-		return (m_DisabledMods.find(modModule) != m_DisabledMods.end()) ? m_DisabledMods.at(modModule) : false;
+	bool ModuleMan::IsModuleEnabled(const std::string_view &moduleName) const {
+		return std::none_of(m_DisabledDataModuleNames.begin(), m_DisabledDataModuleNames.end(),
+			[&moduleName](const std::string_view &disabledModuleName) {
+				return disabledModuleName == moduleName;
+			}
+		);
 	}
 }
