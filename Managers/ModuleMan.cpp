@@ -32,6 +32,16 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	bool ModuleMan::IsModuleEnabled(const std::string_view &moduleName) const {
+		return std::none_of(m_DisabledDataModuleNames.begin(), m_DisabledDataModuleNames.end(),
+			[&moduleName](const std::string_view &disabledModuleName) {
+				return disabledModuleName == moduleName;
+			}
+		);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	bool ModuleMan::IsModuleOfficial(const std::string_view &moduleName) const {
 		return std::any_of(c_OfficialModules.begin(), c_OfficialModules.end(),
 			[&moduleName](const std::string_view &officialModuleName) {
@@ -247,15 +257,5 @@ namespace RTE {
 				LoadingScreen::LoadingSplashProgressReport(System::ExtractZippedDataModule(zippedModulePath), true);
 			}
 		}
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	bool ModuleMan::IsModuleEnabled(const std::string_view &moduleName) const {
-		return std::none_of(m_DisabledDataModuleNames.begin(), m_DisabledDataModuleNames.end(),
-			[&moduleName](const std::string_view &disabledModuleName) {
-				return disabledModuleName == moduleName;
-			}
-		);
 	}
 }

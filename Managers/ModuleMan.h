@@ -45,6 +45,13 @@ namespace RTE {
 		int GetTotalModuleCount() const { return static_cast<int>(m_LoadedDataModules.size()); }
 
 		/// <summary>
+		/// Gets whether the specified mod is disabled in the settings.
+		/// </summary>
+		/// <param name="moduleName">Mod to check.</param>
+		/// <returns>Whether the module is disabled via settings.</returns>
+		bool IsModuleEnabled(const std::string_view &moduleName) const;
+
+		/// <summary>
 		/// Gets whether a module name is of an official DataModule.
 		/// </summary>
 		/// <param name="moduleName">The name of the module to check, in the form "moduleName.rte"</param>
@@ -83,6 +90,12 @@ namespace RTE {
 
 #pragma region DataModule Info Getters
 		/// <summary>
+		/// Gets the DataModule names that are disabled and should not be loaded at startup.
+		/// </summary>
+		/// <returns>Map of mods which are disabled.</returns>
+		std::unordered_set<std::string> & GetDisabledDataModuleNames() { return m_DisabledDataModuleNames; }
+
+		/// <summary>
 		/// Gets the ID of a loaded DataModule.
 		/// </summary>
 		/// <param name="moduleName">The name of the DataModule to get the ID from, including the ".rte".</param>
@@ -116,21 +129,6 @@ namespace RTE {
 		/// <param name="modulePath">The Path to be completed.</param>
 		/// <returns>The complete path to the file, including Data/, Userdata/ or Mods/ based on whether or not it's part of an official module or userdata.</returns>
 		std::string GetFullModulePath(const std::string &modulePath) const;
-#pragma endregion
-
-#pragma region DataModule Management
-		/// <summary>
-		/// Gets the DataModule names that are disabled and should not be loaded at startup.
-		/// </summary>
-		/// <returns>Map of mods which are disabled.</returns>
-		std::unordered_set<std::string> & GetDisabledDataModuleNames() { return m_DisabledDataModuleNames; }
-
-		/// <summary>
-		/// Gets whether the specified mod is disabled in the settings.
-		/// </summary>
-		/// <param name="moduleName">Mod to check.</param>
-		/// <returns>Whether the module is disabled via settings.</returns>
-		bool IsModuleEnabled(const std::string_view &moduleName) const;
 #pragma endregion
 
 #pragma region Contrete Methods
