@@ -149,8 +149,6 @@ namespace RTE {
 
 	private:
 
-		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this.
-
 		static const std::array<std::string, 10> c_OfficialModules; //!< Array storing the names of all the official modules.
 		static const std::array<std::pair<std::string, std::string>, 3> c_UserdataModules; //!< Array storing the names of all the userdata modules.
 

@@ -7,8 +7,6 @@
 
 namespace RTE {
 
-	const std::string ModuleMan::c_ClassName = "ModuleMan";
-
 	const std::array<std::string, 10> ModuleMan::c_OfficialModules = { "Base.rte", "Coalition.rte", "Imperatus.rte", "Techion.rte", "Dummy.rte", "Ronin.rte", "Browncoats.rte", "Uzira.rte", "MuIlaak.rte", "Missions.rte" };
 	const std::array<std::pair<std::string, std::string>, 3> ModuleMan::c_UserdataModules = {{
 		{c_UserScenesModuleName, "User Scenes"},
