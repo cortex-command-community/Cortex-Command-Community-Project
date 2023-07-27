@@ -18,6 +18,7 @@ namespace RTE {
 
 	void ModuleMan::Clear() {
 		m_LoadedDataModules.clear();
+		m_UnloadedDataModules.clear();
 		m_DisabledDataModuleNames.clear();
 	}
 
@@ -25,6 +26,9 @@ namespace RTE {
 
 	void ModuleMan::Destroy() {
 		for (const auto &[moduleID, dataModule] : m_LoadedDataModules) {
+			delete dataModule;
+		}
+		for (const auto &[moduleID, dataModule] : m_UnloadedDataModules) {
 			delete dataModule;
 		}
 		Clear();
@@ -147,8 +151,20 @@ namespace RTE {
 			return false;
 		}
 
+		// First check that we aren't trying to load another module with the same name. If not, check the unloaded map and load from there if it exists.
 		if (const DataModule *dataModule = GetDataModule(GetModuleID(moduleName)); dataModule) {
 			return true;
+		} else if (moduleType == DataModule::DataModuleType::Unofficial) {
+			auto unloadedModulesItr = std::find_if(m_UnloadedDataModules.begin(), m_UnloadedDataModules.end(),
+				[&moduleName](const auto &unloadedModuleEntry) {
+					return unloadedModuleEntry.second->GetFileName() == moduleName;
+				}
+			);
+			if (unloadedModulesItr != m_UnloadedDataModules.end()) {
+				m_LoadedDataModules.emplace(*unloadedModulesItr);
+				m_UnloadedDataModules.erase(unloadedModulesItr);
+				return true;
+			}
 		}
 
 		// Only instantiate it here, because it needs to be in the lists of this before being created.
@@ -163,6 +179,27 @@ namespace RTE {
 			return false;
 		}
 		return true;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool ModuleMan::UnloadDataModule(const std::string &moduleName) {
+		if (!IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
+			auto loadedModulesItr = std::find_if(m_LoadedDataModules.begin(), m_LoadedDataModules.end(),
+				[&moduleName](const auto &loadedModuleEntry) {
+					return loadedModuleEntry.second->GetFileName() == moduleName;
+				}
+			);
+
+			if (loadedModulesItr != m_LoadedDataModules.end()) {
+				m_UnloadedDataModules.emplace(*loadedModulesItr);
+				m_LoadedDataModules.erase(loadedModulesItr);
+				return true;
+			}
+		} else {
+			g_ConsoleMan.PrintString("Official and Userdata modules cannot be unloaded!");
+		}
+		return false;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

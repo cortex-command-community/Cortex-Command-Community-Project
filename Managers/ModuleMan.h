@@ -142,12 +142,17 @@ namespace RTE {
 		bool LoadDataModule(const std::string &moduleName, DataModule::DataModuleType moduleType, const ProgressCallback &progressCallback = nullptr);
 
 		/// <summary>
+		/// Unloads a DataModule by removing it from the loaded modules list. Does not actually erase it from memory.
+		/// </summary>
+		/// <param name="moduleName">The DataModule name to unload.</param>
+		/// <returns>Whether the DataModule was successfully unloaded.</returns>
+		bool UnloadDataModule(const std::string &moduleName);
+
+		/// <summary>
 		/// Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
 		/// </summary>
 		bool LoadAllDataModules();
 #pragma endregion
-
-
 
 	private:
 
@@ -155,6 +160,7 @@ namespace RTE {
 		static const std::array<std::pair<std::string, std::string>, 3> c_UserdataModules; //!< Array storing the names of all the userdata modules.
 
 		std::unordered_map<int, DataModule *> m_LoadedDataModules; //!< Map of all loaded DataModules by their ID. Owned by this.
+		std::unordered_map<int, DataModule *> m_UnloadedDataModules; //!< Map of DataModules that are loaded but disabled through the Mod Manager GUI. Treated as not loaded at all.
 
 		std::unordered_set<std::string> m_DisabledDataModuleNames; //!< The DataModule names that are disabled and should not be loaded at startup.
 		std::string m_SingleModuleToLoad; //!< Name of the single module to load after the official modules.

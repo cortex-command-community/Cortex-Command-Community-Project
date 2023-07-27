@@ -117,9 +117,11 @@ namespace RTE {
 			if (modRecord.Enabled) {
 				m_ToggleModButton->SetText("Disable Mod");
 				disabledModsList.erase(disabledModsList.find(modRecord.ModulePath));
+				g_ModuleMan.LoadDataModule(modRecord.ModulePath, DataModule::DataModuleType::Unofficial, nullptr);
 			} else {
 				m_ToggleModButton->SetText("Enable Mod");
 				disabledModsList.emplace(modRecord.ModulePath);
+				g_ModuleMan.UnloadDataModule(modRecord.ModulePath);
 			}
 			selectedItem->m_Name = modRecord.GetDisplayString();
 			m_ModsListBox->SetSelectedIndex(index);
