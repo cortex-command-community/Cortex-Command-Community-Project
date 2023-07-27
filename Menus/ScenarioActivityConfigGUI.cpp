@@ -63,29 +63,35 @@ namespace RTE {
 		m_CPULockLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelCPUTeamLock"));
 		m_StartErrorLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelStartError"));
 		m_StartGameButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonStartGame"));
-
-		m_TechListFetched = false;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {
+		static constexpr int allTechIndex = -2;
+		static constexpr int randomTechIndex = -1;
+
+		std::array<int, Activity::Teams::MaxTeamCount> lastSelectedIndices = {};
+		lastSelectedIndices.fill(allTechIndex);
+
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-			m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-All-", "", nullptr, nullptr, -2);
-			m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
+			lastSelectedIndices[team] = m_TeamTechComboBoxes[team]->GetSelectedIndex();
+			m_TeamTechComboBoxes[team]->ClearList();
+			m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-All-", "", nullptr, nullptr, allTechIndex);
+			m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, randomTechIndex);
 		}
-		for (int moduleID = 0; moduleID < g_ModuleMan.GetTotalModuleCount(); ++moduleID) {
-			if (const DataModule *dataModule = g_ModuleMan.GetDataModule(moduleID)) {
-				if (dataModule->IsFaction()) {
-					for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-						m_TeamTechComboBoxes[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
-						m_TeamTechComboBoxes[team]->GetListPanel()->ScrollToTop();
-						m_TeamTechComboBoxes[team]->SetSelectedIndex(0);
-					}
+		for (const auto &[moduleID, dataModule] : g_ModuleMan.GetLoadedDataModules()) {
+			if (dataModule->IsFaction()) {
+				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+					m_TeamTechComboBoxes[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
+					m_TeamTechComboBoxes[team]->GetListPanel()->ScrollToTop();
+					m_TeamTechComboBoxes[team]->SetSelectedIndex(0);
 				}
 			}
 		}
-		m_TechListFetched = true;
+		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+			m_TeamTechComboBoxes[team]->SetSelectedIndex(lastSelectedIndices[team] < m_TeamTechComboBoxes[team]->GetCount() ? lastSelectedIndices[team] : allTechIndex);
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,7 +121,7 @@ namespace RTE {
 			m_TeamTechComboBoxes[team]->SetVisible(enable);
 		}
 		if (enable && m_SelectedActivity && m_SelectedScene) {
-			if (!m_TechListFetched) { PopulateTechComboBoxes(); }
+			PopulateTechComboBoxes();
 
 			int startingGoldOverride = selectingPreviousActivityWithManuallyAdjustedGold ? m_StartingGoldSlider->GetValue() : -1;
 			ResetActivityConfigBox();
