@@ -57,7 +57,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEmitter) {
-		auto luaType = ConcreteTypeLuaClassDefinition(AEmitter, Attachable);
+		auto luaType = ConcreteTypeLuaClassDefinition(AEmitter, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["EmissionSound"] = sol::property(&AEmitter::GetEmissionSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetEmissionSound);
 		luaType["BurstSound"] = sol::property(&AEmitter::GetBurstSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetBurstSound);
@@ -96,7 +96,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Attachable) {
-		auto luaType = ConcreteTypeLuaClassDefinition(Attachable, MOSRotating);
+		auto luaType = ConcreteTypeLuaClassDefinition(Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["ParentOffset"] = sol::property(&Attachable::GetParentOffset, &Attachable::SetParentOffset);
 		luaType["JointStrength"] = sol::property(&Attachable::GetJointStrength, &Attachable::SetJointStrength);
@@ -128,7 +128,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
-		auto luaType = ConcreteTypeLuaClassDefinition(PEmitter, MOSParticle);
+		auto luaType = ConcreteTypeLuaClassDefinition(PEmitter, MOSParticle, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["BurstScale"] = sol::property(&PEmitter::GetBurstScale, &PEmitter::SetBurstScale);
 		luaType["EmitAngle"] = sol::property(&PEmitter::GetEmitAngle, &PEmitter::SetEmitAngle);
@@ -154,7 +154,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSprite) {
-		auto luaType = AbstractTypeLuaClassDefinition(MOSprite, MovableObject);
+		auto luaType = AbstractTypeLuaClassDefinition(MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["Diameter"] = sol::property(&MOSprite::GetDiameter);
 		luaType["BoundingBox"] = sol::property(&MOSprite::GetBoundingBox);

@@ -25,18 +25,18 @@ namespace RTE {
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of an abstract type.
 	/// </summary>
-	#define AbstractTypeLuaClassDefinition(TYPE, PARENTTYPE)		\
+	#define AbstractTypeLuaClassDefinition(TYPE, ...)		\
 		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,		\
-			sol::base_classes, sol::bases<PARENTTYPE>(),			\
+			sol::base_classes, sol::bases<__VA_ARGS__>(),			\
 			"ClassName", sol::property(&TYPE::GetClassName));		\
 		const char* _bindingClassTypeName = #TYPE	
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a concrete type.
 	/// </summary>
-	#define ConcreteTypeLuaClassDefinition(TYPE, PARENTTYPE)		\
+	#define ConcreteTypeLuaClassDefinition(TYPE, ...)		\
 		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,		\
-			sol::base_classes, sol::bases<PARENTTYPE>(),			\
+			sol::base_classes, sol::bases<__VA_ARGS__>(),			\
 			"ClassName", sol::property(&TYPE::GetClassName),		\
 			"Clone",	 &LuaAdaptersEntityClone::Clone##TYPE);		\
 		const char* _bindingClassTypeName = #TYPE

@@ -15,7 +15,7 @@
 namespace RTE {
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HDFirearm) {
-		auto luaType = ConcreteTypeLuaClassDefinition(HDFirearm, HeldDevice);
+		auto luaType = ConcreteTypeLuaClassDefinition(HDFirearm, HeldDevice, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["RateOfFire"] = sol::property(&HDFirearm::GetRateOfFire, &HDFirearm::SetRateOfFire);
 		luaType["MSPerRound"] = sol::property(&HDFirearm::GetMSPerRound);
@@ -68,7 +68,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
-		auto luaType = ConcreteTypeLuaClassDefinition(HeldDevice, Attachable);
+		auto luaType = ConcreteTypeLuaClassDefinition(HeldDevice, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["SupportPos"] = sol::property(&HeldDevice::GetSupportPos);
 		luaType["MagazinePos"] = sol::property(&HeldDevice::GetMagazinePos);
@@ -109,7 +109,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Magazine) {
-		auto luaType = ConcreteTypeLuaClassDefinition(Magazine, Attachable);
+		auto luaType = ConcreteTypeLuaClassDefinition(Magazine, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["NextRound"] = sol::property(&Magazine::GetNextRound);
 		luaType["RoundCount"] = sol::property(&Magazine::GetRoundCount, &Magazine::SetRoundCount);
@@ -140,7 +140,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, TDExplosive) {
-		auto luaType = ConcreteTypeLuaClassDefinition(TDExplosive, ThrownDevice);
+		auto luaType = ConcreteTypeLuaClassDefinition(TDExplosive, ThrownDevice, HeldDevice, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["IsAnimatedManually"] = sol::property(&TDExplosive::IsAnimatedManually, &TDExplosive::SetAnimatedManually);
 	}
@@ -148,7 +148,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ThrownDevice) {
-		auto luaType = ConcreteTypeLuaClassDefinition(ThrownDevice, HeldDevice);
+		auto luaType = ConcreteTypeLuaClassDefinition(ThrownDevice, HeldDevice, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["MinThrowVel"] = sol::property(&ThrownDevice::GetMinThrowVel, &ThrownDevice::SetMinThrowVel);
 		luaType["MaxThrowVel"] = sol::property(&ThrownDevice::GetMaxThrowVel, &ThrownDevice::SetMaxThrowVel);
@@ -161,7 +161,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Turret) {
-		auto luaType = ConcreteTypeLuaClassDefinition(Turret, Attachable);
+		auto luaType = ConcreteTypeLuaClassDefinition(Turret, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["MountedDevice"] = sol::property(&Turret::GetFirstMountedDevice, &LuaAdaptersPropertyOwnershipSafetyFaker::TurretSetFirstMountedDevice);
 		luaType["MountedDeviceRotationOffset"] = sol::property(&Turret::GetMountedDeviceRotationOffset, &Turret::SetMountedDeviceRotationOffset);

@@ -43,7 +43,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOPixel) {
-		auto luaType = ConcreteTypeLuaClassDefinition(MOPixel, MovableObject);
+		auto luaType = ConcreteTypeLuaClassDefinition(MOPixel, MovableObject, SceneObject, Entity);
 
 		luaType["TrailLength"] = sol::property(&MOPixel::GetTrailLength, &MOPixel::SetTrailLength);
 	}
@@ -51,13 +51,13 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSParticle) {
-		auto luaType = ConcreteTypeLuaClassDefinition(MOSParticle, MOSprite);;
+		auto luaType = ConcreteTypeLuaClassDefinition(MOSParticle, MOSprite, MovableObject, SceneObject, Entity);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
-		auto luaType = ConcreteTypeLuaClassDefinition(MOSRotating, MOSprite);
+		auto luaType = ConcreteTypeLuaClassDefinition(MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		//luaType["Material"] = sol::property(&MOSRotating::GetMaterial);
 		luaType["IndividualRadius"] = sol::property(&MOSRotating::GetIndividualRadius);
@@ -128,7 +128,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
-		auto luaType = AbstractTypeLuaClassDefinition(MovableObject, SceneObject);
+		auto luaType = AbstractTypeLuaClassDefinition(MovableObject, SceneObject, Entity);
 
 		luaType["Material"] = sol::property(&MovableObject::GetMaterial);
 		luaType["Mass"] = sol::property(&MovableObject::GetMass, &MovableObject::SetMass);

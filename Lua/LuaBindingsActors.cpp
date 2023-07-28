@@ -23,7 +23,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACDropShip) {
-		auto luaType = ConcreteTypeLuaClassDefinition(ACDropShip, ACraft);
+		auto luaType = ConcreteTypeLuaClassDefinition(ACDropShip, ACraft, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["RightEngine"] = sol::property(&ACDropShip::GetRightThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetRightThruster);
 		luaType["LeftEngine"] = sol::property(&ACDropShip::GetLeftThruster, &LuaAdaptersPropertyOwnershipSafetyFaker::ACDropShipSetLeftThruster);
@@ -43,7 +43,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACrab) {
-		auto luaType = ConcreteTypeLuaClassDefinition(ACrab, Actor);
+		auto luaType = ConcreteTypeLuaClassDefinition(ACrab, Actor, MOSRotating, MOSprite, MovableObject, SceneObject);
 
 		luaType.set(sol::call_constructor, sol::constructors<
 			ACrab()
@@ -138,7 +138,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACraft) {
-		auto luaType = AbstractTypeLuaClassDefinition(ACraft, Actor);
+		auto luaType = AbstractTypeLuaClassDefinition(ACraft, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["HatchState"] = sol::property(&ACraft::GetHatchState);
 		luaType["HatchOpenSound"] = sol::property(&ACraft::GetHatchOpenSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchOpenSound);
@@ -185,7 +185,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACRocket) {
-		auto luaType = ConcreteTypeLuaClassDefinition(ACRocket, ACraft);
+		auto luaType = ConcreteTypeLuaClassDefinition(ACRocket, ACraft, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["RightLeg"] = sol::property(&ACRocket::GetRightLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetRightLeg);
 		luaType["LeftLeg"] = sol::property(&ACRocket::GetLeftLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACRocketSetLeftLeg);
@@ -209,7 +209,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
-		auto luaType = ConcreteTypeLuaClassDefinition(Actor, MOSRotating);
+		auto luaType = ConcreteTypeLuaClassDefinition(Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType.set(sol::call_constructor, sol::constructors<
 			Actor()
@@ -369,7 +369,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ADoor) {
-		auto luaType = ConcreteTypeLuaClassDefinition(ADoor, Actor);
+		auto luaType = ConcreteTypeLuaClassDefinition(ADoor, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["Door"] = sol::property(&ADoor::GetDoor, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoor);
 		luaType["DoorMoveStartSound"] = sol::property(&ADoor::GetDoorMoveStartSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ADoorSetDoorMoveStartSound);
@@ -396,7 +396,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
-		auto luaType = ConcreteTypeLuaClassDefinition(AHuman, Actor);
+		auto luaType = ConcreteTypeLuaClassDefinition(AHuman, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType.set(sol::call_constructor, sol::constructors<
 			AHuman()
@@ -538,7 +538,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Arm) {
-		auto luaType = ConcreteTypeLuaClassDefinition(Arm, Attachable);
+		auto luaType = ConcreteTypeLuaClassDefinition(Arm, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["MaxLength"] = sol::property(&Arm::GetMaxLength);
 		luaType["MoveSpeed"] = sol::property(&Arm::GetMoveSpeed, &Arm::SetMoveSpeed);
@@ -567,7 +567,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Leg) {
-		auto luaType = ConcreteTypeLuaClassDefinition(Leg, Attachable);
+		auto luaType = ConcreteTypeLuaClassDefinition(Leg, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["Foot"] = sol::property(&Leg::GetFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::LegSetFoot);
 	}

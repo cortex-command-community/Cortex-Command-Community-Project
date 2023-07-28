@@ -139,7 +139,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, GameActivity) {
-		auto luaType = AbstractTypeLuaClassDefinition(GameActivity, Activity);
+		auto luaType = AbstractTypeLuaClassDefinition(GameActivity, Activity, Entity);
 		MarkLuaDynamicObject(luaType);
 
 		luaType.set(sol::call_constructor, sol::constructors<

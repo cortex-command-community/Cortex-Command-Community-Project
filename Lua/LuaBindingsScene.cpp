@@ -17,7 +17,7 @@
 namespace RTE {
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Deployment) {
-		auto luaType = AbstractTypeLuaClassDefinition(Deployment, SceneObject);
+		auto luaType = AbstractTypeLuaClassDefinition(Deployment, SceneObject, Entity);
 
 		luaType["ID"] = sol::property(&Deployment::GetID);
 		luaType["HFlipped"] = sol::property(&Deployment::IsHFlipped);
@@ -183,7 +183,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, TerrainObject) {
-		auto luaType = ConcreteTypeLuaClassDefinition(TerrainObject, SceneObject);
+		auto luaType = ConcreteTypeLuaClassDefinition(TerrainObject, SceneObject, Entity);
 
 		luaType["GetBitmapOffset"] = &TerrainObject::GetBitmapOffset;
 		luaType["GetBitmapWidth"] = &TerrainObject::GetBitmapWidth;
