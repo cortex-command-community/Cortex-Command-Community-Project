@@ -118,6 +118,7 @@ namespace RTE {
 		usertype["NormalRand"] = &LuaStateWrapper::NormalRand;
 		usertype["GetDirectoryList"] = &LuaStateWrapper::DirectoryList;
 		usertype["GetFileList"] = &LuaStateWrapper::FileList;
+		usertype["FileExists"] = &LuaStateWrapper::FileExists;
 		usertype["FileOpen"] = &LuaStateWrapper::FileOpen;
 		usertype["FileClose"] = &LuaStateWrapper::FileClose;
 		usertype["FileReadLine"] = &LuaStateWrapper::FileReadLine;
@@ -318,6 +319,7 @@ namespace RTE {
 // Passthrough LuaMan Functions
 	const std::vector<std::string>& LuaStateWrapper::DirectoryList(const std::string& relativeDirectory) { return g_LuaMan.DirectoryList(relativeDirectory); }
 	const std::vector<std::string>& LuaStateWrapper::FileList(const std::string& relativeDirectory) { return g_LuaMan.FileList(relativeDirectory); }
+	bool LuaStateWrapper::FileExists(const std::string &fileName) { return g_LuaMan.FileExists(fileName); }
 	int LuaStateWrapper::FileOpen(const std::string& fileName, const std::string& accessMode) { return g_LuaMan.FileOpen(fileName, accessMode); }
 	void LuaStateWrapper::FileClose(int fileIndex) { return g_LuaMan.FileClose(fileIndex); }
 	void LuaStateWrapper::FileCloseAll() { return g_LuaMan.FileCloseAll(); }
@@ -867,6 +869,17 @@ namespace RTE {
 			if (directoryEntry.is_regular_file()) { filePaths.emplace_back(directoryEntry.path().filename().generic_string()); }
 		}
 		return filePaths;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaMan::FileExists(const std::string &fileName) {
+		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(fileName);
+		if ((fullPath.find("..") == std::string::npos) && (fullPath.find(System::GetModulePackageExtension()) != std::string::npos)) {
+			return std::filesystem::exists(fullPath);
+		}
+
+		return false;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

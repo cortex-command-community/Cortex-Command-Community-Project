@@ -63,7 +63,7 @@ friend struct EntityLuaBindings;
 
 public:
 
-	ScriptFunctionNames("Create", "Destroy", "Update", "OnScriptDisable", "OnScriptEnable", "OnCollideWithTerrain", "OnCollideWithMO", "WhilePieMenuOpen", "OnGameSave");
+	ScriptFunctionNames("Create", "Destroy", "Update", "SyncedUpdate", "OnScriptDisable", "OnScriptEnable", "OnCollideWithTerrain", "OnCollideWithMO", "WhilePieMenuOpen", "OnGameSave");
 	SerializableOverrideMethods;
 	ClassInfoGetters;
 
@@ -213,15 +213,6 @@ enum MOType
     /// </summary>
     /// <param name="enableScripts">Whether to enable (true) or disable (false) all scripts on this MovableObject.</param>
     void EnableOrDisableAllScripts(bool enableScripts);
-
-    /// <summary>
-    /// Enum of thread script types to run.
-    /// </summary>
-    enum class ThreadScriptsToRun {
-        SingleThreaded,
-        MultiThreaded,
-        Both
-    };
 
     /// <summary>
     /// Runs the given function in all scripts that have it, with the given arguments, with the ability to not run on disabled scripts and to cease running if there's an error.
@@ -1529,7 +1520,7 @@ enum MOType
 	/// </summary>
     /// <param name="scriptsToRun">Whether to run this objects single-threaded or multi-threaded scripts.</params>
     /// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-	virtual int UpdateScripts(MovableObject::ThreadScriptsToRun scriptsToRun);
+	virtual int UpdateScripts(ThreadScriptsToRun scriptsToRun);
 
 	/// <summary>
 	/// Event listener to be run while this MovableObject's PieMenu is opened.

@@ -71,6 +71,7 @@ namespace RTE {
 		luaType["IsGamepadControlled"] = &Controller::IsGamepadControlled;
 		luaType["SetState"] = &Controller::SetState;
 		luaType["IsState"] = &Controller::IsState;
+		luaType["Override"] = &Controller::Override;
 
 		{
 			sol::table enumTable = LegacyEnumTypeTable("ControlState");
