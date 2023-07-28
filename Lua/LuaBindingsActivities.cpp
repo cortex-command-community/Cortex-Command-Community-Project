@@ -206,5 +206,17 @@ namespace RTE {
 			enumTable["ARROWRIGHT"] = GameActivity::ObjectiveArrowDir::ARROWRIGHT;
 			enumTable["ARROWUP"] = GameActivity::ObjectiveArrowDir::ARROWUP;
 		}
+
+		// Lots of Lua scripts use this in GameActivity instead of Activity, so redefine here (enums aren't inherited)
+		{
+			sol::table enumTable = LegacyEnumTypeTable("DifficultySetting");
+			enumTable["MINDIFFICULTY"] = Activity::DifficultySetting::MinDifficulty;
+			enumTable["CAKEDIFFICULTY"] = Activity::DifficultySetting::CakeDifficulty;
+			enumTable["EASYDIFFICULTY"] = Activity::DifficultySetting::EasyDifficulty;
+			enumTable["MEDIUMDIFFICULTY"] = Activity::DifficultySetting::MediumDifficulty;
+			enumTable["HARDDIFFICULTY"] = Activity::DifficultySetting::HardDifficulty;
+			enumTable["NUTSDIFFICULTY"] = Activity::DifficultySetting::NutsDifficulty;
+			enumTable["MAXDIFFICULTY"] = Activity::DifficultySetting::MaxDifficulty;
+		}
 	}
 }
