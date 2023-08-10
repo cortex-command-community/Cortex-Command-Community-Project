@@ -150,9 +150,9 @@ namespace RTE {
 		std::unique_ptr<Scene> scene(std::make_unique<Scene>());
 		std::unique_ptr<GAScripted> activity(std::make_unique<GAScripted>());
 
-		Reader reader(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ini", true, nullptr, false);
+		Reader reader(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ini", true, nullptr, true);
 		if (!reader.ReaderOK()) {
-			g_ConsoleMan.PrintString("ERROR: Game loading failed! Make sure you have a saved game called \"" + fileName + "\"");
+			RTEError::ShowMessageBox("ERROR: Game loading failed! Make sure you have a saved game called \"" + fileName + "\"");
 			return false;
 		}
 
@@ -328,7 +328,7 @@ namespace RTE {
 
 		m_LastMusicPath = "";
 		m_LastMusicPos = 0;
-		g_AudioMan.PauseAllMobileSounds(false);
+		g_AudioMan.PauseIngameSounds(false);
 
 		return error;
 	}
@@ -378,7 +378,7 @@ namespace RTE {
 
 			m_Activity->SetPaused(pause);
 			m_InActivity = !pause;
-			g_AudioMan.PauseAllMobileSounds(pause);
+			g_AudioMan.PauseIngameSounds(pause);
 			g_ConsoleMan.PrintString("SYSTEM: Activity \"" + m_Activity->GetPresetName() + "\" was " + (pause ? "paused" : "resumed"));
 		} else {
 			g_ConsoleMan.PrintString("ERROR: No Activity to pause!");

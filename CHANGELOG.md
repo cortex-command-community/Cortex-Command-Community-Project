@@ -601,8 +601,6 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 - New `MovableObject` Lua (R) property `DistanceTravelled` which returns the amount of pixels the object has travelled since its creation.
 
-- Added `Activity` Lua function `ForceSetTeamAsActive(team)`, which forcefully sets a team as active. Necessary for `Activity`s that don't want to define/show all used teams, but still want `Actor`s of hidden teams to work properly.
-
 - Added `GameActivity` INI property `DefaultGoldMaxDifficulty`, which lets you specify the default gold when the difficulty slider is maxed out.
 
 - Added `HDFirearm` Lua (R/W) property `BaseReloadTime` that lets you get and set the `HDFirearm`'s base reload time (i.e. the reload time before it's adjusted for one-handed reloads where appropriate).
@@ -630,6 +628,16 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 - Added `MovableObject` Lua (R) property `HasEverBeenAddedToMovableMan` that tells you whether or not the `MovableObject` has ever been added to `MovableMan`.
 
 - Added alternate version of `Scene` Lua function `CalculatePath(startPos, endPos, movePathToGround, digStrength, team)` that works as the previous one, but lets you specify the team to calculate the path for, allowing you to ignore doors on your team.
+
+- Added `Controller` Lua function `IsKeyboardOnlyControlled` that tells you whether the `Controller` is being controlled by keyboard only. Previously the only way to do this was to check that it's not mouse controlled and not gamepad controlled.
+
+- Added `Controller` control state `PIE_MENU_OPENED` that is true for the first Update in which the `PieMenu` is opened.
+
+- Added `Activity` Lua function `GetPlayerController`, which gets you the `Controller` used for GUI stuff and when there's no `Actor` selected in an `Activity`. Be aware, it's very likely possible to cause problems by doing dumb things with this.
+
+- Added `Leg` Lua (R/W) property `MoveSpeed`, which lets you get and set the `Leg`'s `MoveSpeed` scalar, similar to `Arm`s. 1 means instant movement and 0 means no movement.
+
+- Added `LuaMan` Lua function `FileExists`, which lets you check whether a specified file exists. Like with `FileOpen`, the file must be inside a folder ending in `.rte`.
 
 </details>
 
@@ -853,6 +861,8 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 - Changed `LuaMan:FileOpen` access modes so it only allows `"r", "r+", "w", "w+", "a", "a+"`, i.e. specifying type (text, binary) is not supported. See [this reference page](https://cplusplus.com/reference/cstdio/fopen) for details on the access modes.
 
+- Moved `FlashWhite` function from `Actor` to `MOSRotating`.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -879,6 +889,8 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 - Fixed `Entity.ModuleName` returning an empty string for `Entities` defined in `Base.rte`. They now return "Base.rte", as they should.
 
 - Fixed `MOSRotating`s registering all penetrations in one frame even when exceeding gibbing conditions. They now omit all collisions after being flagged for deletion, allowing particles like grenade fragments to penetrate other objects.
+
+- Fixed immobile `SoundContainers` not pausing and resuming when you pause/resume an `Activity`.
 
 </details>
 
