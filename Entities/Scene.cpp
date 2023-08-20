@@ -1066,6 +1066,29 @@ int Scene::SaveData(std::string pathBase, bool doAsyncSaves)
     return 0;
 }
 
+std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() {
+    std::vector<SceneLayerInfo> layerInfos;
+
+    /*
+    // Save Terrain's data
+    m_pTerrain
+
+    // Don't bother saving background layers to disk, as they are never altered
+
+    // Save unseen layers' data
+    char str[64];
+    for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
+    {
+        if (m_apUnseenLayer[team])
+        {
+            m_apUnseenLayer[team]
+        }
+    }
+    */
+
+    return layerInfos;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  SavePreview

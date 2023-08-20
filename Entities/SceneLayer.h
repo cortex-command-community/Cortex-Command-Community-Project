@@ -112,6 +112,12 @@ namespace RTE {
 		/// </summary>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
 		virtual int ClearData();
+
+		/// <summary>
+		/// Copies the bitmap.
+		/// </summary>
+		/// <returns>The copied bitmap.</returns>
+		std::unique_ptr<BITMAP> CopyBitmap();
 #pragma endregion
 
 #pragma region Getters and Setters

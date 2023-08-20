@@ -25,6 +25,9 @@
 #include "MultiplayerServerLobby.h"
 #include "MultiplayerGame.h"
 
+#include "zip.h"
+#include "unzip.h"
+
 namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,8 +108,17 @@ namespace RTE {
 		modifiableScene->GetTerrain()->SetPresetName(fileName);
 		modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 
+		// Create zip sav file
+		zipFile zippedSaveFile = zipOpen((g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ccsave").c_str(), APPEND_STATUS_CREATE);
+		if (!zippedSaveFile) {
+			g_ConsoleMan.PrintString("ERROR: Couldn't create zip save file!");
+			return false;
+		}
+
+		std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
+
 		// Block the main thread for a bit to let the Writer access the relevant data.
-		std::unique_ptr<Writer> writer(std::make_unique<Writer>(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ini"));
+		std::unique_ptr<Writer> writer(std::make_unique<Writer>(std::move(iniStream)));
 		writer->NewPropertyWithValue("Activity", activity);
 
 		// Pull all stuff from MovableMan into the Scene for saving, so existing Actors/ADoors are saved, without transferring ownership, so the game can continue.
@@ -123,9 +135,22 @@ namespace RTE {
 		writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
 		writer->NewPropertyWithValue("Scene", modifiableScene.get());
 
-		auto saveWriterData = [this](std::unique_ptr<Writer> writerToSave) {
-			// Explicitly flush to disk. This'll happen anyways at the end of this scope, but otherwise this lambda looks rather empty :)
-			writerToSave->EndWrite();
+		auto saveWriterData = [&](std::unique_ptr<Writer> writerToSave) {
+			std::stringstream *stream = static_cast<std::stringstream *>(writerToSave->GetStream());
+			stream->flush();
+
+			// Ugly copies, but eh. todo - use a string stream that just gives us a raw buffer to grab at
+			std::string streamAsString = stream->str();
+
+			zip_fileinfo zfi = { 0 };
+
+			const int defaultCompression = 6;
+			zipOpenNewFileInZip(zippedSaveFile, (fileName + ".ini").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
+			zipWriteInFileInZip(zippedSaveFile, streamAsString.data(), streamAsString.size());
+			zipCloseFileInZip(zippedSaveFile);
+
+			zipClose(zippedSaveFile, fileName.c_str());
+
 			DecrementSavingThreadCount();
 		};
 

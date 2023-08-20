@@ -313,3 +313,17 @@ int save_png(AL_CONST char *filename, BITMAP *bmp, AL_CONST RGB *pal)
 
     return result;
 }
+
+int save_png_pf(PACKFILE *pack, BITMAP *bmp, AL_CONST RGB *pal)
+{
+    int result;
+
+    ASSERT(pack);
+    ASSERT(bmp);
+    
+    acquire_bitmap(bmp);
+    result = really_save_png(pack, bmp, pal);
+    release_bitmap(bmp);
+
+    return result;
+}

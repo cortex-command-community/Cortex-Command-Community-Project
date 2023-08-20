@@ -66,6 +66,9 @@ APNG_FUNC(BITMAP *, load_memory_png, (AL_CONST void *buffer, int buffer_size, RG
 /* Save a bitmap to disk in PNG format. */
 APNG_FUNC(int, save_png, (AL_CONST char *filename, BITMAP *bmp, AL_CONST RGB *pal));
 
+/* Save a bitmap to a PACKFILE in PNG format. */
+APNG_FUNC(int, save_png_pf, (PACKFILE *pack, BITMAP *bmp, AL_CONST RGB *pal));
+
 /* Adds `PNG' to Allegro's internal file type table.
  * You can then just use load_bitmap and save_bitmap as usual.
  */

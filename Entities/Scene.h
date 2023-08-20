@@ -32,6 +32,11 @@ class BunkerAssembly;
 class SceneObject;
 class Deployment;
 
+struct SceneLayerInfo {
+    std::string name;
+    std::unique_ptr<BITMAP> bitmap;
+};
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Class:           Scene
@@ -396,6 +401,8 @@ EntityAllocation(Scene)
 //                  Anything below 0 is an error signal.
 
 	int SaveData(std::string pathBase, bool doAsyncSaves = true);
+
+    std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps()
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

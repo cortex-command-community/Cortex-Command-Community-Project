@@ -127,6 +127,11 @@ namespace RTE {
 		bool WriterOK() const { return m_Stream.get() && m_Stream->good(); }
 
 		/// <summary>
+		/// Returns the underlying stream.
+		/// </summary>
+		std::ostream * GetStream() { return m_Stream.get(); }
+
+		/// <summary>
 		/// Flushes and closes the output stream of this Writer. This happens automatically at destruction but needs to be called manually if a written file must be read from in the same scope.
 		/// </summary>
 		void EndWrite() { m_Stream->flush(); m_Stream.reset(); }
