@@ -231,7 +231,7 @@
       <OmitDefaultLibName>false</OmitDefaultLibName>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ConformanceMode>true</ConformanceMode>
-      <IncludeInUnityFile>true</IncludeInUnityFile>
+      <IncludeInUnityFile>false</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
       <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
@@ -335,7 +335,7 @@
       <OmitDefaultLibName>false</OmitDefaultLibName>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ConformanceMode>true</ConformanceMode>
-      <IncludeInUnityFile>true</IncludeInUnityFile>
+      <IncludeInUnityFile>false</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
       <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
@@ -516,7 +516,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <OmitDefaultLibName>false</OmitDefaultLibName>
       <ConformanceMode>true</ConformanceMode>
-      <IncludeInUnityFile>true</IncludeInUnityFile>
+      <IncludeInUnityFile>false</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
     </ClCompile>
     <Link>
@@ -695,7 +695,7 @@
       <StringPooling>true</StringPooling>
       <OmitDefaultLibName>false</OmitDefaultLibName>
       <ConformanceMode>true</ConformanceMode>
-      <IncludeInUnityFile>true</IncludeInUnityFile>
+      <IncludeInUnityFile>false</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
     </ClCompile>
     <Link>
