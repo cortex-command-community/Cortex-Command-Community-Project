@@ -408,7 +408,7 @@ EntityAllocation(Scene)
 
 	int SaveData(std::string pathBase, bool doAsyncSaves = true);
 
-    std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps()
+    std::vector<SceneLayerInfo> GetCopiedSceneLayerBitmaps();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
