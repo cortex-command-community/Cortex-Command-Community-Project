@@ -153,6 +153,12 @@ public:
 		/// <returns>The first Box in this Area.</returns>
 		const Box * GetFirstBox() const { return m_BoxList.empty() ? nullptr : &m_BoxList[0]; }
 
+        /// <summary>
+        /// Gets the boxes for this area.
+        /// </summary>
+        /// <returns>The boxes in this Area.</returns>
+        const std::vector<Box> & GetBoxes() const { return m_BoxList; }
+
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Virtual method:  HasNoArea
@@ -391,10 +397,11 @@ EntityAllocation(Scene)
 // Description:     Saves data currently in memory to disk.
 // Arguments:       The filepath base to the where to save the Bitmap data. This means
 //                  everything up to the extension. "FG" and "Mat" etc will be added.
+//					Whether or not to save asynchronously.
 // Return value:    An error return value signaling success or any particular failure.
 //                  Anything below 0 is an error signal.
 
-	int SaveData(std::string pathBase);
+	int SaveData(std::string pathBase, bool doAsyncSaves = true);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -926,16 +933,9 @@ const SceneObject * PickPlacedActorInRange(int whichSet, Vector &scenePoint, int
 	/// Gets a specified Area identified by name. Ownership is NOT transferred!
 	/// </summary>
 	/// <param name="areaName">The name of the Area to try to get.</param>
-	/// <param name="luaWarnNotError">Whether to warn or error in the Lua console. True is warn, false is error.</param>
+	/// <param name="required">Whether the area is required, and should throw an error if not found.</param>
 	/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
-	Area * GetArea(const std::string_view &areaName, bool luaWarnNotError);
-
-	/// <summary>
-	/// Gets a specified Area identified by name, showing a Lua error if it's not found. Ownership is NOT transferred!
-	/// </summary>
-	/// <param name="areaName">The name of the Area to try to get.</param>
-	/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
-	Area * GetArea(const std::string &areaName) { return GetArea(areaName, false); }
+	Area * GetArea(const std::string_view &areaName, bool required = true);
 
 	/// <summary>
 	/// Gets a specified Area identified by name, showing a Lua warning if it's not found. Ownership is NOT transferred!
@@ -943,7 +943,7 @@ const SceneObject * PickPlacedActorInRange(int whichSet, Vector &scenePoint, int
 	/// </summary>
 	/// <param name="areaName">The name of the Area to try to get.</param>
 	/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
-	Area * GetOptionalArea(const std::string &areaName) { return GetArea(areaName, true); };
+	Area * GetOptionalArea(const std::string &areaName) { return GetArea(areaName, false); };
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1229,6 +1229,14 @@ const SceneObject * PickPlacedActorInRange(int whichSet, Vector &scenePoint, int
     int GetScenePathSize() const;
 
     std::list<Vector>& GetScenePath();
+
+    /// <summary>
+    /// Returns whether two position represent the same path nodes.
+    /// </summary>
+    /// <param name="pos1">First coordinates to compare.</param>
+    /// <param name="pos2">Second coordinates to compare.</param>
+    /// <returns>Whether both coordinates represent the same path node.</returns>
+    bool PositionsAreTheSamePathNode(const Vector &pos1, const Vector &pos2) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

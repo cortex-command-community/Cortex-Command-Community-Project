@@ -17,6 +17,7 @@
 #include "Actor.h"
 #include "ADoor.h"
 #include "AEmitter.h"
+#include "AEJetpack.h"
 #include "AHuman.h"
 #include "Arm.h"
 #include "AtomGroup.h"
@@ -52,6 +53,7 @@
 #include "PieSlice.h"
 #include "GameActivity.h"
 #include "GAScripted.h"
+#include "BuyMenuGUI.h"
 
 namespace RTE {
 
@@ -101,6 +103,7 @@ namespace RTE {
 	LuaEntityCreateFunctionsDefinitionsForType(Arm);
 	LuaEntityCreateFunctionsDefinitionsForType(Leg);
 	LuaEntityCreateFunctionsDefinitionsForType(AEmitter);
+	LuaEntityCreateFunctionsDefinitionsForType(AEJetpack);
 	LuaEntityCreateFunctionsDefinitionsForType(Turret);
 	LuaEntityCreateFunctionsDefinitionsForType(Actor);
 	LuaEntityCreateFunctionsDefinitionsForType(ADoor);
@@ -144,6 +147,7 @@ namespace RTE {
 	LuaEntityCloneFunctionDefinitionForType(Leg);
 	LuaEntityCloneFunctionDefinitionForType(Emission);
 	LuaEntityCloneFunctionDefinitionForType(AEmitter);
+	LuaEntityCloneFunctionDefinitionForType(AEJetpack);
 	LuaEntityCloneFunctionDefinitionForType(Turret);
 	LuaEntityCloneFunctionDefinitionForType(Actor);
 	LuaEntityCloneFunctionDefinitionForType(ADoor);
@@ -201,6 +205,7 @@ namespace RTE {
 	LuaEntityCastFunctionsDefinitionsForType(Leg);
 	LuaEntityCastFunctionsDefinitionsForType(Emission);
 	LuaEntityCastFunctionsDefinitionsForType(AEmitter);
+	LuaEntityCastFunctionsDefinitionsForType(AEJetpack);
 	LuaEntityCastFunctionsDefinitionsForType(Turret);
 	LuaEntityCastFunctionsDefinitionsForType(Actor);
 	LuaEntityCastFunctionsDefinitionsForType(ADoor);
@@ -257,7 +262,7 @@ namespace RTE {
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorDirectionChangeSound);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveEndSound);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetHead);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, AEmitter, SetJetpack);
+	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, AEJetpack, SetJetpack);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Arm, SetFGArm);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Arm, SetBGArm);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Leg, SetFGLeg);
@@ -266,7 +271,7 @@ namespace RTE {
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetBGFoot);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, SoundContainer, SetStrideSound);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Turret, SetTurret);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, AEmitter, SetJetpack);
+	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, AEJetpack, SetJetpack);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftFGLeg);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftBGLeg);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetRightFGLeg);
@@ -393,6 +398,22 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	void LuaAdaptersActivity::SendMessage1(Activity *luaSelfObject, const std::string &message) {
+		SendMessage2(luaSelfObject, message, sol::lua_nil);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersActivity::SendMessage2(Activity *luaSelfObject, const std::string &message, sol::object context) {
+		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(luaSelfObject);
+		if (scriptedActivity) {
+			SolObjectWrapper wrapper(&context, "", false);
+			scriptedActivity->RunLuaFunction("OnMessage", {}, { message }, { &wrapper });
+		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	bool LuaAdaptersMovableObject::HasScript(MovableObject *luaSelfObject, const std::string &scriptPath) {
 		return luaSelfObject->HasScript(g_PresetMan.GetFullModulePath(scriptPath));
 	}
@@ -439,6 +460,20 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	void LuaAdaptersMovableObject::SendMessage1(MovableObject *luaSelfObject, const std::string &message) {
+		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, { message });
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersMovableObject::SendMessage2(MovableObject *luaSelfObject, const std::string &message, sol::object context) {
+		// We're not transferring context between lua states, so only run singlethreaded scripts when we have context
+		SolObjectWrapper wrapper(&context, "", false);
+		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, { message }, { &wrapper }, ThreadScriptsToRun::SingleThreaded);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	void LuaAdaptersMOSRotating::GibThis(MOSRotating *luaSelfObject) {
 		luaSelfObject->GibThis();
 	}
@@ -473,6 +508,24 @@ namespace RTE {
 				}
 			}
 		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	std::list<SceneObject*> * LuaAdaptersBuyMenuGUI::GetOrderList(const BuyMenuGUI *luaSelfObject) {
+		std::list<const SceneObject *> constOrderList;
+		luaSelfObject->GetOrderList(constOrderList);
+
+		// Previously I tried to push back a cloned object for const-correctness (and giving unique ptr so luabind would clean it up after)
+		// This is needed cause lua doesn't really enjoy being given a const SceneObject*
+		// But it didn't like that. So eh
+		// Todo, maybe retry this with Sol?
+		auto* orderList = new std::list<SceneObject*>();
+		for (const SceneObject *constObjectInOrderList : constOrderList) {
+			orderList->push_back( const_cast<SceneObject *>(constObjectInOrderList) );
+		}
+
+		return orderList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -565,6 +618,25 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	void LuaAdaptersMovableMan::SendGlobalMessage1(MovableMan &movableMan, const std::string &message) {
+		SendGlobalMessage2(movableMan, message, sol::lua_nil);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan &movableMan, const std::string &message, sol::object context) {
+		SolObjectWrapper wrapper(&context, "", false);
+
+		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
+		if (scriptedActivity) {
+			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, { message }, { &wrapper });
+		}
+
+		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", {}, { message }, { &wrapper });
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan &timerMan) {
 		return static_cast<double>(timerMan.GetDeltaTimeTicks());
 	}
@@ -578,19 +650,19 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaAdaptersUInputMan::MouseButtonHeld(const UInputMan &uinputMan, int whichButton) {
-		return uinputMan.MouseButtonHeld(Players::PlayerOne, whichButton);
+		return uinputMan.MouseButtonHeld(whichButton, Players::PlayerOne);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaAdaptersUInputMan::MouseButtonPressed(const UInputMan &uinputMan, int whichButton) {
-		return uinputMan.MouseButtonPressed(Players::PlayerOne, whichButton);
+		return uinputMan.MouseButtonPressed(whichButton, Players::PlayerOne);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaAdaptersUInputMan::MouseButtonReleased(const UInputMan &uinputMan, int whichButton) {
-		return uinputMan.MouseButtonReleased(Players::PlayerOne, whichButton);
+		return uinputMan.MouseButtonReleased(whichButton, Players::PlayerOne);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,8 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "LuaAdapterDefinitions.h"
+
 #include "GameActivity.h"
 #include "GAScripted.h"
 #include "ActorEditor.h"
@@ -23,6 +25,7 @@ namespace RTE {
 		luaType["Description"] = sol::property(&Activity::GetDescription);
 		luaType["InCampaignStage"] = sol::property(&Activity::GetInCampaignStage, &Activity::SetInCampaignStage);
 		luaType["ActivityState"] = sol::property(&Activity::GetActivityState, &Activity::SetActivityState);
+		luaType["AllowsUserSaving"] = sol::property(&Activity::GetAllowsUserSaving, &Activity::SetAllowsUserSaving);
 		luaType["SceneName"] = sol::property(&Activity::GetSceneName, &Activity::SetSceneName);
 		luaType["PlayerCount"] = sol::property(&Activity::GetPlayerCount);
 		luaType["HumanCount"] = sol::property(&Activity::GetHumanCount);
@@ -33,7 +36,6 @@ namespace RTE {
 		luaType["PlayerActive"] = &Activity::PlayerActive;
 		luaType["PlayerHuman"] = &Activity::PlayerHuman;
 		luaType["TeamActive"] = &Activity::TeamActive;
-		luaType["ForceSetTeamAsActive"] = &Activity::ForceSetTeamAsActive;
 		luaType["GetTeamOfPlayer"] = &Activity::GetTeamOfPlayer;
 		luaType["SetTeamOfPlayer"] = &Activity::SetTeamOfPlayer;
 		luaType["PlayersInTeamCount"] = &Activity::PlayersInTeamCount;
@@ -73,6 +75,8 @@ namespace RTE {
 		luaType["LoadString"] = &Activity::LoadString;
 		luaType["SaveNumber"] = &Activity::SaveNumber;
 		luaType["LoadNumber"] = &Activity::LoadNumber;
+		luaType["SendMessage"] = &LuaAdaptersActivity::SendMessage1;
+		luaType["SendMessage"] = &LuaAdaptersActivity::SendMessage2;
 
 		{
 			sol::table enumTable = LegacyEnumTypeTable("Players");

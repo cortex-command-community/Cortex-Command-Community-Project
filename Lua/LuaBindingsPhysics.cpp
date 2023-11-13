@@ -46,6 +46,7 @@ namespace RTE {
 		auto luaType = ConcreteTypeLuaClassDefinition(MOPixel, MovableObject, SceneObject, Entity);
 
 		luaType["TrailLength"] = sol::property(&MOPixel::GetTrailLength, &MOPixel::SetTrailLength);
+		luaType["Staininess"] = sol::property(&MOPixel::GetStaininess, &MOPixel::SetStaininess);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,6 +87,7 @@ namespace RTE {
 		luaType["ForceDeepCheck"] = &MOSRotating::ForceDeepCheck;
 		luaType["GibThis"] = &MOSRotating::GibThis;
 		luaType["MoveOutOfTerrain"] = &MOSRotating::MoveOutOfTerrain;
+		luaType["FlashWhite"] = &MOSRotating::FlashWhite;
 		luaType["GetGibWoundLimit"] = (int (MOSRotating:: *)() const) &MOSRotating::GetGibWoundLimit;
 		luaType["GetGibWoundLimit"] = (int (MOSRotating:: *)(bool positiveDamage, bool negativeDamage, bool noDamage) const) &MOSRotating::GetGibWoundLimit;
 		luaType["GetWoundCount"] = (int (MOSRotating:: *)() const) &MOSRotating::GetWoundCount;
@@ -159,6 +161,7 @@ namespace RTE {
 		luaType["IgnoresTeamHits"] = sol::property(&MovableObject::IgnoresTeamHits, &MovableObject::SetIgnoresTeamHits);
 		luaType["IgnoresWhichTeam"] = sol::property(&MovableObject::IgnoresWhichTeam);
 		luaType["IgnoreTerrain"] = sol::property(&MovableObject::IgnoreTerrain, &MovableObject::SetIgnoreTerrain);
+		luaType["IgnoresActorHits"] = sol::property(&MovableObject::GetIgnoresActorHits, &MovableObject::SetIgnoresActorHits);
 		luaType["ToSettle"] = sol::property(&MovableObject::ToSettle, &MovableObject::SetToSettle);
 		luaType["ToDelete"] = sol::property(&MovableObject::ToDelete, &MovableObject::SetToDelete);
 		luaType["MissionCritical"] = sol::property(&MovableObject::IsMissionCritical, &MovableObject::SetMissionCritical);
@@ -186,6 +189,18 @@ namespace RTE {
 		luaType["EnableScript"] = &LuaAdaptersMovableObject::EnableScript;
 		luaType["DisableScript"] = &LuaAdaptersMovableObject::DisableScript;
 		luaType["EnableOrDisableAllScripts"] = &MovableObject::EnableOrDisableAllScripts;
+		luaType["GetStringValue"] = &MovableObject::GetStringValue;
+		luaType["GetNumberValue"] = &MovableObject::GetNumberValue;
+		luaType["GetObjectValue"] = &MovableObject::GetObjectValue;
+		luaType["SetStringValue"] = &MovableObject::SetStringValue;
+		luaType["SetNumberValue"] = &MovableObject::SetNumberValue;
+		luaType["SetObjectValue"] = &MovableObject::SetObjectValue;
+		luaType["RemoveStringValue"] = &MovableObject::RemoveStringValue;
+		luaType["RemoveNumberValue"] = &MovableObject::RemoveNumberValue;
+		luaType["RemoveObjectValue"] = &MovableObject::RemoveObjectValue;
+		luaType["StringValueExists"] = &MovableObject::StringValueExists;
+		luaType["NumberValueExists"] = &MovableObject::NumberValueExists;
+		luaType["ObjectValueExists"] = &MovableObject::ObjectValueExists;
 		luaType["GetAltitude"] = &MovableObject::GetAltitude;
 		luaType["GetWhichMOToNotHit"] = &MovableObject::GetWhichMOToNotHit;
 		luaType["SetWhichMOToNotHit"] = &MovableObject::SetWhichMOToNotHit;
@@ -221,5 +236,7 @@ namespace RTE {
 		luaType["IsAtRest"] = &MovableObject::IsAtRest;
 		luaType["MoveOutOfTerrain"] = &MovableObject::MoveOutOfTerrain;
 		luaType["RotateOffset"] = &MovableObject::RotateOffset;
+		luaType["SendMessage"] = &LuaAdaptersMovableObject::SendMessage1;
+		luaType["SendMessage"] = &LuaAdaptersMovableObject::SendMessage2;
 	}
 }

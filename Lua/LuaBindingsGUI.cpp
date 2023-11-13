@@ -76,6 +76,11 @@ namespace RTE {
 		luaType["SetLogoImage"] = &BuyMenuGUI::SetLogoImage;
 		luaType["ClearCartList"] = &BuyMenuGUI::ClearCartList;
 		luaType["LoadDefaultLoadoutToCart"] = &BuyMenuGUI::LoadDefaultLoadoutToCart;
+		luaType["GetOrderList"] = &BuyMenuGUI::GetOrderList; // luabind::adopt(luabind::return_value) + luabind::return_stl_iterator
+		luaType["GetTotalCartCost"] = &BuyMenuGUI::GetTotalCartCost;
+		luaType["GetTotalOrderCost"] = &BuyMenuGUI::GetTotalOrderCost;
+		luaType["GetTotalOrderMass"] = &BuyMenuGUI::GetTotalOrderMass;
+		luaType["GetTotalOrderPassengers"] = &BuyMenuGUI::GetTotalOrderPassengers;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

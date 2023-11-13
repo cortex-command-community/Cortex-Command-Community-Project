@@ -13,6 +13,7 @@
 
 #include "MovableObject.h"
 
+#include "ActivityMan.h"
 #include "PresetMan.h"
 #include "SceneMan.h"
 #include "ConsoleMan.h"
@@ -27,6 +28,7 @@ namespace RTE {
 AbstractClassInfo(MovableObject, SceneObject);
 
 unsigned long int MovableObject::m_UniqueIDCounter = 1;
+std::string MovableObject::ms_EmptyString = "";
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Clear
@@ -63,6 +65,7 @@ void MovableObject::Clear()
     m_IgnoresTeamHits = false;
     m_IgnoresAtomGroupHits = false;
     m_IgnoresAGHitsWhenSlowerThan = -1;
+    m_IgnoresActorHits = false;
     m_MissionCritical = false;
     m_CanBeSquished = true;
     m_IsUpdated = false;
@@ -71,7 +74,6 @@ void MovableObject::Clear()
     m_MOID = g_NoMOID;
     m_RootMOID = g_NoMOID;
     m_HasEverBeenAddedToMovableMan = false;
-	m_ExistsInMovableMan = false;
     m_MOIDFootprint = 0;
     m_AlreadyHitBy.clear();
 	m_VelOscillations = 0;
@@ -81,6 +83,9 @@ void MovableObject::Clear()
     m_IsTraveling = false;
     m_AllLoadedScripts.clear();
     m_FunctionsAndScripts.clear();
+    m_StringValueMap.clear();
+    m_NumberValueMap.clear();
+    m_ObjectValueMap.clear();
     m_ThreadedLuaState = nullptr;
     m_HasSinglethreadedScripts = false;
     m_ScriptObjectName.clear();
@@ -234,6 +239,7 @@ int MovableObject::Create(const MovableObject &reference)
     m_IgnoresTeamHits = reference.m_IgnoresTeamHits;
     m_IgnoresAtomGroupHits = reference.m_IgnoresAtomGroupHits;
     m_IgnoresAGHitsWhenSlowerThan = reference.m_IgnoresAGHitsWhenSlowerThan;
+    m_IgnoresActorHits = reference.m_IgnoresActorHits;
     m_pMOToNotHit = reference.m_pMOToNotHit;
     m_MOIgnoreTimer = reference.m_MOIgnoreTimer;
     m_MissionCritical = reference.m_MissionCritical;
@@ -279,6 +285,10 @@ int MovableObject::Create(const MovableObject &reference)
 	m_SimUpdatesBetweenScriptedUpdates = reference.m_SimUpdatesBetweenScriptedUpdates;
 	m_SimUpdatesSinceLastScriptedUpdate = reference.m_SimUpdatesSinceLastScriptedUpdate;
 
+    m_StringValueMap = reference.m_StringValueMap;
+    m_NumberValueMap = reference.m_NumberValueMap;
+    m_ObjectValueMap = reference.m_ObjectValueMap;
+
 	m_UniqueID = MovableObject::GetNextUniqueID();
 	g_MovableMan.RegisterObject(this);
 
@@ -296,65 +306,51 @@ int MovableObject::Create(const MovableObject &reference)
 
 int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-	if (propName == "Mass") {
-		reader >> m_Mass;
-	} else if (propName == "Velocity")
-		reader >> m_Vel;
-	else if (propName == "Scale")
-		reader >> m_Scale;
-	else if (propName == "GlobalAccScalar")
-		reader >> m_GlobalAccScalar;
-	else if (propName == "AirResistance")
+	StartPropertyList(return SceneObject::ReadProperty(propName, reader));
+    
+    MatchProperty("Mass", { reader >> m_Mass; });
+	MatchProperty("Velocity", { reader >> m_Vel; });
+	MatchProperty("Scale", { reader >> m_Scale; });
+	MatchProperty("GlobalAccScalar", { reader >> m_GlobalAccScalar; });
+	MatchProperty("AirResistance",
 	{
 		reader >> m_AirResistance;
 		// Backwards compatibility after we made this value scaled over time
 		m_AirResistance /= 0.01666F;
-	}
-	else if (propName == "AirThreshold")
-		reader >> m_AirThreshold;
-	else if (propName == "PinStrength")
-		reader >> m_PinStrength;
-	else if (propName == "RestThreshold")
-		reader >> m_RestThreshold;
-	else if (propName == "LifeTime")
-		reader >> m_Lifetime;
-	else if (propName == "Age") {
+	});
+	MatchProperty("AirThreshold", { reader >> m_AirThreshold; });
+	MatchProperty("PinStrength", { reader >> m_PinStrength; });
+	MatchProperty("RestThreshold", { reader >> m_RestThreshold; });
+	MatchProperty("LifeTime", { reader >> m_Lifetime; });
+	MatchProperty("Age", {
 		double age;
 		reader >> age;
 		m_AgeTimer.SetElapsedSimTimeMS(age);
-	} else if (propName == "Sharpness")
-		reader >> m_Sharpness;
-	else if (propName == "HitsMOs")
-		reader >> m_HitsMOs;
-	else if (propName == "GetsHitByMOs")
-		reader >> m_GetsHitByMOs;
-	else if (propName == "IgnoresTeamHits")
-		reader >> m_IgnoresTeamHits;
-	else if (propName == "IgnoresAtomGroupHits")
-		reader >> m_IgnoresAtomGroupHits;
-	else if (propName == "IgnoresAGHitsWhenSlowerThan")
-		reader >> m_IgnoresAGHitsWhenSlowerThan;
-	else if (propName == "RemoveOrphanTerrainRadius")
+	});
+	MatchProperty("Sharpness", { reader >> m_Sharpness; });
+	MatchProperty("HitsMOs", { reader >> m_HitsMOs; });
+	MatchProperty("GetsHitByMOs", { reader >> m_GetsHitByMOs; });
+	MatchProperty("IgnoresTeamHits", { reader >> m_IgnoresTeamHits; });
+	MatchProperty("IgnoresAtomGroupHits", { reader >> m_IgnoresAtomGroupHits; });
+	MatchProperty("IgnoresAGHitsWhenSlowerThan", { reader >> m_IgnoresAGHitsWhenSlowerThan; });
+    MatchProperty("IgnoresActorHits",  { reader >> m_IgnoresActorHits; });
+	MatchProperty("RemoveOrphanTerrainRadius",
 	{
 		reader >> m_RemoveOrphanTerrainRadius;
 		if (m_RemoveOrphanTerrainRadius > MAXORPHANRADIUS)
 			m_RemoveOrphanTerrainRadius = MAXORPHANRADIUS;
-	}
-	else if (propName == "RemoveOrphanTerrainMaxArea")
+	});
+	MatchProperty("RemoveOrphanTerrainMaxArea",
 	{
 		reader >> m_RemoveOrphanTerrainMaxArea;
 		if (m_RemoveOrphanTerrainMaxArea > MAXORPHANRADIUS * MAXORPHANRADIUS)
 			m_RemoveOrphanTerrainMaxArea = MAXORPHANRADIUS * MAXORPHANRADIUS;
-	}
-	else if (propName == "RemoveOrphanTerrainRate")
-		reader >> m_RemoveOrphanTerrainRate;
-	else if (propName == "MissionCritical")
-		reader >> m_MissionCritical;
-	else if (propName == "CanBeSquished")
-		reader >> m_CanBeSquished;
-	else if (propName == "HUDVisible")
-		reader >> m_HUDVisible;
-	else if (propName == "ScriptPath") {
+	});
+	MatchProperty("RemoveOrphanTerrainRate", { reader >> m_RemoveOrphanTerrainRate; });
+	MatchProperty("MissionCritical", { reader >> m_MissionCritical; });
+	MatchProperty("CanBeSquished", { reader >> m_CanBeSquished; });
+	MatchProperty("HUDVisible", { reader >> m_HUDVisible; });
+	MatchProperty("ScriptPath", {
 		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
         switch (LoadScript(scriptPath)) {
             case 0:
@@ -378,57 +374,60 @@ int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader
                 RTEAbort("Reached default case while adding script in INI. This should never happen!");
                 break;
         }
-	} else if (propName == "ScreenEffect") {
+	});
+	MatchProperty("ScreenEffect", {
         reader >> m_ScreenEffectFile;
         m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
 		m_ScreenEffectHash = m_ScreenEffectFile.GetHash();
-    }
-    else if (propName == "EffectStartTime")
-        reader >> m_EffectStartTime;
-	else if (propName == "EffectRotAngle")
-		reader >> m_EffectRotAngle;
-	else if (propName == "InheritEffectRotAngle")
-		reader >> m_InheritEffectRotAngle;
-	else if (propName == "RandomizeEffectRotAngle")
-		reader >> m_RandomizeEffectRotAngle;
-	else if (propName == "RandomizeEffectRotAngleEveryFrame")
-		reader >> m_RandomizeEffectRotAngleEveryFrame;
-	else if (propName == "EffectStopTime")
-        reader >> m_EffectStopTime;
-    else if (propName == "EffectStartStrength")
-    {
+    });
+    MatchProperty("EffectStartTime", { reader >> m_EffectStartTime; });
+	MatchProperty("EffectRotAngle", { reader >> m_EffectRotAngle; });
+	MatchProperty("InheritEffectRotAngle", { reader >> m_InheritEffectRotAngle; });
+	MatchProperty("RandomizeEffectRotAngle", { reader >> m_RandomizeEffectRotAngle; });
+	MatchProperty("RandomizeEffectRotAngleEveryFrame", { reader >> m_RandomizeEffectRotAngleEveryFrame; });
+	MatchProperty("EffectStopTime", { reader >> m_EffectStopTime; });
+    MatchProperty("EffectStartStrength", {
         float strength;
         reader >> strength;
         m_EffectStartStrength = std::floor((float)255 * strength);
-    }
-    else if (propName == "EffectStopStrength")
-    {
+    });
+    MatchProperty("EffectStopStrength", {
         float strength;
         reader >> strength;
         m_EffectStopStrength = std::floor((float)255 * strength);
-    }
-    else if (propName == "EffectAlwaysShows")
-        reader >> m_EffectAlwaysShows;
-	else if (propName == "DamageOnCollision")
-		reader >> m_DamageOnCollision;
-	else if (propName == "DamageOnPenetration")
-		reader >> m_DamageOnPenetration;
-	else if (propName == "WoundDamageMultiplier")
-		reader >> m_WoundDamageMultiplier;
-    else if (propName == "ApplyWoundDamageOnCollision")
-        reader >> m_ApplyWoundDamageOnCollision;
-    else if (propName == "ApplyWoundBurstDamageOnCollision")
-        reader >> m_ApplyWoundBurstDamageOnCollision;
-	else if (propName == "IgnoreTerrain")
-		reader >> m_IgnoreTerrain;
-    else if (propName == "SimUpdatesBetweenScriptedUpdates")
-        reader >> m_SimUpdatesBetweenScriptedUpdates;
-	else
-        return SceneObject::ReadProperty(propName, reader);
+    });
+    MatchProperty("EffectAlwaysShows", { reader >> m_EffectAlwaysShows; });
+	MatchProperty("DamageOnCollision", { reader >> m_DamageOnCollision; });
+	MatchProperty("DamageOnPenetration", { reader >> m_DamageOnPenetration; });
+	MatchProperty("WoundDamageMultiplier", { reader >> m_WoundDamageMultiplier; });
+    MatchProperty("ApplyWoundDamageOnCollision", { reader >> m_ApplyWoundDamageOnCollision; });
+    MatchProperty("ApplyWoundBurstDamageOnCollision", { reader >> m_ApplyWoundBurstDamageOnCollision; });
+	MatchProperty("IgnoreTerrain", { reader >> m_IgnoreTerrain; });
+    MatchProperty("SimUpdatesBetweenScriptedUpdates", { reader >> m_SimUpdatesBetweenScriptedUpdates; });
+    MatchProperty("AddCustomValue", { ReadCustomValueProperty(reader); });
 
-    return 0;
+    EndPropertyList;
 }
 
+void MovableObject::ReadCustomValueProperty(Reader& reader) {
+    std::string customValueType;
+    reader >> customValueType;
+    std::string customKey = reader.ReadPropName();
+    std::string customValue = reader.ReadPropValue();
+    if (customValueType == "NumberValue") {
+        try {
+            SetNumberValue(customKey, std::stod(customValue));
+        } catch (const std::invalid_argument) {
+            reader.ReportError("Tried to read a non-number value for SetNumberValue.");
+        }
+    } else if (customValueType == "StringValue") {
+        SetStringValue(customKey, customValue);
+    } else {
+        reader.ReportError("Invalid CustomValue type " + customValueType);
+    }
+    // Artificially end reading this property since we got all we needed
+    reader.NextProperty();
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Save
@@ -473,6 +472,8 @@ int MovableObject::Save(Writer &writer) const
     writer << m_IgnoresAtomGroupHits;
     writer.NewProperty("IgnoresAGHitsWhenSlowerThan");
     writer << m_IgnoresAGHitsWhenSlowerThan;
+    writer.NewProperty("IgnoresActorHits");
+    writer << m_IgnoresActorHits;
     writer.NewProperty("MissionCritical");
     writer << m_MissionCritical;
     writer.NewProperty("CanBeSquished");
@@ -512,12 +513,22 @@ int MovableObject::Save(Writer &writer) const
     writer.NewProperty("SimUpdatesBetweenScriptedUpdates");
     writer << m_SimUpdatesBetweenScriptedUpdates;
 
+    for (const auto &[key, value] : m_NumberValueMap) {
+        writer.ObjectStart("AddCustomValue = NumberValue");
+        writer.NewPropertyWithValue(key, value);
+    }
+
+    for (const auto &[key, value] : m_StringValueMap) {
+        writer.ObjectStart("AddCustomValue = StringValue");
+        writer.NewPropertyWithValue(key, value);
+    }
+
     return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MovableObject::Destroy(bool notInherited) {
+void MovableObject::DestroyScriptState() {
     if (ObjectScriptsInitialized()) {
         RunScriptedFunctionInAppropriateScripts("Destroy");
 
@@ -530,14 +541,22 @@ void MovableObject::Destroy(bool notInherited) {
             // Shouldn't ever happen (destruction is delayed in movableman to happen in singlethreaded manner), but lets check just in case
             if (g_LuaMan.GetThreadLuaStateOverride() || !g_LuaMan.GetMasterScriptState().GetMutex().try_lock()) {
                 RTEAbort("Failed to destroy object scripts for " + GetModuleAndPresetName() + ". Please report this to a developer.");
-            } else {
+            }
+            else {
                 std::lock_guard<std::recursive_mutex> lock(g_LuaMan.GetMasterScriptState().GetMutex(), std::adopt_lock);
                 g_LuaMan.GetMasterScriptState().RunScriptString(m_ScriptObjectName + " = nil;");
             }
         }
     }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::Destroy(bool notInherited) {
 	g_MovableMan.UnregisterObject(this);
-    if (!notInherited) { SceneObject::Destroy(); }
+    if (!notInherited) { 
+        SceneObject::Destroy(); 
+    }
     Clear();
 }
 
@@ -573,7 +592,7 @@ int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledS
 	m_AllLoadedScripts.try_emplace(scriptPath, loadAsEnabledScript);
 
 	std::unordered_map<std::string, SolObjectWrapper *> scriptFileFunctions;
-	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
+	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, "", GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
 		return -5;
 	}
 	for (const auto &[functionName, functionObject] : scriptFileFunctions) {
@@ -678,7 +697,7 @@ void MovableObject::EnableOrDisableAllScripts(bool enableScripts) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts, bool stopOnError, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, ThreadScriptsToRun scriptsToRun) {
+int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts, bool stopOnError, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, const std::vector<SolObjectWrapper*> &functionObjectArguments, ThreadScriptsToRun scriptsToRun) {
     int status = 0;
 
     auto itr = m_FunctionsAndScripts.find(functionName);
@@ -703,7 +722,7 @@ int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &fu
             if (runOnDisabledScripts || m_AllLoadedScripts.at(functionObjectWrapper->GetFilePath())) {
                 LuaStateWrapper& usedState = GetAndLockStateForScript(functionObjectWrapper->GetFilePath());
                 std::lock_guard<std::recursive_mutex> lock(usedState.GetMutex(), std::adopt_lock);   
-				status = usedState.RunScriptFunctionObject(functionObjectWrapper.get(), "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments);
+				status = usedState.RunScriptFunctionObject(functionObjectWrapper.get(), "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments, functionObjectArguments);
                 if (status < 0 && stopOnError) {
                     return status;
                 }
@@ -754,6 +773,11 @@ MovableObject::MovableObject(const MovableObject &reference):
 
 }
 */
+
+void MovableObject::SetTeam(int team) {
+	SceneObject::SetTeam(team);
+	if (Activity *activity = g_ActivityMan.GetActivity()) { activity->ForceSetTeamAsActive(team); }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  GetAltitude
@@ -821,12 +845,7 @@ bool MovableObject::OnMOHit(HitData &hd)
     if (hd.RootBody[HITOR] != hd.RootBody[HITEE] && (hd.Body[HITOR] == this || hd.Body[HITEE] == this)) {
         RunScriptedFunctionInAppropriateScripts("OnCollideWithMO", false, false, {hd.Body[hd.Body[HITOR] == this ? HITEE : HITOR], hd.RootBody[hd.Body[HITOR] == this ? HITEE : HITOR]});
     }
-    return hd.Terminate[hd.RootBody[HITOR] == this ? HITOR : HITEE] = OnMOHit(hd.RootBody[hd.RootBody[HITOR] == this ? HITEE : HITOR]);
-}
-
-bool MovableObject::OnMOHit(MovableObject *pOtherMO) {
-    if (pOtherMO != this) { RunScriptedFunctionInAppropriateScripts("OnCollideWithMO", false, false, {pOtherMO, pOtherMO ? pOtherMO->GetRootParent() : nullptr}); }
-    return false;
+	return hd.Terminate[hd.RootBody[HITOR] == this ? HITOR : HITEE] = false;
 }
 
 unsigned char MovableObject::HitWhatTerrMaterial() const
@@ -1045,20 +1064,119 @@ int MovableObject::UpdateScripts(ThreadScriptsToRun scriptsToRun) {
 	m_SimUpdatesSinceLastScriptedUpdate = 0;
 
 	if (status >= 0) {
-		status = RunScriptedFunctionInAppropriateScripts("Update", false, true, {}, {}, scriptsToRun);
+		status = RunScriptedFunctionInAppropriateScripts("Update", false, true, {}, {}, {}, scriptsToRun);
 
         // Perform our synced updates to let multithreaded scripts do anything that interacts with stuff in a non-const way
         // This is identical to non-multithreaded script's Update()
         // TODO - in future, enforce that everything in MultiThreaded Update() is const, so non-const actions must be performed in SyncedUpdate
         // This would require a bunch of Lua binding fuckery, but eventually maybe it'd be possible.
         // I wonder if we can do some SFINAE magic to make the luabindings automagically do a no-op with const objects, to avoid writing the bindings twice
-        if (status >= 0 && scriptsToRun == ThreadScriptsToRun::SingleThreaded) {
+        if (status >= -1 && scriptsToRun == ThreadScriptsToRun::SingleThreaded) {
             // If we're in a SingleThreaded context, we run the MultiThreaded scripts synced updates:
-            status = RunScriptedFunctionInAppropriateScripts("SyncedUpdate", false, true, {}, {}, ThreadScriptsToRun::MultiThreaded); // This isn't a typo!
+            status = RunScriptedFunctionInAppropriateScripts("SyncedUpdate", false, true, {}, {}, {}, ThreadScriptsToRun::Both);
         }
 	}
 
 	return status;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::string & MovableObject::GetStringValue(const std::string &key) const
+{
+    auto itr = m_StringValueMap.find(key);
+    if (itr == m_StringValueMap.end()) {
+        return ms_EmptyString;
+    }
+    
+    return itr->second;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double MovableObject::GetNumberValue(const std::string& key) const
+{
+    auto itr = m_NumberValueMap.find(key);
+    if (itr == m_NumberValueMap.end()) {
+        return 0.0;
+    }
+
+    return itr->second;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Entity* MovableObject::GetObjectValue(const std::string &key) const
+{
+    auto itr = m_ObjectValueMap.find(key);
+    if (itr == m_ObjectValueMap.end()) {
+        return nullptr;
+    }
+
+    return itr->second;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::SetStringValue(const std::string &key, const std::string &value)
+{
+    m_StringValueMap[key] = value;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::SetNumberValue(const std::string &key, double value)
+{
+    m_NumberValueMap[key] = value;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::SetObjectValue(const std::string &key, Entity* value)
+{
+    m_ObjectValueMap[key] = value;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::RemoveStringValue(const std::string &key)
+{
+    m_StringValueMap.erase(key);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::RemoveNumberValue(const std::string &key)
+{
+    m_NumberValueMap.erase(key);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::RemoveObjectValue(const std::string &key)
+{
+    m_ObjectValueMap.erase(key);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool MovableObject::StringValueExists(const std::string &key) const
+{
+    return m_StringValueMap.find(key) != m_StringValueMap.end();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool MovableObject::NumberValueExists(const std::string &key) const
+{
+    return m_NumberValueMap.find(key) != m_NumberValueMap.end();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool MovableObject::ObjectValueExists(const std::string &key) const
+{
+    return m_ObjectValueMap.find(key) != m_ObjectValueMap.end();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1198,7 +1316,10 @@ bool MovableObject::DrawToTerrain(SLTerrain *terrain) {
 		g_SceneMan.RegisterTerrainChange(tempBitmapPos.GetFloorIntX(), tempBitmapPos.GetFloorIntY(), tempBitmap->w, tempBitmap->h, ColorKeys::g_MaskColor, false);
 	} else {
 		Draw(terrain->GetFGColorBitmap(), Vector(), DrawMode::g_DrawColor, true);
-		Draw(terrain->GetMaterialBitmap(), Vector(), DrawMode::g_DrawMaterial, true);
+		Material const *terrMat = g_SceneMan.GetMaterialFromID(g_SceneMan.GetTerrain()->GetMaterialPixel(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY()));
+		if (GetMaterial()->GetPriority() > terrMat->GetPriority()) {
+			Draw(terrain->GetMaterialBitmap(), Vector(), DrawMode::g_DrawMaterial, true);
+		}
 		g_SceneMan.RegisterTerrainChange(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), 1, 1, DrawMode::g_DrawColor, false);
 	}
 	return true;

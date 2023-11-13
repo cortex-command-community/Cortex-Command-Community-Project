@@ -194,8 +194,10 @@ namespace RTE {
 		>());
 
 		luaType["SoundOverlapMode"] = sol::property(&SoundContainer::GetSoundOverlapMode, &SoundContainer::SetSoundOverlapMode);
+		luaType["BusRouting"] = sol::property(&SoundContainer::GetBusRouting, &SoundContainer::SetBusRouting);
 		luaType["Immobile"] = sol::property(&SoundContainer::IsImmobile, &SoundContainer::SetImmobile);
 		luaType["AttenuationStartDistance"] = sol::property(&SoundContainer::GetAttenuationStartDistance, &SoundContainer::SetAttenuationStartDistance);
+		luaType["PanningStrengthMultiplier"] = sol::property(&SoundContainer::GetPanningStrengthMultiplier, &SoundContainer::SetPanningStrengthMultiplier);
 		luaType["Loops"] = sol::property(&SoundContainer::GetLoopSetting, &SoundContainer::SetLoopSetting);
 		luaType["Priority"] = sol::property(&SoundContainer::GetPriority, &SoundContainer::SetPriority);
 		luaType["AffectedByGlobalPitch"] = sol::property(&SoundContainer::IsAffectedByGlobalPitch, &SoundContainer::SetAffectedByGlobalPitch);
@@ -217,6 +219,13 @@ namespace RTE {
 		luaType["Restart"] = (bool (SoundContainer::*)()) & SoundContainer::Restart;
 		luaType["Restart"] = (bool (SoundContainer::*)(int player)) & SoundContainer::Restart;
 		luaType["FadeOut"] = &SoundContainer::FadeOut;
+
+		{
+			sol::table enumTable = LegacyEnumTypeTable("BusRouting");
+			enumTable["SFX"] = SoundContainer::BusRouting::SFX;
+			enumTable["UI"] = SoundContainer::BusRouting::UI;
+			enumTable["MUSIC"] = SoundContainer::BusRouting::MUSIC;
+		}
 
 		{
 			sol::table enumTable = LegacyEnumTypeTable("SoundOverlapMode");

@@ -5,6 +5,18 @@
 
 namespace RTE {
 
+#pragma region Global Macro Definitions
+    #define ScriptFunctionNames(...) \
+        virtual std::vector<std::string> GetSupportedScriptFunctionNames() const { return {__VA_ARGS__}; }
+
+    #define AddScriptFunctionNames(PARENT, ...) \
+        std::vector<std::string> GetSupportedScriptFunctionNames() const override { \
+            std::vector<std::string> functionNames = PARENT::GetSupportedScriptFunctionNames(); \
+            functionNames.insert(functionNames.end(), {__VA_ARGS__}); \
+            return functionNames; \
+        }
+#pragma endregion
+
 	/// <summary>
 	/// A wrapper for luabind objects, to avoid include problems with luabind.
 	/// </summary>
@@ -21,7 +33,7 @@ namespace RTE {
 		/// <summary>
 		/// Constructor method used to instantiate a SolObjectWrapper object in system memory.
 		/// </summary>
-		explicit SolObjectWrapper(sol::object *solObject, const std::string_view &filePath) : m_SolObject(solObject), m_FilePath(filePath) {}
+		explicit SolObjectWrapper(sol::object *solObject, const std::string_view &filePath, bool ownsObject = true) : m_SolObject(solObject), m_FilePath(filePath), m_OwnsObject(ownsObject) {}
 #pragma endregion
 
 #pragma region Destruction
@@ -49,6 +61,7 @@ namespace RTE {
 
 	private:
 
+		bool m_OwnsObject; //!< Whether or not we own the sol object this is wrapping.
 		sol::object *m_SolObject; //!< The sol object this is wrapping.
 		std::string m_FilePath; //!< The filepath the wrapped luabind object represents, if it's a function.
 

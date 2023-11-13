@@ -17,6 +17,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HDFirearm) {
 		auto luaType = ConcreteTypeLuaClassDefinition(HDFirearm, HeldDevice, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
+		luaType["ReloadEndOffset"] = sol::property(&HDFirearm::GetReloadEndOffset, &HDFirearm::SetReloadEndOffset);
 		luaType["RateOfFire"] = sol::property(&HDFirearm::GetRateOfFire, &HDFirearm::SetRateOfFire);
 		luaType["MSPerRound"] = sol::property(&HDFirearm::GetMSPerRound);
 		luaType["FullAuto"] = sol::property(&HDFirearm::IsFullAuto, &HDFirearm::SetFullAuto);
@@ -80,11 +81,15 @@ namespace RTE {
 		luaType["SharpLength"] = sol::property(&HeldDevice::GetSharpLength, &HeldDevice::SetSharpLength);
 		luaType["Supportable"] = sol::property(&HeldDevice::IsSupportable, &HeldDevice::SetSupportable);
 		luaType["SupportOffset"] = sol::property(&HeldDevice::GetSupportOffset, &HeldDevice::SetSupportOffset);
+		luaType["UseSupportOffsetWhileReloading"] = sol::property(&HeldDevice::GetUseSupportOffsetWhileReloading, &HeldDevice::SetUseSupportOffsetWhileReloading);
 		luaType["HasPickupLimitations"] = sol::property(&HeldDevice::HasPickupLimitations);
 		luaType["UnPickupable"] = sol::property(&HeldDevice::IsUnPickupable, &HeldDevice::SetUnPickupable);
 		luaType["GripStrengthMultiplier"] = sol::property(&HeldDevice::GetGripStrengthMultiplier, &HeldDevice::SetGripStrengthMultiplier);
 		luaType["Supported"] = sol::property(&HeldDevice::GetSupported, &HeldDevice::SetSupported);
+		luaType["GetsHitByMOsWhenHeld"] = sol::property(&HeldDevice::GetsHitByMOsWhenHeld, &HeldDevice::SetGetsHitByMOsWhenHeld);
+		luaType["VisualRecoilMultiplier"] = sol::property(&HeldDevice::GetVisualRecoilMultiplier, &HeldDevice::SetVisualRecoilMultiplier);
 
+		luaType["IsBeingHeld"] = &HeldDevice::IsBeingHeld;
 		luaType["IsWeapon"] = &HeldDevice::IsWeapon;
 		luaType["IsTool"] = &HeldDevice::IsTool;
 		luaType["IsShield"] = &HeldDevice::IsShield;

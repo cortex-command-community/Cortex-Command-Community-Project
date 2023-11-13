@@ -210,6 +210,9 @@ bool AssemblyEditorGUI::SetCurrentObject(SceneObject *pNewObject)
         return true;
 
     // Replace the current object with the new one
+    if (MovableObject *asMo = dynamic_cast<MovableObject *>(m_pCurrentObject)) {
+        asMo->DestroyScriptState();
+    }
     delete m_pCurrentObject;
     m_pCurrentObject = pNewObject;
 
@@ -936,10 +939,10 @@ void AssemblyEditorGUI::Update()
         m_CursorOffset.Reset();
 
     // Keep the cursor position within the world
-    bool cursorWrapped = g_SceneMan.ForceBounds(m_CursorPos);
+    g_SceneMan.ForceBounds(m_CursorPos);
 // TODO: make setscrolltarget with 'sloppy' target
     // Scroll to the cursor's scene position
-    g_CameraMan.SetScrollTarget(m_CursorPos, 0.3, cursorWrapped, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+    g_CameraMan.SetScrollTarget(m_CursorPos, 0.3, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
     // Apply the cursor position to the currently held object
     if (m_pCurrentObject && m_DrawCurrentObject)
     {

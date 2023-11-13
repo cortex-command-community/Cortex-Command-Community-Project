@@ -9,6 +9,7 @@
 #include "Gib.h"
 #include "MOSprite.h"
 #include "AEmitter.h"
+#include "AEJetpack.h"
 #include "Attachable.h"
 #include "PEmitter.h"
 
@@ -84,6 +85,7 @@ namespace RTE {
 		luaType["Emissions"] = &AEmitter::m_EmissionList;
 
 		luaType["IsEmitting"] = &AEmitter::IsEmitting;
+		luaType["WasEmitting"] = &AEmitter::WasEmitting;
 		luaType["EnableEmission"] = &AEmitter::EnableEmission;
 		luaType["GetEmitVector"] = &AEmitter::GetEmitVector;
 		luaType["GetRecoilVector"] = &AEmitter::GetRecoilVector;
@@ -91,6 +93,29 @@ namespace RTE {
 		luaType["TriggerBurst"] = &AEmitter::TriggerBurst;
 		luaType["IsSetToBurst"] = &AEmitter::IsSetToBurst;
 		luaType["CanTriggerBurst"] = &AEmitter::CanTriggerBurst;
+		luaType["GetScaledThrottle"] = &AEmitter::GetScaledThrottle;
+		luaType["JustStartedEmitting"] = &AEmitter::JustStartedEmitting;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEJetpack) {
+		auto luaType = ConcreteTypeLuaClassDefinition(AEJetpack, AEmitter, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
+
+		luaType["JetpackType"] = sol::property(&AEJetpack::GetJetpackType, &AEJetpack::SetJetpackType);
+		luaType["JetTimeTotal"] = sol::property(&AEJetpack::GetJetTimeTotal, &AEJetpack::SetJetTimeTotal);
+		luaType["JetTimeLeft"] = sol::property(&AEJetpack::GetJetTimeLeft);
+		luaType["JetReplenishRate"] = sol::property(&AEJetpack::GetJetReplenishRate, &AEJetpack::SetJetReplenishRate);
+		luaType["MinimumFuelRatio"] = sol::property(&AEJetpack::GetMinimumFuelRatio, &AEJetpack::SetMinimumFuelRatio);
+		luaType["JetAngleRange"] = sol::property(&AEJetpack::GetJetAngleRange, &AEJetpack::SetJetAngleRange);
+		luaType["CanAdjustAngleWhileFiring"] = sol::property(&AEJetpack::GetCanAdjustAngleWhileFiring, &AEJetpack::SetCanAdjustAngleWhileFiring);
+		luaType["AdjustsThrottleForWeight"] = sol::property(&AEJetpack::GetAdjustsThrottleForWeight, &AEJetpack::SetAdjustsThrottleForWeight);
+
+		{
+			sol::table enumTable = LegacyEnumTypeTable("JetpackType");
+			enumTable["Standard"] = AEJetpack::Standard;
+			enumTable["JumpPack"] = AEJetpack::JumpPack;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,6 +167,7 @@ namespace RTE {
 		luaType["Emissions"] = &PEmitter::m_EmissionList;
 
 		luaType["IsEmitting"] = &PEmitter::IsEmitting;
+		luaType["WasEmitting"] = &PEmitter::WasEmitting;
 		luaType["EnableEmission"] = &PEmitter::EnableEmission;
 		luaType["GetEmitVector"] = &PEmitter::GetEmitVector;
 		luaType["GetRecoilVector"] = &PEmitter::GetRecoilVector;
@@ -149,6 +175,7 @@ namespace RTE {
 		luaType["TriggerBurst"] = &PEmitter::TriggerBurst;
 		luaType["IsSetToBurst"] = &PEmitter::IsSetToBurst;
 		luaType["CanTriggerBurst"] = &PEmitter::CanTriggerBurst;
+		luaType["JustStartedEmitting"] = &PEmitter::JustStartedEmitting;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -43,6 +43,9 @@
 #include "WindowMan.h"
 #include "NetworkServer.h"
 #include "NetworkClient.h"
+#include "CameraMan.h"
+#include "ActivityMan.h"
+#include "PrimitiveMan.h"
 
 extern "C" { FILE __iob_func[3] = { *stdin,*stdout,*stderr }; }
 
@@ -56,13 +59,36 @@ namespace RTE {
 	/// Initializes all the essential managers.
 	/// </summary>
 	void InitializeManagers() {
+		TimerMan::Construct();
+		PresetMan::Construct();
+		SettingsMan::Construct();
+		WindowMan::Construct();
+		LuaMan::Construct();
+		NetworkServer::Construct();
+		NetworkClient::Construct();
+		FrameMan::Construct();
+		PerformanceMan::Construct();
+		PostProcessMan::Construct();
+		PrimitiveMan::Construct();
+		AudioMan::Construct();
+		GUISound::Construct();
+		UInputMan::Construct();
+		ConsoleMan::Construct();
+		SceneMan::Construct();
+		MovableMan::Construct();
+		MetaMan::Construct();
+		MenuMan::Construct();
+		CameraMan::Construct();
+		ActivityMan::Construct();
+		LoadingScreen::Construct();
+
 		g_SettingsMan.Initialize();
+		g_WindowMan.Initialize();
 
 		g_LuaMan.Initialize();
 		g_NetworkServer.Initialize();
 		g_NetworkClient.Initialize();
 		g_TimerMan.Initialize();
-		g_WindowMan.Initialize();
 		g_FrameMan.Initialize();
 		g_PostProcessMan.Initialize();
 		g_PerformanceMan.Initialize();
@@ -104,6 +130,7 @@ namespace RTE {
 		g_LuaMan.Destroy();
 		ContentFile::FreeAllLoaded();
 		g_ConsoleMan.Destroy();
+		g_WindowMan.Destroy();
 
 #ifdef DEBUG_BUILD
 		Entity::ClassInfo::DumpPoolMemoryInfo(Writer("MemCleanupInfo.txt"));
@@ -209,6 +236,7 @@ namespace RTE {
 		g_UInputMan.TrapMousePos(false);
 
 		while (!System::IsSetToQuit()) {
+			g_WindowMan.ClearRenderer();
 			PollSDLEvents();
 
 			g_WindowMan.Update();
@@ -269,15 +297,15 @@ namespace RTE {
 			bool serverUpdated = false;
 			updateStartTime = g_TimerMan.GetAbsoluteTime();
 
+			PollSDLEvents();
+			g_WindowMan.Update();
+			g_WindowMan.ClearRenderer();
+
 			g_TimerMan.Update();
 
 			// Simulation update, as many times as the fixed update step allows in the span since last frame draw.
 			while (g_TimerMan.TimeForSimUpdate()) {
 				serverUpdated = false;
-
-				PollSDLEvents();
-
-				g_WindowMan.Update();
 
 				g_PerformanceMan.NewPerformanceSample();
 				g_PerformanceMan.UpdateMSPSU();
@@ -295,7 +323,11 @@ namespace RTE {
 				g_FrameMan.Update();
 				g_LuaMan.Update();
 				g_ActivityMan.Update();
+
+				g_LuaMan.ClearScriptTimings();
 				g_MovableMan.Update();
+				g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
+
 				g_AudioMan.Update();
 
 				g_ActivityMan.LateUpdateGlobalScripts();
@@ -349,6 +381,7 @@ namespace RTE {
 			drawStartTime = updateEndAndDrawStartTime;
 
 			g_FrameMan.Draw();
+			g_WindowMan.DrawPostProcessBuffer();
 			g_WindowMan.UploadFrame();
 
 			drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
@@ -356,6 +389,16 @@ namespace RTE {
 		}
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// <summary>
+/// Self-invoking lambda that installs exception handlers before Main is executed.
+/// </summary>
+static const bool RTESetExceptionHandlers = []() {
+	RTEError::SetExceptionHandlers();
+	return true;
+}();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -379,12 +422,18 @@ int main(int argc, char **argv) {
 		SDL_GameControllerAddMappingsFromFile("Base.rte/gamecontrollerdb.txt");
 	}
 
-	System::Initialize();
+	// argv[0] actually unreliable for exe path and name, because of course, why would it be, why would anything be simple and make sense.
+	// Just use it anyway until some dumb edge case pops up and it becomes a problem.
+	System::Initialize(argv[0]);
 	SeedRNG();
 
 	InitializeManagers();
 
 	HandleMainArgs(argc, argv);
+
+	if (g_NetworkServer.IsServerModeEnabled()) {
+		SDL_ShowCursor(SDL_ENABLE);
+	}
 
 	g_PresetMan.LoadAllDataModules();
 

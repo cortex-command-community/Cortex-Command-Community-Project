@@ -82,6 +82,7 @@ namespace RTE {
 	#define RegisterLuaBindingsOfAbstractType(SOLSTATE, OWNINGSCOPE, TYPE) \
 		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE;						\
 		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE;	\
+		SOLSTATE[(std::string("Is") + std::string(#TYPE)).c_str()] = (bool(*)(const Entity *))&LuaAdaptersEntityCast::Is##TYPE,					\
 		OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 
 	/// <summary>
@@ -143,6 +144,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(Actor);
 		LuaBindingRegisterFunctionDeclarationForType(ADoor);
 		LuaBindingRegisterFunctionDeclarationForType(AEmitter);
+		LuaBindingRegisterFunctionDeclarationForType(AEJetpack);
 		LuaBindingRegisterFunctionDeclarationForType(AHuman);
 		LuaBindingRegisterFunctionDeclarationForType(Arm);
 		LuaBindingRegisterFunctionDeclarationForType(Attachable);

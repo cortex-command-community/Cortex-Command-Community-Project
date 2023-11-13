@@ -99,20 +99,15 @@ int ACraft::Exit::Create()
 
 int ACraft::Exit::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-    if (propName == "Offset")
-        reader >> m_Offset;
-    else if (propName == "Velocity")
-        reader >> m_Velocity;
-    else if (propName == "VelocitySpread")
-        reader >> m_VelSpread;
-    else if (propName == "Radius")
-        reader >> m_Radius;
-    else if (propName == "Range")
-        reader >> m_Range;
-    else
-        return Serializable::ReadProperty(propName, reader);
+    StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-    return 0;
+    MatchProperty("Offset", { reader >> m_Offset; });
+    MatchProperty("Velocity", { reader >> m_Velocity; });
+    MatchProperty("VelocitySpread", { reader >> m_VelSpread; });
+    MatchProperty("Radius", { reader >> m_Radius; });
+    MatchProperty("Range", { reader >> m_Range; });
+
+    EndPropertyList;
 }
 
 
@@ -366,39 +361,35 @@ int ACraft::Create(const ACraft &reference)
 
 int ACraft::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-    if (propName == "HatchDelay")
-        reader >> m_HatchDelay;
-	else if (propName == "HatchOpenSound") {
+    StartPropertyList(return Actor::ReadProperty(propName, reader)); 
+    
+    MatchProperty("HatchDelay", { reader >> m_HatchDelay; });
+	MatchProperty("HatchOpenSound", {
 		m_HatchOpenSound = new SoundContainer;
 		reader >> m_HatchOpenSound;
-	} else if (propName == "HatchCloseSound") {
+	});
+	MatchProperty("HatchCloseSound", {
 		m_HatchCloseSound = new SoundContainer;
 		reader >> m_HatchCloseSound;
-	} else if (propName == "CrashSound") {
+	});
+	MatchProperty("CrashSound", {
 		m_CrashSound = new SoundContainer;
 		reader >> m_CrashSound;
-	} else if (propName == "AddExit")
+	});
+	MatchProperty("AddExit",
     {
         Exit exit;
         reader >> exit;
         m_Exits.push_back(exit);
-    }
-    else if (propName == "DeliveryDelayMultiplier")
-        reader >> m_DeliveryDelayMultiplier;
-	else if (propName == "ExitInterval")
-		reader >> m_ExitInterval;
-	else if (propName == "CanLand")
-        reader >> m_LandingCraft;
-    else if (propName == "MaxPassengers")
-        reader >> m_MaxPassengers;
-	else if (propName == "ScuttleIfFlippedTime")
-		reader >> m_ScuttleIfFlippedTime;
-	else if (propName == "ScuttleOnDeath")
-		reader >> m_ScuttleOnDeath;
-    else
-        return Actor::ReadProperty(propName, reader);
+    });
+    MatchProperty("DeliveryDelayMultiplier", { reader >> m_DeliveryDelayMultiplier; });
+	MatchProperty("ExitInterval", { reader >> m_ExitInterval; });
+	MatchProperty("CanLand", { reader >> m_LandingCraft; });
+    MatchProperty("MaxPassengers", { reader >> m_MaxPassengers; });
+	MatchProperty("ScuttleIfFlippedTime", { reader >> m_ScuttleIfFlippedTime; });
+    MatchProperty("ScuttleOnDeath", { reader >> m_ScuttleOnDeath; });
 
-    return 0;
+    EndPropertyList;
 }
 
 
@@ -559,6 +550,17 @@ bool ACraft::HandlePieCommand(PieSlice::SliceType pieSliceIndex) {
         } else if (pieSliceIndex == PieSlice::SliceType::Stay) {
             m_AIMode = AIMODE_STAY;
             m_DeliveryState = FALL;
+        } else if (pieSliceIndex == PieSlice::SliceType::Sentry) {
+            m_AIMode = AIMODE_SENTRY;
+            m_DeliveryState = FALL;
+        } else if (pieSliceIndex == PieSlice::SliceType::Return) {
+            m_AIMode = AIMODE_RETURN;
+            m_DeliveryState = LAUNCH;
+        } else if (pieSliceIndex == PieSlice::SliceType::GoTo) {
+            m_AIMode = AIMODE_GOTO;
+            m_DeliveryState = FALL;
+            ClearAIWaypoints();
+            m_UpdateMovePath = true;
         } else if (pieSliceIndex == PieSlice::SliceType::Scuttle) {
             m_AIMode = AIMODE_SCUTTLE;
         } else {
@@ -803,37 +805,6 @@ float ACraft::GetCollectedInventoryMass() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  OnMOHit
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits another MO.
-//                  This is called by the owned Atom/AtomGroup of this MovableObject during
-//                  travel.
-
-bool ACraft::OnMOHit(MovableObject *pOtherMO)
-{
-/* Obviously don't put craft into craft
-    // See if we hit any craft with open doors to get sucked into
-    ACraft *pCraft = dynamic_cast<ACraft *>(pOtherMO);
-
-    // Don't let things of wrong teams get sucked into other team's craft
-    if (!IsSetToDelete() && pCraft && m_Team == pCraft->GetTeam() && (pCraft->GetHatchState() == ACraft::OPEN || pCraft->GetHatchState() == ACraft::OPENING))
-    {
-        // Add (copy) to the ship's inventory
-        pCraft->AddInventoryItem(dynamic_cast<MovableObject *>(this->Clone()));
-        // Delete the original from scene - this is safer than 'removing' or handing over ownership halfway through MovableMan's update
-        this->SetToDelete();
-        // Terminate; we got sucked into the craft; so communicate this out
-        return true;
-    }
-*/
-    // Don't terminate, continue travel
-    return false;
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void ACraft::GibThis(const Vector &impactImpulse, MovableObject *movableObjectToIgnore) {
 	if (g_SettingsMan.CrabBombsEnabled() && !s_CrabBombInEffect) {
 		s_CrabBombInEffect = true;
@@ -942,7 +913,7 @@ void ACraft::Update()
     /////////////////////////////////////////
     // Check for having gone into orbit
 
-    if (m_Pos.m_Y < -m_CharHeight)
+    if (m_Pos.m_Y < -m_CharHeight || m_Pos.m_Y > g_SceneMan.GetSceneHeight() + m_CharHeight)
     {
         g_ActivityMan.GetActivity()->HandleCraftEnteringOrbit(this);
         // Play fading away thruster sound

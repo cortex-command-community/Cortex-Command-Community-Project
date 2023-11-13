@@ -183,14 +183,17 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ConsoleMan::SaveAllText(const std::string &filePath) {
+	bool ConsoleMan::SaveAllText(const std::string &filePath) {
 		Writer logWriter(filePath.c_str());
 		if (logWriter.WriterOK()) {
 			for (const std::string &loggedString : m_OutputLog) {
 				logWriter << loggedString;
 			}
+			logWriter.EndWrite();
 			PrintString("SYSTEM: Entire console contents saved to " + filePath);
+			return true;
 		}
+		return false;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,7 +255,7 @@ namespace RTE {
 			SetReadOnly();
 		}
 
-		if (!g_UInputMan.FlagShiftState() && (!g_UInputMan.FlagCtrlState() && g_UInputMan.KeyPressed(SDL_SCANCODE_GRAVE))) {
+		if (!g_UInputMan.FlagShiftState() && (!g_UInputMan.FlagCtrlState() && (g_UInputMan.KeyPressed(SDL_SCANCODE_GRAVE) || (IsEnabled() && g_UInputMan.KeyPressed(SDL_SCANCODE_ESCAPE))))) {
 			if (IsEnabled()) {
 				if (!m_ReadOnly) {
 					m_InputTextBox->SetEnabled(false);

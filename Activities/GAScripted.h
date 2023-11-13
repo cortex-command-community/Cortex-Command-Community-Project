@@ -18,6 +18,8 @@
 #include "GlobalScript.h"
 #include "Box.h"
 
+#include "SolObjectWrapper.h"
+
 namespace RTE
 {
 
@@ -41,6 +43,7 @@ class GAScripted : public GameActivity {
 
 public:
 
+ScriptFunctionNames("StartActivity", "UpdateActivity", "PauseActivity", "EndActivity", "OnSave", "CraftEnteredOrbit", "OnMessage", "OnGlobalMessage");
 
 // Concrete allocation and cloning definitions
 EntityAllocation(GAScripted);
@@ -146,12 +149,6 @@ ClassInfoGetters;
 
 	const std::string & GetLuaClassName() const { return m_LuaClassName; }
 
-	/// <summary>
-	/// Gets whether or not this GAScripted can be saved. For this to be true, the GAScripted's Lua script must have an OnSave function, and the Scene must not be MetagameInternal.
-	/// </summary>
-	/// <returns>Whether or not this GAScripted can be saved.</returns>
-	bool ActivityCanBeSaved() const override;
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  SceneIsCompatible
@@ -248,6 +245,7 @@ ClassInfoGetters;
 
 	void Draw(BITMAP *pTargetBitmap, const Vector& targetPos = Vector()) override;
 
+	int RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*>& functionObjectArguments = std::vector<SolObjectWrapper*>());
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protected member variable and method declarations
@@ -289,11 +287,19 @@ protected:
     // The list of global scripts allowed to run during this activity
     std::vector<GlobalScript *> m_GlobalScriptsList;
 
+	std::unordered_map<std::string, std::unique_ptr<SolObjectWrapper>> m_ScriptFunctions; //!< A map of SolObjectWrapper that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Private member variable and method declarations
 
 private:
+
+	/// <summary>
+	/// Returns whether this GAScripted has an OnSave function, to act as a default for whether saving is allowed or not.
+	/// </summary>
+	/// <returns>Whether this GAScripted has an OnSave function</returns>
+	bool HasSaveFunction() const;
 
 	/// <summary>
 	/// Adds this GAScripted's PieSlices, and any active GlobalScripts' PieSlices, to any active PieMenus.

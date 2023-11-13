@@ -3,6 +3,7 @@
 #include "MovableMan.h"
 #include "MovableObject.h"
 #include "MOSRotating.h"
+#include "MOPixel.h"
 #include "PresetMan.h"
 #include "Actor.h"
 
@@ -95,26 +96,23 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Atom::ReadProperty(const std::string_view &propName, Reader &reader) {
-		if (propName == "Offset") {
-			reader >> m_Offset;
-		} else if (propName == "OriginalOffset") {
-			reader >> m_OriginalOffset;
-		} else if (propName == "Material") {
+		StartPropertyList(return Serializable::ReadProperty(propName, reader));
+		
+		MatchProperty("Offset", { reader >> m_Offset; });
+		MatchProperty("OriginalOffset", { reader >> m_OriginalOffset; });
+		MatchProperty("Material", {
 			Material mat;
 			mat.Reset();
 			reader >> mat;
 			m_Material = g_SceneMan.AddMaterialCopy(&mat);
 			if (!m_Material) { RTEAbort("Failed to store material \"" + mat.GetPresetName() + "\". Aborting!"); }
-		} else if (propName == "TrailColor") {
-			reader >> m_TrailColor;
-		} else if (propName == "TrailLength") {
-			reader >> m_TrailLength;
-		} else if (propName == "TrailLengthVariation") {
-			reader >> m_TrailLengthVariation;
-		} else {
-			return Serializable::ReadProperty(propName, reader);
-		}
-		return 0;
+		});
+		MatchProperty("TrailColor", { reader >> m_TrailColor; });
+		MatchProperty("TrailLength", { reader >> m_TrailLength; });
+		MatchProperty("TrailLengthVariation", { reader >> m_TrailLengthVariation; });
+		
+		
+		EndPropertyList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,6 +238,9 @@ namespace RTE {
 				return true;
 			}
 			if ((m_OwnerMO->IgnoresAtomGroupHits() && dynamic_cast<const MOSRotating *>(hitMO)) || (hitMO->IgnoresAtomGroupHits() && dynamic_cast<const MOSRotating *>(m_OwnerMO))) {
+				return true;
+			}
+			if ((m_OwnerMO->GetIgnoresActorHits() && dynamic_cast<const Actor*>(hitMO)) || (hitMO->GetIgnoresActorHits() && dynamic_cast<const Actor*>(m_OwnerMO))) {
 				return true;
 			}
 		}
@@ -854,8 +855,8 @@ namespace RTE {
 					// Report the hit to both MO's in collision
 					m_LastHit.RootBody[HITOR] = m_LastHit.Body[HITOR]->GetRootParent();
 					m_LastHit.RootBody[HITEE] = m_LastHit.Body[HITEE]->GetRootParent();
-					m_LastHit.RootBody[HITOR]->OnMOHit(m_LastHit.RootBody[HITEE]);
-					m_LastHit.RootBody[HITEE]->OnMOHit(m_LastHit.RootBody[HITOR]);
+					m_LastHit.RootBody[HITOR]->OnMOHit(m_LastHit);
+					m_LastHit.RootBody[HITEE]->OnMOHit(m_LastHit);
 				}
 
 				///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -895,15 +896,33 @@ namespace RTE {
 						// Undo scene wrapping, if necessary
 						g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
 
-						// TODO: improve sticky logic!
 						// Check if particle is sticky and should adhere to where it collided
-						if (m_Material->GetStickiness() >= RandomNum() && velocity.MagnitudeIsGreaterThan(0.5F)) {
-							// SPLAT, so update position, apply to terrain and delete, and stop traveling
-							m_OwnerMO->SetPos(Vector(intPos[X], intPos[Y]));
-							m_OwnerMO->DrawToTerrain(g_SceneMan.GetTerrain());
-							m_OwnerMO->SetToDelete(true);
-							m_LastHit.Terminate[HITOR] = hit[dom] = hit[sub] = true;
-							break;
+						if (!m_OwnerMO->IsMissionCritical() && velocity.MagnitudeIsGreaterThan(1.0F)) {
+							MOPixel *ownerMOAsPixel = dynamic_cast<MOPixel *>(m_OwnerMO);
+							if (RandomNum() < std::max(m_Material->GetStickiness(), ownerMOAsPixel ? ownerMOAsPixel->GetStaininess() : 0.0f)) {
+								// Weighted random select between stickiness or staininess
+								const float randomChoice = RandomNum(0.0f, m_Material->GetStickiness() + (ownerMOAsPixel ? ownerMOAsPixel->GetStaininess() : 0.0f));
+								if (randomChoice <= m_Material->GetStickiness()) {
+									m_OwnerMO->SetPos(Vector(intPos[X], intPos[Y]));
+									m_OwnerMO->DrawToTerrain(g_SceneMan.GetTerrain());
+									m_OwnerMO->SetToDelete(true);
+									m_LastHit.Terminate[HITOR] = hit[dom] = hit[sub] = true;
+									break;
+								} else if (MOPixel *ownerMOAsPixel = dynamic_cast<MOPixel *>(m_OwnerMO); ownerMOAsPixel && randomChoice <= m_Material->GetStickiness() + ownerMOAsPixel->GetStaininess()) {
+									Vector stickPos(intPos[X], intPos[Y]);
+									stickPos += velocity * (c_PPM * g_TimerMan.GetDeltaTimeSecs()) * RandomNum();
+									int terrainMaterialID = g_SceneMan.GetTerrain()->GetMaterialPixel(stickPos.GetFloorIntX(), stickPos.GetFloorIntY());
+									if (terrainMaterialID != g_MaterialAir && terrainMaterialID != g_MaterialDoor) {
+										m_OwnerMO->SetPos(Vector(stickPos.GetRoundIntX(), stickPos.GetRoundIntY()));
+									} else {
+										m_OwnerMO->SetPos(Vector(intPos[X], intPos[Y]));
+									}
+									m_OwnerMO->DrawToTerrain(g_SceneMan.GetTerrain());
+									m_OwnerMO->SetToDelete(true);
+									m_LastHit.Terminate[HITOR] = hit[dom] = hit[sub] = true;
+									break;
+								}
+							}
 						}
 
 						// Check for and react upon a collision in the dominant direction of travel.

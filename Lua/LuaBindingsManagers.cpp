@@ -183,6 +183,8 @@ namespace RTE {
 		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam) const)&MovableMan::GetMOsInRadius;
 		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInRadius;
 
+		luaType["SendGlobalMessage"] = &LuaAdaptersMovableMan::SendGlobalMessage1;
+		luaType["SendGlobalMessage"] = &LuaAdaptersMovableMan::SendGlobalMessage2;
 		luaType["AddMO"] = &LuaAdaptersMovableMan::AddMO; //, luabind::adopt(_2);
 		luaType["AddActor"] = &LuaAdaptersMovableMan::AddActor; //, luabind::adopt(_2);
 		luaType["AddItem"] = &LuaAdaptersMovableMan::AddItem; //, luabind::adopt(_2);
@@ -297,6 +299,7 @@ namespace RTE {
 		luaType["SceneHeight"] = sol::property(&SceneMan::GetSceneHeight);
 		luaType["SceneWrapsX"] = sol::property(&SceneMan::SceneWrapsX);
 		luaType["SceneWrapsY"] = sol::property(&SceneMan::SceneWrapsY);
+		luaType["SceneOrbitDirection"] = sol::property(&SceneMan::GetSceneOrbitDirection);
 		luaType["LayerDrawMode"] = sol::property(&SceneMan::GetLayerDrawMode, &SceneMan::SetLayerDrawMode);
 		luaType["GlobalAcc"] = sol::property(&SceneMan::GetGlobalAcc);
 		luaType["OzPerKg"] = sol::property(&SceneMan::GetOzPerKg);
@@ -338,7 +341,8 @@ namespace RTE {
 		luaType["CastFindMORay"] = &SceneMan::CastFindMORay;
 		luaType["CastObstacleRay"] = &SceneMan::CastObstacleRay;
 		luaType["GetLastRayHitPos"] = &SceneMan::GetLastRayHitPos;
-		luaType["FindAltitude"] = &SceneMan::FindAltitude;
+		luaType["FindAltitude"] = (float (SceneMan::*) (const Vector&, int, int))&SceneMan::FindAltitude;
+		luaType["FindAltitude"] = (float (SceneMan::*) (const Vector&, int, int, bool))&SceneMan::FindAltitude;
 		luaType["MovePointToGround"] = &SceneMan::MovePointToGround;
 		luaType["IsWithinBounds"] = &SceneMan::IsWithinBounds;
 		luaType["ForceBounds"] = (bool (SceneMan::*)(Vector &))&SceneMan::ForceBounds;
@@ -450,6 +454,8 @@ namespace RTE {
 		luaType["AnyInput"] = &UInputMan::AnyKeyOrJoyInput;
 		luaType["AnyPress"] = &UInputMan::AnyPress;
 		luaType["AnyStartPress"] = &UInputMan::AnyStartPress;
+		luaType["HasTextInput"] = &UInputMan::HasTextInput;
+		luaType["GetTextInput"] = (const std::string& (UInputMan::*)() const) &UInputMan::GetTextInput;
 
 		luaType["MouseButtonPressed"] = &LuaAdaptersUInputMan::MouseButtonPressed;
 		luaType["MouseButtonReleased"] = &LuaAdaptersUInputMan::MouseButtonReleased;

@@ -57,6 +57,21 @@ public:
         StatusCount
     };
 
+    // TODO - move into ALocomotable intermediate class under ACrab/AHuman
+    enum MovementState
+    {
+        NOMOVE = 0,
+        STAND,
+        WALK,
+        JUMP,
+        DISLODGE,
+        CROUCH,
+        CRAWL,
+        ARMCRAWL,
+        CLIMB,
+        MOVEMENTSTATECOUNT
+    };
+
     enum AIMode
     {
         AIMODE_NONE = 0,
@@ -132,6 +147,10 @@ ClassInfoGetters;
 
     void Reset() override { Clear(); MOSRotating::Reset(); m_MOType = MovableObject::TypeActor; }
 
+    /// <summary>
+    /// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
+    /// </summary>
+    void DestroyScriptState();
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Destroy
@@ -154,6 +173,12 @@ ClassInfoGetters;
     /// </summary>
     /// <returns>The mass of this Actor, its inventory and all its Attachables and wounds in Kilograms (kg).</returns>
     float GetMass() const override { return MOSRotating::GetMass() + GetInventoryMass() + (m_GoldCarried * g_SceneMan.GetKgPerOz()); }
+
+    /// <summary>
+    /// Gets the mass that this actor had upon spawning, i.e with ini-defined inventory, gold and holding no items
+    /// </summary>
+    /// <returns>The base mass of this Actor, in Kilograms (kg).</returns>
+    float GetBaseMass();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -461,6 +486,16 @@ ClassInfoGetters;
 
 	void SetStatus(Actor::Status newStatus) { m_Status = newStatus; if (newStatus == Actor::Status::UNSTABLE) { m_StableRecoverTimer.Reset(); } }
 
+	/// Gets this Actor's MovementState.
+	/// </summary>
+	/// <returns>This Actor's MovementState.</returns>
+	MovementState GetMovementState() const { return m_MoveState; }
+
+	/// <summary>
+	/// Sets this Actor's MovementState to the new state.
+	/// </summary>
+	/// <param name="newMovementState">This Actor's new MovementState.</param>
+	void SetMovementState(MovementState newMovementState) { m_MoveState = newMovementState; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  SetTeam
@@ -805,6 +840,23 @@ ClassInfoGetters;
 	/// <param name="newCanRevealUnseen">Whether this actor can reveal unseen areas.</param>
 	void SetCanRevealUnseen(bool newCanRevealUnseen) { m_CanRevealUnseen = newCanRevealUnseen; }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Method:  SetPainThreshold
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Sets this' PainThreshold value above which it will play PainSound
+// Arguments:       Desired PainThreshold value
+// Return value:    None.
+
+    void SetPainThreshold(float newPainThreshold) { m_PainThreshold = newPainThreshold; }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Method:  GetPainThreshold
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Gets this' PainThreshold value above which it will play PainSound
+// Arguments:       None.
+// Return value:    The current PainThreshold
+
+    float GetPainThreshold() const { return m_PainThreshold; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:  AlarmPoint
@@ -995,17 +1047,6 @@ ClassInfoGetters;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Method:          FlashWhite
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Tells to make this and all children get drawn as completely white, but
-//                  only for a specified amount of time.
-// Arguments:       For how long to flash the whiteness, in MS.
-// Return value:    None.
-
-    void FlashWhite(int howLongMS = 32) { m_FlashWhiteMS = howLongMS; m_WhiteFlashTimer.Reset(); }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Method:          DrawWaypoints
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Makes this draw its current waypoints and related data on the scene in
@@ -1053,20 +1094,6 @@ ClassInfoGetters;
 //                  false will trivially be returned here.
 
 	bool ParticlePenetration(HitData &hd) override;
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  OnMOHit
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits another MO.
-//                  This is called by the owned Atom/AtomGroup of this MovableObject during
-//                  travel.
-// Arguments:       The other MO hit. Ownership is not transferred.
-// Return value:    Wheter the MovableObject should immediately halt any travel going on
-//                  after this hit.
-
-	bool OnMOHit(MovableObject *pOtherMO) override;
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  PreTravel
@@ -1204,20 +1231,6 @@ ClassInfoGetters;
 // Return value:    None.
 
 	void SetSightDistance(float newValue) { m_SightDistance = newValue; }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this Actor's current graphical representation to a
-//                  BITMAP of choice.
-// Arguments:       A pointer to a BITMAP to draw on.
-//                  The absolute position of the target bitmap's upper left corner in the Scene.
-//                  In which mode to draw in. See the DrawMode enumeration for the modes.
-//                  Whether to not draw any extra 'ghost' items of this MovableObject,
-//                  indicator arrows or hovering HUD text and so on.
-// Return value:    None.
-
-    void Draw(BITMAP *pTargetBitmap, const Vector &targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1503,6 +1516,8 @@ protected:
     float m_SightDistance;
     // How perceptive this is of alarming events going on around him, 0.0 - 1.0
     float m_Perceptiveness;
+    /// Damage value above which this will play PainSound
+    float m_PainThreshold;
 	// Whether or not this actor can reveal unseen areas by looking
 	bool m_CanRevealUnseen;
     // About How tall is the Actor, in pixels?
@@ -1523,16 +1538,14 @@ protected:
     HeldDevice *m_pItemInReach;
     // HUD positioning aid
     int m_HUDStack;
-    // For how much longer to draw this as white. 0 means don't draw as white
-    int m_FlashWhiteMS;
-    // The timer that measures and deducts past time from the remaining white flash time
-    Timer m_WhiteFlashTimer;
 	// ID of deployment which spawned this actor
 	unsigned int m_DeploymentID;
     // How many passenger slots this actor will take in a craft
     int m_PassengerSlots;
     // Most actors can walk through stuff that's soft enough, so we start with a base penetration amount
     float m_AIBaseDigStrength;
+    // The mass that this actor had upon spawning, i.e with no inventory, no gold and holding no items
+    float m_BaseMass;
 
     ////////////////////
     // AI States
@@ -1593,6 +1606,8 @@ protected:
     bool m_UpdateMovePath;
     // The minimum range to consider having reached a move target is considered
     float m_MoveProximityLimit;
+    // Current movement state.
+	MovementState m_MoveState;
 
 	bool m_Organic; //!< Flag for whether or not this Actor is organic. Useful for lua purposes and mod support.
 	bool m_Mechanical; //!< Flag for whether or not this Actor is robotic. Useful for lua purposes and mod support.

@@ -16,6 +16,7 @@
 #include "LimbPath.h"
 #include "HeldDevice.h"
 #include "AEmitter.h"
+#include "AEJetpack.h"
 #include "Turret.h"
 
 namespace RTE {
@@ -56,10 +57,7 @@ namespace RTE {
 		luaType["RightFGLeg"] = sol::property(&ACrab::GetRightFGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetRightFGLeg);
 		luaType["RightBGLeg"] = sol::property(&ACrab::GetRightBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetRightBGLeg);
 		luaType["StrideSound"] = sol::property(&ACrab::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetStrideSound);
-		luaType["JetTimeTotal"] = sol::property(&ACrab::GetJetTimeTotal, &ACrab::SetJetTimeTotal);
-		luaType["JetTimeLeft"] = sol::property(&ACrab::GetJetTimeLeft);
-		luaType["JetReplenishRate"] = sol::property(&ACrab::GetJetReplenishRate, &ACrab::SetJetReplenishRate);
-		luaType["JetAngleRange"] = sol::property(&ACrab::GetJetAngleRange, &ACrab::SetJetAngleRange);
+		luaType["StrideFrame"] = sol::property(&ACrab::StrideFrame);
 		luaType["EquippedItem"] = sol::property(&ACrab::GetEquippedItem);
 		luaType["FirearmIsReady"] = sol::property(&ACrab::FirearmIsReady);
 		luaType["FirearmIsEmpty"] = sol::property(&ACrab::FirearmIsEmpty);
@@ -242,6 +240,7 @@ namespace RTE {
 		luaType["DeploymentID"] = sol::property(&Actor::GetDeploymentID);
 		luaType["PassengerSlots"] = sol::property(&Actor::GetPassengerSlots, &Actor::SetPassengerSlots);
 		luaType["Perceptiveness"] = sol::property(&Actor::GetPerceptiveness, &Actor::SetPerceptiveness);
+		luaType["PainThreshold"] = sol::property(&Actor::GetPainThreshold, &Actor::SetPainThreshold);
 		luaType["CanRevealUnseen"] = sol::property(&Actor::GetCanRevealUnseen, &Actor::SetCanRevealUnseen);
 		luaType["InventorySize"] = sol::property(&Actor::GetInventorySize);
 		luaType["MaxInventoryMass"] = sol::property(&Actor::GetMaxInventoryMass);
@@ -312,6 +311,19 @@ namespace RTE {
 			enumTable["INACTIVE"] = Actor::Status::INACTIVE;
 			enumTable["DYING"] = Actor::Status::DYING;
 			enumTable["DEAD"] = Actor::Status::DEAD;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("MovementState");
+			enumTable["NOMOVE"] = Actor::MovementState::NOMOVE;
+			enumTable["STAND"] = Actor::MovementState::STAND;
+			enumTable["WALK"] = Actor::MovementState::WALK;
+			enumTable["JUMP"] = Actor::MovementState::JUMP;
+			enumTable["DISLODGE"] = Actor::MovementState::DISLODGE;
+			enumTable["CROUCH"] = Actor::MovementState::CROUCH;
+			enumTable["CRAWL"] = Actor::MovementState::CRAWL;
+			enumTable["ARMCRAWL"] = Actor::MovementState::ARMCRAWL;
+			enumTable["CLIMB"] = Actor::MovementState::CLIMB;
+			enumTable["MOVEMENTSTATECOUNT"] = Actor::MovementState::MOVEMENTSTATECOUNT;
 		}
 		{
 			sol::table enumTable = LegacyEnumTypeTable("AIMode");
@@ -411,10 +423,7 @@ namespace RTE {
 		luaType["FGFoot"] = sol::property(&AHuman::GetFGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGFoot);
 		luaType["BGFoot"] = sol::property(&AHuman::GetBGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGFoot);
 		luaType["StrideSound"] = sol::property(&AHuman::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetStrideSound);
-		luaType["JetTimeTotal"] = sol::property(&AHuman::GetJetTimeTotal, &AHuman::SetJetTimeTotal);
-		luaType["JetTimeLeft"] = sol::property(&AHuman::GetJetTimeLeft, &AHuman::SetJetTimeLeft);
-		luaType["JetReplenishRate"] = sol::property(&AHuman::GetJetReplenishRate, &AHuman::SetJetReplenishRate);
-		luaType["JetAngleRange"] = sol::property(&AHuman::GetJetAngleRange, &AHuman::SetJetAngleRange);
+		luaType["StrideFrame"] = sol::property(&AHuman::StrideFrame);
 		luaType["UpperBodyState"] = sol::property(&AHuman::GetUpperBodyState, &AHuman::SetUpperBodyState);
 		luaType["MovementState"] = sol::property(&AHuman::GetMovementState, &AHuman::SetMovementState);
 		luaType["ProneState"] = sol::property(&AHuman::GetProneState, &AHuman::SetProneState);
@@ -570,6 +579,7 @@ namespace RTE {
 		auto luaType = ConcreteTypeLuaClassDefinition(Leg, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["Foot"] = sol::property(&Leg::GetFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::LegSetFoot);
+		luaType["MoveSpeed"] = sol::property(&Leg::GetMoveSpeed, &Leg::SetMoveSpeed);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

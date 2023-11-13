@@ -727,35 +727,35 @@ int MetagameGUI::ReadProperty(const std::string_view &propName, Reader &reader)
 {
     Vector tempPos;
 
-    if (propName == "P1BoxPos")
+    StartPropertyList(return Serializable::ReadProperty(propName, reader));
+    
+    MatchProperty("P1BoxPos",
     {
         reader >> tempPos;
         m_apPlayerBox[Players::PlayerOne]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-    }
-    else if (propName == "P2BoxPos")
+    });
+    MatchProperty("P2BoxPos",
     {
         reader >> tempPos;
         m_apPlayerBox[Players::PlayerTwo]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-    }
-    else if (propName == "P3BoxPos")
+    });
+    MatchProperty("P3BoxPos",
     {
         reader >> tempPos;
         m_apPlayerBox[Players::PlayerThree]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-    }
-    else if (propName == "P4BoxPos")
+    });
+    MatchProperty("P4BoxPos",
     {
         reader >> tempPos;
         m_apPlayerBox[Players::PlayerFour]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-    }
-    else if (propName == "PhaseBoxPos")
+    });
+    MatchProperty("PhaseBoxPos",
     {
         reader >> tempPos;
         m_pPhaseBox->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-    }
-    else
-        return Serializable::ReadProperty(propName, reader);
+    });
 
-    return 0;
+    EndPropertyList;
 }
 
 
@@ -2963,7 +2963,7 @@ void MetagameGUI::CompletedActivity()
             // However, don't suck up actors of any non-winning team, and don't save the brains if we autoresolved, because that took care of placing the resident brains already
             pAlteredScene->RetrieveSceneObjects(true, winningTeam, autoResolved);
             // Save out the altered scene before clearing out its data from memory
-            pAlteredScene->SaveData(METASAVEPATH + std::string(AUTOSAVENAME) + " - " + pAlteredScene->GetPresetName());
+            pAlteredScene->SaveData(METASAVEPATH + std::string(AUTOSAVENAME) + " - " + pAlteredScene->GetPresetName(), false);
             // Clear the bitmap data etc of the altered scene, we don't need to copy that over
             pAlteredScene->ClearData();
 

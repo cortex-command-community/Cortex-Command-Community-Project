@@ -32,6 +32,7 @@ class AHuman;
 class SceneLayer;
 class SceneObject;
 class Box;
+class SolObjectWrapper;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -940,6 +941,10 @@ public:
 	/// <returns>Pointers to the MOs that are within the specified radius of the given centre position.</returns>
     const std::vector<MovableObject *> GetMOsInRadius(const Vector &centre, float radius) const { return GetMOsInRadius(centre, radius, Activity::NoTeam); }
 
+    /// <summary>
+    /// Runs a lua function on all MOs in the simulation, including owned child MOs.
+    /// </summary>
+    void RunLuaFunctionOnAllMOs(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*>& functionObjectArguments = std::vector<SolObjectWrapper*>(), ThreadScriptsToRun scriptsToRun = ThreadScriptsToRun::Both);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protected member variable and method declarations
@@ -959,6 +964,14 @@ protected:
     std::deque<Actor *> m_AddedActors;
     std::deque<MovableObject *> m_AddedItems;
     std::deque<MovableObject *> m_AddedParticles;
+
+    // Currently active MOs in the simulation. This is required because the code is awful and ownership isn't transported to/from lua in any sensible way.
+    // It's entirely possible that stuff is deleted in the game but a reference to it is kept in Lua. Which is awful. Obviously.
+    // Or perhaps even more concerningly, stuff can be deleted, re-allocated over the same space, and then readded to movableman. Which even this solution does nothing to fix.
+    // Anyways, until we fix up ownership semantics... this is the best we can do.
+    std::unordered_set<const MovableObject *> m_ValidActors;
+    std::unordered_set<const MovableObject *> m_ValidItems;
+    std::unordered_set<const MovableObject *> m_ValidParticles;
 
     // Mutexes to ensure MOs aren't being removed from separate threads at the same time
     std::mutex m_ActorsMutex;

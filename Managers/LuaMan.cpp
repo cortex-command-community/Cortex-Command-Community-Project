@@ -2,6 +2,7 @@
 
 #include "SolObjectWrapper.h"
 #include "LuaBindingRegisterDefinitions.h"
+#include "tracy/TracyLua.hpp"
 #include "LuaAdapterDefinitions.h"
 
 // We need to include this crap because std::unique_ptr needs the full implementation to know how to delete things...
@@ -13,6 +14,7 @@
 #include "Actor.h"
 #include "ADoor.h"
 #include "AEmitter.h"
+#include "AEJetpack.h"
 #include "AHuman.h"
 #include "Arm.h"
 #include "AtomGroup.h"
@@ -81,6 +83,7 @@ namespace RTE {
 
 	void LuaStateWrapper::Initialize() {
 		m_State = luaL_newstate();
+		tracy::LuaRegister(m_State);
 
 		const luaL_Reg libsToLoad[] = {
 			{ LUA_COLIBNAME, luaopen_base },
@@ -143,6 +146,7 @@ namespace RTE {
 		RegisterLuaBindingsOfConcreteType(solState, EntityLuaBindings, Attachable);
 		RegisterLuaBindingsOfAbstractType(solState, EntityLuaBindings, Emission);
 		RegisterLuaBindingsOfConcreteType(solState, EntityLuaBindings, AEmitter);
+		RegisterLuaBindingsOfConcreteType(solState, EntityLuaBindings, AEJetpack);
 		RegisterLuaBindingsOfConcreteType(solState, EntityLuaBindings, PEmitter);
 		RegisterLuaBindingsOfConcreteType(solState, EntityLuaBindings, Actor);
 		RegisterLuaBindingsOfConcreteType(solState, EntityLuaBindings, ADoor);
@@ -466,6 +470,20 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	const std::unordered_map<std::string, PerformanceMan::ScriptTiming> LuaMan::GetScriptTimings() const {
+		std::unordered_map<std::string, PerformanceMan::ScriptTiming> timings = m_MasterScriptState.GetScriptTimings();
+		for (const LuaStateWrapper &luaState : m_ScriptStates) {
+			for (auto&& [functionName, timing] : luaState.GetScriptTimings()) {
+				auto& existing = timings[functionName];
+				existing.m_CallCount += timing.m_CallCount;
+				existing.m_Time = std::max(existing.m_Time, timing.m_Time);
+			}
+		}
+		return timings;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	void LuaMan::Destroy() {
 		for (int i = 0; i < c_MaxOpenFiles; ++i) {
 			FileClose(i);
@@ -530,6 +548,12 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	const std::unordered_map<std::string, PerformanceMan::ScriptTiming> & LuaStateWrapper::GetScriptTimings() const {
+		return m_ScriptTimings;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	int LuaStateWrapper::RunScriptFunctionString(const std::string &functionName, const std::string &selfObjectName, const std::vector<std::string_view> &variablesToSafetyCheck, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) {
 		std::stringstream scriptString;
 		if (!variablesToSafetyCheck.empty()) {
@@ -540,7 +564,7 @@ namespace RTE {
 			}
 			scriptString << " then ";
 		}
-		if (!functionEntityArguments.empty()) { scriptString << "local entityArguments = LuaMan.TempEntities(); "; }
+		if (!functionEntityArguments.empty()) { scriptString << "local entityArguments = LuaMan.TempEntities; "; }
 
 		// Lock here, even though we also lock in RunScriptString(), to ensure that the temp entity vector isn't stomped by separate threads.
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
@@ -604,7 +628,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaStateWrapper::RunScriptFunctionObject(const SolObjectWrapper *functionObject, const std::string &selfGlobalTableName, const std::string &selfGlobalTableKey, const std::vector<const Entity*> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) {
+	int LuaStateWrapper::RunScriptFunctionObject(const SolObjectWrapper *functionObject, const std::string &selfGlobalTableName, const std::string &selfGlobalTableKey, const std::vector<const Entity*> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, const std::vector<SolObjectWrapper*> &functionObjectArguments) {
 		int status = 0;
 
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
@@ -613,7 +637,7 @@ namespace RTE {
 		lua_pushcfunction(m_State, &AddFileAndLineToError);
 		functionObject->GetSolObject()->push(m_State);
 
-		int argumentCount = functionEntityArguments.size() + functionLiteralArguments.size();
+		int argumentCount = functionEntityArguments.size() + functionLiteralArguments.size() + functionObjectArguments.size();
 		if (!selfGlobalTableName.empty() && TableEntryIsDefined(selfGlobalTableName, selfGlobalTableKey)) {
 			lua_getglobal(m_State, selfGlobalTableName.c_str());
 			lua_getfield(m_State, -1, selfGlobalTableKey.c_str());
@@ -639,6 +663,11 @@ namespace RTE {
 			}
 		}
 
+		for (const SolObjectWrapper *functionObjectArgument : functionObjectArguments) {
+			functionObjectArgument->GetSolObject()->push(m_State);
+		}
+
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		if (lua_pcall(m_State, argumentCount, LUA_MULTRET, -argumentCount - 2) > 0) {
 			m_LastError = lua_tostring(m_State, -1);
 			lua_pop(m_State, 1);
@@ -646,6 +675,15 @@ namespace RTE {
 			ClearErrors();
 			status = -1;
 		}
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+		// only track time in non-MT scripts, for now
+		if (&g_LuaMan.GetMasterScriptState() == this) {
+			const std::string& path = functionObject->GetFilePath();
+			m_ScriptTimings[path].m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+			m_ScriptTimings[path].m_CallCount++;
+		}
+
 		lua_pop(m_State, 1);
 
 		return status;
@@ -694,7 +732,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, SolObjectWrapper *> &outFunctionNamesAndObjects) {
+	int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::string &prefix, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, SolObjectWrapper *> &outFunctionNamesAndObjects) {
 		if (int error = RunScriptFile(filePath); error < 0) {
 			return error;
 		}
@@ -704,8 +742,17 @@ namespace RTE {
 
 		sol::state_view solState(m_State);
 
+		sol::table prefixObject = solState.globals();
+		if (prefix != "") {
+			prefixObject = prefixObject[prefix];
+		}
+
+		if (prefixObject == sol::lua_nil) {
+			return -1;
+		}
+
 		for (const std::string &functionName : functionNamesToLookFor) {
-			sol::function functionObject = solState[functionName];
+			sol::function functionObject = prefixObject[functionName];
 			if (functionObject.valid()) {
 				sol::object *functionObjectCopyForStoring = new sol::object(functionObject);
 				outFunctionNamesAndObjects.try_emplace(functionName, new SolObjectWrapper(functionObjectCopyForStoring, filePath));
@@ -723,8 +770,13 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    bool LuaStateWrapper::ExpressionIsTrue(const std::string &expression, bool consoleErrors)
-    {
+	void LuaStateWrapper::ClearScriptTimings() {
+		m_ScriptTimings.clear();
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    bool LuaStateWrapper::ExpressionIsTrue(const std::string &expression, bool consoleErrors) {
         if (expression.empty()) {
 			return false;
 		}
@@ -1010,6 +1062,15 @@ namespace RTE {
 
 		// Apply all deletions queued from lua
     	SolObjectWrapper::ApplyQueuedDeletions();
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaMan::ClearScriptTimings() {
+		m_MasterScriptState.ClearScriptTimings();
+		for (LuaStateWrapper& luaState : m_ScriptStates) {
+			luaState.ClearScriptTimings();
+		}
 	}
 
 }
