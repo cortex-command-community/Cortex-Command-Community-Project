@@ -170,7 +170,7 @@ namespace RTE {
 			std::string filePath = m_LuabindFunctionObject->GetFilePath();
 			std::unordered_map<std::string, SolObjectWrapper *> scriptFileFunctions;
 
-			status = g_LuaMan.GetMasterScriptState().RunScriptFileAndRetrieveFunctions(filePath, "", { m_FunctionName }, scriptFileFunctions);
+			status = g_LuaMan.GetMasterScriptState().RunScriptFileAndRetrieveFunctions(filePath, "", { m_FunctionName }, scriptFileFunctions, true);
 			if (scriptFileFunctions.find(m_FunctionName) != scriptFileFunctions.end()) {
 				m_LuabindFunctionObject = std::unique_ptr<SolObjectWrapper>(scriptFileFunctions.at(m_FunctionName));
 			}

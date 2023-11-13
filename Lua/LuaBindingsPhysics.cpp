@@ -238,5 +238,6 @@ namespace RTE {
 		luaType["RotateOffset"] = &MovableObject::RotateOffset;
 		luaType["SendMessage"] = &LuaAdaptersMovableObject::SendMessage1;
 		luaType["SendMessage"] = &LuaAdaptersMovableObject::SendMessage2;
+		luaType["RequestSyncedUpdate"] = &MovableObject::RequestSyncedUpdate;
 	}
 }

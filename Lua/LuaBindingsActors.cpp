@@ -254,6 +254,7 @@ namespace RTE {
 		luaType["DigStrength"] = sol::property(&Actor::EstimateDigStrength);
 		luaType["SceneWaypoints"] = sol::property(&LuaAdaptersActor::GetSceneWaypoints);
 		luaType["LimbPushForcesAndCollisionsDisabled"] = sol::property(&Actor::GetLimbPushForcesAndCollisionsDisabled, &Actor::SetLimbPushForcesAndCollisionsDisabled);
+		luaType["MoveProximityLimit"] = sol::property(&Actor::GetMoveProximityLimit, &Actor::SetMoveProximityLimit);
 
 		luaType["MOMoveTarget"] = &Actor::m_pMOMoveTarget;
 		luaType["MovePath"] = &Actor::m_MovePath;
@@ -290,6 +291,7 @@ namespace RTE {
 		luaType["AddInventoryItem"] = &Actor::AddInventoryItem;//; //, luabind::adopt(_2);
 		luaType["RemoveInventoryItem"] = (void (Actor::*)(const std::string &))&Actor::RemoveInventoryItem;
 		luaType["RemoveInventoryItem"] = (void (Actor::*)(const std::string &, const std::string &))&Actor::RemoveInventoryItem;
+		luaType["RemoveInventoryItemAtIndex"] = &Actor::RemoveInventoryItemAtIndex; //, luabind::adopt(luabind::return_value))
 		luaType["SwapNextInventory"] = &Actor::SwapNextInventory;
 		luaType["SwapPrevInventory"] = &Actor::SwapPrevInventory;
 		luaType["DropAllInventory"] = &Actor::DropAllInventory;

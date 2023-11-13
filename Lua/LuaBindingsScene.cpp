@@ -85,6 +85,8 @@ namespace RTE {
 		luaType["GetArea"] = (Scene::Area * (Scene:: *)(const std::string &areaName)) &Scene::GetArea;
 		luaType["GetOptionalArea"] = &Scene::GetOptionalArea;
 		luaType["WithinArea"] = &Scene::WithinArea;
+		luaType["AddNavigatableArea"] = &Scene::AddNavigatableArea;
+		luaType["ClearNavigatableAreas"] = &Scene::ClearNavigatableAreas;
 		luaType["ResetPathFinding"] = &Scene::ResetPathFinding;
 		luaType["UpdatePathFinding"] = &Scene::UpdatePathFinding;
 		luaType["PathFindingUpdated"] = &Scene::PathFindingUpdated;

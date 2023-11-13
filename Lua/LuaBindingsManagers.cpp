@@ -160,9 +160,9 @@ namespace RTE {
 		luaType["GetSplashRatio"] = &MovableMan::GetSplashRatio;
 		luaType["SortTeamRoster"] = &MovableMan::SortTeamRoster;
 		luaType["ChangeActorTeam"] = &MovableMan::ChangeActorTeam;
-		luaType["RemoveActor"] = &MovableMan::RemoveActor;
-		luaType["RemoveItem"] = &MovableMan::RemoveItem;
-		luaType["RemoveParticle"] = &MovableMan::RemoveParticle;
+		luaType["RemoveActor"] = &MovableMan::RemoveActor; //, luabind::adopt(luabind::return_value))
+		luaType["RemoveItem"] = &MovableMan::RemoveItem; //, luabind::adopt(luabind::return_value))
+		luaType["RemoveParticle"] = &MovableMan::RemoveParticle; //, luabind::adopt(luabind::return_value))
 		luaType["ValidMO"] = &MovableMan::ValidMO;
 		luaType["IsActor"] = &MovableMan::IsActor;
 		luaType["IsDevice"] = &MovableMan::IsDevice;

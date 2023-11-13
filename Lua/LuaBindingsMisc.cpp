@@ -174,9 +174,9 @@ namespace RTE {
 		luaType["GetFirstPieSliceByType"] = &PieMenu::GetFirstPieSliceByType;
 		luaType["AddPieSlice"] = &PieMenu::AddPieSlice; //, luabind::adopt(_2);
 		luaType["AddPieSlice"] = &LuaAdaptersPieMenu::AddPieSlice; //, luabind::adopt(_2);
-		luaType["AddPieSliceIfPresetNameIsUnique"] = &PieMenu::AddPieSliceIfPresetNameIsUnique; //, luabind::adopt(_2);
-		luaType["AddPieSliceIfPresetNameIsUnique"] = &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1; //, luabind::adopt(_2);
-		luaType["AddPieSliceIfPresetNameIsUnique"] = &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2; //, luabind::adopt(_2);
+		luaType["AddPieSliceIfPresetNameIsUnique"] = &PieMenu::AddPieSliceIfPresetNameIsUnique;
+		luaType["AddPieSliceIfPresetNameIsUnique"] = &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1;
+		luaType["AddPieSliceIfPresetNameIsUnique"] = &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2;
 		luaType["RemovePieSlice"] = &PieMenu::RemovePieSlice; //, luabind::adopt(luabind::return_value);
 		luaType["RemovePieSlicesByPresetName"] = &PieMenu::RemovePieSlicesByPresetName;
 		luaType["RemovePieSlicesByType"] = &PieMenu::RemovePieSlicesByType;
