@@ -21,30 +21,18 @@
 #include "LuabindObjectWrapper.h"
 #include "Material.h"
 #include "MovableMan.h"
-#include "FrameMan.h"
 
 struct BITMAP;
 
 
 namespace RTE {
 
-#pragma region Global Macro Definitions
-    #define ScriptFunctionNames(...) \
-        virtual std::vector<std::string> GetSupportedScriptFunctionNames() const { return {__VA_ARGS__}; }
-
-    #define AddScriptFunctionNames(PARENT, ...) \
-        std::vector<std::string> GetSupportedScriptFunctionNames() const override { \
-            std::vector<std::string> functionNames = PARENT::GetSupportedScriptFunctionNames(); \
-            functionNames.insert(functionNames.end(), {__VA_ARGS__}); \
-            return functionNames; \
-        }
-#pragma endregion
-
 struct HitData;
 
 class MOSRotating;
 class PieMenu;
 class SLTerrain;
+class LuaStateWrapper;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Abstract class:  MovableObject
@@ -63,7 +51,7 @@ friend struct EntityLuaBindings;
 
 public:
 
-	ScriptFunctionNames("Create", "Destroy", "Update", "OnScriptDisable", "OnScriptEnable", "OnCollideWithTerrain", "OnCollideWithMO", "WhilePieMenuOpen", "OnGameSave");
+	ScriptFunctionNames("Create", "Destroy", "Update", "SyncedUpdate", "OnScriptDisable", "OnScriptEnable", "OnCollideWithTerrain", "OnCollideWithMO", "WhilePieMenuOpen", "OnGameSave", "OnMessage", "OnGlobalMessage");
 	SerializableOverrideMethods;
 	ClassInfoGetters;
 
@@ -224,7 +212,12 @@ enum MOType
     /// <param name="functionEntityArguments">Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.</param>
     /// <param name="functionLiteralArguments">Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.</param>
     /// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-    int RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>());
+    int RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*> &functionObjectArguments = std::vector<LuabindObjectWrapper*>(), ThreadScriptsToRun scriptsToRun = ThreadScriptsToRun::Both);
+
+    /// <summary>
+    /// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
+    /// </summary>
+    virtual void DestroyScriptState();
 #pragma endregion
 
 
@@ -446,12 +439,6 @@ enum MOType
     /// <returns>Whether or not this MovableObject has ever been added to MovableMan.</returns>
     bool HasEverBeenAddedToMovableMan() const { return m_HasEverBeenAddedToMovableMan; }
 
-	/// <summary>
-	/// Returns whether or not this MovableObject exists in MovableMan, accounting for removal from MovableMan.
-	/// </summary>
-	/// <returns>Whether or not this MovableObject currently exists in MovableMan.</returns>
-	bool ExistsInMovableMan() const { return m_ExistsInMovableMan; }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  GetSharpness
@@ -623,6 +610,17 @@ enum MOType
 
 	void SetIgnoreTerrain(bool ignores) { m_IgnoreTerrain = ignores; }
 
+    /// <summary>
+    /// Gets whether this MO ignores collisions with actors.
+    /// </summary>
+    /// <returns>Whether this MO ignores collisions with actors.</returns>
+    bool GetIgnoresActorHits() const { return m_IgnoresActorHits; }
+
+    /// <summary>
+    /// Sets whether this MO ignores collisions with actors.
+    /// </summary>
+    /// <param name="value">Whether this MO will ignore collisions with actors.</returns>
+    void SetIgnoresActorHits(bool value) { m_IgnoresActorHits = value; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Pure V. method:  GetMaterial
@@ -789,7 +787,7 @@ enum MOType
     /// Sets this MovableObject as having been added to MovableMan. Should only really be done in MovableMan::Add/Remove Actor/Item/Particle.
     /// </summary>
 	/// <param name="addedToMovableMan">Whether or not this MovableObject has been added to MovableMan.</param>
-	void SetAsAddedToMovableMan(bool addedToMovableMan = true) { if (addedToMovableMan) { m_HasEverBeenAddedToMovableMan = true; } m_ExistsInMovableMan = addedToMovableMan; }
+	void SetAsAddedToMovableMan(bool addedToMovableMan = true) { if (addedToMovableMan) { m_HasEverBeenAddedToMovableMan = true; } }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1060,7 +1058,7 @@ enum MOType
 //                  MovableObject and affect its path next Update(). In N or kg * m/s^2.
 //                  A Vector with the offset, in METERS, of where the force is being
 //                  applied relative to the center of this MovableObject.
-// Return value:    None.
+// Return value:    None.A
 
     void AddForce(const Vector &force, const Vector &offset = Vector())
         { m_Forces.push_back(std::make_pair(force, offset)); }
@@ -1076,8 +1074,7 @@ enum MOType
 //                  force is being applied to the center of this MovableObject.
 // Return value:    None.
 
-    void AddAbsForce(const Vector &force, const Vector &absPos)
-        { m_Forces.push_back(std::make_pair(force, g_SceneMan.ShortestDistance(m_Pos, absPos) * c_MPP)); }
+    void AddAbsForce(const Vector &force, const Vector &absPos);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1113,14 +1110,7 @@ enum MOType
 //                  force is being applied to the center of this MovableObject.
 // Return value:    None.
 
-	void AddAbsImpulseForce(const Vector &impulse, const Vector &absPos) {
-
-#ifndef RELEASE_BUILD
-		RTEAssert(impulse.GetLargest() < 500000, "HUEG IMPULSE FORCE");
-#endif
-
-		m_ImpulseForces.push_back(std::make_pair(impulse, g_SceneMan.ShortestDistance(m_Pos, absPos) * c_MPP));
-	}
+	void AddAbsImpulseForce(const Vector &impulse, const Vector &absPos);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1503,6 +1493,15 @@ enum MOType
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Virtual method:  PreControllerUpdate
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Update called prior to controller update. Ugly hack. Supposed to be done every frame.
+// Arguments:       None.
+// Return value:    None.
+
+    virtual void PreControllerUpdate() { };
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Update
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Updates this MovableObject. Supposed to be done every frame. This also
@@ -1515,17 +1514,105 @@ enum MOType
 
     void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
+    /// <summary>
+	/// Updates this MovableObject's Lua scripts.
+	/// </summary>
+    /// <param name="scriptsToRun">Whether to run this objects single-threaded or multi-threaded scripts.</params>
+    /// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+	virtual int UpdateScripts(ThreadScriptsToRun scriptsToRun);
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  UpdateScript
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates this MovableObject's Lua scripts. Supposed to be done every
-//                  frame after the rest of the hardcoded C++ update is done.
-// Arguments:       None.
-// Return value:    An error return value signaling sucess or any particular failure.
-//                  Anything below 0 is an error signal.
+    /// <summary>
+    /// Gets a const reference to this MOSRotating's map of string values.
+    /// </summary>
+    /// <returns>A const reference to this MOSRotating's map of string values.</returns>
+    const std::unordered_map<std::string, std::string> & GetStringValueMap() const { return m_StringValueMap; }
 
-	int UpdateScripts();
+    /// <summary>
+    /// Gets a const reference to this MOSRotating's map of number values.
+    /// </summary>
+    /// <returns>A const reference to this MOSRotating's map of number values.</returns>
+    const std::unordered_map<std::string, double> & GetNumberValueMap() const { return m_NumberValueMap; }
+
+    /// <summary>
+    /// Returns the string value associated with the specified key or "" if it does not exist.
+    /// </summary>
+    /// <param name="key">Key to retrieve value.</params>
+    /// <returns>The value associated with the key.</returns>
+    const std::string & GetStringValue(const std::string &key) const;
+
+    /// <summary>
+    /// Returns the number value associated with the specified key or 0 if it does not exist.
+    /// </summary>
+    /// <param name="key">Key to retrieve value.</params>
+    /// <returns>The value associated with the key.</returns>
+    double GetNumberValue(const std::string &key) const;
+
+    /// <summary>
+    /// Returns the entity value associated with the specified key or nullptr if it does not exist.
+    /// </summary>
+    /// <param name="key">Key to retrieve value.</params>
+    /// <returns>The value associated with the key.</returns>
+    Entity * GetObjectValue(const std::string &key) const;
+
+    /// <summary>
+    /// Sets the string value associated with the specified key.
+    /// </summary>
+    /// <param name="key">Key to retrieve value.</params>
+    /// <param name="value">The new value to be associated with the key.</returns>
+    void SetStringValue(const std::string &key, const std::string &value);
+
+    /// <summary>
+    /// Sets the number value associated with the specified key.
+    /// </summary>
+    /// <param name="key">Key to retrieve value.</params>
+    /// <param name="value">The new value to be associated with the key.</returns>
+    void SetNumberValue(const std::string &key, double value);
+
+    /// <summary>
+    /// Sets the entity value associated with the specified key.
+    /// </summary>
+    /// <param name="key">Key to retrieve value.</params>
+    /// <param name="value">The new value to be associated with the key.</returns>
+    void SetObjectValue(const std::string &key, Entity *value);
+
+    /// <summary>
+    /// Remove the string value associated with the specified key.
+    /// </summary>
+    /// <param name="key">The key to remove.</params>
+    void RemoveStringValue(const std::string &key);
+
+    /// <summary>
+    /// Remove the number value associated with the specified key.
+    /// </summary>
+    /// <param name="key">The key to remove.</params>
+    void RemoveNumberValue(const std::string &key);
+
+    /// <summary>
+    /// Remove the entity value associated with the specified key.
+    /// </summary>
+    /// <param name="key">The key to remove.</params>
+    void RemoveObjectValue(const std::string &key);
+
+    /// <summary>
+    /// Checks whether the string value associated with the specified key exists.
+    /// </summary>
+    /// <param name="key">The key to check.</params>
+    /// <returns>Whether or not there is an associated value for this key.</returns>
+    bool StringValueExists(const std::string &key) const;
+
+    /// <summary>
+    /// Checks whether the number value associated with the specified key exists.
+    /// </summary>
+    /// <param name="key">The key to check.</params>
+    /// <returns>Whether or not there is an associated value for this key.</returns>
+    bool NumberValueExists(const std::string &key) const;
+
+    /// <summary>
+    /// Checks whether the entity value associated with the specified key exists.
+    /// </summary>
+    /// <param name="key">The key to check.</params>
+    /// <returns>Whether or not there is an associated value for this key.</returns>
+    bool ObjectValueExists(const std::string &key) const;
 
 	/// <summary>
 	/// Event listener to be run while this MovableObject's PieMenu is opened.
@@ -1722,7 +1809,7 @@ enum MOType
 // Return value:    The ID of the non-ignored MO, if any, that this object's Atom or AtomGroup is now
 //                  intersecting because of the last Travel taken.
 
-	MOID HitWhatMOID() const { if (m_LastCollisionSimFrameNumber == g_MovableMan.GetSimUpdateFrameNumber()) return m_MOIDHit; else return g_NoMOID; }
+	MOID HitWhatMOID() const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1735,7 +1822,7 @@ enum MOType
 //                  intersecting because of the last Travel taken.
 // Return value:    None.
 
-	void SetHitWhatMOID(MOID id) { m_MOIDHit = id;  m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber(); }
+	void SetHitWhatMOID(MOID id);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1745,7 +1832,7 @@ enum MOType
 // Arguments:       None.
 // Return value:    Unique ID of the particle hit at the previously taken Travel
 
-	long int HitWhatParticleUniqueID() const { if (m_LastCollisionSimFrameNumber == g_MovableMan.GetSimUpdateFrameNumber()) return m_ParticleUniqueIDHit; else return 0; }
+	long int HitWhatParticleUniqueID() const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1755,7 +1842,7 @@ enum MOType
 // Arguments:       Unique ID of the particle hit at the previously taken Travel.
 // Return value:    None.
 
-	void SetHitWhatParticleUniqueID(long int id) { m_ParticleUniqueIDHit = id; m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber(); }
+	void SetHitWhatParticleUniqueID(long int id);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1766,7 +1853,7 @@ enum MOType
 // Arguments:       None.
 // Return value:    The ID of the material, if any, that this MO hit during the last Travel.
 
-	unsigned char HitWhatTerrMaterial() const { if (m_LastCollisionSimFrameNumber == g_MovableMan.GetSimUpdateFrameNumber()) return m_TerrainMatHit; else return g_MaterialAir; }
+	unsigned char HitWhatTerrMaterial() const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1798,6 +1885,12 @@ enum MOType
 	bool DrawToTerrain(SLTerrain *terrain);
 
 	/// <summary>
+	/// Used to get the Lua state that handles our multithread-safe scripts.
+	/// </summary>
+    /// <returns>Our lua state. Can potentially be nullptr.</returns>
+    LuaStateWrapper* GetLuaState() { return m_ThreadedLuaState; }
+
+	/// <summary>
 	/// Method to be run when the game is saved via ActivityMan::SaveCurrentGame. Not currently used in metagame or editor saving.
 	/// </summary>
 	virtual void OnGameSave() { RunScriptedFunctionInAppropriateScripts("OnGameSave"); }
@@ -1821,7 +1914,7 @@ protected:
 	/// <param name="functionEntityArguments">Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.</param>
 	/// <param name="functionLiteralArguments">Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.</param>
 	/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-	int RunFunctionOfScript(const std::string &scriptPath, const std::string &functionName, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>()) const;
+	int RunFunctionOfScript(const std::string &scriptPath, const std::string &functionName, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>());
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  UpdateChildMOIDs
@@ -1912,6 +2005,8 @@ protected:
     // This will flip the IgnoreAtomGroupHits on or off depending on whether this MO is travelling slower than the threshold here, in m/s
     // This is disabled if set to negative value, and 0 means AG hits are never ignored
     float m_IgnoresAGHitsWhenSlowerThan;
+    // Wehther this ignores collisions with actors
+    bool m_IgnoresActorHits;
     // This is mission critical, which means it should NEVER be settled or destroyed by gibbing
     bool m_MissionCritical;
     // Whether this can be destroyed by being squished into the terrain
@@ -1933,7 +2028,6 @@ protected:
     int m_MOIDFootprint;
     // Whether or not this object has ever been added to MovableMan. Does not take into account the object being removed from MovableMan, though in practice it usually will, cause objects are usually only removed when they're deleted.
     bool m_HasEverBeenAddedToMovableMan;
-	bool m_ExistsInMovableMan; //<! Whether or not this object currently exists in MovableMan. Takes into account the object being removed from MovableMan.
     // A set of ID:s of MO:s that already have collided with this MO during this frame.
     std::set<MOID> m_AlreadyHitBy;
 	int m_VelOscillations; //!< A counter for oscillations in translational velocity, in order to detect settling.
@@ -1947,9 +2041,17 @@ protected:
 
 	bool m_IsTraveling; //!< Prevents self-intersection while traveling.
 
+    LuaStateWrapper *m_ThreadedLuaState; //!< The lua state that will runs our multithreaded lua scripts.
+    bool m_HasSinglethreadedScripts; //!< Whether or not we have any single-threaded scripts attached to us.
+
     std::string m_ScriptObjectName; //!< The name of this object for script usage.
     std::unordered_map<std::string, bool> m_AllLoadedScripts; //!< A map of script paths to the enabled state of the given script.
     std::unordered_map<std::string, std::vector<std::unique_ptr<LuabindObjectWrapper>>> m_FunctionsAndScripts; //!< A map of function names to vectors of LuabindObjectWrappers that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
+
+    std::unordered_map<std::string, std::string> m_StringValueMap; //<! Map to store any generic strings available from script
+    std::unordered_map<std::string, double> m_NumberValueMap; //<! Map to store any generic numbers available from script
+    std::unordered_map<std::string, Entity*> m_ObjectValueMap; //<! Map to store any generic object pointers available from script
+    static std::string ms_EmptyString;
 
     // Special post processing flash effect file and Bitmap. Shuold be loaded from a 32bpp bitmap
     ContentFile m_ScreenEffectFile;
@@ -2002,7 +2104,7 @@ protected:
 	unsigned char m_TerrainMatHit;
 	// Unique ID of particle hit this MO
 	long int m_ParticleUniqueIDHit;
-	// Number of sim update frame when last collision was detcted
+	// Number of sim update frame when last collision was detected
 	unsigned int m_LastCollisionSimFrameNumber;
     int m_SimUpdatesBetweenScriptedUpdates; //!< The number of Sim updates between each scripted update for this MovableObject.
     int m_SimUpdatesSinceLastScriptedUpdate; //!< The counter for the current number of Sim updates since this MovableObject last ran a scripted update.
@@ -2012,15 +2114,23 @@ protected:
 
 private:
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Clear
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all the member variables of this MovableObject, effectively
-//                  resetting the members of this abstraction level only.
-// Arguments:       None.
-// Return value:    None.
-
+    /// <summary>
+    /// Clears all the member variables of this MovableObject, effectively resetting the members of this abstraction level only.
+    /// </summary>
     void Clear();
+
+    /// <summary>
+    /// Handles reading for custom values, dealing with the various types of custom values.
+    /// </summary>
+    /// <param name="reader">A Reader lined up to the custom value type to be read.</param>
+    void ReadCustomValueProperty(Reader& reader);
+
+    /// <summary>
+    /// Returns the script state to use for a given script path.
+    /// This will be locked to our thread and safe to use - ensure that it'll be unlocked after use!
+    /// </summary>
+    /// <returns>A script state.</returns>
+    LuaStateWrapper & GetAndLockStateForScript(const std::string& scriptPath);
 
 	// Disallow the use of some implicit methods.
 	MovableObject(const MovableObject &reference) = delete;

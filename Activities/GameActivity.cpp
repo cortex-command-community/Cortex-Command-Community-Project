@@ -23,6 +23,7 @@
 #include "MetaMan.h"
 #include "ConsoleMan.h"
 #include "PresetMan.h"
+#include "SceneMan.h"
 #include "DataModule.h"
 #include "PostProcessMan.h"
 #include "Controller.h"
@@ -33,6 +34,7 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Loadout.h"
+#include "SLTerrain.h"
 
 #include "GUI.h"
 #include "GUIFont.h"
@@ -85,7 +87,7 @@ void GameActivity::Clear()
 
 	m_StartingGold = 0;
 	m_FogOfWarEnabled = false;
-	m_RequireClearPathToOrbit = true;
+	m_RequireClearPathToOrbit = false;
 
 	m_DefaultFogOfWar = -1;
 	m_DefaultRequireClearPathToOrbit = -1;
@@ -227,57 +229,41 @@ int GameActivity::Create(const GameActivity &reference)
 
 int GameActivity::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-    if (propName == "CPUTeam")
-    {
+    StartPropertyList(return Activity::ReadProperty(propName, reader));
+
+    MatchProperty("CPUTeam",
         reader >> m_CPUTeam;
-        SetCPUTeam(m_CPUTeam);
-    }
-    else if (propName == "DeliveryDelay")
-        reader >> m_DeliveryDelay;
-    else if (propName == "DefaultFogOfWar")
-	    reader >> m_DefaultFogOfWar;
-    else if (propName == "DefaultRequireClearPathToOrbit")
-        reader >> m_DefaultRequireClearPathToOrbit;
-    else if (propName == "DefaultDeployUnits")
-        reader >> m_DefaultDeployUnits;
-    else if (propName == "DefaultGoldCakeDifficulty")
-        reader >> m_DefaultGoldCakeDifficulty;
-    else if (propName == "DefaultGoldEasyDifficulty")
-        reader >> m_DefaultGoldEasyDifficulty;
-    else if (propName == "DefaultGoldMediumDifficulty")
-        reader >> m_DefaultGoldMediumDifficulty;
-    else if (propName == "DefaultGoldHardDifficulty")
-        reader >> m_DefaultGoldHardDifficulty;
-    else if (propName == "DefaultGoldNutsDifficulty")
-        reader >> m_DefaultGoldNutsDifficulty;
-	else if (propName == "DefaultGoldMaxDifficulty")
-        reader >> m_DefaultGoldMaxDifficulty;
-    else if (propName == "FogOfWarSwitchEnabled")
-        reader >> m_FogOfWarSwitchEnabled;
-    else if (propName == "DeployUnitsSwitchEnabled")
-        reader >> m_DeployUnitsSwitchEnabled;
-    else if (propName == "GoldSwitchEnabled")
-        reader >> m_GoldSwitchEnabled;
-	else if (propName == "RequireClearPathToOrbitSwitchEnabled")
-        reader >> m_RequireClearPathToOrbitSwitchEnabled;
-	else if (propName == "BuyMenuEnabled") {
-		reader >> m_BuyMenuEnabled;
-	} else if (propName == "Team1Tech" || propName == "Team2Tech" || propName == "Team3Tech" || propName == "Team4Tech") {
+        SetCPUTeam(m_CPUTeam); );
+    MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
+    MatchProperty("DefaultFogOfWar", { reader >> m_DefaultFogOfWar; });
+    MatchProperty("DefaultRequireClearPathToOrbit", { reader >> m_DefaultRequireClearPathToOrbit; });
+    MatchProperty("DefaultDeployUnits", { reader >> m_DefaultDeployUnits; });
+    MatchProperty("DefaultGoldCakeDifficulty", { reader >> m_DefaultGoldCakeDifficulty; });
+    MatchProperty("DefaultGoldEasyDifficulty", { reader >> m_DefaultGoldEasyDifficulty; });
+    MatchProperty("DefaultGoldMediumDifficulty", { reader >> m_DefaultGoldMediumDifficulty; });
+    MatchProperty("DefaultGoldHardDifficulty", { reader >> m_DefaultGoldHardDifficulty; });
+    MatchProperty("DefaultGoldNutsDifficulty", { reader >> m_DefaultGoldNutsDifficulty; });
+	MatchProperty("DefaultGoldMaxDifficulty", { reader >> m_DefaultGoldMaxDifficulty; });
+    MatchProperty("FogOfWarSwitchEnabled", { reader >> m_FogOfWarSwitchEnabled; });
+    MatchProperty("DeployUnitsSwitchEnabled", { reader >> m_DeployUnitsSwitchEnabled; });
+    MatchProperty("GoldSwitchEnabled", { reader >> m_GoldSwitchEnabled; });
+	MatchProperty("RequireClearPathToOrbitSwitchEnabled", { reader >> m_RequireClearPathToOrbitSwitchEnabled; });
+	MatchProperty("BuyMenuEnabled", { reader >> m_BuyMenuEnabled; });
+	MatchForwards("Team1Tech")
+    MatchForwards("Team2Tech")
+    MatchForwards("Team3Tech")
+    MatchProperty("Team4Tech",
 		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 			if (propName == "Team" + std::to_string(team + 1) + "Tech") {
 				std::string techName;
 				reader >> techName;
 				SetTeamTech(team, techName);
 			}
-		}
-	} else if (propName == "SpecialBehaviour_StartingGold") {
-		reader >> m_StartingGold;
-	} else if (propName == "SpecialBehaviour_FogOfWarEnabled") {
-		reader >> m_FogOfWarEnabled;
-	} else
-        return Activity::ReadProperty(propName, reader);
+		} );
+	MatchProperty("SpecialBehaviour_StartingGold", { reader >> m_StartingGold; });
+	MatchProperty("SpecialBehaviour_FogOfWarEnabled", { reader >> m_FogOfWarEnabled; });
 
-    return 0;
+    EndPropertyList;
 }
 
 
@@ -324,8 +310,9 @@ void GameActivity::Destroy(bool notInherited)
 
     for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team)
     {
-        for (std::deque<Delivery>::iterator itr = m_Deliveries[team].begin(); itr != m_Deliveries[team].end(); ++itr)
+        for (std::deque<Delivery>::iterator itr = m_Deliveries[team].begin(); itr != m_Deliveries[team].end(); ++itr) {
             delete itr->pCraft;
+        }
         m_Deliveries[team].clear();
     }
 
@@ -790,8 +777,13 @@ bool GameActivity::CreateDelivery(int player, int mode, Vector &waypoint, Actor 
                 pDeliveryCraft->AddInventoryItem(*iItr);
         }
 
+        float spawnY = 0.0f;
+        if (g_SceneMan.GetTerrain() && g_SceneMan.GetTerrain()->GetOrbitDirection() == Directions::Down) {
+            spawnY = g_SceneMan.GetSceneHeight();
+        }
+
         // Delivery craft appear straight over the selected LZ
-        pDeliveryCraft->SetPos(Vector(m_LandingZone[player].m_X, 0));
+        pDeliveryCraft->SetPos(Vector(m_LandingZone[player].m_X, spawnY));
 //        pDeliveryCraft->SetPos(Vector(m_LandingZone[player].m_X, 300));
 
         pDeliveryCraft->SetTeam(team);
@@ -893,8 +885,10 @@ int GameActivity::Start()
         m_Deliveries[team].clear();
 
         // Clear delivery queues
-        for (std::deque<Delivery>::iterator itr = m_Deliveries[team].begin(); itr != m_Deliveries[team].end(); ++itr)
+        for (std::deque<Delivery>::iterator itr = m_Deliveries[team].begin(); itr != m_Deliveries[team].end(); ++itr) {
             delete itr->pCraft;
+        }
+
         m_Deliveries[team].clear();
 /* This is taken care of by the individual Activity logic
         // See if there are specified landing zone areas defined in the scene
@@ -1126,8 +1120,12 @@ void GameActivity::End()
     {
         if (!m_TeamActive[team])
             continue;
-        for (std::deque<Delivery>::iterator itr = m_Deliveries[team].begin(); itr != m_Deliveries[team].end(); ++itr)
+        for (std::deque<Delivery>::iterator itr = m_Deliveries[team].begin(); itr != m_Deliveries[team].end(); ++itr) {
+            if (MovableObject* asMo = dynamic_cast<MovableObject*>(itr->pCraft)) {
+                asMo->DestroyScriptState();
+            }
             delete itr->pCraft;
+        }
         m_Deliveries[team].clear();
     }
 
@@ -1179,8 +1177,6 @@ void GameActivity::UpdateEditing()
         if (!(m_IsActive[player] && m_IsHuman[player]))
             continue;
 
-        // Update the player controllers which control the switching and editor gui
-        m_PlayerController[player].Update();
         m_pEditorGUI[player]->Update();
 
         // Set the team associations with each screen displayed
@@ -1480,7 +1476,8 @@ void GameActivity::Update()
                 m_PlayerController[player].RelativeCursorMovement(m_ObservationTarget[player], 1.2f);
             }
             // Set the view to the observation position
-            g_CameraMan.SetScrollTarget(m_ObservationTarget[player], 0.1, g_SceneMan.ForceBounds(m_ObservationTarget[player]), ScreenOfPlayer(player));
+            g_SceneMan.ForceBounds(m_ObservationTarget[player]);
+            g_CameraMan.SetScrollTarget(m_ObservationTarget[player], 0.1, ScreenOfPlayer(player));
         }
 
         ///////////////////////////////////////////////////
@@ -1543,8 +1540,8 @@ void GameActivity::Update()
             }
 
             // Set the view to the cursor pos
-            bool wrapped = g_SceneMan.ForceBounds(m_ActorCursor[player]);
-            g_CameraMan.SetScrollTarget(m_ActorCursor[player], 0.1, wrapped, ScreenOfPlayer(player));
+            g_SceneMan.ForceBounds(m_ActorCursor[player]);
+            g_CameraMan.SetScrollTarget(m_ActorCursor[player], 0.1, ScreenOfPlayer(player));
 
 			if (m_pLastMarkedActor[player]) {
 				if (!g_MovableMan.ValidMO(m_pLastMarkedActor[player])) {
@@ -1580,8 +1577,8 @@ void GameActivity::Update()
 			}
 
             // Set the view to the cursor pos
-            bool wrapped = g_SceneMan.ForceBounds(m_ActorCursor[player]);
-            g_CameraMan.SetScrollTarget(m_ActorCursor[player], 0.1, wrapped, ScreenOfPlayer(player));
+            g_SceneMan.ForceBounds(m_ActorCursor[player]);
+            g_CameraMan.SetScrollTarget(m_ActorCursor[player], 0.1, ScreenOfPlayer(player));
 
             // Draw the actor's waypoints
             m_ControlledActor[player]->DrawWaypoints(true);
@@ -1658,8 +1655,8 @@ void GameActivity::Update()
 
             // Set the view to the actor pos
 			Vector scrollPos = Vector(m_ControlledActor[player]->GetPos());
-            wrapped = g_SceneMan.ForceBounds(scrollPos);
-            g_CameraMan.SetScrollTarget(scrollPos, 0.1, wrapped, ScreenOfPlayer(player));
+            g_SceneMan.ForceBounds(scrollPos);
+            g_CameraMan.SetScrollTarget(scrollPos, 0.1, ScreenOfPlayer(player));
 
             // Disable the actor's controller
             m_ControlledActor[player]->GetController()->SetDisabled(true);
@@ -1798,7 +1795,7 @@ void GameActivity::Update()
 				float lzOffsetY = 0;
 				// Holding up or down will allow the player to make multiple orders without exiting the delivery phase. TODO: this should probably have a cooldown?
 				if (!m_PlayerController[player].IsState(MOVE_UP) && !m_PlayerController[player].IsState(MOVE_DOWN)) {
-					m_LandingZone[player].m_Y = g_SceneMan.FindAltitude(m_LandingZone[player], g_SceneMan.GetSceneHeight(), 10);
+					m_LandingZone[player].m_Y = g_SceneMan.FindAltitude(m_LandingZone[player], g_SceneMan.GetSceneHeight(), 10, true);
 					if (!g_MovableMan.GetNextTeamActor(team)) {
 						m_ObservationTarget[player] = m_LandingZone[player];
 						m_ViewState[player] = ViewState::Observe;
@@ -1814,7 +1811,11 @@ void GameActivity::Update()
 				} else {
 					// Place the new marker above the cursor so that they don't intersect with each other.
 					lzOffsetY += m_AIReturnCraft[player] ? -32.0F : 32.0F;
-					m_LandingZone[player].m_Y = g_SceneMan.FindAltitude(m_LandingZone[player], g_SceneMan.GetSceneHeight(), 10) + lzOffsetY;
+                    if (g_SceneMan.GetTerrain()->GetOrbitDirection() == Directions::Down) {
+                        lzOffsetY *= -1.0f;
+                    }
+
+					m_LandingZone[player].m_Y = g_SceneMan.FindAltitude(m_LandingZone[player], g_SceneMan.GetSceneHeight(), 10, true) + lzOffsetY;
 
 					if (m_pBuyGUI[player]->GetTotalOrderCost() > GetTeamFunds(team)) {
 						g_GUISound.UserErrorSound()->Play(player);
@@ -1834,16 +1835,23 @@ void GameActivity::Update()
 				m_LandingZone[player].m_Y -= lzOffsetY;
 			}
 
-            bool wrapped = g_SceneMan.ForceBounds(m_LandingZone[player]);
+            g_SceneMan.ForceBounds(m_LandingZone[player]);
 
             // Interpolate the LZ altitude to the height of the highest terrain point at the player-chosen X
             float prevHeight = m_LandingZone[player].m_Y;
-            m_LandingZone[player].m_Y = 0;
-            m_LandingZone[player].m_Y = prevHeight + ((g_SceneMan.FindAltitude(m_LandingZone[player], g_SceneMan.GetSceneHeight(), 10) - prevHeight) * 0.2);
+            
+            float viewOffset = g_FrameMan.GetPlayerScreenHeight() / 4;
+            m_LandingZone[player].m_Y = 0.0f;
+            if (g_SceneMan.GetTerrain() && g_SceneMan.GetTerrain()->GetOrbitDirection() == Directions::Down) {
+                m_LandingZone[player].m_Y = g_SceneMan.GetSceneHeight();
+                viewOffset *= -1;
+            }
+
+            m_LandingZone[player].m_Y = prevHeight + ((g_SceneMan.FindAltitude(m_LandingZone[player], g_SceneMan.GetSceneHeight(), 10, true) - prevHeight) * 0.2);
 
             // Set the view to a little above the LZ position
-            Vector viewTarget(m_LandingZone[player].m_X, m_LandingZone[player].m_Y - (g_FrameMan.GetPlayerScreenHeight() / 4));
-            g_CameraMan.SetScrollTarget(viewTarget, 0.1, wrapped, ScreenOfPlayer(player));
+            Vector viewTarget(m_LandingZone[player].m_X, m_LandingZone[player].m_Y - viewOffset);
+            g_CameraMan.SetScrollTarget(viewTarget, 0.1, ScreenOfPlayer(player));
         }
 
         ////////////////////////////
@@ -1854,7 +1862,7 @@ void GameActivity::Update()
             // Continuously deathwatch message
             g_FrameMan.SetScreenText("Lost control of remote body!", ScreenOfPlayer(player));
             // Don't move anything, just stay put watching the death funnies
-            g_CameraMan.SetScrollTarget(m_DeathViewTarget[player], 0.1, false, ScreenOfPlayer(player));
+            g_CameraMan.SetScrollTarget(m_DeathViewTarget[player], 0.1, ScreenOfPlayer(player));
         }
 
         ////////////////////////////////////////////////////
@@ -1863,7 +1871,7 @@ void GameActivity::Update()
 		// and double scrolling will cause CC gitch when we'll cross the seam
 		else if (m_ControlledActor[player] && m_ActivityState != ActivityState::Editing && m_ActivityState != ActivityState::PreGame)
         {
-            g_CameraMan.SetScrollTarget(m_ControlledActor[player]->GetViewPoint(), 0.1, m_ControlledActor[player]->DidWrap(), ScreenOfPlayer(player));
+            g_CameraMan.SetScrollTarget(m_ControlledActor[player]->GetViewPoint(), 0.1, ScreenOfPlayer(player));
         }
 
 		if (m_ControlledActor[player] && m_ViewState[player] != ViewState::DeathWatch && m_ViewState[player] != ViewState::ActorSelect && m_ViewState[player] != ViewState::AIGoToPoint && m_ViewState[player] != ViewState::UnitSelectCircle) {
@@ -1969,8 +1977,14 @@ void GameActivity::Update()
 //            SwitchToPrevActor(player, team, m_Brain[player]);
             // Start selecting the landing zone
             m_ViewState[player] = ViewState::LandingZoneSelect;
+
             // Set this to zero so the cursor interpolates down from the sky
-            m_LandingZone[player].m_Y = 0;
+            float landingSpot = 0.0f;
+            if (g_SceneMan.GetTerrain() && g_SceneMan.GetTerrain()->GetOrbitDirection() == Directions::Down) {
+                landingSpot = g_SceneMan.GetSceneHeight();
+            }
+
+            m_LandingZone[player].m_Y = landingSpot;
         }
 
         // After a while of game over, change messages to the final one for everyone
@@ -2121,7 +2135,7 @@ void GameActivity::Update()
             // Make view follow the terrain
             float prevHeight = m_ObservationTarget[Players::PlayerFour].m_Y;
             m_ObservationTarget[Players::PlayerFour].m_Y = 0;
-            m_ObservationTarget[Players::PlayerFour].m_Y = prevHeight + ((g_SceneMan.FindAltitude(m_ObservationTarget[Players::PlayerFour], g_SceneMan.GetSceneHeight(), 20) - prevHeight) * 0.02);
+            m_ObservationTarget[Players::PlayerFour].m_Y = prevHeight + ((g_SceneMan.FindAltitude(m_ObservationTarget[Players::PlayerFour], g_SceneMan.GetSceneHeight(), 20, true) - prevHeight) * 0.02);
         }
 
         // Set the view to the observation position

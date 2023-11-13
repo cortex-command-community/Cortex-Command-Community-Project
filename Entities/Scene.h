@@ -158,6 +158,12 @@ public:
 		/// <returns>The first Box in this Area.</returns>
 		const Box * GetFirstBox() const { return m_BoxList.empty() ? nullptr : &m_BoxList[0]; }
 
+        /// <summary>
+        /// Gets the boxes for this area.
+        /// </summary>
+        /// <returns>The boxes in this Area.</returns>
+        const std::vector<Box> & GetBoxes() const { return m_BoxList; }
+
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Virtual method:  HasNoArea
@@ -934,16 +940,9 @@ const SceneObject * PickPlacedActorInRange(int whichSet, Vector &scenePoint, int
 	/// Gets a specified Area identified by name. Ownership is NOT transferred!
 	/// </summary>
 	/// <param name="areaName">The name of the Area to try to get.</param>
-	/// <param name="luaWarnNotError">Whether to warn or error in the Lua console. True is warn, false is error.</param>
+	/// <param name="required">Whether the area is required, and should throw an error if not found.</param>
 	/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
-	Area * GetArea(const std::string_view &areaName, bool luaWarnNotError);
-
-	/// <summary>
-	/// Gets a specified Area identified by name, showing a Lua error if it's not found. Ownership is NOT transferred!
-	/// </summary>
-	/// <param name="areaName">The name of the Area to try to get.</param>
-	/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
-	Area * GetArea(const std::string &areaName) { return GetArea(areaName, false); }
+	Area * GetArea(const std::string_view &areaName, bool required = true);
 
 	/// <summary>
 	/// Gets a specified Area identified by name, showing a Lua warning if it's not found. Ownership is NOT transferred!
@@ -951,7 +950,7 @@ const SceneObject * PickPlacedActorInRange(int whichSet, Vector &scenePoint, int
 	/// </summary>
 	/// <param name="areaName">The name of the Area to try to get.</param>
 	/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
-	Area * GetOptionalArea(const std::string &areaName) { return GetArea(areaName, true); };
+	Area * GetOptionalArea(const std::string &areaName) { return GetArea(areaName, false); };
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1170,6 +1169,16 @@ const SceneObject * PickPlacedActorInRange(int whichSet, Vector &scenePoint, int
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Method:          BlockUntilAllPathingRequestsComplete
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Blocks this thread until all pathing requests are completed.
+// Arguments:       None.
+// Return value:    None.
+
+    void BlockUntilAllPathingRequestsComplete();
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Method:          UpdatePathFinding
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Recalculates only the areas of the pathfinding data that have been
@@ -1203,7 +1212,18 @@ const SceneObject * PickPlacedActorInRange(int whichSet, Vector &scenePoint, int
 // Return value:    The total minimum difficulty cost calculated between the two points on
 //                  the scene.
 
-    float CalculatePath(const Vector &start, const Vector &end, std::list<Vector> &pathResult, float digStrength = 1.0F, Activity::Teams team = Activity::Teams::NoTeam);
+    float CalculatePath(const Vector &start, const Vector &end, std::list<Vector> &pathResult, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam);
+    
+	/// <summary>
+	/// Asynchronously calculates the least difficult path between two points on the current Scene. Takes both distance and materials into account.
+	/// When pathing using the NoTeam pathFinder, no doors are considered passable.
+	/// </summary>
+	/// <param name="start">Start position of the pathfinding request.</param>
+	/// <param name="end">End position of the pathfinding request.</param>
+	/// <param name="digStrength">The maximum material strength any actor traveling along the path can dig through.</param>
+	/// <param name="team">The team we're pathing for (doors for this team will be considered passable)</param>
+    /// <returns>A shared pointer to the volatile PathRequest to be used to track whehter the asynchrnous path calculation has been completed, and check its results.</returns>
+    std::shared_ptr<volatile PathRequest> CalculatePathAsync(const Vector &start, const Vector &end, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam, PathCompleteCallback callback = nullptr);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1213,7 +1233,17 @@ const SceneObject * PickPlacedActorInRange(int whichSet, Vector &scenePoint, int
 // Arguments:       None.
 // Return value:    The number of waypoints in the ScenePath.
 
-	int GetScenePathSize() const { return m_ScenePath.size(); }
+    int GetScenePathSize() const;
+
+    std::list<Vector>& GetScenePath();
+
+    /// <summary>
+    /// Returns whether two position represent the same path nodes.
+    /// </summary>
+    /// <param name="pos1">First coordinates to compare.</param>
+    /// <param name="pos2">Second coordinates to compare.</param>
+    /// <returns>Whether both coordinates represent the same path node.</returns>
+    bool PositionsAreTheSamePathNode(const Vector &pos1, const Vector &pos2) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1308,8 +1338,6 @@ const SceneObject * PickPlacedActorInRange(int whichSet, Vector &scenePoint, int
 
 	BITMAP * GetPreviewBitmap() const { return m_pPreviewBitmap; };
 
-    // Holds the path calculated by CalculateScenePath
-    std::list<Vector> m_ScenePath;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protected member variable and method declarations

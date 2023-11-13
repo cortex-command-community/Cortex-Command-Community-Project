@@ -1,36 +1,11 @@
-project('Cortex-Command-Community-Project', ['cpp','c'], subproject_dir: 'external/sources', default_options:['cpp_std=c++20', 'buildtype=release', 'default_library=static'], version:'0.1.0-Pre-4.1', meson_version:'>=0.60')
+project('Cortex-Command-Community-Project', ['cpp','c'], subproject_dir: 'external/sources', default_options:['cpp_std=c++20', 'buildtype=release', 'default_library=static'], version:'0.1.0-Pre-4.1', meson_version:'>=1.0.0')
 
 #### Build environment Setup ####
 
+compiler = meson.get_compiler('cpp')
 deps=[]
-if host_machine.system() in ['linux','darwin']
-  deps = [
-    dependency(['sdl2']),
-    dependency('flac'),
-    dependency('minizip', version:'<1.3', not_found_message:'The correct version (1.2.x) of minizip might be packaged as minizip-compat.'),
-    dependency('luajit'),
-    dependency('threads'),
-    dependency('liblz4'),
-    dependency('libpng'),
-    dependency(['lua', 'lua54', 'lua5.4','lua-5.4', 'lua53', 'lua-5.3', 'lua5.3','lua52', 'lua5.2', 'lua-5.2', 'lua51', 'lua5.1', 'lua-5.1']),
-    dependency('tbb'),
-  ]
-elif host_machine.system() == 'windows'
-  sdl2 = subproject('SDL2-2.26.3')
-  sdl2_dep = dependency('sdl2')
-  luajit = subproject('LuaJIT-2.1')
-  luajit_dep = dependency('luajit')
-  zlib = subproject('zlib-ng-2.1.3')
-  zlib_dep = dependency('zlib')
-  minizip = subproject('minizip-ng-4.0.0')
-  minizip_dep = dependency('minizip')
-  libpng = subproject('libpng-1.6.40')
-  libpng_dep = dependency('libpng')
-  deps += [sdl2_dep, luajit_dep, zlib_dep, minizip_dep, libpng_dep]
-endif
 
 elfname = 'CortexCommand'
-compiler = meson.get_compiler('cpp')
 build_rpath = ''
 link_args=[]
 extra_args=[]
@@ -128,6 +103,8 @@ conf_data = configuration_data()
 prefix = get_option('prefix')
 
 conf_data.set_quoted('BASEDATAPATH', prefix/get_option('data_install_dir'))
+conf_data.set('game_version', meson.project_version())
+
 if suffix==''
   suffix=[]
   conf_data.set('EXENAME', elfname)
@@ -142,7 +119,57 @@ else
   conf_data.set('EXEPATH', prefix/get_option('bindir'))
 endif
 
+if get_option('tracy_enable')
+  add_global_arguments('-DTRACY_ENABLE', language:'cpp')
+endif
+if get_option('tracy_callstack') > 0
+  add_global_arguments('-DTRACY_CALLSTACK='+get_option('tracy_callstack').to_string(), language:'cpp')
+endif
+if get_option('tracy_on_demand')
+  add_global_arguments('-DTRACY_ON_DEMAND', language:'cpp')
+endif
+if get_option('tracy_debuginfod')
+  deps += [dependency('libdebuginfod')]
+  add_global_arguments('-DTRACY_DEBUGINFOD', language:'cpp')
+endif
+
 #### Platform Common External Libraries ####
+if host_machine.system() in ['linux','darwin']
+  deps += [
+    dependency(['sdl2']),
+    dependency('flac'),
+    dependency('minizip'),
+    dependency('luajit'),
+    dependency('threads'),
+    dependency('liblz4'),
+    dependency('libpng'),
+    dependency(['lua', 'lua54', 'lua5.4','lua-5.4', 'lua53', 'lua-5.3', 'lua5.3','lua52', 'lua5.2', 'lua-5.2', 'lua51', 'lua5.1', 'lua-5.1']),
+    dependency('tbb'),
+    dependency('gl')
+  ]
+  if host_machine.system() == 'linux'
+    deps += dependency('SDL2_image')
+  endif
+  if host_machine.system()=='darwin'
+    deps += dependency('appleframeworks', modules: ['foundation'])  
+  endif
+elif host_machine.system() == 'windows'
+  sdl2 = subproject('SDL2-2.26.3')
+  sdl2_dep = dependency('sdl2')
+  luajit = subproject('LuaJIT-2.1')
+  luajit_dep = dependency('luajit')
+  zlib = subproject('zlib-ng-2.1.3')
+  zlib_dep = dependency('zlib')
+  minizip = subproject('minizip-ng-4.0.0')
+  minizip_dep = dependency('minizip')
+  libpng = subproject('libpng-1.6.40')
+  libpng_dep = dependency('libpng')
+  # Windows Libraries
+  opengl = compiler.find_library('opengl32')
+  deps += [sdl2_dep, luajit_dep, zlib_dep, minizip_dep, libpng_dep, opengl]
+endif
+
+
 external_objects = []
 external_libs = []
 subdir('external')
@@ -157,7 +184,9 @@ luabind_proj = subproject('luabind-0.7.1')
 luabind_dep = dependency('luabind')
 raknet_proj = subproject('RakNet')
 raknet_dep = dependency('RakNet')
-deps += [allegro_dep, loadpng_dep, raknet_dep, boost_dep]
+tracy_proj = subproject('tracy')
+tracy_dep = dependency('tracy')
+deps += [allegro_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
 
 #### Sources Setup ####
 pch = meson.current_source_dir()/'System/StandardIncludes.h'

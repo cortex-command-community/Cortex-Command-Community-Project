@@ -162,7 +162,9 @@ namespace RTE {
 		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-
+		
+		.def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage1)
+		.def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage2)
 		.def("AddMO", &LuaAdaptersMovableMan::AddMO, luabind::adopt(_2))
 		.def("AddActor", &LuaAdaptersMovableMan::AddActor, luabind::adopt(_2))
 		.def("AddItem", &LuaAdaptersMovableMan::AddItem, luabind::adopt(_2))
@@ -277,6 +279,7 @@ namespace RTE {
 		.property("SceneHeight", &SceneMan::GetSceneHeight)
 		.property("SceneWrapsX", &SceneMan::SceneWrapsX)
 		.property("SceneWrapsY", &SceneMan::SceneWrapsY)
+		.property("SceneOrbitDirection", &SceneMan::GetSceneOrbitDirection)
 		.property("LayerDrawMode", &SceneMan::GetLayerDrawMode, &SceneMan::SetLayerDrawMode)
 		.property("GlobalAcc", &SceneMan::GetGlobalAcc)
 		.property("OzPerKg", &SceneMan::GetOzPerKg)
@@ -318,7 +321,8 @@ namespace RTE {
 		.def("CastFindMORay", &SceneMan::CastFindMORay)
 		.def("CastObstacleRay", &SceneMan::CastObstacleRay)
 		.def("GetLastRayHitPos", &SceneMan::GetLastRayHitPos)
-		.def("FindAltitude", &SceneMan::FindAltitude)
+		.def("FindAltitude", (float (SceneMan::*) (const Vector&, int, int)) &SceneMan::FindAltitude)
+		.def("FindAltitude", (float (SceneMan::*) (const Vector&, int, int, bool)) &SceneMan::FindAltitude)
 		.def("MovePointToGround", &SceneMan::MovePointToGround)
 		.def("IsWithinBounds", &SceneMan::IsWithinBounds)
 		.def("ForceBounds", (bool (SceneMan::*)(int &, int &))&SceneMan::ForceBounds)
@@ -432,6 +436,8 @@ namespace RTE {
 		.def("AnyInput", &UInputMan::AnyKeyOrJoyInput)
 		.def("AnyPress", &UInputMan::AnyPress)
 		.def("AnyStartPress", &UInputMan::AnyStartPress)
+		.def("HasTextInput", &UInputMan::HasTextInput)
+		.def("GetTextInput", (const std::string& (UInputMan::*)() const) &UInputMan::GetTextInput)
 
 		.def("MouseButtonPressed", &LuaAdaptersUInputMan::MouseButtonPressed)
 		.def("MouseButtonReleased", &LuaAdaptersUInputMan::MouseButtonReleased)

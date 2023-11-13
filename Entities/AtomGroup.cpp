@@ -79,7 +79,9 @@ namespace RTE {
 
 				long subgroupID = atomCopy->GetSubID();
 				if (subgroupID != 0) {
-					if (m_SubGroups.find(subgroupID) == m_SubGroups.end()) { m_SubGroups.insert({ subgroupID, std::list<Atom *>() }); }
+					if (m_SubGroups.find(subgroupID) == m_SubGroups.end()) { 
+						m_SubGroups.insert({ subgroupID, std::vector<Atom *>() }); 
+					}
 
 					m_SubGroups.find(subgroupID)->second.push_back(atomCopy);
 				}
@@ -92,7 +94,9 @@ namespace RTE {
 			m_IgnoreMOIDs.push_back(moidToIgnore);
 		}
 
-		if (!reference.m_Atoms.empty()) { m_Material = reference.m_Atoms.front()->GetMaterial(); }
+		if (!reference.m_Atoms.empty()) { 
+			m_Material = reference.m_Atoms.front()->GetMaterial(); 
+		}
 
 		return 0;
 	}
@@ -116,7 +120,9 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int AtomGroup::ReadProperty(const std::string_view &propName, Reader &reader) {
-		if (propName == "Material") {
+		StartPropertyList(return Entity::ReadProperty(propName, reader));
+		
+		MatchProperty("Material", {
 			Material mat;
 			mat.Reset();
 			reader >> mat;
@@ -127,19 +133,17 @@ namespace RTE {
 				m_Material = g_SceneMan.GetMaterialFromID(g_MaterialAir);
 				RTEAssert(m_Material, "Failed to find matching Material preset \"" + mat.GetPresetName() + "\" or even fall back to \"Air\" " + GetFormattedReaderPosition() + ".\nAborting!");
 			}
-		} else if (propName == "AutoGenerate") {
-			reader >> m_AutoGenerate;
-		} else if (propName == "Resolution") {
-			reader >> m_Resolution;
-		} else if (propName == "Depth") {
-			reader >> m_Depth;
-		} else if (propName == "AddAtom") {
+		});
+		MatchProperty("AutoGenerate", { reader >> m_AutoGenerate; });
+		MatchProperty("Resolution", { reader >> m_Resolution; });
+		MatchProperty("Depth", { reader >> m_Depth; });
+		MatchProperty("AddAtom", {
 			Atom *atom = new Atom;
 			reader >> *atom;
 			m_Atoms.push_back(atom);
-		} else if (propName == "JointOffset") {
-			reader >> m_JointOffset;
-		} else if (propName == "AreaDistributionType") {
+		});
+		MatchProperty("JointOffset", { reader >> m_JointOffset; });
+		MatchProperty("AreaDistributionType", {
 			std::string areaDistributionTypeString = reader.ReadPropValue();
 			auto itr = c_AreaDistributionTypeMap.find(areaDistributionTypeString);
 			if (itr != c_AreaDistributionTypeMap.end()) {
@@ -151,12 +155,11 @@ namespace RTE {
 					reader.ReportError("AreaDistributionType " + areaDistributionTypeString + " is invalid.");
 				}
 			}
-		} else if (propName == "AreaDistributionSurfaceAreaMultiplier") {
-			reader >> m_AreaDistributionSurfaceAreaMultiplier;
-		} else {
-			return Entity::ReadProperty(propName, reader);
-		}
-		return 0;
+		});
+		MatchProperty("AreaDistributionSurfaceAreaMultiplier", { reader >> m_AreaDistributionSurfaceAreaMultiplier; });
+		
+		
+		EndPropertyList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,7 +207,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void AtomGroup::SetAtomList(const std::list<Atom *> &newAtoms) {
+	void AtomGroup::SetAtomList(const std::vector<Atom *> &newAtoms) {
 		for (const Atom *atom : m_Atoms) {
 			delete atom;
 		}
@@ -262,8 +265,8 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void AtomGroup::AddAtoms(const std::list<Atom *> &atomList, long subgroupID, const Vector &offset, const Matrix &offsetRotation) {
-		if (m_SubGroups.count(subgroupID) == 0) { m_SubGroups.insert({ subgroupID, std::list<Atom *>() }); }
+	void AtomGroup::AddAtoms(const std::vector<Atom *> &atomList, long subgroupID, const Vector &offset, const Matrix &offsetRotation) {
+		if (m_SubGroups.count(subgroupID) == 0) { m_SubGroups.insert({ subgroupID, std::vector<Atom *>() }); }
 
 		Atom *atomToAdd;
 		for (const Atom * atom : atomList) {
@@ -284,25 +287,23 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AtomGroup::RemoveAtoms(long removeID) {
-		bool removedAny = false;
-		std::list<Atom *>::iterator eraseItr;
+		std::size_t oldSize = m_Atoms.size();
 
-		// TODO: Look into using remove_if.
-		for (std::list<Atom *>::iterator atomItr = m_Atoms.begin(); atomItr != m_Atoms.end();) {
-			if ((*atomItr)->GetSubID() == removeID) {
-				delete (*atomItr);
-				eraseItr = atomItr;
-				atomItr++;
-				m_Atoms.erase(eraseItr);
-				removedAny = true;
-			} else {
-				atomItr++;
-			}
-		}
+		m_Atoms.erase(
+			std::remove_if(m_Atoms.begin(), m_Atoms.end(),
+				[removeID](Atom *atom) {
+					return atom->GetSubID() == removeID;
+				}), 
+			m_Atoms.end());
+
 		m_SubGroups.erase(removeID);
+
+		bool removedAny = oldSize != m_Atoms.size();
 		if (removedAny) {
 			m_MomentOfInertia = 0.0F;
-			if (m_OwnerMOSR) { GetMomentOfInertia(); }
+			if (m_OwnerMOSR) { 
+				GetMomentOfInertia(); 
+			}
 		}
 
 		return removedAny;
@@ -1466,7 +1467,7 @@ namespace RTE {
 			return false;
 		}
 
-		std::list<Atom *> intersectingAtoms;
+		std::vector<Atom *> intersectingAtoms;
 
 		// Restart and go through all Atoms to find all intersecting the specific intersected MO
 		for (Atom *atom : m_Atoms) {
@@ -1536,8 +1537,13 @@ namespace RTE {
 		}
 
 		// Now actually apply the exit vectors to both, but only if the jump isn't too jarring
-		if (thisExit.MagnitudeIsLessThan(m_OwnerMOSR->GetIndividualRadius())) { position += thisExit; }
-		if (!intersectedExit.IsZero() && intersectedExit.MagnitudeIsLessThan(intersectedMO->GetRadius())) { intersectedMO->SetPos(intersectedMO->GetPos() + intersectedExit); }
+		if (thisExit.MagnitudeIsLessThan(m_OwnerMOSR->GetIndividualRadius())) { 
+			position += thisExit; 
+		}
+
+		if (!intersectedExit.IsZero() && intersectedExit.MagnitudeIsLessThan(intersectedMO->GetRadius())) { 
+			intersectedMO->SetPos(intersectedMO->GetPos() + intersectedExit); 
+		}
 
 		if (m_OwnerMOSR->CanBeSquished() && RatioInTerrain() > 0.75F) /* && totalExitVector.MagnitudeIsGreaterThan(m_OwnerMOSR->GetDiameter())) */ {
 			// Move back before gibbing so gibs don't end up inside terrain

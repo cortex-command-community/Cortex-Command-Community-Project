@@ -163,14 +163,24 @@ namespace RTE {
 			return;
 		}
 
-		if (m_ControlledActor) { m_Team = m_ControlledActor->GetTeam(); }
+		if (m_ControlledActor) { 
+			m_Team = m_ControlledActor->GetTeam();
+
+			if (m_ControlledActor->GetHealth() == 0.0f || m_ControlledActor->GetStatus() == Actor::DYING || m_ControlledActor->GetStatus() == Actor::DEAD) {
+				// Keep old states so jetpacks stay on etc
+				return;
+			}
+		}
 
 		switch (m_InputMode) {
 			case InputMode::CIM_PLAYER:
 				GetInputFromPlayer();
 				break;
 			case InputMode::CIM_AI:
-				GetInputFromAI();
+				if (ShouldUpdateAIThisFrame()) {
+					// AI will be updated in separate UpdateAI call, but we need to clear the command state for them
+					ResetCommandState();
+				}
 				break;
 			default:
 				ResetCommandState();
@@ -202,20 +212,32 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Controller::GetInputFromAI() {
+	bool Controller::ShouldUpdateAIThisFrame() const
+	{
+		if (IsDisabled()) {
+			return false;
+		}
+
 		// Throttle the AI to only update every X sim updates.
 		// We want to spread the updates around (so, half the actors on odd frames, the other half on even frames, etc), so we check their contiguous ID against the frame number.
 		const int simTicksPerUpdate = g_SettingsMan.GetAIUpdateInterval();
 		if (m_ControlledActor && g_MovableMan.GetContiguousActorID(m_ControlledActor) % simTicksPerUpdate != g_TimerMan.GetSimUpdateCount() % simTicksPerUpdate) {
-			// Don't reset our command state, so we give the same input as last frame.
+			return false;
+		}
+
+		return true;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void Controller::UpdateAI(ThreadScriptsToRun scriptsToRun) {
+		if (m_InputMode != InputMode::CIM_AI || !ShouldUpdateAIThisFrame()) {
 			return;
 		}
 
-		ResetCommandState();
-
-		// Try to run the scripted AI for the controlled Actor. If it doesn't work, fall back on the legacy C++ implementation.
-		if (m_ControlledActor && m_ControlledActor->ObjectScriptsInitialized() && !m_ControlledActor->UpdateAIScripted()) {
-			m_ControlledActor->UpdateAI();
+		// Run the scripted AI for the controlled Actor
+		if (m_ControlledActor && m_ControlledActor->ObjectScriptsInitialized()) {
+			m_ControlledActor->UpdateAIScripted(scriptsToRun);
 		}
 	}
 
@@ -229,6 +251,14 @@ namespace RTE {
 		Create(rhs);
 		return *this;
 	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    void Controller::Override(const Controller &otherController)
+    {
+		RTEAssert(otherController.m_ControlledActor == m_ControlledActor, "Overriding a controller with a mismatched controlled actor!");
+		*this = otherController;
+    }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -272,11 +302,11 @@ namespace RTE {
 		m_ControlStates[ControlState::PRESS_DOWN] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_L_DOWN) || g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_AIM_DOWN);
 
 		m_ControlStates[ControlState::PRIMARY_ACTION] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_FIRE);
-		m_ControlStates[ControlState::SECONDARY_ACTION] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU);
+		m_ControlStates[ControlState::SECONDARY_ACTION] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_DIGITAL);
 		m_ControlStates[ControlState::PRESS_PRIMARY] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_FIRE);
-		m_ControlStates[ControlState::PRESS_SECONDARY] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_PIEMENU);
+		m_ControlStates[ControlState::PRESS_SECONDARY] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_PIEMENU_DIGITAL);
 		m_ControlStates[ControlState::RELEASE_PRIMARY] = g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_FIRE);
-		m_ControlStates[ControlState::RELEASE_SECONDARY] = g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_PIEMENU);
+		m_ControlStates[ControlState::RELEASE_SECONDARY] = g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_PIEMENU_DIGITAL);
 
 		UpdatePlayerAnalogInput();
 	}
@@ -355,21 +385,27 @@ namespace RTE {
 		}
 
 		// PIE MENU ACTIVE
-		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU)) {
+		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_ANALOG) || g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_DIGITAL)) {
 			if (m_ControlledActor && m_ControlledActor->GetPieMenu()->IsInNormalAnimationMode() && !m_ControlledActor->GetPieMenu()->IsVisible()) {
 				m_ControlStates[ControlState::PIE_MENU_OPENED] = true;
 			}
 			m_ControlStates[ControlState::PIE_MENU_ACTIVE] = true;
+			m_ControlStates[ControlState::PIE_MENU_ACTIVE_ANALOG] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_ANALOG);
+			m_ControlStates[ControlState::PIE_MENU_ACTIVE_DIGITAL] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_DIGITAL);
+
 			// Make sure that firing and aiming are ignored while the pie menu is open, since it consumes those inputs.
 			m_ControlStates[ControlState::WEAPON_FIRE] = false;
 			m_ControlStates[ControlState::AIM_UP] = false;
 			m_ControlStates[ControlState::AIM_DOWN] = false;
 			
-			if (IsKeyboardOnlyControlled()) {
+			if (m_ControlStates[ControlState::PIE_MENU_ACTIVE_DIGITAL]) {
 				m_ControlStates[ControlState::MOVE_RIGHT] = false;
 				m_ControlStates[ControlState::MOVE_LEFT] = false;
 				m_ControlStates[ControlState::MOVE_UP] = false;
 				m_ControlStates[ControlState::MOVE_DOWN] = false;
+				m_ControlStates[ControlState::BODY_JUMP] = false;
+				m_ControlStates[ControlState::BODY_JUMPSTART] = false;
+				m_ControlStates[ControlState::BODY_CROUCH] = false;
 			}
 		}
 	}
@@ -388,7 +424,7 @@ namespace RTE {
 			m_AnalogMove = move;
 		} 
 		
-		if (!pieMenuActive) {
+		if (!pieMenuActive || m_ControlStates[ControlState::PIE_MENU_ACTIVE_DIGITAL]) {
 			m_AnalogAim = aim;
 		} else {
 			m_AnalogCursor = aim;
@@ -413,7 +449,7 @@ namespace RTE {
 		}
 
 		// Disable sharp aim while moving - this also helps with keyboard vs mouse fighting when moving and aiming in opposite directions
-		if (m_ControlStates[ControlState::BODY_JUMP] || (pieMenuActive && !m_ControlStates[ControlState::SECONDARY_ACTION])) {
+		if (m_ControlStates[ControlState::BODY_JUMP] && !pieMenuActive) {
 			if (IsMouseControlled()) {
 				g_UInputMan.SetMouseValueMagnitude(0.3F);
 			}

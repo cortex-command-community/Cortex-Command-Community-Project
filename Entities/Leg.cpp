@@ -78,25 +78,22 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Leg::ReadProperty(const std::string_view &propName, Reader &reader) {
-		if (propName == "Foot") {
-			SetFoot(dynamic_cast<Attachable *>(g_PresetMan.ReadReflectedPreset(reader)));
-		} else if (propName == "ContractedOffset") {
+		StartPropertyList(return Attachable::ReadProperty(propName, reader));
+		
+		MatchProperty("Foot", { SetFoot(dynamic_cast<Attachable *>(g_PresetMan.ReadReflectedPreset(reader))); });
+		MatchProperty("ContractedOffset", {
 			reader >> m_ContractedOffset;
 			m_MinExtension = m_ContractedOffset.GetMagnitude();
-		} else if (propName == "ExtendedOffset") {
+		});
+		MatchProperty("ExtendedOffset", {
 			reader >> m_ExtendedOffset;
 			m_MaxExtension = m_ExtendedOffset.GetMagnitude();
-		} else if (propName == "IdleOffset") {
-			reader >> m_IdleOffset;
-		} else if (propName == "WillIdle") {
-			reader >> m_WillIdle;
-		} else if (propName == "MoveSpeed") {
-			reader >> m_MoveSpeed;
-		} else {
-			return Attachable::ReadProperty(propName, reader);
-		}
+		});
+		MatchProperty("IdleOffset", { reader >> m_IdleOffset; });
+		MatchProperty("WillIdle", { reader >> m_WillIdle; });
+		MatchProperty("MoveSpeed", { reader >> m_MoveSpeed; });
 
-		return 0;
+		EndPropertyList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -166,11 +163,11 @@ namespace RTE {
 		}
 		int groupCenterOffsetY = (atomTopMostOffset + atomBottomMostOffset) / 2;
 
-		std::list<Atom *> filteredAtomList;
+		std::vector<Atom *> filteredAtomList;
 
 		// We want the FootGroup to end up with an "L" shape, so filter all the top and right Atoms while taking into account the heel might be slant and the sole might not be flat. The extra Atoms are not necessary and might (further) screw up some walking physics.
 		// Start from the bottom so we can filter any Atom that might be above the bottom-most one on the same X offset.
-		for (std::list<Atom *>::const_reverse_iterator atomItr = footGroup->GetAtomList().crbegin(); atomItr != footGroup->GetAtomList().crend(); ++atomItr) {
+		for (auto atomItr = footGroup->GetAtomList().crbegin(); atomItr != footGroup->GetAtomList().crend(); ++atomItr) {
 			int atomOffsetX = (*atomItr)->GetOriginalOffset().GetFloorIntX();
 			int atomOffsetY = (*atomItr)->GetOriginalOffset().GetFloorIntY();
 

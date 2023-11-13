@@ -7,6 +7,8 @@
 #include "WindowMan.h"
 #include "FrameMan.h"
 #include "MetaMan.h"
+#include "SceneMan.h"
+#include "NetworkClient.h"
 
 #include "ACraft.h"
 
@@ -23,6 +25,7 @@ namespace RTE {
 void Activity::Clear() {
 		m_ActivityState = ActivityState::NotStarted;
 		m_Paused = false;
+		m_AllowsUserSaving = false;
 		m_Description.clear();
 		m_SceneName.clear();
 		m_MaxPlayerSupport = Players::MaxPlayerCount;
@@ -84,6 +87,7 @@ void Activity::Clear() {
 
 		m_ActivityState = reference.m_ActivityState;
 		m_Paused = reference.m_Paused;
+		m_AllowsUserSaving = reference.m_AllowsUserSaving;
 		m_Description = reference.m_Description;
 		m_MaxPlayerSupport = reference.m_MaxPlayerSupport;
 		m_MinTeamsRequired = reference.m_MinTeamsRequired;
@@ -126,23 +130,18 @@ void Activity::Clear() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::ReadProperty(const std::string_view &propName, Reader &reader) {
-		if (propName == "Description") {
-			reader >> m_Description;
-		} else if (propName == "SceneName") {
-			reader >> m_SceneName;
-		} else if (propName == "MaxPlayerSupport") {
-			reader >> m_MaxPlayerSupport;
-		} else if (propName == "MinTeamsRequired") {
-			reader >> m_MinTeamsRequired;
-		} else if (propName == "Difficulty") {
-			reader >> m_Difficulty;
-		} else if (propName == "CraftOrbitAtTheEdge") {
-			reader >> m_CraftOrbitAtTheEdge;
-		} else if (propName == "InCampaignStage") {
-			reader >> m_InCampaignStage;
-		} else if (propName == "ActivityState") {
-			m_ActivityState = static_cast<ActivityState>(std::stoi(reader.ReadPropValue()));
-		} else if (propName == "TeamOfPlayer1" || propName == "TeamOfPlayer2" || propName == "TeamOfPlayer3" || propName == "TeamOfPlayer4") {
+		StartPropertyList(return Entity::ReadProperty(propName, reader));
+		
+		MatchProperty("Description", { reader >> m_Description; });
+		MatchProperty("SceneName", { reader >> m_SceneName; });
+		MatchProperty("MaxPlayerSupport", { reader >> m_MaxPlayerSupport; });
+		MatchProperty("MinTeamsRequired", { reader >> m_MinTeamsRequired; });
+		MatchProperty("Difficulty", { reader >> m_Difficulty; });
+		MatchProperty("CraftOrbitAtTheEdge", { reader >> m_CraftOrbitAtTheEdge; });
+		MatchProperty("InCampaignStage", { reader >> m_InCampaignStage; });
+		MatchProperty("ActivityState", { m_ActivityState = static_cast<ActivityState>(std::stoi(reader.ReadPropValue())); });
+		MatchProperty("AllowsUserSaving", { reader >> m_AllowsUserSaving; });
+		MatchForwards("TeamOfPlayer1") MatchForwards("TeamOfPlayer2") MatchForwards("TeamOfPlayer3") MatchProperty("TeamOfPlayer4", {
 			for (int playerTeam = Teams::TeamOne; playerTeam < Teams::MaxTeamCount; playerTeam++) {
 				std::string playerTeamNum = std::to_string(playerTeam + 1);
 				if (propName == "TeamOfPlayer" + playerTeamNum) {
@@ -159,7 +158,8 @@ void Activity::Clear() {
 					break;
 				}
 			}
-		} else if (propName == "Player1IsHuman" || propName == "Player2IsHuman" || propName == "Player3IsHuman" || propName == "Player4IsHuman") {
+		}); 
+		MatchForwards("Player1IsHuman") MatchForwards("Player2IsHuman") MatchForwards("Player3IsHuman") MatchProperty("Player4IsHuman", {
 			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 				std::string playerNum = std::to_string(player + 1);
 				if (propName == "Player" + playerNum + "IsHuman") {
@@ -167,7 +167,8 @@ void Activity::Clear() {
 					break;
 				}
 			}
-		} else if (propName == "Team1Name" || propName == "Team2Name" || propName == "Team3Name" || propName == "Team4Name") {
+		}); 
+		MatchForwards("Team1Name") MatchForwards("Team2Name") MatchForwards("Team3Name") MatchProperty("Team4Name", {
 			for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 				std::string teamNum = std::to_string(team + 1);
 				if (propName == "Team" + teamNum + "Name") {
@@ -177,7 +178,8 @@ void Activity::Clear() {
 					break;
 				}
 			}
-		} else if (propName == "Team1Icon" || propName == "Team2Icon" || propName == "Team3Icon" || propName == "Team4Icon") {
+		}); 
+		MatchForwards("Team1Icon") MatchForwards("Team2Icon") MatchForwards("Team3Icon") MatchProperty("Team4Icon", {
 			for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 				std::string teamNum = std::to_string(team + 1);
 				if (propName == "Team" + teamNum + "Icon") {
@@ -185,7 +187,8 @@ void Activity::Clear() {
 					break;
 				}
 			}
-		} else if (propName == "Team1Funds" || propName == "Team2Funds" || propName == "Team3Funds" || propName == "Team4Funds") {
+		}); 
+		MatchForwards("Team1Funds") MatchForwards("Team2Funds") MatchForwards("Team3Funds") MatchProperty("Team4Funds", {
 			for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 				std::string teamNum = std::to_string(team + 1);
 				if (propName == "Team" + teamNum + "Funds") {
@@ -193,7 +196,8 @@ void Activity::Clear() {
 					break;
 				}
 			}
-		} else if (propName == "TeamFundsShareOfPlayer1" || propName == "TeamFundsShareOfPlayer2" || propName == "TeamFundsShareOfPlayer3" || propName == "TeamFundsShareOfPlayer4") {
+		}); 
+		MatchForwards("TeamFundsShareOfPlayer1") MatchForwards("TeamFundsShareOfPlayer2") MatchForwards("TeamFundsShareOfPlayer3") MatchProperty("TeamFundsShareOfPlayer4", {
 			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 				std::string playerNum = std::to_string(player + 1);
 				if (propName == "TeamFundsShareOfPlayer" + playerNum) {
@@ -201,7 +205,8 @@ void Activity::Clear() {
 					break;
 				}
 			}
-		} else if (propName == "FundsContributionOfPlayer1" || propName == "FundsContributionOfPlayer2" || propName == "FundsContributionOfPlayer3" || propName == "FundsContributionOfPlayer4") {
+		}); 
+		MatchForwards("FundsContributionOfPlayer1") MatchForwards("FundsContributionOfPlayer2") MatchForwards("FundsContributionOfPlayer3") MatchProperty("FundsContributionOfPlayer4", {
 			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 				std::string playerNum = std::to_string(player + 1);
 				if (propName == "FundsContributionOfPlayer" + playerNum) {
@@ -209,12 +214,10 @@ void Activity::Clear() {
 					break;
 				}
 			}
-		} else if (propName == "GenericSavedValues") {
-			reader >> m_SavedValues;
-		} else {
-			return Entity::ReadProperty(propName, reader);
-		}
-		return 0;
+		});
+		MatchProperty("GenericSavedValues", { reader >> m_SavedValues; });
+
+		EndPropertyList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,6 +241,8 @@ void Activity::Clear() {
 		writer << m_InCampaignStage;
 		writer.NewProperty("ActivityState");
 		writer << m_ActivityState;
+		writer.NewProperty("AllowsUserSaving");
+		writer << m_AllowsUserSaving;
 
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 			std::string playerNum = std::to_string(player + 1);
@@ -281,7 +286,6 @@ void Activity::Clear() {
 			m_ActivityState = ActivityState::Running;
 		}
 		m_Paused = false;
-		g_ActivityMan.SetActivityAllowsSaving(ActivityCanBeSaved());
 
 		// Reset the mouse moving so that it won't trap the mouse if the window isn't in focus (common after loading)
 		if (!g_FrameMan.IsInMultiplayerMode()) {
@@ -891,5 +895,19 @@ void Activity::Clear() {
 			if (m_MessageTimer[player].IsPastSimMS(5000)) { g_FrameMan.ClearScreenText(ScreenOfPlayer(player)); }
 			if (m_IsActive[player]) { m_PlayerController[player].Update(); }
 		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool Activity::CanBeUserSaved() const {
+		if (const Scene *scene = g_SceneMan.GetScene(); (scene && scene->IsMetagameInternal()) || g_MetaMan.GameInProgress()) {
+			return false;
+		}
+
+		if (g_NetworkClient.IsConnectedAndRegistered()) {
+			return false;
+		}
+
+		return m_AllowsUserSaving;
 	}
 }

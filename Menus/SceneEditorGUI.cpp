@@ -82,7 +82,8 @@ void SceneEditorGUI::Clear()
     m_pObjectToBlink = 0;
     m_BrainSkyPath.clear();
     m_BrainSkyPathCost = 0;
-	m_RequireClearPathToOrbit = true;
+	m_RequireClearPathToOrbit = false;
+    m_PathRequest.reset();
 }
 
 
@@ -129,18 +130,20 @@ int SceneEditorGUI::Create(Controller *pController, FeatureSets featureSet, int 
     m_RevealTimer.SetRealTimeLimitMS(100);
 
 	//Check if we need to check for a clear path to orbit
-	m_RequireClearPathToOrbit = true;
+	m_RequireClearPathToOrbit = false;
 	GameActivity * gameActivity = dynamic_cast<GameActivity *>(g_ActivityMan.GetActivity());
-	if (gameActivity)
-		m_RequireClearPathToOrbit = gameActivity->GetRequireClearPathToOrbit();
+    if (gameActivity) {
+        m_RequireClearPathToOrbit = gameActivity->GetRequireClearPathToOrbit();
+    }
+
 	// Always disable clear path requirement in scene editor
 	SceneEditor * editorActivity = dynamic_cast<SceneEditor *>(g_ActivityMan.GetActivity());
-	if (editorActivity)
-		m_RequireClearPathToOrbit = false;
+    if (editorActivity) {
+        m_RequireClearPathToOrbit = false;
+    }
 
     // Only load the static dot bitmaps once
-    if (!s_pValidPathDot)
-    {
+    if (!s_pValidPathDot) {
         ContentFile dotFile("Base.rte/GUIs/Indicators/PathDotValid.png");
         s_pValidPathDot = dotFile.GetAsBitmap();
         dotFile.SetDataPath("Base.rte/GUIs/Indicators/PathDotInvalid.png");
@@ -351,6 +354,9 @@ bool SceneEditorGUI::TestBrainResidence(bool noBrainIsOK)
         return false;
     }
 
+    // Block on our path request completing
+    while (m_PathRequest && !m_PathRequest->complete) {};
+
 	// Nope! Not valid spot for this brain we found, need to force user to re-place it
     if (m_BrainSkyPathCost > MAXBRAINPATHCOST && m_RequireClearPathToOrbit)
     {
@@ -466,17 +472,17 @@ void SceneEditorGUI::Update()
 	m_PieMenu->Update();
 
     // Show the pie menu only when the secondary button is held down
-    if (m_pController->IsState(PRESS_SECONDARY) && m_EditorGUIMode != INACTIVE && m_EditorGUIMode != PICKINGOBJECT) {
-		m_PieMenu->SetPos(m_GridSnapping ? g_SceneMan.SnapPosition(m_CursorPos) : m_CursorPos);
-		m_PieMenu->SetEnabled(true);
+    if (m_pController->IsState(PIE_MENU_ACTIVE) && m_EditorGUIMode != INACTIVE && m_EditorGUIMode != PICKINGOBJECT) {
+        m_PieMenu->SetEnabled(true);
+        m_PieMenu->SetPos(m_GridSnapping ? g_SceneMan.SnapPosition(m_CursorPos) : m_CursorPos);
 
-		std::array<PieSlice *, 2> infrontAndBehindPieSlices = { m_PieMenu->GetFirstPieSliceByType(PieSlice::SliceType::EditorInFront), m_PieMenu->GetFirstPieSliceByType(PieSlice::SliceType::EditorBehind) };
-		for (PieSlice *pieSlice : infrontAndBehindPieSlices) {
-			if (pieSlice) { pieSlice->SetEnabled(m_EditorGUIMode == ADDINGOBJECT); }
-		}
+        std::array<PieSlice*, 2> infrontAndBehindPieSlices = { m_PieMenu->GetFirstPieSliceByType(PieSlice::SliceType::EditorInFront), m_PieMenu->GetFirstPieSliceByType(PieSlice::SliceType::EditorBehind) };
+        for (PieSlice* pieSlice : infrontAndBehindPieSlices) {
+            if (pieSlice) { pieSlice->SetEnabled(m_EditorGUIMode == ADDINGOBJECT); }
+        }
+    } else {
+        m_PieMenu->SetEnabled(false); 
     }
-
-	if (!m_pController->IsState(PIE_MENU_ACTIVE) || m_EditorGUIMode == INACTIVE || m_EditorGUIMode == PICKINGOBJECT) { m_PieMenu->SetEnabled(false); }
 
     ///////////////////////////////////////
     // Handle pie menu selections
@@ -535,7 +541,7 @@ void SceneEditorGUI::Update()
             // Set the std::list order to be at the end so new objects are added there
             m_ObjectListOrder = -1;
             // Update the object
-            m_pCurrentObject->Update();
+            m_pCurrentObject->FullUpdate();
             // Update the path to the brain, or clear it if there's none
             UpdateBrainPath();
 
@@ -619,7 +625,7 @@ void SceneEditorGUI::Update()
             {
                 // Set and update the cursor object
                 if (SetCurrentObject(dynamic_cast<SceneObject *>(pNewObject->Clone())))
-                    m_pCurrentObject->Update();
+                    m_pCurrentObject->FullUpdate();
             }
         }
         else if (m_pController->IsState(SCROLL_DOWN) || m_pController->IsState(ControlState::ACTOR_PREV))
@@ -630,7 +636,7 @@ void SceneEditorGUI::Update()
             {
                 // Set and update the object
                 if (SetCurrentObject(dynamic_cast<SceneObject *>(pNewObject->Clone())))
-                    m_pCurrentObject->Update();
+                    m_pCurrentObject->FullUpdate();
             }
         }
 
@@ -878,11 +884,14 @@ void SceneEditorGUI::Update()
         // Only place if the picker and pie menus are completely out of view, to avoid immediate placing after picking
         else if (m_pCurrentObject && m_pController->IsState(RELEASE_PRIMARY) && !m_pPicker->IsVisible())
         {
-            m_pCurrentObject->Update();
+            m_pCurrentObject->FullUpdate();
 
             // Placing governor brain, which actually just puts it back into the resident brain roster
             if (m_PreviousMode == INSTALLINGBRAIN)
             {
+                // Force our path request to complete so we know whether we can place or not
+                while (m_PathRequest && !m_PathRequest->complete) {};
+
                 // Only place if the brain has a clear path to the sky!
                 if (m_BrainSkyPathCost <= MAXBRAINPATHCOST || !m_RequireClearPathToOrbit)
                 {
@@ -1349,10 +1358,10 @@ void SceneEditorGUI::Update()
         m_CursorOffset.Reset();
 
     // Keep the cursor position within the world
-    bool cursorWrapped = g_SceneMan.ForceBounds(m_CursorPos);
+    g_SceneMan.ForceBounds(m_CursorPos);
 // TODO: make setscrolltarget with 'sloppy' target
     // Scroll to the cursor's scene position
-    g_CameraMan.SetScrollTarget(m_CursorPos, 0.3, cursorWrapped, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+    g_CameraMan.SetScrollTarget(m_CursorPos, 0.3, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
     // Apply the cursor position to the currently held object
     if (m_pCurrentObject && m_DrawCurrentObject)
     {
@@ -1363,7 +1372,7 @@ void SceneEditorGUI::Update()
             pCurrentActor->SetStatus(Actor::INACTIVE);
             pCurrentActor->GetController()->SetDisabled(true);
         }
-        m_pCurrentObject->Update();
+        m_pCurrentObject->FullUpdate();
     }
 
     // Animate the reveal index so it is clear which order blueprint things are placed/built
@@ -1564,23 +1573,93 @@ void SceneEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) const
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneEditorGUI::UpdateBrainSkyPathAndCost(Vector brainPos) {
-    int offsetX = 0;
-	int spacing = 20;
-	int orbitPosX;
+    if (!m_RequireClearPathToOrbit) {
+        m_PathRequest.reset();
+        return;
+    }
 
-	// If the ceiling directly above is blocked, search the surroundings for gaps.
-	for (int i = 0; i < g_SceneMan.GetSceneWidth() / spacing; i++) {
-		orbitPosX = brainPos.GetFloorIntX() + offsetX;
-		if (g_SceneMan.GetTerrMatter(orbitPosX, 0) == g_MaterialAir) {
+    if (m_PathRequest) {
+        if (!m_PathRequest->complete) {
+            // Wait for the request to complete
+            return;
+        }
+
+        if (g_SceneMan.GetScene()->PositionsAreTheSamePathNode(const_cast<Vector&>(m_PathRequest->targetPos), brainPos)) {
+            // No need to recalculate
+            return;
+        }
+    }
+
+    Vector orbitPos;
+
+    int staticPos;
+    int checkPos;
+    int lengthToCheck;
+
+    // If the ceiling directly above is blocked, search the surroundings for gaps.
+    Directions orbitDirection = g_SceneMan.GetTerrain()->GetOrbitDirection();
+    switch (orbitDirection) {
+    default:
+    case Directions::Up:
+        checkPos = brainPos.GetFloorIntX();
+        staticPos = 0;
+        lengthToCheck = g_SceneMan.GetSceneWidth();
+        break;
+    case Directions::Down:
+        checkPos = brainPos.GetFloorIntX();
+        staticPos = g_SceneMan.GetSceneHeight();
+        lengthToCheck = g_SceneMan.GetSceneWidth();
+        break;
+    case Directions::Left:
+        checkPos = brainPos.GetFloorIntY();
+        staticPos = 0;
+        lengthToCheck = g_SceneMan.GetSceneHeight();
+        break;
+    case Directions::Right:
+        checkPos = brainPos.GetFloorIntY();
+        staticPos = g_SceneMan.GetSceneWidth();
+        lengthToCheck = g_SceneMan.GetSceneHeight();
+        break;
+    }
+
+    auto getVector = [&](int pos) {
+        switch (orbitDirection) {
+        default:
+        case Directions::Up:
+            return Vector(pos, 0);
+        case Directions::Down:
+            return Vector(pos, g_SceneMan.GetSceneHeight());
+        case Directions::Left:
+            return Vector(0, pos);
+        case Directions::Right:
+            return Vector(g_SceneMan.GetSceneWidth(), pos);
+        }
+    };
+
+    int offset = 0;
+	int spacing = 20;
+	for (int i = 0; i < lengthToCheck / spacing; i++) {
+        int offsetCheckPos = checkPos + offset;
+        orbitPos = getVector(offsetCheckPos);
+        if (!g_SceneMan.IsWithinBounds(orbitPos.GetFloorIntX(), orbitPos.GetFloorIntY())) {
+            offset *= -1; 
+            offsetCheckPos = checkPos + offset;
+            orbitPos = getVector(offsetCheckPos);
+        }
+
+		if (g_SceneMan.GetTerrMatter(orbitPos.GetFloorIntX(), orbitPos.GetFloorIntY()) == g_MaterialAir) {
 			break;
 		} else {
-			offsetX = i * (i % 2 == 0 ? spacing : -spacing);
+			offset = i * (i % 2 == 0 ? spacing : -spacing);
 		}
-		if (!g_SceneMan.IsWithinBounds(orbitPosX, 0)) { offsetX *= -1; }
 	}
 
 	Activity::Teams team = static_cast<Activity::Teams>(g_ActivityMan.GetActivity()->GetTeamOfPlayer(m_pController->GetPlayer()));
-	m_BrainSkyPathCost = g_SceneMan.GetScene()->CalculatePath(brainPos, Vector(orbitPosX, 0), m_BrainSkyPath, c_PathFindingDefaultDigStrength, team);
+    m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(orbitPos, brainPos, c_PathFindingDefaultDigStrength, team,
+        [&](std::shared_ptr<volatile PathRequest> pathRequest) {
+            m_BrainSkyPath = const_cast<std::list<Vector>&>(pathRequest->path);
+            m_BrainSkyPathCost = pathRequest->totalCost;
+        });
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

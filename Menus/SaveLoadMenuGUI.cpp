@@ -72,8 +72,6 @@ namespace RTE {
 		m_CancelButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("CancelButton"));
 
 		SwitchToConfirmDialogMode(ConfirmDialogMode::None);
-
-		m_SaveGamesFetched = false;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,7 +84,7 @@ namespace RTE {
 
 		std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/";
 		for (const auto &entry : std::filesystem::directory_iterator(saveFilePath)) {
-			if (entry.path().extension() == ".ini" && entry.path().filename() != "Index.ini") {
+			if (entry.path().extension() == ".ccsave" && entry.path().filename() != "Index.ini") {
 				SaveRecord record;
 				record.SavePath = entry.path();
 				record.SaveDate = entry.last_write_time();
@@ -124,7 +122,6 @@ namespace RTE {
 				record.Scene = originalScenePresetName;
 			});
 
-		m_SaveGamesFetched = true;
 		UpdateSaveGamesGUIList();
 	}
 
@@ -149,15 +146,18 @@ namespace RTE {
 			saveNameText << std::left << std::setfill(' ') << std::setw(32) << save.SavePath.stem().string();
 
 			// This is so much more fucking difficult than it has any right to be
-#if __cpp_lib_chrono >= 201907L
+#if defined(_MSC_VER) || __GNUC__ > 12
 			const auto saveFsTime = std::chrono::clock_cast<std::chrono::system_clock>(save.SaveDate);
 			const auto saveTime = std::chrono::system_clock::to_time_t(saveFsTime);
-#else
+#else	
 			// TODO - kill this monstrosity when we move to GCC13
 			auto saveFsTime = std::chrono::system_clock::time_point(save.SaveDate.time_since_epoch());
 	#ifdef _WIN32
 			// Windows epoch time are the number of seconds since... 1601-01-01 00:00:00. Seriously.
 			saveFsTime -= std::chrono::seconds(11644473600LL);
+	#elif defined(__GLIBCXX__)
+			// libstdc++ file_clock epoch is 2174-01-01 00:00:00 for reasons
+			saveFsTime += std::chrono::seconds(6437664000LL);
 	#endif
 			const auto saveTime = std::chrono::system_clock::to_time_t(saveFsTime);
 #endif
@@ -202,25 +202,9 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::DeleteSave() {
-		std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText();
+		std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText() + ".ccsave";
 
-		// TODO - it'd be nice to have this all zipped up into one file...
-		std::vector<std::filesystem::path> filePaths;
-		filePaths.emplace_back(saveFilePath + ".ini");
-		filePaths.emplace_back(saveFilePath + " BG.png");
-		filePaths.emplace_back(saveFilePath + " FG.png");
-		filePaths.emplace_back(saveFilePath + " Mat.png");
-		filePaths.emplace_back(saveFilePath + " UST1.png");
-		filePaths.emplace_back(saveFilePath + " UST2.png");
-		filePaths.emplace_back(saveFilePath + " UST3.png");
-		filePaths.emplace_back(saveFilePath + " UST4.png");
-
-		std::for_each(std::execution::par_unseq,
-			filePaths.begin(), filePaths.end(),
-			[](const std::filesystem::path &path) {
-				std::filesystem::remove(path);
-			});
-
+		std::filesystem::remove(saveFilePath);
 		g_GUISound.ConfirmSound()->Play();
 
 		PopulateSaveGamesList();
@@ -229,7 +213,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::UpdateButtonEnabledStates() {
-		bool allowSave = g_ActivityMan.GetActivityAllowsSaving() && m_SaveGameName->GetText() != "";
+		bool allowSave = g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->GetAllowsUserSaving() && m_SaveGameName->GetText() != "";
 
 		int existingSaveItemIndex = -1;
 		for (int i = 0; i < m_SaveGamesListBox->GetItemList()->size(); ++i) {
@@ -256,7 +240,7 @@ namespace RTE {
 		m_LoadButton->SetEnabled(saveExists);
 		m_DeleteButton->SetEnabled(saveExists);
 
-		m_ActivityCannotBeSavedLabel->SetVisible(g_ActivityMan.GetActivity() && !g_ActivityMan.GetActivityAllowsSaving());
+		m_ActivityCannotBeSavedLabel->SetVisible(g_ActivityMan.GetActivity() && !g_ActivityMan.GetActivity()->GetAllowsUserSaving());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -282,11 +266,6 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SaveLoadMenuGUI::HandleInputEvents(PauseMenuGUI *pauseMenu) {
-		if (!ListsFetched()) {
-			PopulateSaveGamesList();
-			UpdateButtonEnabledStates();
-		}
-
 		m_GUIControlManager->Update();
 
 		GUIEvent guiEvent;
@@ -297,9 +276,6 @@ namespace RTE {
 				} else if (guiEvent.GetControl() == m_LoadButton) {
 					bool gameLoaded = LoadSave();
 					if (gameLoaded) {
-						if (pauseMenu) {
-							pauseMenu->ClearBackdrop();
-						}
 						return true;
 					}
 				} else if (guiEvent.GetControl() == m_CreateButton) {
@@ -340,6 +316,13 @@ namespace RTE {
 		UpdateButtonEnabledStates();
 
 		return false;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void SaveLoadMenuGUI::Refresh() {
+		PopulateSaveGamesList();
+		UpdateButtonEnabledStates();
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

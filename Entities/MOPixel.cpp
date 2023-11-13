@@ -2,6 +2,7 @@
 
 #include "Atom.h"
 #include "PostProcessMan.h"
+#include "FrameMan.h"
 
 namespace RTE {
 
@@ -16,6 +17,7 @@ namespace RTE {
 		m_MinLethalRange = 1;
 		m_MaxLethalRange = 1;
 		m_LethalSharpness = 1;
+		m_Staininess = 0;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,6 +59,7 @@ namespace RTE {
 		m_MinLethalRange = reference.m_MinLethalRange;
 		m_MaxLethalRange = reference.m_MaxLethalRange;
 		m_LethalSharpness = reference.m_LethalSharpness;
+		m_Staininess = reference.m_Staininess;
 
 		return 0;
 	}
@@ -64,20 +67,19 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MOPixel::ReadProperty(const std::string_view &propName, Reader &reader) {
-		if (propName == "Atom") {
+		StartPropertyList(return MovableObject::ReadProperty(propName, reader));
+		
+		MatchProperty("Atom", {
 			if (!m_Atom) { m_Atom = new Atom; }
 			reader >> m_Atom;
 			m_Atom->SetOwner(this);
-		} else if (propName == "Color") {
-			reader >> m_Color;
-		} else if (propName == "MinLethalRange") {
-			reader >> m_MinLethalRange;
-		} else if (propName == "MaxLethalRange") {
-			reader >> m_MaxLethalRange;
-		} else {
-			return MovableObject::ReadProperty(propName, reader);
-		}
-		return 0;
+		});
+		MatchProperty("Color", { reader >> m_Color; });
+		MatchProperty("MinLethalRange", { reader >> m_MinLethalRange; });
+		MatchProperty("MaxLethalRange", { reader >> m_MaxLethalRange; });
+		MatchProperty("Staininess", { reader >> m_Staininess; });
+
+		EndPropertyList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,6 +95,8 @@ namespace RTE {
 		writer << m_MinLethalRange;
 		writer.NewProperty("MaxLethalRange");
 		writer << m_MaxLethalRange;
+		writer.NewProperty("Staininess");
+		writer << m_Staininess;
 
 		return 0;
 	}
