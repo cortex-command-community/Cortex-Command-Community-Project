@@ -494,6 +494,12 @@ ClassInfoGetters;
     /// <param name="rotationOffset">The new rotation offset, in local space.</param>
     void SetRotationOffset(const Vector& rotationOffset) { m_RotationOffset = rotationOffset; }
 
+    /// <summary>
+    /// Sets the new position offset.
+    /// </summary>
+    /// <param name="rotationOffset">The new position offset, in local space.</param>
+    void SetPositionOffset(const Vector& positionOffset) { m_PositionOffset = positionOffset; }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          FrameDone
@@ -666,6 +672,8 @@ protected:
     Matrix m_Rotation;
     // The point we should be rotated around, in local space.
     Vector m_RotationOffset;
+    // The offset to apply to our walkpath position, in local space.
+    Vector m_PositionOffset;
 
     // If GetNextTimeSeg() couldn't use up all frame time because the current segment
     // ended,this var stores the remainder of time that should be used to progress

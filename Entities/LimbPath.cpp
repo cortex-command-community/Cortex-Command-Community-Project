@@ -42,6 +42,7 @@ void LimbPath::Clear()
     m_JointVel.Reset();
     m_Rotation.Reset();
     m_RotationOffset.Reset();
+    m_PositionOffset.Reset();
     m_TimeLeft = 0.0;
     m_PathTimer.Reset();
     m_SegTimer.Reset();
@@ -188,7 +189,7 @@ int LimbPath::ReadProperty(const std::string_view &propName, Reader &reader)
 
 
 Vector LimbPath::RotatePoint(const Vector &point) const {
-    Vector offset = m_RotationOffset.GetXFlipped(m_HFlipped);
+    Vector offset = (m_RotationOffset + m_PositionOffset).GetXFlipped(m_HFlipped);
     return ((point - offset) * m_Rotation) + offset;
 }
 
@@ -246,7 +247,7 @@ void LimbPath::Destroy(bool notInherited)
 
 Vector LimbPath::GetProgressPos()
 {
-    Vector returnVec(m_Start);
+    Vector returnVec(m_Start + m_PositionOffset);
     if (IsStaticPoint()) {
         return m_JointPos + RotatePoint(returnVec);
     }
@@ -273,7 +274,7 @@ Vector LimbPath::GetProgressPos()
 
 Vector LimbPath::GetCurrentSegTarget()
 {
-    Vector returnVec(m_Start);
+    Vector returnVec(m_Start + m_PositionOffset);
     if (IsStaticPoint()) {
         return m_JointPos + RotatePoint(returnVec);
     }
@@ -561,14 +562,11 @@ bool LimbPath::RestartFree(Vector &limbPos, MOID MOIDToIgnore, int ignoreTeam)
     m_SegProgress = 0;
     bool found = false;
     float result = 0;
-
-    g_SceneMan.GetTerrain()->LockBitmaps();
-    acquire_bitmap(g_SceneMan.GetMOIDBitmap());
     
     if (IsStaticPoint())
 	{
 		Vector notUsed;
-        Vector targetPos = m_JointPos + RotatePoint(m_Start);
+        Vector targetPos = m_JointPos + RotatePoint(m_Start + m_PositionOffset);
         Vector beginPos = targetPos;
 // TODO: don't hardcode the beginpos
         beginPos.m_Y -= 24;
@@ -590,14 +588,14 @@ bool LimbPath::RestartFree(Vector &limbPos, MOID MOIDToIgnore, int ignoreTeam)
         int i = 0;
         for (; i < m_StartSegCount; ++i)
         {
-            result = g_SceneMan.CastObstacleRay(GetProgressPos(), RotatePoint(*m_CurrentSegment), notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
+            result = g_SceneMan.CastObstacleRay(GetProgressPos(), RotatePoint(*m_CurrentSegment + m_PositionOffset), notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
 
             // If we found an obstacle after the first pixel, report the current segment as the starting one and that there is free space here
             if (result > 0)
             {
                 // Set accurate segment progress
 // TODO: See if this is a good idea, or if we should just set it to 0 and set limbPos to the start of current segment
-                m_SegProgress = g_SceneMan.ShortestDistance(GetProgressPos(), limbPos).GetMagnitude() / (*m_CurrentSegment).GetMagnitude();
+                m_SegProgress = g_SceneMan.ShortestDistance(GetProgressPos(), limbPos).GetMagnitude() / (*m_CurrentSegment + m_PositionOffset).GetMagnitude();
                 limbPos = GetProgressPos();
 //                m_SegProgress = 0;
                 m_Ended = false;
@@ -639,8 +637,6 @@ bool LimbPath::RestartFree(Vector &limbPos, MOID MOIDToIgnore, int ignoreTeam)
             found = true;
         }
     }
-    release_bitmap(g_SceneMan.GetMOIDBitmap());
-    g_SceneMan.GetTerrain()->UnlockBitmaps();
 
     if (found)
     {
@@ -689,7 +685,7 @@ void LimbPath::Draw(BITMAP *pTargetBitmap,
                     const Vector &targetPos,
                     unsigned char color) const
 {
-    Vector prevPoint = m_Start;
+    Vector prevPoint = m_Start + m_PositionOffset;
     Vector nextPoint = prevPoint;
     for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr)
     {
