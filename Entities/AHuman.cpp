@@ -63,6 +63,7 @@ void AHuman::Clear()
     m_MoveState = STAND;
     m_ProneState = NOTPRONE;
     m_ProneTimer.Reset();
+	m_MaxWalkPathCrouchShift = 5.0F;
     for (int i = 0; i < MOVEMENTSTATECOUNT; ++i) {
         m_Paths[FGROUND][i].Reset();
         m_Paths[BGROUND][i].Reset();
@@ -85,6 +86,7 @@ void AHuman::Clear()
 	m_BGArmFlailScalar = 0.7F;
 	m_EquipHUDTimer.Reset();
 	m_WalkAngle.fill(Matrix());
+	m_WalkPathYOffset = 0.0F;
 	m_ArmSwingRate = 1.0F;
 	m_DeviceArmSwayRate = 0.5F;
 
@@ -1705,6 +1707,22 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 		Matrix walkAngle;
 		walkAngle.SetDegAngle(terrainRotationDegs);
 		m_WalkAngle[whichLayer] = walkAngle;
+
+		if (m_pHead) {
+			// Cast a ray above our head to either side to determine whether we need to crouch
+			float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 2.0f);
+			float toSide = std::floor(m_pHead->GetRadius() + 3.0f);
+			Vector hitPosLeft = (m_pHead->GetPos() + Vector(-toSide, 0.0F)).Floor();
+			Vector hitPosRight = (m_pHead->GetPos() + Vector(toSide, 0.0F)).Floor();
+			bool leftHit = g_SceneMan.CastStrengthRay(hitPosLeft, Vector(0.0F, -desiredCrouchHeadRoom), 10.0F, hitPosLeft, 0, g_MaterialGrass);
+			bool rightHit = g_SceneMan.CastStrengthRay(hitPosRight, Vector(0.0F, -desiredCrouchHeadRoom), 10.0F, hitPosRight, 0, g_MaterialGrass);
+			float lowestY = std::max(hitPosLeft.m_Y, hitPosRight.m_Y);
+			float headroom = std::floor(m_pHead->GetPos().m_Y - lowestY);
+			float adjust = desiredCrouchHeadRoom - headroom;
+			m_WalkPathYOffset = std::clamp(LERP(0.0F, 1.0F, m_WalkPathYOffset, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+		} else {
+			m_WalkPathYOffset = 0.0f;
+		}
 	}
 }
 
@@ -2194,6 +2212,9 @@ void AHuman::PreControllerUpdate()
             std::swap(m_pBGFootGroup, m_BackupBGFootGroup);
         }
 
+		if (m_pFGLeg) { UpdateWalkAngle(FGROUND); }
+		if (m_pBGLeg) { UpdateWalkAngle(BGROUND); }
+
         // WALKING, OR WE ARE JETPACKING AND STUCK
         if (m_MoveState == WALK || (m_MoveState == JUMP && isStill)) {
             m_Paths[FGROUND][STAND].Terminate();
@@ -2212,8 +2233,8 @@ void AHuman::PreControllerUpdate()
 			if (m_pFGLeg && (!m_pBGLeg || !(m_Paths[FGROUND][WALK].PathEnded() && BGLegProg < 0.5F) || m_StrideStart)) {
 				// Reset the stride timer if the path is about to restart.
 				if (m_Paths[FGROUND][WALK].PathEnded() || m_Paths[FGROUND][WALK].PathIsAtStart()) { m_StrideTimer.Reset(); }
-				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pFGLeg->GetParentOffset()), m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][WALK].GetLowestY()));
-				if (restarted) { UpdateWalkAngle(FGROUND); }
+				Vector jointPos = m_Pos + RotateOffset(m_pFGLeg->GetParentOffset()) + Vector(0.0F, -m_WalkPathYOffset);
+				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][WALK].GetLowestY()));
 			} else {
 				m_ArmClimbing[BGROUND] = false;
 			}
@@ -2221,8 +2242,8 @@ void AHuman::PreControllerUpdate()
 				m_StrideStart = false;
 				// Reset the stride timer if the path is about to restart.
 				if (m_Paths[BGROUND][WALK].PathEnded() || m_Paths[BGROUND][WALK].PathIsAtStart()) { m_StrideTimer.Reset(); }
-				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pBGLeg->GetParentOffset()), m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][WALK].GetLowestY()));
-				if (restarted) { UpdateWalkAngle(BGROUND); }
+				Vector jointPos = m_Pos + RotateOffset(m_pBGLeg->GetParentOffset()) + Vector(0.0F, -m_WalkPathYOffset);
+				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][WALK].GetLowestY()));
 			} else {
 				if (m_pBGLeg) { m_pBGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pBGLeg->GetParentOffset()), m_pBGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pBGLeg->GetMass(), deltaTime); }
 				m_ArmClimbing[FGROUND] = false;
@@ -2360,9 +2381,15 @@ void AHuman::PreControllerUpdate()
 					m_Paths[FGROUND][ARMCRAWL].Terminate();
 					m_Paths[BGROUND][ARMCRAWL].Terminate();
 
-					if (m_pFGLeg) { m_pFGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pFGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][STAND], deltaTime, nullptr, !m_pBGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY())); }
+					if (m_pFGLeg) {
+						Vector jointPos = m_Pos.GetFloored() + m_pFGLeg->GetParentOffset().GetXFlipped(m_HFlipped) + Vector(0.0F, -m_WalkPathYOffset);
+						m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][STAND], deltaTime, nullptr, !m_pBGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY())); 
+					}
 
-					if (m_pBGLeg) { m_pBGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pBGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][STAND], deltaTime, nullptr, !m_pFGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY())); }
+					if (m_pBGLeg) {
+						Vector jointPos = m_Pos.GetFloored() + m_pBGLeg->GetParentOffset().GetXFlipped(m_HFlipped) + Vector(0.0F, -m_WalkPathYOffset);
+						m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][STAND], deltaTime, nullptr, !m_pFGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY())); 
+					}
 				}
 			}
 		}
