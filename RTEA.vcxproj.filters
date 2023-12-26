@@ -582,9 +582,6 @@
     <ClInclude Include="Managers\WindowMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\ThreadMan.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
     <ClInclude Include="Resources\Credits.h">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -1130,9 +1127,6 @@
     </ClCompile>
     <ClCompile Include="System\PieQuadrant.cpp">
       <Filter>System</Filter>
-    </ClCompile>
-    <ClCompile Include="System\glad\gl.c">
-      <Filter>System\glad</Filter>
     </ClCompile>
     <ClCompile Include="Managers\CameraMan.cpp">
       <Filter>Managers</Filter>
