@@ -4,13 +4,6 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-## [Super-unreleased]
-
-<details><summary><b>Removed</b></summary>
-
-- Removed `Settings.ini` property `SimplifiedCollisionDetection = 0/1`. With the physics detection overhaul in pre-5, this became unnecessary.
-
 ## [Unreleased]
 
 <details><summary><b>Added</b></summary>
@@ -182,6 +175,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 <details><summary><b>Removed</b></summary>
 
 - Removed RealToSimCap and OneSimUpdatePerFrame. Instead we try to always target 60fps, even if it slows the simulation down a little.
+
+- Removed `Settings.ini` property `SimplifiedCollisionDetection = 0/1`. With the physics detection overhaul in pre-5, this became unnecessary.
 
 </details>
 
@@ -816,30 +811,6 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 - Added `LuaMan` Lua function `FileExists`, which lets you check whether a specified file exists. Like with `FileOpen`, the file must be inside a folder ending in `.rte`.
 
 - New `Actor` Lua (R) property `DigStrength`, that gets the calculated dig strength of the given `Actor`, based on whether or not they have any digging tools.
-
-- New `Actor` Lua (R) property `DigStrength`, that gets the calculated dig strength of the given `Actor`, based on whether or not they have any digging tools.
-
-- New `Settings.ini` property `EnableMultithreadedAI`, which can be used to enable experimental support for multithreaded AI. Please note that this is in a testing phase and is likely to cause bugs, especially with mods.
-
-- Multithreaded asynchronous pathfinding, which dramatically improves performance on large maps and improves AI responsiveness.
-	New `Actor` Lua property (R) `IsWaitingOnNewMovePath`, which returns true while the actor is currently calculating a new path.  
-	New Lua `SceneMan` function `CalculatePathAsync` for asynchronous pathfinding. This function has no return value, and is used as follows:
-	```lua
-	SceneMan.Scene:CalculatePathAsync(
-		function(pathRequest) -- Callback function that is run when the path has finished calculating, passing in the pathRequest object.
-			pathRequest.Path; -- A list of Vectors that make up the calculated path.
-			pathRequest.PathLength -- The number of points in the calculated path.
-			pathRequest.Status; -- The enum status of the path, the options are PathRequest.Solved, PathRequest.NoSolution, and PathRequest.StartEndSame.
-			pathRequest.TotalCost; -- The total cost of path.
-		end,
-		-- All other arguments are the same as Scene:CalculatePath():
-		startPos, -- The start position of the path to calculate.
-		endPos,  -- The end position of the path to calculate.
-		movePathToGround,  -- Whether or not to move the points in the calculated path to ground level.
-		digStrength, -- The dig strength to use when calculating the path.
-		team -- The team to use when calculating the path, allowing the path to ignore that team's doors. If not specified, it will default to `Activity.NOTEAM`, and no doors will be ignored.
-	);
-	```
 
 </details>
 
