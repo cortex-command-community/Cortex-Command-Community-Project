@@ -21,7 +21,6 @@ sources += files(
 'TimerMan.cpp',
 'UInputMan.cpp',
 'WindowMan.cpp',
-'ThreadMan.cpp'
 )
 luaman_cpp_args = preprocessor_flags
 defaults_override = []
