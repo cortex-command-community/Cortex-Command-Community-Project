@@ -64,6 +64,7 @@ void AHuman::Clear()
     m_ProneState = NOTPRONE;
     m_ProneTimer.Reset();
 	m_MaxWalkPathCrouchShift = 6.0F;
+	m_MaxCrouchRotation = c_QuarterPI * 1.25F
     for (int i = 0; i < MOVEMENTSTATECOUNT; ++i) {
         m_Paths[FGROUND][i].Reset();
         m_Paths[BGROUND][i].Reset();
@@ -86,7 +87,7 @@ void AHuman::Clear()
 	m_BGArmFlailScalar = 0.7F;
 	m_EquipHUDTimer.Reset();
 	m_WalkAngle.fill(Matrix());
-	m_WalkPathYOffset = 0.0F;
+	m_WalkPathOffset.Reset();
 	m_ArmSwingRate = 1.0F;
 	m_DeviceArmSwayRate = 0.5F;
 
@@ -210,6 +211,7 @@ int AHuman::Create(const AHuman &reference) {
     m_BackupBGFootGroup->SetLimbPos(atomGroupToUseAsFootGroupBG->GetLimbPos());
 
 	m_MaxWalkPathCrouchShift = reference.m_MaxWalkPathCrouchShift;
+	m_MaxCrouchRotation = reference.m_MaxCrouchRotation;
 
 	if (reference.m_StrideSound) { m_StrideSound = dynamic_cast<SoundContainer*>(reference.m_StrideSound->Clone()); }
 
@@ -287,9 +289,8 @@ int AHuman::ReadProperty(const std::string_view &propName, Reader &reader) {
         m_BackupBGFootGroup = new AtomGroup(*m_pBGFootGroup);
         m_BackupBGFootGroup->RemoveAllAtoms();
     });
-	MatchProperty("MaxWalkPathCrouchShift", {
-		reader >> m_MaxWalkPathCrouchShift;
-	});
+	MatchProperty("MaxWalkPathCrouchShift", { reader >> m_MaxWalkPathCrouchShift; });
+	MatchProperty("MaxCrouchRotation", { reader >> m_MaxCrouchRotation; });
     MatchProperty("StrideSound", {
 		m_StrideSound = new SoundContainer;
         reader >> m_StrideSound;
@@ -355,6 +356,8 @@ int AHuman::Save(Writer &writer) const
     writer << m_pBGFootGroup;
 	writer.NewProperty("MaxWalkPathCrouchShift");
 	writer << m_MaxWalkPathCrouchShift;
+	writer.NewProperty("MaxCrouchRotation");
+	writer << m_MaxCrouchRotation;
     writer.NewProperty("StrideSound");
     writer << m_StrideSound;
 
@@ -1725,9 +1728,14 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 			g_SceneMan.CastStrengthRay(hitPosRight, Vector(0.0F, -desiredCrouchHeadRoom), 10.0F, hitPosRight, 0, g_MaterialGrass);
 			float headroom = m_pHead->GetPos().m_Y - std::max(hitPosLeft.m_Y, hitPosRight.m_Y);
 			float adjust = desiredCrouchHeadRoom - headroom;
-			m_WalkPathYOffset = std::clamp(LERP(0.0F, 1.0F, m_WalkPathYOffset, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+			float walkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+			m_WalkPathOffset.m_Y = -walkPathYOffset;
+
+			// Adjust our X offset to try to keep our legs under our centre-of-mass
+			float predictedPosition = ((m_pHead->GetPos().m_X - m_Pos.m_X) * 0.15F) + m_Vel.m_X;
+			m_WalkPathOffset.m_X = predictedPosition;
 		} else {
-			m_WalkPathYOffset = 0.0f;
+			m_WalkPathOffset.Reset();
 		}
 	}
 }
@@ -2240,7 +2248,7 @@ void AHuman::PreControllerUpdate()
 				// Reset the stride timer if the path is about to restart.
 				if (m_Paths[FGROUND][WALK].PathEnded() || m_Paths[FGROUND][WALK].PathIsAtStart()) { m_StrideTimer.Reset(); }
 				Vector jointPos = m_Pos + RotateOffset(m_pFGLeg->GetParentOffset());
-				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][WALK].GetLowestY()), Vector(0.0F, -m_WalkPathYOffset));
+				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][WALK].GetLowestY()), m_WalkPathOffset);
 			} else {
 				m_ArmClimbing[BGROUND] = false;
 			}
@@ -2249,7 +2257,7 @@ void AHuman::PreControllerUpdate()
 				// Reset the stride timer if the path is about to restart.
 				if (m_Paths[BGROUND][WALK].PathEnded() || m_Paths[BGROUND][WALK].PathIsAtStart()) { m_StrideTimer.Reset(); }
 				Vector jointPos = m_Pos + RotateOffset(m_pBGLeg->GetParentOffset());
-				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][WALK].GetLowestY()), Vector(0.0F, -m_WalkPathYOffset));
+				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][WALK].GetLowestY()), m_WalkPathOffset);
 			} else {
 				if (m_pBGLeg) { m_pBGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pBGLeg->GetParentOffset()), m_pBGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pBGLeg->GetMass(), deltaTime); }
 				m_ArmClimbing[FGROUND] = false;
@@ -2389,12 +2397,12 @@ void AHuman::PreControllerUpdate()
 
 					if (m_pFGLeg) {
 						Vector jointPos = m_Pos.GetFloored() + m_pFGLeg->GetParentOffset().GetXFlipped(m_HFlipped);
-						m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][STAND], deltaTime, nullptr, !m_pBGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), Vector(0.0F, -m_WalkPathYOffset)); 
+						m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][STAND], deltaTime, nullptr, !m_pBGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), m_WalkPathOffset); 
 					}
 
 					if (m_pBGLeg) {
 						Vector jointPos = m_Pos.GetFloored() + m_pBGLeg->GetParentOffset().GetXFlipped(m_HFlipped);
-						m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][STAND], deltaTime, nullptr, !m_pFGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), Vector(0.0F, -m_WalkPathYOffset)); 
+						m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][STAND], deltaTime, nullptr, !m_pFGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), m_WalkPathOffset); 
 					}
 				}
 			}
@@ -2646,7 +2654,13 @@ void AHuman::Update()
 			}
 		} else {
 			// Upright body posture
-			float rotDiff = rot - (GetRotAngleTarget(m_MoveState) * (m_AimAngle > 0 ? 1.0F - (m_AimAngle / c_HalfPI) : 1.0F) * GetFlipFactor());
+			float rotTarget = (GetRotAngleTarget(m_MoveState) * (m_AimAngle > 0 ? 1.0F - (m_AimAngle / c_HalfPI) : 1.0F) * GetFlipFactor());
+
+			// Lean forwards when crouching
+			float crouchAngleAdjust = m_HFlipped ? m_MaxCrouchRotation : -m_MaxCrouchRotation;
+			rotTarget += LERP(0.0F, m_MaxWalkPathCrouchShift, 0.0F, crouchAngleAdjust, m_WalkPathOffset.m_Y * -1.0F);
+
+			float rotDiff = rot - rotTarget;
 			m_AngularVel = m_AngularVel * (0.98F - 0.06F * (m_Health / m_MaxHealth)) - (rotDiff * 0.5F);
 		}
     }
@@ -2755,10 +2769,10 @@ void AHuman::Draw(BITMAP *pTargetBitmap, const Vector &targetPos, DrawMode mode,
     }
 
     if (mode == g_DrawColor && !onlyPhysical && g_SettingsMan.DrawLimbPathVisualizations()) {
-        m_Paths[m_HFlipped][WALK].Draw(pTargetBitmap, targetPos, 122);
-        m_Paths[m_HFlipped][CRAWL].Draw(pTargetBitmap, targetPos, 122);
-        m_Paths[m_HFlipped][ARMCRAWL].Draw(pTargetBitmap, targetPos, 13);
-        m_Paths[m_HFlipped][CLIMB].Draw(pTargetBitmap, targetPos, 165);
+		m_Paths[m_HFlipped][WALK].Draw(pTargetBitmap, targetPos, 122);
+		m_Paths[m_HFlipped][CRAWL].Draw(pTargetBitmap, targetPos, 122);
+		m_Paths[m_HFlipped][ARMCRAWL].Draw(pTargetBitmap, targetPos, 13);
+		m_Paths[m_HFlipped][CLIMB].Draw(pTargetBitmap, targetPos, 165);
     }
 }
 
