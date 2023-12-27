@@ -414,6 +414,7 @@ namespace RTE {
 		.def("MouseButtonPressed", &UInputMan::MouseButtonPressed)
 		.def("MouseButtonReleased", &UInputMan::MouseButtonReleased)
 		.def("MouseButtonHeld", &UInputMan::MouseButtonHeld)
+		.def("GetMousePos", &UInputMan::GetAbsoluteMousePosition)
 		.def("MouseWheelMoved", &UInputMan::MouseWheelMoved)
 		.def("JoyButtonPressed", &UInputMan::JoyButtonPressed)
 		.def("JoyButtonReleased", &UInputMan::JoyButtonReleased)
