@@ -1721,12 +1721,23 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 
 		if (m_pHead) {
 			// Cast a ray above our head to either side to determine whether we need to crouch
-			float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 1.5f);
+			float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 2.0f);
 			float toSide = std::floor(m_pHead->GetRadius() + 3.0f);
-			Vector hitPosLeft = (m_pHead->GetPos() + Vector(-toSide, 0.0F)).Floor();
-			Vector hitPosRight = (m_pHead->GetPos() + Vector(toSide, 0.0F)).Floor();
-			g_SceneMan.CastStrengthRay(hitPosLeft, Vector(0.0F, -desiredCrouchHeadRoom), 10.0F, hitPosLeft, 0, g_MaterialGrass);
-			g_SceneMan.CastStrengthRay(hitPosRight, Vector(0.0F, -desiredCrouchHeadRoom), 10.0F, hitPosRight, 0, g_MaterialGrass);
+			Vector hitPosLeftStart = (m_pHead->GetPos() + Vector(-toSide, m_SpriteRadius * 0.5F)).Floor();
+			Vector hitPosRightStart = (m_pHead->GetPos() + Vector(toSide, m_SpriteRadius * 0.5F)).Floor();
+			Vector hitPosLeft, hitPosRight;
+			g_SceneMan.CastStrengthRay(hitPosLeftStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPosLeft, 0, g_MaterialGrass);
+			g_SceneMan.CastStrengthRay(hitPosRightStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPosRight, 0, g_MaterialGrass);
+			
+			// Don't do it if we're already hitting, we're probably standing next to a wall
+			if (hitPosLeftStart == hitPosLeft) {
+				hitPosLeft.m_X = 0.0F;
+			}
+
+			if (hitPosRightStart == hitPosRight) {
+				hitPosRight.m_X = 0.0F;
+			}
+
 			float headroom = m_pHead->GetPos().m_Y - std::max(hitPosLeft.m_Y, hitPosRight.m_Y);
 			float adjust = desiredCrouchHeadRoom - headroom;
 			float walkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
