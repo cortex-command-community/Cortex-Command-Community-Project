@@ -396,6 +396,20 @@ bool GameActivity::IsBuyGUIVisible(int which) const {
 
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool GameActivity::LockControlledActor(Players player, bool lock, Controller::InputMode lockToMode) {
+	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		m_LuaLockActor[player] = lock;
+		m_LuaLockActorMode[player] = lockToMode;
+		if (m_pBuyGUI[player]->IsVisible() || m_InventoryMenuGUI[player]->IsVisible()) {
+			m_LuaLockActor[player] = false;
+			return false;
+		}
+		return true;
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  SwitchToActor
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1424,7 +1438,7 @@ void GameActivity::Update()
             m_ViewState[player] = ViewState::Normal;
         }
         // Switch to next actor if the player wants to. Don't do it while the buy menu is open
-        else if (m_PlayerController[player].IsState(ACTOR_NEXT) && m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible())
+        else if (m_PlayerController[player].IsState(ACTOR_NEXT) && m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible() && !m_LuaLockActor[player])
         {
 			if (m_ControlledActor[player] && m_ControlledActor[player]->GetPieMenu()) {
 				m_ControlledActor[player]->GetPieMenu()->SetEnabled(false);
@@ -1444,7 +1458,7 @@ void GameActivity::Update()
             g_FrameMan.ClearScreenText(ScreenOfPlayer(player));
         }
         // Go into manual actor select mode if either actor switch buttons are held for a duration
-        else if (m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible() && (m_PlayerController[player].IsState(ACTOR_NEXT_PREP) || m_PlayerController[player].IsState(ACTOR_PREV_PREP)))
+        else if (m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible() && !m_LuaLockActor[player] && (m_PlayerController[player].IsState(ACTOR_NEXT_PREP) || m_PlayerController[player].IsState(ACTOR_PREV_PREP)))
         {
             if (m_ActorSelectTimer[player].IsPastRealMS(250))
             {
@@ -2015,6 +2029,8 @@ void GameActivity::Update()
                 m_ControlledActor[player]->GetController()->SetInputMode(Controller::CIM_AI);
             } else if (m_InventoryMenuGUI[player]->IsEnabledAndNotCarousel()) {
                 m_ControlledActor[player]->GetController()->SetInputMode(Controller::CIM_DISABLED);
+            } else if (m_LuaLockActor[player]) {
+                m_ControlledActor[player]->GetController()->SetInputMode(m_LuaLockActorMode[player]);
             } else {
                 m_ControlledActor[player]->GetController()->SetInputMode(Controller::CIM_PLAYER);
             }

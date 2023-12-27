@@ -252,6 +252,16 @@ public:
 
     SceneEditorGUI * GetEditorGUI(unsigned int which = 0) const { return m_pEditorGUI[which]; }
 
+	/// <summary>
+	/// Locks a player controlled actor to a specific controller mode.
+	/// Locking the actor will disable player input, including switching actors.
+	/// Locking will fail if the actor is already locked for another reason (such as being in a menu).
+	/// </summary>
+	/// <param name="player">Which player to lock the actor for.</param>
+	/// <param name="lock">Whether to lock or unlock the actor. (Default: true)</param>
+	/// <param name="lockToMode">Which controller mode to lock the actor to. (Default: `CIM_AI`)</param>
+	/// <returns>Whether the (un)lock was performed.</returns>
+	bool LockControlledActor(Players player, bool lock = true, Controller::InputMode lockToMode = Controller::InputMode::CIM_AI);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  SwitchToActor
@@ -1035,6 +1045,8 @@ protected:
     BuyMenuGUI *m_pBuyGUI[Players::MaxPlayerCount];
     // The in-game scene editor GUI for each player
     SceneEditorGUI *m_pEditorGUI[Players::MaxPlayerCount];
+    bool m_LuaLockActor[Players::MaxPlayerCount]; //!< Whether or not to lock input for each player while lua has control.
+    Controller::InputMode m_LuaLockActorMode[Players::MaxPlayerCount]; //!< The input mode to lock to while lua has control.
     // The in-game important message banners for each player
     GUIBanner *m_pBannerRed[Players::MaxPlayerCount];
     GUIBanner *m_pBannerYellow[Players::MaxPlayerCount];
