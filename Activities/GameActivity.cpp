@@ -1979,7 +1979,7 @@ void GameActivity::Update()
         }
 
         // Trap the mouse if we're in gameplay and not in menus
-		g_UInputMan.TrapMousePos(!m_pBuyGUI[player]->IsEnabled() && !m_InventoryMenuGUI[player]->IsEnabledAndNotCarousel(), player);
+		g_UInputMan.TrapMousePos(!m_pBuyGUI[player]->IsEnabled() && !m_InventoryMenuGUI[player]->IsEnabledAndNotCarousel() && !m_LuaLockActor[player], player);
 
         // Start LZ picking mode if a purchase was made
         if (m_pBuyGUI[player]->PurchaseMade())
