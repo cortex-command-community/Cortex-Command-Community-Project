@@ -209,6 +209,8 @@ int AHuman::Create(const AHuman &reference) {
     m_BackupBGFootGroup->SetOwner(this);
     m_BackupBGFootGroup->SetLimbPos(atomGroupToUseAsFootGroupBG->GetLimbPos());
 
+	m_MaxWalkPathCrouchShift = reference.m_MaxWalkPathCrouchShift;
+
 	if (reference.m_StrideSound) { m_StrideSound = dynamic_cast<SoundContainer*>(reference.m_StrideSound->Clone()); }
 
     m_ArmsState = reference.m_ArmsState;
@@ -285,6 +287,9 @@ int AHuman::ReadProperty(const std::string_view &propName, Reader &reader) {
         m_BackupBGFootGroup = new AtomGroup(*m_pBGFootGroup);
         m_BackupBGFootGroup->RemoveAllAtoms();
     });
+	MatchProperty("MaxWalkPathCrouchShift", {
+		reader >> m_MaxWalkPathCrouchShift;
+	});
     MatchProperty("StrideSound", {
 		m_StrideSound = new SoundContainer;
         reader >> m_StrideSound;
@@ -348,6 +353,8 @@ int AHuman::Save(Writer &writer) const
     writer << m_pFGFootGroup;
     writer.NewProperty("BGFootGroup");
     writer << m_pBGFootGroup;
+	writer.NewProperty("MaxWalkPathCrouchShift");
+	writer << m_MaxWalkPathCrouchShift;
     writer.NewProperty("StrideSound");
     writer << m_StrideSound;
 

@@ -863,6 +863,18 @@ DefaultPieMenuNameGetter("Default Human Pie Menu");
 	/// <param name="newValue">The new device arm sway rate for this AHuman.</param>
 	void SetDeviceArmSwayRate(float newValue) { m_DeviceArmSwayRate = newValue; }
 
+    /// <summary>
+	/// Gets this AHuman's max walkpath adjustment upwards to crouch below low ceilings.
+	/// </summary>
+	/// <returns>This AHuman's max walkpath adjustment.</returns>
+	float GetMaxWalkPathCrouchShift() const { return m_MaxWalkPathCrouchShift; }
+
+	/// <summary>
+	/// Sets this AHuman's max walkpath adjustment upwards to crouch below low ceilings.
+	/// </summary>
+	/// <param name="newValue">The new value for this AHuman's max walkpath adjustment.</param>
+	void SetMaxWalkPathCrouchShift(float newValue) { m_MaxWalkPathCrouchShift = newValue; }
+
 	/// <summary>
 	/// Gets this AHuman's stride sound. Ownership is NOT transferred!
 	/// </summary>

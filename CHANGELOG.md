@@ -84,6 +84,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Actor` INI and Lua (R/W) property `PainThreshold`, which determines how much damage this actor must take in a frame to play their `PainSound`. This can be set to 0 to never manually play the sound. Defaults to 15.  
 
+- New `AHuman` INI and Lua (R/W) property `MaxWalkPathCrouchShift`, which determines how much the actor will automatically duck down to avoid low ceilings above them. This can be set to 0 to never duck. Defaults to 5.  
+
 - New `MOPixel` INI and Lua (R/W) property `Staininess`, which defines how likely a pixel is to stain a surface when it collides with it. Staining a surface changes that surface's `Color` to that of this `MOPixel`, without changing the underlying material. Value can be between 0 and 1. Defaults to 0 (never stain).  
 
 - New `Activity` INI and Lua (R/W) property `AllowsUserSaving`, which can be used to enable/disable manual user saving/loading. This defaults to true for all `GAScripted` with an `OnSave()` function, but false otherwise. Lua `ActivityMan::SaveGame()` function now forces a save even if `AllowsUserSaving` is disabled. This allows mods and scripted gamemodes to handle saving in their own way (for example, only allowing saving at set points).  
