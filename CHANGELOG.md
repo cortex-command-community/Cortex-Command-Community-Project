@@ -72,7 +72,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `HeldDevice` Lua function `IsBeingHeld`, which returns whether or not the `HeldDevice` is currently being held.  
 
-- New `HeldDevice` INI and Lua (R/W) property `GetsHitByMOsWhenHeld`, which defines whether this `HeldDevice` can be hit by MOs while equipped and held by an actor. Defaults to true.  
+- New `HeldDevice` INI and Lua (R/W) property `GetsHitByMOsWhenHeld`, which defines whether this `HeldDevice` can be hit by MOs while equipped and held by an actor. Defaults to false.  
 	
 - New `MovableObject` INI and Lua (R/W) property `IgnoresActorHits`, which defines whether this `MovableObject` should ignore collisions with actors. Defaults to false.  
 
