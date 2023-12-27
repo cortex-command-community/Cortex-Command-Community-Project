@@ -16,6 +16,8 @@
 #include "PresetMan.h"
 #include "SLTerrain.h"
 
+#include "PrimitiveMan.h"
+
 namespace RTE {
 
 ConcreteClassInfo(LimbPath, Entity, 20);
@@ -412,13 +414,6 @@ void LimbPath::ReportProgress(const Vector &limbPos)
         {
             m_SegProgress = distance > segMag ? 0.0F : (1.0F - (distance / segMag));
             m_Ended = false;
-        }
-
-        // Make sure we're not stuck on one segment, time that it isn't taking unreasonably long, and restart the path if it seems stuck
-        if (!m_Ended && m_SegTimer.IsPastSimMS(((segMag * c_MPP) / GetSpeed()) * 1000 * 2))
-//        if (!m_Ended && m_SegTimer.IsPastSimMS(333))
-        {
-            Terminate();
         }
     }
 }
