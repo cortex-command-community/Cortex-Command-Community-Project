@@ -557,6 +557,10 @@ void MovableObject::Destroy(bool notInherited) {
     // TODO: try to make this at least reasonably workable
     //DestroyScriptState();
 
+    if (m_ThreadedLuaState) {
+        m_ThreadedLuaState->UnregisterMO(this);
+    }
+
 	g_MovableMan.UnregisterObject(this);
     if (!notInherited) { 
         SceneObject::Destroy(); 
@@ -587,7 +591,7 @@ int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledS
 	m_AllLoadedScripts.try_emplace(scriptPath, loadAsEnabledScript);
 
 	std::unordered_map<std::string, LuabindObjectWrapper *> scriptFileFunctions;
-	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, "", GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
+	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
 		return -4;
 	}
 
