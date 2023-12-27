@@ -1690,10 +1690,9 @@ void AHuman::OnNewMovePath()
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
-	m_WalkPathOffset.Reset();
-	
 	if (m_Controller.IsState(BODY_JUMP)) {
 		m_WalkAngle[whichLayer] = Matrix(c_QuarterPI * GetFlipFactor());
+		m_WalkPathOffset.Reset();
 	} else {
 		float rayLength = 15.0F;
 		Vector hipPos = m_Pos;
@@ -1736,6 +1735,8 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 			// Adjust our X offset to try to keep our legs under our centre-of-mass
 			float predictedPosition = ((m_pHead->GetPos().m_X - m_Pos.m_X) * 0.15F) + m_Vel.m_X;
 			m_WalkPathOffset.m_X = predictedPosition;
+		} else {
+			m_WalkPathOffset.Reset();
 		}
 	}
 }
