@@ -400,14 +400,12 @@ bool GameActivity::IsBuyGUIVisible(int which) const {
 
 bool GameActivity::LockControlledActor(Players player, bool lock, Controller::InputMode lockToMode) {
 	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		bool prevLock = m_LuaLockActor[player];
 		m_LuaLockActor[player] = lock;
 		m_LuaLockActorMode[player] = lockToMode;
-		if (m_pBuyGUI[player]->IsVisible() || m_InventoryMenuGUI[player]->IsVisible()) {
-			m_LuaLockActor[player] = false;
-			return false;
-		}
 		return true;
 	}
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

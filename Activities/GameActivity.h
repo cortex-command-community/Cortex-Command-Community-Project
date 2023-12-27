@@ -255,7 +255,6 @@ public:
 	/// <summary>
 	/// Locks a player controlled actor to a specific controller mode.
 	/// Locking the actor will disable player input, including switching actors.
-	/// Locking will fail if the actor is already locked for another reason (such as being in a menu).
 	/// </summary>
 	/// <param name="player">Which player to lock the actor for.</param>
 	/// <param name="lock">Whether to lock or unlock the actor. (Default: true)</param>
