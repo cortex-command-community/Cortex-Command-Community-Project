@@ -64,7 +64,7 @@ void AHuman::Clear()
     m_ProneState = NOTPRONE;
     m_ProneTimer.Reset();
 	m_MaxWalkPathCrouchShift = 6.0F;
-	m_MaxCrouchRotation = c_QuarterPI * 1.25F
+	m_MaxCrouchRotation = c_QuarterPI * 1.25F;
     for (int i = 0; i < MOVEMENTSTATECOUNT; ++i) {
         m_Paths[FGROUND][i].Reset();
         m_Paths[BGROUND][i].Reset();
