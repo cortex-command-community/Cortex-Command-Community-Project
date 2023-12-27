@@ -35,6 +35,8 @@
 #include "BuyMenuGUI.h"
 #include "SceneEditorGUI.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace RTE {
 
 ConcreteClassInfo(GAScripted, GameActivity, 0);
@@ -448,6 +450,8 @@ void GAScripted::Update() {
 // Description:     Updates globals scripts loaded with this activity.
 
 void GAScripted::UpdateGlobalScripts(bool lateUpdate) {
+    ZoneScoped;
+
 	// Update all global scripts
 	for (std::vector<GlobalScript *>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
 		if ((*sItr)->ShouldLateUpdate() == lateUpdate) {
