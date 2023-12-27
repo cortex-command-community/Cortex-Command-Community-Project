@@ -1721,7 +1721,7 @@ void MovableMan::Update()
                 LuaStateWrapper& luaState = luaStates[start];
                 g_LuaMan.SetThreadLuaStateOverride(&luaState);
 
-                for (MovableObject *mo : luaState.GetRegisteredMOs()) {
+                for (MovableObject *mo : luaState.GetRegisteredMOs()) {                   
                     mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
                 }
 

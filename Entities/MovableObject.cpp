@@ -557,6 +557,10 @@ void MovableObject::Destroy(bool notInherited) {
     // TODO: try to make this at least reasonably workable
     //DestroyScriptState();
 
+    if (m_ThreadedLuaState) {
+        m_ThreadedLuaState->UnregisterMO(this);
+    }
+
 	g_MovableMan.UnregisterObject(this);
     if (!notInherited) { 
         SceneObject::Destroy(); 
