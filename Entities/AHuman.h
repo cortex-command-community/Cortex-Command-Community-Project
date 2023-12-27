@@ -688,6 +688,11 @@ DefaultPieMenuNameGetter("Default Human Pie Menu");
 	/// <param name="whichLayer">The Layer in question.</param>
 	void UpdateWalkAngle(AHuman::Layer whichLayer);
 
+    /// <summary>
+    /// Detects overhead ceilings and crouches for them.
+    /// </summary>
+    void UpdateCrouching();
+
 	/// <summary>
 	/// Gets the walk path rotation for the specified Layer.
 	/// </summary>

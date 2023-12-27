@@ -228,7 +228,7 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    A float describing the speed in m/s.
 
-    float GetSpeed() const { return m_TravelSpeed[m_WhichSpeed]; }
+    float GetSpeed() const { return m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -239,6 +239,18 @@ ClassInfoGetters;
 // Return value:    A float describing the speed in m/s.
 
 	float GetSpeed(int speedPreset) const { if (speedPreset == SLOW || speedPreset == NORMAL || speedPreset == FAST) return m_TravelSpeed[speedPreset]; else return 0; }
+
+    /// <summary>
+    /// Sets the current travel speed multiplier.
+    /// </summary>
+    /// <param="newValue">The new travel speed multiplier.</returns>
+    void SetTravelSpeedMultiplier(float newValue) { m_TravelSpeedMultiplier = newValue; }
+
+    /// <summary>
+    /// Gets the current travel speed multiplier.
+    /// </summary>
+    /// <returns>The current travel speed multiplier.</returns>
+    float GetTravelSpeedMultiplier() const { return m_TravelSpeedMultiplier; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -286,7 +298,7 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    The total time (ms) this should take to travel along, if unobstructed.
 
-    float GetTotalPathTime() const { return ((m_TotalLength * c_MPP) / m_TravelSpeed[m_WhichSpeed]) * 1000; }
+    float GetTotalPathTime() const { return ((m_TotalLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -297,7 +309,7 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    The total time (ms) this should take to travel along, if unobstructed.
 
-    float GetRegularPathTime() const { return ((m_RegularLength * c_MPP) / m_TravelSpeed[m_WhichSpeed]) * 1000; }
+    float GetRegularPathTime() const { return ((m_RegularLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -657,6 +669,10 @@ protected:
 
     // The constant speed that the limb traveling this path has in m/s.
     float m_TravelSpeed[SPEEDCOUNT];
+
+    // The current travel speed multiplier
+    float m_TravelSpeedMultiplier;
+
     // The current speed setting.
     int m_WhichSpeed;
 

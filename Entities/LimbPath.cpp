@@ -37,8 +37,10 @@ void LimbPath::Clear()
 //    m_CurrentSegment = 0;
     m_FootCollisionsDisabledSegment = -1;
     m_SegProgress = 0.0;
-    for (int i = 0; i < SPEEDCOUNT; ++i)
+    for (int i = 0; i < SPEEDCOUNT; ++i) {
         m_TravelSpeed[i] = 0.0;
+    }
+    m_TravelSpeedMultiplier = 1.0F;
     m_WhichSpeed = NORMAL;
     m_PushForce = 0.0;
     m_JointPos.Reset();
@@ -129,8 +131,10 @@ int LimbPath::Create(const LimbPath &reference)
     m_FootCollisionsDisabledSegment = reference.m_FootCollisionsDisabledSegment;
 
     m_SegProgress = reference.m_SegProgress;
-    for (int i = 0; i < SPEEDCOUNT; ++i)
+    for (int i = 0; i < SPEEDCOUNT; ++i) {
         m_TravelSpeed[i] = reference.m_TravelSpeed[i];
+    }
+    m_TravelSpeedMultiplier = reference.m_TravelSpeedMultiplier;
     m_PushForce = reference.m_PushForce;
     m_TimeLeft = reference.m_TimeLeft;
     m_TotalLength = reference.m_TotalLength;
@@ -182,6 +186,7 @@ int LimbPath::ReadProperty(const std::string_view &propName, Reader &reader)
 		reader >> m_TravelSpeed[FAST];
 		//m_TravelSpeed[FAST] = m_TravelSpeed[FAST] * 2;
 	});
+    MatchProperty("TravelSpeedMultiplier", { reader >> m_TravelSpeedMultiplier; });
 	MatchProperty("PushForce", {
 		reader >> m_PushForce;
 		//m_PushForce = m_PushForce / 1.5;
@@ -221,6 +226,8 @@ int LimbPath::Save(Writer &writer) const
     writer << m_TravelSpeed[NORMAL];
     writer.NewProperty("FastTravelSpeed");
     writer << m_TravelSpeed[FAST];
+    writer.NewProperty("TravelSpeedMultiplier");
+    writer << m_TravelSpeedMultiplier;
     writer.NewProperty("PushForce");
     writer << m_PushForce;
 
@@ -309,7 +316,7 @@ Vector LimbPath::GetCurrentVel(const Vector &limbPos)
 {
     Vector returnVel;
     Vector distVect = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget());
-	float adjustedTravelSpeed = m_TravelSpeed[m_WhichSpeed] / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F);
+    float adjustedTravelSpeed = (m_TravelSpeed[m_WhichSpeed] / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F)) * m_TravelSpeedMultiplier;
 
     if (IsStaticPoint())
     {

@@ -803,6 +803,7 @@ namespace RTE {
 
 		.property("StartOffset", &LimbPath::GetStartOffset, &LimbPath::SetStartOffset)
 		.property("SegmentCount", &LimbPath::GetSegCount)
+		.property("TravelSpeedMultiplier", &LimbPath::GetTravelSpeedMultiplier, &LimbPath::SetTravelSpeedMultiplier)
 
 		.def("GetSegment", &LimbPath::GetSegment);
 	}

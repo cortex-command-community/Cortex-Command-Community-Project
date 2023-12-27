@@ -1692,7 +1692,6 @@ void AHuman::OnNewMovePath()
 void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 	if (m_Controller.IsState(BODY_JUMP)) {
 		m_WalkAngle[whichLayer] = Matrix(c_QuarterPI * GetFlipFactor());
-		m_WalkPathOffset.Reset();
 	} else {
 		float rayLength = 15.0F;
 		Vector hipPos = m_Pos;
@@ -1718,37 +1717,46 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 		Matrix walkAngle;
 		walkAngle.SetDegAngle(terrainRotationDegs);
 		m_WalkAngle[whichLayer] = walkAngle;
+	}
+}
 
-		if (m_pHead) {
-			// Cast a ray above our head to either side to determine whether we need to crouch
-			float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 2.0f);
-			float toPredicted = std::floor(m_Vel.m_X * m_pHead->GetRadius()); // Check where we'll be a second from now
-			Vector hitPosStart = (m_pHead->GetPos() + Vector(0.0F, m_SpriteRadius * 0.5F)).Floor();
-			Vector hitPosPredictedStart = (m_pHead->GetPos() + Vector(toPredicted, m_SpriteRadius * 0.5F)).Floor();
-			Vector hitPos, hitPosPredicted;
-			g_SceneMan.CastStrengthRay(hitPosStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPos, 0, g_MaterialGrass);
-			g_SceneMan.CastStrengthRay(hitPosPredictedStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPosPredicted, 0, g_MaterialGrass);
-			
-			// Don't do it if we're already hitting, we're probably in a weird spot
-			if (hitPosStart == hitPos) {
-				hitPos.m_X = 0.0F;
-			}
+//////////////////////////////////////////////////////////////////////////////////////////
 
-			if (hitPosPredictedStart == hitPosPredicted) {
-				hitPosPredicted.m_X = 0.0F;
-			}
+void AHuman::UpdateCrouching() {
+	if (!m_Controller.IsState(BODY_JUMP) && m_pHead) {
+		// Cast a ray above our head to either side to determine whether we need to crouch
+		float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 2.0f);
+		float toPredicted = std::floor(m_Vel.m_X * m_pHead->GetRadius()); // Check where we'll be a second from now
+		Vector hitPosStart = (m_pHead->GetPos() + Vector(0.0F, m_SpriteRadius * 0.5F)).Floor();
+		Vector hitPosPredictedStart = (m_pHead->GetPos() + Vector(toPredicted, m_SpriteRadius * 0.5F)).Floor();
+		Vector hitPos, hitPosPredicted;
+		g_SceneMan.CastStrengthRay(hitPosStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPos, 0, g_MaterialGrass);
+		g_SceneMan.CastStrengthRay(hitPosPredictedStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPosPredicted, 0, g_MaterialGrass);
 
-			float headroom = m_pHead->GetPos().m_Y - std::max(hitPos.m_Y, hitPosPredicted.m_Y);
-			float adjust = desiredCrouchHeadRoom - headroom;
-			float walkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
-			m_WalkPathOffset.m_Y = -walkPathYOffset;
-
-			// Adjust our X offset to try to keep our legs under our centre-of-mass
-			float predictedPosition = ((m_pHead->GetPos().m_X - m_Pos.m_X) * 0.15F) + m_Vel.m_X;
-			m_WalkPathOffset.m_X = predictedPosition;
-		} else {
-			m_WalkPathOffset.Reset();
+		// Don't do it if we're already hitting, we're probably in a weird spot
+		if (hitPosStart == hitPos) {
+			hitPos.m_X = 0.0F;
 		}
+
+		if (hitPosPredictedStart == hitPosPredicted) {
+			hitPosPredicted.m_X = 0.0F;
+		}
+
+		float headroom = m_pHead->GetPos().m_Y - std::max(hitPos.m_Y, hitPosPredicted.m_Y);
+		float adjust = desiredCrouchHeadRoom - headroom;
+		float walkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+		m_WalkPathOffset.m_Y = -walkPathYOffset;
+
+		// If crouching, move at third speed
+		float travelSpeedMultiplier = LERP(0.0F, m_MaxWalkPathCrouchShift, 1.0F, 0.5F, -m_WalkPathOffset.m_Y);
+		m_Paths[FGROUND][WALK].SetTravelSpeedMultiplier(travelSpeedMultiplier);
+		m_Paths[BGROUND][WALK].SetTravelSpeedMultiplier(travelSpeedMultiplier);
+
+		// Adjust our X offset to try to keep our legs under our centre-of-mass
+		float predictedPosition = ((m_pHead->GetPos().m_X - m_Pos.m_X) * 0.15F) + m_Vel.m_X;
+		m_WalkPathOffset.m_X = predictedPosition;
+	} else {
+	  m_WalkPathOffset.Reset();
 	}
 }
 
@@ -2225,6 +2233,8 @@ void AHuman::PreControllerUpdate()
     // Travel the limb AtomGroup:s
 
 	m_StrideFrame = false;
+
+	UpdateCrouching();
 
 	if (m_Status == STABLE && !m_LimbPushForcesAndCollisionsDisabled && m_MoveState != NOMOVE)
     {
