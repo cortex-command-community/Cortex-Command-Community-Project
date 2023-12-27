@@ -1722,23 +1722,23 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 		if (m_pHead) {
 			// Cast a ray above our head to either side to determine whether we need to crouch
 			float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 2.0f);
-			float toSide = std::floor(m_pHead->GetRadius() + 3.0f);
-			Vector hitPosLeftStart = (m_pHead->GetPos() + Vector(-toSide, m_SpriteRadius * 0.5F)).Floor();
-			Vector hitPosRightStart = (m_pHead->GetPos() + Vector(toSide, m_SpriteRadius * 0.5F)).Floor();
-			Vector hitPosLeft, hitPosRight;
-			g_SceneMan.CastStrengthRay(hitPosLeftStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPosLeft, 0, g_MaterialGrass);
-			g_SceneMan.CastStrengthRay(hitPosRightStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPosRight, 0, g_MaterialGrass);
+			float toPredicted = std::floor(m_Vel.m_X * m_pHead->GetRadius()); // Check where we'll be a second from now
+			Vector hitPosStart = (m_pHead->GetPos() + Vector(0.0F, m_SpriteRadius * 0.5F)).Floor();
+			Vector hitPosPredictedStart = (m_pHead->GetPos() + Vector(toPredicted, m_SpriteRadius * 0.5F)).Floor();
+			Vector hitPos, hitPosPredicted;
+			g_SceneMan.CastStrengthRay(hitPosStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPos, 0, g_MaterialGrass);
+			g_SceneMan.CastStrengthRay(hitPosPredictedStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPosPredicted, 0, g_MaterialGrass);
 			
-			// Don't do it if we're already hitting, we're probably standing next to a wall
-			if (hitPosLeftStart == hitPosLeft) {
-				hitPosLeft.m_X = 0.0F;
+			// Don't do it if we're already hitting, we're probably in a weird spot
+			if (hitPosStart == hitPos) {
+				hitPos.m_X = 0.0F;
 			}
 
-			if (hitPosRightStart == hitPosRight) {
-				hitPosRight.m_X = 0.0F;
+			if (hitPosPredictedStart == hitPosPredicted) {
+				hitPosPredicted.m_X = 0.0F;
 			}
 
-			float headroom = m_pHead->GetPos().m_Y - std::max(hitPosLeft.m_Y, hitPosRight.m_Y);
+			float headroom = m_pHead->GetPos().m_Y - std::max(hitPos.m_Y, hitPosPredicted.m_Y);
 			float adjust = desiredCrouchHeadRoom - headroom;
 			float walkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
 			m_WalkPathOffset.m_Y = -walkPathYOffset;
