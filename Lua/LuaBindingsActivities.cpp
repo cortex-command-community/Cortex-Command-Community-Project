@@ -149,6 +149,7 @@ namespace RTE {
 		.def("SetActorSelectCursor", &GameActivity::SetActorSelectCursor)
 		.def("GetBuyGUI", &GameActivity::GetBuyGUI)
 		.def("GetEditorGUI", &GameActivity::GetEditorGUI)
+		.def("LockControlledActor", &GameActivity::LockControlledActor)
 		.def("OtherTeam", &GameActivity::OtherTeam)
 		.def("OneOrNoneTeamsLeft", &GameActivity::OneOrNoneTeamsLeft)
 		.def("WhichTeamLeft", &GameActivity::WhichTeamLeft)
