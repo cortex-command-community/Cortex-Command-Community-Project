@@ -1747,13 +1747,15 @@ void AHuman::UpdateCrouching() {
 		float walkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
 		m_WalkPathOffset.m_Y = -walkPathYOffset;
 
-		// If crouching, move at third speed
-		float travelSpeedMultiplier = LERP(0.0F, m_MaxWalkPathCrouchShift, 1.0F, 0.5F, -m_WalkPathOffset.m_Y);
+		// If crouching, move at reduced speed
+		const float crouchSpeedMultiplier = 0.5F;
+		float travelSpeedMultiplier = LERP(0.0F, m_MaxWalkPathCrouchShift, 1.0F, crouchSpeedMultiplier, -m_WalkPathOffset.m_Y);
 		m_Paths[FGROUND][WALK].SetTravelSpeedMultiplier(travelSpeedMultiplier);
 		m_Paths[BGROUND][WALK].SetTravelSpeedMultiplier(travelSpeedMultiplier);
 
 		// Adjust our X offset to try to keep our legs under our centre-of-mass
-		float predictedPosition = ((m_pHead->GetPos().m_X - m_Pos.m_X) * 0.15F) + m_Vel.m_X;
+		const float ratioBetweenBodyAndHeadToAimFor = 0.15F;
+		float predictedPosition = ((m_pHead->GetPos().m_X - m_Pos.m_X) * ratioBetweenBodyAndHeadToAimFor) + m_Vel.m_X;
 		m_WalkPathOffset.m_X = predictedPosition;
 	} else {
 	  m_WalkPathOffset.Reset();
