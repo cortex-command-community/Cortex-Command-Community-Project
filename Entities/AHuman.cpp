@@ -1737,11 +1737,11 @@ void AHuman::UpdateCrouching() {
 
 		// Don't do it if we're already hitting, we're probably in a weird spot
 		if (hitPosStart.m_Y - hitPos.m_Y <= 2.0F) {
-			hitPos.m_X = 0.0F;
+			hitPos.m_Y = 0.0F;
 		}
 
 		if (hitPosPredictedStart.m_Y - hitPosPredicted.m_Y <= 2.0F) {
-			hitPosPredicted.m_X = 0.0F;
+			hitPosPredicted.m_Y = 0.0F;
 		}
 
 		float headroom = m_pHead->GetPos().m_Y - std::max(hitPos.m_Y, hitPosPredicted.m_Y);
