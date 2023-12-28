@@ -108,6 +108,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `Enum` binding for `SceneObject.BuyableMode`: `NORESTRICTIONS = 0, BUYMENUONLY = 1, OBJECTPICKERONLY = 2, SCRIPTONLY = 3`.  
 
+- Exposed `UInputMan::AbsoluteMousePos` to Lua
+
+- New `GameActivity::LockControlledActor` Lua function to allow grab player input in the way menus (buy menu/full inventorymenu) do.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
