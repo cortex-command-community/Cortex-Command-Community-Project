@@ -75,7 +75,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const std::vector<std::unique_ptr<PieSlice>>& GlobalScript::GetPieSlicesToAdd() const {
-		const std::vector<std::unique_ptr<PieSlice>> emptyVector;
+		static const std::vector<std::unique_ptr<PieSlice>> emptyVector;
 		if (!m_HasStarted || !m_IsActive || !g_SettingsMan.IsGlobalScriptEnabled(GetModuleAndPresetName())) {
 			return emptyVector;
 		}
