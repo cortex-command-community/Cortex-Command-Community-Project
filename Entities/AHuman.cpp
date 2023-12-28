@@ -67,6 +67,7 @@ void AHuman::Clear()
     m_ProneTimer.Reset();
 	m_MaxWalkPathCrouchShift = 6.0F;
 	m_MaxCrouchRotation = c_QuarterPI * 1.25F;
+	m_CrouchAmountOverride = -1.0F;
     for (int i = 0; i < MOVEMENTSTATECOUNT; ++i) {
         m_Paths[FGROUND][i].Reset();
         m_Paths[BGROUND][i].Reset();
@@ -1726,27 +1727,33 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 
 void AHuman::UpdateCrouching() {
 	if (!m_Controller.IsState(BODY_JUMP) && m_pHead) {
-		// Cast a ray above our head to either side to determine whether we need to crouch
-		float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 2.0f);
-		float toPredicted = std::floor(m_Vel.m_X * m_pHead->GetRadius()); // Check where we'll be a second from now
-		Vector hitPosStart = (m_pHead->GetPos() + Vector(0.0F, m_SpriteRadius * 0.5F)).Floor();
-		Vector hitPosPredictedStart = (m_pHead->GetPos() + Vector(toPredicted, m_SpriteRadius * 0.5F)).Floor();
-		Vector hitPos, hitPosPredicted;
-		g_SceneMan.CastStrengthRay(hitPosStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 1.0F, hitPos, 0, g_MaterialGrass);
-		g_SceneMan.CastStrengthRay(hitPosPredictedStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 1.0F, hitPosPredicted, 0, g_MaterialGrass);
+		float walkPathYOffset = 0.0F;
+		if (m_CrouchAmountOverride == -1.0F) {
+			// Cast a ray above our head to either side to determine whether we need to crouch
+			float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 2.0f);
+			float toPredicted = std::floor(m_Vel.m_X * m_pHead->GetRadius()); // Check where we'll be a second from now
+			Vector hitPosStart = (m_pHead->GetPos() + Vector(0.0F, m_SpriteRadius * 0.5F)).Floor();
+			Vector hitPosPredictedStart = (m_pHead->GetPos() + Vector(toPredicted, m_SpriteRadius * 0.5F)).Floor();
+			Vector hitPos, hitPosPredicted;
+			g_SceneMan.CastStrengthRay(hitPosStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 1.0F, hitPos, 0, g_MaterialGrass);
+			g_SceneMan.CastStrengthRay(hitPosPredictedStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 1.0F, hitPosPredicted, 0, g_MaterialGrass);
 
-		// Don't do it if we're already hitting, we're probably in a weird spot
-		if (hitPosStart.m_Y - hitPos.m_Y <= 2.0F) {
-			hitPos.m_Y = 0.0F;
+			// Don't do it if we're already hitting, we're probably in a weird spot
+			if (hitPosStart.m_Y - hitPos.m_Y <= 2.0F) {
+				hitPos.m_Y = 0.0F;
+			}
+
+			if (hitPosPredictedStart.m_Y - hitPosPredicted.m_Y <= 2.0F) {
+				hitPosPredicted.m_Y = 0.0F;
+			}
+
+			float headroom = m_pHead->GetPos().m_Y - std::max(hitPos.m_Y, hitPosPredicted.m_Y);
+			float adjust = desiredCrouchHeadRoom - headroom;
+			walkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+		} else {
+			walkPathYOffset = m_CrouchAmountOverride * m_MaxWalkPathCrouchShift;
 		}
 
-		if (hitPosPredictedStart.m_Y - hitPosPredicted.m_Y <= 2.0F) {
-			hitPosPredicted.m_Y = 0.0F;
-		}
-
-		float headroom = m_pHead->GetPos().m_Y - std::max(hitPos.m_Y, hitPosPredicted.m_Y);
-		float adjust = desiredCrouchHeadRoom - headroom;
-		float walkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
 		m_WalkPathOffset.m_Y = -walkPathYOffset;
 
 		// If crouching, move at reduced speed

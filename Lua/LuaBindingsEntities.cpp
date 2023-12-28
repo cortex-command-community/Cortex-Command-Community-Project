@@ -462,6 +462,8 @@ namespace RTE {
 		.property("BGFoot", &AHuman::GetBGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGFoot)
 		.property("MaxWalkPathCrouchShift", &AHuman::GetMaxWalkPathCrouchShift, &AHuman::SetMaxWalkPathCrouchShift)
 		.property("MaxCrouchRotation", &AHuman::GetMaxCrouchRotation, &AHuman::SetMaxCrouchRotation)
+		.property("CrouchAmount", &AHuman::GetCrouchAmount)
+		.property("CrouchAmountOverride", &AHuman::GetCrouchAmountOverride, &AHuman::SetCrouchAmountOverride)
 		.property("StrideSound", &AHuman::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetStrideSound)
 		.property("UpperBodyState", &AHuman::GetUpperBodyState, &AHuman::SetUpperBodyState)
 		.property("MovementState", &AHuman::GetMovementState, &AHuman::SetMovementState)

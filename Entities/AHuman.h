@@ -892,6 +892,24 @@ DefaultPieMenuNameGetter("Default Human Pie Menu");
 	/// <param name="newValue">The new value for this AHuman's max crouch rotation adjustment.</param>
 	void SetMaxCrouchRotation(float newValue) { m_MaxCrouchRotation = newValue; }
 
+    /// <summary>
+	/// Gets this AHuman's current crouch amount. 0.0 == fully standing, 1.0 == fully crouched.
+	/// </summary>
+	/// <returns>This AHuman's current crouch amount.</returns>
+    float GetCrouchAmount() const { return (m_WalkPathOffset.m_Y * -1.0F) / m_MaxWalkPathCrouchShift; }
+
+    /// <summary>
+	/// Gets this AHuman's current crouch amount override. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
+	/// </summary>
+	/// <returns>This AHuman's current crouch amount override.</returns>
+    float GetCrouchAmountOverride() const { return m_CrouchAmountOverride; }
+
+    /// <summary>
+	/// Sets this AHuman's current crouch amount override.
+	/// </summary>
+	/// <param name="newValue">The new value for this AHuman's current crouch amount override.</param>
+    void SetCrouchAmountOverride(float newValue) { m_CrouchAmountOverride = newValue; }
+
 	/// <summary>
 	/// Gets this AHuman's stride sound. Ownership is NOT transferred!
 	/// </summary>
@@ -968,6 +986,8 @@ protected:
     float m_MaxWalkPathCrouchShift;
     // The maximum amount we will duck our head down to avoid obstacles above us.
     float m_MaxCrouchRotation;
+    // The script-set forced crouching amount. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
+    float m_CrouchAmountOverride;
     // Limb paths for different movement states.
     // [0] is for the foreground limbs, and [1] is for BG.
     LimbPath m_Paths[2][MOVEMENTSTATECOUNT];
