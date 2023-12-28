@@ -30,6 +30,8 @@
 #include "GUI.h"
 #include "AllegroBitmap.h"
 
+#include "PrimitiveMan.h"
+
 #include "tracy/Tracy.hpp"
 
 namespace RTE {
@@ -1730,15 +1732,15 @@ void AHuman::UpdateCrouching() {
 		Vector hitPosStart = (m_pHead->GetPos() + Vector(0.0F, m_SpriteRadius * 0.5F)).Floor();
 		Vector hitPosPredictedStart = (m_pHead->GetPos() + Vector(toPredicted, m_SpriteRadius * 0.5F)).Floor();
 		Vector hitPos, hitPosPredicted;
-		g_SceneMan.CastStrengthRay(hitPosStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPos, 0, g_MaterialGrass);
-		g_SceneMan.CastStrengthRay(hitPosPredictedStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 10.0F, hitPosPredicted, 0, g_MaterialGrass);
+		g_SceneMan.CastStrengthRay(hitPosStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 1.0F, hitPos, 0, g_MaterialGrass);
+		g_SceneMan.CastStrengthRay(hitPosPredictedStart, Vector(0.0F, -desiredCrouchHeadRoom + m_SpriteRadius * -0.5F), 1.0F, hitPosPredicted, 0, g_MaterialGrass);
 
 		// Don't do it if we're already hitting, we're probably in a weird spot
-		if (hitPosStart == hitPos) {
+		if (hitPosStart.m_Y - hitPos.m_Y <= 2.0F) {
 			hitPos.m_X = 0.0F;
 		}
 
-		if (hitPosPredictedStart == hitPosPredicted) {
+		if (hitPosPredictedStart.m_Y - hitPosPredicted.m_Y <= 2.0F) {
 			hitPosPredicted.m_X = 0.0F;
 		}
 
