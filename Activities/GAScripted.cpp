@@ -437,6 +437,9 @@ void GAScripted::Update() {
     if (m_ActivityState != ActivityState::Over) {
 		AddPieSlicesToActiveActorPieMenus();
 
+        // Need to call this continually unfortunately, as something might change due to dofile()
+        RefreshActivityFunctions();
+
         RunLuaFunction("UpdateActivity");
 
         UpdateGlobalScripts(false);
@@ -489,9 +492,6 @@ int GAScripted::RunLuaFunction(const std::string& functionName, const std::vecto
     }
 
     int error = g_LuaMan.GetMasterScriptState().RunScriptFunctionObject(funcItr->second.get(), "_G", m_LuaClassName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
-    
-    // Need to call this continually unfortunately, as something might change due to dofile()
-    RefreshActivityFunctions();
 
     return error;
 }
