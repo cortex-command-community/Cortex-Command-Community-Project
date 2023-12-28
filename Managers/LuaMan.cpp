@@ -723,6 +723,9 @@ namespace RTE {
 		}
 
 		auto& newScript = m_ScriptCache[funcObjectName.c_str()];
+		for (auto& pair : newScript.functionNamesAndObjects) {
+			delete pair.second;
+		}
 		newScript.functionNamesAndObjects.clear();
 		for (const std::string& functionName : functionNamesToLookFor) {
 			luabind::object functionObject = funcHoldingObject[functionName];
