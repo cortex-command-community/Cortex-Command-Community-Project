@@ -75,6 +75,8 @@ void GameActivity::Clear()
         m_InventoryMenuGUI[player] = nullptr;
         m_pBuyGUI[player] = 0;
         m_pEditorGUI[player] = 0;
+        m_LuaLockActor[player] = false;
+        m_LuaLockActorMode[player] = Controller::InputMode::CIM_AI;
         m_pBannerRed[player] = 0;
         m_pBannerYellow[player] = 0;
         m_BannerRepeats[player] = 0;
@@ -174,6 +176,8 @@ int GameActivity::Create(const GameActivity &reference)
         m_InventoryMenuGUI[player] = new InventoryMenuGUI;
         m_pBuyGUI[player] = new BuyMenuGUI;
         m_pEditorGUI[player] = new SceneEditorGUI;
+        m_LuaLockActor[player] = reference.m_LuaLockActor[player];
+        m_LuaLockActorMode[player] = reference.m_LuaLockActorMode[player];
         m_pBannerRed[player] = new GUIBanner();
         m_pBannerYellow[player] = new GUIBanner();
         m_ReadyToStart[player] = reference.m_ReadyToStart[player];
