@@ -297,6 +297,9 @@ namespace RTE {
 	int ActivityMan::StartActivity(Activity *activity) {
 		RTEAssert(activity, "Trying to start a null activity!");
 
+		g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
+		g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
+
 		// Stop all music played by the current activity. It will be re-started by the new Activity.
 		g_AudioMan.StopMusic();
 
@@ -442,6 +445,9 @@ namespace RTE {
 	void ActivityMan::EndActivity() const {
 		// TODO: Set the activity pointer to nullptr so it doesn't return junk after being destructed. Do it here, or wherever works without crashing.
 		if (m_Activity) {
+			g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
+			g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
+
 			m_Activity->End();
 			g_ConsoleMan.PrintString("SYSTEM: Activity \"" + m_Activity->GetPresetName() + "\" was ended");
 		} else {
