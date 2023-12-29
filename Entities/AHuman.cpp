@@ -1727,7 +1727,7 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 
 void AHuman::UpdateCrouching() {
 	if (!m_Controller.IsState(BODY_JUMP) && m_pHead) {
-		float walkPathYOffset = 0.0F;
+		float desiredWalkPathYOffset = 0.0F;
 		if (m_CrouchAmountOverride == -1.0F) {
 			// Cast a ray above our head to either side to determine whether we need to crouch
 			float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 2.0f);
@@ -1748,13 +1748,13 @@ void AHuman::UpdateCrouching() {
 			}
 
 			float headroom = m_pHead->GetPos().m_Y - std::max(hitPos.m_Y, hitPosPredicted.m_Y);
-			float adjust = desiredCrouchHeadRoom - headroom;
-			walkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, adjust, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+			desiredWalkPathYOffset = desiredCrouchHeadRoom - headroom;
 		} else {
-			walkPathYOffset = m_CrouchAmountOverride * m_MaxWalkPathCrouchShift;
+			desiredWalkPathYOffset = m_CrouchAmountOverride * m_MaxWalkPathCrouchShift;
 		}
 
-		m_WalkPathOffset.m_Y = -walkPathYOffset;
+		float finalWalkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+		m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
 
 		// If crouching, move at reduced speed
 		const float crouchSpeedMultiplier = 0.5F;
