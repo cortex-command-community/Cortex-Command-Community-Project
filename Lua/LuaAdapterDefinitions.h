@@ -10,6 +10,7 @@
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "MovableMan.h"
+#include "PerformanceMan.h"
 #include "PostProcessMan.h"
 #include "PresetMan.h"
 #include "PrimitiveMan.h"

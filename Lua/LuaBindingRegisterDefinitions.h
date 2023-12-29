@@ -23,6 +23,7 @@ namespace RTE {
 		PER_LUA_BINDING(FrameMan)					\
 		PER_LUA_BINDING(MetaMan)					\
 		PER_LUA_BINDING(MovableMan)					\
+		PER_LUA_BINDING(PerformanceMan)				\
 		PER_LUA_BINDING(PostProcessMan)				\
 		PER_LUA_BINDING(PresetMan)					\
 		PER_LUA_BINDING(PrimitiveMan)				\
@@ -210,6 +211,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(FrameMan);
 		LuaBindingRegisterFunctionDeclarationForType(MetaMan);
 		LuaBindingRegisterFunctionDeclarationForType(MovableMan);
+		LuaBindingRegisterFunctionDeclarationForType(PerformanceMan);
 		LuaBindingRegisterFunctionDeclarationForType(PostProcessMan);
 		LuaBindingRegisterFunctionDeclarationForType(PresetMan);
 		LuaBindingRegisterFunctionDeclarationForType(PrimitiveMan);

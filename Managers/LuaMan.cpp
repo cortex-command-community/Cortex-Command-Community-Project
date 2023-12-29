@@ -155,6 +155,7 @@ namespace RTE {
 			RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, MetaMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, MovableMan),
+			RegisterLuaBindingsOfType(ManagerLuaBindings, PerformanceMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PostProcessMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PresetMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PrimitiveMan),
@@ -195,6 +196,7 @@ namespace RTE {
 		// Assign the manager instances to globals in the lua master state
 		luabind::globals(m_State)["TimerMan"] = &g_TimerMan;
 		luabind::globals(m_State)["FrameMan"] = &g_FrameMan;
+		luabind::globals(m_State)["PerformanceMan"] = &g_PerformanceMan;
 		luabind::globals(m_State)["PostProcessMan"] = &g_PostProcessMan;
 		luabind::globals(m_State)["PrimitiveMan"] = &g_PrimitiveMan;
 		luabind::globals(m_State)["PresetMan"] = &g_PresetMan;

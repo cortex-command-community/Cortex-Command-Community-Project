@@ -173,6 +173,14 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PerformanceMan) {
+		return luabind::class_<PerformanceMan>("PerformanceManager")
+
+		.property("ShowPerformanceStats", &PerformanceMan::IsShowingPerformanceStats, &PerformanceMan::ShowPerformanceStats);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PostProcessMan) {
 		return luabind::class_<PostProcessMan>("PostProcessManager")
 
