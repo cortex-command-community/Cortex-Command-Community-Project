@@ -287,10 +287,7 @@ int Actor::Create(const Actor &reference)
     m_pMOMoveTarget = reference.m_pMOMoveTarget;
     m_PrevPathTarget = reference.m_PrevPathTarget;
     m_MoveVector = reference.m_MoveVector;
-	if (!m_Waypoints.empty()) {
-		UpdateMovePath();
-	}
-//    m_MovePath.clear(); will recalc on its own
+    m_MovePath.clear();
     m_UpdateMovePath = reference.m_UpdateMovePath;
     m_MoveProximityLimit = reference.m_MoveProximityLimit;
     m_AIBaseDigStrength = reference.m_AIBaseDigStrength;
