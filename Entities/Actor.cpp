@@ -1356,7 +1356,7 @@ void Actor::Update()
         if (!m_MovePath.empty())
             m_MoveTarget = m_MovePath.front();
         // No more path, so check if any more waypoints to make a new path to? This doesn't apply if we're following something
-        else if (m_MovePath.empty() && !m_Waypoints.empty() && !m_pMOMoveTarget)
+        else if (m_UpdateMovePath || (m_MovePath.empty() && !m_Waypoints.empty() && !m_pMOMoveTarget))
             UpdateMovePath();
         // Nope, so just conclude that we must have reached the ultimate AI target set and exit the goto mode
         else if (!m_pMOMoveTarget)
