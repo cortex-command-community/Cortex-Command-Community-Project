@@ -1287,6 +1287,10 @@ void Actor::OnNewMovePath() {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void Actor::PreControllerUpdate() {
+    if (m_UpdateMovePath) {
+        UpdateMovePath();
+    }
+
     if (m_PathRequest && m_PathRequest->complete) {
         m_MovePath = const_cast<std::list<Vector> &>(m_PathRequest->path);
         m_PathRequest.reset();
@@ -1303,10 +1307,6 @@ void Actor::Update()
     /////////////////////////////////
     // Hit Body update and handling
     MOSRotating::Update();
-
-    if (m_UpdateMovePath) {
-        UpdateMovePath();
-    }
 
 	m_PieMenu->Update();
 
