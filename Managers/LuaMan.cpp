@@ -18,6 +18,7 @@ namespace RTE {
 		m_TempEntity = nullptr;
 		m_TempEntityVector.clear();
 		m_LastError.clear();
+		m_CurrentlyRunningScriptPath = "";
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -571,6 +572,7 @@ namespace RTE {
 
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 		s_currentLuaState = this;
+		m_CurrentlyRunningScriptPath = functionObject->GetFilePath();
 
 		lua_pushcfunction(m_State, &AddFileAndLineToError);
 		functionObject->GetLuabindObject()->push(m_State);
@@ -634,6 +636,7 @@ namespace RTE {
 
 		lua_pop(m_State, 1);
 
+		m_CurrentlyRunningScriptPath = "";
 		return status;
 	}
 
@@ -659,6 +662,7 @@ namespace RTE {
 
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 		s_currentLuaState = this;
+		m_CurrentlyRunningScriptPath = filePath;
 
 		const int stackStart = lua_gettop(m_State);
 
@@ -709,6 +713,7 @@ namespace RTE {
 		// Pop the line error handler off the stack to clean it up
 		lua_pop(m_State, 1);
 
+		m_CurrentlyRunningScriptPath = "";
 		RTEAssert(lua_gettop(m_State) == stackStart, "Malformed lua stack!");
 		return error;
 	}
