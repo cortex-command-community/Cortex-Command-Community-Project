@@ -2773,11 +2773,6 @@ void SceneMan::Update(int screenId) {
 
 	m_LastUpdatedScreen = screenId;
 
-	// Update the scene, only if doing the first screen, since it only needs done once per update.
-	if (screenId == 0) {
-		m_pCurrentScene->Update();
-	}
-
     const Vector &offset = g_CameraMan.GetOffset(screenId);
 	m_pMOColorLayer->SetOffset(offset);
 	m_pMOIDLayer->SetOffset(offset);

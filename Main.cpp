@@ -332,6 +332,10 @@ namespace RTE {
 				g_LuaMan.Update();
 				g_ActivityMan.Update();
 
+				if (g_SceneMan.GetScene()) {
+					g_SceneMan.GetScene()->Update();
+				}
+
 				g_LuaMan.ClearScriptTimings();
 				g_MovableMan.Update();
 				g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
