@@ -66,6 +66,7 @@ namespace RTE {
 		ThreadMan::Construct();
 		TimerMan::Construct();
 		PresetMan::Construct();
+		ModuleMan::Construct();
 		SettingsMan::Construct();
 		WindowMan::Construct();
 		LuaMan::Construct();
