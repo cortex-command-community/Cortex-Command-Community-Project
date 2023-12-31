@@ -3124,7 +3124,8 @@ void Scene::UpdateSim() {
 
     if (m_NavigatableAreasUpToDate == false) {
         // Need to block until all current pathfinding requests are finished. Ugh, if only we had a better way (interrupt/cancel a path request to start a new one?)
-        g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
+        // TODO: Make the PathRequest struct more capable and maybe we can delay starting or cancel mid-request?
+        BlockUntilAllPathingRequestsComplete();
 
         m_NavigatableAreasUpToDate = true;
         for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {

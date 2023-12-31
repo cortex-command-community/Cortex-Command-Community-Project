@@ -190,6 +190,7 @@ namespace RTE {
 		int GetInCampaignStage() const { return m_InCampaignStage; }
 
 		/// <summary>
+		/// 
 		/// Sets in which stage of the Campaign this appears.
 		/// </summary>
 		/// <param name="newStage">The new stage to set. -1 means it doesn't appear in the campaign.</param>

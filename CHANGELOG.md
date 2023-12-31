@@ -72,7 +72,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `HeldDevice` Lua function `IsBeingHeld`, which returns whether or not the `HeldDevice` is currently being held.  
 
-- New `HeldDevice` INI and Lua (R/W) property `GetsHitByMOsWhenHeld`, which defines whether this `HeldDevice` can be hit by MOs while equipped and held by an actor. Defaults to true.  
+- New `HeldDevice` INI and Lua (R/W) property `GetsHitByMOsWhenHeld`, which defines whether this `HeldDevice` can be hit by MOs while equipped and held by an actor. Defaults to false.  
 	
 - New `MovableObject` INI and Lua (R/W) property `IgnoresActorHits`, which defines whether this `MovableObject` should ignore collisions with actors. Defaults to false.  
 
@@ -83,6 +83,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `HDFirearm` INI and Lua (R/W) property `ReloadEndOffset`, to define how many milliseconds prior to the reload being complete that the `ReloadEndSound` should play. Defaults to -1, which means the game will automatically calculate so that the middle of the sound is aligned with the reload completing.  
 
 - New `Actor` INI and Lua (R/W) property `PainThreshold`, which determines how much damage this actor must take in a frame to play their `PainSound`. This can be set to 0 to never manually play the sound. Defaults to 15.  
+
+- New `AHuman` INI and Lua (R/W) property `MaxWalkPathCrouchShift`, which determines how much the actor will automatically duck down to avoid low ceilings above them. This can be set to 0 to never duck. Defaults to 6.  
+
+- New `AHuman` INI and Lua (R/W) property `MaxCrouchRotation`, which determines how much the actor will rotate when ducking to avoid low ceilings above them. This can be set to 0 to never duck. Defaults to a quarter of Pi * 1.25 (roughly 56 degrees).  
+
+- New `AHuman` Lua (R/W) property `CrouchAmountOverride`, which enforces that the actor crouch a certain amount, where 0 means fully standing and 1 is fully crouching. This override can be disabled by setting it to -1.0.  
+
+- New `AHuman` Lua (R) property `CrouchAmount`, which returns how much the actor is crouching, where 0 means fully standing and 1 is fully crouching.
 
 - New `MOPixel` INI and Lua (R/W) property `Staininess`, which defines how likely a pixel is to stain a surface when it collides with it. Staining a surface changes that surface's `Color` to that of this `MOPixel`, without changing the underlying material. Value can be between 0 and 1. Defaults to 0 (never stain).  
 
@@ -107,6 +115,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Exposed `SceneObject` property `BuyableMode` to Lua (R).
 
 - `Enum` binding for `SceneObject.BuyableMode`: `NORESTRICTIONS = 0, BUYMENUONLY = 1, OBJECTPICKERONLY = 2, SCRIPTONLY = 3`.  
+
+- Exposed `UInputMan::AbsoluteMousePos` to Lua
+
+- New `GameActivity::LockControlledActor` Lua function to allow grab player input in the way menus (buy menu/full inventorymenu) do.
 
 </details>
 

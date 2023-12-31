@@ -560,6 +560,10 @@ void MovableObject::Destroy(bool notInherited) {
     // TODO: try to make this at least reasonably workable
     //DestroyScriptState();
 
+    if (m_ThreadedLuaState) {
+        m_ThreadedLuaState->UnregisterMO(this);
+    }
+
 	g_MovableMan.UnregisterObject(this);
     if (!notInherited) { 
         SceneObject::Destroy(); 
@@ -590,7 +594,7 @@ int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledS
 	m_AllLoadedScripts.try_emplace(scriptPath, loadAsEnabledScript);
 
 	std::unordered_map<std::string, LuabindObjectWrapper *> scriptFileFunctions;
-	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, "", GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
+	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
 		return -4;
 	}
 
@@ -718,7 +722,7 @@ int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &fu
             const LuabindObjectWrapper *luabindObjectWrapper = luaFunction.m_LuaFunction.get();
             if (runOnDisabledScripts || luaFunction.m_ScriptIsEnabled) {
                 LuaStateWrapper& usedState = GetAndLockStateForScript(luabindObjectWrapper->GetFilePath(), &luaFunction);
-                std::lock_guard<std::recursive_mutex> lock(usedState.GetMutex(), std::adopt_lock);   
+                std::lock_guard<std::recursive_mutex> lock(usedState.GetMutex(), std::adopt_lock);
 				status = usedState.RunScriptFunctionObject(luabindObjectWrapper, "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments, functionObjectArguments);
                 if (status < 0 && stopOnError) {
                     return status;

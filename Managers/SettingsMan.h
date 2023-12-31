@@ -369,7 +369,7 @@ namespace RTE {
 		/// Gets the map of mods which are disabled.
 		/// </summary>
 		/// <returns>Map of mods which are disabled.</returns>
-		std::map<std::string, bool> & GetDisabledModsMap() { return m_DisabledMods; }
+		std::unordered_map<std::string, bool> & GetDisabledModsMap() { return m_DisabledMods; }
 
 		/// <summary>
 		/// Gets whether the specified mod is disabled in the settings.
@@ -382,7 +382,7 @@ namespace RTE {
 		/// Gets the map of global scripts which are enabled.
 		/// </summary>
 		/// <returns>Map of global scripts which are enabled.</returns>
-		std::map<std::string, bool> & GetEnabledGlobalScriptMap() { return m_EnabledGlobalScripts; }
+		std::unordered_map<std::string, bool> & GetEnabledGlobalScriptMap() { return m_EnabledGlobalScripts; }
 
 		/// <summary>
 		/// Gets whether the specified global script is enabled in the settings.
@@ -556,8 +556,8 @@ namespace RTE {
 		bool m_MeasureModuleLoadTime; //!< Whether to measure the duration of data module loading (extraction included). For benchmarking purposes.
 
 		std::list<std::string> m_VisibleAssemblyGroupsList; //!< List of assemblies groups always shown in editors.
-		std::map<std::string, bool> m_DisabledMods; //!< Map of the module names we disabled.
-		std::map<std::string, bool> m_EnabledGlobalScripts; //!< Map of the global script names we enabled.
+		std::unordered_map<std::string, bool> m_DisabledMods; //!< Map of the module names we disabled.
+		std::unordered_map<std::string, bool> m_EnabledGlobalScripts; //!< Map of the global script names we enabled.
 
 	private:
 

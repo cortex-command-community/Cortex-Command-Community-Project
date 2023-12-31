@@ -306,7 +306,8 @@ void MovableMan::PurgeAllMOs()
     m_AddedAlarmEvents.clear();
     m_AlarmEvents.clear();
     m_MOIDIndex.clear();
-	m_KnownObjects.clear();
+    // We want to keep known objects around, 'cause these can exist even when not in the simulation (they're here from creation till deletion, regardless of whether they are in sim)
+	//m_KnownObjects.clear();
 }
 
 
@@ -1686,7 +1687,7 @@ void MovableMan::Update()
                 LuaStateWrapper& luaState = luaStates[start];
                 g_LuaMan.SetThreadLuaStateOverride(&luaState);
 
-                for (MovableObject *mo : luaState.GetRegisteredMOs()) {
+                for (MovableObject *mo : luaState.GetRegisteredMOs()) {                   
                     mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
                 }
 

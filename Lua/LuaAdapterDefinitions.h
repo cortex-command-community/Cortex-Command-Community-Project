@@ -10,6 +10,7 @@
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "MovableMan.h"
+#include "PerformanceMan.h"
 #include "PostProcessMan.h"
 #include "PresetMan.h"
 #include "PrimitiveMan.h"
@@ -353,7 +354,8 @@ namespace RTE {
 		static bool HasScript(MovableObject *luaSelfObject, const std::string &scriptPath);
 		static bool AddScript(MovableObject *luaSelfObject, const std::string &scriptPath);
 		static bool EnableScript(MovableObject *luaSelfObject, const std::string &scriptPath);
-		static bool DisableScript(MovableObject *luaSelfObject, const std::string &scriptPath);
+		static bool DisableScript1(MovableObject *luaSelfObject);
+		static bool DisableScript2(MovableObject *luaSelfObject, const std::string &scriptPath);
 		static void SendMessage1(MovableObject *luaSelfObject, const std::string &message);
 		static void SendMessage2(MovableObject *luaSelfObject, const std::string &message, luabind::object context);
 	};

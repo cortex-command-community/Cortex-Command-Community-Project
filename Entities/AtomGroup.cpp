@@ -1195,7 +1195,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool AtomGroup::PushAsLimb(const Vector &jointPos, const Vector &velocity, const Matrix &rotation, LimbPath &limbPath, const float travelTime, bool *restarted, bool affectRotation, Vector rotationOffset) {
+	bool AtomGroup::PushAsLimb(const Vector &jointPos, const Vector &velocity, const Matrix &rotation, LimbPath &limbPath, const float travelTime, bool *restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
 		RTEAssert(m_OwnerMOSR, "Tried to push-as-limb an AtomGroup that has no parent!");
 
 		bool didWrap = false;
@@ -1215,6 +1215,7 @@ namespace RTE {
 		limbPath.SetJointVel(velocity);
 		limbPath.SetRotation(rotation);
 		limbPath.SetRotationOffset(rotationOffset);
+		limbPath.SetPositionOffset(positionOffset);
 		limbPath.SetFrameTime(travelTime);
 
 		Vector limbDist = g_SceneMan.ShortestDistance(adjustedJointPos, m_LimbPos, g_SceneMan.SceneWrapsX());
@@ -1247,9 +1248,13 @@ namespace RTE {
 			                              owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F;
 			if (againstTravelDirection) {
 				// Filter some of our impulse out. We're pushing against an obstacle, but we don't want to kick backwards!
-				// Translate it into to upwards motion to step over what we're walking into instead ;)
 				const float againstIntendedDirectionMultiplier = 0.5F;
-				pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+
+				if (!owner->GetController()->IsState(BODY_CROUCH) && !owner->GetController()->IsState(MOVE_DOWN)) {
+					// Translate it into to upwards motion to step over what we're walking into instead ;)
+					pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+				}
+
 				pushImpulse.m_X *= againstIntendedDirectionMultiplier;
 			}
 		}

@@ -127,11 +127,11 @@ namespace RTE {
 
 			float globalPitch = 1.0F;
 
-			float simSpeed = g_TimerMan.GetSimSpeed();
+			float timeScale = g_TimerMan.GetTimeScale();
 			// Soften the ratio of the pitch adjustment so it's not such an extreme effect on the audio.
 			// TODO: This coefficient should probably move to SettingsMan and be loaded from ini. That way this effect can be lessened or even turned off entirely by users. 0.35 is a good default value though.
-			globalPitch = simSpeed + (1.0F - simSpeed) * 0.35F;
-
+			globalPitch = timeScale + (1.0F - timeScale) * 0.35F;
+			
 			SetGlobalPitch(globalPitch);
 
 			if (!g_ActivityMan.ActivityPaused()) {

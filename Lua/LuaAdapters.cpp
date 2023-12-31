@@ -401,9 +401,17 @@ namespace RTE {
 		return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), true);
 	}
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersMovableObject::DisableScript(MovableObject *luaSelfObject, const std::string &scriptPath) {
+	bool LuaAdaptersMovableObject::DisableScript1(MovableObject* luaSelfObject) {
+		std::string currentScriptFilePath(g_LuaMan.GetThreadCurrentLuaState()->GetCurrentlyRunningScriptFilePath());
+		return luaSelfObject->EnableOrDisableScript(currentScriptFilePath, false);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaAdaptersMovableObject::DisableScript2(MovableObject *luaSelfObject, const std::string &scriptPath) {
 		return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), false);
 	}
 

@@ -1,6 +1,8 @@
 #include "Writer.h"
 #include "System.h"
 
+#include <iomanip>
+
 namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,7 +43,9 @@ namespace RTE {
 			System::MakeDirectory(System::GetWorkingDirectory() + m_FolderPath); 
 		}
 
-		return Create(std::make_unique<std::ofstream>(fileName, append ? (std::ios::out | std::ios::app | std::ios::ate) : (std::ios::out | std::ios::trunc)));
+		auto ofStream = std::make_unique<std::ofstream>(fileName, append ? (std::ios::out | std::ios::app | std::ios::ate) : (std::ios::out | std::ios::trunc));
+		*ofStream << std::fixed << std::setprecision(6);
+		return Create(std::move(ofStream));
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

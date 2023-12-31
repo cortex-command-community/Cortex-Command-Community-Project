@@ -80,7 +80,7 @@ namespace RTE {
 		/// Gets the list of PieSlices this GlobalScript adds to any active Actor PieMenus.
 		/// </summary>
 		/// <returns>The list of PieSilces this GlobalScript adds to any active Actor PieMenus</returns>
-		const std::vector<std::unique_ptr<PieSlice>> & GetPieSlicesToAdd() const { return m_PieSlicesToAdd; }
+		const std::vector<std::unique_ptr<PieSlice>>& GetPieSlicesToAdd() const;
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -113,7 +113,7 @@ namespace RTE {
 		/// Handles when an ACraft has left the game scene and entered orbit by running the appropriate Lua function. Ownership is NOT transferred!
 		/// </summary>
 		/// <param name="orbitedCraft">The ACraft instance that entered orbit. Ownership is NOT transferred!</param>
-		void HandleCraftEnteringOrbit(const ACraft *orbitedCraft) const;
+		void HandleCraftEnteringOrbit(const ACraft *orbitedCraft);
 
 		/// <summary>
 		/// Updates the state of this GlobalScript every frame.
@@ -128,6 +128,7 @@ namespace RTE {
 		std::string m_ScriptPath; //!< The path to the Lua script file that defines this' behaviors in update.
 		std::string m_LuaClassName; //!< The name of the class (table) defining the logic of this in Lua, as specified in the script file.
 		bool m_IsActive; //!< Whether this GlobalScript is currently allowed to run.
+		bool m_HasStarted; //!< Whether this script has already been started.
 		bool m_LateUpdate; //!< Whether or not this GlobalScript should be updated late, i.e. after the standard MovableMan update.
 
 		std::vector<std::unique_ptr<PieSlice>> m_PieSlicesToAdd; //!< A vector of PieSlices that should be added to any PieMenus opened while this GlobalScript is active.

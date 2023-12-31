@@ -1135,7 +1135,7 @@ ClassInfoGetters;
     /// Returns whether we're waiting on a new pending movepath.
     /// </summary>
     /// <returns>Whether we're waiting on a new pending movepath.</returns>
-    bool IsWaitingOnNewMovePath() const { return m_PathRequest != nullptr; }
+    bool IsWaitingOnNewMovePath() const { return m_PathRequest != nullptr || m_UpdateMovePath; }
 
     /// <summary>
     /// Estimates what material strength this actor can penetrate.
