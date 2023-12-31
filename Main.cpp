@@ -46,6 +46,7 @@
 #include "CameraMan.h"
 #include "ActivityMan.h"
 #include "PrimitiveMan.h"
+#include "ThreadMan.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -61,6 +62,7 @@ namespace RTE {
 	/// Initializes all the essential managers.
 	/// </summary>
 	void InitializeManagers() {
+		ThreadMan::Construct();
 		TimerMan::Construct();
 		PresetMan::Construct();
 		SettingsMan::Construct();
@@ -84,6 +86,7 @@ namespace RTE {
 		ActivityMan::Construct();
 		LoadingScreen::Construct();
 
+		g_ThreadMan.Initialize();
 		g_SettingsMan.Initialize();
 		g_WindowMan.Initialize();
 
@@ -324,9 +327,14 @@ namespace RTE {
 					g_NetworkServer.Update(true);
 					serverUpdated = true;
 				}
+
 				g_FrameMan.Update();
 				g_LuaMan.Update();
 				g_ActivityMan.Update();
+
+				if (g_SceneMan.GetScene()) {
+					g_SceneMan.GetScene()->Update();
+				}
 
 				g_LuaMan.ClearScriptTimings();
 				g_MovableMan.Update();
@@ -469,6 +477,9 @@ int main(int argc, char **argv) {
 
 		RunGameLoop();
 	}
+
+	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
+	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
 	DestroyManagers();
 

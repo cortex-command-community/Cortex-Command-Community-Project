@@ -93,6 +93,12 @@ namespace RTE {
 		void ShowAdvancedPerformanceStats(bool showGraphs = true) { m_AdvancedPerfStats = showGraphs; }
 
 		/// <summary>
+		/// Gets the average of the MSPU reading buffer, calculated each update.
+		/// </summary>
+		/// <returns>The average value of the MSPU reading buffer.</returns>
+		float GetMSPSUAverage() const { return m_MSPSUAverage; }
+
+		/// <summary>
 		/// Gets the average of the MSPF reading buffer, calculated each frame.
 		/// </summary>
 		/// <returns>The average value of the MSPF reading buffer.</returns>
@@ -125,6 +131,11 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Concrete Methods
+		/// <summary>
+		/// Clears current performance timings.
+		/// </summary>
+		void ResetPerformanceTimings() { m_MSPSUs.clear(); m_MSPFs.clear(); m_MSPUs.clear(); m_MSPDs.clear(); }
+
 		/// <summary>
 		/// Resets the sim update timer.
 		/// </summary>

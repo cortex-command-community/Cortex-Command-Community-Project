@@ -64,6 +64,8 @@ namespace RTE {
 			SOUND_STOP,
 			SOUND_SET_POSITION,
 			SOUND_SET_VOLUME,
+			SOUND_SET_CUSTOMPANVALUE,
+			SOUND_SET_PANNINGSTRENGTHMULTIPLIER,
 			SOUND_SET_PITCH,
 			SOUND_FADE_OUT
 		};
@@ -77,6 +79,8 @@ namespace RTE {
 			int Channel;
 			bool Immobile;
 			float AttenuationStartDistance;
+			float CustomPanValue;
+			float PanningStrengthMultiplier;
 			int Loops;
 			int Priority;
 			bool AffectedByGlobalPitch;
@@ -476,6 +480,7 @@ namespace RTE {
 		std::list<NetworkMusicData> m_MusicEvents[c_MaxClients]; //!< Lists of per player music events.
 
 		std::mutex g_SoundEventsListMutex[c_MaxClients]; //!< A list for locking sound events for multiplayer to avoid race conditions and other such problems.
+		std::mutex m_SoundChannelMinimumAudibleDistancesMutex; //!, As above but for m_SoundChannelMinimumAudibleDistances
 
 	private:
 
@@ -509,6 +514,13 @@ namespace RTE {
 		/// <param name="soundContainer">A pointer to a SoundContainer object. Ownership IS NOT transferred!</param>
 		/// <returns>Whether the pitch was successfully updated.</returns>
 		bool ChangeSoundContainerPlayingChannelsPitch(const SoundContainer *soundContainer);
+
+		/// <summary>
+		/// Updates the custom pan value of a SoundContainer's playing sounds.
+		/// </summary>
+		/// <param name="soundContainer">A pointer to a SoundContainer object. Ownership IS NOT transferred!</param>
+		/// <returns>Whether the custom pan value was successfully updated.</returns>
+		bool ChangeSoundContainerPlayingChannelsCustomPanValue(const SoundContainer *soundContainer);
 
 		/// <summary>
 		/// Stops playing a SoundContainer's playing sounds for a certain player.

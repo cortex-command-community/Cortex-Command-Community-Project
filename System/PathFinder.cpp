@@ -3,6 +3,9 @@
 #include "Material.h"
 #include "Scene.h"
 #include "SceneMan.h"
+#include "ThreadMan.h"
+
+#include "tracy/Tracy.hpp"
 
 namespace RTE {
 
@@ -135,6 +138,8 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector> &pathResult, float &totalCostResult, float digStrength) {
+		ZoneScoped;
+		
 		++m_CurrentPathingRequests;
 		
 		// Make sure start and end are within scene bounds.
@@ -207,7 +212,7 @@ namespace RTE {
 		const_cast<Vector &>(pathRequest->startPos) = start;
 		const_cast<Vector &>(pathRequest->targetPos) = end;
 
-		std::thread pathThread([this, start, end, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
+		g_ThreadMan.GetBackgroundThreadPool().push_task([this, start, end, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
 			// Cast away the volatile-ness - only matters outside (and complicates the API otherwise)
 			PathRequest &request = const_cast<PathRequest &>(*volRequest);
 
@@ -225,7 +230,6 @@ namespace RTE {
 			request.complete = true;
 		}, pathRequest);
 
-		pathThread.detach();
 		return pathRequest;
     }
 
@@ -250,6 +254,8 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box> &boxList, int nodeUpdateLimit) {
+		ZoneScoped;
+		
 		std::unordered_set<int> nodeIDsToUpdate;
 
 		while (!boxList.empty()) {
@@ -463,6 +469,8 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PathFinder::UpdateNodeList(const std::vector<int> &nodeVec) {
+		ZoneScoped;
+		
 		std::atomic<bool> anyChange = false;
 
 		// Update all the costs going out from each node.

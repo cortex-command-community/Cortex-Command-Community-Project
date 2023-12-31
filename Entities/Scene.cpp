@@ -18,6 +18,7 @@
 #include "FrameMan.h"
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
+#include "ThreadMan.h"
 #include "MetaMan.h"
 #include "ContentFile.h"
 #include "SLTerrain.h"
@@ -43,6 +44,8 @@
 #include "HDFirearm.h"
 #include "Magazine.h"
 #include "ThrownDevice.h"
+
+#include "tracy/Tracy.hpp"
 
 namespace RTE {
 
@@ -2990,6 +2993,8 @@ void Scene::BlockUntilAllPathingRequestsComplete() {
 
 void Scene::UpdatePathFinding()
 {
+    ZoneScoped;
+    
     constexpr int nodeUpdatesPerCall = 100;
     constexpr int maxUnupdatedMaterialAreas = 1000;
 
@@ -3122,6 +3127,8 @@ void Scene::Unlock()
 
 void Scene::Update()
 {
+    ZoneScoped;
+
     m_PathfindingUpdated = false;
 
 	if (g_SettingsMan.BlipOnRevealUnseen())
@@ -3140,6 +3147,10 @@ void Scene::Update()
 	}
 
     if (m_NavigatableAreasUpToDate == false) {
+        // Need to block until all current pathfinding requests are finished. Ugh, if only we had a better way (interrupt/cancel a path request to start a new one?)
+        // TODO: Make the PathRequest struct more capable and maybe we can delay starting or cancel mid-request?
+        BlockUntilAllPathingRequestsComplete();
+
         m_NavigatableAreasUpToDate = true;
         for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
             PathFinder& pathFinder = *GetPathFinder(static_cast<Activity::Teams>(team));

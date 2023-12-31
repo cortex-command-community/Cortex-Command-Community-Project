@@ -37,6 +37,8 @@
 #include "GUI.h"
 #include "AllegroBitmap.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace RTE {
 
 ConcreteClassInfo(Actor, MOSRotating, 20);
@@ -285,10 +287,7 @@ int Actor::Create(const Actor &reference)
     m_pMOMoveTarget = reference.m_pMOMoveTarget;
     m_PrevPathTarget = reference.m_PrevPathTarget;
     m_MoveVector = reference.m_MoveVector;
-	if (!m_Waypoints.empty()) {
-		UpdateMovePath();
-	}
-//    m_MovePath.clear(); will recalc on its own
+    m_MovePath.clear();
     m_UpdateMovePath = reference.m_UpdateMovePath;
     m_MoveProximityLimit = reference.m_MoveProximityLimit;
     m_AIBaseDigStrength = reference.m_AIBaseDigStrength;
@@ -1248,16 +1247,6 @@ float Actor::EstimateDigStrength() const {
     return m_AIBaseDigStrength;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Actor::UpdateAIScripted(ThreadScriptsToRun scriptsToRun) {
-    RunScriptedFunctionInAppropriateScripts("UpdateAI", false, true, {}, {}, {}, scriptsToRun);
-    if (scriptsToRun == ThreadScriptsToRun::SingleThreaded) {
-        // If we're in a SingleThreaded context, we run the MultiThreaded scripts synced updates
-         RunScriptedFunctionInAppropriateScripts("SyncedUpdateAI", false, true, {}, {}, {}, ThreadScriptsToRun::Both);
-    }
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          VerifyMOIDs
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1298,6 +1287,10 @@ void Actor::OnNewMovePath() {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void Actor::PreControllerUpdate() {
+    if (m_UpdateMovePath) {
+        UpdateMovePath();
+    }
+
     if (m_PathRequest && m_PathRequest->complete) {
         m_MovePath = const_cast<std::list<Vector> &>(m_PathRequest->path);
         m_PathRequest.reset();
@@ -1309,6 +1302,8 @@ void Actor::PreControllerUpdate() {
 
 void Actor::Update()
 {
+    ZoneScoped;
+
     /////////////////////////////////
     // Hit Body update and handling
     MOSRotating::Update();
