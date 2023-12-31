@@ -406,6 +406,7 @@ namespace RTE {
 		for (const auto &[moduleID, dataModule] : g_ModuleMan.GetLoadedDataModules()) {
 			dataModule->ReloadAllScripts();
 		}
+		g_MovableMan.ReloadLuaScripts();
 		g_ConsoleMan.PrintString("SYSTEM: Scripts reloaded!");
 	}
 

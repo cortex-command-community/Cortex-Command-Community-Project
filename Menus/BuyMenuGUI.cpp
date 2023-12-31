@@ -408,7 +408,7 @@ bool BuyMenuGUI::LoadAllLoadoutsFromFile()
     if (m_MetaPlayer != Players::NoPlayer)
     {
         // Start loading any additional stuff from the custom user file
-        std::snprintf(loadoutPath, sizeof(loadoutPath), "%s%s - LoadoutsMP%d.ini", (System::GetUserdataDirectory() + c_UserConquestSavesModuleName).c_str(), g_MetaMan.GetGameName().c_str(), m_MetaPlayer + 1);
+        std::snprintf(loadoutPath, sizeof(loadoutPath), "%s%s - LoadoutsMP%d.ini", (System::GetUserdataDirectory() + c_UserConquestSavesModuleName + "/").c_str(), g_MetaMan.GetGameName().c_str(), m_MetaPlayer + 1);
 
         if (!System::PathExistsCaseSensitive(loadoutPath))
         {
@@ -521,9 +521,9 @@ bool BuyMenuGUI::SaveAllLoadoutsToFile()
         // Since the players of a new game are likely to have different techs and therefore different default loadouts
         // So we should start fresh with new loadouts loaded from tech defaults for each player
         if (g_MetaMan.GetGameName() == DEFAULTGAMENAME)
-            std::snprintf(loadoutPath, sizeof(loadoutPath), "%s%s - LoadoutsMP%d.ini", (System::GetUserdataDirectory() + c_UserConquestSavesModuleName).c_str(), AUTOSAVENAME, m_MetaPlayer + 1);
+            std::snprintf(loadoutPath, sizeof(loadoutPath), "%s%s - LoadoutsMP%d.ini", (System::GetUserdataDirectory() + c_UserConquestSavesModuleName + "/").c_str(), AUTOSAVENAME, m_MetaPlayer + 1);
         else
-            std::snprintf(loadoutPath, sizeof(loadoutPath), "%s%s - LoadoutsMP%d.ini", (System::GetUserdataDirectory() + c_UserConquestSavesModuleName).c_str(), g_MetaMan.GetGameName().c_str(), m_MetaPlayer + 1);
+            std::snprintf(loadoutPath, sizeof(loadoutPath), "%s%s - LoadoutsMP%d.ini", (System::GetUserdataDirectory() + c_UserConquestSavesModuleName + "/").c_str(), g_MetaMan.GetGameName().c_str(), m_MetaPlayer + 1);
     }
     else
         std::snprintf(loadoutPath, sizeof(loadoutPath), "%sLoadoutsP%d.ini", System::GetUserdataDirectory().c_str(), m_pController->GetPlayer() + 1);
@@ -706,7 +706,7 @@ void BuyMenuGUI::SetModuleExpanded(int whichModule, bool expanded)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Return the list of things currently in the purchase order list box.
 
-bool BuyMenuGUI::GetOrderList(std::list<const SceneObject *> &listToFill)
+bool BuyMenuGUI::GetOrderList(std::list<const SceneObject *> &listToFill) const
 {
     if (m_pCartList->GetItemList()->empty())
         return false;
@@ -736,12 +736,7 @@ bool BuyMenuGUI::CommitPurchase(std::string presetName)
 	return false;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetTotalOrderCost
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Return teh total cost of everything listed in the order box.
-
-float BuyMenuGUI::GetTotalOrderCost()
+float BuyMenuGUI::GetTotalCost(bool includeDelivery) const
 {
 	float totalCost = 0;
 
@@ -759,7 +754,8 @@ float BuyMenuGUI::GetTotalOrderCost()
 			else
 				orderedItems[presetName] += 1;
 
-			if (m_OwnedItems.find(presetName) != m_OwnedItems.end() && m_OwnedItems[presetName] >= orderedItems[presetName])
+            auto itrFound = m_OwnedItems.find(presetName);
+			if (itrFound != m_OwnedItems.end() && itrFound->second >= orderedItems[presetName])
 				needsToBePaid = false;
 
 			if (needsToBePaid)
@@ -768,7 +764,7 @@ float BuyMenuGUI::GetTotalOrderCost()
 			}
 		}
 
-		if (m_pSelectedCraft)
+		if (m_pSelectedCraft && includeDelivery)
 		{
 			bool needsToBePaid = true;
             std::string presetName = m_pSelectedCraft->GetModuleAndPresetName();
@@ -778,7 +774,8 @@ float BuyMenuGUI::GetTotalOrderCost()
 			else
 				orderedItems[presetName] += 1;
 
-			if (m_OwnedItems.find(presetName) != m_OwnedItems.end() && m_OwnedItems[presetName] >= orderedItems[presetName])
+            auto itrFound = m_OwnedItems.find(presetName);
+			if (itrFound != m_OwnedItems.end() && itrFound->second >= orderedItems[presetName])
 				needsToBePaid = false;
 
 			if (needsToBePaid)
@@ -793,7 +790,7 @@ float BuyMenuGUI::GetTotalOrderCost()
 			totalCost += dynamic_cast<const MOSprite *>((*itr)->m_pEntity)->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
 
 		// Add the delivery craft's cost
-		if (m_pSelectedCraft)
+		if (m_pSelectedCraft && includeDelivery)
 		{
 			totalCost += dynamic_cast<const MOSprite *>(m_pSelectedCraft)->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
 		}

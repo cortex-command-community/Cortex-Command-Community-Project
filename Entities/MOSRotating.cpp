@@ -89,9 +89,8 @@ void MOSRotating::Clear()
     m_LoudnessOnGib = 1;
 	m_DamageMultiplier = 0;
     m_NoSetDamageMultiplier = true;
-    m_StringValueMap.clear();
-    m_NumberValueMap.clear();
-    m_ObjectValueMap.clear();
+	m_FlashWhiteTimer.Reset();
+	m_FlashWhiteTimer.SetRealTimeLimitMS(0);
 }
 
 
@@ -270,10 +269,6 @@ int MOSRotating::Create(const MOSRotating &reference) {
         m_Gibs.push_back(gib);
     }
 
-    m_StringValueMap = reference.m_StringValueMap;
-    m_NumberValueMap = reference.m_NumberValueMap;
-    m_ObjectValueMap = reference.m_ObjectValueMap;
-
     m_GibImpulseLimit = reference.m_GibImpulseLimit;
     m_GibWoundLimit = reference.m_GibWoundLimit;
     m_GibBlastStrength = reference.m_GibBlastStrength;
@@ -312,100 +307,70 @@ int MOSRotating::Create(const MOSRotating &reference) {
 
 int MOSRotating::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-    if (propName == "AtomGroup")
+    StartPropertyList(return MOSprite::ReadProperty(propName, reader));
+    
+    MatchProperty("AtomGroup",
     {
         delete m_pAtomGroup;
         m_pAtomGroup = new AtomGroup();
         reader >> *m_pAtomGroup;
-    }
-    else if (propName == "DeepGroup")
+    });
+    MatchProperty("DeepGroup",
     {
         delete m_pDeepGroup;
         m_pDeepGroup = new AtomGroup();
         reader >> *m_pDeepGroup;
-    }
-    else if (propName == "DeepCheck")
-        reader >> m_DeepCheck;
-    else if (propName == "OrientToVel")
-        reader >> m_OrientToVel;
-	else if (propName == "SpecialBehaviour_ClearAllAttachables") {
+    });
+    MatchProperty("DeepCheck", { reader >> m_DeepCheck; });
+    MatchProperty("OrientToVel", { reader >> m_OrientToVel; });
+	MatchProperty("SpecialBehaviour_ClearAllAttachables", {
 		// This special property is used to make Attachables work with our limited serialization system, when saving the game. Note that we discard the property value here, because all that matters is whether or not we have the property.
 		reader.ReadPropValue();
-		for (std::list<Attachable *>::iterator attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end(); ) {
+		for (auto attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end(); ) {
 			Attachable *attachable = *attachableIterator;
 			++attachableIterator;
 			delete RemoveAttachable(attachable);
 		}
-	} else if (propName == "AddAttachable" || propName == "AddAEmitter" || propName == "AddEmitter") {
+	});
+    MatchForwards("AddAttachable") MatchForwards("AddAEmitter") MatchProperty("AddEmitter", {
 		Entity *readerEntity = g_PresetMan.ReadReflectedPreset(reader);
 		if (Attachable *readerAttachable = dynamic_cast<Attachable *>(readerEntity)) {
 			AddAttachable(readerAttachable);
 		} else {
 			reader.ReportError("Tried to AddAttachable a non-Attachable type!");
 		}
-	} else if (propName == "SpecialBehaviour_AddWound") {
+	});
+	MatchProperty("SpecialBehaviour_AddWound", {
 		AEmitter *wound = new AEmitter;
 		reader >> wound;
 		AddWound(wound, wound->GetParentOffset());
-	}
-    else if (propName == "AddGib")
+	});
+    MatchProperty("AddGib",
     {
         Gib gib;
         reader >> gib;
         m_Gibs.push_back(gib);
-    }
-    else if (propName == "GibImpulseLimit")
-        reader >> m_GibImpulseLimit;
-    else if (propName == "GibWoundLimit" || propName == "WoundLimit")
-        reader >> m_GibWoundLimit;
-	else if (propName == "GibBlastStrength") {
-		reader >> m_GibBlastStrength;
-    } else if (propName == "GibScreenShakeAmount") {
-		reader >> m_GibScreenShakeAmount;
-	} else if (propName == "WoundCountAffectsImpulseLimitRatio") {
-        reader >> m_WoundCountAffectsImpulseLimitRatio;
-	} else if (propName == "DetachAttachablesBeforeGibbingFromWounds") {
-		reader >> m_DetachAttachablesBeforeGibbingFromWounds;
-	} else if (propName == "GibAtEndOfLifetime") {
-		reader >> m_GibAtEndOfLifetime;
-	} else if (propName == "GibSound") {
+    });
+    MatchProperty("GibImpulseLimit", { reader >> m_GibImpulseLimit; });
+    MatchForwards("GibWoundLimit") MatchProperty("WoundLimit", { reader >> m_GibWoundLimit; });
+	MatchProperty("GibBlastStrength", { reader >> m_GibBlastStrength; });
+    MatchProperty("GibScreenShakeAmount", { reader >> m_GibScreenShakeAmount; });
+	MatchProperty("WoundCountAffectsImpulseLimitRatio", { reader >> m_WoundCountAffectsImpulseLimitRatio; });
+	MatchProperty("DetachAttachablesBeforeGibbingFromWounds", { reader >> m_DetachAttachablesBeforeGibbingFromWounds; });
+	MatchProperty("GibAtEndOfLifetime", { reader >> m_GibAtEndOfLifetime; });
+	MatchProperty("GibSound", {
 		if (!m_GibSound) { m_GibSound = new SoundContainer; }
 		reader >> m_GibSound;
-	} else if (propName == "EffectOnGib")
-        reader >> m_EffectOnGib;
-    else if (propName == "LoudnessOnGib")
-        reader >> m_LoudnessOnGib;
-	else if (propName == "DamageMultiplier") {
+	});
+	MatchProperty("EffectOnGib", { reader >> m_EffectOnGib; });
+    MatchProperty("LoudnessOnGib", { reader >> m_LoudnessOnGib; });
+	MatchProperty("DamageMultiplier", {
 		reader >> m_DamageMultiplier;
         m_NoSetDamageMultiplier = false;
-    } else if (propName == "AddCustomValue") {
-        ReadCustomValueProperty(reader);
-    } else
-        return MOSprite::ReadProperty(propName, reader);
-
-    return 0;
+    }); 
+    
+    EndPropertyList;
 }
-
-void MOSRotating::ReadCustomValueProperty(Reader &reader) {
-    std::string customValueType;
-    reader >> customValueType;
-    std::string customKey = reader.ReadPropName();
-    std::string customValue = reader.ReadPropValue();
-    if (customValueType == "NumberValue") {
-        try {
-            SetNumberValue(customKey, std::stod(customValue));
-        } catch (const std::invalid_argument) {
-            reader.ReportError("Tried to read a non-number value for SetNumberValue.");
-        }
-    } else if (customValueType == "StringValue") {
-        SetStringValue(customKey, customValue);
-    } else {
-        reader.ReportError("Invalid CustomValue type " + customValueType);
-    }
-    // Artificially end reading this property since we got all we needed
-    reader.NextProperty();
-}
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Save
@@ -428,18 +393,18 @@ int MOSRotating::Save(Writer &writer) const
     writer.NewProperty("OrientToVel");
     writer << m_OrientToVel;
 
-    for (std::list<AEmitter *>::const_iterator itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr)
+    for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr)
     {
         writer.NewProperty("AddEmitter");
         writer << (*itr);
     }
-    for (std::list<Attachable *>::const_iterator aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr)
+    for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr)
     {
         writer.NewProperty("AddAttachable");
         writer << (*aItr);
     }
 */
-    for (std::list<Gib>::const_iterator gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr)
+    for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr)
     {
         writer.NewProperty("AddGib");
         writer << (*gItr);
@@ -546,6 +511,7 @@ void MOSRotating::AddWound(AEmitter *woundToAdd, const Vector &parentOffsetToSet
 			} else {
 				// TODO: Don't hardcode the blast strength!
 				GibThis(Vector(-5.0F, 0).RadRotate(woundToAdd->GetEmitAngle()));
+                woundToAdd->DestroyScriptState();
 				delete woundToAdd;
 				return;
 			}
@@ -589,10 +555,12 @@ float MOSRotating::RemoveWounds(int numberOfWoundsToRemove, bool includePositive
         if (m_Wounds.empty()) {
             return 0.0F;
         }
-        float woundDamage = m_Wounds.front()->GetBurstDamage();
         AEmitter *wound = m_Wounds.front();
+        float woundDamage = wound->GetBurstDamage();
         m_AttachableAndWoundMass -= wound->GetMass();
-        m_Wounds.pop_front();
+        std::iter_swap(m_Wounds.begin(), m_Wounds.end() - 1);
+        m_Wounds.pop_back();
+        wound->DestroyScriptState();
         delete wound;
         return woundDamage;
     };
@@ -616,6 +584,18 @@ float MOSRotating::RemoveWounds(int numberOfWoundsToRemove, bool includePositive
 	return damage;
 }
 
+void MOSRotating::DestroyScriptState() {
+    for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
+        (*itr)->DestroyScriptState();
+    }
+
+    for (auto itr = m_Attachables.begin(); itr != m_Attachables.end(); ++itr) {
+        (*itr)->DestroyScriptState();
+    }
+
+    MovableObject::DestroyScriptState();
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -628,8 +608,11 @@ void MOSRotating::Destroy(bool notInherited)
     delete m_pAtomGroup;
     delete m_pDeepGroup;
 
-    for (std::list<AEmitter *>::iterator itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) { delete (*itr); }
-    for (std::list<Attachable *>::iterator aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr) {
+    for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) { 
+        delete (*itr); 
+    }
+
+    for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr) {
         if (m_HardcodedAttachableUniqueIDsAndRemovers.find((*aItr)->GetUniqueID()) == m_HardcodedAttachableUniqueIDsAndRemovers.end()) {
             delete (*aItr);
         }
@@ -1045,6 +1028,14 @@ void MOSRotating::GibThis(const Vector &impactImpulse, MovableObject *movableObj
         return;
     }
 
+    if (impactImpulse.MagnitudeIsGreaterThan(GetGibImpulseLimit())) {
+        // Add a counterforce equal to GibImpulseLimit to the impulse list in order to simulate the force spent on breaking the object apart
+        Vector counterForce = impactImpulse;
+        counterForce.SetMagnitude(GetGibImpulseLimit());
+        m_ImpulseForces.emplace_back(-counterForce, Vector());
+        MOSprite::ApplyImpulses();
+    }
+
     CreateGibsWhenGibbing(impactImpulse, movableObjectToIgnore);
 
     RemoveAttachablesWhenGibbing(impactImpulse, movableObjectToIgnore);
@@ -1193,7 +1184,7 @@ void MOSRotating::RemoveAttachablesWhenGibbing(const Vector &impactImpulse, Mova
             float attachableGibBlastStrength = (attachable->GetParentGibBlastStrengthMultiplier() * m_GibBlastStrength) / (1 + attachable->GetMass());
             attachable->SetAngularVel((attachable->GetAngularVel() * 0.5F) + (attachable->GetAngularVel() * 0.5F * attachableGibBlastStrength * RandomNormalNum()));
             Vector gibBlastVel = Vector(attachable->GetParentOffset()).SetMagnitude(attachableGibBlastStrength * 0.5F + (attachableGibBlastStrength * RandomNum()));
-            attachable->SetVel(m_Vel + gibBlastVel + impactImpulse);
+            attachable->SetVel(m_Vel + gibBlastVel); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
 
             if (movableObjectToIgnore) { attachable->SetWhichMOToNotHit(movableObjectToIgnore); }
         }
@@ -1256,7 +1247,7 @@ void MOSRotating::ApplyImpulses() {
 		}
 	}
 
-	MOSprite::ApplyImpulses();
+    MOSprite::ApplyImpulses();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1273,10 +1264,10 @@ void MOSRotating::ResetAllTimers()
 {
     MovableObject::ResetAllTimers();
 
-    for (std::list<AEmitter *>::iterator emitter = m_Wounds.begin(); emitter != m_Wounds.end(); ++emitter)
+    for (auto emitter = m_Wounds.begin(); emitter != m_Wounds.end(); ++emitter)
         (*emitter)->ResetAllTimers();
 
-    for (std::list<Attachable *>::iterator attachable = m_Attachables.begin(); attachable != m_Attachables.end(); ++attachable)
+    for (auto attachable = m_Attachables.begin(); attachable != m_Attachables.end(); ++attachable)
         (*attachable)->ResetAllTimers();
 }
 
@@ -1555,7 +1546,7 @@ void MOSRotating::PostTravel()
 
 
     Attachable *attachable;
-    for (std::list<Attachable *>::iterator attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end(); ) {
+    for (auto attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end(); ) {
         attachable = *attachableIterator;
         RTEAssert(attachable, "Broken Attachable in PostTravel!");
         ++attachableIterator;
@@ -1582,40 +1573,39 @@ void MOSRotating::Update() {
         m_Rotation += radsToGo * m_OrientToVel * velInfluence;
     }
 
-    AEmitter *wound = nullptr;
-    for (std::list<AEmitter *>::iterator woundIterator = m_Wounds.begin(); woundIterator != m_Wounds.end(); ) {
-        wound = *woundIterator;
+    for (auto woundItr = m_Wounds.begin(); woundItr != m_Wounds.end(); ) {
+        AEmitter* wound = *woundItr;
         RTEAssert(wound && wound->IsAttachedTo(this), "Broken wound AEmitter in Update");
-        ++woundIterator;
         wound->Update();
 
         if (wound->IsSetToDelete() || (wound->GetLifetime() > 0 && wound->GetAge() > wound->GetLifetime())) {
-            m_Wounds.remove(wound);
+            std::iter_swap(woundItr, m_Wounds.end() - 1);
+            m_Wounds.pop_back();
             m_AttachableAndWoundMass -= wound->GetMass();
             delete wound;
         } else {
             Vector totalImpulseForce;
-            for (const std::pair<Vector, Vector> &impulseForce : wound->GetImpulses()) {
+            for (const std::pair<Vector, Vector>& impulseForce : wound->GetImpulses()) {
                 totalImpulseForce += impulseForce.first;
             }
             totalImpulseForce *= wound->GetJointStiffness();
 
-            if (!totalImpulseForce.IsZero()) { AddImpulseForce(totalImpulseForce, wound->GetApplyTransferredForcesAtOffset() ? wound->GetParentOffset() * m_Rotation * c_MPP : Vector()); }
+            if (!totalImpulseForce.IsZero()) {
+                AddImpulseForce(totalImpulseForce, wound->GetApplyTransferredForcesAtOffset() ? wound->GetParentOffset() * m_Rotation * c_MPP : Vector());
+            }
 
             wound->ClearImpulseForces();
+            ++woundItr;
         }
     }
 
-    Attachable *attachable = nullptr;
-    for (std::list<Attachable *>::iterator attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end(); ) {
-        attachable = *attachableIterator;
+    for (auto attachableItr = m_Attachables.begin(); attachableItr != m_Attachables.end(); ) {
+        Attachable* attachable = *attachableItr;
+        ++attachableItr;
         RTEAssert(attachable, "Broken Attachable in Update!");
         RTEAssert(attachable->IsAttached(), "Found Attachable on " + GetModuleAndPresetName() + " (" + attachable->GetModuleAndPresetName() + ") with no parent, this should never happen!");
         RTEAssert(attachable->IsAttachedTo(this), "Found Attachable on " + GetModuleAndPresetName() + " (" + attachable->GetModuleAndPresetName() + ") with another parent (" + attachable->GetParent()->GetModuleAndPresetName() + "), this should never happen!");
-        ++attachableIterator;
-
         attachable->Update();
-        RTEAssert(attachable, "Broken Attachable after Updating it!");
 
         if (attachable->IsAttachedTo(this) && attachable->IsSetToDelete()) {
             RemoveAttachable(attachable, true, true);
@@ -1623,6 +1613,20 @@ void MOSRotating::Update() {
             TransferForcesFromAttachable(attachable);
         }
     }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MOSRotating::PostUpdate() {
+    for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
+        (*itr)->PostUpdate();
+    }
+
+    for (auto itr = m_Attachables.begin(); itr != m_Attachables.end(); ++itr) {
+        (*itr)->PostUpdate();
+    }
+
+    MovableObject::PostUpdate();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1774,7 +1778,7 @@ void MOSRotating::RemoveAndDeleteAttachable(Attachable *attachable) {
 
 void MOSRotating::RemoveOrDestroyAllAttachables(bool destroy) {
     Attachable *attachable;
-    for (std::list<Attachable *>::iterator attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end(); ) {
+    for (auto attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end(); ) {
         attachable = *attachableIterator;
         RTEAssert(attachable, "Broken Attachable!");
         ++attachableIterator;
@@ -1821,6 +1825,8 @@ void MOSRotating::Draw(BITMAP *pTargetBitmap, const Vector &targetPos, DrawMode 
     if (mode == g_DrawMOID && m_MOID == g_NoMOID) {
         return;
     }
+
+	if (mode == g_DrawColor && !m_FlashWhiteTimer.IsPastRealTimeLimit()) { mode = g_DrawWhite; }
 
     // Draw all the attached wound emitters, and only if the mode is g_DrawColor and not onlyphysical
     // Only draw attachables and emitters which are not drawn after parent, so we draw them before
@@ -1879,13 +1885,20 @@ void MOSRotating::Draw(BITMAP *pTargetBitmap, const Vector &targetPos, DrawMode 
         }
     }
 
+#ifdef DRAW_MOID_LAYER
+    bool needsWrap = true;
+#else
+    bool needsWrap = mode != g_DrawMOID;
+#endif
+
+
     // Take care of wrapping situations
     Vector aDrawPos[4];
     int passes = 1;
 
     aDrawPos[0] = spritePos;
 
-    if (g_SceneMan.SceneWrapsX()) {
+    if (needsWrap && g_SceneMan.SceneWrapsX()) {
         // See if need to double draw this across the scene seam if we're being drawn onto a scenewide bitmap
         if (targetPos.IsZero() && m_WrapDoubleDraw) {
             if (spritePos.m_X < m_SpriteDiameter) {
@@ -1913,16 +1926,24 @@ void MOSRotating::Draw(BITMAP *pTargetBitmap, const Vector &targetPos, DrawMode 
     }
 
     if (m_HFlipped && pFlipBitmap) {
-        // Don't size the intermediate bitmaps to the m_Scale, because the scaling happens after they are done
-        clear_to_color(pFlipBitmap, keyColor);
+#ifdef DRAW_MOID_LAYER
+        bool drawIntermediate = true;
+#else
+        bool drawIntermediate = mode != g_DrawMOID;
+#endif
 
-        // Draw either the source color bitmap or the intermediate material bitmap onto the intermediate flipping bitmap
-		if (mode == g_DrawColor || mode == g_DrawTrans) {
-			draw_sprite_h_flip(pFlipBitmap, m_aSprite[m_Frame], 0, 0);
-		} else {
-			// If using the temp bitmap (which is always larger than the sprite) make sure the flipped image ends up in the upper right corner as if it was just as small as the sprite bitmap
-            draw_sprite_h_flip(pFlipBitmap, pTempBitmap, -(pTempBitmap->w - m_aSprite[m_Frame]->w), 0);
-		}
+        if (drawIntermediate) {
+            // Don't size the intermediate bitmaps to the m_Scale, because the scaling happens after they are done
+            clear_to_color(pFlipBitmap, keyColor);
+
+            // Draw either the source color bitmap or the intermediate material bitmap onto the intermediate flipping bitmap
+		    if (mode == g_DrawColor || mode == g_DrawTrans) {
+			    draw_sprite_h_flip(pFlipBitmap, m_aSprite[m_Frame], 0, 0);
+		    } else {
+			    // If using the temp bitmap (which is always larger than the sprite) make sure the flipped image ends up in the upper right corner as if it was just as small as the sprite bitmap
+                draw_sprite_h_flip(pFlipBitmap, pTempBitmap, -(pTempBitmap->w - m_aSprite[m_Frame]->w), 0);
+		    }
+        }
 
         if (mode == g_DrawTrans) {
             clear_to_color(pTempBitmap, keyColor);
@@ -2049,14 +2070,14 @@ void MOSRotating::CorrectAttachableAndWoundPositionsAndRotations() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MOSRotating::OnGameSave() {
-	MovableObject::OnGameSave();
+void MOSRotating::OnSave() {
 	for (AEmitter *wound : m_Wounds) {
-		wound->OnGameSave();
+		wound->OnSave();
 	}
 	for (Attachable *attachable : m_Attachables) {
-		attachable->OnGameSave();
+		attachable->OnSave();
 	}
+    MovableObject::OnSave();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2070,145 +2091,6 @@ bool MOSRotating::TransferForcesFromAttachable(Attachable *attachable) {
     if (!forces.IsZero()) { AddForce(forces, attachable->GetApplyTransferredForcesAtOffset() ? attachable->GetParentOffset() * m_Rotation * c_MPP : Vector()); }
     if (!impulses.IsZero()) { AddImpulseForce(impulses, attachable->GetApplyTransferredForcesAtOffset() ? attachable->GetParentOffset() * m_Rotation * c_MPP : Vector()); }
     return intact;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  GetStringValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the string value associated with the specified key or "" if it does not exist.
-
-std::string MOSRotating::GetStringValue(std::string key) const
-{
-	if (StringValueExists(key))
-		return m_StringValueMap.at(key);
-	else
-		return "";
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  GetNumberValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the number value associated with the specified key or 0 if it does not exist.
-// Arguments:       Key to retrieve value.
-// Return value:    Number (double) value.
-
-double MOSRotating::GetNumberValue(std::string key) const
-{
-	if (NumberValueExists(key))
-		return m_NumberValueMap.at(key);
-	else
-		return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  GetObjectValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the object value associated with the specified key or 0 if it does not exist.
-// Arguments:       None.
-// Return value:    Object (Entity *) value.
-
-Entity * MOSRotating::GetObjectValue(std::string key) const
-{
-	if (ObjectValueExists(key))
-		return m_ObjectValueMap.at(key);
-	else
-		return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  SetStringValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the string value associated with the specified key.
-
-void MOSRotating::SetStringValue(std::string key, std::string value)
-{
-	m_StringValueMap[key] = value;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  SetNumberValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the string value associated with the specified key.
-
-void MOSRotating::SetNumberValue(std::string key, double value)
-{
-	m_NumberValueMap[key] = value;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  SetObjectValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the string value associated with the specified key.
-
-void MOSRotating::SetObjectValue(std::string key, Entity * value)
-{
-	m_ObjectValueMap[key] = value;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  RemoveStringValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Remove the string value associated with the specified key.
-
-void MOSRotating::RemoveStringValue(std::string key)
-{
-	m_StringValueMap.erase(key);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  RemoveNumberValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Remove the number value associated with the specified key.
-
-void MOSRotating::RemoveNumberValue(std::string key)
-{
-	m_NumberValueMap.erase(key);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  RemoveObjectValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Remove the object value associated with the specified key.
-
-void MOSRotating::RemoveObjectValue(std::string key)
-{
-	m_ObjectValueMap.erase(key);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  StringValueExists
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Checks whether the value associated with the specified key exists.
-
-bool MOSRotating::StringValueExists(std::string key) const
-{
-	if (m_StringValueMap.find(key) != m_StringValueMap.end())
-		return true;
-	return false;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  NumberValueExists
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Checks whether the value associated with the specified key exists.
-
-bool MOSRotating::NumberValueExists(std::string key) const
-{
-	if (m_NumberValueMap.find(key) != m_NumberValueMap.end())
-		return true;
-	return false;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  ObjectValueExists
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Checks whether the value associated with the specified key exists.
-
-bool MOSRotating::ObjectValueExists(std::string key) const
-{
-	if (m_ObjectValueMap.find(key) != m_ObjectValueMap.end())
-		return true;
-	return false;
 }
 
 } // namespace RTE

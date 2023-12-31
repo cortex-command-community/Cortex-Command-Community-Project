@@ -1,7 +1,9 @@
 #include "Attachable.h"
+
 #include "AtomGroup.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
+#include "PerformanceMan.h"
 #include "AEmitter.h"
 #include "Actor.h"
 
@@ -108,55 +110,40 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Attachable::ReadProperty(const std::string_view &propName, Reader &reader) {
-		if (propName == "ParentOffset") {
-			reader >> m_ParentOffset;
-		} else if (propName == "DrawAfterParent") {
-			reader >> m_DrawAfterParent;
-		} else if (propName == "DeleteWhenRemovedFromParent") {
-			reader >> m_DeleteWhenRemovedFromParent;
-		} else if (propName == "GibWhenRemovedFromParent") {
-			reader >> m_GibWhenRemovedFromParent;
-		} else if (propName == "ApplyTransferredForcesAtOffset") {
-			reader >> m_ApplyTransferredForcesAtOffset;
-		} else if (propName == "GibWithParentChance") {
-			reader >> m_GibWithParentChance;
-		} else if (propName == "ParentGibBlastStrengthMultiplier") {
-			reader >> m_ParentGibBlastStrengthMultiplier;
-		} else if (propName == "JointStrength" || propName == "Strength") {
-			reader >> m_JointStrength;
-		} else if (propName == "JointStiffness" || propName == "Stiffness") {
+		StartPropertyList(return MOSRotating::ReadProperty(propName, reader));
+		
+		MatchProperty("ParentOffset", { reader >> m_ParentOffset; });
+		MatchProperty("DrawAfterParent", { reader >> m_DrawAfterParent; });
+		MatchProperty("DeleteWhenRemovedFromParent", { reader >> m_DeleteWhenRemovedFromParent; });
+		MatchProperty("GibWhenRemovedFromParent", { reader >> m_GibWhenRemovedFromParent; });
+		MatchProperty("ApplyTransferredForcesAtOffset", { reader >> m_ApplyTransferredForcesAtOffset; });
+		MatchProperty("GibWithParentChance", { reader >> m_GibWithParentChance; });
+		MatchProperty("ParentGibBlastStrengthMultiplier", { reader >> m_ParentGibBlastStrengthMultiplier; });
+		MatchForwards("JointStrength") MatchProperty("Strength", { reader >> m_JointStrength; });
+		MatchForwards("JointStiffness") MatchProperty("Stiffness", {
 			float jointStiffness = 0;
 			reader >> jointStiffness;
 			SetJointStiffness(jointStiffness);
-		} else if (propName == "JointOffset") {
-			reader >> m_JointOffset;
-		} else if (propName == "BreakWound") {
+		});
+		MatchProperty("JointOffset", { reader >> m_JointOffset; });
+		MatchProperty("BreakWound", {
 			m_BreakWound = dynamic_cast<const AEmitter *>(g_PresetMan.GetEntityPreset(reader));
 			if (!m_ParentBreakWound) { m_ParentBreakWound = m_BreakWound; }
-		} else if (propName == "ParentBreakWound") {
-			m_ParentBreakWound = dynamic_cast<const AEmitter *>(g_PresetMan.GetEntityPreset(reader));
-		} else if (propName == "InheritsHFlipped") {
+		});
+		MatchProperty("ParentBreakWound", { m_ParentBreakWound = dynamic_cast<const AEmitter *>(g_PresetMan.GetEntityPreset(reader)); });
+		MatchProperty("InheritsHFlipped", {
 			reader >> m_InheritsHFlipped;
 			if (m_InheritsHFlipped != 0 && m_InheritsHFlipped != 1) { m_InheritsHFlipped = -1; }
-		} else if (propName == "InheritsRotAngle") {
-			reader >> m_InheritsRotAngle;
-		} else if (propName == "InheritedRotAngleRadOffset" || propName == "InheritedRotAngleOffset") {
-			reader >> m_InheritedRotAngleOffset;
-		} else if (propName == "InheritedRotAngleDegOffset") {
-			m_InheritedRotAngleOffset = DegreesToRadians(std::stof(reader.ReadPropValue()));
-		} else if (propName == "InheritsFrame") {
-			reader >> m_InheritsFrame;
-		} else if (propName == "CollidesWithTerrainWhileAttached") {
-			reader >> m_CollidesWithTerrainWhileAttached;
-		} else if (propName == "IgnoresParticlesWhileAttached") {
-			reader >> m_IgnoresParticlesWhileAttached;
-		} else if (propName == "AddPieSlice") {
-			m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice *>(g_PresetMan.ReadReflectedPreset(reader))));
-		} else {
-			return MOSRotating::ReadProperty(propName, reader);
-		}
+		});
+		MatchProperty("InheritsRotAngle", { reader >> m_InheritsRotAngle; });
+		MatchForwards("InheritedRotAngleRadOffset") MatchProperty("InheritedRotAngleOffset", { reader >> m_InheritedRotAngleOffset; });
+		MatchProperty("InheritedRotAngleDegOffset", { m_InheritedRotAngleOffset = DegreesToRadians(std::stof(reader.ReadPropValue())); });
+		MatchProperty("InheritsFrame", { reader >> m_InheritsFrame; });
+		MatchProperty("CollidesWithTerrainWhileAttached", { reader >> m_CollidesWithTerrainWhileAttached; });
+		MatchProperty("IgnoresParticlesWhileAttached", { reader >> m_IgnoresParticlesWhileAttached; });
+		MatchProperty("AddPieSlice", { m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice *>(g_PresetMan.ReadReflectedPreset(reader)))); });
 
-		return 0;
+		EndPropertyList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -236,19 +223,20 @@ namespace RTE {
 			}
 		}
 
-		if (gibImpulseLimitValueToUse > 0 && totalImpulseForce.MagnitudeIsGreaterThan(gibImpulseLimitValueToUse)) {
+		if (gibImpulseLimitValueToUse > 0.0F && totalImpulseForce.MagnitudeIsGreaterThan(gibImpulseLimitValueToUse)) {
+			Vector gibImpulse = totalImpulseForce;
 			jointImpulses += totalImpulseForce.SetMagnitude(gibImpulseLimitValueToUse);
-			GibThis();
+			GibThis(gibImpulse);
 			return false;
-		} else if (jointStrengthValueToUse > 0 && totalImpulseForce.MagnitudeIsGreaterThan(jointStrengthValueToUse)) {
+		} else if (jointStrengthValueToUse > 0.0F && totalImpulseForce.MagnitudeIsGreaterThan(jointStrengthValueToUse)) {
 			jointImpulses += totalImpulseForce.SetMagnitude(jointStrengthValueToUse);
+			m_ImpulseForces.emplace_back(-totalImpulseForce, Vector());
 			m_Parent->RemoveAttachable(this, true, true);
 			return false;
-		} else {
-			jointImpulses += totalImpulseForce;
 		}
 
 		m_ImpulseForces.clear();
+		jointImpulses += totalImpulseForce;
 		return true;
 	}
 
@@ -347,12 +335,33 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	int Attachable::UpdateScripts() {
+		if (m_Parent && !m_AllLoadedScripts.empty() && !ObjectScriptsInitialized()) {
+			RunScriptedFunctionInAppropriateScripts("OnAttach", false, false, { m_Parent }, {}, {});
+		}
+
+		return MOSRotating::UpdateScripts();
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	void Attachable::Update() {
-		if (!m_PreUpdateHasRunThisFrame) { PreUpdate(); }
+		if (!m_PreUpdateHasRunThisFrame) { 
+			PreUpdate(); 
+		}
+
+		UpdatePositionAndJointPositionBasedOnOffsets();
+
 		if (m_Parent) {
-			UpdatePositionAndJointPositionBasedOnOffsets();
-			if (m_ParentOffset != m_PrevParentOffset || m_JointOffset != m_PrevJointOffset) { m_Parent->HandlePotentialRadiusAffectingAttachable(this); }
-			SetVel(m_Parent->GetVel());
+			if (m_ParentOffset != m_PrevParentOffset || m_JointOffset != m_PrevJointOffset) { 
+				m_PrevParentOffset = m_ParentOffset;
+				m_PrevJointOffset = m_JointOffset;
+				m_Parent->HandlePotentialRadiusAffectingAttachable(this); 
+			}
+
+			m_PrevVel = m_Vel;
+			m_Vel = m_Parent->GetVel();
+
 			m_Team = m_Parent->GetTeam();
 
 			MOSRotating *rootParentAsMOSR = dynamic_cast<MOSRotating *>(GetRootParent());
@@ -371,28 +380,24 @@ namespace RTE {
 			}
 			m_DeepCheck = false;
 			m_PrevRotAngleOffset = currentRotAngleOffset;
-		} else {
-			UpdatePositionAndJointPositionBasedOnOffsets();
 		}
 
 		MOSRotating::Update();
 
-		if (m_Parent && m_InheritsFrame) { SetFrame(m_Parent->GetFrame()); }
+		if (m_Parent && m_InheritsFrame) {
+			SetFrame(m_Parent->GetFrame());
+		}
 
 		// If we're attached to something, MovableMan doesn't own us, and therefore isn't calling our UpdateScripts method (and neither is our parent), so we should here.
 		if (m_Parent && GetRootParent()->HasEverBeenAddedToMovableMan()) {
+			g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 			if (!m_AllLoadedScripts.empty() && !ObjectScriptsInitialized()) {
-				RunScriptedFunctionInAppropriateScripts("OnAttach", false, false, { m_Parent });
+				RunScriptedFunctionInAppropriateScripts("OnAttach", false, false, { m_Parent }, {}, {});
 			}
 			UpdateScripts();
+			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 		}
 
-		if (m_Parent) {
-			m_PrevPos = m_Pos;
-			m_PrevVel = m_Vel;
-			m_PrevParentOffset = m_ParentOffset;
-			m_PrevJointOffset = m_JointOffset;
-		}
 		m_PreUpdateHasRunThisFrame = false;
 	}
 
@@ -534,6 +539,7 @@ namespace RTE {
 	void Attachable::UpdatePositionAndJointPositionBasedOnOffsets() {
 		if (m_Parent) {
 			m_JointPos = m_Parent->GetPos() + m_Parent->RotateOffset(GetParentOffset());
+			m_PrevPos = m_Pos;
 			m_Pos = m_JointPos - RotateOffset(m_JointOffset);
 		} else {
 			m_JointPos = m_Pos + RotateOffset(m_JointOffset);

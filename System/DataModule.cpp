@@ -102,11 +102,11 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int DataModule::ReadProperty(const std::string_view &propName, Reader &reader) {
-		if (propName == "ModuleName") {
-			reader >> m_FriendlyName;
-		} else if (propName == "Author") {
-			reader >> m_Author;
-		} else if (propName == "Description") {
+		StartPropertyList(if (!g_PresetMan.GetEntityPreset(reader)) { reader.ReportError("Could not understand Preset type!"); })
+		
+		MatchProperty("ModuleName", { reader >> m_FriendlyName; });
+		MatchProperty("Author", { reader >> m_Author; });
+		MatchProperty("Description", {
 			std::string descriptionValue = reader.ReadPropValue();
 			if (descriptionValue == "MultiLineText") {
 				m_Description.clear();
@@ -119,13 +119,16 @@ namespace RTE {
 			} else {
 				m_Description = descriptionValue;
 			}
-		} else if (propName == "IsFaction") {
+		});
+		MatchProperty("IsFaction", {
 			reader >> m_IsFaction;
 			if (m_IsMerchant) { m_IsFaction = false; }
-		} else if (propName == "IsMerchant") {
+		});
+		MatchProperty("IsMerchant", {
 			reader >> m_IsMerchant;
 			if (m_IsMerchant) { m_IsFaction = false; }
-		} else if (propName == "SupportedGameVersion") {
+		});
+		MatchProperty("SupportedGameVersion", {
 			std::string versionText;
 			reader >> versionText;
 			// TODO: Need to proceed reading the includes after ReadModuleProperties so we don't read the properties again when fully creating.
@@ -136,28 +139,28 @@ namespace RTE {
 					reader.ReportError("Couldn't parse the supported game version from the value provided: \"" + versionText + "\"!\nThe supported game version must be a valid semantic version number.\n");
 				}
 			}
-		} else if (propName == "Version") {
-			reader >> m_Version;
-		} else if (propName == "ScanFolderContents") {
-			reader >> m_ScanFolderContents;
-		} else if (propName == "IgnoreMissingItems") {
-			reader >> m_IgnoreMissingItems;
-		} else if (propName == "CrabToHumanSpawnRatio") {
-			reader >> m_CrabToHumanSpawnRatio;
-		} else if (propName == "ScriptPath") {
+		});
+		MatchProperty("Version", { reader >> m_Version; });
+		MatchProperty("ScanFolderContents", { reader >> m_ScanFolderContents; });
+		MatchProperty("IgnoreMissingItems", { reader >> m_IgnoreMissingItems; });
+		MatchProperty("CrabToHumanSpawnRatio", { reader >> m_CrabToHumanSpawnRatio; });
+		MatchProperty("ScriptPath", {
 			reader >> m_ScriptPath;
 			LoadScripts();
-		} else if (propName == "Require") {
+		});
+		MatchProperty("Require", {
 			// Check for required dependencies if we're not load properties
 			std::string requiredModule;
 			reader >> requiredModule;
 			if (!reader.GetSkipIncludes() && g_ModuleMan.GetModuleID(requiredModule) == -1) {
 				reader.ReportError("\"" + m_FileName + "\" requires \"" + requiredModule + "\" in order to load!\n");
 			}
-		} else if (propName == "IconFile") {
+		});
+		MatchProperty("IconFile", {
 			reader >> m_IconFile;
 			m_Icon = m_IconFile.GetAsBitmap();
-		} else if (propName == "FactionBuyMenuTheme") {
+		});
+		MatchProperty("FactionBuyMenuTheme", {
 			if (reader.ReadPropValue() == "BuyMenuTheme") {
 				while (reader.NextProperty()) {
 					std::string themePropName = reader.ReadPropName();
@@ -174,13 +177,10 @@ namespace RTE {
 					}
 				}
 			}
-		} else if (propName == "AddMaterial") {
-			return g_SceneMan.ReadProperty(propName, reader);
-		} else {
-			// Try to read in the preset and add it to the PresetMan in one go, and report if fail
-			if (!g_PresetMan.GetEntityPreset(reader)) { reader.ReportError("Could not understand Preset type!"); }
-		}
-		return 0;
+		});
+		MatchProperty("AddMaterial", { return g_SceneMan.ReadProperty(propName, reader); });
+
+		EndPropertyList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -401,7 +401,16 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int DataModule::LoadScripts() const {
-		return m_ScriptPath.empty() ? 0 : g_LuaMan.RunScriptFile(m_ScriptPath);
+		if (m_ScriptPath.empty()) {
+			return 0;
+		}
+		
+		g_LuaMan.GetMasterScriptState().RunScriptFile(m_ScriptPath);
+		for (LuaStateWrapper &luaState : g_LuaMan.GetThreadedScriptStates()) {
+			luaState.RunScriptFile(m_ScriptPath);
+		}
+
+		return 0;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

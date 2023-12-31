@@ -83,6 +83,9 @@
 #include <filesystem>
 #include <atomic>
 #include <execution>
+#include <source_location>
+#include <regex>
+#include <future>
 
 namespace std {
 

@@ -6,6 +6,7 @@
 
 #include "GameActivity.h"
 #include "Scene.h"
+#include "FrameMan.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"

@@ -28,7 +28,9 @@
 
 #include "MainMenuGUI.h"
 #include "ScenarioGUI.h"
+#include "PauseMenuGUI.h"
 #include "TitleScreen.h"
+#include "LoadingScreen.h"
 
 #include "MenuMan.h"
 #include "ConsoleMan.h"
@@ -37,10 +39,17 @@
 #include "PresetMan.h"
 #include "UInputMan.h"
 #include "PerformanceMan.h"
+#include "FrameMan.h"
 #include "MetaMan.h"
 #include "WindowMan.h"
 #include "NetworkServer.h"
 #include "NetworkClient.h"
+#include "CameraMan.h"
+#include "ActivityMan.h"
+#include "PrimitiveMan.h"
+#include "ThreadMan.h"
+
+#include "tracy/Tracy.hpp"
 
 extern "C" { FILE __iob_func[3] = { *stdin,*stdout,*stderr }; }
 
@@ -54,13 +63,38 @@ namespace RTE {
 	/// Initializes all the essential managers.
 	/// </summary>
 	void InitializeManagers() {
+		ThreadMan::Construct();
+		TimerMan::Construct();
+		PresetMan::Construct();
+		SettingsMan::Construct();
+		WindowMan::Construct();
+		LuaMan::Construct();
+		NetworkServer::Construct();
+		NetworkClient::Construct();
+		FrameMan::Construct();
+		PerformanceMan::Construct();
+		PostProcessMan::Construct();
+		PrimitiveMan::Construct();
+		AudioMan::Construct();
+		GUISound::Construct();
+		UInputMan::Construct();
+		ConsoleMan::Construct();
+		SceneMan::Construct();
+		MovableMan::Construct();
+		MetaMan::Construct();
+		MenuMan::Construct();
+		CameraMan::Construct();
+		ActivityMan::Construct();
+		LoadingScreen::Construct();
+
+		g_ThreadMan.Initialize();
 		g_SettingsMan.Initialize();
+		g_WindowMan.Initialize();
 
 		g_LuaMan.Initialize();
 		g_NetworkServer.Initialize();
 		g_NetworkClient.Initialize();
 		g_TimerMan.Initialize();
-		g_WindowMan.Initialize();
 		g_FrameMan.Initialize();
 		g_PostProcessMan.Initialize();
 		g_PerformanceMan.Initialize();
@@ -102,6 +136,7 @@ namespace RTE {
 		g_LuaMan.Destroy();
 		ContentFile::FreeAllLoaded();
 		g_ConsoleMan.Destroy();
+		g_WindowMan.Destroy();
 
 #ifdef DEBUG_BUILD
 		Entity::ClassInfo::DumpPoolMemoryInfo(Writer("MemCleanupInfo.txt"));
@@ -210,6 +245,7 @@ namespace RTE {
 		g_UInputMan.TrapMousePos(false);
 
 		while (!System::IsSetToQuit()) {
+			g_WindowMan.ClearRenderer();
 			PollSDLEvents();
 
 			g_WindowMan.Update();
@@ -223,6 +259,7 @@ namespace RTE {
 				g_MenuMan.Reinitialize();
 				g_ConsoleMan.Destroy();
 				g_ConsoleMan.Initialize();
+				g_LoadingScreen.CreateLoadingSplash();
 				g_WindowMan.CompleteResolutionChange();
 			}
 
@@ -248,7 +285,16 @@ namespace RTE {
 		}
 		g_TimerMan.PauseSim(false);
 
-		if (g_ActivityMan.ActivitySetToRestart() && !g_ActivityMan.RestartActivity()) { g_MenuMan.GetTitleScreen()->SetTitleTransitionState(TitleScreen::TitleTransition::ScrollingFadeIn); }
+		if (g_ActivityMan.ActivitySetToRestart()) {
+			g_LoadingScreen.DrawLoadingSplash();
+			g_WindowMan.UploadFrame();
+			if (!g_ActivityMan.RestartActivity()) {
+				// This doesn't work.
+				// Somewhat related to https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/472
+				// Deal with later.
+				// g_MenuMan.GetTitleScreen()->SetTitleTransitionState(TitleScreen::TitleTransition::ScrollingFadeIn);
+			}
+		}
 
 		long long updateStartTime = 0;
 		long long updateTotalTime = 0;
@@ -260,15 +306,17 @@ namespace RTE {
 			bool serverUpdated = false;
 			updateStartTime = g_TimerMan.GetAbsoluteTime();
 
+			PollSDLEvents();
+			g_WindowMan.Update();
+			g_WindowMan.ClearRenderer();
+
 			g_TimerMan.Update();
 
 			// Simulation update, as many times as the fixed update step allows in the span since last frame draw.
 			while (g_TimerMan.TimeForSimUpdate()) {
+				ZoneScopedN("Simulation Update");
+
 				serverUpdated = false;
-
-				PollSDLEvents();
-
-				g_WindowMan.Update();
 
 				g_PerformanceMan.NewPerformanceSample();
 				g_PerformanceMan.UpdateMSPSU();
@@ -283,12 +331,19 @@ namespace RTE {
 					g_NetworkServer.Update(true);
 					serverUpdated = true;
 				}
+
 				g_FrameMan.Update();
 				g_LuaMan.Update();
-				g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ActivityUpdate);
 				g_ActivityMan.Update();
-				g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ActivityUpdate);
+
+				if (g_SceneMan.GetScene()) {
+					g_SceneMan.GetScene()->Update();
+				}
+
+				g_LuaMan.ClearScriptTimings();
 				g_MovableMan.Update();
+				g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
+
 				g_AudioMan.Update();
 
 				g_ActivityMan.LateUpdateGlobalScripts();
@@ -302,21 +357,18 @@ namespace RTE {
 
 				if (!g_ActivityMan.IsInActivity()) {
 					g_TimerMan.PauseSim(true);
-					if (g_MetaMan.GameInProgress()) {
-						g_MenuMan.GetTitleScreen()->SetTitleTransitionState(TitleScreen::TitleTransition::MetaGameFadeIn);
-					} else if (!g_ActivityMan.ActivitySetToRestart()) {
-						const Activity *activity = g_ActivityMan.GetActivity();
-						// If we edited something then return to main menu instead of scenario menu.
-						if (activity && activity->GetPresetName() == "None") {
-							g_MenuMan.GetTitleScreen()->SetTitleTransitionState(TitleScreen::TitleTransition::ScrollingFadeIn);
-						} else {
-							g_MenuMan.GetTitleScreen()->SetTitleTransitionState(TitleScreen::TitleTransition::ScenarioFadeIn);
-						}
+
+					if (!g_ActivityMan.ActivitySetToRestart()) {
+						g_MenuMan.HandleTransitionIntoMenuLoop();
+						RunMenuLoop();
 					}
-					if (!g_ActivityMan.ActivitySetToRestart()) { RunMenuLoop(); }
 				}
-				if (g_ActivityMan.ActivitySetToRestart() && !g_ActivityMan.RestartActivity()) {
-					break;
+				if (g_ActivityMan.ActivitySetToRestart()) {
+					g_LoadingScreen.DrawLoadingSplash();
+					g_WindowMan.UploadFrame();
+					if (!g_ActivityMan.RestartActivity()) {
+						break;
+					}
 				}
 				if (g_ActivityMan.ActivitySetToResume()) {
 					g_ActivityMan.ResumeActivity();
@@ -345,6 +397,7 @@ namespace RTE {
 			drawStartTime = updateEndAndDrawStartTime;
 
 			g_FrameMan.Draw();
+			g_WindowMan.DrawPostProcessBuffer();
 			g_WindowMan.UploadFrame();
 
 			drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
@@ -352,6 +405,16 @@ namespace RTE {
 		}
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// <summary>
+/// Self-invoking lambda that installs exception handlers before Main is executed.
+/// </summary>
+static const bool RTESetExceptionHandlers = []() {
+	RTEError::SetExceptionHandlers();
+	return true;
+}();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -375,12 +438,26 @@ int main(int argc, char **argv) {
 		SDL_GameControllerAddMappingsFromFile("Base.rte/gamecontrollerdb.txt");
 	}
 
-	System::Initialize();
+#ifdef WIN32
+	// Stops framespiking from our child threads being sat on for too long
+	// TODO: use a better thread system that'll do what we want ASAP instead of letting the OS schedule all over us
+	// Disabled for now because windows is great and this means when the game lags out it freezes the entire computer. Which we wouldn't expect with anything but REALTIME priority.
+	// Because apparently high priority class is preferred over "processing mouse input"?!
+	//SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+#endif // WIN32
+
+	// argv[0] actually unreliable for exe path and name, because of course, why would it be, why would anything be simple and make sense.
+	// Just use it anyway until some dumb edge case pops up and it becomes a problem.
+	System::Initialize(argv[0]);
 	SeedRNG();
 
 	InitializeManagers();
 
 	HandleMainArgs(argc, argv);
+
+	if (g_NetworkServer.IsServerModeEnabled()) {
+		SDL_ShowCursor(SDL_ENABLE);
+	}
 
 	int64_t moduleLoadStartTime = g_TimerMan.GetAbsoluteTime();
 	g_ModuleMan.LoadAllDataModules();
@@ -402,9 +479,15 @@ int main(int argc, char **argv) {
 			if (std::filesystem::exists(System::GetWorkingDirectory() + "LogLoadingWarning.txt")) { std::remove("LogLoadingWarning.txt"); }
 		}
 
-		if (!g_ActivityMan.Initialize()) { RunMenuLoop(); }
+		if (!g_ActivityMan.Initialize()) {
+			RunMenuLoop();
+		}
+
 		RunGameLoop();
 	}
+
+	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
+	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
 	DestroyManagers();
 

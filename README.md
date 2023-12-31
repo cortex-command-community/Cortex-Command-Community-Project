@@ -64,8 +64,11 @@ The Linux build uses the meson build system, and builds against system libraries
 
 ## Dependencies
 
-* `gcc`, `g++` (>=9, clang unsupported) 
+* [`meson`](https://www.mesonbuild.com)`>= 1.0.0` (`pip install meson` if your distro doesn't include a recent version)
+* `ninja`
+* `gcc`, `g++` (>=12, clang unsupported) 
 * `sdl2`
+* `opengl` (usually provided by the gpu driver)
 * `flac`
 * `luajit`
 * `lua` (maybe optional)
@@ -73,7 +76,8 @@ The Linux build uses the meson build system, and builds against system libraries
 * `tbb`
 * `lz4>=1.9.0`
 * `libpng`
-* [`meson`](https://www.mesonbuild.com)`>= 1.0.0` (`pip install meson` if your distro doesn't include a recent version)
+* `dylibbundler` (required only if installing on macOS)
+* `SDL2_image` (linux only)
 
 For unspecified versions assume compatibility with the latest ubuntu LTS release.
 
@@ -86,7 +90,7 @@ For unspecified versions assume compatibility with the latest ubuntu LTS release
 3. Open a terminal in the Source Repository.
 
 4. `meson setup build` or `meson setup --buildtype=debug build` for debug build (default is release build)  
-	For macOS you need to specify gcc, with `env CC=gcc-12 CXX=g++-12 meson setup build`
+	For macOS you need to specify gcc, with `env CC=gcc-13 CXX=g++-13 meson setup build`
 
 5. `ninja -C build`
 
@@ -115,30 +119,21 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 - `Xcode` or `Command Line Tools for Xcode` (if you need to, you can also generate an xcode project from meson using the `--backend=xcode` option on setup)
 
 **Homebrew (macOS):**  
-`brew install pkg-config sdl2 minizip lz4 flac luajit lua libpng tbb gcc@12 ninja meson`
+`brew install pkg-config sdl2 minizip lz4 flac luajit lua libpng tbb gcc@13 ninja meson dylibbundler`
 
 **Arch Linux:**  
-`sudo pacman -S sdl2 tbb flac luajit lua minizip lz4 libpng meson ninja base-devel`  
+`sudo pacman -S sdl2 sdl2_image tbb flac luajit lua minizip lz4 libpng meson ninja base-devel`  
 
 **Ubuntu >=22.04:**  
-`sudo apt-get install build-essential libsdl2-dev libloadpng4-dev libflac++-dev luajit-5.1-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
+`sudo apt-get install build-essential libsdl2-dev libsdl2-image-dev libloadpng4-dev libflac++-dev luajit-5.1-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
 `sudo python3 -m pip install meson`
 
 **Fedora:**  
-`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel lua-devel boost-devel meson ninja-build flac-devel luajit-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
+`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel SDL2_image-devel lua-devel boost-devel meson ninja-build flac-devel luajit-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
 
 ## Troubleshooting
 
 * older versions of `pipewire(-alsa)` and fmod don't work well together, so the game might [not close, have no sound or crash](https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1514). Workaround by `ln -s /bin/true /usr/bin/pulseaudio`
-
-***
-
-**Windows 10 (64-bit) without Visual Studio**  
-- [Windows SDK](https://developer.microsoft.com/de-de/windows/downloads/windows-10-sdk/)
-- [Clang Toolset](https://github.com/llvm/llvm-project/releases) (Grab the latest LLVM-...-win64.exe)
-- [git](https://www.git-scm.org)
-- [meson](https://github.com/mesonbuild/meson/releases) (documentation [here](https://www.mesonbuild.com))
-- (optional) Visual Studio for the Developer Consoles since setup otherwise may be unnecessarily hard
 
 ***
 ## Debugging with VS Code

@@ -17,11 +17,12 @@ sources += files(
 'PrimitiveMan.cpp',
 'SceneMan.cpp',
 'SettingsMan.cpp',
+'ThreadMan.cpp',
 'TimerMan.cpp',
 'UInputMan.cpp',
 'WindowMan.cpp'
 )
-luaman_cpp_args = []
+luaman_cpp_args = preprocessor_flags
 defaults_override = []
 if compiler.get_argument_syntax() == 'gcc'
   luaman_cpp_args += ['-fpermissive']

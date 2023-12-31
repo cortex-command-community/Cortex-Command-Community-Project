@@ -10,6 +10,7 @@
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "MovableMan.h"
+#include "PerformanceMan.h"
 #include "PostProcessMan.h"
 #include "ModuleMan.h"
 #include "PresetMan.h"
@@ -22,6 +23,7 @@
 #include "Box.h"
 #include "Controller.h"
 #include "GraphicalPrimitive.h"
+#include "PathFinder.h"
 
 #include "GUIBanner.h"
 #include "BuyMenuGUI.h"
@@ -39,6 +41,7 @@
 #include "Actor.h"
 #include "ADoor.h"
 #include "AEmitter.h"
+#include "AEJetpack.h"
 #include "AHuman.h"
 #include "Arm.h"
 #include "AtomGroup.h"
@@ -73,6 +76,8 @@
 #include "PieMenu.h"
 #include "PieSlice.h"
 
+#include "System/MicroPather/micropather.h"
+
 #ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -104,6 +109,7 @@ namespace RTE {
 		LuaEntityCreateFunctionsDeclarationsForType(Arm);
 		LuaEntityCreateFunctionsDeclarationsForType(Leg);
 		LuaEntityCreateFunctionsDeclarationsForType(AEmitter);
+		LuaEntityCreateFunctionsDeclarationsForType(AEJetpack);
 		LuaEntityCreateFunctionsDeclarationsForType(Turret);
 		LuaEntityCreateFunctionsDeclarationsForType(Actor);
 		LuaEntityCreateFunctionsDeclarationsForType(ADoor);
@@ -144,6 +150,7 @@ namespace RTE {
 		LuaEntityCloneFunctionDeclarationForType(Leg);
 		LuaEntityCloneFunctionDeclarationForType(Emission);
 		LuaEntityCloneFunctionDeclarationForType(AEmitter);
+		LuaEntityCloneFunctionDeclarationForType(AEJetpack);
 		LuaEntityCloneFunctionDeclarationForType(Turret);
 		LuaEntityCloneFunctionDeclarationForType(Actor);
 		LuaEntityCloneFunctionDeclarationForType(ADoor);
@@ -189,6 +196,7 @@ namespace RTE {
 		LuaEntityCastFunctionsDeclarationsForType(Leg);
 		LuaEntityCastFunctionsDeclarationsForType(Emission);
 		LuaEntityCastFunctionsDeclarationsForType(AEmitter);
+		LuaEntityCastFunctionsDeclarationsForType(AEJetpack);
 		LuaEntityCastFunctionsDeclarationsForType(Turret);
 		LuaEntityCastFunctionsDeclarationsForType(Actor);
 		LuaEntityCastFunctionsDeclarationsForType(ADoor);
@@ -247,7 +255,7 @@ namespace RTE {
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ADoor, SoundContainer, SetDoorDirectionChangeSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ADoor, SoundContainer, SetDoorMoveEndSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Attachable, SetHead);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, AEmitter, SetJetpack);
+		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, AEJetpack, SetJetpack);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Arm, SetFGArm);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Arm, SetBGArm);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Leg, SetFGLeg);
@@ -256,7 +264,7 @@ namespace RTE {
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Attachable, SetBGFoot);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, SoundContainer, SetStrideSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, Turret, SetTurret);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, AEmitter, SetJetpack);
+		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, AEJetpack, SetJetpack);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, Leg, SetLeftFGLeg);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, Leg, SetLeftBGLeg);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, Leg, SetRightFGLeg);
@@ -303,6 +311,9 @@ namespace RTE {
 	struct LuaAdaptersScene {
 		static int CalculatePath1(Scene *luaSelfObject, const Vector &start, const Vector &end, bool movePathToGround, float digStrength) { return CalculatePath2(luaSelfObject, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
 		static int CalculatePath2(Scene *luaSelfObject, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team);
+
+		static void CalculatePathAsync1(Scene *luaSelfObject, const luabind::object &callback, const Vector &start, const Vector &end, bool movePathToGround, float digStrength) { return CalculatePathAsync2(luaSelfObject, callback, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
+		static void CalculatePathAsync2(Scene *luaSelfObject, const luabind::object &callback, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team);
 	};
 #pragma endregion
 
@@ -331,12 +342,22 @@ namespace RTE {
 	};
 #pragma endregion
 
+#pragma region Activity Lua Adapters
+	struct LuaAdaptersActivity {
+		static void SendMessage1(Activity *luaSelfObject, const std::string &message);
+		static void SendMessage2(Activity *luaSelfObject, const std::string &message, luabind::object context);
+	};
+#pragma endregion
+
 #pragma region MovableObject Lua Adapters
 	struct LuaAdaptersMovableObject {
 		static bool HasScript(MovableObject *luaSelfObject, const std::string &scriptPath);
 		static bool AddScript(MovableObject *luaSelfObject, const std::string &scriptPath);
 		static bool EnableScript(MovableObject *luaSelfObject, const std::string &scriptPath);
-		static bool DisableScript(MovableObject *luaSelfObject, const std::string &scriptPath);
+		static bool DisableScript1(MovableObject *luaSelfObject);
+		static bool DisableScript2(MovableObject *luaSelfObject, const std::string &scriptPath);
+		static void SendMessage1(MovableObject *luaSelfObject, const std::string &message);
+		static void SendMessage2(MovableObject *luaSelfObject, const std::string &message, luabind::object context);
 	};
 #pragma endregion
 
@@ -347,6 +368,12 @@ namespace RTE {
 		static std::vector<AEmitter *> * GetWounds2(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables);
 		// Need a seperate implementation function without the return so we can safely recurse.
 		static void GetWoundsImpl(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables, std::vector<AEmitter *> &wounds);
+	};
+#pragma endregion
+
+#pragma region BuyMenuGUI Lua Adapters
+	struct LuaAdaptersBuyMenuGUI {
+		static std::list<SceneObject*> * GetOrderList(const BuyMenuGUI *luaSelfObject);
 	};
 #pragma endregion
 
@@ -361,6 +388,7 @@ namespace RTE {
 #pragma region SceneObject Lua Adapters
 	struct LuaAdaptersSceneObject {
 		static float GetTotalValue(const SceneObject *luaSelfObject, int nativeModule, float foreignMult);
+		static int GetBuyableMode(const SceneObject *luaSelfObject);
 	};
 #pragma endregion
 
@@ -399,6 +427,9 @@ namespace RTE {
 		/// <param name="movableMan">A reference to MovableMan, provided by Lua.</param>
 		/// <param name="particle">A pointer to the particle to be added.</param>
 		static void AddParticle(MovableMan &movableMan, MovableObject *particle);
+
+		static void SendGlobalMessage1(MovableMan &movableMan, const std::string& message);
+		static void SendGlobalMessage2(MovableMan &movableMan, const std::string& message, luabind::object context);
 	};
 #pragma endregion
 
@@ -461,6 +492,23 @@ namespace RTE {
 		/// <param name="className">The class name of the Entity to reload.</param>
 		/// <returns>Whether or not the Entity was reloaded.</returns>
 		static bool ReloadEntityPreset2(PresetMan &presetMan, const std::string &presetName, const std::string &className);
+
+		/// <summary>
+		/// Gets a list all previously read in (defined) Entities which are associated with a specific group.
+		/// </summary>
+		/// <param name="group">The group to look for. "All" will look in all.</param>
+		/// <param name="type">The name of the least common denominator type of the Entities you want. "All" will look at all types.</param>
+		/// <param name="whichModule">Whether to only get those of one specific DataModule (0-n), or all (-1).</param>
+		/// <returns>The list of all Entities with the given group and type in the module.</returns>
+		static std::list<Entity *> * GetAllEntitiesOfGroup(PresetMan &presetMan, const std::string &group, const std::string &type, int whichModule);
+		static std::list<Entity *> * GetAllEntitiesOfGroup2(PresetMan &presetMan, const std::string &group, const std::string &type) { return GetAllEntitiesOfGroup(presetMan, group, type, -1); }
+		static std::list<Entity *> * GetAllEntitiesOfGroup3(PresetMan &presetMan, const std::string &group) { return GetAllEntitiesOfGroup2(presetMan, group, "All"); }
+		
+		/// <summary>
+		/// Gets a list all previously read in (defined) Entities.
+		/// </summary>
+		/// <returns>The list of all Entities.</returns>
+		static std::list<Entity *> * GetAllEntities(PresetMan &presetMan) { return GetAllEntitiesOfGroup3(presetMan, "All"); }
 	};
 #pragma endregion
 
@@ -577,25 +625,6 @@ namespace RTE {
 		/// </summary>
 		/// <returns>A float describing the default pathfinder penetration value.</returns>
 		static float GetPathFindingDefaultDigStrength();
-
-		/// <summary>
-		/// Gets a random number between -1 and 1.
-		/// </summary>
-		/// <returns>A random number between -1 and 1.</returns>
-		static double NormalRand();
-
-		/// <summary>
-		/// Gets a random number between 0 and 1.
-		/// </summary>
-		/// <returns>A random number between 0 and 1.</returns>
-		static double PosRand();
-
-		/// <summary>
-		/// Gets a random number between 1 and the passed in upper limit number. The limits are included in the available random range.
-		/// </summary>
-		/// <param name="upperLimitInclusive">The upper limit for the random number.</param>
-		/// <returns>A random number between 1 and the passed in number.</returns>
-		static double LuaRand(double upperLimitInclusive);
 
 		/// <summary>
 		/// Explicit deletion of any Entity instance that Lua owns. It will probably be handled by the GC, but this makes it instantaneous.

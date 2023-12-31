@@ -16,6 +16,7 @@
 
 #include "MOSRotating.h"
 #include "PieMenu.h"
+#include "PathFinder.h"
 
 namespace RTE
 {
@@ -56,6 +57,21 @@ public:
         StatusCount
     };
 
+    // TODO - move into ALocomotable intermediate class under ACrab/AHuman
+    enum MovementState
+    {
+        NOMOVE = 0,
+        STAND,
+        WALK,
+        JUMP,
+        DISLODGE,
+        CROUCH,
+        CRAWL,
+        ARMCRAWL,
+        CLIMB,
+        MOVEMENTSTATECOUNT
+    };
+
     enum AIMode
     {
         AIMODE_NONE = 0,
@@ -75,7 +91,7 @@ public:
 
 // Concrete allocation and cloning definitions
 EntityAllocation(Actor);
-AddScriptFunctionNames(MOSRotating, "UpdateAI", "OnControllerInputModeChange");
+AddScriptFunctionNames(MOSRotating, "ThreadedUpdateAI", "UpdateAI", "OnControllerInputModeChange");
 SerializableOverrideMethods;
 ClassInfoGetters;
 
@@ -131,6 +147,10 @@ ClassInfoGetters;
 
     void Reset() override { Clear(); MOSRotating::Reset(); m_MOType = MovableObject::TypeActor; }
 
+    /// <summary>
+    /// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
+    /// </summary>
+    void DestroyScriptState();
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Destroy
@@ -153,6 +173,12 @@ ClassInfoGetters;
     /// </summary>
     /// <returns>The mass of this Actor, its inventory and all its Attachables and wounds in Kilograms (kg).</returns>
     float GetMass() const override { return MOSRotating::GetMass() + GetInventoryMass() + (m_GoldCarried * g_SceneMan.GetKgPerOz()); }
+
+    /// <summary>
+    /// Gets the mass that this actor had upon spawning, i.e with ini-defined inventory, gold and holding no items
+    /// </summary>
+    /// <returns>The base mass of this Actor, in Kilograms (kg).</returns>
+    float GetBaseMass();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -460,6 +486,16 @@ ClassInfoGetters;
 
 	void SetStatus(Actor::Status newStatus) { m_Status = newStatus; if (newStatus == Actor::Status::UNSTABLE) { m_StableRecoverTimer.Reset(); } }
 
+	/// Gets this Actor's MovementState.
+	/// </summary>
+	/// <returns>This Actor's MovementState.</returns>
+	MovementState GetMovementState() const { return m_MoveState; }
+
+	/// <summary>
+	/// Sets this Actor's MovementState to the new state.
+	/// </summary>
+	/// <param name="newMovementState">This Actor's new MovementState.</param>
+	void SetMovementState(MovementState newMovementState) { m_MoveState = newMovementState; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  SetTeam
@@ -602,16 +638,6 @@ ClassInfoGetters;
     /// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
     virtual bool HandlePieCommand(PieSlice::SliceType pieSliceType) { return false; }
 
-/*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  ResetAI
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Resets the AI states for this.
-// Arguments:       None.
-// Return value:    None.
-
-    void ResetAI() { m_AIMode; }
-*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  GetAIMode
@@ -814,6 +840,23 @@ ClassInfoGetters;
 	/// <param name="newCanRevealUnseen">Whether this actor can reveal unseen areas.</param>
 	void SetCanRevealUnseen(bool newCanRevealUnseen) { m_CanRevealUnseen = newCanRevealUnseen; }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Method:  SetPainThreshold
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Sets this' PainThreshold value above which it will play PainSound
+// Arguments:       Desired PainThreshold value
+// Return value:    None.
+
+    void SetPainThreshold(float newPainThreshold) { m_PainThreshold = newPainThreshold; }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Method:  GetPainThreshold
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Gets this' PainThreshold value above which it will play PainSound
+// Arguments:       None.
+// Return value:    The current PainThreshold
+
+    float GetPainThreshold() const { return m_PainThreshold; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:  AlarmPoint
@@ -1004,17 +1047,6 @@ ClassInfoGetters;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Method:          FlashWhite
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Tells to make this and all children get drawn as completely white, but
-//                  only for a specified amount of time.
-// Arguments:       For how long to flash the whiteness, in MS.
-// Return value:    None.
-
-    void FlashWhite(int howLongMS = 32) { m_FlashWhiteMS = howLongMS; m_WhiteFlashTimer.Reset(); }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Method:          DrawWaypoints
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Makes this draw its current waypoints and related data on the scene in
@@ -1063,20 +1095,6 @@ ClassInfoGetters;
 
 	bool ParticlePenetration(HitData &hd) override;
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  OnMOHit
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits another MO.
-//                  This is called by the owned Atom/AtomGroup of this MovableObject during
-//                  travel.
-// Arguments:       The other MO hit. Ownership is not transferred.
-// Return value:    Wheter the MovableObject should immediately halt any travel going on
-//                  after this hit.
-
-	bool OnMOHit(MovableObject *pOtherMO) override;
-
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  PreTravel
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1108,20 +1126,16 @@ ClassInfoGetters;
 
 	int GetMovePathSize() const { return m_MovePath.size(); }
 
+    /// <summary>
+    /// Starts updating this Actor's movepath.
+    /// </summary>
+    virtual void UpdateMovePath();
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  UpdateMovePath
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates this' move path RIGHT NOW. Will update the path to the
-//                  current waypoint, if any. CAVEAT: this only actually updates if a queue
-//                  index number passed in is sufficiently close to 0 to allow this to
-//                  compute, based on an internal global assessment of how often this very
-//                  expensive computation is allowed to run.
-// Arguments:       The queue number this was given the last time
-// Return value:    Whether the update was performed, or if it should be tried again next
-//                  frame.
-
-    virtual bool UpdateMovePath();
+    /// <summary>
+    /// Returns whether we're waiting on a new pending movepath.
+    /// </summary>
+    /// <returns>Whether we're waiting on a new pending movepath.</returns>
+    bool IsWaitingOnNewMovePath() const { return m_PathRequest != nullptr || m_UpdateMovePath; }
 
     /// <summary>
     /// Estimates what material strength this actor can penetrate.
@@ -1141,28 +1155,14 @@ ClassInfoGetters;
 	/// <param name="newAIBaseDigStrength">The new base dig strength for this Actor.</param>
     void SetAIBaseDigStrength(float newAIBaseDigStrength) { m_AIBaseDigStrength = newAIBaseDigStrength; }
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
-// Method:  UpdateAIScripted
+// Virtual method:  PreControllerUpdate
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates this' AI state with the provided scripted AI Update function.
-// Arguments:       None.
-// Return value:    Whether there was an AI Update function defined for this in its script,
-//                  and if it was executed successfully.
-
-	bool UpdateAIScripted();
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  UpdateAI
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates this' AI state. Supposed to be done every frame that this has
-//                  a CAI controller controlling it.
+// Description:     Update called prior to controller update. Ugly hack. Supposed to be done every frame.
 // Arguments:       None.
 // Return value:    None.
 
-    virtual void UpdateAI();
-
+	virtual void PreControllerUpdate();
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Update
@@ -1173,6 +1173,14 @@ ClassInfoGetters;
 
 	void Update() override;
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Virtual method:  FullUpdate
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Updates the full state of this object in one call. (PreControllerUpdate(), Controller::Update(), and Update())
+// Arguments:       None.
+// Return value:    None.
+
+    virtual void FullUpdate() override;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  SetDeploymentID
@@ -1211,20 +1219,6 @@ ClassInfoGetters;
 // Return value:    None.
 
 	void SetSightDistance(float newValue) { m_SightDistance = newValue; }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this Actor's current graphical representation to a
-//                  BITMAP of choice.
-// Arguments:       A pointer to a BITMAP to draw on.
-//                  The absolute position of the target bitmap's upper left corner in the Scene.
-//                  In which mode to draw in. See the DrawMode enumeration for the modes.
-//                  Whether to not draw any extra 'ghost' items of this MovableObject,
-//                  indicator arrows or hovering HUD text and so on.
-// Return value:    None.
-
-    void Draw(BITMAP *pTargetBitmap, const Vector &targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1362,6 +1356,18 @@ ClassInfoGetters;
 	/// <param name="newRecoverDelay">The recovery delay, in MS.</param>
 	void SetStableRecoverDelay(int newRecoverDelay) { m_StableRecoverDelay = newRecoverDelay; }
 
+    /// <summary>
+    /// Gets the distance in which the Actor will have considered itself to have reached it's waypoint.
+    /// </summary>
+    /// <returns>The move proximity limit.</returns>
+    float GetMoveProximityLimit() const { return m_MoveProximityLimit; }
+
+    /// <summary>
+    /// Sets the distance in which the Actor will have considered itself to have reached it's waypoint.
+    /// </summary>
+    /// <param name="newProximityLimit">The move proximity limit.</param>
+    void SetMoveProximityLimit(float newProximityLimit) { m_MoveProximityLimit = newProximityLimit; }
+
 	/// <summary>
 	/// Gets whether or not this Actor has the organic flag set and should be considered as organic.
 	/// </summary>
@@ -1408,6 +1414,12 @@ ClassInfoGetters;
 // Protected member variable and method declarations
 
 protected:
+
+    /// <summary>
+    /// Function that is called when we get a new movepath.
+    /// This processes and cleans up the movepath.
+    /// </summary>
+    virtual void OnNewMovePath();
 
     // Member variables
     static Entity::ClassInfo m_sClass;
@@ -1504,6 +1516,8 @@ protected:
     float m_SightDistance;
     // How perceptive this is of alarming events going on around him, 0.0 - 1.0
     float m_Perceptiveness;
+    /// Damage value above which this will play PainSound
+    float m_PainThreshold;
 	// Whether or not this actor can reveal unseen areas by looking
 	bool m_CanRevealUnseen;
     // About How tall is the Actor, in pixels?
@@ -1524,16 +1538,14 @@ protected:
     HeldDevice *m_pItemInReach;
     // HUD positioning aid
     int m_HUDStack;
-    // For how much longer to draw this as white. 0 means don't draw as white
-    int m_FlashWhiteMS;
-    // The timer that measures and deducts past time from the remaining white flash time
-    Timer m_WhiteFlashTimer;
 	// ID of deployment which spawned this actor
 	unsigned int m_DeploymentID;
     // How many passenger slots this actor will take in a craft
     int m_PassengerSlots;
     // Most actors can walk through stuff that's soft enough, so we start with a base penetration amount
     float m_AIBaseDigStrength;
+    // The mass that this actor had upon spawning, i.e with no inventory, no gold and holding no items
+    float m_BaseMass;
 
     ////////////////////
     // AI States
@@ -1588,29 +1600,14 @@ protected:
     Vector m_MoveVector;
     // The calculated path to get to that move-to target
     std::list<Vector> m_MovePath;
+    // The current pathfinding request
+    std::shared_ptr<volatile PathRequest> m_PathRequest;
     // Whether it's time to update the path
     bool m_UpdateMovePath;
     // The minimum range to consider having reached a move target is considered
     float m_MoveProximityLimit;
-    // Whether the AI is trying to progress to the right, left, or stand still
-    LateralMoveState m_LateralMoveState;
-    // Timer for how long to keep going before switching directions when moving along a path
-    Timer m_MoveOvershootTimer;
-    // Whether the AI is in the process of proceeding, backstepping to get out of being stuck, or jumping over stuff
-    ObstacleState m_ObstacleState;
-    // Teammate is in the way of whatever we are doing; stop until he moves
-    TeamBlockState m_TeamBlockState;
-    // Times how long after an obstruction is cleared to start proceeding again
-    Timer m_BlockTimer;
-    // The closest the actor has ever come to the current waypoint it's going for, squared. Used to checking if we shuold re-update the movepath
-    // It's useful for when the path seems to be broken or unreachable
-    float m_BestTargetProximitySqr;
-    // Timer used to check on larger movement progress toward the goal
-    Timer m_ProgressTimer;
-    // Timer used to time how long we've been stuck in the same spot.
-    Timer m_StuckTimer;
-    // Timer for measuring interval between height checks
-    Timer m_FallTimer;
+    // Current movement state.
+	MovementState m_MoveState;
 
 	bool m_Organic; //!< Flag for whether or not this Actor is organic. Useful for lua purposes and mod support.
 	bool m_Mechanical; //!< Flag for whether or not this Actor is robotic. Useful for lua purposes and mod support.

@@ -24,19 +24,15 @@ namespace RTE {
 		~Singleton() = default;
 
 		/// <summary>
-		/// Returns the sole instance of this Singleton. If there isn't one yet, constructs it.
+		/// Returns the sole instance of this Singleton.
 		/// </summary>
 		/// <returns>A reference to the sole instance of this Singleton.</returns>
-		static Type & Instance() {
-			if (!s_Instance) {
-				try {
-					s_Instance = new Type();
-				} catch (std::bad_alloc &catchResult) {
-					RTEAbort("Failed to instantiate Singleton because: " + std::string(catchResult.what()));
-				}
-			}
-			return *s_Instance;
-		}
+		inline static Type & Instance() { return *s_Instance; }
+
+		/// <summary>
+		/// Constructs this Singleton.
+		/// </summary>
+		inline static void Construct() { s_Instance = new Type(); }
 
 	protected:
 

@@ -16,6 +16,7 @@
 #include "CameraMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
+#include "FrameMan.h"
 #include "UInputMan.h"
 #include "SceneMan.h"
 #include "MetaMan.h"
@@ -91,18 +92,13 @@ int BaseEditor::Create(const BaseEditor &reference)
 
 int BaseEditor::ReadProperty(const std::string_view &propName, Reader &reader)
 {
+    StartPropertyList(return Activity::ReadProperty(propName, reader));
 /*
-    if (propName == "CPUTeam")
-        reader >> m_CPUTeam;
-    else if (propName == "Difficulty")
-        reader >> m_Difficulty;
-    else if (propName == "DeliveryDelay")
-        reader >> m_DeliveryDelay;
-    else
+    MatchProperty("CPUTeam", { reader >> m_CPUTeam; });
+    MatchProperty("Difficulty", { reader >> m_Difficulty; });
+    MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
 */
-        return Activity::ReadProperty(propName, reader);
-
-    return 0;
+    EndPropertyList;
 }
 
 

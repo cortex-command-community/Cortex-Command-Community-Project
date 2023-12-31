@@ -4,6 +4,9 @@
 #include "SceneMan.h"
 #include "SettingsMan.h"
 #include "ActivityMan.h"
+#include "ThreadMan.h"
+
+#include "tracy/Tracy.hpp"
 
 namespace RTE {
 
@@ -109,16 +112,14 @@ namespace RTE {
 
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::ReadProperty(const std::string_view &propName, Reader &reader) {
-		if (propName == "WrapX") {
-			reader >> m_WrapX;
-		} else if (propName == "WrapY") {
-			reader >> m_WrapY;
-		} else if (propName == "BitmapFile") {
-			reader >> m_BitmapFile;
-		} else {
-			return Entity::ReadProperty(propName, reader);
-		}
-		return 0;
+		StartPropertyList(return Entity::ReadProperty(propName, reader));
+		
+		MatchProperty("WrapX", { reader >> m_WrapX; });
+		MatchProperty("WrapY", { reader >> m_WrapY; });
+		MatchProperty("BitmapFile", { reader >> m_BitmapFile; });
+		
+		
+		EndPropertyList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,28 +201,31 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	int SceneLayerImpl<TRACK_DRAWINGS>::SaveData(const std::string &bitmapPath) {
+	int SceneLayerImpl<TRACK_DRAWINGS>::SaveData(const std::string &bitmapPath, bool doAsyncSaves) {
 		if (bitmapPath.empty()) {
 			return -1;
 		}
-		g_ActivityMan.IncrementSavingThreadCount();
+
 		if (m_MainBitmap) {
 			// Make a copy of the bitmap to pass to the thread because the bitmap may be offloaded mid thread and everything will be on fire.
 			BITMAP *outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
 			blit(m_MainBitmap, outputBitmap, 0, 0, 0, 0, m_MainBitmap->w, m_MainBitmap->h);
 
-			auto saveLayerBitmap = [bitmapPath](BITMAP *bitmapToSave) {
+			auto saveLayerBitmap = [bitmapPath, doAsyncSaves](BITMAP *bitmapToSave) {
 				PALETTE palette;
 				get_palette(palette);
 				if (save_png(bitmapPath.c_str(), bitmapToSave, palette) != 0) {
 					RTEAbort(std::string("Failed to save SceneLayerImpl bitmap to path and name: " + bitmapPath));
 				}
 				destroy_bitmap(bitmapToSave);
-				g_ActivityMan.DecrementSavingThreadCount();
 			};
-			std::thread saveThread(saveLayerBitmap, outputBitmap);
+
 			m_BitmapFile.SetDataPath(bitmapPath);
-			saveThread.detach();
+			if (doAsyncSaves) {
+				g_ActivityMan.GetSaveGameTask().push_back( g_ThreadMan.GetBackgroundThreadPool().submit(saveLayerBitmap, outputBitmap) );
+			} else {
+				saveLayerBitmap(outputBitmap);
+			}
 		}
 		return 0;
 	}
@@ -286,7 +290,9 @@ namespace RTE {
 	void SceneLayerImpl<TRACK_DRAWINGS>::ClearBitmap(ColorKeys clearTo) {
 		RTEAssert(m_MainBitmapOwned, "Bitmap not owned! We shouldn't be clearing this!");
 
-		std::scoped_lock<std::mutex> bitmapClearLock(m_BitmapClearMutex);
+		if (m_BitmapClearTask.valid()) {
+			m_BitmapClearTask.wait();
+		}
 
 		if (m_LastClearColor != clearTo) {
 			// Note: We're clearing to a different color than expected, which is expensive! We should always aim to clear to the same color to avoid it as much as possible.
@@ -297,13 +303,10 @@ namespace RTE {
 		std::swap(m_MainBitmap, m_BackBitmap);
 
 		// Start a new thread to clear the backbuffer bitmap asynchronously.
-		std::thread clearBackBitmapThread([this, clearTo](BITMAP *bitmap, std::vector<IntRect> drawings) {
-			this->m_BitmapClearMutex.lock();
+		m_BitmapClearTask = g_ThreadMan.GetPriorityThreadPool().submit([this, clearTo](BITMAP *bitmap, std::vector<IntRect> drawings) {
+			ZoneScopedN("Clear Tracked Backbuffer");
 			ClearDrawings(bitmap, drawings, clearTo);
-			this->m_BitmapClearMutex.unlock();
 		}, m_BackBitmap, m_Drawings);
-
-		clearBackBitmapThread.detach();
 
 		m_Drawings.clear(); // This was copied into the new thread, so can be safely deleted.
 	}
@@ -312,33 +315,26 @@ namespace RTE {
 
 	template <bool TRACK_DRAWINGS>
 	bool SceneLayerImpl<TRACK_DRAWINGS>::WrapPosition(int &posX, int &posY) const {
-		bool wrapped = false;
-		int width = m_ScaledDimensions.GetFloorIntX();
-		int height = m_ScaledDimensions.GetFloorIntY();
+		int oldX = posX;
+		int oldY = posY;
 
 		if (m_WrapX) {
+			int width = m_ScaledDimensions.GetFloorIntX();
+			posX %= width;
 			if (posX < 0) {
-				while (posX < 0) {
-					posX += width;
-				}
-				wrapped = true;
-			} else if (posX >= width) {
-				posX %= width;
-				wrapped = true;
+				posX += width;
 			}
 		}
+
 		if (m_WrapY) {
+			int height = m_ScaledDimensions.GetFloorIntY();
+			posY %= height;
 			if (posY < 0) {
-				while (posY < 0) {
-					posY += height;
-				}
-				wrapped = true;
-			} else if (posY >= height) {
-				posY %= height;
-				wrapped = true;
+				posY += height;
 			}
 		}
-		return wrapped;
+
+		return oldX != posX || oldY != posY;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -18,6 +18,7 @@ namespace RTE {
 
 	void LoadingScreen::Clear() {
 		m_LoadingLogWriter = nullptr;
+		m_LoadingSplashBitmap = nullptr;
 		m_ProgressListboxBitmap = nullptr;
 		m_ProgressListboxPosX = 0;
 		m_ProgressListboxPosY = 0;
@@ -30,19 +31,22 @@ namespace RTE {
 		RTEAssert(loadingScreenManager.Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "LoadingScreenSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/LoadingScreenSkin.ini");
 		loadingScreenManager.Load("Base.rte/GUIs/LoadingGUI.ini");
 
+		g_WindowMan.ClearRenderer();
+
 		int loadingSplashOffset = 0;
 		if (!progressReportDisabled) {
 			CreateProgressReportListbox(&loadingScreenManager);
 			loadingSplashOffset = m_ProgressListboxPosX / 4;
 		}
-		SceneLayer loadingSplash;
-		loadingSplash.Create(ContentFile("Base.rte/GUIs/Title/LoadingSplash.png").GetAsBitmap(COLORCONV_NONE, false), false, Vector(), true, false, Vector(1.0F, 0));
-		loadingSplash.SetOffset(Vector(static_cast<float>(((loadingSplash.GetBitmap()->w - g_WindowMan.GetResX()) / 2) + loadingSplashOffset), 0));
+		CreateLoadingSplash(loadingSplashOffset);
+		DrawLoadingSplash();
 
-		Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - loadingSplash.GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(loadingSplash.GetBitmap()->h));
-		loadingSplash.Draw(g_FrameMan.GetBackBuffer32(), loadingSplashTargetBox);
+		if (!progressReportDisabled) {
+			draw_sprite(g_FrameMan.GetBackBuffer32(), m_ProgressListboxBitmap, m_ProgressListboxPosX, m_ProgressListboxPosY);
 
-		if (!progressReportDisabled) { draw_sprite(g_FrameMan.GetBackBuffer32(), m_ProgressListboxBitmap, m_ProgressListboxPosX, m_ProgressListboxPosY); }
+			// Now recreate the loading splash without the offset. This one will be reused in Activity restarting.
+			CreateLoadingSplash();
+		}
 
 		g_WindowMan.UploadFrame();
 
@@ -53,6 +57,26 @@ namespace RTE {
 				m_LoadingLogWriter.reset();
 			}
 		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LoadingScreen::CreateLoadingSplash(int xOffset) {
+		if (m_LoadingSplashBitmap) {
+			destroy_bitmap(m_LoadingSplashBitmap);
+			m_LoadingSplashBitmap = nullptr;
+		}
+		const BITMAP *backbuffer = g_FrameMan.GetBackBuffer32();
+
+		m_LoadingSplashBitmap = create_bitmap_ex(FrameMan::c_BPP, backbuffer->w, backbuffer->h);
+		clear_bitmap(m_LoadingSplashBitmap);
+
+		SceneLayer loadingSplash;
+		loadingSplash.Create(ContentFile("Base.rte/GUIs/Title/LoadingSplash.png").GetAsBitmap(COLORCONV_NONE, false), false, Vector(), true, false, Vector(1.0F, 0));
+		loadingSplash.SetOffset(Vector(static_cast<float>(((loadingSplash.GetBitmap()->w - g_WindowMan.GetResX()) / 2) + xOffset), 0));
+
+		Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - loadingSplash.GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(loadingSplash.GetBitmap()->h));
+		loadingSplash.Draw(m_LoadingSplashBitmap, loadingSplashTargetBox);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +105,10 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LoadingScreen::Destroy() {
-		if (m_ProgressListboxBitmap) { destroy_bitmap(m_ProgressListboxBitmap); }
+		destroy_bitmap(m_LoadingSplashBitmap);
+		if (m_ProgressListboxBitmap) {
+			destroy_bitmap(m_ProgressListboxBitmap);
+		}
 		Clear();
 	}
 
@@ -109,7 +136,14 @@ namespace RTE {
 
 			blit(g_LoadingScreen.m_ProgressListboxBitmap, g_FrameMan.GetBackBuffer32(), 0, 0, g_LoadingScreen.m_ProgressListboxPosX, g_LoadingScreen.m_ProgressListboxPosY, g_LoadingScreen.m_ProgressListboxBitmap->w, g_LoadingScreen.m_ProgressListboxBitmap->h);
 
+			g_WindowMan.ClearRenderer();
 			g_WindowMan.UploadFrame();
 		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LoadingScreen::DrawLoadingSplash() {
+		draw_sprite(g_FrameMan.GetBackBuffer32(), m_LoadingSplashBitmap, 0, 0);
 	}
 }

@@ -18,6 +18,8 @@
 #include "AEmitter.h"
 #include "PresetMan.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace RTE {
 
 ConcreteClassInfo(ACDropShip, ACraft, 10);
@@ -114,33 +116,21 @@ int ACDropShip::Create(const ACDropShip &reference) {
 //                  false is returned, and the reader's position is untouched.
 
 int ACDropShip::ReadProperty(const std::string_view &propName, Reader &reader) {
-    if (propName == "RThruster" || propName == "RightThruster" || propName == "RightEngine") {
-        SetRightThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "LThruster" || propName == "LeftThruster" || propName == "LeftEngine") {
-        SetLeftThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "URThruster" || propName == "UpRightThruster") {
-        SetURightThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "ULThruster" || propName == "UpLeftThruster") {
-        SetULeftThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "RHatchDoor" || propName == "RightHatchDoor") {
-        SetRightHatch(dynamic_cast<Attachable *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "LHatchDoor" || propName == "LeftHatchDoor") {
-        SetLeftHatch(dynamic_cast<Attachable *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "HatchDoorSwingRange") {
-        reader >> m_HatchSwingRange;
-    } else if (propName == "AutoStabilize") {
-        reader >> m_AutoStabilize;
-    } else if (propName == "MaxEngineAngle") {
-        reader >> m_MaxEngineAngle;
-	} else if (propName == "LateralControlSpeed") {
-		reader >> m_LateralControlSpeed;
-	} else if (propName == "HoverHeightModifier") {
-		reader >> m_HoverHeightModifier;
-    } else {
-        return ACraft::ReadProperty(propName, reader);
-    }
-
-    return 0;
+    StartPropertyList(return ACraft::ReadProperty(propName, reader));
+    
+    MatchForwards("RThruster") MatchForwards("RightThruster") MatchProperty("RightEngine", { SetRightThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("LThruster") MatchForwards("LeftThruster") MatchProperty("LeftEngine", { SetLeftThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("RHatchDoor") MatchProperty("RightHatchDoor", { SetRightHatch(dynamic_cast<Attachable *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("LHatchDoor") MatchProperty("LeftHatchDoor", { SetLeftHatch(dynamic_cast<Attachable *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchProperty("HatchDoorSwingRange", { reader >> m_HatchSwingRange; });
+    MatchProperty("AutoStabilize", { reader >> m_AutoStabilize; });
+    MatchProperty("MaxEngineAngle", { reader >> m_MaxEngineAngle; });
+	MatchProperty("LateralControlSpeed", { reader >> m_LateralControlSpeed; });
+	MatchProperty("HoverHeightModifier", { reader >> m_HoverHeightModifier; });
+    
+    EndPropertyList;
 }
 
 
@@ -221,9 +211,9 @@ float ACDropShip::GetAltitude(int max, int accuracy)
     g_SceneMan.WrapPosition(rPos);
 
     // Check center too
-    float cAlt = g_SceneMan.FindAltitude(m_Pos, max, accuracy);
-    float rAlt = g_SceneMan.FindAltitude(rPos, max, accuracy);
-    float lAlt = g_SceneMan.FindAltitude(lPos, max, accuracy);
+    float cAlt = g_SceneMan.FindAltitude(m_Pos, max, accuracy, true);
+    float rAlt = g_SceneMan.FindAltitude(rPos, max, accuracy, true);
+    float lAlt = g_SceneMan.FindAltitude(lPos, max, accuracy, true);
 
     // Return the lowest of the three
     return MIN(cAlt, MIN(rAlt, lAlt));
@@ -280,192 +270,18 @@ MOID ACDropShip::DetectObstacle(float distance)
     return false;
 }
 
-/*
 //////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OnBounce
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits and then
-//                  bounces off of something. This is called by the owned Atom/AtomGroup
-//                  of this MovableObject during travel.
 
-bool ACDropShip::OnBounce(const Vector &pos)
+void ACDropShip::PreControllerUpdate()
 {
-    return false;
-}
+    ZoneScoped;
 
+	ACraft::PreControllerUpdate();
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OnSink
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits and then
-//                  sink into something. This is called by the owned Atom/AtomGroup
-//                  of this MovableObject during travel.
-
-bool ACDropShip::OnSink(const Vector &pos)
-{
-    return false;
-}
-*/
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  UpdateAI
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates this' AI state. Supposed to be done every frame that this has
-//                  a CAI controller controlling it.
-
-void ACDropShip::UpdateAI()
-{
-    float angle = m_Rotation.GetRadAngle();
-
-    // This is the altitude at which the craft will hover and unload its cargo
-    float hoverAltitude = m_CharHeight * 2 + m_HoverHeightModifier;
-    // The gutter range threshold for how much above and below the hovering altitude is ok to stay in
-    float hoverRange = m_CharHeight / 4;
-    // Get the altitude reading, within 25 pixels precision
-    float altitude = GetAltitude(g_SceneMan.GetSceneHeight() / 2, 25);
-
-    //////////////////////////////////////////
-    // Try to avoid lateral drift by default
-
-    if (m_Vel.m_X > 2.0)
-        m_LateralMoveState = LAT_LEFT;
-    else if (m_Vel.m_X < -2.0)
-        m_LateralMoveState = LAT_RIGHT;
-
-    ////////////////////////////
-    // Delivery Sequence logic
-
-    if (m_DeliveryState == FALL)
-    {
-        m_AltitudeMoveState = DESCEND;
-
-        // Check for something in the way of our descent, and hover to the side to avoid it
-        MOID detected = g_NoMOID;
-        //TODO since GetRadius includes attachables, this could probably be lessened. Maybe could just use GetDiameter directly.
-        if ((detected = DetectObstacle(GetRadius() * 4)) != g_NoMOID)
-        {
-            // Only check other craft in the way
-            ACraft *pCraft = dynamic_cast<ACraft *>(g_MovableMan.GetMOFromID(detected));
-            if (pCraft)
-            {
-                // Start ASCENDing until descent stops
-                m_AltitudeMoveState = m_Vel.m_Y > 1.0f ? ASCEND : HOVER;
-                m_LateralMoveState = pCraft->GetPos().m_X > m_Pos.m_X ? LAT_LEFT : LAT_RIGHT;
-            }
-        }
-
-        // If we passed the hover altitude upper limit, start unloading
-        if (altitude < hoverAltitude + hoverRange * 2)
-        {
-            // Start unloading if there's something to unload
-            if (!IsInventoryEmpty() && m_AIMode != AIMODE_STAY)
-            {
-                // Randomly choose a direction to be going when unloading
-                m_LateralMoveState = RandomNum() > 0.5F ? LAT_LEFT : LAT_RIGHT;
-                DropAllInventory();
-                m_DeliveryState = UNLOAD;
-                // Start ascending since we're probably doing downward at max already
-                m_AltitudeMoveState = ASCEND;
-            }
-            // Otherwise, just hover in place and wait for manual control
-            else
-            {
-                m_LateralMoveState = LAT_STILL;
-                m_DeliveryState = STANDBY;
-            }
-        }
-
-        // Don't descend if we have nothing to deliver
-        if (IsInventoryEmpty() && HasDelivered() && m_AIMode != AIMODE_STAY)
-        {
-            m_DeliveryState = LAUNCH;
-        }
-    }
-    else if (m_DeliveryState == STANDBY || m_DeliveryState == UNLOAD)
-    {
-        // Adjust altitude to keep the appropriate altitude over the ground
-        if (altitude < hoverAltitude - hoverRange)
-            m_AltitudeMoveState = ASCEND;
-        else if (altitude > hoverAltitude + hoverRange)
-            m_AltitudeMoveState = DESCEND;
-        else
-            m_AltitudeMoveState = HOVER;
-
-        // If we're unloading, and done, then launch off again
-        if (m_DeliveryState == UNLOAD && IsInventoryEmpty())
-        {
-            m_LateralMoveState = LAT_STILL;
-            m_DeliveryState = LAUNCH;
-            m_StuckTimer.Reset();
-        }
-    }
-    else if (m_DeliveryState == LAUNCH)
-    {
-        if (m_HatchTimer.IsPastSimMS(1000))
-            CloseHatch();
-        m_AltitudeMoveState = ASCEND;
-
-        // Check for something in the way of our ascent, and hover to the side to avoid it
-        MOID detected = g_NoMOID;
-        //TODO since GetRadius includes attachables, this could probably be lessened. Maybe could just use GetDiameter directly.
-        if ((detected = DetectObstacle(GetRadius() * 4)) != g_NoMOID)
-        {
-            // Only check other craft in the way
-            ACraft *pCraft = dynamic_cast<ACraft *>(g_MovableMan.GetMOFromID(detected));
-            if (pCraft)
-            {
-                // Start ASCENDing until descent stops
-                m_AltitudeMoveState = m_Vel.m_Y < -1.0f ? DESCEND : HOVER;
-                m_LateralMoveState = pCraft->GetPos().m_X > m_Pos.m_X ? LAT_LEFT : LAT_RIGHT;
-            }
-        }
-    }
-
-    /////////////////////////
-    // If we are hopelessly stuck, self destruct
-
-    if (m_RecentMovement.MagnitudeIsGreaterThan(10.0F))
-        m_StuckTimer.Reset();
-    if (m_StuckTimer.IsPastSimMS(10000))
-        GibThis();
-
-    /////////////////////////
-    // INPUT TRANSLATION
-
-    if (m_AltitudeMoveState == ASCEND)
-        m_Controller.SetState(MOVE_UP, true);
-    else if (m_AltitudeMoveState == DESCEND)
-        m_Controller.SetState(MOVE_DOWN, true);
-
-    if (m_LateralMoveState == LAT_RIGHT)
-    {
-//        m_Controller.SetState(MOVE_RIGHT, true);
-        // Move slower
-        m_Controller.m_AnalogMove.m_X = 0.35;
-    }
-    else if (m_LateralMoveState == LAT_LEFT)
-    {
-//        m_Controller.SetState(MOVE_LEFT, true);
-        m_Controller.m_AnalogMove.m_X = -0.35;
-    }
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates this ACDropShip. Supposed to be done every frame.
-
-void ACDropShip::Update()
-{
-	/////////////////////////////////
-	// Controller update and handling
-
-// TODO: Improve and make optional thrusters more robust!
+    // TODO: Improve and make optional thrusters more robust!
 	if (m_Status != DEAD && m_Status != DYING)
 	{
-		float targetYVel = 0;
+		float targetYVel = 0.0F;
 		float throttleRange = 7.5f;
 
 		if (m_Controller.IsState(PRESS_UP))
@@ -488,52 +304,63 @@ void ACDropShip::Update()
 		//////////////////////////////////////////////////////
 		// Main thruster throttling to stay hovering
 
+        // ugly hacks. the entire trimming to hover system is shit and should be replaced
+
 		// This is to trim the hover so it's perfectly still altitude-wise
-		float trimming = -1.75f;
-		float throttle = (targetYVel + (m_Vel.m_Y + trimming)) / throttleRange;
-		//AEmitter do this already: throttle = throttle > 1.0f ? 1.0f : (throttle < -1.0f ? -1.0f : throttle);
+		float trimming = -2.6f;
+
+		float throttle = (targetYVel + m_Vel.m_Y + trimming) / throttleRange;
+
+        // Adjust trim based on weight. Dropships hover nicely at zero weight, but tend to drop when they have a large inventory
+        float massAdjustment = GetMass() / GetBaseMass();
 
 		// Right main thruster
 		if (m_pRThruster && m_pRThruster->IsAttached())
 		{
-			float rightThrottle = throttle;
+            float baseThrottleForThruster = m_pRThruster->GetThrottleForThrottleFactor(1.0f);
+			float rightThrottle = m_pRThruster->GetScaledThrottle(throttle + baseThrottleForThruster, massAdjustment);
+
 			// Throttle override control for correcting heavy tilt, only applies if both engines are present
-			if (m_pLThruster && m_pLThruster->IsAttached())
-			{
-				if (m_Rotation.GetRadAngle() > c_SixteenthPI)
+			if (m_pLThruster && m_pLThruster->IsAttached()) {
+				if (m_Rotation.GetRadAngle() > c_SixteenthPI) {
 					rightThrottle = -0.8f;
-				else if (m_Rotation.GetRadAngle() < -c_SixteenthPI)
+                } else if (m_Rotation.GetRadAngle() < -c_SixteenthPI) {
 					rightThrottle = 0.8f;
+                }
 			}
 
-			if (rightThrottle > m_pRThruster->GetThrottle())
-				rightThrottle = rightThrottle * 0.3f + m_pRThruster->GetThrottle() * 0.7f;  // Increase throttle slowly
+            if (rightThrottle > m_pRThruster->GetThrottle()) {
+                rightThrottle = rightThrottle * 0.3f + m_pRThruster->GetThrottle() * 0.7f;  // Increase throttle slowly
+            }
 
 			m_pRThruster->EnableEmission(m_Status == STABLE);
 			m_pRThruster->SetThrottle(rightThrottle);
-			m_pRThruster->SetFlashScale((rightThrottle + 1.5f) / 2);
+			m_pRThruster->SetFlashScale((m_pRThruster->GetThrottle() + 1.5f) / 2.0f);
 			// Engines are noisy! Make AI aware of them
 			m_pRThruster->AlarmOnEmit(m_Team);
 		}
 		// Left main thruster
 		if (m_pLThruster && m_pLThruster->IsAttached())
 		{
-			float leftThrottle = throttle;
+            float baseThrottleForThruster = m_pLThruster->GetThrottleForThrottleFactor(1.0f);
+			float leftThrottle = m_pLThruster->GetScaledThrottle(throttle + baseThrottleForThruster, massAdjustment);
+
 			// Throttle override control for correcting heavy tilt, only applies if both engines are present
-			if (m_pRThruster && m_pRThruster->IsAttached())
-			{
-				if (m_Rotation.GetRadAngle() > c_SixteenthPI)
-					leftThrottle = 0.8f;
-				else if (m_Rotation.GetRadAngle() < -c_SixteenthPI)
-					leftThrottle = -0.8f;
+			if (m_pRThruster && m_pRThruster->IsAttached()) {
+                if (m_Rotation.GetRadAngle() > c_SixteenthPI) {
+                    leftThrottle = 0.8f;
+                } else if (m_Rotation.GetRadAngle() < -c_SixteenthPI) {
+                    leftThrottle = -0.8f;
+                }
 			}
 
-			if (leftThrottle > m_pLThruster->GetThrottle())
-				leftThrottle = leftThrottle * 0.3f + m_pLThruster->GetThrottle() * 0.7f;  // Increase throttle slowly
+            if (leftThrottle > m_pLThruster->GetThrottle()) {
+                leftThrottle = leftThrottle * 0.3f + m_pLThruster->GetThrottle() * 0.7f;  // Increase throttle slowly
+            }
 
 			m_pLThruster->EnableEmission(m_Status == STABLE);
 			m_pLThruster->SetThrottle(leftThrottle);
-			m_pLThruster->SetFlashScale((leftThrottle + 1.5f) / 2);
+			m_pLThruster->SetFlashScale((m_pLThruster->GetThrottle() + 1.5f) / 2.0F);
 			// Engines are noisy! Make AI aware of them
 			m_pLThruster->AlarmOnEmit(m_Team);
 		}
@@ -669,10 +496,6 @@ void ACDropShip::Update()
     if (m_pLHatch && m_pLHatch->IsAttached()) {
         m_pLHatch->SetRotAngle(m_Rotation.GetRadAngle() - m_HatchSwingRange.GetRadAngle() * m_HatchOpeness);
     }
-
-	/////////////////////////////////////////////////
-	// Update MovableObject, adds on the forces etc, updated viewpoint
-	ACraft::Update();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

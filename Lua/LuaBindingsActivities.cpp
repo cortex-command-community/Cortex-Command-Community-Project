@@ -14,6 +14,7 @@ namespace RTE {
 		.property("Description", &Activity::GetDescription)
 		.property("InCampaignStage", &Activity::GetInCampaignStage, &Activity::SetInCampaignStage)
 		.property("ActivityState", &Activity::GetActivityState, &Activity::SetActivityState)
+		.property("AllowsUserSaving", &Activity::GetAllowsUserSaving, &Activity::SetAllowsUserSaving)
 		.property("SceneName", &Activity::GetSceneName, &Activity::SetSceneName)
 		.property("PlayerCount", &Activity::GetPlayerCount)
 		.property("HumanCount", &Activity::GetHumanCount)
@@ -24,7 +25,6 @@ namespace RTE {
 		.def("PlayerActive", &Activity::PlayerActive)
 		.def("PlayerHuman", &Activity::PlayerHuman)
 		.def("TeamActive", &Activity::TeamActive)
-		.def("ForceSetTeamAsActive", &Activity::ForceSetTeamAsActive)
 		.def("GetTeamOfPlayer", &Activity::GetTeamOfPlayer)
 		.def("SetTeamOfPlayer", &Activity::SetTeamOfPlayer)
 		.def("PlayersInTeamCount", &Activity::PlayersInTeamCount)
@@ -64,6 +64,8 @@ namespace RTE {
 		.def("LoadString", &Activity::LoadString)
 		.def("SaveNumber", &Activity::SaveNumber)
 		.def("LoadNumber", &Activity::LoadNumber)
+		.def("SendMessage", &LuaAdaptersActivity::SendMessage1)
+		.def("SendMessage", &LuaAdaptersActivity::SendMessage2)
 
 		.enum_("Players")[
 			luabind::value("PLAYER_NONE", Players::NoPlayer),
@@ -147,6 +149,7 @@ namespace RTE {
 		.def("SetActorSelectCursor", &GameActivity::SetActorSelectCursor)
 		.def("GetBuyGUI", &GameActivity::GetBuyGUI)
 		.def("GetEditorGUI", &GameActivity::GetEditorGUI)
+		.def("LockControlledActor", &GameActivity::LockControlledActor)
 		.def("OtherTeam", &GameActivity::OtherTeam)
 		.def("OneOrNoneTeamsLeft", &GameActivity::OneOrNoneTeamsLeft)
 		.def("WhichTeamLeft", &GameActivity::WhichTeamLeft)

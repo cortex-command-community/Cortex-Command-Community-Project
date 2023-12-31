@@ -4,6 +4,8 @@
 #include "Singleton.h"
 #include "Timer.h"
 
+#include <atomic>
+
 #define g_PerformanceMan PerformanceMan::Instance()
 
 namespace RTE {
@@ -23,13 +25,22 @@ namespace RTE {
 		/// </summary>
 		enum PerformanceCounters {
 			SimTotal = 0,
-			ActorsAIUpdate,
+			ActorsAI,
 			ActorsTravel,
 			ActorsUpdate,
 			ParticlesTravel,
 			ParticlesUpdate,
 			ActivityUpdate,
+			ScriptsUpdate,
 			PerfCounterCount
+		};
+
+		/// <summary>
+		/// Used to store Lua script execution timing information.
+		/// </summary>
+		struct ScriptTiming {
+			long long m_Time;
+			int m_CallCount;
 		};
 
 #pragma region Creation
@@ -82,6 +93,12 @@ namespace RTE {
 		void ShowAdvancedPerformanceStats(bool showGraphs = true) { m_AdvancedPerfStats = showGraphs; }
 
 		/// <summary>
+		/// Gets the average of the MSPU reading buffer, calculated each update.
+		/// </summary>
+		/// <returns>The average value of the MSPU reading buffer.</returns>
+		float GetMSPSUAverage() const { return m_MSPSUAverage; }
+
+		/// <summary>
 		/// Gets the average of the MSPF reading buffer, calculated each frame.
 		/// </summary>
 		/// <returns>The average value of the MSPF reading buffer.</returns>
@@ -115,6 +132,11 @@ namespace RTE {
 
 #pragma region Concrete Methods
 		/// <summary>
+		/// Clears current performance timings.
+		/// </summary>
+		void ResetPerformanceTimings() { m_MSPSUs.clear(); m_MSPFs.clear(); m_MSPUs.clear(); m_MSPDs.clear(); }
+
+		/// <summary>
 		/// Resets the sim update timer.
 		/// </summary>
 		void ResetSimUpdateTimer() const { m_SimUpdateTimer->Reset(); }
@@ -143,6 +165,11 @@ namespace RTE {
 		void DrawCurrentPing() const;
 #pragma endregion
 
+		/// <summary>
+		/// Updates m_SortedScriptTimings so PerformanceMan::Draw() can list how long scripts took.
+		/// </summary>
+		void UpdateSortedScriptTimings(const std::unordered_map<std::string, ScriptTiming> &scriptTimings);
+
 	protected:
 
 		static constexpr int c_MSPAverageSampleSize = 10; //!< How many samples to use to calculate average milliseconds-per-something value.
@@ -153,7 +180,7 @@ namespace RTE {
 		const int c_StatsOffsetX = 17; //!< Offset of the stat text from the left edge of the screen.
 		const int c_StatsHeight = 14; //!< Height of each stat text line.
 		const int c_GraphsOffsetX = 14; //!< Offset of the graph from the left edge of the screen.
-		const int c_GraphsStartOffsetY = 134; //!< Position the first graph block will be drawn from the top edge of the screen.
+		const int c_GraphsStartOffsetY = 174; //!< Position the first graph block will be drawn from the top edge of the screen.
 		const int c_GraphHeight = 20; //!< Height of the performance graph.
 		const int c_GraphBlockHeight = 34; //!< Height of the whole graph block (text height and graph height combined).
 
@@ -177,9 +204,9 @@ namespace RTE {
 		int m_CurrentPing; //!< Current ping value to display on screen.
 
 		std::array<std::array<int, c_MaxSamples>, PerformanceCounters::PerfCounterCount> m_PerfPercentages; //!< Array to store percentages from SimTotal.
-		std::array<std::array<uint64_t, c_MaxSamples>, PerformanceCounters::PerfCounterCount> m_PerfData; //!< Array to store performance measurements in microseconds.
-		std::array<uint64_t, PerformanceCounters::PerfCounterCount> m_PerfMeasureStart; //!< Current measurement start time in microseconds.
-		std::array<uint64_t, PerformanceCounters::PerfCounterCount> m_PerfMeasureStop; //!< Current measurement stop time in microseconds.
+		std::array<std::array<std::atomic_uint64_t, c_MaxSamples>, PerformanceCounters::PerfCounterCount> m_PerfData; //!< Array to store performance measurements in microseconds.
+
+		std::vector<std::pair<std::string, ScriptTiming>> m_SortedScriptTimings; //!< Sorted vector storing how long scripts took to execute.
 
 	private:
 

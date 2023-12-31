@@ -51,6 +51,7 @@ namespace RTE {
 	LuaEntityCreateFunctionsDefinitionsForType(Arm);
 	LuaEntityCreateFunctionsDefinitionsForType(Leg);
 	LuaEntityCreateFunctionsDefinitionsForType(AEmitter);
+	LuaEntityCreateFunctionsDefinitionsForType(AEJetpack);
 	LuaEntityCreateFunctionsDefinitionsForType(Turret);
 	LuaEntityCreateFunctionsDefinitionsForType(Actor);
 	LuaEntityCreateFunctionsDefinitionsForType(ADoor);
@@ -94,6 +95,7 @@ namespace RTE {
 	LuaEntityCloneFunctionDefinitionForType(Leg);
 	LuaEntityCloneFunctionDefinitionForType(Emission);
 	LuaEntityCloneFunctionDefinitionForType(AEmitter);
+	LuaEntityCloneFunctionDefinitionForType(AEJetpack);
 	LuaEntityCloneFunctionDefinitionForType(Turret);
 	LuaEntityCloneFunctionDefinitionForType(Actor);
 	LuaEntityCloneFunctionDefinitionForType(ADoor);
@@ -151,6 +153,7 @@ namespace RTE {
 	LuaEntityCastFunctionsDefinitionsForType(Leg);
 	LuaEntityCastFunctionsDefinitionsForType(Emission);
 	LuaEntityCastFunctionsDefinitionsForType(AEmitter);
+	LuaEntityCastFunctionsDefinitionsForType(AEJetpack);
 	LuaEntityCastFunctionsDefinitionsForType(Turret);
 	LuaEntityCastFunctionsDefinitionsForType(Actor);
 	LuaEntityCastFunctionsDefinitionsForType(ADoor);
@@ -207,7 +210,7 @@ namespace RTE {
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorDirectionChangeSound);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveEndSound);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetHead);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, AEmitter, SetJetpack);
+	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, AEJetpack, SetJetpack);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Arm, SetFGArm);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Arm, SetBGArm);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Leg, SetFGLeg);
@@ -216,7 +219,7 @@ namespace RTE {
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetBGFoot);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, SoundContainer, SetStrideSound);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Turret, SetTurret);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, AEmitter, SetJetpack);
+	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, AEJetpack, SetJetpack);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftFGLeg);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftBGLeg);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetRightFGLeg);
@@ -272,18 +275,55 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int LuaAdaptersScene::CalculatePath2(Scene *luaSelfObject, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team) {
+		std::list<Vector>& threadScenePath = luaSelfObject->GetScenePath();
 		team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
-		luaSelfObject->CalculatePath(start, end, luaSelfObject->m_ScenePath, digStrength, team);
-		if (!luaSelfObject->m_ScenePath.empty()) {
+		luaSelfObject->CalculatePath(start, end, threadScenePath, digStrength, team);
+		if (!threadScenePath.empty()) {
 			if (movePathToGround) {
-				for (Vector &scenePathPoint : luaSelfObject->m_ScenePath) {
+				for (Vector &scenePathPoint : threadScenePath) {
 					scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
 				}
 			}
 
-			return static_cast<int>(luaSelfObject->m_ScenePath.size());
+			return static_cast<int>(threadScenePath.size());
 		}
 		return -1;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersScene::CalculatePathAsync2(Scene *luaSelfObject, const luabind::object &callbackParam, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team) {
+		team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
+		
+		// So, luabind::object is a weak reference, holding just a stack and a position in the stack
+		// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
+		// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
+		// Note that also, the callbackParam's interpreter is actually different from our Lua state.
+		// It looks like Luabind constructs temporary interpreters and really doesn't like if you destroy these luabind objects
+		// In any case, it's extremely unsafe to use! For example capturing the callback by value into the lambdas causes random crashes
+		// Even if we did literally nothing with it except capture it into a no-op lambda
+		LuaStateWrapper* luaState = g_LuaMan.GetThreadCurrentLuaState();
+		static int currentCallbackId = 0;
+		int thisCallbackId = currentCallbackId++;
+		if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
+			luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
+		}
+
+		auto callLuaCallback = [luaState, thisCallbackId, movePathToGround](std::shared_ptr<volatile PathRequest> pathRequestVol) {
+			// This callback is called from the async pathing thread, so we need to further delay this logic into the main thread (via AddLuaScriptCallback)
+			g_LuaMan.AddLuaScriptCallback([luaState, thisCallbackId, movePathToGround, pathRequestVol]() {
+				PathRequest pathRequest = const_cast<PathRequest &>(*pathRequestVol); // erh, to work with luabind etc
+				if (movePathToGround) {
+					for (Vector &scenePathPoint : pathRequest.path) {
+						scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
+					}
+				}
+			
+				luabind::call_function<void>(luaState->GetLuaState(), "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
+			});
+		};
+
+		luaSelfObject->CalculatePathAsync(start, end, digStrength, team, callLuaCallback);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -296,6 +336,29 @@ namespace RTE {
 
 	float LuaAdaptersSceneObject::GetTotalValue(const SceneObject *luaSelfObject, int nativeModule, float foreignMult) {
 		return luaSelfObject->GetTotalValue(nativeModule, foreignMult, 1.0F);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	int LuaAdaptersSceneObject::GetBuyableMode(const SceneObject *luaSelfObject) {
+		return static_cast<int>(luaSelfObject->GetBuyableMode());
+	}
+	
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersActivity::SendMessage1(Activity *luaSelfObject, const std::string &message) {
+		luabind::object context;
+		SendMessage2(luaSelfObject, message, context);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersActivity::SendMessage2(Activity *luaSelfObject, const std::string &message, luabind::object context) {
+		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(luaSelfObject);
+		if (scriptedActivity) {
+			LuabindObjectWrapper wrapper(&context, "", false);
+			scriptedActivity->RunLuaFunction("OnMessage", {}, { message }, { &wrapper });
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -317,7 +380,7 @@ namespace RTE {
 				g_ConsoleMan.PrintString("ERROR: The script path " + correctedScriptPath + "  did not point to a valid file.");
 				break;
 			case -3:
-				g_ConsoleMan.PrintString("ERROR: The script path " + correctedScriptPath + " is already loaded onto this object.");
+				// Already have this script. Not an issue, just ignore it.
 				break;
 			case -4:
 				g_ConsoleMan.PrintString("ERROR: Failed to do necessary setup to add scripts while attempting to add the script with path " + correctedScriptPath + ". This has nothing to do with your script, please report it to a developer.");
@@ -338,10 +401,31 @@ namespace RTE {
 		return luaSelfObject->EnableOrDisableScript(g_ModuleMan.GetFullModulePath(scriptPath), true);
 	}
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersMovableObject::DisableScript(MovableObject *luaSelfObject, const std::string &scriptPath) {
+	bool LuaAdaptersMovableObject::DisableScript1(MovableObject* luaSelfObject) {
+		std::string currentScriptFilePath(g_LuaMan.GetThreadCurrentLuaState()->GetCurrentlyRunningScriptFilePath());
+		return luaSelfObject->EnableOrDisableScript(currentScriptFilePath, false);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaAdaptersMovableObject::DisableScript2(MovableObject *luaSelfObject, const std::string &scriptPath) {
 		return luaSelfObject->EnableOrDisableScript(g_ModuleMan.GetFullModulePath(scriptPath), false);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersMovableObject::SendMessage1(MovableObject *luaSelfObject, const std::string &message) {
+		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, { message });
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersMovableObject::SendMessage2(MovableObject *luaSelfObject, const std::string &message, luabind::object context) {
+		LuabindObjectWrapper wrapper(&context, "", false);
+		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, { message }, { &wrapper });
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -380,6 +464,23 @@ namespace RTE {
 				}
 			}
 		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	std::list<SceneObject*> * LuaAdaptersBuyMenuGUI::GetOrderList(const BuyMenuGUI *luaSelfObject) {
+		std::list<const SceneObject *> constOrderList;
+		luaSelfObject->GetOrderList(constOrderList);
+
+		// Previously I tried to push back a cloned object for const-correctness (and giving unique ptr so luabind would clean it up after)
+		// This is needed cause lua doesn't really enjoy being given a const SceneObject*
+		// But it didn't like that. So eh
+		auto* orderList = new std::list<SceneObject*>();
+		for (const SceneObject *constObjectInOrderList : constOrderList) {
+			orderList->push_back( const_cast<SceneObject *>(constObjectInOrderList) );
+		}
+
+		return orderList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -472,6 +573,30 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	void LuaAdaptersMovableMan::SendGlobalMessage1(MovableMan &movableMan, const std::string &message) {
+		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
+		if (scriptedActivity) {
+			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, { message });
+		}
+
+		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, { message });
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan &movableMan, const std::string &message, luabind::object context) {
+		LuabindObjectWrapper wrapper(&context, "", false);
+
+		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
+		if (scriptedActivity) {
+			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, { message }, { &wrapper });
+		}
+
+		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, { message }, { &wrapper });
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan &timerMan) {
 		return static_cast<double>(timerMan.GetDeltaTimeTicks());
 	}
@@ -485,19 +610,19 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaAdaptersUInputMan::MouseButtonHeld(const UInputMan &uinputMan, int whichButton) {
-		return uinputMan.MouseButtonHeld(Players::PlayerOne, whichButton);
+		return uinputMan.MouseButtonHeld(whichButton, Players::PlayerOne);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaAdaptersUInputMan::MouseButtonPressed(const UInputMan &uinputMan, int whichButton) {
-		return uinputMan.MouseButtonPressed(Players::PlayerOne, whichButton);
+		return uinputMan.MouseButtonPressed(whichButton, Players::PlayerOne);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaAdaptersUInputMan::MouseButtonReleased(const UInputMan &uinputMan, int whichButton) {
-		return uinputMan.MouseButtonReleased(Players::PlayerOne, whichButton);
+		return uinputMan.MouseButtonReleased(whichButton, Players::PlayerOne);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -510,6 +635,14 @@ namespace RTE {
 
 	bool LuaAdaptersPresetMan::ReloadEntityPreset2(PresetMan &presetMan, const std::string &presetName, const std::string &className) {
 		return ReloadEntityPreset1(presetMan, presetName, className, "");
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	std::list<Entity *> * LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan &presetMan, const std::string &group, const std::string &type, int whichModule) {
+		std::list<Entity *> *entityList = new std::list<Entity *>();
+		presetMan.GetAllOfGroup(*entityList, group, type, whichModule);
+		return entityList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -590,24 +723,6 @@ namespace RTE {
 
 	float LuaAdaptersUtility::GetPathFindingDefaultDigStrength() {
 		return c_PathFindingDefaultDigStrength;
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	double LuaAdaptersUtility::NormalRand() {
-		return RandomNormalNum<double>();
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	double LuaAdaptersUtility::PosRand() {
-		return RandomNum<double>();
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	double LuaAdaptersUtility::LuaRand(double upperLimitInclusive) {
-		return RandomNum<double>(1, upperLimitInclusive);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
