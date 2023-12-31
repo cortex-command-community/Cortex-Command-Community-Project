@@ -333,8 +333,6 @@ namespace RTE {
 			g_TimerMan.UpdateSim();
 			g_UInputMan.Update();
 
-			g_SceneMan.GetScene()->UpdateSim();
-
 			g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
 
 			// TODO_MULTITHREAD
@@ -351,7 +349,7 @@ namespace RTE {
 			g_ActivityMan.Update();
 
 			if (g_SceneMan.GetScene()) {
-				g_SceneMan.GetScene()->Update();
+				g_SceneMan.GetScene()->UpdateSim();
 			}
 
 			g_LuaMan.ClearScriptTimings();
