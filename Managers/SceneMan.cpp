@@ -36,6 +36,8 @@
 // Temp
 #include "Controller.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace RTE
 {
 
@@ -137,8 +139,6 @@ int SceneMan::LoadScene(Scene *pNewScene, bool placeObjects, bool placeUnits) {
 	g_PostProcessMan.ClearScenePostEffects();
 
 	if (m_pCurrentScene) {
-        // Ensure all async pathing requests are complete
-        m_pCurrentScene->BlockUntilAllPathingRequestsComplete();
 		delete m_pCurrentScene;
 		m_pCurrentScene = nullptr;
 	}
@@ -2403,6 +2403,12 @@ Vector SceneMan::MovePointToGround(const Vector &from, int maxAltitude, int accu
     ForceBounds(temp);
 
     float altitude = FindAltitude(temp, g_SceneMan.GetSceneHeight(), accuracy);
+    
+    // If there's no ground beneath us, do nothing
+    if (altitude == g_SceneMan.GetSceneHeight()) {
+        return temp;
+    }
+
     // Only move down if we're above the maxAltitude over the ground
     Vector groundPoint(temp.m_X, temp.m_Y + (altitude > maxAltitude ? altitude - maxAltitude : 0));
     return groundPoint;
@@ -2759,18 +2765,13 @@ bool SceneMan::AddSceneObject(SceneObject *sceneObject) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::Update(int screenId) {
-	if (!m_pCurrentScene) {
+	ZoneScoped;
+    
+    if (!m_pCurrentScene) {
 		return;
 	}
 
 	m_LastUpdatedScreen = screenId;
-
-	// Update the scene, only if doing the first screen, since it only needs done once per update.
-	if (screenId == 0) {
-		m_pCurrentScene->Update();
-	}
-
-    g_CameraMan.Update(screenId);
 
     const Vector &offset = g_CameraMan.GetOffset(screenId);
 	m_pMOColorLayer->SetOffset(offset);
@@ -2805,7 +2806,9 @@ void SceneMan::Update(int screenId) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::Draw(BITMAP *targetBitmap, BITMAP *targetGUIBitmap, const Vector &targetPos, bool skipBackgroundLayers, bool skipTerrain) {
-	if (!m_pCurrentScene) {
+	ZoneScoped;
+    
+    if (!m_pCurrentScene) {
 		return;
 	}
 	SLTerrain *terrain = m_pCurrentScene->GetTerrain();

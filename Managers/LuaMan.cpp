@@ -1,12 +1,15 @@
 #include "LuaMan.h"
+
 #include "LuabindObjectWrapper.h"
 #include "LuaBindingRegisterDefinitions.h"
+#include "ThreadMan.h"
+
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyLua.hpp"
 
 namespace RTE {
 
-	const std::unordered_set<std::string> LuaMan::c_FileAccessModes = { "r", "r+", "w", "w+", "a", "a+" };
+	const std::unordered_set<std::string> LuaMan::c_FileAccessModes = { "r", "r+", "w", "w+", "a", "a+", "rt", "wt"};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,6 +18,7 @@ namespace RTE {
 		m_TempEntity = nullptr;
 		m_TempEntityVector.clear();
 		m_LastError.clear();
+		m_CurrentlyRunningScriptPath = "";
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,6 +156,7 @@ namespace RTE {
 			RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, MetaMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, MovableMan),
+			RegisterLuaBindingsOfType(ManagerLuaBindings, PerformanceMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PostProcessMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PresetMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PrimitiveMan),
@@ -192,6 +197,7 @@ namespace RTE {
 		// Assign the manager instances to globals in the lua master state
 		luabind::globals(m_State)["TimerMan"] = &g_TimerMan;
 		luabind::globals(m_State)["FrameMan"] = &g_FrameMan;
+		luabind::globals(m_State)["PerformanceMan"] = &g_PerformanceMan;
 		luabind::globals(m_State)["PostProcessMan"] = &g_PostProcessMan;
 		luabind::globals(m_State)["PrimitiveMan"] = &g_PrimitiveMan;
 		luabind::globals(m_State)["PresetMan"] = &g_PresetMan;
@@ -224,8 +230,9 @@ namespace RTE {
 			// Override "math.random" in the lua state to use RTETools MT19937 implementation. Preserve return types of original to not break all the things.
 			"math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end"
 			"\n"
-			// Override "dofile" to be able to account for Data/ or Mods/ directory.
+			// Override "dofile"/"loadfile" to be able to account for Data/ or Mods/ directory.
 			"OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;"
+			"OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;"
 			// Internal helper functions to add callbacks for async pathing requests
 			"_AsyncPathCallbacks = {};"
 			"_AddAsyncPathCallback = function(id, callback) _AsyncPathCallbacks[id] = callback; end\n"
@@ -286,6 +293,8 @@ namespace RTE {
 
 	void LuaMan::Initialize() {
 		m_MasterScriptState.Initialize();
+
+		m_ScriptStates = std::vector<LuaStateWrapper>(std::thread::hardware_concurrency());
 		for (LuaStateWrapper &luaState : m_ScriptStates) {
 			luaState.Initialize();
 		}
@@ -345,7 +354,7 @@ namespace RTE {
 		return &(*itr);*/
 
 		int ourState = m_LastAssignedLuaState;
-		m_LastAssignedLuaState = (m_LastAssignedLuaState + 1) % c_NumThreadedLuaStates;
+		m_LastAssignedLuaState = (m_LastAssignedLuaState + 1) % m_ScriptStates.size();
 
 		bool success = m_ScriptStates[ourState].GetMutex().try_lock();
 		RTEAssert(success, "Script mutex was already locked while in a non-multithreaded environment!");
@@ -355,45 +364,8 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaMan::IsScriptMultithreaded(const std::string &scriptPath) {
-		// First check our cache
-		auto itr = m_ScriptMultithreadedtyMap.find(scriptPath);
-		if (itr != m_ScriptMultithreadedtyMap.end()) {
-			return itr->second;
-		}
-
-		// Actually open the file and check if it has the multithread-safe mark
-		std::ifstream scriptFile = std::ifstream(scriptPath.c_str());
-		if (!scriptFile.good()) {
-			m_ScriptMultithreadedtyMap.insert({ scriptPath, false });
-			return false;
-		}
-
-		std::string::size_type commentPos;
-		bool inBlockComment = false;
-		while (!scriptFile.eof()) {
-			char rawLine[512];
-			scriptFile.getline(rawLine, 512);
-			std::string line = rawLine;
-
-			if (line.find("--[[MULTITHREAD]]--", 0) != std::string::npos) {
-				m_ScriptMultithreadedtyMap.insert({scriptPath, true});
-				return true;
-			}
-		}
-
-		m_ScriptMultithreadedtyMap.insert({scriptPath, false});
-		return false;
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     void LuaMan::ClearUserModuleCache() {
-		if (m_GCThread.joinable()) {
-			m_GCThread.join();
-		}
-
-		m_ScriptMultithreadedtyMap.clear();
+		m_GarbageCollectionTask.wait();
 
 		m_MasterScriptState.ClearLuaScriptCache();
 		for (LuaStateWrapper& luaState : m_ScriptStates) {
@@ -600,6 +572,7 @@ namespace RTE {
 
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 		s_currentLuaState = this;
+		m_CurrentlyRunningScriptPath = functionObject->GetFilePath();
 
 		lua_pushcfunction(m_State, &AddFileAndLineToError);
 		functionObject->GetLuabindObject()->push(m_State);
@@ -663,12 +636,13 @@ namespace RTE {
 
 		lua_pop(m_State, 1);
 
+		m_CurrentlyRunningScriptPath = "";
 		return status;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaStateWrapper::RunScriptFile(const std::string &filePath, bool consoleErrors) {
+	int LuaStateWrapper::RunScriptFile(const std::string &filePath, bool consoleErrors, bool doInSandboxedEnvironment) {
 		const std::string fullScriptPath = g_PresetMan.GetFullModulePath(filePath);
 		if (fullScriptPath.empty()) {
 			m_LastError = "Can't run a script file with an empty filepath!";
@@ -688,6 +662,7 @@ namespace RTE {
 
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 		s_currentLuaState = this;
+		m_CurrentlyRunningScriptPath = filePath;
 
 		const int stackStart = lua_gettop(m_State);
 
@@ -706,20 +681,22 @@ namespace RTE {
 		}
 
 		if (error == 0) {
-			// create a new environment table
-			lua_getglobal(m_State, filePath.c_str());
-			if (lua_isnil(m_State, -1)) {
-				lua_pop(m_State, 1);
-				lua_newtable(m_State);
-				lua_newtable(m_State);
-				lua_getglobal(m_State, "_G");
-				lua_setfield(m_State, -2, "__index");
-				lua_setmetatable(m_State, -2);
-				lua_setglobal(m_State, filePath.c_str());
+			if (doInSandboxedEnvironment) {
+				// create a new environment table
 				lua_getglobal(m_State, filePath.c_str());
-			}
+				if (lua_isnil(m_State, -1)) {
+					lua_pop(m_State, 1);
+					lua_newtable(m_State);
+					lua_newtable(m_State);
+					lua_getglobal(m_State, "_G");
+					lua_setfield(m_State, -2, "__index");
+					lua_setmetatable(m_State, -2);
+					lua_setglobal(m_State, filePath.c_str());
+					lua_getglobal(m_State, filePath.c_str());
+				}
 
-			lua_setfenv(m_State, -2);
+				lua_setfenv(m_State, -2);
+			}
 
 			// execute script file with pcall. Pcall will call the file and line error handler if there's an error by pointing 2 up the stack to it.
 			if (lua_pcall(m_State, 0, LUA_MULTRET, -2)) {
@@ -736,13 +713,46 @@ namespace RTE {
 		// Pop the line error handler off the stack to clean it up
 		lua_pop(m_State, 1);
 
+		m_CurrentlyRunningScriptPath = "";
 		RTEAssert(lua_gettop(m_State) == stackStart, "Malformed lua stack!");
 		return error;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::string &prefix, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper *> &outFunctionNamesAndObjects, bool forceReload) {
+	bool LuaStateWrapper::RetrieveFunctions(const std::string& funcObjectName, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper*>& outFunctionNamesAndObjects) {
+		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
+		s_currentLuaState = this;
+
+		luabind::object funcHoldingObject = luabind::globals(m_State)[funcObjectName.c_str()];
+		if (luabind::type(funcHoldingObject) == LUA_TNIL) {
+			return false;
+		}
+
+		auto& newScript = m_ScriptCache[funcObjectName.c_str()];
+		for (auto& pair : newScript.functionNamesAndObjects) {
+			delete pair.second;
+		}
+		newScript.functionNamesAndObjects.clear();
+		for (const std::string& functionName : functionNamesToLookFor) {
+			luabind::object functionObject = funcHoldingObject[functionName];
+			if (luabind::type(functionObject) == LUA_TFUNCTION) {
+				luabind::object* functionObjectCopyForStoring = new luabind::object(functionObject);
+				newScript.functionNamesAndObjects.try_emplace(functionName, new LuabindObjectWrapper(functionObjectCopyForStoring, funcObjectName));
+			}
+		}
+
+		for (auto& pair : newScript.functionNamesAndObjects) {
+			luabind::object* functionObjectCopyForStoring = new luabind::object(*pair.second->GetLuabindObject());
+			outFunctionNamesAndObjects.try_emplace(pair.first, new LuabindObjectWrapper(functionObjectCopyForStoring, funcObjectName));
+		}
+
+		return true;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper *> &outFunctionNamesAndObjects, bool forceReload) {
 		static bool disableCaching = false;
 		forceReload = forceReload || disableCaching;
 
@@ -765,30 +775,8 @@ namespace RTE {
 			return error;
 		}
 
-		luabind::object prefixObject;
-		if (prefix == "") {
-			prefixObject = luabind::globals(m_State)[filePath.c_str()];
-		} else {
-			prefixObject = luabind::globals(m_State)[filePath.c_str()][prefix];
-		}
-
-		if (luabind::type(prefixObject) == LUA_TNIL) {
+		if (!RetrieveFunctions(filePath, functionNamesToLookFor, outFunctionNamesAndObjects)) {
 			return -1;
-		}
-
-		auto &newScript = m_ScriptCache[filePath];
-		newScript.functionNamesAndObjects.clear();
-		for (const std::string& functionName : functionNamesToLookFor) {
-			luabind::object functionObject = prefixObject[functionName];
-			if (luabind::type(functionObject) == LUA_TFUNCTION) {
-				luabind::object* functionObjectCopyForStoring = new luabind::object(functionObject);
-				newScript.functionNamesAndObjects.try_emplace(functionName, new LuabindObjectWrapper(functionObjectCopyForStoring, filePath));
-			}
-		}
-
-		for (auto& pair : newScript.functionNamesAndObjects) {
-			luabind::object* functionObjectCopyForStoring = new luabind::object(*pair.second->GetLuabindObject());
-			outFunctionNamesAndObjects.try_emplace(pair.first, new LuabindObjectWrapper(functionObjectCopyForStoring, filePath));
 		}
 
 		return 0;
@@ -1098,9 +1086,7 @@ namespace RTE {
 		}
 
 		// Make sure a GC run isn't happening while we try to apply deletions
-		if (m_GCThread.joinable()) {
-			m_GCThread.join();
-		}
+		m_GarbageCollectionTask.wait();
 
 		// Apply all deletions queued from lua
     	LuabindObjectWrapper::ApplyQueuedDeletions();
@@ -1111,25 +1097,25 @@ namespace RTE {
 	void LuaMan::StartAsyncGarbageCollection() {
 		ZoneScoped;
 		
-		// Start a new thread to perform the GC run.
-		m_GCThread = std::thread([this]() {
-			std::vector<LuaStateWrapper*> allStates;
-			allStates.reserve(m_ScriptStates.size() + 1);
+		std::vector<LuaStateWrapper*> allStates;
+		allStates.reserve(m_ScriptStates.size() + 1);
 
-			allStates.push_back(&m_MasterScriptState);
-			for (LuaStateWrapper& wrapper : m_ScriptStates) {
-				allStates.push_back(&wrapper);
-			}
-
-			std::for_each(std::execution::par, allStates.begin(), allStates.end(),
-				[&](LuaStateWrapper* luaState) {
+		allStates.push_back(&m_MasterScriptState);
+		for (LuaStateWrapper& wrapper : m_ScriptStates) {
+			allStates.push_back(&wrapper);
+		}
+		
+		m_GarbageCollectionTask = BS::multi_future<void>();
+		for (LuaStateWrapper* luaState : allStates) {
+			m_GarbageCollectionTask.push_back(
+				g_ThreadMan.GetPriorityThreadPool().submit([luaState]() {
 					ZoneScopedN("Lua Garbage Collection");
 					std::lock_guard<std::recursive_mutex> lock(luaState->GetMutex());
-					lua_gc(luaState->GetLuaState(), LUA_GCSTEP, 100);
+					lua_gc(luaState->GetLuaState(), LUA_GCSTEP, 30);
 					lua_gc(luaState->GetLuaState(), LUA_GCSTOP, 0);
-				}
+				})
 			);
-		});
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

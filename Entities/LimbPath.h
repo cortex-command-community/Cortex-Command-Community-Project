@@ -228,7 +228,7 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    A float describing the speed in m/s.
 
-    float GetSpeed() const { return m_TravelSpeed[m_WhichSpeed]; }
+    float GetSpeed() const { return m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -239,6 +239,18 @@ ClassInfoGetters;
 // Return value:    A float describing the speed in m/s.
 
 	float GetSpeed(int speedPreset) const { if (speedPreset == SLOW || speedPreset == NORMAL || speedPreset == FAST) return m_TravelSpeed[speedPreset]; else return 0; }
+
+    /// <summary>
+    /// Sets the current travel speed multiplier.
+    /// </summary>
+    /// <param="newValue">The new travel speed multiplier.</returns>
+    void SetTravelSpeedMultiplier(float newValue) { m_TravelSpeedMultiplier = newValue; }
+
+    /// <summary>
+    /// Gets the current travel speed multiplier.
+    /// </summary>
+    /// <returns>The current travel speed multiplier.</returns>
+    float GetTravelSpeedMultiplier() const { return m_TravelSpeedMultiplier; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -286,7 +298,7 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    The total time (ms) this should take to travel along, if unobstructed.
 
-    float GetTotalPathTime() const { return ((m_TotalLength * c_MPP) / m_TravelSpeed[m_WhichSpeed]) * 1000; }
+    float GetTotalPathTime() const { return ((m_TotalLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -297,7 +309,7 @@ ClassInfoGetters;
 // Arguments:       None.
 // Return value:    The total time (ms) this should take to travel along, if unobstructed.
 
-    float GetRegularPathTime() const { return ((m_RegularLength * c_MPP) / m_TravelSpeed[m_WhichSpeed]) * 1000; }
+    float GetRegularPathTime() const { return ((m_RegularLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -494,6 +506,12 @@ ClassInfoGetters;
     /// <param name="rotationOffset">The new rotation offset, in local space.</param>
     void SetRotationOffset(const Vector& rotationOffset) { m_RotationOffset = rotationOffset; }
 
+    /// <summary>
+    /// Sets the new position offset.
+    /// </summary>
+    /// <param name="rotationOffset">The new position offset, in local space.</param>
+    void SetPositionOffset(const Vector& positionOffset) { m_PositionOffset = positionOffset; }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          FrameDone
@@ -651,6 +669,10 @@ protected:
 
     // The constant speed that the limb traveling this path has in m/s.
     float m_TravelSpeed[SPEEDCOUNT];
+
+    // The current travel speed multiplier
+    float m_TravelSpeedMultiplier;
+
     // The current speed setting.
     int m_WhichSpeed;
 
@@ -666,6 +688,8 @@ protected:
     Matrix m_Rotation;
     // The point we should be rotated around, in local space.
     Vector m_RotationOffset;
+    // The offset to apply to our walkpath position, in local space.
+    Vector m_PositionOffset;
 
     // If GetNextTimeSeg() couldn't use up all frame time because the current segment
     // ended,this var stores the remainder of time that should be used to progress

@@ -6,6 +6,8 @@
 #include "LimbPath.h"
 #include "ConsoleMan.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace RTE {
 
 	ConcreteClassInfo(AtomGroup, Entity, 500);
@@ -333,6 +335,8 @@ namespace RTE {
 
 	// TODO: Break down and rework this trainwreck.
 	float AtomGroup::Travel(Vector &position, Vector &velocity, Matrix &rotation, float &angularVel, bool &didWrap, Vector &totalImpulse, float mass, float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
+		ZoneScoped;
+
 		RTEAssert(m_OwnerMOSR, "Tried to travel an AtomGroup that has no parent!");
 
 		m_MomentOfInertia = GetMomentOfInertia();
@@ -769,6 +773,8 @@ namespace RTE {
 
 	// TODO: Break down and rework this dumpsterfire.
 	Vector AtomGroup::PushTravel(Vector &position, const Vector &velocity, float pushForce, bool &didWrap, float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
+		ZoneScoped;
+
 		RTEAssert(m_OwnerMOSR, "Tried to push-travel an AtomGroup that has no parent!");
 
 		didWrap = false;
@@ -1208,7 +1214,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool AtomGroup::PushAsLimb(const Vector &jointPos, const Vector &velocity, const Matrix &rotation, LimbPath &limbPath, const float travelTime, bool *restarted, bool affectRotation, Vector rotationOffset) {
+	bool AtomGroup::PushAsLimb(const Vector &jointPos, const Vector &velocity, const Matrix &rotation, LimbPath &limbPath, const float travelTime, bool *restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
 		RTEAssert(m_OwnerMOSR, "Tried to push-as-limb an AtomGroup that has no parent!");
 
 		bool didWrap = false;
@@ -1228,6 +1234,7 @@ namespace RTE {
 		limbPath.SetJointVel(velocity);
 		limbPath.SetRotation(rotation);
 		limbPath.SetRotationOffset(rotationOffset);
+		limbPath.SetPositionOffset(positionOffset);
 		limbPath.SetFrameTime(travelTime);
 
 		Vector limbDist = g_SceneMan.ShortestDistance(adjustedJointPos, m_LimbPos, g_SceneMan.SceneWrapsX());
@@ -1260,9 +1267,13 @@ namespace RTE {
 			                              owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F;
 			if (againstTravelDirection) {
 				// Filter some of our impulse out. We're pushing against an obstacle, but we don't want to kick backwards!
-				// Translate it into to upwards motion to step over what we're walking into instead ;)
 				const float againstIntendedDirectionMultiplier = 0.5F;
-				pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+
+				if (!owner->GetController()->IsState(BODY_CROUCH) && !owner->GetController()->IsState(MOVE_DOWN)) {
+					// Translate it into to upwards motion to step over what we're walking into instead ;)
+					pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+				}
+
 				pushImpulse.m_X *= againstIntendedDirectionMultiplier;
 			}
 		}
@@ -1343,7 +1354,9 @@ namespace RTE {
 
 	// TODO: Look into breaking this into smaller methods.
 	bool AtomGroup::ResolveTerrainIntersection(Vector &position, unsigned char strongerThan) const {
-		std::list<Atom *> intersectingAtoms;
+		thread_local std::vector<Atom *> intersectingAtoms;
+		intersectingAtoms.clear();
+
 		MOID hitMaterial = g_MaterialAir;
 
 		float strengthThreshold = (strongerThan != g_MaterialAir) ? g_SceneMan.GetMaterialFromID(strongerThan)->GetIntegrity() : 0.0F;

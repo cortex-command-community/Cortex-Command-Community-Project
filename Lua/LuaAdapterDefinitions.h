@@ -10,6 +10,7 @@
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "MovableMan.h"
+#include "PerformanceMan.h"
 #include "PostProcessMan.h"
 #include "PresetMan.h"
 #include "PrimitiveMan.h"
@@ -353,7 +354,8 @@ namespace RTE {
 		static bool HasScript(MovableObject *luaSelfObject, const std::string &scriptPath);
 		static bool AddScript(MovableObject *luaSelfObject, const std::string &scriptPath);
 		static bool EnableScript(MovableObject *luaSelfObject, const std::string &scriptPath);
-		static bool DisableScript(MovableObject *luaSelfObject, const std::string &scriptPath);
+		static bool DisableScript1(MovableObject *luaSelfObject);
+		static bool DisableScript2(MovableObject *luaSelfObject, const std::string &scriptPath);
 		static void SendMessage1(MovableObject *luaSelfObject, const std::string &message);
 		static void SendMessage2(MovableObject *luaSelfObject, const std::string &message, luabind::object context);
 	};
@@ -386,6 +388,7 @@ namespace RTE {
 #pragma region SceneObject Lua Adapters
 	struct LuaAdaptersSceneObject {
 		static float GetTotalValue(const SceneObject *luaSelfObject, int nativeModule, float foreignMult);
+		static int GetBuyableMode(const SceneObject *luaSelfObject);
 	};
 #pragma endregion
 
@@ -489,6 +492,23 @@ namespace RTE {
 		/// <param name="className">The class name of the Entity to reload.</param>
 		/// <returns>Whether or not the Entity was reloaded.</returns>
 		static bool ReloadEntityPreset2(PresetMan &presetMan, const std::string &presetName, const std::string &className);
+
+		/// <summary>
+		/// Gets a list all previously read in (defined) Entities which are associated with a specific group.
+		/// </summary>
+		/// <param name="group">The group to look for. "All" will look in all.</param>
+		/// <param name="type">The name of the least common denominator type of the Entities you want. "All" will look at all types.</param>
+		/// <param name="whichModule">Whether to only get those of one specific DataModule (0-n), or all (-1).</param>
+		/// <returns>The list of all Entities with the given group and type in the module.</returns>
+		static std::list<Entity *> * GetAllEntitiesOfGroup(PresetMan &presetMan, const std::string &group, const std::string &type, int whichModule);
+		static std::list<Entity *> * GetAllEntitiesOfGroup2(PresetMan &presetMan, const std::string &group, const std::string &type) { return GetAllEntitiesOfGroup(presetMan, group, type, -1); }
+		static std::list<Entity *> * GetAllEntitiesOfGroup3(PresetMan &presetMan, const std::string &group) { return GetAllEntitiesOfGroup2(presetMan, group, "All"); }
+		
+		/// <summary>
+		/// Gets a list all previously read in (defined) Entities.
+		/// </summary>
+		/// <returns>The list of all Entities.</returns>
+		static std::list<Entity *> * GetAllEntities(PresetMan &presetMan) { return GetAllEntitiesOfGroup3(presetMan, "All"); }
 	};
 #pragma endregion
 

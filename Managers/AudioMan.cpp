@@ -80,10 +80,10 @@ namespace RTE {
 		FMOD::DSP* dsp_compressor;
 		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->createDSPByType(FMOD_DSP_TYPE_COMPRESSOR, &dsp_compressor) : audioSystemSetupResult;
 		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_compressor->setParameterFloat(0, -10.0f) : audioSystemSetupResult; // Threshold
-		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_compressor->setParameterFloat(1, 4.0f) : audioSystemSetupResult; // Ratio
-		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_compressor->setParameterFloat(2, 80.0f) : audioSystemSetupResult; // Attack time
-		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_compressor->setParameterFloat(3, 180.0f) : audioSystemSetupResult; // Release time
-		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_compressor->setParameterFloat(4, 5.0f) : audioSystemSetupResult; // Make-up gain
+		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_compressor->setParameterFloat(1, 2.5f) : audioSystemSetupResult; // Ratio
+		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_compressor->setParameterFloat(2, 250.0f) : audioSystemSetupResult; // Attack time
+		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_compressor->setParameterFloat(3, 250.0f) : audioSystemSetupResult; // Release time
+		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_compressor->setParameterFloat(4, 10.0f) : audioSystemSetupResult; // Make-up gain
 		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_SFXChannelGroup->addDSP(0, dsp_compressor) : audioSystemSetupResult;
 		
 		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_MasterChannelGroup->addGroup(m_SFXChannelGroup) : audioSystemSetupResult;
@@ -126,12 +126,12 @@ namespace RTE {
 			FMOD_RESULT status = FMOD_OK;
 
 			float globalPitch = 1.0F;
-			if (g_TimerMan.IsOneSimUpdatePerFrame()) {
-				float simSpeed = g_TimerMan.GetSimSpeed();
-				// Soften the ratio of the pitch adjustment so it's not such an extreme effect on the audio.
-				// TODO: This coefficient should probably move to SettingsMan and be loaded from ini. That way this effect can be lessened or even turned off entirely by users. 0.35 is a good default value though.
-				globalPitch = simSpeed + (1.0F - simSpeed) * 0.35F;
-			}
+
+			float timeScale = g_TimerMan.GetTimeScale();
+			// Soften the ratio of the pitch adjustment so it's not such an extreme effect on the audio.
+			// TODO: This coefficient should probably move to SettingsMan and be loaded from ini. That way this effect can be lessened or even turned off entirely by users. 0.35 is a good default value though.
+			globalPitch = timeScale + (1.0F - timeScale) * 0.35F;
+			
 			SetGlobalPitch(globalPitch);
 
 			if (!g_ActivityMan.ActivityPaused()) {
@@ -602,6 +602,11 @@ namespace RTE {
 			result = (result == FMOD_OK) ? channel->setPriority(soundContainer->GetPriority()) : result;
 			float pitchVariationMultiplier = pitchVariationFactor == 1.0F ? 1.0F : RandomNum(1.0F / pitchVariationFactor, 1.0F * pitchVariationFactor);
 			result = (result == FMOD_OK) ? channel->setPitch(soundContainer->GetPitch() * pitchVariationMultiplier) : result;
+
+			if (soundContainer->GetCustomPanValue() != 0.0f) {
+				result = (result == FMOD_OK) ? channel->setPan(soundContainer->GetCustomPanValue()) : result;
+			}
+			
 			if (soundContainer->IsImmobile()) {
 				result = (result == FMOD_OK) ? channel->setVolume(soundContainer->GetVolume()) : result;
 			} else {
@@ -728,6 +733,28 @@ namespace RTE {
 		return result == FMOD_OK;
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool AudioMan::ChangeSoundContainerPlayingChannelsCustomPanValue(const SoundContainer *soundContainer) {
+		if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
+			return false;
+		}
+		if (m_IsInMultiplayerMode) { RegisterSoundEvent(-1, SOUND_SET_PITCH, soundContainer); }
+
+		FMOD_RESULT result = FMOD_OK;
+		FMOD::Channel *soundChannel;
+
+		const std::unordered_set<int> *playingChannels = soundContainer->GetPlayingChannels();
+		for (int channelIndex : *playingChannels) {
+			result = m_AudioSystem->getChannel(channelIndex, &soundChannel);
+			result = result == FMOD_OK ? soundChannel->setPan(soundContainer->GetCustomPanValue()) : result;
+			if (result != FMOD_OK) {
+				g_ConsoleMan.PrintString("ERROR: Could not update sound custom pan value for the sound being played on channel " + std::to_string(channelIndex) + " for SoundContainer " + soundContainer->GetPresetName() + ": " + std::string(FMOD_ErrorString(result)));
+			}
+		}
+		return result == FMOD_OK;
+	}
+	
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AudioMan::StopSoundContainerPlayingChannels(SoundContainer *soundContainer, int player) {
@@ -807,7 +834,7 @@ namespace RTE {
 					void *userData;
 					result = result == FMOD_OK ? soundChannel->getUserData(&userData) : result;
 					const SoundContainer *soundContainer = static_cast<SoundContainer *>(userData);
-					if (sqrDistanceToPlayer < (m_MinimumDistanceForPanning * m_MinimumDistanceForPanning)) {
+					if (sqrDistanceToPlayer < (m_MinimumDistanceForPanning * m_MinimumDistanceForPanning) || soundContainer->GetCustomPanValue() != 0.0f) {
 						soundChannel->set3DLevel(0);
 					} else if (sqrDistanceToPlayer < (doubleMinimumDistanceForPanning * doubleMinimumDistanceForPanning)) {
 						soundChannel->set3DLevel(LERP(0, 1, 0, m_SoundPanningEffectStrength * soundContainer->GetPanningStrengthMultiplier(), channel3dLevel));
@@ -828,6 +855,11 @@ namespace RTE {
 
 	FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel *soundChannel, const FMOD_VECTOR *positionOverride) const {
 		FMOD_RESULT result = FMOD_OK;
+		
+		void *userData;
+		result = result == FMOD_OK ? soundChannel->getUserData(&userData) : result;
+		const SoundContainer *channelSoundContainer = static_cast<SoundContainer *>(userData);
+		
 		bool sceneWraps = g_SceneMan.SceneWrapsX();
 
 		FMOD_VECTOR channelPosition;
@@ -876,7 +908,7 @@ namespace RTE {
 		result = result == FMOD_OK ? soundChannel->get3DMinMaxDistance(&attenuationStartDistance, &soundMaxDistance) : result;
 		
 		float attenuatedVolume = (shortestDistance <= attenuationStartDistance) ? 1.0F : attenuationStartDistance / shortestDistance;
-
+		
 		// Lowpass as distance increases
 		FMOD::DSP *dsp_multibandeq;
 		result = (result == FMOD_OK) ? soundChannel->getDSP(0, &dsp_multibandeq) : result;
@@ -884,6 +916,10 @@ namespace RTE {
 		float lowpassFrequency = 22000.0f * factor;
 		lowpassFrequency = std::clamp(lowpassFrequency, 350.0f, 22000.0f);
 		result = (result == FMOD_OK) ? dsp_multibandeq->setParameterFloat(1, lowpassFrequency) : result;
+		
+		if (channelSoundContainer->GetCustomPanValue() != 0.0f) {
+			result = (result == FMOD_OK) ? soundChannel->setPan(channelSoundContainer->GetCustomPanValue()) : result;
+		}
 		
 		float minimumAudibleDistance = m_SoundChannelMinimumAudibleDistances.at(soundChannelIndex);
 		if (shortestDistance >= soundMaxDistance) {
@@ -893,13 +929,10 @@ namespace RTE {
 		} else if (sqrLongestDistance < (minimumAudibleDistance * minimumAudibleDistance)) {
 			attenuatedVolume = 0.0F;
 		}
-
-		void *userData;
-		result = result == FMOD_OK ? soundChannel->getUserData(&userData) : result;
+		
 		float panLevel;
 		result = result == FMOD_OK ? soundChannel->get3DLevel(&panLevel) : result;
 		if (result == FMOD_OK && (panLevel < 1.0F || attenuatedVolume == 0.0F)) {
-			const SoundContainer *channelSoundContainer = static_cast<SoundContainer *>(userData);
 			result = soundChannel->setVolume(attenuatedVolume * channelSoundContainer->GetVolume());
 		}
 

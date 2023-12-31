@@ -12,8 +12,11 @@
 // Inclusions of header files
 
 #include "LimbPath.h"
+
 #include "PresetMan.h"
 #include "SLTerrain.h"
+
+#include "PrimitiveMan.h"
 
 namespace RTE {
 
@@ -34,14 +37,17 @@ void LimbPath::Clear()
 //    m_CurrentSegment = 0;
     m_FootCollisionsDisabledSegment = -1;
     m_SegProgress = 0.0;
-    for (int i = 0; i < SPEEDCOUNT; ++i)
+    for (int i = 0; i < SPEEDCOUNT; ++i) {
         m_TravelSpeed[i] = 0.0;
+    }
+    m_TravelSpeedMultiplier = 1.0F;
     m_WhichSpeed = NORMAL;
     m_PushForce = 0.0;
     m_JointPos.Reset();
     m_JointVel.Reset();
     m_Rotation.Reset();
     m_RotationOffset.Reset();
+    m_PositionOffset.Reset();
     m_TimeLeft = 0.0;
     m_PathTimer.Reset();
     m_SegTimer.Reset();
@@ -125,8 +131,10 @@ int LimbPath::Create(const LimbPath &reference)
     m_FootCollisionsDisabledSegment = reference.m_FootCollisionsDisabledSegment;
 
     m_SegProgress = reference.m_SegProgress;
-    for (int i = 0; i < SPEEDCOUNT; ++i)
+    for (int i = 0; i < SPEEDCOUNT; ++i) {
         m_TravelSpeed[i] = reference.m_TravelSpeed[i];
+    }
+    m_TravelSpeedMultiplier = reference.m_TravelSpeedMultiplier;
     m_PushForce = reference.m_PushForce;
     m_TimeLeft = reference.m_TimeLeft;
     m_TotalLength = reference.m_TotalLength;
@@ -178,6 +186,7 @@ int LimbPath::ReadProperty(const std::string_view &propName, Reader &reader)
 		reader >> m_TravelSpeed[FAST];
 		//m_TravelSpeed[FAST] = m_TravelSpeed[FAST] * 2;
 	});
+    MatchProperty("TravelSpeedMultiplier", { reader >> m_TravelSpeedMultiplier; });
 	MatchProperty("PushForce", {
 		reader >> m_PushForce;
 		//m_PushForce = m_PushForce / 1.5;
@@ -188,8 +197,8 @@ int LimbPath::ReadProperty(const std::string_view &propName, Reader &reader)
 
 
 Vector LimbPath::RotatePoint(const Vector &point) const {
-    Vector offset = m_RotationOffset.GetXFlipped(m_HFlipped);
-    return ((point - offset) * m_Rotation) + offset;
+    Vector offset = (m_RotationOffset).GetXFlipped(m_HFlipped);
+    return (((point - offset) * m_Rotation) + offset) + m_PositionOffset;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -217,6 +226,8 @@ int LimbPath::Save(Writer &writer) const
     writer << m_TravelSpeed[NORMAL];
     writer.NewProperty("FastTravelSpeed");
     writer << m_TravelSpeed[FAST];
+    writer.NewProperty("TravelSpeedMultiplier");
+    writer << m_TravelSpeedMultiplier;
     writer.NewProperty("PushForce");
     writer << m_PushForce;
 
@@ -305,7 +316,7 @@ Vector LimbPath::GetCurrentVel(const Vector &limbPos)
 {
     Vector returnVel;
     Vector distVect = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget());
-	float adjustedTravelSpeed = m_TravelSpeed[m_WhichSpeed] / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F);
+    float adjustedTravelSpeed = (m_TravelSpeed[m_WhichSpeed] / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F)) * m_TravelSpeedMultiplier;
 
     if (IsStaticPoint())
     {
@@ -410,13 +421,6 @@ void LimbPath::ReportProgress(const Vector &limbPos)
         {
             m_SegProgress = distance > segMag ? 0.0F : (1.0F - (distance / segMag));
             m_Ended = false;
-        }
-
-        // Make sure we're not stuck on one segment, time that it isn't taking unreasonably long, and restart the path if it seems stuck
-        if (!m_Ended && m_SegTimer.IsPastSimMS(((segMag * c_MPP) / GetSpeed()) * 1000 * 2))
-//        if (!m_Ended && m_SegTimer.IsPastSimMS(333))
-        {
-            Terminate();
         }
     }
 }
@@ -561,9 +565,6 @@ bool LimbPath::RestartFree(Vector &limbPos, MOID MOIDToIgnore, int ignoreTeam)
     m_SegProgress = 0;
     bool found = false;
     float result = 0;
-
-    g_SceneMan.GetTerrain()->LockBitmaps();
-    acquire_bitmap(g_SceneMan.GetMOIDBitmap());
     
     if (IsStaticPoint())
 	{
@@ -590,14 +591,15 @@ bool LimbPath::RestartFree(Vector &limbPos, MOID MOIDToIgnore, int ignoreTeam)
         int i = 0;
         for (; i < m_StartSegCount; ++i)
         {
-            result = g_SceneMan.CastObstacleRay(GetProgressPos(), RotatePoint(*m_CurrentSegment), notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
+            Vector offsetSegment = (*m_CurrentSegment);
+            result = g_SceneMan.CastObstacleRay(GetProgressPos(), RotatePoint(offsetSegment), notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
 
             // If we found an obstacle after the first pixel, report the current segment as the starting one and that there is free space here
             if (result > 0)
             {
                 // Set accurate segment progress
 // TODO: See if this is a good idea, or if we should just set it to 0 and set limbPos to the start of current segment
-                m_SegProgress = g_SceneMan.ShortestDistance(GetProgressPos(), limbPos).GetMagnitude() / (*m_CurrentSegment).GetMagnitude();
+                m_SegProgress = g_SceneMan.ShortestDistance(GetProgressPos(), limbPos).GetMagnitude() / offsetSegment.GetMagnitude();
                 limbPos = GetProgressPos();
 //                m_SegProgress = 0;
                 m_Ended = false;
@@ -639,8 +641,6 @@ bool LimbPath::RestartFree(Vector &limbPos, MOID MOIDToIgnore, int ignoreTeam)
             found = true;
         }
     }
-    release_bitmap(g_SceneMan.GetMOIDBitmap());
-    g_SceneMan.GetTerrain()->UnlockBitmaps();
 
     if (found)
     {

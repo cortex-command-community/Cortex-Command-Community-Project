@@ -173,6 +173,14 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PerformanceMan) {
+		return luabind::class_<PerformanceMan>("PerformanceManager")
+
+		.property("ShowPerformanceStats", &PerformanceMan::IsShowingPerformanceStats, &PerformanceMan::ShowPerformanceStats);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PostProcessMan) {
 		return luabind::class_<PostProcessMan>("PostProcessManager")
 
@@ -203,6 +211,10 @@ namespace RTE {
 		.def("ReadReflectedPreset", &PresetMan::ReadReflectedPreset)
 		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset1)
 		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset2)
+		.def("GetAllEntities", &LuaAdaptersPresetMan::GetAllEntities, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup2, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup3, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
 		.def("ReloadAllScripts", &PresetMan::ReloadAllScripts)
 		.def("IsModuleOfficial", &PresetMan::IsModuleOfficial)
 		.def("IsModuleUserdata", &PresetMan::IsModuleUserdata)
@@ -375,13 +387,12 @@ namespace RTE {
 		return luabind::class_<TimerMan>("TimerManager")
 
 		.property("TimeScale", &TimerMan::GetTimeScale, &TimerMan::SetTimeScale)
-		.property("RealToSimCap", &TimerMan::GetRealToSimCap, &TimerMan::SetRealToSimCap)
+		.property("RealToSimCap", &TimerMan::GetRealToSimCap)
 		.property("DeltaTimeTicks", &LuaAdaptersTimerMan::GetDeltaTimeTicks, &TimerMan::SetDeltaTimeTicks)
 		.property("DeltaTimeSecs", &TimerMan::GetDeltaTimeSecs, &TimerMan::SetDeltaTimeSecs)
 		.property("DeltaTimeMS", &TimerMan::GetDeltaTimeMS)
 		.property("AIDeltaTimeSecs", &TimerMan::GetAIDeltaTimeSecs)
 		.property("AIDeltaTimeMS", &TimerMan::GetAIDeltaTimeMS)
-		.property("OneSimUpdatePerFrame", &TimerMan::IsOneSimUpdatePerFrame, &TimerMan::SetOneSimUpdatePerFrame)
 
 		.property("TicksPerSecond", &LuaAdaptersTimerMan::GetTicksPerSecond)
 
@@ -411,6 +422,7 @@ namespace RTE {
 		.def("MouseButtonPressed", &UInputMan::MouseButtonPressed)
 		.def("MouseButtonReleased", &UInputMan::MouseButtonReleased)
 		.def("MouseButtonHeld", &UInputMan::MouseButtonHeld)
+		.def("GetMousePos", &UInputMan::GetAbsoluteMousePosition)
 		.def("MouseWheelMoved", &UInputMan::MouseWheelMoved)
 		.def("JoyButtonPressed", &UInputMan::JoyButtonPressed)
 		.def("JoyButtonReleased", &UInputMan::JoyButtonReleased)

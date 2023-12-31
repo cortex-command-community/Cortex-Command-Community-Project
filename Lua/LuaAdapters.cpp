@@ -340,6 +340,12 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	int LuaAdaptersSceneObject::GetBuyableMode(const SceneObject *luaSelfObject) {
+		return static_cast<int>(luaSelfObject->GetBuyableMode());
+	}
+	
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	void LuaAdaptersActivity::SendMessage1(Activity *luaSelfObject, const std::string &message) {
 		luabind::object context;
 		SendMessage2(luaSelfObject, message, context);
@@ -395,9 +401,17 @@ namespace RTE {
 		return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), true);
 	}
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersMovableObject::DisableScript(MovableObject *luaSelfObject, const std::string &scriptPath) {
+	bool LuaAdaptersMovableObject::DisableScript1(MovableObject* luaSelfObject) {
+		std::string currentScriptFilePath(g_LuaMan.GetThreadCurrentLuaState()->GetCurrentlyRunningScriptFilePath());
+		return luaSelfObject->EnableOrDisableScript(currentScriptFilePath, false);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaAdaptersMovableObject::DisableScript2(MovableObject *luaSelfObject, const std::string &scriptPath) {
 		return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), false);
 	}
 
@@ -621,6 +635,14 @@ namespace RTE {
 
 	bool LuaAdaptersPresetMan::ReloadEntityPreset2(PresetMan &presetMan, const std::string &presetName, const std::string &className) {
 		return ReloadEntityPreset1(presetMan, presetName, className, "");
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	std::list<Entity *> * LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan &presetMan, const std::string &group, const std::string &type, int whichModule) {
+		std::list<Entity *> *entityList = new std::list<Entity *>();
+		presetMan.GetAllOfGroup(*entityList, group, type, whichModule);
+		return entityList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,6 +6,8 @@
 #include "RTETools.h"
 #include "PerformanceMan.h"
 
+#include "BS_thread_pool.hpp"
+
 #define g_LuaMan LuaMan::Instance()
 
 struct lua_State;
@@ -86,6 +88,12 @@ namespace RTE {
 		/// </summary>
 		/// <returns>m_ScriptTimings.</returns>
 		const std::unordered_map<std::string, PerformanceMan::ScriptTiming> & GetScriptTimings() const;
+
+		/// <summary>
+		/// Gets the currently running script filepath, if applicable.
+		/// </summary>
+		/// <returns>The currently running script filepath. May return inaccurate values for non-MO scripts due to weirdness in setup.</returns>
+		std::string_view GetCurrentlyRunningScriptFilePath() const { return m_CurrentlyRunningScriptPath; }
 #pragma endregion
 
 #pragma region Script Responsibility Handling
@@ -146,19 +154,28 @@ namespace RTE {
 		/// </summary>
 		/// <param name="filePath">The path to the file to load and run.</param>
 		/// <param name="consoleErrors">Whether to report any errors to the console immediately.</param>
+		/// <param name="doInSandboxedEnvironment">Whether to do it in a sandboxed environment, or the global environment.</param>
 		/// <returns>Returns less than zero if any errors encountered when running this script. To get the actual error string, call GetLastError.</returns>
-		int RunScriptFile(const std::string &filePath, bool consoleErrors = true);
+		int RunScriptFile(const std::string &filePath, bool consoleErrors = true, bool doInSandboxedEnvironment = true);
+
+		/// <summary>
+		/// Retrieves all of the specified functions that exist into the output map, and refreshes the cache.
+		/// </summary>
+		/// <param name="filePath">The path to the file to load and run.</param>
+		/// <param name="functionNamesToLookFor">The vector of strings defining the function names to be retrieved.</param>
+		/// <param name="outFunctionNamesAndObjects">The map of function names to LuabindObjectWrappers to be retrieved from the script that was run.</param>
+		/// <returns>Returns whether functions were successfully retrieved.</returns>
+		bool RetrieveFunctions(const std::string& functionObjectName, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper*>& outFunctionNamesAndObjects);
 
 		/// <summary>
 		/// Opens and loads a file containing a script and runs it on the state, then retrieves all of the specified functions that exist into the output map.
 		/// </summary>
 		/// <param name="filePath">The path to the file to load and run.</param>
-		/// <param name="prefix">The prefix before each function we're looking for. With normal objects this is usually nothing (free floating), but activities expect the activity name beforehand.</param>
 		/// <param name="functionNamesToLookFor">The vector of strings defining the function names to be retrieved.</param>
 		/// <param name="outFunctionNamesAndObjects">The map of function names to LuabindObjectWrappers to be retrieved from the script that was run.</param>
 		/// <param name="noCaching">Whether caching shouldn't be used.</param>
 		/// <returns>Returns less than zero if any errors encountered when running this script. To get the actual error string, call GetLastError.</returns>
-		int RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::string &prefix, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper *> &outFunctionNamesAndObjects, bool forceReload = false);
+		int RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper *> &outFunctionNamesAndObjects, bool forceReload = false);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -296,6 +313,7 @@ namespace RTE {
 		Entity *m_TempEntity; //!< Temporary holder for an Entity object that we want to pass into the Lua state without fuss. Lets you export objects to lua easily.
 		std::vector<Entity *> m_TempEntityVector; //!< Temporary holder for a vector of Entities that we want to pass into the Lua state without a fuss. Usually used to pass arguments to special Lua functions.
 		std::string m_LastError; //!< Description of the last error that occurred in the script execution.
+		std::string_view m_CurrentlyRunningScriptPath; //!< The currently running script filepath.
 
 		// This mutex is more for safety, and with new script/AI architecture we shouldn't ever be locking on a mutex. As such we use this primarily to fire asserts.
 		std::recursive_mutex m_Mutex; //!< Mutex to ensure multiple threads aren't running something in this lua state simultaneously.
@@ -311,8 +329,7 @@ namespace RTE {
 		RandomGenerator m_RandomGenerator; //!< The random number generator used for this lua state.
 	};
 
-	static constexpr int c_NumThreadedLuaStates = 16;
-	typedef std::array<LuaStateWrapper, c_NumThreadedLuaStates> LuaStatesArray;
+	typedef std::vector<LuaStateWrapper> LuaStatesArray;
 
 	/// <summary>
 	/// The singleton manager of each Lua state.
@@ -385,12 +402,6 @@ namespace RTE {
 		/// </summary>
 		/// <returns>A script state.</returns>
 		LuaStateWrapper * GetAndLockFreeScriptState();
-
-		/// <summary>
-		/// Returns whether a script is safe to run in a multithreaded manner.
-		/// </summary>
-		/// <returns>Whether the script is thread-safe.</returns>
-		bool IsScriptMultithreaded(const std::string &scriptPath);
 
 		/// <summary>
 		/// Clears internal Lua package tables from all user-defined modules. Those must be reloaded with ReloadAllScripts().
@@ -508,14 +519,12 @@ namespace RTE {
 		LuaStateWrapper m_MasterScriptState;
 		LuaStatesArray m_ScriptStates;
 
-		std::unordered_map<std::string, bool> m_ScriptMultithreadedtyMap;
-
 		std::vector<std::function<void()>> m_ScriptCallbacks; //!< A list of callback functions we'll trigger before processing lua scripts. This allows other threads (i.e pathing requests) to safely trigger callbacks in lua
 		std::mutex m_ScriptCallbacksMutex; //!< Mutex to ensure multiple threads aren't modifying the script callback vector at the same time.
 
 		int m_LastAssignedLuaState = 0;
 
-		std::thread m_GCThread;
+		BS::multi_future<void> m_GarbageCollectionTask;
 
 		/// <summary>
 		/// Clears all the member variables of this LuaMan, effectively resetting the members of this abstraction level only.
