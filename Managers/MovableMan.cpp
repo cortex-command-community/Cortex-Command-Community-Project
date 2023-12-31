@@ -33,6 +33,7 @@
 #include "SceneMan.h"
 #include "SettingsMan.h"
 #include "LuaMan.h"
+#include "ThreadMan.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -182,45 +183,20 @@ MovableObject * MovableMan::GetMOFromID(MOID whichID) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool MovableMan::HitTestMOAtPixel(const MovableObject &mo, int pixelX, int pixelY) const {
-    if (!mo.GetsHitByMOs() || mo.GetRootParent()->GetTraveling()) {
-        return false;
-    }
-
-    if (const MOSprite *moSprite = dynamic_cast<const MOSprite *>(&mo); moSprite) {
-        Vector distanceBetweenTestPositionAndMO = g_SceneMan.ShortestDistance(moSprite->GetPos(), Vector(static_cast<float>(pixelX), static_cast<float>(pixelY)));
-        if (distanceBetweenTestPositionAndMO.MagnitudeIsLessThan(moSprite->GetRadius())) {
-            // Check the scene position in the current local space of the MO, accounting for Position, Sprite Offset, Angle and HFlipped.
-			//TODO Account for Scale as well someday, maybe.
-            Matrix rotation = moSprite->GetRotMatrix(); // <- Copy to non-const variable so / operator overload works.
-            Vector entryPos = (distanceBetweenTestPositionAndMO / rotation).GetXFlipped(moSprite->IsHFlipped()) - moSprite->GetSpriteOffset();
-			int localX = entryPos.GetFloorIntX();
-            int localY = entryPos.GetFloorIntY();
-
-            BITMAP *sprite = moSprite->GetSpriteFrame(moSprite->GetFrame());
-            return is_inside_bitmap(sprite, localX, localY, 0) && _getpixel(sprite, localX, localY) != ColorKeys::g_MaskColor;
-        }
-    } else if (const MOPixel *moPixel = dynamic_cast<const MOPixel *>(&mo); moPixel) {
-        const Vector &pos = moPixel->GetPos();
-        return pos.GetFloorIntX() == pixelX && pos.GetFloorIntY() == pixelY;
-    }
-
-    return false;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 MOID MovableMan::GetMOIDPixel(int pixelX, int pixelY, const std::vector<int> &moidList) {
     // Note - We loop through the MOs in reverse to make sure that the topmost (last drawn) MO that overlaps the specified coordinates is the one returned.
     for (auto itr = moidList.rbegin(), itrEnd = moidList.rend(); itr < itrEnd; ++itr) {
         MOID moid = *itr;
-
         const MovableObject *mo = GetMOFromID(moid);
+
         RTEAssert(mo, "Null MO found in MOID list!");
-		if (mo && mo->GetScale() == 0) {
+        if (mo == nullptr) {
+            continue;
+        }
+
+		if (mo->GetScale() == 0.0f) {
 			return g_NoMOID;
-		}
-        if (mo && HitTestMOAtPixel(*mo, pixelX, pixelY)) {
+		} else if (mo->HitTestAtPixel(pixelX, pixelY)) {
             return moid;
         }
     }
@@ -325,7 +301,8 @@ void MovableMan::PurgeAllMOs()
     m_AddedAlarmEvents.clear();
     m_AlarmEvents.clear();
     m_MOIDIndex.clear();
-	m_KnownObjects.clear();
+    // We want to keep known objects around, 'cause these can exist even when not in the simulation (they're here from creation till deletion, regardless of whether they are in sim)
+	//m_KnownObjects.clear();
 }
 
 
@@ -876,7 +853,7 @@ void MovableMan::AddActor(Actor *actorToAdd) {
 			if (actorToAdd->IsStatus(Actor::INACTIVE)) { actorToAdd->SetStatus(Actor::STABLE); }
 			actorToAdd->NotResting();
 			actorToAdd->NewFrame();
-			actorToAdd->SetAge(0);
+			actorToAdd->SetAge(g_TimerMan.GetDeltaTimeMS() * -1.0f);
         }
 
         {
@@ -904,7 +881,7 @@ void MovableMan::AddItem(HeldDevice *itemToAdd) {
             if (!itemToAdd->IsSetToDelete()) { itemToAdd->MoveOutOfTerrain(g_MaterialGrass); }
 			itemToAdd->NotResting();
 			itemToAdd->NewFrame();
-			itemToAdd->SetAge(0);
+			itemToAdd->SetAge(g_TimerMan.GetDeltaTimeMS() * -1.0f);
         }
 
         std::lock_guard<std::mutex> lock(m_AddedItemsMutex);
@@ -927,7 +904,7 @@ void MovableMan::AddParticle(MovableObject *particleToAdd){
 			//TODO consider moving particles out of grass. It's old code that was removed because it's slow to do this for every particle.
             particleToAdd->NotResting();
             particleToAdd->NewFrame();
-            particleToAdd->SetAge(0);
+            particleToAdd->SetAge(g_TimerMan.GetDeltaTimeMS() * -1.0f);
         }
 		if (particleToAdd->IsDevice()) {
             std::lock_guard<std::mutex> lock(m_AddedItemsMutex);
@@ -1558,55 +1535,55 @@ void MovableMan::RedrawOverlappingMOIDs(MovableObject *pOverlapsThis)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<SolObjectWrapper*>& functionObjectArguments, ThreadScriptsToRun scriptsToRun) {
+void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<SolObjectWrapper*>& functionObjectArguments) {
     if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
         for (auto attachablrItr = mosr->GetAttachableList().begin(); attachablrItr != mosr->GetAttachableList().end(); ) {
             Attachable* attachable = *attachablrItr;
             ++attachablrItr;
 
-            attachable->RunScriptedFunctionInAppropriateScripts(functionName, false, false, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
-            callLuaFunctionOnMORecursive(attachable, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
+            attachable->RunScriptedFunctionInAppropriateScripts(functionName, false, false, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
+            callLuaFunctionOnMORecursive(attachable, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
         }
 
         for (auto woundItr = mosr->GetWoundList().begin(); woundItr != mosr->GetWoundList().end(); ) {
             AEmitter* wound = *woundItr;
             ++woundItr;
 
-            wound->RunScriptedFunctionInAppropriateScripts(functionName, false, false, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
-            callLuaFunctionOnMORecursive(wound, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
+            wound->RunScriptedFunctionInAppropriateScripts(functionName, false, false, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
+            callLuaFunctionOnMORecursive(wound, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
         }
     }
 
-    mo->RunScriptedFunctionInAppropriateScripts(functionName, false, false, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
+    mo->RunScriptedFunctionInAppropriateScripts(functionName, false, false, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MovableMan::RunLuaFunctionOnAllMOs(const std::string &functionName, bool includeAdded, const std::vector<const Entity*> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, const std::vector<SolObjectWrapper*> &functionObjectArguments, ThreadScriptsToRun scriptsToRun) {
+void MovableMan::RunLuaFunctionOnAllMOs(const std::string &functionName, bool includeAdded, const std::vector<const Entity*> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, const std::vector<SolObjectWrapper*> &functionObjectArguments) {
     if (includeAdded) {
         for (Actor* actor : m_AddedActors) {
-            callLuaFunctionOnMORecursive(actor, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
+            callLuaFunctionOnMORecursive(actor, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
         }
 
         for (MovableObject *item : m_AddedItems) {
-            callLuaFunctionOnMORecursive(item, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
+            callLuaFunctionOnMORecursive(item, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
         }
 
         for (MovableObject* particle : m_AddedParticles) {
-            callLuaFunctionOnMORecursive(particle, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
+            callLuaFunctionOnMORecursive(particle, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
         }
     }
     
     for (Actor *actor : m_Actors) {
-        callLuaFunctionOnMORecursive(actor, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
+        callLuaFunctionOnMORecursive(actor, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
     }
 
     for (MovableObject *item : m_Items) {
-        callLuaFunctionOnMORecursive(item, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
+        callLuaFunctionOnMORecursive(item, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
     }
 
     for (MovableObject* particle : m_Particles) {
-        callLuaFunctionOnMORecursive(particle, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments, scriptsToRun);
+        callLuaFunctionOnMORecursive(particle, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
     }
 }
 
@@ -1731,19 +1708,21 @@ void MovableMan::Update()
     {
         ZoneScopedN("Multithreaded Scripts Update");
 
-        const std::string threadedUpdate = "Update"; // avoid string reconstruction
+        const std::string threadedUpdate = "ThreadedUpdate"; // avoid string reconstruction
 
         LuaStatesArray& luaStates = g_LuaMan.GetThreadedScriptStates();
-        std::for_each(std::execution::par, luaStates.begin(), luaStates.end(),
-            [&](LuaStateWrapper& luaState) {
+        g_ThreadMan.GetPriorityThreadPool().parallelize_loop(luaStates.size(),
+            [&](int start, int end) {
+                RTEAssert(start + 1 == end, "Threaded script state being updated across multiple threads!");
+                LuaStateWrapper& luaState = luaStates[start];
                 g_LuaMan.SetThreadLuaStateOverride(&luaState);
 
-                for (MovableObject *mo : luaState.GetRegisteredMOs()) {
-                    mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {}, ThreadScriptsToRun::MultiThreaded);
+                for (MovableObject *mo : luaState.GetRegisteredMOs()) {                   
+                    mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
                 }
 
                 g_LuaMan.SetThreadLuaStateOverride(nullptr);
-            });
+            }).wait();
     }
 
     {
@@ -1756,7 +1735,7 @@ void MovableMan::Update()
 
             for (MovableObject* mo : luaState.GetRegisteredMOs()) {
                 if (mo->HasRequestedSyncedUpdate()) {
-                    mo->RunScriptedFunctionInAppropriateScripts(syncedUpdate, false, false, {}, {}, {}, ThreadScriptsToRun::MultiThreaded);
+                    mo->RunScriptedFunctionInAppropriateScripts(syncedUpdate, false, false, {}, {}, {});
                     mo->ResetRequestedSyncedUpdateFlag();
                 }
             }
@@ -1775,7 +1754,7 @@ void MovableMan::Update()
                 actor->Update();
 
                 g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
-                actor->UpdateScripts(ThreadScriptsToRun::SingleThreaded);
+                actor->UpdateScripts();
                 g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
                 actor->ApplyImpulses();
@@ -1792,7 +1771,7 @@ void MovableMan::Update()
                 (*iIt)->Update();
 
                 g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
-                (*iIt)->UpdateScripts(ThreadScriptsToRun::SingleThreaded);
+                (*iIt)->UpdateScripts();
                 g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
                 (*iIt)->ApplyImpulses();
@@ -1810,7 +1789,7 @@ void MovableMan::Update()
                 particle->Update();
 
                 g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
-                particle->UpdateScripts(ThreadScriptsToRun::SingleThreaded);
+                particle->UpdateScripts();
                 g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
                 particle->ApplyImpulses();
@@ -2048,27 +2027,9 @@ void MovableMan::Update()
 
     ////////////////////////////////////////////////////////////////////////
     // Draw the MO matter and IDs to their layers for next frame
-
-    UpdateDrawMOIDs(g_SceneMan.GetMOIDBitmap());
-
-	// COUNT MOID USAGE PER TEAM  //////////////////////////////////////////////////
-	{
-		int team = Activity::NoTeam;
-
-		for (team = Activity::TeamOne; team < Activity::MaxTeamCount; team++)
-			m_TeamMOIDCount[team] = 0;
-		
-		for (std::vector<MovableObject *>::iterator itr = m_MOIDIndex.begin(); itr != m_MOIDIndex.end(); ++itr)
-		{
-			if (*itr)
-			{
-				team = (*itr)->GetTeam();
-
-				if (team > Activity::NoTeam && team < Activity::MaxTeamCount)
-					m_TeamMOIDCount[team]++;
-			}
-		}
-	}
+    m_DrawMOIDsTask = g_ThreadMan.GetPriorityThreadPool().submit([this]() {
+        UpdateDrawMOIDs(g_SceneMan.GetMOIDBitmap());
+    });
 
 
     ////////////////////////////////////////////////////////////////////
@@ -2096,8 +2057,14 @@ void MovableMan::Travel()
 {
     ZoneScoped;
 
+    if (m_DrawMOIDsTask.valid()) {
+        m_DrawMOIDsTask.wait();
+    }
+
     // Travel Actors
     {
+        ZoneScopedN("Actors Travel");
+
         g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ActorsTravel);
         for (auto aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
         {
@@ -2115,6 +2082,8 @@ void MovableMan::Travel()
 
     // Travel items
     {
+        ZoneScopedN("Items Travel");
+
         for (auto iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt)
         {
             if (!((*iIt)->IsUpdated()))
@@ -2130,6 +2099,8 @@ void MovableMan::Travel()
 
     // Travel particles
     {
+        ZoneScopedN("Particles Travel");
+
         g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ParticlesTravel);
         for (auto parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt)
         {
@@ -2159,19 +2130,23 @@ void MovableMan::UpdateControllers()
         }
 
         LuaStatesArray& luaStates = g_LuaMan.GetThreadedScriptStates();
-        std::for_each(std::execution::par, luaStates.begin(), luaStates.end(), 
-            [&](LuaStateWrapper &luaState) {
+        g_ThreadMan.GetPriorityThreadPool().parallelize_loop(luaStates.size(),
+            [&](int start, int end) {
+                RTEAssert(start + 1 == end, "Threaded script state being updated across multiple threads!");
+                LuaStateWrapper& luaState = luaStates[start];
                 g_LuaMan.SetThreadLuaStateOverride(&luaState);
                 for (Actor *actor : m_Actors) {
-                    if (actor->GetLuaState() == &luaState) {
-                        actor->GetController()->UpdateAI(ThreadScriptsToRun::MultiThreaded);
+                    if (actor->GetLuaState() == &luaState && actor->GetController()->ShouldUpdateAIThisFrame()) {
+                        actor->RunScriptedFunctionInAppropriateScripts("ThreadedUpdateAI", false, true, {}, {}, {});
                     }
                 }
                 g_LuaMan.SetThreadLuaStateOverride(nullptr);
-            });
+            }).wait();
 
         for (Actor* actor : m_Actors) {
-            actor->GetController()->UpdateAI(ThreadScriptsToRun::SingleThreaded);
+            if (actor->GetController()->ShouldUpdateAIThisFrame()) {
+                actor->RunScriptedFunctionInAppropriateScripts("UpdateAI", false, true, {}, {}, {});
+            }
         }
     }
     g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ActorsAI);
@@ -2306,6 +2281,20 @@ void MovableMan::UpdateDrawMOIDs(BITMAP *pTargetBitmap)
             particle->SetAsNoID();
         }
     }
+
+    // COUNT MOID USAGE PER TEAM  //////////////////////////////////////////////////
+    for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; team++) {
+        m_TeamMOIDCount[team] = 0;
+    }
+
+    for (auto itr = m_MOIDIndex.begin(); itr != m_MOIDIndex.end(); ++itr) {
+        if (*itr) {
+            int team = (*itr)->GetTeam();
+            if (team > Activity::NoTeam && team < Activity::MaxTeamCount) {
+                m_TeamMOIDCount[team]++;
+            }
+        }
+    }
 }
 
 
@@ -2320,14 +2309,30 @@ void MovableMan::Draw(BITMAP *pTargetBitmap, const Vector &targetPos)
     ZoneScoped;
 
     // Draw objects to accumulation bitmap, in reverse order so actors appear on top.
-    for (std::deque<MovableObject *>::iterator parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt)
-        (*parIt)->Draw(pTargetBitmap, targetPos);
 
-	for (std::deque<MovableObject *>::reverse_iterator itmIt = m_Items.rbegin(); itmIt != m_Items.rend(); ++itmIt)
-        (*itmIt)->Draw(pTargetBitmap, targetPos);
+    {
+        ZoneScopedN("Particles Draw");
 
-    for (std::deque<Actor *>::reverse_iterator aIt = m_Actors.rbegin(); aIt != m_Actors.rend(); ++aIt)
-        (*aIt)->Draw(pTargetBitmap, targetPos);
+        for (std::deque<MovableObject*>::iterator parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt) {
+            (*parIt)->Draw(pTargetBitmap, targetPos);
+        }
+    }
+
+    {
+        ZoneScopedN("Items Draw");
+
+        for (std::deque<MovableObject*>::reverse_iterator itmIt = m_Items.rbegin(); itmIt != m_Items.rend(); ++itmIt) {
+            (*itmIt)->Draw(pTargetBitmap, targetPos);
+        }
+    }
+
+    {
+        ZoneScopedN("Actors Draw");
+
+        for (std::deque<Actor*>::reverse_iterator aIt = m_Actors.rbegin(); aIt != m_Actors.rend(); ++aIt) {
+            (*aIt)->Draw(pTargetBitmap, targetPos);
+        }
+    }
 }
 
 

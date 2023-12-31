@@ -3,6 +3,8 @@
 
 #include "sol/forward.hpp"
 
+struct lua_State;
+
 namespace RTE {
 
 #pragma region Global Macro Definitions
@@ -44,6 +46,11 @@ namespace RTE {
 		/// </summary>
 		~SolObjectWrapper();
 #pragma endregion
+
+		/// <summary>
+		/// Attempts to copy a luabind object into another state.
+		/// </summary>
+		SolObjectWrapper GetCopyForState(lua_State& newState) const;
 
 #pragma region Getters
 		/// <summary>

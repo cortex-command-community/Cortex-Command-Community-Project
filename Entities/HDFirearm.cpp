@@ -22,6 +22,7 @@
 #include "ThrownDevice.h"
 #include "MOPixel.h"
 #include "Actor.h"
+#include "Scene.h"
 
 namespace RTE {
 
@@ -1062,7 +1063,12 @@ void HDFirearm::Update()
             if (m_FireSound && !(m_FireSound->GetLoopSetting() == -1 && m_FireSound->IsBeingPlayed())) {
                 m_FireSound->Play(m_Pos);
             }
-			if (m_FireEchoSound) { m_FireEchoSound->Play(m_Pos); }
+			if (m_FireEchoSound) {
+                Scene::Area* noEchoArea = g_SceneMan.GetScene()->GetOptionalArea("IndoorArea");
+                if (noEchoArea == nullptr || !noEchoArea->IsInside(m_Pos)) {
+                    m_FireEchoSound->Play(m_Pos); 
+                }
+            }
         }
 
 		if (m_Loudness > 0) { g_MovableMan.RegisterAlarmEvent(AlarmEvent(m_Pos, m_Team, m_Loudness)); }
@@ -1115,6 +1121,14 @@ void HDFirearm::Update()
     }
 
     m_FiredLastFrame = m_FireFrame;
+
+    // Set the screen flash effect to draw at the final post processing stage
+    if (m_FireFrame && m_pFlash && m_pFlash->GetScreenEffect()) {
+        Vector muzzlePos = m_Pos + RotateOffset(m_MuzzleOff + Vector(m_pFlash->GetSpriteWidth() * 0.3F, 0));
+        if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(muzzlePos)) {
+            g_PostProcessMan.RegisterPostEffect(muzzlePos, m_pFlash->GetScreenEffect(), m_pFlash->GetScreenEffectHash(), RandomNum(m_pFlash->GetEffectStopStrength(), m_pFlash->GetEffectStartStrength()), m_pFlash->GetEffectRotAngle());
+        }
+    }
 }
 
 
@@ -1143,14 +1157,6 @@ void HDFirearm::Draw(BITMAP *pTargetBitmap, const Vector &targetPos, DrawMode mo
 
     if (m_pFlash && m_FireFrame && m_pFlash->IsDrawnAfterParent() && mode == g_DrawColor && !onlyPhysical) {
         m_pFlash->Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
-    }
-
-    // Set the screen flash effect to draw at the final post processing stage
-    if (m_FireFrame && m_pFlash && m_pFlash->GetScreenEffect() && mode == g_DrawColor && !onlyPhysical) {
-		Vector muzzlePos = m_Pos + RotateOffset(m_MuzzleOff + Vector(m_pFlash->GetSpriteWidth() * 0.3F, 0));
-		if (!g_SceneMan.ObscuredPoint(muzzlePos)) {
-			g_PostProcessMan.RegisterPostEffect(muzzlePos, m_pFlash->GetScreenEffect(), m_pFlash->GetScreenEffectHash(), RandomNum(m_pFlash->GetEffectStopStrength(), m_pFlash->GetEffectStartStrength()), m_pFlash->GetEffectRotAngle());
-		}
     }
 }
 

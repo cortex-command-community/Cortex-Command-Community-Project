@@ -51,7 +51,7 @@ friend struct EntityLuaBindings;
 
 public:
 
-	ScriptFunctionNames("Create", "Destroy", "Update", "SyncedUpdate", "OnScriptDisable", "OnScriptEnable", "OnCollideWithTerrain", "OnCollideWithMO", "WhilePieMenuOpen", "OnSave", "OnMessage", "OnGlobalMessage");
+	ScriptFunctionNames("Create", "Destroy", "Update", "ThreadedUpdate", "SyncedUpdate", "OnScriptDisable", "OnScriptEnable", "OnCollideWithTerrain", "OnCollideWithMO", "WhilePieMenuOpen", "OnSave", "OnMessage", "OnGlobalMessage");
 	SerializableOverrideMethods;
 	ClassInfoGetters;
 
@@ -212,7 +212,7 @@ enum MOType
     /// <param name="functionEntityArguments">Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.</param>
     /// <param name="functionLiteralArguments">Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.</param>
     /// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-    int RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*> &functionObjectArguments = std::vector<SolObjectWrapper*>(), ThreadScriptsToRun scriptsToRun = ThreadScriptsToRun::Both);
+    int RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*> &functionObjectArguments = std::vector<SolObjectWrapper*>());
 
     /// <summary>
     /// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
@@ -1025,6 +1025,13 @@ enum MOType
 
     virtual bool IsDrawnAfterParent() const { return true; }
 
+    /// <summary>
+    /// Whether a set of X, Y coordinates overlap us (in world space).
+    /// </summary>
+    /// <param name="pixelX">The given X coordinate, in world space.</param>
+    /// <param name="pixelY">The given Y coordinate, in world space.</param>
+    /// <returns>Whether the given coordinate overlap us.</returns>
+    virtual bool HitTestAtPixel(int pixelX, int pixelY) const { return false; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          HasObject
@@ -1517,9 +1524,8 @@ enum MOType
     /// <summary>
 	/// Updates this MovableObject's Lua scripts.
 	/// </summary>
-    /// <param name="scriptsToRun">Whether to run this objects single-threaded or multi-threaded scripts.</params>
     /// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-	virtual int UpdateScripts(ThreadScriptsToRun scriptsToRun);
+	virtual int UpdateScripts();
 
     /// <summary>
     /// Gets a const reference to this MOSRotating's map of string values.
@@ -1541,6 +1547,13 @@ enum MOType
     const std::string & GetStringValue(const std::string &key) const;
 
     /// <summary>
+    /// Returns an encoded string value associated with the specified key or "" if it does not exist.
+    /// </summary>
+    /// <param name="key">Key to retrieve value.</params>
+    /// <returns>The value associated with the key.</returns>
+    std::string GetEncodedStringValue(const std::string &key) const;
+
+    /// <summary>
     /// Returns the number value associated with the specified key or 0 if it does not exist.
     /// </summary>
     /// <param name="key">Key to retrieve value.</params>
@@ -1560,6 +1573,13 @@ enum MOType
     /// <param name="key">Key to retrieve value.</params>
     /// <param name="value">The new value to be associated with the key.</returns>
     void SetStringValue(const std::string &key, const std::string &value);
+
+    /// <summary>
+    /// Sets the string value associated with the specified key.
+    /// </summary>
+    /// <param name="key">Key to retrieve value.</params>
+    /// <param name="value">The new value to be associated with the key.</returns>
+    void SetEncodedStringValue(const std::string &key, const std::string &value);
 
     /// <summary>
     /// Sets the number value associated with the specified key.
@@ -1885,9 +1905,9 @@ enum MOType
 	bool DrawToTerrain(SLTerrain *terrain);
 
 	/// <summary>
-	/// Used to get the Lua state that handles our multithread-safe scripts.
+	/// Used to get the Lua state that handles our scripts.
 	/// </summary>
-    /// <returns>Our lua state. Can potentially be nullptr.</returns>
+    /// <returns>Our lua state. Can potentially be nullptr if we're not setup yet.</returns>
     LuaStateWrapper* GetLuaState() { return m_ThreadedLuaState; }
 
 	/// <summary>
@@ -2057,11 +2077,10 @@ protected:
 
 	bool m_IsTraveling; //!< Prevents self-intersection while traveling.
 
-    LuaStateWrapper *m_ThreadedLuaState; //!< The lua state that will runs our multithreaded lua scripts.
-    bool m_HasSinglethreadedScripts; //!< Whether or not we have any single-threaded scripts attached to us.
+    LuaStateWrapper *m_ThreadedLuaState; //!< The lua state that will runs our lua scripts.
+    bool m_ForceIntoMasterLuaState; //!< This is awful, and only exists for automovers because they mangle global state all over the place. TODO - change automovers to use messages.
 
     struct LuaFunction {
-        bool m_ScriptIsThreadSafe; //!< Whether this function is in a script with the --[[MULTITHREAD]]- thread safety tag.
         bool m_ScriptIsEnabled; //!< Whether this function is in an enabled script.
         std::unique_ptr<SolObjectWrapper> m_LuaFunction; //!< The lua function itself.
     };
@@ -2070,7 +2089,7 @@ protected:
     std::unordered_map<std::string, bool> m_AllLoadedScripts; //!< A map of script paths to the enabled state of the given script.
     std::unordered_map<std::string, std::vector<LuaFunction>> m_FunctionsAndScripts; //!< A map of function names to vectors of Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
 
-    bool m_RequestedSyncedUpdate; //!< For optimisation purposes, multithreaded scripts explicitly request a synced update if they want one.
+    volatile bool m_RequestedSyncedUpdate; //!< For optimisation purposes, scripts explicitly request a synced update if they want one.
 
     std::unordered_map<std::string, std::string> m_StringValueMap; //<! Map to store any generic strings available from script
     std::unordered_map<std::string, double> m_NumberValueMap; //<! Map to store any generic numbers available from script

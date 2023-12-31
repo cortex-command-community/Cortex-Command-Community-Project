@@ -35,6 +35,8 @@
 #include "BuyMenuGUI.h"
 #include "SceneEditorGUI.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace RTE {
 
 ConcreteClassInfo(GAScripted, GameActivity, 0);
@@ -204,17 +206,30 @@ int GAScripted::ReloadScripts() {
         }
     }
 
-    std::unordered_map<std::string, SolObjectWrapper*> scriptFileFunctions;
-    if ((error = g_LuaMan.GetMasterScriptState().RunScriptFileAndRetrieveFunctions(m_ScriptPath, m_LuaClassName, GetSupportedScriptFunctionNames(), scriptFileFunctions, true)) < 0) {
+    if ((error = g_LuaMan.GetMasterScriptState().RunScriptFile(m_ScriptPath, true, false)) < 0) {
         return error;
     }
 
+    RefreshActivityFunctions();
+
+    return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GAScripted::RefreshActivityFunctions() {
     m_ScriptFunctions.clear();
+    if (m_ScriptPath.empty()) {
+        return;
+    }
+
+    // We use m_LuaClassName here, because we ran the script file in the global state instead of in an environment
+    std::unordered_map<std::string, SolObjectWrapper*> scriptFileFunctions;
+    g_LuaMan.GetMasterScriptState().RetrieveFunctions(m_LuaClassName, GetSupportedScriptFunctionNames(), scriptFileFunctions);
+
     for (const auto& [functionName, functionObject] : scriptFileFunctions) {
         m_ScriptFunctions[functionName] = std::unique_ptr<SolObjectWrapper>(functionObject);
     }
-
-    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,8 +296,8 @@ void GAScripted::HandleCraftEnteringOrbit(ACraft *orbitedCraft) {
 
     if (orbitedCraft && g_MovableMan.IsActor(orbitedCraft)) {
         g_LuaMan.GetMasterScriptState().RunScriptFunctionString(m_LuaClassName + ".CraftEnteredOrbit", m_LuaClassName, {m_LuaClassName, m_LuaClassName + ".CraftEnteredOrbit"}, {orbitedCraft});
-        for (const GlobalScript *globalScript : m_GlobalScriptsList) {
-            if (globalScript->IsActive()) { globalScript->HandleCraftEnteringOrbit(orbitedCraft); }
+        for (GlobalScript *globalScript : m_GlobalScriptsList) {
+            globalScript->HandleCraftEnteringOrbit(orbitedCraft);
         }
     }
 }
@@ -333,18 +348,11 @@ int GAScripted::Start() {
 	g_PresetMan.GetAllOfType(globalScripts, "GlobalScript");
 
 	for (std::list<Entity *>::iterator sItr = globalScripts.begin(); sItr != globalScripts.end(); ++sItr) {
-		GlobalScript * script = dynamic_cast<GlobalScript *>(*sItr);
-        if (script && g_SettingsMan.IsGlobalScriptEnabled(script->GetModuleAndPresetName())) {
-            m_GlobalScriptsList.push_back(dynamic_cast<GlobalScript*>(script->Clone()));
-        }
+        m_GlobalScriptsList.push_back(dynamic_cast<GlobalScript*>((*sItr)->Clone()));
 	}
 
 	// Start all global scripts
 	for (std::vector<GlobalScript *>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
-		if (g_SettingsMan.PrintDebugInfo()) {
-			g_ConsoleMan.PrintString("DEBUG: Start Global Script: " + (*sItr)->GetPresetName());
-        }
-
 		(*sItr)->Start();
 	}
 
@@ -364,9 +372,7 @@ void GAScripted::SetPaused(bool pause) {
 
 	// Pause all global scripts
 	for (std::vector<GlobalScript *>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
-		if ((*sItr)->IsActive()) {
-			(*sItr)->Pause(pause);
-        }
+		(*sItr)->Pause(pause);
     }
 }
 
@@ -383,12 +389,7 @@ void GAScripted::End() {
 
 	// End all global scripts
 	for (std::vector<GlobalScript *>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
-		if ((*sItr)->IsActive()) {
-			if (g_SettingsMan.PrintDebugInfo()) {
-				g_ConsoleMan.PrintString("DEBUG: End Global Script: " + (*sItr)->GetPresetName());
-            }
-			(*sItr)->End();
-		}
+		(*sItr)->End();
     }
 
 	// Delete all global scripts, in case destructor is not called when activity restarts
@@ -436,6 +437,9 @@ void GAScripted::Update() {
     if (m_ActivityState != ActivityState::Over) {
 		AddPieSlicesToActiveActorPieMenus();
 
+        // Need to call this continually unfortunately, as something might change due to dofile()
+        RefreshActivityFunctions();
+
         RunLuaFunction("UpdateActivity");
 
         UpdateGlobalScripts(false);
@@ -449,9 +453,11 @@ void GAScripted::Update() {
 // Description:     Updates globals scripts loaded with this activity.
 
 void GAScripted::UpdateGlobalScripts(bool lateUpdate) {
+    ZoneScoped;
+
 	// Update all global scripts
 	for (std::vector<GlobalScript *>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
-		if ((*sItr)->IsActive() && (*sItr)->ShouldLateUpdate() == lateUpdate) {
+		if ((*sItr)->ShouldLateUpdate() == lateUpdate) {
 			(*sItr)->Update();
         }
     }
@@ -485,7 +491,9 @@ int GAScripted::RunLuaFunction(const std::string& functionName, const std::vecto
         return 0;
     }
 
-    return g_LuaMan.GetMasterScriptState().RunScriptFunctionObject(funcItr->second.get(), "_G", m_LuaClassName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
+    int error = g_LuaMan.GetMasterScriptState().RunScriptFunctionObject(funcItr->second.get(), "_G", m_LuaClassName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
+
+    return error;
 }
 
 
@@ -562,10 +570,8 @@ void GAScripted::AddPieSlicesToActiveActorPieMenus() {
 					controlledActorPieMenu->AddPieSliceIfPresetNameIsUnique(pieSlice.get(), this, true);
 				}
 				for (const GlobalScript *globalScript : m_GlobalScriptsList) {
-					if (globalScript->IsActive()) {
-						for (const std::unique_ptr<PieSlice> &pieSlice : globalScript->GetPieSlicesToAdd()) {
-							controlledActorPieMenu->AddPieSliceIfPresetNameIsUnique(pieSlice.get(), globalScript, true);
-						}
+					for (const std::unique_ptr<PieSlice> &pieSlice : globalScript->GetPieSlicesToAdd()) {
+						controlledActorPieMenu->AddPieSliceIfPresetNameIsUnique(pieSlice.get(), globalScript, true);
 					}
 				}
 			}

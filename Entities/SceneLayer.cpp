@@ -4,6 +4,9 @@
 #include "SceneMan.h"
 #include "SettingsMan.h"
 #include "ActivityMan.h"
+#include "ThreadMan.h"
+
+#include "tracy/Tracy.hpp"
 
 namespace RTE {
 
@@ -202,9 +205,7 @@ namespace RTE {
 		if (bitmapPath.empty()) {
 			return -1;
 		}
-		if (doAsyncSaves) {
-			g_ActivityMan.IncrementSavingThreadCount();
-		}
+
 		if (m_MainBitmap) {
 			// Make a copy of the bitmap to pass to the thread because the bitmap may be offloaded mid thread and everything will be on fire.
 			BITMAP *outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
@@ -217,15 +218,11 @@ namespace RTE {
 					RTEAbort(std::string("Failed to save SceneLayerImpl bitmap to path and name: " + bitmapPath));
 				}
 				destroy_bitmap(bitmapToSave);
-				if (doAsyncSaves) {
-					g_ActivityMan.DecrementSavingThreadCount();
-				}
 			};
 
 			m_BitmapFile.SetDataPath(bitmapPath);
 			if (doAsyncSaves) {
-				std::thread saveThread(saveLayerBitmap, outputBitmap);
-				saveThread.detach();
+				g_ActivityMan.GetSaveGameTask().push_back( g_ThreadMan.GetBackgroundThreadPool().submit(saveLayerBitmap, outputBitmap) );
 			} else {
 				saveLayerBitmap(outputBitmap);
 			}
@@ -293,8 +290,8 @@ namespace RTE {
 	void SceneLayerImpl<TRACK_DRAWINGS>::ClearBitmap(ColorKeys clearTo) {
 		RTEAssert(m_MainBitmapOwned, "Bitmap not owned! We shouldn't be clearing this!");
 
-		if (m_BitmapClearThread.joinable()) {
-			m_BitmapClearThread.join();
+		if (m_BitmapClearTask.valid()) {
+			m_BitmapClearTask.wait();
 		}
 
 		if (m_LastClearColor != clearTo) {
@@ -306,11 +303,10 @@ namespace RTE {
 		std::swap(m_MainBitmap, m_BackBitmap);
 
 		// Start a new thread to clear the backbuffer bitmap asynchronously.
-		m_BitmapClearThread = std::thread([this, clearTo](BITMAP *bitmap, std::vector<IntRect> drawings) {
+		m_BitmapClearTask = g_ThreadMan.GetPriorityThreadPool().submit([this, clearTo](BITMAP *bitmap, std::vector<IntRect> drawings) {
+			ZoneScopedN("Clear Tracked Backbuffer");
 			ClearDrawings(bitmap, drawings, clearTo);
 		}, m_BackBitmap, m_Drawings);
-
-		m_BitmapClearThread.detach();
 
 		m_Drawings.clear(); // This was copied into the new thread, so can be safely deleted.
 	}
@@ -319,33 +315,26 @@ namespace RTE {
 
 	template <bool TRACK_DRAWINGS>
 	bool SceneLayerImpl<TRACK_DRAWINGS>::WrapPosition(int &posX, int &posY) const {
-		bool wrapped = false;
-		int width = m_ScaledDimensions.GetFloorIntX();
-		int height = m_ScaledDimensions.GetFloorIntY();
+		int oldX = posX;
+		int oldY = posY;
 
 		if (m_WrapX) {
+			int width = m_ScaledDimensions.GetFloorIntX();
+			posX %= width;
 			if (posX < 0) {
-				while (posX < 0) {
-					posX += width;
-				}
-				wrapped = true;
-			} else if (posX >= width) {
-				posX %= width;
-				wrapped = true;
+				posX += width;
 			}
 		}
+
 		if (m_WrapY) {
+			int height = m_ScaledDimensions.GetFloorIntY();
+			posY %= height;
 			if (posY < 0) {
-				while (posY < 0) {
-					posY += height;
-				}
-				wrapped = true;
-			} else if (posY >= height) {
-				posY %= height;
-				wrapped = true;
+				posY += height;
 			}
 		}
-		return wrapped;
+
+		return oldX != posX || oldY != posY;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

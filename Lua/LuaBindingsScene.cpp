@@ -151,16 +151,26 @@ namespace RTE {
 		luaType["RotAngle"] = sol::property(&SceneObject::GetRotAngle, &SceneObject::SetRotAngle);
 		luaType["Team"] = sol::property(&SceneObject::GetTeam, &SceneObject::SetTeam);
 		luaType["PlacedByPlayer"] = sol::property(&SceneObject::GetPlacedByPlayer, &SceneObject::SetPlacedByPlayer);
-		luaType["IsBuyable"] = sol::property(&SceneObject::IsBuyable);
+		luaType["Buyable"] = sol::property(&SceneObject::IsBuyable);
+
+		luaType["BuyableMode"] = sol::property(&LuaAdaptersSceneObject::GetBuyableMode);
 
 		luaType["IsOnScenePoint"] = &SceneObject::IsOnScenePoint;
 		luaType["GetGoldValue"] = &SceneObject::GetGoldValueOld;
 		luaType["GetGoldValue"] = &SceneObject::GetGoldValue;
 		luaType["SetGoldValue"] = &SceneObject::SetGoldValue;
 		luaType["GetGoldValueString"] = &SceneObject::GetGoldValueString;
-		luaType["GetTotalValue"] = &SceneObject::GetTotalValue;
 
+		luaType["GetTotalValue"] = &SceneObject::GetTotalValue;
 		luaType["GetTotalValue"] = &LuaAdaptersSceneObject::GetTotalValue;
+
+		{
+			sol::table enumTable = LegacyEnumTypeTable("BuyableMode");
+			enumTable["NORESTRICTIONS"] = static_cast<int>(SceneObject::BuyableMode::NoRestrictions);
+			enumTable["BUYMENUONLY"] = static_cast<int>(SceneObject::BuyableMode::BuyMenuOnly);
+			enumTable["OBJECTPICKERONLY"] = static_cast<int>(SceneObject::BuyableMode::ObjectPickerOnly);
+			enumTable["SCRIPTONLY"] = static_cast<int>(SceneObject::BuyableMode::ScriptOnly);
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

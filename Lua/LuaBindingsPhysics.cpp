@@ -187,12 +187,15 @@ namespace RTE {
 		luaType["AddScript"] = &LuaAdaptersMovableObject::AddScript;
 		luaType["ScriptEnabled"] = &MovableObject::ScriptEnabled;
 		luaType["EnableScript"] = &LuaAdaptersMovableObject::EnableScript;
-		luaType["DisableScript"] = &LuaAdaptersMovableObject::DisableScript;
+		luaType["DisableScript"] = &LuaAdaptersMovableObject::DisableScript1;
+		luaType["DisableScript"] = &LuaAdaptersMovableObject::DisableScript2;
 		luaType["EnableOrDisableAllScripts"] = &MovableObject::EnableOrDisableAllScripts;
 		luaType["GetStringValue"] = &MovableObject::GetStringValue;
+		luaType["GetEncodedStringValue"] = &MovableObject::GetEncodedStringValue;
 		luaType["GetNumberValue"] = &MovableObject::GetNumberValue;
 		luaType["GetObjectValue"] = &MovableObject::GetObjectValue;
 		luaType["SetStringValue"] = &MovableObject::SetStringValue;
+		luaType["SetEncodedStringValue"] = &MovableObject::SetEncodedStringValue;
 		luaType["SetNumberValue"] = &MovableObject::SetNumberValue;
 		luaType["SetObjectValue"] = &MovableObject::SetObjectValue;
 		luaType["RemoveStringValue"] = &MovableObject::RemoveStringValue;

@@ -169,6 +169,7 @@ namespace RTE {
 		luaType["SetActorSelectCursor"] = &GameActivity::SetActorSelectCursor;
 		luaType["GetBuyGUI"] = &GameActivity::GetBuyGUI;
 		luaType["GetEditorGUI"] = &GameActivity::GetEditorGUI;
+		luaType["LockControlledActor"] = &GameActivity::LockControlledActor;
 		luaType["OtherTeam"] = &GameActivity::OtherTeam;
 		luaType["OneOrNoneTeamsLeft"] = &GameActivity::OneOrNoneTeamsLeft;
 		luaType["WhichTeamLeft"] = &GameActivity::WhichTeamLeft;

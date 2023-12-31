@@ -152,15 +152,6 @@ public:
     int GetMOIDCount() { return m_MOIDIndex.size(); }
 
     /// <summary>
-    /// Tests whether the given MovableObject is currently at the specified pixel coordinates.
-    /// </summary>
-    /// <param name="mo">The MovableObject to test.</param>
-    /// <param name="pixelX">The X coordinate of the Scene pixel to test.</param>
-    /// <param name="pixelY">The Y coordinate of the Scene pixel to test.</param>
-    /// <returns>Whether the given MovableObject is currently at the specified pixel coordinates.</returns>
-    bool HitTestMOAtPixel(const MovableObject &mo, int pixelX, int pixelY) const;
-
-    /// <summary>
     /// Gets a MOID from pixel coordinates in the Scene.
     /// </summary>
     /// <param name="pixelX">The X coordinate of the Scene pixel to get the MOID of.</param>
@@ -944,7 +935,7 @@ public:
     /// <summary>
     /// Runs a lua function on all MOs in the simulation, including owned child MOs.
     /// </summary>
-    void RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*>& functionObjectArguments = std::vector<SolObjectWrapper*>(), ThreadScriptsToRun scriptsToRun = ThreadScriptsToRun::Both);
+    void RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*>& functionObjectArguments = std::vector<SolObjectWrapper*>());
 
     /// <summary>
     /// Clears all cached lua functions on all MOs, including owned child MOs.
@@ -993,6 +984,9 @@ protected:
 
     // Mutex to ensure actors don't change team roster from seperate threads at the same time
     std::mutex m_ActorRosterMutex;
+
+    // Async to draw MOIDs while rendering
+    std::future<void> m_DrawMOIDsTask;
 
     // Roster of each team's actors, sorted by their X positions in the scene. Actors not owned here
     std::list<Actor *> m_ActorRoster[Activity::MaxTeamCount];

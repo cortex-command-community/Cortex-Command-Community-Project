@@ -651,16 +651,7 @@ namespace RTE {
 			return false;
 		}
 		if (IsInMultiplayerMode()) {
-			if (whichPlayer < Players::PlayerOne || whichPlayer >= Players::MaxPlayerCount) {
-				for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
-					if (m_NetworkServerChangedMouseButtonState[player][whichButton]) {
-						return m_NetworkServerChangedMouseButtonState[player][whichButton];
-					}
-				}
-				return m_NetworkServerChangedMouseButtonState[Players::PlayerOne][whichButton];
-			} else {
-				return m_NetworkServerChangedMouseButtonState[whichPlayer][whichButton];
-			}
+			return GetNetworkMouseButtonState(whichPlayer, whichButton, whichState);
 		}
 
 		switch (whichState) {
@@ -670,6 +661,30 @@ namespace RTE {
 				return s_CurrentMouseButtonStates[whichButton] && s_ChangedMouseButtonStates[whichButton];
 			case InputState::Released:
 				return !s_CurrentMouseButtonStates[whichButton] && s_ChangedMouseButtonStates[whichButton];
+			default:
+				RTEAbort("Undefined InputState value passed in. See InputState enumeration.");
+				return false;
+		}
+	}
+
+	bool UInputMan::GetNetworkMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const {
+		
+		if (whichPlayer == Players::NoPlayer || whichPlayer >= Players::MaxPlayerCount) {
+			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+				if (GetNetworkMouseButtonState(player, whichButton, whichState)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		switch (whichState) {
+			case InputState::Held:
+				return m_NetworkServerPreviousMouseButtonState[whichPlayer][whichButton];
+			case InputState::Pressed:
+				return m_NetworkServerPreviousMouseButtonState[whichPlayer][whichButton] && m_NetworkServerChangedMouseButtonState[whichPlayer][whichButton];
+			case InputState::Released:
+				return !m_NetworkServerPreviousMouseButtonState[whichPlayer][whichButton] && m_NetworkServerChangedMouseButtonState[whichPlayer][whichButton];
 			default:
 				RTEAbort("Undefined InputState value passed in. See InputState enumeration.");
 				return false;
@@ -927,9 +942,6 @@ namespace RTE {
 			// Ctrl+P to toggle performance stats
 			} else if (KeyPressed(SDLK_p)) {
 				g_PerformanceMan.ShowPerformanceStats(!g_PerformanceMan.IsShowingPerformanceStats());
-			// Ctrl+O to toggle one sim update per frame
-			} else if (KeyPressed(SDLK_o)) {
-				g_TimerMan.SetOneSimUpdatePerFrame(!g_TimerMan.IsOneSimUpdatePerFrame());
 			} else if (KeyPressed(SDLK_F2)) {
 				g_PresetMan.QuickReloadEntityPreset();
 			} else if (KeyPressed(SDLK_F9)) {
@@ -937,8 +949,6 @@ namespace RTE {
 			} else if (g_PerformanceMan.IsShowingPerformanceStats()) {
 				if (KeyHeld(SDLK_1)) {
 					g_TimerMan.SetTimeScale(1.0F);
-				} else if (KeyHeld(SDLK_3)) {
-					g_TimerMan.SetRealToSimCap(c_DefaultRealToSimCap);
 				} else if (KeyHeld(SDLK_5)) {
 					g_TimerMan.SetDeltaTimeSecs(c_DefaultDeltaTimeS);
 				}
@@ -988,14 +998,6 @@ namespace RTE {
 				}
 				if (KeyHeld(SDLK_1) && g_TimerMan.GetTimeScale() - 0.01F > 0.001F) {
 					g_TimerMan.SetTimeScale(g_TimerMan.GetTimeScale() - 0.01F);
-				}
-
-				// Manipulate real to sim cap
-				if (KeyHeld(SDLK_4)) {
-					g_TimerMan.SetRealToSimCap(g_TimerMan.GetRealToSimCap() + 0.001F);
-				}
-				if (KeyHeld(SDLK_3) && g_TimerMan.GetRealToSimCap() > 0) {
-					g_TimerMan.SetRealToSimCap(g_TimerMan.GetRealToSimCap() - 0.001F);
 				}
 
 				// Manipulate DeltaTime

@@ -124,12 +124,6 @@ namespace RTE {
 		bool GetAnyExperimentalSettingsEnabled() const { return false; }
 
 		/// <summary>
-		/// Returns whether or not multithreaded Lua is enabled.
-		/// </summary>
-		/// <returns>Whether or not multithreaded Lua is enabled.</returns>
-		bool GetEnableMultithreadedLua() const { return m_EnableMultithreadedLua; }
-
-		/// <summary>
 		/// Gets the AI update interval.
 		/// </summary>
 		/// <returns>How often Actor's AI is updated, in simulation updates.</returns>
@@ -381,7 +375,7 @@ namespace RTE {
 		/// Gets the map of mods which are disabled.
 		/// </summary>
 		/// <returns>Map of mods which are disabled.</returns>
-		std::map<std::string, bool> & GetDisabledModsMap() { return m_DisabledMods; }
+		std::unordered_map<std::string, bool> & GetDisabledModsMap() { return m_DisabledMods; }
 
 		/// <summary>
 		/// Gets whether the specified mod is disabled in the settings.
@@ -394,7 +388,7 @@ namespace RTE {
 		/// Gets the map of global scripts which are enabled.
 		/// </summary>
 		/// <returns>Map of global scripts which are enabled.</returns>
-		std::map<std::string, bool> & GetEnabledGlobalScriptMap() { return m_EnabledGlobalScripts; }
+		std::unordered_map<std::string, bool> & GetEnabledGlobalScriptMap() { return m_EnabledGlobalScripts; }
 
 		/// <summary>
 		/// Gets whether the specified global script is enabled in the settings.
@@ -547,7 +541,6 @@ namespace RTE {
 		bool m_AllowSavingToBase; //!< Whether editors will allow to select Base.rte as a module to save in.
 		bool m_ShowMetaScenes; //!< Show MetaScenes in editors and activities.
 
-		int m_EnableMultithreadedLua; //!< Whether or not to enable multithreaded Lua scripts.
 		bool m_DisableLuaJIT; //!< Whether to disable LuaJIT or not. Disabling will skip loading the JIT library entirely as just setting 'jit.off()' seems to have no visible effect.
 		int m_RecommendedMOIDCount; //!< Recommended max MOID's before removing actors from scenes.
 		bool m_SimplifiedCollisionDetection; //!< Whether simplified collision detection (reduced MOID layer sampling) is enabled.
@@ -570,8 +563,8 @@ namespace RTE {
 		bool m_MeasureModuleLoadTime; //!< Whether to measure the duration of data module loading (extraction included). For benchmarking purposes.
 
 		std::list<std::string> m_VisibleAssemblyGroupsList; //!< List of assemblies groups always shown in editors.
-		std::map<std::string, bool> m_DisabledMods; //!< Map of the module names we disabled.
-		std::map<std::string, bool> m_EnabledGlobalScripts; //!< Map of the global script names we enabled.
+		std::unordered_map<std::string, bool> m_DisabledMods; //!< Map of the module names we disabled.
+		std::unordered_map<std::string, bool> m_EnabledGlobalScripts; //!< Map of the global script names we enabled.
 
 	private:
 

@@ -688,6 +688,11 @@ DefaultPieMenuNameGetter("Default Human Pie Menu");
 	/// <param name="whichLayer">The Layer in question.</param>
 	void UpdateWalkAngle(AHuman::Layer whichLayer);
 
+    /// <summary>
+    /// Detects overhead ceilings and crouches for them.
+    /// </summary>
+    void UpdateCrouching();
+
 	/// <summary>
 	/// Gets the walk path rotation for the specified Layer.
 	/// </summary>
@@ -863,6 +868,48 @@ DefaultPieMenuNameGetter("Default Human Pie Menu");
 	/// <param name="newValue">The new device arm sway rate for this AHuman.</param>
 	void SetDeviceArmSwayRate(float newValue) { m_DeviceArmSwayRate = newValue; }
 
+    /// <summary>
+	/// Gets this AHuman's max walkpath adjustment upwards to crouch below low ceilings.
+	/// </summary>
+	/// <returns>This AHuman's max walkpath adjustment.</returns>
+	float GetMaxWalkPathCrouchShift() const { return m_MaxWalkPathCrouchShift; }
+
+	/// <summary>
+	/// Sets this AHuman's max walkpath adjustment upwards to crouch below low ceilings.
+	/// </summary>
+	/// <param name="newValue">The new value for this AHuman's max walkpath adjustment.</param>
+	void SetMaxWalkPathCrouchShift(float newValue) { m_MaxWalkPathCrouchShift = newValue; }
+
+    /// <summary>
+	/// Gets this AHuman's max crouch rotation to duck below low ceilings.
+	/// </summary>
+	/// <returns>This AHuman's max crouch rotation adjustment.</returns>
+	float GetMaxCrouchRotation() const { return m_MaxCrouchRotation; }
+
+	/// <summary>
+	/// Sets this AHuman's max crouch rotation to duck below low ceilings.
+	/// </summary>
+	/// <param name="newValue">The new value for this AHuman's max crouch rotation adjustment.</param>
+	void SetMaxCrouchRotation(float newValue) { m_MaxCrouchRotation = newValue; }
+
+    /// <summary>
+	/// Gets this AHuman's current crouch amount. 0.0 == fully standing, 1.0 == fully crouched.
+	/// </summary>
+	/// <returns>This AHuman's current crouch amount.</returns>
+    float GetCrouchAmount() const { return (m_WalkPathOffset.m_Y * -1.0F) / m_MaxWalkPathCrouchShift; }
+
+    /// <summary>
+	/// Gets this AHuman's current crouch amount override. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
+	/// </summary>
+	/// <returns>This AHuman's current crouch amount override.</returns>
+    float GetCrouchAmountOverride() const { return m_CrouchAmountOverride; }
+
+    /// <summary>
+	/// Sets this AHuman's current crouch amount override.
+	/// </summary>
+	/// <param name="newValue">The new value for this AHuman's current crouch amount override.</param>
+    void SetCrouchAmountOverride(float newValue) { m_CrouchAmountOverride = newValue; }
+
 	/// <summary>
 	/// Gets this AHuman's stride sound. Ownership is NOT transferred!
 	/// </summary>
@@ -935,6 +982,12 @@ protected:
     ProneState m_ProneState;
     // Timer for the going prone procedural animation
     Timer m_ProneTimer;
+    // The maximum amount our walkpath can be shifted upwards to crouch and avoid ceilings above us
+    float m_MaxWalkPathCrouchShift;
+    // The maximum amount we will duck our head down to avoid obstacles above us.
+    float m_MaxCrouchRotation;
+    // The script-set forced crouching amount. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
+    float m_CrouchAmountOverride;
     // Limb paths for different movement states.
     // [0] is for the foreground limbs, and [1] is for BG.
     LimbPath m_Paths[2][MOVEMENTSTATECOUNT];
@@ -958,6 +1011,7 @@ protected:
 	float m_BGArmFlailScalar; //!< The rate at which this AHuman's BG Arm follows the the bodily rotation. Set to a negative value for a "counterweight" effect.
 	Timer m_EquipHUDTimer; //!< Timer for showing the name of any newly equipped Device.
 	std::array<Matrix, 2> m_WalkAngle; //!< An array of rot angle targets for different movement states.
+    Vector m_WalkPathOffset;
 	float m_ArmSwingRate; //!< Controls the rate at which this AHuman's Arms follow the movement of its Legs while they're not holding device(s).
 	float m_DeviceArmSwayRate; //!< Controls the rate at which this AHuman's Arms follow the movement of its Legs while they're holding device(s). One-handed devices sway half as much as two-handed ones. Defaults to three quarters of Arm swing rate.
 

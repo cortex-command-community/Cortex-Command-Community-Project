@@ -118,7 +118,7 @@ namespace RTE {
 	void ModManagerGUI::ToggleMod() {
 		int index = m_ModsListBox->GetSelectedIndex();
 		if (index > -1) {
-			std::map<std::string, bool> &disabledModsList = g_SettingsMan.GetDisabledModsMap();
+			std::unordered_map<std::string, bool> &disabledModsList = g_SettingsMan.GetDisabledModsMap();
 			GUIListPanel::Item *selectedItem = m_ModsListBox->GetSelected();
 			ModRecord &modRecord = m_KnownMods.at(selectedItem->m_ExtraIndex);
 
@@ -146,7 +146,7 @@ namespace RTE {
 	void ModManagerGUI::ToggleScript() {
 		int index = m_ScriptsListBox->GetSelectedIndex();
 		if (index > -1) {
-			std::map<std::string, bool> &enabledScriptList = g_SettingsMan.GetEnabledGlobalScriptMap();
+			std::unordered_map<std::string, bool> &enabledScriptList = g_SettingsMan.GetEnabledGlobalScriptMap();
 			GUIListPanel::Item *selectedItem = m_ScriptsListBox->GetSelected();
 			ScriptRecord &scriptRecord = m_KnownScripts.at(selectedItem->m_ExtraIndex);
 

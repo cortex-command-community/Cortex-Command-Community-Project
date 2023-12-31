@@ -395,6 +395,7 @@ namespace RTE {
 		luaType["OpenDoor"] = &ADoor::OpenDoor;
 		luaType["CloseDoor"] = &ADoor::CloseDoor;
 		luaType["StopDoor"] = &ADoor::StopDoor;
+		luaType["ResetSensorTimer"] = &ADoor::ResetSensorTimer;
 		luaType["SetClosedByDefault"] = &ADoor::SetClosedByDefault;
 
 		{
@@ -424,6 +425,10 @@ namespace RTE {
 		luaType["BGLeg"] = sol::property(&AHuman::GetBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGLeg);
 		luaType["FGFoot"] = sol::property(&AHuman::GetFGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGFoot);
 		luaType["BGFoot"] = sol::property(&AHuman::GetBGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGFoot);
+		luaType["MaxWalkPathCrouchShift"] = sol::property(&AHuman::GetMaxWalkPathCrouchShift, &AHuman::SetMaxWalkPathCrouchShift);
+		luaType["MaxCrouchRotation"] = sol::property(&AHuman::GetMaxCrouchRotation, &AHuman::SetMaxCrouchRotation);
+		luaType["CrouchAmount"] = sol::property(&AHuman::GetCrouchAmount);
+		luaType["CrouchAmountOverride"] = sol::property(&AHuman::GetCrouchAmountOverride, &AHuman::SetCrouchAmountOverride);
 		luaType["StrideSound"] = sol::property(&AHuman::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetStrideSound);
 		luaType["StrideFrame"] = sol::property(&AHuman::StrideFrame);
 		luaType["UpperBodyState"] = sol::property(&AHuman::GetUpperBodyState, &AHuman::SetUpperBodyState);
@@ -591,6 +596,7 @@ namespace RTE {
 
 		luaType["StartOffset"] = sol::property(&LimbPath::GetStartOffset, &LimbPath::SetStartOffset);
 		luaType["SegmentCount"] = sol::property(&LimbPath::GetSegCount);
+		luaType["TravelSpeedMultiplier"] = sol::property(&LimbPath::GetTravelSpeedMultiplier, &LimbPath::SetTravelSpeedMultiplier);
 
 		luaType["GetSegment"] = &LimbPath::GetSegment;
 	}

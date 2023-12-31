@@ -85,6 +85,7 @@
 #include <execution>
 #include <source_location>
 #include <regex>
+#include <future>
 
 #include "MOSRotating.h"
 

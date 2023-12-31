@@ -398,6 +398,12 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	int LuaAdaptersSceneObject::GetBuyableMode(const SceneObject *luaSelfObject) {
+		return static_cast<int>(luaSelfObject->GetBuyableMode());
+	}
+	
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	void LuaAdaptersActivity::SendMessage1(Activity *luaSelfObject, const std::string &message) {
 		SendMessage2(luaSelfObject, message, sol::lua_nil);
 	}
@@ -431,7 +437,7 @@ namespace RTE {
 				g_ConsoleMan.PrintString("ERROR: The script path " + correctedScriptPath + "  did not point to a valid file.");
 				break;
 			case -3:
-				g_ConsoleMan.PrintString("ERROR: The script path " + correctedScriptPath + " is already loaded onto this object.");
+				// Already have this script. Not an issue, just ignore it.
 				break;
 			case -4:
 				g_ConsoleMan.PrintString("ERROR: Failed to do necessary setup to add scripts while attempting to add the script with path " + correctedScriptPath + ". This has nothing to do with your script, please report it to a developer.");
@@ -452,9 +458,17 @@ namespace RTE {
 		return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), true);
 	}
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersMovableObject::DisableScript(MovableObject *luaSelfObject, const std::string &scriptPath) {
+	bool LuaAdaptersMovableObject::DisableScript1(MovableObject* luaSelfObject) {
+		std::string currentScriptFilePath(g_LuaMan.GetThreadCurrentLuaState()->GetCurrentlyRunningScriptFilePath());
+		return luaSelfObject->EnableOrDisableScript(currentScriptFilePath, false);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaAdaptersMovableObject::DisableScript2(MovableObject *luaSelfObject, const std::string &scriptPath) {
 		return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), false);
 	}
 
@@ -467,9 +481,8 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaAdaptersMovableObject::SendMessage2(MovableObject *luaSelfObject, const std::string &message, sol::object context) {
-		// We're not transferring context between lua states, so only run singlethreaded scripts when we have context
 		SolObjectWrapper wrapper(&context, "", false);
-		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, { message }, { &wrapper }, ThreadScriptsToRun::SingleThreaded);
+		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, { message }, { &wrapper });
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -619,7 +632,12 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaAdaptersMovableMan::SendGlobalMessage1(MovableMan &movableMan, const std::string &message) {
-		SendGlobalMessage2(movableMan, message, sol::lua_nil);
+		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
+		if (scriptedActivity) {
+			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, { message });
+		}
+
+		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, { message });
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -675,6 +693,14 @@ namespace RTE {
 
 	bool LuaAdaptersPresetMan::ReloadEntityPreset2(PresetMan &presetMan, const std::string &presetName, const std::string &className) {
 		return ReloadEntityPreset1(presetMan, presetName, className, "");
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	std::list<Entity *> * LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan &presetMan, const std::string &group, const std::string &type, int whichModule) {
+		std::list<Entity *> *entityList = new std::list<Entity *>();
+		presetMan.GetAllOfGroup(*entityList, group, type, whichModule);
+		return entityList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

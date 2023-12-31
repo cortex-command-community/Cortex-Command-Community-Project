@@ -197,6 +197,7 @@ namespace RTE {
 		luaType["BusRouting"] = sol::property(&SoundContainer::GetBusRouting, &SoundContainer::SetBusRouting);
 		luaType["Immobile"] = sol::property(&SoundContainer::IsImmobile, &SoundContainer::SetImmobile);
 		luaType["AttenuationStartDistance"] = sol::property(&SoundContainer::GetAttenuationStartDistance, &SoundContainer::SetAttenuationStartDistance);
+		luaType["CustomPanValue"] = sol::property(&SoundContainer::GetCustomPanValue, &SoundContainer::SetCustomPanValue);
 		luaType["PanningStrengthMultiplier"] = sol::property(&SoundContainer::GetPanningStrengthMultiplier, &SoundContainer::SetPanningStrengthMultiplier);
 		luaType["Loops"] = sol::property(&SoundContainer::GetLoopSetting, &SoundContainer::SetLoopSetting);
 		luaType["Priority"] = sol::property(&SoundContainer::GetPriority, &SoundContainer::SetPriority);

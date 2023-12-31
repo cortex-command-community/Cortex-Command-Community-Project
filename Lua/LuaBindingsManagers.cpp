@@ -11,6 +11,7 @@
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "MovableMan.h"
+#include "PerformanceMan.h"
 #include "PostProcessMan.h"
 #include "PresetMan.h"
 #include "PrimitiveMan.h"
@@ -193,6 +194,14 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PerformanceMan) {
+		auto luaType = SimpleNamedTypeLuaClassDefinition(PerformanceMan, "PerformanceManager");
+
+		luaType["ShowPerformanceStats"] = sol::property(&PerformanceMan::IsShowingPerformanceStats, &PerformanceMan::ShowPerformanceStats);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PostProcessMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(PostProcessMan, "PostProcessManager");
 
@@ -223,6 +232,10 @@ namespace RTE {
 		luaType["ReadReflectedPreset"] = &PresetMan::ReadReflectedPreset;
 		luaType["ReloadEntityPreset"] = &LuaAdaptersPresetMan::ReloadEntityPreset1;
 		luaType["ReloadEntityPreset"] = &LuaAdaptersPresetMan::ReloadEntityPreset2;
+		luaType["GetAllEntities"] = &LuaAdaptersPresetMan::GetAllEntities; //, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		luaType["GetAllEntitiesOfGroup"] = &LuaAdaptersPresetMan::GetAllEntitiesOfGroup; //, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		luaType["GetAllEntitiesOfGroup"] = &LuaAdaptersPresetMan::GetAllEntitiesOfGroup2; //, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		luaType["GetAllEntitiesOfGroup"] = &LuaAdaptersPresetMan::GetAllEntitiesOfGroup3; //, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
 		luaType["ReloadAllScripts"] = &PresetMan::ReloadAllScripts;
 		luaType["IsModuleOfficial"] = &PresetMan::IsModuleOfficial;
 		luaType["IsModuleUserdata"] = &PresetMan::IsModuleUserdata;
@@ -393,13 +406,12 @@ namespace RTE {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(TimerMan, "TimerManager");
 
 		luaType["TimeScale"] = sol::property(&TimerMan::GetTimeScale, &TimerMan::SetTimeScale);
-		luaType["RealToSimCap"] = sol::property(&TimerMan::GetRealToSimCap, &TimerMan::SetRealToSimCap);
+		luaType["RealToSimCap"] = sol::property(&TimerMan::GetRealToSimCap);
 		luaType["DeltaTimeTicks"] = sol::property(&LuaAdaptersTimerMan::GetDeltaTimeTicks, &TimerMan::SetDeltaTimeTicks);
 		luaType["DeltaTimeSecs"] = sol::property(&TimerMan::GetDeltaTimeSecs, &TimerMan::SetDeltaTimeSecs);
 		luaType["DeltaTimeMS"] = sol::property(&TimerMan::GetDeltaTimeMS);
 		luaType["AIDeltaTimeSecs"] = sol::property(&TimerMan::GetAIDeltaTimeSecs);
 		luaType["AIDeltaTimeMS"] = sol::property(&TimerMan::GetAIDeltaTimeMS);
-		luaType["OneSimUpdatePerFrame"] = sol::property(&TimerMan::IsOneSimUpdatePerFrame, &TimerMan::SetOneSimUpdatePerFrame);
 
 		luaType["TicksPerSecond"] = sol::property(&LuaAdaptersTimerMan::GetTicksPerSecond);
 
@@ -429,6 +441,7 @@ namespace RTE {
 		luaType["MouseButtonPressed"] = &UInputMan::MouseButtonPressed;
 		luaType["MouseButtonReleased"] = &UInputMan::MouseButtonReleased;
 		luaType["MouseButtonHeld"] = &UInputMan::MouseButtonHeld;
+		luaType["GetMousePos"] = &UInputMan::GetAbsoluteMousePosition;
 		luaType["MouseWheelMoved"] = &UInputMan::MouseWheelMoved;
 		luaType["JoyButtonPressed"] = &UInputMan::JoyButtonPressed;
 		luaType["JoyButtonReleased"] = &UInputMan::JoyButtonReleased;

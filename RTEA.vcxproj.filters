@@ -621,6 +621,9 @@
     <ClInclude Include="Lua\SolObjectWrapper.h">
       <Filter>Lua</Filter>
     </ClInclude>
+    <ClInclude Include="Managers\ThreadMan.h">
+      <Filter>Managers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\Box.cpp">
@@ -1205,6 +1208,9 @@
     </ClCompile>
     <ClCompile Include="Lua\SolObjectWrapper.cpp">
       <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\ThreadMan.cpp">
+      <Filter>Managers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
