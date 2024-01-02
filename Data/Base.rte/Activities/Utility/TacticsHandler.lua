@@ -334,7 +334,7 @@ function TacticsHandler:RetaskSquad(squad, team, allowMerge)
 	if newTask then
 	
 		if self.verboseLogging then
-			print("INFO: TacticsHandler chose new task: " .. newTask.name);
+			print("INFO: TacticsHandler chose new task: " .. newTask.Name);
 		end
 	
 		squad.idleTimer:Reset();
