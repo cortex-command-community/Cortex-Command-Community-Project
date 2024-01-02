@@ -1,0 +1,23 @@
+sources += files(
+'AchievementMan.cpp',
+'ActivityMan.cpp',
+'AudioMan.cpp',
+'CameraMan.cpp',
+'ConsoleMan.cpp',
+'FrameMan.cpp',
+'LuaMan.cpp',
+'MenuMan.cpp',
+'MetaMan.cpp',
+'MovableMan.cpp',
+'NetworkClient.cpp',
+'NetworkServer.cpp',
+'PerformanceMan.cpp',
+'PostProcessMan.cpp',
+'PresetMan.cpp',
+'PrimitiveMan.cpp',
+'SceneMan.cpp',
+'SettingsMan.cpp',
+'TimerMan.cpp',
+'UInputMan.cpp',
+'WindowMan.cpp'
+)
