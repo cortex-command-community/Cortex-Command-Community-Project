@@ -84,10 +84,10 @@ namespace RTE {
 
 		std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/";
 		for (const auto &entry : std::filesystem::directory_iterator(saveFilePath)) {
-			if (entry.is_directory()) {
+			if (entry.path().extension() == ".ccsave" && entry.path().filename() != "Index.ini") {
 				SaveRecord record;
 				record.SavePath = entry.path();
-				record.SaveDate = std::filesystem::last_write_time(entry.path() / "Save.ini");
+				record.SaveDate = entry.last_write_time();
 				m_SaveGames.push_back(record);
 			}
 		}
@@ -95,7 +95,7 @@ namespace RTE {
 		std::for_each(std::execution::par_unseq,
 			m_SaveGames.begin(), m_SaveGames.end(),
 			[](SaveRecord &record) {
-				Reader reader(record.SavePath.string() + "/Save.ini", true, nullptr, true);
+				Reader reader(record.SavePath.string(), true, nullptr, true);
 
 				bool readActivity = false;
 				bool readSceneName = false;
@@ -202,9 +202,9 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::DeleteSave() {
-		std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText();
+		std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText() + ".ccsave";
 
-		std::filesystem::remove_all(saveFilePath);
+		std::filesystem::remove(saveFilePath);
 		g_GUISound.ConfirmSound()->Play();
 
 		PopulateSaveGamesList();

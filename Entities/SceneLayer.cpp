@@ -233,6 +233,18 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
+	std::unique_ptr<BITMAP> SceneLayerImpl<TRACK_DRAWINGS>::CopyBitmap() {
+		BITMAP* outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
+		if (m_MainBitmap) {
+			outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
+			blit(m_MainBitmap, outputBitmap, 0, 0, 0, 0, m_MainBitmap->w, m_MainBitmap->h);
+		}
+		return std::unique_ptr<BITMAP>(outputBitmap);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::ClearData() {
 		if (m_MainBitmap && m_MainBitmapOwned) { destroy_bitmap(m_MainBitmap); }
 		m_MainBitmap = nullptr;
