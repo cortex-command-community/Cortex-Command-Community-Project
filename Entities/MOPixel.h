@@ -139,6 +139,26 @@ namespace RTE {
 		/// </summary>
 		/// <param name="trailLength">The new max length, in pixels. If 0, no trail is drawn.</param>
 		void SetTrailLength(int trailLength);
+
+		/// <summary>
+		/// Gets this MOPixel's staininess, which defines how likely a pixel is to stain a surface when it collides with it. 
+		/// </summary>
+		/// <returns>This MOPixel's current staininess value.</returns>
+		float GetStaininess() const { return m_Staininess; }
+
+		/// <summary>
+		/// Sets this MOPixel's staininess, which defines how likely a pixel is to stain a surface when it collides with it. 
+		/// </summary>
+		/// <param name="staininess">The new staininess value.</param>
+		void SetStaininess(float staininess) { m_Staininess = staininess; }
+
+		/// <summary>
+		/// Whether a set of X, Y coordinates overlap us (in world space).
+		/// </summary>
+		/// <param name="pixelX">The given X coordinate, in world space.</param>
+		/// <param name="pixelY">The given Y coordinate, in world space.</param>
+		/// <returns>Whether the given coordinate overlap us.</returns>
+		bool HitTestAtPixel(int pixelX, int pixelY) const override;
 #pragma endregion
 
 #pragma region Virtual Override Methods
@@ -200,6 +220,7 @@ namespace RTE {
 		float m_MinLethalRange; //!< Lower bound multiplier for setting LethalRange at random. By default, 1.0 equals one screen.
 		float m_MaxLethalRange; //!< Upper bound multiplier for setting LethalRange at random. By default, 1.0 equals one screen.
 		float m_LethalSharpness; //!< When Sharpness has decreased below this threshold the MO becomes m_HitsMOs = false. Default is Sharpness * 0.5.
+		float m_Staininess; //!< How likely a pixel is to stain a surface when it collides with it. Defaults to 0 (never stain).
 
 	private:
 

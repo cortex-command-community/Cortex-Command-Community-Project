@@ -12,10 +12,13 @@
 // Inclusions of header files
 
 #include "Scene.h"
+
 #include "PresetMan.h"
 #include "MovableMan.h"
+#include "FrameMan.h"
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
+#include "ThreadMan.h"
 #include "MetaMan.h"
 #include "ContentFile.h"
 #include "SLTerrain.h"
@@ -31,6 +34,7 @@
 #include "EditorActivity.h"
 
 #include "AEmitter.h"
+#include "AEJetpack.h"
 #include "ADoor.h"
 #include "AHuman.h"
 #include "ACrab.h"
@@ -41,10 +45,15 @@
 #include "Magazine.h"
 #include "ThrownDevice.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace RTE {
 
 ConcreteClassInfo(Scene, Entity, 0);
 const std::string Scene::Area::c_ClassName = "Area";
+
+// Holds the path calculated by CalculateScenePath
+thread_local std::list<Vector> s_ScenePath;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -100,18 +109,15 @@ int Scene::Area::Create()
 
 int Scene::Area::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-    if (propName == "AddBox")
-    {
+    StartPropertyList(return Serializable::ReadProperty(propName, reader));
+    
+    MatchProperty("AddBox",
         Box box;
         reader >> box;
-        m_BoxList.push_back(box);
-    }
-    else if (propName == "Name")
-        reader >> m_Name;
-    else
-        return Serializable::ReadProperty(propName, reader);
+        m_BoxList.push_back(box); );
+    MatchProperty("Name", { reader >> m_Name; });
 
-    return 0;
+    EndPropertyList;
 }
 
 
@@ -471,9 +477,10 @@ void Scene::Clear()
         m_ScanScheduled[team] = false;
     }
 	m_AreaList.clear();
+    m_NavigatableAreas.clear();
+    m_NavigatableAreasUpToDate = false;
     m_Locked = false;
     m_GlobalAcc.Reset();
-    m_ScenePath.clear();
 	m_SelectedAssemblies.clear();
     m_AssembliesCounts.clear();
 	m_pPreviewBitmap = 0;
@@ -928,13 +935,8 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits)
 		// Create the pathfinding stuff based on the current scene
 		int pathFinderGridNodeSize = g_SettingsMan.GetPathFinderGridNodeSize();
 
-		// TODO: test dynamically setting this. The code below sets it based on map area and block size, with a hefty upper limit.
-		//int sceneArea = GetWidth() * GetHeight();
-		//unsigned int numberOfBlocksToAllocate = std::min(128000, sceneArea / (pathFinderGridNodeSize * pathFinderGridNodeSize));
-		unsigned int numberOfBlocksToAllocate = 4000;
-
         for (int i = 0; i < m_pPathFinders.size(); ++i) {
-            m_pPathFinders[i] = std::make_unique<PathFinder>(pathFinderGridNodeSize, numberOfBlocksToAllocate);
+            m_pPathFinders[i] = std::make_unique<PathFinder>(pathFinderGridNodeSize);
         }
         ResetPathFinding();
     }
@@ -1183,148 +1185,95 @@ int Scene::ClearData()
 
 int Scene::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-
-    if (propName == "LocationOnPlanet")
-        reader >> m_Location;
-    else if (propName == "MetagamePlayable")
-        reader >> m_MetagamePlayable;
-    else if (propName == "Revealed")
-        reader >> m_Revealed;
-    else if (propName == "MetasceneParent")
-        reader >> m_MetasceneParent;
-    else if (propName == "MetagameInternal")
-        reader >> m_IsMetagameInternal;
-     else if (propName == "ScriptSave")
-        reader >> m_IsSavedGameInternal;
-    else if (propName == "OwnedByTeam")
-        reader >> m_OwnedByTeam;
-    else if (propName == "RoundIncome")
-        reader >> m_RoundIncome;
-    else if (propName == "P1ResidentBrain")
-        m_ResidentBrains[Players::PlayerOne] = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader));
-    else if (propName == "P2ResidentBrain")
-        m_ResidentBrains[Players::PlayerTwo] = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader));
-    else if (propName == "P3ResidentBrain")
-        m_ResidentBrains[Players::PlayerThree] = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader));
-    else if (propName == "P4ResidentBrain")
-        m_ResidentBrains[Players::PlayerFour] = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader));
-    else if (propName == "P1BuildBudget")
-        reader >> m_BuildBudget[Players::PlayerOne];
-    else if (propName == "P2BuildBudget")
-        reader >> m_BuildBudget[Players::PlayerTwo];
-    else if (propName == "P3BuildBudget")
-        reader >> m_BuildBudget[Players::PlayerThree];
-    else if (propName == "P4BuildBudget")
-        reader >> m_BuildBudget[Players::PlayerFour];
-    else if (propName == "P1BuildBudgetRatio")
-        reader >> m_BuildBudgetRatio[Players::PlayerOne];
-    else if (propName == "P2BuildBudgetRatio")
-        reader >> m_BuildBudgetRatio[Players::PlayerTwo];
-    else if (propName == "P3BuildBudgetRatio")
-        reader >> m_BuildBudgetRatio[Players::PlayerThree];
-    else if (propName == "P4BuildBudgetRatio")
-        reader >> m_BuildBudgetRatio[Players::PlayerFour];
-    else if (propName == "AutoDesigned")
-        reader >> m_AutoDesigned;
-    else if (propName == "TotalInvestment")
-        reader >> m_TotalInvestment;
-    else if (propName == "PreviewBitmapFile")
-	{
+    StartPropertyList(return Entity::ReadProperty(propName, reader));
+    
+    MatchProperty("LocationOnPlanet", { reader >> m_Location; });
+    MatchProperty("MetagamePlayable", { reader >> m_MetagamePlayable; });
+    MatchProperty("Revealed", { reader >> m_Revealed; });
+    MatchProperty("MetasceneParent", { reader >> m_MetasceneParent; });
+    MatchProperty("MetagameInternal", { reader >> m_IsMetagameInternal; });
+    MatchProperty("ScriptSave", { reader >> m_IsSavedGameInternal; });
+    MatchProperty("OwnedByTeam", { reader >> m_OwnedByTeam; });
+    MatchProperty("RoundIncome", { reader >> m_RoundIncome; });
+    MatchProperty("P1ResidentBrain", { m_ResidentBrains[Players::PlayerOne] = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader)); });
+    MatchProperty("P2ResidentBrain", { m_ResidentBrains[Players::PlayerTwo] = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader)); });
+    MatchProperty("P3ResidentBrain", { m_ResidentBrains[Players::PlayerThree] = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader)); });
+    MatchProperty("P4ResidentBrain", { m_ResidentBrains[Players::PlayerFour] = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader)); });
+    MatchProperty("P1BuildBudget", { reader >> m_BuildBudget[Players::PlayerOne]; });
+    MatchProperty("P2BuildBudget", { reader >> m_BuildBudget[Players::PlayerTwo]; });
+    MatchProperty("P3BuildBudget", { reader >> m_BuildBudget[Players::PlayerThree]; });
+    MatchProperty("P4BuildBudget", { reader >> m_BuildBudget[Players::PlayerFour]; });
+    MatchProperty("P1BuildBudgetRatio", { reader >> m_BuildBudgetRatio[Players::PlayerOne]; });
+    MatchProperty("P2BuildBudgetRatio", { reader >> m_BuildBudgetRatio[Players::PlayerTwo]; });
+    MatchProperty("P3BuildBudgetRatio", { reader >> m_BuildBudgetRatio[Players::PlayerThree]; });
+    MatchProperty("P4BuildBudgetRatio", { reader >> m_BuildBudgetRatio[Players::PlayerFour]; });
+    MatchProperty("AutoDesigned", { reader >> m_AutoDesigned; });
+    MatchProperty("TotalInvestment", { reader >> m_TotalInvestment; });
+    MatchProperty("PreviewBitmapFile",
         reader >> m_PreviewBitmapFile;
-		m_pPreviewBitmap = m_PreviewBitmapFile.GetAsBitmap(COLORCONV_NONE, false);
-	}
-    else if (propName == "Terrain")
-    {
+		m_pPreviewBitmap = m_PreviewBitmapFile.GetAsBitmap(COLORCONV_NONE, false); );
+    MatchProperty("Terrain",
         delete m_pTerrain;
         m_pTerrain = new SLTerrain();
-        reader >> m_pTerrain;
-    }
-    else if (propName == "PlaceSceneObject" || propName == "PlaceMovableObject")
-    {
+        reader >> m_pTerrain; );
+    MatchForwards("PlaceSceneObject")
+    MatchProperty("PlaceMovableObject",
         SceneObject *pSO = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader));
-        if (pSO)
+        if (pSO) {
             m_PlacedObjects[PLACEONLOAD].push_back(pSO);
-    }
-    else if (propName == "BlueprintObject")
-    {
+        } );
+    MatchProperty("BlueprintObject",
         SceneObject *pSO = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader));
-        if (pSO)
+        if (pSO) {
             m_PlacedObjects[BLUEPRINT].push_back(pSO);
-    }
-    else if (propName == "PlaceAIPlanObject")
-    {
+        } );
+    MatchProperty("PlaceAIPlanObject",
         SceneObject *pSO = dynamic_cast<SceneObject *>(g_PresetMan.ReadReflectedPreset(reader));
-        if (pSO)
+        if (pSO) {
             m_PlacedObjects[AIPLAN].push_back(pSO);
-    }
-    else if (propName == "AddBackgroundLayer")
-    {
+        } );
+    MatchProperty("AddBackgroundLayer",
 		SLBackground *pLayer = dynamic_cast<SLBackground *>(g_PresetMan.ReadReflectedPreset(reader));
         RTEAssert(pLayer, "Something went wrong with reading SceneLayer");
-        if (pLayer)
-            m_BackLayerList.push_back(pLayer);
-    }
-    else if (propName == "AllUnseenPixelSizeTeam1")
-    {
+        if (pLayer) {
+            m_BackLayerList.push_back(pLayer); 
+        } );
+    MatchProperty("AllUnseenPixelSizeTeam1",
         // Read the desired pixel dimensions of the dynamically generated unseen map
-        reader >> m_UnseenPixelSize[Activity::TeamOne];
-    }
-    else if (propName == "AllUnseenPixelSizeTeam2")
-    {
+        reader >> m_UnseenPixelSize[Activity::TeamOne]; );
+    MatchProperty("AllUnseenPixelSizeTeam2",
         // Read the desired pixel dimensions of the dynamically generated unseen map
-        reader >> m_UnseenPixelSize[Activity::TeamTwo];
-    }
-    else if (propName == "AllUnseenPixelSizeTeam3")
-    {
+        reader >> m_UnseenPixelSize[Activity::TeamTwo]; );
+    MatchProperty("AllUnseenPixelSizeTeam3",
         // Read the desired pixel dimensions of the dynamically generated unseen map
-        reader >> m_UnseenPixelSize[Activity::TeamThree];
-    }
-    else if (propName == "AllUnseenPixelSizeTeam4")
-    {
+        reader >> m_UnseenPixelSize[Activity::TeamThree]; );
+    MatchProperty("AllUnseenPixelSizeTeam4",
         // Read the desired pixel dimensions of the dynamically generated unseen map
-        reader >> m_UnseenPixelSize[Activity::TeamFour];
-    }
-    else if (propName == "UnseenLayerTeam1")
-    {
+        reader >> m_UnseenPixelSize[Activity::TeamFour]; );
+    MatchProperty("UnseenLayerTeam1",
         delete m_apUnseenLayer[Activity::TeamOne];
-        m_apUnseenLayer[Activity::TeamOne] = dynamic_cast<SceneLayer *>(g_PresetMan.ReadReflectedPreset(reader));
-    }
-    else if (propName == "UnseenLayerTeam2")
-    {
+        m_apUnseenLayer[Activity::TeamOne] = dynamic_cast<SceneLayer *>(g_PresetMan.ReadReflectedPreset(reader)); );
+    MatchProperty("UnseenLayerTeam2",
         delete m_apUnseenLayer[Activity::TeamTwo];
-        m_apUnseenLayer[Activity::TeamTwo] = dynamic_cast<SceneLayer *>(g_PresetMan.ReadReflectedPreset(reader));
-    }
-    else if (propName == "UnseenLayerTeam3")
-    {
+        m_apUnseenLayer[Activity::TeamTwo] = dynamic_cast<SceneLayer *>(g_PresetMan.ReadReflectedPreset(reader)); );
+    MatchProperty("UnseenLayerTeam3",
         delete m_apUnseenLayer[Activity::TeamThree];
-        m_apUnseenLayer[Activity::TeamThree] = dynamic_cast<SceneLayer *>(g_PresetMan.ReadReflectedPreset(reader));
-    }
-    else if (propName == "UnseenLayerTeam4")
-    {
+        m_apUnseenLayer[Activity::TeamThree] = dynamic_cast<SceneLayer *>(g_PresetMan.ReadReflectedPreset(reader)); );
+    MatchProperty("UnseenLayerTeam4",
         delete m_apUnseenLayer[Activity::TeamFour];
-        m_apUnseenLayer[Activity::TeamFour] = dynamic_cast<SceneLayer *>(g_PresetMan.ReadReflectedPreset(reader));
-    }
-    else if (propName == "ScanScheduledTeam1")
-        reader >> m_ScanScheduled[Activity::TeamOne];
-    else if (propName == "ScanScheduledTeam2")
-        reader >> m_ScanScheduled[Activity::TeamTwo];
-    else if (propName == "ScanScheduledTeam3")
-        reader >> m_ScanScheduled[Activity::TeamThree];
-    else if (propName == "ScanScheduledTeam4")
-        reader >> m_ScanScheduled[Activity::TeamFour];
-    else if (propName == "AddArea")
-    {
+        m_apUnseenLayer[Activity::TeamFour] = dynamic_cast<SceneLayer *>(g_PresetMan.ReadReflectedPreset(reader)); );
+    MatchProperty("ScanScheduledTeam1", { reader >> m_ScanScheduled[Activity::TeamOne]; });
+    MatchProperty("ScanScheduledTeam2", { reader >> m_ScanScheduled[Activity::TeamTwo]; });
+    MatchProperty("ScanScheduledTeam3", { reader >> m_ScanScheduled[Activity::TeamThree]; });
+    MatchProperty("ScanScheduledTeam4", { reader >> m_ScanScheduled[Activity::TeamFour]; });
+    MatchProperty("AddArea",
         Area area;
         reader >> area;
         // This replaces any existing ones
-        SetArea(area);
-    }
-    else if (propName == "GlobalAcceleration")
-        reader >> m_GlobalAcc;
-    else
-        return Entity::ReadProperty(propName, reader);
+        SetArea(area); );
+    MatchProperty("GlobalAcceleration", { reader >> m_GlobalAcc; });
 
-    return 0;
+    EndPropertyList;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1490,17 +1439,15 @@ void Scene::SaveSceneObject(Writer &writer, const SceneObject *sceneObjectToSave
 	}
 
 	writer.NewPropertyWithValue("Position", sceneObjectToSave->GetPos());
-	if (saveFullData || sceneObjectToSave->GetTeam() != Activity::Teams::NoTeam) {
-		writer.NewPropertyWithValue("Team", sceneObjectToSave->GetTeam());
-	}
-	if (!isChildAttachable && (saveFullData || sceneObjectToSave->GetPlacedByPlayer() != Players::NoPlayer)) {
+	writer.NewPropertyWithValue("Team", sceneObjectToSave->GetTeam());
+	if (!isChildAttachable) {
 		writer.NewPropertyWithValue("PlacedByPlayer", sceneObjectToSave->GetPlacedByPlayer());
 	}
 	if (saveFullData) {
 		writer.NewPropertyWithValue("GoldValue", sceneObjectToSave->GetGoldValue());
 	}
 
-	if (const Deployment *deploymentToSave = dynamic_cast<const Deployment *>(sceneObjectToSave); saveFullData && deploymentToSave && deploymentToSave->GetID() != 0) {
+	if (const Deployment *deploymentToSave = dynamic_cast<const Deployment *>(sceneObjectToSave); deploymentToSave && deploymentToSave->GetID() != 0) {
 		writer.NewPropertyWithValue("ID", deploymentToSave->GetID());
 	}
 
@@ -1594,6 +1541,25 @@ void Scene::SaveSceneObject(Writer &writer, const SceneObject *sceneObjectToSave
 			WriteHardcodedAttachableOrNone("Flash", aemitterToSave->GetFlash());
 		}
 
+        if (const AEJetpack *jetpackToSave = dynamic_cast<const AEJetpack *>(sceneObjectToSave)) {
+            writer.NewProperty("JetpackType");
+            switch (jetpackToSave->GetJetpackType()) {
+            default:
+            case AEJetpack::JetpackType::Standard:
+                writer << "Standard";
+                break;
+            case AEJetpack::JetpackType::JumpPack:
+                writer << "JumpPack";
+                break;
+            }
+
+            writer.NewPropertyWithValue("JumpTime", jetpackToSave->GetJetTimeTotal() / 1000.0f); // Convert to seconds
+            writer.NewPropertyWithValue("JumpReplenishRate", jetpackToSave->GetJetReplenishRate());
+        	writer.NewPropertyWithValue("MinimumFuelRatio", jetpackToSave->GetMinimumFuelRatio());
+            writer.NewPropertyWithValue("JumpAngleRange", jetpackToSave->GetJetAngleRange());
+            writer.NewPropertyWithValue("CanAdjustAngleWhileFiring", jetpackToSave->GetCanAdjustAngleWhileFiring());
+        }
+
 		if (const Arm *armToSave = dynamic_cast<const Arm *>(sceneObjectToSave)) {
 			WriteHardcodedAttachableOrNone("HeldDevice", armToSave->GetHeldDevice());
 		}
@@ -1624,9 +1590,9 @@ void Scene::SaveSceneObject(Writer &writer, const SceneObject *sceneObjectToSave
 	}
 
 	if (const Actor *actorToSave = dynamic_cast<const Actor *>(sceneObjectToSave)) {
+		writer.NewPropertyWithValue("Health", actorToSave->GetHealth());
+		writer.NewPropertyWithValue("MaxHealth", actorToSave->GetMaxHealth());
 		if (saveFullData) {
-			writer.NewPropertyWithValue("Health", actorToSave->GetHealth());
-			writer.NewPropertyWithValue("MaxHealth", actorToSave->GetMaxHealth());
 			writer.NewPropertyWithValue("Status", actorToSave->GetStatus());
 			writer.NewPropertyWithValue("PlayerControllable", actorToSave->IsPlayerControllable());
 
@@ -2246,12 +2212,12 @@ void Scene::UpdatePlacedObjects(int whichSet)
     {
         for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player)
             if (m_ResidentBrains[player])
-                m_ResidentBrains[player]->Update();
+                m_ResidentBrains[player]->FullUpdate();
     }
 
     for (std::list<SceneObject *>::iterator itr = m_PlacedObjects[whichSet].begin(); itr != m_PlacedObjects[whichSet].end(); ++itr)
     {
-        (*itr)->Update();
+        (*itr)->FullUpdate();
     }
 }
 
@@ -2301,6 +2267,9 @@ SceneObject * Scene::GetResidentBrain(int player) const
 
 void Scene::SetResidentBrain(int player, SceneObject *pNewBrain)
 {
+    if (MovableObject* asMo = dynamic_cast<MovableObject*>(m_ResidentBrains[player])) {
+        asMo->DestroyScriptState();
+    }
     delete m_ResidentBrains[player];
     m_ResidentBrains[player] = pNewBrain;
 }
@@ -2370,15 +2339,16 @@ bool Scene::HasArea(std::string areaName)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Gets a specific area box identified by a name. Ownership is NOT transferred!
 
-Scene::Area * Scene::GetArea(const std::string_view &areaName, bool luaWarnNotError) {
+Scene::Area * Scene::GetArea(const std::string_view &areaName, bool required) {
 	for (Scene::Area &area : m_AreaList) {
 		if (area.GetName() == areaName) {
 			return &area;
 		}
 	}
 
-	std::string luaMessageStart = luaWarnNotError ? "WARNING" : "ERROR";
-    g_ConsoleMan.PrintString(luaMessageStart + ": Could not find the requested Scene Area named: " + areaName.data());
+    if (required) {
+        g_ConsoleMan.PrintString("WARNING: Could not find the requested Scene Area named : " + std::string(areaName));
+    }
 
     return nullptr;
 }
@@ -2984,6 +2954,13 @@ void Scene::ResetPathFinding() {
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+void Scene::BlockUntilAllPathingRequestsComplete() {
+	for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
+		while (GetPathFinder(static_cast<Activity::Teams>(team))->GetCurrentPathingRequests() != 0) {};
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          UpdatePathFinding
@@ -2993,8 +2970,19 @@ void Scene::ResetPathFinding() {
 
 void Scene::UpdatePathFinding()
 {
+    ZoneScoped;
+    
     constexpr int nodeUpdatesPerCall = 100;
     constexpr int maxUnupdatedMaterialAreas = 1000;
+
+    // If any pathing requests are active, don't update things yet, wait till they're finished
+	// TODO: this can indefinitely block updates if pathing requests are made every frame. Figure out a solution for this
+	// Either force-complete pathing requests occasionally, or delay starting new pathing requests if we've not updated in a while
+    for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
+		if (GetPathFinder(static_cast<Activity::Teams>(team))->GetCurrentPathingRequests() != 0) {
+            return;
+        };
+	}
 
     int nodesToUpdate = nodeUpdatesPerCall / g_ActivityMan.GetActivity()->GetTeamCount();
     if (m_pTerrain->GetUpdatedMaterialAreas().size() > maxUnupdatedMaterialAreas) {
@@ -3045,6 +3033,29 @@ float Scene::CalculatePath(const Vector &start, const Vector &end, std::list<Vec
     return false;
 }
 
+std::shared_ptr<volatile PathRequest> Scene::CalculatePathAsync(const Vector &start, const Vector &end, float digStrength, Activity::Teams team, PathCompleteCallback callback) {
+    if (const std::unique_ptr<PathFinder> &pathFinder = GetPathFinder(team)) {
+        return pathFinder->CalculatePathAsync(start, end, digStrength, callback);
+    }
+
+    return nullptr;
+}
+
+int Scene::GetScenePathSize() const {
+    return s_ScenePath.size();
+}
+
+std::list<Vector>& Scene::GetScenePath() {
+    return s_ScenePath;
+}
+
+bool Scene::PositionsAreTheSamePathNode(const Vector &pos1, const Vector &pos2) const {
+    if (const std::unique_ptr<PathFinder> &pathFinder = const_cast<Scene*>(this)->GetPathFinder(Activity::Teams::NoTeam)) {
+        return pathFinder->PositionsAreTheSamePathNode(pos1, pos2);
+    }
+    
+    return false;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Lock
@@ -3093,6 +3104,8 @@ void Scene::Unlock()
 
 void Scene::Update()
 {
+    ZoneScoped;
+
     m_PathfindingUpdated = false;
 
 	if (g_SettingsMan.BlipOnRevealUnseen())
@@ -3109,6 +3122,27 @@ void Scene::Update()
 			}
 		}
 	}
+
+    if (m_NavigatableAreasUpToDate == false) {
+        // Need to block until all current pathfinding requests are finished. Ugh, if only we had a better way (interrupt/cancel a path request to start a new one?)
+        // TODO: Make the PathRequest struct more capable and maybe we can delay starting or cancel mid-request?
+        BlockUntilAllPathingRequestsComplete();
+
+        m_NavigatableAreasUpToDate = true;
+        for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
+            PathFinder& pathFinder = *GetPathFinder(static_cast<Activity::Teams>(team));
+
+            pathFinder.MarkAllNodesNavigatable(m_NavigatableAreas.empty());
+
+            for (const std::string &navigatableArea : m_NavigatableAreas) {
+                if (HasArea(navigatableArea)) {
+                    for (const Box &navigatableBox : GetArea(navigatableArea)->GetBoxes()) {
+                        pathFinder.MarkBoxNavigatable(navigatableBox, true);
+                    }
+                }
+            }
+        }
+    }
 
     // Occasionally update pathfinding. There's a tradeoff between how often updates occur vs how big the multithreaded batched node lists to update are.
     if (m_PartialPathUpdateTimer.IsPastRealMS(100)) {

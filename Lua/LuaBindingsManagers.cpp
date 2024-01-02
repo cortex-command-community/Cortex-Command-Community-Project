@@ -140,9 +140,9 @@ namespace RTE {
 		.def("GetSplashRatio", &MovableMan::GetSplashRatio)
 		.def("SortTeamRoster", &MovableMan::SortTeamRoster)
 		.def("ChangeActorTeam", &MovableMan::ChangeActorTeam)
-		.def("RemoveActor", &MovableMan::RemoveActor)
-		.def("RemoveItem", &MovableMan::RemoveItem)
-		.def("RemoveParticle", &MovableMan::RemoveParticle)
+		.def("RemoveActor", &MovableMan::RemoveActor, luabind::adopt(luabind::return_value))
+		.def("RemoveItem", &MovableMan::RemoveItem, luabind::adopt(luabind::return_value))
+		.def("RemoveParticle", &MovableMan::RemoveParticle, luabind::adopt(luabind::return_value))
 		.def("ValidMO", &MovableMan::ValidMO)
 		.def("IsActor", &MovableMan::IsActor)
 		.def("IsDevice", &MovableMan::IsDevice)
@@ -162,11 +162,21 @@ namespace RTE {
 		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-
+		
+		.def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage1)
+		.def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage2)
 		.def("AddMO", &LuaAdaptersMovableMan::AddMO, luabind::adopt(_2))
 		.def("AddActor", &LuaAdaptersMovableMan::AddActor, luabind::adopt(_2))
 		.def("AddItem", &LuaAdaptersMovableMan::AddItem, luabind::adopt(_2))
 		.def("AddParticle", &LuaAdaptersMovableMan::AddParticle, luabind::adopt(_2));
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PerformanceMan) {
+		return luabind::class_<PerformanceMan>("PerformanceManager")
+
+		.property("ShowPerformanceStats", &PerformanceMan::IsShowingPerformanceStats, &PerformanceMan::ShowPerformanceStats);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -201,6 +211,10 @@ namespace RTE {
 		.def("ReadReflectedPreset", &PresetMan::ReadReflectedPreset)
 		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset1)
 		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset2)
+		.def("GetAllEntities", &LuaAdaptersPresetMan::GetAllEntities, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup2, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup3, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
 		.def("ReloadAllScripts", &PresetMan::ReloadAllScripts)
 		.def("IsModuleOfficial", &PresetMan::IsModuleOfficial)
 		.def("IsModuleUserdata", &PresetMan::IsModuleUserdata)
@@ -277,6 +291,7 @@ namespace RTE {
 		.property("SceneHeight", &SceneMan::GetSceneHeight)
 		.property("SceneWrapsX", &SceneMan::SceneWrapsX)
 		.property("SceneWrapsY", &SceneMan::SceneWrapsY)
+		.property("SceneOrbitDirection", &SceneMan::GetSceneOrbitDirection)
 		.property("LayerDrawMode", &SceneMan::GetLayerDrawMode, &SceneMan::SetLayerDrawMode)
 		.property("GlobalAcc", &SceneMan::GetGlobalAcc)
 		.property("OzPerKg", &SceneMan::GetOzPerKg)
@@ -318,7 +333,8 @@ namespace RTE {
 		.def("CastFindMORay", &SceneMan::CastFindMORay)
 		.def("CastObstacleRay", &SceneMan::CastObstacleRay)
 		.def("GetLastRayHitPos", &SceneMan::GetLastRayHitPos)
-		.def("FindAltitude", &SceneMan::FindAltitude)
+		.def("FindAltitude", (float (SceneMan::*) (const Vector&, int, int)) &SceneMan::FindAltitude)
+		.def("FindAltitude", (float (SceneMan::*) (const Vector&, int, int, bool)) &SceneMan::FindAltitude)
 		.def("MovePointToGround", &SceneMan::MovePointToGround)
 		.def("IsWithinBounds", &SceneMan::IsWithinBounds)
 		.def("ForceBounds", (bool (SceneMan::*)(int &, int &))&SceneMan::ForceBounds)
@@ -371,13 +387,12 @@ namespace RTE {
 		return luabind::class_<TimerMan>("TimerManager")
 
 		.property("TimeScale", &TimerMan::GetTimeScale, &TimerMan::SetTimeScale)
-		.property("RealToSimCap", &TimerMan::GetRealToSimCap, &TimerMan::SetRealToSimCap)
+		.property("RealToSimCap", &TimerMan::GetRealToSimCap)
 		.property("DeltaTimeTicks", &LuaAdaptersTimerMan::GetDeltaTimeTicks, &TimerMan::SetDeltaTimeTicks)
 		.property("DeltaTimeSecs", &TimerMan::GetDeltaTimeSecs, &TimerMan::SetDeltaTimeSecs)
 		.property("DeltaTimeMS", &TimerMan::GetDeltaTimeMS)
 		.property("AIDeltaTimeSecs", &TimerMan::GetAIDeltaTimeSecs)
 		.property("AIDeltaTimeMS", &TimerMan::GetAIDeltaTimeMS)
-		.property("OneSimUpdatePerFrame", &TimerMan::IsOneSimUpdatePerFrame, &TimerMan::SetOneSimUpdatePerFrame)
 
 		.property("TicksPerSecond", &LuaAdaptersTimerMan::GetTicksPerSecond)
 
@@ -407,6 +422,7 @@ namespace RTE {
 		.def("MouseButtonPressed", &UInputMan::MouseButtonPressed)
 		.def("MouseButtonReleased", &UInputMan::MouseButtonReleased)
 		.def("MouseButtonHeld", &UInputMan::MouseButtonHeld)
+		.def("GetMousePos", &UInputMan::GetAbsoluteMousePosition)
 		.def("MouseWheelMoved", &UInputMan::MouseWheelMoved)
 		.def("JoyButtonPressed", &UInputMan::JoyButtonPressed)
 		.def("JoyButtonReleased", &UInputMan::JoyButtonReleased)
@@ -432,6 +448,8 @@ namespace RTE {
 		.def("AnyInput", &UInputMan::AnyKeyOrJoyInput)
 		.def("AnyPress", &UInputMan::AnyPress)
 		.def("AnyStartPress", &UInputMan::AnyStartPress)
+		.def("HasTextInput", &UInputMan::HasTextInput)
+		.def("GetTextInput", (const std::string& (UInputMan::*)() const) &UInputMan::GetTextInput)
 
 		.def("MouseButtonPressed", &LuaAdaptersUInputMan::MouseButtonPressed)
 		.def("MouseButtonReleased", &LuaAdaptersUInputMan::MouseButtonReleased)

@@ -453,6 +453,12 @@ namespace RTE {
 		bool HandlePotentialRadiusAffectingAttachable(const Attachable *attachable) override;
 
 		/// <summary>
+		/// Updates this Attachable's Lua scripts.
+		/// </summary>
+		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		int UpdateScripts() override;
+
+		/// <summary>
 		/// Updates this Attachable. Supposed to be done every frame.
 		///	NOTE - Attachable subclasses that do things before calling Attachable::Update should make sure to call Attachable::PreUpdate.
 		/// </summary>

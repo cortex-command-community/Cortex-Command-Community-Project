@@ -288,6 +288,17 @@ namespace RTE {
 		/// <param name="text">The std::string to fill.</param>
 		/// <returns>Whether there is text input.</returns>
 		bool GetTextInput(std::string &text) const { text = m_TextInput; return !m_TextInput.empty(); }
+
+		/// <summary>
+		/// Returns whether text input events are available.
+		/// </summary>
+		bool HasTextInput() const { return !m_TextInput.empty(); }
+
+		/// <summary>
+		/// Returns the current text input.
+		/// </summary>
+		/// <returns>The current text input.</returns>
+		const std::string& GetTextInput() const {return m_TextInput; }
 #pragma endregion
 
 #pragma region Mouse Handling
@@ -745,6 +756,15 @@ namespace RTE {
 		/// <param name="whichState">Which state to check for. See InputState enumeration.</param>
 		/// <returns>Whether the mouse button is in the specified state or not.</returns>
 		bool GetMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const;
+
+		/// <summary>
+		/// Gets whether a multiplayer mouse button is in the specified state.
+		/// </summary>
+		/// <param name="whichPlayer">Which player to check for. See Players enumeration.</param>
+		/// <param name="whichButton">Which mouse button to check for. See MouseButtons enumeration.</param>
+		/// <param name="whichState">Which state to check for. See InputState enumeration.</param>
+		/// <returns>Whether the mouse button is in the specified state or not.</returns>
+		bool GetNetworkMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const;
 
 		/// <summary>
 		/// Gets whether a joystick button is in the specified state.

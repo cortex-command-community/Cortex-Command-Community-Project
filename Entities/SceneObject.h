@@ -464,6 +464,12 @@ public:
 
     bool IsBuyable() const { return m_Buyable; }
 
+    /// <summary>
+    /// Gets the BuyableMode of this SceneObject.
+    /// </summary>
+    /// <returns>The BuyableMode of this SceneObject</returns>
+    BuyableMode GetBuyableMode() const { return m_BuyableMode; }
+
 	/// <summary>
 	/// Gets whether this SceneObject is available only in the BuyMenu list when buyable.
 	/// </summary>
@@ -512,7 +518,25 @@ public:
 // Arguments:       None.
 // Return value:    None.
 
-	virtual void Update() { return; }
+	virtual void Update() { }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Virtual method:  FullUpdate
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Updates the full state of this object in one call.
+// Arguments:       None.
+// Return value:    None.
+    virtual void FullUpdate() { Update(); }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Virtual method:  PostUpdate
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Function called after everything has finished updating.
+// Arguments:       None.
+// Return value:    None.
+    virtual void PostUpdate() { };
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

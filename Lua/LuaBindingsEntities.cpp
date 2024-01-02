@@ -62,10 +62,7 @@ namespace RTE {
 		.property("RightFGLeg", &ACrab::GetRightFGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetRightFGLeg)
 		.property("RightBGLeg", &ACrab::GetRightBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetRightBGLeg)
 		.property("StrideSound", &ACrab::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetStrideSound)
-		.property("JetTimeTotal", &ACrab::GetJetTimeTotal, &ACrab::SetJetTimeTotal)
-		.property("JetTimeLeft", &ACrab::GetJetTimeLeft)
-		.property("JetReplenishRate", &ACrab::GetJetReplenishRate, &ACrab::SetJetReplenishRate)
-		.property("JetAngleRange", &ACrab::GetJetAngleRange, &ACrab::SetJetAngleRange)
+		.property("StrideFrame", &ACrab::StrideFrame)
 		.property("EquippedItem", &ACrab::GetEquippedItem)
 		.property("FirearmIsReady", &ACrab::FirearmIsReady)
 		.property("FirearmIsEmpty", &ACrab::FirearmIsEmpty)
@@ -84,13 +81,6 @@ namespace RTE {
 		.def("GetLimbPathSpeed", &ACrab::GetLimbPathSpeed)
 		.def("SetLimbPathSpeed", &ACrab::SetLimbPathSpeed)
 
-		.enum_("MovementState")[
-			luabind::value("STAND", ACrab::MovementState::STAND),
-			luabind::value("WALK", ACrab::MovementState::WALK),
-			luabind::value("JUMP", ACrab::MovementState::JUMP),
-			luabind::value("DISLODGE", ACrab::MovementState::DISLODGE),
-			luabind::value("MOVEMENTSTATECOUNT", ACrab::MovementState::MOVEMENTSTATECOUNT)
-		]
 		.enum_("Side")[
 			luabind::value("LEFTSIDE", ACrab::Side::LEFTSIDE),
 			luabind::value("RIGHTSIDE", ACrab::Side::RIGHTSIDE),
@@ -235,17 +225,21 @@ namespace RTE {
 		.property("DeploymentID", &Actor::GetDeploymentID)
 		.property("PassengerSlots", &Actor::GetPassengerSlots, &Actor::SetPassengerSlots)
 		.property("Perceptiveness", &Actor::GetPerceptiveness, &Actor::SetPerceptiveness)
+		.property("PainThreshold", &Actor::GetPainThreshold, &Actor::SetPainThreshold)
 		.property("CanRevealUnseen", &Actor::GetCanRevealUnseen, &Actor::SetCanRevealUnseen)
 		.property("InventorySize", &Actor::GetInventorySize)
 		.property("MaxInventoryMass", &Actor::GetMaxInventoryMass)
 		.property("MovePathSize", &Actor::GetMovePathSize)
 		.property("MovePathEnd", &Actor::GetMovePathEnd)
+		.property("IsWaitingOnNewMovePath", &Actor::IsWaitingOnNewMovePath)
 		.property("AimDistance", &Actor::GetAimDistance, &Actor::SetAimDistance)
 		.property("SightDistance", &Actor::GetSightDistance, &Actor::SetSightDistance)
 		.property("PieMenu", &Actor::GetPieMenu, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetPieMenu)
 		.property("AIBaseDigStrength", &Actor::GetAIBaseDigStrength, &Actor::SetAIBaseDigStrength)
+		.property("DigStrength", &Actor::EstimateDigStrength)
 		.property("SceneWaypoints", &LuaAdaptersActor::GetSceneWaypoints, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 		.property("LimbPushForcesAndCollisionsDisabled", &Actor::GetLimbPushForcesAndCollisionsDisabled, &Actor::SetLimbPushForcesAndCollisionsDisabled)
+		.property("MoveProximityLimit", &Actor::GetMoveProximityLimit, &Actor::SetMoveProximityLimit)
 
 		.def_readwrite("MOMoveTarget", &Actor::m_pMOMoveTarget)
 		.def_readwrite("MovePath", &Actor::m_MovePath, luabind::return_stl_iterator)
@@ -282,6 +276,7 @@ namespace RTE {
 		.def("AddInventoryItem", &Actor::AddInventoryItem, luabind::adopt(_2))
 		.def("RemoveInventoryItem", (void (Actor::*)(const std::string &))&Actor::RemoveInventoryItem)
 		.def("RemoveInventoryItem", (void (Actor::*)(const std::string &, const std::string &))&Actor::RemoveInventoryItem)
+		.def("RemoveInventoryItemAtIndex", &Actor::RemoveInventoryItemAtIndex, luabind::adopt(luabind::return_value))
 		.def("SwapNextInventory", &Actor::SwapNextInventory)
 		.def("SwapPrevInventory", &Actor::SwapPrevInventory)
 		.def("DropAllInventory", &Actor::DropAllInventory)
@@ -301,6 +296,18 @@ namespace RTE {
 			luabind::value("INACTIVE", Actor::Status::INACTIVE),
 			luabind::value("DYING", Actor::Status::DYING),
 			luabind::value("DEAD", Actor::Status::DEAD)
+		]
+		.enum_("MovementState")[
+			luabind::value("NOMOVE", Actor::MovementState::NOMOVE),
+			luabind::value("STAND", Actor::MovementState::STAND),
+			luabind::value("WALK", Actor::MovementState::WALK),
+			luabind::value("JUMP", Actor::MovementState::JUMP),
+			luabind::value("DISLODGE", Actor::MovementState::DISLODGE),
+			luabind::value("CROUCH", Actor::MovementState::CROUCH),
+			luabind::value("CRAWL", Actor::MovementState::CRAWL),
+			luabind::value("ARMCRAWL", Actor::MovementState::ARMCRAWL),
+			luabind::value("CLIMB", Actor::MovementState::CLIMB),
+			luabind::value("MOVEMENTSTATECOUNT", Actor::MovementState::MOVEMENTSTATECOUNT)
 		]
 		.enum_("AIMode")[
 			luabind::value("AIMODE_NONE", Actor::AIMode::AIMODE_NONE),
@@ -364,6 +371,7 @@ namespace RTE {
 		.def("OpenDoor", &ADoor::OpenDoor)
 		.def("CloseDoor", &ADoor::CloseDoor)
 		.def("StopDoor", &ADoor::StopDoor)
+		.def("ResetSensorTimer", &ADoor::ResetSensorTimer)
 		.def("SetClosedByDefault", &ADoor::SetClosedByDefault)
 
 		.enum_("DoorState")[
@@ -405,13 +413,36 @@ namespace RTE {
 		.def_readwrite("Emissions", &AEmitter::m_EmissionList, luabind::return_stl_iterator)
 
 		.def("IsEmitting", &AEmitter::IsEmitting)
+		.def("WasEmitting", &AEmitter::WasEmitting)
 		.def("EnableEmission", &AEmitter::EnableEmission)
 		.def("GetEmitVector", &AEmitter::GetEmitVector)
 		.def("GetRecoilVector", &AEmitter::GetRecoilVector)
 		.def("EstimateImpulse", &AEmitter::EstimateImpulse)
 		.def("TriggerBurst", &AEmitter::TriggerBurst)
 		.def("IsSetToBurst", &AEmitter::IsSetToBurst)
-		.def("CanTriggerBurst", &AEmitter::CanTriggerBurst);
+		.def("CanTriggerBurst", &AEmitter::CanTriggerBurst)
+		.def("GetScaledThrottle", &AEmitter::GetScaledThrottle)
+		.def("JustStartedEmitting", &AEmitter::JustStartedEmitting);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEJetpack) {
+		return ConcreteTypeLuaClassDefinition(AEJetpack, AEmitter)
+
+		.property("JetpackType", &AEJetpack::GetJetpackType, &AEJetpack::SetJetpackType)
+		.property("JetTimeTotal", &AEJetpack::GetJetTimeTotal, &AEJetpack::SetJetTimeTotal)
+		.property("JetTimeLeft", &AEJetpack::GetJetTimeLeft)
+		.property("JetReplenishRate", &AEJetpack::GetJetReplenishRate, &AEJetpack::SetJetReplenishRate)
+		.property("MinimumFuelRatio", &AEJetpack::GetMinimumFuelRatio, &AEJetpack::SetMinimumFuelRatio)
+		.property("JetAngleRange", &AEJetpack::GetJetAngleRange, &AEJetpack::SetJetAngleRange)
+		.property("CanAdjustAngleWhileFiring", &AEJetpack::GetCanAdjustAngleWhileFiring, &AEJetpack::SetCanAdjustAngleWhileFiring)
+		.property("AdjustsThrottleForWeight", &AEJetpack::GetAdjustsThrottleForWeight, &AEJetpack::SetAdjustsThrottleForWeight)
+
+		.enum_("JetpackType")[
+			luabind::value("Standard", AEJetpack::Standard),
+			luabind::value("JumpPack", AEJetpack::JumpPack)
+		];
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -429,11 +460,11 @@ namespace RTE {
 		.property("BGLeg", &AHuman::GetBGLeg, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGLeg)
 		.property("FGFoot", &AHuman::GetFGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGFoot)
 		.property("BGFoot", &AHuman::GetBGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGFoot)
+		.property("MaxWalkPathCrouchShift", &AHuman::GetMaxWalkPathCrouchShift, &AHuman::SetMaxWalkPathCrouchShift)
+		.property("MaxCrouchRotation", &AHuman::GetMaxCrouchRotation, &AHuman::SetMaxCrouchRotation)
+		.property("CrouchAmount", &AHuman::GetCrouchAmount)
+		.property("CrouchAmountOverride", &AHuman::GetCrouchAmountOverride, &AHuman::SetCrouchAmountOverride)
 		.property("StrideSound", &AHuman::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetStrideSound)
-		.property("JetTimeTotal", &AHuman::GetJetTimeTotal, &AHuman::SetJetTimeTotal)
-		.property("JetTimeLeft", &AHuman::GetJetTimeLeft, &AHuman::SetJetTimeLeft)
-		.property("JetReplenishRate", &AHuman::GetJetReplenishRate, &AHuman::SetJetReplenishRate)
-		.property("JetAngleRange", &AHuman::GetJetAngleRange, &AHuman::SetJetAngleRange)
 		.property("UpperBodyState", &AHuman::GetUpperBodyState, &AHuman::SetUpperBodyState)
 		.property("MovementState", &AHuman::GetMovementState, &AHuman::SetMovementState)
 		.property("ProneState", &AHuman::GetProneState, &AHuman::SetProneState)
@@ -450,6 +481,7 @@ namespace RTE {
 		.property("FirearmActivationDelay", &AHuman::FirearmActivationDelay)
 		.property("LimbPathPushForce", &AHuman::GetLimbPathPushForce, &AHuman::SetLimbPathPushForce)
 		.property("IsClimbing", &AHuman::IsClimbing)
+		.property("StrideFrame", &AHuman::StrideFrame)
 		.property("ArmSwingRate", &AHuman::GetArmSwingRate, &AHuman::SetArmSwingRate)
 		.property("DeviceArmSwayRate", &AHuman::GetDeviceArmSwayRate, &AHuman::SetDeviceArmSwayRate)
 
@@ -489,18 +521,6 @@ namespace RTE {
 			luabind::value("DEHOLSTERING_BELT", AHuman::UpperBodyState::DEHOLSTERING_BELT),
 			luabind::value("THROWING_PREP", AHuman::UpperBodyState::THROWING_PREP),
 			luabind::value("THROWING_RELEASE",AHuman::UpperBodyState::THROWING_RELEASE)
-		]
-		.enum_("MovementState")[
-			luabind::value("NOMOVE", AHuman::MovementState::NOMOVE),
-			luabind::value("STAND", AHuman::MovementState::STAND),
-			luabind::value("WALK", AHuman::MovementState::WALK),
-			luabind::value("CROUCH", AHuman::MovementState::CROUCH),
-			luabind::value("CRAWL", AHuman::MovementState::CRAWL),
-			luabind::value("ARMCRAWL", AHuman::MovementState::ARMCRAWL),
-			luabind::value("CLIMB", AHuman::MovementState::CLIMB),
-			luabind::value("JUMP", AHuman::MovementState::JUMP),
-			luabind::value("DISLODGE", AHuman::MovementState::DISLODGE),
-			luabind::value("MOVEMENTSTATECOUNT", AHuman::MovementState::MOVEMENTSTATECOUNT)
 		]
 		.enum_("ProneState")[
 			luabind::value("NOTPRONE", AHuman::ProneState::NOTPRONE),
@@ -675,6 +695,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HDFirearm) {
 		return ConcreteTypeLuaClassDefinition(HDFirearm, HeldDevice)
 
+		.property("ReloadEndOffset", &HDFirearm::GetReloadEndOffset, &HDFirearm::SetReloadEndOffset)
 		.property("RateOfFire", &HDFirearm::GetRateOfFire, &HDFirearm::SetRateOfFire)
 		.property("MSPerRound", &HDFirearm::GetMSPerRound)
 		.property("FullAuto", &HDFirearm::IsFullAuto, &HDFirearm::SetFullAuto)
@@ -738,11 +759,15 @@ namespace RTE {
 		.property("SharpLength", &HeldDevice::GetSharpLength, &HeldDevice::SetSharpLength)
 		.property("Supportable", &HeldDevice::IsSupportable, &HeldDevice::SetSupportable)
 		.property("SupportOffset", &HeldDevice::GetSupportOffset, &HeldDevice::SetSupportOffset)
+		.property("UseSupportOffsetWhileReloading", &HeldDevice::GetUseSupportOffsetWhileReloading, &HeldDevice::SetUseSupportOffsetWhileReloading)
 		.property("HasPickupLimitations", &HeldDevice::HasPickupLimitations)
 		.property("UnPickupable", &HeldDevice::IsUnPickupable, &HeldDevice::SetUnPickupable)
 		.property("GripStrengthMultiplier", &HeldDevice::GetGripStrengthMultiplier, &HeldDevice::SetGripStrengthMultiplier)
 		.property("Supported", &HeldDevice::GetSupported, &HeldDevice::SetSupported)
+		.property("GetsHitByMOsWhenHeld", &HeldDevice::GetsHitByMOsWhenHeld, &HeldDevice::SetGetsHitByMOsWhenHeld)
+		.property("VisualRecoilMultiplier", &HeldDevice::GetVisualRecoilMultiplier, &HeldDevice::SetVisualRecoilMultiplier)
 
+		.def("IsBeingHeld", &HeldDevice::IsBeingHeld)
 		.def("IsWeapon", &HeldDevice::IsWeapon)
 		.def("IsTool", &HeldDevice::IsTool)
 		.def("IsShield", &HeldDevice::IsShield)
@@ -780,6 +805,7 @@ namespace RTE {
 
 		.property("StartOffset", &LimbPath::GetStartOffset, &LimbPath::SetStartOffset)
 		.property("SegmentCount", &LimbPath::GetSegCount)
+		.property("TravelSpeedMultiplier", &LimbPath::GetTravelSpeedMultiplier, &LimbPath::SetTravelSpeedMultiplier)
 
 		.def("GetSegment", &LimbPath::GetSegment);
 	}
@@ -839,7 +865,8 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOPixel) {
 		return ConcreteTypeLuaClassDefinition(MOPixel, MovableObject)
 
-		.property("TrailLength", &MOPixel::GetTrailLength, &MOPixel::SetTrailLength);
+		.property("TrailLength", &MOPixel::GetTrailLength, &MOPixel::SetTrailLength)
+		.property("Staininess", &MOPixel::GetStaininess, &MOPixel::SetStaininess);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -938,18 +965,6 @@ namespace RTE {
 		.def("RemoveWounds", (float (MOSRotating:: *)(int numberOfWoundsToRemove, bool positiveDamage, bool negativeDamage, bool noDamage)) &MOSRotating::RemoveWounds)
 		.def("IsOnScenePoint", &MOSRotating::IsOnScenePoint)
 		.def("EraseFromTerrain", &MOSRotating::EraseFromTerrain)
-		.def("GetStringValue", &MOSRotating::GetStringValue)
-		.def("GetNumberValue", &MOSRotating::GetNumberValue)
-		.def("GetObjectValue", &MOSRotating::GetObjectValue)
-		.def("SetStringValue", &MOSRotating::SetStringValue)
-		.def("SetNumberValue", &MOSRotating::SetNumberValue)
-		.def("SetObjectValue", &MOSRotating::SetObjectValue)
-		.def("RemoveStringValue", &MOSRotating::RemoveStringValue)
-		.def("RemoveNumberValue", &MOSRotating::RemoveNumberValue)
-		.def("RemoveObjectValue", &MOSRotating::RemoveObjectValue)
-		.def("StringValueExists", &MOSRotating::StringValueExists)
-		.def("NumberValueExists", &MOSRotating::NumberValueExists)
-		.def("ObjectValueExists", &MOSRotating::ObjectValueExists)
 		.def("AddAttachable", (void (MOSRotating::*)(Attachable *attachableToAdd))&MOSRotating::AddAttachable, luabind::adopt(_2))
 		.def("AddAttachable", (void (MOSRotating::*)(Attachable *attachableToAdd, const Vector &parentOffset))&MOSRotating::AddAttachable, luabind::adopt(_2))
 		.def("RemoveAttachable", (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove)) &MOSRotating::RemoveAttachable, luabind::adopt(luabind::return_value))
@@ -1000,6 +1015,7 @@ namespace RTE {
 		.property("IgnoresTeamHits", &MovableObject::IgnoresTeamHits, &MovableObject::SetIgnoresTeamHits)
 		.property("IgnoresWhichTeam", &MovableObject::IgnoresWhichTeam)
 		.property("IgnoreTerrain", &MovableObject::IgnoreTerrain, &MovableObject::SetIgnoreTerrain)
+		.property("IgnoresActorHits", &MovableObject::GetIgnoresActorHits, &MovableObject::SetIgnoresActorHits)
 		.property("ToSettle", &MovableObject::ToSettle, &MovableObject::SetToSettle)
 		.property("ToDelete", &MovableObject::ToDelete, &MovableObject::SetToDelete)
 		.property("MissionCritical", &MovableObject::IsMissionCritical, &MovableObject::SetMissionCritical)
@@ -1025,8 +1041,23 @@ namespace RTE {
 		.def("AddScript", &LuaAdaptersMovableObject::AddScript)
 		.def("ScriptEnabled", &MovableObject::ScriptEnabled)
 		.def("EnableScript", &LuaAdaptersMovableObject::EnableScript)
-		.def("DisableScript", &LuaAdaptersMovableObject::DisableScript)
+		.def("DisableScript", &LuaAdaptersMovableObject::DisableScript1)
+		.def("DisableScript", &LuaAdaptersMovableObject::DisableScript2)
 		.def("EnableOrDisableAllScripts", &MovableObject::EnableOrDisableAllScripts)
+		.def("GetStringValue", &MovableObject::GetStringValue)
+		.def("GetEncodedStringValue", &MovableObject::GetEncodedStringValue)
+		.def("GetNumberValue", &MovableObject::GetNumberValue)
+		.def("GetObjectValue", &MovableObject::GetObjectValue)
+		.def("SetStringValue", &MovableObject::SetStringValue)
+		.def("SetEncodedStringValue", &MovableObject::SetEncodedStringValue)
+		.def("SetNumberValue", &MovableObject::SetNumberValue)
+		.def("SetObjectValue", &MovableObject::SetObjectValue)
+		.def("RemoveStringValue", &MovableObject::RemoveStringValue)
+		.def("RemoveNumberValue", &MovableObject::RemoveNumberValue)
+		.def("RemoveObjectValue", &MovableObject::RemoveObjectValue)
+		.def("StringValueExists", &MovableObject::StringValueExists)
+		.def("NumberValueExists", &MovableObject::NumberValueExists)
+		.def("ObjectValueExists", &MovableObject::ObjectValueExists)
 		.def("GetAltitude", &MovableObject::GetAltitude)
 		.def("GetWhichMOToNotHit", &MovableObject::GetWhichMOToNotHit)
 		.def("SetWhichMOToNotHit", &MovableObject::SetWhichMOToNotHit)
@@ -1061,7 +1092,10 @@ namespace RTE {
 		.def("NotResting", &MovableObject::NotResting)
 		.def("IsAtRest", &MovableObject::IsAtRest)
 		.def("MoveOutOfTerrain", &MovableObject::MoveOutOfTerrain)
-		.def("RotateOffset", &MovableObject::RotateOffset);
+		.def("RotateOffset", &MovableObject::RotateOffset)
+		.def("SendMessage", &LuaAdaptersMovableObject::SendMessage1)
+		.def("SendMessage", &LuaAdaptersMovableObject::SendMessage2)
+		.def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1081,13 +1115,15 @@ namespace RTE {
 		.def_readwrite("Emissions", &PEmitter::m_EmissionList, luabind::return_stl_iterator)
 
 		.def("IsEmitting", &PEmitter::IsEmitting)
+		.def("WasEmitting", &PEmitter::WasEmitting)
 		.def("EnableEmission", &PEmitter::EnableEmission)
 		.def("GetEmitVector", &PEmitter::GetEmitVector)
 		.def("GetRecoilVector", &PEmitter::GetRecoilVector)
 		.def("EstimateImpulse", &PEmitter::EstimateImpulse)
 		.def("TriggerBurst", &PEmitter::TriggerBurst)
 		.def("IsSetToBurst", &PEmitter::IsSetToBurst)
-		.def("CanTriggerBurst", &PEmitter::CanTriggerBurst);
+		.def("CanTriggerBurst", &PEmitter::CanTriggerBurst)
+		.def("JustStartedEmitting", &PEmitter::JustStartedEmitting);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1181,9 +1217,9 @@ namespace RTE {
 		.def("GetFirstPieSliceByType", &PieMenu::GetFirstPieSliceByType)
 		.def("AddPieSlice", &PieMenu::AddPieSlice, luabind::adopt(_2))
 		.def("AddPieSlice", &LuaAdaptersPieMenu::AddPieSlice, luabind::adopt(_2))
-		.def("AddPieSliceIfPresetNameIsUnique", &PieMenu::AddPieSliceIfPresetNameIsUnique, luabind::adopt(_2))
-		.def("AddPieSliceIfPresetNameIsUnique", &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1, luabind::adopt(_2))
-		.def("AddPieSliceIfPresetNameIsUnique", &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2, luabind::adopt(_2))
+		.def("AddPieSliceIfPresetNameIsUnique", &PieMenu::AddPieSliceIfPresetNameIsUnique)
+		.def("AddPieSliceIfPresetNameIsUnique", &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1)
+		.def("AddPieSliceIfPresetNameIsUnique", &LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2)
 		.def("RemovePieSlice", &PieMenu::RemovePieSlice, luabind::adopt(luabind::return_value))
 		.def("RemovePieSlicesByPresetName", &PieMenu::RemovePieSlicesByPresetName)
 		.def("RemovePieSlicesByType", &PieMenu::RemovePieSlicesByType)
@@ -1224,11 +1260,11 @@ namespace RTE {
 		.property("GlobalAcc", &Scene::GetGlobalAcc, &Scene::SetGlobalAcc)
 		.property("ScenePathSize", &Scene::GetScenePathSize)
 
-		.def_readwrite("ScenePath", &Scene::m_ScenePath, luabind::return_stl_iterator)
 		.def_readwrite("Deployments", &Scene::m_Deployments, luabind::return_stl_iterator)
 
 		.def_readonly("BackgroundLayers", &Scene::m_BackLayerList, luabind::return_stl_iterator)
 
+		.def("GetScenePath", &Scene::GetScenePath, luabind::return_stl_iterator)
 		.def("GetBuildBudget", &Scene::GetBuildBudget)
 		.def("SetBuildBudget", &Scene::SetBuildBudget)
 		.def("IsScanScheduled", &Scene::IsScanScheduled)
@@ -1245,11 +1281,15 @@ namespace RTE {
 		.def("GetArea", (Scene::Area * (Scene:: *)(const std::string &areaName)) &Scene::GetArea)
 		.def("GetOptionalArea", &Scene::GetOptionalArea)
 		.def("WithinArea", &Scene::WithinArea)
+		.def("AddNavigatableArea", &Scene::AddNavigatableArea)
+		.def("ClearNavigatableAreas", &Scene::ClearNavigatableAreas)
 		.def("ResetPathFinding", &Scene::ResetPathFinding)
 		.def("UpdatePathFinding", &Scene::UpdatePathFinding)
 		.def("PathFindingUpdated", &Scene::PathFindingUpdated)
 		.def("CalculatePath", &LuaAdaptersScene::CalculatePath1)
 		.def("CalculatePath", &LuaAdaptersScene::CalculatePath2)
+		.def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync1)
+		.def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync2)
 
 		.enum_("PlacedObjectSets")[
 			luabind::value("PLACEONLOAD", Scene::PlacedObjectSets::PLACEONLOAD),
@@ -1304,16 +1344,25 @@ namespace RTE {
 		.property("RotAngle", &SceneObject::GetRotAngle, &SceneObject::SetRotAngle)
 		.property("Team", &SceneObject::GetTeam, &SceneObject::SetTeam)
 		.property("PlacedByPlayer", &SceneObject::GetPlacedByPlayer, &SceneObject::SetPlacedByPlayer)
-		.property("IsBuyable", &SceneObject::IsBuyable)
-
+		.property("Buyable", &SceneObject::IsBuyable)
+		
+		.property("BuyableMode", &LuaAdaptersSceneObject::GetBuyableMode)
+		
 		.def("IsOnScenePoint", &SceneObject::IsOnScenePoint)
 		.def("GetGoldValue", &SceneObject::GetGoldValueOld)
 		.def("GetGoldValue", &SceneObject::GetGoldValue)
 		.def("SetGoldValue", &SceneObject::SetGoldValue)
 		.def("GetGoldValueString", &SceneObject::GetGoldValueString)
+		
 		.def("GetTotalValue", &SceneObject::GetTotalValue)
-
-		.def("GetTotalValue", &LuaAdaptersSceneObject::GetTotalValue);
+		.def("GetTotalValue", &LuaAdaptersSceneObject::GetTotalValue)
+		
+		.enum_("BuyableMode")[
+			luabind::value("NORESTRICTIONS", static_cast<int>(SceneObject::BuyableMode::NoRestrictions)),
+			luabind::value("BUYMENUONLY", static_cast<int>(SceneObject::BuyableMode::BuyMenuOnly)),
+			luabind::value("OBJECTPICKERONLY", static_cast<int>(SceneObject::BuyableMode::ObjectPickerOnly)),
+			luabind::value("SCRIPTONLY", static_cast<int>(SceneObject::BuyableMode::ScriptOnly))];
+		
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1343,8 +1392,11 @@ namespace RTE {
 		.def(luabind::constructor<>())
 
 		.property("SoundOverlapMode", &SoundContainer::GetSoundOverlapMode, &SoundContainer::SetSoundOverlapMode)
+		.property("BusRouting", &SoundContainer::GetBusRouting, &SoundContainer::SetBusRouting)
 		.property("Immobile", &SoundContainer::IsImmobile, &SoundContainer::SetImmobile)
 		.property("AttenuationStartDistance", &SoundContainer::GetAttenuationStartDistance, &SoundContainer::SetAttenuationStartDistance)
+		.property("CustomPanValue", &SoundContainer::GetCustomPanValue, &SoundContainer::SetCustomPanValue)
+		.property("PanningStrengthMultiplier", &SoundContainer::GetPanningStrengthMultiplier, &SoundContainer::SetPanningStrengthMultiplier)
 		.property("Loops", &SoundContainer::GetLoopSetting, &SoundContainer::SetLoopSetting)
 		.property("Priority", &SoundContainer::GetPriority, &SoundContainer::SetPriority)
 		.property("AffectedByGlobalPitch", &SoundContainer::IsAffectedByGlobalPitch, &SoundContainer::SetAffectedByGlobalPitch)
@@ -1366,7 +1418,13 @@ namespace RTE {
 		.def("Restart", (bool (SoundContainer:: *)()) &SoundContainer::Restart)
 		.def("Restart", (bool (SoundContainer:: *)(int player)) &SoundContainer::Restart)
 		.def("FadeOut", &SoundContainer::FadeOut)
-
+		
+		.enum_("BusRouting")[
+			luabind::value("SFX", SoundContainer::BusRouting::SFX),
+			luabind::value("UI", SoundContainer::BusRouting::UI),
+			luabind::value("MUSIC", SoundContainer::BusRouting::MUSIC)
+		]
+		
 		.enum_("SoundOverlapMode")[
 			luabind::value("OVERLAP", SoundContainer::SoundOverlapMode::OVERLAP),
 			luabind::value("RESTART", SoundContainer::SoundOverlapMode::RESTART),

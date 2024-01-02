@@ -12,6 +12,21 @@ namespace RTE {
 	class Material;
 
 	/// <summary>
+	/// Information required to make an async pathing request.
+	/// </summary>
+	struct PathRequest {
+		bool complete = false;
+		int status = MicroPather::NO_SOLUTION;
+		std::list<Vector> path;
+		float pathLength = 0.0f;
+		float totalCost = 0.0f;
+		Vector startPos;
+		Vector targetPos;
+	};
+
+	using PathCompleteCallback = std::function<void (std::shared_ptr<volatile PathRequest>)>;
+
+	/// <summary>
 	/// Contains everything related to a PathNode on the path grid used by PathFinder.
 	/// </summary>
 	struct PathNode {
@@ -19,6 +34,8 @@ namespace RTE {
 		static constexpr int c_MaxAdjacentNodeCount = 8; //!< The maximum number of adjacent PathNodes to any given PathNode. Thusly, also the number of directions for PathNodes to be in.
 
 		Vector Pos; //!< Absolute position of the center of this PathNode in the scene.
+
+		bool m_Navigatable; //!< Whether this node can be navigated through.
 
 		/// <summary>
 		/// Pointers to all adjacent PathNodes, in clockwise order with top first. These are not owned, and may be 0 if adjacent to non-wrapping scene border.
@@ -66,15 +83,14 @@ namespace RTE {
 		/// </summary>
 		/// <param name="nodeDimension">The width and height in scene pixels that of each PathNode should represent.</param>
 		/// <param name="allocate">The block size that the PathNode cache is allocated from. Should be about a fourth of the total number of PathNodes.</param>
-		PathFinder(int nodeDimension, unsigned int allocate) { Clear(); Create(nodeDimension, allocate); }
+		PathFinder(int nodeDimension) { Clear(); Create(nodeDimension); }
 
 		/// <summary>
 		/// Makes the PathFinder object ready for use.
 		/// </summary>
 		/// <param name="nodeDimension">The width and height in scene pixels that of each PathNode should represent.</param>
-		/// <param name="allocate">The block size that the PathNode cache is allocated from. Should be about a fourth of the total number of PathNodes.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(int nodeDimension, unsigned int allocate);
+		int Create(int nodeDimension);
 #pragma endregion
 
 #pragma region Destruction
@@ -97,6 +113,7 @@ namespace RTE {
 #pragma region PathFinding
 		/// <summary>
 		/// Calculates and returns the least difficult path between two points on the current scene.
+		/// This is synchronous, and will block the current thread!
 		/// </summary>
 		/// <param name="start">Start positions on the scene to find the path between.</param>
 		/// <param name="end">End positions on the scene to find the path between.</param>
@@ -104,7 +121,24 @@ namespace RTE {
 		/// <param name="totalCostResult">The total minimum difficulty cost calculated between the two points on the scene.</param>
 		/// <param name="digStrength">What material strength the search is capable of digging through.</param>
 		/// <returns>Success or failure, expressed as SOLVED, NO_SOLUTION, or START_END_SAME.</returns>
-		int CalculatePath(Vector start, Vector end, std::list<Vector> &pathResult, float &totalCostResult, float digStrength = 1);
+		int CalculatePath(Vector start, Vector end, std::list<Vector> &pathResult, float &totalCostResult, float digStrength);
+
+		/// <summary>
+		/// Calculates and returns the least difficult path between two points on the current scene.
+		/// This is asynchronous and thus will not block the current thread.
+		/// </summary>
+		/// <param name="start">Start positions on the scene to find the path between.</param>
+		/// <param name="end">End positions on the scene to find the path between.</param>
+		/// <param name="digStrength">What material strength the search is capable of digging through.</param>
+		/// <param name="callback">The callback function to be run when the path calculation is completed.</param>
+		/// <returns>A shared pointer to the volatile PathRequest to be used to track whether the asynchronous path calculation has been completed, and check its results.</returns>
+		std::shared_ptr<volatile PathRequest> CalculatePathAsync(Vector start, Vector end, float digStrength, PathCompleteCallback callback = nullptr);
+
+		// <summary>
+		/// Returns how many pathfinding requests are currently active.
+		/// </summary>
+		/// <returns>How many pathfinding requests are currently active.</returns>
+		int GetCurrentPathingRequests() const { return m_CurrentPathingRequests.load(); }
 
 		/// <summary>
 		/// Recalculates all the costs between all the PathNodes by tracing lines in the material layer and summing all the material strengths for each encountered pixel. Also resets the pather itself.
@@ -143,6 +177,28 @@ namespace RTE {
 		/// <param name="state">Pointer to PathNode to get to cost of all adjacents for. OWNERSHIP IS NOT TRANSFERRED!</param>
 		/// <param name="adjacentList">An empty vector which will be filled out with all the valid PathNodes adjacent to the one passed in. If at non-wrapping edge of seam, those non existent PathNodes won't be added.</param>
 		void AdjacentCost(void *state, std::vector<micropather::StateCost> *adjacentList) override;
+
+		/// <summary>
+		/// Returns whether two position represent the same path nodes.
+		/// </summary>
+		/// <param name="pos1">First coordinates to compare.</param>
+		/// <param name="pos2">Second coordinates to compare.</param>
+		/// <returns>Whether both coordinates represent the same path node.</returns>
+		bool PositionsAreTheSamePathNode(const Vector& pos1, const Vector& pos2) const;
+
+		/// <summary>
+		/// Marks a box as being navigatable or not.
+		/// </summary>
+		/// <param name="box">The Box of which all PathNodes that should have their navigatable status changed.</param>
+		/// <param name="navigatable">Whether or not the nodes in this box should be navigatable.</param>
+		void MarkBoxNavigatable(Box box, bool navigatable);
+
+		/// <summary>
+		/// Marks a box as being navigatable or not.
+		/// </summary>
+		/// <param name="box">The Box of which all PathNodes that should have their navigatable status changed.</param>
+		/// <param name="navigatable">Whether or not the nodes in this box should be navigatable.</param>
+		void MarkAllNodesNavigatable(bool navigatable);
 #pragma endregion
 
 #pragma region Misc
@@ -165,8 +221,13 @@ namespace RTE {
 		int m_GridHeight; //!< The height of the pathing grid, in PathNodes.
 		bool m_WrapsX; //!< Whether the pathing grid wraps on the X axis.
 		bool m_WrapsY; //!< Whether the pathing grid wraps on the Y axis.
+		std::atomic<int> m_CurrentPathingRequests; //!< The number of active async pathing requests.
 
-		float m_DigStrength; //!< What material strength the search is capable of digging through.
+		/// <summary>
+		/// Gets the pather for this thread. Lazily-initialized for each new thread that needs a pather.
+		/// </summary>
+		/// <returns>The pather for this thread.</returns>
+		MicroPather * GetPather();
 
 #pragma region Path Cost Updates
 		/// <summary>

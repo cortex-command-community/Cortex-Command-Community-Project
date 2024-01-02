@@ -22,6 +22,7 @@
 #include "ThrownDevice.h"
 #include "MOPixel.h"
 #include "Actor.h"
+#include "Scene.h"
 
 namespace RTE {
 
@@ -48,6 +49,8 @@ void HDFirearm::Clear()
     m_EmptySound = nullptr;
 	m_ReloadStartSound = nullptr;
     m_ReloadEndSound = nullptr;
+    m_ReloadEndOffset = -1.0F;
+    m_HasPlayedEndReloadSound = false;
     m_RateOfFire = 0;
     m_ActivationDelay = 0;
     m_DeactivationDelay = 0;
@@ -129,6 +132,7 @@ int HDFirearm::Create(const HDFirearm &reference) {
 	if (reference.m_EmptySound) { m_EmptySound = dynamic_cast<SoundContainer *>(reference.m_EmptySound->Clone()); }
 	if (reference.m_ReloadStartSound) { m_ReloadStartSound = dynamic_cast<SoundContainer *>(reference.m_ReloadStartSound->Clone()); }
 	if (reference.m_ReloadEndSound) { m_ReloadEndSound = dynamic_cast<SoundContainer *>(reference.m_ReloadEndSound->Clone()); }
+    m_ReloadEndOffset = reference.m_ReloadEndOffset;
 	m_RateOfFire = reference.m_RateOfFire;
     m_ActivationDelay = reference.m_ActivationDelay;
     m_DeactivationDelay = reference.m_DeactivationDelay;
@@ -174,95 +178,87 @@ int HDFirearm::Create(const HDFirearm &reference) {
 //                  false is returned, and the reader's position is untouched.
 
 int HDFirearm::ReadProperty(const std::string_view &propName, Reader &reader) {
-    if (propName == "Magazine") {
-        SetMagazine(dynamic_cast<Magazine *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "Flash") {
-        SetFlash(dynamic_cast<Attachable *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "PreFireSound") {
+    StartPropertyList(return HeldDevice::ReadProperty(propName, reader));
+    
+    MatchProperty("Magazine", { SetMagazine(dynamic_cast<Magazine *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchProperty("Flash", { SetFlash(dynamic_cast<Attachable *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchProperty("PreFireSound", {
 		m_PreFireSound = new SoundContainer;
 		reader >> m_PreFireSound;
-	} else if (propName == "FireSound") {
+	});
+	MatchProperty("FireSound", {
 		m_FireSound = new SoundContainer;
 		reader >> m_FireSound;
-	} else if (propName == "FireEchoSound") {
+	});
+	MatchProperty("FireEchoSound", {
 		m_FireEchoSound = new SoundContainer;
 		reader >> m_FireEchoSound;
 		m_FireEchoSound->SetSoundOverlapMode(SoundContainer::SoundOverlapMode::RESTART);
-    } else if (propName == "ActiveSound") {
+    });
+    MatchProperty("ActiveSound", {
 		m_ActiveSound = new SoundContainer;
 		reader >> m_ActiveSound;
-	} else if (propName == "DeactivationSound") {
+	});
+	MatchProperty("DeactivationSound", {
 		m_DeactivationSound = new SoundContainer;
         reader >> m_DeactivationSound;
-    } else if (propName == "EmptySound") {
+    });
+    MatchProperty("EmptySound", {
 		m_EmptySound = new SoundContainer;
 		reader >> m_EmptySound;
-	} else if (propName == "ReloadStartSound") {
+	});
+	MatchProperty("ReloadStartSound", {
 		m_ReloadStartSound = new SoundContainer;
 		reader >> m_ReloadStartSound;
-	} else if (propName == "ReloadEndSound") {
+	});
+	MatchProperty("ReloadEndSound", {
 		m_ReloadEndSound = new SoundContainer;
 		reader >> m_ReloadEndSound;
-	} else if (propName == "RateOfFire") {
-        reader >> m_RateOfFire;
-    } else if (propName == "ActivationDelay") {
-        reader >> m_ActivationDelay;
-    } else if (propName == "DeactivationDelay") {
-        reader >> m_DeactivationDelay;
-	} else if (propName == "BaseReloadTime" || propName == "ReloadTime") {
-		reader >> m_BaseReloadTime;
-    } else if (propName == "FullAuto") {
-        reader >> m_FullAuto;
-    } else if (propName == "FireIgnoresThis") {
-        reader >> m_FireIgnoresThis;
-    } else if (propName == "Reloadable") {
-        reader >> m_Reloadable;
-	} else if (propName == "DualReloadable") {
-		reader >> m_DualReloadable;
-	} else if (propName == "OneHandedReloadTimeMultiplier") {
-		reader >> m_OneHandedReloadTimeMultiplier;
-	} else if (propName == "ReloadAngle") {
-		reader >> m_ReloadAngle;
-	} else if (propName == "OneHandedReloadAngle") {
-		reader >> m_OneHandedReloadAngle;
-    } else if (propName == "RecoilTransmission") {
-        reader >> m_JointStiffness;
-    } else if (propName == "IsAnimatedManually") {
-		reader >> m_IsAnimatedManually;
-    } else if (propName == "ShakeRange") {
+    });
+    MatchProperty("ReloadEndOffset", { reader >> m_ReloadEndOffset; });
+	MatchProperty("RateOfFire", { reader >> m_RateOfFire; });
+    MatchProperty("ActivationDelay", { reader >> m_ActivationDelay; });
+    MatchProperty("DeactivationDelay", { reader >> m_DeactivationDelay; });
+	MatchForwards("BaseReloadTime") MatchProperty("ReloadTime", { reader >> m_BaseReloadTime; });
+    MatchProperty("FullAuto", { reader >> m_FullAuto; });
+    MatchProperty("FireIgnoresThis", { reader >> m_FireIgnoresThis; });
+    MatchProperty("Reloadable", { reader >> m_Reloadable; });
+	MatchProperty("DualReloadable", { reader >> m_DualReloadable; });
+	MatchProperty("OneHandedReloadTimeMultiplier", { reader >> m_OneHandedReloadTimeMultiplier; });
+	MatchProperty("ReloadAngle", { reader >> m_ReloadAngle; });
+	MatchProperty("OneHandedReloadAngle", { reader >> m_OneHandedReloadAngle; });
+    MatchProperty("RecoilTransmission", { reader >> m_JointStiffness; });
+    MatchProperty("IsAnimatedManually", { reader >> m_IsAnimatedManually; });
+    MatchProperty("ShakeRange", {
         reader >> m_ShakeRange;
         m_ShakeRange /= 2;
-    } else if (propName == "SharpShakeRange") {
+    });
+    MatchProperty("SharpShakeRange", {
         reader >> m_SharpShakeRange;
         m_SharpShakeRange /= 2;
-    } else if (propName == "NoSupportFactor") {
-        reader >> m_NoSupportFactor;
-    } else if (propName == "ParticleSpreadRange") {
+    });
+    MatchProperty("NoSupportFactor", { reader >> m_NoSupportFactor; });
+    MatchProperty("ParticleSpreadRange", {
         reader >> m_ParticleSpreadRange;
         m_ParticleSpreadRange /= 2;
-	} else if (propName == "ShellEjectAngle") {
-		reader >> m_ShellEjectAngle;
-    } else if (propName == "ShellSpreadRange") {
+	});
+	MatchProperty("ShellEjectAngle", { reader >> m_ShellEjectAngle; });
+    MatchProperty("ShellSpreadRange", {
         reader >> m_ShellSpreadRange;
         m_ShellSpreadRange /= 2;
-    } else if (propName == "ShellAngVelRange") {
+    });
+    MatchProperty("ShellAngVelRange", {
         reader >> m_ShellAngVelRange;
         m_ShellAngVelRange /= 2;
-	} else if (propName == "ShellVelVariation") {
-		reader >> m_ShellVelVariation;
-    } else if (propName == "RecoilScreenShakeAmount") {
-		reader >> m_RecoilScreenShakeAmount;
-    } else if (propName == "MuzzleOffset") {
-        reader >> m_MuzzleOff;
-	} else if (propName == "EjectionOffset") {
-		reader >> m_EjectOff;
-	} else if (propName == "LegacyCompatibilityRoundsAlwaysFireUnflipped") {
-		reader >> m_LegacyCompatibilityRoundsAlwaysFireUnflipped;
-    } else {
-        return HeldDevice::ReadProperty(propName, reader);
-    }
+	});
+	MatchProperty("ShellVelVariation", { reader >> m_ShellVelVariation; });
+    MatchProperty("RecoilScreenShakeAmount", { reader >> m_RecoilScreenShakeAmount; });
+    MatchProperty("MuzzleOffset", { reader >> m_MuzzleOff; });
+	MatchProperty("EjectionOffset", { reader >> m_EjectOff; });
+	MatchProperty("LegacyCompatibilityRoundsAlwaysFireUnflipped", { reader >> m_LegacyCompatibilityRoundsAlwaysFireUnflipped; });
+    
 
-    return 0;
+    EndPropertyList;
 }
 
 
@@ -296,6 +292,7 @@ int HDFirearm::Save(Writer &writer) const
     writer << m_ReloadStartSound;
     writer.NewProperty("ReloadEndSound");
     writer << m_ReloadEndSound;
+    writer.NewPropertyWithValue("ReloadEndOffset", m_ReloadEndOffset);
     writer.NewProperty("RateOfFire");
     writer << m_RateOfFire;
     writer.NewProperty("ActivationDelay");
@@ -979,15 +976,27 @@ void HDFirearm::Update()
         m_AlreadyClicked = true;
     }
 
+    if (m_Reloading && m_ReloadEndSound) {
+        // x0.5 the sound length generally just lines up better and leaves less dead air assuming a normal attempt at a ReloadEnd sound
+        float offsetMilliseconds = m_ReloadEndOffset == -1.0F ? m_ReloadEndSound->GetLength(SoundContainer::LengthOfSoundType::NextPlayed) * 0.5f : m_ReloadEndOffset;
+        bool shouldPlay = !m_HasPlayedEndReloadSound && m_ReloadTmr.LeftTillSimTimeLimitMS() <= offsetMilliseconds;
+        if (shouldPlay) {
+            m_ReloadEndSound->Play(m_Pos);
+            m_HasPlayedEndReloadSound = true;
+        }
+    }
+
 	if (m_Reloading && !m_pMagazine && m_pMagazineReference && m_ReloadTmr.IsPastSimTimeLimit()) {
 		SetMagazine(dynamic_cast<Magazine *>(m_pMagazineReference->Clone()));
-		if (m_ReloadEndSound) { m_ReloadEndSound->Play(m_Pos); }
 
 		m_ActivationTimer.Reset();
 		m_LastFireTmr.Reset();
 
-		if (m_PreFireSound && m_Activated) { m_PreFireSound->Play(); }
+		if (m_PreFireSound && m_Activated) { 
+            m_PreFireSound->Play(); 
+        }
 
+        m_HasPlayedEndReloadSound = false;
 		m_Reloading = false;
 		m_DoneReloading = true;
 	}
@@ -1054,7 +1063,12 @@ void HDFirearm::Update()
             if (m_FireSound && !(m_FireSound->GetLoopSetting() == -1 && m_FireSound->IsBeingPlayed())) {
                 m_FireSound->Play(m_Pos);
             }
-			if (m_FireEchoSound) { m_FireEchoSound->Play(m_Pos); }
+			if (m_FireEchoSound) {
+                Scene::Area* noEchoArea = g_SceneMan.GetScene()->GetOptionalArea("IndoorArea");
+                if (noEchoArea == nullptr || !noEchoArea->IsInside(m_Pos)) {
+                    m_FireEchoSound->Play(m_Pos); 
+                }
+            }
         }
 
 		if (m_Loudness > 0) { g_MovableMan.RegisterAlarmEvent(AlarmEvent(m_Pos, m_Team, m_Loudness)); }
@@ -1107,6 +1121,14 @@ void HDFirearm::Update()
     }
 
     m_FiredLastFrame = m_FireFrame;
+
+    // Set the screen flash effect to draw at the final post processing stage
+    if (m_FireFrame && m_pFlash && m_pFlash->GetScreenEffect()) {
+        Vector muzzlePos = m_Pos + RotateOffset(m_MuzzleOff + Vector(m_pFlash->GetSpriteWidth() * 0.3F, 0));
+        if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(muzzlePos)) {
+            g_PostProcessMan.RegisterPostEffect(muzzlePos, m_pFlash->GetScreenEffect(), m_pFlash->GetScreenEffectHash(), RandomNum(m_pFlash->GetEffectStopStrength(), m_pFlash->GetEffectStartStrength()), m_pFlash->GetEffectRotAngle());
+        }
+    }
 }
 
 
@@ -1135,14 +1157,6 @@ void HDFirearm::Draw(BITMAP *pTargetBitmap, const Vector &targetPos, DrawMode mo
 
     if (m_pFlash && m_FireFrame && m_pFlash->IsDrawnAfterParent() && mode == g_DrawColor && !onlyPhysical) {
         m_pFlash->Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
-    }
-
-    // Set the screen flash effect to draw at the final post processing stage
-    if (m_FireFrame && m_pFlash && m_pFlash->GetScreenEffect() && mode == g_DrawColor && !onlyPhysical) {
-		Vector muzzlePos = m_Pos + RotateOffset(m_MuzzleOff + Vector(m_pFlash->GetSpriteWidth() * 0.3F, 0));
-		if (!g_SceneMan.ObscuredPoint(muzzlePos)) {
-			g_PostProcessMan.RegisterPostEffect(muzzlePos, m_pFlash->GetScreenEffect(), m_pFlash->GetScreenEffectHash(), RandomNum(m_pFlash->GetEffectStopStrength(), m_pFlash->GetEffectStartStrength()), m_pFlash->GetEffectRotAngle());
-		}
     }
 }
 

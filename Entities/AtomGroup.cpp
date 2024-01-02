@@ -6,6 +6,8 @@
 #include "LimbPath.h"
 #include "ConsoleMan.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace RTE {
 
 	ConcreteClassInfo(AtomGroup, Entity, 500);
@@ -79,7 +81,9 @@ namespace RTE {
 
 				long subgroupID = atomCopy->GetSubID();
 				if (subgroupID != 0) {
-					if (m_SubGroups.find(subgroupID) == m_SubGroups.end()) { m_SubGroups.insert({ subgroupID, std::list<Atom *>() }); }
+					if (m_SubGroups.find(subgroupID) == m_SubGroups.end()) { 
+						m_SubGroups.insert({ subgroupID, std::vector<Atom *>() }); 
+					}
 
 					m_SubGroups.find(subgroupID)->second.push_back(atomCopy);
 				}
@@ -92,7 +96,9 @@ namespace RTE {
 			m_IgnoreMOIDs.push_back(moidToIgnore);
 		}
 
-		if (!reference.m_Atoms.empty()) { m_Material = reference.m_Atoms.front()->GetMaterial(); }
+		if (!reference.m_Atoms.empty()) { 
+			m_Material = reference.m_Atoms.front()->GetMaterial(); 
+		}
 
 		return 0;
 	}
@@ -116,7 +122,9 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int AtomGroup::ReadProperty(const std::string_view &propName, Reader &reader) {
-		if (propName == "Material") {
+		StartPropertyList(return Entity::ReadProperty(propName, reader));
+		
+		MatchProperty("Material", {
 			Material mat;
 			mat.Reset();
 			reader >> mat;
@@ -127,19 +135,17 @@ namespace RTE {
 				m_Material = g_SceneMan.GetMaterialFromID(g_MaterialAir);
 				RTEAssert(m_Material, "Failed to find matching Material preset \"" + mat.GetPresetName() + "\" or even fall back to \"Air\" " + GetFormattedReaderPosition() + ".\nAborting!");
 			}
-		} else if (propName == "AutoGenerate") {
-			reader >> m_AutoGenerate;
-		} else if (propName == "Resolution") {
-			reader >> m_Resolution;
-		} else if (propName == "Depth") {
-			reader >> m_Depth;
-		} else if (propName == "AddAtom") {
+		});
+		MatchProperty("AutoGenerate", { reader >> m_AutoGenerate; });
+		MatchProperty("Resolution", { reader >> m_Resolution; });
+		MatchProperty("Depth", { reader >> m_Depth; });
+		MatchProperty("AddAtom", {
 			Atom *atom = new Atom;
 			reader >> *atom;
 			m_Atoms.push_back(atom);
-		} else if (propName == "JointOffset") {
-			reader >> m_JointOffset;
-		} else if (propName == "AreaDistributionType") {
+		});
+		MatchProperty("JointOffset", { reader >> m_JointOffset; });
+		MatchProperty("AreaDistributionType", {
 			std::string areaDistributionTypeString = reader.ReadPropValue();
 			auto itr = c_AreaDistributionTypeMap.find(areaDistributionTypeString);
 			if (itr != c_AreaDistributionTypeMap.end()) {
@@ -151,12 +157,11 @@ namespace RTE {
 					reader.ReportError("AreaDistributionType " + areaDistributionTypeString + " is invalid.");
 				}
 			}
-		} else if (propName == "AreaDistributionSurfaceAreaMultiplier") {
-			reader >> m_AreaDistributionSurfaceAreaMultiplier;
-		} else {
-			return Entity::ReadProperty(propName, reader);
-		}
-		return 0;
+		});
+		MatchProperty("AreaDistributionSurfaceAreaMultiplier", { reader >> m_AreaDistributionSurfaceAreaMultiplier; });
+		
+		
+		EndPropertyList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,7 +209,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void AtomGroup::SetAtomList(const std::list<Atom *> &newAtoms) {
+	void AtomGroup::SetAtomList(const std::vector<Atom *> &newAtoms) {
 		for (const Atom *atom : m_Atoms) {
 			delete atom;
 		}
@@ -262,8 +267,8 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void AtomGroup::AddAtoms(const std::list<Atom *> &atomList, long subgroupID, const Vector &offset, const Matrix &offsetRotation) {
-		if (m_SubGroups.count(subgroupID) == 0) { m_SubGroups.insert({ subgroupID, std::list<Atom *>() }); }
+	void AtomGroup::AddAtoms(const std::vector<Atom *> &atomList, long subgroupID, const Vector &offset, const Matrix &offsetRotation) {
+		if (m_SubGroups.count(subgroupID) == 0) { m_SubGroups.insert({ subgroupID, std::vector<Atom *>() }); }
 
 		Atom *atomToAdd;
 		for (const Atom * atom : atomList) {
@@ -284,25 +289,23 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AtomGroup::RemoveAtoms(long removeID) {
-		bool removedAny = false;
-		std::list<Atom *>::iterator eraseItr;
+		std::size_t oldSize = m_Atoms.size();
 
-		// TODO: Look into using remove_if.
-		for (std::list<Atom *>::iterator atomItr = m_Atoms.begin(); atomItr != m_Atoms.end();) {
-			if ((*atomItr)->GetSubID() == removeID) {
-				delete (*atomItr);
-				eraseItr = atomItr;
-				atomItr++;
-				m_Atoms.erase(eraseItr);
-				removedAny = true;
-			} else {
-				atomItr++;
-			}
-		}
+		m_Atoms.erase(
+			std::remove_if(m_Atoms.begin(), m_Atoms.end(),
+				[removeID](Atom *atom) {
+					return atom->GetSubID() == removeID;
+				}), 
+			m_Atoms.end());
+
 		m_SubGroups.erase(removeID);
+
+		bool removedAny = oldSize != m_Atoms.size();
 		if (removedAny) {
 			m_MomentOfInertia = 0.0F;
-			if (m_OwnerMOSR) { GetMomentOfInertia(); }
+			if (m_OwnerMOSR) { 
+				GetMomentOfInertia(); 
+			}
 		}
 
 		return removedAny;
@@ -332,6 +335,8 @@ namespace RTE {
 
 	// TODO: Break down and rework this trainwreck.
 	float AtomGroup::Travel(Vector &position, Vector &velocity, Matrix &rotation, float &angularVel, bool &didWrap, Vector &totalImpulse, float mass, float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
+		ZoneScoped;
+
 		RTEAssert(m_OwnerMOSR, "Tried to travel an AtomGroup that has no parent!");
 
 		m_MomentOfInertia = GetMomentOfInertia();
@@ -768,6 +773,8 @@ namespace RTE {
 
 	// TODO: Break down and rework this dumpsterfire.
 	Vector AtomGroup::PushTravel(Vector &position, const Vector &velocity, float pushForce, bool &didWrap, float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
+		ZoneScoped;
+
 		RTEAssert(m_OwnerMOSR, "Tried to push-travel an AtomGroup that has no parent!");
 
 		didWrap = false;
@@ -1207,7 +1214,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool AtomGroup::PushAsLimb(const Vector &jointPos, const Vector &velocity, const Matrix &rotation, LimbPath &limbPath, const float travelTime, bool *restarted, bool affectRotation, Vector rotationOffset) {
+	bool AtomGroup::PushAsLimb(const Vector &jointPos, const Vector &velocity, const Matrix &rotation, LimbPath &limbPath, const float travelTime, bool *restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
 		RTEAssert(m_OwnerMOSR, "Tried to push-as-limb an AtomGroup that has no parent!");
 
 		bool didWrap = false;
@@ -1227,6 +1234,7 @@ namespace RTE {
 		limbPath.SetJointVel(velocity);
 		limbPath.SetRotation(rotation);
 		limbPath.SetRotationOffset(rotationOffset);
+		limbPath.SetPositionOffset(positionOffset);
 		limbPath.SetFrameTime(travelTime);
 
 		Vector limbDist = g_SceneMan.ShortestDistance(adjustedJointPos, m_LimbPos, g_SceneMan.SceneWrapsX());
@@ -1259,9 +1267,13 @@ namespace RTE {
 			                              owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F;
 			if (againstTravelDirection) {
 				// Filter some of our impulse out. We're pushing against an obstacle, but we don't want to kick backwards!
-				// Translate it into to upwards motion to step over what we're walking into instead ;)
 				const float againstIntendedDirectionMultiplier = 0.5F;
-				pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+
+				if (!owner->GetController()->IsState(BODY_CROUCH) && !owner->GetController()->IsState(MOVE_DOWN)) {
+					// Translate it into to upwards motion to step over what we're walking into instead ;)
+					pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+				}
+
 				pushImpulse.m_X *= againstIntendedDirectionMultiplier;
 			}
 		}
@@ -1342,7 +1354,9 @@ namespace RTE {
 
 	// TODO: Look into breaking this into smaller methods.
 	bool AtomGroup::ResolveTerrainIntersection(Vector &position, unsigned char strongerThan) const {
-		std::list<Atom *> intersectingAtoms;
+		thread_local std::vector<Atom *> intersectingAtoms;
+		intersectingAtoms.clear();
+
 		MOID hitMaterial = g_MaterialAir;
 
 		float strengthThreshold = (strongerThan != g_MaterialAir) ? g_SceneMan.GetMaterialFromID(strongerThan)->GetIntegrity() : 0.0F;
@@ -1466,7 +1480,7 @@ namespace RTE {
 			return false;
 		}
 
-		std::list<Atom *> intersectingAtoms;
+		std::vector<Atom *> intersectingAtoms;
 
 		// Restart and go through all Atoms to find all intersecting the specific intersected MO
 		for (Atom *atom : m_Atoms) {
@@ -1536,8 +1550,13 @@ namespace RTE {
 		}
 
 		// Now actually apply the exit vectors to both, but only if the jump isn't too jarring
-		if (thisExit.MagnitudeIsLessThan(m_OwnerMOSR->GetIndividualRadius())) { position += thisExit; }
-		if (!intersectedExit.IsZero() && intersectedExit.MagnitudeIsLessThan(intersectedMO->GetRadius())) { intersectedMO->SetPos(intersectedMO->GetPos() + intersectedExit); }
+		if (thisExit.MagnitudeIsLessThan(m_OwnerMOSR->GetIndividualRadius())) { 
+			position += thisExit; 
+		}
+
+		if (!intersectedExit.IsZero() && intersectedExit.MagnitudeIsLessThan(intersectedMO->GetRadius())) { 
+			intersectedMO->SetPos(intersectedMO->GetPos() + intersectedExit); 
+		}
 
 		if (m_OwnerMOSR->CanBeSquished() && RatioInTerrain() > 0.75F) /* && totalExitVector.MagnitudeIsGreaterThan(m_OwnerMOSR->GetDiameter())) */ {
 			// Move back before gibbing so gibs don't end up inside terrain

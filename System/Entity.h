@@ -214,6 +214,7 @@ namespace RTE {
 			int m_PoolAllocBlockCount; //!< The number of instances to fill up the pool of this type with each time it runs dry.
 			int m_InstancesInUse; //!< The number of allocated instances passed out from the pool.
 
+			std::mutex m_Mutex; //!< Mutex to ensure multiple things aren't grabbing/deallocating memory at the same time
 
 			// Forbidding copying
 			ClassInfo(const ClassInfo &reference) = delete;
@@ -297,6 +298,12 @@ namespace RTE {
 		/// </summary>
 		/// <param name="whichModule">The ID of the module, or -1 if it hasn't been defined in any.</param>
 		void SetModuleID(int whichModule) { m_DefinedInModule = whichModule; }
+
+		/// <summary>
+		/// Gets this Entity's data preset.
+		/// </summary>
+		/// <returns>This Entity's data preset.</returns>
+		const Entity * GetPreset() const;
 
 		/// <summary>
 		/// Gets the name of this Entity's data Preset.

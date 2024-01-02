@@ -125,8 +125,8 @@ namespace RTE {
 		m_PlayerScreenMouseBounds = {
 			0,
 			0,
-			g_FrameMan.GetPlayerFrameBufferWidth(Players::NoPlayer) * g_WindowMan.GetResMultiplier(),
-			g_FrameMan.GetPlayerFrameBufferHeight(Players::NoPlayer) * g_WindowMan.GetResMultiplier()
+			static_cast<int>(g_FrameMan.GetPlayerFrameBufferWidth(Players::NoPlayer) * g_WindowMan.GetResMultiplier()),
+			static_cast<int>(g_FrameMan.GetPlayerFrameBufferHeight(Players::NoPlayer) * g_WindowMan.GetResMultiplier())
 		};
 
 		return 0;
@@ -418,7 +418,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::ForceMouseWithinPlayerScreen(bool force, int whichPlayer) {
-		int resMultiplier = g_WindowMan.GetResMultiplier();
+		float resMultiplier = g_WindowMan.GetResMultiplier();
 
 		if (force && (whichPlayer >= Players::PlayerOne && whichPlayer < Players::MaxPlayerCount)) {
 			int screenWidth = g_FrameMan.GetPlayerFrameBufferWidth(whichPlayer) * resMultiplier;
@@ -456,7 +456,7 @@ namespace RTE {
 			}
 		} else {
 			// Set the mouse bounds to the whole window so ForceMouseWithinBox is not stuck being relative to some player screen, because it can still bind the mouse even if this doesn't.
-			m_PlayerScreenMouseBounds = { 0, 0, g_WindowMan.GetResX() * resMultiplier, g_WindowMan.GetResY() * resMultiplier };
+			m_PlayerScreenMouseBounds = { 0, 0, static_cast<int>(g_WindowMan.GetResX() * resMultiplier), static_cast<int>(g_WindowMan.GetResY() * resMultiplier) };
 			SDL_SetWindowMouseRect(g_WindowMan.GetWindow(), nullptr);
 		}
 	}
@@ -615,7 +615,7 @@ namespace RTE {
 				buttonState = GetInputElementState(player, InputElements::INPUT_FIRE, whichState) || GetMouseButtonState(player, MouseButtons::MOUSE_LEFT, whichState);
 			}
 			if (!buttonState && whichButton >= MenuCursorButtons::MENU_SECONDARY) {
-				buttonState = GetInputElementState(player, InputElements::INPUT_PIEMENU, whichState) || GetMouseButtonState(player, MouseButtons::MOUSE_RIGHT, whichState);
+				buttonState = GetInputElementState(player, InputElements::INPUT_PIEMENU_DIGITAL, whichState) || GetMouseButtonState(player, MouseButtons::MOUSE_RIGHT, whichState);
 			}
 			if (buttonState) {
 				m_LastDeviceWhichControlledGUICursor = device;
@@ -651,16 +651,7 @@ namespace RTE {
 			return false;
 		}
 		if (IsInMultiplayerMode()) {
-			if (whichPlayer < Players::PlayerOne || whichPlayer >= Players::MaxPlayerCount) {
-				for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
-					if (m_NetworkServerChangedMouseButtonState[player][whichButton]) {
-						return m_NetworkServerChangedMouseButtonState[player][whichButton];
-					}
-				}
-				return m_NetworkServerChangedMouseButtonState[Players::PlayerOne][whichButton];
-			} else {
-				return m_NetworkServerChangedMouseButtonState[whichPlayer][whichButton];
-			}
+			return GetNetworkMouseButtonState(whichPlayer, whichButton, whichState);
 		}
 
 		switch (whichState) {
@@ -670,6 +661,30 @@ namespace RTE {
 				return s_CurrentMouseButtonStates[whichButton] && s_ChangedMouseButtonStates[whichButton];
 			case InputState::Released:
 				return !s_CurrentMouseButtonStates[whichButton] && s_ChangedMouseButtonStates[whichButton];
+			default:
+				RTEAbort("Undefined InputState value passed in. See InputState enumeration.");
+				return false;
+		}
+	}
+
+	bool UInputMan::GetNetworkMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const {
+		
+		if (whichPlayer == Players::NoPlayer || whichPlayer >= Players::MaxPlayerCount) {
+			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+				if (GetNetworkMouseButtonState(player, whichButton, whichState)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		switch (whichState) {
+			case InputState::Held:
+				return m_NetworkServerPreviousMouseButtonState[whichPlayer][whichButton];
+			case InputState::Pressed:
+				return m_NetworkServerPreviousMouseButtonState[whichPlayer][whichButton] && m_NetworkServerChangedMouseButtonState[whichPlayer][whichButton];
+			case InputState::Released:
+				return !m_NetworkServerPreviousMouseButtonState[whichPlayer][whichButton] && m_NetworkServerChangedMouseButtonState[whichPlayer][whichButton];
 			default:
 				RTEAbort("Undefined InputState value passed in. See InputState enumeration.");
 				return false;
@@ -791,7 +806,7 @@ namespace RTE {
 						break;
 					}
 					m_RawMouseMovement += Vector(static_cast<float>(inputEvent.motion.xrel), static_cast<float>(inputEvent.motion.yrel));
-					m_AbsoluteMousePos.SetXY(static_cast<float>(inputEvent.motion.x * g_WindowMan.GetResMultiplier()), static_cast<float>(inputEvent.motion.y * g_WindowMan.GetResMultiplier()));
+					m_AbsoluteMousePos.SetXY(static_cast<float>(inputEvent.motion.x), static_cast<float>(inputEvent.motion.y));
 					if (g_WindowMan.FullyCoversAllDisplays()) {
 						int windowPosX = 0;
 						int windowPosY = 0;
@@ -898,7 +913,7 @@ namespace RTE {
 			const GameActivity *gameActivity = dynamic_cast<GameActivity *>(g_ActivityMan.GetActivity());
 			// Don't allow pausing and returning to main menu when running in server mode to not disrupt the simulation for the clients
 			if (!g_NetworkServer.IsServerModeEnabled() && AnyStartPress(false) && (!gameActivity || !gameActivity->IsBuyGUIVisible(-1))) {
-				g_ActivityMan.PauseActivity();
+				g_ActivityMan.PauseActivity(true, FlagShiftState());
 				return;
 			}
 			// Ctrl+R or Back button for controllers to reset activity.
@@ -927,9 +942,6 @@ namespace RTE {
 			// Ctrl+P to toggle performance stats
 			} else if (KeyPressed(SDLK_p)) {
 				g_PerformanceMan.ShowPerformanceStats(!g_PerformanceMan.IsShowingPerformanceStats());
-			// Ctrl+O to toggle one sim update per frame
-			} else if (KeyPressed(SDLK_o)) {
-				g_TimerMan.SetOneSimUpdatePerFrame(!g_TimerMan.IsOneSimUpdatePerFrame());
 			} else if (KeyPressed(SDLK_F2)) {
 				g_PresetMan.QuickReloadEntityPreset();
 			} else if (KeyPressed(SDLK_F9)) {
@@ -937,8 +949,6 @@ namespace RTE {
 			} else if (g_PerformanceMan.IsShowingPerformanceStats()) {
 				if (KeyHeld(SDLK_1)) {
 					g_TimerMan.SetTimeScale(1.0F);
-				} else if (KeyHeld(SDLK_3)) {
-					g_TimerMan.SetRealToSimCap(c_DefaultRealToSimCap);
 				} else if (KeyHeld(SDLK_5)) {
 					g_TimerMan.SetDeltaTimeSecs(c_DefaultDeltaTimeS);
 				}
@@ -948,7 +958,7 @@ namespace RTE {
 				ContentFile::ReloadAllBitmaps();
 			// Alt+Enter to switch resolution multiplier
 			} else if (KeyPressed(SDLK_RETURN)) {
-				g_WindowMan.ChangeResolutionMultiplier();
+				g_WindowMan.ToggleFullscreen();
 			// Alt+W to save ScenePreviewDump (miniature WorldDump)
 			} else if (KeyPressed(SDLK_w)) {
 				g_FrameMan.SaveWorldPreviewToPNG("ScenePreviewDump");
@@ -967,7 +977,11 @@ namespace RTE {
 			} else if (KeyPressed(SDLK_F4)) {
 				g_ConsoleMan.SaveInputLog("Console.input.log");
 			} else if (KeyPressed(SDLK_F5)) {
-				g_ActivityMan.SaveCurrentGame("QuickSave");
+				if (g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->CanBeUserSaved()) {
+					g_ActivityMan.SaveCurrentGame("QuickSave");
+				} else {
+					RTEError::ShowMessageBox("Cannot Save Game - This Activity Does Not Allow QuickSaving!");
+				}
 			} else if (KeyPressed(SDLK_F9)) {
 				g_ActivityMan.LoadAndLaunchGame("QuickSave");
 			} else if (KeyPressed(SDLK_F10)) {
@@ -984,14 +998,6 @@ namespace RTE {
 				}
 				if (KeyHeld(SDLK_1) && g_TimerMan.GetTimeScale() - 0.01F > 0.001F) {
 					g_TimerMan.SetTimeScale(g_TimerMan.GetTimeScale() - 0.01F);
-				}
-
-				// Manipulate real to sim cap
-				if (KeyHeld(SDLK_4)) {
-					g_TimerMan.SetRealToSimCap(g_TimerMan.GetRealToSimCap() + 0.001F);
-				}
-				if (KeyHeld(SDLK_3) && g_TimerMan.GetRealToSimCap() > 0) {
-					g_TimerMan.SetRealToSimCap(g_TimerMan.GetRealToSimCap() - 0.001F);
 				}
 
 				// Manipulate DeltaTime
@@ -1012,7 +1018,6 @@ namespace RTE {
 		int mousePlayer = MouseUsedByPlayer();
 		// TODO: Figure out a less shit solution to updating the mouse in GUIs when there are no mouse players configured, i.e. no player input scheme is using mouse+keyboard. For not just check if we're out of Activity.
 		if (!g_ActivityMan.IsInActivity() || mousePlayer != Players::NoPlayer) {
-			// Multiplying by 30 for sensitivity. TODO: Make sensitivity slider 1-50;
 			m_AnalogMouseData.m_X += m_RawMouseMovement.m_X * 3;
 			m_AnalogMouseData.m_Y += m_RawMouseMovement.m_Y * 3;
 			m_AnalogMouseData.CapMagnitude(m_MouseTrapRadius);

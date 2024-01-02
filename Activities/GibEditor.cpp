@@ -16,6 +16,7 @@
 #include "WindowMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
+#include "FrameMan.h"
 #include "UInputMan.h"
 //#include "AHuman.h"
 //#include "MOPixel.h"
@@ -102,18 +103,13 @@ int GibEditor::Create(const GibEditor &reference)
 
 int GibEditor::ReadProperty(const std::string_view &propName, Reader &reader)
 {
+    StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 /*
-    if (propName == "CPUTeam")
-        reader >> m_CPUTeam;
-    else if (propName == "Difficulty")
-        reader >> m_Difficulty;
-    else if (propName == "DeliveryDelay")
-        reader >> m_DeliveryDelay;
-    else
+    MatchProperty("CPUTeam", { reader >> m_CPUTeam; });
+    MatchProperty("Difficulty", { reader >> m_Difficulty; });
+    MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
 */
-        return EditorActivity::ReadProperty(propName, reader);
-
-    return 0;
+    EndPropertyList;
 }
 
 
@@ -320,8 +316,9 @@ void GibEditor::Update()
                 // This adds all the gibs to the movableman
                 m_pTestingObject->GibThis();
                 // Now safe to get rid of the test subject
+                m_pTestingObject->DestroyScriptState();
                 delete m_pTestingObject;
-                m_pTestingObject = 0;
+                m_pTestingObject = nullptr;
             }
         }
         // Test has blown up, now waiting for user to finish watching the pieces fly
@@ -399,6 +396,7 @@ void GibEditor::Update()
     else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorDone)
     {
         // Make the copy of the current edited object
+        m_pTestingObject->DestroyScriptState();
         delete m_pTestingObject;
         m_pTestingObject = dynamic_cast<MOSRotating *>(m_pEditedObject->Clone());
 
@@ -513,7 +511,7 @@ void GibEditor::Update()
                     std::list<MovableObject *> *pEditedGibList = m_pEditorGUI->GetPlacedGibs();
                     MovableObject *pGibCopy = 0;
 
-                    for (std::list<Gib>::iterator gItr = pLoadedGibList->begin(); gItr != pLoadedGibList->end(); ++gItr)
+                    for (auto gItr = pLoadedGibList->begin(); gItr != pLoadedGibList->end(); ++gItr)
                     {
                         pGibCopy = dynamic_cast<MovableObject *>((*gItr).GetParticlePreset()->Clone());
                         if (pGibCopy)

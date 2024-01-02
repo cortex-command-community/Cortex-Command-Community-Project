@@ -155,46 +155,37 @@ int ACRocket::Create(const ACRocket &reference) {
 //                  false is returned, and the reader's position is untouched.
 
 int ACRocket::ReadProperty(const std::string_view &propName, Reader &reader) {
-    if (propName == "RLeg" || propName == "RightLeg") {
-        SetRightLeg(dynamic_cast<Leg *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "LLeg" || propName == "LeftLeg") {
-        SetLeftLeg(dynamic_cast<Leg *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "RFootGroup" || propName == "RightFootGroup") {
+    StartPropertyList(return ACraft::ReadProperty(propName, reader));
+    
+    MatchForwards("RLeg") MatchProperty("RightLeg", { SetRightLeg(dynamic_cast<Leg *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("LLeg") MatchProperty("LeftLeg", { SetLeftLeg(dynamic_cast<Leg *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("RFootGroup") MatchProperty("RightFootGroup", {
         delete m_pRFootGroup;
         m_pRFootGroup = new AtomGroup();
         reader >> m_pRFootGroup;
         m_pRFootGroup->SetOwner(this);
-    } else if (propName == "LFootGroup" || propName == "LeftFootGroup") {
+    }); 
+    MatchForwards("LFootGroup") MatchProperty("LeftFootGroup", {
         delete m_pLFootGroup;
         m_pLFootGroup = new AtomGroup();
         reader >> m_pLFootGroup;
         m_pLFootGroup->SetOwner(this);
-    } else if (propName == "MThruster" || propName == "MainThruster") {
-        SetMainThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "RThruster" || propName == "RightThruster") {
-        SetRightThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "LThruster" || propName == "LeftThruster") {
-        SetLeftThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "URThruster" || propName == "UpRightThruster") {
-        SetURightThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "ULThruster" || propName == "UpLeftThruster") {
-        SetULeftThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader)));
-    } else if (propName == "RaisedGearLimbPath") {
-        reader >> m_Paths[RIGHT][RAISED];
-    } else if (propName == "LoweredGearLimbPath") {
-        reader >> m_Paths[RIGHT][LOWERED];
-    } else if (propName == "LoweringGearLimbPath") {
-        reader >> m_Paths[RIGHT][LOWERING];
-    } else if (propName == "RaisingGearLimbPath") {
-        reader >> m_Paths[RIGHT][RAISING];
-    } else if (propName == "MaxGimbalAngle") {
+    }); 
+    MatchForwards("MThruster") MatchProperty("MainThruster", { SetMainThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("RThruster") MatchProperty("RightThruster", { SetRightThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("LThruster") MatchProperty("LeftThruster", { SetLeftThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(dynamic_cast<AEmitter *>(g_PresetMan.ReadReflectedPreset(reader))); });
+    MatchProperty("RaisedGearLimbPath", { reader >> m_Paths[RIGHT][RAISED]; });
+    MatchProperty("LoweredGearLimbPath", { reader >> m_Paths[RIGHT][LOWERED]; });
+    MatchProperty("LoweringGearLimbPath", { reader >> m_Paths[RIGHT][LOWERING]; });
+    MatchProperty("RaisingGearLimbPath", { reader >> m_Paths[RIGHT][RAISING]; });
+    MatchProperty("MaxGimbalAngle", {
 		reader >> m_MaxGimbalAngle;
 		m_MaxGimbalAngle *= (c_PI / 180.0F);
-    } else {
-        return ACraft::ReadProperty(propName, reader);
-    }
+    });
 
-    return 0;
+    EndPropertyList;
 }
 
 
@@ -277,217 +268,15 @@ float ACRocket::GetAltitude(int max, int accuracy)
     else
         pos = m_Pos;
 
-    return g_SceneMan.FindAltitude(pos, max, accuracy);
+    return g_SceneMan.FindAltitude(pos, max, accuracy, true);
 }
 
-/*
 //////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OnBounce
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits and then
-//                  bounces off of something. This is called by the owned Atom/AtomGroup
-//                  of this MovableObject during travel.
 
-bool ACRocket::OnBounce(const Vector &pos)
+void ACRocket::PreControllerUpdate()
 {
-    return false;
-}
+    ACraft::PreControllerUpdate();
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OnSink
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits and then
-//                  sink into something. This is called by the owned Atom/AtomGroup
-//                  of this MovableObject during travel.
-
-bool ACRocket::OnSink(const Vector &pos)
-{
-    return false;
-}
-*/
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  UpdateAI
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates this' AI state. Supposed to be done every frame that this has
-//                  a CAI controller controlling it.
-
-void ACRocket::UpdateAI()
-{
-    float angle = m_Rotation.GetRadAngle();
-
-    // This is the limit where increased thrust should be applied to assure a soft landing
-    float landLimit = m_CharHeight * 2;
-    // This is the lower limit on when thrust should be applied - anyhting higher, blast away!
-    float thrustLimit = m_CharHeight / 4;
-    // Get the altitude reading, within 10 pixels precision
-    float altitude = GetAltitude(g_SceneMan.GetSceneHeight() / 2, 10);
-
-    // Stuck detection
-    float moveThreshold = 1.0F;
-    if (m_Vel.MagnitudeIsGreaterThan(moveThreshold))
-    {
-        m_StuckTimer.Reset();
-    }
-
-    /////////////////////////////
-    // AI Modes affect the delivery state
-
-    if (m_AIMode == AIMODE_DELIVER)
-    {
-
-    }
-
-    ////////////////////////////
-    // Delivery Sequence logic
-
-    if (m_DeliveryState == FALL)
-    {
-        m_AltitudeControl = 0.95;
-        if (altitude < landLimit || m_StuckTimer.IsPastSimMS(3000))
-            m_DeliveryState = LAND;
-    }
-    else if (m_DeliveryState == LAND)
-    {
-        m_AltitudeControl = 0.3;
-        // Unload only if there's something to unload, and we're on the ground, or deem controlled is stuck
-        if (!IsInventoryEmpty() && (altitude < thrustLimit || m_StuckTimer.IsPastSimMS(3000)) && m_AIMode != AIMODE_STAY)
-        {
-            DropAllInventory();
-            m_FallTimer.Reset();
-            m_DeliveryState = UNLOAD;
-        }
-
-        // Don't try to land if we have already delivered
-        if (IsInventoryEmpty() && m_HasDelivered && m_AIMode != AIMODE_STAY)
-        {
-            m_StuckTimer.Reset();
-            m_DeliveryState = LAUNCH;
-        }
-    }
-    else if (m_DeliveryState == UNLOAD)
-    {
-        m_AltitudeControl = 0;
-        // Add delay after last unload before taking off
-        if (m_FallTimer.IsPastSimMS(1000) && IsInventoryEmpty())
-        {
-            m_StuckTimer.Reset();
-            m_DeliveryState = LAUNCH;
-        }
-        // Reset only the timer if we're not empty yet
-        else if (!IsInventoryEmpty())
-            m_FallTimer.Reset();
-    }
-    else if (m_DeliveryState == LAUNCH)
-    {
-        m_ObstacleState = PROCEEDING;
-        m_AltitudeControl = -1.0;
-
-        if (m_StuckTimer.IsPastSimMS(3000))
-        {
-            m_StuckTimer.Reset();
-            m_DeliveryState = UNSTICK;
-        }
-    }
-    else if (m_DeliveryState == UNSTICK)
-    {
-        m_ObstacleState = BACKSTEPPING;
-
-        if (m_StuckTimer.IsPastSimMS(1500))
-        {
-            m_StuckTimer.Reset();
-            m_DeliveryState = LAUNCH;
-        }
-    }
-
-    // Adjustement of turn on/off thresholds based on the altitude control
-// TODO: DOn't hardcode adjustments
-    float altVelSpread = 8.0 / 2;
-    float startVel = 1 + 10 * m_AltitudeControl + altVelSpread;
-    float stopVel = 1 + 10 * m_AltitudeControl - altVelSpread;
-
-    /////////////////////////
-    // LIFT
-
-    // Don't do anyhting else if using the retrorockets to get out of stuckness
-    if (m_ObstacleState == BACKSTEPPING)
-        m_ObstacleState = BACKSTEPPING;
-    // Don't when very close to the ground, unless taking off, or if really rotated
-    else if (m_DeliveryState != LAUNCH && altitude < thrustLimit || m_AltitudeControl >= 1.0/* || fabs(angle) > c_SixteenthPI */)
-        m_ObstacleState = PROCEEDING;
-    // Always fire if alt control is maxed out
-    else if (m_AltitudeControl <= -1.0)
-        m_ObstacleState = SOFTLANDING;
-    else
-    {
-        // START - We're falling, so see if it's time to start firing the main thruster to hover
-        if (m_Vel.m_Y > startVel)
-        {
-            m_ObstacleState = SOFTLANDING;
-        }
-        // STOP main lift thruster
-        else if (m_Vel.m_Y < stopVel)
-        {
-            m_ObstacleState = PROCEEDING;
-        }
-    }
-
-    /////////////////////////
-    // STABILIZATION
-
-    // Don't mess if we're unloading or automatically stabilizing
-    if (AutoStabilizing() || (m_DeliveryState == UNLOAD && m_Vel.MagnitudeIsLessThan(5.0F)))
-        m_LateralMoveState = LAT_STILL;
-    else
-    {
-        if (angle > c_SixteenthPI / 2)
-        {
-            m_LateralMoveState = LAT_LEFT;
-        }
-        else if (angle < -c_SixteenthPI / 2)
-        {
-            m_LateralMoveState = LAT_RIGHT;
-        }
-        else
-            m_LateralMoveState = LAT_STILL;
-    }
-
-    /////////////////////////
-    // UNLODGING
-/*
-    if (m_DeliveryState != UNLOAD && m_StuckTimer.IsPastSimMS(1500))
-    {
-
-    }
-    if ()
-*/
-    /////////////////////////
-    // INPUT TRANSLATION
-
-    if (m_ObstacleState == SOFTLANDING)
-    {
-        m_Controller.SetState(BODY_JUMP, true);
-        m_Controller.SetState(MOVE_UP, true);
-    }
-    else if (m_ObstacleState == BACKSTEPPING)
-        m_Controller.SetState(MOVE_DOWN, true);
-
-    if (m_LateralMoveState == LAT_LEFT)
-        m_Controller.SetState(MOVE_RIGHT, true);
-    else if (m_LateralMoveState == LAT_RIGHT)
-        m_Controller.SetState(MOVE_LEFT, true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates this ACRocket. Supposed to be done every frame.
-
-void ACRocket::Update()
-{
     float deltaTime = g_TimerMan.GetDeltaTimeSecs();
 
     // Look/aim update, make the scanner point aftward if the rocket is falling
@@ -589,9 +378,12 @@ void ACRocket::Update()
     if (m_pLLeg && m_pLLeg->IsAttached()) {
         m_pLLeg->SetTargetPosition(m_pLFootGroup->GetLimbPos(!m_HFlipped));
     }
+}
 
-    /////////////////////////////////////////////////
-    // Update MovableObject, adds on the forces etc, updated viewpoint
+//////////////////////////////////////////////////////////////////////////////////////////
+
+void ACRocket::Update()
+{
     ACraft::Update();
 
     ////////////////////////////////////////

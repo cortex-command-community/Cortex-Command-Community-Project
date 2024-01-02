@@ -589,6 +589,7 @@ ClassInfoGetters;
 // Return value:    None.
 
 	void Update() override;
+    void PostUpdate() override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -698,7 +699,7 @@ ClassInfoGetters;
 	/// Gets a const reference to the list of wounds on this MOSRotating.
 	/// </summary>
 	/// <returns>A const reference to the list of wounds on this MOSRotating.</returns>
-	const std::list<AEmitter *> & GetWoundList() const { return m_Wounds; }
+	const std::vector<AEmitter *> & GetWoundList() const { return m_Wounds; }
 
     /// <summary>
     /// Gets the number of wounds attached to this MOSRotating.
@@ -744,125 +745,10 @@ ClassInfoGetters;
     /// <returns>The amount of damage caused by these wounds, taking damage multipliers into account.</returns>
     virtual float RemoveWounds(int numberOfWoundsToRemove, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables);
 
-	/// <summary>
-	/// Gets a const reference to this MOSRotating's map of string values.
-	/// </summary>
-	/// <returns>A const reference to this MOSRotating's map of string values.</returns>
-	const std::map<std::string, std::string> & GetStringValueMap() const { return m_StringValueMap; }
-
-	/// <summary>
-	/// Gets a const reference to this MOSRotating's map of number values.
-	/// </summary>
-	/// <returns>A const reference to this MOSRotating's map of number values.</returns>
-	const std::map<std::string, double> &GetNumberValueMap() const { return m_NumberValueMap; }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:  GetStringValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the string value associated with the specified key or "" if it does not exist.
-// Arguments:       Key to retrieve value.
-// Return value:    String value.
-
-	std::string GetStringValue(std::string key) const;
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:  GetNumberValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the number value associated with the specified key or 0 if it does not exist.
-// Arguments:       Key to retrieve value.
-// Return value:    Number (double) value.
-
-	double GetNumberValue(std::string key) const;
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:  GetObjectValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the object value associated with the specified key or 0 if it does not exist.
-// Arguments:       None.
-// Return value:    Object (Entity *) value.
-
-	Entity * GetObjectValue(std::string key) const;
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:  SetStringValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the string value associated with the specified key.
-// Arguments:       String key and value to set.
-// Return value:    None.
-
-	void SetStringValue(std::string key, std::string value);
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:  SetNumberValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the string value associated with the specified key.
-// Arguments:       String key and value to set.
-// Return value:    None.
-
-	void SetNumberValue(std::string key, double value);
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  SetObjectValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the string value associated with the specified key.
-// Arguments:       String key and value to set.
-// Return value:    None.
-
-	void SetObjectValue(std::string key, Entity * value);
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  RemoveStringValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Remove the string value associated with the specified key.
-// Arguments:       String key to remove.
-// Return value:    None.
-
-	void RemoveStringValue(std::string key);
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  RemoveNumberValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Remove the number value associated with the specified key.
-// Arguments:       String key to remove.
-// Return value:    None.
-
-	void RemoveNumberValue(std::string key);
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  RemoveObjectValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Remove the object value associated with the specified key.
-// Arguments:       String key to remove.
-// Return value:    None.
-
-	void RemoveObjectValue(std::string key);
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  StringValueExists
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Checks whether the value associated with the specified key exists.
-// Arguments:       String key to check.
-// Return value:    True if value exists.
-
-	bool StringValueExists(std::string key) const;
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  NumberValueExists
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Checks whether the value associated with the specified key exists.
-// Arguments:       String key to check.
-// Return value:    True if value exists.
-
-	bool NumberValueExists(std::string key) const;
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  ObjectValueExists
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Checks whether the value associated with the specified key exists.
-// Arguments:       String key to check.
-// Return value:    True if value exists.
-
-	bool ObjectValueExists(std::string key) const;
+    /// <summary>
+    /// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
+    /// </summary>
+    void DestroyScriptState();
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          SetDamageMultiplier
@@ -946,7 +832,7 @@ ClassInfoGetters;
 	/// <summary>
 	/// Method to be run when the game is saved via ActivityMan::SaveCurrentGame. Not currently used in metagame or editor saving.
 	/// </summary>
-	void OnGameSave() override;
+	void OnSave() override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1017,7 +903,7 @@ protected:
     // The vector that the recoil offsets the sprite when m_Recoiled is true.
     Vector m_RecoilOffset;
     // The list of wound AEmitters currently attached to this MOSRotating, and owned here as well.
-    std::list<AEmitter *> m_Wounds;
+    std::vector<AEmitter *> m_Wounds;
     // The list of Attachables currently attached and Owned by this.
     std::list<Attachable *> m_Attachables;
     std::unordered_set<unsigned long> m_ReferenceHardcodedAttachableUniqueIDs; //!< An unordered set is filled with the Unique IDs of all of the reference object's hardcoded Attachables when using the copy Create.
@@ -1042,12 +928,6 @@ protected:
     bool m_EffectOnGib;
     // How far this is audiable (in screens) when gibbing
     float m_LoudnessOnGib;
-	// Map to store any generic strings
-	std::map<std::string, std::string> m_StringValueMap;
-	// Map to store any generic numbers
-	std::map<std::string, double> m_NumberValueMap;
-	// Map to store any object pointers
-	std::map<std::string, Entity *> m_ObjectValueMap;
 
 	float m_DamageMultiplier; //!< Damage multiplier for this MOSRotating.
     bool m_NoSetDamageMultiplier; //!< Whether or not the damage multiplier for this MOSRotating was set.
@@ -1091,13 +971,6 @@ private:
 // Return value:    None.
 
     void Clear();
-
-    /// <summary>
-    /// Handles reading for custom values, dealing with the various types of custom values.
-    /// </summary>
-    /// <param name="reader">A Reader lined up to the custom value type to be read.</param>
-    void ReadCustomValueProperty(Reader &reader);
-
 
     // Disallow the use of some implicit methods.
 	MOSRotating(const MOSRotating &reference) = delete;

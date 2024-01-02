@@ -28,6 +28,11 @@ namespace RTE {
 		WEAPON_RELOAD,
 		PIE_MENU_OPENED,
 		PIE_MENU_ACTIVE,
+		// When using a gamepad, the pie menu can be opened either by left trigger or the right secondary button
+		// We want to differentiate between those, so that if the player is using their left hand to open the pie menu, then their right hand selects options
+		// And vice versa
+		PIE_MENU_ACTIVE_ANALOG,
+		PIE_MENU_ACTIVE_DIGITAL,
 		WEAPON_CHANGE_NEXT,
 		WEAPON_CHANGE_PREV,
 		WEAPON_PICKUP,
@@ -193,7 +198,7 @@ namespace RTE {
 		/// Sets the analog movement vector state of this.
 		/// </summary>
 		/// <param name="newMove">The new analog movement vector.</param>
-		void SetAnalogMove(Vector &newMove) { m_AnalogMove = newMove; }
+		void SetAnalogMove(const Vector &newMove) { m_AnalogMove = newMove; }
 
 		/// <summary>
 		/// Gets the analog aiming input data.
@@ -205,7 +210,7 @@ namespace RTE {
 		/// Sets the analog aiming vector state of this.
 		/// </summary>
 		/// <param name="newAim">The new analog aiming vector.</param>
-		void SetAnalogAim(Vector &newAim) { m_AnalogAim = newAim; }
+		void SetAnalogAim(const Vector &newAim) { m_AnalogAim = newAim; }
 
 		/// <summary>
 		/// Gets the analog menu input data.
@@ -310,6 +315,12 @@ namespace RTE {
 		/// </summary>
 		/// <param name="controlledActor">A pointer to a an Actor which is being controlled by this. Ownership is NOT transferred!</param>
 		void SetControlledActor(Actor *controlledActor = nullptr) { m_ControlledActor = controlledActor; }
+
+		/// <summary>
+		/// Returns whether the AI should be updated this frame.
+		/// </summary>
+		/// <returns>Whether the AI should be updated this frame.</returns>
+		bool ShouldUpdateAIThisFrame() const;
 #pragma endregion
 
 #pragma region Virtual Override Methods
@@ -326,6 +337,15 @@ namespace RTE {
 		/// <param name="rhs">A Controller reference.</param>
 		/// <returns>A reference to the changed Controller.</returns>
 		Controller & operator=(const Controller &rhs);
+#pragma endregion
+
+#pragma region Misc
+		/// <summary>
+		/// Overrides this controller, setting it to match another controller. This is useful for multithreading, where the Lua script can use a copied controller in a multi-threaded context, before overriding the controller in a single-threaded context.
+		/// This is exposed to Lua API to be clear, whereas ownership relies on operator overloading is rather temperamental :)
+		/// </summary>
+		/// <param="otherController">The other controller's state to copy. Ownership is not transferred</returns>
+		void Override(const Controller& otherController);
 #pragma endregion
 
 	protected:
@@ -397,11 +417,6 @@ namespace RTE {
 		/// Requests and applies input from the player.
 		/// </summary>
 		void GetInputFromPlayer();
-
-		/// <summary>
-		/// Requests and applies input from the AI.
-		/// </summary>
-		void GetInputFromAI();
 #pragma endregion
 
 		/// <summary>

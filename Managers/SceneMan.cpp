@@ -36,6 +36,8 @@
 // Temp
 #include "Controller.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace RTE
 {
 
@@ -43,6 +45,9 @@ namespace RTE
 
 const std::string SceneMan::c_ClassName = "SceneMan";
 std::vector<std::pair<int, BITMAP *>> SceneMan::m_IntermediateSettlingBitmaps;
+
+// Stored as a thread-local instead of in the class, because multithreaded Lua scripts will interfere otherwise
+thread_local Vector s_LastRayHitPos;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -56,7 +61,6 @@ void SceneMan::Clear()
     m_pMOColorLayer = nullptr;
     m_pMOIDLayer = nullptr;
     m_pDebugLayer = nullptr;
-    m_LastRayHitPos.Reset();
 
     m_LayerDrawMode = g_LayerNormal;
 
@@ -268,7 +272,9 @@ int SceneMan::LoadScene(std::string sceneName, bool placeObjects, bool placeUnit
 
 int SceneMan::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-    if (propName == "AddMaterial")
+    StartPropertyList(return Serializable::ReadProperty(propName, reader));
+
+    MatchProperty("AddMaterial",
     {
         // Get this before reading Object, since if it's the last one in its datafile, the stream will show the parent file instead
         std::string objectFilePath = reader.GetCurrentFilePath();
@@ -315,11 +321,9 @@ int SceneMan::ReadProperty(const std::string_view &propName, Reader &reader)
                 break;
             }
         }
-    }
-    else
-        return Serializable::ReadProperty(propName, reader);
+    });
 
-    return 0;
+    EndPropertyList;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -417,13 +421,27 @@ bool SceneMan::SceneWrapsY() const
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Directions SceneMan::GetSceneOrbitDirection() const {
+    if (m_pCurrentScene) {
+        SLTerrain *terrain = m_pCurrentScene->GetTerrain();
+        if (terrain) {
+            return terrain->GetOrbitDirection();
+        }
+    }
+
+    return Directions::Up;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 SLTerrain * SceneMan::GetTerrain()
 {
 //    RTEAssert(m_pCurrentScene, "Trying to get terrain matter before there is a scene or terrain!");
-    if (m_pCurrentScene)
+    if (m_pCurrentScene) {
         return m_pCurrentScene->GetTerrain();
+    }
 
-    return 0;
+    return nullptr;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1430,7 +1448,7 @@ bool SceneMan::CastMaterialRay(const Vector &start, const Vector &ray, unsigned 
                 foundPixel = true;
                 result.SetXY(intPos[X], intPos[Y]);
                 // Save last ray pos
-                m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                 break;
             }
 
@@ -1539,7 +1557,7 @@ bool SceneMan::CastNotMaterialRay(const Vector &start, const Vector &ray, unsign
                 foundPixel = true;
                 result.SetXY(intPos[X], intPos[Y]);
                 // Save last ray pos
-                m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                 break;
             }
 
@@ -1843,7 +1861,7 @@ bool SceneMan::CastStrengthRay(const Vector &start, const Vector &ray, float str
                     foundPixel = true;
                     result.SetXY(intPos[X], intPos[Y]);
                     // Save last ray pos
-                    m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                    s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                     break;
                 }
             }
@@ -1943,7 +1961,7 @@ bool SceneMan::CastWeaknessRay(const Vector &start, const Vector &ray, float str
                 foundPixel = true;
                 result.SetXY(intPos[X], intPos[Y]);
                 // Save last ray pos
-                m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                 break;
             }
 
@@ -2050,7 +2068,7 @@ MOID SceneMan::CastMORay(const Vector &start, const Vector &ray, MOID ignoreMOID
                     else
                     {
                         // Save last ray pos
-                        m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                        s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                         return hitMOID;
                     }
                 }
@@ -2059,7 +2077,7 @@ MOID SceneMan::CastMORay(const Vector &start, const Vector &ray, MOID ignoreMOID
 #endif
                 {
                     // Save last ray pos
-                    m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                    s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                     return hitMOID;
                 }
             }
@@ -2071,7 +2089,7 @@ MOID SceneMan::CastMORay(const Vector &start, const Vector &ray, MOID ignoreMOID
                 if (hitTerrain != g_MaterialAir && hitTerrain != ignoreMaterial)
                 {
                     // Save last ray pos
-                    m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                    s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                     return g_NoMOID;
                 }
             }
@@ -2164,7 +2182,7 @@ bool SceneMan::CastFindMORay(const Vector &start, const Vector &ray, MOID target
                 // Found target MOID, so save result and report success
                 resultPos.SetXY(intPos[X], intPos[Y]);
                 // Save last ray pos
-                m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                 return true;
             }
 
@@ -2175,7 +2193,7 @@ bool SceneMan::CastFindMORay(const Vector &start, const Vector &ray, MOID target
                 if (hitTerrain != g_MaterialAir && hitTerrain != ignoreMaterial)
                 {
                     // Save last ray pos
-                    m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                    s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                     return false;
                 }
             }
@@ -2290,7 +2308,7 @@ float SceneMan::CastObstacleRay(const Vector &start, const Vector &ray, Vector &
                 hitObstacle = true;
                 obstaclePos.SetXY(intPos[X], intPos[Y]);
                 // Save last ray pos
-                m_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+                s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
                 break;
             } else {
                 freePos.SetXY(intPos[X], intPos[Y]);
@@ -2328,17 +2346,36 @@ float SceneMan::CastObstacleRay(const Vector &start, const Vector &ray, Vector &
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float SceneMan::FindAltitude(const Vector &from, int max, int accuracy)
+const Vector& SceneMan::GetLastRayHitPos()
+{
+    // The absolute end position of the last ray cast
+    return s_LastRayHitPos;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float SceneMan::FindAltitude(const Vector &from, int max, int accuracy, bool fromSceneOrbitDirection)
 {
 // TODO: Also make this avoid doors
     Vector temp(from);
     ForceBounds(temp);
 
-    float result = g_SceneMan.CastNotMaterialRay(temp, Vector(0, (max > 0 ? max : g_SceneMan.GetSceneHeight())), g_MaterialAir, accuracy);
+    Directions orbitDirection = Directions::Up;
+    if (fromSceneOrbitDirection && m_pCurrentScene) {
+        orbitDirection = m_pCurrentScene->GetTerrain()->GetOrbitDirection();
+    }
+
+    float yDir = max > 0 ? max : g_SceneMan.GetSceneHeight();
+    yDir *= orbitDirection == Directions::Up ? 1.0 : -1.0f;
+    Vector direction = Vector(0, yDir);
+
+    float result = g_SceneMan.CastNotMaterialRay(temp, direction, g_MaterialAir, accuracy);
     // If we didn't find anything but air, then report max height
-    if (result < 0)
+    if (result < 0) {
         result = max > 0 ? max : g_SceneMan.GetSceneHeight();
-    return result;
+    }
+
+    return orbitDirection == Directions::Up ? result : g_SceneMan.GetSceneHeight() - result;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2354,10 +2391,24 @@ bool SceneMan::OverAltitude(const Vector &point, int threshold, int accuracy)
 
 Vector SceneMan::MovePointToGround(const Vector &from, int maxAltitude, int accuracy)
 {
+    // Todo, instead of a nograv area maybe best to tag certain areas as NoGrav. As otherwise it's tricky to keep track of when things are removed
+    if (m_pCurrentScene) {
+        Scene::Area* noGravArea = m_pCurrentScene->GetOptionalArea("NoGravityArea");
+        if (noGravArea && noGravArea->IsInside(from)) {
+            return from;
+        }
+    }
+
     Vector temp(from);
     ForceBounds(temp);
 
     float altitude = FindAltitude(temp, g_SceneMan.GetSceneHeight(), accuracy);
+    
+    // If there's no ground beneath us, do nothing
+    if (altitude == g_SceneMan.GetSceneHeight()) {
+        return temp;
+    }
+
     // Only move down if we're above the maxAltitude over the ground
     Vector groundPoint(temp.m_X, temp.m_Y + (altitude > maxAltitude ? altitude - maxAltitude : 0));
     return groundPoint;
@@ -2714,18 +2765,13 @@ bool SceneMan::AddSceneObject(SceneObject *sceneObject) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::Update(int screenId) {
-	if (!m_pCurrentScene) {
+	ZoneScoped;
+    
+    if (!m_pCurrentScene) {
 		return;
 	}
 
 	m_LastUpdatedScreen = screenId;
-
-	// Update the scene, only if doing the first screen, since it only needs done once per update.
-	if (screenId == 0) {
-		m_pCurrentScene->Update();
-	}
-
-    g_CameraMan.Update(screenId);
 
     const Vector &offset = g_CameraMan.GetOffset(screenId);
 	m_pMOColorLayer->SetOffset(offset);
@@ -2760,7 +2806,9 @@ void SceneMan::Update(int screenId) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SceneMan::Draw(BITMAP *targetBitmap, BITMAP *targetGUIBitmap, const Vector &targetPos, bool skipBackgroundLayers, bool skipTerrain) {
-	if (!m_pCurrentScene) {
+	ZoneScoped;
+    
+    if (!m_pCurrentScene) {
 		return;
 	}
 	SLTerrain *terrain = m_pCurrentScene->GetTerrain();
@@ -2812,6 +2860,27 @@ void SceneMan::Draw(BITMAP *targetBitmap, BITMAP *targetGUIBitmap, const Vector 
 			g_MovableMan.DrawHUD(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
 			g_PrimitiveMan.DrawPrimitives(m_LastUpdatedScreen, targetGUIBitmap, targetPos);
 			g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+
+#ifdef DRAW_NOGRAV_BOXES
+            if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
+                const std::vector<Box>& boxList = noGravArea->GetBoxes();
+                g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
+                drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
+
+                std::list<Box> wrappedBoxes;
+                for (std::vector<Box>::const_iterator bItr = boxList.begin(); bItr != boxList.end(); ++bItr)
+                {
+                    wrappedBoxes.clear();
+                    g_SceneMan.WrapBox(*bItr, wrappedBoxes);
+
+                    for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr)
+                    {
+                        Vector adjCorner = (*wItr).GetCorner() - targetPos;
+                        rectfill(targetBitmap, adjCorner.m_X, adjCorner.m_Y, adjCorner.m_X + (*wItr).GetWidth(), adjCorner.m_Y + (*wItr).GetHeight(), g_RedColor);
+                    }
+                }
+            }
+#endif
 
 			if (m_pDebugLayer) {
                 m_pDebugLayer->Draw(targetBitmap, targetBox);

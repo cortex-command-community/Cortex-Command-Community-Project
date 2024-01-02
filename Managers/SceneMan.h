@@ -344,6 +344,12 @@ public:
 
     bool SceneWrapsY() const;
 
+    /// <summary>
+    /// Gets the orbit direction for the current scene.
+    /// </summary>
+    /// <returns>The orbit direction for the current scene.</returns>
+    Directions GetSceneOrbitDirection() const;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetTerrain
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1077,9 +1083,9 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Gets the abosulte pos of where the last cast ray hit somehting.
 // Arguments:       None.
-// Return value:    A vector witht he absoltue pos of where the last ray cast hit somehting.
+// Return value:    A vector with the absolute pos of where the last ray cast hit somehting.
 
-    const Vector & GetLastRayHitPos() { return m_LastRayHitPos; }
+    const Vector& GetLastRayHitPos();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1092,7 +1098,8 @@ public:
 //                  here means less calculation.
 // Return value:    The altitude over the terrain, in pixels.
 
-    float FindAltitude(const Vector &from, int max = 0, int accuracy = 0);
+    float FindAltitude(const Vector &from, int max, int accuracy, bool fromSceneOrbitDirection);
+    float FindAltitude(const Vector &from, int max, int accuracy) { return FindAltitude(from, max, accuracy, false); }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1446,8 +1453,7 @@ public:
 
     // Debug layer for seeing cast rays etc
     SceneLayer *m_pDebugLayer;
-    // The absolute end position of the last ray cast
-    Vector m_LastRayHitPos;
+
     // The mode we're drawing layers in to the screen
     int m_LayerDrawMode;
 

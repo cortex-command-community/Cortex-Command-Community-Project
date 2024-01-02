@@ -23,11 +23,15 @@
 #include "Actor.h"
 #include "SLTerrain.h"
 
+#include "Base64/base64.h"
+#include "tracy/Tracy.hpp"
+
 namespace RTE {
 
 AbstractClassInfo(MovableObject, SceneObject);
 
-unsigned long int MovableObject::m_UniqueIDCounter = 1;
+std::atomic<unsigned long int> MovableObject::m_UniqueIDCounter = 1;
+std::string MovableObject::ms_EmptyString = "";
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Clear
@@ -64,6 +68,7 @@ void MovableObject::Clear()
     m_IgnoresTeamHits = false;
     m_IgnoresAtomGroupHits = false;
     m_IgnoresAGHitsWhenSlowerThan = -1;
+    m_IgnoresActorHits = false;
     m_MissionCritical = false;
     m_CanBeSquished = true;
     m_IsUpdated = false;
@@ -72,15 +77,20 @@ void MovableObject::Clear()
     m_MOID = g_NoMOID;
     m_RootMOID = g_NoMOID;
     m_HasEverBeenAddedToMovableMan = false;
-	m_ExistsInMovableMan = false;
     m_MOIDFootprint = 0;
     m_AlreadyHitBy.clear();
 	m_VelOscillations = 0;
     m_ToSettle = false;
     m_ToDelete = false;
     m_HUDVisible = true;
+    m_IsTraveling = false;
     m_AllLoadedScripts.clear();
     m_FunctionsAndScripts.clear();
+    m_StringValueMap.clear();
+    m_NumberValueMap.clear();
+    m_ObjectValueMap.clear();
+    m_ThreadedLuaState = nullptr;
+    m_ForceIntoMasterLuaState = false;
     m_ScriptObjectName.clear();
     m_ScreenEffectFile.Reset();
     m_pScreenEffect = 0;
@@ -111,10 +121,26 @@ void MovableObject::Clear()
 	m_TerrainMatHit = g_MaterialAir;
 	m_ParticleUniqueIDHit = 0;
 
+    m_LastCollisionSimFrameNumber = 0;
+
 	m_SimUpdatesBetweenScriptedUpdates = 1;
     m_SimUpdatesSinceLastScriptedUpdate = 0;
+    m_RequestedSyncedUpdate = false;
 }
 
+LuaStateWrapper & MovableObject::GetAndLockStateForScript(const std::string &scriptPath, const LuaFunction *function) {
+    if (m_ForceIntoMasterLuaState) {
+        m_ThreadedLuaState = &g_LuaMan.GetMasterScriptState();
+    }
+    
+    if (m_ThreadedLuaState == nullptr) {
+        m_ThreadedLuaState = g_LuaMan.GetAndLockFreeScriptState();
+    } else {
+        m_ThreadedLuaState->GetMutex().lock();
+    }
+
+    return *m_ThreadedLuaState;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Create
@@ -215,12 +241,14 @@ int MovableObject::Create(const MovableObject &reference)
     m_IgnoresTeamHits = reference.m_IgnoresTeamHits;
     m_IgnoresAtomGroupHits = reference.m_IgnoresAtomGroupHits;
     m_IgnoresAGHitsWhenSlowerThan = reference.m_IgnoresAGHitsWhenSlowerThan;
+    m_IgnoresActorHits = reference.m_IgnoresActorHits;
     m_pMOToNotHit = reference.m_pMOToNotHit;
     m_MOIgnoreTimer = reference.m_MOIgnoreTimer;
     m_MissionCritical = reference.m_MissionCritical;
     m_CanBeSquished = reference.m_CanBeSquished;
     m_HUDVisible = reference.m_HUDVisible;
 
+    m_ForceIntoMasterLuaState = reference.m_ForceIntoMasterLuaState;
     for (auto &[scriptPath, scriptEnabled] : reference.m_AllLoadedScripts) {
         LoadScript(scriptPath, scriptEnabled);
     }
@@ -260,6 +288,10 @@ int MovableObject::Create(const MovableObject &reference)
 	m_SimUpdatesBetweenScriptedUpdates = reference.m_SimUpdatesBetweenScriptedUpdates;
 	m_SimUpdatesSinceLastScriptedUpdate = reference.m_SimUpdatesSinceLastScriptedUpdate;
 
+    m_StringValueMap = reference.m_StringValueMap;
+    m_NumberValueMap = reference.m_NumberValueMap;
+    m_ObjectValueMap = reference.m_ObjectValueMap;
+
 	m_UniqueID = MovableObject::GetNextUniqueID();
 	g_MovableMan.RegisterObject(this);
 
@@ -277,65 +309,51 @@ int MovableObject::Create(const MovableObject &reference)
 
 int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader)
 {
-	if (propName == "Mass") {
-		reader >> m_Mass;
-	} else if (propName == "Velocity")
-		reader >> m_Vel;
-	else if (propName == "Scale")
-		reader >> m_Scale;
-	else if (propName == "GlobalAccScalar")
-		reader >> m_GlobalAccScalar;
-	else if (propName == "AirResistance")
+	StartPropertyList(return SceneObject::ReadProperty(propName, reader));
+    
+    MatchProperty("Mass", { reader >> m_Mass; });
+	MatchProperty("Velocity", { reader >> m_Vel; });
+	MatchProperty("Scale", { reader >> m_Scale; });
+	MatchProperty("GlobalAccScalar", { reader >> m_GlobalAccScalar; });
+	MatchProperty("AirResistance",
 	{
 		reader >> m_AirResistance;
 		// Backwards compatibility after we made this value scaled over time
 		m_AirResistance /= 0.01666F;
-	}
-	else if (propName == "AirThreshold")
-		reader >> m_AirThreshold;
-	else if (propName == "PinStrength")
-		reader >> m_PinStrength;
-	else if (propName == "RestThreshold")
-		reader >> m_RestThreshold;
-	else if (propName == "LifeTime")
-		reader >> m_Lifetime;
-	else if (propName == "Age") {
+	});
+	MatchProperty("AirThreshold", { reader >> m_AirThreshold; });
+	MatchProperty("PinStrength", { reader >> m_PinStrength; });
+	MatchProperty("RestThreshold", { reader >> m_RestThreshold; });
+	MatchProperty("LifeTime", { reader >> m_Lifetime; });
+	MatchProperty("Age", {
 		double age;
 		reader >> age;
 		m_AgeTimer.SetElapsedSimTimeMS(age);
-	} else if (propName == "Sharpness")
-		reader >> m_Sharpness;
-	else if (propName == "HitsMOs")
-		reader >> m_HitsMOs;
-	else if (propName == "GetsHitByMOs")
-		reader >> m_GetsHitByMOs;
-	else if (propName == "IgnoresTeamHits")
-		reader >> m_IgnoresTeamHits;
-	else if (propName == "IgnoresAtomGroupHits")
-		reader >> m_IgnoresAtomGroupHits;
-	else if (propName == "IgnoresAGHitsWhenSlowerThan")
-		reader >> m_IgnoresAGHitsWhenSlowerThan;
-	else if (propName == "RemoveOrphanTerrainRadius")
+	});
+	MatchProperty("Sharpness", { reader >> m_Sharpness; });
+	MatchProperty("HitsMOs", { reader >> m_HitsMOs; });
+	MatchProperty("GetsHitByMOs", { reader >> m_GetsHitByMOs; });
+	MatchProperty("IgnoresTeamHits", { reader >> m_IgnoresTeamHits; });
+	MatchProperty("IgnoresAtomGroupHits", { reader >> m_IgnoresAtomGroupHits; });
+	MatchProperty("IgnoresAGHitsWhenSlowerThan", { reader >> m_IgnoresAGHitsWhenSlowerThan; });
+    MatchProperty("IgnoresActorHits",  { reader >> m_IgnoresActorHits; });
+	MatchProperty("RemoveOrphanTerrainRadius",
 	{
 		reader >> m_RemoveOrphanTerrainRadius;
 		if (m_RemoveOrphanTerrainRadius > MAXORPHANRADIUS)
 			m_RemoveOrphanTerrainRadius = MAXORPHANRADIUS;
-	}
-	else if (propName == "RemoveOrphanTerrainMaxArea")
+	});
+	MatchProperty("RemoveOrphanTerrainMaxArea",
 	{
 		reader >> m_RemoveOrphanTerrainMaxArea;
 		if (m_RemoveOrphanTerrainMaxArea > MAXORPHANRADIUS * MAXORPHANRADIUS)
 			m_RemoveOrphanTerrainMaxArea = MAXORPHANRADIUS * MAXORPHANRADIUS;
-	}
-	else if (propName == "RemoveOrphanTerrainRate")
-		reader >> m_RemoveOrphanTerrainRate;
-	else if (propName == "MissionCritical")
-		reader >> m_MissionCritical;
-	else if (propName == "CanBeSquished")
-		reader >> m_CanBeSquished;
-	else if (propName == "HUDVisible")
-		reader >> m_HUDVisible;
-	else if (propName == "ScriptPath") {
+	});
+	MatchProperty("RemoveOrphanTerrainRate", { reader >> m_RemoveOrphanTerrainRate; });
+	MatchProperty("MissionCritical", { reader >> m_MissionCritical; });
+	MatchProperty("CanBeSquished", { reader >> m_CanBeSquished; });
+	MatchProperty("HUDVisible", { reader >> m_HUDVisible; });
+	MatchProperty("ScriptPath", {
 		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
         switch (LoadScript(scriptPath)) {
             case 0:
@@ -350,66 +368,67 @@ int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader
                 reader.ReportError("The script path " + scriptPath + " is already loaded onto this object.");
                 break;
             case -4:
-                reader.ReportError("Failed to do necessary setup to add scripts while attempting to add the script with path " + scriptPath + ". This has nothing to do with your script, please report it to a developer.");
-                break;
-            case -5:
                 // Error in lua file, this'll pop up in the console so no need to report an error through the reader.
                 break;
             default:
                 RTEAbort("Reached default case while adding script in INI. This should never happen!");
                 break;
         }
-	} else if (propName == "ScreenEffect") {
+	});
+	MatchProperty("ScreenEffect", {
         reader >> m_ScreenEffectFile;
         m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
 		m_ScreenEffectHash = m_ScreenEffectFile.GetHash();
-    }
-    else if (propName == "EffectStartTime")
-        reader >> m_EffectStartTime;
-	else if (propName == "EffectRotAngle")
-		reader >> m_EffectRotAngle;
-	else if (propName == "InheritEffectRotAngle")
-		reader >> m_InheritEffectRotAngle;
-	else if (propName == "RandomizeEffectRotAngle")
-		reader >> m_RandomizeEffectRotAngle;
-	else if (propName == "RandomizeEffectRotAngleEveryFrame")
-		reader >> m_RandomizeEffectRotAngleEveryFrame;
-	else if (propName == "EffectStopTime")
-        reader >> m_EffectStopTime;
-    else if (propName == "EffectStartStrength")
-    {
+    });
+    MatchProperty("EffectStartTime", { reader >> m_EffectStartTime; });
+	MatchProperty("EffectRotAngle", { reader >> m_EffectRotAngle; });
+	MatchProperty("InheritEffectRotAngle", { reader >> m_InheritEffectRotAngle; });
+	MatchProperty("RandomizeEffectRotAngle", { reader >> m_RandomizeEffectRotAngle; });
+	MatchProperty("RandomizeEffectRotAngleEveryFrame", { reader >> m_RandomizeEffectRotAngleEveryFrame; });
+	MatchProperty("EffectStopTime", { reader >> m_EffectStopTime; });
+    MatchProperty("EffectStartStrength", {
         float strength;
         reader >> strength;
         m_EffectStartStrength = std::floor((float)255 * strength);
-    }
-    else if (propName == "EffectStopStrength")
-    {
+    });
+    MatchProperty("EffectStopStrength", {
         float strength;
         reader >> strength;
         m_EffectStopStrength = std::floor((float)255 * strength);
-    }
-    else if (propName == "EffectAlwaysShows")
-        reader >> m_EffectAlwaysShows;
-	else if (propName == "DamageOnCollision")
-		reader >> m_DamageOnCollision;
-	else if (propName == "DamageOnPenetration")
-		reader >> m_DamageOnPenetration;
-	else if (propName == "WoundDamageMultiplier")
-		reader >> m_WoundDamageMultiplier;
-    else if (propName == "ApplyWoundDamageOnCollision")
-        reader >> m_ApplyWoundDamageOnCollision;
-    else if (propName == "ApplyWoundBurstDamageOnCollision")
-        reader >> m_ApplyWoundBurstDamageOnCollision;
-	else if (propName == "IgnoreTerrain")
-		reader >> m_IgnoreTerrain;
-    else if (propName == "SimUpdatesBetweenScriptedUpdates")
-        reader >> m_SimUpdatesBetweenScriptedUpdates;
-	else
-        return SceneObject::ReadProperty(propName, reader);
+    });
+    MatchProperty("EffectAlwaysShows", { reader >> m_EffectAlwaysShows; });
+	MatchProperty("DamageOnCollision", { reader >> m_DamageOnCollision; });
+	MatchProperty("DamageOnPenetration", { reader >> m_DamageOnPenetration; });
+	MatchProperty("WoundDamageMultiplier", { reader >> m_WoundDamageMultiplier; });
+    MatchProperty("ApplyWoundDamageOnCollision", { reader >> m_ApplyWoundDamageOnCollision; });
+    MatchProperty("ApplyWoundBurstDamageOnCollision", { reader >> m_ApplyWoundBurstDamageOnCollision; });
+	MatchProperty("IgnoreTerrain", { reader >> m_IgnoreTerrain; });
+    MatchProperty("SimUpdatesBetweenScriptedUpdates", { reader >> m_SimUpdatesBetweenScriptedUpdates; });
+    MatchProperty("AddCustomValue", { ReadCustomValueProperty(reader); });
+    MatchProperty("ForceIntoMasterLuaState", { reader >> m_ForceIntoMasterLuaState; });
 
-    return 0;
+    EndPropertyList;
 }
 
+void MovableObject::ReadCustomValueProperty(Reader& reader) {
+    std::string customValueType;
+    reader >> customValueType;
+    std::string customKey = reader.ReadPropName();
+    std::string customValue = reader.ReadPropValue();
+    if (customValueType == "NumberValue") {
+        try {
+            SetNumberValue(customKey, std::stod(customValue));
+        } catch (const std::invalid_argument) {
+            reader.ReportError("Tried to read a non-number value for SetNumberValue.");
+        }
+    } else if (customValueType == "StringValue") {
+        SetStringValue(customKey, customValue);
+    } else {
+        reader.ReportError("Invalid CustomValue type " + customValueType);
+    }
+    // Artificially end reading this property since we got all we needed
+    reader.NextProperty();
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Save
@@ -454,6 +473,8 @@ int MovableObject::Save(Writer &writer) const
     writer << m_IgnoresAtomGroupHits;
     writer.NewProperty("IgnoresAGHitsWhenSlowerThan");
     writer << m_IgnoresAGHitsWhenSlowerThan;
+    writer.NewProperty("IgnoresActorHits");
+    writer << m_IgnoresActorHits;
     writer.NewProperty("MissionCritical");
     writer << m_MissionCritical;
     writer.NewProperty("CanBeSquished");
@@ -493,18 +514,57 @@ int MovableObject::Save(Writer &writer) const
     writer.NewProperty("SimUpdatesBetweenScriptedUpdates");
     writer << m_SimUpdatesBetweenScriptedUpdates;
 
+    for (const auto &[key, value] : m_NumberValueMap) {
+        writer.ObjectStart("AddCustomValue = NumberValue");
+        writer.NewPropertyWithValue(key, value);
+    }
+
+    for (const auto &[key, value] : m_StringValueMap) {
+        writer.ObjectStart("AddCustomValue = StringValue");
+        writer.NewPropertyWithValue(key, value);
+    }
+
+    writer.NewProperty("ForceIntoMasterLuaState");
+    writer << m_ForceIntoMasterLuaState;
+
     return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MovableObject::Destroy(bool notInherited) {
-    if (ObjectScriptsInitialized()) {
-        RunScriptedFunctionInAppropriateScripts("Destroy");
-        g_LuaMan.RunScriptString(m_ScriptObjectName + " = nil;");
+void MovableObject::DestroyScriptState() {
+    if (m_ThreadedLuaState) {
+        std::lock_guard<std::recursive_mutex> lock(m_ThreadedLuaState->GetMutex());
+        
+        if (ObjectScriptsInitialized()) {
+            RunScriptedFunctionInAppropriateScripts("Destroy");
+            m_ThreadedLuaState->RunScriptString(m_ScriptObjectName + " = nil;");
+            m_ScriptObjectName.clear();
+        }
+
+        m_ThreadedLuaState->UnregisterMO(this);
+        m_ThreadedLuaState = nullptr;
     }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::Destroy(bool notInherited) {
+    // Unfortunately, shit can still get destroyed at random from Lua states having ownership and their GC deciding to delete it.
+    // This skips the DestroyScriptState call... so there's leftover stale script state that we just can't do shit about.
+    // This means Destroy() doesn't get called, and the lua memory shit leaks because it never gets set to nil. But oh well.
+    // So.. we need to do this shit... I guess. Even though it's fucking awful. And it definitely results in possible deadlocks depending on how different lua states interact.
+    // TODO: try to make this at least reasonably workable
+    //DestroyScriptState();
+
+    if (m_ThreadedLuaState) {
+        m_ThreadedLuaState->UnregisterMO(this);
+    }
+
 	g_MovableMan.UnregisterObject(this);
-    if (!notInherited) { SceneObject::Destroy(); }
+    if (!notInherited) { 
+        SceneObject::Destroy(); 
+    }
     Clear();
 }
 
@@ -519,14 +579,8 @@ int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledS
 		return -3;
 	}
 
-	std::string luaClearSupportedFunctionsString;
-	luaClearSupportedFunctionsString.reserve(160);
-	for (const std::string &functionName : GetSupportedScriptFunctionNames()) {
-		luaClearSupportedFunctionsString += functionName + " = nil;";
-	}
-	if (g_LuaMan.RunScriptString(luaClearSupportedFunctionsString) < 0) {
-		return -4;
-	}
+    LuaStateWrapper& usedState = GetAndLockStateForScript(scriptPath);
+    std::lock_guard<std::recursive_mutex> lock(usedState.GetMutex(), std::adopt_lock);
 
 	for (const std::string &functionName : GetSupportedScriptFunctionNames()) {
 		if (m_FunctionsAndScripts.find(functionName) == m_FunctionsAndScripts.end()) {
@@ -537,17 +591,20 @@ int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledS
 	m_AllLoadedScripts.try_emplace(scriptPath, loadAsEnabledScript);
 
 	std::unordered_map<std::string, LuabindObjectWrapper *> scriptFileFunctions;
-	if (g_LuaMan.RunScriptFileAndRetrieveFunctions(scriptPath, GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
-		return -5;
-	}
-	for (const auto &[functionName, functionObject] : scriptFileFunctions) {
-		m_FunctionsAndScripts.at(functionName).emplace_back(std::unique_ptr<LuabindObjectWrapper>(functionObject));
+	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
+		return -4;
 	}
 
-	g_LuaMan.RunScriptString(luaClearSupportedFunctionsString);
+	for (const auto &[functionName, functionObject] : scriptFileFunctions) {
+		LuaFunction& luaFunction = m_FunctionsAndScripts.at(functionName).emplace_back();
+        luaFunction.m_ScriptIsEnabled = loadAsEnabledScript;
+        luaFunction.m_LuaFunction = std::unique_ptr<LuabindObjectWrapper>(functionObject);
+	}
 
 	if (ObjectScriptsInitialized()) {
-		RunFunctionOfScript(scriptPath, "Create");
+		if (RunFunctionOfScript(scriptPath, "Create") < 0) {
+            return -5;
+        }
 	}
 
 	return 0;
@@ -574,7 +631,7 @@ int MovableObject::ReloadScripts() {
 	for (const auto &[scriptPath, scriptEnabled] : loadedScriptsCopy) {
 		status = LoadScript(scriptPath, scriptEnabled);
 		// If the script fails to load because of an error in its Lua, we need to manually add the script path so it's not lost forever.
-		if (status == -5) {
+		if (status == -4) {
 			m_AllLoadedScripts.try_emplace(scriptPath, scriptEnabled);
 		} else if (status < 0) {
 			break;
@@ -587,12 +644,13 @@ int MovableObject::ReloadScripts() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int MovableObject::InitializeObjectScripts() {
-	g_LuaMan.SetTempEntity(this);
-
-	m_ScriptObjectName = "_ScriptedObjects[\"" + std::to_string(m_UniqueID) + "\"]";
-	if (g_LuaMan.RunScriptString("_ScriptedObjects = _ScriptedObjects or {}; " + m_ScriptObjectName + " = To" + GetClassName() + "(LuaMan.TempEntity); ") < 0) {
-		RTEAbort("Failed to initialize object scripts for " + GetModuleAndPresetName() + ". Please report this to a developer.");
-	}
+    std::lock_guard<std::recursive_mutex> lock(m_ThreadedLuaState->GetMutex());
+    m_ScriptObjectName = "_ScriptedObjects[\"" + std::to_string(m_UniqueID) + "\"]";
+    m_ThreadedLuaState->RegisterMO(this);
+    m_ThreadedLuaState->SetTempEntity(this);
+    if (m_ThreadedLuaState->RunScriptString("_ScriptedObjects = _ScriptedObjects or {}; " + m_ScriptObjectName + " = To" + GetClassName() + "(LuaMan.TempEntity); ") < 0) {
+        RTEAbort("Failed to initialize object scripts for " + GetModuleAndPresetName() + ". Please report this to a developer.");
+    }
 
 	if (!m_FunctionsAndScripts.at("Create").empty() && RunScriptedFunctionInAppropriateScripts("Create", false, true) < 0) {
 		m_ScriptObjectName = "ERROR";
@@ -613,7 +671,18 @@ bool MovableObject::EnableOrDisableScript(const std::string &scriptPath, bool en
 		if (ObjectScriptsInitialized() && RunFunctionOfScript(scriptPath, enableScript ? "OnScriptEnable" : "OnScriptDisable") < 0) {
 			return false;
 		}
+
         scriptEntryIterator->second = enableScript;
+
+        // Slow, but better to spend this time here in EnableOrDisableScript than every update hashing the script path as we used to do
+        for (auto &[functionName, functionObjects] : m_FunctionsAndScripts) {
+            for (LuaFunction &luaFunction : functionObjects) {
+                if (luaFunction.m_LuaFunction->GetFilePath() == scriptPath) {
+                    luaFunction.m_ScriptIsEnabled = enableScript;
+                }
+            }
+        }
+
         return true;
     }
     return false;
@@ -631,20 +700,27 @@ void MovableObject::EnableOrDisableAllScripts(bool enableScripts) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts, bool stopOnError, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) {
+int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts, bool stopOnError, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, const std::vector<LuabindObjectWrapper*> &functionObjectArguments) {
     int status = 0;
 
     auto itr = m_FunctionsAndScripts.find(functionName);
     if (itr == m_FunctionsAndScripts.end() || itr->second.empty()) {
-        status = -1;
-    } else if (!ObjectScriptsInitialized()) {
+        return -1;
+    } 
+    
+    if (!ObjectScriptsInitialized()) {
         status = InitializeObjectScripts();
     }
 
     if (status >= 0) {
-        for (const std::unique_ptr<LuabindObjectWrapper> &functionObjectWrapper : itr->second) {
-            if (runOnDisabledScripts || m_AllLoadedScripts.at(functionObjectWrapper->GetFilePath()) == true) {
-				status = g_LuaMan.RunScriptFunctionObject(functionObjectWrapper.get(), "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments);
+        ZoneScoped;
+        ZoneText(functionName.c_str(), functionName.length());
+        for (const LuaFunction &luaFunction : itr->second) {
+            const LuabindObjectWrapper *luabindObjectWrapper = luaFunction.m_LuaFunction.get();
+            if (runOnDisabledScripts || luaFunction.m_ScriptIsEnabled) {
+                LuaStateWrapper& usedState = GetAndLockStateForScript(luabindObjectWrapper->GetFilePath(), &luaFunction);
+                std::lock_guard<std::recursive_mutex> lock(usedState.GetMutex(), std::adopt_lock);
+				status = usedState.RunScriptFunctionObject(luabindObjectWrapper, "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments, functionObjectArguments);
                 if (status < 0 && stopOnError) {
                     return status;
                 }
@@ -656,13 +732,17 @@ int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &fu
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int MovableObject::RunFunctionOfScript(const std::string &scriptPath, const std::string &functionName, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) const {
-	if (m_AllLoadedScripts.empty() || !ObjectScriptsInitialized()) {
+int MovableObject::RunFunctionOfScript(const std::string &scriptPath, const std::string &functionName, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments) {    
+    if (m_AllLoadedScripts.empty() || !ObjectScriptsInitialized()) {
 		return -1;
 	}
 
-	for (const std::unique_ptr<LuabindObjectWrapper> &functionObjectWrapper : m_FunctionsAndScripts.at(functionName)) {
-		if (scriptPath == functionObjectWrapper->GetFilePath() && g_LuaMan.RunScriptFunctionObject(functionObjectWrapper.get(), "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments) < 0) {
+    LuaStateWrapper& usedState = GetAndLockStateForScript(scriptPath);
+    std::lock_guard<std::recursive_mutex> lock(usedState.GetMutex(), std::adopt_lock);
+
+	for (const LuaFunction &luaFunction : m_FunctionsAndScripts.at(functionName)) {
+        const LuabindObjectWrapper *luabindObjectWrapper = luaFunction.m_LuaFunction.get();
+		if (scriptPath == luabindObjectWrapper->GetFilePath() && usedState.RunScriptFunctionObject(luabindObjectWrapper, "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments) < 0) {
 			if (m_AllLoadedScripts.size() > 1) {
 				g_ConsoleMan.PrintString("ERROR: An error occured while trying to run the " + functionName + " function for script at path " + scriptPath);
 			}
@@ -711,6 +791,24 @@ float MovableObject::GetAltitude(int max, int accuracy)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void MovableObject::AddAbsForce(const Vector &force, const Vector &absPos)
+{
+    m_Forces.push_back(std::make_pair(force, g_SceneMan.ShortestDistance(m_Pos, absPos) * c_MPP));
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::AddAbsImpulseForce(const Vector &impulse, const Vector &absPos)
+{
+#ifndef RELEASE_BUILD
+		RTEAssert(impulse.GetLargest() < 500000, "HUEG IMPULSE FORCE");
+#endif
+
+		m_ImpulseForces.push_back(std::make_pair(impulse, g_SceneMan.ShortestDistance(m_Pos, absPos) * c_MPP));
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void MovableObject::RestDetection() {
 	// Translational settling detection.
 	if (m_Vel.Dot(m_PrevVel) < 0) {
@@ -749,7 +847,13 @@ bool MovableObject::OnMOHit(HitData &hd)
 	return hd.Terminate[hd.RootBody[HITOR] == this ? HITOR : HITEE] = false;
 }
 
-void MovableObject::SetHitWhatTerrMaterial(unsigned char matID) {
+unsigned char MovableObject::HitWhatTerrMaterial() const
+{
+    return m_LastCollisionSimFrameNumber == g_MovableMan.GetSimUpdateFrameNumber() ? m_TerrainMatHit : g_MaterialAir;
+}
+
+void MovableObject::SetHitWhatTerrMaterial(unsigned char matID)
+{
     m_TerrainMatHit = matID;
     m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
     RunScriptedFunctionInAppropriateScripts("OnCollideWithTerrain", false, false, {}, {std::to_string(m_TerrainMatHit)});
@@ -922,20 +1026,6 @@ void MovableObject::PostTravel()
 	m_DistanceTravelled += m_Vel.GetMagnitude() * c_PPM * g_TimerMan.GetDeltaTimeSecs();
 }
 
-/*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Pure v. method:  Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates this MovableObject. Supposed to be done every frame. This also
-//                  applies and clear the accumulated impulse forces (impulses), and the
-//                  transferred forces of MOs attached to this.
-
-void MovableObject::Update()
-{
-    return;
-}
-*/
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MovableObject::Update() {
@@ -973,10 +1063,128 @@ int MovableObject::UpdateScripts() {
 	m_SimUpdatesSinceLastScriptedUpdate = 0;
 
 	if (status >= 0) {
-		status = RunScriptedFunctionInAppropriateScripts("Update", false, true);
+		status = RunScriptedFunctionInAppropriateScripts("Update", false, true, {}, {}, {});
 	}
 
 	return status;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::string & MovableObject::GetStringValue(const std::string &key) const
+{
+    auto itr = m_StringValueMap.find(key);
+    if (itr == m_StringValueMap.end()) {
+        return ms_EmptyString;
+    }
+    
+    return itr->second;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string MovableObject::GetEncodedStringValue(const std::string &key) const
+{
+    auto itr = m_StringValueMap.find(key);
+    if (itr == m_StringValueMap.end()) {
+        return ms_EmptyString;
+    }
+
+    return base64_decode(itr->second);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double MovableObject::GetNumberValue(const std::string& key) const
+{
+    auto itr = m_NumberValueMap.find(key);
+    if (itr == m_NumberValueMap.end()) {
+        return 0.0;
+    }
+
+    return itr->second;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Entity* MovableObject::GetObjectValue(const std::string &key) const
+{
+    auto itr = m_ObjectValueMap.find(key);
+    if (itr == m_ObjectValueMap.end()) {
+        return nullptr;
+    }
+
+    return itr->second;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::SetStringValue(const std::string &key, const std::string &value)
+{
+    m_StringValueMap[key] = value;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::SetEncodedStringValue(const std::string &key, const std::string &value)
+{
+    m_StringValueMap[key] = base64_encode(value, true);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::SetNumberValue(const std::string &key, double value)
+{
+    m_NumberValueMap[key] = value;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::SetObjectValue(const std::string &key, Entity* value)
+{
+    m_ObjectValueMap[key] = value;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::RemoveStringValue(const std::string &key)
+{
+    m_StringValueMap.erase(key);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::RemoveNumberValue(const std::string &key)
+{
+    m_NumberValueMap.erase(key);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::RemoveObjectValue(const std::string &key)
+{
+    m_ObjectValueMap.erase(key);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool MovableObject::StringValueExists(const std::string &key) const
+{
+    return m_StringValueMap.find(key) != m_StringValueMap.end();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool MovableObject::NumberValueExists(const std::string &key) const
+{
+    return m_NumberValueMap.find(key) != m_NumberValueMap.end();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool MovableObject::ObjectValueExists(const std::string &key) const
+{
+    return m_ObjectValueMap.find(key) != m_ObjectValueMap.end();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1011,10 +1219,32 @@ void MovableObject::UpdateMOID(std::vector<MovableObject *> &MOIDIndex, MOID roo
 
 void MovableObject::GetMOIDs(std::vector<MOID> &MOIDs) const
 {
-	if (m_MOID != g_NoMOID)
+	if (m_MOID != g_NoMOID) {
 		MOIDs.push_back(m_MOID);
+    }
 }
 
+MOID MovableObject::HitWhatMOID() const
+{
+    return m_LastCollisionSimFrameNumber == g_MovableMan.GetSimUpdateFrameNumber() ? m_MOIDHit : g_NoMOID;
+}
+
+void MovableObject::SetHitWhatMOID(MOID id)
+{
+    m_MOIDHit = id;
+    m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
+}
+
+long int MovableObject::HitWhatParticleUniqueID() const
+{
+    return m_LastCollisionSimFrameNumber == g_MovableMan.GetSimUpdateFrameNumber() ? m_ParticleUniqueIDHit : 0;
+}
+
+void MovableObject::SetHitWhatParticleUniqueID(long int id)
+{
+    m_ParticleUniqueIDHit = id;
+    m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  RegMOID
@@ -1094,7 +1324,10 @@ bool MovableObject::DrawToTerrain(SLTerrain *terrain) {
 		g_SceneMan.RegisterTerrainChange(tempBitmapPos.GetFloorIntX(), tempBitmapPos.GetFloorIntY(), tempBitmap->w, tempBitmap->h, ColorKeys::g_MaskColor, false);
 	} else {
 		Draw(terrain->GetFGColorBitmap(), Vector(), DrawMode::g_DrawColor, true);
-		Draw(terrain->GetMaterialBitmap(), Vector(), DrawMode::g_DrawMaterial, true);
+		Material const *terrMat = g_SceneMan.GetMaterialFromID(g_SceneMan.GetTerrain()->GetMaterialPixel(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY()));
+		if (GetMaterial()->GetPriority() > terrMat->GetPriority()) {
+			Draw(terrain->GetMaterialBitmap(), Vector(), DrawMode::g_DrawMaterial, true);
+		}
 		g_SceneMan.RegisterTerrainChange(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), 1, 1, DrawMode::g_DrawColor, false);
 	}
 	return true;

@@ -9,11 +9,6 @@ namespace RTE {
 	typedef int MID; //!< Distinctive type definition for Material IDs.
 #pragma endregion
 
-#pragma region Game Version
-	static constexpr const char *c_MajorGameVersion = "Pre-Release 5";
-	static constexpr const char *c_MinorGameVersion = ".2";
-#pragma endregion
-
 #pragma region Userdata Constants
 	static const std::string c_UserScenesModuleName = "UserScenes.rte"; //!< Module name where user created Scenes are saved.
 	static const std::string c_UserScriptedSavesModuleName = "UserSavedGames.rte"; //!< Module name where user scripted Activity saves are saved.
@@ -31,7 +26,7 @@ namespace RTE {
 
 #pragma region Time Constants
 	static constexpr float c_DefaultDeltaTimeS = 0.0166666F; //!< The default simulation update step size, in seconds.
-	static constexpr float c_DefaultRealToSimCap = 0.0333333F; //!< The default cap of number of ticks that the real time can add to the tick accumulator each update.
+	static constexpr float c_RealToSimCap = 0.0166666F; //!< The default cap of number of ticks that the real time can add to the tick accumulator each update.
 #pragma endregion
 
 #pragma region AI Constants
@@ -42,8 +37,8 @@ namespace RTE {
 	static constexpr int c_DefaultResX = 960; //!< Default game window width.
 	static constexpr int c_DefaultResY = 540; //!< Default game window height.
 
-	static constexpr int c_MinResX = 640; //!< Minimum game window width.
-	static constexpr int c_MinResY = 384; //!< Minimum game window height.
+	static constexpr int c_MinResX = 640; //!< Minimum reasonable game window width.
+	static constexpr int c_MinResY = 360; //!< Minimum reasonable game window height.
 
 	static constexpr int c_ScenePreviewWidth = 170; //< Width of the scene preview bitmap.
 	static constexpr int c_ScenePreviewHeight = 80; //< Height of the scene preview bitmap.
@@ -129,6 +124,11 @@ namespace RTE {
 	#define c_PlayerSlotColorDefault makecol(161, 109, 20)
 	#define c_PlayerSlotColorHovered makecol(203, 130, 56)
 	#define c_PlayerSlotColorDisabled makecol(104, 67, 15)
+	static constexpr std::array<float, 16> c_Quad {
+			1.0f, 1.0f, 1.0f, 0.0f,
+			1.0f, -1.0f, 1.0f, 1.0f,
+			-1.0f, 1.0f, 0.0f, 0.0f,
+			-1.0f, -1.0f, 0.0f, 1.0f};
 #pragma endregion
 
 #pragma region Math Constants
@@ -196,7 +196,8 @@ namespace RTE {
 		INPUT_AIM_RIGHT,
 		INPUT_FIRE,
 		INPUT_AIM,
-		INPUT_PIEMENU,
+		INPUT_PIEMENU_ANALOG,
+		INPUT_PIEMENU_DIGITAL,
 		INPUT_JUMP,
 		INPUT_CROUCH,
 		INPUT_NEXT,
@@ -226,7 +227,8 @@ namespace RTE {
 		"Aim Right",		// INPUT_AIM_RIGHT
 		"Fire/Activate",	// INPUT_FIRE
 		"Sharp Aim",		// INPUT_AIM
-		"Pie Menu",			// INPUT_PIEMENU
+		"Pie Menu Analog",	// INPUT_PIEMENU_ANALOG
+		"Pie Menu Digital",	// INPUT_PIEMENU_DIGITAL
 		"Jump",				// INPUT_JUMP
 		"Crouch",			// INPUT_CROUCH
 		"Next Body",		// INPUT_NEXT

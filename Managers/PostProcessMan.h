@@ -4,10 +4,19 @@
 #include "Singleton.h"
 #include "Box.h"
 #include "SceneMan.h"
+#include "glad/gl.h"
+#include <glm/glm.hpp>
+#include "Shader.h"
 
 #define g_PostProcessMan PostProcessMan::Instance()
 
 namespace RTE {
+	/// <summary>
+	/// Struct for storing GL information in the BITMAP->extra field.
+	/// </summary>
+	struct GLBitmapInfo {
+		GLuint m_Texture;
+	};
 
 	/// <summary>
 	/// Structure for storing a post-process screen effect to be applied at the last stage of 32bpp rendering.
@@ -15,7 +24,7 @@ namespace RTE {
 	struct PostEffect {
 		BITMAP *m_Bitmap = nullptr; //!< The bitmap to blend, not owned.
 		size_t m_BitmapHash = 0; //!< Hash used to transmit glow events over the network.
-		float m_Angle = 0; // Post effect angle.
+		float m_Angle = 0.0F; // Post effect angle in radians.
 		int m_Strength = 128; //!< Scalar float for how hard to blend it in, 0 - 255.
 		Vector m_Pos; //!< Post effect position. Can be relative to the scene, or to the screen, depending on context.
 
@@ -43,6 +52,11 @@ namespace RTE {
 		/// </summary>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
 		int Initialize();
+
+		/// <summary>
+		/// (Re-)Initializes the GL backbuffers to the current render resolution for post-processing.
+		/// </summary>
+		void CreateGLBackBuffers();
 #pragma endregion
 
 #pragma region Destruction
@@ -81,16 +95,10 @@ namespace RTE {
 		/// <param name="targetBitmapOffset">The position of the specified player's draw screen on the backbuffer.</param>
 		/// <param name="screenRelativeEffectsList">List of the specified player's accumulated post effects for this frame.</param>
 		/// <param name="screenRelativeGlowBoxesList">List of the specified player's accumulated glow boxes for this frame.</param>
-		void AdjustEffectsPosToPlayerScreen(int playerScreen, BITMAP *targetBitmap, const Vector &targetBitmapOffset, std::list<PostEffect> &screenRelativeEffectsList, std::list<Box> &screenRelativeGlowBoxesList) const;
+		void AdjustEffectsPosToPlayerScreen(int playerScreen, BITMAP *targetBitmap, const Vector &targetBitmapOffset, std::list<PostEffect> &screenRelativeEffectsList, std::list<Box> &screenRelativeGlowBoxesList);
 #pragma endregion
 
 #pragma region Post Effect Handling
-		/// <summary>
-		/// Gets the list of effects to apply at the end of each frame.
-		/// </summary>
-		/// <returns>The list of effects to apply at the end of each frame.</returns>
-		std::list<PostEffect> * GetPostScreenEffectsList() { return &m_PostScreenEffects; }
-
 		/// <summary>
 		/// Registers a post effect to be added at the very last stage of 32bpp rendering by the FrameMan.
 		/// </summary>
@@ -98,7 +106,7 @@ namespace RTE {
 		/// <param name="effect">A 32bpp BITMAP screen should be drawn centered on the above scene location in the final frame buffer. Ownership is NOT transferred!</param>
 		/// <param name="hash">Hash value of the effect for transmitting over the network.</param>
 		/// <param name="strength">The intensity level this effect should have when blended in post. 0 - 255.</param>
-		/// <param name="angle">The angle this effect should be rotated at.</param>
+		/// <param name="angle">The angle this effect should be rotated at in radians.</param>
 		void RegisterPostEffect(const Vector &effectPos, BITMAP *effect, size_t hash, int strength = 255, float angle = 0);
 
 		/// <summary>
@@ -122,11 +130,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Post Pixel Glow Handling
-		/// <summary>
-		/// Gets the list of areas that will be processed with glow.
-		/// </summary>
-		/// <returns>The list of areas that will be processed with glow.</returns>
-		std::list<Box> * GetPostScreenGlowBoxesList() { return &m_PostScreenGlowBoxes; }
 
 		/// <summary>
 		/// Registers a specific IntRect to be post-processed and have special pixel colors lit up by glow effects in it.
@@ -179,6 +182,12 @@ namespace RTE {
 		void SetNetworkPostEffectsList(int whichScreen, std::list<PostEffect> &inputList);
 #pragma endregion
 
+		/// <summary>
+		/// Gets the backbuffer texture for indexed drawings.
+		/// </summary>
+		/// <returns>The opengl backbuffer texture for indexed drawings.</returns>
+		GLuint GetPostProcessColorBuffer() { return m_BackBuffer32; }
+
 	protected:
 
 		std::list<PostEffect> m_PostScreenEffects; //!< List of effects to apply at the end of each frame. This list gets cleared out and re-filled each frame.
@@ -201,6 +210,18 @@ namespace RTE {
 		std::unordered_map<int, BITMAP *> m_TempEffectBitmaps; //!< Stores temporary bitmaps to rotate post effects in for quick access.
 
 	private:
+		GLuint m_BackBuffer8; //!< Backbuffer texture for incoming indexed drawings.
+		GLuint m_BackBuffer32; //!< Backbuffer texture for the final 32bpp frame.
+		GLuint m_Palette8Texture; //!< Palette texture for incoming indexed drawings.
+		std::vector<std::unique_ptr<GLBitmapInfo>> m_BitmapTextures; //!< Vector of all the GL textures for the bitmaps that have been uploaded so far.
+		GLuint m_BlitFramebuffer; //!< Framebuffer for blitting the 8bpp backbuffer to the 32bpp backbuffer.
+		GLuint m_PostProcessFramebuffer; //!< Framebuffer for post-processing effects.
+		GLuint m_PostProcessDepthBuffer; //!< Depth buffer for post-processing effects.
+		glm::mat4 m_ProjectionMatrix; //!< Projection matrix for post-processing effects.
+		GLuint m_VertexBuffer; //!< Vertex buffer for post-processing effects.
+		GLuint m_VertexArray; //!< Vertex array for post-processing effects.
+		std::unique_ptr<Shader> m_Blit8; //!< Shader for blitting the 8bpp backbuffer to the 32bpp backbuffer.
+		std::unique_ptr<Shader> m_PostProcessShader; //!< Shader for drawing bitmap post effects.
 
 #pragma region Post Effect Handling
 		/// <summary>
@@ -252,13 +273,34 @@ namespace RTE {
 		/// <summary>
 		/// Draws all the glow effects registered for this frame. This is called from PostProcess().
 		/// </summary>
-		void DrawPostScreenEffects() const;
+		void DrawPostScreenEffects();
 #pragma endregion
 
 		/// <summary>
 		/// Clears all the member variables of this PostProcessMan, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
+
+		/// <summary>
+		/// Initializes all the GL pointers used by this PostProcessMan.
+		/// </summary>
+		void InitializeGLPointers();
+		
+		/// <summary>
+		/// Destroys all the GL pointers used by this PostProcessMan.
+		/// </summary>
+		void DestroyGLPointers();
+
+		/// <summary>
+		/// Updates the palette texture with the current palette.
+		/// </summary>
+		void UpdatePalette();
+
+		/// <summary>
+		/// Creates and upload a new GL texture. The texture pointer is stored in the BITMAP->extra field.
+		/// </summary>
+		/// <param name="bitmap">The bitmap to create a texture for.</param>
+		void LazyInitBitmap(BITMAP *bitmap);
 
 		// Disallow the use of some implicit methods.
 		PostProcessMan(const PostProcessMan &reference) = delete;

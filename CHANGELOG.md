@@ -7,15 +7,187 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 <details><summary><b>Added</b></summary>
+
+- Added in-game pause menu when pressing `Esc`. Pressing `Shift + Esc` will skip this menu and pause into scenario/conquest menu.  
+
+- Added a save/load game menu which can be accessed from the main or pause menus, which allows the user to save their current progress in an activity to resume at a later date.  
+
+- Massive performance improvements, especially in very large scenes with lots of actors.  
+
+- New multithreaded AI and Lua scripts.
+	Lua scripts now have extra callback functions `ThreadedUpdateAI(self)`, `ThreadedUpdate(self)` and `SyncedUpdate(self)`.  
+	The `Threaded` callback functions are run in a multithreaded fashion, whereas `Update` runs in a singlethreaded fashion (where it's safe to modify global state or affect other objects).  
+	The `SyncedUpdate` callback is called in a single-threaded fashion, but only when an MO directly requests it by calling `self:RequestSyncedUpdate()`. This gives greater performance, as the script can avoid any single-threaded updates being called on it until it explicitly needs it.  
+
+- New generic Lua messaging system, to allow scripts on objects to communicate with other objects or scripts.
+	Scripts on `MovableObject` now have new callback functions `OnMessage(self, message, context)` and `OnGlobalMessage(self, message, context)`.  
+	Script on `Activity` also have similar functions: `ActivityName:OnMessage(message, context)` and `ActivityName:OnGlobalMessage(message, context)`.  
+	The `OnMessage` callback will be triggered whenever the `SendMessage(message, context)` is called on an object, i.e `Object:SendMessage("Hello World")`.  
+	This `context` argument can be anything, like a table, string or number. It will be nil if left out of the SendMessage function call.
+	The `OnGlobalMessage` callback works the exact same way, however global messages are sent to every object within the game, instead of a specific object.  
+	To send a global message, use `MovableMan:SendGlobalMessage(message, context)`.  
+
+- New `AEJetpack` type, which replaces the old technique of `ACrab`/`AHuman` using an `AEmitter` as a jetpack. This type inherits from `AEmitter`.  
+	New INI and Lua (R/W) property `JetpackType`, which can be either `AEJetpack.Standard` or `AEJetpack.JumpPack`. Standard acts the same as the typical jetpack, whereas JumpPacks can only be activated when fully recharged, and fires all of it's fuel in one burst. Defaults to Standard.  
+	New INI and Lua (R/W) property `MinimumFuelRatio`, which defines the ratio of current fuel to max fuel that has to be met to fire the jetpack. Defaults to 0 for Standard and 0.25 for JumpPacks.  
+	New INI and Lua (R/W) property `CanAdjustAngleWhileFiring`, which defines whether the jet angle can change while the jetpack is active. Defaults to true.  
+	New INI and Lua (R/W) property `AdjustsThrottleForWeight`, which defines whether the jetpack will adjust it's throttle (between `NegativeThrottleMultiplier` and `PositiveThrottleMultiplier`) to account for any extra inventory mass. Increased throttle will decrease jet time accordingly. Defaults to true.  
+
+- Multithreaded asynchronous pathfinding, which dramatically improves performance on large maps and improves AI responsiveness.
+	New `Actor` Lua property (R) `IsWaitingOnNewMovePath`, which returns true while the actor is currently calculating a new path.  
+	New Lua `SceneMan` function `CalculatePathAsync` for asynchronous pathfinding. This function has no return value, and is used as follows:
+	```lua
+	SceneMan.Scene:CalculatePathAsync(
+		function(pathRequest) -- Callback function that is run when the path has finished calculating, passing in the pathRequest object.
+			pathRequest.Path; -- A list of Vectors that make up the calculated path.
+			pathRequest.PathLength -- The number of points in the calculated path.
+			pathRequest.Status; -- The enum status of the path, the options are PathRequest.Solved, PathRequest.NoSolution, and PathRequest.StartEndSame.
+			pathRequest.TotalCost; -- The total cost of path.
+		end,
+		-- All other arguments are the same as Scene:CalculatePath():
+		startPos, -- The start position of the path to calculate.
+		endPos,  -- The end position of the path to calculate.
+		movePathToGround,  -- Whether or not to move the points in the calculated path to ground level.
+		digStrength, -- The dig strength to use when calculating the path.
+		team -- The team to use when calculating the path, allowing the path to ignore that team's doors. If not specified, it will default to `Activity.NOTEAM`, and no doors will be ignored.
+	);
+	```
+
+- New FMOD and SoundContainer features:  
+	The game is now divided into SFX, UI, and Music busses which all route into the Master bus.  
+	The SFX bus has compression added for a better listening experience, and a safety volume limiter has been added to the Master bus.  
+	Aside from volume being attenuated, sounds will now also be lowpass filtered as distance increases.  
+	New `SoundContainer` INI and Lua (R/W) property `BusRouting`, which denotes which bus the SoundContainer routes to. Available busses: `SFX, UI, Music`. Defaults to `SFX`.  
+	`Enum` binding for `SoundContainer.BusRouting`: `SFX = 0, UI = 1, MUSIC = 2`.  
+	New `SoundContainer` INI and Lua (R/W) property `PanningStrengthMultiplier`, which will multiply the strength of 3D panning. This can be used to achieve for example a psuedo-Immobile effect where attenuation effects are still applied but the sound does not move from the center. Recommended to keep between 0.0 and 1.0.  
+	New `SoundContainer` INI and Lua (R/W) property `CustomPanValue`, which hard-overrides the panning of a sound. Clamped between -1 and 1 for left and right panning. 0 disables the override and will re-enable default behavior. This should probably only be used on Immobile sounds, but it can be used on any sound. No guarantees.
+
+- Tracy profiler integration.  
+	You can now attach Tracy to builds of the game and see profiling information about various zones and how long they take.  
+	This can also be used to profile specific lua scripts, with the following functions:  
+	`tracy.ZoneBegin()`, `tracy.ZoneEnd()` to profile a block of code.  
+	`tracy.ZoneBeginN(text)` to begin a custom named zone, and `tracy.ZoneName(text)` to dynamically set the current zone name on a per-call basis.  
+	`tracy.Message(text)` to send a tracy message.  
+	Lua scripts without any tracy documentation are still profiled by tracy, however only at a granularity of how long the entire script takes to execute.  
+
+- New `HeldDevice` Lua function `IsBeingHeld`, which returns whether or not the `HeldDevice` is currently being held.  
+
+- New `HeldDevice` INI and Lua (R/W) property `GetsHitByMOsWhenHeld`, which defines whether this `HeldDevice` can be hit by MOs while equipped and held by an actor. Defaults to false.  
+	
+- New `MovableObject` INI and Lua (R/W) property `IgnoresActorHits`, which defines whether this `MovableObject` should ignore collisions with actors. Defaults to false.  
+
+- New `HeldDevice` INI and Lua (R/W) property `VisualRecoilMultiplier`, which defines how much the recoil animation should be scaled for this weapon (without affecting SharpAim). Defaults to 1.0.  
+
+- New `HeldDevice` INI and Lua (R/W) property `UseSupportOffsetWhileReloading`, which defines whether the off-hand should stay at the weapon's support offset when reloading. Defaults to false.  
+
+- New `HDFirearm` INI and Lua (R/W) property `ReloadEndOffset`, to define how many milliseconds prior to the reload being complete that the `ReloadEndSound` should play. Defaults to -1, which means the game will automatically calculate so that the middle of the sound is aligned with the reload completing.  
+
+- New `Actor` INI and Lua (R/W) property `PainThreshold`, which determines how much damage this actor must take in a frame to play their `PainSound`. This can be set to 0 to never manually play the sound. Defaults to 15.  
+
+- New `AHuman` INI and Lua (R/W) property `MaxWalkPathCrouchShift`, which determines how much the actor will automatically duck down to avoid low ceilings above them. This can be set to 0 to never duck. Defaults to 6.  
+
+- New `AHuman` INI and Lua (R/W) property `MaxCrouchRotation`, which determines how much the actor will rotate when ducking to avoid low ceilings above them. This can be set to 0 to never duck. Defaults to a quarter of Pi * 1.25 (roughly 56 degrees).  
+
+- New `AHuman` Lua (R/W) property `CrouchAmountOverride`, which enforces that the actor crouch a certain amount, where 0 means fully standing and 1 is fully crouching. This override can be disabled by setting it to -1.0.  
+
+- New `AHuman` Lua (R) property `CrouchAmount`, which returns how much the actor is crouching, where 0 means fully standing and 1 is fully crouching.
+
+- New `MOPixel` INI and Lua (R/W) property `Staininess`, which defines how likely a pixel is to stain a surface when it collides with it. Staining a surface changes that surface's `Color` to that of this `MOPixel`, without changing the underlying material. Value can be between 0 and 1. Defaults to 0 (never stain).  
+
+- New `Activity` INI and Lua (R/W) property `AllowsUserSaving`, which can be used to enable/disable manual user saving/loading. This defaults to true for all `GAScripted` with an `OnSave()` function, but false otherwise. Lua `ActivityMan::SaveGame()` function now forces a save even if `AllowsUserSaving` is disabled. This allows mods and scripted gamemodes to handle saving in their own way (for example, only allowing saving at set points).  
+
+- New `AEmitter` and `PEmitter` Lua functions:  
+	`JustStartedEmitting()`, which returns whether the emitter just started emitting this frame.  
+	`WasEmitting()`, which returns whether the emitter was emitting last frame.  
+
+- New `AEmitter` and `PEmitter` INI properties:  
+	`SustainBurstSound`, which determines whether the burst sound should sustain and play until completion even when the emitter stops emitting, or if it cuts out with the emitter. Defaults to false.  
+	`BurstSoundFollowsEmitter`, which determines whether the burst sound follows the emitter or keeps playing where the burst occurred. Defaults to true.  
+
+- New `SLTerrain` INI property `OrbitDirection`, which defines which direction is considered to be orbit, for the sake of brain-path-to-orbit, dropship spawn/return location, etc. Can be any of `Up`, `Down`, `Left` or `Right`. Defaults to `Up`.
+
+- New `Actor` Lua function `RemoveInventoryItemAtIndex`, with removes the `MovableObject` inventory item at a given index and returns.
+
+- New `Scene` Lua functions `AddNavigatableArea(areaName)` and `ClearNavigatableAreas()`. This can be used to restrict pathfinding to only search a set of areas that have been added to the scene before via `Scene:SetArea(area)`.
+
+- New `ADoor` Lua function `ResetSensorTimer()`. Resets the sensor timer for that door, making it take the full SensorInterval again for it to detect actors.
+
+- Exposed `SceneObject` property `BuyableMode` to Lua (R).
+
+- `Enum` binding for `SceneObject.BuyableMode`: `NORESTRICTIONS = 0, BUYMENUONLY = 1, OBJECTPICKERONLY = 2, SCRIPTONLY = 3`.  
+
+- Exposed `UInputMan::AbsoluteMousePos` to Lua
+
+- New `GameActivity::LockControlledActor` Lua function to allow grab player input in the way menus (buy menu/full inventorymenu) do.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
+
+- Unofficial modules (mods) now use [Semantic Versioning](https://semver.org/) to check which version of the game they target.  
+	As such, the `Index.ini` property `SupportedGameVersion` must now be a valid semantic version number. The game version has also been updated to match this standard.  
+
+	The `SupportedGameVersion` version number must be of the form `X.Y.z`, where:  
+
+	`X` matches the major version of the game,  
+	`Y` is the minimum minor version of the game the mod requires,  
+	`z` is the patch number, which is currently not enforced.  
+
+  Mods published for any development builds must match that development version exactly.
+
+- Pressing F2 to reload scripts now also reloads the scripts for all MOs currently in the scene.
+
+- Various optimizations to improve Lua performance.
+
+- Lua `Scene.ScenePath` property has been changed to a function `Scene:GetScenePath()`. This was done for thread-safety with multithreading, but can be used in the same way.
+
+- `CameraMan::SetScrollTarget()` function has had the `targetWrapped` parameter removed, as it's not necessary. The camera will always focus taking the shortest path regardless now. The new full function signature is `CameraMan::SetScrollTarget(target, speed, screenId)`, where speed defaults to 0.1 and screenId defaults to 0.
+
+- Actors will now play their pain sound from any source of significant damage, instead of specifically when taking damage from colliding with terrain.
+
+- Gibbing objects will now inherit the velocity from the impulse that caused them to gib, meaning that gibs will be thrown away from the explosion or source of damage that caused it.
+
+- The `AHuman`/`ACrab` property `Jetpack` now takes an `AEJetpack`, instead of an `AEmitter`.
+
+- The following properties have all been moved from `AHuman`/`ACrab` to `AEJetpack`:  
+	`JetTime`  
+	`JetReplenishRate`  
+	`JetAngleRange`  
+	`JetTimeTotal`  
+	`JetTimeLeft`  
+
+- Improved loading times on large maps.  
+
+- Script values, i.e `GetStringValue`, `RemoveStringValue`, `StringValueExists` and the associated functions for `GetNumberValue`/`GetObjectValue`, have been moved from MOSRotating to MovableObject, so now any object with script support can use these values.  
+
+- The `SceneObject` property `IsBuyable` has been renamed to `Buyable`.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
+
+- Fixed music resuming from incorrect position when unpausing.
+
+- Camera wrapping now works correctly on scenes which are both X and Y wrapped.
+
+- Fixed extreme lag in the Decision Day scenario.
+
+- Fixed Lua `UInputMan:MouseButtonPressed`, `UInputMan:MouseButtonHeld(mouseButton)` and `UInputMan:MouseButtonReleased(mouseButton)` functions not working. Please note that this should take an enum of type `MouseButtons`, i.e `MouseButtons.MOUSE_LEFT`, not a number.
+
+- Fixed a rare crash bug that could occur when under extreme CPU load.
+
+- Fixed a bug where dropships that were non-empty would slowly drop down over time.
+
+- Fixed a bug where AI pathfinding would choose unoptimal routes.
+
+- Fixed a crash that could occur when scripted objects were deleted, particularly when switching scene.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
+
+- Removed RealToSimCap and OneSimUpdatePerFrame. Instead we try to always target 60fps, even if it slows the simulation down a little.
+
 </details>
 
 ***
@@ -391,6 +563,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	vector:MagnitudeIsLessThan(floatValue) -- Note that you can use (not vector:MagnitudeIsLessThan(floatValue)) in place of (vector.SqrMagnitude >= (floatValue * floatValue)).
 	```
 
+- New `PresetMan` Lua function `ReloadEntityPreset(presetName, className, optionalDefinedInModule)` that allows hot-reloading `Entity` INI presets (along with all other entity presets referenced in the reloaded entity preset).  
+	If the `optionalDefinedInModule` argument is not specified, the game will look through every `DataModule` to find an `Entity` preset that matches the name and type.  
+	Once an `Entity` preset has been reloaded via the function, the key combination `Ctrl + F2` can be used to quickly reload it as many times as necessary.  
+	Note that any changes made to the `Entity` preset will not be reflected in existing copies of the `Entity`, only in new ones created after the reload.  
+	Also note that visual changes to previously loaded sprites cannot be and will not be reflected by reloading. It is, however, possible to reload with a different set of loaded sprites, or entirely new ones.
+
+- Added `MOSRotating` INI property `DetachAttachablesBeforeGibbingFromWounds` that makes `Attachables` fall off before the `MOSRotating` gibs from having too many wounds, for nice visuals. Defaults to true.
+
 - The game now supports saving and loading. The easiest way to do this is to quick-save with `F5`, and quick-load with `F9`. Console clearing is now done with `F10`.
 	```lua
 	ActivityMan:SaveGame(fileName) -- Saves the currently playing Scene and Activity. The save result will be printed to the console.
@@ -398,7 +578,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	```
 	The `Activity` start function now looks like `function activityName:StartActivity(isNewGame)`. The new `isNewGame` parameter is true if a game is beingly newly started (or restarted), and false if it's being loaded.  
 
-	Scripts on `Activities` now have a new callback function `OnSave` (in addition to `Create`, `Update`, etc), which is called whenever a scene is saved. This function must exist for the `Activity` to be saveable!  
+	Scripts on `Activities` now have a new callback function `OnSave` (in addition to `Create`, `Update`, etc), which is called whenever a scene is saved.
+
 	To support saving and loading, `Activity` now has several Lua convenience functions to for dealing with script variables:
 	```lua
 	Activity:SaveNumber(stringKey, floatValue) -- Saves a float value which can later be retrieved using stringKey.
@@ -639,6 +820,8 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 - Added `LuaMan` Lua function `FileExists`, which lets you check whether a specified file exists. Like with `FileOpen`, the file must be inside a folder ending in `.rte`.
 
+- New `Actor` Lua (R) property `DigStrength`, that gets the calculated dig strength of the given `Actor`, based on whether or not they have any digging tools.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -826,7 +1009,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 	GetScreenOcclusion(screenId);
 	SetScreenOcclusion(occlusionVector, screenId);
 	GetScrollTarget(screenId);
-	SetScrollTarget(targetPosition, screenId);
+	SetScrollTarget(targetPosition, speed, screenId);
 	TargetDistanceScalar(point);
 	CheckOffset(screenId);
 	SetScroll(center, screenId);

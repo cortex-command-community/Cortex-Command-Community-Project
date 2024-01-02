@@ -12,6 +12,7 @@
 // Inclusions of header files
 
 #include "GAScripted.h"
+
 #include "SceneMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
@@ -19,8 +20,6 @@
 #include "ConsoleMan.h"
 #include "AudioMan.h"
 #include "SettingsMan.h"
-#include "MetaMan.h"
-#include "NetworkClient.h"
 #include "AHuman.h"
 #include "ACrab.h"
 #include "ACraft.h"
@@ -35,6 +34,8 @@
 
 #include "BuyMenuGUI.h"
 #include "SceneEditorGUI.h"
+
+#include "tracy/Tracy.hpp"
 
 namespace RTE {
 
@@ -77,6 +78,11 @@ int GAScripted::Create() {
     // Scan the script file for any mentions/uses of Areas.
     CollectRequiredAreas();
 
+
+    // If the GAScripted has a OnSave() function, we assume it can be saved by default
+    ReloadScripts();
+    m_AllowsUserSaving = HasSaveFunction();
+
     return 0;
 }
 
@@ -113,17 +119,19 @@ int GAScripted::Create(const GAScripted &reference) {
 //                  false is returned, and the reader's position is untouched.
 
 int GAScripted::ReadProperty(const std::string_view &propName, Reader &reader) {
-	if (propName == "ScriptPath") {
+	StartPropertyList(return GameActivity::ReadProperty(propName, reader));
+    
+    MatchProperty("ScriptPath", {
 		m_ScriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
-	} else if (propName == "LuaClassName") {
+    });
+    MatchProperty("LuaClassName", {
 		reader >> m_LuaClassName;
-	} else if (propName == "AddPieSlice") {
-		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice *>(g_PresetMan.ReadReflectedPreset(reader))));
-    } else {
-		return GameActivity::ReadProperty(propName, reader);
-	}
+    });
+    MatchProperty("AddPieSlice", {
+		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice *>(g_PresetMan.ReadReflectedPreset(reader)))); 
+    });
 
-    return 0;
+    EndPropertyList;
 }
 
 
@@ -134,8 +142,8 @@ int GAScripted::ReadProperty(const std::string_view &propName, Reader &reader) {
 //                  later recreation with Create(Reader &reader);
 
 int GAScripted::Save(Writer &writer) const {
-    // Call the script OnSave() function, if it exists
-    g_LuaMan.RunScriptString("if " + m_LuaClassName + " and " + m_LuaClassName + ".OnSave then " + m_LuaClassName + ":OnSave(); end");
+    // Hmm. We should probably be calling this prior to the writer Save, instead of const-casting.
+    const_cast<GAScripted*>(this)->RunLuaFunction("OnSave");
 
     GameActivity::Save(writer);
 
@@ -180,69 +188,54 @@ void GAScripted::Destroy(bool notInherited) {
 //                  spawned will use the new scripts.
 
 int GAScripted::ReloadScripts() {
+    if (m_ScriptPath.empty()) {
+        return 0;
+    }
+
     int error = 0;
+    CollectRequiredAreas();
 
-    // Read in the Lua script function definitions for this preset
-    if (!m_ScriptPath.empty()) {
-        // Get the required Area:s from the new script
-        CollectRequiredAreas();
+    // If it hasn't been yet, run the file that specifies the Lua functions for this' operating logic (including the scene test function)
+    if (!g_LuaMan.GetMasterScriptState().GlobalIsDefined(m_LuaClassName)) {
+        // Temporarily store this Activity so the Lua state can access it
+        g_LuaMan.GetMasterScriptState().SetTempEntity(this);
 
-        // If it hasn't been yet, run the file that specifies the Lua functions for this' operating logic (including the scene test function)
-        if (!g_LuaMan.GlobalIsDefined(m_LuaClassName)) {
-            // Temporarily store this Activity so the Lua state can access it
-            g_LuaMan.SetTempEntity(this);
-            // Define the var that will hold the script file definitions
-            if ((error = g_LuaMan.RunScriptString(m_LuaClassName + " = ToGameActivity(LuaMan.TempEntity);")) < 0) {
-                return error;
-            }
-        }
-
-        // Load and run the file, defining all the scripted functions of this Activity
-        if ((error = g_LuaMan.RunScriptFile(m_ScriptPath)) < 0) {
+        // Define the var that will hold the script file definitions
+        if ((error = g_LuaMan.GetMasterScriptState().RunScriptString(m_LuaClassName + " = ToGameActivity(LuaMan.TempEntity);")) < 0) {
             return error;
         }
     }
 
-    return error;
+    if ((error = g_LuaMan.GetMasterScriptState().RunScriptFile(m_ScriptPath, true, false)) < 0) {
+        return error;
+    }
+
+    RefreshActivityFunctions();
+
+    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GAScripted::ActivityCanBeSaved() const {
-	if (const Scene *scene = g_SceneMan.GetScene(); (scene && scene->IsMetagameInternal()) || g_MetaMan.GameInProgress()) {
-		return false;
-	}
-	if (g_NetworkClient.IsConnectedAndRegistered()) {
-		return false;
-	}
-	//TODO this method is complicated and manually parsing lua like this sucks. It should be replaceable with a simple check if the function exists in Lua, but it wasn't working when I tried so I just copied this from SceneIsCompatible.
-	std::ifstream scriptInputFileStream(m_ScriptPath);
-	if (scriptInputFileStream.good()) {
-		std::string::size_type commentPos;
-		bool inBlockComment = false;
-		while (!scriptInputFileStream.eof()) {
-			char rawLine[512];
-			scriptInputFileStream.getline(rawLine, 512);
-			std::string currentLine(rawLine);
+void GAScripted::RefreshActivityFunctions() {
+    m_ScriptFunctions.clear();
+    if (m_ScriptPath.empty()) {
+        return;
+    }
 
-			if (!inBlockComment) {
-				commentPos = currentLine.find("--[[", 0);
-				inBlockComment = commentPos != std::string::npos;
-			}
-			if (inBlockComment) {
-				commentPos = currentLine.find("]]", commentPos == std::string::npos ? 0 : commentPos);
-				inBlockComment = commentPos != std::string::npos;
-			}
-			if (!inBlockComment) {
-				commentPos = currentLine.find("--", 0);
-				std::string::size_type foundTextPos = currentLine.find("OnSave");
-				if (foundTextPos != std::string::npos && foundTextPos < commentPos) {
-					return true;
-				}
-			}
-		}
-	}
-	return false;
+    // We use m_LuaClassName here, because we ran the script file in the global state instead of in an environment
+    std::unordered_map<std::string, LuabindObjectWrapper*> scriptFileFunctions;
+    g_LuaMan.GetMasterScriptState().RetrieveFunctions(m_LuaClassName, GetSupportedScriptFunctionNames(), scriptFileFunctions);
+
+    for (const auto& [functionName, functionObject] : scriptFileFunctions) {
+        m_ScriptFunctions[functionName] = std::unique_ptr<LuabindObjectWrapper>(functionObject);
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool GAScripted::HasSaveFunction() const {
+    return m_ScriptFunctions.find("OnSave") != m_ScriptFunctions.end();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -268,32 +261,32 @@ bool GAScripted::SceneIsCompatible(Scene *pScene, int teams) {
     }
 
     // Temporarily store the scene so the Lua state can access it and check for the necessary Areas etc.
-    g_LuaMan.SetTempEntity(pScene);
+    g_LuaMan.GetMasterScriptState().SetTempEntity(pScene);
     // Cast the test scene it to a Scene object in Lua
-    if (g_LuaMan.RunScriptString("TestScene = ToScene(LuaMan.TempEntity);") < 0) {
+    if (g_LuaMan.GetMasterScriptState().RunScriptString("TestScene = ToScene(LuaMan.TempEntity);") < 0) {
         return false;
     }
 
     // If it hasn't been yet, run the file that specifies the Lua functions for this' operating logic (including the scene test function)
-    if (!g_LuaMan.GlobalIsDefined(m_LuaClassName)) {
+    if (!g_LuaMan.GetMasterScriptState().GlobalIsDefined(m_LuaClassName)) {
         // Temporarily store this Activity so the Lua state can access it
-        g_LuaMan.SetTempEntity(this);
+        g_LuaMan.GetMasterScriptState().SetTempEntity(this);
         // Define the var that will hold the script file definitions..
         // it's OK if the script fails, then the scene is still deemed compatible
-        if (g_LuaMan.RunScriptString(m_LuaClassName + " = ToGameActivity(LuaMan.TempEntity);") < 0) {
+        if (g_LuaMan.GetMasterScriptState().RunScriptString(m_LuaClassName + " = ToGameActivity(LuaMan.TempEntity);") < 0) {
             return true;
         }
         // Load and run the file, defining all the scripted functions of this Activity
-        if (g_LuaMan.RunScriptFile(m_ScriptPath) < 0) {
+        if (g_LuaMan.GetMasterScriptState().RunScriptFile(m_ScriptPath) < 0) {
             return true;
         }
     }
 
     // Call the defined function, but only after first checking if it exists
-    g_LuaMan.RunScriptString("if " + m_LuaClassName + ".SceneTest then " + m_LuaClassName + ":SceneTest(); end");
+    g_LuaMan.GetMasterScriptState().RunScriptString("if " + m_LuaClassName + ".SceneTest then " + m_LuaClassName + ":SceneTest(); end");
 
     // If the test left the Scene pointer still set, it means it passed the test
-    return g_LuaMan.GlobalIsDefined("TestScene");
+    return g_LuaMan.GetMasterScriptState().GlobalIsDefined("TestScene");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,9 +295,9 @@ void GAScripted::HandleCraftEnteringOrbit(ACraft *orbitedCraft) {
     GameActivity::HandleCraftEnteringOrbit(orbitedCraft);
 
     if (orbitedCraft && g_MovableMan.IsActor(orbitedCraft)) {
-        g_LuaMan.RunScriptFunctionString(m_LuaClassName + ".CraftEnteredOrbit", m_LuaClassName, {m_LuaClassName, m_LuaClassName + ".CraftEnteredOrbit"}, {orbitedCraft});
-        for (const GlobalScript *globalScript : m_GlobalScriptsList) {
-            if (globalScript->IsActive()) { globalScript->HandleCraftEnteringOrbit(orbitedCraft); }
+        g_LuaMan.GetMasterScriptState().RunScriptFunctionString(m_LuaClassName + ".CraftEnteredOrbit", m_LuaClassName, {m_LuaClassName, m_LuaClassName + ".CraftEnteredOrbit"}, {orbitedCraft});
+        for (GlobalScript *globalScript : m_GlobalScriptsList) {
+            globalScript->HandleCraftEnteringOrbit(orbitedCraft);
         }
     }
 }
@@ -325,18 +318,21 @@ int GAScripted::Start() {
         return error;
     }
 
-    // Create the Lua variable which will hold the class representation that we'll add some definitions to
-    if ((error = g_LuaMan.RunScriptString(m_LuaClassName + " = ToGameActivity(ActivityMan:GetActivity());")) < 0) {
+    // Temporarily store this Activity so the Lua state can access it
+    g_LuaMan.GetMasterScriptState().SetTempEntity(this);
+
+    // Define the var that will hold the script file definitions
+    if ((error = g_LuaMan.GetMasterScriptState().RunScriptString(m_LuaClassName + " = ToGameActivity(LuaMan.TempEntity);")) < 0) {
         return error;
     }
 
     // Run the file that specifies the Lua functions for this' operating logic
-    if ((error = g_LuaMan.RunScriptFile(m_ScriptPath)) < 0) {
+    if ((error = ReloadScripts()) < 0) {
         return error;
     }
 
-    // Call the defined function, but only after first checking if it exists
-    if ((error = g_LuaMan.RunScriptString("if " + m_LuaClassName + ".StartActivity then " + m_LuaClassName + ":StartActivity( " + (initialActivityState == ActivityState::NotStarted ? "true" : "false") + "); end")) < 0) {
+    // Call the create function
+    if ((error = RunLuaFunction("StartActivity", {}, { initialActivityState == ActivityState::NotStarted ? "true" : "false" }, {})) < 0) {
         return error;
     }
 
@@ -352,18 +348,11 @@ int GAScripted::Start() {
 	g_PresetMan.GetAllOfType(globalScripts, "GlobalScript");
 
 	for (std::list<Entity *>::iterator sItr = globalScripts.begin(); sItr != globalScripts.end(); ++sItr) {
-		GlobalScript * script = dynamic_cast<GlobalScript *>(*sItr);
-        if (script && g_SettingsMan.IsGlobalScriptEnabled(script->GetModuleAndPresetName())) {
-            m_GlobalScriptsList.push_back(dynamic_cast<GlobalScript*>(script->Clone()));
-        }
+        m_GlobalScriptsList.push_back(dynamic_cast<GlobalScript*>((*sItr)->Clone()));
 	}
 
 	// Start all global scripts
 	for (std::vector<GlobalScript *>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
-		if (g_SettingsMan.PrintDebugInfo()) {
-			g_ConsoleMan.PrintString("DEBUG: Start Global Script: " + (*sItr)->GetPresetName());
-        }
-
 		(*sItr)->Start();
 	}
 
@@ -379,14 +368,11 @@ int GAScripted::Start() {
 void GAScripted::SetPaused(bool pause) {
     GameActivity::SetPaused(pause);
 
-    // Call the defined function, but only after first checking if it exists
-    g_LuaMan.RunScriptString("if " + m_LuaClassName + ".PauseActivity then " + m_LuaClassName + ":PauseActivity(" + (pause ? "true" : "false") + "); end");
+    RunLuaFunction("PauseActivity", {}, { pause ? "true" : "false" }, {});
 
 	// Pause all global scripts
 	for (std::vector<GlobalScript *>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
-		if ((*sItr)->IsActive()) {
-			(*sItr)->Pause(pause);
-        }
+		(*sItr)->Pause(pause);
     }
 }
 
@@ -399,18 +385,11 @@ void GAScripted::SetPaused(bool pause) {
 void GAScripted::End() {
     GameActivity::End();
 
-    // Call the defined function, but only after first checking if it exists
-    g_LuaMan.RunScriptString("if " + m_LuaClassName + ".EndActivity then " + m_LuaClassName + ":EndActivity(); end");
-
+    RunLuaFunction("EndActivity");
 
 	// End all global scripts
 	for (std::vector<GlobalScript *>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
-		if ((*sItr)->IsActive()) {
-			if (g_SettingsMan.PrintDebugInfo()) {
-				g_ConsoleMan.PrintString("DEBUG: End Global Script: " + (*sItr)->GetPresetName());
-            }
-			(*sItr)->End();
-		}
+		(*sItr)->End();
     }
 
 	// Delete all global scripts, in case destructor is not called when activity restarts
@@ -458,8 +437,10 @@ void GAScripted::Update() {
     if (m_ActivityState != ActivityState::Over) {
 		AddPieSlicesToActiveActorPieMenus();
 
-        // Call the defined function, but only after first checking if it exists
-        g_LuaMan.RunScriptString("if " + m_LuaClassName + ".UpdateActivity then " + m_LuaClassName + ":UpdateActivity(); end");
+        // Need to call this continually unfortunately, as something might change due to dofile()
+        RefreshActivityFunctions();
+
+        RunLuaFunction("UpdateActivity");
 
         UpdateGlobalScripts(false);
     }
@@ -472,9 +453,11 @@ void GAScripted::Update() {
 // Description:     Updates globals scripts loaded with this activity.
 
 void GAScripted::UpdateGlobalScripts(bool lateUpdate) {
+    ZoneScoped;
+
 	// Update all global scripts
 	for (std::vector<GlobalScript *>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
-		if ((*sItr)->IsActive() && (*sItr)->ShouldLateUpdate() == lateUpdate) {
+		if ((*sItr)->ShouldLateUpdate() == lateUpdate) {
 			(*sItr)->Update();
         }
     }
@@ -501,6 +484,18 @@ void GAScripted::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) {
     GameActivity::Draw(pTargetBitmap, targetPos);
 }
 
+int GAScripted::RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+    // Call the defined function, but only after first checking if it exists
+    auto funcItr = m_ScriptFunctions.find(functionName);
+    if (funcItr == m_ScriptFunctions.end()) {
+        return 0;
+    }
+
+    int error = g_LuaMan.GetMasterScriptState().RunScriptFunctionObject(funcItr->second.get(), "_G", m_LuaClassName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
+
+    return error;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  CollectRequiredAreas
@@ -510,27 +505,24 @@ void GAScripted::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) {
 
 void GAScripted::CollectRequiredAreas() {
     // Open the script file so we can check it out
-    std::ifstream *pScriptFile = new std::ifstream(g_PresetMan.GetFullModulePath(m_ScriptPath.c_str()));
-    if (!pScriptFile->good()) {
+    std::ifstream scriptFile = std::ifstream(g_PresetMan.GetFullModulePath(m_ScriptPath.c_str()));
+    if (!scriptFile.good()) {
         return;
     }
 
     // Harvest the required Area:s from the file
     m_RequiredAreas.clear();
 
-    char rawLine[512];
-    std::string line;
-    std::string::size_type pos = 0;
-    std::string::size_type endPos = 0;
-    std::string::size_type commentPos = std::string::npos;
     bool blockCommented = false;
 
-    while (!pScriptFile->eof()) {
+    while (!scriptFile.eof()) {
         // Go through the script file, line by line
-        pScriptFile->getline(rawLine, 512);
-        line = rawLine;
-        pos = endPos = 0;
-        commentPos = std::string::npos;
+        char rawLine[512];
+        scriptFile.getline(rawLine, 512);
+        std::string line = rawLine;
+        std::string::size_type pos = 0;
+        std::string::size_type endPos = 0;
+        std::string::size_type commentPos = std::string::npos;
 
         // Check for block comments
         if (!blockCommented && (commentPos = line.find("--[[", 0)) != std::string::npos) {
@@ -565,9 +557,6 @@ void GAScripted::CollectRequiredAreas() {
             } while(pos != std::string::npos && pos < commentPos);
         }
     }
-
-    delete pScriptFile;
-    pScriptFile = 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -578,13 +567,11 @@ void GAScripted::AddPieSlicesToActiveActorPieMenus() {
 			PieMenu *controlledActorPieMenu = m_ControlledActor[player]->GetPieMenu();
 			if (controlledActorPieMenu && m_ControlledActor[player]->GetController()->IsState(PIE_MENU_ACTIVE) && controlledActorPieMenu->IsEnabling()) {
 				for (const std::unique_ptr<PieSlice> &pieSlice : m_PieSlicesToAdd) {
-					controlledActorPieMenu->AddPieSliceIfPresetNameIsUnique(dynamic_cast<PieSlice *>(pieSlice->Clone()), this, true);
+					controlledActorPieMenu->AddPieSliceIfPresetNameIsUnique(pieSlice.get(), this, true);
 				}
 				for (const GlobalScript *globalScript : m_GlobalScriptsList) {
-					if (globalScript->IsActive()) {
-						for (const std::unique_ptr<PieSlice> &pieSlice : globalScript->GetPieSlicesToAdd()) {
-							controlledActorPieMenu->AddPieSliceIfPresetNameIsUnique(dynamic_cast<PieSlice *>(pieSlice->Clone()), globalScript, true);
-						}
+					for (const std::unique_ptr<PieSlice> &pieSlice : globalScript->GetPieSlicesToAdd()) {
+						controlledActorPieMenu->AddPieSliceIfPresetNameIsUnique(pieSlice.get(), globalScript, true);
 					}
 				}
 			}

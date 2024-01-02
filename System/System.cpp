@@ -1,17 +1,26 @@
 ﻿#include "System.h"
-#include "unzip.h"
-#include "boost/functional/hash.hpp"
 
-#if _LINUX_OR_MACOSX_
+#include "RTETools.h"
+#include "unzip.h"
+
+#include "RTEError.h"
+
+#ifdef _WIN32
+#include "Windows.h"
+#elif defined _LINUX_OR_MACOSX_
 #include <unistd.h>
 #include <sys/stat.h>
 #endif
 
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
 namespace RTE {
 
 	bool System::s_Quit = false;
 	bool System::s_LogToCLI = false;
 	bool System::s_ExternalModuleValidation = false;
+	std::string System::s_ThisExePathAndName = "";
 	std::string System::s_WorkingDirectory = ".";
 	std::vector<size_t> System::s_WorkingTree;
 	std::filesystem::file_time_type System::s_ProgramStartTime = std::filesystem::file_time_type::clock::now();
@@ -26,8 +35,46 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void System::Initialize() {
+	void System::Initialize(const char *thisExePathAndName) {
+		s_ThisExePathAndName = std::filesystem::path(thisExePathAndName).generic_string();
+
 		s_WorkingDirectory = std::filesystem::current_path().generic_string();
+
+#ifdef __APPLE__
+		// Get a reference to the main bundle
+		CFBundleRef mainBundle = CFBundleGetMainBundle();
+
+		if (!mainBundle) {
+			RTEAbort("Could not get a reference to the main App Bundle! This may be due to a missing argv[0] path.")
+		}
+		// Get the URL of the application bundle
+		CFURLRef bundleURL = CFBundleCopyBundleURL(mainBundle);
+		
+		if (!bundleURL) {
+			RTEAbort("Could not copy App Bundle URL, the bundle does not exist!")
+		}
+
+		// Convert the URL to a C string
+		char pathBuffer[PATH_MAX];
+		if (CFURLGetFileSystemRepresentation(bundleURL, true, (UInt8 *)pathBuffer, sizeof(pathBuffer))) {
+			// bundlePath now contains the path to the application bundle as a C string
+			auto bundlePath = std::filesystem::path(pathBuffer);
+			
+			if (std::filesystem::exists(bundlePath) && bundlePath.extension() == ".app") {
+				auto workingDirPath = bundlePath.parent_path();
+				std::filesystem::current_path(workingDirPath);
+				s_WorkingDirectory = workingDirPath.generic_string();
+			}
+			
+		} else {
+			CFRelease(bundleURL);
+			RTEAbort("Could not write App Bundle URL to a readable representation! The bundle path may exceed the local PATH_MAX.")
+		}
+		// Release the CFURL object
+		CFRelease(bundleURL);
+		
+		
+#endif
 		if (s_WorkingDirectory.back() != '/') { s_WorkingDirectory.append("/"); }
 
 		if (!PathExistsCaseSensitive(s_WorkingDirectory + s_ScreenshotDirectory)) { MakeDirectory(s_WorkingDirectory + s_ScreenshotDirectory); }
@@ -73,17 +120,17 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool System::PathExistsCaseSensitive(const std::string &pathToCheck) {
-		// Use boost::hash for compiler independent hashing.
+		// Use Hash for compiler independent hashing.
 		if (s_CaseSensitive) {
 			if (s_WorkingTree.empty()) {
 				for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::recursive_directory_iterator(s_WorkingDirectory, std::filesystem::directory_options::follow_directory_symlink)) {
-					s_WorkingTree.emplace_back(boost::hash<std::string>()(directoryEntry.path().generic_string().substr(s_WorkingDirectory.length())));
+					s_WorkingTree.emplace_back(Hash(directoryEntry.path().generic_string().substr(s_WorkingDirectory.length())));
 				}
 			}
-			if (std::find(s_WorkingTree.begin(), s_WorkingTree.end(), boost::hash<std::string>()(pathToCheck)) != s_WorkingTree.end()) {
+			if (std::find(s_WorkingTree.begin(), s_WorkingTree.end(), Hash(pathToCheck)) != s_WorkingTree.end()) {
 				return true;
 			} else if (std::filesystem::exists(pathToCheck) && std::filesystem::last_write_time(pathToCheck) > s_ProgramStartTime) {
-				s_WorkingTree.emplace_back(boost::hash<std::string>()(pathToCheck));
+				s_WorkingTree.emplace_back(Hash(pathToCheck));
 				return true;
 			}
 			return false;

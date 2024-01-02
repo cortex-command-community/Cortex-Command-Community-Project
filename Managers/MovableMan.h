@@ -15,11 +15,8 @@
 // Inclusions of header files
 
 #include "Serializable.h"
-#include "Entity.h"
-#include "FrameMan.h"
-#include "SceneMan.h"
-#include "LuaMan.h"
 #include "Singleton.h"
+#include "Activity.h"
 
 #define g_MovableMan MovableMan::Instance()
 
@@ -33,6 +30,9 @@ class MOPixel;
 class MOSprite;
 class AHuman;
 class SceneLayer;
+class SceneObject;
+class Box;
+class LuabindObjectWrapper;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ class SceneLayer;
 struct AlarmEvent {
 	AlarmEvent() { m_ScenePos.Reset(); m_Team = Activity::NoTeam; m_Range = 1.0F; }
 	// TODO: Stop relying on screen width for this shit!
-	AlarmEvent(const Vector &pos, int team = Activity::NoTeam, float range = 1.0F) { m_ScenePos = pos; m_Team = (Activity::Teams)team; m_Range = range * g_FrameMan.GetPlayerScreenWidth() * 0.51F; }
+	AlarmEvent(const Vector &pos, int team = Activity::NoTeam, float range = 1.0F);
 
     // Absolute position in the scene where this occurred
     Vector m_ScenePos;
@@ -150,15 +150,6 @@ public:
 // Return value:    The count of MOIDs in use this frame.
 
     int GetMOIDCount() { return m_MOIDIndex.size(); }
-
-    /// <summary>
-    /// Tests whether the given MovableObject is currently at the specified pixel coordinates.
-    /// </summary>
-    /// <param name="mo">The MovableObject to test.</param>
-    /// <param name="pixelX">The X coordinate of the Scene pixel to test.</param>
-    /// <param name="pixelY">The Y coordinate of the Scene pixel to test.</param>
-    /// <returns>Whether the given MovableObject is currently at the specified pixel coordinates.</returns>
-    bool HitTestMOAtPixel(const MovableObject &mo, int pixelX, int pixelY) const;
 
     /// <summary>
     /// Gets a MOID from pixel coordinates in the Scene.
@@ -395,6 +386,16 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Method:          GetActorCount
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description:     Gets the number of actors currently held.
+// Arguments:       None.
+// Return value:    The number of actors.
+
+    long GetActorCount() const { return m_Actors.size(); }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetParticleCount
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Gets the number of particles (MOPixel:s) currently held.
@@ -482,7 +483,7 @@ public:
 // Return value:    Whether the object was found in the particle list, and consequently
 //                  removed. If the particle entry wasn't found, false is returned.
 
-    bool RemoveActor(MovableObject *pActorToRem);
+    Actor * RemoveActor(MovableObject *pActorToRem);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -495,7 +496,7 @@ public:
 // Return value:    Whether the object was found in the particle list, and consequently
 //                  removed. If the particle entry wasn't found, false is returned.
 
-    bool RemoveItem(MovableObject *pItemToRem);
+    MovableObject * RemoveItem(MovableObject *pItemToRem);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -508,7 +509,7 @@ public:
 // Return value:    Whether the object was found in the particle list, and consequently
 //                  removed. If the particle entry wasn't found, false is returned.
 
-    bool RemoveParticle(MovableObject *pMOToRem);
+    MovableObject * RemoveParticle(MovableObject *pMOToRem);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -705,7 +706,7 @@ public:
 // Arguments:       The AlarmEvent to register.
 // Return value:    None.
 
-    void RegisterAlarmEvent(const AlarmEvent &newEvent) { m_AddedAlarmEvents.push_back(newEvent); }
+    void RegisterAlarmEvent(const AlarmEvent &newEvent);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -715,7 +716,7 @@ public:
 // Arguments:       None.
 // Return value:    The const list of AlarmEvent:s.
 
-    const std::list<AlarmEvent> & GetAlarmEvents() const { return m_AlarmEvents; }
+    const std::vector<AlarmEvent> & GetAlarmEvents() const { return m_AlarmEvents; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -931,6 +932,15 @@ public:
 	/// <returns>Pointers to the MOs that are within the specified radius of the given centre position.</returns>
     const std::vector<MovableObject *> * GetMOsInRadius(const Vector &centre, float radius) const { return GetMOsInRadius(centre, radius, Activity::NoTeam); }
 
+    /// <summary>
+    /// Runs a lua function on all MOs in the simulation, including owned child MOs.
+    /// </summary>
+    void RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+
+    /// <summary>
+    /// Clears all cached lua functions on all MOs, including owned child MOs.
+    /// </summary>
+    void ReloadLuaScripts();
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protected member variable and method declarations
@@ -951,6 +961,33 @@ protected:
     std::deque<MovableObject *> m_AddedItems;
     std::deque<MovableObject *> m_AddedParticles;
 
+    // Currently active MOs in the simulation. This is required because the code is awful and ownership isn't transported to/from lua in any sensible way.
+    // It's entirely possible that stuff is deleted in the game but a reference to it is kept in Lua. Which is awful. Obviously.
+    // Or perhaps even more concerningly, stuff can be deleted, re-allocated over the same space, and then readded to movableman. Which even this solution does nothing to fix.
+    // Anyways, until we fix up ownership semantics... this is the best we can do.
+    std::unordered_set<const MovableObject *> m_ValidActors;
+    std::unordered_set<const MovableObject *> m_ValidItems;
+    std::unordered_set<const MovableObject *> m_ValidParticles;
+
+    // Mutexes to ensure MOs aren't being removed from separate threads at the same time
+    std::mutex m_ActorsMutex;
+    std::mutex m_ItemsMutex;
+    std::mutex m_ParticlesMutex;
+
+    // Mutexes to ensure MOs aren't being added from separate threads at the same time
+    std::mutex m_AddedActorsMutex;
+    std::mutex m_AddedItemsMutex;
+    std::mutex m_AddedParticlesMutex;
+
+    // Mutex to ensure objects aren't registered/deregistered from separate threads at the same time
+    std::mutex m_ObjectRegisteredMutex;
+
+    // Mutex to ensure actors don't change team roster from seperate threads at the same time
+    std::mutex m_ActorRosterMutex;
+
+    // Async to draw MOIDs while rendering
+    std::future<void> m_DrawMOIDsTask;
+
     // Roster of each team's actors, sorted by their X positions in the scene. Actors not owned here
     std::list<Actor *> m_ActorRoster[Activity::MaxTeamCount];
     // Whether to draw HUD lines between the actors of a specific team
@@ -960,10 +997,13 @@ protected:
 
     // The alarm events on the scene where something alarming happened, for use with AI firings awareness os they react to shots fired etc.
     // This is the last frame's events, is the one for Actors to poll for events, should be cleaned out and refilled each frame.
-    std::list<AlarmEvent> m_AlarmEvents;
+    std::vector<AlarmEvent> m_AlarmEvents;
     // The alarm events on the scene where something alarming happened, for use with AI firings awareness os they react to shots fired etc.
     // This is the current frame's events, will be filled up during MovableMan Updates, should be transferred to Last Frame at end of update.
-    std::list<AlarmEvent> m_AddedAlarmEvents;
+    std::vector<AlarmEvent> m_AddedAlarmEvents;
+
+    // Mutexes to ensure alarm events aren't being added from separate threads at the same time
+    std::mutex m_AddedAlarmEventsMutex;
 
     // The list created each frame to register all the current MO's
     std::vector<MovableObject *> m_MOIDIndex;
@@ -1002,6 +1042,24 @@ private:
 
     void Clear();
 
+    /// <summary>
+    /// Travels all of our MOs, updating their location/velocity/physical characteristics.
+    /// </summary>
+    void Travel();
+
+    /// <summary>
+    /// Updates the controllers of all the actors we own.
+    /// This is needed for a tricky reason - we want the controller from the activity to override the normal controller state
+    /// So we need to update the controller state prior to activity, so the changes from activity are layered on top.
+    /// </summary>
+    void UpdateControllers();
+
+    /// <summary>
+    /// Updates all things that need to be done before we update the controllers.
+    /// This is needed because of a very awkward and ugly old code path where controllers were updated in the middle of update, and various mods relied of this behaviour for actions that were therefore delayed by a frame
+    /// Ideally we wouldn't need this, but this is all very fragile code and I'd prefer to avoid breaking things.
+    /// </summary>
+    void PreControllerUpdate();
 
     // Disallow the use of some implicit methods.
 	MovableMan(const MovableMan &reference) = delete;
