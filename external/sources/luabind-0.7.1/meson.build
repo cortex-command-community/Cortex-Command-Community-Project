@@ -25,7 +25,11 @@ if not get_option('use_prebuilt_libraries') or host_machine.system() in ['darwin
 else
   luabind = []
   if get_option('debug')
-    deps = cxx.find_library('luabind-debug' , dirs: meson.current_source_dir()/'_Bin')
+    if get_option('debug_type') == 'release'
+      deps = cxx.find_library('luabind-debug-release', dirs: meson.current_source_dir()/'_Bin')
+    else
+      deps = cxx.find_library('luabind-debug' , dirs: meson.current_source_dir()/'_Bin')
+    endif
   else
     deps = cxx.find_library('luabind-release', dirs: meson.current_source_dir()/'_Bin')
   endif
