@@ -12,3 +12,4 @@ ports:
   - name: luajit
   - name: flac
   - name: dylibbundler
+  - name: tree
