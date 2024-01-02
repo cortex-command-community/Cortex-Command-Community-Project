@@ -20,9 +20,11 @@ function TacticsHandler:Create()
 	return Members;
 end
 
-function TacticsHandler:Initialize(activity, newGame, minimumSquadActorCount, maximumSquadActorCount, squadIdleTimeLimitMS)
-	
-	print("TacticsHandlerinited")
+function TacticsHandler:Initialize(activity, newGame, minimumSquadActorCount, maximumSquadActorCount, squadIdleTimeLimitMS, verboseLogging)
+
+	if verboseLogging then
+		self.verboseLogging = true;
+	end
 	
 	self.Activity = activity;
 	
@@ -66,6 +68,8 @@ function TacticsHandler:Initialize(activity, newGame, minimumSquadActorCount, ma
 		-- end
 	end
 	
+	print("INFO: TacticsHandler initialized!")
+	
 end
 
 function TacticsHandler:OnMessage(message, object)
@@ -84,8 +88,9 @@ end
 
 function TacticsHandler:OnLoad(saveLoadHandler)
 	
-	print("loading tacticshandler...");
-	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("tacticsHandlerTeamList");
+	print("INFO: TacticsHandler loading...");
+	
+	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("tacticsHandlerSaveTable");
 	for team = 0, #self.saveTable.teamList do
 		for squad = 1, #self.saveTable.teamList[team].squadList do
 			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do	
@@ -103,14 +108,15 @@ function TacticsHandler:OnLoad(saveLoadHandler)
 			end
 		end
 	end
-	print("loaded tacticshandler!");
+	
+	print("INFO: TacticsHandler loaded!");
 	
 	self:ReapplyAllTasks();
 	
 end
 
 function TacticsHandler:OnSave(saveLoadHandler)
-	print("saving tacticshandler")
+	print("INFO: TacticsHandler saving...");
 	-- saving/loading destroys all not-in-sim entities forever
 	-- fugg :DD
 	-- salvage what we can, resolve our uniqueids into MOs that the saveloadhandler can handle at least
@@ -118,12 +124,12 @@ function TacticsHandler:OnSave(saveLoadHandler)
 	
 	for team = 0, #self.saveTable.teamList do
 		for squad = 1, #self.saveTable.teamList[team].squadList do
+			if self.verboseLogging then
+				print("INFO: TacticsHandler is trying to save squad: " .. squad .. " of team " .. team);
+			end
 			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do
-				print("Trying to save squad: " .. squad .. " of team " .. team);
-				print("tacticshandler tried to save the following actor:")
-				print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
 				if type(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) ~= "number" then
-					print("ERROR: Tacticshandler UniqueID was not a number! Something's very broken.");
+					print("ERROR: TacticsHandler UniqueID during saving was not a number! Something's very broken.");
 					print("It was: ");
 					print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]);
 					break;
@@ -159,7 +165,7 @@ function TacticsHandler:OnSave(saveLoadHandler)
 		-- end
 	-- end
 					
-	saveLoadHandler:SaveTableAsString("tacticsHandlerTeamList", self.saveTable);
+	saveLoadHandler:SaveTableAsString("tacticsHandlerSaveTable", self.saveTable);
 	
 	-- and now so we can actually keep playing...
 	-- turn them back, lol
@@ -169,13 +175,12 @@ function TacticsHandler:OnSave(saveLoadHandler)
 			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do
 				if type(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) ~= "number" and IsActor(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) then
 					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = self.saveTable.teamList[team].squadList[squad].Actors[actorIndex].UniqueID;
-					print("turned back to uniqueID: " .. self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]);
 				end
 			end
 		end
 	end
 
-	print("saved tacticshandler!")
+	print("INFO: TacticsHandler saved!");
 end
 
 -- NO LONGER USED!
@@ -194,7 +199,9 @@ function TacticsHandler:InvalidateActor(infoTable)
 end
 
 function TacticsHandler:ReapplyAllTasks()
-	print("ReapplyAllTasks")
+	if self.verboseLogging then
+		print("INFO: TacticsHandler is reapplying all tasks.");
+	end
 
 	for team = 0, #self.saveTable.teamList do
 		for i = 1, #self.saveTable.teamList[team].squadList do
@@ -222,7 +229,7 @@ function TacticsHandler:GetTaskByName(taskName, team)
 			end
 		end
 	else
-		print("Tacticshandler tried to get task " .. taskName .. " by name but wasn't given a team!");
+		print("ERROR: TacticsHandler tried to get task " .. taskName .. " by name but wasn't given a team!");
 		return false;
 	end
 	
@@ -232,9 +239,11 @@ function TacticsHandler:GetTaskByName(taskName, team)
 
 end
 
-function TacticsHandler:PickTask(team)
+function TacticsHandler:PickTask(team, updateCall)
 
-	--print("PickTask")
+	if self.verboseLogging and not updateCall then
+		print("INFO: TacticsHandler is picking a task for team: " .. team);
+	end
 
 	if #self.saveTable.teamList[team].taskList > 0 then
 		-- random weighted select
@@ -252,21 +261,29 @@ function TacticsHandler:PickTask(team)
 				finalSelection = t;
 			end
 		end
-		
+		if self.verboseLogging and not updateCall then
+			print("INFO: TacticsHandler found task " .. self.saveTable.teamList[team].taskList[finalSelection].Name .. " when picking a task for team: " .. team);
+		end
 		return self.saveTable.teamList[team].taskList[finalSelection];
 	else
+		if self.verboseLogging then
+			print("INFO: TacticsHandler found no task when picking a task for team: " .. team);
+		end
 		return false;
 	end
 	
 end
 
 function TacticsHandler:ApplyTaskToSquadActors(squad, task)
-	if task then	
-		--print("Applying Task:" .. task.Name)
+	if squad and task then	
+		if self.verboseLogging then
+			local taskType = "None, defaulting to Brainhunt";
+			if task.Type then taskType = task.Type; end
+			print("INFO: TacticsHandler is applying task " .. task.Name .. " of type " .. taskType);
+		end
 		local randomPatrolPoint;
 		if task.Type == "PatrolArea" then
 			randomPatrolPoint = task.Position.RandomPoint;
-			print("Task being applied is PatrolArea");
 		end
 		for actorIndex = 1, #squad do
 			local actor = MovableMan:FindObjectByUniqueID(squad[actorIndex]);
@@ -301,7 +318,7 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 			end
 		end
 	else
-		--print("couldnotfindttask")
+		print("ERROR: TacticsHandler tried to task a squad's actors, but was not given a squad or a task!");
 		return false;
 	end
 
@@ -309,10 +326,16 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 end
 
 function TacticsHandler:RetaskSquad(squad, team, allowMerge)
-	print("retasking squad with task name: " .. squad.taskName)
+	if self.verboseLogging then
+		print("INFO: TacticsHandler is retasking a squad of team " .. team .. " with current task name of " .. squad.taskName);
+	end
 
 	local newTask = self:PickTask(team);
 	if newTask then
+	
+		if self.verboseLogging then
+			print("INFO: TacticsHandler chose new task: " .. newTask.name);
+		end
 	
 		squad.idleTimer:Reset();
 		squad.retaskTimer:Reset();
@@ -330,29 +353,33 @@ function TacticsHandler:RetaskSquad(squad, team, allowMerge)
 		end
 		
 		if squadToMergeInto then
+			if self.verboseLogging then
+				print("INFO: TacticsHandler merged down a squad being retasked.");
+			end
 			for k, actor in pairs(squad.Actors) do
 				table.insert(squadToMergeInto.Actors, actor);
-				print("during retasking, this actor was moved: " .. actor);
 			end
 			squad.Actors = {}; -- will be wiped next update for being empty
 			squad.activeActorCount = 0;
-			print("during retasking, squads were merged");
 			return self:ApplyTaskToSquadActors(squadToMergeInto.Actors, taskName);	
 		else
 			squad.taskName = newTask.Name;
-			print("new task: " .. newTask.Name);
 			return self:ApplyTaskToSquadActors(squad.Actors, newTask);
 		end
 	else
+		if self.verboseLogging then
+			print("INFO: TacticsHandler could not find a new task when retasking.");
+		end
 		return false;
 	end
 end
 
 function TacticsHandler:RemoveTask(name, team)
 
-	print("Removedtask: " .. name);
-
 	if name and team then
+		if self.verboseLogging then
+			print("INFO: TacticsHandler is removing task " .. name .. " from team " .. team);
+		end
 		local task;
 		local taskIndex;
 		for i = 1, #self.saveTable.teamList[team].taskList do
@@ -375,11 +402,13 @@ function TacticsHandler:RemoveTask(name, team)
 				end
 			end
 		else
-			--print("Tactics Handler was asked to remove a task it didn't have!");
+			if self.verboseLogging then
+				print("INFO: TacticsHandler tried to remove task " .. name .. " but it did not exist.");
+			end
 			return false;
 		end
 	else
-		--print("Tactics Handler was asked to remove a task, but not given a name and a team!");
+		print("ERROR: TacticsHandler was asked to remove a task, but not given a name or a team!");
 		return false;
 	end
 	
@@ -388,8 +417,6 @@ function TacticsHandler:RemoveTask(name, team)
 end
 
 function TacticsHandler:AddTask(name, team, taskPos, taskType, priority, retaskTimeMultiplier)
-
-	print("AddTask")
 	
 	if not retaskTimeMultiplier then
 		retaskTimeMultiplier = 1;
@@ -401,9 +428,25 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority, retaskT
 	
 		for i = 1, #self.saveTable.teamList[team].taskList do
 			if self.saveTable.teamList[team].taskList[i].Name == name then
-				--print("Tactics Handler tried to add a task to a specific team with a name that already existed!");
+				print("ERROR: TacticsHandler tried to add task " .. name .. " to team " .. team .. " but it was already there!");
 				return false;
 			end
+		end
+		
+		if self.verboseLogging then
+			print("INFO: TacticsHandler is adding the following task:");
+			print("Name: " .. name);
+			print("Team: " .. team);
+			if taskPos.PresetName then
+				print("Task position: MO " .. taskPos.PresetName);	
+			elseif taskPos.Name then
+				print("Task position: Area " .. taskPos.Name);
+			else
+				print("Task position: " .. taskPos.X .. ", " .. taskPos.Y);
+			end
+			print("Task type: " .. taskType);
+			print("Task priority: " .. priority);
+			print("Task retask time mult.: " .. retaskTimeMultiplier);
 		end
 	
 		local retaskTime;
@@ -421,7 +464,7 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority, retaskT
 		end
 		
 		if not priority then
-			priority = 5;
+			priority = 10;
 		end
 		
 		task = {};
@@ -437,10 +480,12 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority, retaskT
 		
 		table.insert(self.saveTable.teamList[team].taskList, task);
 		
-		--print("Added new task with name: " .. task.Name)
+		if self.verboseLogging then
+			print("INFO: TacticsHandler successfully added above task.");
+		end
 		
 	else
-		print("Tactics Handler tried to add a task with no name, no team, or no task position!");
+		print("ERROR: TacticsHandler tried to add a task with no name, no team, or no task position!");
 		return false;
 	end
 	
@@ -458,11 +503,20 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask, allowMer
 	
 	if team and squadTable and taskName then
 	
-		if #squadTable == 0 then
-			print("Tried to add a squad with no actors in it?!");
+		if not self:GetTaskByName(taskName, team) then
+			print("ERROR: TacticsHandler tried to add a squad with non-existent task name " .. taskName .. "!");
 			return false;
 		end
 	
+		if #squadTable == 0 then
+			print("ERROR: TacticsHandler tried to add a squad with no actors in it!");
+			return false;
+		end
+		
+		if self.verboseLogging then
+			print("INFO: TacticsHandler is adding a squad with the following task name: " .. taskName);
+		end
+		
 		-- iterate through all squads and see if any are under our minimumSquadActorCount
 		-- if so, fold this one into that one instead of making a new squad, and apply the new task
 		local squadToMergeInto;
@@ -481,7 +535,9 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask, allowMer
 				--print("during adding squad, this actor was merged");
 				--print(actor)
 			end
-			print("newly added squad was instead merged into old one");
+			if self.verboseLogging then
+				print("INFO: TacticsHandler merged a newly added squad into an old one instead of adding it. New task name: " .. taskNmae);
+			end
 			self:ApplyTaskToSquadActors(squadToMergeInto.Actors, taskName);
 		else
 	
@@ -501,7 +557,7 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask, allowMer
 			table.insert(self.saveTable.teamList[team].squadList, squadEntry); 
 			
 			if applyTask then
-				self:ApplyTaskToSquadActors(squadEntry.Actors, taskName);
+				self:ApplyTaskToSquadActors(squadEntry.Actors, task);
 			end
 			
 		end
@@ -522,7 +578,7 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask, allowMer
 		--print("addedtaskedsquad: " .. #self.saveTable.teamList[team].squadList)
 		--print("newtaskname: " .. self.saveTable.teamList[team].squadList[#self.saveTable.teamList[team].squadList].taskName)
 	else
-		print("Tried to add a tasked squad without all required arguments!");
+		print("ERROR: TacticsHandler tried to add a squad without an actor table, a team, or a task name!");
 		return false;
 	end
 	
@@ -570,7 +626,7 @@ function TacticsHandler:UpdateSquads(team)
 			if #squad.Actors > 0 then
 				for actorIndex = 1, #self.saveTable.teamList[team].squadList[i].Actors do
 					if type(self.saveTable.teamList[team].squadList[i].Actors[actorIndex]) ~= "number" then
-						print("ERROR: Tacticshandler UniqueID was not a number! Something's very broken.");
+						print("ERROR: Tacticshandler UniqueID during update was not a number! Something's very broken.");
 						print("It was: " .. self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
 						break;
 					end
@@ -607,8 +663,10 @@ function TacticsHandler:UpdateSquads(team)
 									actor.AIMode = Actor.AIMODE_SENTRY;
 									if lastActor and wholePatrolSquadIdle == true then
 										-- if we're the last one and the whole squad is ready to go
-										--print("squad repatrolled")
-										--self:ApplyTaskToSquadActors(self.saveTable.teamList[team].squadList[i].Actors, task)
+										if self.verboseLogging then
+											print("INFO: TacticsHandler re-patrolled squad " .. i .. " of team " .. team);
+										end
+										self:ApplyTaskToSquadActors(self.saveTable.teamList[team].squadList[i].Actors, task)
 									end
 								else
 									--print("squad: " .. i .. "patrolsquadnotfullyidle")
@@ -624,6 +682,9 @@ function TacticsHandler:UpdateSquads(team)
 							
 							if lastActor then
 								if squad.idleTimer:IsPastSimMS(self.squadIdleTimeLimitMS) or squad.retaskTimer:IsPastSimMS(task.retaskTime) then
+									if self.verboseLogging then
+										print("INFO: TacticsHandler retasked squad " .. i .. " of team " .. team .. " due to idleness or retask timing.");
+									end
 									self:RetaskSquad(squad, team, false);
 								end
 							end
@@ -639,12 +700,16 @@ function TacticsHandler:UpdateSquads(team)
 			end
 			
 			if squad.activeActorCount == 0 then
-				print("removed wiped squad")
+				if self.verboseLogging then
+					print("INFO: TacticsHandler removed dead squad " .. i .. " of team " .. team);
+				end
 				table.remove(self.saveTable.teamList[team].squadList, i) -- squad wiped, remove it
 				squadRemoved = true;
 			end
 		else
-			print("retasking not actual task")
+			if self.verboseLogging then
+				print("INFO: TacticsHandler retasked squad " .. i .. " of team " .. team .. " due to expired task " .. squad.taskName);
+			end
 		
 			self:RetaskSquad(self.saveTable.teamList[team].squadList[i], team, false);
 		end
@@ -672,11 +737,11 @@ function TacticsHandler:UpdateTacticsHandler()
 		
 		self:UpdateSquads(team);
 		
-		local task = self:PickTask(team);
+		local task = self:PickTask(team, true);
 		if task then
 			return team, task;
 		else
-			print("found no tasks")
+
 		end
 		
 	end
