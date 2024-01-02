@@ -13,13 +13,15 @@ function Create(self)
 	self.fireSound.medium = CreateSoundContainer("Dummy Lancer Fire Sound Medium", "Dummy.rte");
 	self.fireSound.high = CreateSoundContainer("Dummy Lancer Fire Sound High", "Dummy.rte");
 	self.bleepSound = CreateSoundContainer("Dummy Lancer Bleep", "Dummy.rte");
+
+	self.addedParticles = {};
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.FiredFrame then
+		self:RequestSyncedUpdate();
 		self.setAngle = self.setAngle + self.chargeCounter/(20 * (1 + self.setAngle));
 		self.bleepSoundPlayed = false;
-		local actor = MovableMan:GetMOFromID(self.RootID);
 
 		local charge = math.floor(self.chargeCounter * 0.8);
 		for i = 1, charge do
@@ -28,11 +30,11 @@ function Update(self)
 			damagePar.Vel = Vector((60 + 10 * charge) * self.FlipFactor, 0):RadRotate(self.RotAngle);
 			damagePar.Team = self.Team;
 			damagePar.IgnoresTeamHits = true;
-			MovableMan:AddParticle(damagePar);
+			table.insert(self.addedParticles, damagePar);
 		end
 
 		local shellPar1 = CreateMOSParticle("Tiny Smoke Ball 1 Glow Yellow");
-		MovableMan:AddParticle(shellPar1);
+		table.insert(self.addedParticles, shellPar1);
 
 		local highCharge = self.maxCharge * 0.7;
 		local lowCharge = self.maxCharge * 0.3;
@@ -44,7 +46,7 @@ function Update(self)
 			smokePar.Vel = Vector(math.random(5) * (charge/i) * self.FlipFactor, 0):RadRotate(self.RotAngle);
 			smokePar.Team = self.Team;
 			smokePar.IgnoresTeamHits = true;
-			MovableMan:AddParticle(smokePar);
+			table.insert(self.addedParticles, smokePar);
 		end
 		local sound = self.chargeCounter > highCharge and self.fireSound.high or (self.chargeCounter < lowCharge and self.fireSound.low or self.fireSound.medium);
 		sound:Play(self.MuzzlePos);
@@ -72,4 +74,11 @@ function Update(self)
 	self.RotAngle = self.RotAngle + (self.setAngle * self.FlipFactor);
 	local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
 	self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-self.setAngle * self.FlipFactor);
+end
+
+function SyncedUpdate(self)
+	for i = 1, #self.addedParticles do
+		MovableMan:AddParticle(self.addedParticles[i]);
+	end
+	self.addedParticles = {};
 end

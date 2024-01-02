@@ -12,10 +12,10 @@ function MaginotMission:StartActivity(isNewGame)
 
 	self.fightStage = { beginFight = 0, defendLeft = 1, defendRight = 2, evacuateBrain = 3, enterEvacuationRocket = 4 };
 
-	self.defenderTeam = Activity.TEAM_1;
-	self.attackerTeam = Activity.TEAM_2;
-	self.defenderTech = self:GetTeamTech(self.defenderTeam);
+	self.attackerTeam = Activity.TEAM_1;
+	self.defenderTeam = Activity.TEAM_2;
 	self.attackerTech = self:GetTeamTech(self.attackerTeam);
+	self.defenderTech = self:GetTeamTech(self.defenderTeam);
 	
 	self:SetLZArea(self.defenderTeam, self.defenderLZ);
 
@@ -272,7 +272,7 @@ function MaginotMission:UpdateScreenText()
 end
 
 function MaginotMission:UpdateAttackerSpawns()
-	if self.spawnTimer:IsPastSimMS(self.spawnTime) and MovableMan:GetTeamMOIDCount(self.attackerTeam) <= rte.DefenderMOIDMax then
+	if self.spawnTimer:IsPastSimMS(self.spawnTime) then
 		self.spawnTimer:Reset();
 
 		local createAttackerAHuman = function(self, attackerIsHeavyActor)

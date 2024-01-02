@@ -9,6 +9,16 @@ function Create(self)
 end
 
 function Update(self)
+	if self.IsWaitingOnNewMovePath then
+		return;
+	end
+
+	if #gWayPoints == 0 and #self.MovePath ~= 0 then
+		for Wpt in self.MovePath do
+			table.insert(gWaypoints, Vector(Wpt.X, Wpt.Y));
+		end
+	end
+
 	if gFindPathFrom and gFindPathTo then
 		self.Pos = gFindPathFrom;
 		gFindPathFrom = nil;
@@ -16,11 +26,8 @@ function Update(self)
 		self:ClearAIWaypoints();
 		self:AddAISceneWaypoint(gFindPathTo);
 		self:UpdateMovePath();
-		gFindPathTo = nil;
 
+		gFindPathTo = nil;
 		gWaypoints = {};
-		for Wpt in self.MovePath do
-			table.insert(gWaypoints, Vector(Wpt.X, Wpt.Y));
-		end
 	end
 end

@@ -6,7 +6,7 @@ function Create(self)
 	self.cockSound = CreateSoundContainer(self:StringValueExists("CockSound") and self:GetStringValue("CockSound") or "Base.rte/Chamber Round");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	local parent;
 	local actor = self:GetRootParent();
 	if actor and IsAHuman(actor) then
@@ -28,8 +28,7 @@ function Update(self)
 				self.shell.Pos = self.Pos;
 				self.shell.Vel = self.Vel + Vector(-6 * self.FlipFactor, -4):RadRotate(self.RotAngle);
 				self.shell.Team = self.Team;
-				MovableMan:AddParticle(self.shell);
-				self.shell = nil;
+				self:RequestSyncedUpdate();
 			end
 			self.Frame = 1;
 			self.SupportOffset = Vector(1, 2);
@@ -45,5 +44,12 @@ function Update(self)
 		end
 	else
 		self.pullTimer:Reset();
+	end
+end
+
+function SyncedUpdate(self)
+	if self.shell then
+		MovableMan:AddParticle(self.shell);
+		self.shell = nil;
 	end
 end

@@ -5,7 +5,9 @@ end
 
 function AutosaveScript:UpdateScript()
 	if self.autosaveTimer:IsPastRealTimeLimit() then
-		ActivityMan:SaveGame("AutoSave");
+		if ActivityMan:GetActivity().AllowsUserSaving then
+			ActivityMan:SaveGame("AutoSave");
+		end
 		self.autosaveTimer:Reset();
 	end
 end

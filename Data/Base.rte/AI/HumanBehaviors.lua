@@ -2,10 +2,13 @@
 HumanBehaviors = {};
 
 function HumanBehaviors.GetTeamShootingSkill(team)
-	local skill = 50;
+	local skill = 80;
 	local Activ = ActivityMan:GetActivity();
 	if Activ then
-		skill = Activ:GetTeamAISkill(team);
+		-- i am fancy mathematician, doing fancy mathematics
+		-- this weigh actor skill heavily towards 100
+		local num = (Activ:GetTeamAISkill(team)/100);
+		skill = (1 - math.pow(1 - num, 3)) * 100;
 	end
 
 	local aimSpeed, aimSkill;
@@ -52,14 +55,14 @@ end
 function HumanBehaviors.CheckEnemyLOS(AI, Owner, Skill)
 	if not AI.Enemies then	-- add all enemy actors on our screen to a table and check LOS to them, one per frame
 		AI.Enemies = {};
-		for Act in MovableMan.Actors do
-			if Act.Team ~= Owner.Team then
-				if not AI.isPlayerOwned or not SceneMan:IsUnseen(Act.Pos.X, Act.Pos.Y, Owner.Team) then	-- AI-teams ignore the fog
-					local Dist = SceneMan:ShortestDistance(Owner.ViewPoint, Act.Pos, false);
-					if (math.abs(Dist.X) - Act.Diameter < FrameMan.PlayerScreenWidth * (0.4 + Skill * 0.005)) and (math.abs(Dist.Y) - Act.Diameter < FrameMan.PlayerScreenHeight * (0.4 + Skill * 0.005)) then
-						table.insert(AI.Enemies, Act);
-					end
-				end
+		local box = Box();
+		local skillFactor = (0.4 + Skill * 0.005);
+		box.Corner = Vector(Owner.ViewPoint.X - (FrameMan.PlayerScreenWidth/2) * skillFactor, Owner.ViewPoint.Y - (FrameMan.PlayerScreenHeight/2) * skillFactor);
+		box.Width = FrameMan.PlayerScreenWidth * skillFactor;
+		box.Height = FrameMan.PlayerScreenHeight * skillFactor;
+		for Act in MovableMan:GetMOsInBox(box, Owner.Team, true) do
+			if IsActor(Act) and not AI.isPlayerOwned or not SceneMan:IsUnseen(Act.Pos.X, Act.Pos.Y, Owner.Team) then	-- AI-teams ignore the fog
+				table.insert(AI.Enemies, Act);
 			end
 		end
 
@@ -320,8 +323,12 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 		Owner:ClearMovePath();
 		Owner:AddAISceneWaypoint(Vector(Owner.Pos.X, 0));
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		-- face the direction of the first waypoint
 		for WptPos in Owner.MovePath do
@@ -528,12 +535,14 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 
 	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints();
-		Owner:AddAISceneWaypoint(Free);
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+		Owner:AddAISceneWaypoint(Free);	
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		local PrevPos = Vector(Owner.Pos.X, Owner.Pos.Y);
 		for WptPos in Owner.MovePath do
@@ -553,11 +562,13 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints();
 		Owner:AddAISceneWaypoint(Free);
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		local PrevPos = Vector(Owner.Pos.X, Owner.Pos.Y);
 		for WptPos in Owner.MovePath do
@@ -843,6 +854,12 @@ function HumanBehaviors.BrainSearch(AI, Owner, Abort)
 					Owner:AddAISceneWaypoint(Act.Pos);
 					Owner:UpdateMovePath();
 
+					-- wait until movepath is updated
+					while Owner.IsWaitingOnNewMovePath do
+						local _ai, _ownr, _abrt = coroutine.yield();
+						if _abrt then return true end
+					end
+
 					local OldWpt, deltaY;
 					local index = 0;
 					local height = 0;
@@ -935,7 +952,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			if _abrt then return true end
 		end
 		
-		if IsHeldDevice(movableObject) and MovableMan:ValidMO(movableObject) then
+		if MovableMan:ValidMO(movableObject) and IsHeldDevice(movableObject) then
 			local device = ToHeldDevice(movableObject);
 			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) then
 				local distanceToDevice = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY);
@@ -951,61 +968,57 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 	table.sort(devices, function(device, otherDevice) return device.distance.SqrMagnitude < otherDevice.distance.SqrMagnitude end);
 	
 	if #devices > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield();
-		if _abrt then return true end
-
-		local maxWaypointDistance = 36;
+		local maxPathLength = 36; --TODO when this gets turned into a part of pathing calc, use it that way instead
 		if AI.isPlayerOwned then
-			maxWaypointDistance = 10;
+			maxPathLength = 10;
 		end
-
+		
+		local searchesRemaining = #devices;
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathToItemIsObstructed = false;
-				if AI.useExpensiveToolAndWeaponSearch then
-					pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
+				local pathMultipler = 1;
+				if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
+					pathMultipler = 0.4; -- prioritize primary or heavy weapons
+				elseif device.ClassName == "TDExplosive" then
+					pathMultipler = 1.4; -- avoid grenades if there are other weapons
+				elseif device:IsTool() then
+					if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
+						pathMultipler = 1.8; -- avoid diggers if there are other weapons
+					else
+						pathMultipler = -1; -- disregard non-digger tools
+					end
 				end
-				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
-				
-				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or (deviceEntry.distance.Magnitude / pathfinderNodeSize);
-				if distanceToTarget < maxWaypointDistance and distanceToTarget > -1 then
-					local score = distanceToTarget
-					if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
-						score = distanceToTarget * 0.4; -- prioritize primary or heavy weapons
-					elseif device.ClassName == "TDExplosive" then
-						score = distanceToTarget * 1.4; -- avoid grenades if there are other weapons
-					elseif device:IsTool() then
-						if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
-							score = distanceToTarget * 1.8; -- avoid diggers if there are other weapons
-						else
-							distanceToTarget = maxWaypointDistance;
-						end
-					end
 
-					if distanceToTarget < maxWaypointDistance then
-						table.insert(devicesToPickUp, {device = device, score = score});
-						if not pathToItemIsObstructed or score < 1 then
-							local _ai, _ownr, _abrt = coroutine.yield();
-							if _abrt then return true end
-							break;
-						end
-					end
-					for i = 1, 2 do
-						local _ai, _ownr, _abrt = coroutine.yield();
-						if _abrt then return true end
-					end
+				if pathMultipler ~= -1 then
+					local deviceID = device.UniqueID;
+					SceneMan.Scene:CalculatePathAsync(
+						function(pathRequest)
+							local pathLength = pathRequest.PathLength;
+							if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+								local score = pathLength * pathMultipler;
+								table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
+							end
+							searchesRemaining = searchesRemaining - 1;
+						end, 
+						Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+					);
 				end
 			end
 		end
-
+		
+		while searchesRemaining > 0 do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 		
 		AI.PickupHD = nil;
 		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end);
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
-			if MovableMan:ValidMO(deviceToPickupEntry.device) and deviceToPickupEntry.device:IsDevice() then
-				AI.PickupHD = deviceToPickupEntry.device;
+			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
+			if MovableMan:ValidMO(device) and device:IsDevice() then
+				AI.PickupHD = device;
 				break;
 			end
 		end
@@ -1033,6 +1046,13 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			end
 
 			Owner:UpdateMovePath();
+
+			-- wait until movepath is updated
+			while Owner.IsWaitingOnNewMovePath do
+				local _ai, _ownr, _abrt = coroutine.yield();
+				if _abrt then return true end
+			end
+
 			AI:CreateGoToBehavior(Owner);
 		end
 	end
@@ -1060,12 +1080,8 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	local mosSearched = 0;
 	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, maxSearchDistance, -1, true) do
 		mosSearched = mosSearched + 1;
-		if mosSearched % 30 == 0 then
-			local _ai, _ownr, _abrt = coroutine.yield();
-			if _abrt then return true end
-		end
 		
-		if IsHeldDevice(movableObject) and MovableMan:ValidMO(movableObject) then
+		if MovableMan:ValidMO(movableObject) and IsHeldDevice(movableObject) then
 			local device = ToHeldDevice(movableObject);
 			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) and device:HasObjectInGroup("Tools - Diggers") then
 				local distanceToDevice = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY);
@@ -1081,47 +1097,43 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	table.sort(devices, function(device, otherDevice) return device.distance.SqrMagnitude < otherDevice.distance.SqrMagnitude end);
 	
 	if #devices > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield();
-		if _abrt then return true end
-
-		local maxWaypointDistance = 16;
+		local maxPathLength = 16;
 		if Owner.AIMode == Actor.AIMODE_GOLDDIG then
-			maxWaypointDistance = 30;
+			maxPathLength = 30;
 		elseif AI.isPlayerOwned then
-			maxWaypointDistance = 5;
+			maxPathLength = 5;
 		end
-
+		
+		local searchesRemaining = #devices;
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathToItemIsObstructed = false;
-				if AI.useExpensiveToolAndWeaponSearch then
-					pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
-				end
-				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
-				
-				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or (deviceEntry.distance.Magnitude / pathfinderNodeSize);
-				if distanceToTarget < maxWaypointDistance and distanceToTarget > -1 then
-					table.insert(devicesToPickUp, {device = device, score = distanceToTarget});
-					
-					if not pathToItemIsObstructed or distanceToTarget < 1 then
-						break;
-					end
-					
-					for i = 1, 2 do
-						local _ai, _ownr, _abrt = coroutine.yield();
-						if _abrt then return true end
-					end
-				end
+				local deviceId = device.UniqueID;
+				SceneMan.Scene:CalculatePathAsync(
+					function(pathRequest)
+						local pathLength = pathRequest.PathLength;
+						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+							table.insert(devicesToPickUp, {deviceId = deviceId, score = pathLength});
+						end
+						searchesRemaining = searchesRemaining - 1;
+					end, 
+					Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+				);
 			end
+		end
+		
+		while searchesRemaining > 0 do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
 		end
 
 		AI.PickupHD = nil;
 		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
-			if MovableMan:ValidMO(deviceToPickupEntry.device) and deviceToPickupEntry.device:IsDevice() then
-				AI.PickupHD = deviceToPickupEntry.device;
+			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
+			if MovableMan:ValidMO(device) and device:IsDevice() then
+				AI.PickupHD = device;
 				break;
 			end
 		end
@@ -1151,6 +1163,13 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 			end
 
 			Owner:UpdateMovePath();
+
+			-- wait until movepath is updated
+			while Owner.IsWaitingOnNewMovePath do
+				local _ai, _ownr, _abrt = coroutine.yield();
+				if _abrt then return true end
+			end
+
 			AI:CreateGoToBehavior(Owner);
 		end
 	end
@@ -1245,13 +1264,13 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 		if AI.refuel and Owner.Jetpack then
 			-- if jetpack is full or we are falling we can stop refuelling
-			if Owner.JetTimeLeft > Owner.JetTimeTotal * 0.98 or (AI.flying and Owner.Vel.Y < -3 and Owner.JetTimeLeft > AI.minBurstTime*2) then
+			if Owner.Jetpack.JetTimeLeft > Owner.Jetpack.JetTimeTotal * 0.98 or (AI.flying and Owner.Vel.Y < -3 and Owner.Jetpack.JetTimeLeft > AI.minBurstTime*2) then
 				AI.refuel = false;
 			elseif not AI.flying then
 				AI.jump = false;
 				AI.lateralMoveState = Actor.LAT_STILL;
 			end
-		elseif not AI.flying and UpdatePathTimer:IsPastSimTimeLimit() then
+		elseif UpdatePathTimer:IsPastSimTimeLimit() then
 			UpdatePathTimer:Reset();
 
 			AI.deviceState = AHuman.STILL;
@@ -1263,7 +1282,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			WptList = nil; -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
 			if AI.jump then
-				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
+				if Owner.Jetpack and Owner.Jetpack.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false;
 					AI.refuel = true;
 					nextLatMove = Actor.LAT_STILL;
@@ -1279,6 +1298,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 			else
 				local updateInterval = SettingsMan.AIUpdateInterval;
+
 				-- Try swapping direction, with a 15% random chance per tick while we're stuck
 				if PosRand() > (1 - 0.15) / updateInterval then
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT;
@@ -1290,7 +1310,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 
 				-- refuelling done
-				if AI.refuel and Owner.Jetpack and Owner.JetTimeLeft >= Owner.JetTimeTotal * 0.99 then
+				if AI.refuel and Owner.Jetpack and Owner.Jetpack.JetpackType == AEJetpack.Standard and Owner.Jetpack.JetTimeLeft >= Owner.Jetpack.JetTimeTotal * 0.99 then
 					AI.jump = true;
 				end
 			end
@@ -1349,9 +1369,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								CornerPos = (NextWptPos + Free) / 2; -- compensate for obstacles
 							end
 
-							local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-							if _abrt then return true end
-
 							-- check if we have LOS
 							Dist = SceneMan:ShortestDistance(Owner.Pos, CornerPos, false);
 							if 0 <= SceneMan:CastObstacleRay(Owner.Pos, Dist, Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 2) then
@@ -1359,9 +1376,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								CornerPos.X = Owner.Pos.X; -- move CornerPos straight above us
 								cornerType = "air";
 							end
-
-							local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-							if _abrt then return true end
 
 							Waypoint = {Pos=CornerPos, Type=cornerType};
 							if WptList[2] and not WptList[1].Type then	-- remove the waypoint after the corner if possible
@@ -1443,7 +1457,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 						elseif Waypoint.Type == "last" then
 							ArrivedTimer:SetSimTimeLimitMS(600);
 						else	-- air or corner wpt
-							ArrivedTimer:SetSimTimeLimitMS(25);
+							ArrivedTimer:SetSimTimeLimitMS(0);
 						end
 					end
 				elseif WptList[2] then	-- check if some other waypoint is closer
@@ -1467,11 +1481,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										Owner:RemoveMovePathBeginning();
 									end
 								end
-							end
-
-							if not AI.jump and not AI.flying then
-								local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-								if _abrt then return true end
 							end
 						end
 					end
@@ -1503,9 +1512,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 												WptList = nil; -- update the path
 												break;
 											end
-
-											local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-											if _abrt then return true end
 										else -- MOMoveTarget gone
 											return true;
 										end
@@ -1620,9 +1626,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 														Waypoint = nil;
 													end
 												end
-
-												local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-												if _abrt then return true end
 											elseif Owner.AIMode == Actor.AIMODE_GOLDDIG then
 												Waypoint.Pos = SceneMan:MovePointToGround(Waypoint.Pos, Owner.Height*0.2, 4);
 											end
@@ -1642,7 +1645,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 							end
 
 							-- Scan for obstacles
-							local Trace = Vector(Owner.Diameter*0.85, 0):RadRotate(scanAng);
+							local Trace = Vector(Owner.Radius*0.75, 0):RadRotate(scanAng);
 							local Free = Vector();
 							local index = math.floor(scanAng*2.5+2.01);
 							if SceneMan:CastObstacleRay(Owner.Pos, Trace, Vector(), Free, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3) > -1 then
@@ -1665,12 +1668,12 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								end
 							end
 
-							if not AI.jump and not AI.flying then
-								local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-								if _abrt then return true end
+							local tolerance = Owner.MoveProximityLimit;
+							if AI.jump then
+								tolerance = tolerance * 2;
 							end
 
-							if CurrDist:MagnitudeIsGreaterThan(Owner.Height * 0.4) then	-- not close enough to the waypoint
+							if CurrDist:MagnitudeIsGreaterThan(tolerance) then	-- not close enough to the waypoint
 								ArrivedTimer:Reset();
 
 								-- check if we have LOS to the waypoint
@@ -1684,11 +1687,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									if Owner.AIMode == Actor.AIMODE_GOLDDIG and digState == AHuman.NOTDIGGING and math.random() < 0.5 then
 										return true; -- end this behavior and look for gold again
 									end
-								end
-
-								if not AI.jump and not AI.flying then
-									local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-									if _abrt then return true end
 								end
 							elseif ArrivedTimer:IsPastSimTimeLimit() then	-- only remove a waypoint if we have been close to it for a while
 								if Waypoint.Type == "last" then
@@ -1725,13 +1723,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									else
 										nextLatMove = Actor.LAT_STILL;
 									end
-									if not (Owner.FGLeg and Owner.BGLeg) then
-										if CurrDist.X * Owner.FlipFactor > 5 and -CurrDist.Y > math.abs(CurrDist.X) then
-											AI.flying = true;
-										elseif not AI.jump then
-											AI.proneState = AHuman.GOPRONE;
-										end
-									end
 								end
 
 								if Waypoint.Type == "right" then
@@ -1745,7 +1736,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								end
 
 								if Owner.Jetpack and Owner.Head and Owner.Head:IsAttached() then
-									if Owner.JetTimeLeft < AI.minBurstTime then
+									if Owner.Jetpack.JetTimeLeft < AI.minBurstTime then
 										AI.jump = false; -- not enough fuel left, no point in jumping yet
 										if not AI.flying or Owner.Vel.Y > 1 then
 											AI.refuel = true;
@@ -1754,16 +1745,16 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										-- do we have a target we want to shoot at?
 										if (AI.Target and AI.canHitTarget and AI.BehaviorName ~= "AttackTarget") then
 											-- are we also flying
-											if AI.flying then
+											if AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard then
 												-- predict jetpack movement when jumping and there is a target (check one direction)
 												local jetStrength = AI.jetImpulseFactor / Owner.Mass;
-												local t = math.min(0.4, Owner.JetTimeLeft*0.001);
+												local t = math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001);
 												local PixelVel = Owner.Vel * (GetPPM() * t);
 												local Accel = SceneMan.GlobalAcc * GetPPM();
 
 												-- a burst use 10x more fuel
 												if Owner.Jetpack:CanTriggerBurst() then
-													t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
+													t = math.max(math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 												end
 
 												-- test jumping
@@ -1800,7 +1791,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 												AI.jump = false;
 											end
 										else
-											if Waypoint.Type ~= "drop" and not Lower(Waypoint, Owner, 20) then
+											if Waypoint.Type ~= "drop" and not Lower(Waypoint, Owner, 20) and Owner.Jetpack.JetpackType == AEJetpack.Standard then
 												-- jump over low obstacles unless we want to jump off a ledge
 												if nextLatMove == Actor.LAT_RIGHT and (Obstacles[Obst.R_LOW] or Obstacles[Obst.R_FRONT]) and not Obstacles[Obst.R_UP] then
 													AI.jump = true;
@@ -1817,13 +1808,13 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 											-- predict jetpack movement...
 											local jetStrength = AI.jetImpulseFactor / Owner.Mass;
-											local t = math.min(0.4, Owner.JetTimeLeft*0.001);
+											local t = math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001);
 											local PixelVel = Owner.Vel * (GetPPM() * t);
 											local Accel = SceneMan.GlobalAcc * GetPPM();
 
 											-- a burst use 10x more fuel
 											if Owner.Jetpack:CanTriggerBurst() then
-												t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
+												t = math.max(math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 											end
 
 											-- when jumping (check four directions)
@@ -1856,11 +1847,16 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											local Trace = SceneMan:ShortestDistance(Owner.Head.Pos, FallPos, false);
 											SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
+											local deltaToJump = 25;
+											if Owner.Jetpack.JetpackType == AEJetpack.JumpPack then
+												deltaToJump = deltaToJump * 1.4;
+											end
+
 											table.sort(Facings, function(A, B) return A.range < B.range end);
 											local delta = SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false).Magnitude - Facings[1].range;
 											if delta < 1 then
 												AI.jump = false;
-											elseif AI.flying or delta > 25 then
+											elseif delta > deltaToJump or (AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard) then
 												AI.jump = true;
 												nextAimAngle = Owner:GetAimAngle(false) * 0.5 + Facings[1].aim * 0.5; -- adjust jetpack nozzle direction
 												nextLatMove = Actor.LAT_STILL;
@@ -1909,6 +1905,12 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			else
 				Owner:UpdateMovePath();
 
+				-- wait until movepath is updated
+				while Owner.IsWaitingOnNewMovePath do
+					local _ai, _ownr, _abrt = coroutine.yield();
+					if _abrt then return true end
+				end
+
 				-- have we arrived?
 				if not Owner.MOMoveTarget then
 					local ProxyWpt = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height*0.2, 5);
@@ -1927,7 +1929,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 
-				-- no waypoint list, create one in several small steps to reduce lag
+				-- no waypoint list, create one
 				local PathDump = {};
 				if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 					Owner:DrawWaypoints(false);
@@ -1941,17 +1943,11 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					Owner:ClearMovePath();
 					Owner:AddToMovePathEnd(Owner.MOMoveTarget.Pos);
 				else
-					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-					if _abrt then return true end
-
 					-- copy the MovePath to a temporary table so we can yield safely while working on the path
 					for WptPos in Owner.MovePath do
 						table.insert(PathDump, WptPos);
 					end
 				end
-
-				local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-				if _abrt then return true end
 
 				-- copy useful waypoints to a temporary path
 				local TmpWpts = {};
@@ -1971,8 +1967,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 
 					LastPos = WptPos;
-					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-					if _abrt then return true end
 				end
 
 				-- No path
@@ -2006,9 +2000,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								end
 							end
 
-							local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-							if _abrt then return true end
-
 							table.sort(GapList, function(A, B) return A.score > B.score end); -- sort largest first
 
 							for _, LZ in pairs(GapList) do
@@ -2030,9 +2021,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										break;
 									end
 								end
-
-								local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-								if _abrt then return true end
 							end
 						end
 					end
@@ -2083,7 +2071,7 @@ end
 
 -- go prone if we can shoot from the prone position and return the result
 function HumanBehaviors.GoProne(AI, Owner, TargetPos, targetID)
-	if not Owner.Head or AI.proneState == AHuman.PRONE then
+	if (not Owner.Head or AI.proneState == AHuman.PRONE) or (Owner:NumberValueExists("AIDisableProne")) then
 		return false;
 	end
 
@@ -2686,8 +2674,8 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 				end
 
 				ID = rte.NoMOID;
-				if Owner:IsWithinRange(Vector(AimPoint.X, AimPoint.Y)) then	-- TODO: use grenade properties to decide this
-				--if true then
+				--if Owner:IsWithinRange(Vector(AimPoint.X, AimPoint.Y)) then	-- TODO: use grenade properties to decide this
+				if true then
 					Dist = SceneMan:ShortestDistance(Owner.EyePos, AimPoint, false);
 					ID = SceneMan:CastMORay(Owner.EyePos, Dist, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, false, 3);
 					if ID < 1 or ID == rte.NoMOID then	-- not found, look for any head or legs

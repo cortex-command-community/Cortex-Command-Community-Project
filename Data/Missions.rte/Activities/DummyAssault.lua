@@ -169,34 +169,32 @@ function DummyAssault:UpdateActivity()
 		if self.spawnTimer:IsPastSimMS(self.spawnTime) then
 			self.spawnTimer:Reset();
 
-			if MovableMan:GetTeamMOIDCount(Activity.TEAM_2) < rte.DefenderMOIDMax then
-				local actor;
-				if math.random() > self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTech)) then
-					actor = RandomAHuman("Actors - Light", self.CPUTech);
+			local actor;
+			if math.random() > self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTech)) then
+				actor = RandomAHuman("Actors - Light", self.CPUTech);
+				if math.random() > 0.5 then
+					actor.AIMode = Actor.AIMODE_BRAINHUNT;
 					if math.random() > 0.5 then
-						actor.AIMode = Actor.AIMODE_BRAINHUNT;
-						if math.random() > 0.5 then
-							actor:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTech));
-						end
-					else
-						actor.AIMode = Actor.AIMODE_GOTO;
-						actor:ClearAIWaypoints();
-						actor:AddAISceneWaypoint(self.searchArea:GetRandomPoint());
-					end
-
-					actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTech));
-					if math.random() > 0.1 then
-						actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTech));
+						actor:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTech));
 					end
 				else
-					actor = RandomACrab("Actors - Mecha", self.CPUTech);
-					actor.AIMode = Actor.AIMODE_BRAINHUNT;
+					actor.AIMode = Actor.AIMODE_GOTO;
+					actor:ClearAIWaypoints();
+					actor:AddAISceneWaypoint(self.searchArea:GetRandomPoint());
 				end
 
-				actor.Team = Activity.TEAM_2;
-				actor.Pos = Vector(5, 550);
-				MovableMan:AddActor(actor);
+				actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTech));
+				if math.random() > 0.1 then
+					actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTech));
+				end
+			else
+				actor = RandomACrab("Actors - Mecha", self.CPUTech);
+				actor.AIMode = Actor.AIMODE_BRAINHUNT;
 			end
+
+			actor.Team = Activity.TEAM_2;
+			actor.Pos = Vector(5, 550);
+			MovableMan:AddActor(actor);
 		end
 	elseif self.spawnTimer:IsPastSimMS(1000) then
 		self.spawnTimer:Reset();

@@ -41,7 +41,7 @@ function SkirmishDefense:StartActivity(isNewGame)
 	end
 
 	-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
-	self.LZmap = require("Activities/LandingZoneMap");
+	self.LZmap = require("Activities/Utility/LandingZoneMap");
 	self.LZmap:Initialize(aiTeams);
 
 	self.startTimer = Timer();

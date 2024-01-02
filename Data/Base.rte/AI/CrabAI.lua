@@ -1,10 +1,10 @@
-require("AI/NativeCrabAI"); --dofile("Base.rte/Actors/AI/NativeCrabAI.lua")
+require("AI/NativeCrabAI");
 
 function Create(self)
 	self.AI = NativeCrabAI:Create(self);
 end
 
-function UpdateAI(self)
+function ThreadedUpdateAI(self)
 	self.AI:Update(self);
 end
 

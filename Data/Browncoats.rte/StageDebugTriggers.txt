@@ -1,0 +1,5 @@
+WARNING: DO IN ORDER OR RISK BREAKAGE
+
+ActivityMan:GetActivity():SendMessage("Stage1Skip")
+ActivityMan:GetActivity():SendMessage("Stage2Skip")
+ActivityMan:GetActivity():SendMessage("Stage3Skip")

@@ -1,11 +1,10 @@
+require("Constants")
 require("AI/HumanBehaviors");
 
 NativeHumanAI = {};
 
 function NativeHumanAI:Create(Owner)
 	local Members = {};
-	
-	Members.useExpensiveToolAndWeaponSearch = SceneMan.SceneWidth * SceneMan.SceneHeight < 10000000;
 
 	Members.lateralMoveState = Actor.LAT_STILL;
 	Members.proneState = AHuman.NOTPRONE;
@@ -16,6 +15,7 @@ function NativeHumanAI:Create(Owner)
 	Members.SentryFacing = Owner.HFlipped;
 	Members.fire = false;
 	Members.groundContact = 5;
+	Members.flying = false;
 
 	Members.squadShoot = false;
 	Members.useMedikit = false;
@@ -36,8 +36,13 @@ function NativeHumanAI:Create(Owner)
 
 	-- set shooting skill
 	Members.aimSpeed, Members.aimSkill, Members.skill = HumanBehaviors.GetTeamShootingSkill(Owner.Team);
+	
+	Members.aimSpeed = Owner:NumberValueExists("AIAimSpeed") and Owner:GetNumberValue("AIAimSpeed") or Members.aimSpeed;
+	Members.aimSkill = Owner:NumberValueExists("AIAimSkill") and Owner:GetNumberValue("AIAimSkill") or Members.aimSkill;
+	Members.skill = Owner:NumberValueExists("AISkill") and Owner:GetNumberValue("AISkill") or Members.skill;
+	
 	-- default to enhanced AI if AI skill has been set high enough
-	if Members.skill >= GameActivity.NUTSDIFFICULTY or Owner:HasObjectInGroup("Brains") or Owner:HasObjectInGroup("Actors - Snipers") then
+	if Members.skill >= GameActivity.NUTSDIFFICULTY or Owner:HasObjectInGroup("Brains") or Owner:HasObjectInGroup("Actors - Snipers") or Owner:HasObjectInGroup("Actors - Boss") then
 		Members.SpotTargets = HumanBehaviors.CheckEnemyLOS;
 	else
 		Members.SpotTargets = HumanBehaviors.LookForTargets;
@@ -53,12 +58,10 @@ function NativeHumanAI:Create(Owner)
 	-- the native AI assume the jetpack cannot be destroyed
 	if Owner.Jetpack then
 		if not Members.isPlayerOwned then
-			Owner.Jetpack.Throttle = Owner.Jetpack.Throttle + 0.15	-- increase jetpack strength slightly to compensate for AI ineptitude
+			Owner.Jetpack.JetTimeTotal = Owner.Jetpack.JetTimeTotal * 1.2;	-- increase jetpack fuel to compensate for extra fuel spend
 		end
 
-		Members.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs;
-		Members.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * GetPPM() / TimerMan.DeltaTimeSecs - Members.jetImpulseFactor) * math.pow(TimerMan.DeltaTimeSecs, 2) * 0.5;
-		Members.minBurstTime = math.min(Owner.Jetpack.BurstSpacing*2, Owner.JetTimeTotal*0.99); -- in milliseconds
+		Members.minBurstTime = math.min(Owner.Jetpack.BurstSpacing*2, Owner.Jetpack.JetTimeTotal*0.99); -- in milliseconds
 	end
 
 	setmetatable(Members, self);
@@ -68,6 +71,12 @@ end
 
 function NativeHumanAI:Update(Owner)
 	self.Ctrl = Owner:GetController();
+
+	-- Our jetpack might have thrust balancing enabled, so update for our current mass
+	if Owner.Jetpack then		
+		self.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs;
+		self.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * GetPPM() / TimerMan.DeltaTimeSecs - self.jetImpulseFactor) * math.pow(TimerMan.DeltaTimeSecs, 2) * 0.5;
+	end
 
 	if self.isPlayerOwned then
 		if self.PlayerInterferedTimer:IsPastSimTimeLimit() then
@@ -218,7 +227,7 @@ function NativeHumanAI:Update(Owner)
 
 
 	-- check if the feet reach the ground
-	if self.AirTimer:IsPastSimMS(120) then
+	if self.AirTimer:IsPastSimMS(250) then
 		self.AirTimer:Reset();
 
 		local Origin = {};
@@ -239,9 +248,19 @@ function NativeHumanAI:Update(Owner)
 				self.groundContact = self.groundContact - 1;
 			end
 		end
-		self.flying = false;
+
+		local newFlying = false;
+		if not (Owner.FGLeg and Owner.BGLeg) then
+			newFlying = true;
+		end
+
 		if self.groundContact < 0 then
-			self.flying = true;
+			newFlying = true;
+		end
+
+		if self.flying ~= newFlying then
+			Owner:SendMessage("AI_IsFlying", newFlying);
+			self.flying = newFlying;
 		end
 
 		Owner:EquipShieldInBGArm(); -- try to equip a shield
@@ -457,7 +476,12 @@ function NativeHumanAI:Update(Owner)
 				end
 			end
 		elseif self.flying then	-- avoid falling damage
-			if (not self.jump and Owner.Vel.Y > 9) or (self.jump and Owner.Vel.Y > 6) then
+			local jumpThreshold = 9;
+			if Owner.Jetpack and Owner.Jetpack.JetpackType == AEJetpack.JumpPack then
+				jumpThreshold = jumpThreshold * 3;
+			end
+
+			if (not self.jump and Owner.Vel.Y > jumpThreshold) or (self.jump and Owner.Vel.Y > jumpThreshold * 0.66) then
 				self.jump = true;
 
 				-- try falling straight down
@@ -582,7 +606,7 @@ function NativeHumanAI:Update(Owner)
 	if (not self.jump and Owner.Vel.Y > 18) then
 		self.jump = true;
 	end
-	if self.jump and Owner.JetTimeLeft > TimerMan.AIDeltaTimeMS then
+	if self.jump and Owner.Jetpack and Owner.Jetpack.JetTimeLeft > TimerMan.AIDeltaTimeMS then
 		if self.jumpState == AHuman.PREJUMP then
 			self.jumpState = AHuman.UPJUMP;
 		elseif self.jumpState ~= AHuman.UPJUMP then	-- the jetpack is off
@@ -625,6 +649,17 @@ function NativeHumanAI:Destroy(Owner)
 end
 
 -- functions that create behaviors. the default behaviors are stored in the HumanBehaviors table. store your custom behaviors in a table to avoid name conflicts between mods.
+function NativeHumanAI:CreateQuickthrowBehavior(Owner)
+	if self.Target and MovableMan:ValidMO(self.Target) then
+		if Owner:EquipThrowable(true) and Owner.ThrowableIsReady then
+			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget);
+			self.NextBehaviorName = "ThrowTarget";
+			return true;
+		end
+	end
+	return false;
+end
+
 function NativeHumanAI:CreateSentryBehavior(Owner)
 	if self.Target then
 		self:CreateAttackBehavior(Owner);

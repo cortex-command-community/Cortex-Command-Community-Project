@@ -6,7 +6,7 @@ function Create(self)
 	self.lastWoundCount = self.WoundCount;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.regenTimer:IsPastSimMS(self.regenDelay) then
 		self.regenTimer:Reset();
 		if self.Health > 0 then

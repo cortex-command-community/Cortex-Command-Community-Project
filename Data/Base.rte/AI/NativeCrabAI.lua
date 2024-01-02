@@ -1,4 +1,4 @@
-
+require("Constants")
 require("AI/HumanBehaviors");
 require("AI/CrabBehaviors");
 

@@ -8,7 +8,7 @@ function OnDetach(self, exParent)
 end
 
 function OnCollideWithMO(self, mo, rootMO)
-	if self.thrown then
+	if self.thrown and IsMOSprite(mo) then
 		local force = self.PrevVel * self.impactPower;
 		mo:AddImpulseForce(force, Vector());
 		if force.Magnitude * self.Sharpness > mo.Material.StructuralIntegrity then

@@ -13,9 +13,6 @@ Add defender units by placing areas named:
 Activate fog of war during the build phase by adding areas:
 "Red Build Area" and "Green Build Area" where the players are allowed to build
 
-
-Don't place more doors and defenders and than the MOID limit can handle (a total of 16 defenders plus 4 doors equals about 144 of 255 avaliable IDs).
-
 --]]
 
 function BrainvsBrain:StartActivity(isNewGame)
@@ -26,8 +23,7 @@ function BrainvsBrain:StartActivity(isNewGame)
 		self.hunterTimer = Timer();
 
 		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
-		self.LZMap = require("Activities/LandingZoneMap");
-		--self.LZMap = dofile("Base.rte/Activities/LandingZoneMap.lua");
+		self.LZMap = require("Activities/Utility/LandingZoneMap");
 		self.LZMap:Initialize({self.CPUTeam});	-- a list of AI teams
 
 		-- Store data about player teams: OnPlayerTeam[A.Team] is true if "A" is an enemy to the AI
@@ -474,20 +470,18 @@ function BrainvsBrain:UpdateActivity()
 										self.spawnDelay = (40000 - self.Difficulty * 250) * rte.SpawnIntervalScale;
 									end
 
-									if MovableMan:GetTeamMOIDCount(self.CPUTeam) < rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() and MovableMan:IsActor(self.CPUBrain) then
-										if obstacleHeight < 30 then
-											self:CreateHeavyDrop(xPosLZ);
-										elseif obstacleHeight < 90 then
-											self:CreateMediumDrop(xPosLZ);
-										elseif obstacleHeight < 180 then
-											self:CreateLightDrop(xPosLZ);
-										else
-											self:CreateScoutDrop(xPosLZ);
+									if obstacleHeight < 30 then
+										self:CreateHeavyDrop(xPosLZ);
+									elseif obstacleHeight < 90 then
+										self:CreateMediumDrop(xPosLZ);
+									elseif obstacleHeight < 180 then
+										self:CreateLightDrop(xPosLZ);
+									else
+										self:CreateScoutDrop(xPosLZ);
 
-											-- This target is very difficult to reach: change target for the next attack
-											self.AttackActor = nil;
-											self.AttackPos = nil;
-										end
+										-- This target is very difficult to reach: change target for the next attack
+										self.AttackActor = nil;
+										self.AttackPos = nil;
 									end
 
 									if self.AttackActor then
@@ -504,41 +498,36 @@ function BrainvsBrain:UpdateActivity()
 						else
 							self.AttackActor = nil;
 
-							if MovableMan:GetTeamMOIDCount(self.CPUTeam) < rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-								-- Find an enemy actor to attack
-								local Intruders = {};
-								local intruder_tally = 0;
-								for Act in MovableMan.Actors do
-									if self.OnPlayerTeam[Act.Team] and (Act.ClassName == "AHuman" or Act.ClassName == "ACrab" or Act.ClassName == "Actor") and not SceneMan:IsUnseen(Act.Pos.X, Act.Pos.Y, self.CPUTeam) then
-										local distance = 20 * (SceneMan:ShortestDistance(self.CPUBrain.Pos, Act.Pos, false).Largest / SceneMan.SceneWidth);
-										table.insert(Intruders, {Act=Act, score=self.LZMap:SurfaceProximity(Act.Pos)+distance+math.random(300)});
-										intruder_tally = intruder_tally + 1;
-									end
+							-- Find an enemy actor to attack
+							local Intruders = {};
+							local intruder_tally = 0;
+							for Act in MovableMan.Actors do
+								if self.OnPlayerTeam[Act.Team] and (Act.ClassName == "AHuman" or Act.ClassName == "ACrab" or Act.ClassName == "Actor") and not SceneMan:IsUnseen(Act.Pos.X, Act.Pos.Y, self.CPUTeam) then
+									local distance = 20 * (SceneMan:ShortestDistance(self.CPUBrain.Pos, Act.Pos, false).Largest / SceneMan.SceneWidth);
+									table.insert(Intruders, {Act=Act, score=self.LZMap:SurfaceProximity(Act.Pos)+distance+math.random(300)});
+									intruder_tally = intruder_tally + 1;
 								end
+							end
 
-								if intruder_tally < 1 then
-									self.spawnTimer:Reset();
-									self.spawnDelay = 10000;
-								else
-									table.sort(Intruders, function(A, B) return A.score > B.score end);	-- the nearest intruder last
-									self.AttackActor = table.remove(Intruders).Act;
-									self.AttackPos = Vector(self.AttackActor.Pos.X, self.AttackActor.Pos.Y);
-
-
-									-- try bombing if no targets close to CPU brain
-									if math.random() < self.bombChance and (SceneMan:ShortestDistance(self.CPUBrain.Pos, self.AttackPos, false).Largest/SceneMan.SceneWidth) > 0.2 then
-										local bombPosX = self.LZMap:FindBombTarget(self.CPUTeam);
-										if bombPosX then
-											self.spawnTimer:Reset();
-											self.spawnDelay = (10000 - self.Difficulty * 70) * rte.SpawnIntervalScale;
-											self.bombChance = math.max(self.bombChance*0.9, 0.05);
-											self:CreateBombDrop(bombPosX);
-										end
-									end
-								end
-							else
+							if intruder_tally < 1 then
 								self.spawnTimer:Reset();
 								self.spawnDelay = 10000;
+							else
+								table.sort(Intruders, function(A, B) return A.score > B.score end);	-- the nearest intruder last
+								self.AttackActor = table.remove(Intruders).Act;
+								self.AttackPos = Vector(self.AttackActor.Pos.X, self.AttackActor.Pos.Y);
+
+
+								-- try bombing if no targets close to CPU brain
+								if math.random() < self.bombChance and (SceneMan:ShortestDistance(self.CPUBrain.Pos, self.AttackPos, false).Largest/SceneMan.SceneWidth) > 0.2 then
+									local bombPosX = self.LZMap:FindBombTarget(self.CPUTeam);
+									if bombPosX then
+										self.spawnTimer:Reset();
+										self.spawnDelay = (10000 - self.Difficulty * 70) * rte.SpawnIntervalScale;
+										self.bombChance = math.max(self.bombChance*0.9, 0.05);
+										self:CreateBombDrop(bombPosX);
+									end
+								end
 							end
 						end
 					end

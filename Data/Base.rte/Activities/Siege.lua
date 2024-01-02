@@ -18,13 +18,9 @@ Add defender units by placing areas named:
 "Turret1" to "Turret10"
 "Engineer1" to "Engineer10"	<-- light actors, digger, gold dig AI-mode
 "Anti-Air1" to "Anti-Air5"
-
-Don't place more defenders than the MOID limit can handle (15 defenders plus 3 doors equals about 130 of 255 available IDs).
 --]]
 
 function Siege:StartActivity()
-	collectgarbage("collect");
-
 	self.PlayerTeam = Activity.TEAM_2;
 
 	-- Select a tech for the CPU player
@@ -225,7 +221,7 @@ function Siege:StartActivity()
 	end
 
 	-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
-	self.LZMap = require("Activities/LandingZoneMap");
+	self.LZMap = require("Activities/Utility/LandingZoneMap");
 	self.LZMap:Initialize({self.CPUTeam}); -- a list of AI teams
 
 	-- Switch all doors team to player's
@@ -355,75 +351,73 @@ function Siege:UpdateActivity()
 
 	if self:GetTeamFunds(self.CPUTeam) > 350 then
 		if self.SpawnTimer:IsPastSimMS(self.spawnDelay) then
-			if MovableMan:GetTeamMOIDCount(self.CPUTeam) < rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-				-- We have a target actor, search for a suitable LZ
-				local safePosX = self.LZMap:FindSafeLZ(self.CPUTeam);
-				local swatDrop = false;
+			-- We have a target actor, search for a suitable LZ
+			local safePosX = self.LZMap:FindSafeLZ(self.CPUTeam);
+			local swatDrop = false;
 
-				local deployType = math.random(4);
+			local deployType = math.random(4);
 
-				if deployType == 1 then
-					if self.BrainLocations then
-						safePosX = self.LZMap:FindLZ(self.CPUTeam, self.BrainLocations);
+			if deployType == 1 then
+				if self.BrainLocations then
+					safePosX = self.LZMap:FindLZ(self.CPUTeam, self.BrainLocations);
+				end
+			elseif deployType == 2 then
+				safePosX = self.InvaderLZ:GetRandomPoint().X;
+			elseif deployType == 3 and self.Perimeter then
+				safePosX = self.Perimeter:GetRandomPoint().X;
+				swatDrop = true;
+			end
+
+			if safePosX then	-- Search done
+				self.SpawnTimer:Reset();
+
+				-- Attack target
+				self.SpawnTimer:Reset();
+				self.spawnDelay = (45000 - self.Difficulty * 250) * rte.SpawnIntervalScale;
+
+				local engineers = 0;
+
+				for actor in MovableMan.Actors do
+					if actor.Team == self.CPUTeam and actor.AIMode == Actor.AIMODE_GOLDDIG then
+						engineers = engineers + 1;
 					end
-				elseif deployType == 2 then
-					safePosX = self.InvaderLZ:GetRandomPoint().X;
-				elseif deployType == 3 and self.Perimeter then
-					safePosX = self.Perimeter:GetRandomPoint().X;
-					swatDrop = true;
 				end
 
-				if safePosX then	-- Search done
-					self.SpawnTimer:Reset();
+				if engineers < 4 and self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.15 then
+					safePosX = self.LZMap:FindSafeLZ(self.CPUTeam);
+					self:CreateEngineerDrop(safePosX, self.CPUTechName);
+				elseif swatDrop then
+					self:CreateSWATDrop(safePosX, self.CPUTechName);
+				else
+					local randCap = 3; -- First deploy only scouts
 
-					-- Attack target
-					self.SpawnTimer:Reset();
-					self.spawnDelay = (45000 - self.Difficulty * 250) * rte.SpawnIntervalScale;
-
-					local engineers = 0;
-
-					for actor in MovableMan.Actors do
-						if actor.Team == self.CPUTeam and actor.AIMode == Actor.AIMODE_GOLDDIG then
-							engineers = engineers + 1;
-						end
+					if self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.40 then
+						randCap = 13;
+					elseif self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.55 then
+						randCap = 9;
+					elseif self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.70 then
+						randCap = 7;
+					elseif self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.85 then
+						randCap = 5;
 					end
 
-					if engineers < 4 and self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.15 then
-						safePosX = self.LZMap:FindSafeLZ(self.CPUTeam);
-						self:CreateEngineerDrop(safePosX, self.CPUTechName);
-					elseif swatDrop then
-						self:CreateSWATDrop(safePosX, self.CPUTechName);
+					-- Still add some random to the mix
+					--if math.random() < 0.15 then
+					--	randCap = 13;
+					--end
+
+					local rand = math.random(randCap);
+
+					if rand < 2 then
+						self:CreateScoutDrop(safePosX, self.CPUTechName);
+					elseif rand < 4 then
+						self:CreateLightDrop(safePosX, self.CPUTechName);
+					elseif rand < 6 then
+						self:CreateMediumDrop(safePosX, self.CPUTechName);
+					elseif rand < 8 then
+						self:CreateHeavyDrop(safePosX, self.CPUTechName);
 					else
-						local randCap = 3; -- First deploy only scouts
-
-						if self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.40 then
-							randCap = 13;
-						elseif self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.55 then
-							randCap = 9;
-						elseif self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.70 then
-							randCap = 7;
-						elseif self:GetTeamFunds(self.CPUTeam) < self.InitialFunds * 0.85 then
-							randCap = 5;
-						end
-
-						-- Still add some random to the mix
-						--if math.random() < 0.15 then
-						--	randCap = 13;
-						--end
-
-						local rand = math.random(randCap);
-
-						if rand < 2 then
-							self:CreateScoutDrop(safePosX, self.CPUTechName);
-						elseif rand < 4 then
-							self:CreateLightDrop(safePosX, self.CPUTechName);
-						elseif rand < 6 then
-							self:CreateMediumDrop(safePosX, self.CPUTechName);
-						elseif rand < 8 then
-							self:CreateHeavyDrop(safePosX, self.CPUTechName);
-						else
-							self:CreateArtilleryDrop(safePosX, self.CPUTechName);
-						end
+						self:CreateArtilleryDrop(safePosX, self.CPUTechName);
 					end
 				end
 			end

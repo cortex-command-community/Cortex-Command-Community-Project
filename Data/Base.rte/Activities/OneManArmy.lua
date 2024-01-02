@@ -298,9 +298,9 @@ function OneManArmy:UpdateActivity()
 				end
 			end
 		end
-		local enemyMOIDCount = MovableMan:GetTeamMOIDCount(self.CPUTeam);
+
 		--Spawn the AI
-		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and enemyMOIDCount < rte.AIMOIDMax then
+		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 then
 			local ship, actorsInCargo;
 
 			if math.random() < 0.5 then
@@ -415,7 +415,7 @@ function OneManArmy:UpdateActivity()
 			end
 
 			self.enemySpawnTimer:Reset();
-			self.enemySpawnTimeLimit = (self.baseSpawnTime * (1 + enemyMOIDCount * 0.1) + math.random(self.baseSpawnTime)) * rte.SpawnIntervalScale;
+			self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.baseSpawnTime)) * rte.SpawnIntervalScale;
 		end
 	end
 end

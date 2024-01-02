@@ -297,7 +297,7 @@ function MetaFight:StartActivity()
 				-- Store initial defender team funds to prevent from overflow caused by AI gold cheat
 				self.DefenderTeamInitialFunds = self:GetTeamFunds(defenderTeam);
 
-				-- Find out NativeCostMultiplier for defenders, it will be used when we'll have to sell excess actors if MOID limit was reached
+				-- Find out NativeCostMultiplier for defenders, it will be used when we'll have to sell excess actors
 				for metaPlayer = Activity.PLAYER_1, MetaMan.PlayerCount - 1 do
 					if MetaMan:GetPlayer(metaPlayer).InGamePlayer == player then
 						defenderTeamNativeCostMultiplier = MetaMan:GetPlayer(metaPlayer).NativeCostMultiplier;
@@ -524,15 +524,13 @@ function MetaFight:StartActivity()
 	if #CPUTeams > 0 then
 		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
 		self.AI = {};
-		self.AI.LZmap = require("Activities/LandingZoneMap"); -- self.AI.LZmap = dofile("Base.rte/Activities/LandingZoneMap.lua")
+		self.AI.LZmap = require("Activities/Utility/LandingZoneMap");
 		self.AI.LZmap:Initialize(CPUTeams);
 		self.AI.SpawnTimer = Timer();
 		self.AI.SpawnTimer:SetSimTimeLimitMS(16000);
 		self.AI.AttackTarget = {};
 		self.AI.AttackPos = {};
 		self.AI.Defender = {};
-
-		self.AI.MOIDLimit = rte.AIMOIDMax * 3 / #CPUTeams;
 	end
 
 	-- Clear data about actors controlled by external scripts. If scripts are active they'll grab their actors back
@@ -543,123 +541,6 @@ function MetaFight:StartActivity()
 
 	for actor in MovableMan.AddedActors do
 		actor:RemoveStringValue("ScriptControlled");
-	end
-
-	-- Enforce the MOID limit by deleting and refunding native actors
-	if defenderTeam then
-		self.hasDefender = true;
-
-		-- Estimate the total MOIDFootprint of the defender's actors
-		local defenderMOID = 0;
-		for Act in MovableMan.AddedActors do
-			if Act.ClassName == "ADoor" then
-				--defenderMOID = defenderMOID + 2;
-			elseif Act.Team == defenderTeam then
-				defenderMOID = defenderMOID + 8;
-			end
-		end
-
-		-- Make sure there are enough free MOIDs to land AI units
-		local ids = defenderMOID - rte.DefenderMOIDMax;
-		if ids > 0 then
-			local Prune = {};
-			for Item in MovableMan.AddedItems do
-				--table.insert(Prune, {MO=Item, score=Item:GetGoldValue(0, 1, defenderTeamNativeCostMultiplier)*0.5});
-				table.insert(Prune, {MO=Item, score=0}); -- Let's try to always remove weapons if we need MOIDs
-			end
-
-			for Act in MovableMan.AddedActors do
-				if not Act:HasObjectInGroup("Brains") and not IsADoor(Act) then
-					local value = Act:GetTotalValue(0, 1, defenderTeamNativeCostMultiplier);
-					if Act.PlacedByPlayer == Activity.PLAYER_NONE then
-						value = value * 0.5; -- This actor is left-over from previous battles
-					end
-
-					-- Further reduce value if actors are damaged
-					value = value * Act.Health/Act.MaxHealth;
-
-					-- Reduce value if actors are out of base
-					if self.MetabaseArea then
-						if not self.MetabaseArea:IsInside(Act.Pos) then
-							value = value * 0.25;
-						end
-					end
-
-					-- Crippled actors and actors without weapons are first candidates to be removed
-					if IsAHuman(Act) then
-						local human = ToAHuman(Act);
-						if human then
-							local limbs = {human.FGArm, human.BGArm, human.FGLeg, human.BGLeg};
-							for _, limb in pairs(limbs) do
-								if limb == nil then
-									value = value * 0.5;
-								end
-							end
-
-							if human:IsInventoryEmpty() and human.EquippedItem == nil and human.EquippedBGItem == nil then
-								value = value * 0.5;
-							end
-						end
-					end
-
-					-- Always remove crafts, left from previous battles
-					if IsACRocket(Act) or IsACDropShip(Act) then
-						value = 0;
-					end
-
-					table.insert(Prune, {MO=Act, score=value});
-				end
-			end
-
-			-- Sort the table so we delete the cheapest object first
-			table.sort(Prune, function(A, B) return A.score > B.score end);
-
-			local count = 0;
-			local gold = 0;
-			local badcount = 0;
-			while true do
-				local Object = table.remove(Prune);
-				if Object then
-					-- Stop if we have freed enough MOIDs and removed all 'bad' objects.
-					if ids < 0 and Object.score > 0 then
-						break;
-					end
-
-					local MO = Object.MO;
-					if MO:IsDevice() then
-						ids = ids - 1;
-						MO.ToDelete = true;
-						count = count + 1;
-						if Object.score == 0 then
-							badcount = badcount + 1;
-						end
-					else
-						-- deleting actors cause a crash -- weegee: No longer
-						-- MO.Health = 0;
-						MO.ToDelete = true;
-						if MO.ClassName == "ADoor" then
-							ids = ids - 2;
-						else
-							ids = ids - 8;
-						end
-						count = count + 1;
-						if Object.score == 0 then
-							badcount = badcount + 1;
-						end
-					end
-
-					gold = gold + MO:GetTotalValue(0, 1, defenderTeamNativeCostMultiplier);
-				else
-					break;
-				end
-			end
-
-			if (SettingsMan.PrintDebugInfo) then
-				print ("DEBUG: Objects removed: "..count.." [ "..badcount.." ] - " .. gold.. "oz of gold refunded");
-			end
-
-			self:ChangeTeamFunds(gold, defenderTeam); -- Refund the objects
-		end
 	end
 end
 
@@ -1117,37 +998,30 @@ function MetaFight:UpdateActivity()
 							activeAITeams = activeAITeams + 1;
 						end
 					end
-
-					self.AI.MOIDLimit = rte.AIMOIDMax * 3 / activeAITeams;
 				end
 
 				if self.AI.spawnForPlayer then
 					local team = self:GetTeamOfPlayer(self.AI.spawnForPlayer);
 
-					if MovableMan:GetTeamMOIDCount(team) > self.AI.MOIDLimit then
-						self.AI.SpawnTimer:SetSimTimeLimitMS(2000);
+					if self:SearchLZ(self.AI.spawnForPlayer) then	-- returns true when the search is complete. may or may not spawn a unit
 						self.AI.SpawnTimer:Reset();
-					else
-						if self:SearchLZ(self.AI.spawnForPlayer) then	-- returns true when the search is complete. may or may not spawn a unit
-							self.AI.SpawnTimer:Reset();
 
-							-- find the next AI team (if any)
-							local oldPlayer = self.AI.spawnForPlayer;
-							self.AI.spawnForPlayer = nil;
-							for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-								if player > oldPlayer then
-									if self:PlayerActive(player) and not self:PlayerHuman(player) and self:GetPlayerBrain(player) and self.TeamAIActive[self:GetTeamOfPlayer(player)] then
-										self.AI.spawnForPlayer = player;
-										break;
-									end
+						-- find the next AI team (if any)
+						local oldPlayer = self.AI.spawnForPlayer;
+						self.AI.spawnForPlayer = nil;
+						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+							if player > oldPlayer then
+								if self:PlayerActive(player) and not self:PlayerHuman(player) and self:GetPlayerBrain(player) and self.TeamAIActive[self:GetTeamOfPlayer(player)] then
+									self.AI.spawnForPlayer = player;
+									break;
 								end
 							end
+						end
 
-							if self.AI.spawnForPlayer then
-								self.AI.SpawnTimer:SetSimTimeLimitMS(1000);
-							else	-- all AI teams have spawned, wait a little longer before we try to spawn troops again
-								self.AI.SpawnTimer:SetSimTimeLimitMS(6000);
-							end
+						if self.AI.spawnForPlayer then
+							self.AI.SpawnTimer:SetSimTimeLimitMS(1000);
+						else	-- all AI teams have spawned, wait a little longer before we try to spawn troops again
+							self.AI.SpawnTimer:SetSimTimeLimitMS(6000);
 						end
 					end
 				else

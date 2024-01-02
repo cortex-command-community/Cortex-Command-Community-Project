@@ -1,3 +1,4 @@
+require("Utilities");
 require("Scenes/Objects/Bunkers/BunkerSystems/Automovers/GlobalAutomoverFunctions");
 
 local automoverUtilityFunctions = {};
@@ -32,7 +33,7 @@ function Create(self)
 	---------------------------
 	self.actorUnstickingDisabled = self:NumberValueExists("ActorUnstickingDisabled") and self:GetNumberValue("ActorUnstickingDisabled") ~= 0 or false;
 	self.slowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled = self:NumberValueExists("SlowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled") and self:GetNumberValue("SlowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled") ~= 0 or false;
-	
+
 	self.infoUIUseSmallText = self:NumberValueExists("InfoUIUseSmallText") and self:GetNumberValue("InfoUIUseSmallText") ~= 0 or false;
 	self.infoUIBGColour = self:NumberValueExists("InfoUIBGColour") and self:GetNumberValue("InfoUIBGColour") or 127;
 	self.infoUIOutlineWidth = self:NumberValueExists("InfoUIOutlineWidth") and self:GetNumberValue("InfoUIOutlineWidth") or 2;
@@ -143,6 +144,11 @@ function Create(self)
 	self.allBoxesAdded = false;
 	self.allPathsAdded = false;
 
+	if not SceneMan.Scene:HasArea("NoGravityArea") then
+		local noGravArea = Area("NoGravityArea");
+		SceneMan.Scene:SetArea(noGravArea);
+	end
+
 	self.combinedAutomoverArea = Area();
 	self.pathTable = {};
 
@@ -153,8 +159,6 @@ function Create(self)
 	self.actorMovementUpdateTimer = Timer(15);
 
 	self.heldInputTimer = Timer(50);
-	
-	self.allowExpensiveFindClosestNode = SceneMan.SceneWidth * SceneMan.SceneHeight < 10000000;
 
 	self.leaveAutomoverNetworkPieSlice = CreatePieSlice("Leave Automover Network", "Base.rte");
 	self.chooseTeleporterPieSlice = CreatePieSlice("Choose Teleporter", "Base.rte");
@@ -185,86 +189,7 @@ function Update(self)
 			end
 
 			if self.actorMovementUpdateTimer:IsPastSimTimeLimit() then
-				for actorUniqueID, actorData in pairs(self.affectedActors) do
-					local actor = actorData.actor;
-					if not MovableMan:ValidMO(actor) or actor.Health <= 0 or not self.combinedAutomoverArea:IsInside(actor.Pos) then
-						self:removeActorFromAutomoverTable(actor, actorUniqueID);
-					else
-						if actor:NumberValueExists("Automover_LeaveAutomoverNetwork") then
-							self:setActorMovementModeToLeaveAutomovers(actorData);
-							actor:RemoveNumberValue("Automover_LeaveAutomoverNetwork");
-						end
-						if actor:IsPlayerControlled() and actor:NumberValueExists("Automover_ChooseTeleporter") then
-							self:setupManualTeleporterData(actorData);
-							actor:RemoveNumberValue("Automover_ChooseTeleporter");
-						end
-
-						if actorData.movementMode ~= self.movementModes.leaveAutomovers then
-							if actor:IsPlayerControlled() then
-								local closestNode = self:findClosestNode(actor.Pos, nil, false, false, false, nil);
-								if closestNode ~= nil and AutomoverData[self.Team].teleporterNodes[closestNode] ~= nil and AutomoverData[self.Team].nodeData[closestNode].zoneBox:IsWithinBox(actor.Pos) then
-									actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.chooseTeleporterPieSlice:Clone(), self);
-								else
-									actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
-								end
-
-								if actorData.manualTeleporterData then
-									self:chooseTeleporterForPlayerControlledActor(actorData);
-									actorData.movementMode = self.movementModes.teleporting;
-								else
-									actorData.movementMode = self.movementModes.freeze;
-								end
-
-								if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
-									self:updateDirectionsFromActorControllerInput(actorData);
-								end
-							elseif actorData.movementMode ~= self.movementModes.leaveAutomovers then
-								self:updateDirectionsFromWaypoints(actorData);
-							end
-
-							local actorController = actor:GetController();
-							actorController:SetState(Controller.MOVE_LEFT, false);
-							actorController:SetState(Controller.MOVE_RIGHT, false);
-							actorController:SetState(Controller.MOVE_UP, false);
-							actorController:SetState(Controller.MOVE_DOWN, false);
-							actorController:SetState(Controller.BODY_JUMP, false);
-							actorController:SetState(Controller.BODY_JUMPSTART, false);
-
-							if IsACDropShip(actor) then
-								actor = ToACDropShip(actor);
-								actor.RightEngine:EnableEmission(false);
-								actor.LeftEngine:EnableEmission(false);
-								actor.RightThruster:EnableEmission(false);
-								actor.LeftThruster:EnableEmission(false);
-								actor.RotAngle = 0;
-							elseif IsACRocket(actor) then
-								actor.RotAngle = 0;
-							end
-
-							local actorIsSlowEnoughToUseAutomovers = self:slowDownFastActorToMovementSpeed(actorData);
-
-							if actorIsSlowEnoughToUseAutomovers then
-								if not self.actorUnstickingDisabled then
-									if actorData.direction == Directions.None or actorData.movementMode ~= self.movementModes.move or actor.Vel:MagnitudeIsGreaterThan(self.movementSpeed - 1) then
-										actorData.unstickTimer:Reset();
-									elseif actorData.unstickTimer:IsPastSimTimeLimit() then
-										actorData.movementMode = self.movementModes.unstickActor;
-									end
-								end
-
-								local anyCenteringWasDone = false;
-								if actorData.movementMode == self.movementModes.move or actorData.movementMode == self.movementModes.unstickActor then
-									anyCenteringWasDone = self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData);
-								end
-								if actorData.movementMode == self.movementModes.freeze then
-									self:updateFrozenActor(actorData);
-								elseif actorData.movementMode == self.movementModes.move then
-									self:updateMovingActor(actorData, anyCenteringWasDone);
-								end
-							end
-						end
-					end
-				end
+				self:actorMovementUpdate();
 				self.actorMovementUpdateTimer:Reset();
 			end
 
@@ -291,6 +216,92 @@ function Destroy(self)
 	AutomoverData[self.Team].nodeDataCount = 0;
 	AutomoverData[self.Team].teleporterNodes = {};
 	AutomoverData[self.Team].teleporterNodesCount = 0;
+end
+
+automoverActorFunctions.actorMovementUpdate = function(self)
+	tracy.ZoneBegin();
+	for actorUniqueID, actorData in pairs(self.affectedActors) do
+		local actor = actorData.actor;
+		if not MovableMan:ValidMO(actor) or actor.Health <= 0 or not self.combinedAutomoverArea:IsInside(actor.Pos) then
+			self:removeActorFromAutomoverTable(actor, actorUniqueID);
+		else
+			if actor:NumberValueExists("Automover_LeaveAutomoverNetwork") then
+				self:setActorMovementModeToLeaveAutomovers(actorData);
+				actor:RemoveNumberValue("Automover_LeaveAutomoverNetwork");
+			end
+			if actor:IsPlayerControlled() and actor:NumberValueExists("Automover_ChooseTeleporter") then
+				self:setupManualTeleporterData(actorData);
+				actor:RemoveNumberValue("Automover_ChooseTeleporter");
+			end
+
+			if actorData.movementMode ~= self.movementModes.leaveAutomovers then
+				if actor:IsPlayerControlled() then
+					local closestNode = self:findClosestNode(actor.Pos, nil, false, false);
+					if closestNode ~= nil and AutomoverData[self.Team].teleporterNodes[closestNode] ~= nil and AutomoverData[self.Team].nodeData[closestNode].zoneBox:IsWithinBox(actor.Pos) then
+						actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.chooseTeleporterPieSlice, self);
+					else
+						actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
+					end
+
+					if actorData.manualTeleporterData then
+						self:chooseTeleporterForPlayerControlledActor(actorData);
+						actorData.movementMode = self.movementModes.teleporting;
+					else
+						actorData.movementMode = self.movementModes.freeze;
+					end
+				elseif actorData.movementMode == self.movementModes.teleporting then
+					self:updateDirectionsFromWaypoints(actorData);
+				end
+
+				if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
+					self:updateDirectionsFromActorControllerInput(actorData);
+				end
+
+				local actorController = actor:GetController();
+				actorController:SetState(Controller.MOVE_LEFT, false);
+				actorController:SetState(Controller.MOVE_RIGHT, false);
+				actorController:SetState(Controller.MOVE_UP, false);
+				actorController:SetState(Controller.MOVE_DOWN, false);
+				actorController:SetState(Controller.BODY_JUMP, false);
+				actorController:SetState(Controller.BODY_JUMPSTART, false);
+
+				if IsACDropShip(actor) then
+					actor = ToACDropShip(actor);
+					actor.RightEngine:EnableEmission(false);
+					actor.LeftEngine:EnableEmission(false);
+					actor.RightThruster:EnableEmission(false);
+					actor.LeftThruster:EnableEmission(false);
+					actor.RotAngle = 0;
+				elseif IsACRocket(actor) then
+					actor.RotAngle = 0;
+				end
+
+				local actorIsSlowEnoughToUseAutomovers = self:slowDownFastActorToMovementSpeed(actorData);
+
+				if actorIsSlowEnoughToUseAutomovers then
+					if not self.actorUnstickingDisabled then
+						if actorData.direction == Directions.None or actorData.movementMode ~= self.movementModes.move or actor.Vel:MagnitudeIsGreaterThan(self.movementSpeed - 1) then
+							actorData.unstickTimer:Reset();
+						elseif actorData.unstickTimer:IsPastSimTimeLimit() then
+							actorData.movementMode = self.movementModes.unstickActor;
+						end
+					end
+
+					local anyCenteringWasDone = false;
+					if actorData.movementMode == self.movementModes.move or actorData.movementMode == self.movementModes.unstickActor then
+						anyCenteringWasDone = self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData);
+					end
+
+					if actorData.movementMode == self.movementModes.freeze then
+						self:updateFrozenActor(actorData);
+					elseif actorData.movementMode == self.movementModes.move then
+						self:updateMovingActor(actorData, anyCenteringWasDone);
+					end
+				end
+			end
+		end
+	end
+	tracy.ZoneEnd();
 end
 
 automoverUtilityFunctions.handlePieButtons = function(self)
@@ -435,6 +446,7 @@ automoverUtilityFunctions.updateActivityEditingMode = function(self)
 end
 
 automoverUtilityFunctions.checkForObstructions = function(self)
+	tracy.ZoneBegin();
 	local _, connectionChangesFound = coroutine.resume(self.obstructionCheckCoroutine, self);
 	local coroutineIsDead = coroutine.status(self.obstructionCheckCoroutine) == "dead";
 	if connectionChangesFound then
@@ -442,13 +454,14 @@ automoverUtilityFunctions.checkForObstructions = function(self)
 		self.allBoxesAdded = false;
 		self.allPathsAdded = false;
 	end
-	
+
 	if coroutineIsDead then
 		self.obstructionCheckCoroutine = coroutine.create(self.checkAllObstructions);
 		self.obstructionCheckTimer:SetSimTimeLimitMS(10000);
 	else
 		self.obstructionCheckTimer:SetSimTimeLimitMS(100);
 	end
+	tracy.ZoneEnd();
 end
 
 automoverUtilityFunctions.checkAllObstructions = function(self)
@@ -484,7 +497,7 @@ automoverUtilityFunctions.checkAllObstructions = function(self)
 				break;
 			end
 		end
-		
+
 
 		checkedNodeCount = checkedNodeCount + 1;
 		if checkedNodeCount % 5 == 0 then
@@ -495,6 +508,7 @@ automoverUtilityFunctions.checkAllObstructions = function(self)
 end
 
 automoverUtilityFunctions.addAllBoxesAndPaths = function(self)
+	tracy.ZoneBegin();
 	if not self.allBoxesAdded and coroutine.status(self.addAllBoxesCoroutine) == "dead" then
 		self.addAllBoxesCoroutine = coroutine.create(self.addAllBoxes);
 	end
@@ -507,6 +521,7 @@ automoverUtilityFunctions.addAllBoxesAndPaths = function(self)
 	coroutine.resume(self.addAllPathsCoroutine, self);
 
 	self.allPathsAdded = self.allPathsAdded or coroutine.status(self.addAllPathsCoroutine) == "dead";
+	tracy.ZoneEnd();
 end
 
 automoverUtilityFunctions.addAllBoxes = function(self)
@@ -516,6 +531,7 @@ automoverUtilityFunctions.addAllBoxes = function(self)
 	for node, nodeData in pairs(teamNodeTable) do
 		if nodeData.zoneBox ~= nil then
 			self.combinedAutomoverArea:AddBox(nodeData.zoneBox);
+			SceneMan.Scene:GetArea("NoGravityArea"):AddBox(nodeData.zoneBox);
 		else
 			print("Automover Error: Automover at position " .. tostring(node.Pos) .. " had no ZoneBox.");
 		end
@@ -542,6 +558,7 @@ automoverUtilityFunctions.addAllBoxes = function(self)
 				for wrappedConnectingBox in SceneMan:WrapBox(Box(connectedNode.Pos + connectingBoxTopLeftCornerOffset, node.Pos + connectingBoxBottomRightCornerOffset)) do
 					nodeData.connectingAreas[direction]:AddBox(wrappedConnectingBox);
 					self.combinedAutomoverArea:AddBox(wrappedConnectingBox);
+					SceneMan.Scene:GetArea("NoGravityArea"):AddBox(wrappedConnectingBox);
 				end
 			end
 		end
@@ -633,59 +650,94 @@ automoverUtilityFunctions.addAllPaths = function(self)
 	return true;
 end
 
-automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosestNodeFor, nodeToCheckForPathsFrom, checkForLineOfSight, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas, checkForShortestPathfinderPath, pathfinderTeam)
+automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosestNodeFor, nodeToCheckForPathsFrom, checkForLineOfSight, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas)
+	tracy.ZoneBegin();
 	local teamNodeTable = AutomoverData[self.Team].nodeData;
-	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
-	
-	if pathfinderTeam == nil then
-		pathfinderTeam = self.Team;
+
+	local nodesToCheck = teamNodeTable;
+	if nodeToCheckForPathsFrom ~= nil then
+		nodesToCheck = self.pathTable[nodeToCheckForPathsFrom];
 	end
 
 	local closestNode;
-	local distanceToClosestNode;
-	local lengthOfScenePathToClosestNode;
-	for node, nodeData in pairs(teamNodeTable) do
-		if nodeToCheckForPathsFrom == nil or (self.pathTable[nodeToCheckForPathsFrom] ~= nil and self.pathTable[nodeToCheckForPathsFrom][node] ~= nil) then
-			local distanceToNode = SceneMan:ShortestDistance(node.Pos, positionToFindClosestNodeFor, self.checkWrapping);
-			if distanceToClosestNode == nil or distanceToNode:MagnitudeIsLessThan(distanceToClosestNode) then
-				local nodeSatisfiesConditions = true;
-				if checkForLineOfSight then
-					nodeSatisfiesConditions = not SceneMan:CastStrengthRay(node.Pos, distanceToNode, 15, Vector(), 4, 0, true);
-				end
-				if nodeSatisfiesConditions and checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas then
-					nodeSatisfiesConditions = nodeData.zoneBox:IsWithinBox(positionToFindClosestNodeFor);
-					if not nodeSatisfiesConditions then
-						local connectingAreaDirectionToCheck = Directions.None;
-						if distanceToNode.Y + (nodeData.size.Y * 0.5) < 0 then
-							connectingAreaDirectionToCheck = Directions.Up;
-						elseif distanceToNode.Y - (nodeData.size.Y * 0.5) > 0 then
-							connectingAreaDirectionToCheck = Directions.Down;
-						elseif distanceToNode.X + (nodeData.size.X * 0.5) < 0 then
-							connectingAreaDirectionToCheck = Directions.Left;
-						elseif distanceToNode.X - (nodeData.size.X * 0.5) > 0 then
-							connectingAreaDirectionToCheck = Directions.Right;
-						end
-						if connectingAreaDirectionToCheck ~= Directions.None and nodeData.connectingAreas[connectingAreaDirectionToCheck] ~= nil then
-							nodeSatisfiesConditions = nodeData.connectingAreas[connectingAreaDirectionToCheck]:IsInside(positionToFindClosestNodeFor);
-						end
+	local distanceToClosestNodeSqr;
+	for node, _ in pairs(nodesToCheck) do
+		local nodeData = teamNodeTable[node];
+		local distanceToNode = SceneMan:ShortestDistance(node.Pos, positionToFindClosestNodeFor, self.checkWrapping);
+		if distanceToClosestNodeSqr == nil or distanceToNode.SqrMagnitude < distanceToClosestNodeSqr then
+			local nodeSatisfiesConditions = true;
+			if checkForLineOfSight then
+				nodeSatisfiesConditions = not SceneMan:CastStrengthRay(node.Pos, distanceToNode, 15, Vector(), 4, 0, true);
+			end
+			if nodeSatisfiesConditions and checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas then
+				nodeSatisfiesConditions = nodeData.zoneBox:IsWithinBox(positionToFindClosestNodeFor);
+				if not nodeSatisfiesConditions then
+					local connectingAreaDirectionToCheck = Directions.None;
+					if distanceToNode.Y + (nodeData.size.Y * 0.5) < 0 then
+						connectingAreaDirectionToCheck = Directions.Up;
+					elseif distanceToNode.Y - (nodeData.size.Y * 0.5) > 0 then
+						connectingAreaDirectionToCheck = Directions.Down;
+					elseif distanceToNode.X + (nodeData.size.X * 0.5) < 0 then
+						connectingAreaDirectionToCheck = Directions.Left;
+					elseif distanceToNode.X - (nodeData.size.X * 0.5) > 0 then
+						connectingAreaDirectionToCheck = Directions.Right;
+					end
+					if connectingAreaDirectionToCheck ~= Directions.None and nodeData.connectingAreas[connectingAreaDirectionToCheck] ~= nil then
+						nodeSatisfiesConditions = nodeData.connectingAreas[connectingAreaDirectionToCheck]:IsInside(positionToFindClosestNodeFor);
 					end
 				end
-				if nodeSatisfiesConditions and checkForShortestPathfinderPath and self.allowExpensiveFindClosestNode then
-					nodeSatisfiesConditions = false;
-					local lengthOfScenePathToNode = SceneMan.Scene:CalculatePath(positionToFindClosestNodeFor, node.Pos, false, GetPathFindingDefaultDigStrength(), pathfinderTeam);
-					if lengthOfScenePathToClosestNode == nil or lengthOfScenePathToNode < lengthOfScenePathToClosestNode then
-						nodeSatisfiesConditions = true;
-						lengthOfScenePathToClosestNode = lengthOfScenePathToNode;
-					end
-				end
-				if nodeSatisfiesConditions then
-					closestNode = node;
-					distanceToClosestNode = distanceToNode.Magnitude;
-				end
+			end
+			if nodeSatisfiesConditions then
+				closestNode = node;
+				distanceToClosestNodeSqr = distanceToNode.SqrMagnitude;
 			end
 		end
 	end
+	tracy.ZoneEnd();
 	return closestNode;
+end
+
+automoverUtilityFunctions.findNodeWithShortestScenePath = function(self, positionToFindClosestNodeFor, nodeToCheckForPathsFrom, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas, pathfinderTeam, pathfinderDigStrength)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
+	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
+
+	local potentialClosestNodes = {}
+	for node, nodeData in pairs(teamNodeTable) do
+		local nodeSatisfiesConditions = nodeToCheckForPathsFrom == nil or (self.pathTable[nodeToCheckForPathsFrom] ~= nil and self.pathTable[nodeToCheckForPathsFrom][node] ~= nil);
+
+		if nodeSatisfiesConditions and checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas then
+			nodeSatisfiesConditions = nodeData.zoneBox:IsWithinBox(positionToFindClosestNodeFor);
+			if not nodeSatisfiesConditions then
+				local connectingAreaDirectionToCheck = Directions.None;
+				local distanceToNode = SceneMan:ShortestDistance(node.Pos, positionToFindClosestNodeFor, self.checkWrapping);
+				if distanceToNode.Y + (nodeData.size.Y * 0.5) < 0 then
+					connectingAreaDirectionToCheck = Directions.Up;
+				elseif distanceToNode.Y - (nodeData.size.Y * 0.5) > 0 then
+					connectingAreaDirectionToCheck = Directions.Down;
+				elseif distanceToNode.X + (nodeData.size.X * 0.5) < 0 then
+					connectingAreaDirectionToCheck = Directions.Left;
+				elseif distanceToNode.X - (nodeData.size.X * 0.5) > 0 then
+					connectingAreaDirectionToCheck = Directions.Right;
+				end
+				if connectingAreaDirectionToCheck ~= Directions.None and nodeData.connectingAreas[connectingAreaDirectionToCheck] ~= nil then
+					nodeSatisfiesConditions = nodeData.connectingAreas[connectingAreaDirectionToCheck]:IsInside(positionToFindClosestNodeFor);
+				end
+			end
+		end
+		if nodeSatisfiesConditions then
+			potentialClosestNodes[node] = node.Pos;
+		end
+	end
+
+	local shortestPathCoroutine = coroutine.create(FindStartPositionWithShortestPathToEndPosition);
+	while coroutine.status(shortestPathCoroutine) ~= "dead" do
+		local _, result = coroutine.resume(shortestPathCoroutine, potentialClosestNodes, positionToFindClosestNodeFor, pathfinderTeam, false, pathfinderDigStrength);
+		if result then
+			return result;
+		else
+			coroutine.yield();
+		end
+	end
 end
 
 automoverUtilityFunctions.changeScaleOfMOSRotatingAndAttachables = function(self, mosRotatingToChangeScaleOf, scale)
@@ -696,7 +748,9 @@ automoverUtilityFunctions.changeScaleOfMOSRotatingAndAttachables = function(self
 end
 
 automoverVisualEffectsFunctions.updateVisualEffects = function(self)
+	tracy.ZoneBegin();
 	if self.visualEffectsSelectedType == "" then
+		tracy.ZoneEnd();
 		return;
 	end
 
@@ -713,6 +767,7 @@ automoverVisualEffectsFunctions.updateVisualEffects = function(self)
 	end
 
 	self:drawVisualEffects();
+	tracy.ZoneEnd();
 end
 
 automoverVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = function(self, node, nodeData, direction)
@@ -804,6 +859,7 @@ automoverVisualEffectsFunctions.drawVisualEffects = function(self)
 end
 
 automoverActorFunctions.checkForNewActors = function(self)
+	tracy.ZoneBegin();
 	for box in self.combinedAutomoverArea.Boxes do
 		for movableObject in MovableMan:GetMOsInBox(box, -1, true) do
 			if IsActor(movableObject) and self.affectedActors[movableObject.UniqueID] == nil and movableObject.PinStrength == 0 then
@@ -819,6 +875,7 @@ automoverActorFunctions.checkForNewActors = function(self)
 			end
 		end
 	end
+	tracy.ZoneEnd();
 end
 
 automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
@@ -827,11 +884,13 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 		movementMode = self.movementModes.freeze,
 		direction = Directions.None,
 		unstickTimer = Timer(2000),
+		currentClosestNode = self:findClosestNode(actor.Pos, nil, false, false),
 		waypointData = nil,
 	};
+
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
-	actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice:Clone(), self);
+	actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice, self);
 	if IsAHuman(actor) then
 		ToAHuman(actor).LimbPushForcesAndCollisionsDisabled = true;
 	end
@@ -907,7 +966,6 @@ automoverActorFunctions.convertWaypointDataToActorWaypoints = function(self, act
 				actor:AddAISceneWaypoint(sceneTarget);
 			end
 		end
-		actor:UpdateMovePath();
 
 		actorData.waypointData = nil;
 	end
@@ -925,7 +983,7 @@ automoverActorFunctions.setupManualTeleporterData = function(self, actorData)
 	manualTeleporterData.actorTeleportationStage = 0;
 	manualTeleporterData.teleporterVisualsTimer = Timer(1000);
 
-	local startingTeleporter = self:findClosestNode(actor.Pos, nil, false, false, false, nil);
+	local startingTeleporter = self:findClosestNode(actor.Pos, nil, false, false);
 	manualTeleporterData.sortedTeleporters = {{ node = startingTeleporter, distance = 0 }};
 
 	for teleporterNode, _ in pairs(teamTeleporterTable) do
@@ -981,7 +1039,7 @@ automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self
 		end
 
 		local player = actorController.Player;
-		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, false, player);
+		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, player);
 		FrameMan:ClearScreenText(player);
 		FrameMan:SetScreenText("CHOOSING TELEPORTER: Move Left or Right to change teleporter. Press Fire to teleport. Open the Pie Menu to cancel.", player, 0, 100, false);
 	else
@@ -1004,31 +1062,69 @@ automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self
 end
 
 automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self, actorData)
+	tracy.ZoneBegin();
 	local actor = actorData.actor;
 	local actorController = actor:GetController();
 
 	actorData.direction = Directions.None;
 
-	if not actorController:IsState(Controller.PIE_MENU_ACTIVE) then
-		if actorController:IsState(Controller.PRESS_UP) or actorController:IsState(Controller.HOLD_UP) then
-			actorData.direction = Directions.Up;
-		elseif actorController:IsState(Controller.PRESS_DOWN) or actorController:IsState(Controller.HOLD_DOWN) then
-			actorData.direction = Directions.Down;
-		elseif actorController:IsState(Controller.PRESS_LEFT) or actorController:IsState(Controller.HOLD_LEFT) then
-			actorData.direction = Directions.Left;
-		elseif actorController:IsState(Controller.PRESS_RIGHT) or actorController:IsState(Controller.HOLD_RIGHT) then
-			actorData.direction = Directions.Right;
+	local analogMove = actorController.AnalogMove;
+
+	if not actor:IsPlayerControlled() and actor.MovePathSize > 0 then
+		-- Just get the direction to the next waypoint
+		local wptPos;
+
+		-- ugh
+		for pos in actor.MovePath do
+			wptPos = pos;
+			break;
+		end
+
+		analogMove = wptPos - actor.Pos;
+
+		-- the ai only removes points if it's not flying and moving, so let's remove the point if needed
+		if analogMove:MagnitudeIsLessThan(3) then
+			actor:RemoveMovePathBeginning();
+		end
+
+		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.05) then
+			-- choose a random direction to get unstuck
+			-- TODO, it'd be better if the AI logic can communicate this to us instead!
+			analogMove:RadRotate(RangeRand(-math.pi,math.pi));
 		end
 	end
+
+	local deadZone = 0.1;
+	if analogMove:MagnitudeIsGreaterThan(deadZone) then
+		if math.abs(analogMove.X) < math.abs(analogMove.Y) then
+			actorData.direction = analogMove.Y > 0 and Directions.Down or Directions.Up;
+		else
+			actorData.direction = analogMove.X > 0 and Directions.Right or Directions.Left;
+		end
+	else
+		if not actorController:IsState(Controller.PIE_MENU_ACTIVE) then
+			if actorController:IsState(Controller.PRESS_UP) or actorController:IsState(Controller.HOLD_UP) then
+				actorData.direction = Directions.Up;
+			elseif actorController:IsState(Controller.PRESS_DOWN) or actorController:IsState(Controller.HOLD_DOWN) then
+				actorData.direction = Directions.Down;
+			elseif actorController:IsState(Controller.PRESS_LEFT) or actorController:IsState(Controller.HOLD_LEFT) then
+				actorData.direction = Directions.Left;
+			elseif actorController:IsState(Controller.PRESS_RIGHT) or actorController:IsState(Controller.HOLD_RIGHT) then
+				actorData.direction = Directions.Right;
+			end
+		end
+	end
+
 	if actorData.movementMode ~= self.movementModes.unstickActor then
 		if actorData.direction == Directions.None and actorData.movementMode ~= self.movementModes.leaveAutomovers then
 			actorData.movementMode = self.movementModes.freeze;
 		elseif actorData.direction ~= Directions.None then
-			actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice:Clone(), self);
+			actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice, self);
 			actorData.movementMode = self.movementModes.move;
 			self:convertWaypointDataToActorWaypoints(actorData);
 		end
 	end
+	tracy.ZoneEnd();
 end
 
 automoverActorFunctions.updateDirectionsFromWaypoints = function(self, actorData)
@@ -1042,10 +1138,13 @@ automoverActorFunctions.updateDirectionsFromWaypoints = function(self, actorData
 
 	local waypointData = actorData.waypointData;
 	if waypointData ~= nil then
-		if waypointData.previousNode == nil or waypointData.nextNode == nil or waypointData.endNode == nil then
+		if (waypointData.previousNode == nil or waypointData.nextNode == nil or waypointData.endNode == nil) and waypointData.setupActorWaypointDataCoroutine == nil then
 			actorData.movementMode = self.movementModes.freeze;
-			self:setupActorWaypointData(actorData);
+			waypointData.setupActorWaypointDataCoroutine = coroutine.create(self.setupActorWaypointData);
+		elseif waypointData.setupActorWaypointDataCoroutine ~= nil and coroutine.status(waypointData.setupActorWaypointDataCoroutine) ~= "dead" then
+			coroutine.resume(waypointData.setupActorWaypointDataCoroutine, self, actorData);
 		else
+			waypointData.setupActorWaypointDataCoroutine = nil;
 			if actorData.movementMode == self.movementModes.freeze then
 				actorData.movementMode = self.movementModes.move;
 			end
@@ -1069,7 +1168,7 @@ automoverActorFunctions.setupActorWaypointData = function(self, actorData)
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
 
-	waypointData.previousNode = self:findClosestNode(actor.Pos, nil, true, true, false, nil);
+	waypointData.previousNode = self:findClosestNode(actor.Pos, nil, true, true);
 	if not waypointData.previousNode then
 		self:setActorMovementModeToLeaveAutomovers(actorData);
 		return;
@@ -1081,43 +1180,62 @@ automoverActorFunctions.setupActorWaypointData = function(self, actorData)
 	waypointData.actorReachedTargetInsideAutomoverArea = false;
 	waypointData.actorReachedEndNodeForTargetOutsideAutomoverArea = false;
 	waypointData.teleporterVisualsTimer = Timer(1000);
-	waypointData.delayTimer = Timer(30);
 
-	waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, waypointData.targetIsInsideAutomoverArea, true, actor.Team);
-	if not waypointData.endNode then
-		waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, false, true, actor.Team);
-		if not waypointData.endNode then
-			waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, false, false, nil);
+	local nodeWithShortestPathCoroutine = coroutine.create(self.findNodeWithShortestScenePath);
+	while coroutine.status(nodeWithShortestPathCoroutine) ~= "dead" do
+		local _, result = coroutine.resume(nodeWithShortestPathCoroutine, self, waypointData.targetPosition, waypointData.previousNode, waypointData.targetIsInsideAutomoverArea, actor.Team, actor.DigStrength);
+		if result then
+			waypointData.endNode = result.key;
+		else
+			coroutine.yield();
 		end
-
+	end
+	if waypointData.endNode == nil then
+		nodeWithShortestPathCoroutine = coroutine.create(self.findNodeWithShortestScenePath);
+		while coroutine.status(nodeWithShortestPathCoroutine) ~= "dead" do
+			local _, result = coroutine.resume(nodeWithShortestPathCoroutine, self, waypointData.targetPosition, waypointData.previousNode, false, actor.Team, actor.DigStrength);
+			if result then
+				waypointData.endNode = result.key;
+			else
+				coroutine.yield();
+			end
+		end
+		if waypointData.endNode == nil then
+			waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, false);
+		end
 		if waypointData.targetIsInsideAutomoverArea then
-			local closestPotentiallyNonConnectedNode = self:findClosestNode(waypointData.targetPosition, nil, false, true, true, actor.Team);
-			local nonConnectedNodeThatEncompassesTargetExists = closestPotentiallyNonConnectedNode ~= nil and self.pathTable[waypointData.previousNode][closestPotentiallyNonConnectedNode] == nil;
-			if nonConnectedNodeThatEncompassesTargetExists then
-				waypointData.targetIsInsideAutomoverArea = false;
+			nodeWithShortestPathCoroutine = coroutine.create(self.findNodeWithShortestScenePath);
+			local _, result = coroutine.resume(nodeWithShortestPathCoroutine, self, waypointData.targetPosition, nil, true, actor.Team, actor.DigStrength);
+			if result then
+				local closestPotentiallyNonConnectedNode = result.key;
+				local nonConnectedNodeThatEncompassesTargetExists = closestPotentiallyNonConnectedNode ~= nil and self.pathTable[waypointData.previousNode][closestPotentiallyNonConnectedNode] == nil;
+				if nonConnectedNodeThatEncompassesTargetExists then
+					waypointData.targetIsInsideAutomoverArea = false;
+				end
+			else
+				coroutine.yield();
 			end
 		end
 	end
 
 	if waypointData.previousNode.UniqueID == waypointData.endNode.UniqueID then
 		self:accountForSameStartingAndEndingNodeWhenSettingUpActorWaypointData(actorData);
-		return;
-	end
-
-	actorData.direction = self.pathTable[waypointData.previousNode][waypointData.endNode].direction;
-	if actorData.direction == Directions.Any then
-		waypointData.nextNode = waypointData.previousNode;
-		if not self:makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActorWaypointData(actorData) then
-			actorData.movementMode = self.movementModes.teleporting;
-		end
 	else
-		waypointData.nextNode = teamNodeTable[waypointData.previousNode].connectedNodeData[actorData.direction].node;
-		self:makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActorWaypointData(actorData);
-	end
+		actorData.direction = self.pathTable[waypointData.previousNode][waypointData.endNode].direction;
+		if actorData.direction == Directions.Any then
+			waypointData.nextNode = waypointData.previousNode;
+			if not self:makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActorWaypointData(actorData) then
+				actorData.movementMode = self.movementModes.teleporting;
+			end
+		else
+			waypointData.nextNode = teamNodeTable[waypointData.previousNode].connectedNodeData[actorData.direction].node;
+			self:makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActorWaypointData(actorData);
+		end
 
-	if waypointData.nextNode.UniqueID == waypointData.endNode.UniqueID and waypointData.targetIsInsideAutomoverArea then
-		local areaToCheckForTargetPos = teamNodeTable[waypointData.previousNode].connectingAreas[actorData.direction];
-		waypointData.targetIsBetweenPreviousAndNextNode = areaToCheckForTargetPos ~= nil and areaToCheckForTargetPos:IsInside(waypointData.targetPosition);
+		if waypointData.nextNode.UniqueID == waypointData.endNode.UniqueID and waypointData.targetIsInsideAutomoverArea then
+			local areaToCheckForTargetPos = teamNodeTable[waypointData.previousNode].connectingAreas[actorData.direction];
+			waypointData.targetIsBetweenPreviousAndNextNode = areaToCheckForTargetPos ~= nil and areaToCheckForTargetPos:IsInside(waypointData.targetPosition);
+		end
 	end
 end
 
@@ -1293,12 +1411,16 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 			actorData.movementMode = self.movementModes.freeze;
 			if waypointData.movableObjectTarget ~= nil then
 				if SceneMan:ShortestDistance(actor.Pos, waypointData.movableObjectTarget.Pos, self.checkWrapping):MagnitudeIsGreaterThan(self.movableObjectWaypointThresholdForTreatingTargetAsReached * 2) then
-					self:setupActorWaypointData(actorData);
+					waypointData.previousNode = nil;
+					waypointData.nextNode = nil;
+					waypointData.endNode = nil;
 				end
 			else
 				if #waypointData.sceneTargets > 1 then
 					table.remove(waypointData.sceneTargets, 1);
-					self:setupActorWaypointData(actorData);
+					waypointData.previousNode = nil;
+					waypointData.nextNode = nil;
+					waypointData.endNode = nil;
 				else
 					actorData.waypointData = nil;
 				end
@@ -1307,36 +1429,34 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 	else
 		if teamNodeTable[waypointData.endNode].zoneBox:IsWithinBox(actor.Pos) and waypointData.exitPath == nil then
 			waypointData.exitPath = {};
-			local distanceFromActorToTargetPosition = SceneMan:ShortestDistance(waypointData.targetPosition, actor.Pos, self.checkWrapping);
-			if distanceFromActorToTargetPosition:MagnitudeIsLessThan(20) or not SceneMan:CastStrengthRay(actor.Pos, distanceFromActorToTargetPosition, 5, Vector(), 4, rte.grassID, true) then
-				waypointData.exitPath[#waypointData.exitPath + 1] = waypointData.targetPosition;
-			else
-				SceneMan.Scene:CalculatePath(actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team);
-				for scenePathEntryPosition in SceneMan.Scene.ScenePath do
-					waypointData.exitPath[#waypointData.exitPath + 1] = scenePathEntryPosition;
-				end
-			end
-			waypointData.delayTimer:Reset();
-		elseif waypointData.exitPath ~= nil and #waypointData.exitPath > 0 and waypointData.delayTimer:IsPastSimTimeLimit() then
+			SceneMan.Scene:CalculatePathAsync(
+				function(pathRequest)
+					if pathRequest.Status ~= PathRequest.Solved then
+						waypointData.exitPath[#waypointData.exitPath + 1] = waypointData.targetPosition;
+					else
+						for scenePathEntryPosition in pathRequest.Path do
+							waypointData.exitPath[#waypointData.exitPath + 1] = scenePathEntryPosition;
+						end
+					end
+				end,
+				actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team
+			);
+		elseif waypointData.exitPath ~= nil and #waypointData.exitPath > 0 then
 			local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
-			if distanceFromActorToFirstExitPathPosition:MagnitudeIsLessThan(20) then
+			if #waypointData.exitPath > 1 and distanceFromActorToFirstExitPathPosition:MagnitudeIsLessThan(20) then
 				table.remove(waypointData.exitPath, 1);
-				if #waypointData.exitPath > 0 then
-					local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
-				end
+				distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
 			end
 			actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToFirstExitPathPosition, 0);
-			
+
 			local endNodeData = teamNodeTable[waypointData.endNode];
 			if #waypointData.exitPath > 0 and not endNodeData.zoneBox:IsWithinBox(waypointData.exitPath[1]) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(waypointData.exitPath[1])) then
-				local velocityToAddToActor = distanceFromActorToFirstExitPathPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10;
+				local velocityToAddToActor = distanceFromActorToFirstExitPathPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 5;
 				if math.abs(velocityToAddToActor.X) < 1 and velocityToAddToActor.Y < 0 and SceneMan.GlobalAcc.Y > 0 then
 					velocityToAddToActor.Y = velocityToAddToActor.Y * 2;
 				end
 				actor.Vel = actor.Vel + velocityToAddToActor;
-				
 			end
-			waypointData.delayTimer:Reset();
 		end
 	end
 end
@@ -1361,26 +1481,32 @@ automoverActorFunctions.slowDownFastActorToMovementSpeed = function(self, actorD
 end
 
 automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection = function(self, actorData, forceCentring)
+	tracy.ZoneBegin();
 	local teamNodeTable = AutomoverData[self.Team].nodeData;
 
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
-	local closestNode = self:findClosestNode(actor.Pos, nil, true, true, false, nil);
+	local oldClosestNode = actorData.currentClosestNode;
+	local closestNode = self:findClosestNode(actor.Pos, actorData.currentClosestNode, true, true) or actorData.currentClosestNode;
+	actorData.currentClosestNode = closestNode;
 	if not closestNode then
 		actor:FlashWhite(100);
 		actor:MoveOutOfTerrain(0);
 		self:setActorMovementModeToLeaveAutomovers(actorData);
+		tracy.ZoneEnd();
 		return false;
 	end
 
 	local isStuck = actorData.movementMode == self.movementModes.unstickActor;
 	forceCentring = forceCentring or isStuck;
 	local directionToUseForCentering;
+	local directionConnectingArea;
 	if not forceCentring and not teamNodeTable[closestNode].zoneBox:IsWithinBox(actor.Pos) then
 		for direction, connectingArea in pairs(teamNodeTable[closestNode].connectingAreas) do
 			if connectingArea:IsInside(actor.Pos) then
 				directionToUseForCentering = direction;
+				directionConnectingArea = connectingArea;
 				break;
 			end
 		end
@@ -1402,6 +1528,29 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 		local centeringSpeedAndDistance = self.movementAcceleration * 5;
 
 		for _, centeringAxis in pairs(centeringAxes) do
+			if actor.MovePathSize > 0 then
+				-- Collect all points ahead of us in the box to adjust to centre
+				local positionsToFixUp = {};
+				for pos in actor.MovePath do
+					if pos[centeringAxis] == closestNode.Pos[centeringAxis] or directionConnectingArea == nil or not directionConnectingArea:IsInside(pos) then
+						break;
+					end
+					local adjustedPos = pos;
+					adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
+					table.insert(positionsToFixUp, adjustedPos);
+				end
+
+				-- Clear these points from our move path
+				for i = 1, #positionsToFixUp do
+					actor:RemoveMovePathBeginning();
+				end
+
+				-- And add the adjusted point back in (in reverse order, as they're at the beginning of our movepath)
+				for i = #positionsToFixUp, 1, -1 do
+					actor:AddToMovePathBeginning(positionsToFixUp[i]);
+				end
+			end
+
 			if distanceToClosestNode[centeringAxis] > centeringSpeedAndDistance then
 				actor.Vel[centeringAxis] = -centeringSpeedAndDistance + gravityAdjustment[centeringAxis];
 			elseif distanceToClosestNode[centeringAxis] < -centeringSpeedAndDistance then
@@ -1415,12 +1564,15 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 				actor.Pos[centeringAxis] = closestNode.Pos[centeringAxis] + actorSizeCenteringAdjustment[centeringAxis];
 			end
 		end
+		tracy.ZoneEnd();
 		return true;
 	end
+	tracy.ZoneEnd();
 	return false;
 end
 
 automoverActorFunctions.updateFrozenActor = function(self, actorData)
+	tracy.ZoneBegin();
 	local actor = actorData.actor;
 
 	local gravityAdjustment = SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * -1;
@@ -1436,12 +1588,14 @@ automoverActorFunctions.updateFrozenActor = function(self, actorData)
 			end
 		end
 	end
+	tracy.ZoneEnd();
 end
 
 automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteringWasDone)
+	tracy.ZoneBegin();
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
-	
+
 	local actorController = actor:GetController();
 	if not actorController:IsMouseControlled() and not actorController:IsGamepadControlled() then
 		if actorDirection == Directions.Left and actor.HFlipped == false then
@@ -1465,7 +1619,7 @@ automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteri
 				local slowdownAxis = (direction == Directions.Up or direction == Directions.Down) and "X" or "Y";
 				actor.Vel[slowdownAxis] = actor.Vel[slowdownAxis] * 0.75;
 			end
-		
+
 			actor.Vel = (actor.Vel + movementTable.acceleration):CapMagnitude(self.movementSpeed);
 			actor.Vel = actor.Vel + gravityAdjustment;
 
@@ -1488,6 +1642,7 @@ automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteri
 			end
 		end
 	end
+	tracy.ZoneEnd();
 end
 
 automoverUIFunctions.updateInfoUI = function(self)

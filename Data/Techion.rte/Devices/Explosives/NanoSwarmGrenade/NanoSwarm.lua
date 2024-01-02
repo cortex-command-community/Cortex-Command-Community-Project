@@ -87,9 +87,6 @@ function Create(self)
 	--Timer for wasp death.
 	self.dieTimer = Timer();
 
-	--Garbage collection timer.
-	self.garbTimer = Timer();
-
 	--Fill the list.
 	for i = 1, self.waspNum do
 		local wasp = CreateMOPixel("Techion.rte/Nanowasp " .. math.random(3));
@@ -260,11 +257,6 @@ function Update(self)
 		self.waspNum = self.waspNum - 1;
 		table.remove(self.roster, #self.roster);
 		self.dieTimer:Reset();
-	end
-
-	if self.garbTimer:IsPastSimMS(10000) then
-		collectgarbage("collect");
-		self.garbTimer:Reset();
 	end
 
 	if self.waspNum > 0 then

@@ -3,7 +3,7 @@ require("AI/NativeHumanAI");
 function Create(self)
 	self.AI = NativeHumanAI:Create(self);
 end
-function UpdateAI(self)
+function ThreadedUpdateAI(self)
 	self.AI:Update(self);
 end
 function Destroy(self)

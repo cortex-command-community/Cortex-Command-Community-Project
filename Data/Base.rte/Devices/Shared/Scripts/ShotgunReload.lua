@@ -8,7 +8,7 @@ function Create(self)
 	self.ammoCounter = self.RoundInMagCount;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.FiredFrame then
 		self.ammoCounter = self.ammoCounter - 1;
 	end

@@ -6,3 +6,14 @@ function OnAttach(self, newParent)
 		ToActor(rootParent).PieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
 	end
 end
+
+function OnFire(self)
+
+	self.mechSound:Play(self.Pos);
+
+end
+
+function Create(self)
+	self.mechSound = CreateSoundContainer("Mech Browncoat GL-1", "Browncoats.rte");
+	
+end

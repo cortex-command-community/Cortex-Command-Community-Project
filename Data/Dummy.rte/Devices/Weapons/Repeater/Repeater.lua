@@ -3,7 +3,7 @@ function Create(self)
 	self.muzzleSelect = 0;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.FiredFrame then
 		self.muzzleSelect = math.abs(self.muzzleSelect - 1);
 		self.MuzzleOffset = self.muzzleTable[self.muzzleSelect + 1];

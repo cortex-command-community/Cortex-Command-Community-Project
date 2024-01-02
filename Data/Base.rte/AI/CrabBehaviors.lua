@@ -100,8 +100,12 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 
 		Owner:AddAISceneWaypoint(Vector(Owner.Pos.X, 0));
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		-- face the direction of the first waypoint
 		for WptPos in Owner.MovePath do
@@ -354,7 +358,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 					Waypoint = table.remove(WptList, 1);
 					if WptList[1] then
 						Owner:RemoveMovePathBeginning();
-					elseif not Owner.MOMoveTarget and SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).X < 10 then	-- the last waypoint
+					elseif not Owner.MOMoveTarget and SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):MagnitudeIsLessThan(Owner.MoveProximityLimit) then	-- the last waypoint
 						Owner:ClearMovePath();
 						WptList = nil;
 						Waypoint = nil;
@@ -367,18 +371,26 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 						AI.lateralMoveState = Actor.LAT_LEFT;
 					elseif CurrDist.X > 3 then
 						AI.lateralMoveState = Actor.LAT_RIGHT;
-					else
+					end
+
+					if CurrDist:MagnitudeIsLessThan(Owner.MoveProximityLimit) then
 						Waypoint = nil;
 					end
 				end
 			end
-		else	-- no waypoint list, create one in several small steps to reduce lag
+		else	-- no waypoint list, create one
 			local TmpList = {};
 			table.insert(TmpList, {Pos=Owner.Pos});
+
 			Owner:UpdateMovePath();
+
+			-- wait until movepath is updated
+			while Owner.IsWaitingOnNewMovePath do
+				local _ai, _ownr, _abrt = coroutine.yield();
+				if _abrt then return true end
+			end
+
 			Owner:DrawWaypoints(true);
-			local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-			if _abrt then return true end
 
 			for WptPos in Owner.MovePath do	-- skip any waypoint too close to the previous one
 				if SceneMan:ShortestDistance(TmpList[#TmpList].Pos, WptPos, false):MagnitudeIsGreaterThan(10) then
@@ -398,9 +410,6 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 					break;
 				end
 			end
-
-			local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-			if _abrt then return true end
 
 			WptList = TmpList;
 

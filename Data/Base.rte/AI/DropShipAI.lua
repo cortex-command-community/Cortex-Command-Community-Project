@@ -1,9 +1,9 @@
-require("AI/NativeDropShipAI"); --dofile("Base.rte/Actors/AI/NativeDropShipAI.lua");
+require("AI/NativeDropShipAI");
 
 function Create(self)
 	self.AI = NativeDropShipAI:Create(self);
 end
 
-function UpdateAI(self)
+function ThreadedUpdateAI(self)
 	self.AI:Update(self);
 end

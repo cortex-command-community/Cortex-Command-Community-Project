@@ -9,18 +9,25 @@ function Create(self)
 	self.cooldown = Timer();
 	self.cooldownSpeed = 0.5;
 
+	self.addedParticles = {};
+
+	self.addedWound = nil;
+	self.addedWoundOffset = nil;
+	self.addedWoundToMOID = nil;
+
 	function self.emitSmoke(particleCount)
 		for i = 1, particleCount do
 			local smoke = CreateMOSParticle("Tiny Smoke Ball 1" .. (math.random() < 0.5 and " Glow Blue" or ""), "Base.rte");
 			smoke.Pos = self.MuzzlePos;
 			smoke.Lifetime = smoke.Lifetime * RangeRand(0.5, 1.0);
 			smoke.Vel = self.Vel * 0.5 + Vector(RangeRand(0, i), 0):RadRotate(RangeRand(-math.pi, math.pi));
-			MovableMan:AddParticle(smoke);
+			table.insert(self.addedParticles, smoke);
 		end
+		self:RequestSyncedUpdate();
 	end
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.FiredFrame then
 		local actor = self:GetRootParent();
 		local range = self.range + math.random(8);
@@ -47,9 +54,9 @@ function Update(self)
 			gapPos = gapPos - Vector(trace.X, trace.Y):SetMagnitude(skipPx);
 			local strengthFactor = math.max(1 - rayLength/self.range, math.random()) * (self.shotCounter + 1)/self.strengthVariation;
 
-			local moID = SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y);
-			if moID ~= rte.NoMOID and moID ~= self.ID then
-				local mo = ToMOSRotating(MovableMan:GetMOFromID(moID));
+			self.addedWoundToMOID = SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y);
+			if self.addedWoundToMOID ~= rte.NoMOID and self.addedWoundToMOID ~= self.ID then
+				local mo = ToMOSRotating(MovableMan:GetMOFromID(self.addedWoundToMOID));
 				if self.penetrationStrength * strengthFactor >= mo.Material.StructuralIntegrity then
 					local moAngle = -mo.RotAngle * mo.FlipFactor;
 
@@ -60,21 +67,25 @@ function Update(self)
 						local dist = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX);
 						local woundOffset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(moAngle):SetMagnitude(dist.Magnitude - (wound.Radius - 1) * wound.Scale);
 						wound.InheritedRotAngleOffset = woundOffset.AbsRadAngle;
-						mo:AddWound(wound, woundOffset:RadRotate(-mo.RotAngle), true);
+						woundOffset = woundOffset:RadRotate(-mo.RotAngle);
+						self.addedWound = wound;
+						self.addedWoundOffset = woundOffset;
+						self:RequestSyncedUpdate();
 					end
 				end
 			end
+
 			local smoke = CreateMOSParticle("Tiny Smoke Ball 1" .. (math.random() < 0.5 and " Glow Blue" or ""), "Base.rte");
 			smoke.Pos = gapPos;
 			smoke.Vel = Vector(-trace.X, -trace.Y):SetMagnitude(math.random(3, 6)):RadRotate(RangeRand(-1.5, 1.5));
 			smoke.Lifetime = smoke.Lifetime * strengthFactor;
-			MovableMan:AddParticle(smoke);
+			table.insert(self.addedParticles, smoke);
 
 			local pix = CreateMOPixel("Laser Rifle Glow " .. math.floor(strengthFactor * 4 + 0.5), "Techion.rte");
 			pix.Pos = gapPos;
 			pix.Sharpness = self.penetrationStrength/6;
 			pix.Vel = Vector(trace.X, trace.Y):SetMagnitude(6);
-			MovableMan:AddParticle(pix);
+			table.insert(self.addedParticles, pix);
 		end
 		if rayLength ~= 0 then
 			trace = SceneMan:ShortestDistance(startPos, gapPos, SceneMan.SceneWrapsX);
@@ -90,12 +101,13 @@ function Update(self)
 				local pix = CreateMOPixel("Laser Rifle Glow 0", "Techion.rte");
 				pix.Pos = startPos + trace * i/particleCount;
 				pix.Vel = self.Vel;
-				MovableMan:AddParticle(pix);
+				table.insert(self.addedParticles, pix);
 			end
 		end
 		self.shotCounter = (self.shotCounter + 1) % self.strengthVariation;
 		self.cooldown:Reset();
 	end
+
 	if self.Magazine and self.Magazine.RoundCount > 0 then
 		local ammoRatio = 1 - self.Magazine.RoundCount/self.Magazine.Capacity;
 		self.emitSmoke(math.floor(ammoRatio * RangeRand(0.5, 2.0) + RangeRand(0.25, 0.50)));
@@ -112,4 +124,22 @@ function Update(self)
 	elseif self.RoundInMagCount >= 0 then
 		self:Reload();
 	end
+end
+
+function SyncedUpdate(self)
+	if self.addedWound then
+		local mo = ToMOSRotating(MovableMan:GetMOFromID(self.addedWoundToMOID));
+		if MovableMan:ValidMO(mo) then
+			mo:AddWound(self.addedWound, self.addedWoundOffset, true);
+		end
+		
+		self.addedWound = nil;
+		self.addedWoundOffset = nil;
+		self.addedWoundToMOID = nil;
+	end
+
+	for i = 1, #self.addedParticles do
+		MovableMan:AddParticle(self.addedParticles[i]);
+	end
+	self.addedParticles = {};
 end

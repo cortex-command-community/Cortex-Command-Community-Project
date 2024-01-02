@@ -1,17 +1,16 @@
 function Create(self)
-	self.fireVel = 40;
+	self.fireVel = 17;
 	self.spread = math.rad(self.ShakeRange);
-
+	
 	self.searchRange = 100 + FrameMan.PlayerScreenWidth * 0.3;
 	self.searchTimer = Timer();
 	self.searchTimer:SetSimTimeLimitMS(250);
 	self.lockThreshold = 2;
-
+	
 	self.targets = {};
-
+	
 	self.targetLockSound = CreateSoundContainer("Mine Activate", "Base.rte");
 end
-
 function Update(self)
 	local parent = self:GetRootParent();
 	if IsActor(parent) then
@@ -23,10 +22,10 @@ function Update(self)
 			end
 			if self.Magazine.RoundCount > 0 then
 				if controller:IsState(Controller.AIM_SHARP) then
-
+					
 					if self.searchTimer:IsPastSimTimeLimit() then
 						self.searchTimer:Reset();
-
+						
 						local searchPos = parent.ViewPoint;
 						local lastTargetCount = #self.targets;
 						self.targets = {};
@@ -77,7 +76,7 @@ function Update(self)
 				if target.actor and target.actor.ID ~= rte.NoMOID then
 					local screen = ActivityMan:GetActivity():ScreenOfPlayer(ToActor(parent):GetController().Player);
 					PrimitiveMan:DrawBoxPrimitive(screen, target.actor.Pos + target.topLeft, target.actor.Pos + target.bottomRight, 149);
-
+					
 					if self.RoundInMagCount == 0 then
 						target.topLeft = target.topLeft * 0.9;
 						target.bottomRight = target.bottomRight * 0.9;
@@ -94,7 +93,7 @@ function Update(self)
 	end
 	if self.FiredFrame then
 		local rocketNumber = self.RoundInMagCount + 1;
-
+	
 		local rocket = CreateAEmitter("Particle Browncoat Rocket", "Browncoats.rte");
 		if #self.targets > 0 then
 			if self.targets[rocketNumber] and self.targets[rocketNumber].actor.ID ~= rte.NoMOID then

@@ -1,3 +1,4 @@
+require("Constants")
 require("AI/PID");
 
 NativeDropShipAI = {};
@@ -15,10 +16,16 @@ function NativeDropShipAI:Create(Owner)
 	Members.PlayerInterferedTimer:SetSimTimeLimitMS(500);
 
 	Members.LastAIMode = Actor.AIMODE_NONE;
+	
+	if Owner.AIMode == nil or not Owner.AIMode == Actor.AIMODE_GOTO then
 
-	local item = Owner:Inventory();
-	if item and IsTDExplosive(item) then
-		Members.AIMode = Actor.AIMODE_BOMB;
+		local item = Owner:Inventory();
+		if item and IsTDExplosive(item) then
+			Members.AIMode = Actor.AIMODE_BOMB;
+		else
+			Owner.AIMode = Actor.AIMODE_DELIVER;
+		end
+		
 	end
 
 	-- The drop ship tries to hover this many pixels above the ground
@@ -61,12 +68,28 @@ function NativeDropShipAI:Update(Owner)
 	end
 
 	if hoverHeightModifierChanged or Owner.AIMode ~= self.LastAIMode then
+	
+		Owner:UpdateMovePath();
+		
 		self.LastAIMode = Owner.AIMode;
 
 		if Owner.AIMode == Actor.AIMODE_RETURN then
 			self.DeliveryState = ACraft.LAUNCH;
-			self.Waypoint = Vector(Owner.Pos.X, -500); -- Go to orbit
-		else -- Actor.AIMODE_STAY and Actor.AIMODE_DELIVER
+			if SceneMan.SceneOrbitDirection == 0 then -- Go to orbit, whichever way it is
+				self.Waypoint = Vector(Owner.Pos.X, -5000);
+			elseif SceneMan.SceneOrbitDirection == 1 then
+				self.Waypoint = Vector(Owner.Pos.X, SceneMan.SceneHeight + 5000);
+			elseif SceneMan.SceneOrbitDirection == 2 then
+				self.Waypoint = Vector(-5000, Owner.Pos.Y);
+			elseif SceneMan.SceneOrbitDirection == 3 then
+				self.Waypoint = Vector(SceneMan.SceneWidth + 5000, Owner.Pos.Y);
+			end
+		elseif Owner.AIMode == Actor.AIMODE_GOTO then
+			self.Waypoint = nil;
+		elseif Owner.AIMode == Actor.AIMODE_SENTRY then
+			self.Waypoint = Owner.Pos;
+			self.DeliveryState = ACraft.STANDBY;
+		else
 			local FuturePos = Owner.Pos + Owner.Vel*20;
 
 			-- Make sure FuturePos is inside the scene
@@ -99,6 +122,8 @@ function NativeDropShipAI:Update(Owner)
 			self.DeliveryState = ACraft.FALL;
 		end
 	end
+	
+	-- print(Owner.AIMode);
 
 	if self.PlayerInterferedTimer:IsPastSimTimeLimit() then
 		self.StuckTimer:Reset();
@@ -119,31 +144,82 @@ function NativeDropShipAI:Update(Owner)
 				FuturePos.X = Owner.Radius;
 			end
 		end
-
-		local Dist = SceneMan:ShortestDistance(FuturePos, self.Waypoint, false);
-		if math.abs(Dist.X) > 100 then
-			if self.DeliveryState == ACraft.LAUNCH then
-				self.Waypoint.X = FuturePos.X;
-				self.Waypoint.Y = -500;
-			else
-				local startingHeight = math.max(Owner.Radius * 1.25, Owner.Pos.Y);
-				local WptL = SceneMan:MovePointToGround(Vector(-Owner.Radius, startingHeight), self.hoverAlt, 12);
-				local WptC = SceneMan:MovePointToGround(Vector(0, startingHeight), self.hoverAlt, 12);
-				local WptR = SceneMan:MovePointToGround(Vector(Owner.Radius, startingHeight), self.hoverAlt, 12);
-				self.Waypoint = Vector(Owner.Pos.X, math.min(WptL.Y, WptC.Y, WptR.Y));
+		
+		if self.Waypoint then
+			local Dist = SceneMan:ShortestDistance(FuturePos, self.Waypoint, false);
+			if math.abs(Dist.X) > 100 then
+				if self.DeliveryState == ACraft.LAUNCH then
+					self.Waypoint.X = FuturePos.X;
+					self.Waypoint.Y = -500;
+				else
+					local startingHeight = math.max(Owner.Radius * 1.25, Owner.Pos.Y);
+					local WptL = SceneMan:MovePointToGround(Vector(-Owner.Radius, startingHeight), self.hoverAlt, 12);
+					local WptC = SceneMan:MovePointToGround(Vector(0, startingHeight), self.hoverAlt, 12);
+					local WptR = SceneMan:MovePointToGround(Vector(Owner.Radius, startingHeight), self.hoverAlt, 12);
+					self.Waypoint = Vector(Owner.Pos.X, math.min(WptL.Y, WptC.Y, WptR.Y));
+				end
 			end
 		end
 	end
 
 	self.PlayerInterferedTimer:Reset();
+	
+	if Owner.AIMode == Actor.AIMODE_GOTO then
+	
+		if Owner.IsWaitingOnNewMovePath then
+			self.reachedWaypoint = false;
+			self.Waypoint = nil;
+			-- print("wasnotready");
+			return;
+		end
+	
+		-- print("ourpos")
+		-- print(Owner.Pos)
+		-- print("")
+		-- print("desiredpos")
+		-- print(self.Waypoint)
+		-- print("")
+		-- if Owner:GetWaypointListSize() > 0 then
+			-- print("nextWaypointPos")
+			-- for Wpt in Owner.SceneWaypoints do
+				-- print(Wpt)
+			-- end
+		-- else
+			-- print("nonewwaypoint")
+		-- end
+		-- print("")
+		-- print(self.reachedWaypoint)
+	
+		if self.Waypoint == nil or self.reachedWaypoint then
+			self.reachedWaypoint = false;
+			for Wpt in Owner.MovePath do
+				self.Waypoint = Wpt;
+			end
+		else
+			local Dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);
+			if Dist.Magnitude < 20 then
+				if Owner:GetWaypointListSize() == 0 then
+					--print("sentry")
+					Owner.AIMode = Actor.AIMODE_SENTRY;
+					self.Waypoint = Owner.Pos;
+				else
+					--print("reached, cleared")
+					Owner:ClearMovePath();
+					Owner:UpdateMovePath();
+					self.reachedWaypoint = true;
+				end
+			end
+		end
+
+	end
 
 	-- Control right/left movement
 	local Dist = SceneMan:ShortestDistance(Owner.Pos+Owner.Vel*30, self.Waypoint, false);
 	local change = self.XposPID:Update(Dist.X, 0);
-	if change > 2 then
-		Ctrl.AnalogMove = Vector(change/30, 0);
-	elseif change < -2 then
-		Ctrl.AnalogMove = Vector(change/30, 0);
+	if change > 0.6 then
+		Ctrl.AnalogMove = Vector(change/8, 0);
+	elseif change < -0.6 then
+		Ctrl.AnalogMove = Vector(change/8, 0);
 	end
 
 	-- Control up/down movement
@@ -156,123 +232,135 @@ function NativeDropShipAI:Update(Owner)
 	end
 
 	-- Delivery Sequence logic
-	if self.DeliveryState == ACraft.FALL then
-		-- Don't descend if we have nothing to deliver
-		if Owner:IsInventoryEmpty() and Owner.AIMode ~= Actor.AIMODE_BRAINHUNT then
-			if Owner.AIMode ~= Actor.AIMODE_STAY then
-				self.DeliveryState = ACraft.LAUNCH;
-				self.HatchTimer:Reset();
-				self.Waypoint.Y = -500; -- Go to orbit
-			end
-		else
-			local dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);
-			if dist:MagnitudeIsLessThan(Owner.Radius) and math.abs(change) < 3 and math.abs(Owner.Vel.X) < 4 then	-- If we passed the hover check, check if we can start unloading
-				local WptL = SceneMan:MovePointToGround(Owner.Pos+Vector(-Owner.Radius, -Owner.Radius), self.hoverAlt, 12);
-				local WptC = SceneMan:MovePointToGround(Owner.Pos+Vector(0, -Owner.Radius), self.hoverAlt, 12);
-				local WptR = SceneMan:MovePointToGround(Owner.Pos+Vector(Owner.Radius, -Owner.Radius), self.hoverAlt, 12);
-				self.Waypoint = Vector(Owner.Pos.X, math.min(WptL.Y, WptC.Y, WptR.Y));
-
-				dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);
-				if dist:MagnitudeIsLessThan(Owner.Diameter) then
-					-- We are close enough to our waypoint
-					if Owner.AIMode == Actor.AIMODE_STAY then
-						self.DeliveryState = ACraft.STANDBY;
-					else
-						self.DeliveryState = ACraft.UNLOAD;
-						self.HatchTimer:Reset();
+	if Owner.AIMode == Actor.AIMODE_STAY or Owner.AIMode == Actor.AIMODE_DELIVER then
+		if self.DeliveryState == ACraft.FALL then
+			-- Don't descend if we have nothing to deliver
+			if Owner:IsInventoryEmpty() and Owner.AIMode ~= Actor.AIMODE_BRAINHUNT then
+				if Owner.AIMode ~= Actor.AIMODE_STAY then
+					self.DeliveryState = ACraft.LAUNCH;
+					self.HatchTimer:Reset();
+					if SceneMan.SceneOrbitDirection == 0 then -- Go to orbit, whichever way it is
+						self.Waypoint = Vector(Owner.Pos.X, -5000);
+					elseif SceneMan.SceneOrbitDirection == 1 then
+						self.Waypoint = Vector(Owner.Pos.X, SceneMan.SceneHeight + 5000);
+					elseif SceneMan.SceneOrbitDirection == 2 then
+						self.Waypoint = Vector(-5000, Owner.Pos.Y);
+					elseif SceneMan.SceneOrbitDirection == 3 then
+						self.Waypoint = Vector(SceneMan.SceneWidth + 5000, Owner.Pos.Y);
 					end
 				end
 			else
-				-- Check for something in the way of our descent, and hover to the side to avoid it
-				if self.AvoidTimer:IsPastSimTimeLimit() then
-					self.AvoidTimer:Reset();
+				local dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);
+				if dist:MagnitudeIsLessThan(Owner.Radius) and math.abs(change) < 3 and math.abs(Owner.Vel.X) < 4 then	-- If we passed the hover check, check if we can start unloading
+					local WptL = SceneMan:MovePointToGround(Owner.Pos+Vector(-Owner.Radius, -Owner.Radius), self.hoverAlt, 12);
+					local WptC = SceneMan:MovePointToGround(Owner.Pos+Vector(0, -Owner.Radius), self.hoverAlt, 12);
+					local WptR = SceneMan:MovePointToGround(Owner.Pos+Vector(Owner.Radius, -Owner.Radius), self.hoverAlt, 12);
+					self.Waypoint = Vector(Owner.Pos.X, math.min(WptL.Y, WptC.Y, WptR.Y));
 
-					self.search = not self.search; -- Search every second update
-					if self.search then
-						local obstID = Owner:DetectObstacle(Owner.Diameter + Owner.Vel.Magnitude * 70);
-						if obstID > 0 and obstID ~= rte.NoMOID then
-							local MO = MovableMan:GetMOFromID(MovableMan:GetRootMOID(obstID));
-							if MO.ClassName == "ACDropShip" or MO.ClassName == "ACRocket" then
-								self.AvoidMoveState = ACraft.HOVER;
-								self.Waypoint.X = self.Waypoint.X + Owner.Diameter * 2;
+					dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);
+					if dist:MagnitudeIsLessThan(Owner.Diameter) then
+						-- We are close enough to our waypoint
+						if Owner.AIMode == Actor.AIMODE_STAY then
+							self.DeliveryState = ACraft.STANDBY;
+						else
+							self.DeliveryState = ACraft.UNLOAD;
+							self.HatchTimer:Reset();
+						end
+					end
+				else
+					-- Check for something in the way of our descent, and hover to the side to avoid it
+					if self.AvoidTimer:IsPastSimTimeLimit() then
+						self.AvoidTimer:Reset();
 
-								-- Make sure the LZ is inside the scene
-								if self.Waypoint.X > SceneMan.SceneWidth then
-									if SceneMan.SceneWrapsX then
-										self.Waypoint.X = self.Waypoint.X - SceneMan.SceneWidth;
-									else
-										self.Waypoint.X = SceneMan.SceneWidth - Owner.Radius;
+						self.search = not self.search; -- Search every second update
+						if self.search then
+							local obstID = Owner:DetectObstacle(Owner.Diameter + Owner.Vel.Magnitude * 70);
+							if obstID > 0 and obstID ~= rte.NoMOID then
+								local MO = MovableMan:GetMOFromID(MovableMan:GetRootMOID(obstID));
+								if MO.ClassName == "ACDropShip" or MO.ClassName == "ACRocket" then
+									self.AvoidMoveState = ACraft.HOVER;
+									self.Waypoint.X = self.Waypoint.X + Owner.Diameter * 2;
+
+									-- Make sure the LZ is inside the scene
+									if self.Waypoint.X > SceneMan.SceneWidth then
+										if SceneMan.SceneWrapsX then
+											self.Waypoint.X = self.Waypoint.X - SceneMan.SceneWidth;
+										else
+											self.Waypoint.X = SceneMan.SceneWidth - Owner.Radius;
+										end
 									end
 								end
+							else
+								self.AvoidMoveState = nil;
 							end
-						else
-							self.AvoidMoveState = nil;
-						end
-					else	-- Avoid terrain
-						local Free = Vector();
-						local Start = Owner.Pos + Vector(Owner.Radius, 0);
-						local Trace = Owner.Vel * (Owner.Radius/2) + Vector(0,50);
-						if PosRand() < 0.5 then
-							Start.X = Start.X - Owner.Diameter;
-						end
+						else	-- Avoid terrain
+							local Free = Vector();
+							local Start = Owner.Pos + Vector(Owner.Radius, 0);
+							local Trace = Owner.Vel * (Owner.Radius/2) + Vector(0,50);
+							if PosRand() < 0.5 then
+								Start.X = Start.X - Owner.Diameter;
+							end
 
-						if SceneMan:CastStrengthRay(Start, Trace, 0, Free, 4, 0, true) then
-							self.Waypoint.X = Owner.Pos.X;
-							self.Waypoint.Y = Free.Y - self.hoverAlt;
+							if SceneMan:CastStrengthRay(Start, Trace, 0, Free, 4, 0, true) then
+								self.Waypoint.X = Owner.Pos.X;
+								self.Waypoint.Y = Free.Y - self.hoverAlt;
+							end
 						end
 					end
-				end
 
-				if self.AvoidMoveState then
-					self.AltitudeMoveState = self.AvoidMoveState;
-				end
-			end
-		end
-	elseif self.DeliveryState == ACraft.UNLOAD then
-		if self.HatchTimer:IsPastSimMS(500) then	-- Start unloading if there's something to unload
-			self.HatchTimer:Reset();
-			Owner:OpenHatch();
-
-			if Owner.AIMode == Actor.AIMODE_BRAINHUNT and Owner:HasObjectInGroup("Brains") then
-				Owner.AIMode = Actor.AIMODE_RETURN;
-			else
-				self.DeliveryState = ACraft.FALL;
-			end
-		end
-	elseif self.DeliveryState == ACraft.LAUNCH then
-		if self.HatchTimer:IsPastSimMS(1000) then
-			self.HatchTimer:Reset();
-			Owner:CloseHatch();
-		end
-
-		-- Check for something in the way of our ascent, and hover to the side to avoid it
-		if self.AvoidTimer:IsPastSimTimeLimit() then
-			self.AvoidTimer:Reset();
-
-			local obstID = Owner:DetectObstacle(Owner.Diameter + Owner.Vel.Magnitude * 70);
-			if obstID > 0 and obstID ~= rte.NoMOID then
-				local MO = MovableMan:GetMOFromID(MovableMan:GetRootMOID(obstID));
-				if MO.ClassName == "ACDropShip" or MO.ClassName == "ACRocket" then
-					self.AvoidMoveState = ACraft.HOVER;
-					self.Waypoint.X = self.Waypoint.X - Owner.Diameter * 2;
-
-					-- Make sure the LZ is inside the scene
-					if self.Waypoint.X < 0 then
-						if SceneMan.SceneWrapsX then
-							self.Waypoint.X = self.Waypoint.X + SceneMan.SceneWidth;
-						else
-							self.Waypoint.X = Owner.Radius;
-						end
+					if self.AvoidMoveState then
+						self.AltitudeMoveState = self.AvoidMoveState;
 					end
 				end
-			else
-				self.AvoidMoveState = nil;
+			end
+		elseif self.DeliveryState == ACraft.UNLOAD then
+			if self.HatchTimer:IsPastSimMS(500) then	-- Start unloading if there's something to unload
+				self.HatchTimer:Reset();
+				Owner:OpenHatch();
+
+				if Owner.AIMode == Actor.AIMODE_BRAINHUNT and Owner:HasObjectInGroup("Brains") then
+					Owner.AIMode = Actor.AIMODE_RETURN;
+				else
+					self.DeliveryState = ACraft.FALL;
+				end
+			end
+		elseif self.DeliveryState == ACraft.LAUNCH then
+			if self.HatchTimer:IsPastSimMS(1000) then
+				self.HatchTimer:Reset();
+				Owner:CloseHatch();
+			end
+
+			-- Check for something in the way of our ascent, and hover to the side to avoid it
+			if self.AvoidTimer:IsPastSimTimeLimit() then
+				self.AvoidTimer:Reset();
+
+				local obstID = Owner:DetectObstacle(Owner.Diameter + Owner.Vel.Magnitude * 70);
+				if obstID > 0 and obstID ~= rte.NoMOID then
+					local MO = MovableMan:GetMOFromID(MovableMan:GetRootMOID(obstID));
+					if MO.ClassName == "ACDropShip" or MO.ClassName == "ACRocket" then
+						self.AvoidMoveState = ACraft.HOVER;
+						self.Waypoint.X = self.Waypoint.X - Owner.Diameter * 2;
+
+						-- Make sure the LZ is inside the scene
+						if self.Waypoint.X < 0 then
+							if SceneMan.SceneWrapsX then
+								self.Waypoint.X = self.Waypoint.X + SceneMan.SceneWidth;
+							else
+								self.Waypoint.X = Owner.Radius;
+							end
+						end
+					end
+				else
+					self.AvoidMoveState = nil;
+				end
+			end
+
+			if self.AvoidMoveState then
+				self.AltitudeMoveState = self.AvoidMoveState;
 			end
 		end
-
-		if self.AvoidMoveState then
-			self.AltitudeMoveState = self.AvoidMoveState;
-		end
+	else
+		self.DeliveryState = ACraft.FALL;
 	end
 
 	-- Input translation
@@ -290,7 +378,7 @@ function NativeDropShipAI:Update(Owner)
 	end
 
 	-- If we are hopelessly stuck, self destruct
-	if Owner.Vel.Largest > 3 or Owner.AIMode == Actor.AIMODE_STAY then
+	if Owner.Vel.Largest > 3 or Owner.AIMode == Actor.AIMODE_STAY or Owner.AIMode == Actor.AIMODE_SENTRY or Owner.AIMode == Actor.AIMODE_GOTO then
 		self.StuckTimer:Reset();
 	elseif Owner.AIMode == Actor.AIMODE_SCUTTLE or self.StuckTimer:IsPastSimMS(40000) then
 		Owner:GibThis();

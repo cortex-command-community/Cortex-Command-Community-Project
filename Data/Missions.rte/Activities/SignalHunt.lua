@@ -435,7 +435,7 @@ end
 function SignalHunt:DoZombieAndBombSpawns(zombieActorCount)
 	for i = 1, 2 do
 		local generatorToUse = i == 1 and self.outerZombieGenerator or self.innerZombieGenerator;
-		local generatorEnabled = zombieActorCount < rte.AIMOIDMax and (i == 1 and (self.currentFightStage >= self.fightStage.inOuterCaveArea) or (self.currentFightStage >= self.fightStage.inInnerCaveArea or self.outerZombieGenerator == nil or (self.Difficulty == Activity.MAXDIFFICULTY and self.currentFightStage >= self.fightStage.inOuterCaveArea)));
+		local generatorEnabled = i == 1 and (self.currentFightStage >= self.fightStage.inOuterCaveArea) or (self.currentFightStage >= self.fightStage.inInnerCaveArea or self.outerZombieGenerator == nil or (self.Difficulty == Activity.MAXDIFFICULTY and self.currentFightStage >= self.fightStage.inOuterCaveArea));
 		local bombMakerToUse = i == 1 and self.outerBombMaker or self.innerBombMaker;
 		local bombPickupAreaToUse = i == 1 and self.outerBombPickupArea or self.innerBombPickupArea;
 

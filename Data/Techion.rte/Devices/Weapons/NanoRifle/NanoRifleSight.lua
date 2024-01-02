@@ -5,9 +5,12 @@ function Create(self)
 	self.laserSpaceCheck = 8; --For optimization purposes. Smaller value means a more accurate but slower check.
 
 	self.laserDensity = math.ceil(self.laserLength/self.laserSpaceCheck);
+
+	-- Cached value for the synced update
+	self.laserPar = nil;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if not self:IsReloading() and self.laserTimer:IsPastSimMS(self.laserCheckDelay) then
 		self.laserTimer:Reset();
 		local actor = self:GetRootParent();
@@ -63,13 +66,19 @@ function Update(self)
 				else
 					break;
 				end
-				roughLandPos = checkPos;
+				local laserPar = CreateMOPixel("Nano Rifle Laser Sight Glow");
+				laserPar.Pos = checkPos;
+				laserPar.Lifetime = self.laserCheckDelay * 2;
+				self.laserPar = laserPar;
+				self:RequestSyncedUpdate();
 			end
-
-			local laserPar = CreateMOPixel("Nano Rifle Laser Sight Glow");
-			laserPar.Pos = roughLandPos;
-			laserPar.Lifetime = self.laserCheckDelay * 2;
-			MovableMan:AddParticle(laserPar);
 		end
+	end
+end
+
+function SyncedUpdate(self)
+	if self.laserPar then
+		MovableMan:AddParticle(self.laserPar);
+		self.laserPar = nil;
 	end
 end

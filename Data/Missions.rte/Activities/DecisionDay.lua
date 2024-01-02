@@ -1,5 +1,5 @@
-package.loaded.Constants = nil;
 require("Constants");
+require("Utilities")
 require("Scripts/Shared/Activity_SpeedrunHelper")
 
 function DecisionDayDeployBrainPieSliceActivation(pieMenuOwner, pieMenu, pieSlice)
@@ -179,7 +179,7 @@ function DecisionDay:StartActivity(isNewGame)
 			hasBeenCapturedAtLeastOnceByHumanTeam = false,
 			captureCount = 0,
 			captureLimit = 600 * self.difficultyRatio,
-			aiRegionDefenseTimer = Timer(60000 / self.difficultyRatio, 60000 / self.difficultyRatio), --TODO this can't be here for loading game
+			aiRegionDefenseTimer = Timer(60000 / self.difficultyRatio, 60000 / self.difficultyRatio),
 			aiRegionAttackTimer = Timer(90000 / self.difficultyRatio),
 			aiRecaptureWeight = bunkerRegionRecaptureWeights[bunkerRegionName] or 0,
 			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetOptionalArea(bunkerRegionName .. " Fauxdan Display") or nil,
@@ -344,7 +344,7 @@ function DecisionDay:StartActivity(isNewGame)
 	end
 	for _, bunkerId in pairs(self.bunkerIds) do
 		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = "internalReinforcementsData." .. tostring(bunkerId) .. ".enabled";
-		
+
 		local popoutTurretDataPrefix = "popoutTurretsData." .. tostring(bunkerId) .. ".";
 		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = popoutTurretDataPrefix .. "enabled";
 		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = popoutTurretDataPrefix .. "turretsActivated";
@@ -419,8 +419,12 @@ function DecisionDay:StartNewGame()
 		deadBody.Team = self.aiTeam;
 		deadBody.Pos = box.Center;
 		deadBody.Vel.X = -2;
-		deadBody.DeathSound.Volume = 0;
-		deadBody.PainSound.Volume = 0;
+		if deadBody.DeathSound then 
+			deadBody.DeathSound.Volume = 0; 
+		end
+		if deadBody.PainSound then 
+			deadBody.PainSound.Volume = 0; 
+		end
 		deadBody.HFlipped = true;
 		deadBody.Health = 0;
 		MovableMan:AddActor(deadBody);
@@ -986,7 +990,7 @@ function DecisionDay:UpdateCamera()
 	for _, player in pairs(self.humanPlayers) do
 		local adjustedCameraMinimumX = self.cameraMinimumX + (0.5 * (FrameMan.PlayerScreenWidth - 960))
 		if CameraMan:GetScrollTarget(player).X < adjustedCameraMinimumX then
-			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, false, 0);
+			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, 0);
 		end
 	end
 	
@@ -1097,7 +1101,7 @@ function DecisionDay:UpdateCamera()
 
 	if scrollTargetAndSpeed then
 		for _, player in pairs(self.humanPlayers) do
-			CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], false, player);
+			CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], player);
 		end
 	end
 	self.cameraIsPanning = scrollTargetAndSpeed ~= nil;
@@ -1152,7 +1156,7 @@ function DecisionDay:UpdateMessages()
 		elseif self.currentStage == self.stages.deployBrain then
 			if self.currentMessageNumber == 1 then
 				if self.messageTimer.SimTimeLimitProgress > 0.1 then
-					messageText = "As you can see, there's another small bunker to deal with before can assault the fortress proper. Our forces should make short work of it.";
+					messageText = "As you can see, there's another small bunker to deal with before we can assault the fortress proper. Our forces should make short work of it.";
 				end
 				if self.messageTimer.SimTimeLimitProgress > 0.35 then
 					messageText = messageText .. "\nOnce your brain is deployed, you're welcome to take control of some of our forces while you build up your own.";
@@ -1648,6 +1652,7 @@ function DecisionDay:UpdateAIDecisions()
 
 					for movableObject in MovableMan:GetMOsInRadius(captureAreaCenter, self.aiData.bunkerRegionDefenseRange, self.humanTeam, true) do
 						if (IsAHuman(movableObject) or IsACrab(movableObject)) and (not movableObject:IsInGroup("AI Region Defenders") or movableObject:IsInGroup("AI Region Defenders - " .. bunkerRegionName)) and movableObject.PinStrength == 0 and not movableObject:IsInGroup("Actors - Turrets")  then
+							--TODO when we have calculate path async with limited max path length, use it here. Will have to do coroutine, etc.
 							--local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, false, GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
 							--if pathLengthToCaptureArea < self.aiData.bunkerRegionDefenseRange then
 								local actor = ToActor(movableObject);
@@ -1676,7 +1681,7 @@ function DecisionDay:UpdateAIDecisions()
 				end
 			elseif bunkerRegionData.ownerTeam == self.humanTeam then
 				bunkerRegionData.aiRegionDefenseTimer:Reset();
-				
+
 				humanOwnedBunkerRegions[#humanOwnedBunkerRegions + 1] = bunkerRegionData;
 				if bunkerRegionData.aiRecaptureWeight > 0 and (bunkerRegionForAIToRecapture == nil or bunkerRegionData.aiRecaptureWeight > bunkerRegionForAIToRecapture.aiRecaptureWeight) and bunkerRegionData.aiRegionAttackTimer:IsPastSimTimeLimit() then
 					bunkerRegionForAIToRecapture = bunkerRegionData;
@@ -1798,7 +1803,7 @@ end
 function DecisionDay:DoHumanBrainPieSliceHandling()
 	for _, player in pairs(self.humanPlayers) do
 		local brain = self:GetPlayerBrain(player);
-		if brain and not brain:IsInGroup("Deployed Brain " .. player) then
+		if brain and MovableMan:ValidMO(brain) and not brain:IsInGroup("Deployed Brain " .. player) then
 			local pieSlice = brain.PieMenu:GetFirstPieSliceByPresetName(self.deployBrainPieSlice.PresetName);
 			if not pieSlice then
 				brain.PieMenu:AddPieSlice(self.deployBrainPieSlice:Clone(), self);
@@ -1847,7 +1852,7 @@ function DecisionDay:DeployHumanBrain(player)
 		self.BuyMenuEnabled = true;
 		for actor in MovableMan.Actors do
 			if actor.Team == self.humanTeam and actor.PlayerControllable then
-				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.buyMenuPieSlice:Clone(), self);
+				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.buyMenuPieSlice, self);
 			end
 		end
 	end
@@ -1889,8 +1894,8 @@ function DecisionDay:DeployHumanBrain(player)
 			existingBrain:GetController().InputMode = Controller.CIM_DISABLED;
 			existingBrain.Pos.Y = existingBrain.Pos.Y - 20;
 			existingBrain.PieMenu:RemovePieSlicesByPresetName(self.deployBrainPieSlice.PresetName);
-			existingBrain.PieMenu:AddPieSliceIfPresetNameIsUnique(self.undeployBrainPieSlice:Clone(), self);
-			existingBrain.PieMenu:AddPieSliceIfPresetNameIsUnique(self.swapControlPieSlice:Clone(), self);
+			existingBrain.PieMenu:AddPieSliceIfPresetNameIsUnique(self.undeployBrainPieSlice, self);
+			existingBrain.PieMenu:AddPieSliceIfPresetNameIsUnique(self.swapControlPieSlice, self);
 			existingBrain:AddToGroup("Deployed Brain " .. player);
 		end
 
@@ -2308,23 +2313,19 @@ function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunke
 		coroutine.yield(); -- Yield after initial setup, so we can set up our coroutines separately from running them.
 	end
 
-	local numberOfPathsCalculated = 0;
 	for _, enemyToTarget in ipairs(enemiesToTarget) do
 		if MovableMan:ValidMO(enemyToTarget) then
 			local internalReinforcementPositionForEnemy;
-			local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
-			local enemyToTargetPos = enemyToTarget.Pos;
-			for _, internalReinforcementPosition in pairs(self.internalReinforcementsData[bunkerId].positions) do
-				local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTargetPos, false, GetPathFindingDefaultDigStrength(), self.aiTeam);
-				if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
-					internalReinforcementPositionForEnemy = internalReinforcementPosition;
-					pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;
-				end
-				numberOfPathsCalculated = numberOfPathsCalculated + 1;
-				if numberOfPathsCalculated % 3 == 0 and coroutine.running() then
+			local shortestPathCoroutine = coroutine.create(FindStartPositionWithShortestPathToEndPosition);
+			while coroutine.status(shortestPathCoroutine) ~= "dead" do
+				local _, result = coroutine.resume(shortestPathCoroutine, self.internalReinforcementsData[bunkerId].positions, enemyToTarget.Pos, self.aiTeam);
+				if result then
+					internalReinforcementPositionForEnemy = result.position;
+				else
 					coroutine.yield();
 				end
 			end
+
 			if internalReinforcementPositionForEnemy then
 				if not internalReinforcementPositionsToEnemyTargets[internalReinforcementPositionForEnemy] then
 					internalReinforcementPositionsToEnemyTargets[internalReinforcementPositionForEnemy] = {};

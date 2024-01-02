@@ -73,6 +73,9 @@ luac.out
 CortexCommand
 CortexCommand_debug
 
+# Debug databases
+*.pdb
+
 # Manifest files
 *.manifest
 

@@ -340,8 +340,7 @@ function OneManArmyZeroG:UpdateActivity()
 			end
 		end
 		
-		local enemyMOIDCount = MovableMan:GetTeamMOIDCount(self.CPUTeam);
-		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and enemyMOIDCount < rte.AIMOIDMax then
+		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 then
 			for i = 1, math.random(1, 3) do
 				local actor = RandomAHuman("Actors - Light", self.CPUTechName);
 				if actor.ModuleID ~= PresetMan:GetModuleID(self.CPUTechName) then
@@ -368,8 +367,7 @@ function OneManArmyZeroG:UpdateActivity()
 			end
 
 			self.enemySpawnTimer:Reset();
-			local enemyMoidCountSpawnTimeMultiplier = self.isDiggersOnly and 1 or (1 + enemyMOIDCount * 0.05);
-			self.enemySpawnTimeLimit = ((self.baseSpawnTime * enemyMoidCountSpawnTimeMultiplier) + math.random(self.baseSpawnTime)) * rte.SpawnIntervalScale;
+			self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.baseSpawnTime)) * rte.SpawnIntervalScale;
 		end
 	end
 end

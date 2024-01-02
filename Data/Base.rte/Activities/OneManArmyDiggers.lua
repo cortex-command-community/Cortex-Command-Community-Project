@@ -267,8 +267,7 @@ function OneManArmy:UpdateActivity()
 		end
 
 		--Spawn the AI.
-		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-
+		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 then
 			-- Set up the ship to deliver this stuff
 			local ship = RandomACRocket("Any", self.CPUTechName);
 			local actorsInCargo = math.min(ship.MaxPassengers, 2);

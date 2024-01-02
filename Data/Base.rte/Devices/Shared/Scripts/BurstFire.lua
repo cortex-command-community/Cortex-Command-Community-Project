@@ -3,7 +3,7 @@ function Create(self)
 	self.coolDownDelay = (60000/self.RateOfFire) + 100;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.Magazine then
 		if self.coolDownTimer then
 			if self.coolDownTimer:IsPastSimMS(self.coolDownDelay) and not (self:IsActivated() and self.triggerPulled) then
@@ -16,20 +16,21 @@ function Update(self)
 				end
 			end
 		elseif self.shotCounter then
-
 			self.triggerPulled = self:IsActivated();
-
 			self:Activate();
-			if self.FiredFrame then
-				self.shotCounter = self.shotCounter + 1;
-				if self.shotCounter >= self.shotsPerBurst then
-					self.coolDownTimer = Timer();
-				end
-			end
-		elseif self.FiredFrame then
-			self.shotCounter = 1;
 		end
 	else
 		self.coolDownTimer, self.shotCounter = nil;
+	end
+end
+
+function OnFire(self)
+	if self.shotCounter then
+		self.shotCounter = self.shotCounter + 1;
+		if self.shotCounter >= self.shotsPerBurst then
+			self.coolDownTimer = Timer();
+		end
+	else
+		self.shotCounter = 1;
 	end
 end
