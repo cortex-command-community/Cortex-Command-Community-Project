@@ -18,7 +18,7 @@
 #include "Vector.h"
 #include "Matrix.h"
 #include "Timer.h"
-#include "LuabindObjectWrapper.h"
+#include "SolObjectWrapper.h"
 #include "Material.h"
 #include "MovableMan.h"
 
@@ -212,7 +212,7 @@ enum MOType
     /// <param name="functionEntityArguments">Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.</param>
     /// <param name="functionLiteralArguments">Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.</param>
     /// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-    int RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*> &functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+    int RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*> &functionObjectArguments = std::vector<SolObjectWrapper*>());
 
     /// <summary>
     /// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
@@ -2082,7 +2082,7 @@ protected:
 
     struct LuaFunction {
         bool m_ScriptIsEnabled; //!< Whether this function is in an enabled script.
-        std::unique_ptr<LuabindObjectWrapper> m_LuaFunction; //!< The lua function itself.
+        std::unique_ptr<SolObjectWrapper> m_LuaFunction; //!< The lua function itself.
     };
 
     std::string m_ScriptObjectName; //!< The name of this object for script usage.

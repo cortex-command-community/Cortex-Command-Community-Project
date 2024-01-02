@@ -543,9 +543,6 @@
     <ClInclude Include="GUI\GUIWriter.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Lua\LuabindObjectWrapper.h">
-      <Filter>Lua</Filter>
-    </ClInclude>
     <ClInclude Include="Entities\TerrainFrosting.h">
       <Filter>Entities</Filter>
     </ClInclude>
@@ -620,6 +617,9 @@
     </ClInclude>
     <ClInclude Include="System\AllegroTools.h">
       <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Lua\SolObjectWrapper.h">
+      <Filter>Lua</Filter>
     </ClInclude>
     <ClInclude Include="Managers\ThreadMan.h">
       <Filter>Managers</Filter>
@@ -1095,9 +1095,6 @@
     <ClCompile Include="GUI\GUIWriter.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuabindObjectWrapper.cpp">
-      <Filter>Lua</Filter>
-    </ClCompile>
     <ClCompile Include="Lua\LuaBindingsMisc.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
@@ -1196,6 +1193,21 @@
     </ClCompile>
     <ClCompile Include="System\AllegroTools.cpp">
       <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsActors.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsScene.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsWeapons.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="Lua\LuaBindingsPhysics.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="Lua\SolObjectWrapper.cpp">
+      <Filter>Lua</Filter>
     </ClCompile>
     <ClCompile Include="Managers\ThreadMan.cpp">
       <Filter>Managers</Filter>

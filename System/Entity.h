@@ -4,6 +4,8 @@
 #include "Serializable.h"
 #include "RTEError.h"
 
+#include "sol/sol.hpp"
+
 namespace RTE {
 
 	typedef std::function<void*()> MemoryAllocate; //!< Convenient name definition for the memory allocation callback function.
@@ -459,6 +461,33 @@ namespace RTE {
 		/// </summary>
 		/// <returns>A string with the friendly-formatted type name of this Entity.</returns>
 		virtual const std::string & GetClassName() const { return m_sClass.GetName(); }
+#pragma endregion
+
+#pragma region Lua Interop
+		// Helper for dynamic lua objects
+		// Luabind->Sol conversion - we need to be explicit now
+private:
+		std::unordered_map<std::string, sol::object> m_LuaEntries; //!< Lua dynamic data associated with this object.
+
+public:
+		void DynamicSet(std::string key, sol::stack_object value) {
+			auto it = m_LuaEntries.find(key);
+			if (it == m_LuaEntries.cend()) {
+				m_LuaEntries.insert(it, { std::move(key), std::move(value) });
+			} else {
+				std::pair<const std::string, sol::object>& kvp = *it;
+				sol::object& entry = kvp.second;
+				entry = sol::object(std::move(value));
+			}
+		}
+
+		sol::object DynamicGet(const std::string& key) const {
+			auto it = m_LuaEntries.find(key);
+			if (it == m_LuaEntries.cend()) {
+				return sol::lua_nil;
+			}
+			return it->second;
+		}
 #pragma endregion
 
 	protected:

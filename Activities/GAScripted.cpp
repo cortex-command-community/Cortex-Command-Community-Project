@@ -224,11 +224,11 @@ void GAScripted::RefreshActivityFunctions() {
     }
 
     // We use m_LuaClassName here, because we ran the script file in the global state instead of in an environment
-    std::unordered_map<std::string, LuabindObjectWrapper*> scriptFileFunctions;
+    std::unordered_map<std::string, SolObjectWrapper*> scriptFileFunctions;
     g_LuaMan.GetMasterScriptState().RetrieveFunctions(m_LuaClassName, GetSupportedScriptFunctionNames(), scriptFileFunctions);
 
     for (const auto& [functionName, functionObject] : scriptFileFunctions) {
-        m_ScriptFunctions[functionName] = std::unique_ptr<LuabindObjectWrapper>(functionObject);
+        m_ScriptFunctions[functionName] = std::unique_ptr<SolObjectWrapper>(functionObject);
     }
 }
 
@@ -484,7 +484,7 @@ void GAScripted::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) {
     GameActivity::Draw(pTargetBitmap, targetPos);
 }
 
-int GAScripted::RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+int GAScripted::RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<SolObjectWrapper*>& functionObjectArguments) {
     // Call the defined function, but only after first checking if it exists
     auto funcItr = m_ScriptFunctions.find(functionName);
     if (funcItr == m_ScriptFunctions.end()) {

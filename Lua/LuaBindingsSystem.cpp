@@ -2,254 +2,273 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "Actor.h"
+#include "Box.h"
+#include "Controller.h"
+#include "DataModule.h"
+#include "Timer.h"
+#include "Vector.h"
+#include "PathFinder.h"
+
 namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Box) {
-		return luabind::class_<Box>("Box")
+		auto luaType = SimpleTypeLuaClassDefinition(Box);
 
-		.def(luabind::constructor<>())
-		.def(luabind::constructor<const Vector &, const Vector &>())
-		.def(luabind::constructor<float, float, float, float>())
-		.def(luabind::constructor<const Vector &, float, float>())
-		.def(luabind::constructor<const Box &>())
-		.def(luabind::self == luabind::other<const Box &>())
+		luaType.set(sol::call_constructor, sol::constructors<
+			Box(),
+			Box(const Vector&, const Vector&),
+			Box(float, float, float, float&),
+			Box(const Vector&, float, float),
+			Box(const Box&)
+		>());
 
-		.property("ClassName", &Box::GetClassName)
-		.property("Corner", &Box::GetCorner, &Box::SetCorner)
-		.property("Width", &Box::GetWidth, &Box::SetWidth)
-		.property("Height", &Box::GetHeight, &Box::SetHeight)
-		.property("Center", &Box::GetCenter, &Box::SetCenter)
-		.property("Area", &Box::GetArea)
+		luaType[sol::meta_function::equal_to] = [](const Box& lhs, const Box& rhs) { return lhs == rhs; };
 
-		.def("GetRandomPoint", &Box::GetRandomPoint)
-		.def("Unflip", &Box::Unflip)
-		.def("IsWithinBox", &Box::IsWithinBox)
-		.def("IsWithinBoxX", &Box::IsWithinBoxX)
-		.def("IsWithinBoxY", &Box::IsWithinBoxY)
-		.def("GetWithinBoxX", &Box::GetWithinBoxX)
-		.def("GetWithinBoxY", &Box::GetWithinBoxY)
-		.def("GetWithinBox", &Box::GetWithinBox)
-		.def("IntersectsBox", &Box::IntersectsBox);
+		luaType["ClassName"] = sol::property(&Box::GetClassName);
+		luaType["Corner"] = sol::property(&Box::GetCorner, &Box::SetCorner);
+		luaType["Width"] = sol::property(&Box::GetWidth, &Box::SetWidth);
+		luaType["Height"] = sol::property(&Box::GetHeight, &Box::SetHeight);
+		luaType["Center"] = sol::property(&Box::GetCenter, &Box::SetCenter);
+		luaType["Area"] = sol::property(&Box::GetArea);
+
+		luaType["GetRandomPoint"] = &Box::GetRandomPoint;
+		luaType["Unflip"] = &Box::Unflip;
+		luaType["IsWithinBox"] = &Box::IsWithinBox;
+		luaType["IsWithinBoxX"] = &Box::IsWithinBoxX;
+		luaType["IsWithinBoxY"] = &Box::IsWithinBoxY;
+		luaType["GetWithinBoxX"] = &Box::GetWithinBoxX;
+		luaType["GetWithinBoxY"] = &Box::GetWithinBoxY;
+		luaType["GetWithinBox"] = &Box::GetWithinBox;
+		luaType["IntersectsBox"] = &Box::IntersectsBox;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
-		return luabind::class_<Controller>("Controller")
+		auto luaType = SimpleTypeLuaClassDefinition(Controller);
 
-		.def(luabind::constructor<>())
+		luaType.set(sol::call_constructor, sol::constructors<
+			Controller()
+		>());
 
-		.property("InputMode", &Controller::GetInputMode, &Controller::SetInputMode)
-		.property("ControlledActor", &Controller::GetControlledActor, &Controller::SetControlledActor)
-		.property("Team", &Controller::GetTeam, &Controller::SetTeam)
-		.property("AnalogMove", &Controller::GetAnalogMove, &Controller::SetAnalogMove)
-		.property("AnalogAim", &Controller::GetAnalogAim, &Controller::SetAnalogAim)
-		.property("AnalogCursor", &Controller::GetAnalogCursor, &Controller::SetAnalogCursor)
-		.property("Player", &Controller::GetPlayer, &Controller::SetPlayer)
-		.property("MouseMovement", &Controller::GetMouseMovement)
-		.property("Disabled", &Controller::IsDisabled, &Controller::SetDisabled)
+		luaType["InputMode"] = sol::property(&Controller::GetInputMode, &Controller::SetInputMode);
+		luaType["ControlledActor"] = sol::property(&Controller::GetControlledActor, &Controller::SetControlledActor);
+		luaType["Team"] = sol::property(&Controller::GetTeam, &Controller::SetTeam);
+		luaType["AnalogMove"] = sol::property(&Controller::GetAnalogMove, &Controller::SetAnalogMove);
+		luaType["AnalogAim"] = sol::property(&Controller::GetAnalogAim, &Controller::SetAnalogAim);
+		luaType["AnalogCursor"] = sol::property(&Controller::GetAnalogCursor, &Controller::SetAnalogCursor);
+		luaType["Player"] = sol::property(&Controller::GetPlayer, &Controller::SetPlayer);
+		luaType["MouseMovement"] = sol::property(&Controller::GetMouseMovement);
+		luaType["Disabled"] = sol::property(&Controller::IsDisabled, &Controller::SetDisabled);
 
-		.def("IsPlayerControlled", &Controller::IsPlayerControlled)
-		.def("RelativeCursorMovement", &Controller::RelativeCursorMovement)
-		.def("IsMouseControlled", &Controller::IsMouseControlled)
-		.def("IsKeyboardOnlyControlled", &Controller::IsKeyboardOnlyControlled)
-		.def("IsGamepadControlled", &Controller::IsGamepadControlled)
-		.def("SetState", &Controller::SetState)
-		.def("IsState", &Controller::IsState)
-		.def("Override", &Controller::Override)
+		luaType["IsPlayerControlled"] = &Controller::IsPlayerControlled;
+		luaType["RelativeCursorMovement"] = &Controller::RelativeCursorMovement;
+		luaType["IsMouseControlled"] = &Controller::IsMouseControlled;
+		luaType["IsKeyboardOnlyControlled"] = &Controller::IsKeyboardOnlyControlled;
+		luaType["IsGamepadControlled"] = &Controller::IsGamepadControlled;
+		luaType["SetState"] = &Controller::SetState;
+		luaType["IsState"] = &Controller::IsState;
+		luaType["Override"] = &Controller::Override;
 
-		.enum_("ControlState")[
-			luabind::value("PRIMARY_ACTION", ControlState::PRIMARY_ACTION),
-			luabind::value("SECONDARY_ACTION", ControlState::SECONDARY_ACTION),
-			luabind::value("MOVE_IDLE", ControlState::MOVE_IDLE),
-			luabind::value("MOVE_RIGHT", ControlState::MOVE_RIGHT),
-			luabind::value("MOVE_LEFT", ControlState::MOVE_LEFT),
-			luabind::value("MOVE_UP", ControlState::MOVE_UP),
-			luabind::value("MOVE_DOWN", ControlState::MOVE_DOWN),
-			luabind::value("MOVE_FAST", ControlState::MOVE_FAST),
-			luabind::value("BODY_JUMPSTART", ControlState::BODY_JUMPSTART),
-			luabind::value("BODY_JUMP", ControlState::BODY_JUMP),
-			luabind::value("BODY_CROUCH", ControlState::BODY_CROUCH),
-			luabind::value("AIM_UP", ControlState::AIM_UP),
-			luabind::value("AIM_DOWN", ControlState::AIM_DOWN),
-			luabind::value("AIM_SHARP", ControlState::AIM_SHARP),
-			luabind::value("WEAPON_FIRE", ControlState::WEAPON_FIRE),
-			luabind::value("WEAPON_RELOAD", ControlState::WEAPON_RELOAD),
-			luabind::value("PIE_MENU_OPENED", ControlState::PIE_MENU_OPENED),
-			luabind::value("PIE_MENU_ACTIVE", ControlState::PIE_MENU_ACTIVE),
-			luabind::value("WEAPON_CHANGE_NEXT", ControlState::WEAPON_CHANGE_NEXT),
-			luabind::value("WEAPON_CHANGE_PREV", ControlState::WEAPON_CHANGE_PREV),
-			luabind::value("WEAPON_PICKUP", ControlState::WEAPON_PICKUP),
-			luabind::value("WEAPON_DROP", ControlState::WEAPON_DROP),
-			luabind::value("ACTOR_NEXT", ControlState::ACTOR_NEXT),
-			luabind::value("ACTOR_PREV", ControlState::ACTOR_PREV),
-			luabind::value("ACTOR_BRAIN", ControlState::ACTOR_BRAIN),
-			luabind::value("ACTOR_NEXT_PREP", ControlState::ACTOR_NEXT_PREP),
-			luabind::value("ACTOR_PREV_PREP", ControlState::ACTOR_PREV_PREP),
-			luabind::value("HOLD_RIGHT", ControlState::HOLD_RIGHT),
-			luabind::value("HOLD_LEFT", ControlState::HOLD_LEFT),
-			luabind::value("HOLD_UP", ControlState::HOLD_UP),
-			luabind::value("HOLD_DOWN", ControlState::HOLD_DOWN),
-			luabind::value("PRESS_PRIMARY", ControlState::PRESS_PRIMARY),
-			luabind::value("PRESS_SECONDARY", ControlState::PRESS_SECONDARY),
-			luabind::value("PRESS_RIGHT", ControlState::PRESS_RIGHT),
-			luabind::value("PRESS_LEFT", ControlState::PRESS_LEFT),
-			luabind::value("PRESS_UP", ControlState::PRESS_UP),
-			luabind::value("PRESS_DOWN", ControlState::PRESS_DOWN),
-			luabind::value("RELEASE_PRIMARY", ControlState::RELEASE_PRIMARY),
-			luabind::value("RELEASE_SECONDARY", ControlState::RELEASE_SECONDARY),
-			luabind::value("PRESS_FACEBUTTON", ControlState::PRESS_FACEBUTTON),
-			luabind::value("RELEASE_FACEBUTTON", ControlState::RELEASE_FACEBUTTON),
-			luabind::value("SCROLL_UP", ControlState::SCROLL_UP),
-			luabind::value("SCROLL_DOWN", ControlState::SCROLL_DOWN),
-			luabind::value("DEBUG_ONE", ControlState::DEBUG_ONE),
-			luabind::value("CONTROLSTATECOUNT", ControlState::CONTROLSTATECOUNT)
-		]
-		.enum_("InputMode")[
-			luabind::value("CIM_DISABLED", Controller::InputMode::CIM_DISABLED),
-			luabind::value("CIM_PLAYER", Controller::InputMode::CIM_PLAYER),
-			luabind::value("CIM_AI", Controller::InputMode::CIM_AI),
-			luabind::value("CIM_NETWORK", Controller::InputMode::CIM_NETWORK),
-			luabind::value("CIM_INPUTMODECOUNT", Controller::InputMode::CIM_INPUTMODECOUNT)
-		];
+		{
+			sol::table enumTable = LegacyEnumTypeTable("ControlState");
+			enumTable["PRIMARY_ACTION"] = ControlState::PRIMARY_ACTION;
+			enumTable["SECONDARY_ACTION"] = ControlState::SECONDARY_ACTION;
+			enumTable["MOVE_IDLE"] = ControlState::MOVE_IDLE;
+			enumTable["MOVE_RIGHT"] = ControlState::MOVE_RIGHT;
+			enumTable["MOVE_LEFT"] = ControlState::MOVE_LEFT;
+			enumTable["MOVE_UP"] = ControlState::MOVE_UP;
+			enumTable["MOVE_DOWN"] = ControlState::MOVE_DOWN;
+			enumTable["MOVE_FAST"] = ControlState::MOVE_FAST;
+			enumTable["BODY_JUMPSTART"] = ControlState::BODY_JUMPSTART;
+			enumTable["BODY_JUMP"] = ControlState::BODY_JUMP;
+			enumTable["BODY_CROUCH"] = ControlState::BODY_CROUCH;
+			enumTable["AIM_UP"] = ControlState::AIM_UP;
+			enumTable["AIM_DOWN"] = ControlState::AIM_DOWN;
+			enumTable["AIM_SHARP"] = ControlState::AIM_SHARP;
+			enumTable["WEAPON_FIRE"] = ControlState::WEAPON_FIRE;
+			enumTable["WEAPON_RELOAD"] = ControlState::WEAPON_RELOAD;
+			enumTable["PIE_MENU_OPENED"] = ControlState::PIE_MENU_OPENED;
+			enumTable["PIE_MENU_ACTIVE"] = ControlState::PIE_MENU_ACTIVE;
+			enumTable["WEAPON_CHANGE_NEXT"] = ControlState::WEAPON_CHANGE_NEXT;
+			enumTable["WEAPON_CHANGE_PREV"] = ControlState::WEAPON_CHANGE_PREV;
+			enumTable["WEAPON_PICKUP"] = ControlState::WEAPON_PICKUP;
+			enumTable["WEAPON_DROP"] = ControlState::WEAPON_DROP;
+			enumTable["ACTOR_NEXT"] = ControlState::ACTOR_NEXT;
+			enumTable["ACTOR_PREV"] = ControlState::ACTOR_PREV;
+			enumTable["ACTOR_BRAIN"] = ControlState::ACTOR_BRAIN;
+			enumTable["ACTOR_NEXT_PREP"] = ControlState::ACTOR_NEXT_PREP;
+			enumTable["ACTOR_PREV_PREP"] = ControlState::ACTOR_PREV_PREP;
+			enumTable["HOLD_RIGHT"] = ControlState::HOLD_RIGHT;
+			enumTable["HOLD_LEFT"] = ControlState::HOLD_LEFT;
+			enumTable["HOLD_UP"] = ControlState::HOLD_UP;
+			enumTable["HOLD_DOWN"] = ControlState::HOLD_DOWN;
+			enumTable["PRESS_PRIMARY"] = ControlState::PRESS_PRIMARY;
+			enumTable["PRESS_SECONDARY"] = ControlState::PRESS_SECONDARY;
+			enumTable["PRESS_RIGHT"] = ControlState::PRESS_RIGHT;
+			enumTable["PRESS_LEFT"] = ControlState::PRESS_LEFT;
+			enumTable["PRESS_UP"] = ControlState::PRESS_UP;
+			enumTable["PRESS_DOWN"] = ControlState::PRESS_DOWN;
+			enumTable["RELEASE_PRIMARY"] = ControlState::RELEASE_PRIMARY;
+			enumTable["RELEASE_SECONDARY"] = ControlState::RELEASE_SECONDARY;
+			enumTable["PRESS_FACEBUTTON"] = ControlState::PRESS_FACEBUTTON;
+			enumTable["RELEASE_FACEBUTTON"] = ControlState::RELEASE_FACEBUTTON;
+			enumTable["SCROLL_UP"] = ControlState::SCROLL_UP;
+			enumTable["SCROLL_DOWN"] = ControlState::SCROLL_DOWN;
+			enumTable["DEBUG_ONE"] = ControlState::DEBUG_ONE;
+			enumTable["CONTROLSTATECOUNT"] = ControlState::CONTROLSTATECOUNT;
+		}
+		{
+			sol::table enumTable = LegacyEnumTypeTable("InputMode");
+			enumTable["CIM_DISABLED"] = Controller::InputMode::CIM_DISABLED;
+			enumTable["CIM_PLAYER"] = Controller::InputMode::CIM_PLAYER;
+			enumTable["CIM_AI"] = Controller::InputMode::CIM_AI;
+			enumTable["CIM_NETWORK"] = Controller::InputMode::CIM_NETWORK;
+			enumTable["CIM_INPUTMODECOUNT"] = Controller::InputMode::CIM_INPUTMODECOUNT;
+		}
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, DataModule) {
-		return luabind::class_<DataModule>("DataModule")
+		auto luaType = SimpleTypeLuaClassDefinition(DataModule);
 
-		.property("FileName", &DataModule::GetFileName)
-		.property("FriendlyName", &DataModule::GetFriendlyName)
-		.property("Author", &DataModule::GetAuthor)
-		.property("Description", &DataModule::GetDescription)
-		.property("Version", &DataModule::GetVersionNumber)
-		.property("IsFaction", &DataModule::IsFaction)
-		.property("IsMerchant", &DataModule::IsMerchant)
+		luaType["FileName"] = sol::property(&DataModule::GetFileName);
+		luaType["FriendlyName"] = sol::property(&DataModule::GetFriendlyName);
+		luaType["Author"] = sol::property(&DataModule::GetAuthor);
+		luaType["Description"] = sol::property(&DataModule::GetDescription);
+		luaType["Version"] = sol::property(&DataModule::GetVersionNumber);
+		luaType["IsFaction"] = sol::property(&DataModule::IsFaction);
+		luaType["IsMerchant"] = sol::property(&DataModule::IsMerchant);
 
-		.def_readwrite("Presets", &DataModule::m_EntityList, luabind::return_stl_iterator);
+		luaType["Presets"] = &DataModule::m_EntityList;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
-		return luabind::class_<Timer>("Timer")
+		auto luaType = SimpleTypeLuaClassDefinition(Timer);
 
-		.def(luabind::constructor<>())
-		.def(luabind::constructor<double>())
-		.def(luabind::constructor<double, double>())
+		luaType.set(sol::call_constructor, sol::constructors<
+			Timer(),
+			Timer(double),
+			Timer(double, double)
+		>());
 
-		.property("StartRealTimeMS", &Timer::GetStartRealTimeMS, &Timer::SetStartRealTimeMS)
-		.property("ElapsedRealTimeS", &Timer::GetElapsedRealTimeS, &Timer::SetElapsedRealTimeS)
-		.property("ElapsedRealTimeMS", &Timer::GetElapsedRealTimeMS, &Timer::SetElapsedRealTimeMS)
-		.property("StartSimTimeMS", &Timer::GetStartSimTimeMS, &Timer::SetStartSimTimeMS)
-		.property("ElapsedSimTimeS", &Timer::GetElapsedSimTimeS, &Timer::SetElapsedSimTimeS)
-		.property("ElapsedSimTimeMS", &Timer::GetElapsedSimTimeMS, &Timer::SetElapsedSimTimeMS)
-		.property("RealTimeLimitProgress", &Timer::RealTimeLimitProgress)
-		.property("SimTimeLimitProgress", &Timer::SimTimeLimitProgress)
+		luaType["StartRealTimeMS"] = sol::property(&Timer::GetStartRealTimeMS, &Timer::SetStartRealTimeMS);
+		luaType["ElapsedRealTimeS"] = sol::property(&Timer::GetElapsedRealTimeS, &Timer::SetElapsedRealTimeS);
+		luaType["ElapsedRealTimeMS"] = sol::property(&Timer::GetElapsedRealTimeMS, &Timer::SetElapsedRealTimeMS);
+		luaType["StartSimTimeMS"] = sol::property(&Timer::GetStartSimTimeMS, &Timer::SetStartSimTimeMS);
+		luaType["ElapsedSimTimeS"] = sol::property(&Timer::GetElapsedSimTimeS, &Timer::SetElapsedSimTimeS);
+		luaType["ElapsedSimTimeMS"] = sol::property(&Timer::GetElapsedSimTimeMS, &Timer::SetElapsedSimTimeMS);
+		luaType["RealTimeLimitProgress"] = sol::property(&Timer::RealTimeLimitProgress);
+		luaType["SimTimeLimitProgress"] = sol::property(&Timer::SimTimeLimitProgress);
 
-		.def("Reset", &Timer::Reset)
-		.def("SetRealTimeLimitMS", &Timer::SetRealTimeLimitMS)
-		.def("SetRealTimeLimitS", &Timer::SetRealTimeLimitS)
-		.def("IsPastRealTimeLimit", &Timer::IsPastRealTimeLimit)
-		.def("LeftTillRealTimeLimitMS", &Timer::LeftTillRealTimeLimitMS)
-		.def("LeftTillRealTimeLimitS", &Timer::LeftTillRealTimeLimitS)
-		.def("LeftTillRealMS", &Timer::LeftTillRealMS)
-		.def("IsPastRealMS", &Timer::IsPastRealMS)
-		.def("AlternateReal", &Timer::AlternateReal)
-		.def("GetSimTimeLimitMS", &Timer::GetSimTimeLimitMS)
-		.def("SetSimTimeLimitMS", &Timer::SetSimTimeLimitMS)
-		.def("GetSimTimeLimitS", &Timer::GetSimTimeLimitS)
-		.def("SetSimTimeLimitS", &Timer::SetSimTimeLimitS)
-		.def("IsPastSimTimeLimit", &Timer::IsPastSimTimeLimit)
-		.def("LeftTillSimTimeLimitMS", &Timer::LeftTillSimTimeLimitMS)
-		.def("LeftTillSimTimeLimitS", &Timer::LeftTillSimTimeLimitS)
-		.def("LeftTillSimMS", &Timer::LeftTillSimMS)
-		.def("IsPastSimMS", &Timer::IsPastSimMS)
-		.def("AlternateSim", &Timer::AlternateSim);
+		luaType["Reset"] = &Timer::Reset;
+		luaType["SetRealTimeLimitMS"] = &Timer::SetRealTimeLimitMS;
+		luaType["SetRealTimeLimitS"] = &Timer::SetRealTimeLimitS;
+		luaType["IsPastRealTimeLimit"] = &Timer::IsPastRealTimeLimit;
+		luaType["LeftTillRealTimeLimitMS"] = &Timer::LeftTillRealTimeLimitMS;
+		luaType["LeftTillRealTimeLimitS"] = &Timer::LeftTillRealTimeLimitS;
+		luaType["LeftTillRealMS"] = &Timer::LeftTillRealMS;
+		luaType["IsPastRealMS"] = &Timer::IsPastRealMS;
+		luaType["AlternateReal"] = &Timer::AlternateReal;
+		luaType["GetSimTimeLimitMS"] = &Timer::GetSimTimeLimitMS;
+		luaType["SetSimTimeLimitMS"] = &Timer::SetSimTimeLimitMS;
+		luaType["GetSimTimeLimitS"] = &Timer::GetSimTimeLimitS;
+		luaType["SetSimTimeLimitS"] = &Timer::SetSimTimeLimitS;
+		luaType["IsPastSimTimeLimit"] = &Timer::IsPastSimTimeLimit;
+		luaType["LeftTillSimTimeLimitMS"] = &Timer::LeftTillSimTimeLimitMS;
+		luaType["LeftTillSimTimeLimitS"] = &Timer::LeftTillSimTimeLimitS;
+		luaType["LeftTillSimMS"] = &Timer::LeftTillSimMS;
+		luaType["IsPastSimMS"] = &Timer::IsPastSimMS;
+		luaType["AlternateSim"] = &Timer::AlternateSim;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Vector) {
-		return luabind::class_<Vector>("Vector")
+		auto luaType = SimpleTypeLuaClassDefinition(Vector);
 
-		.def(luabind::constructor<>())
-		.def(luabind::constructor<float, float>())
-		.def(luabind::self == luabind::other<const Vector &>())
-		.def(luabind::const_self + luabind::other<const Vector &>())
-		.def(luabind::const_self - luabind::other<const Vector &>())
-		.def(luabind::const_self * float())
-		.def(luabind::const_self / float())
-		.def(luabind::tostring(luabind::const_self))
+		luaType.set(sol::call_constructor, sol::constructors<
+			Vector(),
+			Vector(float, float)
+		>());
 
-		.property("ClassName", &Vector::GetClassName)
-		.property("RoundedX", &Vector::GetRoundIntX)
-		.property("RoundedY", &Vector::GetRoundIntY)
-		.property("Rounded", &Vector::GetRounded)
-		.property("FlooredX", &Vector::GetFloorIntX)
-		.property("FlooredY", &Vector::GetFloorIntY)
-		.property("Floored", &Vector::GetFloored)
-		.property("CeilingedX", &Vector::GetCeilingIntX)
-		.property("CeilingedY", &Vector::GetCeilingIntY)
-		.property("Ceilinged", &Vector::GetCeilinged)
-		.property("Magnitude", &Vector::GetMagnitude)
-		.property("SqrMagnitude", &Vector::GetSqrMagnitude)
-		.property("Largest", &Vector::GetLargest)
-		.property("Smallest", &Vector::GetSmallest)
-		.property("Normalized", &Vector::GetNormalized)
-		.property("Perpendicular", &Vector::GetPerpendicular)
-		.property("AbsRadAngle", &Vector::GetAbsRadAngle, &Vector::SetAbsRadAngle)
-		.property("AbsDegAngle", &Vector::GetAbsDegAngle, &Vector::SetAbsDegAngle)
+		luaType[sol::meta_function::equal_to] = [](const Vector& lhs, const Vector& rhs) { return lhs == rhs; };
+		luaType[sol::meta_function::addition] = [](const Vector& lhs, const Vector& rhs) { return lhs + rhs; };
+		luaType[sol::meta_function::subtraction] = [](const Vector& lhs, const Vector& rhs) { return lhs - rhs; };
+		luaType[sol::meta_function::multiplication] = [](const Vector& lhs, const Vector& rhs) { return lhs * rhs; };
+		luaType[sol::meta_function::division] = [](const Vector& lhs, const Vector& rhs) { return lhs / rhs; };
+		luaType[sol::meta_function::to_string] = [](const Vector& obj) { std::stringstream stream; stream << obj; return stream.str(); };
 
-		.def_readwrite("X", &Vector::m_X)
-		.def_readwrite("Y", &Vector::m_Y)
+		luaType["ClassName"] = sol::property(&Vector::GetClassName);
+		luaType["RoundedX"] = sol::property(&Vector::GetRoundIntX);
+		luaType["RoundedY"] = sol::property(&Vector::GetRoundIntY);
+		luaType["Rounded"] = sol::property(&Vector::GetRounded);
+		luaType["FlooredX"] = sol::property(&Vector::GetFloorIntX);
+		luaType["FlooredY"] = sol::property(&Vector::GetFloorIntY);
+		luaType["Floored"] = sol::property(&Vector::GetFloored);
+		luaType["CeilingedX"] = sol::property(&Vector::GetCeilingIntX);
+		luaType["CeilingedY"] = sol::property(&Vector::GetCeilingIntY);
+		luaType["Ceilinged"] = sol::property(&Vector::GetCeilinged);
+		luaType["Magnitude"] = sol::property(&Vector::GetMagnitude);
+		luaType["SqrMagnitude"] = sol::property(&Vector::GetSqrMagnitude);
+		luaType["Largest"] = sol::property(&Vector::GetLargest);
+		luaType["Smallest"] = sol::property(&Vector::GetSmallest);
+		luaType["Normalized"] = sol::property(&Vector::GetNormalized);
+		luaType["Perpendicular"] = sol::property(&Vector::GetPerpendicular);
+		luaType["AbsRadAngle"] = sol::property(&Vector::GetAbsRadAngle, &Vector::SetAbsRadAngle);
+		luaType["AbsDegAngle"] = sol::property(&Vector::GetAbsDegAngle, &Vector::SetAbsDegAngle);
 
-		.def("MagnitudeIsGreaterThan", &Vector::MagnitudeIsGreaterThan)
-		.def("MagnitudeIsLessThan", &Vector::MagnitudeIsLessThan)
-		.def("SetMagnitude", &Vector::SetMagnitude)
-		.def("GetXFlipped", &Vector::GetXFlipped)
-		.def("GetYFlipped", &Vector::GetYFlipped)
-		.def("CapMagnitude", &Vector::CapMagnitude)
-		.def("ClampMagnitude", &Vector::ClampMagnitude)
-		.def("FlipX", &Vector::FlipX)
-		.def("FlipY", &Vector::FlipY)
-		.def("IsZero", &Vector::IsZero)
-		.def("IsOpposedTo", &Vector::IsOpposedTo)
-		.def("Dot", &Vector::Dot)
-		.def("Cross", &Vector::Cross)
-		.def("Round", &Vector::Round)
-		.def("ToHalf", &Vector::ToHalf)
-		.def("Floor", &Vector::Floor)
-		.def("Ceiling", &Vector::Ceiling)
-		.def("Normalize", &Vector::Normalize)
-		.def("Perpendicularize", &Vector::Perpendicularize)
-		.def("Reset", &Vector::Reset)
-		.def("RadRotate", &Vector::RadRotate)
-		.def("DegRotate", &Vector::DegRotate)
-		.def("GetRadRotatedCopy", &Vector::GetRadRotatedCopy)
-		.def("GetDegRotatedCopy", &Vector::GetDegRotatedCopy)
-		.def("AbsRotateTo", &Vector::AbsRotateTo)
-		.def("SetXY", &Vector::SetXY);
+		luaType["X"] = &Vector::m_X;
+		luaType["Y"] = &Vector::m_Y;
+
+		luaType["MagnitudeIsGreaterThan"] = &Vector::MagnitudeIsGreaterThan;
+		luaType["MagnitudeIsLessThan"] = &Vector::MagnitudeIsLessThan;
+		luaType["SetMagnitude"] = &Vector::SetMagnitude;
+		luaType["GetXFlipped"] = &Vector::GetXFlipped;
+		luaType["GetYFlipped"] = &Vector::GetYFlipped;
+		luaType["CapMagnitude"] = &Vector::CapMagnitude;
+		luaType["ClampMagnitude"] = &Vector::ClampMagnitude;
+		luaType["FlipX"] = &Vector::FlipX;
+		luaType["FlipY"] = &Vector::FlipY;
+		luaType["IsZero"] = &Vector::IsZero;
+		luaType["IsOpposedTo"] = &Vector::IsOpposedTo;
+		luaType["Dot"] = &Vector::Dot;
+		luaType["Cross"] = &Vector::Cross;
+		luaType["Round"] = &Vector::Round;
+		luaType["ToHalf"] = &Vector::ToHalf;
+		luaType["Floor"] = &Vector::Floor;
+		luaType["Ceiling"] = &Vector::Ceiling;
+		luaType["Normalize"] = &Vector::Normalize;
+		luaType["Perpendicularize"] = &Vector::Perpendicularize;
+		luaType["Reset"] = &Vector::Reset;
+		luaType["RadRotate"] = &Vector::RadRotate;
+		luaType["DegRotate"] = &Vector::DegRotate;
+		luaType["GetRadRotatedCopy"] = &Vector::GetRadRotatedCopy;
+		luaType["GetDegRotatedCopy"] = &Vector::GetDegRotatedCopy;
+		luaType["AbsRotateTo"] = &Vector::AbsRotateTo;
+		luaType["SetXY"] = &Vector::SetXY;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, PathRequest) {
-		using namespace micropather;
-		return luabind::class_<PathRequest>("PathRequest")
+		auto luaType = SimpleTypeLuaClassDefinition(PathRequest);
 
-		.def_readonly("Path", &PathRequest::path, luabind::return_stl_iterator)
-		.def_readonly("PathLength", &PathRequest::pathLength)
-		.def_readonly("Status", &PathRequest::status)
-		.def_readonly("TotalCost", &PathRequest::totalCost)
+		luaType["Path"] = sol::readonly(&PathRequest::path);
+		luaType["PathLength"] = sol::readonly(&PathRequest::pathLength);
+		luaType["Status"] = sol::readonly(&PathRequest::status);
+		luaType["TotalCost"] = sol::readonly(&PathRequest::totalCost);
 
-		.enum_("Status")[
-			luabind::value("Solved", micropather::MicroPather::SOLVED),
-			luabind::value("NoSolution", micropather::MicroPather::NO_SOLUTION),
-			luabind::value("StartEndSame", micropather::MicroPather::START_END_SAME)
-		];
+		luaType.new_enum<micropather::MicroPather::Status>("Status", {
+			{ "Solved", micropather::MicroPather::Status::SOLVED },
+			{ "NoSolution", micropather::MicroPather::Status::NO_SOLUTION },
+			{ "StartEndSame", micropather::MicroPather::Status::START_END_SAME }
+		});
 	}
 }

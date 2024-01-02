@@ -243,18 +243,14 @@ void MovableMan::UnregisterObject(MovableObject * mo)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::vector<MovableObject *> * MovableMan::GetMOsInBox(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const {
-    std::vector<MovableObject *> *vectorForLua = new std::vector<MovableObject *>();
-    *vectorForLua = std::move(g_SceneMan.GetMOIDGrid().GetMOsInBox(box, ignoreTeam, getsHitByMOsOnly));
-    return vectorForLua;
+const std::vector<MovableObject *> MovableMan::GetMOsInBox(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const {
+    return g_SceneMan.GetMOIDGrid().GetMOsInBox(box, ignoreTeam, getsHitByMOsOnly);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::vector<MovableObject *> * MovableMan::GetMOsInRadius(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const {
-    std::vector<MovableObject *> *vectorForLua = new std::vector<MovableObject *>();
-    *vectorForLua = std::move(g_SceneMan.GetMOIDGrid().GetMOsInRadius(centre, radius, ignoreTeam, getsHitByMOsOnly));
-    return vectorForLua;
+const std::vector<MovableObject *> MovableMan::GetMOsInRadius(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const {
+    return g_SceneMan.GetMOIDGrid().GetMOsInRadius(centre, radius, ignoreTeam, getsHitByMOsOnly);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1539,7 +1535,7 @@ void MovableMan::RedrawOverlappingMOIDs(MovableObject *pOverlapsThis)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<SolObjectWrapper*>& functionObjectArguments) {
     if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
         for (auto attachablrItr = mosr->GetAttachableList().begin(); attachablrItr != mosr->GetAttachableList().end(); ) {
             Attachable* attachable = *attachablrItr;
@@ -1563,7 +1559,7 @@ void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& function
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MovableMan::RunLuaFunctionOnAllMOs(const std::string &functionName, bool includeAdded, const std::vector<const Entity*> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, const std::vector<LuabindObjectWrapper*> &functionObjectArguments) {
+void MovableMan::RunLuaFunctionOnAllMOs(const std::string &functionName, bool includeAdded, const std::vector<const Entity*> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, const std::vector<SolObjectWrapper*> &functionObjectArguments) {
     if (includeAdded) {
         for (Actor* actor : m_AddedActors) {
             callLuaFunctionOnMORecursive(actor, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);

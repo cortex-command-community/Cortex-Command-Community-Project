@@ -14,7 +14,7 @@ struct lua_State;
 
 namespace RTE {
 
-	class LuabindObjectWrapper;
+	class SolObjectWrapper;
 	class MovableObject;
 
 	/// <summary>
@@ -141,13 +141,13 @@ namespace RTE {
 		/// Runs the given Lua function object. The first argument to the function will always be the self object.
 		/// If either argument list has entries, they will be passed into the function in order, with entity arguments first.
 		/// </summary>
-		/// <param name="functionObjectWrapper">The LuabindObjectWrapper containing the Lua function to be run.</param>
+		/// <param name="functionObjectWrapper">The SolObjectWrapper containing the Lua function to be run.</param>
 		/// <param name="selfGlobalTableName">The name of the global Lua table that gives access to the self object.</param>
 		/// <param name="selfGlobalTableKey">The key for this object in the respective global Lua table.</param>
 		/// <param name="functionEntityArguments">Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.</param>
 		/// <param name="functionLiteralArguments">Optional vector of strings that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int RunScriptFunctionObject(const LuabindObjectWrapper *functionObjectWrapper, const std::string &selfGlobalTableName, const std::string &selfGlobalTableKey, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*> &functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+		int RunScriptFunctionObject(const SolObjectWrapper *functionObjectWrapper, const std::string &selfGlobalTableName, const std::string &selfGlobalTableKey, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*> &functionObjectArguments = std::vector<SolObjectWrapper*>());
 
 		/// <summary>
 		/// Opens and loads a file containing a script and runs it on the state.
@@ -163,19 +163,19 @@ namespace RTE {
 		/// </summary>
 		/// <param name="filePath">The path to the file to load and run.</param>
 		/// <param name="functionNamesToLookFor">The vector of strings defining the function names to be retrieved.</param>
-		/// <param name="outFunctionNamesAndObjects">The map of function names to LuabindObjectWrappers to be retrieved from the script that was run.</param>
+		/// <param name="outFunctionNamesAndObjects">The map of function names to SolObjectWrappers to be retrieved from the script that was run.</param>
 		/// <returns>Returns whether functions were successfully retrieved.</returns>
-		bool RetrieveFunctions(const std::string& functionObjectName, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper*>& outFunctionNamesAndObjects);
+		bool RetrieveFunctions(const std::string& functionObjectName, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, SolObjectWrapper*>& outFunctionNamesAndObjects);
 
 		/// <summary>
 		/// Opens and loads a file containing a script and runs it on the state, then retrieves all of the specified functions that exist into the output map.
 		/// </summary>
 		/// <param name="filePath">The path to the file to load and run.</param>
 		/// <param name="functionNamesToLookFor">The vector of strings defining the function names to be retrieved.</param>
-		/// <param name="outFunctionNamesAndObjects">The map of function names to LuabindObjectWrappers to be retrieved from the script that was run.</param>
+		/// <param name="outFunctionNamesAndObjects">The map of function names to SolObjectWrappers to be retrieved from the script that was run.</param>
 		/// <param name="noCaching">Whether caching shouldn't be used.</param>
 		/// <returns>Returns less than zero if any errors encountered when running this script. To get the actual error string, call GetLastError.</returns>
-		int RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper *> &outFunctionNamesAndObjects, bool forceReload = false);
+		int RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, SolObjectWrapper *> &outFunctionNamesAndObjects, bool forceReload = false);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -319,7 +319,7 @@ namespace RTE {
 		std::recursive_mutex m_Mutex; //!< Mutex to ensure multiple threads aren't running something in this lua state simultaneously.
 
 		struct LuaScriptFunctionObjects {
-			std::unordered_map<std::string, LuabindObjectWrapper*> functionNamesAndObjects;
+			std::unordered_map<std::string, SolObjectWrapper*> functionNamesAndObjects;
 		};
 		std::unordered_map<std::string, LuaScriptFunctionObjects> m_ScriptCache;
 

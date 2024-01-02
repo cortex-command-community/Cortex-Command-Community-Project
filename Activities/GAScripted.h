@@ -18,7 +18,7 @@
 #include "GlobalScript.h"
 #include "Box.h"
 
-#include "LuabindObjectWrapper.h"
+#include "SolObjectWrapper.h"
 
 namespace RTE
 {
@@ -250,7 +250,7 @@ ClassInfoGetters;
 
 	void Draw(BITMAP *pTargetBitmap, const Vector& targetPos = Vector()) override;
 
-	int RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+	int RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*>& functionObjectArguments = std::vector<SolObjectWrapper*>());
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protected member variable and method declarations
@@ -292,7 +292,7 @@ protected:
     // The list of global scripts allowed to run during this activity
     std::vector<GlobalScript *> m_GlobalScriptsList;
 
-	std::unordered_map<std::string, std::unique_ptr<LuabindObjectWrapper>> m_ScriptFunctions; //!< A map of LuabindObjectWrappers that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
+	std::unordered_map<std::string, std::unique_ptr<SolObjectWrapper>> m_ScriptFunctions; //!< A map of SolObjectWrapper that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

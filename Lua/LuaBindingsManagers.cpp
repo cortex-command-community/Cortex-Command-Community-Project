@@ -2,457 +2,476 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "LuaAdapterDefinitions.h"
+
+#include "ActivityMan.h"
+#include "AudioMan.h"
+#include "CameraMan.h"
+#include "ConsoleMan.h"
+#include "FrameMan.h"
+#include "MetaMan.h"
+#include "MovableMan.h"
+#include "PerformanceMan.h"
+#include "PostProcessMan.h"
+#include "PresetMan.h"
+#include "PrimitiveMan.h"
+#include "SceneMan.h"
+#include "SettingsMan.h"
+#include "TimerMan.h"
+#include "UInputMan.h"
+
+#include "DataModule.h"
+#include "SLTerrain.h"
+
 namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ActivityMan) {
-		return luabind::class_<ActivityMan>("ActivityManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(ActivityMan, "ActivityManager");
 
-		.property("DefaultActivityType", &ActivityMan::GetDefaultActivityType, &ActivityMan::SetDefaultActivityType)
-		.property("DefaultActivityName", &ActivityMan::GetDefaultActivityName, &ActivityMan::SetDefaultActivityName)
+		luaType["DefaultActivityType"] = sol::property(&ActivityMan::GetDefaultActivityType, &ActivityMan::SetDefaultActivityType);
+		luaType["DefaultActivityName"] = sol::property(&ActivityMan::GetDefaultActivityName, &ActivityMan::SetDefaultActivityName);
 
-		.def("SetStartActivity", &ActivityMan::SetStartActivity, luabind::adopt(_2)) // Transfers ownership of the Activity to start into the ActivityMan, adopts ownership (_1 is the this ptr)
-		.def("GetStartActivity", &ActivityMan::GetStartActivity)
-		.def("GetActivity", &ActivityMan::GetActivity)
-		.def("StartActivity", (int (ActivityMan::*)(Activity *))&ActivityMan::StartActivity, luabind::adopt(_2)) // Transfers ownership of the Activity to start into the ActivityMan, adopts ownership (_1 is the this ptr)
-		.def("StartActivity", (int (ActivityMan::*)(const std::string &, const std::string &))&ActivityMan::StartActivity)
-		.def("RestartActivity", &ActivityMan::RestartActivity)
-		.def("PauseActivity", &ActivityMan::PauseActivity)
-		.def("EndActivity", &ActivityMan::EndActivity)
-		.def("ActivityRunning", &ActivityMan::ActivityRunning)
-		.def("ActivityPaused", &ActivityMan::ActivityPaused)
-		.def("SaveGame", &ActivityMan::SaveCurrentGame)
-		.def("LoadGame", &ActivityMan::LoadAndLaunchGame);
+		luaType["SetStartActivity"] = &ActivityMan::SetStartActivity;//; //, luabind::adopt(_2);
+		luaType["GetStartActivity"] = &ActivityMan::GetStartActivity;
+		luaType["GetActivity"] = &ActivityMan::GetActivity;
+		luaType["StartActivity"] = (int (ActivityMan::*)(Activity*)) &ActivityMan::StartActivity;//; //, luabind::adopt(_2);
+		luaType["StartActivity"] = (int (ActivityMan::*)(const std::string &, const std::string &))&ActivityMan::StartActivity;
+		luaType["RestartActivity"] = &ActivityMan::RestartActivity;
+		luaType["PauseActivity"] = &ActivityMan::PauseActivity;
+		luaType["EndActivity"] = &ActivityMan::EndActivity;
+		luaType["ActivityRunning"] = &ActivityMan::ActivityRunning;
+		luaType["ActivityPaused"] = &ActivityMan::ActivityPaused;
+		luaType["SaveGame"] = &ActivityMan::SaveCurrentGame;
+		luaType["LoadGame"] = &ActivityMan::LoadAndLaunchGame;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
-		return luabind::class_<AudioMan>("AudioManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(AudioMan, "AudioManager");
 
-		.property("MusicVolume", &AudioMan::GetMusicVolume, &AudioMan::SetMusicVolume)
-		.property("SoundsVolume", &AudioMan::GetSoundsVolume, &AudioMan::SetSoundsVolume)
+		luaType["MusicVolume"] = sol::property(&AudioMan::GetMusicVolume, &AudioMan::SetMusicVolume);
+		luaType["SoundsVolume"] = sol::property(&AudioMan::GetSoundsVolume, &AudioMan::SetSoundsVolume);
 
-		.def("StopAll", &AudioMan::StopAll)
-		.def("GetGlobalPitch", &AudioMan::GetGlobalPitch)
-		.def("IsMusicPlaying", &AudioMan::IsMusicPlaying)
-		.def("SetTempMusicVolume", &AudioMan::SetTempMusicVolume)
-		.def("GetMusicPosition", &AudioMan::GetMusicPosition)
-		.def("SetMusicPosition", &AudioMan::SetMusicPosition)
-		.def("SetMusicPitch", &AudioMan::SetMusicPitch)
-		.def("StopMusic", &AudioMan::StopMusic)
-		.def("PlayMusic", &AudioMan::PlayMusic)
-		.def("PlayNextStream", &AudioMan::PlayNextStream)
-		.def("StopMusic", &AudioMan::StopMusic)
-		.def("QueueMusicStream", &AudioMan::QueueMusicStream)
-		.def("QueueSilence", &AudioMan::QueueSilence)
-		.def("ClearMusicQueue", &AudioMan::ClearMusicQueue)
-		.def("PlaySound", (SoundContainer *(AudioMan:: *)(const std::string &filePath)) &AudioMan::PlaySound, luabind::adopt(luabind::result))
-		.def("PlaySound", (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position)) &AudioMan::PlaySound, luabind::adopt(luabind::result))
-		.def("PlaySound", (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position, int player)) &AudioMan::PlaySound, luabind::adopt(luabind::result));
+		luaType["StopAll"] = &AudioMan::StopAll;
+		luaType["GetGlobalPitch"] = &AudioMan::GetGlobalPitch;
+		luaType["IsMusicPlaying"] = &AudioMan::IsMusicPlaying;
+		luaType["SetTempMusicVolume"] = &AudioMan::SetTempMusicVolume;
+		luaType["GetMusicPosition"] = &AudioMan::GetMusicPosition;
+		luaType["SetMusicPosition"] = &AudioMan::SetMusicPosition;
+		luaType["SetMusicPitch"] = &AudioMan::SetMusicPitch;
+		luaType["StopMusic"] = &AudioMan::StopMusic;
+		luaType["PlayMusic"] = &AudioMan::PlayMusic;
+		luaType["PlayNextStream"] = &AudioMan::PlayNextStream;
+		luaType["StopMusic"] = &AudioMan::StopMusic;
+		luaType["QueueMusicStream"] = &AudioMan::QueueMusicStream;
+		luaType["QueueSilence"] = &AudioMan::QueueSilence;
+		luaType["ClearMusicQueue"] = &AudioMan::ClearMusicQueue;
+		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath)) &AudioMan::PlaySound;//; //, luabind::adopt(luabind::result);
+		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position)) &AudioMan::PlaySound;//; //, luabind::adopt(luabind::result);
+		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position, int player)) &AudioMan::PlaySound;//; //, luabind::adopt(luabind::result);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {
-		return luabind::class_<ConsoleMan>("ConsoleManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(ConsoleMan, "ConsoleManager");
 
-		.def("PrintString", &ConsoleMan::PrintString)
-		.def("SaveInputLog", &ConsoleMan::SaveInputLog)
-		.def("SaveAllText", &ConsoleMan::SaveAllText)
-		.def("Clear", &ConsoleMan::ClearLog);
+		luaType["PrintString"] = &ConsoleMan::PrintString;
+		luaType["SaveInputLog"] = &ConsoleMan::SaveInputLog;
+		luaType["SaveAllText"] = &ConsoleMan::SaveAllText;
+		luaType["Clear"] = &ConsoleMan::ClearLog;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, FrameMan) {
-		return luabind::class_<FrameMan>("FrameManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(FrameMan, "FrameManager");
 
-		.property("PlayerScreenWidth", &FrameMan::GetPlayerScreenWidth)
-		.property("PlayerScreenHeight", &FrameMan::GetPlayerScreenHeight)
+		luaType["PlayerScreenWidth"] = sol::property(&FrameMan::GetPlayerScreenWidth);
+		luaType["PlayerScreenHeight"] = sol::property(&FrameMan::GetPlayerScreenHeight);
 
-		.def("LoadPalette", &FrameMan::LoadPalette)
-		.def("SetScreenText", &FrameMan::SetScreenText)
-		.def("ClearScreenText", &FrameMan::ClearScreenText)
-		.def("FadeInPalette", &FrameMan::FadeInPalette)
-		.def("FadeOutPalette", &FrameMan::FadeOutPalette)
-		.def("SaveScreenToPNG", &FrameMan::SaveScreenToPNG)
-		.def("SaveBitmapToPNG", &FrameMan::SaveBitmapToPNG)
-		.def("FlashScreen", &FrameMan::FlashScreen)
-		.def("CalculateTextHeight", &FrameMan::CalculateTextHeight)
-		.def("CalculateTextWidth", &FrameMan::CalculateTextWidth)
-		.def("SplitStringToFitWidth", &FrameMan::SplitStringToFitWidth);
+		luaType["LoadPalette"] = &FrameMan::LoadPalette;
+		luaType["SetScreenText"] = &FrameMan::SetScreenText;
+		luaType["ClearScreenText"] = &FrameMan::ClearScreenText;
+		luaType["FadeInPalette"] = &FrameMan::FadeInPalette;
+		luaType["FadeOutPalette"] = &FrameMan::FadeOutPalette;
+		luaType["SaveScreenToPNG"] = &FrameMan::SaveScreenToPNG;
+		luaType["SaveBitmapToPNG"] = &FrameMan::SaveBitmapToPNG;
+		luaType["FlashScreen"] = &FrameMan::FlashScreen;
+		luaType["CalculateTextHeight"] = &FrameMan::CalculateTextHeight;
+		luaType["CalculateTextWidth"] = &FrameMan::CalculateTextWidth;
+		luaType["SplitStringToFitWidth"] = &FrameMan::SplitStringToFitWidth;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MetaMan) {
-		return luabind::class_<MetaMan>("MetaManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(MetaMan, "MetaManager");
 
-		.property("GameName", &MetaMan::GetGameName, &MetaMan::SetGameName)
-		.property("PlayerTurn", &MetaMan::GetPlayerTurn)
-		.property("PlayerCount", &MetaMan::GetPlayerCount)
+		luaType["GameName"] = sol::property(&MetaMan::GetGameName, &MetaMan::SetGameName);
+		luaType["PlayerTurn"] = sol::property(&MetaMan::GetPlayerTurn);
+		luaType["PlayerCount"] = sol::property(&MetaMan::GetPlayerCount);
 
-		.def_readwrite("Players", &MetaMan::m_Players, luabind::return_stl_iterator)
+		luaType["Players"] = &MetaMan::m_Players;
 
-		.def("GetTeamOfPlayer", &MetaMan::GetTeamOfPlayer)
-		.def("GetPlayer", &MetaMan::GetPlayer)
-		.def("GetMetaPlayerOfInGamePlayer", &MetaMan::GetMetaPlayerOfInGamePlayer);
+		luaType["GetTeamOfPlayer"] = &MetaMan::GetTeamOfPlayer;
+		luaType["GetPlayer"] = &MetaMan::GetPlayer;
+		luaType["GetMetaPlayerOfInGamePlayer"] = &MetaMan::GetMetaPlayerOfInGamePlayer;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
-		return luabind::class_<MovableMan>("MovableManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(MovableMan, "MovableManager");
 
-		.property("MaxDroppedItems", &MovableMan::GetMaxDroppedItems, &MovableMan::SetMaxDroppedItems)
+		luaType["MaxDroppedItems"] = sol::property(&MovableMan::GetMaxDroppedItems, &MovableMan::SetMaxDroppedItems);
 
-		.def_readwrite("Actors", &MovableMan::m_Actors, luabind::return_stl_iterator)
-		.def_readwrite("Items", &MovableMan::m_Items, luabind::return_stl_iterator)
-		.def_readwrite("Particles", &MovableMan::m_Particles, luabind::return_stl_iterator)
-		.def_readwrite("AddedActors", &MovableMan::m_AddedActors, luabind::return_stl_iterator)
-		.def_readwrite("AddedItems", &MovableMan::m_AddedItems, luabind::return_stl_iterator)
-		.def_readwrite("AddedParticles", &MovableMan::m_AddedParticles, luabind::return_stl_iterator)
-		.def_readwrite("AlarmEvents", &MovableMan::m_AlarmEvents, luabind::return_stl_iterator)
-		.def_readwrite("AddedAlarmEvents", &MovableMan::m_AddedAlarmEvents, luabind::return_stl_iterator)
+		luaType["Actors"] = &MovableMan::m_Actors;
+		luaType["Items"] = &MovableMan::m_Items;
+		luaType["Particles"] = &MovableMan::m_Particles;
+		luaType["AddedActors"] = &MovableMan::m_AddedActors;
+		luaType["AddedItems"] = &MovableMan::m_AddedItems;
+		luaType["AddedParticles"] = &MovableMan::m_AddedParticles;
+		luaType["AlarmEvents"] = &MovableMan::m_AlarmEvents;
+		luaType["AddedAlarmEvents"] = &MovableMan::m_AddedAlarmEvents;
 
-		.def("GetMOFromID", &MovableMan::GetMOFromID)
-		.def("FindObjectByUniqueID", &MovableMan::FindObjectByUniqueID)
-		.def("GetMOIDCount", &MovableMan::GetMOIDCount)
-		.def("GetTeamMOIDCount", &MovableMan::GetTeamMOIDCount)
-		.def("PurgeAllMOs", &MovableMan::PurgeAllMOs)
-		.def("GetNextActorInGroup", &MovableMan::GetNextActorInGroup)
-		.def("GetPrevActorInGroup", &MovableMan::GetPrevActorInGroup)
-		.def("GetNextTeamActor", &MovableMan::GetNextTeamActor)
-		.def("GetPrevTeamActor", &MovableMan::GetPrevTeamActor)
-		.def("GetClosestTeamActor", (Actor * (MovableMan::*)(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, const Actor *excludeThis))&MovableMan::GetClosestTeamActor)
-		.def("GetClosestTeamActor", (Actor * (MovableMan::*)(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, bool onlyPlayerControllableActors, const Actor *excludeThis))&MovableMan::GetClosestTeamActor)
-		.def("GetClosestEnemyActor", &MovableMan::GetClosestEnemyActor)
-		.def("GetFirstTeamActor", &MovableMan::GetFirstTeamActor)
-		.def("GetClosestActor", &MovableMan::GetClosestActor)
-		.def("GetClosestBrainActor", &MovableMan::GetClosestBrainActor)
-		.def("GetFirstBrainActor", &MovableMan::GetFirstBrainActor)
-		.def("GetClosestOtherBrainActor", &MovableMan::GetClosestOtherBrainActor)
-		.def("GetFirstOtherBrainActor", &MovableMan::GetFirstOtherBrainActor)
-		.def("GetUnassignedBrain", &MovableMan::GetUnassignedBrain)
-		.def("GetParticleCount", &MovableMan::GetParticleCount)
-		.def("GetSplashRatio", &MovableMan::GetSplashRatio)
-		.def("SortTeamRoster", &MovableMan::SortTeamRoster)
-		.def("ChangeActorTeam", &MovableMan::ChangeActorTeam)
-		.def("RemoveActor", &MovableMan::RemoveActor, luabind::adopt(luabind::return_value))
-		.def("RemoveItem", &MovableMan::RemoveItem, luabind::adopt(luabind::return_value))
-		.def("RemoveParticle", &MovableMan::RemoveParticle, luabind::adopt(luabind::return_value))
-		.def("ValidMO", &MovableMan::ValidMO)
-		.def("IsActor", &MovableMan::IsActor)
-		.def("IsDevice", &MovableMan::IsDevice)
-		.def("IsParticle", &MovableMan::IsParticle)
-		.def("IsOfActor", &MovableMan::IsOfActor)
-		.def("GetRootMOID", &MovableMan::GetRootMOID)
-		.def("RemoveMO", &MovableMan::RemoveMO)
-		.def("KillAllTeamActors", &MovableMan::KillAllTeamActors)
-		.def("KillAllEnemyActors", &MovableMan::KillAllEnemyActors)
-		.def("OpenAllDoors", &MovableMan::OpenAllDoors)
-		.def("IsParticleSettlingEnabled", &MovableMan::IsParticleSettlingEnabled)
-		.def("EnableParticleSettling", &MovableMan::EnableParticleSettling)
-		.def("IsMOSubtractionEnabled", &MovableMan::IsMOSubtractionEnabled)
-		.def("GetMOsInBox", (const std::vector<MovableObject *> * (MovableMan::*)(const Box &box) const)&MovableMan::GetMOsInBox, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-		.def("GetMOsInBox", (const std::vector<MovableObject *> * (MovableMan::*)(const Box &box, int ignoreTeam) const)&MovableMan::GetMOsInBox, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-		.def("GetMOsInBox", (const std::vector<MovableObject *> * (MovableMan::*)(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInBox, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-		.def("GetMOsInRadius", (const std::vector<MovableObject *> * (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-		
-		.def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage1)
-		.def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage2)
-		.def("AddMO", &LuaAdaptersMovableMan::AddMO, luabind::adopt(_2))
-		.def("AddActor", &LuaAdaptersMovableMan::AddActor, luabind::adopt(_2))
-		.def("AddItem", &LuaAdaptersMovableMan::AddItem, luabind::adopt(_2))
-		.def("AddParticle", &LuaAdaptersMovableMan::AddParticle, luabind::adopt(_2));
+		luaType["GetMOFromID"] = &MovableMan::GetMOFromID;
+		luaType["FindObjectByUniqueID"] = &MovableMan::FindObjectByUniqueID;
+		luaType["GetMOIDCount"] = &MovableMan::GetMOIDCount;
+		luaType["GetTeamMOIDCount"] = &MovableMan::GetTeamMOIDCount;
+		luaType["PurgeAllMOs"] = &MovableMan::PurgeAllMOs;
+		luaType["GetNextActorInGroup"] = &MovableMan::GetNextActorInGroup;
+		luaType["GetPrevActorInGroup"] = &MovableMan::GetPrevActorInGroup;
+		luaType["GetNextTeamActor"] = &MovableMan::GetNextTeamActor;
+		luaType["GetPrevTeamActor"] = &MovableMan::GetPrevTeamActor;
+		luaType["GetClosestTeamActor"] = (Actor * (MovableMan::*)(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, const Actor *excludeThis))&MovableMan::GetClosestTeamActor;
+		luaType["GetClosestTeamActor"] = (Actor * (MovableMan::*)(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, bool onlyPlayerControllableActors, const Actor *excludeThis))&MovableMan::GetClosestTeamActor;
+		luaType["GetClosestEnemyActor"] = &MovableMan::GetClosestEnemyActor;
+		luaType["GetFirstTeamActor"] = &MovableMan::GetFirstTeamActor;
+		luaType["GetClosestActor"] = &MovableMan::GetClosestActor;
+		luaType["GetClosestBrainActor"] = &MovableMan::GetClosestBrainActor;
+		luaType["GetFirstBrainActor"] = &MovableMan::GetFirstBrainActor;
+		luaType["GetClosestOtherBrainActor"] = &MovableMan::GetClosestOtherBrainActor;
+		luaType["GetFirstOtherBrainActor"] = &MovableMan::GetFirstOtherBrainActor;
+		luaType["GetUnassignedBrain"] = &MovableMan::GetUnassignedBrain;
+		luaType["GetParticleCount"] = &MovableMan::GetParticleCount;
+		luaType["GetSplashRatio"] = &MovableMan::GetSplashRatio;
+		luaType["SortTeamRoster"] = &MovableMan::SortTeamRoster;
+		luaType["ChangeActorTeam"] = &MovableMan::ChangeActorTeam;
+		luaType["RemoveActor"] = &MovableMan::RemoveActor; //, luabind::adopt(luabind::return_value))
+		luaType["RemoveItem"] = &MovableMan::RemoveItem; //, luabind::adopt(luabind::return_value))
+		luaType["RemoveParticle"] = &MovableMan::RemoveParticle; //, luabind::adopt(luabind::return_value))
+		luaType["ValidMO"] = &MovableMan::ValidMO;
+		luaType["IsActor"] = &MovableMan::IsActor;
+		luaType["IsDevice"] = &MovableMan::IsDevice;
+		luaType["IsParticle"] = &MovableMan::IsParticle;
+		luaType["IsOfActor"] = &MovableMan::IsOfActor;
+		luaType["GetRootMOID"] = &MovableMan::GetRootMOID;
+		luaType["RemoveMO"] = &MovableMan::RemoveMO;
+		luaType["KillAllTeamActors"] = &MovableMan::KillAllTeamActors;
+		luaType["KillAllEnemyActors"] = &MovableMan::KillAllEnemyActors;
+		luaType["OpenAllDoors"] = &MovableMan::OpenAllDoors;
+		luaType["IsParticleSettlingEnabled"] = &MovableMan::IsParticleSettlingEnabled;
+		luaType["EnableParticleSettling"] = &MovableMan::EnableParticleSettling;
+		luaType["IsMOSubtractionEnabled"] = &MovableMan::IsMOSubtractionEnabled;
+		luaType["GetMOsInBox"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Box &box) const)&MovableMan::GetMOsInBox;
+		luaType["GetMOsInBox"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Box &box, int ignoreTeam) const)&MovableMan::GetMOsInBox;
+		luaType["GetMOsInBox"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInBox;
+		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius) const)&MovableMan::GetMOsInRadius;
+		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam) const)&MovableMan::GetMOsInRadius;
+		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInRadius;
+
+		luaType["SendGlobalMessage"] = &LuaAdaptersMovableMan::SendGlobalMessage1;
+		luaType["SendGlobalMessage"] = &LuaAdaptersMovableMan::SendGlobalMessage2;
+		luaType["AddMO"] = &LuaAdaptersMovableMan::AddMO; //, luabind::adopt(_2);
+		luaType["AddActor"] = &LuaAdaptersMovableMan::AddActor; //, luabind::adopt(_2);
+		luaType["AddItem"] = &LuaAdaptersMovableMan::AddItem; //, luabind::adopt(_2);
+		luaType["AddParticle"] = &LuaAdaptersMovableMan::AddParticle; //, luabind::adopt(_2);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PerformanceMan) {
-		return luabind::class_<PerformanceMan>("PerformanceManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(PerformanceMan, "PerformanceManager");
 
-		.property("ShowPerformanceStats", &PerformanceMan::IsShowingPerformanceStats, &PerformanceMan::ShowPerformanceStats);
+		luaType["ShowPerformanceStats"] = sol::property(&PerformanceMan::IsShowingPerformanceStats, &PerformanceMan::ShowPerformanceStats);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PostProcessMan) {
-		return luabind::class_<PostProcessMan>("PostProcessManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(PostProcessMan, "PostProcessManager");
 
-		.def("RegisterPostEffect", &PostProcessMan::RegisterPostEffect);
+		luaType["RegisterPostEffect"] = &PostProcessMan::RegisterPostEffect;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
-		return luabind::class_<PresetMan>("PresetManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(PresetMan, "PresetManager");
 
-		.def_readwrite("Modules", &PresetMan::m_pDataModules, luabind::return_stl_iterator)
+		luaType["Modules"] = &PresetMan::m_pDataModules;
 
-		.def("LoadDataModule", (bool (PresetMan::*)(const std::string &))&PresetMan::LoadDataModule)
-		.def("GetDataModule", &PresetMan::GetDataModule)
-		.def("GetModuleID", &PresetMan::GetModuleID)
-		.def("GetModuleIDFromPath", &PresetMan::GetModuleIDFromPath)
-		.def("GetTotalModuleCount", &PresetMan::GetTotalModuleCount)
-		.def("GetOfficialModuleCount", &PresetMan::GetOfficialModuleCount)
-		.def("AddPreset", &PresetMan::AddEntityPreset)
-		.def("GetPreset", (const Entity *(PresetMan::*)(std::string, std::string, int))&PresetMan::GetEntityPreset)
-		.def("GetPreset", (const Entity *(PresetMan::*)(std::string, std::string, std::string))&PresetMan::GetEntityPreset)
-		.def("GetLoadout", (Actor * (PresetMan::*)(std::string, std::string, bool))&PresetMan::GetLoadout, luabind::adopt(luabind::result))
-		.def("GetLoadout", (Actor * (PresetMan::*)(std::string, int, bool))&PresetMan::GetLoadout, luabind::adopt(luabind::result))
-		.def("GetRandomOfGroup", &PresetMan::GetRandomOfGroup)
-		.def("GetRandomOfGroupInModuleSpace", &PresetMan::GetRandomOfGroupInModuleSpace)
-		.def("GetEntityDataLocation", &PresetMan::GetEntityDataLocation)
-		.def("ReadReflectedPreset", &PresetMan::ReadReflectedPreset)
-		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset1)
-		.def("ReloadEntityPreset", &LuaAdaptersPresetMan::ReloadEntityPreset2)
-		.def("GetAllEntities", &LuaAdaptersPresetMan::GetAllEntities, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
-		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
-		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup2, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
-		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup3, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
-		.def("ReloadAllScripts", &PresetMan::ReloadAllScripts)
-		.def("IsModuleOfficial", &PresetMan::IsModuleOfficial)
-		.def("IsModuleUserdata", &PresetMan::IsModuleUserdata)
-		.def("GetFullModulePath", &PresetMan::GetFullModulePath);
+		luaType["LoadDataModule"] = (bool (PresetMan::*)(const std::string &))&PresetMan::LoadDataModule;
+		luaType["GetDataModule"] = &PresetMan::GetDataModule;
+		luaType["GetModuleID"] = &PresetMan::GetModuleID;
+		luaType["GetModuleIDFromPath"] = &PresetMan::GetModuleIDFromPath;
+		luaType["GetTotalModuleCount"] = &PresetMan::GetTotalModuleCount;
+		luaType["GetOfficialModuleCount"] = &PresetMan::GetOfficialModuleCount;
+		luaType["AddPreset"] = &PresetMan::AddEntityPreset;
+		luaType["GetPreset"] = (const Entity *(PresetMan::*)(std::string, std::string, int))&PresetMan::GetEntityPreset;
+		luaType["GetPreset"] = (const Entity *(PresetMan::*)(std::string, std::string, std::string))&PresetMan::GetEntityPreset;
+		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, std::string, bool))&PresetMan::GetLoadout; //, luabind::adopt(luabind::result);
+		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, int, bool))&PresetMan::GetLoadout; //, luabind::adopt(luabind::result);
+		luaType["GetRandomOfGroup"] = &PresetMan::GetRandomOfGroup;
+		luaType["GetRandomOfGroupInModuleSpace"] = &PresetMan::GetRandomOfGroupInModuleSpace;
+		luaType["GetEntityDataLocation"] = &PresetMan::GetEntityDataLocation;
+		luaType["ReadReflectedPreset"] = &PresetMan::ReadReflectedPreset;
+		luaType["ReloadEntityPreset"] = &LuaAdaptersPresetMan::ReloadEntityPreset1;
+		luaType["ReloadEntityPreset"] = &LuaAdaptersPresetMan::ReloadEntityPreset2;
+		luaType["GetAllEntities"] = &LuaAdaptersPresetMan::GetAllEntities; //, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		luaType["GetAllEntitiesOfGroup"] = &LuaAdaptersPresetMan::GetAllEntitiesOfGroup; //, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		luaType["GetAllEntitiesOfGroup"] = &LuaAdaptersPresetMan::GetAllEntitiesOfGroup2; //, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		luaType["GetAllEntitiesOfGroup"] = &LuaAdaptersPresetMan::GetAllEntitiesOfGroup3; //, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
+		luaType["ReloadAllScripts"] = &PresetMan::ReloadAllScripts;
+		luaType["IsModuleOfficial"] = &PresetMan::IsModuleOfficial;
+		luaType["IsModuleUserdata"] = &PresetMan::IsModuleUserdata;
+		luaType["GetFullModulePath"] = &PresetMan::GetFullModulePath;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PrimitiveMan) {
-		return luabind::class_<PrimitiveMan>("PrimitiveManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(PrimitiveMan, "PrimitiveManager");
 
-		.def("DrawLinePrimitive", (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawLinePrimitive)
-		.def("DrawLinePrimitive", (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color, int thickness))&PrimitiveMan::DrawLinePrimitive)
-		.def("DrawLinePrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawLinePrimitive)
-		.def("DrawLinePrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color, int thickness))&PrimitiveMan::DrawLinePrimitive)
-		.def("DrawArcPrimitive", (void (PrimitiveMan::*)(const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color))&PrimitiveMan::DrawArcPrimitive)
-		.def("DrawArcPrimitive", (void (PrimitiveMan::*)(const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color, int thickness))&PrimitiveMan::DrawArcPrimitive)
-		.def("DrawArcPrimitive", (void (PrimitiveMan::*)(int player, const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color))&PrimitiveMan::DrawArcPrimitive)
-		.def("DrawArcPrimitive", (void (PrimitiveMan::*)(int player, const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color, int thickness))&PrimitiveMan::DrawArcPrimitive)
-		.def("DrawSplinePrimitive", (void (PrimitiveMan::*)(const Vector &start, const Vector &guideA, const Vector &guideB, const Vector &end, unsigned char color))&PrimitiveMan::DrawSplinePrimitive)
-		.def("DrawSplinePrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &guideA, const Vector &guideB, const Vector &end, unsigned char color))&PrimitiveMan::DrawSplinePrimitive)
-		.def("DrawBoxPrimitive", (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxPrimitive)
-		.def("DrawBoxPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxPrimitive)
-		.def("DrawBoxFillPrimitive", (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxFillPrimitive)
-		.def("DrawBoxFillPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxFillPrimitive)
-		.def("DrawRoundedBoxPrimitive", (void (PrimitiveMan::*)(const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxPrimitive)
-		.def("DrawRoundedBoxPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxPrimitive)
-		.def("DrawRoundedBoxFillPrimitive", (void (PrimitiveMan::*)(const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxFillPrimitive)
-		.def("DrawRoundedBoxFillPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxFillPrimitive)
-		.def("DrawCirclePrimitive", (void (PrimitiveMan::*)(const Vector & pos, int radius, unsigned char color))&PrimitiveMan::DrawCirclePrimitive)
-		.def("DrawCirclePrimitive", (void (PrimitiveMan::*)(int player, const Vector &pos, int radius, unsigned char color))&PrimitiveMan::DrawCirclePrimitive)
-		.def("DrawCircleFillPrimitive", (void (PrimitiveMan::*)(const Vector &pos, int radius, unsigned char color))&PrimitiveMan::DrawCircleFillPrimitive)
-		.def("DrawCircleFillPrimitive", (void (PrimitiveMan::*)(int player, const Vector &pos, int radius, unsigned char color))&PrimitiveMan::DrawCircleFillPrimitive)
-		.def("DrawEllipsePrimitive", (void (PrimitiveMan::*)(const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipsePrimitive)
-		.def("DrawEllipsePrimitive", (void (PrimitiveMan::*)(int player, const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipsePrimitive)
-		.def("DrawEllipseFillPrimitive", (void (PrimitiveMan::*)(const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipseFillPrimitive)
-		.def("DrawEllipseFillPrimitive", (void (PrimitiveMan::*)(int player, const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipseFillPrimitive)
-		.def("DrawTrianglePrimitive", (void (PrimitiveMan::*)(const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTrianglePrimitive)
-		.def("DrawTrianglePrimitive", (void (PrimitiveMan::*)(int player, const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTrianglePrimitive)
-		.def("DrawTriangleFillPrimitive", (void (PrimitiveMan::*)(const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTriangleFillPrimitive)
-		.def("DrawTriangleFillPrimitive", (void (PrimitiveMan::*)(int player, const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTriangleFillPrimitive)
-		.def("DrawTextPrimitive", (void (PrimitiveMan::*)(const Vector &start, const std::string &text, bool isSmall, int alignment))&PrimitiveMan::DrawTextPrimitive)
-		.def("DrawTextPrimitive", (void (PrimitiveMan::*)(const Vector &start, const std::string &text, bool isSmall, int alignment, float rotAngle))&PrimitiveMan::DrawTextPrimitive)
-		.def("DrawTextPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &text, bool isSmall, int alignment))&PrimitiveMan::DrawTextPrimitive)
-		.def("DrawTextPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &text, bool isSmall, int alignment, float rotAngle))&PrimitiveMan::DrawTextPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, const MOSprite *moSprite, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, const MOSprite *moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const MOSprite *moSprite, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const MOSprite *moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, const std::string &filePath, float rotAngle))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(const Vector &start, const std::string &filePath, float rotAngle, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &filePath, float rotAngle))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawBitmapPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &filePath, float rotAngle, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive)
-		.def("DrawIconPrimitive", (void (PrimitiveMan::*)(const Vector &start, Entity *entity))&PrimitiveMan::DrawIconPrimitive)
-		.def("DrawIconPrimitive", (void (PrimitiveMan::*)(int player, const Vector &start, Entity *entity))&PrimitiveMan::DrawIconPrimitive)
+		luaType["DrawLinePrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawLinePrimitive;
+		luaType["DrawLinePrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color, int thickness))&PrimitiveMan::DrawLinePrimitive;
+		luaType["DrawLinePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawLinePrimitive;
+		luaType["DrawLinePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color, int thickness))&PrimitiveMan::DrawLinePrimitive;
+		luaType["DrawArcPrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color))&PrimitiveMan::DrawArcPrimitive;
+		luaType["DrawArcPrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color, int thickness))&PrimitiveMan::DrawArcPrimitive;
+		luaType["DrawArcPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color))&PrimitiveMan::DrawArcPrimitive;
+		luaType["DrawArcPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color, int thickness))&PrimitiveMan::DrawArcPrimitive;
+		luaType["DrawSplinePrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &guideA, const Vector &guideB, const Vector &end, unsigned char color))&PrimitiveMan::DrawSplinePrimitive;
+		luaType["DrawSplinePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &guideA, const Vector &guideB, const Vector &end, unsigned char color))&PrimitiveMan::DrawSplinePrimitive;
+		luaType["DrawBoxPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxPrimitive;
+		luaType["DrawBoxPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxPrimitive;
+		luaType["DrawBoxFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxFillPrimitive;
+		luaType["DrawBoxFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxFillPrimitive;
+		luaType["DrawRoundedBoxPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxPrimitive;
+		luaType["DrawRoundedBoxPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxPrimitive;
+		luaType["DrawRoundedBoxFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxFillPrimitive;
+		luaType["DrawRoundedBoxFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxFillPrimitive;
+		luaType["DrawCirclePrimitive"] = (void (PrimitiveMan::*)(const Vector & pos, int radius, unsigned char color))&PrimitiveMan::DrawCirclePrimitive;
+		luaType["DrawCirclePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, int radius, unsigned char color))&PrimitiveMan::DrawCirclePrimitive;
+		luaType["DrawCircleFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, int radius, unsigned char color))&PrimitiveMan::DrawCircleFillPrimitive;
+		luaType["DrawCircleFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, int radius, unsigned char color))&PrimitiveMan::DrawCircleFillPrimitive;
+		luaType["DrawEllipsePrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipsePrimitive;
+		luaType["DrawEllipsePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipsePrimitive;
+		luaType["DrawEllipseFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipseFillPrimitive;
+		luaType["DrawEllipseFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipseFillPrimitive;
+		luaType["DrawTrianglePrimitive"] = (void (PrimitiveMan::*)(const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTrianglePrimitive;
+		luaType["DrawTrianglePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTrianglePrimitive;
+		luaType["DrawTriangleFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTriangleFillPrimitive;
+		luaType["DrawTriangleFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTriangleFillPrimitive;
+		luaType["DrawTextPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const std::string &text, bool isSmall, int alignment))&PrimitiveMan::DrawTextPrimitive;
+		luaType["DrawTextPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const std::string &text, bool isSmall, int alignment, float rotAngle))&PrimitiveMan::DrawTextPrimitive;
+		luaType["DrawTextPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &text, bool isSmall, int alignment))&PrimitiveMan::DrawTextPrimitive;
+		luaType["DrawTextPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &text, bool isSmall, int alignment, float rotAngle))&PrimitiveMan::DrawTextPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const MOSprite *moSprite, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const MOSprite *moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const MOSprite *moSprite, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const MOSprite *moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const std::string &filePath, float rotAngle))&PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const std::string &filePath, float rotAngle, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &filePath, float rotAngle))&PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &filePath, float rotAngle, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawIconPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, Entity *entity))&PrimitiveMan::DrawIconPrimitive;
+		luaType["DrawIconPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, Entity *entity))&PrimitiveMan::DrawIconPrimitive;
 
-		.def("DrawPolygonPrimitive", &LuaAdaptersPrimitiveMan::DrawPolygonPrimitive)
-		.def("DrawPolygonPrimitive", &LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer)
-		.def("DrawPolygonFillPrimitive", &LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive)
-		.def("DrawPolygonFillPrimitive", &LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer)
-		.def("DrawPrimitives", &LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency)
-		.def("DrawPrimitives", &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending)
-		.def("DrawPrimitives", &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel);
+		luaType["DrawPolygonPrimitive"] = &LuaAdaptersPrimitiveMan::DrawPolygonPrimitive;
+		luaType["DrawPolygonPrimitive"] = &LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer;
+		luaType["DrawPolygonFillPrimitive"] = &LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive;
+		luaType["DrawPolygonFillPrimitive"] = &LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer;
+		luaType["DrawPrimitives"] = &LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency;
+		luaType["DrawPrimitives"] = &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending;
+		luaType["DrawPrimitives"] = &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
-		return luabind::class_<SceneMan>("SceneManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(SceneMan, "SceneManager");
 
-		.property("Scene", &SceneMan::GetScene)
-		.property("SceneDim", &SceneMan::GetSceneDim)
-		.property("SceneWidth", &SceneMan::GetSceneWidth)
-		.property("SceneHeight", &SceneMan::GetSceneHeight)
-		.property("SceneWrapsX", &SceneMan::SceneWrapsX)
-		.property("SceneWrapsY", &SceneMan::SceneWrapsY)
-		.property("SceneOrbitDirection", &SceneMan::GetSceneOrbitDirection)
-		.property("LayerDrawMode", &SceneMan::GetLayerDrawMode, &SceneMan::SetLayerDrawMode)
-		.property("GlobalAcc", &SceneMan::GetGlobalAcc)
-		.property("OzPerKg", &SceneMan::GetOzPerKg)
-		.property("KgPerOz", &SceneMan::GetKgPerOz)
-		.property("ScrapCompactingHeight", &SceneMan::GetScrapCompactingHeight, &SceneMan::SetScrapCompactingHeight)
+		luaType["Scene"] = sol::property(&SceneMan::GetScene);
+		luaType["SceneDim"] = sol::property(&SceneMan::GetSceneDim);
+		luaType["SceneWidth"] = sol::property(&SceneMan::GetSceneWidth);
+		luaType["SceneHeight"] = sol::property(&SceneMan::GetSceneHeight);
+		luaType["SceneWrapsX"] = sol::property(&SceneMan::SceneWrapsX);
+		luaType["SceneWrapsY"] = sol::property(&SceneMan::SceneWrapsY);
+		luaType["SceneOrbitDirection"] = sol::property(&SceneMan::GetSceneOrbitDirection);
+		luaType["LayerDrawMode"] = sol::property(&SceneMan::GetLayerDrawMode, &SceneMan::SetLayerDrawMode);
+		luaType["GlobalAcc"] = sol::property(&SceneMan::GetGlobalAcc);
+		luaType["OzPerKg"] = sol::property(&SceneMan::GetOzPerKg);
+		luaType["KgPerOz"] = sol::property(&SceneMan::GetKgPerOz);
+		luaType["ScrapCompactingHeight"] = sol::property(&SceneMan::GetScrapCompactingHeight, &SceneMan::SetScrapCompactingHeight);
 
-		.def("LoadScene", (int (SceneMan::*)(std::string, bool, bool))&SceneMan::LoadScene)
-		.def("LoadScene", (int (SceneMan::*)(std::string, bool))&SceneMan::LoadScene)
+		luaType["LoadScene"] = (int (SceneMan::*)(std::string, bool, bool))&SceneMan::LoadScene;
+		luaType["LoadScene"] = (int (SceneMan::*)(std::string, bool))&SceneMan::LoadScene;
 
-		.def("GetTerrain", &SceneMan::GetTerrain)
-		.def("GetMaterial", &SceneMan::GetMaterial)
-		.def("GetMaterialFromID", &SceneMan::GetMaterialFromID)
-		.def("GetTerrMatter", &SceneMan::GetTerrMatter)
-		.def("GetMOIDPixel", (MOID (SceneMan::*)(int, int))&SceneMan::GetMOIDPixel)
-		.def("GetMOIDPixel", (MOID (SceneMan::*)(int, int, int))&SceneMan::GetMOIDPixel)
-		.def("SetLayerDrawMode", &SceneMan::SetLayerDrawMode)
-		.def("LoadUnseenLayer", &SceneMan::LoadUnseenLayer)
-		.def("MakeAllUnseen", &SceneMan::MakeAllUnseen)
-		.def("AnythingUnseen", &SceneMan::AnythingUnseen)
-		.def("GetUnseenResolution", &SceneMan::GetUnseenResolution)
-		.def("IsUnseen", &SceneMan::IsUnseen)
-		.def("RevealUnseen", &SceneMan::RevealUnseen)
-		.def("RevealUnseenBox", &SceneMan::RevealUnseenBox)
-		.def("RestoreUnseen", &SceneMan::RestoreUnseen)
-		.def("RestoreUnseenBox", &SceneMan::RestoreUnseenBox)
-		.def("CastSeeRay", &SceneMan::CastSeeRay)
-		.def("CastUnseeRay", &SceneMan::CastUnseeRay)
-		.def("CastUnseenRay", &SceneMan::CastUnseenRay)
-		.def("CastMaterialRay", (bool (SceneMan::*)(const Vector &, const Vector &, unsigned char, Vector &, int, bool))&SceneMan::CastMaterialRay)
-		.def("CastMaterialRay", (float (SceneMan::*)(const Vector &, const Vector &, unsigned char, int))&SceneMan::CastMaterialRay)
-		.def("CastNotMaterialRay", (bool (SceneMan::*)(const Vector &, const Vector &, unsigned char, Vector &, int, bool))&SceneMan::CastNotMaterialRay)
-		.def("CastNotMaterialRay", (float (SceneMan::*)(const Vector &, const Vector &, unsigned char, int, bool))&SceneMan::CastNotMaterialRay)
-		.def("CastStrengthSumRay", &SceneMan::CastStrengthSumRay)
-		.def("CastMaxStrengthRay", (float (SceneMan::*) (const Vector &, const Vector &, int, unsigned char))&SceneMan::CastMaxStrengthRay)
-		.def("CastMaxStrengthRay", (float (SceneMan::*) (const Vector &, const Vector &, int))&SceneMan::CastMaxStrengthRay)
-		.def("CastStrengthRay", &SceneMan::CastStrengthRay)
-		.def("CastWeaknessRay", &SceneMan::CastWeaknessRay)
-		.def("CastMORay", &SceneMan::CastMORay)
-		.def("CastFindMORay", &SceneMan::CastFindMORay)
-		.def("CastObstacleRay", &SceneMan::CastObstacleRay)
-		.def("GetLastRayHitPos", &SceneMan::GetLastRayHitPos)
-		.def("FindAltitude", (float (SceneMan::*) (const Vector&, int, int)) &SceneMan::FindAltitude)
-		.def("FindAltitude", (float (SceneMan::*) (const Vector&, int, int, bool)) &SceneMan::FindAltitude)
-		.def("MovePointToGround", &SceneMan::MovePointToGround)
-		.def("IsWithinBounds", &SceneMan::IsWithinBounds)
-		.def("ForceBounds", (bool (SceneMan::*)(int &, int &))&SceneMan::ForceBounds)
-		.def("ForceBounds", (bool (SceneMan::*)(Vector &))&SceneMan::ForceBounds)//, out_value(_2))
-		.def("WrapPosition", (bool (SceneMan::*)(int &, int &))&SceneMan::WrapPosition)
-		.def("WrapPosition", (bool (SceneMan::*)(Vector &))&SceneMan::WrapPosition)//, out_value(_2))
-		.def("SnapPosition", &SceneMan::SnapPosition)
-		.def("ShortestDistance", &SceneMan::ShortestDistance)
-		.def("WrapBox", &LuaAdaptersSceneMan::WrapBoxes, luabind::return_stl_iterator)
-		.def("ObscuredPoint", (bool (SceneMan::*)(Vector &, int))&SceneMan::ObscuredPoint)//, out_value(_2))
-		.def("ObscuredPoint", (bool (SceneMan::*)(int, int, int))&SceneMan::ObscuredPoint)
-		.def("AddSceneObject", &SceneMan::AddSceneObject, luabind::adopt(_2))
-		.def("CheckAndRemoveOrphans", (int (SceneMan::*)(int, int, int, int, bool))&SceneMan::RemoveOrphans)
-		.def("DislodgePixel", &SceneMan::DislodgePixel);
+		luaType["GetTerrain"] = &SceneMan::GetTerrain;
+		luaType["GetMaterial"] = &SceneMan::GetMaterial;
+		luaType["GetMaterialFromID"] = &SceneMan::GetMaterialFromID;
+		luaType["GetTerrMatter"] = &SceneMan::GetTerrMatter;
+		luaType["GetMOIDPixel"] = (MOID (SceneMan::*)(int, int))&SceneMan::GetMOIDPixel;
+		luaType["GetMOIDPixel"] = (MOID (SceneMan::*)(int, int, int))&SceneMan::GetMOIDPixel;
+		luaType["SetLayerDrawMode"] = &SceneMan::SetLayerDrawMode;
+		luaType["LoadUnseenLayer"] = &SceneMan::LoadUnseenLayer;
+		luaType["MakeAllUnseen"] = &SceneMan::MakeAllUnseen;
+		luaType["AnythingUnseen"] = &SceneMan::AnythingUnseen;
+		luaType["GetUnseenResolution"] = &SceneMan::GetUnseenResolution;
+		luaType["IsUnseen"] = &SceneMan::IsUnseen;
+		luaType["RevealUnseen"] = &SceneMan::RevealUnseen;
+		luaType["RevealUnseenBox"] = &SceneMan::RevealUnseenBox;
+		luaType["RestoreUnseen"] = &SceneMan::RestoreUnseen;
+		luaType["RestoreUnseenBox"] = &SceneMan::RestoreUnseenBox;
+		luaType["CastSeeRay"] = &SceneMan::CastSeeRay;
+		luaType["CastUnseeRay"] = &SceneMan::CastUnseeRay;
+		luaType["CastUnseenRay"] = &SceneMan::CastUnseenRay;
+		luaType["CastMaterialRay"] = (bool (SceneMan::*)(const Vector &, const Vector &, unsigned char, Vector &, int, bool))&SceneMan::CastMaterialRay;
+		luaType["CastMaterialRay"] = (float (SceneMan::*)(const Vector &, const Vector &, unsigned char, int))&SceneMan::CastMaterialRay;
+		luaType["CastNotMaterialRay"] = (bool (SceneMan::*)(const Vector &, const Vector &, unsigned char, Vector &, int, bool))&SceneMan::CastNotMaterialRay;
+		luaType["CastNotMaterialRay"] = (float (SceneMan::*)(const Vector &, const Vector &, unsigned char, int, bool))&SceneMan::CastNotMaterialRay;
+		luaType["CastStrengthSumRay"] = &SceneMan::CastStrengthSumRay;
+		luaType["CastMaxStrengthRay"] = (float (SceneMan::*) (const Vector &, const Vector &, int, unsigned char))&SceneMan::CastMaxStrengthRay;
+		luaType["CastMaxStrengthRay"] = (float (SceneMan::*) (const Vector &, const Vector &, int))&SceneMan::CastMaxStrengthRay;
+		luaType["CastStrengthRay"] = &SceneMan::CastStrengthRay;
+		luaType["CastWeaknessRay"] = &SceneMan::CastWeaknessRay;
+		luaType["CastMORay"] = &SceneMan::CastMORay;
+		luaType["CastFindMORay"] = &SceneMan::CastFindMORay;
+		luaType["CastObstacleRay"] = &SceneMan::CastObstacleRay;
+		luaType["GetLastRayHitPos"] = &SceneMan::GetLastRayHitPos;
+		luaType["FindAltitude"] = (float (SceneMan::*) (const Vector&, int, int))&SceneMan::FindAltitude;
+		luaType["FindAltitude"] = (float (SceneMan::*) (const Vector&, int, int, bool))&SceneMan::FindAltitude;
+		luaType["MovePointToGround"] = &SceneMan::MovePointToGround;
+		luaType["IsWithinBounds"] = &SceneMan::IsWithinBounds;
+		luaType["ForceBounds"] = (bool (SceneMan::*)(Vector &))&SceneMan::ForceBounds;
+		luaType["WrapPosition"] = (bool (SceneMan::*)(Vector &))&SceneMan::WrapPosition;
+		luaType["SnapPosition"] = &SceneMan::SnapPosition;
+		luaType["ShortestDistance"] = &SceneMan::ShortestDistance;
+		luaType["WrapBox"] = &LuaAdaptersSceneMan::WrapBoxes;
+		luaType["ObscuredPoint"] = (bool (SceneMan::*)(Vector &, int))&SceneMan::ObscuredPoint;
+		luaType["ObscuredPoint"] = (bool (SceneMan::*)(int, int, int))&SceneMan::ObscuredPoint;
+		luaType["AddSceneObject"] = &SceneMan::AddSceneObject; //, luabind::adopt(_2);
+		luaType["CheckAndRemoveOrphans"] = (int (SceneMan::*)(int, int, int, int, bool))&SceneMan::RemoveOrphans;
+		luaType["DislodgePixel"] = &SceneMan::DislodgePixel;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, CameraMan) {
-		return luabind::class_<CameraMan>("CameraManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(CameraMan, "CameraManager");
 
-			.def("GetOffset", &CameraMan::GetOffset)
-			.def("SetOffset", &CameraMan::SetOffset)
-			.def("GetScreenOcclusion", &CameraMan::GetScreenOcclusion)
-			.def("SetScreenOcclusion", &CameraMan::SetScreenOcclusion)
-			.def("GetScrollTarget", &CameraMan::GetScrollTarget)
-			.def("SetScrollTarget", &CameraMan::SetScrollTarget)
-			.def("TargetDistanceScalar", &CameraMan::TargetDistanceScalar)
-			.def("CheckOffset", &CameraMan::CheckOffset)
-			.def("SetScroll", &CameraMan::SetScroll)
-			.def("AddScreenShake", (void (CameraMan::*)(float, int))&CameraMan::AddScreenShake)
-			.def("AddScreenShake", (void (CameraMan::*)(float, const Vector &))&CameraMan::AddScreenShake);
+		luaType["GetOffset"] = &CameraMan::GetOffset;
+		luaType["SetOffset"] = &CameraMan::SetOffset;
+		luaType["GetScreenOcclusion"] = &CameraMan::GetScreenOcclusion;
+		luaType["SetScreenOcclusion"] = &CameraMan::SetScreenOcclusion;
+		luaType["GetScrollTarget"] = &CameraMan::GetScrollTarget;
+		luaType["SetScrollTarget"] = &CameraMan::SetScrollTarget;
+		luaType["TargetDistanceScalar"] = &CameraMan::TargetDistanceScalar;
+		luaType["CheckOffset"] = &CameraMan::CheckOffset;
+		luaType["SetScroll"] = &CameraMan::SetScroll;
+		luaType["AddScreenShake"] = (void (CameraMan::*)(float, int))&CameraMan::AddScreenShake;
+		luaType["AddScreenShake"] = (void (CameraMan::*)(float, const Vector &))&CameraMan::AddScreenShake;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SettingsMan) {
-		return luabind::class_<SettingsMan>("SettingsManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(SettingsMan, "SettingsManager");
 
-		.property("PrintDebugInfo", &SettingsMan::PrintDebugInfo, &SettingsMan::SetPrintDebugInfo)
-		.property("RecommendedMOIDCount", &SettingsMan::RecommendedMOIDCount)
-		.property("AIUpdateInterval", &SettingsMan::GetAIUpdateInterval, &SettingsMan::SetAIUpdateInterval)
-		.property("ShowEnemyHUD", &SettingsMan::ShowEnemyHUD)
-		.property("AutomaticGoldDeposit", &SettingsMan::GetAutomaticGoldDeposit);
+		luaType["PrintDebugInfo"] = sol::property(&SettingsMan::PrintDebugInfo, &SettingsMan::SetPrintDebugInfo);
+		luaType["RecommendedMOIDCount"] = sol::property(&SettingsMan::RecommendedMOIDCount);
+		luaType["AIUpdateInterval"] = sol::property(&SettingsMan::GetAIUpdateInterval, &SettingsMan::SetAIUpdateInterval);
+		luaType["ShowEnemyHUD"] = sol::property(&SettingsMan::ShowEnemyHUD);
+		luaType["AutomaticGoldDeposit"] = sol::property(&SettingsMan::GetAutomaticGoldDeposit);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, TimerMan) {
-		return luabind::class_<TimerMan>("TimerManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(TimerMan, "TimerManager");
 
-		.property("TimeScale", &TimerMan::GetTimeScale, &TimerMan::SetTimeScale)
-		.property("RealToSimCap", &TimerMan::GetRealToSimCap)
-		.property("DeltaTimeTicks", &LuaAdaptersTimerMan::GetDeltaTimeTicks, &TimerMan::SetDeltaTimeTicks)
-		.property("DeltaTimeSecs", &TimerMan::GetDeltaTimeSecs, &TimerMan::SetDeltaTimeSecs)
-		.property("DeltaTimeMS", &TimerMan::GetDeltaTimeMS)
-		.property("AIDeltaTimeSecs", &TimerMan::GetAIDeltaTimeSecs)
-		.property("AIDeltaTimeMS", &TimerMan::GetAIDeltaTimeMS)
+		luaType["TimeScale"] = sol::property(&TimerMan::GetTimeScale, &TimerMan::SetTimeScale);
+		luaType["RealToSimCap"] = sol::property(&TimerMan::GetRealToSimCap);
+		luaType["DeltaTimeTicks"] = sol::property(&LuaAdaptersTimerMan::GetDeltaTimeTicks, &TimerMan::SetDeltaTimeTicks);
+		luaType["DeltaTimeSecs"] = sol::property(&TimerMan::GetDeltaTimeSecs, &TimerMan::SetDeltaTimeSecs);
+		luaType["DeltaTimeMS"] = sol::property(&TimerMan::GetDeltaTimeMS);
+		luaType["AIDeltaTimeSecs"] = sol::property(&TimerMan::GetAIDeltaTimeSecs);
+		luaType["AIDeltaTimeMS"] = sol::property(&TimerMan::GetAIDeltaTimeMS);
 
-		.property("TicksPerSecond", &LuaAdaptersTimerMan::GetTicksPerSecond)
+		luaType["TicksPerSecond"] = sol::property(&LuaAdaptersTimerMan::GetTicksPerSecond);
 
-		.def("TimeForSimUpdate", &TimerMan::TimeForSimUpdate)
-		.def("DrawnSimUpdate", &TimerMan::DrawnSimUpdate);
+		luaType["TimeForSimUpdate"] = &TimerMan::TimeForSimUpdate;
+		luaType["DrawnSimUpdate"] = &TimerMan::DrawnSimUpdate;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, UInputMan) {
-		return luabind::class_<UInputMan>("UInputManager")
+		auto luaType = SimpleNamedTypeLuaClassDefinition(UInputMan, "UInputManager");
 
-		.property("FlagAltState", &UInputMan::FlagAltState)
-		.property("FlagCtrlState", &UInputMan::FlagCtrlState)
-		.property("FlagShiftState", &UInputMan::FlagShiftState)
+		luaType["FlagAltState"] = sol::property(&UInputMan::FlagAltState);
+		luaType["FlagCtrlState"] = sol::property(&UInputMan::FlagCtrlState);
+		luaType["FlagShiftState"] = sol::property(&UInputMan::FlagShiftState);
 
-		.def("GetInputDevice", &UInputMan::GetInputDevice)
-		.def("ElementPressed", &UInputMan::ElementPressed)
-		.def("ElementReleased", &UInputMan::ElementReleased)
-		.def("ElementHeld", &UInputMan::ElementHeld)
-		.def("KeyPressed", (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyPressed)
-		.def("KeyReleased", (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyReleased)
-		.def("KeyHeld", (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyHeld)
-		.def("ScancodePressed", (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyPressed)
-		.def("ScancodeReleased", (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyReleased)
-		.def("ScancodeHeld", (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyHeld)
-		.def("MouseButtonPressed", &UInputMan::MouseButtonPressed)
-		.def("MouseButtonReleased", &UInputMan::MouseButtonReleased)
-		.def("MouseButtonHeld", &UInputMan::MouseButtonHeld)
-		.def("GetMousePos", &UInputMan::GetAbsoluteMousePosition)
-		.def("MouseWheelMoved", &UInputMan::MouseWheelMoved)
-		.def("JoyButtonPressed", &UInputMan::JoyButtonPressed)
-		.def("JoyButtonReleased", &UInputMan::JoyButtonReleased)
-		.def("JoyButtonHeld", &UInputMan::JoyButtonHeld)
-		.def("WhichJoyButtonPressed", &UInputMan::WhichJoyButtonPressed)
-		.def("JoyDirectionPressed", &UInputMan::JoyDirectionPressed)
-		.def("JoyDirectionReleased", &UInputMan::JoyDirectionReleased)
-		.def("JoyDirectionHeld", &UInputMan::JoyDirectionHeld)
-		.def("AnalogMoveValues", &UInputMan::AnalogMoveValues)
-		.def("AnalogAimValues", &UInputMan::AnalogAimValues)
-		.def("SetMouseValueMagnitude", &UInputMan::SetMouseValueMagnitude)
-		.def("AnalogAxisValue", &UInputMan::AnalogAxisValue)
-		.def("MouseUsedByPlayer", &UInputMan::MouseUsedByPlayer)
-		.def("AnyMouseButtonPress", &UInputMan::AnyMouseButtonPress)
-		.def("GetMouseMovement", &UInputMan::GetMouseMovement)
-		.def("DisableMouseMoving", &UInputMan::DisableMouseMoving)
-		.def("SetMousePos", &UInputMan::SetMousePos)
-		.def("ForceMouseWithinBox", &UInputMan::ForceMouseWithinBox)
-		.def("AnyKeyPress", &UInputMan::AnyKeyPress)
-		.def("AnyJoyInput", &UInputMan::AnyJoyInput)
-		.def("AnyJoyPress", &UInputMan::AnyJoyPress)
-		.def("AnyJoyButtonPress", &UInputMan::AnyJoyButtonPress)
-		.def("AnyInput", &UInputMan::AnyKeyOrJoyInput)
-		.def("AnyPress", &UInputMan::AnyPress)
-		.def("AnyStartPress", &UInputMan::AnyStartPress)
-		.def("HasTextInput", &UInputMan::HasTextInput)
-		.def("GetTextInput", (const std::string& (UInputMan::*)() const) &UInputMan::GetTextInput)
+		luaType["GetInputDevice"] = &UInputMan::GetInputDevice;
+		luaType["ElementPressed"] = &UInputMan::ElementPressed;
+		luaType["ElementReleased"] = &UInputMan::ElementReleased;
+		luaType["ElementHeld"] = &UInputMan::ElementHeld;
+		luaType["KeyPressed"] = (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyPressed;
+		luaType["KeyReleased"] = (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyReleased;
+		luaType["KeyHeld"] = (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyHeld;
+		luaType["ScancodePressed"] = (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyPressed;
+		luaType["ScancodeReleased"] = (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyReleased;
+		luaType["ScancodeHeld"] = (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyHeld;
+		luaType["MouseButtonPressed"] = &UInputMan::MouseButtonPressed;
+		luaType["MouseButtonReleased"] = &UInputMan::MouseButtonReleased;
+		luaType["MouseButtonHeld"] = &UInputMan::MouseButtonHeld;
+		luaType["GetMousePos"] = &UInputMan::GetAbsoluteMousePosition;
+		luaType["MouseWheelMoved"] = &UInputMan::MouseWheelMoved;
+		luaType["JoyButtonPressed"] = &UInputMan::JoyButtonPressed;
+		luaType["JoyButtonReleased"] = &UInputMan::JoyButtonReleased;
+		luaType["JoyButtonHeld"] = &UInputMan::JoyButtonHeld;
+		luaType["WhichJoyButtonPressed"] = &UInputMan::WhichJoyButtonPressed;
+		luaType["JoyDirectionPressed"] = &UInputMan::JoyDirectionPressed;
+		luaType["JoyDirectionReleased"] = &UInputMan::JoyDirectionReleased;
+		luaType["JoyDirectionHeld"] = &UInputMan::JoyDirectionHeld;
+		luaType["AnalogMoveValues"] = &UInputMan::AnalogMoveValues;
+		luaType["AnalogAimValues"] = &UInputMan::AnalogAimValues;
+		luaType["SetMouseValueMagnitude"] = &UInputMan::SetMouseValueMagnitude;
+		luaType["AnalogAxisValue"] = &UInputMan::AnalogAxisValue;
+		luaType["MouseUsedByPlayer"] = &UInputMan::MouseUsedByPlayer;
+		luaType["AnyMouseButtonPress"] = &UInputMan::AnyMouseButtonPress;
+		luaType["GetMouseMovement"] = &UInputMan::GetMouseMovement;
+		luaType["DisableMouseMoving"] = &UInputMan::DisableMouseMoving;
+		luaType["SetMousePos"] = &UInputMan::SetMousePos;
+		luaType["ForceMouseWithinBox"] = &UInputMan::ForceMouseWithinBox;
+		luaType["AnyKeyPress"] = &UInputMan::AnyKeyPress;
+		luaType["AnyJoyInput"] = &UInputMan::AnyJoyInput;
+		luaType["AnyJoyPress"] = &UInputMan::AnyJoyPress;
+		luaType["AnyJoyButtonPress"] = &UInputMan::AnyJoyButtonPress;
+		luaType["AnyInput"] = &UInputMan::AnyKeyOrJoyInput;
+		luaType["AnyPress"] = &UInputMan::AnyPress;
+		luaType["AnyStartPress"] = &UInputMan::AnyStartPress;
+		luaType["HasTextInput"] = &UInputMan::HasTextInput;
+		luaType["GetTextInput"] = (const std::string& (UInputMan::*)() const) &UInputMan::GetTextInput;
 
-		.def("MouseButtonPressed", &LuaAdaptersUInputMan::MouseButtonPressed)
-		.def("MouseButtonReleased", &LuaAdaptersUInputMan::MouseButtonReleased)
-		.def("MouseButtonHeld", &LuaAdaptersUInputMan::MouseButtonHeld);
+		luaType["MouseButtonPressed"] = &LuaAdaptersUInputMan::MouseButtonPressed;
+		luaType["MouseButtonReleased"] = &LuaAdaptersUInputMan::MouseButtonReleased;
+		luaType["MouseButtonHeld"] = &LuaAdaptersUInputMan::MouseButtonHeld;
 	}
 }

@@ -1,5 +1,5 @@
 lua_sources = files(
-'LuabindObjectWrapper.cpp',
+'SolObjectWrapper.cpp',
 'LuaAdapters.cpp',
 'LuaBindingsActivities.cpp',
 'LuaBindingsEntities.cpp',

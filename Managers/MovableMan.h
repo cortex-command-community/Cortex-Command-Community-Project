@@ -32,7 +32,7 @@ class AHuman;
 class SceneLayer;
 class SceneObject;
 class Box;
-class LuabindObjectWrapper;
+class SolObjectWrapper;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -888,7 +888,7 @@ public:
 	/// <param name="ignoreTeam">The team to ignore.</param>
 	/// <param name="getsHitByMOsOnly">Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.</param>
 	/// <returns>Pointers to the MOs that are within the given Box, and whose team is not ignored.</returns>
-	const std::vector<MovableObject *> *GetMOsInBox(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const;
+	const std::vector<MovableObject *> GetMOsInBox(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const;
 
     /// <summary>
     /// Gets pointers to the MOs that are within the given Box, and whose team is not ignored.
@@ -896,14 +896,14 @@ public:
     /// <param name="box">The Box to get MOs within.</param>
     /// <param name="ignoreTeam">The team to ignore.</param>
     /// <returns>Pointers to the MOs that are within the given Box, and whose team is not ignored.</returns>
-	const std::vector<MovableObject *> *GetMOsInBox(const Box &box, int ignoreTeam) const { return GetMOsInBox(box, ignoreTeam, false); }
+	const std::vector<MovableObject *> GetMOsInBox(const Box &box, int ignoreTeam) const { return GetMOsInBox(box, ignoreTeam, false); }
 
 	/// <summary>
 	/// Gets pointers to the MOs that are within the given Box.
 	/// </summary>
 	/// <param name="box">The Box to get MOs within.</param>
 	/// <returns>Pointers to the MOs that are within the given Box.</returns>
-    const std::vector<MovableObject *> * GetMOsInBox(const Box &box) const { return GetMOsInBox(box, Activity::NoTeam); }
+    const std::vector<MovableObject *> GetMOsInBox(const Box &box) const { return GetMOsInBox(box, Activity::NoTeam); }
 
 	/// <summary>
 	/// Gets pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.
@@ -913,7 +913,7 @@ public:
 	/// <param name="ignoreTeam">The team to ignore.</param>
 	/// <param name="getsHitByMOsOnly">Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.</param>
 	/// <returns>Pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.</returns>
-	const std::vector<MovableObject *> *GetMOsInRadius(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const;
+	const std::vector<MovableObject *> GetMOsInRadius(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const;
 
 	/// <summary>
 	/// Gets pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.
@@ -922,7 +922,7 @@ public:
 	/// <param name="radius">The radius to check for MOs within.</param>
 	/// <param name="ignoreTeam">The team to ignore.</param>
 	/// <returns>Pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.</returns>
-	const std::vector<MovableObject *> *GetMOsInRadius(const Vector &centre, float radius, int ignoreTeam) const { return GetMOsInRadius(centre, radius, ignoreTeam, false); }
+	const std::vector<MovableObject *> GetMOsInRadius(const Vector &centre, float radius, int ignoreTeam) const { return GetMOsInRadius(centre, radius, ignoreTeam, false); }
 
 	/// <summary>
 	/// Gets pointers to the MOs that are within the specified radius of the given centre position.
@@ -930,12 +930,12 @@ public:
 	/// <param name="centre">The position to check for MOs in.</param>
 	/// <param name="radius">The radius to check for MOs within.</param>
 	/// <returns>Pointers to the MOs that are within the specified radius of the given centre position.</returns>
-    const std::vector<MovableObject *> * GetMOsInRadius(const Vector &centre, float radius) const { return GetMOsInRadius(centre, radius, Activity::NoTeam); }
+    const std::vector<MovableObject *> GetMOsInRadius(const Vector &centre, float radius) const { return GetMOsInRadius(centre, radius, Activity::NoTeam); }
 
     /// <summary>
     /// Runs a lua function on all MOs in the simulation, including owned child MOs.
     /// </summary>
-    void RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+    void RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*>& functionObjectArguments = std::vector<SolObjectWrapper*>());
 
     /// <summary>
     /// Clears all cached lua functions on all MOs, including owned child MOs.

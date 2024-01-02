@@ -590,7 +590,7 @@ int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledS
 
 	m_AllLoadedScripts.try_emplace(scriptPath, loadAsEnabledScript);
 
-	std::unordered_map<std::string, LuabindObjectWrapper *> scriptFileFunctions;
+	std::unordered_map<std::string, SolObjectWrapper *> scriptFileFunctions;
 	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
 		return -4;
 	}
@@ -598,7 +598,7 @@ int MovableObject::LoadScript(const std::string &scriptPath, bool loadAsEnabledS
 	for (const auto &[functionName, functionObject] : scriptFileFunctions) {
 		LuaFunction& luaFunction = m_FunctionsAndScripts.at(functionName).emplace_back();
         luaFunction.m_ScriptIsEnabled = loadAsEnabledScript;
-        luaFunction.m_LuaFunction = std::unique_ptr<LuabindObjectWrapper>(functionObject);
+        luaFunction.m_LuaFunction = std::unique_ptr<SolObjectWrapper>(functionObject);
 	}
 
 	if (ObjectScriptsInitialized()) {
@@ -700,7 +700,7 @@ void MovableObject::EnableOrDisableAllScripts(bool enableScripts) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts, bool stopOnError, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, const std::vector<LuabindObjectWrapper*> &functionObjectArguments) {
+int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &functionName, bool runOnDisabledScripts, bool stopOnError, const std::vector<const Entity *> &functionEntityArguments, const std::vector<std::string_view> &functionLiteralArguments, const std::vector<SolObjectWrapper*> &functionObjectArguments) {
     int status = 0;
 
     auto itr = m_FunctionsAndScripts.find(functionName);
@@ -716,11 +716,11 @@ int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string &fu
         ZoneScoped;
         ZoneText(functionName.c_str(), functionName.length());
         for (const LuaFunction &luaFunction : itr->second) {
-            const LuabindObjectWrapper *luabindObjectWrapper = luaFunction.m_LuaFunction.get();
+            const SolObjectWrapper *solObjectWrapper = luaFunction.m_LuaFunction.get();
             if (runOnDisabledScripts || luaFunction.m_ScriptIsEnabled) {
-                LuaStateWrapper& usedState = GetAndLockStateForScript(luabindObjectWrapper->GetFilePath(), &luaFunction);
+                LuaStateWrapper& usedState = GetAndLockStateForScript(solObjectWrapper->GetFilePath(), &luaFunction);
                 std::lock_guard<std::recursive_mutex> lock(usedState.GetMutex(), std::adopt_lock);
-				status = usedState.RunScriptFunctionObject(luabindObjectWrapper, "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments, functionObjectArguments);
+				status = usedState.RunScriptFunctionObject(solObjectWrapper, "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments, functionObjectArguments);
                 if (status < 0 && stopOnError) {
                     return status;
                 }
@@ -741,8 +741,8 @@ int MovableObject::RunFunctionOfScript(const std::string &scriptPath, const std:
     std::lock_guard<std::recursive_mutex> lock(usedState.GetMutex(), std::adopt_lock);
 
 	for (const LuaFunction &luaFunction : m_FunctionsAndScripts.at(functionName)) {
-        const LuabindObjectWrapper *luabindObjectWrapper = luaFunction.m_LuaFunction.get();
-		if (scriptPath == luabindObjectWrapper->GetFilePath() && usedState.RunScriptFunctionObject(luabindObjectWrapper, "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments) < 0) {
+        const SolObjectWrapper *solObjectWrapper = luaFunction.m_LuaFunction.get();
+		if (scriptPath == solObjectWrapper->GetFilePath() && usedState.RunScriptFunctionObject(solObjectWrapper, "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments) < 0) {
 			if (m_AllLoadedScripts.size() > 1) {
 				g_ConsoleMan.PrintString("ERROR: An error occured while trying to run the " + functionName + " function for script at path " + scriptPath);
 			}

@@ -2,7 +2,7 @@
 #define _RTEPIESLICE_
 
 #include "Constants.h"
-#include "LuabindObjectWrapper.h"
+#include "SolObjectWrapper.h"
 #include "Icon.h"
 
 namespace RTE {
@@ -181,10 +181,10 @@ namespace RTE {
 		void SetIcon(Icon *newIcon) { m_Icon = std::unique_ptr<Icon>(newIcon); }
 
 		/// <summary>
-		/// Gets the LuabindObjectWrapper for the function this PieSlice should run when activated.
+		/// Gets the SolObjectWrapper for the function this PieSlice should run when activated.
 		/// </summary>
-		/// <returns>The LuabindObjectWrapper this PieSlice should run when activated.</returns>
-		const LuabindObjectWrapper * GetLuabindFunctionObjectWrapper() const { return m_LuabindFunctionObject.get(); }
+		/// <returns>The SolObjectWrapper this PieSlice should run when activated.</returns>
+		const SolObjectWrapper * GetLuabindFunctionObjectWrapper() const { return m_LuabindFunctionObject.get(); }
 
 		/// <summary>
 		/// Gets the file path of the Lua file this PieSlice should run when activated, if any.
@@ -196,7 +196,7 @@ namespace RTE {
 		/// Sets the file path of the scripted file this PieSlice should run when activated.
 		/// </summary>
 		/// <param name="newScriptPath">The file path of the Lua file this PieSlice should run when activated.</param>
-		void SetScriptPath(const std::string &newScriptPath) { m_LuabindFunctionObject = std::make_unique<LuabindObjectWrapper>(nullptr, newScriptPath); ReloadScripts(); }
+		void SetScriptPath(const std::string &newScriptPath) { m_LuabindFunctionObject = std::make_unique<SolObjectWrapper>(nullptr, newScriptPath); ReloadScripts(); }
 
 		/// <summary>
 		/// Gets the name of the Lua function to run when this PieSlice is activated.
@@ -299,7 +299,7 @@ namespace RTE {
 		bool m_Enabled; //!< Whether this PieSlice is enabled or disabled and grayed out.
 		std::unique_ptr<Icon> m_Icon; //!< The icon of this PieSlice.
 
-		std::unique_ptr<LuabindObjectWrapper> m_LuabindFunctionObject; //!< The LuabindObjectWrapper holding the function this PieSlice runs when activated.
+		std::unique_ptr<SolObjectWrapper> m_LuabindFunctionObject; //!< The SolObjectWrapper holding the function this PieSlice runs when activated.
 		std::string m_FunctionName; //!< Name of the function in the script this PieSlice runs. Used for safely reloading scripts.
 
 		std::unique_ptr<PieMenu, PieMenuCustomDeleter> m_SubPieMenu; //!< Unique pointer to the sub-PieMenu this should open when activated.

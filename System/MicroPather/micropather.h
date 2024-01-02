@@ -420,7 +420,7 @@ namespace micropather
 		friend class micropather::PathNode;
 
 	  public:
-		enum
+		enum Status
 		{
 			SOLVED,
 			NO_SOLUTION,

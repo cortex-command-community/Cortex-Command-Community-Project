@@ -87,6 +87,8 @@
 #include <regex>
 #include <future>
 
+#include "MOSRotating.h"
+
 namespace std {
 
 	/// <summary>
