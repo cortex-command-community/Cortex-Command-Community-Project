@@ -130,6 +130,16 @@ namespace RTE {
 		int RecalculateIndex();
 #pragma endregion
 
+		/// <summary>
+		/// Gets the RGB values of this Color as a glm::vec3.
+		/// </summary>
+		operator glm::vec3() const { return glm::vec3(static_cast<float>(m_R), static_cast<float>(m_G), static_cast<float>(m_B)) / 255.0f; }
+
+		/// <summary>
+		/// Gets the RGB values of this Color as a glm::vec4 filling alpha as 1.0.
+		/// </summary>
+		operator glm::vec4() const { return glm::vec4(static_cast<float>(m_R), static_cast<float>(m_G), static_cast<float>(m_B), 255.0f) / 255.0f; }
+
 	protected:
 
 		int m_R; //!< Red value of this color.

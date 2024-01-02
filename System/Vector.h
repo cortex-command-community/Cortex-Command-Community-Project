@@ -3,6 +3,7 @@
 
 #include "Serializable.h"
 #include "RTETools.h"
+#include "glm/glm.hpp"
 
 namespace RTE {
 
@@ -544,6 +545,9 @@ namespace RTE {
 		/// <param name="rhs">An int index indicating which element is requested (X = 0, Y = 1).</param>
 		/// <returns>The requested element.</returns>
 		inline float & operator[](const int &rhs) { return (rhs == 0) ? m_X : m_Y; }
+
+		inline operator glm::vec2() const { return glm::vec2(m_X, m_Y); }
+		inline operator glm::vec3() const { return glm::vec3(m_X, m_Y, 0.0F); }
 #pragma endregion
 
 	private:

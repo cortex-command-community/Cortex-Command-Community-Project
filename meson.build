@@ -207,6 +207,7 @@ source_inc_dirs = include_directories(
   'Managers',
   'Menus',
   'Resources',
+  'Renderer',
   'System')
 
 subdir('Activities')
