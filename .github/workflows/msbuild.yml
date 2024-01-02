@@ -49,28 +49,28 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1
 
-    - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild /m /p:Configuration="${{inputs.build_configuration}}" ${{env.SOLUTION_FILE_PATH}}
+      - name: Build
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        # Add additional options to the MSBuild command line here (like platform or verbosity level).
+        # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+        run: msbuild /m /p:Configuration="${{inputs.build_configuration}}" ${{env.SOLUTION_FILE_PATH}}
 
-    - name: Determine executable name
-      id: executable_name
-      if: ${{inputs.upload_artefacts}}
-      run: |
-        echo "EXECUTABLE_NAME=${{ fromJson(env.NAME_MAPPING)[inputs.build_configuration] }}" >> "$GITHUB_OUTPUT"
-      shell: bash
+      - name: Determine executable name
+        id: executable_name
+        if: ${{inputs.upload_artefacts}}
+        run: |
+          echo "EXECUTABLE_NAME=${{ fromJson(env.NAME_MAPPING)[inputs.build_configuration] }}" >> "$GITHUB_OUTPUT"
+        shell: bash
 
-    - name: Upload Artifact
-      if: ${{inputs.upload_artefacts}}
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ steps.executable_name.outputs.EXECUTABLE_NAME }}
-        path: D:/a/Cortex-Command-Community-Project-Source/Cortex-Command-Community-Project-Data/${{ steps.executable_name.outputs.EXECUTABLE_NAME }}
-        if-no-files-found: error
+      - name: Upload Artifact
+        if: ${{inputs.upload_artefacts}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.executable_name.outputs.EXECUTABLE_NAME }}
+          path: D:/a/Cortex-Command-Community-Project/Cortex-Command-Community-Project/${{ steps.executable_name.outputs.EXECUTABLE_NAME }}
+          if-no-files-found: error
