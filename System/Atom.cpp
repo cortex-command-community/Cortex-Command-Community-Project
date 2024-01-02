@@ -2,11 +2,13 @@
 
 #include "SLTerrain.h"
 #include "MovableMan.h"
+#include "ThreadMan.h"
 #include "MovableObject.h"
 #include "MOSRotating.h"
 #include "MOPixel.h"
 #include "PresetMan.h"
 #include "Actor.h"
+#include "ThreadMan.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -42,6 +44,7 @@ namespace RTE {
 		m_HitRadius.Reset();
 		m_HitImpulse.Reset();
 		*/
+		m_LastTrailPoints.clear();
 		m_TrailColor.Reset();
 		m_TrailLength = 0;
 		m_TrailLengthVariation = 0.0F;
@@ -617,8 +620,6 @@ namespace RTE {
 		bool &didWrap = m_OwnerMO->m_DidWrap;
 		m_LastHit.Reset();
 
-		BITMAP *trailBitmap = 0;
-
 		int hitCount = 0;
 		int error = 0;
 		int dom = 0;
@@ -653,10 +654,8 @@ namespace RTE {
 		Vector segTraj;
 		Vector hitAccel;
 
-		// Static buffer to avoid having to realloc with every atom's travel
-		// This saves us time because Atom::Travel does a lot of allocations and reallocations if you have a lot of particles.
-		thread_local std::vector<std::pair<int, int>> trailPoints;
-		trailPoints.clear();
+		std::vector<std::pair<int, int>> trailPoints;
+		trailPoints.reserve(6); // This saves us time because Atom::Travel does a lot of allocations and reallocations if you have a lot of particles.
 
 		didWrap = false;
 		int removeOrphansRadius = m_OwnerMO->m_RemoveOrphanTerrainRadius;
@@ -676,7 +675,6 @@ namespace RTE {
 
 			// Get trail bitmap and put first pixel.
 			if (m_TrailLength) {
-				trailBitmap = g_SceneMan.GetMOColorBitmap();
 				trailPoints.push_back({ intPos[X], intPos[Y] });
 			}
 			// Compute and scale the actual on-screen travel trajectory for this segment, based on the velocity, the travel time and the pixels-per-meter constant.
@@ -876,9 +874,6 @@ namespace RTE {
 					hitPos[Y] = intPos[Y];
 					++hitCount;
 
-#ifdef DEBUG_BUILD
-					if (m_TrailLength) { putpixel(trailBitmap, intPos[X], intPos[Y], 199); }
-#endif
 					// Try penetration of the terrain.
 					if (hitMaterial->GetIndex() != g_MaterialOutOfBounds && g_SceneMan.TryPenetrate(intPos[X], intPos[Y], velocity * mass * sharpness, velocity, retardation, 0.65F, m_NumPenetrations, removeOrphansRadius, removeOrphansMaxArea, removeOrphansRate)) {
 						hit[dom] = hit[sub] = sinkHit = true;
@@ -908,7 +903,7 @@ namespace RTE {
 								// Weighted random select between stickiness or staininess
 								const float randomChoice = RandomNum(0.0f, m_Material->GetStickiness() + (ownerMOAsPixel ? ownerMOAsPixel->GetStaininess() : 0.0f));
 								if (randomChoice <= m_Material->GetStickiness()) {
-									m_OwnerMO->SetPos(Vector(intPos[X], intPos[Y]));
+									m_OwnerMO->SetPos(Vector(intPos[X], intPos[Y]), false);
 									m_OwnerMO->DrawToTerrain(g_SceneMan.GetTerrain());
 									m_OwnerMO->SetToDelete(true);
 									m_LastHit.Terminate[HITOR] = hit[dom] = hit[sub] = true;
@@ -918,9 +913,9 @@ namespace RTE {
 									stickPos += velocity * (c_PPM * g_TimerMan.GetDeltaTimeSecs()) * RandomNum();
 									int terrainMaterialID = g_SceneMan.GetTerrain()->GetMaterialPixel(stickPos.GetFloorIntX(), stickPos.GetFloorIntY());
 									if (terrainMaterialID != g_MaterialAir && terrainMaterialID != g_MaterialDoor) {
-										m_OwnerMO->SetPos(Vector(stickPos.GetRoundIntX(), stickPos.GetRoundIntY()));
+										m_OwnerMO->SetPos(Vector(stickPos.GetRoundIntX(), stickPos.GetRoundIntY()), false);
 									} else {
-										m_OwnerMO->SetPos(Vector(intPos[X], intPos[Y]));
+										m_OwnerMO->SetPos(Vector(intPos[X], intPos[Y]), false);
 									}
 									m_OwnerMO->DrawToTerrain(g_SceneMan.GetTerrain());
 									m_OwnerMO->SetToDelete(true);
@@ -1005,25 +1000,31 @@ namespace RTE {
 		//RTEAssert(hitCount < 100, "Atom travel resulted in more than 100 segments!!");
 
 		// Draw the trail
-		if (g_TimerMan.DrawnSimUpdate() && m_TrailLength && trailPoints.size() > 0) {
-			Vector topLeftExtent = Vector(trailPoints[0].first, trailPoints[0].second);
-			Vector bottomRightExtent = topLeftExtent + Vector(1.0F, 1.0F);
-
+		int trailColorIndex = m_TrailColor.GetIndex();
+		if (trailColorIndex != g_MaskColor && m_TrailLength && (trailPoints.size() > 0 || m_LastTrailPoints.size() > 0)) {
 			int length = static_cast<int>(static_cast<float>(m_TrailLength) * RandomNum(1.0F - m_TrailLengthVariation, 1.0F));
-			for (int i = trailPoints.size() - std::min(length, static_cast<int>(trailPoints.size())); i < trailPoints.size(); ++i) {
-				putpixel(trailBitmap, trailPoints[i].first, trailPoints[i].second, m_TrailColor.GetIndex());
 
-				topLeftExtent.m_X = std::min(topLeftExtent.m_X, static_cast<float>(trailPoints[i].first));
-				topLeftExtent.m_Y = std::min(topLeftExtent.m_Y, static_cast<float>(trailPoints[i].second));
-				bottomRightExtent.m_X = std::max(bottomRightExtent.m_X, static_cast<float>(trailPoints[i].first));
-				bottomRightExtent.m_Y = std::max(bottomRightExtent.m_Y, static_cast<float>(trailPoints[i].second));
-			}
+			// TODO_MULTITHREAD - fix to account for wrapping!
+			// Also, keep drawing trail after we are destroyed for 1 frame, so our trail doesn't immediately disappear?
 
-			g_SceneMan.RegisterDrawing(trailBitmap, g_NoMOID, topLeftExtent.m_X, topLeftExtent.m_Y, bottomRightExtent.m_X + 1.0F, bottomRightExtent.m_Y + 1.0F);
+			auto renderFunc = [lastTrailPoints = std::move(m_LastTrailPoints), trailPoints, trailColorIndex, length](float interpolationAmount) mutable {
+				BITMAP* pTargetBitmap = g_ThreadMan.GetRenderTarget();
+
+				int endPoint = lastTrailPoints.size() + (trailPoints.size() * interpolationAmount);
+				std::vector<std::pair<int, int>> allTrailPoints = lastTrailPoints;
+				allTrailPoints.insert(allTrailPoints.end(), trailPoints.begin(), trailPoints.end() );
+				for (int i = endPoint - std::min(length, static_cast<int>(endPoint)); i < endPoint; ++i) {
+					Vector spritePos(allTrailPoints[i].first, allTrailPoints[i].second);
+					Vector renderPos = spritePos - g_ThreadMan.GetRenderOffset();
+					putpixel(pTargetBitmap, renderPos.GetX(), renderPos.GetY(), trailColorIndex);
+				}
+			};
+
+			g_ThreadMan.GetSimRenderQueue().push_back(renderFunc);
+			m_LastTrailPoints = std::move(trailPoints);
 		}
 
 		// Unlock all bitmaps involved.
-		//if (m_TrailLength) { trailBitmap->UnLock(); }
 		if (!scenePreLocked) { g_SceneMan.UnlockScene(); }
 
 		// Extract Atom offset.

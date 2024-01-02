@@ -42,11 +42,7 @@ struct PostEffect;
 enum LayerDrawMode
 {
     g_LayerNormal = 0,
-    g_LayerTerrainMatter,
-
-#ifdef DRAW_MOID_LAYER
-	g_LayerMOID
-#endif
+    g_LayerTerrainMatter
 };
 
 #define SCENEGRIDSIZE 24
@@ -359,19 +355,6 @@ public:
 
     SLTerrain * GetTerrain();
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetMOColorBitmap
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the bitmap of the intermediary collection SceneLayer that all
-//                  MovableObject:s draw themselves onto before it itself gets drawn onto
-//                  the screen back buffer.
-// Arguments:       None.
-// Return value:    A BITMAP pointer to the MO bitmap. Ownership is NOT transferred!
-
-    BITMAP * GetMOColorBitmap() const;
-
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetDebugBitmap
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -381,29 +364,6 @@ public:
 // Return value:    A BITMAP pointer to the debug bitmap. Ownership is NOT transferred!
 
     BITMAP * GetDebugBitmap() const;
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetMOIDBitmap
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the bitmap of the SceneLayer that all MovableObject:s draw thir
-//                  current (for the frame only!) MOID's onto.
-// Arguments:       None.
-// Return value:    A BITMAP pointer to the MO bitmap. Ownership is NOT transferred!
-
-    BITMAP * GetMOIDBitmap() const;
-
-// TEMP!
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          MOIDClearCheck
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes sure the MOID bitmap layer is completely of NoMOID color.
-//                  If found to be not, dumps MOID layer and the FG actor color layer for
-//                  debugging.
-// Arguments:       None.
-// Return value:    Was it clear?
-
-    bool MOIDClearCheck();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -532,34 +492,26 @@ public:
     bool SceneIsLocked() const;
 
     /// <summary>
-    /// Registers an area to be drawn upon, so it can be tracked and cleared later.
+    /// Registers a moid being drawn, so it can be added to our spatial partitioning grid.
     /// </summary>
-    /// <param name="bitmap">The bitmap being drawn upon.</param>
-    /// <param name="moid">The MOID, if we're drawing MOIDs.</param>
+    /// <param name="moid">The MOID.</param>
     /// <param name="left">The left boundary of the draw area.</param>
     /// <param name="top">The top boundary of the drawn area.</param>
     /// <param name="right">The right boundary of the draw area.</param>
     /// <param name="bottom">The bottom boundary of the draw area.</param>
-    void RegisterDrawing(const BITMAP *bitmap, int moid, int left, int top, int right, int bottom);
+    void RegisterMOIDDrawing(int moid, int left, int top, int right, int bottom);
 
     /// <summary>
-    /// Registers an area of to be drawn upon, so it can be tracked and cleared later.
+    /// Registers a moid being drawn, so it can be added to our spatial partitioning grid.
     /// </summary>
-    /// <param name="bitmap">The bitmap being drawn upon.</param>
-    /// <param name="moid">The MOID, if we're drawing MOIDs.</param>
+    /// <param name="moid">The MOID.</param>
     /// <param name="center">The centre position of the drawn area.</param>
     /// <param name="radius">The radius of the drawn area.</param>
-    void RegisterDrawing(const BITMAP *bitmap, int moid, const Vector &center, float radius);
+    void RegisterMOIDDrawing(int moid, const Vector &center, float radius);
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ClearAllMOIDDrawings
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all registered drawn areas of the MOID layer to the g_NoMOID
-//                  color and clears the registrations too. Should be done each sim update.
-// Arguments:       None.
-// Return value:    None.
-
+    /// <summary>
+    /// Clears all registered as drawn MOIDs, clearing our spatial partitioning grid.
+    /// </summary>
     void ClearAllMOIDDrawings();
 
 
@@ -1140,7 +1092,7 @@ public:
 //                  A margin
 // Return value:    Whether within bounds or not, considering wrapping.
 
-    bool IsWithinBounds(const int pixelX, const int pixelY, const int margin = 0);
+    bool IsWithinBounds(const int pixelX, const int pixelY, const int margin = 0) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1151,7 +1103,7 @@ public:
 // Arguments:       The X and Y coordinates of the position to wrap, if needed.
 // Return value:    Whether wrapping was performed or not. (Does not report on bounding)
 
-    bool ForceBounds(int &posX, int &posY);
+    bool ForceBounds(int &posX, int &posY) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1162,7 +1114,7 @@ public:
 // Arguments:       The vector coordinates of the position to wrap, if needed.
 // Return value:    Whether wrapping was performed or not. (Does not report on bounding)
 
-    bool ForceBounds(Vector &pos);
+    bool ForceBounds(Vector &pos) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1173,7 +1125,7 @@ public:
 // Arguments:       The X and Y coordinates of the position to wrap, if needed.
 // Return value:    Whether wrapping was performed or not.
 
-    bool WrapPosition(int &posX, int &posY);
+    bool WrapPosition(int &posX, int &posY) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1184,7 +1136,7 @@ public:
 // Arguments:       The vector coordinates of the position to wrap, if needed.
 // Return value:    Whether wrapping was performed or not.
 
-    bool WrapPosition(Vector &pos);
+    bool WrapPosition(Vector &pos) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1195,7 +1147,7 @@ public:
 //                  Whether to actually snap or not. This is useful for cleaner toggle code.
 // Return value:    The new snapped position.
 
-    Vector SnapPosition(const Vector &pos, bool snap = true);
+    Vector SnapPosition(const Vector &pos, bool snap = true) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1211,7 +1163,7 @@ public:
 // Return value:    The resulting vector screen shows the shortest distance, spanning over
 //                  wrapping borders etc. Basically the ideal pos2 - pos1.
 
-    Vector ShortestDistance(Vector pos1, Vector pos2, bool checkBounds = false);
+    Vector ShortestDistance(Vector pos1, Vector pos2, bool checkBounds = false) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1230,7 +1182,7 @@ public:
 // Return value:    The resulting X value screen shows the shortest distance, spanning over
 //                  wrapping borders etc. Basically the ideal val2 - val1.
 
-    float ShortestDistanceX(float val1, float val2, bool checkBounds = false, int direction = 0);
+    float ShortestDistanceX(float val1, float val2, bool checkBounds = false, int direction = 0) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1249,7 +1201,7 @@ public:
 // Return value:    The resulting Y value screen shows the shortest distance, spanning over
 //                  wrapping borders etc. Basically the ideal val2 - val1.
 
-    float ShortestDistanceY(float val1, float val2, bool checkBounds = false, int direction = 0);
+    float ShortestDistanceY(float val1, float val2, bool checkBounds = false, int direction = 0) const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1320,6 +1272,11 @@ public:
 
     int WrapBox(const Box &wrapBox, std::list<Box> &outputList);
 
+    /// <summary>
+    /// Lerp between two positions, in a wrapping-safe manner
+    /// </summary>
+    Vector Lerp(float scaleStart, float scaleEnd, Vector startPos, Vector endPos, float progressScalar) const;
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          AddSceneObject
@@ -1357,16 +1314,6 @@ public:
 // Return value:    None.
 
 	void Draw(BITMAP *targetBitmap, BITMAP *targetGUIBitmap,  const Vector &targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ClearMOColorLayer
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears the color MO layer. Should be done every frame.
-// Arguments:       None.
-// Return value:    None.
-
-    void ClearMOColorLayer();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1444,8 +1391,7 @@ public:
 
     // Current scene being used
     Scene *m_pCurrentScene;
-    // Color MO layer
-    SceneLayerTracked *m_pMOColorLayer;
+
     // MovableObject ID layer
     SceneLayerTracked *m_pMOIDLayer;
     // A spatial partitioning grid of MOIDs, used to optimize collision and distance queries

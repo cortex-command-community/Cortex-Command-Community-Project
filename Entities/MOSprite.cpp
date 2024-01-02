@@ -15,6 +15,7 @@
 
 #include "AEmitter.h"
 #include "PresetMan.h"
+#include "ThreadMan.h"
 
 namespace RTE {
 
@@ -145,6 +146,7 @@ int MOSprite::Create(const MOSprite &reference)
     m_SpriteDiameter = reference.m_SpriteDiameter;
 
     m_Rotation = reference.m_Rotation;
+    m_PrevRotation = reference.m_PrevRotation;
     m_AngularVel = reference.m_AngularVel;
     m_SettleMaterialDisabled = reference.m_SettleMaterialDisabled;
     m_pEntryWound = reference.m_pEntryWound;
@@ -467,7 +469,7 @@ Vector MOSprite::UnRotateOffset(const Vector &offset) const
 void MOSprite::Update() {
 	MovableObject::Update();
 
-	// First, check that the sprite has enough frames to even have an animation and override the setting if not
+    // Check that the sprite has enough frames to even have an animation and override the setting if not
 	if (m_FrameCount > 1) {
 		// If animation mode is set to something other than ALWAYSLOOP but only has 2 frames, override it because it's pointless
 		if ((m_SpriteAnimMode == ALWAYSRANDOM || m_SpriteAnimMode == ALWAYSPINGPONG) && m_FrameCount == 2) {
@@ -487,21 +489,20 @@ void MOSprite::Update() {
 		m_SpriteAnimMode = NOANIM;
 	}
 
-	// Animate the sprite, if applicable
-	unsigned int frameTime = m_SpriteAnimDuration / m_FrameCount;
-	unsigned int prevFrame = m_Frame;
-
-	if (m_SpriteAnimTimer.GetElapsedSimTimeMS() > frameTime) {
+    // Animate the sprite, if applicable
+	double frameTime = m_SpriteAnimDuration / m_FrameCount;
+    while (m_SpriteAnimTimer.GetElapsedSimTimeMS() > frameTime) {
+        unsigned int prevFrame = m_Frame;
+        double newTime = frameTime > 0 ? m_SpriteAnimTimer.GetElapsedSimTimeMS() - frameTime : 0;
+        m_SpriteAnimTimer.SetElapsedSimTimeMS(newTime);
 		switch (m_SpriteAnimMode) {
 		    case ALWAYSLOOP:
 			    m_Frame = ((m_Frame + 1) % m_FrameCount);
-                m_SpriteAnimTimer.Reset();
 			    break;
 		    case ALWAYSRANDOM:
 			    while (m_Frame == prevFrame) {
 					m_Frame = RandomNum<int>(0, m_FrameCount - 1);
 			    }
-                m_SpriteAnimTimer.Reset();
 			    break;
 		    case ALWAYSPINGPONG:
 			    if (m_Frame == m_FrameCount - 1) {
@@ -510,7 +511,6 @@ void MOSprite::Update() {
 				    m_SpriteAnimIsReversingFrames = false;
 			    }
 			    m_SpriteAnimIsReversingFrames ? m_Frame-- : m_Frame++;
-                m_SpriteAnimTimer.Reset();
 			    break;
 		    default:
 			    break;
@@ -525,101 +525,139 @@ void MOSprite::Update() {
 // Description:     Draws this MOSprite's current graphical representation to a
 //                  BITMAP of choice.
 
-void MOSprite::Draw(BITMAP *pTargetBitmap,
+void MOSprite::Draw(BITMAP * targetBitmap,
                     const Vector &targetPos,
                     DrawMode mode,
                     bool onlyPhysical) const
 {
-    if (!m_aSprite[m_Frame])
+    BITMAP *currentFrame = m_aSprite[m_Frame];
+    if (!currentFrame) {
         RTEAbort("Sprite frame pointer is null when drawing MOSprite!");
+    }
 
     // Apply offsets and positions.
     Vector spriteOffset;
-    if (m_HFlipped)
-        spriteOffset.SetXY(-(m_aSprite[m_Frame]->w + m_SpriteOffset.m_X), m_SpriteOffset.m_Y);
-    else
+    if (m_HFlipped) {
+        spriteOffset.SetXY(-(currentFrame->w + m_SpriteOffset.m_X), m_SpriteOffset.m_Y);
+    } else {
         spriteOffset = m_SpriteOffset;
+    }
 
+    Vector prevSpritePos(m_PrevPos + spriteOffset - targetPos);
     Vector spritePos(m_Pos + spriteOffset - targetPos);
 
-    // Take care of wrapping situations
-    Vector aDrawPos[4];
-    aDrawPos[0] = spritePos;
-    int passes = 1;
+    if (mode == g_DrawMOID) {
+        g_SceneMan.RegisterMOIDDrawing(m_MOID, spritePos.GetX(), spritePos.GetY(), spritePos.GetX() + currentFrame->w, spritePos.GetY() + currentFrame->h);
+		return;
+	}
 
-    // Only bother with wrap drawing if the scene actually wraps around
-    if (g_SceneMan.SceneWrapsX())
-    {
-        // See if need to double draw this across the scene seam if we're being drawn onto a scenewide bitmap
-        if (targetPos.IsZero() && m_WrapDoubleDraw)
-        {
-            if (spritePos.m_X < m_aSprite[m_Frame]->w)
-            {
-                aDrawPos[passes] = spritePos;
-                aDrawPos[passes].m_X += pTargetBitmap->w;
-                passes++;
-            }
-            else if (spritePos.m_X > pTargetBitmap->w - m_aSprite[m_Frame]->w)
-            {
-                aDrawPos[passes] = spritePos;
-                aDrawPos[passes].m_X -= pTargetBitmap->w;
-                passes++;
-            }
-        }
-        // Only screenwide target bitmap, so double draw within the screen if the screen is straddling a scene seam
-        else if (m_WrapDoubleDraw)
-        {
-            if (targetPos.m_X < 0)
-            {
-                aDrawPos[passes] = aDrawPos[0];
-                aDrawPos[passes].m_X -= g_SceneMan.GetSceneWidth();
-                passes++;
-            }
-            if (targetPos.m_X + pTargetBitmap->w > g_SceneMan.GetSceneWidth())
-            {
-                aDrawPos[passes] = aDrawPos[0];
-                aDrawPos[passes].m_X += g_SceneMan.GetSceneWidth();
-                passes++;
-            }
-        }
-    }
+    bool hFlipped = m_HFlipped;
+    bool wrapDoubleDraw = m_WrapDoubleDraw;
 
-    for (int i = 0; i < passes; ++i)
-    {
-        int spriteX = aDrawPos[i].GetFloorIntX();
-        int spriteY = aDrawPos[i].GetFloorIntY();
-        switch (mode) {
-            case g_DrawMaterial:
-                RTEAbort("Ordered to draw an MOSprite in its material, which is not possible!");
-                break;
-            case g_DrawWhite:
-                draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY, g_WhiteColor, -1);
-                break;
-            case g_DrawMOID:
-#ifdef DRAW_MOID_LAYER
-                draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY, m_MOID, -1);
-#endif
-                break;
-            case g_DrawNoMOID:
-                draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY, g_NoMOID, -1);
-                break;
-            case g_DrawTrans:
-                draw_trans_sprite(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
-                break;
-            case g_DrawAlpha:
-                set_alpha_blender();
-                draw_trans_sprite(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
-                break;
-            default:
-                if (!m_HFlipped) {
-                    draw_sprite(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
-                } else {
-                    draw_sprite_h_flip(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
+    auto renderFunc = [=](float interpolationAmount) {
+        BITMAP* pTargetBitmap = targetBitmap;
+        Vector renderPos = g_SceneMan.Lerp(0.0F, 1.0F, prevSpritePos, spritePos, interpolationAmount);
+        if (targetBitmap == nullptr) {
+            pTargetBitmap = g_ThreadMan.GetRenderTarget();
+            renderPos -= g_ThreadMan.GetRenderOffset();
+        }
+
+        // Take care of wrapping situations
+        std::array<Vector, 4> drawPositions = { renderPos };
+        int drawPasses = 1;
+        if (g_SceneMan.SceneWrapsX()) {
+            if (renderPos.IsZero() && wrapDoubleDraw) {
+                if (spritePos.GetFloorIntX() < currentFrame->w) {
+                    drawPositions[drawPasses] = spritePos;
+                    drawPositions[drawPasses].m_X += static_cast<float>(pTargetBitmap->w);
+                    drawPasses++;
+                } else if (spritePos.GetFloorIntX() > pTargetBitmap->w - currentFrame->w) {
+                    drawPositions[drawPasses] = spritePos;
+                    drawPositions[drawPasses].m_X -= static_cast<float>(pTargetBitmap->w);
+                    drawPasses++;
                 }
+            } else if (wrapDoubleDraw) {
+                if (renderPos.m_X < 0) {
+                    drawPositions[drawPasses] = drawPositions[0];
+                    drawPositions[drawPasses].m_X += static_cast<float>(g_SceneMan.GetSceneWidth());
+                    drawPasses++;
+                }
+                if (renderPos.GetFloorIntX() + pTargetBitmap->w > g_SceneMan.GetSceneWidth()) {
+                    drawPositions[drawPasses] = drawPositions[0];
+                    drawPositions[drawPasses].m_X -= static_cast<float>(g_SceneMan.GetSceneWidth());
+                    drawPasses++;
+                }
+            }
+        }
+        if (g_SceneMan.SceneWrapsY()) {
+            if (renderPos.IsZero() && wrapDoubleDraw) {
+                if (spritePos.GetFloorIntY() < currentFrame->h) {
+                    drawPositions[drawPasses] = spritePos;
+                    drawPositions[drawPasses].m_Y += static_cast<float>(pTargetBitmap->h);
+                    drawPasses++;
+                } else if (spritePos.GetFloorIntY() > pTargetBitmap->h - currentFrame->h) {
+                    drawPositions[drawPasses] = spritePos;
+                    drawPositions[drawPasses].m_Y -= static_cast<float>(pTargetBitmap->h);
+                    drawPasses++;
+                }
+            } else if (wrapDoubleDraw) {
+                if (renderPos.m_Y < 0) {
+                    drawPositions[drawPasses] = drawPositions[0];
+                    drawPositions[drawPasses].m_Y += static_cast<float>(g_SceneMan.GetSceneHeight());
+                    drawPasses++;
+                }
+                if (renderPos.GetFloorIntY() + pTargetBitmap->h > g_SceneMan.GetSceneHeight()) {
+                    drawPositions[drawPasses] = drawPositions[0];
+                    drawPositions[drawPasses].m_Y -= static_cast<float>(g_SceneMan.GetSceneHeight());
+                    drawPasses++;
+                }
+            }
         }
 
-        g_SceneMan.RegisterDrawing(pTargetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, spriteX, spriteY, spriteX + m_aSprite[m_Frame]->w, spriteY + m_aSprite[m_Frame]->h);
+        for (int i = 0; i < drawPasses; ++i)
+        {
+            int spriteX = drawPositions[i].GetFloorIntX();
+            int spriteY = drawPositions[i].GetFloorIntY();
+            switch (mode) {
+                case g_DrawMaterial:
+                    RTEAbort("Ordered to draw an MOSprite in its material, which is not possible!");
+                    break;
+                case g_DrawWhite:
+                    draw_character_ex(pTargetBitmap, currentFrame, spriteX, spriteY, g_WhiteColor, -1);
+                    break;
+                    break;
+                case g_DrawTrans:
+                    draw_trans_sprite(pTargetBitmap, currentFrame, spriteX, spriteY);
+                    break;
+                case g_DrawAlpha:
+                    set_alpha_blender();
+                    draw_trans_sprite(pTargetBitmap, currentFrame, spriteX, spriteY);
+                    break;
+                default:
+                    if (!hFlipped) {
+                        draw_sprite(pTargetBitmap, currentFrame, spriteX, spriteY);
+                    } else {
+                        draw_sprite_h_flip(pTargetBitmap, currentFrame, spriteX, spriteY);
+                    }
+            }
+        }
+    };
+
+    if (targetBitmap == nullptr) {
+        g_ThreadMan.GetSimRenderQueue().push_back(renderFunc);
+    } else {
+        renderFunc(1.0F);
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MOSprite::NewFrame() {
+    MovableObject::NewFrame();
+
+    m_PrevRotation = m_Rotation;
+    m_PrevAngVel = m_AngularVel;
+}
+
 
 } // namespace RTE

@@ -1088,14 +1088,14 @@ void HDFirearm::Update()
                 // Spin up - can only spin up if mag is inserted
                 if (m_Activated && !m_Reloading && m_ActivationTimer.GetElapsedSimTimeMS() < m_ActivationDelay)
                 {
-                    animDuration = (int)LERP(0, m_ActivationDelay, (float)(m_SpriteAnimDuration * 10), (float)m_SpriteAnimDuration, m_ActivationTimer.GetElapsedSimTimeMS());
-					if (m_ActiveSound) { m_ActiveSound->SetPitch(LERP(0, m_ActivationDelay, 0, 1.0, m_ActivationTimer.GetElapsedSimTimeMS())); }
+                    animDuration = (int)Lerp(0, m_ActivationDelay, (float)(m_SpriteAnimDuration * 10), (float)m_SpriteAnimDuration, m_ActivationTimer.GetElapsedSimTimeMS());
+					if (m_ActiveSound) { m_ActiveSound->SetPitch(Lerp(0, m_ActivationDelay, 0, 1.0, m_ActivationTimer.GetElapsedSimTimeMS())); }
                 }
                 // Spin down
                 if ((!m_Activated || m_Reloading) && m_LastFireTmr.GetElapsedSimTimeMS() < m_DeactivationDelay)
                 {
-                    animDuration = (int)LERP(0, m_DeactivationDelay, (float)m_SpriteAnimDuration, (float)(m_SpriteAnimDuration * 10), m_LastFireTmr.GetElapsedSimTimeMS());
-					if (m_ActiveSound) { m_ActiveSound->SetPitch(LERP(0, m_DeactivationDelay, 1.0, 0, m_LastFireTmr.GetElapsedSimTimeMS())); }
+                    animDuration = (int)Lerp(0, m_DeactivationDelay, (float)m_SpriteAnimDuration, (float)(m_SpriteAnimDuration * 10), m_LastFireTmr.GetElapsedSimTimeMS());
+					if (m_ActiveSound) { m_ActiveSound->SetPitch(Lerp(0, m_DeactivationDelay, 1.0, 0, m_LastFireTmr.GetElapsedSimTimeMS())); }
                 }
 
                 if (animDuration > 0 && !(m_Reloading && m_LastFireTmr.GetElapsedSimTimeMS() >= m_DeactivationDelay)) {
@@ -1168,15 +1168,14 @@ void HDFirearm::Draw(BITMAP *pTargetBitmap, const Vector &targetPos, DrawMode mo
 
 void HDFirearm::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int whichScreen, bool playerControlled)
 {
-    if (!m_HUDVisible)
+    if (!m_HUDVisible) {
         return;
+    }
 
     // Only draw if the team viewing this is on the same team OR has seen the space where this is located
     int viewingTeam = g_ActivityMan.GetActivity()->GetTeamOfPlayer(g_ActivityMan.GetActivity()->PlayerOfScreen(whichScreen));
-    if (viewingTeam != m_Team && viewingTeam != Activity::NoTeam)
-    {
-        if (g_SceneMan.IsUnseen(m_Pos.m_X, m_Pos.m_Y, viewingTeam))
-            return;
+    if (viewingTeam != m_Team && viewingTeam != Activity::NoTeam && g_SceneMan.IsUnseen(m_Pos.m_X, m_Pos.m_Y, viewingTeam)) {
+        return;
     }
 
     HeldDevice::DrawHUD(pTargetBitmap, targetPos, whichScreen);
@@ -1193,11 +1192,11 @@ void HDFirearm::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int whic
 	} else {
 		pointCount = 2;
 	}
+
 	int pointSpacing = 10 - pointCount;
 	sharpLength -= static_cast<float>(pointSpacing * pointCount) * 0.5F;
 	Vector muzzleOffset(std::max(m_MuzzleOff.m_X, m_SpriteRadius), m_MuzzleOff.m_Y);
 
-	//acquire_bitmap(pTargetBitmap);
 	for (int i = 0; i < pointCount; ++i) {
 		Vector aimPoint(sharpLength + static_cast<float>(pointSpacing * i), 0);
 		aimPoint = RotateOffset(aimPoint + muzzleOffset) + m_Pos;
@@ -1207,7 +1206,6 @@ void HDFirearm::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int whic
 		g_SceneMan.WrapPosition(aimPoint);
 		putpixel(pTargetBitmap, aimPoint.GetFloorIntX(), aimPoint.GetFloorIntY(), g_YellowGlowColor);
 	}
-	//release_bitmap(pTargetBitmap);
 }
 
 } // namespace RTE

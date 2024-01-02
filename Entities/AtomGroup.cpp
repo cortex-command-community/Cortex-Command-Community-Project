@@ -428,11 +428,6 @@ namespace RTE {
 						}
 					}
 				}
-#ifdef DEBUG_BUILD
-				// TODO: Remove this once AtomGroup drawing in Material layer draw mode is implemented.
-				// Draw the positions of the Atoms at the start of each segment, for visual debugging.
-				//putpixel(g_SceneMan.GetMOColorBitmap(), atom->GetCurrentPos().GetFloorIntX(), atom->GetCurrentPos().GetFloorIntY(), 122);
-#endif
 			}
 
 			linSegTraj = velocity * timeLeft * c_PPM;
@@ -506,14 +501,6 @@ namespace RTE {
 								atomsHitMOsCount++;
 							}
 						}
-#ifdef DEBUG_BUILD
-						// TODO: Remove this once AtomGroup drawing in Material layer draw mode is implemented.
-						Vector tPos = atom->GetCurrentPos();
-						Vector tNorm = m_OwnerMOSR->RotateOffset(atom->GetNormal()) * 7;
-						line(g_SceneMan.GetMOColorBitmap(), tPos.GetFloorIntX(), tPos.GetFloorIntY(), tPos.GetFloorIntX() + tNorm.GetFloorIntX(), tPos.GetFloorIntY() + tNorm.GetFloorIntY(), 244);
-						// Draw the positions of the hit points on screen for easy debugging.
-						//putpixel(g_SceneMan.GetMOColorBitmap(), tPos.GetFloorIntX(), tPos.GetFloorIntY(), 5);
-#endif
 					}
 				}
 
@@ -943,12 +930,6 @@ namespace RTE {
 					} else if (atomsHitMOsCount == 0 && g_SceneMan.GetTerrMatter(intPos[X] + flippedOffset.GetFloorIntX(), intPos[Y] + flippedOffset.GetFloorIntY())) {
 						hitTerrAtoms.push_back({ atom, flippedOffset });
 					}
-
-#ifdef DEBUG_BUILD
-					// TODO: Remove this once AtomGroup drawing in Material layer draw mode is implemented.
-					// Draw the positions of the hit points on screen for easy debugging.
-					//putpixel(g_SceneMan.GetMOColorBitmap(), std::floor(position.GetFloorIntX() + flippedOffset.GetFloorIntX()), std::floor(position.GetFloorIntY() + flippedOffset.GetFloorIntY()), 122);
-#endif
 				}
 
 				// If no collisions, continue on to the next step.
@@ -1469,9 +1450,6 @@ namespace RTE {
 				if (tempMO->GetsHitByMOs()) {
 					// Make that MO draw itself again in the MOID layer so we can find its true edges
 					intersectedMO = tempMO;
-#ifdef DRAW_MOID_LAYER
-					intersectedMO->Draw(g_SceneMan.GetMOIDBitmap(), Vector(), g_DrawMOID, true);
-#endif
 					break;
 				}
 			}

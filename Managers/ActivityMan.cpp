@@ -333,8 +333,6 @@ namespace RTE {
 		m_LastMusicPos = 0;
 		g_AudioMan.PauseIngameSounds(false);
 
-		g_PerformanceMan.ResetPerformanceTimings();
-
 		return error;
 	}
 
@@ -385,7 +383,11 @@ namespace RTE {
 			}
 		}
 
-		m_Activity->SetPaused(pause);
+		g_ThreadMan.QueueInSimulationThread([&]() { 
+			m_Activity->SetPaused(pause);
+		});
+
+		g_TimerMan.PauseSim(pause); 
 		m_InActivity = !pause;
 		m_ResumingActivityFromPauseMenu = false;
 		m_SkipPauseMenuWhenPausingActivity = skipPauseMenu;
@@ -402,7 +404,6 @@ namespace RTE {
 
 			PauseActivity(false);
 			g_TimerMan.PauseSim(false);
-			g_PerformanceMan.ResetPerformanceTimings();
 		}
 	}
 
@@ -428,7 +429,7 @@ namespace RTE {
 		} else {
 			activityStarted = StartActivity(m_DefaultActivityType, m_DefaultActivityName);
 		}
-		g_TimerMan.PauseSim(false);
+
 		if (activityStarted >= 0) {
 			m_InActivity = true;
 			return true;

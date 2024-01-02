@@ -9,6 +9,8 @@
 #include "CameraMan.h"
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
+#include "MovableMan.h"
+#include "ThreadMan.h"
 #include "UInputMan.h"
 
 #include "SLTerrain.h"
@@ -239,6 +241,13 @@ namespace RTE {
 		for (int playerScreen = 0; playerScreen < screenCount; ++playerScreen) {
 			g_CameraMan.Update(playerScreen);
 		}
+
+		// Queue our MO renders
+		Vector targetPos{};
+		g_MovableMan.Draw(nullptr, targetPos);
+
+		// TODO_MULTITHREAD
+		//g_MovableMan.DrawHUD(nullptr, targetPos, playerScreen);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -662,8 +671,6 @@ namespace RTE {
 		int dotHeight = drawDot ? dot->h : 0;
 		int dotWidth = drawDot ? dot->w : 0;
 
-		//acquire_bitmap(bitmap);
-
 		// Just make the alt the same color as the main one if no one was specified
 		if (altColor == 0) { altColor = color; }
 
@@ -734,8 +741,6 @@ namespace RTE {
 				skipped = 0;
 			}
 		}
-
-		//release_bitmap(bitmap);
 
 		// Return the end phase state of the skipping
 		return skipped;
@@ -821,7 +826,7 @@ namespace RTE {
 		std::list<PostEffect> screenRelativeEffects;
 		std::list<Box> screenRelativeGlowBoxes;
 
-		const Activity *pActivity = g_ActivityMan.GetActivity();
+		const Activity *pActivity = g_ThreadMan.GetDrawableGameState().m_Activity;
 
 		for (int playerScreen = 0; playerScreen < screenCount; ++playerScreen) {
 			screenRelativeEffects.clear();
@@ -876,8 +881,11 @@ namespace RTE {
 
 			// Get only the scene-relative post effects that affect this player's screen
 			if (pActivity) {
+				// TODO_MULTITHREAD
+#ifndef MULTITHREAD_SIM_AND_RENDER
 				g_PostProcessMan.GetPostScreenEffectsWrapped(targetPos, drawScreen->w, drawScreen->h, screenRelativeEffects, pActivity->GetTeamOfPlayer(pActivity->PlayerOfScreen(playerScreen)));
 				g_PostProcessMan.GetGlowAreasWrapped(targetPos, drawScreen->w, drawScreen->h, screenRelativeGlowBoxes);
+#endif
 
 				if (IsInMultiplayerMode()) { g_PostProcessMan.SetNetworkPostEffectsList(playerScreen, screenRelativeEffects); }
 			}
@@ -931,18 +939,18 @@ namespace RTE {
 			}
 		}
 
-		if (IsInMultiplayerMode()) { PrepareFrameForNetwork(); }
+		if (IsInMultiplayerMode()) { 
+			PrepareFrameForNetwork(); 
+		}
 
-		if (g_ActivityMan.IsInActivity()) { g_PostProcessMan.PostProcess(); }
+		if (g_ActivityMan.IsInActivity()) {
+			// TODO_MULTITHREAD: add post processing effects to RenderableGameState
+			g_PostProcessMan.PostProcess(); 
+		}
 
 		// Draw the performance stats and console on top of everything.
 		g_PerformanceMan.Draw(m_BackBuffer32.get());
 		g_ConsoleMan.Draw(m_BackBuffer32.get());
-
-#ifdef DEBUG_BUILD
-		// Draw scene seam
-		vline(m_BackBuffer8.get(), 0, 0, g_SceneMan.GetSceneHeight(), 5);
-#endif
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -972,16 +980,11 @@ namespace RTE {
 				textPosY += 12;
 			}
 
-			// Draw info text when in MOID or material layer draw mode
+			// Draw info text when in material layer draw mode
 			switch (g_SceneMan.GetLayerDrawMode()) {
 				case g_LayerTerrainMatter:
-					GetSmallFont()->DrawAligned(&playerGUIBitmap, GetPlayerScreenWidth() / 2, GetPlayerScreenHeight() - 12, "Viewing terrain material layer\nHit Ctrl+M to cycle modes", GUIFont::Centre, GUIFont::Bottom);
+					GetSmallFont()->DrawAligned(&playerGUIBitmap, GetPlayerScreenWidth() / 2, GetPlayerScreenHeight() - 12, "Viewing terrain material layer\nHit Ctrl+M to toggle", GUIFont::Centre, GUIFont::Bottom);
 					break;
-#ifdef DRAW_MOID_LAYER
-				case g_LayerMOID:
-					GetSmallFont()->DrawAligned(&playerGUIBitmap, GetPlayerScreenWidth() / 2, GetPlayerScreenHeight() - 12, "Viewing MovableObject ID layer\nHit Ctrl+M to cycle modes", GUIFont::Centre, GUIFont::Bottom);
-					break;
-#endif
 				default:
 					break;
 			}
@@ -1041,7 +1044,7 @@ namespace RTE {
 			Vector targetPos(0, 0);
 
 			// Draw objects
-			draw_sprite(m_WorldDumpBuffer.get(), g_SceneMan.GetMOColorBitmap(), 0, 0);
+			g_MovableMan.Draw(m_WorldDumpBuffer.get());
 
 			// Draw post-effects
 			g_PostProcessMan.GetPostScreenEffectsWrapped(targetPos, worldBitmapWidth, worldBitmapHeight, postEffectsList, -1);

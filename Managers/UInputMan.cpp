@@ -1,6 +1,8 @@
 #include "UInputMan.h"
+
 #include "SceneMan.h"
 #include "ActivityMan.h"
+#include "ThreadMan.h"
 #include "MetaMan.h"
 #include "WindowMan.h"
 #include "FrameMan.h"
@@ -763,6 +765,12 @@ namespace RTE {
 	int UInputMan::Update() {
 		m_LastDeviceWhichControlledGUICursor = InputDevice::DEVICE_KEYB_ONLY;
 
+		// TODO_MULTITHREAD
+		// Handle this properly.
+		// There should be an intelligent division between inputs and controller states.
+		// Probably "stack" all UI updates into the controller for the *last* sim frame (so the state doesn't change mid-frame)
+		// But then that introduces a frame of latency. Alternatively, just let it update midframe. 
+		// Tbh having things update mid-frame hasn't hurt, unless it's deleting stuff or changing lists being looped through by draw
 		std::fill(s_ChangedKeyStates.begin(), s_ChangedKeyStates.end(), false);
 		std::fill(s_ChangedMouseButtonStates.begin(), s_ChangedMouseButtonStates.end(), false);
 		for (Gamepad &gamepad : s_ChangedJoystickStates) {
@@ -892,6 +900,7 @@ namespace RTE {
 		} else {
 			m_NetworkAccumulatedRawMouseMovement[Players::PlayerOne] += m_RawMouseMovement;
 		}
+
 		UpdateMouseInput();
 		UpdateJoystickDigitalAxis();
 		HandleSpecialInput();
@@ -932,10 +941,10 @@ namespace RTE {
 		if (FlagCtrlState() && !FlagAltState()) {
 			// Ctrl+S to save continuous ScreenDumps
 			if (KeyHeld(SDLK_s)) {
-				g_FrameMan.SaveScreenToPNG("ScreenDump");
+				g_ThreadMan.QueueInSimulationThread([]() { g_FrameMan.SaveScreenToPNG("ScreenDump"); });
 			// Ctrl+W to save a WorldDump
 			} else if (KeyPressed(SDLK_w)) {
-				g_FrameMan.SaveWorldToPNG("WorldDump");
+				g_ThreadMan.QueueInSimulationThread([]() { g_FrameMan.SaveWorldToPNG("WorldDump"); });
 			// Ctrl+M to cycle draw modes
 			} else if (KeyPressed(SDLK_m)) {
 				g_SceneMan.SetLayerDrawMode((g_SceneMan.GetLayerDrawMode() + 1) % 3);
@@ -943,12 +952,14 @@ namespace RTE {
 			} else if (KeyPressed(SDLK_p)) {
 				g_PerformanceMan.ShowPerformanceStats(!g_PerformanceMan.IsShowingPerformanceStats());
 			} else if (KeyPressed(SDLK_F2)) {
-				g_PresetMan.QuickReloadEntityPreset();
+				g_ThreadMan.QueueInSimulationThread([]() { g_PresetMan.QuickReloadEntityPreset(); });
 			} else if (KeyPressed(SDLK_F9)) {
-				g_ActivityMan.LoadAndLaunchGame("AutoSave");
+				g_ThreadMan.QueueInSimulationThread([]() { g_ActivityMan.LoadAndLaunchGame("AutoSave"); });
 			} else if (g_PerformanceMan.IsShowingPerformanceStats()) {
 				if (KeyHeld(SDLK_1)) {
 					g_TimerMan.SetTimeScale(1.0F);
+				} else if (KeyHeld(SDLK_2)) {
+					g_TimerMan.SetTimeScale(99999.9F);
 				} else if (KeyHeld(SDLK_5)) {
 					g_TimerMan.SetDeltaTimeSecs(c_DefaultDeltaTimeS);
 				}
@@ -961,7 +972,7 @@ namespace RTE {
 				g_WindowMan.ToggleFullscreen();
 			// Alt+W to save ScenePreviewDump (miniature WorldDump)
 			} else if (KeyPressed(SDLK_w)) {
-				g_FrameMan.SaveWorldPreviewToPNG("ScenePreviewDump");
+				g_ThreadMan.QueueInSimulationThread([]() { g_FrameMan.SaveWorldPreviewToPNG("ScenePreviewDump"); });
 			} else if (g_PerformanceMan.IsShowingPerformanceStats()) {
 				if (KeyPressed(SDLK_p)) {
 					g_PerformanceMan.ShowAdvancedPerformanceStats(!g_PerformanceMan.AdvancedPerformanceStatsEnabled());
@@ -971,19 +982,19 @@ namespace RTE {
 			if (KeyPressed(SDLK_F1)) {
 				g_ConsoleMan.ShowShortcuts();
 			} else if (KeyPressed(SDLK_F2)) {
-				g_PresetMan.ReloadAllScripts();
+				g_ThreadMan.QueueInSimulationThread([]() { g_PresetMan.ReloadAllScripts(); });
 			} else if (KeyPressed(SDLK_F3)) {
 				g_ConsoleMan.SaveAllText("Console.dump.log");
 			} else if (KeyPressed(SDLK_F4)) {
 				g_ConsoleMan.SaveInputLog("Console.input.log");
 			} else if (KeyPressed(SDLK_F5)) {
 				if (g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->CanBeUserSaved()) {
-					g_ActivityMan.SaveCurrentGame("QuickSave");
+					g_ThreadMan.QueueInSimulationThread([]() { g_ActivityMan.SaveCurrentGame("QuickSave"); });
 				} else {
 					RTEError::ShowMessageBox("Cannot Save Game - This Activity Does Not Allow QuickSaving!");
 				}
 			} else if (KeyPressed(SDLK_F9)) {
-				g_ActivityMan.LoadAndLaunchGame("QuickSave");
+				g_ThreadMan.QueueInSimulationThread([]() { g_ActivityMan.LoadAndLaunchGame("QuickSave"); });
 			} else if (KeyPressed(SDLK_F10)) {
 				g_ConsoleMan.ClearLog();
 			// F12 to save a single ScreenDump - Note that F12 triggers a breakpoint when the VS debugger is attached, regardless of config - this is by design. Thanks Microsoft.

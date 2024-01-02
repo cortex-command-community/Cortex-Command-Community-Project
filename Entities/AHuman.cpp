@@ -877,11 +877,7 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip)
                         // Note - This is a fix to deal with an edge case bug when this method is called by a global script.
                         // Because the global script runs before everything has finished traveling, the removed item needs to undraw itself from the MO layer, otherwise it can result in ghost collisions and crashes.
                         if (previouslyHeldItem->GetsHitByMOs()) {
-#ifdef DRAW_MOID_LAYER
-                            previouslyHeldItem->Draw(g_SceneMan.GetMOIDBitmap(), Vector(), g_DrawNoMOID, true);
-#else
                             previouslyHeldItem->SetTraveling(true);
-#endif
                         }
                         AddToInventoryBack(previouslyHeldItem);
                     }
@@ -1753,12 +1749,12 @@ void AHuman::UpdateCrouching() {
 			desiredWalkPathYOffset = m_CrouchAmountOverride * m_MaxWalkPathCrouchShift;
 		}
 
-		float finalWalkPathYOffset = std::clamp(LERP(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+		float finalWalkPathYOffset = std::clamp(Lerp(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
 		m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
 
 		// If crouching, move at reduced speed
 		const float crouchSpeedMultiplier = 0.5F;
-		float travelSpeedMultiplier = LERP(0.0F, m_MaxWalkPathCrouchShift, 1.0F, crouchSpeedMultiplier, -m_WalkPathOffset.m_Y);
+		float travelSpeedMultiplier = Lerp(0.0F, m_MaxWalkPathCrouchShift, 1.0F, crouchSpeedMultiplier, -m_WalkPathOffset.m_Y);
 		m_Paths[FGROUND][WALK].SetTravelSpeedMultiplier(travelSpeedMultiplier);
 		m_Paths[BGROUND][WALK].SetTravelSpeedMultiplier(travelSpeedMultiplier);
 
@@ -2691,7 +2687,7 @@ void AHuman::Update()
 
 			// Lean forwards when crouching
 			float crouchAngleAdjust = m_HFlipped ? m_MaxCrouchRotation : -m_MaxCrouchRotation;
-			rotTarget += LERP(0.0F, m_MaxWalkPathCrouchShift, 0.0F, crouchAngleAdjust, m_WalkPathOffset.m_Y * -1.0F);
+			rotTarget += Lerp(0.0F, m_MaxWalkPathCrouchShift, 0.0F, crouchAngleAdjust, m_WalkPathOffset.m_Y * -1.0F);
 
 			float rotDiff = rot - rotTarget;
 			m_AngularVel = m_AngularVel * (0.98F - 0.06F * (m_Health / m_MaxHealth)) - (rotDiff * 0.5F);
@@ -2820,8 +2816,9 @@ void AHuman::DrawHUD(BITMAP *pTargetBitmap, const Vector &targetPos, int whichSc
 	m_HUDStack = -m_CharHeight / 2;
 
     // Only do HUD if on a team
-    if (m_Team < 0)
+    if (m_Team < 0) {
         return;
+    }
 
 	// Only draw if the team viewing this is on the same team OR has seen the space where this is located.
 	int viewingTeam = g_ActivityMan.GetActivity()->GetTeamOfPlayer(g_ActivityMan.GetActivity()->PlayerOfScreen(whichScreen));

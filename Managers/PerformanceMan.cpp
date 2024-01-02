@@ -20,8 +20,6 @@ namespace RTE {
 		m_AdvancedPerfStats = true;
 		m_Sample = 0;
 		m_SimUpdateTimer = nullptr;
-		m_MSPSUs.clear();
-		m_MSPSUAverage = 0;
 		m_MSPFs.clear();
 		m_MSPFAverage = 0;
 		m_MSPUs.clear();
@@ -93,24 +91,39 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PerformanceMan::CalculateTimeAverage(std::deque<float> &timeMeasurements, float &avgResult, float newTimeMeasurement) const {
+	void PerformanceMan::CalculateTimeAverage(std::deque<float> &timeMeasurements, std::atomic<float> &avgResult, float newTimeMeasurement) const {
+		static std::mutex mut;
+		std::lock_guard<std::mutex> lock(mut);
+
 		timeMeasurements.emplace_back(newTimeMeasurement);
 		while (timeMeasurements.size() > c_MSPAverageSampleSize) {
 			timeMeasurements.pop_front();
 		}
-		avgResult = 0;
+		float averageTime = 0;
 		for (const float &timeMeasurement : timeMeasurements) {
-			avgResult += timeMeasurement;
+			averageTime += timeMeasurement;
 		}
-		avgResult /= static_cast<float>(timeMeasurements.size());
+		averageTime /= static_cast<float>(timeMeasurements.size());
+
+		avgResult = averageTime;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PerformanceMan::UpdateMSPF(long long measuredUpdateTime, long long measuredDrawTime) {
+	void PerformanceMan::UpdateMSPU(long long measuredUpdateTime) {
 		CalculateTimeAverage(m_MSPUs, m_MSPUAverage, static_cast<float>(measuredUpdateTime / 1000));
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void PerformanceMan::UpdateMSPD(long long measuredDrawTime) {
 		CalculateTimeAverage(m_MSPDs, m_MSPDAverage, static_cast<float>(measuredDrawTime / 1000));
-		CalculateTimeAverage(m_MSPFs, m_MSPFAverage, static_cast<float>((measuredUpdateTime + measuredDrawTime) / 1000));
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void PerformanceMan::UpdateMSPF(long long measuredFrameTime) {
+		CalculateTimeAverage(m_MSPFs, m_MSPFAverage, static_cast<float>(measuredFrameTime / 1000));
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,11 +136,11 @@ namespace RTE {
 			char str[128];
 
 			float fps = 1.0F / (m_MSPFAverage / 1000.0F);
-			float ups = 1.0F / (m_MSPSUAverage / 1000.0F);
+			float ups = 1.0F / std::max(m_MSPUAverage / 1000.0F, g_TimerMan.GetDeltaTimeSecs() / g_TimerMan.GetTimeScale());
 			std::snprintf(str, sizeof(str), "FPS: %.0f | UPS: %.0f", fps, ups);
 			guiFont->DrawAligned(&drawBitmap, c_StatsOffsetX, c_StatsHeight, str, GUIFont::Left);
 
-			std::snprintf(str, sizeof(str), "Frame: %.1fms | Update: %.1fms | Draw: %.1fms", m_MSPFAverage, m_MSPUAverage, m_MSPDAverage);
+			std::snprintf(str, sizeof(str), "Draw: %.1fms | Update: %.1fms", m_MSPDAverage.load(), m_MSPUAverage.load());
 			guiFont->DrawAligned(&drawBitmap, c_StatsOffsetX, c_StatsHeight + 10, str, GUIFont::Left);
 
 			std::snprintf(str, sizeof(str), "Time Scale: x%.2f ([1]-, [2]+, [Ctrl+1]Rst) | Sim Speed: x%.2f", g_TimerMan.GetTimeScale(), g_TimerMan.GetSimSpeed());
@@ -149,10 +162,13 @@ namespace RTE {
 			std::snprintf(str, sizeof(str), "MOIDs: %i", g_MovableMan.GetMOIDCount());
 			guiFont->DrawAligned(&drawBitmap, c_StatsOffsetX, c_StatsHeight + 70, str, GUIFont::Left);
 
+			// TODO_MULTITHREAD
+#ifndef MULTITHREAD_SIM_AND_RENDER
 			if (int totalPlayingChannelCount = 0, realPlayingChannelCount = 0; g_AudioMan.GetPlayingChannelCount(&totalPlayingChannelCount, &realPlayingChannelCount)) {
 				std::snprintf(str, sizeof(str), "Sound Channels: %d / %d Real | %d / %d Virtual", realPlayingChannelCount, g_AudioMan.GetTotalRealChannelCount(), totalPlayingChannelCount - realPlayingChannelCount, g_AudioMan.GetTotalVirtualChannelCount());
 			}
 			guiFont->DrawAligned(&drawBitmap, c_StatsOffsetX, c_StatsHeight + 80, str, GUIFont::Left);
+#endif
 
 			if (!m_SortedScriptTimings.empty()) {
 				std::snprintf(str, sizeof(str), "Lua scripts taking the most time to call Update() this frame:");
@@ -167,8 +183,8 @@ namespace RTE {
 				}
 			}
 
-			if (m_AdvancedPerfStats) {
-				DrawPeformanceGraphs(drawBitmap);
+			if (m_AdvancedPerfStats) { 
+				DrawPeformanceGraphs(drawBitmap); 
 			}
 		}
 	}

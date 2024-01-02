@@ -3,6 +3,8 @@
 
 #include "Singleton.h"
 
+#include <atomic>
+
 #define g_TimerMan TimerMan::Instance()
 
 namespace RTE {
@@ -53,19 +55,6 @@ namespace RTE {
 		/// </summary>
 		/// <returns>Whether there is enough sim time to do a physics update.</returns>
 		bool TimeForSimUpdate() const { return m_SimAccumulator >= m_DeltaTime; }
-
-		/// <summary>
-		/// Tells whether the current simulation update will be drawn in a frame. Use this to check if it is necessary to draw purely graphical things during the sim update.
-		/// </summary>
-		/// <returns>Whether this is the last sim update before a frame with its results will appear.</returns>
-		bool DrawnSimUpdate() const { return m_DrawnSimUpdate; }
-
-		/// <summary>
-		/// Tells how many sim updates have been performed since the last one that ended up being a drawn frame.
-		/// If negative, it means no sim updates have happened, and a same frame will be drawn again.
-		/// </summary>
-		/// <returns>The number of pure sim updates that have happened since the last drawn.</returns>
-		int SimUpdatesSinceDrawn() const { return m_SimUpdatesSinceDrawn; }
 
 		/// <summary>
 		/// Gets the simulation speed over real time.
@@ -134,10 +123,22 @@ namespace RTE {
 		void SetDeltaTimeTicks(int newDelta) { m_DeltaTime = newDelta; m_DeltaTimeS = static_cast<float>(m_DeltaTime) / static_cast<float>(m_TicksPerSecond); }
 
 		/// <summary>
+		/// Gets how long the last draw took, in seconds
+		/// </summary>
+		/// <returns>How long the last draw took, in seconds.</returns>
+		float GetDrawDeltaTimeSecs() const { return m_DrawDeltaTimeS; }
+
+		/// <summary>
+		/// Gets how long the last draw took, in ms
+		/// </summary>
+		/// <returns>How long the last draw took, in ms.</returns>
+		float GetDrawDeltaTimeMS() const { return m_DrawDeltaTimeS * 1000.0F; }
+
+		/// <summary>
 		/// Gets the current fixed delta time of the simulation updates, in ms.
 		/// </summary>
 		/// <returns>The current fixed delta time that the simulation should be updating with, in ms.</returns>
-		float GetDeltaTimeMS() const { return m_DeltaTimeS * 1000; }
+		float GetDeltaTimeMS() const { return m_DeltaTimeS * 1000.0F; }
 
 		/// <summary>
 		/// Gets the current fixed delta time of the simulation updates, in seconds.
@@ -162,6 +163,19 @@ namespace RTE {
 		/// </summary>
 		/// <param name="newDelta">The new delta time in seconds.</param>
 		void SetDeltaTimeSecs(float newDelta) { m_DeltaTimeS = newDelta; m_DeltaTime = static_cast<long long>(m_DeltaTimeS * static_cast<float>(m_TicksPerSecond)); }
+
+		/// <summary>
+		/// Returns the true update delta time, or how long has actually passed since the last update, in real time.
+		/// </summary>
+		/// <returns>The true update dt, in ms.</returns>
+		float GetTrueUpdateDeltaTimeMS() const { return m_UpdateTrueDeltaTimeTicks / 1000.0F; };
+
+		/// <summary>
+		/// Returns a predicted proportion of how far the current simulation update is through completion, based on the last update time.
+		/// Return 0.0F if a new update just started, and 1.0F if the time since this update started is equal to or past the last update time.
+		/// </summary>
+		/// <returns>A predicted proportion of how complete the current update cycle is.</returns>
+		float GetPredictedProportionOfUpdateCompletion() const;
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -174,6 +188,11 @@ namespace RTE {
 		/// Updates the simulation time to represent the current amount of simulation time passed from the start of the simulation up to the last update.
 		/// </summary>
 		void UpdateSim();
+
+		/// <summary>
+		/// Marks that the last simulation update has completed.
+		/// </summary>
+		void MarkNewSimUpdateComplete();
 
 		/// <summary>
 		/// Updates the real time ticks based on the actual clock time and adds it to the accumulator which the simulation ticks will draw from in whole DeltaTime-sized chunks.
@@ -193,22 +212,24 @@ namespace RTE {
 
 		std::chrono::steady_clock::time_point m_StartTime; //!< The point in real time when the simulation (re)started.
 		long long m_TicksPerSecond; //!< The frequency of ticks each second, ie the resolution of the timer.
-		long long m_RealTimeTicks; //!< The number of actual microseconds counted so far.
+		volatile long long m_RealTimeTicks; //!< The number of actual microseconds counted so far.
 		long long m_SimTimeTicks; //!< The number of simulation time ticks counted so far.
 		long long m_SimUpdateCount; //!< The number of whole simulation updates have been made since reset.
-		long long m_SimAccumulator; //!< Simulation time accumulator keeps track of how much actual time has passed and is chunked into whole DeltaTime:s upon UpdateSim.
+		std::atomic<long long> m_SimAccumulator; //!< Simulation time accumulator keeps track of how much actual time has passed and is chunked into whole DeltaTime:s upon UpdateSim.
 
 		long long m_DeltaTime; //!< The fixed delta time chunk of the simulation update.
 		float m_DeltaTimeS; //!< The simulation update step size, in seconds.
 		std::deque<float> m_DeltaBuffer; //!< Buffer for measuring the most recent real time differences, used for averaging out the readings.
 
-		int m_SimUpdatesSinceDrawn; //!< How many sim updates have been done since the last drawn one.
-		bool m_DrawnSimUpdate; //!< Tells whether the current simulation update will be drawn in a frame.
+		float m_DrawDeltaTimeS; //!< How long the last draw took, in seconds.
+		volatile long long m_UpdateTrueDeltaTimeTicks; //!< How long the last update took, in ticks.
+		volatile long long m_LatestUpdateStartTime; //!< When our latest update started.
+		volatile long long m_LatestUpdateEndTime; //!< When our latest update completed.
 
 		float m_SimSpeed; //!< The simulation speed over real time.
 		float m_TimeScale; //!< The relationship between the real world actual time and the simulation time. A value of 2.0 means simulation runs twice as fast as normal, as perceived by a player.
 
-		bool m_SimPaused; //!< Simulation paused; no real time ticks will go to the sim accumulator.
+		std::atomic<bool> m_SimPaused; //!< Simulation paused; no real time ticks will go to the sim accumulator.
 
 	private:
 

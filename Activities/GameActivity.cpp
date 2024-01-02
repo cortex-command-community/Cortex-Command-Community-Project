@@ -1503,9 +1503,7 @@ void GameActivity::Update()
         {
             // Continuously display message
             g_FrameMan.SetScreenText("Select a body to switch control to...", ScreenOfPlayer(player));
-            // Get cursor input
-            m_PlayerController[player].RelativeCursorMovement(m_ActorCursor[player]);
-
+           
             // Find the actor closest to the cursor, if any within the radius
 			Vector markedDistance;
             Actor *pMarkedActor = g_MovableMan.GetClosestTeamActor(team, player, m_ActorCursor[player], g_SceneMan.GetSceneWidth(), markedDistance, true);
@@ -1554,10 +1552,6 @@ void GameActivity::Update()
 					pMarkedActor->GetPieMenu()->FreezeAtRadius(30);
 				}
             }
-
-            // Set the view to the cursor pos
-            g_SceneMan.ForceBounds(m_ActorCursor[player]);
-            g_CameraMan.SetScrollTarget(m_ActorCursor[player], 0.1, ScreenOfPlayer(player));
 
 			if (m_pLastMarkedActor[player]) {
 				if (!g_MovableMan.ValidMO(m_pLastMarkedActor[player])) {
@@ -1982,9 +1976,6 @@ void GameActivity::Update()
             m_pBuyGUI[player]->Update();
         }
 
-        // Trap the mouse if we're in gameplay and not in menus
-		g_UInputMan.TrapMousePos(!m_pBuyGUI[player]->IsEnabled() && !m_InventoryMenuGUI[player]->IsEnabledAndNotCarousel() && !m_LuaLockActor[player], player);
-
         // Start LZ picking mode if a purchase was made
         if (m_pBuyGUI[player]->PurchaseMade())
         {
@@ -2190,8 +2181,25 @@ void GameActivity::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int w
     // Iterate through all players, drawing each currently used LZ cursor.
     for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player)
     {
-        if (!(m_IsActive[player] && m_IsHuman[player]))
+        if (!(m_IsActive[player] && m_IsHuman[player])) {
             continue;
+        }
+
+        //TODO_MULTITHREAD properly formalize this. Maybe an UpdateRender/UpdateRealTime function on things?
+        m_PlayerController[player].Update();
+        // Trap the mouse if we're in gameplay and not in menus
+		g_UInputMan.TrapMousePos(!m_pBuyGUI[player]->IsEnabled() && !m_InventoryMenuGUI[player]->IsEnabledAndNotCarousel() && !m_LuaLockActor[player], player);
+        if (m_ViewState[player] == ViewState::ActorSelect)
+        {
+            // Get cursor input
+            m_PlayerController[player].RelativeCursorMovement(m_ActorCursor[player]);
+
+            // Set the view to the cursor pos
+            g_SceneMan.ForceBounds(m_ActorCursor[player]);
+            g_CameraMan.SetScrollTarget(m_ActorCursor[player], 0.1, ScreenOfPlayer(player));
+
+        }
+        //TODO_MULTITHREAD
 
         if (m_ViewState[player] == ViewState::LandingZoneSelect)
         {
@@ -2293,6 +2301,8 @@ void GameActivity::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int w
     float rightStackY = leftStackY;
 
     // Draw the objective points this player should care about
+    // TODO_MULTITHREAD
+#ifndef MULTITHREAD_SIM_AND_RENDER
     for (std::list<ObjectivePoint>::iterator itr = m_Objectives.begin(); itr != m_Objectives.end(); ++itr)
     {
         // Only draw objectives of the same team as the current player
@@ -2365,6 +2375,7 @@ void GameActivity::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int w
             }
         }
     }
+#endif
 
     // Team Icon up in the top left corner
     const Icon *pIcon = GetTeamIcon(m_Team[PoS]);

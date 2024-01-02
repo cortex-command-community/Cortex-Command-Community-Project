@@ -406,7 +406,10 @@ namespace RTE {
 	void Attachable::PreUpdate() {
 		if (!m_PreUpdateHasRunThisFrame) {
 			if (m_Parent) {
-				if (InheritsHFlipped() != 0) { m_HFlipped = m_InheritsHFlipped == 1 ? m_Parent->IsHFlipped() : !m_Parent->IsHFlipped(); }
+				if (InheritsHFlipped() != 0) { 
+					m_HFlipped = m_InheritsHFlipped == 1 ? m_Parent->IsHFlipped() : !m_Parent->IsHFlipped(); 
+				}
+
 				if (InheritsRotAngle()) {
 					SetRotAngle(m_Parent->GetRotAngle() + m_InheritedRotAngleOffset * m_Parent->GetFlipFactor());
 					m_AngularVel = 0.0F;
@@ -536,11 +539,15 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Attachable::UpdatePositionAndJointPositionBasedOnOffsets() {
+	void Attachable::UpdatePositionAndJointPositionBasedOnOffsets(bool newAdded) {
 		if (m_Parent) {
 			m_JointPos = m_Parent->GetPos() + m_Parent->RotateOffset(GetParentOffset());
 			m_PrevPos = m_Pos;
 			m_Pos = m_JointPos - RotateOffset(m_JointOffset);
+			if (newAdded) {
+				// Avoid render interp from 0, 0 to our new position
+				m_PrevPos = m_Pos;
+			}
 		} else {
 			m_JointPos = m_Pos + RotateOffset(m_JointOffset);
 		}

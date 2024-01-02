@@ -16,6 +16,7 @@
 #include "PrimitiveMan.h"
 #include "PostProcessMan.h"
 #include "PerformanceMan.h"
+#include "ThreadMan.h"
 #include "PresetMan.h"
 #include "AEmitter.h"
 #include "AHuman.h"
@@ -1513,30 +1514,6 @@ void MovableMan::RegisterAlarmEvent(const AlarmEvent &newEvent)
     m_AddedAlarmEvents.push_back(newEvent);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RedrawOverlappingMOIDs
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Forces all objects potnetially overlapping a specific MO to re-draw
-//                  this MOID representations onto the MOID bitmap.
-
-void MovableMan::RedrawOverlappingMOIDs(MovableObject *pOverlapsThis)
-{
-    for (std::deque<Actor *>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
-    {
-        (*aIt)->DrawMOIDIfOverlapping(pOverlapsThis);
-    }
-
-    for (std::deque<MovableObject *>::iterator iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt)
-    {
-        (*iIt)->DrawMOIDIfOverlapping(pOverlapsThis);
-    }
-
-    for (std::deque<MovableObject *>::iterator parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt)
-    {
-        (*parIt)->DrawMOIDIfOverlapping(pOverlapsThis);
-    }
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
@@ -1659,19 +1636,8 @@ void MovableMan::Update()
 
 	m_SimUpdateFrameNumber++;
 
-    // ---TEMP ---
-    // These are here for multithreaded AI, but will be unnecessary when multithreaded-sim-and-render is in!
-    // Clear the MO color layer only if this is a drawn update
-    if (g_TimerMan.DrawnSimUpdate()) {
-        g_SceneMan.ClearMOColorLayer();
-    }
+    g_PostProcessMan.ClearScenePostEffects();
 
-    // If this is the first sim update since a drawn one, then clear the post effects
-    if (g_TimerMan.SimUpdatesSinceDrawn() == 0) {
-        g_PostProcessMan.ClearScenePostEffects();
-    }
-    // ---TEMP---
-    
     // Reset the draw HUD roster line settings
     m_SortTeamRoster[Activity::TeamOne] = false;
     m_SortTeamRoster[Activity::TeamTwo] = false;
@@ -2032,15 +1998,8 @@ void MovableMan::Update()
     ////////////////////////////////////////////////////////////////////////
     // Draw the MO matter and IDs to their layers for next frame
     m_DrawMOIDsTask = g_ThreadMan.GetPriorityThreadPool().submit([this]() {
-        UpdateDrawMOIDs(g_SceneMan.GetMOIDBitmap());
+        UpdateDrawMOIDs();
     });
-
-
-    ////////////////////////////////////////////////////////////////////
-    // Draw the MO colors ONLY if this is a drawn update!
-
-    if (g_TimerMan.DrawnSimUpdate())
-        Draw(g_SceneMan.GetMOColorBitmap());
 
     // Sort team rosters if necessary
     {
@@ -2072,14 +2031,11 @@ void MovableMan::Travel()
         g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ActorsTravel);
         for (auto aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt)
         {
-            if (!((*aIt)->IsUpdated()))
-            {
-                (*aIt)->ApplyForces();
-                (*aIt)->PreTravel();
-                (*aIt)->Travel();
-                (*aIt)->PostTravel();
-            }
             (*aIt)->NewFrame();
+            (*aIt)->ApplyForces();
+            (*aIt)->PreTravel();
+            (*aIt)->Travel();
+            (*aIt)->PostTravel();
         }
         g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ActorsTravel);
     }
@@ -2090,14 +2046,11 @@ void MovableMan::Travel()
 
         for (auto iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt)
         {
-            if (!((*iIt)->IsUpdated()))
-            {
-                (*iIt)->ApplyForces();
-                (*iIt)->PreTravel();
-                (*iIt)->Travel();
-                (*iIt)->PostTravel();
-            }
             (*iIt)->NewFrame();
+            (*iIt)->ApplyForces();
+            (*iIt)->PreTravel();
+            (*iIt)->Travel();
+            (*iIt)->PostTravel();
         }
     }
 
@@ -2108,13 +2061,10 @@ void MovableMan::Travel()
         g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ParticlesTravel);
         for (auto parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt)
         {
-            if (!((*parIt)->IsUpdated()))
-            {
-                (*parIt)->ApplyForces();
-                (*parIt)->PreTravel();
-                (*parIt)->Travel();
-                (*parIt)->PostTravel();
-            }
+            (*parIt)->ApplyForces();
+            (*parIt)->PreTravel();
+            (*parIt)->Travel();
+            (*parIt)->PostTravel();
             (*parIt)->NewFrame();
         }
         g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ParticlesTravel);
@@ -2233,10 +2183,9 @@ void MovableMan::VerifyMOIDIndex()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          UpdateDrawMOIDs
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the MOIDs of all current MOs and draws their ID's to a BITMAP
-//                  of choice.
+// Description:     Updates the MOIDs of all current MOs and draws their ID's to the MOID grid
 
-void MovableMan::UpdateDrawMOIDs(BITMAP *pTargetBitmap)
+void MovableMan::UpdateDrawMOIDs()
 {
     ZoneScoped;
 
@@ -2259,7 +2208,7 @@ void MovableMan::UpdateDrawMOIDs(BITMAP *pTargetBitmap)
         m_ContiguousActorIDs[actor] = actorID++;
 		if (!actor->IsSetToDelete()) {
             actor->UpdateMOID(m_MOIDIndex);
-            actor->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+            actor->Draw(nullptr, Vector(), g_DrawMOID, true);
             currentMOID = m_MOIDIndex.size();
         } else {
             actor->SetAsNoID();
@@ -2269,7 +2218,7 @@ void MovableMan::UpdateDrawMOIDs(BITMAP *pTargetBitmap)
     for (MovableObject *item : m_Items) {
         if (!item->IsSetToDelete()) {
             item->UpdateMOID(m_MOIDIndex);
-            item->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+            item->Draw(nullptr, Vector(), g_DrawMOID, true);
             currentMOID = m_MOIDIndex.size();
         } else {
             item->SetAsNoID();
@@ -2279,7 +2228,7 @@ void MovableMan::UpdateDrawMOIDs(BITMAP *pTargetBitmap)
     for (MovableObject *particle : m_Particles) {
         if (!particle->IsSetToDelete()) {
             particle->UpdateMOID(m_MOIDIndex);
-            particle->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+            particle->Draw(nullptr, Vector(), g_DrawMOID, true);
             currentMOID = m_MOIDIndex.size();
         } else {
             particle->SetAsNoID();

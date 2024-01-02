@@ -39,6 +39,7 @@
 #include "UInputMan.h"
 #include "PerformanceMan.h"
 #include "FrameMan.h"
+#include "ThreadMan.h"
 #include "MetaMan.h"
 #include "WindowMan.h"
 #include "NetworkServer.h"
@@ -136,6 +137,7 @@ namespace RTE {
 		ContentFile::FreeAllLoaded();
 		g_ConsoleMan.Destroy();
 		g_WindowMan.Destroy();
+		g_ThreadMan.Destroy();
 
 #ifdef DEBUG_BUILD
 		Entity::ClassInfo::DumpPoolMemoryInfo(Writer("MemCleanupInfo.txt"));
@@ -240,6 +242,23 @@ namespace RTE {
 		g_UInputMan.DisableKeys(false);
 		g_UInputMan.TrapMousePos(false);
 
+		g_TimerMan.PauseSim(true);
+
+		// TODO_MULTITHREAD
+		// The next philosophical question is how to handle the quadrillion-and-one edge cases where things update in different places, that all have dependencies.
+		// GUI for example, that needs to interact with sim but also draw to screen. HUD is another example. Various editors, pie menus, all that jazz
+		// These are single-threaded fundamentally. I thought about doing this properly (like with the MO drawing), and that's possible...
+		// but it's really tough because there's a billion edge cases and it's tough to solve all of them. 
+		// As such, the current plan I have is that we'll still do some limited drawing on the sim thread to handle these situations. 
+		// It's definitely not ideal, but following in line with the pareto principle we've already achieved the bulk of the advantage with what we've properly split.
+		// (that is to say, the main game world drawing)
+		// So, that being said... next steps:
+		// Store a Allegro bitmap (per screen) on the RenderableGameState.
+		// Sim thread can safely draw to that without a worry in the world, and it'll be swapped over to render to simply blit after our other redrawing is done.
+		// Need to think about how to properly allow the player to pan the camera without stuff "sticking" at a low update simrate...
+		// I could just pan around the bitmap, but then the edges would be cut off. Alternatively we draw to a scene-wide bitmap... but that's expensive to clear.
+		// Moving things over to a more formal render/sim split will be an ongoing task that we'll do over time.
+
 		while (!System::IsSetToQuit()) {
 			g_WindowMan.ClearRenderer();
 			PollSDLEvents();
@@ -248,7 +267,6 @@ namespace RTE {
 
 			g_UInputMan.Update();
 			g_TimerMan.Update();
-			g_TimerMan.UpdateSim();
 			g_AudioMan.Update();
 
 			if (g_WindowMan.ResolutionChanged()) {
@@ -260,9 +278,11 @@ namespace RTE {
 			}
 
 			if (g_MenuMan.Update()) {
+				g_TimerMan.PauseSim(false);
 				break;
 			}
 			g_ConsoleMan.Update();
+			g_ThreadMan.RunSimulationThreadFunctions();
 
 			g_MenuMan.Draw();
 			g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
@@ -292,92 +312,112 @@ namespace RTE {
 			}
 		}
 
-		long long updateStartTime = 0;
-		long long updateTotalTime = 0;
-		long long updateEndAndDrawStartTime = 0;
-		long long drawStartTime = 0;
-		long long drawTotalTime = 0;
+		bool serverUpdated = false;
+
+		auto simFunction = [&serverUpdated]() {
+			g_ThreadMan.RunSimulationThreadFunctions();
+
+			if (g_ActivityMan.ActivitySetToRestart() && !g_ActivityMan.RestartActivity()) {
+				return;
+			}
+
+			// Simulation update, as many times as the fixed update step allows in the span since last frame draw.
+			if (!g_TimerMan.TimeForSimUpdate()) {
+				return;
+			}
+
+			ZoneScopedN("Simulation Update");
+			long long updateStartTime = g_TimerMan.GetAbsoluteTime();
+			serverUpdated = false;
+
+			g_TimerMan.UpdateSim();
+			g_UInputMan.Update();
+
+			g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
+
+			// TODO_MULTITHREAD
+#ifndef MULTITHREAD_SIM_AND_RENDER
+			// It is vital that server is updated after input manager but before activity because input manager will clear received pressed and released events on next update.
+			if (g_NetworkServer.IsServerModeEnabled()) {
+				g_NetworkServer.Update(true);
+				serverUpdated = true;
+			}
+#endif
+
+			g_FrameMan.Update();
+			g_LuaMan.Update();
+			g_ActivityMan.Update();
+
+			if (g_SceneMan.GetScene()) {
+				g_SceneMan.GetScene()->UpdateSim();
+			}
+
+			g_LuaMan.ClearScriptTimings();
+			g_MovableMan.Update();
+			g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
+
+			g_AudioMan.Update();
+
+			g_ActivityMan.LateUpdateGlobalScripts();
+
+			// This is to support hot reloading entities in SceneEditorGUI. It's a bit hacky to put it in Main like this, but PresetMan has no update in which to clear the value, and I didn't want to set up a listener for the job.
+			// It's in this spot to allow it to be set by UInputMan update and ConsoleMan update, and read from ActivityMan update.
+			g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
+
+			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
+
+			g_ThreadMan.TransferSimStateToRenderer();
+
+			long long updateEndTime = g_TimerMan.GetAbsoluteTime();
+			g_PerformanceMan.NewPerformanceSample();
+			g_PerformanceMan.UpdateMSPU(updateEndTime - updateStartTime);
+		};
 
 		while (!System::IsSetToQuit()) {
-			bool serverUpdated = false;
-			updateStartTime = g_TimerMan.GetAbsoluteTime();
+			long long frameStartTime = g_TimerMan.GetAbsoluteTime();
 
-			PollSDLEvents();
-			g_WindowMan.Update();
-			g_WindowMan.ClearRenderer();
+			if (!g_ActivityMan.IsInActivity()) {
+				g_TimerMan.PauseSim(true);
+
+				if (!g_ActivityMan.ActivitySetToRestart()) {
+					g_MenuMan.HandleTransitionIntoMenuLoop();
+					RunMenuLoop();
+				}
+			}
+			if (g_ActivityMan.ActivitySetToRestart()) {
+				g_LoadingScreen.DrawLoadingSplash();
+				g_WindowMan.UploadFrame();
+				if (!g_ActivityMan.RestartActivity()) {
+					break;
+				}
+			}
+			if (g_ActivityMan.ActivitySetToResume()) {
+				g_ActivityMan.ResumeActivity();
+				
+				// TODO_MULTITHEAD is this okay?
+				g_PerformanceMan.ResetSimUpdateTimer();
+			}
 
 			g_TimerMan.Update();
 
-			// Simulation update, as many times as the fixed update step allows in the span since last frame draw.
-			while (g_TimerMan.TimeForSimUpdate()) {
-				ZoneScopedN("Simulation Update");
+			PollSDLEvents();
 
-				serverUpdated = false;
+			g_WindowMan.Update();
+			g_WindowMan.ClearRenderer();
 
-				g_PerformanceMan.NewPerformanceSample();
-				g_PerformanceMan.UpdateMSPSU();
-				g_TimerMan.UpdateSim();
-
-				g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
-
-				g_UInputMan.Update();
-
-				// It is vital that server is updated after input manager but before activity because input manager will clear received pressed and released events on next update.
-				if (g_NetworkServer.IsServerModeEnabled()) {
-					g_NetworkServer.Update(true);
-					serverUpdated = true;
-				}
-
-				g_FrameMan.Update();
-				g_LuaMan.Update();
-				g_ActivityMan.Update();
-
-				if (g_SceneMan.GetScene()) {
-					g_SceneMan.GetScene()->Update();
-				}
-
-				g_LuaMan.ClearScriptTimings();
-				g_MovableMan.Update();
-				g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
-
-				g_AudioMan.Update();
-
-				g_ActivityMan.LateUpdateGlobalScripts();
-
-				// This is to support hot reloading entities in SceneEditorGUI. It's a bit hacky to put it in Main like this, but PresetMan has no update in which to clear the value, and I didn't want to set up a listener for the job.
-				// It's in this spot to allow it to be set by UInputMan update and ConsoleMan update, and read from ActivityMan update.
-				g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
-
-				g_ConsoleMan.Update();
-				g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
-
-				if (!g_ActivityMan.IsInActivity()) {
-					g_TimerMan.PauseSim(true);
-
-					if (!g_ActivityMan.ActivitySetToRestart()) {
-						g_MenuMan.HandleTransitionIntoMenuLoop();
-						RunMenuLoop();
-					}
-				}
-				if (g_ActivityMan.ActivitySetToRestart()) {
-					g_LoadingScreen.DrawLoadingSplash();
-					g_WindowMan.UploadFrame();
-					if (!g_ActivityMan.RestartActivity()) {
-						break;
-					}
-				}
-				if (g_ActivityMan.ActivitySetToResume()) {
-					g_ActivityMan.ResumeActivity();
-					g_PerformanceMan.ResetSimUpdateTimer();
-					updateStartTime = g_TimerMan.GetAbsoluteTime();
-				}
+			while(g_TimerMan.TimeForSimUpdate()) {
+				simFunction();
 			}
 
+			// TODO_MULTITHREAD
+#ifndef MULTITHREAD_SIM_AND_RENDER
 			if (g_NetworkServer.IsServerModeEnabled()) {
 				// Pause sim while we're waiting for scene transmission or scene will start changing before clients receive them and those changes will be lost.
 				g_TimerMan.PauseSim(!(g_NetworkServer.ReadyForSimulation() && g_ActivityMan.IsInActivity()));
 
-				if (!serverUpdated) { g_NetworkServer.Update(); }
+				if (!serverUpdated) { 
+					g_NetworkServer.Update(); 
+				}
 
 				if (g_NetworkServer.GetServerSimSleepWhenIdle()) {
 					long long ticksToSleep = g_TimerMan.GetTimeToSleep();
@@ -388,16 +428,21 @@ namespace RTE {
 					}
 				}
 			}
-			updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();
-			updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
-			drawStartTime = updateEndAndDrawStartTime;
+#endif
 
+			g_ConsoleMan.Update();
+			g_ThreadMan.Update();
+
+			long long drawStartTime = g_TimerMan.GetAbsoluteTime();
 			g_FrameMan.Draw();
 			g_WindowMan.DrawPostProcessBuffer();
+			long long drawEndTime = g_TimerMan.GetAbsoluteTime();
+			g_PerformanceMan.UpdateMSPD(drawEndTime - drawStartTime);
+
 			g_WindowMan.UploadFrame();
 
-			drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
-			g_PerformanceMan.UpdateMSPF(updateTotalTime, drawTotalTime);
+			long long frameEndTime = g_TimerMan.GetAbsoluteTime();
+			g_PerformanceMan.UpdateMSPF(frameEndTime - frameStartTime);
 		}
 	}
 }

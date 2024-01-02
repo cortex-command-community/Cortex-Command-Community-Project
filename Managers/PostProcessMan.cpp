@@ -206,12 +206,14 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PostProcessMan::RegisterPostEffect(const Vector &effectPos, BITMAP *effect, size_t hash, int strength, float angle) {
+		// TODO_MULTITHREAD
+#ifndef MULTITHREAD_SIM_AND_RENDER
 		// These effects get applied when there's a drawn frame that followed one or more sim updates.
 		// They are not only registered on drawn sim updates; flashes and stuff could be missed otherwise if they occur on undrawn sim updates.
-		
-		if (effect && g_TimerMan.SimUpdatesSinceDrawn() >= 0) {
+		if (effect) {
 			m_PostSceneEffects.push_back(PostEffect(effectPos, effect, hash, strength, angle));
 		}
+#endif
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -267,7 +269,7 @@ namespace RTE {
 
 	void PostProcessMan::RegisterGlowDotEffect(const Vector &effectPos, DotGlowColor color, int strength) {
 		// These effects only apply only once per drawn sim update, and only on the first frame drawn after one or more sim updates
-		if (color != NoDot && g_TimerMan.DrawnSimUpdate() && g_TimerMan.SimUpdatesSinceDrawn() >= 0) {
+		if (color != NoDot) {
 			RegisterPostEffect(effectPos, GetDotGlowEffect(color), GetDotGlowEffectHash(color), strength);
 		}
 	}
@@ -440,11 +442,14 @@ namespace RTE {
 
 		m_PostProcessShader->Use();
 
+		// TODO_MULTITHREAD: add post processing effects to RenderableGameState
+#ifndef MULTITHREAD_SIM_AND_RENDER
 		DrawDotGlowEffects();
 		DrawPostScreenEffects();
 
 		// Clear the effects list for this frame
-		m_PostScreenEffects.clear();
+		ClearScreenPostEffects();
+#endif
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1190,25 +1190,10 @@ enum MOType
 	/// </summary>
 	virtual bool IsAtRest();
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          IsUpdated
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates wheter this MovableObject has been updated yet during this
-//                  frame.
-// Arguments:       None.
-// Return value:    Wheter or not the MovableObject has been updated yet during this frame.
-
-    bool IsUpdated() const { return m_IsUpdated; }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          NewFrame
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Tell this MovableObject that a new frame has started.
-// Arguments:       None.
-// Return value:    None.
-
-    void NewFrame() { m_IsUpdated = false; }
+    /// <summary>
+    /// Notify that a new frame has started, allowing us to update information like our previous state.
+    /// </summary>
+    virtual void NewFrame();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1467,6 +1452,16 @@ enum MOType
     void SetSimUpdatesBetweenScriptedUpdates(int newSimUpdatesBetweenScriptedUpdates) { m_SimUpdatesBetweenScriptedUpdates = std::max(1, newSimUpdatesBetweenScriptedUpdates); }
 
 
+    /// <summary>
+    /// Sets the position of the MO. 
+    /// </summary>
+    /// <param name="newPos">New position for this MovableObject.</param>
+    /// <param name="teleport">Whether we're teleporting or moving smoothly. If we teleport, we don't interpolate between positions when rendering.</param>
+	void SetPos(const Vector &newPos, bool teleport = true) override;
+
+    // I couldn't get the getter/setter stuff in Lua to work with overloading... so...
+	void SetPosLuaBinding(const Vector &newPos) { SetPos(newPos, true); }
+    
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  PreTravel
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1519,7 +1514,6 @@ enum MOType
 
 	void Update() override;
 
-    void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
     /// <summary>
 	/// Updates this MovableObject's Lua scripts.
@@ -1651,17 +1645,6 @@ enum MOType
 // Return value:    None.
 
 	void UpdateMOID(std::vector<MovableObject *> &MOIDIndex, MOID rootMOID = g_NoMOID, bool makeNewMOID = true);
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  DrawMOIDIfOverlapping
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the MOID representation of this to the SceneMan's MOID layer if
-//                  this is found to potentially overlap another MovableObject.
-// Arguments:       The MovableObject to check this for overlap against.
-// Return value:    Whether it was drawn or not.
-
-    virtual bool DrawMOIDIfOverlapping(MovableObject *pOverlapMO) { return false; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -2047,8 +2030,6 @@ protected:
     bool m_MissionCritical;
     // Whether this can be destroyed by being squished into the terrain
     bool m_CanBeSquished;
-    // Whether or not this MovableObject has been updated yet this frame.
-    bool m_IsUpdated;
     // Whether wrap drawing double across wrapping seams is enabled or not
     bool m_WrapDoubleDraw;
     // Whether the position of this object wrapped around the world this frame, or not.

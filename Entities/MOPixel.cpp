@@ -2,6 +2,7 @@
 
 #include "Atom.h"
 #include "PostProcessMan.h"
+#include "ThreadMan.h"
 #include "FrameMan.h"
 
 namespace RTE {
@@ -240,41 +241,44 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOPixel::Draw(BITMAP *targetBitmap, const Vector &targetPos, DrawMode mode, bool onlyPhysical) const {
-		// Don't draw color if this isn't a drawing frame
-		if (!g_TimerMan.DrawnSimUpdate() && mode == g_DrawColor) {
+		int drawColor = -1;
+
+		if (mode == g_DrawMOID) {
+			g_SceneMan.RegisterMOIDDrawing(m_MOID, m_Pos, 1);
 			return;
 		}
-
-		int drawColor = -1;
 
 		switch (mode) {
 			case g_DrawMaterial:
 				drawColor = m_Atom->GetMaterial()->GetSettleMaterial();
-				break;
-			case g_DrawMOID:
-				drawColor = m_MOID;
-				break;
-			case g_DrawNoMOID:
-				drawColor = g_NoMOID;
 				break;
 			default:
 				drawColor = m_Color.GetIndex();
 				break;
 		}
 
-		bool shouldDraw = true;
+		if (drawColor != g_MaskColor) {
+			Vector prevSpritePos = m_PrevPos - targetPos;
+			Vector spritePos = m_Pos - targetPos;
 
-#ifndef DRAW_MOID_LAYER
-		shouldDraw = mode != DrawMode::g_DrawMOID;
-#endif
+			auto renderFunc = [=](float interpolationAmount) {
+				BITMAP* pTargetBitmap = targetBitmap;
+				Vector renderPos = g_SceneMan.Lerp(0.0F, 1.0F, prevSpritePos, spritePos, interpolationAmount);
+				if (targetBitmap == nullptr) {
+					pTargetBitmap = g_ThreadMan.GetRenderTarget();
+					renderPos -= g_ThreadMan.GetRenderOffset();
+				}
 
-		Vector pixelPos = m_Pos - targetPos;
+				putpixel(pTargetBitmap, renderPos.GetFloorIntX(), renderPos.GetFloorIntY(), drawColor); 
+			};
 
-		if (shouldDraw) {
-			putpixel(targetBitmap, pixelPos.GetFloorIntX(), pixelPos.GetFloorIntY(), drawColor);
+			if (targetBitmap == nullptr) {
+				g_ThreadMan.GetSimRenderQueue().push_back(renderFunc);
+			} else {
+				renderFunc(1.0F);
+			}
 		}
-
-		g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, pixelPos, 1.0F);
+		
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -282,7 +286,7 @@ namespace RTE {
 	void MOPixel::SetPostScreenEffectToDraw() const {
 		if (m_AgeTimer.GetElapsedSimTimeMS() >= m_EffectStartTime && (m_EffectStopTime == 0 || !m_AgeTimer.IsPastSimMS(m_EffectStopTime))) {
 			if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY())) {
-				g_PostProcessMan.RegisterPostEffect(m_Pos, m_pScreenEffect, m_ScreenEffectHash, LERP(m_EffectStartTime, m_EffectStopTime, m_EffectStartStrength, m_EffectStopStrength, m_AgeTimer.GetElapsedSimTimeMS()), m_EffectRotAngle);
+				g_PostProcessMan.RegisterPostEffect(m_Pos, m_pScreenEffect, m_ScreenEffectHash, Lerp(m_EffectStartTime, m_EffectStopTime, m_EffectStartStrength, m_EffectStopStrength, m_AgeTimer.GetElapsedSimTimeMS()), m_EffectRotAngle);
 			}
 		}
 	}

@@ -593,17 +593,6 @@ ClassInfoGetters;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  DrawMOIDIfOverlapping
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the MOID representation of this to the SceneMan's MOID layer if
-//                  this is found to potentially overlap another MovableObject.
-// Arguments:       The MovableObject to check this for overlap against.
-// Return value:    Whether it was drawn or not.
-
-	bool DrawMOIDIfOverlapping(MovableObject *pOverlapMO) override;
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Virtual method:  Draw
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Draws this MOSRotating's current graphical representation to a
@@ -829,6 +818,11 @@ ClassInfoGetters;
 	/// </summary>
 	virtual void CorrectAttachableAndWoundPositionsAndRotations() const;
 
+    /// <summary>
+    /// Notify that a new frame has started, allowing us to update information like our previous state.
+    /// </summary>
+    void NewFrame() override;
+    
 	/// <summary>
 	/// Method to be run when the game is saved via ActivityMan::SaveCurrentGame. Not currently used in metagame or editor saving.
 	/// </summary>
@@ -936,26 +930,8 @@ protected:
 
     // Intermediary drawing bitmap used to flip rotating bitmaps. Owned!
     BITMAP *m_pFlipBitmap;
-    BITMAP *m_pFlipBitmapS;
     // Intermediary drawing bitmap used to draw sihouettes and other effects. Not owned; points to the shared static bitmaps
     BITMAP *m_pTempBitmap;
-    // Temp drawing bitmaps shared between all MOSRotatings
-    static BITMAP *m_spTempBitmap16;
-    static BITMAP *m_spTempBitmap32;
-    static BITMAP *m_spTempBitmap64;
-    static BITMAP *m_spTempBitmap128;
-    static BITMAP *m_spTempBitmap256;
-    static BITMAP *m_spTempBitmap512;
-
-    // Intermediary drawing bitmap used to draw MO silhouettes. Not owned; points to the shared static bitmaps
-    BITMAP *m_pTempBitmapS;
-    // Temp drawing bitmaps shared between all MOSRotatings
-    static BITMAP *m_spTempBitmapS16;
-    static BITMAP *m_spTempBitmapS32;
-    static BITMAP *m_spTempBitmapS64;
-    static BITMAP *m_spTempBitmapS128;
-    static BITMAP *m_spTempBitmapS256;
-    static BITMAP *m_spTempBitmapS512;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Private member variable and method declarations

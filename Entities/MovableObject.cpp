@@ -71,7 +71,6 @@ void MovableObject::Clear()
     m_IgnoresActorHits = false;
     m_MissionCritical = false;
     m_CanBeSquished = true;
-    m_IsUpdated = false;
     m_WrapDoubleDraw = true;
     m_DidWrap = false;
     m_MOID = g_NoMOID;
@@ -187,7 +186,9 @@ int MovableObject::Create(const float mass,
 {
     m_Mass = mass;
     m_Pos = position;
+    m_PrevPos = position;
     m_Vel = velocity;
+    m_PrevVel = velocity;
     m_AgeTimer.Reset();
     m_RestTimer.Reset();
     m_Lifetime = lifetime;
@@ -219,7 +220,9 @@ int MovableObject::Create(const MovableObject &reference)
     m_MOType = reference.m_MOType;
     m_Mass = reference.m_Mass;
     m_Pos = reference.m_Pos;
+    m_PrevPos = reference.m_PrevPos;
     m_Vel = reference.m_Vel;
+    m_PrevVel = reference.m_PrevVel;
     m_Scale = reference.m_Scale;
     m_GlobalAccScalar = reference.m_GlobalAccScalar;
     m_AirResistance = reference.m_AirResistance;
@@ -948,16 +951,7 @@ void MovableObject::PreTravel()
 	// Temporarily remove the representation of this from the scene MO sampler
 	if (m_GetsHitByMOs) {
         m_IsTraveling = true;
-#ifdef DRAW_MOID_LAYER
-		if (!g_SettingsMan.SimplifiedCollisionDetection()) {
-			Draw(g_SceneMan.GetMOIDBitmap(), Vector(), DrawMode::g_DrawNoMOID, true);
-		}
-#endif
 	}
-
-    // Save previous position and velocities before moving
-    m_PrevPos = m_Pos;
-    m_PrevVel = m_Vel;
 
 	m_MOIDHit = g_NoMOID;
 	m_TerrainMatHit = g_MaterialAir;
@@ -992,15 +986,9 @@ void MovableObject::PostTravel()
 	if (m_GetsHitByMOs) {
         if (!GetParent()) {
             m_IsTraveling = false;
-#ifdef DRAW_MOID_LAYER
-			if (!g_SettingsMan.SimplifiedCollisionDetection()) {
-                Draw(g_SceneMan.GetMOIDBitmap(), Vector(), DrawMode::g_DrawMOID, true);
-			}
-#endif
 		}
 		m_AlreadyHitBy.clear();
 	}
-	m_IsUpdated = true;
 
     // Check for age expiration
     if (m_Lifetime && m_AgeTimer.GetElapsedSimTimeMS() > m_Lifetime) {
@@ -1029,17 +1017,9 @@ void MovableObject::PostTravel()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MovableObject::Update() {
-	if (m_RandomizeEffectRotAngleEveryFrame) { m_EffectRotAngle = c_PI * 2.0F * RandomNormalNum(); }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MovableObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
-    if (mode == g_DrawMOID && m_MOID == g_NoMOID) {
-        return;
+	if (m_RandomizeEffectRotAngleEveryFrame) { 
+        m_EffectRotAngle = c_PI * 2.0F * RandomNormalNum(); 
     }
-
-    g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, m_Pos - targetPos, 1.0F);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1331,6 +1311,22 @@ bool MovableObject::DrawToTerrain(SLTerrain *terrain) {
 		g_SceneMan.RegisterTerrainChange(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), 1, 1, DrawMode::g_DrawColor, false);
 	}
 	return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::SetPos(const Vector &newPos, bool teleport) {
+    m_Pos = newPos;
+    if (teleport) {
+        m_PrevPos = newPos;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MovableObject::NewFrame() {
+    m_PrevPos = m_Pos;
+    m_PrevVel = m_Vel;
 }
 
 } // namespace RTE
