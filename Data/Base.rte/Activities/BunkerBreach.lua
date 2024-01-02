@@ -138,7 +138,7 @@ function BunkerBreach:SetupDefenderBrains()
 end
 
 function BunkerBreach:SetupDefenderActors()
-	local techID = PresetMan:GetModuleID(self:GetTeamTech(self.defenderTeam));
+	local techID = ModuleMan:GetModuleID(self:GetTeamTech(self.defenderTeam));
 	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(techID);
 
 	local loadoutNames = {"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"};
@@ -645,7 +645,7 @@ function BunkerBreach:CreateInternalReinforcements(loadout, numberOfReinforcemen
 		loadout = nil;
 	end
 	local team = self.CPUTeam;
-	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
+	local techID = ModuleMan:GetModuleID(self:GetTeamTech(team));
 	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(techID);
 
 	local internalReinforcementPositionsToEnemyTargets = self:CalculateInternalReinforcementPositionsToEnemyTargets(numberOfReinforcementsToCreate);
@@ -666,7 +666,7 @@ function BunkerBreach:CreateInternalReinforcements(loadout, numberOfReinforcemen
 					numberOfInternalReinforcementsToCreateAtPosition = 3;
 				end
 			end
-			
+
 			for i = 1, numberOfInternalReinforcementsToCreateAtPosition do
 				local internalReinforcement;
 				if loadout then
@@ -707,7 +707,7 @@ function BunkerBreach:CreateDrop(loadout, aiMode, passengerCount, avoidPreviousC
 		loadout = nil;
 	end
 	local team = self.CPUTeam;
-	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
+	local techID = ModuleMan:GetModuleID(self:GetTeamTech(team));
 	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(techID);
 
 	local craft = RandomACDropShip("Craft", techID);
@@ -872,7 +872,7 @@ function BunkerBreach:CreateCrab(techID, createTurret)
 end
 
 function BunkerBreach:CreateBrainBot(team, techID)
-	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
+	local techID = ModuleMan:GetModuleID(self:GetTeamTech(team));
 	local actor;
 	if techID ~= -1 and team == self.attackerTeam then
 		actor = PresetMan:GetLoadout("Infantry Brain", techID, false);

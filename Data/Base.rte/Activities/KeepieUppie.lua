@@ -104,7 +104,7 @@ function KeepieUppie:ResumeLoadedGame()
 			end
 		end
 	end
-	
+
 	if not self.playerRocketSpawned then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -206,7 +206,7 @@ function KeepieUppie:UpdateActivity()
 				for i = 1, actorsInCargo do
 					-- Get any Actor from the CPU's native tech
 					local passenger = nil;
-					if math.random() >= self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTechName)) then
+					if math.random() >= self:GetCrabToHumanSpawnRatio(ModuleMan:GetModuleID(self.CPUTechName)) then
 						passenger = RandomAHuman("Any", self.CPUTechName);
 					else
 						passenger = RandomACrab("Any", self.CPUTechName);
