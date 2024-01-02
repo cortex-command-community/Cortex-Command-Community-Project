@@ -9,3 +9,19 @@
 *.cpp @core-game-code-managers
 *.h @core-game-code-managers
 *.c++ @core-game-code-managers
+
+#Lua Owners
+*.lua @lua-script-managers
+
+#INI Owners
+*.ini @ini-code-managers
+
+#Sprite Owners
+*.bmp @sprite-managers
+*.png @sprite-managers
+
+#Audio Owners
+*.wav @audio-managers
+*.ogg @audio-managers
+*.flac @audio-managers
+*.mp3 @audio-managers
