@@ -114,6 +114,23 @@ function BuyDoorHandler:GetAvailableBuyDoorsInArea(area, team)
 	
 end
 
+function BuyDoorHandler:ChangeCooldownTime(index, newTime)
+
+	if index and newTime then
+		if self.buyDoorTable[index] then
+			self.buyDoorTable[index]:SendMessage("BuyDoor_ChangeCooldownTime", newTime);
+		else
+			print("Buy Door Handler was asked to change the cooldown time of an index that didn't exist!");
+			return false;
+		end
+	else
+		print("Buy Door Handler was asked to change a cooldown time, but was not given an index or a new time!");
+		return false;
+	end
+	
+	return true;
+
+end
 function BuyDoorHandler:SendCustomOrder(order, team, specificIndex)
 	
 	if specificIndex then

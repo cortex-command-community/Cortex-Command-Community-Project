@@ -34,7 +34,7 @@ function Create(self)
 	self.origOneHandedReloadAngle = self.OneHandedReloadAngle;
 
 	self.ammoCounter = self.RoundInMagCount;
-	self.maxAmmoCount = self.Magazine.Capacity;
+	self.maxAmmoCount = self.Magazine and self.Magazine.Capacity or 5; -- loading a game might mess this up, so... fall-back
 	
 	self.shellsToEject = 0;
 	self.shellMOSParticle = self:StringValueExists("CylinderShellMOSParticle") and self:GetStringValue("CylinderShellMOSParticle") or "Base.rte/Casing";

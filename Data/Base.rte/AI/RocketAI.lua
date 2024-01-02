@@ -206,7 +206,7 @@ function ThreadedUpdateAI(self)
 					self.burstUp = nil;
 					self.Ctrl:SetState(Controller.MOVE_UP, true);	-- Don't burst when returning to orbit
 				else
-					if change < -7 and not self.burstUp then
+					if change < -3 and not self.burstUp then
 						self.burstUp = math.max(9 - change, 2); -- Wait n frames until next burst (lower -> better control)
 					elseif change > 20 then
 						self.burstUp = nil;

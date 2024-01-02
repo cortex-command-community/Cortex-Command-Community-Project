@@ -112,7 +112,12 @@ function NativeDropShipAI:Update(Owner)
 			if (Owner.Pos - Wpt).Largest > 1 then
 				self.Waypoint = Wpt;
 			else
-				local startingHeight = hoverHeightModifierChanged and Owner.Radius * 1.25 or math.max(Owner.Radius * 1.25, Owner.Pos.Y);
+				local startingHeight;
+				if SceneMan.SceneOrbitDirection == 0 then
+					startingHeight = hoverHeightModifierChanged and Owner.Radius * 1.25 or math.max(Owner.Radius * 1.25, Owner.Pos.Y);
+				else
+					startingHeight = Owner.Pos.Y;
+				end
 				local WptL = SceneMan:MovePointToGround(Vector(-Owner.Radius, startingHeight), self.hoverAlt, 12);
 				local WptC = SceneMan:MovePointToGround(Vector(0, startingHeight), self.hoverAlt, 12);
 				local WptR = SceneMan:MovePointToGround(Vector(Owner.Radius, startingHeight), self.hoverAlt, 12);
