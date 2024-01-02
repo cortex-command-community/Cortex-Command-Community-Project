@@ -14,6 +14,7 @@
 #include "MovableObject.h"
 
 #include "ActivityMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "SceneMan.h"
 #include "ConsoleMan.h"
@@ -354,7 +355,7 @@ int MovableObject::ReadProperty(const std::string_view &propName, Reader &reader
 	MatchProperty("CanBeSquished", { reader >> m_CanBeSquished; });
 	MatchProperty("HUDVisible", { reader >> m_HUDVisible; });
 	MatchProperty("ScriptPath", {
-		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
+		std::string scriptPath = g_ModuleMan.GetFullModulePath(reader.ReadPropValue());
         switch (LoadScript(scriptPath)) {
             case 0:
                 break;

@@ -3,6 +3,7 @@
 #include "LuabindObjectWrapper.h"
 #include "LuaBindingRegisterDefinitions.h"
 #include "ThreadMan.h"
+#include "ModuleMan.h"
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyLua.hpp"
@@ -155,6 +156,7 @@ namespace RTE {
 			RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, MetaMan),
+			RegisterLuaBindingsOfType(ManagerLuaBindings, ModuleMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, MovableMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PerformanceMan),
 			RegisterLuaBindingsOfType(ManagerLuaBindings, PostProcessMan),
@@ -200,6 +202,7 @@ namespace RTE {
 		luabind::globals(m_State)["PerformanceMan"] = &g_PerformanceMan;
 		luabind::globals(m_State)["PostProcessMan"] = &g_PostProcessMan;
 		luabind::globals(m_State)["PrimitiveMan"] = &g_PrimitiveMan;
+		luabind::globals(m_State)["ModuleMan"] = &g_ModuleMan;
 		luabind::globals(m_State)["PresetMan"] = &g_PresetMan;
 		luabind::globals(m_State)["AudioMan"] = &g_AudioMan;
 		luabind::globals(m_State)["UInputMan"] = &g_UInputMan;
@@ -231,8 +234,8 @@ namespace RTE {
 			"math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end"
 			"\n"
 			// Override "dofile"/"loadfile" to be able to account for Data/ or Mods/ directory.
-			"OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;"
-			"OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;"
+			"OriginalDoFile = dofile; dofile = function(filePath) filePath = ModuleMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;"
+			"OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = ModuleMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;"
 			// Internal helper functions to add callbacks for async pathing requests
 			"_AsyncPathCallbacks = {};"
 			"_AddAsyncPathCallback = function(id, callback) _AsyncPathCallbacks[id] = callback; end\n"
@@ -466,8 +469,8 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaStateWrapper::SetLuaPath(const std::string &filePath) {
-		const std::string moduleName = g_PresetMan.GetModuleNameFromPath(filePath);
-		const std::string moduleFolder = g_PresetMan.IsModuleOfficial(moduleName) ? System::GetDataDirectory() : System::GetModDirectory();
+		const std::string moduleName = g_ModuleMan.GetModuleNameFromPath(filePath);
+		const std::string moduleFolder = g_ModuleMan.IsModuleOfficial(moduleName) ? System::GetDataDirectory() : System::GetModDirectory();
 		const std::string scriptPath = moduleFolder + moduleName + "/?.lua";
 
 		lua_getglobal(m_State, "package");
@@ -643,7 +646,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int LuaStateWrapper::RunScriptFile(const std::string &filePath, bool consoleErrors, bool doInSandboxedEnvironment) {
-		const std::string fullScriptPath = g_PresetMan.GetFullModulePath(filePath);
+		const std::string fullScriptPath = g_ModuleMan.GetFullModulePath(filePath);
 		if (fullScriptPath.empty()) {
 			m_LastError = "Can't run a script file with an empty filepath!";
 			return -1;
@@ -948,7 +951,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaMan::FileExists(const std::string &fileName) {
-		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(fileName);
+		std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(fileName);
 		if ((fullPath.find("..") == std::string::npos) && (fullPath.find(System::GetModulePackageExtension()) != std::string::npos)) {
 			return std::filesystem::exists(fullPath);
 		}
@@ -976,7 +979,7 @@ namespace RTE {
 			return -1;
 		}
 
-		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(fileName);
+		std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(fileName);
 		if ((fullPath.find("..") == std::string::npos) && (fullPath.find(System::GetModulePackageExtension()) != std::string::npos)) {
 
 #ifdef _WIN32

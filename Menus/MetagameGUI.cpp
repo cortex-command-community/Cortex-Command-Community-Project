@@ -15,6 +15,7 @@
 
 #include "WindowMan.h"
 #include "FrameMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "ActivityMan.h"
 #include "AudioMan.h"
@@ -49,7 +50,6 @@
 #include "BaseEditor.h"
 #include "Scene.h"
 #include "SLTerrain.h"
-#include "DataModule.h"
 #include "Loadout.h"
 
 using namespace RTE;
@@ -833,8 +833,8 @@ void MetagameGUI::SetEnabled(bool enable)
 		m_apPlayerTechSelect[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
 		m_apPlayerTechSelect[team]->SetSelectedIndex(0);
 	}
-	for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-		if (const DataModule *dataModule = g_PresetMan.GetDataModule(moduleID)) {
+	for (int moduleID = 0; moduleID < g_ModuleMan.GetTotalModuleCount(); ++moduleID) {
+		if (const DataModule *dataModule = g_ModuleMan.GetDataModule(moduleID)) {
 			if (dataModule->IsFaction()) {
 				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 					m_apPlayerTechSelect[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
@@ -1249,7 +1249,7 @@ bool MetagameGUI::LoadGame()
 
 bool MetagameGUI::SaveGame(std::string saveName, std::string savePath, bool resaveSceneData)
 {
-    const std::string fullSavePath = g_PresetMan.GetFullModulePath(savePath);
+    const std::string fullSavePath = g_ModuleMan.GetFullModulePath(savePath);
     // If specified, first load all bitmap data of all Scenes in the current Metagame that have once saved em, so we can re-save them to the new files
     if (resaveSceneData)
         g_MetaMan.LoadSceneData();
@@ -1279,7 +1279,7 @@ bool MetagameGUI::SaveGame(std::string saveName, std::string savePath, bool resa
     newSave.SetPresetName(saveName);
 
     // Now add or update the actual Preset
-    g_PresetMan.AddEntityPreset(&newSave, g_PresetMan.GetModuleID(METASAVEMODULENAME), true, std::string(METASAVEPATH) + "Index.ini");
+    g_PresetMan.AddEntityPreset(&newSave, g_ModuleMan.GetModuleID(METASAVEMODULENAME), true, std::string(METASAVEPATH) + "Index.ini");
 
     // Now write out the index file of all MetaSaves so the new save is found on next runtime
     Writer indexWriter((std::string(METASAVEPATH) + "Index.ini").c_str());
@@ -2920,7 +2920,7 @@ void MetagameGUI::CompletedActivity()
                     // Scrub the module ID so the migration goes well.. this is a bit hacky, but ok in this special case
                     g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->SetModuleID(-1);
                     // Remind the Offensive that it is a unique snowflake and should save itself as such
-                    g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->MigrateToModule(g_PresetMan.GetModuleID(METASAVEMODULENAME));
+                    g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->MigrateToModule(g_ModuleMan.GetModuleID(METASAVEMODULENAME));
 
                     // We are now reviewing the battle after it has concluded; UpdateOffensives will show all that stuff
                     m_PreTurn = true;
@@ -2982,7 +2982,7 @@ void MetagameGUI::CompletedActivity()
             m_pPlayingScene->SetModuleID(-1);
             m_pPlayingScene->GetTerrain()->SetModuleID(-1);
             // Remind the Scene that it is a unique snowflake and should save itself as such
-            m_pPlayingScene->MigrateToModule(g_PresetMan.GetModuleID(METASAVEMODULENAME));
+            m_pPlayingScene->MigrateToModule(g_ModuleMan.GetModuleID(METASAVEMODULENAME));
             // We're not playing this anymore
             m_pPlayingScene = 0;
             // Auto save the entire MetaMan state too

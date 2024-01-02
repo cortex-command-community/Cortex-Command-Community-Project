@@ -1,8 +1,8 @@
 #include "Entity.h"
 #include "RTETools.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "ConsoleMan.h"
-#include "DataModule.h"
 
 namespace RTE {
 
@@ -154,7 +154,7 @@ namespace RTE {
 		if (m_DefinedInModule < 0) {
 			return GetPresetName();
 		}
-		const DataModule *dataModule = g_PresetMan.GetDataModule(m_DefinedInModule);
+		const DataModule *dataModule = g_ModuleMan.GetDataModule(m_DefinedInModule);
 
 		if (!dataModule) {
 			return GetPresetName();
@@ -166,7 +166,7 @@ namespace RTE {
 
 	std::string Entity::GetModuleName() const {
 		if (m_DefinedInModule >= 0) {
-			if (const DataModule *dataModule = g_PresetMan.GetDataModule(m_DefinedInModule)) {
+			if (const DataModule *dataModule = g_ModuleMan.GetDataModule(m_DefinedInModule)) {
 				return dataModule->GetFileName();
 			}
 		}

@@ -1,4 +1,5 @@
 #include "SettingsMan.h"
+#include "ModuleMan.h"
 #include "ConsoleMan.h"
 #include "CameraMan.h"
 #include "MovableMan.h"
@@ -65,7 +66,6 @@ namespace RTE {
 		m_PrintDebugInfo = false;
 		m_MeasureModuleLoadTime = false;
 
-		m_DisabledMods.clear();
 		m_EnabledGlobalScripts.clear();
 	}
 
@@ -212,7 +212,7 @@ namespace RTE {
 		MatchProperty("ServerSleepWhenIdle", { reader >> g_NetworkServer.m_SleepWhenIdle; });
 		MatchProperty("ServerSimSleepWhenIdle", { reader >> g_NetworkServer.m_SimSleepWhenIdle; });
 		MatchProperty("VisibleAssemblyGroup", { m_VisibleAssemblyGroupsList.push_back(reader.ReadPropValue()); });
-		MatchProperty("DisableMod", { m_DisabledMods.try_emplace(reader.ReadPropValue(), true); });
+		MatchProperty("DisableMod", { g_ModuleMan.m_DisabledDataModuleNames.emplace(reader.ReadPropValue()); });
 		MatchProperty("EnableGlobalScript", { m_EnabledGlobalScripts.try_emplace(reader.ReadPropValue(), true); });
 		MatchProperty("MouseSensitivity", { reader >> g_UInputMan.m_MouseSensitivity; });
 		MatchForwards("Player1Scheme") MatchForwards("Player2Scheme") MatchForwards("Player3Scheme") MatchProperty("Player4Scheme", {
@@ -399,13 +399,13 @@ namespace RTE {
 			}
 		}
 
-		if (!m_DisabledMods.empty()) {
+		if (!g_ModuleMan.m_DisabledDataModuleNames.empty()) {
 			writer.NewLine(false, 2);
 			writer.NewDivider(false);
 			writer.NewLineString("// Disabled Mods", false);
 			writer.NewLine(false);
-			for (const auto &[modPath, modDisabled] : m_DisabledMods) {
-				if (modDisabled) { writer.NewPropertyWithValue("DisableMod", modPath); }
+			for (const std::string &disabledModuleName : g_ModuleMan.m_DisabledDataModuleNames) {
+				writer.NewPropertyWithValue("DisableMod", disabledModuleName);
 			}
 		}
 

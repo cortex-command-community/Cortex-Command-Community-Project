@@ -12,6 +12,7 @@
 #include "MovableMan.h"
 #include "PerformanceMan.h"
 #include "PostProcessMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "PrimitiveMan.h"
 #include "SceneMan.h"
@@ -21,7 +22,6 @@
 
 #include "Box.h"
 #include "Controller.h"
-#include "DataModule.h"
 #include "GraphicalPrimitive.h"
 #include "PathFinder.h"
 

@@ -624,6 +624,9 @@
     <ClInclude Include="Managers\ThreadMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
+    <ClInclude Include="Managers\ModuleMan.h">
+      <Filter>Managers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\Box.cpp">
@@ -1198,6 +1201,9 @@
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Managers\ThreadMan.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\ModuleMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
   </ItemGroup>

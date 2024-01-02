@@ -103,6 +103,23 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ModuleMan) {
+		return luabind::class_<ModuleMan>("ModuleManager")
+
+		.def_readwrite("Modules", &ModuleMan::m_LoadedDataModules, luabind::return_stl_iterator)
+
+		.def("GetDataModule", (DataModule * (ModuleMan::*)(int))&ModuleMan::GetDataModule)
+		.def("GetDataModule", (DataModule * (ModuleMan::*)(const std::string_view &))&ModuleMan::GetDataModule)
+		.def("GetModuleID", &ModuleMan::GetModuleID)
+		.def("GetModuleIDFromPath", &ModuleMan::GetModuleIDFromPath)
+		.def("GetTotalModuleCount", &ModuleMan::GetTotalModuleCount)
+		.def("IsModuleOfficial", &ModuleMan::IsModuleOfficial)
+		.def("IsModuleUserdata", &ModuleMan::IsModuleUserdata)
+		.def("GetFullModulePath", &ModuleMan::GetFullModulePath);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
 		return luabind::class_<MovableMan>("MovableManager")
 
@@ -192,19 +209,11 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 		return luabind::class_<PresetMan>("PresetManager")
 
-		.def_readwrite("Modules", &PresetMan::m_pDataModules, luabind::return_stl_iterator)
-
-		.def("LoadDataModule", (bool (PresetMan::*)(const std::string &))&PresetMan::LoadDataModule)
-		.def("GetDataModule", &PresetMan::GetDataModule)
-		.def("GetModuleID", &PresetMan::GetModuleID)
-		.def("GetModuleIDFromPath", &PresetMan::GetModuleIDFromPath)
-		.def("GetTotalModuleCount", &PresetMan::GetTotalModuleCount)
-		.def("GetOfficialModuleCount", &PresetMan::GetOfficialModuleCount)
 		.def("AddPreset", &PresetMan::AddEntityPreset)
-		.def("GetPreset", (const Entity *(PresetMan::*)(std::string, std::string, int))&PresetMan::GetEntityPreset)
-		.def("GetPreset", (const Entity *(PresetMan::*)(std::string, std::string, std::string))&PresetMan::GetEntityPreset)
-		.def("GetLoadout", (Actor * (PresetMan::*)(std::string, std::string, bool))&PresetMan::GetLoadout, luabind::adopt(luabind::result))
-		.def("GetLoadout", (Actor * (PresetMan::*)(std::string, int, bool))&PresetMan::GetLoadout, luabind::adopt(luabind::result))
+		.def("GetPreset", (const Entity *(PresetMan::*)(const std::string &, std::string, int) const)&PresetMan::GetEntityPreset)
+		.def("GetPreset", (const Entity *(PresetMan::*)(const std::string &, const std::string &, const std::string &) const)&PresetMan::GetEntityPreset)
+		.def("GetLoadout", (Actor * (PresetMan::*)(const std::string &, const std::string &, bool))&PresetMan::GetLoadout, luabind::adopt(luabind::result))
+		.def("GetLoadout", (Actor * (PresetMan::*)(const std::string &, int, bool))&PresetMan::GetLoadout, luabind::adopt(luabind::result))
 		.def("GetRandomOfGroup", &PresetMan::GetRandomOfGroup)
 		.def("GetRandomOfGroupInModuleSpace", &PresetMan::GetRandomOfGroupInModuleSpace)
 		.def("GetEntityDataLocation", &PresetMan::GetEntityDataLocation)
@@ -215,10 +224,7 @@ namespace RTE {
 		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
 		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup2, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
 		.def("GetAllEntitiesOfGroup", &LuaAdaptersPresetMan::GetAllEntitiesOfGroup3, luabind::adopt(luabind::result) + luabind::return_stl_iterator)
-		.def("ReloadAllScripts", &PresetMan::ReloadAllScripts)
-		.def("IsModuleOfficial", &PresetMan::IsModuleOfficial)
-		.def("IsModuleUserdata", &PresetMan::IsModuleUserdata)
-		.def("GetFullModulePath", &PresetMan::GetFullModulePath);
+		.def("ReloadAllScripts", &PresetMan::ReloadAllScripts);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

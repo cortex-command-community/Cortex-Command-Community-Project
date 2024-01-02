@@ -49,13 +49,13 @@ namespace RTE {
 			std::string ModulePath; //!< Mod DataModule path.
 			std::string ModuleName; //!< Mod ModuleName.
 			std::string Description; //!< Mod description.
-			bool Disabled; //!< Whether the mod is disabled through the settings file or not.
+			bool Enabled; //!< Whether the mod is disabled through the settings file or not.
 
 			/// <summary>
 			/// Makes GUI displayable string with mod info.
 			/// </summary>
 			/// <returns>String with mod info.</returns>
-			std::string GetDisplayString() const { return (Disabled ? "- " : "+ ") + ModulePath + " - " + ModuleName; }
+			std::string GetDisplayString() const { return (Enabled ? "+ " : "- ") + ModulePath + " - " + ModuleName; }
 
 			/// <summary>
 			/// Comparison operator for sorting the KnownMods list alphabetically by path with std::sort.

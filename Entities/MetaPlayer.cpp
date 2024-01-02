@@ -1,6 +1,5 @@
 #include "MetaPlayer.h"
-#include "DataModule.h"
-#include "PresetMan.h"
+#include "ModuleMan.h"
 #include "ActivityMan.h"
 
 namespace RTE {
@@ -69,7 +68,7 @@ namespace RTE {
 		// Need to match the name to the index
 		});
 		MatchProperty("NativeTechModule", {
-			m_NativeTechModule = g_PresetMan.GetModuleID(reader.ReadPropValue());
+			m_NativeTechModule = g_ModuleMan.GetModuleID(reader.ReadPropValue());
 			// Default to no native tech if the one we're looking for couldn't be found
 			if (m_NativeTechModule < 0) { m_NativeTechModule = 0; }
 		});
@@ -105,7 +104,7 @@ namespace RTE {
 		// Need to write out the name, and not just the index of the module. it might change
 		writer.NewProperty("NativeTechModule");
 
-		writer << g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName();
+		writer << g_ModuleMan.GetDataModule(m_NativeTechModule)->GetFileName();
 		writer.NewProperty("NativeCostMultiplier");
 		writer << m_NativeCostMult;
 		writer.NewProperty("ForeignCostMultiplier");

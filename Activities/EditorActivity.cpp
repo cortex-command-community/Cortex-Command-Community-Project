@@ -25,7 +25,6 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Scene.h"
-#include "DataModule.h"
 
 #include "GUI.h"
 #include "AllegroScreen.h"
@@ -247,7 +246,7 @@ void EditorActivity::End()
 {
     Activity::End();
 
-    
+
 
     m_ActivityState = ActivityState::Over;
 }
@@ -406,7 +405,7 @@ void EditorActivity::Update()
                 GUIListPanel::Item *pItem = m_pNewModuleCombo->GetItem(m_pNewModuleCombo->GetSelectedIndex());
                 if (pItem && !pItem->m_Name.empty())
                 {
-                    m_ModuleSpaceID = g_PresetMan.GetModuleID(pItem->m_Name);
+                    m_ModuleSpaceID = g_ModuleMan.GetModuleID(pItem->m_Name);
 
                     // Allocate Scene
                     Scene *pNewScene = new Scene();
@@ -623,7 +622,7 @@ void EditorActivity::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int
 
 void EditorActivity::Draw(BITMAP *pTargetBitmap, const Vector &targetPos)
 {
-    
+
 }
 
 } // namespace RTE

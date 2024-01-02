@@ -12,6 +12,7 @@
 // Inclusions of header files
 
 #include "Deployment.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "MetaMan.h"
 #include "ContentFile.h"
@@ -20,7 +21,6 @@
 #include "Actor.h"
 #include "ACraft.h"
 #include "ActivityMan.h"
-#include "DataModule.h"
 
 namespace RTE {
 
@@ -173,7 +173,7 @@ int Deployment::Save(Writer &writer) const
 
 void Deployment::Destroy(bool notInherited)
 {
-    
+
 
     if (!notInherited)
         SceneObject::Destroy();
@@ -212,7 +212,7 @@ Actor * Deployment::CreateDeployedActor(int player, float &costTally)
     float foreignCostMult = 1.0;
 	float nativeCostMult = 1.0;
     MetaPlayer *pMetaPlayer = g_MetaMan.GetMetaPlayerOfInGamePlayer(player);
-    // Put 
+    // Put
 	if (g_MetaMan.GameInProgress() && pMetaPlayer)
     {
         nativeModule = pMetaPlayer->GetNativeTechModule();
@@ -228,18 +228,18 @@ Actor * Deployment::CreateDeployedActor(int player, float &costTally)
 		{
 			// Also set the team of this Deployable to match the player's
 			//m_Team = activity->GetTeamOfPlayer(player);
-			nativeModule = g_PresetMan.GetModuleID(activity->GetTeamTech(m_Team));
+			nativeModule = g_ModuleMan.GetModuleID(activity->GetTeamTech(m_Team));
 			// Select some random module if player selected all or something else
 			if (nativeModule < 0) {
 				std::vector<std::string> moduleList;
 
-				for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-					if (const DataModule *dataModule = g_PresetMan.GetDataModule(moduleID)) {
+				for (int moduleID = 0; moduleID < g_ModuleMan.GetTotalModuleCount(); ++moduleID) {
+					if (const DataModule *dataModule = g_ModuleMan.GetDataModule(moduleID)) {
 						if (dataModule->IsFaction()) { moduleList.emplace_back(dataModule->GetFileName()); }
 					}
 				}
 				int selection = RandomNum<int>(1, moduleList.size() - 1);
-				nativeModule = g_PresetMan.GetModuleID(moduleList.at(selection));
+				nativeModule = g_ModuleMan.GetModuleID(moduleList.at(selection));
 			}
 			foreignCostMult = 1.0;
 			nativeCostMult = 1.0;
@@ -306,18 +306,18 @@ SceneObject * Deployment::CreateDeployedObject(int player, float &costTally)
 		{
 			// Also set the team of this Deployable to match the player's
 			//m_Team = activity->GetTeamOfPlayer(player);
-			nativeModule = g_PresetMan.GetModuleID(activity->GetTeamTech(m_Team));
+			nativeModule = g_ModuleMan.GetModuleID(activity->GetTeamTech(m_Team));
 			// Select some random module if player selected all or something else
 			if (nativeModule < 0) {
 				std::vector<std::string> moduleList;
 
-				for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-					if (const DataModule *dataModule = g_PresetMan.GetDataModule(moduleID)) {
+				for (int moduleID = 0; moduleID < g_ModuleMan.GetTotalModuleCount(); ++moduleID) {
+					if (const DataModule *dataModule = g_ModuleMan.GetDataModule(moduleID)) {
 						if (dataModule->IsFaction()) { moduleList.emplace_back(dataModule->GetFileName()); }
 					}
 				}
 				int selection = RandomNum<int>(1, moduleList.size() - 1);
-				nativeModule = g_PresetMan.GetModuleID(moduleList.at(selection));
+				nativeModule = g_ModuleMan.GetModuleID(moduleList.at(selection));
 			}
 			foreignCostMult = 1.0;
 			nativeCostMult = 1.0;
@@ -626,7 +626,7 @@ bool Deployment::IsOnScenePoint(Vector &scenePoint) const
         }
         if (g_SceneMan.SceneWrapsY())
         {
-            
+
         }
     }
 

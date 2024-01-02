@@ -6,7 +6,7 @@
 #include "ContentFile.h"
 #include "Matrix.h"
 
-#include "PresetMan.h"
+#include "ModuleMan.h"
 
 #include "GLCheck.h"
 #include "glad/gl.h"
@@ -47,8 +47,8 @@ namespace RTE {
 		InitializeGLPointers();
 		CreateGLBackBuffers();
 
-		m_Blit8 = std::make_unique<Shader>(g_PresetMan.GetFullModulePath("Base.rte/Shaders/Blit8.vert"), g_PresetMan.GetFullModulePath("Base.rte/Shaders/Blit8.frag"));
-		m_PostProcessShader = std::make_unique<Shader>(g_PresetMan.GetFullModulePath("Base.rte/Shaders/PostProcess.vert"), g_PresetMan.GetFullModulePath("Base.rte/Shaders/PostProcess.frag"));
+		m_Blit8 = std::make_unique<Shader>(g_ModuleMan.GetFullModulePath("Base.rte/Shaders/Blit8.vert"), g_ModuleMan.GetFullModulePath("Base.rte/Shaders/Blit8.frag"));
+		m_PostProcessShader = std::make_unique<Shader>(g_ModuleMan.GetFullModulePath("Base.rte/Shaders/PostProcess.vert"), g_ModuleMan.GetFullModulePath("Base.rte/Shaders/PostProcess.frag"));
 		// TODO: Make more robust and load more glows!
 		ContentFile glowFile("Base.rte/Effects/Glows/YellowTiny.png");
 		m_YellowGlow = glowFile.GetAsBitmap();

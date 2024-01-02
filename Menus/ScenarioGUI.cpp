@@ -2,6 +2,7 @@
 
 #include "WindowMan.h"
 #include "FrameMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "ActivityMan.h"
 #include "UInputMan.h"
@@ -537,9 +538,9 @@ namespace RTE {
 		int blendAmount = 0;
 		for (const Scene *scenePointer : *m_ActivityScenes) {
 			int drawColor = 0;
-			if (scenePointer->GetModuleID() == g_PresetMan.GetModuleID("Base.rte")) {
+			if (scenePointer->GetModuleID() == g_ModuleMan.GetModuleID("Base.rte")) {
 				drawColor = c_GUIColorYellow;
-			} else if (scenePointer->GetModuleID() == g_PresetMan.GetModuleID("Missions.rte")) {
+			} else if (scenePointer->GetModuleID() == g_ModuleMan.GetModuleID("Missions.rte")) {
 				drawColor = c_GUIColorGreen;
 			} else {
 				drawColor = c_GUIColorCyan;

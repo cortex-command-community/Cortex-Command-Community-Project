@@ -14,6 +14,7 @@
 #include "GameActivity.h"
 
 #include "CameraMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "WindowMan.h"
@@ -24,7 +25,6 @@
 #include "ConsoleMan.h"
 #include "PresetMan.h"
 #include "SceneMan.h"
-#include "DataModule.h"
 #include "PostProcessMan.h"
 #include "Controller.h"
 #include "Scene.h"
@@ -338,7 +338,7 @@ void GameActivity::Destroy(bool notInherited)
 				m_TeamTech[team] = tech;
 			else
 			{
-				int id = g_PresetMan.GetModuleID(tech);
+				int id = g_ModuleMan.GetModuleID(tech);
 				if (id != -1)
 					m_TeamTech[team] = tech;
 				else
@@ -356,7 +356,7 @@ void GameActivity::Destroy(bool notInherited)
 	{
 		if (moduleid > -1)
 		{
-			const DataModule * pDataModule = g_PresetMan.GetDataModule(moduleid);
+			const DataModule * pDataModule = g_ModuleMan.GetDataModule(moduleid);
 			if (pDataModule)
 				return pDataModule->GetCrabToHumanSpawnRatio();
 		}
@@ -956,7 +956,7 @@ int GameActivity::Start()
 
 		// Load correct loadouts into buy menu if we're starting a non meta-game activity
 		if (m_pBuyGUI[player]->GetMetaPlayer() == Players::NoPlayer) {
-			int techModuleID = g_PresetMan.GetModuleID(GetTeamTech(GetTeamOfPlayer(player)));
+			int techModuleID = g_ModuleMan.GetModuleID(GetTeamTech(GetTeamOfPlayer(player)));
 
 			m_pBuyGUI[player]->SetNativeTechModule(techModuleID);
 			m_pBuyGUI[player]->SetForeignCostMultiplier(1.0);

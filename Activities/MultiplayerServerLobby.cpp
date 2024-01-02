@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MultiplayerServerLobby.cpp
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     
+// Description:
 // Project:         Retro Terrain Engine
-// Author(s):       
+// Author(s):
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -11,6 +11,7 @@
 
 #include "MultiplayerServerLobby.h"
 
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "FrameMan.h"
@@ -23,7 +24,6 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Scene.h"
-#include "DataModule.h"
 #include "MetaMan.h"
 #include "AudioMan.h"
 
@@ -301,8 +301,8 @@ namespace RTE {
 		m_pCPULockLabel = dynamic_cast<GUILabel *>(m_pGUIController->GetControl("CPULockLabel"));
 
 		// Populate the tech comboboxes with the available tech modules
-		for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-			if (const DataModule *dataModule = g_PresetMan.GetDataModule(moduleID)) {
+		for (int moduleID = 0; moduleID < g_ModuleMan.GetTotalModuleCount(); ++moduleID) {
+			if (const DataModule *dataModule = g_ModuleMan.GetDataModule(moduleID)) {
 				if (dataModule->IsFaction()) {
 					for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 						m_apTeamTechSelect[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
@@ -971,7 +971,7 @@ namespace RTE {
 					if (pTechItem->m_ExtraIndex == -2)
 						pGameActivity->SetTeamTech(team, "-All-");
 					else
-						pGameActivity->SetTeamTech(team, g_PresetMan.GetDataModuleName(pTechItem->m_ExtraIndex));
+						pGameActivity->SetTeamTech(team, g_ModuleMan.GetModuleName(pTechItem->m_ExtraIndex));
 			}
 
 			// Set up AI skill levels
@@ -1076,7 +1076,7 @@ namespace RTE {
 		// Select the Tutorial Activity and Scene by default to start
 		if (skirmishIndex >= 0)
 			m_pActivitySelect->SetSelectedIndex(skirmishIndex);
-		else 
+		else
 			m_pActivitySelect->SetSelectedIndex(0);
 
 		UpdateActivityBox();
@@ -1126,7 +1126,7 @@ namespace RTE {
 				if (m_apPlayerNameLabel[i]->GetText() != g_NetworkServer.GetPlayerName(i) && g_NetworkServer.GetPlayerName(i) != "")
 					m_apPlayerNameLabel[i]->SetText(g_NetworkServer.GetPlayerName(i));
 			}
-			else 
+			else
 			{
 				if (m_apPlayerNameLabel[i]->GetText() != "- NO PLAYER -")
 					m_apPlayerNameLabel[i]->SetText("- NO PLAYER -");
@@ -1322,7 +1322,7 @@ namespace RTE {
 					stretch_blit(preview, m_pScenePreviewBitmap, xOffset, yOffset, c_ScenePreviewWidth, c_ScenePreviewHeight, 0, 0, 140, 55 );
 					//blit(preview, m_pScenePreviewBitmap, xOffset, yOffset, 0, 0, m_pScenePreviewBitmap->w, m_pScenePreviewBitmap->h);
 				}
-				else 
+				else
 				{
 					int xOffset = 0;
 					int yOffset = 0;
