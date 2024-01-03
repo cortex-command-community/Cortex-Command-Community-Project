@@ -1,0 +1,130 @@
+name: Build and Release
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push to the development or master branches
+  push:
+    branches: [master, development]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: true
+
+#trigger new dev release again
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SEMANTIC_RELEASE_CORE_VERSION: 19
+  SEMANTIC_RELEASE_EXPORT_VERSION: 1
+  SEMANTIC_RELEASE_GIT_VERSION: 10
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  get-version:
+    name: Determine release version.
+    runs-on: ubuntu-latest
+
+    outputs:
+      new-release-published: ${{ steps.get-next-version.outputs.new-release-published }}
+      new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install Node Dependencies
+        run: npm install -g --save-dev semantic-release@${{env.SEMANTIC_RELEASE_CORE_VERSION}} @semantic-release/git@${{env.SEMANTIC_RELEASE_GIT_VERSION}} semantic-release-export-data@${{env.SEMANTIC_RELEASE_EXPORT_VERSION}}
+
+      - name: Determine version number
+        id: get-next-version
+        run: npx semantic-release --dry-run
+
+      - run: echo "Does a new version need to be published? ${{steps.get-next-version.outputs.new-release-published}}"
+      - if: steps.get-next-version.outputs.new-release-published == 'true'
+        run: echo "The new release version is ${{ steps.get-next-version.outputs.new-release-version }}"
+
+  build-meson-releases:
+    name: Linux & macOS Release Builds
+
+    needs: get-version
+    if: needs.get-version.outputs.new-release-published == 'true'
+
+    uses: ./.github/workflows/meson.yml
+    with:
+      new_release_version: ${{needs.get-version.outputs.new-release-version}}
+      upload_artefacts: true
+
+  build-msbuild-releases:
+    name: Windows Release Build
+
+    needs: get-version
+    if: needs.get-version.outputs.new-release-published == 'true'
+
+    uses: ./.github/workflows/msbuild.yml
+    with:
+      new_release_version: ${{needs.get-version.outputs.new-release-version}}
+      upload_artefacts: true
+
+  release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+
+    needs: [get-version, build-msbuild-releases, build-meson-releases]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install Node Dependencies
+        run: npm install -g --save-dev semantic-release@${{env.SEMANTIC_RELEASE_CORE_VERSION}} @semantic-release/git@${{env.SEMANTIC_RELEASE_GIT_VERSION}} semantic-release-export-data@${{env.SEMANTIC_RELEASE_EXPORT_VERSION}}
+
+      - run: mkdir release
+
+      - name: Download build artefacts
+        uses: actions/download-artifact@v3
+        with:
+          path: release
+
+      - run: ls -R release
+
+      - name: Set Version
+        uses: ./.github/actions/set_version
+        with:
+          new_release_version: ${{needs.get-version.outputs.new-release-version}}
+
+      - name: Compress Windows Release
+        run: |
+          zip -j CortexCommand.windows.zip \
+            "release/Cortex Command.exe" \
+            external/lib/win/{fmod,SDL2}.dll
+
+      - name: Compress Linux Release
+        run: |
+          zip -j CortexCommand.linux.zip \
+            "release/CortexCommand (Linux)/CortexCommand.AppImage" \
+            external/lib/linux/x86_64/libfmod.so*
+
+      - name: Compress OSX Release
+        run: |
+          zip -j CortexCommand.macos.zip \
+            "release/CortexCommand (macOS)/CortexCommand" \
+            external/lib/macos/libfmod.dylib
+
+      - name: Package Data files
+        run: |
+          zip -r -u CortexCommand.windows.zip Data
+          zip -r -u CortexCommand.linux.zip Data
+          zip -r -u CortexCommand.macos.zip Data
+
+      - name: Semantic Release
+        run: npx semantic-release

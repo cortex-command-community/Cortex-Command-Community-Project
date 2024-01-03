@@ -1,0 +1,53 @@
+{
+  "branches": [
+    "master",
+    {
+      "name": "development",
+      "prerelease": "pre"
+    }
+  ],
+  "repositoryUrl": "https://github.com/cortex-command-community/Cortex-Command-Community-Project",
+  "debug": "true",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "semantic-release-export-data",
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "writerOpts": {
+          "commitsSort": ["scope", "header"]
+        }
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["System/GameVersion.h", "meson.build"]
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "CortexCommand.windows.zip",
+            "label": "Cortex Command v${nextRelease.version} (Windows Release)"
+          },
+          {
+            "path": "CortexCommand.linux.zip",
+            "label": "Cortex Command v${nextRelease.version} (Linux Release)"
+          },
+          {
+            "path": "CortexCommand.macos.zip",
+            "label": "Cortex Command v${nextRelease.version} (macOS Release)"
+          }
+        ],
+        "successComment": false,
+        "failComment": false,
+        "failTitle": false,
+        "releasedLabels": false,
+        "labels": false
+      }
+    ]
+  ]
+}
