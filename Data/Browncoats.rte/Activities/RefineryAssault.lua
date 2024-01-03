@@ -164,13 +164,13 @@ function RefineryAssault:StartActivity(newGame)
 	self.tacticsHandler:Initialize(self, newGame, 2, 5, 45000, self.verboseLogging);
 	
 	self.dockingHandler = require("Activities/Utility/DockingHandler");
-	self.dockingHandler:Initialize(self, false, newGame);
+	self.dockingHandler:Initialize(self, newGame, false);
 	
 	self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
 	self.buyDoorHandler:Initialize(self, newGame);
 	
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
-	self.deliveryCreationHandler:Initialize(self);
+	self.deliveryCreationHandler:Initialize(self, self.verboseLogging);
 	
 	self.HUDHandler = require("Activities/Utility/HUDHandler");
 	self.HUDHandler:Initialize(self, newGame, self.verboseLogging);
@@ -219,7 +219,11 @@ function RefineryAssault:StartActivity(newGame)
 		for actor in MovableMan.AddedActors do
 			if actor:NumberValueExists("BossVaultDoor") then
 				table.insert(self.saveTable.doorsToConstantlyReset, actor);
+			elseif actor.PresetName == "Refinery Objective Prison Door" then
+				self.saveTable.roninPrisonerDoor = actor;
+				table.insert(self.saveTable.doorsToConstantlyReset, actor);
 			end
+			
 		end
 		
 		-- Always active base task for defenders
@@ -487,6 +491,18 @@ function RefineryAssault:UpdateActivity()
 		if not door or not MovableMan:ValidMO(door) then
 		else
 			ToADoor(door):ResetSensorTimer();
+		end
+	end
+	
+	
+	if self.roninPrisonerMessageTimer and not self.roninPrisonerMessageTimer:IsPastSimMS(6000) then
+		if self.saveTable.roninPrisonerLeader and MovableMan:ValidMO(self.saveTable.roninPrisonerLeader) then
+			PrimitiveMan:DrawTextPrimitive(self.saveTable.roninPrisonerLeader.AboveHUDPos, "We are in your debt.", true, 1);
+		end
+	else
+		if self.saveTable.roninPrisonerDoor and not MovableMan:ValidMO(self.saveTable.roninPrisonerDoor) then
+			self:SendMessage("RefineryAssault_RoninPrisonerDoorBroken");
+			self.saveTable.roninPrisonerDoor = nil;
 		end
 	end
 	

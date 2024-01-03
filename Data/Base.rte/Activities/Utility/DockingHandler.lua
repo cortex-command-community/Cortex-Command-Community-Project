@@ -55,7 +55,7 @@ function DockingHandler:Create()
 	return Members;
 end
 
-function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame)
+function DockingHandler:Initialize(activity, newGame, autoAssignUnknownDropships)
 	
 	print("dockhandler inited")
 	print(SceneMan.SceneOrbitDirection)
@@ -76,7 +76,6 @@ function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame
 	-- if it's 2 or 3, we don't know what the hell the player is doing...
 	
 	-- Set up docks
-	-- TODO make better with iteration
 	
 	if newGame then
 	
@@ -96,6 +95,12 @@ function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame
 			["activeCraft"] =  nil,
 			["dockingStage"] =  nil};			
 			i = i + 1;
+			-- Jump two if needed, the player may want to avoid overlap as per above instructions
+			if SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i) then
+			elseif SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i + 1) then
+				i = i + 1;
+			end
+				
 		end
 		
 		
@@ -108,6 +113,10 @@ function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame
 			["activeCraft"] =  nil,
 			["dockingStage"] =  nil};
 			i = i + 1;
+			if SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i) then
+			elseif SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i + 1) then
+				i = i + 1;
+			end
 		end
 
 		if not self.undersideScene then
@@ -121,6 +130,7 @@ function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame
 				dockObject.GibImpulseLimit = 9999999999;
 				dockObject.GibWoundLimit = 9999999999;
 				dockObject.PinStrength = 9999999999;
+				dockObject.GetsHitByMOs = false;
 				MovableMan:AddParticle(dockObject);
 			end
 		end
@@ -134,6 +144,7 @@ function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame
 			dockObject.GibImpulseLimit = 9999999999;
 			dockObject.GibWoundLimit = 9999999999;
 			dockObject.PinStrength = 9999999999;
+			dockObject.GetsHitByMOs = false;
 			MovableMan:AddParticle(dockObject);
 		end
 	end

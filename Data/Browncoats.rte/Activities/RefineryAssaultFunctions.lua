@@ -305,7 +305,44 @@ function RefineryAssault:HandleMessage(message, object)
 			for k, v in pairs(self.saveTable.buyDoorTables.S4_6) do
 				v.Team = self.aiTeam;
 			end
+			
+			
+			-- Ronin prisoner spawns for the side objective
+			
+			self.deliveryCreationHandler:AddVirtualTeam(5, "Ronin.rte");
+			
+			self.saveTable.roninPrisoners = self.deliveryCreationHandler:CreateEliteSquad(5, 5);
+			self.saveTable.roninPrisonerLeader = self.saveTable.roninPrisoners[1];
+			local area = SceneMan.Scene:GetOptionalArea("RefineryAssault_RoninPrisonersSpawn");
+			for k, actor in pairs(self.saveTable.roninPrisoners) do
+				actor.HFlipped = true;
+				if self.saveTable.roninPrisonerDoorBroken then
+					-- failsafe
+					actor.Team = self.humanTeam;
+					actor.PlayerControllable = true;
+				else
+					actor.Team = -1;
+					actor:DisableScript("Base.rte/AI/HumanAI.lua");
+				end
+				local pos = area.RandomPoint;
+				actor.Pos = pos;
+				MovableMan:AddActor(actor);
+				actor:UnequipArms();
+			end
 
+		end
+		
+	elseif message == "RefineryAssault_RoninPrisonerDoorBroken" then
+	
+		self.saveTable.roninPrisonerDoorBroken = true;
+		self.roninPrisonerMessageTimer = Timer();
+		
+		if self.saveTable.roninPrisoners then
+			for k, actor in pairs(self.saveTable.roninPrisoners) do
+				MovableMan:ChangeActorTeam(actor, self.humanTeam);
+				actor:AddScript("Base.rte/AI/HumanAI.lua");
+				actor.PlayerControllable = true;
+			end
 		end
 		
 	elseif message == "Captured_RefineryS4DockConsole" then
