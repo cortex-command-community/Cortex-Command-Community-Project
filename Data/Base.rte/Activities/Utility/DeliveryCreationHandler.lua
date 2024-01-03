@@ -624,10 +624,10 @@ function DeliveryCreationHandler:SelectPresetByGroupPair(team, primaryGroup, sec
 	local techName = actingTech.FileName or "All";
 	
 	
-	print(presetName)
-	print(createFunc)
-	print(techName)
-	print("FALLBACK GROUP: " .. baseFallbackGroup); 
+	--print(presetName)
+	--print(createFunc)
+	--print(techName)
+	--print("FALLBACK GROUP: " .. baseFallbackGroup); 
 	
 	return presetName, createFunc, techName;
 
