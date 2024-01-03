@@ -51,1153 +51,1153 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="System\Box.h">
+    <ClInclude Include="Source\System\Box.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Color.h">
+    <ClInclude Include="Source\System\Color.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\ContentFile.h">
+    <ClInclude Include="Source\System\ContentFile.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\DataModule.h">
+    <ClInclude Include="Source\System\DataModule.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Matrix.h">
+    <ClInclude Include="Source\System\Matrix.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\PathFinder.h">
+    <ClInclude Include="Source\System\PathFinder.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Reader.h">
+    <ClInclude Include="Source\System\Reader.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Serializable.h">
+    <ClInclude Include="Source\System\Serializable.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Singleton.h">
+    <ClInclude Include="Source\System\Singleton.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\System.h">
+    <ClInclude Include="Source\System\System.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Timer.h">
+    <ClInclude Include="Source\System\Timer.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Vector.h">
+    <ClInclude Include="Source\System\Vector.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Writer.h">
+    <ClInclude Include="Source\System\Writer.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\MicroPather\micropather.h">
+    <ClInclude Include="Source\System\MicroPather\micropather.h">
       <Filter>System\MicroPather</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\AchievementMan.h">
+    <ClInclude Include="Source\Managers\AchievementMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\ActivityMan.h">
+    <ClInclude Include="Source\Managers\ActivityMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\AudioMan.h">
+    <ClInclude Include="Source\Managers\AudioMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\ConsoleMan.h">
+    <ClInclude Include="Source\Managers\ConsoleMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
     <ClInclude Include="managers\FrameMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\LuaMan.h">
+    <ClInclude Include="Source\Managers\LuaMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\MetaMan.h">
+    <ClInclude Include="Source\Managers\MetaMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\MovableMan.h">
+    <ClInclude Include="Source\Managers\MovableMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\PresetMan.h">
+    <ClInclude Include="Source\Managers\PresetMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\SceneMan.h">
+    <ClInclude Include="Source\Managers\SceneMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\SettingsMan.h">
+    <ClInclude Include="Source\Managers\SettingsMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\TimerMan.h">
+    <ClInclude Include="Source\Managers\TimerMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\UInputMan.h">
+    <ClInclude Include="Source\Managers\UInputMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUI.h">
+    <ClInclude Include="Source\GUI\GUI.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIBanner.h">
+    <ClInclude Include="Source\GUI\GUIBanner.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIButton.h">
+    <ClInclude Include="Source\GUI\GUIButton.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUICheckbox.h">
+    <ClInclude Include="Source\GUI\GUICheckbox.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUICollectionBox.h">
+    <ClInclude Include="Source\GUI\GUICollectionBox.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIComboBox.h">
+    <ClInclude Include="Source\GUI\GUIComboBox.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIControl.h">
+    <ClInclude Include="Source\GUI\GUIControl.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIControlFactory.h">
+    <ClInclude Include="Source\GUI\GUIControlFactory.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIControlManager.h">
+    <ClInclude Include="Source\GUI\GUIControlManager.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIEvent.h">
+    <ClInclude Include="Source\GUI\GUIEvent.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIFont.h">
+    <ClInclude Include="Source\GUI\GUIFont.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIInput.h">
+    <ClInclude Include="Source\GUI\GUIInput.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUILabel.h">
+    <ClInclude Include="Source\GUI\GUILabel.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIListBox.h">
+    <ClInclude Include="Source\GUI\GUIListBox.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIListPanel.h">
+    <ClInclude Include="Source\GUI\GUIListPanel.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIManager.h">
+    <ClInclude Include="Source\GUI\GUIManager.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIPanel.h">
+    <ClInclude Include="Source\GUI\GUIPanel.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIProgressBar.h">
+    <ClInclude Include="Source\GUI\GUIProgressBar.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIProperties.h">
+    <ClInclude Include="Source\GUI\GUIProperties.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIPropertyPage.h">
+    <ClInclude Include="Source\GUI\GUIPropertyPage.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIRadioButton.h">
+    <ClInclude Include="Source\GUI\GUIRadioButton.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIScrollbar.h">
+    <ClInclude Include="Source\GUI\GUIScrollbar.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIScrollPanel.h">
+    <ClInclude Include="Source\GUI\GUIScrollPanel.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUISkin.h">
+    <ClInclude Include="Source\GUI\GUISkin.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUISlider.h">
+    <ClInclude Include="Source\GUI\GUISlider.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUITab.h">
+    <ClInclude Include="Source\GUI\GUITab.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUITextBox.h">
+    <ClInclude Include="Source\GUI\GUITextBox.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUITextPanel.h">
+    <ClInclude Include="Source\GUI\GUITextPanel.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIUtil.h">
+    <ClInclude Include="Source\GUI\GUIUtil.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\ACDropShip.h">
+    <ClInclude Include="Source\Entities\ACDropShip.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\ACrab.h">
+    <ClInclude Include="Source\Entities\ACrab.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\ACraft.h">
+    <ClInclude Include="Source\Entities\ACraft.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\ACRocket.h">
+    <ClInclude Include="Source\Entities\ACRocket.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Actor.h">
+    <ClInclude Include="Source\Entities\Actor.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\ADoor.h">
+    <ClInclude Include="Source\Entities\ADoor.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\AEmitter.h">
+    <ClInclude Include="Source\Entities\AEmitter.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\AHuman.h">
+    <ClInclude Include="Source\Entities\AHuman.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Arm.h">
+    <ClInclude Include="Source\Entities\Arm.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\AtomGroup.h">
+    <ClInclude Include="Source\Entities\AtomGroup.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Attachable.h">
+    <ClInclude Include="Source\Entities\Attachable.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\BunkerAssembly.h">
+    <ClInclude Include="Source\Entities\BunkerAssembly.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\BunkerAssemblyScheme.h">
+    <ClInclude Include="Source\Entities\BunkerAssemblyScheme.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Deployment.h">
+    <ClInclude Include="Source\Entities\Deployment.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\GlobalScript.h">
+    <ClInclude Include="Source\Entities\GlobalScript.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\HDFirearm.h">
+    <ClInclude Include="Source\Entities\HDFirearm.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\HeldDevice.h">
+    <ClInclude Include="Source\Entities\HeldDevice.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Icon.h">
+    <ClInclude Include="Source\Entities\Icon.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Leg.h">
+    <ClInclude Include="Source\Entities\Leg.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\LimbPath.h">
+    <ClInclude Include="Source\Entities\LimbPath.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Loadout.h">
+    <ClInclude Include="Source\Entities\Loadout.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Magazine.h">
+    <ClInclude Include="Source\Entities\Magazine.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Material.h">
+    <ClInclude Include="Source\Entities\Material.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\MetaPlayer.h">
+    <ClInclude Include="Source\Entities\MetaPlayer.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\MOPixel.h">
+    <ClInclude Include="Source\Entities\MOPixel.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\MOSParticle.h">
+    <ClInclude Include="Source\Entities\MOSParticle.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\MOSprite.h">
+    <ClInclude Include="Source\Entities\MOSprite.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\MOSRotating.h">
+    <ClInclude Include="Source\Entities\MOSRotating.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\MovableObject.h">
+    <ClInclude Include="Source\Entities\MovableObject.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Scene.h">
+    <ClInclude Include="Source\Entities\Scene.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\SceneLayer.h">
+    <ClInclude Include="Source\Entities\SceneLayer.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\SceneObject.h">
+    <ClInclude Include="Source\Entities\SceneObject.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\SLTerrain.h">
+    <ClInclude Include="Source\Entities\SLTerrain.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\TDExplosive.h">
+    <ClInclude Include="Source\Entities\TDExplosive.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\TerrainDebris.h">
+    <ClInclude Include="Source\Entities\TerrainDebris.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\TerrainObject.h">
+    <ClInclude Include="Source\Entities\TerrainObject.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\ThrownDevice.h">
+    <ClInclude Include="Source\Entities\ThrownDevice.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Turret.h">
+    <ClInclude Include="Source\Entities\Turret.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\ActorEditor.h">
+    <ClInclude Include="Source\Activities\ActorEditor.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\AreaEditor.h">
+    <ClInclude Include="Source\Activities\AreaEditor.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\AssemblyEditor.h">
+    <ClInclude Include="Source\Activities\AssemblyEditor.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\BaseEditor.h">
+    <ClInclude Include="Source\Activities\BaseEditor.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\EditorActivity.h">
+    <ClInclude Include="Source\Activities\EditorActivity.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\GameActivity.h">
+    <ClInclude Include="Source\Activities\GameActivity.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\GAScripted.h">
+    <ClInclude Include="Source\Activities\GAScripted.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\GATutorial.h">
+    <ClInclude Include="Source\Activities\GATutorial.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\GibEditor.h">
+    <ClInclude Include="Source\Activities\GibEditor.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\SceneEditor.h">
+    <ClInclude Include="Source\Activities\SceneEditor.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\AreaEditorGUI.h">
+    <ClInclude Include="Source\Menus\AreaEditorGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\AreaPickerGUI.h">
+    <ClInclude Include="Source\Menus\AreaPickerGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\AssemblyEditorGUI.h">
+    <ClInclude Include="Source\Menus\AssemblyEditorGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\BuyMenuGUI.h">
+    <ClInclude Include="Source\Menus\BuyMenuGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\GibEditorGUI.h">
+    <ClInclude Include="Source\Menus\GibEditorGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\MainMenuGUI.h">
+    <ClInclude Include="Source\Menus\MainMenuGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\MetagameGUI.h">
+    <ClInclude Include="Source\Menus\MetagameGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\ObjectPickerGUI.h">
+    <ClInclude Include="Source\Menus\ObjectPickerGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\PieMenu.h">
+    <ClInclude Include="Source\Entities\PieMenu.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\ScenarioGUI.h">
+    <ClInclude Include="Source\Menus\ScenarioGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SceneEditorGUI.h">
+    <ClInclude Include="Source\Menus\SceneEditorGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Emission.h">
+    <ClInclude Include="Source\Entities\Emission.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\PEmitter.h">
+    <ClInclude Include="Source\Entities\PEmitter.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\NetworkClient.h">
+    <ClInclude Include="Source\Managers\NetworkClient.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\NetworkServer.h">
+    <ClInclude Include="Source\Managers\NetworkServer.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\MultiplayerGame.h">
+    <ClInclude Include="Source\Activities\MultiplayerGame.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Activities\MultiplayerServerLobby.h">
+    <ClInclude Include="Source\Activities\MultiplayerServerLobby.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="System\StandardIncludes.h">
+    <ClInclude Include="Source\System\StandardIncludes.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUISound.h">
+    <ClInclude Include="Source\GUI\GUISound.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="System\RTETools.h">
+    <ClInclude Include="Source\System\RTETools.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\RTEError.h">
+    <ClInclude Include="Source\System\RTEError.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Constants.h">
+    <ClInclude Include="Source\System\Constants.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="Resources\resource.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="System\Controller.h">
+    <ClInclude Include="Source\System\Controller.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Entity.h">
+    <ClInclude Include="Source\System\Entity.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\PerformanceMan.h">
+    <ClInclude Include="Source\Managers\PerformanceMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\PrimitiveMan.h">
+    <ClInclude Include="Source\Managers\PrimitiveMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\PostProcessMan.h">
+    <ClInclude Include="Source\Managers\PostProcessMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\SoundContainer.h">
+    <ClInclude Include="Source\Entities\SoundContainer.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\SoundSet.h">
+    <ClInclude Include="Source\Entities\SoundSet.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="System\Atom.h">
+    <ClInclude Include="Source\System\Atom.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\ADSensor.h">
+    <ClInclude Include="Source\Entities\ADSensor.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Gib.h">
+    <ClInclude Include="Source\Entities\Gib.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Round.h">
+    <ClInclude Include="Source\Entities\Round.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="System\NetworkMessages.h">
+    <ClInclude Include="Source\System\NetworkMessages.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\InputScheme.h">
+    <ClInclude Include="Source\System\InputScheme.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\InputMapping.h">
+    <ClInclude Include="Source\System\InputMapping.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\MetaSave.h">
+    <ClInclude Include="Source\Entities\MetaSave.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\Activity.h">
+    <ClInclude Include="Source\Entities\Activity.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="System\GraphicalPrimitive.h">
+    <ClInclude Include="Source\System\GraphicalPrimitive.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\TitleScreen.h">
+    <ClInclude Include="Source\Menus\TitleScreen.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\MenuMan.h">
+    <ClInclude Include="Source\Managers\MenuMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\LoadingScreen.h">
+    <ClInclude Include="Source\Menus\LoadingScreen.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\ModManagerGUI.h">
+    <ClInclude Include="Source\Menus\ModManagerGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SettingsGUI.h">
+    <ClInclude Include="Source\Menus\SettingsGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SettingsAudioGUI.h">
+    <ClInclude Include="Source\Menus\SettingsAudioGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SettingsVideoGUI.h">
+    <ClInclude Include="Source\Menus\SettingsVideoGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SettingsInputGUI.h">
+    <ClInclude Include="Source\Menus\SettingsInputGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SettingsGameplayGUI.h">
+    <ClInclude Include="Source\Menus\SettingsGameplayGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SettingsMiscGUI.h">
+    <ClInclude Include="Source\Menus\SettingsMiscGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SettingsInputMappingGUI.h">
+    <ClInclude Include="Source\Menus\SettingsInputMappingGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SettingsInputMappingWizardGUI.h">
+    <ClInclude Include="Source\Menus\SettingsInputMappingWizardGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\ScenarioActivityConfigGUI.h">
+    <ClInclude Include="Source\Menus\ScenarioActivityConfigGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\PieSlice.h">
+    <ClInclude Include="Source\Entities\PieSlice.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\InventoryMenuGUI.h">
+    <ClInclude Include="Source\Menus\InventoryMenuGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Lua\LuabindDefinitions.h">
+    <ClInclude Include="Source\Lua\LuabindDefinitions.h">
       <Filter>Lua</Filter>
     </ClInclude>
-    <ClInclude Include="Lua\LuaBindingRegisterDefinitions.h">
+    <ClInclude Include="Source\Lua\LuaBindingRegisterDefinitions.h">
       <Filter>Lua</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIInterface.h">
+    <ClInclude Include="Source\GUI\GUIInterface.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIReader.h">
+    <ClInclude Include="Source\GUI\GUIReader.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GUIWriter.h">
+    <ClInclude Include="Source\GUI\GUIWriter.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Lua\LuabindObjectWrapper.h">
+    <ClInclude Include="Source\Lua\LuabindObjectWrapper.h">
       <Filter>Lua</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\TerrainFrosting.h">
+    <ClInclude Include="Source\Entities\TerrainFrosting.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\SLBackground.h">
+    <ClInclude Include="Source\Entities\SLBackground.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="System\PieQuadrant.h">
+    <ClInclude Include="Source\System\PieQuadrant.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\Gamepad.h">
+    <ClInclude Include="Source\System\Gamepad.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\CameraMan.h">
+    <ClInclude Include="Source\Managers\CameraMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Lua\LuaAdapterDefinitions.h">
+    <ClInclude Include="Source\Lua\LuaAdapterDefinitions.h">
       <Filter>Lua</Filter>
     </ClInclude>
-    <ClInclude Include="System\SpatialPartitionGrid.h">
+    <ClInclude Include="Source\System\SpatialPartitionGrid.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\GenericSavedData.h">
+    <ClInclude Include="Source\System\GenericSavedData.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\Wrappers\GUIInputWrapper.h">
+    <ClInclude Include="Source\GUI\Wrappers\GUIInputWrapper.h">
       <Filter>GUI\Wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\Wrappers\AllegroScreen.h">
+    <ClInclude Include="Source\GUI\Wrappers\AllegroScreen.h">
       <Filter>GUI\Wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\Wrappers\AllegroBitmap.h">
+    <ClInclude Include="Source\GUI\Wrappers\AllegroBitmap.h">
       <Filter>GUI\Wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\WindowMan.h">
+    <ClInclude Include="Source\Managers\WindowMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
     <ClInclude Include="Resources\Credits.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\PauseMenuGUI.h">
+    <ClInclude Include="Source\Menus\PauseMenuGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="System\Semver200\semver200.h">
+    <ClInclude Include="Source\System\Semver200\semver200.h">
       <Filter>System\Semver200</Filter>
     </ClInclude>
-    <ClInclude Include="System\Semver200\version.h">
+    <ClInclude Include="Source\System\Semver200\version.h">
       <Filter>System\Semver200</Filter>
     </ClInclude>
-    <ClInclude Include="System\GameVersion.h">
+    <ClInclude Include="Source\System\GameVersion.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\StackWalker\StackWalker.h">
+    <ClInclude Include="Source\System\StackWalker\StackWalker.h">
       <Filter>System\StackWalker</Filter>
     </ClInclude>
-    <ClInclude Include="System\RTEStackTrace.h">
+    <ClInclude Include="Source\System\RTEStackTrace.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Entities\AEJetpack.h">
+    <ClInclude Include="Source\Entities\AEJetpack.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="System\Shader.h">
+    <ClInclude Include="Source\System\Shader.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\GLCheck.h">
+    <ClInclude Include="Source\System\GLCheck.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Menus\SaveLoadMenuGUI.h">
+    <ClInclude Include="Source\Menus\SaveLoadMenuGUI.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="System\Base64\base64.h">
+    <ClInclude Include="Source\System\Base64\base64.h">
       <Filter>System\Base64</Filter>
     </ClInclude>
-    <ClInclude Include="System\AllegroTools.h">
+    <ClInclude Include="Source\System\AllegroTools.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\ThreadMan.h">
+    <ClInclude Include="Source\Managers\ThreadMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="System\Box.cpp">
+    <ClCompile Include="Source\System\Box.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\Color.cpp">
+    <ClCompile Include="Source\System\Color.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\ContentFile.cpp">
+    <ClCompile Include="Source\System\ContentFile.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\DataModule.cpp">
+    <ClCompile Include="Source\System\DataModule.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\Matrix.cpp">
+    <ClCompile Include="Source\System\Matrix.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\PathFinder.cpp">
+    <ClCompile Include="Source\System\PathFinder.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\Reader.cpp">
+    <ClCompile Include="Source\System\Reader.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\System.cpp">
+    <ClCompile Include="Source\System\System.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\Timer.cpp">
+    <ClCompile Include="Source\System\Timer.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\Vector.cpp">
+    <ClCompile Include="Source\System\Vector.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\Writer.cpp">
+    <ClCompile Include="Source\System\Writer.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\MicroPather\micropather.cpp">
+    <ClCompile Include="Source\System\MicroPather\micropather.cpp">
       <Filter>System\MicroPather</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\AchievementMan.cpp">
+    <ClCompile Include="Source\Managers\AchievementMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\ActivityMan.cpp">
+    <ClCompile Include="Source\Managers\ActivityMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\AudioMan.cpp">
+    <ClCompile Include="Source\Managers\AudioMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\ConsoleMan.cpp">
+    <ClCompile Include="Source\Managers\ConsoleMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
     <ClCompile Include="managers\FrameMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\LuaMan.cpp">
+    <ClCompile Include="Source\Managers\LuaMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\MetaMan.cpp">
+    <ClCompile Include="Source\Managers\MetaMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\MovableMan.cpp">
+    <ClCompile Include="Source\Managers\MovableMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\PresetMan.cpp">
+    <ClCompile Include="Source\Managers\PresetMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\SceneMan.cpp">
+    <ClCompile Include="Source\Managers\SceneMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\SettingsMan.cpp">
+    <ClCompile Include="Source\Managers\SettingsMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\TimerMan.cpp">
+    <ClCompile Include="Source\Managers\TimerMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\UInputMan.cpp">
+    <ClCompile Include="Source\Managers\UInputMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIBanner.cpp">
+    <ClCompile Include="Source\GUI\GUIBanner.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIButton.cpp">
+    <ClCompile Include="Source\GUI\GUIButton.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUICheckbox.cpp">
+    <ClCompile Include="Source\GUI\GUICheckbox.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUICollectionBox.cpp">
+    <ClCompile Include="Source\GUI\GUICollectionBox.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIComboBox.cpp">
+    <ClCompile Include="Source\GUI\GUIComboBox.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIControl.cpp">
+    <ClCompile Include="Source\GUI\GUIControl.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIControlFactory.cpp">
+    <ClCompile Include="Source\GUI\GUIControlFactory.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIControlManager.cpp">
+    <ClCompile Include="Source\GUI\GUIControlManager.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIEvent.cpp">
+    <ClCompile Include="Source\GUI\GUIEvent.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIFont.cpp">
+    <ClCompile Include="Source\GUI\GUIFont.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIInput.cpp">
+    <ClCompile Include="Source\GUI\GUIInput.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUILabel.cpp">
+    <ClCompile Include="Source\GUI\GUILabel.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIListBox.cpp">
+    <ClCompile Include="Source\GUI\GUIListBox.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIListPanel.cpp">
+    <ClCompile Include="Source\GUI\GUIListPanel.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIManager.cpp">
+    <ClCompile Include="Source\GUI\GUIManager.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIPanel.cpp">
+    <ClCompile Include="Source\GUI\GUIPanel.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIProgressBar.cpp">
+    <ClCompile Include="Source\GUI\GUIProgressBar.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIProperties.cpp">
+    <ClCompile Include="Source\GUI\GUIProperties.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIPropertyPage.cpp">
+    <ClCompile Include="Source\GUI\GUIPropertyPage.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIRadioButton.cpp">
+    <ClCompile Include="Source\GUI\GUIRadioButton.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIScrollbar.cpp">
+    <ClCompile Include="Source\GUI\GUIScrollbar.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIScrollPanel.cpp">
+    <ClCompile Include="Source\GUI\GUIScrollPanel.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUISkin.cpp">
+    <ClCompile Include="Source\GUI\GUISkin.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUISlider.cpp">
+    <ClCompile Include="Source\GUI\GUISlider.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUITab.cpp">
+    <ClCompile Include="Source\GUI\GUITab.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUITextBox.cpp">
+    <ClCompile Include="Source\GUI\GUITextBox.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUITextPanel.cpp">
+    <ClCompile Include="Source\GUI\GUITextPanel.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIUtil.cpp">
+    <ClCompile Include="Source\GUI\GUIUtil.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\ACDropShip.cpp">
+    <ClCompile Include="Source\Entities\ACDropShip.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\ACrab.cpp">
+    <ClCompile Include="Source\Entities\ACrab.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\ACraft.cpp">
+    <ClCompile Include="Source\Entities\ACraft.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\ACRocket.cpp">
+    <ClCompile Include="Source\Entities\ACRocket.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Actor.cpp">
+    <ClCompile Include="Source\Entities\Actor.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\ADoor.cpp">
+    <ClCompile Include="Source\Entities\ADoor.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\AEmitter.cpp">
+    <ClCompile Include="Source\Entities\AEmitter.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\AHuman.cpp">
+    <ClCompile Include="Source\Entities\AHuman.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Arm.cpp">
+    <ClCompile Include="Source\Entities\Arm.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\AtomGroup.cpp">
+    <ClCompile Include="Source\Entities\AtomGroup.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Attachable.cpp">
+    <ClCompile Include="Source\Entities\Attachable.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\BunkerAssembly.cpp">
+    <ClCompile Include="Source\Entities\BunkerAssembly.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\BunkerAssemblyScheme.cpp">
+    <ClCompile Include="Source\Entities\BunkerAssemblyScheme.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Deployment.cpp">
+    <ClCompile Include="Source\Entities\Deployment.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\GlobalScript.cpp">
+    <ClCompile Include="Source\Entities\GlobalScript.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\HDFirearm.cpp">
+    <ClCompile Include="Source\Entities\HDFirearm.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\HeldDevice.cpp">
+    <ClCompile Include="Source\Entities\HeldDevice.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Icon.cpp">
+    <ClCompile Include="Source\Entities\Icon.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Leg.cpp">
+    <ClCompile Include="Source\Entities\Leg.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\LimbPath.cpp">
+    <ClCompile Include="Source\Entities\LimbPath.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Loadout.cpp">
+    <ClCompile Include="Source\Entities\Loadout.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Magazine.cpp">
+    <ClCompile Include="Source\Entities\Magazine.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Material.cpp">
+    <ClCompile Include="Source\Entities\Material.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\MetaPlayer.cpp">
+    <ClCompile Include="Source\Entities\MetaPlayer.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\MOPixel.cpp">
+    <ClCompile Include="Source\Entities\MOPixel.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\MOSParticle.cpp">
+    <ClCompile Include="Source\Entities\MOSParticle.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\MOSprite.cpp">
+    <ClCompile Include="Source\Entities\MOSprite.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\MOSRotating.cpp">
+    <ClCompile Include="Source\Entities\MOSRotating.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\MovableObject.cpp">
+    <ClCompile Include="Source\Entities\MovableObject.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Scene.cpp">
+    <ClCompile Include="Source\Entities\Scene.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\SceneLayer.cpp">
+    <ClCompile Include="Source\Entities\SceneLayer.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\SceneObject.cpp">
+    <ClCompile Include="Source\Entities\SceneObject.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\SLTerrain.cpp">
+    <ClCompile Include="Source\Entities\SLTerrain.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\TDExplosive.cpp">
+    <ClCompile Include="Source\Entities\TDExplosive.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\TerrainDebris.cpp">
+    <ClCompile Include="Source\Entities\TerrainDebris.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\TerrainObject.cpp">
+    <ClCompile Include="Source\Entities\TerrainObject.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\ThrownDevice.cpp">
+    <ClCompile Include="Source\Entities\ThrownDevice.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Turret.cpp">
+    <ClCompile Include="Source\Entities\Turret.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\ActorEditor.cpp">
+    <ClCompile Include="Source\Activities\ActorEditor.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\AreaEditor.cpp">
+    <ClCompile Include="Source\Activities\AreaEditor.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\AssemblyEditor.cpp">
+    <ClCompile Include="Source\Activities\AssemblyEditor.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\BaseEditor.cpp">
+    <ClCompile Include="Source\Activities\BaseEditor.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\EditorActivity.cpp">
+    <ClCompile Include="Source\Activities\EditorActivity.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\GameActivity.cpp">
+    <ClCompile Include="Source\Activities\GameActivity.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\GAScripted.cpp">
+    <ClCompile Include="Source\Activities\GAScripted.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\GATutorial.cpp">
+    <ClCompile Include="Source\Activities\GATutorial.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\GibEditor.cpp">
+    <ClCompile Include="Source\Activities\GibEditor.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\SceneEditor.cpp">
+    <ClCompile Include="Source\Activities\SceneEditor.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\AreaEditorGUI.cpp">
+    <ClCompile Include="Source\Menus\AreaEditorGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\AreaPickerGUI.cpp">
+    <ClCompile Include="Source\Menus\AreaPickerGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\AssemblyEditorGUI.cpp">
+    <ClCompile Include="Source\Menus\AssemblyEditorGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\BuyMenuGUI.cpp">
+    <ClCompile Include="Source\Menus\BuyMenuGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\GibEditorGUI.cpp">
+    <ClCompile Include="Source\Menus\GibEditorGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\MainMenuGUI.cpp">
+    <ClCompile Include="Source\Menus\MainMenuGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\MetagameGUI.cpp">
+    <ClCompile Include="Source\Menus\MetagameGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\ObjectPickerGUI.cpp">
+    <ClCompile Include="Source\Menus\ObjectPickerGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\PieMenu.cpp">
+    <ClCompile Include="Source\Entities\PieMenu.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\ScenarioGUI.cpp">
+    <ClCompile Include="Source\Menus\ScenarioGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SceneEditorGUI.cpp">
+    <ClCompile Include="Source\Menus\SceneEditorGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Entities\Emission.cpp">
+    <ClCompile Include="Source\Main.cpp" />
+    <ClCompile Include="Source\Entities\Emission.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\PEmitter.cpp">
+    <ClCompile Include="Source\Entities\PEmitter.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\NetworkClient.cpp">
+    <ClCompile Include="Source\Managers\NetworkClient.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\NetworkServer.cpp">
+    <ClCompile Include="Source\Managers\NetworkServer.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\MultiplayerGame.cpp">
+    <ClCompile Include="Source\Activities\MultiplayerGame.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Activities\MultiplayerServerLobby.cpp">
+    <ClCompile Include="Source\Activities\MultiplayerServerLobby.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="System\StandardIncludes.cpp">
+    <ClCompile Include="Source\System\StandardIncludes.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUISound.cpp">
+    <ClCompile Include="Source\GUI\GUISound.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="System\RTETools.cpp">
+    <ClCompile Include="Source\System\RTETools.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\RTEError.cpp">
+    <ClCompile Include="Source\System\RTEError.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\Controller.cpp">
+    <ClCompile Include="Source\System\Controller.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\Entity.cpp">
+    <ClCompile Include="Source\System\Entity.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\PerformanceMan.cpp">
+    <ClCompile Include="Source\Managers\PerformanceMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\PrimitiveMan.cpp">
+    <ClCompile Include="Source\Managers\PrimitiveMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\PostProcessMan.cpp">
+    <ClCompile Include="Source\Managers\PostProcessMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\SoundContainer.cpp">
+    <ClCompile Include="Source\Entities\SoundContainer.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\SoundSet.cpp">
+    <ClCompile Include="Source\Entities\SoundSet.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="System\Atom.cpp">
+    <ClCompile Include="Source\System\Atom.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\ADSensor.cpp">
+    <ClCompile Include="Source\Entities\ADSensor.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Gib.cpp">
+    <ClCompile Include="Source\Entities\Gib.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Round.cpp">
+    <ClCompile Include="Source\Entities\Round.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="System\InputScheme.cpp">
+    <ClCompile Include="Source\System\InputScheme.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\InputMapping.cpp">
+    <ClCompile Include="Source\System\InputMapping.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\MetaSave.cpp">
+    <ClCompile Include="Source\Entities\MetaSave.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\Activity.cpp">
+    <ClCompile Include="Source\Entities\Activity.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="System\GraphicalPrimitive.cpp">
+    <ClCompile Include="Source\System\GraphicalPrimitive.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\TitleScreen.cpp">
+    <ClCompile Include="Source\Menus\TitleScreen.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\MenuMan.cpp">
+    <ClCompile Include="Source\Managers\MenuMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\LoadingScreen.cpp">
+    <ClCompile Include="Source\Menus\LoadingScreen.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\ModManagerGUI.cpp">
+    <ClCompile Include="Source\Menus\ModManagerGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SettingsGUI.cpp">
+    <ClCompile Include="Source\Menus\SettingsGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SettingsAudioGUI.cpp">
+    <ClCompile Include="Source\Menus\SettingsAudioGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SettingsVideoGUI.cpp">
+    <ClCompile Include="Source\Menus\SettingsVideoGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SettingsInputGUI.cpp">
+    <ClCompile Include="Source\Menus\SettingsInputGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SettingsGameplayGUI.cpp">
+    <ClCompile Include="Source\Menus\SettingsGameplayGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SettingsMiscGUI.cpp">
+    <ClCompile Include="Source\Menus\SettingsMiscGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SettingsInputMappingGUI.cpp">
+    <ClCompile Include="Source\Menus\SettingsInputMappingGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SettingsInputMappingWizardGUI.cpp">
+    <ClCompile Include="Source\Menus\SettingsInputMappingWizardGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\ScenarioActivityConfigGUI.cpp">
+    <ClCompile Include="Source\Menus\ScenarioActivityConfigGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\PieSlice.cpp">
+    <ClCompile Include="Source\Entities\PieSlice.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\InventoryMenuGUI.cpp">
+    <ClCompile Include="Source\Menus\InventoryMenuGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="System\Serializable.cpp">
+    <ClCompile Include="Source\System\Serializable.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIReader.cpp">
+    <ClCompile Include="Source\GUI\GUIReader.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GUIWriter.cpp">
+    <ClCompile Include="Source\GUI\GUIWriter.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuabindObjectWrapper.cpp">
+    <ClCompile Include="Source\Lua\LuabindObjectWrapper.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsMisc.cpp">
+    <ClCompile Include="Source\Lua\LuaBindingsMisc.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsInput.cpp">
+    <ClCompile Include="Source\Lua\LuaBindingsInput.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsActivities.cpp">
+    <ClCompile Include="Source\Lua\LuaBindingsActivities.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsEntities.cpp">
+    <ClCompile Include="Source\Lua\LuaBindingsEntities.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsGUI.cpp">
+    <ClCompile Include="Source\Lua\LuaBindingsGUI.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsManagers.cpp">
+    <ClCompile Include="Source\Lua\LuaBindingsManagers.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsSystem.cpp">
+    <ClCompile Include="Source\Lua\LuaBindingsSystem.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\TerrainFrosting.cpp">
+    <ClCompile Include="Source\Entities\TerrainFrosting.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\SLBackground.cpp">
+    <ClCompile Include="Source\Entities\SLBackground.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="System\PieQuadrant.cpp">
+    <ClCompile Include="Source\System\PieQuadrant.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\CameraMan.cpp">
+    <ClCompile Include="Source\Managers\CameraMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuaBindingsPrimitives.cpp">
+    <ClCompile Include="Source\Lua\LuaBindingsPrimitives.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="Lua\LuaAdapters.cpp">
+    <ClCompile Include="Source\Lua\LuaAdapters.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="System\GenericSavedData.cpp">
+    <ClCompile Include="Source\System\GenericSavedData.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\SpatialPartitionGrid.cpp">
+    <ClCompile Include="Source\System\SpatialPartitionGrid.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\Wrappers\GUIInputWrapper.cpp">
+    <ClCompile Include="Source\GUI\Wrappers\GUIInputWrapper.cpp">
       <Filter>GUI\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\Wrappers\AllegroScreen.cpp">
+    <ClCompile Include="Source\GUI\Wrappers\AllegroScreen.cpp">
       <Filter>GUI\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\Wrappers\AllegroBitmap.cpp">
+    <ClCompile Include="Source\GUI\Wrappers\AllegroBitmap.cpp">
       <Filter>GUI\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\WindowMan.cpp">
+    <ClCompile Include="Source\Managers\WindowMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\PauseMenuGUI.cpp">
+    <ClCompile Include="Source\Menus\PauseMenuGUI.cpp">
       <Filter>Menus</Filter>
     </ClCompile>
-    <ClCompile Include="System\Semver200\Semver200_comparator.cpp">
+    <ClCompile Include="Source\System\Semver200\Semver200_comparator.cpp">
       <Filter>System\Semver200</Filter>
     </ClCompile>
-    <ClCompile Include="System\Semver200\Semver200_modifier.cpp">
+    <ClCompile Include="Source\System\Semver200\Semver200_modifier.cpp">
       <Filter>System\Semver200</Filter>
     </ClCompile>
-    <ClCompile Include="System\Semver200\Semver200_parser.cpp">
+    <ClCompile Include="Source\System\Semver200\Semver200_parser.cpp">
       <Filter>System\Semver200</Filter>
     </ClCompile>
-    <ClCompile Include="System\StackWalker\StackWalker.cpp">
+    <ClCompile Include="Source\System\StackWalker\StackWalker.cpp">
       <Filter>System\StackWalker</Filter>
     </ClCompile>
-    <ClCompile Include="System\RTEStackTrace.cpp">
+    <ClCompile Include="Source\System\RTEStackTrace.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\Shader.cpp">
+    <ClCompile Include="Source\System\Shader.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\glad\gl.c">
+    <ClCompile Include="Source\System\glad\gl.c">
       <Filter>System\glad</Filter>
     </ClCompile>
-    <ClCompile Include="System\GLCheck.cpp">
+    <ClCompile Include="Source\System\GLCheck.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="external\sources\tracy\public\TracyClient.cpp">
       <Filter>external\tracy</Filter>
     </ClCompile>
-    <ClCompile Include="Entities\AEJetpack.cpp">
+    <ClCompile Include="Source\Entities\AEJetpack.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Menus\SaveLoadMenuGUI.cpp">
+    <ClCompile Include="Source\Menus\SaveLoadMenuGUI.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="System\Base64\base64.cpp">
+    <ClCompile Include="Source\System\Base64\base64.cpp">
       <Filter>System\Base64</Filter>
     </ClCompile>
-    <ClCompile Include="System\AllegroTools.cpp">
+    <ClCompile Include="Source\System\AllegroTools.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\ThreadMan.cpp">
+    <ClCompile Include="Source\Managers\ThreadMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1213,7 +1213,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
-    <None Include="System\Semver200\version.inl">
+    <None Include="Source\System\Semver200\version.inl">
       <Filter>System\Semver200</Filter>
     </None>
   </ItemGroup>
