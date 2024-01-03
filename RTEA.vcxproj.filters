@@ -105,7 +105,7 @@
     <ClInclude Include="Source\Managers\ConsoleMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="managers\FrameMan.h">
+    <ClInclude Include="Source\Managers\FrameMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
     <ClInclude Include="Source\Managers\LuaMan.h">
