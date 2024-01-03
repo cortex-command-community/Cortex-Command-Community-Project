@@ -164,7 +164,7 @@ function RefineryAssault:StartActivity(newGame)
 	self.tacticsHandler:Initialize(self, newGame, 2, 5, 45000, self.verboseLogging);
 	
 	self.dockingHandler = require("Activities/Utility/DockingHandler");
-	self.dockingHandler:Initialize(self, newGame, false);
+	self.dockingHandler:Initialize(self, newGame, false, self.verboseLogging);
 	
 	self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
 	self.buyDoorHandler:Initialize(self, newGame);
@@ -213,6 +213,8 @@ function RefineryAssault:StartActivity(newGame)
 		self.saveTable = {};
 		
 		self.saveTable.activeDocks = {1, 2};
+		self.deliveryCreationHandler:RemoveAvailablePreset(-1, "Tubby Rocket");
+		self.deliveryCreationHandler:RemoveAvailablePreset(-1, "Drop Crate");
 		
 		self.saveTable.doorsToConstantlyReset = {};
 
@@ -466,14 +468,21 @@ function RefineryAssault:UpdateActivity()
 	
 	if task and self:GetAIFunds(team) > 0 then
 		--print("gottask")
-		local squad = self:SendBuyDoorDelivery(team, task);
+		local squad;
+		if team == self.aiTeam then
+			squad = self:SendBuyDoorDelivery(team, task);
+		else
+			if math.random() < 0.2 then
+				squad = self:SendDockDelivery(team, task);
+			else
+				squad = self:SendBuyDoorDelivery(team, task);
+			end
+			if not squad then
+				squad = self:SendBuyDoorDelivery(team, task);
+			end
+		end
 		if squad then
 			self.tacticsHandler:AddSquad(team, squad, task.Name, true);
-		elseif team == self.humanTeam then
-			squad = self:SendDockDelivery(team, task);
-			if squad then
-				self.tacticsHandler:AddSquad(team, squad, task.Name, true);
-			end
 		end
 	end
 	
@@ -515,6 +524,16 @@ function RefineryAssault:UpdateActivity()
 		-- Unlimit camera
 		if UInputMan:KeyPressed(Key.KP_8) then
 			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 999999);
+		end
+		
+		-- AI funds
+		if UInputMan:KeyPressed(Key.KP_7) then
+			self:ChangeAIFunds(0, 200);
+			self:ChangeAIFunds(1, 200);
+		end
+		
+		if UInputMan:KeyPressed(Key.KP_6) then
+			self:SendMessage("Captured_RefineryS3DockConsole")
 		end
 		
 	end

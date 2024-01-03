@@ -57,7 +57,8 @@
 
 -- Team -1 is always Base.rte. If you want to change this you will have to remove each Base.rte preset and add your new presets manually.
 -- If you do, make sure no team involved lacks any crucial group preset (like Weapons - Primary, Weapons - Secondary, an AHuman) etc.
--- or things will get ugly.
+-- or things will get ugly. A good alternative if you want team -1 deliveries of a different tech is to create a virtual team and
+-- set team to -1 at the end point instead.
 
 
 
@@ -110,14 +111,20 @@ function DeliveryCreationHandler:Initialize(activity, verboseLogging)
 	
 	self.saveTable.teamExtraItemChances = {};
 	
-	for i = 0, self.Activity.TeamCount - 1 do
-		local moduleID = PresetMan:GetModuleID(self.Activity:GetTeamTech(i));
-		if moduleID ~= -1 then
+	for i = -1, self.Activity.TeamCount do
+		if i == -1 then
+			local moduleID = PresetMan:GetModuleID("Base.rte");
 			self.teamTechTable[i] = PresetMan:GetDataModule(moduleID);
+			self.teamTechIDTable[i] = moduleID;
 		else
-			self.teamTechTable[i] = {["FileName"] = "All"}; -- master of ghetto
+			local moduleID = PresetMan:GetModuleID(self.Activity:GetTeamTech(i));
+			if moduleID ~= -1 then
+				self.teamTechTable[i] = PresetMan:GetDataModule(moduleID);
+			else
+				self.teamTechTable[i] = {["FileName"] = "All"}; -- master of ghetto
+			end
+			self.teamTechIDTable[i] = moduleID;
 		end
-		self.teamTechIDTable[i] = moduleID;
 		
 		self.saveTable.teamRemovedPresets[i] = {};
 		self.saveTable.teamAddedPresets[i] = {};
@@ -334,6 +341,7 @@ function DeliveryCreationHandler:AddVirtualTeam(team, techName)
 		
 		self.teamPresetTables[team]["Craft - Dropships"] = {};
 		self.teamPresetTables[team]["Craft - Rockets"] = {};
+		self.teamPresetTables[team]["Craft - Crates"] = {};
 		
 		self.teamPresetTables[team]["Weapons - Primary"] = {};
 		self.teamPresetTables[team]["Weapons - Secondary"] = {};
@@ -384,10 +392,14 @@ function DeliveryCreationHandler:AddVirtualTeam(team, techName)
 					entityInfoTable.PresetName = entity.PresetName;
 					entityInfoTable.ClassName = entity.ClassName;
 					table.insert(self.teamPresetTables[team]["Craft - Dropships"], entityInfoTable);
-				elseif IsACRocket(entity) then
+				elseif IsACRocket(entity) and entity:IsInGroup("Craft - Rockets") then
 					entityInfoTable.PresetName = entity.PresetName;
 					entityInfoTable.ClassName = entity.ClassName;
-					table.insert(self.teamPresetTables[team]["Craft - Rockets"], entityInfoTable);	
+					table.insert(self.teamPresetTables[team]["Craft - Rockets"], entityInfoTable);
+				elseif IsACRocket(entity) and entity:IsInGroup("Craft - Crates") then
+					entityInfoTable.PresetName = entity.PresetName;
+					entityInfoTable.ClassName = entity.ClassName;
+					table.insert(self.teamPresetTables[team]["Craft - Crates"], entityInfoTable);	
 				end
 				
 			end
@@ -489,12 +501,11 @@ function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName, doNotSa
 
 	local found = false;
 
-	for i, groupTable in pairs(self.saveTable.teamPresetTables[team]) do
+	for i, groupTable in pairs(self.teamPresetTables[team]) do
 		for presetIndex, presetTable in pairs(groupTable) do
 			if presetTable.PresetName == presetName then
-				table.remove(presetTable, presetIndex);
+				table.remove(groupTable, presetIndex);
 				found = true;
-				break; -- continue to next group
 			end
 		end
 	end
@@ -505,6 +516,7 @@ function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName, doNotSa
 		if not doNotSaveNewEntry then
 			table.insert(self.saveTable.teamRemovedPresets[team], presetName);
 		end
+		print("INFO: DeliveryCreationHandler deleted preset " .. presetName .. " from team " .. team);
 		return true;
 	else
 		return false;
@@ -597,6 +609,7 @@ function DeliveryCreationHandler:SelectPresetByGroupPair(team, primaryGroup, sec
 			actingGroupTable = self.teamPresetTables[team][fallbackGroup];
 		end
 		if #actingGroupTable == 0 then
+			print("WARNING: DeliveryCreationHandler fell back to Base.rte definitions when trying to create an object of primary group " .. primaryGroup .. " for team " .. team .. "!");
 			-- Base.rte has to have something, we are in trouble otherwise
 			actingGroupTable = self.teamPresetTables[-1][baseFallbackGroup];
 			actingTech = self.teamTechTable[-1];
@@ -611,10 +624,10 @@ function DeliveryCreationHandler:SelectPresetByGroupPair(team, primaryGroup, sec
 	local techName = actingTech.FileName or "All";
 	
 	
-	--print(presetName)
-	--print(createFunc)
-	--print(techName)
-	--print("FALLBACK GROUP: " .. baseFallbackGroup); 
+	print(presetName)
+	print(createFunc)
+	print(techName)
+	print("FALLBACK GROUP: " .. baseFallbackGroup); 
 	
 	return presetName, createFunc, techName;
 
@@ -978,11 +991,14 @@ end
 function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCountOrTypeTable, squadType)
 
 	local craftGroup = "Craft - Dropships";
+	if forceRocketUsage then
+		craftGroup = "Craft - Rockets";
+	end
 	presetName, createFunc, techName = self:SelectPresetByGroupPair(team, craftGroup, craftGroup, craftGroup, craftGroup);
 	
 	local craft = _G[createFunc](presetName, techName);
 	craft.Team = team;
-	print(craft)
+	--print(craft)
 	
 	local squad = self:CreateSquad(team, squadCountOrTypeTable, squadType);
 	for i = 1, #squad do

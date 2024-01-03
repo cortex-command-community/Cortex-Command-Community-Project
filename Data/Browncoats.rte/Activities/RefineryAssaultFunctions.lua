@@ -4,6 +4,12 @@ function RefineryAssault:HandleMessage(message, object)
 
 	--print("activitygotmessage")
 	
+	if self.verboseLogging then
+		--print("INFO: Refinery Assault received message: " .. message);
+		--print("INFO: Context as follows:")
+		--print(object);
+	end
+	
 	--print(message)
 	--print(object)
 	
@@ -88,8 +94,19 @@ function RefineryAssault:HandleMessage(message, object)
 		
 	elseif message == "Captured_RefineryS3DockConsole" then
 	
-		if not self.saveTable.activeDocks[1] == 5 then -- ghetto check we haven't capped the s4 one
+		if self.verboseLogging then
+			print("INFO: Refinery Assault detected capture of S3 dock console. Setting active docks...");
+		end
+	
+		if self.saveTable.activeDocks[1] ~= 5 then -- ghetto check we haven't capped the s4 one
 			self.saveTable.activeDocks = {3, 4};
+			if self.verboseLogging then
+				print("INFO: Refinery Assault set S3 active docks!");
+			end
+		else
+			if self.verboseLogging then
+				print("INFO: Refinery Assault detected S4 active docks. Active docks not re-set.");
+			end
 		end
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole1" then
@@ -566,7 +583,9 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
 			v.Team = self.humanTeam;
-		end		
+		end
+		
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
 
 	elseif message == "SkipStage3" then
 	
@@ -676,12 +695,18 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	local craft;
 	local squad;
 	local goldCost;
-
-	if squadType == "Elite" then
-		craft, squad, goldCost = self.deliveryCreationHandler:CreateEliteSquadWithCraft(team, forceRocketUsage, squadCount);
-	else
-		craft, squad, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType);
+	
+	if not forceRocketUsage then
+		forceRocketUsage = math.random() < 1 and true or false;
 	end
+	
+	if squadType == "Elite" then
+		-- we already always go elite, avoid giving DeliveryCreationHandler an invalid infantry type
+		squadType = nil;
+	end
+
+	-- Dock deliveries are always elite
+	craft, squad, goldCost = self.deliveryCreationHandler:CreateEliteSquadWithCraft(team, forceRocketUsage, squadCount, squadType);
 	
 	for k, actor in pairs(squad) do
 		actor.PlayerControllable = self.humansAreControllingAlliedActors;
@@ -695,11 +720,35 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	craft:SetGoldValue(0);
 	
 	-- reminder that only player team sends to dock in this activity.
-	local specificDock = self.saveTable.activeDocks[math.random(1, #self.saveTable.activeDocks)];
-	local success = self.dockingHandler:SpawnDockingCraft(craft, specificDock);
-			
+	
+	if self.verboseLogging then
+		print("INFO: Refinery Assault is sending a dock delivery. Active docks:")
+		for k, v in ipairs(self.saveTable.activeDocks) do
+			print("INFO: ACTIVE DOCK: " .. v);
+		end
+	end
+	
+	local tempActiveDocks = {};
+	
+	for k, v in ipairs(self.saveTable.activeDocks) do
+		tempActiveDocks[k] = v;
+	end
+	
+	local specificDock;
+	local success;
+	
+	while #tempActiveDocks > 0 and not success do
+		local rand = math.random(1, #tempActiveDocks);
+		specificDock = tempActiveDocks[rand];
+		success = self.dockingHandler:SpawnDockingCraft(craft, specificDock);
+		table.remove(tempActiveDocks, rand);
+	end
+	
 	if success then
 		self:ChangeAIFunds(team, -goldCost);
+		if self.verboseLogging then
+			print("INFO: RefineryAssault sent a dock delivery for team " .. team);
+		end
 		return squad;
 	end
 	
@@ -803,6 +852,9 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
 					self:ChangeAIFunds(team, -goldCost);
+					if self.verboseLogging then
+						print("INFO: RefineryAssault sent a buydoor delivery for team " .. team);
+					end
 					return order;
 				end
 			end
