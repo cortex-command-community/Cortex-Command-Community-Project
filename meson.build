@@ -194,34 +194,14 @@ tracy_dep = dependency('tracy')
 deps += [allegro_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
 
 #### Sources Setup ####
-pch = meson.current_source_dir()/'System/StandardIncludes.h'
-sources = []
-source_libs = []
-source_inc_dirs = include_directories(
-  '.',
-  'Activities',
-  'Entities',
-  'GUI',
-  'GUI/Wrappers',
-  'Lua',
-  'Managers',
-  'Menus',
-  'Resources',
-  'System')
-
-subdir('Activities')
-subdir('Entities')
-subdir('GUI')
-subdir('Lua')
-subdir('Managers')
-subdir('Menus')
-subdir('System')
+source_inc_dirs = []
+subdir('Source')
 subdir('Resources')
 
 
 #### Target Definitions ####
 cccpelf = executable(
-  elfname, ['Main.cpp', sources], include_directories:[source_inc_dirs, external_inc_dirs], cpp_pch:pch, # Sources options
+  elfname, ['Source/Main.cpp', sources], include_directories:[source_inc_dirs, external_inc_dirs], cpp_pch:pch, # Sources options
   link_with:[external_libs, source_libs], objects:[external_objects], dependencies:deps,                                # Link options
   cpp_args:[extra_args, preprocessor_flags], link_args:[link_args], build_rpath:build_rpath,               # Compiler setup
   name_suffix:suffix,   # Executable name options
