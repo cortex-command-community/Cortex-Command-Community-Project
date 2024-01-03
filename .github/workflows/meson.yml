@@ -42,6 +42,9 @@ on:
         type: string
         required: false
         default: "release"
+      new_release_version:
+        type: string
+        required: false
 
 jobs:
   build-linux:
@@ -65,6 +68,12 @@ jobs:
           CXX: "g++"
         run: |
           meson setup --buildtype=${{inputs.build_type}} -Ddebug_type=${{inputs.debug_level}} -Db_lto=true build
+
+      - name: Set Version
+        if: ${{inputs.new_release_version}}
+        uses: ./.github/actions/set_version
+        with:
+          new_release_version: ${{inputs.new_release_version}}
 
       - name: Configure for AppImage
         if: ${{inputs.upload_artefacts}}
@@ -114,7 +123,7 @@ jobs:
   build-macos:
     runs-on: macos-11
     name: MacOS Build
-        
+
     env:
       GCC_VERSION: "13"
       MACOSX_DEPLOYMENT_TARGET: 10.15
@@ -124,8 +133,8 @@ jobs:
 
       - name: "Install Dependencies"
         uses: melusina-org/setup-macports@v1
-        with: 
-          parameters:  ".github/parameters/macports.yml"
+        with:
+          parameters: ".github/parameters/macports.yml"
 
       - name: Setup Meson
         env:

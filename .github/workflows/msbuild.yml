@@ -31,6 +31,9 @@ on:
         type: string
         required: false
         default: "Final"
+      new_release_version:
+        type: string
+        required: false
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -53,6 +56,12 @@ jobs:
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1
+
+      - name: Set Version
+        if: ${{inputs.new_release_version}}
+        uses: ./.github/actions/set_version
+        with:
+          new_release_version: ${{inputs.new_release_version}}
 
       - name: Build
         working-directory: ${{env.GITHUB_WORKSPACE}}
