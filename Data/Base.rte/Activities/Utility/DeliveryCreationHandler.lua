@@ -609,7 +609,7 @@ function DeliveryCreationHandler:SelectPresetByGroupPair(team, primaryGroup, sec
 			actingGroupTable = self.teamPresetTables[team][fallbackGroup];
 		end
 		if #actingGroupTable == 0 then
-			print("WARNING: DeliveryCreationHandler fell back to Base.rte definitions when trying to create an object of primary group " .. primaryGroup .. " for team " .. team .. "!");
+			--print("WARNING: DeliveryCreationHandler fell back to Base.rte definitions when trying to create an object of primary group " .. primaryGroup .. " for team " .. team .. "!");
 			-- Base.rte has to have something, we are in trouble otherwise
 			actingGroupTable = self.teamPresetTables[-1][baseFallbackGroup];
 			actingTech = self.teamTechTable[-1];
