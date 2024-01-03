@@ -697,7 +697,7 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	local goldCost;
 	
 	if not forceRocketUsage then
-		forceRocketUsage = math.random() < 1 and true or false;
+		forceRocketUsage = math.random() < 0.3 and true or false;
 	end
 	
 	if squadType == "Elite" then
