@@ -9,9 +9,9 @@ namespace RTE {
 		RenderTarget() = default;
 		virtual ~RenderTarget() = default;
 
-		virtual void SetTexture(Texture2D* backbuffer) = 0;
+		virtual void SetTexture(Image2D* backbuffer) = 0;
 
-		virtual Texture2D* GetTexture() = 0;
+		virtual Image2D* GetTexture() = 0;
 
 		virtual void SetBlendMode(BlendMode* blendMode) = 0;
 
