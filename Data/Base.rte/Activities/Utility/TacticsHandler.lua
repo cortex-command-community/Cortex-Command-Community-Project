@@ -289,7 +289,9 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 			local actor = MovableMan:FindObjectByUniqueID(squad[actorIndex]);
 			if actor then
 				actor = ToActor(actor);
-				actor:FlashWhite(1000);
+				if self.verboseLogging then
+					actor:FlashWhite(1000);
+				end
 				actor:ClearAIWaypoints();
 				if task.Type == "Defend" or task.Type == "Attack" then
 					actor.AIMode = Actor.AIMODE_GOTO;
@@ -606,7 +608,7 @@ end
 function TacticsHandler:UpdateSquads(team)
 
 	--print("now checking team: " .. team);
-	
+
 	local squadRemoved = false;
 
 	-- backwards iterate to remove safely
@@ -639,7 +641,9 @@ function TacticsHandler:UpdateSquads(team)
 						if actor.HasEverBeenAddedToMovableMan then
 							actor = ToActor(actor);
 						
-							actor:FlashWhite(100);
+							if self.verboseLogging then
+								actor:FlashWhite(100);
+							end
 							--print("detected actor! " .. actor.PresetName .. " of team " .. actor.Team);
 
 							-- all is well, update task
@@ -726,6 +730,7 @@ end
 
 function TacticsHandler:UpdateTacticsHandler()
 
+
 	if self.taskUpdateTimer:IsPastSimMS(self.taskUpdateDelay) then
 		self.taskUpdateTimer:Reset();
 
@@ -744,6 +749,35 @@ function TacticsHandler:UpdateTacticsHandler()
 
 		end
 		
+	end
+	
+	-- Printing info for everyone
+	if self.verboseLogging then
+	
+		for team, v in pairs(self.saveTable.teamList) do
+
+			for i = 1, #self.saveTable.teamList[team].squadList do
+				--print("checking squad: " .. i .. " of team: " .. team);
+				local squad = self.saveTable.teamList[team].squadList[i];
+				local task = self:GetTaskByName(squad.taskName, team);
+				if task then
+
+					if #squad.Actors > 0 then
+						for actorIndex = 1, #self.saveTable.teamList[team].squadList[i].Actors do
+							local actor = MovableMan:FindObjectByUniqueID(self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
+							if actor then
+								local dist = SceneMan:ShortestDistance(actor.Pos, ToActor(actor):GetLastAIWaypoint(), SceneMan.SceneWrapsX).Magnitude;
+								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -140), "Squad: " .. tostring(i), true, 1);
+								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -130), "Actor index: " .. tostring(actorIndex), true, 1);
+								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -120), "Task name: " .. tostring(squad.taskName), true, 1);
+								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -110), "AI mode: " .. ToActor(actor).AIMode, true, 1);
+								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -100), "Dist to waypoint: " .. tostring(dist), true, 1);
+							end
+						end
+					end
+				end
+			end
+		end
 	end
 	
 	return false;

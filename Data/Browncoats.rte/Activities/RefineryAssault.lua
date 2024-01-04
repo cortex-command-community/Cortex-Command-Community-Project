@@ -216,6 +216,9 @@ function RefineryAssault:StartActivity(newGame)
 		self.deliveryCreationHandler:RemoveAvailablePreset(-1, "Tubby Rocket");
 		self.deliveryCreationHandler:RemoveAvailablePreset(-1, "Drop Crate");
 		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Browncoat Boss");
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "MG-85 Manbreaker");
+		
 		self.saveTable.doorsToConstantlyReset = {};
 
 		for actor in MovableMan.AddedActors do
