@@ -8,7 +8,7 @@
 
 namespace RTE {
 	struct RenderState {
-		Texture2D* sprite{nullptr};
+		Image2D* sprite{nullptr};
 		Shader* shader{nullptr};
 		glm::vec3 position{0};
 		double angle{0};
