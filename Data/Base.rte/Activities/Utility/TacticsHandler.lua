@@ -753,25 +753,38 @@ function TacticsHandler:UpdateTacticsHandler()
 	
 	-- Printing info for everyone
 	if self.verboseLogging then
+		
+		if UInputMan.FlagAltState then
+
+			if UInputMan:KeyPressed(Key.L) then
+				if not self.debugTextDisabled then
+					self.debugTextDisabled = true;
+				else
+					self.debugTextDisabled = false;
+				end
+			end
+		end
 	
-		for team, v in pairs(self.saveTable.teamList) do
+		if not self.debugTextDisabled then
+			for team, v in pairs(self.saveTable.teamList) do
 
-			for i = 1, #self.saveTable.teamList[team].squadList do
-				--print("checking squad: " .. i .. " of team: " .. team);
-				local squad = self.saveTable.teamList[team].squadList[i];
-				local task = self:GetTaskByName(squad.taskName, team);
-				if task then
+				for i = 1, #self.saveTable.teamList[team].squadList do
+					--print("checking squad: " .. i .. " of team: " .. team);
+					local squad = self.saveTable.teamList[team].squadList[i];
+					local task = self:GetTaskByName(squad.taskName, team);
+					if task then
 
-					if #squad.Actors > 0 then
-						for actorIndex = 1, #self.saveTable.teamList[team].squadList[i].Actors do
-							local actor = MovableMan:FindObjectByUniqueID(self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
-							if actor then
-								local dist = SceneMan:ShortestDistance(actor.Pos, ToActor(actor):GetLastAIWaypoint(), SceneMan.SceneWrapsX).Magnitude;
-								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -140), "Squad: " .. tostring(i), true, 1);
-								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -130), "Actor index: " .. tostring(actorIndex), true, 1);
-								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -120), "Task name: " .. tostring(squad.taskName), true, 1);
-								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -110), "AI mode: " .. ToActor(actor).AIMode, true, 1);
-								PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -100), "Dist to waypoint: " .. tostring(dist), true, 1);
+						if #squad.Actors > 0 then
+							for actorIndex = 1, #self.saveTable.teamList[team].squadList[i].Actors do
+								local actor = MovableMan:FindObjectByUniqueID(self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
+								if actor then
+									local dist = SceneMan:ShortestDistance(actor.Pos, ToActor(actor):GetLastAIWaypoint(), SceneMan.SceneWrapsX).Magnitude;
+									PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -80), "Squad: " .. tostring(i), true, 1);
+									PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -70), "Actor index: " .. tostring(actorIndex), true, 1);
+									PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -60), "Task name: " .. tostring(squad.taskName), true, 1);
+									PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -50), "AI mode: " .. ToActor(actor).AIMode, true, 1);
+									PrimitiveMan:DrawTextPrimitive(actor.Pos + Vector(0, -40), "Dist to waypoint: " .. tostring(math.floor(dist)), true, 1);
+								end
 							end
 						end
 					end
