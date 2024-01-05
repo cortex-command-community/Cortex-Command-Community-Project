@@ -55,6 +55,7 @@ function HUDHandler:Initialize(activity, newGame, verboseLogging)
 			self.saveTable.teamTables[team].cameraQueue = {};
 			self.saveTable.teamTables[team].cinematicBars = false;
 			self.saveTable.teamTables[team].cinematicBarThickness = 50;
+			self.saveTable.teamTables[team].cinematicBarAnimationTimer = Timer();
 		end
 		
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -126,14 +127,18 @@ function HUDHandler:SetCinematicBars(team, toggle, thickness)
 	end
 
 	if team and toggle ~= nil then
+	
+		if toggle ~= self.saveTable.teamTables[team].cinematicBars then
+			self.saveTable.teamTables[team].cinematicBarAnimationTimer:Reset();
+		end
 		self.saveTable.teamTables[team].cinematicBars = toggle;
+		
 		if not thickness == false then
 			self.saveTable.teamTables[team].cinematicBarThickness = thickness;
+			if self.verboseLogging then
+				print("INFO: HUDHandler set Cinematic Bars for team " .. team .. " to " .. tostring(toggle) .. " with thickness " .. thickness);
+			end						
 		end
-		
-		if self.verboseLogging then
-			print("INFO: HUDHandler set Cinematic Bars for team " .. team .. " to " .. tostring(toggle) .. " with thickness " .. thickness);
-		end		
 		
 	else
 		print("ERROR: HUDHandler tried to set cinematics bars, but was not given a team or a new toggle setting!");
@@ -146,17 +151,36 @@ end
 
 function HUDHandler:DrawCinematicBars(team)
 
-	for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
-	
-		local topBarStart = self:MakeRelativeToScreenPos(player, Vector(-50, -50))
-		local topBarEnd = self:MakeRelativeToScreenPos(player, Vector(FrameMan.PlayerScreenWidth + 50, self.saveTable.teamTables[team].cinematicBarThickness))
-	
-		local bottomBarStart = self:MakeRelativeToScreenPos(player, Vector(-50, FrameMan.PlayerScreenHeight - self.saveTable.teamTables[team].cinematicBarThickness))
-		local bottomBarEnd = self:MakeRelativeToScreenPos(player, Vector(FrameMan.PlayerScreenWidth + 50, FrameMan.PlayerScreenHeight + 50))
-		
-		PrimitiveMan:DrawBoxFillPrimitive(player, topBarStart, topBarEnd, 255);
-		PrimitiveMan:DrawBoxFillPrimitive(player, bottomBarStart, bottomBarEnd, 255);
+	local draw = false;
+	local factor;
+
+	if self.saveTable.teamTables[team].cinematicBars then
+		factor = 1 - math.min(1, self.saveTable.teamTables[team].cinematicBarAnimationTimer.ElapsedSimTimeMS/2000);
+		draw = true;
+	elseif not self.saveTable.teamTables[team].cinematicBarAnimationTimer:IsPastSimMS(2500) then
+		factor = math.min(1, self.saveTable.teamTables[team].cinematicBarAnimationTimer.ElapsedSimTimeMS/2000);
+		draw = true;
 	end
+	
+	if draw then
+		for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+			local topBarStart = self:MakeRelativeToScreenPos(player, Vector(-50, -50))
+			topBarStart = topBarStart + Vector(0, -self.saveTable.teamTables[team].cinematicBarThickness*factor);
+			local topBarEnd = self:MakeRelativeToScreenPos(player, Vector(FrameMan.PlayerScreenWidth + 50, self.saveTable.teamTables[team].cinematicBarThickness))
+			topBarEnd = topBarEnd + Vector(0, -self.saveTable.teamTables[team].cinematicBarThickness*factor);
+		
+			local bottomBarStart = self:MakeRelativeToScreenPos(player, Vector(-50, FrameMan.PlayerScreenHeight - self.saveTable.teamTables[team].cinematicBarThickness))
+			bottomBarStart = bottomBarStart + Vector(0, self.saveTable.teamTables[team].cinematicBarThickness*factor);
+			local bottomBarEnd = self:MakeRelativeToScreenPos(player, Vector(FrameMan.PlayerScreenWidth + 50, FrameMan.PlayerScreenHeight + 50))
+			bottomBarEnd = bottomBarEnd + Vector(0, self.saveTable.teamTables[team].cinematicBarThickness*factor);
+			
+			PrimitiveMan:DrawBoxFillPrimitive(player, topBarStart, topBarEnd, 255);
+			PrimitiveMan:DrawBoxFillPrimitive(player, bottomBarStart, bottomBarEnd, 255);
+		end
+		return true;
+	end
+	
+	return false;
 
 end
 
@@ -365,11 +389,8 @@ function HUDHandler:UpdateHUDHandler()
 		
 		-- Cinematic bars
 		
-		if self.saveTable.teamTables[team].cinematicBars == true then
-			self:DrawCinematicBars(team);
-			disableDrawingObjectives = true;
-		end
-			
+		disableDrawingObjectives = self:DrawCinematicBars(team);
+
 		-- Objectives
 		
 		if not PerformanceMan.ShowPerformanceStats == true and not disableDrawingObjectives then
