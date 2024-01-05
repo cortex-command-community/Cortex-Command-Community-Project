@@ -53,6 +53,8 @@ function HUDHandler:Initialize(activity, newGame, verboseLogging)
 			self.saveTable.teamTables[team].Objectives = {};
 			
 			self.saveTable.teamTables[team].cameraQueue = {};
+			self.saveTable.teamTables[team].cinematicBars = false;
+			self.saveTable.teamTables[team].cinematicBarThickness = 50;
 		end
 		
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -117,7 +119,48 @@ function HUDHandler:MakeRelativeToScreenPos(player, vector)
 	
 end
 
-function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCancellable)
+function HUDHandler:SetCinematicBars(team, toggle, thickness)
+
+	if not thickness then
+		thickness = 50;
+	end
+
+	if team and toggle ~= nil then
+		self.saveTable.teamTables[team].cinematicBars = toggle;
+		if not thickness == false then
+			self.saveTable.teamTables[team].cinematicBarThickness = thickness;
+		end
+		
+		if self.verboseLogging then
+			print("INFO: HUDHandler set Cinematic Bars for team " .. team .. " to " .. tostring(toggle) .. " with thickness " .. thickness);
+		end		
+		
+	else
+		print("ERROR: HUDHandler tried to set cinematics bars, but was not given a team or a new toggle setting!");
+		return false;
+	end
+	
+	return true;
+
+end
+
+function HUDHandler:DrawCinematicBars(team)
+
+	for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+	
+		local topBarStart = self:MakeRelativeToScreenPos(player, Vector(-50, -50))
+		local topBarEnd = self:MakeRelativeToScreenPos(player, Vector(FrameMan.PlayerScreenWidth + 50, self.saveTable.teamTables[team].cinematicBarThickness))
+	
+		local bottomBarStart = self:MakeRelativeToScreenPos(player, Vector(-50, FrameMan.PlayerScreenHeight - self.saveTable.teamTables[team].cinematicBarThickness))
+		local bottomBarEnd = self:MakeRelativeToScreenPos(player, Vector(FrameMan.PlayerScreenWidth + 50, FrameMan.PlayerScreenHeight + 50))
+		
+		PrimitiveMan:DrawBoxFillPrimitive(player, topBarStart, topBarEnd, 255);
+		PrimitiveMan:DrawBoxFillPrimitive(player, bottomBarStart, bottomBarEnd, 255);
+	end
+
+end
+
+function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCancellable, cinematicBars)
 
 	local cameraTable = {};
 	
@@ -130,6 +173,7 @@ function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCan
 		cameraTable.Speed = speed or 0.05;
 		cameraTable.holdTime = holdTime or 5000;
 		cameraTable.notCancellable = notCancellable or false;
+		cameraTable.cinematicBars = cinematicBars or false;
 		
 	else
 		print("ERROR: HUDHandler tried to add a camera pan event with no team, no name, or no position!");
@@ -274,6 +318,8 @@ function HUDHandler:UpdateHUDHandler()
 
 	for team = 0, #self.saveTable.teamTables do
 	
+		local disableDrawingObjectives = false;
+	
 		-- Camera pan events
 		
 		local cameraTable = self.saveTable.teamTables[team].cameraQueue[1];
@@ -286,10 +332,17 @@ function HUDHandler:UpdateHUDHandler()
 				CameraMan:SetScrollTarget(pos, cameraTable.Speed, player);
 			end
 			
+			if cameraTable.cinematicBars then
+				self:SetCinematicBars(team, true, false);
+			end
+			
 			-- not ideal: anyone pressing any key can skip the panning event... but the alternatives are much more roundabout
 			if self.teamCameraTimers[team]:IsPastSimMS(cameraTable.holdTime) or (not cameraTable.notCancellable and UInputMan:AnyKeyPress()) then
 				table.remove(self.saveTable.teamTables[team].cameraQueue, 1);
 				self.teamCameraTimers[team]:Reset();
+				if not self.saveTable.teamTables[team].cameraQueue[1] or not self.saveTable.teamTables[team].cameraQueue[1].cinematicBars then
+					self:SetCinematicBars(team, false, false);
+				end
 			end
 			
 		else -- enforce min/max limits
@@ -309,10 +362,17 @@ function HUDHandler:UpdateHUDHandler()
 				end
 			end
 		end
+		
+		-- Cinematic bars
+		
+		if self.saveTable.teamTables[team].cinematicBars == true then
+			self:DrawCinematicBars(team);
+			disableDrawingObjectives = true;
+		end
 			
 		-- Objectives
 		
-		if not PerformanceMan.ShowPerformanceStats == true then
+		if not PerformanceMan.ShowPerformanceStats == true and not disableDrawingObjectives then
 	
 			local skippedListings = 0;
 			local extraDescSpacing = 0;
