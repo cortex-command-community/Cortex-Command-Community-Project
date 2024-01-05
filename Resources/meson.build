@@ -1,4 +1,5 @@
 # User frontend
+source_inc_dirs += [include_directories('.')]
 if host_machine.system() == 'linux'
     desktop_file = files('cccp.desktop')
     icon_file = files('cccp.xpm')
