@@ -375,7 +375,7 @@ function HUDHandler:UpdateHUDHandler()
 				CameraMan:SetScrollTarget(pos, cameraTable.Speed, player);
 				self.Activity:SetViewState(Activity.OBSERVE, player);
 				if cameraTable.disableHUDFully then
-					FrameMan:SetHudDisabled(true);
+					FrameMan:SetHudDisabled(true, self.Activity:ScreenOfPlayer(player));
 				end
 			end
 			
@@ -389,16 +389,18 @@ function HUDHandler:UpdateHUDHandler()
 				self.teamCameraTimers[team]:Reset();
 				if not self.saveTable.teamTables[team].cameraQueue[1] then
 					self:SetCinematicBars(team, false, false);
-					FrameMan:SetHudDisabled(false);
 					for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
 						self.Activity:SetViewState(Activity.NORMAL, player);
+						FrameMan:SetHudDisabled(false, self.Activity:ScreenOfPlayer(player));
 					end
 				else
 					if not self.saveTable.teamTables[team].cameraQueue[1].cinematicBars then
 						self:SetCinematicBars(team, false, false);
 					end
 					if not self.saveTable.teamTables[team].cameraQueue[1].disableHUDFully then
-						FrameMan:SetHudDisabled(false);
+						for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+							FrameMan:SetHudDisabled(false, self.Activity:ScreenOfPlayer(player));
+						end
 					end
 				end
 			end
