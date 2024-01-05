@@ -73,6 +73,7 @@ elif compiler.get_argument_syntax()== 'msvc'
   message('cl detected')
   elfname = 'Cortex Command'
   extra_args += ['-D_HAS_ITERATOR_DEBUGGING=0', '-D_HAS_AUTO_PTR_ETC=1', '-bigobj']
+  add_global_arguments('-D_ITERATOR_DEBUG_LEVEL=0', language:'cpp')
   add_project_link_arguments(['winmm.lib', 'ws2_32.lib', 'dinput8.lib', 'ddraw.lib', 'dxguid.lib', 'dsound.lib', 'dbghelp.lib'], language:'cpp')
   if host_machine.cpu_family() == 'x86'
     elfname += ' x86'
@@ -226,9 +227,9 @@ base_exclude_files = [
 ]
 
 if get_option('install_data')
-install_subdir(get_option('cccpdatadir'),
-               exclude_directories:['.git', '.github', 'Metagames.rte', 'Scenes.rte'],
+install_subdir('Data',
+               exclude_directories:['.git', '.github'],
                exclude_files:base_exclude_files,
-               install_dir:get_option('data_install_dir'),
+               install_dir:get_option('data_install_dir')/'Data',
                strip_directory:true)
 endif
