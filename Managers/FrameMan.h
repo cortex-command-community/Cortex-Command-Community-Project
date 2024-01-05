@@ -301,6 +301,20 @@ namespace RTE {
 		}
 #pragma endregion
 
+		/// <summary>
+		/// Gets whether or not the HUD is disabled for a given screen.
+		/// </summary>
+		/// <param name="screenId">The screen to check for.</param>
+		/// <returns>True if in given screen's HUD is disabled.</returns>
+		bool IsHudDisabled(int screenId = 0) const { return m_HUDDisabled[screenId]; }
+
+		/// <summary>
+		/// Sets whether or not the HUD is disabled for a given screen.
+		/// </summary>
+		/// <param name="value">Whether the HUD should be disabled.</param>
+		/// <param name="screenId">The screen to set for.</param>
+		void SetHudDisabled(bool value, int screenId = 0) { m_HUDDisabled[screenId] = value; }
+
 #pragma region Network Handling
 		/// <summary>
 		/// Returns true if this manager is in multiplayer mode, storing the 8bpp backbuffer for network transmission.
@@ -503,9 +517,11 @@ namespace RTE {
 		bool m_TextCentered[c_MaxScreenCount]; //!< Whether screen text is centered vertically.
 		int m_TextDuration[c_MaxScreenCount]; //!< The minimum duration the current message is supposed to show before it can be overwritten.
 		Timer m_TextDurationTimer[c_MaxScreenCount]; //!< Screen text display duration time.
+
 		int m_TextBlinking[c_MaxScreenCount]; //!< Screen text messages blinking interval in ms. 0 is no blink at all, just show message.
 		Timer m_TextBlinkTimer; //!< Screen text blink timer.
 
+		bool m_HUDDisabled[c_MaxScreenCount]; //!< Whether the HUD is currently disabled for a given screen.
 		int m_FlashScreenColor[c_MaxScreenCount]; //!< Whether to flash a player's screen a specific color this frame. -1 means no flash.
 		bool m_FlashedLastFrame[c_MaxScreenCount]; //!< Whether we flashed last frame or not.
 		Timer m_FlashTimer[c_MaxScreenCount]; //!< Flash screen timer.

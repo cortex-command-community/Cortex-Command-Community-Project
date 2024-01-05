@@ -2857,9 +2857,16 @@ void SceneMan::Draw(BITMAP *targetBitmap, BITMAP *targetGUIBitmap, const Vector 
                 }
 			}
 
-			g_MovableMan.DrawHUD(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+            bool shouldDrawHUD = !g_FrameMan.IsHudDisabled(m_LastUpdatedScreen);
+            if (shouldDrawHUD) {
+			    g_MovableMan.DrawHUD(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+            }
+
 			g_PrimitiveMan.DrawPrimitives(m_LastUpdatedScreen, targetGUIBitmap, targetPos);
-			g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+
+            if (shouldDrawHUD) {
+			    g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+            }
 
 #ifdef DRAW_NOGRAV_BOXES
             if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {

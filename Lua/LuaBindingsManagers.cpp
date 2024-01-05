@@ -72,6 +72,8 @@ namespace RTE {
 		.property("PlayerScreenWidth", &FrameMan::GetPlayerScreenWidth)
 		.property("PlayerScreenHeight", &FrameMan::GetPlayerScreenHeight)
 
+		.def("IsHudDisabled", &FrameMan::IsHudDisabled)
+		.def("SetHudDisabled", &FrameMan::SetHudDisabled)
 		.def("LoadPalette", &FrameMan::LoadPalette)
 		.def("SetScreenText", &FrameMan::SetScreenText)
 		.def("ClearScreenText", &FrameMan::ClearScreenText)
