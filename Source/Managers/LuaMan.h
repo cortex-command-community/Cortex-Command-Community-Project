@@ -284,8 +284,8 @@ namespace RTE {
 		double PosRand();
 
 #pragma region Passthrough LuaMan Functions
-		const std::vector<std::string>& DirectoryList(const std::string& relativeDirectory);
-		const std::vector<std::string>& FileList(const std::string& relativeDirectory);
+		const std::vector<std::string>* DirectoryList(const std::string& relativeDirectory);
+		const std::vector<std::string>* FileList(const std::string& relativeDirectory);
 		bool FileExists(const std::string &fileName);
 		int FileOpen(const std::string& fileName, const std::string& accessMode);
 		void FileClose(int fileIndex);
@@ -433,7 +433,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="relativeDirectory">Directory path relative to the working directory.</param>
 		/// <returns>A vector of the directories in relativeDirectory.</returns>
-		const std::vector<std::string> & DirectoryList(const std::string &relativeDirectory);
+		const std::vector<std::string> * DirectoryList(const std::string &relativeDirectory);
 
 		/// <summary>
 		/// Returns a vector of all the files in relativeDirectory, which is relative to the working directory.
@@ -441,7 +441,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="relativeDirectory">Directory path relative to the working directory.</param>
 		/// <returns>A vector of the files in relativeDirectory.</returns>
-		const std::vector<std::string> & FileList(const std::string &relativeDirectory);
+		const std::vector<std::string> * FileList(const std::string &relativeDirectory);
 
 		/// <summary>
 		/// Returns whether or not the specified file exists. You can only check for files inside .rte folders in the working directory.

@@ -1,4 +1,0 @@
-[binaries]
-c = 'clang-cl'
-cpp = 'clang-cl'
-strip = 'strip'
