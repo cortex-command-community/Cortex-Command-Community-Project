@@ -68,8 +68,8 @@ namespace RTE {
 				.def("RangeRand", &LuaStateWrapper::RangeRand)
 				.def("PosRand", &LuaStateWrapper::PosRand)
 				.def("NormalRand", &LuaStateWrapper::NormalRand)
-				.def("GetDirectoryList", &LuaStateWrapper::DirectoryList, luabind::return_stl_iterator)
-				.def("GetFileList", &LuaStateWrapper::FileList, luabind::return_stl_iterator)
+				.def("GetDirectoryList", &LuaStateWrapper::DirectoryList, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+				.def("GetFileList", &LuaStateWrapper::FileList, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 				.def("FileExists", &LuaStateWrapper::FileExists)
 				.def("FileOpen", &LuaStateWrapper::FileOpen)
 				.def("FileClose", &LuaStateWrapper::FileClose)
@@ -275,8 +275,8 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Passthrough LuaMan Functions
-	const std::vector<std::string>& LuaStateWrapper::DirectoryList(const std::string& relativeDirectory) { return g_LuaMan.DirectoryList(relativeDirectory); }
-	const std::vector<std::string>& LuaStateWrapper::FileList(const std::string& relativeDirectory) { return g_LuaMan.FileList(relativeDirectory); }
+	const std::vector<std::string>* LuaStateWrapper::DirectoryList(const std::string& relativeDirectory) { return g_LuaMan.DirectoryList(relativeDirectory); }
+	const std::vector<std::string>* LuaStateWrapper::FileList(const std::string& relativeDirectory) { return g_LuaMan.FileList(relativeDirectory); }
 	bool LuaStateWrapper::FileExists(const std::string &fileName) { return g_LuaMan.FileExists(fileName); }
 	int LuaStateWrapper::FileOpen(const std::string& fileName, const std::string& accessMode) { return g_LuaMan.FileOpen(fileName, accessMode); }
 	void LuaStateWrapper::FileClose(int fileIndex) { return g_LuaMan.FileClose(fileIndex); }
@@ -925,24 +925,22 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	const std::vector<std::string> & LuaMan::DirectoryList(const std::string &filePath) {
-		thread_local std::vector<std::string> directoryPaths;
-		directoryPaths.clear();
+	const std::vector<std::string> * LuaMan::DirectoryList(const std::string &filePath) {
+		auto *directoryPaths = new std::vector<std::string>();
 
 		for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(System::GetWorkingDirectory() + filePath)) {
-			if (directoryEntry.is_directory()) { directoryPaths.emplace_back(directoryEntry.path().filename().generic_string()); }
+			if (directoryEntry.is_directory()) { directoryPaths->emplace_back(directoryEntry.path().filename().generic_string()); }
 		}
 		return directoryPaths;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	const std::vector<std::string> & LuaMan::FileList(const std::string &filePath) {
-		thread_local std::vector<std::string> filePaths;
-		filePaths.clear();
+	const std::vector<std::string> * LuaMan::FileList(const std::string &filePath) {
+		auto *filePaths = new std::vector<std::string>();
 
 		for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(System::GetWorkingDirectory() + filePath)) {
-			if (directoryEntry.is_regular_file()) { filePaths.emplace_back(directoryEntry.path().filename().generic_string()); }
+			if (directoryEntry.is_regular_file()) { filePaths->emplace_back(directoryEntry.path().filename().generic_string()); }
 		}
 		return filePaths;
 	}
@@ -1046,9 +1044,6 @@ namespace RTE {
 			if (fgets(buf, sizeof(buf), m_OpenedFiles[fileIndex]) != nullptr) {
 				return buf;
 			}
-#ifndef RELEASE_BUILD
-			g_ConsoleMan.PrintString("ERROR: " + std::string(FileEOF(fileIndex) ? "Tried to read past EOF." : "Failed to read from file."));
-#endif
 		} else {
 			g_ConsoleMan.PrintString("ERROR: Tried to read an invalid or closed file.");
 		}
