@@ -73,6 +73,7 @@ elif compiler.get_argument_syntax()== 'msvc'
   message('cl detected')
   elfname = 'Cortex Command'
   extra_args += ['-D_HAS_ITERATOR_DEBUGGING=0', '-D_HAS_AUTO_PTR_ETC=1', '-bigobj']
+  add_global_arguments('-D_ITERATOR_DEBUG_LEVEL=0', language:'cpp')
   add_project_link_arguments(['winmm.lib', 'ws2_32.lib', 'dinput8.lib', 'ddraw.lib', 'dxguid.lib', 'dsound.lib', 'dbghelp.lib'], language:'cpp')
   if host_machine.cpu_family() == 'x86'
     elfname += ' x86'
@@ -194,35 +195,14 @@ tracy_dep = dependency('tracy')
 deps += [allegro_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
 
 #### Sources Setup ####
-pch = meson.current_source_dir()/'System/StandardIncludes.h'
-sources = []
-source_libs = []
-source_inc_dirs = include_directories(
-  '.',
-  'Activities',
-  'Entities',
-  'GUI',
-  'GUI/Wrappers',
-  'Lua',
-  'Managers',
-  'Menus',
-  'Resources',
-  'Renderer',
-  'System')
-
-subdir('Activities')
-subdir('Entities')
-subdir('GUI')
-subdir('Lua')
-subdir('Managers')
-subdir('Menus')
-subdir('System')
+source_inc_dirs = []
+subdir('Source')
 subdir('Resources')
 
 
 #### Target Definitions ####
 cccpelf = executable(
-  elfname, ['Main.cpp', sources], include_directories:[source_inc_dirs, external_inc_dirs], cpp_pch:pch, # Sources options
+  elfname, ['Source/Main.cpp', sources], include_directories:[source_inc_dirs, external_inc_dirs], cpp_pch:pch, # Sources options
   link_with:[external_libs, source_libs], objects:[external_objects], dependencies:deps,                                # Link options
   cpp_args:[extra_args, preprocessor_flags], link_args:[link_args], build_rpath:build_rpath,               # Compiler setup
   name_suffix:suffix,   # Executable name options
@@ -247,9 +227,9 @@ base_exclude_files = [
 ]
 
 if get_option('install_data')
-install_subdir(get_option('cccpdatadir'),
-               exclude_directories:['.git', '.github', 'Metagames.rte', 'Scenes.rte'],
+install_subdir('Data',
+               exclude_directories:['.git', '.github'],
                exclude_files:base_exclude_files,
-               install_dir:get_option('data_install_dir'),
+               install_dir:get_option('data_install_dir')/'Data',
                strip_directory:true)
 endif
