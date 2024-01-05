@@ -122,7 +122,7 @@ end
 
 function HUDHandler:SetCinematicBars(team, toggle, thickness)
 
-	if not thickness then
+	if thickness == nil then
 		thickness = 50;
 	end
 
