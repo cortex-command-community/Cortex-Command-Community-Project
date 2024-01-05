@@ -71,6 +71,7 @@ namespace RTE {
 
 		.property("PlayerScreenWidth", &FrameMan::GetPlayerScreenWidth)
 		.property("PlayerScreenHeight", &FrameMan::GetPlayerScreenHeight)
+		.property("ScreenCount", &FrameMan::GetScreenCount)
 
 		.def("IsHudDisabled", &FrameMan::IsHudDisabled)
 		.def("SetHudDisabled", &FrameMan::SetHudDisabled)
