@@ -1044,9 +1044,6 @@ namespace RTE {
 			if (fgets(buf, sizeof(buf), m_OpenedFiles[fileIndex]) != nullptr) {
 				return buf;
 			}
-#ifndef RELEASE_BUILD
-			g_ConsoleMan.PrintString("ERROR: " + std::string(FileEOF(fileIndex) ? "Tried to read past EOF." : "Failed to read from file."));
-#endif
 		} else {
 			g_ConsoleMan.PrintString("ERROR: Tried to read an invalid or closed file.");
 		}
