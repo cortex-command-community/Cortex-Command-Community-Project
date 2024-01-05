@@ -120,6 +120,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `GameActivity::LockControlledActor` Lua function to allow grab player input in the way menus (buy menu/full inventorymenu) do.
 
+- New `FrameMan` Lua functions `SetHudDisabled(disabled, screenId)` and `IsHudDisabled(screenId)` that allows disabling a given screen's HUD, and checking whether it's currently disabled. The screenId parameters are optional and default to screen 0.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
