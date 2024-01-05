@@ -209,6 +209,8 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
 		self.stage3DrillOverloaded = true;
+		
+		MovableMan:SendGlobalMessage("RefineryAssault_DrillOverloadBegin");
 	
 	elseif message == "Captured_RefineryS4FuelPipeConsole" then	
 		
