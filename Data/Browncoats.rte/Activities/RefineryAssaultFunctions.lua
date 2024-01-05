@@ -1385,7 +1385,7 @@ function RefineryAssault:MonitorStage3()
 		local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Alarm", "Browncoats.rte");
 		soundContainer:Play(pos);
 		
-		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 15000, true, true);
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 15000, true, true, true);
 
 	elseif self.stage3DoorSequenceTimer and self.stage3DoorSequenceTimer:IsPastSimMS(6250) then
 	
@@ -1428,6 +1428,7 @@ function RefineryAssault:MonitorStage3()
 
 		if self.stage3DoorSequenceTimer:IsPastSimMS(12500) then
 			self.Stage = 4;
+			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 14500);
 			self.HUDHandler:RemoveAllObjectives(self.humanTeam);		
 			self.HUDHandler:AddObjective(self.humanTeam,
 				"S4DestroyDoor",
@@ -1439,8 +1440,6 @@ function RefineryAssault:MonitorStage3()
 				false,
 				true);
 		end
-		
-		self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 14500);
 		
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 

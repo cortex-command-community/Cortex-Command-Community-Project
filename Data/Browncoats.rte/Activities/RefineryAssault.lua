@@ -87,27 +87,28 @@ function RefineryAssault:UpdateFunds()
 
 	-- Debug view
 	
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
-		
-		if self:PlayerActive(player) and self:PlayerHuman(player) then
-		
-			local pos = CameraMan:GetOffset(player);
-			pos.X = pos.X + FrameMan.PlayerScreenWidth * 0.5;
-			--print(pos)
-			local yOffset = FrameMan.PlayerScreenHeight * 0.87;
-			local xOffset = Vector(FrameMan.PlayerScreenWidth * 0.33, 0);
-			pos.Y = pos.Y + yOffset
-			
-			local textPos = Vector(pos.X, pos.Y - 20);
-			PrimitiveMan:DrawTextPrimitive(textPos, "aiteam: " .. tostring(aiTeamFunds), false, 1)
-			
-			local textPos = Vector(pos.X - 100, pos.Y - 20);
-			PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
+	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
 
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
 			
-		end
-		
-	end	
+				local pos = CameraMan:GetOffset(player);
+				pos.X = pos.X + FrameMan.PlayerScreenWidth * 0.5;
+				--print(pos)
+				local yOffset = FrameMan.PlayerScreenHeight * 0.87;
+				local xOffset = Vector(FrameMan.PlayerScreenWidth * 0.33, 0);
+				pos.Y = pos.Y + yOffset
+				
+				local textPos = Vector(pos.X, pos.Y - 20);
+				PrimitiveMan:DrawTextPrimitive(textPos, "aiteam: " .. tostring(aiTeamFunds), false, 1)
+				
+				local textPos = Vector(pos.X - 100, pos.Y - 20);
+				PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
+
+				
+			end
+		end	
+	end
 
 end
 

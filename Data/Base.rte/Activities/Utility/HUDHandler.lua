@@ -184,7 +184,7 @@ function HUDHandler:DrawCinematicBars(team)
 
 end
 
-function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCancellable, cinematicBars)
+function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCancellable, cinematicBars, disableHUDFully)
 
 	local cameraTable = {};
 	
@@ -198,6 +198,7 @@ function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCan
 		cameraTable.holdTime = holdTime or 5000;
 		cameraTable.notCancellable = notCancellable or false;
 		cameraTable.cinematicBars = cinematicBars or false;
+		cameraTable.disableHUDFully = disableHUDFully or false;
 		
 	else
 		print("ERROR: HUDHandler tried to add a camera pan event with no team, no name, or no position!");
@@ -221,6 +222,17 @@ function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCan
 	
 end
 
+function HUDHandler:GetCameraPanEventCount(team)
+
+	if team then
+		return #self.saveTable.teamTables[team].cameraQueue;
+	else
+		print("ERROR: HUDHandlier tried to get a camera pan event count but wasn't given a team!");
+		return false;
+	end
+	
+end
+
 function HUDHandler:RemoveCameraPanEvent(team, name)
 
 	for i, cameraTable in ipairs(self.saveTable.teamTables[team].cameraQueue) do
@@ -232,9 +244,16 @@ function HUDHandler:RemoveCameraPanEvent(team, name)
 	
 end
 
-function HUDHandler:RemoveAllCameraPanEvents(team)
+function HUDHandler:RemoveAllCameraPanEvents(team, doNotResetHUD)
 
 	self.saveTable.teamTables[team].cameraQueue = {};
+	
+	if not doNotResetHUD then
+		for team = 0, #self.saveTable.teamTables do
+			FrameMan:SetHudDisabled(false);
+			self:SetCinematicBars(team, false, false);
+		end
+	end
 	
 end
 
@@ -354,6 +373,10 @@ function HUDHandler:UpdateHUDHandler()
 		
 			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
 				CameraMan:SetScrollTarget(pos, cameraTable.Speed, player);
+				self.Activity:SetViewState(Activity.OBSERVE, player);
+				if cameraTable.disableHUDFully then
+					FrameMan:SetHudDisabled(true);
+				end
 			end
 			
 			if cameraTable.cinematicBars then
@@ -364,8 +387,19 @@ function HUDHandler:UpdateHUDHandler()
 			if self.teamCameraTimers[team]:IsPastSimMS(cameraTable.holdTime) or (not cameraTable.notCancellable and UInputMan:AnyKeyPress()) then
 				table.remove(self.saveTable.teamTables[team].cameraQueue, 1);
 				self.teamCameraTimers[team]:Reset();
-				if not self.saveTable.teamTables[team].cameraQueue[1] or not self.saveTable.teamTables[team].cameraQueue[1].cinematicBars then
+				if not self.saveTable.teamTables[team].cameraQueue[1] then
 					self:SetCinematicBars(team, false, false);
+					FrameMan:SetHudDisabled(false);
+					for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+						self.Activity:SetViewState(Activity.NORMAL, player);
+					end
+				else
+					if not self.saveTable.teamTables[team].cameraQueue[1].cinematicBars then
+						self:SetCinematicBars(team, false, false);
+					end
+					if not self.saveTable.teamTables[team].cameraQueue[1].disableHUDFully then
+						FrameMan:SetHudDisabled(false);
+					end
 				end
 			end
 			
