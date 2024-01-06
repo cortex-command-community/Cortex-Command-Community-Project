@@ -284,12 +284,20 @@ namespace RTE {
 		double PosRand();
 
 #pragma region Passthrough LuaMan Functions
-		const std::vector<std::string>* DirectoryList(const std::string& relativeDirectory);
-		const std::vector<std::string>* FileList(const std::string& relativeDirectory);
-		bool FileExists(const std::string &fileName);
-		int FileOpen(const std::string& fileName, const std::string& accessMode);
+		const std::vector<std::string>* DirectoryList(const std::string& path);
+		const std::vector<std::string>* FileList(const std::string& path);
+		bool FileExists(const std::string &path);
+		bool DirectoryExists(const std::string &path);
+		bool IsValidModulePath(const std::string &path);
+		int FileOpen(const std::string& path, const std::string& accessMode);
 		void FileClose(int fileIndex);
 		void FileCloseAll();
+		bool FileRemove(const std::string& path);
+		bool DirectoryCreate1(const std::string& path);
+		bool DirectoryCreate2(const std::string& path, bool recursive);
+		bool DirectoryRemove1(const std::string& path);
+		bool DirectoryRemove2(const std::string& path, bool recursive);
+		bool Rename(const std::string& oldPath, const std::string& newPath);
 		std::string FileReadLine(int fileIndex);
 		void FileWriteLine(int fileIndex, const std::string& line);
 		bool FileEOF(int fileIndex);
@@ -428,36 +436,48 @@ namespace RTE {
 
 #pragma region File I/O Handling
 		/// <summary>
-		/// Returns a vector of all the directories in relativeDirectory, which is relative to the working directory.
-		/// Note that a call to this method overwrites any previously returned vector from DirectoryList() or FileList().
+		/// Returns a vector of all the directories in path, which is relative to the working directory.
 		/// </summary>
-		/// <param name="relativeDirectory">Directory path relative to the working directory.</param>
-		/// <returns>A vector of the directories in relativeDirectory.</returns>
-		const std::vector<std::string> * DirectoryList(const std::string &relativeDirectory);
+		/// <param name="path">Directory path relative to the working directory.</param>
+		/// <returns>A vector of the directories in path.</returns>
+		const std::vector<std::string> * DirectoryList(const std::string &path);
 
 		/// <summary>
-		/// Returns a vector of all the files in relativeDirectory, which is relative to the working directory.
-		/// Note that a call to this method overwrites any previously returned vector from DirectoryList() or FileList().
+		/// Returns a vector of all the files in path, which is relative to the working directory.
 		/// </summary>
-		/// <param name="relativeDirectory">Directory path relative to the working directory.</param>
-		/// <returns>A vector of the files in relativeDirectory.</returns>
-		const std::vector<std::string> * FileList(const std::string &relativeDirectory);
+		/// <param name="path">Directory path relative to the working directory.</param>
+		/// <returns>A vector of the files in path.</returns>
+		const std::vector<std::string> * FileList(const std::string &path);
 
 		/// <summary>
 		/// Returns whether or not the specified file exists. You can only check for files inside .rte folders in the working directory.
 		/// </summary>
-		/// <param name="fileName">Path to the file. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <param name="path">Path to the file. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <returns>Whether or not the specified file exists.</returns>
-		bool FileExists(const std::string &fileName);
+		bool FileExists(const std::string &path);
 
 		/// <summary>
-		/// Opens a file or creates one if it does not exist, depending on access mode. You can open files only inside .rte folders in the working directly. You can't open more that c_MaxOpenFiles file simultaneously.
+		/// Returns whether or not the specified directory exists. You can only check for directories inside .rte folders in the working directory.
+		/// </summary>
+		/// <param name="path">Path to the directory. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <returns>Whether or not the specified file exists.</returns>
+		bool DirectoryExists(const std::string &path);
+
+		/// <summary>
+		/// Returns whether or not the path refers to an accessible file or directory. You can only check for files or directories inside .rte directories in the working directory.
+		/// </summary>
+		/// <param name="path">Path to the file or directory. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <returns>Whether or not the specified file exists.</returns>
+		bool IsValidModulePath(const std::string &path);
+
+		/// <summary>
+		/// Opens a file or creates one if it does not exist, depending on access mode. You can open files only inside .rte folders in the working directory. You can't open more that c_MaxOpenFiles file simultaneously.
 		/// On Linux will attempt to open a file case insensitively.
 		/// </summary>
-		/// <param name="filename">Path to the file. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <param name="path">Path to the file. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <param name="mode">File access mode. See 'fopen' for list of modes.</param>
 		/// <returns>File index in the opened files array.</returns>
-		int FileOpen(const std::string &fileName, const std::string &accessMode);
+		int FileOpen(const std::string &path, const std::string &accessMode);
 
 		/// <summary>
 		/// Closes a previously opened file.
@@ -469,6 +489,37 @@ namespace RTE {
 		/// Closes all previously opened files.
 		/// </summary>
 		void FileCloseAll();
+
+		/// <summary>
+		/// Removes a file.
+		/// </summary>
+		/// <param name="path">Path to the file. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <returns>Whether or not the file was removed.</returns>
+		bool FileRemove(const std::string &path);
+
+		/// <summary>
+		/// Creates a directory, optionally recursively.
+		/// </summary>
+		/// <param name="path">Path to the directory to be created. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <param name="recursive">Whether to recursively create parent directories.</param>
+		/// <returns>Whether or not the directory was removed.</returns>
+		bool DirectoryCreate(const std::string &path, bool recursive);
+
+		/// <summary>
+		/// Removes a directory, optionally recursively.
+		/// </summary>
+		/// <param name="path">Path to the directory to be removed. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <param name="recursive">Whether to recursively remove files and directories.</param>
+		/// <returns>Whether or not the directory was removed.</returns>
+		bool DirectoryRemove(const std::string &path, bool recursive);
+
+		/// <summary>
+		/// Moves or renames the filesystem object oldPath to newPath.
+		/// </summary>
+		/// <param name="oldPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <param name="newPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <returns>Whether or not renaming succeeded.</returns>
+		bool Rename(const std::string &oldPath, const std::string &newPath);
 
 		/// <summary>
 		/// Reads a line from a file.
