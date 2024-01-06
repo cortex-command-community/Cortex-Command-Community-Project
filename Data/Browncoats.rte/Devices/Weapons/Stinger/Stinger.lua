@@ -6,7 +6,7 @@ function OnFire(self)
 	self.fireSmokeEffect.Position = self.MuzzlePos;
 	self.fireSmokeEffect.RadAngle = angle;
 
-	self.utilityHandler:CreateDirectionalSmokeEffect(self.fireSmokeEffect);
+	self.particleUtility:CreateDirectionalSmokeEffect(self.fireSmokeEffect);
 
 end
 
@@ -28,7 +28,6 @@ function Create(self)
 	self.fireSmokeEffect.AirResistanceMult = 1;
 	self.fireSmokeEffect.GravMult = 0.5;
 	
-	self.utilityHandler = require("Activities/Utility/UtilityHandler");
-	self.utilityHandler:Initialize(false);
+	self.particleUtility = require("Scripts/Utility/ParticleUtility");
 	
 end

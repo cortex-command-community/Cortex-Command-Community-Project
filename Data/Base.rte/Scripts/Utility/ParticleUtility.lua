@@ -1,6 +1,6 @@
-local UtilityHandler = {}
+local ParticleUtility = {}
 
-function UtilityHandler:Create()
+function ParticleUtility:Create()
 	local Members = {};
 
 	setmetatable(Members, self);
@@ -9,18 +9,7 @@ function UtilityHandler:Create()
 	return Members;
 end
 
-function UtilityHandler:Initialize(verboseLogging)
-
-	self.verboseLogging = verboseLogging;
-	
-
-	if self.verboseLogging then
-		print("INFO: UtilityHandler initialized!");
-	end
-	
-end
-
-function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source, angOrVector, power, spread, smokeMult, exploMult, widthSpread, velocityMult, lingerMult, airResistanceMult, gravMult)
+function ParticleUtility:CreateDirectionalSmokeEffect(positionOrFullTable, source, angOrVector, power, spread, smokeMult, exploMult, widthSpread, velocityMult, lingerMult, airResistanceMult, gravMult)
 	
 	local position;
 		
@@ -82,7 +71,7 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 		for _ = 0, math.floor((count / (math.random(2,4))) * smokeMult) do
 		
 			-- Tiny smoke, high spread
-			local tinySmokeCount = math.random(math.max(0, math.floor(power/25)), math.max(0, math.ceil(power/12.5)));
+			local tinySmokeCount = math.random(math.max(0, math.floor(smokePower/25)), math.max(0, math.ceil(smokePower/12.5)));
 			for i = 1, tinySmokeCount do	
 				local countFactor = i/tinySmokeCount;
 				local randSpread = (math.random(-spread*500, spread*500)/1000) * countFactor;
@@ -104,7 +93,7 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 			end
 
 			-- Small smoke, medium spread
-			local smallSmokeCount = math.random(math.max(0, math.floor(power/25)), math.max(0, math.floor(power/12.5)));
+			local smallSmokeCount = math.random(math.max(0, math.floor(smokePower/25)), math.max(0, math.floor(smokePower/12.5)));
 			for i = 1, smallSmokeCount do	
 				local countFactor = i/smallSmokeCount;
 				local randSpread = (math.random(-spread*500, spread*500)/1000) * countFactor;
@@ -126,7 +115,7 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 			end
 		end
 		
-		local exploPower = power * smokeMult;
+		local exploPower = power * exploMult;
 		count = exploPower / 5;
 		velocity = Vector(exploPower / 1.5, 0):DegRotate(angle) * velocityMult;
 		if source then
@@ -138,7 +127,7 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 		for _ = 0, exploCount do
 			
 			-- Tiny explo particle
-			local tinyExploCount = math.random(math.max(0, math.floor(power/25)), math.max(0, math.ceil(power/12.5)));
+			local tinyExploCount = math.random(math.max(0, math.floor(exploPower/25)), math.max(0, math.ceil(exploPower/12.5)));
 			for i = 1, tinyExploCount do	
 				local countFactor = i/tinyExploCount;
 				local randSpread = (math.random(-spread*500, spread*500)/1000) * countFactor;
@@ -160,7 +149,7 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 			end
 
 			-- Small explo particle
-			local smallExploCount = math.random(math.max(0, math.floor(power/50)), math.max(0, math.floor(power/25)));
+			local smallExploCount = math.random(math.max(0, math.floor(exploPower/50)), math.max(0, math.floor(exploPower/25)));
 			for i = 1, smallExploCount do	
 				local countFactor = i/smallExploCount;
 				local randSpread = (math.random(-spread*500, spread*500)/1000) * countFactor;
@@ -169,11 +158,11 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 				randSpread = randSpread * easeFactor;
 				local randVelocityMult = RangeRand(0.5, 1.5);
 				
-				local particle = CreateMOSParticle("Side Thruster Blast Ball 1", "Base.rte");
+				local particle = CreateMOSParticle("Explosion Smoke Small", "Base.rte");
 				particle.Pos = position + Vector(0, RangeRand(-widthspread/2, widthspread/2)):DegRotate(angle);
 				particle.Vel = Vector(velocity.X, velocity.Y):DegRotate(randSpread) * randVelocityMult;
-				particle.Lifetime = particle.Lifetime * RangeRand(0.75, 1.25) * lingerMult;
-				particle.AirThreshold = (particle.AirThreshold / airResistanceMult) * (lingerMult/airResistanceMult);
+				particle.Lifetime = particle.Lifetime * RangeRand(0.4, 0.8) * (lingerMult);
+				particle.AirThreshold = (particle.AirThreshold / airResistanceMult);
 				particle.AirResistance = math.min(62.5, particle.AirResistance * airResistanceMult);
 				particle.GlobalAccScalar = particle.GlobalAccScalar * gravMult;
 				particle.Team = source.Team;
@@ -182,7 +171,7 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 			end
 			
 			-- Large explo particle 1
-			local large1ExploCount = math.random(math.max(0, math.floor(power/260)), math.max(0, math.floor(power/130)));
+			local large1ExploCount = math.random(math.max(0, math.floor(exploPower/260)), math.max(0, math.floor(exploPower/130)));
 			for i = 1, large1ExploCount do	
 				local countFactor = i/large1ExploCount;
 				local randSpread = (math.random(-spread*500, spread*500)/1000) * countFactor;
@@ -196,7 +185,7 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 				particle.Vel = Vector(velocity.X, velocity.Y):DegRotate(randSpread) * randVelocityMult;
 				particle.Lifetime = particle.Lifetime * RangeRand(0.75, 1.25) * lingerMult;
 				particle.AirThreshold = (particle.AirThreshold / airResistanceMult) * (lingerMult/airResistanceMult);
-				particle.AirResistance = math.min(60, particle.AirResistance * airResistanceMult);
+				particle.AirResistance = math.min(62.5, particle.AirResistance * airResistanceMult);
 				particle.GlobalAccScalar = particle.GlobalAccScalar * gravMult;
 				particle.Team = source.Team;
 				--particle.HitsMOs = false;
@@ -204,14 +193,14 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 			end
 			
 			-- Large explo particle 2
-			local large2ExploCount = math.random(math.max(0, math.floor(power/300)), math.max(0, math.floor(power/200)));
+			local large2ExploCount = math.random(math.max(0, math.floor(exploPower/300)), math.max(0, math.floor(exploPower/200)));
 			for i = 1, large2ExploCount do	
 				local countFactor = i/large2ExploCount;
 				local randSpread = (math.random(-spread*500, spread*500)/1000) * countFactor;
 				local easeFactor = math.abs(randSpread/(spread/2))
 				factor = 1 - math.cos((easeFactor * math.pi) / 2);
 				randSpread = randSpread * easeFactor;
-				local randVelocityMult = RangeRand(0.5, 1.5);
+				local randVelocityMult = RangeRand(0.3, 1.1);
 				
 				local particle = CreateAEmitter("Explosion Trail 1", "Base.rte");
 				particle.Pos = position + Vector(0, RangeRand(-widthspread/2, widthspread/2)):DegRotate(angle);
@@ -227,7 +216,7 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 		end
 		
 	else
-		print("ERROR: UtilityHandler tried to create a smoke effect but was not given a position, angle, or power amount!");
+		print("ERROR: ParticleUtility tried to create a smoke effect but was not given a position, angle, or power amount!");
 		return false;
 	end
 	
@@ -235,4 +224,4 @@ function UtilityHandler:CreateDirectionalSmokeEffect(positionOrFullTable, source
 
 end
 
-return UtilityHandler:Create();
+return ParticleUtility:Create();
