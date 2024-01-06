@@ -1403,12 +1403,22 @@ function RefineryAssault:MonitorStage3()
 		if self.stage3DoorSequenceTimer:IsPastSimMS(7500) then
 			if MovableMan:ValidMO(self.saveTable.stage3Doors[2]) then
 				ToADoor(self.saveTable.stage3Doors[2]):OpenDoor();
+				if not self.stage3ScreenShake2 then
+					self.stage3ScreenShake2 = true;
+					local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+					CameraMan:AddScreenShake(10, pos);
+				end
 			end
 		end
 		
 		if not self.stage3PlayedDoorStopSound == true and self.stage3DoorSequenceTimer:IsPastSimMS(8750) then
 			if MovableMan:ValidMO(self.saveTable.stage4Door[1]) then
 				ToADoor(self.saveTable.stage4Door[1]):OpenDoor();
+				if not self.stage3ScreenShake3 then
+					self.stage3ScreenShake3 = true;
+					local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+					CameraMan:AddScreenShake(10, pos);
+				end
 			end
 		end
 		
