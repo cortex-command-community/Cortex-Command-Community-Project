@@ -72,5 +72,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.executable_name.outputs.EXECUTABLE_NAME }}
-          path: D:/a/Cortex-Command-Community-Project/Cortex-Command-Community-Project/${{ steps.executable_name.outputs.EXECUTABLE_NAME }}
+          path: ${{ steps.executable_name.outputs.EXECUTABLE_NAME }}
           if-no-files-found: error
