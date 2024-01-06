@@ -6,13 +6,46 @@ on:
     - cron: "0 0 * * *"
 
 concurrency:
-  group: release-${{ github.ref_name }}
-  cancel-in-progress: true
+  group: nightly-${{ github.ref_name }}
+#   cancel-in-progress: true
+
+env:
+  PREV_TAG: nightly-prev
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  check-for-changes:
+    name: Determine if a new nightly build should be released
+    runs-on: ubuntu-latest
+
+    outputs:
+      needs_build: ${{ steps.check_build.outputs.needs_build }}
+
+    steps:
+      - name: Check if tags point to the same commit or if the workflow was manually triggered
+        id: check_build
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "Workflow dispatched manually. Continuing..."
+            echo "needs_build=true" >> $GITHUB_OUTPUT;
+          else
+            curr_sha=$(git rev-parse HEAD)
+            prev_sha=$(git rev-parse ${{ env.PREV_TAG }}}})
+
+            if [[ "$curr_sha" == "$prev_sha" ]]; then
+              echo "No changes since last nightly release. Exiting..."
+              echo "needs_build=false" >> $GITHUB_OUTPUT;
+            else
+              echo "Changes since last nightly release detected. Continuing..."
+              echo "needs_build=true" >> $GITHUB_OUTPUT;
+            fi
+          fi
+
   build-meson-releases:
     name: Linux & macOS Release Builds
+
+    needs: check-for-changes
+    if: needs.check-for-changes.outputs.needs_build == 'true'
 
     uses: ./.github/workflows/meson.yml
     with:
@@ -20,6 +53,9 @@ jobs:
 
   build-msbuild-releases:
     name: Windows Release Build
+
+    needs: check-for-changes
+    if: needs.check-for-changes.outputs.needs_build == 'true'
 
     uses: ./.github/workflows/msbuild.yml
     with:
@@ -34,6 +70,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: fetch tags
+        run: git fetch --tags origin
 
       - run: mkdir release
 
@@ -68,17 +107,67 @@ jobs:
           zip -r -u CortexCommand.linux.zip Data
           zip -r -u CortexCommand.macos.zip Data
 
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
+      - name: Get Date
+        id: get_date
+        run: |
+          echo "CURRENT_DATE=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+
+      - name: Check if a nightly release exists
+        id: check_nightly
+        run: |
+          gh release view nightly --repo ${{ github.repository }}
+          if [ $? -eq 0 ] ; then
+            echo "release_exists=true" >> $GITHUB_OUTPUT;
+          else
+            echo "release_exists=false" >> $GITHUB_OUTPUT;
+          fi
+        shell: bash
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          files: |
-            CortexCommand.windows.zip
-            CortexCommand.linux.zip
-            CortexCommand.macos.zip
-          tag_name: "nightly"
-          name: "Nightly Development Build"
-          prerelease: true
-          fail_on_unmatched_files: true
+
+      - name: Delete old nightly release if it exists
+        if: steps.check_nightly.outputs.release_exists
+        run: |
+          gh release delete nightly -y
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get commit SHA
+        id: get_commit_sha
+        if: steps.check_nightly.outputs.release_exists
+        run: |
+          prev_sha=$(git rev-parse nightly)
+          echo "prev_SHA=$prev_sha" >> $GITHUB_OUTPUT;
+
+      - name: Create previous nightly tag
+        if: steps.check_nightly.outputs.release_exists
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.WORKFLOW_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/git/refs \
+            -d '{
+              "ref": "refs/tags/${{ env.PREV_TAG }}",
+              "sha": "${{ steps.get_commit_sha.outputs.prev_SHA }}"
+            }'
+
+      - name: Remove previous nightly tag
+        if: steps.check_nightly.outputs.release_exists
+        run: |
+          git tag -d nightly
+          git push origin :refs/tags/nightly
+
+      - name: Create Release if it does not exist
+        id: create_release
+        run: |
+          gh release create nightly \
+            --title "Nightly Development Build (${{ steps.get_date.outputs.CURRENT_DATE }})" \
+            --generate-notes \
+            ${{steps.check_nightly.outputs.release_exists && format('--notes-start-tag {0}', env.PREV_TAG) || ''}} \
+            --prerelease \
+            'CortexCommand.windows.zip#Cortex Command [Nightly Build] (Windows Release)' \
+            'CortexCommand.linux.zip#Cortex Command [Nightly Build] (Linux Release)' \
+            'CortexCommand.macos.zip#Cortex Command [Nightly Build] (macOS Release)'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
