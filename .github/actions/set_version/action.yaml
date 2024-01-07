@@ -32,7 +32,7 @@ runs:
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
-        git add System/GameVersion.h meson.build
+        git add Source/System/GameVersion.h meson.build
         git commit -m "Update version" || echo "No changes to commit"
         git push
       env:
