@@ -26,6 +26,9 @@ on:
           - "release"
           - "minimal"
           - "full"
+      new_release_version:
+        type: string
+        required: false
 
   # Triggers the workflow when called by a top-level workflow
   workflow_call:
@@ -42,6 +45,9 @@ on:
         type: string
         required: false
         default: "release"
+      new_release_version:
+        type: string
+        required: false
 
 jobs:
   build-linux:
@@ -58,6 +64,12 @@ jobs:
           sudo apt-get update -yq
           sudo apt-get install --no-install-recommends wget liballegro4-dev libloadpng4-dev libflac++-dev luajit-5.1-dev liblua5.2-dev libminizip-dev liblz4-dev libpng++-dev libx11-dev libboost-dev libtbb-dev libsdl2-dev libsdl2-image-dev libopengl-dev libfuse2 ninja-build
           sudo pip install meson
+
+      - name: Set Version
+        if: ${{inputs.new_release_version}}
+        uses: ./.github/actions/set_version
+        with:
+          new_release_version: ${{inputs.new_release_version}}
 
       - name: Setup Meson
         env:
@@ -114,7 +126,7 @@ jobs:
   build-macos:
     runs-on: macos-11
     name: MacOS Build
-        
+
     env:
       GCC_VERSION: "13"
       MACOSX_DEPLOYMENT_TARGET: 10.15
@@ -124,8 +136,14 @@ jobs:
 
       - name: "Install Dependencies"
         uses: melusina-org/setup-macports@v1
-        with: 
-          parameters:  ".github/parameters/macports.yml"
+        with:
+          parameters: ".github/parameters/macports.yml"
+
+      - name: Set Version
+        if: ${{inputs.new_release_version}}
+        uses: ./.github/actions/set_version
+        with:
+          new_release_version: ${{inputs.new_release_version}}
 
       - name: Setup Meson
         env:
