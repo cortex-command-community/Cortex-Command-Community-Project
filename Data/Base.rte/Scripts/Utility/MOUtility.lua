@@ -18,6 +18,25 @@ function MOUtility:OnLoad(saveLoadHandler)
 	
 	print("INFO: MOUtility state loading...");
 	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("MOUtilitySaveTable");
+	
+	self.saveTable.originalGHBMOsMovableObjects = {};
+	self.saveTable.originalHMOsMovableObjects = {};
+	
+	-- match old uniqueid indexes to new uniqueid values, copying over old uniqueid's original value to a new entry using the new uniqueid
+	-- then delete old uniqueid index
+	-- try not to get confused...
+	for uniqueID, _ in pairs(self.saveTable.originalGHBMOs) do
+		if mo then
+			self.saveTable.originalGHBMOs[self.saveTable.originalGHBMOsMovableObjects[uniqueID].UniqueID] = self.saveTable.originalGHBMOs[uniqueID];
+		end
+	end
+	for uniqueID, _ in pairs(self.saveTable.originalHMOs) do
+		if mo then
+			self.saveTable.originalHMOs[self.saveTable.originalHMOsMovableObjects[uniqueID].UniqueID] = self.saveTable.originalHMOs[uniqueID];
+		end
+	end
+	self.saveTable.originalGHBMOsMovableObjects = {};
+	self.saveTable.originalHMOsMovableObjects = {};
 	print("INFO: MOUtility state loaded!");
 	
 end
@@ -25,7 +44,26 @@ end
 function MOUtility:OnSave(saveLoadHandler)
 	
 	print("INFO: MOUtility state saving...");
-	saveLoadHandler:SaveTableAsString("MOUtilitySaveTable", self.saveTable);	
+	
+	self.saveTable.originalGHBMOsMovableObjects = {};
+	self.saveTable.originalHMOsMovableObjects = {};
+	
+	-- turn uniqueids into mos
+	for uniqueID, _ in pairs(self.saveTable.originalGHBMOs) do
+		local mo = MovableMan:FindObjectByUniqueID(self.saveTable.originalGHBMOs[uniqueID]);
+		if mo then
+			self.saveTable.originalGHBMOsMovableObjects[uniqueID] = mo;
+		end
+	end
+	for uniqueID, _ in pairs(self.saveTable.originalHMOs) do
+		local mo = MovableMan:FindObjectByUniqueID(self.saveTable.originalHMOs[uniqueID]);
+		if mo then
+			self.saveTable.originalHMOsMovableObjects[uniqueID] = mo;
+		end
+	end
+	
+	saveLoadHandler:SaveTableAsString("MOUtilitySaveTable", self.saveTable);
+	
 	print("INFO: MOUtility state saved!");
 	
 end
