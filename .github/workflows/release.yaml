@@ -51,6 +51,7 @@ jobs:
         with:
           new_release_version: ${{ github.event.inputs.new_release_version}}
           commit_changes: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bundle release assets
         uses: ./.github/actions/bundle_release

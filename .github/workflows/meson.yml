@@ -70,6 +70,7 @@ jobs:
         uses: ./.github/actions/set_version
         with:
           new_release_version: ${{inputs.new_release_version}}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Meson
         env:
@@ -144,6 +145,7 @@ jobs:
         uses: ./.github/actions/set_version
         with:
           new_release_version: ${{inputs.new_release_version}}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Meson
         env:

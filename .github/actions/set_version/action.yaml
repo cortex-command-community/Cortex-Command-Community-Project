@@ -8,6 +8,9 @@ inputs:
     description: 'Whether to commit the changes or not'
     required: false
     default: "false"
+  github_token:
+    description: 'GitHub token'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -33,5 +36,5 @@ runs:
         git commit -m "Update version" || echo "No changes to commit"
         git push
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
 
