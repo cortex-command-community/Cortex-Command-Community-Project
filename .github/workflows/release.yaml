@@ -57,15 +57,15 @@ jobs:
 
       - name: Create a new Release
         run: |
-          gh release create ${{ github.event.inputs.new_release_version }} \
+          gh release create v${{ github.event.inputs.new_release_version }} \
             --title "Release ${{ github.event.inputs.new_release_version }}" \
             --generate-notes \
             --draft \
             ${{format('--notes-start-tag {0}', env.LATEST_TAG) || ''}} \
             --prerelease \
-            'CortexCommand.windows.zip#Cortex Command [${{ github.event.inputs.new_release_version }}] (Windows Release)' \
-            'CortexCommand.linux.zip#Cortex Command [${{ github.event.inputs.new_release_version }}] (Linux Release)' \
-            'CortexCommand.macos.zip#Cortex Command [${{ github.event.inputs.new_release_version }}] (macOS Release)'
+            'CortexCommand.windows.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (Windows Release)' \
+            'CortexCommand.linux.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (Linux Release)' \
+            'CortexCommand.macos.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (macOS Release)'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
