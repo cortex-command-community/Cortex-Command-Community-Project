@@ -28,11 +28,13 @@ function MOUtility:OnLoad(saveLoadHandler)
 	for uniqueID, _ in pairs(self.saveTable.originalGHBMOs) do
 		if mo then
 			self.saveTable.originalGHBMOs[self.saveTable.originalGHBMOsMovableObjects[uniqueID].UniqueID] = self.saveTable.originalGHBMOs[uniqueID];
+			self.saveTable.originalGHBMOs[uniqueID] = nil;
 		end
 	end
 	for uniqueID, _ in pairs(self.saveTable.originalHMOs) do
 		if mo then
 			self.saveTable.originalHMOs[self.saveTable.originalHMOsMovableObjects[uniqueID].UniqueID] = self.saveTable.originalHMOs[uniqueID];
+			self.saveTable.originalHMOs[uniqueID] = nil;
 		end
 	end
 	self.saveTable.originalGHBMOsMovableObjects = {};
