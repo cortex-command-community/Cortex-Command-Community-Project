@@ -77,5 +77,6 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/git/refs \
             -d '{
               "ref": "refs/tags/${{ env.LATEST_TAG }}",
-              "sha": "${{ github.sha }}"
+              "sha": "${{ github.sha }}",
+              "force": true
             }'
