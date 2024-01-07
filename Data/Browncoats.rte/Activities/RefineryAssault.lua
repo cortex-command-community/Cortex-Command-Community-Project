@@ -214,7 +214,6 @@ function RefineryAssault:StartActivity(newGame)
 	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 	
 	if newGame then
-	
 		self.saveTable = {};
 		
 		self.saveTable.activeDocks = {1, 2};

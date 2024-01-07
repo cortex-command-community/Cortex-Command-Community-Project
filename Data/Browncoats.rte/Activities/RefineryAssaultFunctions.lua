@@ -979,10 +979,14 @@ function RefineryAssault:SetupFirstStage()
 	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan2", cameraPos, 0.01, 6000, true, true, true);
 	
 	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan3").Center;
-	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan3", cameraPos, 0.01, 3500, true, true, true);	
+	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan3", cameraPos, 0.01, 3500, true, true, true);
 	
 	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan4").Center;
-	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true);	
+	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true);
+
+	if self:GetFogOfWarEnabled() then
+		self.HUDHandler:QueueFunctionCall(self.humanTeam, function() SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam); end);
+	end
 	
 	-- Disable all buy doors, not using them quite yet
 	

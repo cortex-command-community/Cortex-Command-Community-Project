@@ -184,12 +184,10 @@ function HUDHandler:DrawCinematicBars(team)
 
 end
 
-function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCancellable, cinematicBars, disableHUDFully)
-
+function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCancellable, cinematicBars, disableHUDFully, callback)
 	local cameraTable = {};
 	
 	if team and name and pos then
-		
 		cameraTable = {};
 		
 		cameraTable.Name = name;
@@ -199,7 +197,7 @@ function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCan
 		cameraTable.notCancellable = notCancellable or false;
 		cameraTable.cinematicBars = cinematicBars or false;
 		cameraTable.disableHUDFully = disableHUDFully or false;
-		
+		cameraTable.callback = callback;
 	else
 		print("ERROR: HUDHandler tried to add a camera pan event with no team, no name, or no position!");
 		return false;
@@ -220,6 +218,19 @@ function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCan
 	
 	return self.saveTable.teamTables[team].cameraQueue[#self.saveTable.teamTables[team].cameraQueue];
 	
+end
+
+function HUDHandler:QueueFunctionCall(team, func)
+	if team and func then
+		cameraTable = {};
+		cameraTable.callback = func;
+		table.insert(self.saveTable.teamTables[team].cameraQueue, cameraTable);
+	else
+		print("ERROR: HUDHandler tried to add a camera pan event with no team, no name, or no position!");
+		return false;
+	end
+
+	return self.saveTable.teamTables[team].cameraQueue[#self.saveTable.teamTables[team].cameraQueue];
 end
 
 function HUDHandler:GetCameraPanEventCount(team)
@@ -356,26 +367,22 @@ function HUDHandler:MakeObjectivePrimary(objTeam, objInternalName)
 end
 
 function HUDHandler:UpdateHUDHandler()
-
 	self.Activity:ClearObjectivePoints();
 
 	for team = 0, #self.saveTable.teamTables do
-	
-		local disableDrawingObjectives = false;
-	
-		-- Camera pan events
-		
 		local cameraTable = self.saveTable.teamTables[team].cameraQueue[1];
-		
+
 		if cameraTable then
-		
-			local pos = not cameraTable.Position.PresetName and cameraTable.Position or cameraTable.Position.Pos; -- severely ghetto mo check
-		
-			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
-				CameraMan:SetScrollTarget(pos, cameraTable.Speed, player);
-				self.Activity:SetViewState(Activity.OBSERVE, player);
-				if cameraTable.disableHUDFully then
-					FrameMan:SetHudDisabled(true, self.Activity:ScreenOfPlayer(player));
+			-- Camera pan events
+			if cameraTable.Position then
+				local pos = not cameraTable.Position.PresetName and cameraTable.Position or cameraTable.Position.Pos; -- severely ghetto mo check
+			
+				for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+					CameraMan:SetScrollTarget(pos, cameraTable.Speed, player);
+					self.Activity:SetViewState(Activity.OBSERVE, player);
+					if cameraTable.disableHUDFully then
+						FrameMan:SetHudDisabled(true, self.Activity:ScreenOfPlayer(player));
+					end
 				end
 			end
 			
@@ -384,7 +391,12 @@ function HUDHandler:UpdateHUDHandler()
 			end
 			
 			-- not ideal: anyone pressing any key can skip the panning event... but the alternatives are much more roundabout
-			if self.teamCameraTimers[team]:IsPastSimMS(cameraTable.holdTime) or (not cameraTable.notCancellable and UInputMan:AnyKeyPress()) then
+			if cameraTable.callback or self.teamCameraTimers[team]:IsPastSimMS(cameraTable.holdTime) or (not cameraTable.notCancellable and UInputMan:AnyKeyPress()) then
+				-- Callback functions
+				if cameraTable.callback then
+					cameraTable.callback();
+				end
+				
 				table.remove(self.saveTable.teamTables[team].cameraQueue, 1);
 				self.teamCameraTimers[team]:Reset();
 				if not self.saveTable.teamTables[team].cameraQueue[1] then
@@ -424,31 +436,23 @@ function HUDHandler:UpdateHUDHandler()
 		end
 		
 		-- Cinematic bars
-		
-		disableDrawingObjectives = self:DrawCinematicBars(team);
+		local disableDrawingObjectives = self:DrawCinematicBars(team);
 
 		-- Objectives
-		
 		if not PerformanceMan.ShowPerformanceStats == true and not disableDrawingObjectives then
-	
 			local skippedListings = 0;
 			local extraDescSpacing = 0;
 			for i, objTable in pairs(self.saveTable.teamTables[team].Objectives) do
 				local spectatorView = false;
 				for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
-
 					if objTable.showArrowOnlyOnSpectatorView == false or (self.Activity:GetViewState(player) == Activity.ACTORSELECT) then
 						spectatorView = true;
 					end
 					
 					if objTable.doNotShowInList then
-					
 						skippedListings = skippedListings + 1;
-							
 					else
-					
 						local spacing = (self.objListSpacing*(i-skippedListings));
-						
 						if ((i - skippedListings == 1) or objTable.showDescEvenWhenNotFirst) then
 							local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing + extraDescSpacing);
 							local pos = self:MakeRelativeToScreenPos(player, vec)
@@ -469,12 +473,10 @@ function HUDHandler:UpdateHUDHandler()
 				end
 				
 				-- c++ objectives are per team, not per player, so we can't do it per player yet...
-				
 				if objTable.Position and spectatorView then
 					local pos = not objTable.Position.PresetName and objTable.Position or objTable.Position.Pos; -- severely ghetto mo check
 					self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
 				end
-				
 			end
 		end
 	end

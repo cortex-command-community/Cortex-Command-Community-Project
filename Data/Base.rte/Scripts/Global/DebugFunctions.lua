@@ -63,6 +63,14 @@ function DebugFunctionsScript:UpdateScript()
 			end
 		end
 		
+		-- L to reveal all unseen areas
+		if UInputMan:KeyPressed(Key.L) then
+			SceneMan:RevealUnseenBox(0, 0, SceneMan.Scene.Width, SceneMan.Scene.Height, 0);
+			SceneMan:RevealUnseenBox(0, 0, SceneMan.Scene.Width, SceneMan.Scene.Height, 1);
+			SceneMan:RevealUnseenBox(0, 0, SceneMan.Scene.Width, SceneMan.Scene.Height, 2);
+			SceneMan:RevealUnseenBox(0, 0, SceneMan.Scene.Width, SceneMan.Scene.Height, 3);
+		end
+
 		-- I to toggle all brains unhittable and with frozen HP. Not fully invincible because that'd be code-intensive.
 		-- Does not play well with scripts that make all actors brains for obvious reasons.
 		if UInputMan:KeyPressed(Key.I) then
