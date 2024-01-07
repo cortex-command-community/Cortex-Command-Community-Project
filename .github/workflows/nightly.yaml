@@ -22,6 +22,12 @@ jobs:
       needs_build: ${{ steps.check_build.outputs.needs_build }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: fetch tags
+        run: git fetch --tags origin
+
       - name: Check if tags point to the same commit or if the workflow was manually triggered
         id: check_build
         run: |
