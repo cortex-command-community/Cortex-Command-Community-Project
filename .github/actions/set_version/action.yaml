@@ -15,7 +15,7 @@ runs:
   using: "composite"
   steps:
     - name: Set Constants.h GameVersion
-      run: sed -i -E '/c_GameVersion = /s/"[^"]*"/"${{inputs.new_release_version}}"/' System/Constants.h
+      run: sed -i -E '/c_VersionString = /s/"[^"]*"/"${{inputs.new_release_version}}"/' Source/System/GameVersion.h
       shell: bash
 
     - uses: actions/setup-python@v3
