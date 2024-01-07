@@ -967,6 +967,23 @@ function RefineryAssault:SetupFirstStage()
 	-- Unique function just to hide away init stuff - every other stage setup is immediately done upon completion of its
 	-- Monitor function
 	
+	-- Intro cinematics
+	
+	self.introTimer = Timer();
+	self.introLastRocketSpawnTime = 0;
+	
+	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan1").Center;
+	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan1", cameraPos, 1, 500, true, true, true);
+	
+	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan2").Center;
+	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan2", cameraPos, 0.01, 6000, true, true, true);
+	
+	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan3").Center;
+	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan3", cameraPos, 0.01, 3500, true, true, true);	
+	
+	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan4").Center;
+	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true);	
+	
 	-- Disable all buy doors, not using them quite yet
 	
 	for k, v in pairs(self.saveTable.buyDoorTables.All) do
@@ -986,11 +1003,11 @@ function RefineryAssault:SetupFirstStage()
 	taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 	local task = self.tacticsHandler:AddTask("Search And Destroy", self.humanTeam, taskArea, "PatrolArea", 10);
 	
-	local squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
+	local squad = self:SendDockDelivery(self.humanTeam, task, true, "Elite");
 	
 	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	
-	squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
+	squad = self:SendDockDelivery(self.humanTeam, task, true, "Elite");
 	
 	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	
@@ -1030,7 +1047,7 @@ function RefineryAssault:SetupFirstStage()
 	self.saveTable.stage1InitialDropship = dropShip;
 	
 	MovableMan:AddActor(dropShip)
-	dropShip:OpenHatch();
+	--dropShip:OpenHatch();
 	
 	-- HUD handler listed objective
 	
@@ -1053,6 +1070,20 @@ end
 
 function RefineryAssault:MonitorStage1()
 
+	if not self.introTimer:IsPastSimMS(2000) then
+		if self.introTimer:IsPastSimMS(self.introLastRocketSpawnTime + 100) then
+			self.introLastRocketSpawnTime = self.introTimer.ElapsedSimTimeMS;
+			local particle = CreateAEmitter("Particle Rocket Launcher", "Base.rte");
+			particle.Pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroRocketSpawns").RandomPoint;
+			particle.Vel = Vector(math.random(-5, 5), -70);
+			particle.RotAngle = math.pi/2;
+			particle.Team = self.humanTeam;
+			MovableMan:AddParticle(particle);
+			particle:EnableEmission(true);
+		end
+	end
+		
+
 	-- Send away the initial dropship once it's empty
 	if self.saveTable.stage1InitialDropship then
 		local craft = self.saveTable.stage1InitialDropship;
@@ -1073,6 +1104,8 @@ function RefineryAssault:MonitorStage1()
 				craft.AIMode = Actor.AIMODE_GOTO;
 				craft:CloseHatch();
 				self.saveTable.stage1InitialDropshipToReturn = true;
+			elseif self.introTimer:IsPastSimMS(8000) then
+				craft:OpenHatch();
 			end
 		end
 	end

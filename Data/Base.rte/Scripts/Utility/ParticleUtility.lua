@@ -39,7 +39,7 @@ function ParticleUtility:CreateDirectionalSmokeEffect(positionOrFullTable, sourc
 			spread = 15;
 		end
 		if not widthspread then
-			widthspread = 3;
+			widthspread = 1;
 		end
 		if not smokeMult then
 			smokeMult = 1;

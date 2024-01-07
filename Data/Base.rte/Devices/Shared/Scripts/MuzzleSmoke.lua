@@ -14,14 +14,13 @@ function Create(self)
 	end
 	
 	self.muzzleSmokeVel = math.sqrt(self.muzzleSmokeSize) * 5;
-	self.muzzleSmokeSpread = (self.ShakeRange + self.SharpShakeRange) * 0.5 + (self.muzzleSmokeVel + self.ParticleSpreadRange) * 0.5;
 	
 	self.fireSmokeEffect = {};
 	self.fireSmokeEffect.Position = self.MuzzlePos;
 	self.fireSmokeEffect.Source = self;
 	self.fireSmokeEffect.RadAngle = self.RotAngle;
 	self.fireSmokeEffect.Power = self.muzzleSmokeSize;
-	self.fireSmokeEffect.Spread = (self.ShakeRange + self.SharpShakeRange) * 0.5 + (self.muzzleSmokeVel + self.ParticleSpreadRange) * 0.5;
+	self.fireSmokeEffect.Spread = (self.ShakeRange + self.SharpShakeRange) * 0.5 + self.ParticleSpreadRange;
 	self.fireSmokeEffect.SmokeMult = 1;
 	self.fireSmokeEffect.ExploMult = 1;
 	self.fireSmokeEffect.WidthSpread = 1;

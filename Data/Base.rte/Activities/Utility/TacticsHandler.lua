@@ -33,6 +33,8 @@ function TacticsHandler:Initialize(activity, newGame, minimumSquadActorCount, ma
 	
 	self.teamToCheckNext = 0;
 	
+	self.debugTextDisabled = true;
+	
 	if not minimumSquadActorCount then
 		minimumSquadActorCount = 2;
 	end

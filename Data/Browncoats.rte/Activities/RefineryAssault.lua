@@ -100,10 +100,10 @@ function RefineryAssault:UpdateFunds()
 				pos.Y = pos.Y + yOffset
 				
 				local textPos = Vector(pos.X, pos.Y - 20);
-				PrimitiveMan:DrawTextPrimitive(textPos, "aiteam: " .. tostring(aiTeamFunds), false, 1)
+				--PrimitiveMan:DrawTextPrimitive(textPos, "aiteam: " .. tostring(aiTeamFunds), false, 1)
 				
 				local textPos = Vector(pos.X - 100, pos.Y - 20);
-				PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
+				--PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
 
 				
 			end
@@ -175,6 +175,10 @@ function RefineryAssault:StartActivity(newGame)
 	
 	self.HUDHandler = require("Activities/Utility/HUDHandler");
 	self.HUDHandler:Initialize(self, newGame, self.verboseLogging);
+	
+	self.particleUtility = require("Scripts/Utility/ParticleUtility");
+	
+	self.MOUtility = require("Scripts/Utility/MOUtility");	
 	
 	-- Stage stuff
 	
@@ -391,6 +395,8 @@ function RefineryAssault:ResumeLoadedGame()
 	self.deliveryCreationHandler:OnLoad(self.saveLoadHandler);
 	self.HUDHandler:OnLoad(self.saveLoadHandler);
 	
+	self.MOUtility:OnLoad(self.saveLoadHandler);
+	
 	self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
 		
 end
@@ -398,7 +404,6 @@ end
 function RefineryAssault:OnSave()
 	
 	self.saveLoadHandler:SaveTableAsString("saveTable", self.saveTable);
-	
 	
 	self:SaveNumber("stage", self.Stage);
 
@@ -416,6 +421,8 @@ function RefineryAssault:OnSave()
 	self.buyDoorHandler:OnSave(self.saveLoadHandler);
 	self.deliveryCreationHandler:OnSave(self.saveLoadHandler);
 	self.HUDHandler:OnSave(self.saveLoadHandler);
+	
+	self.MOUtility:OnSave(self.saveLoadHandler);
 	
 end
 
@@ -504,6 +511,18 @@ function RefineryAssault:UpdateActivity()
 		if not door or not MovableMan:ValidMO(door) then
 		else
 			ToADoor(door):ResetSensorTimer();
+		end
+	end
+	
+	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) > 0 and not self.brainsInvincible then
+		self.brainsInvincible = true;
+		for k, brain in pairs(self.saveTable.playerBrains) do
+			self.MOUtility:SetMOUnhittable(brain, true);
+		end
+	elseif self.brainsInvincible and self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
+		self.brainsInvincible = false;
+		for k, brain in pairs(self.saveTable.playerBrains) do
+			self.MOUtility:SetMOUnhittable(brain, false);
 		end
 	end
 	
