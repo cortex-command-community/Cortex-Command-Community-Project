@@ -251,7 +251,7 @@ function ThreadedUpdate(self)
 	end
 	
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
-		for actor in MovableMan:GetMOsInRadius(self.Pos, self.detectRange) do
+		for actor in MovableMan:GetMOsInRadius(self.Pos, self.detectRange, -1, false) do
 			if (not self.closeActorTable[actor.UniqueID]) and IsAHuman(actor) or IsACrab(actor) then
 				actor = ToActor(actor);
 				-- nearby enemies disable use

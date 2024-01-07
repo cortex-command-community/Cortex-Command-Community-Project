@@ -2,9 +2,13 @@ function DebugFunctionsScript:StartScript()
 	
 	self.Activity = ToGameActivity(ActivityMan:GetActivity());
 	
+	self.MOUtility = require("Scripts/Utility/MOUtility");	
+	
 end
 
 function DebugFunctionsScript:UpdateScript()
+
+	self.MOUtility:Update();
 
 	-- Space + F to enter edit mode at any point
 	if UInputMan:KeyPressed(Key.F) and UInputMan:KeyHeld(Key.SPACE) then
@@ -57,6 +61,19 @@ function DebugFunctionsScript:UpdateScript()
 					actor.ToDelete = true 
 				end 
 			end
+		end
+		
+		-- I to toggle all brains unhittable and with frozen HP. Not fully invincible because that'd be code-intensive.
+		-- Does not play well with scripts that make all actors brains for obvious reasons.
+		if UInputMan:KeyPressed(Key.I) then
+			local unhittable;
+			for actor in MovableMan.Actors do
+				if actor:IsInGroup("Brains") then
+					unhittable = self.MOUtility:SetMOUnhittable(actor);
+					self.MOUtility:SetFreezeActorHP(actor);
+				end
+			end
+			print("INFO: DebugFunctions: All brains invincible is: " .. tostring(unhittable));
 		end
 	
 		-- Team switch controlled actor: Keypad 1 is team -1, incremental

@@ -505,6 +505,9 @@ function RefineryAssault:UpdateActivity()
 	
 	self.HUDHandler:UpdateHUDHandler();
 	
+	-- Update MOUtility not needed yet
+	
+	--self.MOUtility:Update();
 	
 
 	for k, door in pairs(self.saveTable.doorsToConstantlyReset) do
@@ -575,14 +578,14 @@ function RefineryAssault:UpdateActivity()
 	
 	if debugTrigger then
 	
-		self:SendDockDelivery(self.humanTeam, false);
+		--self:SendDockDelivery(self.humanTeam, false);
 		print("tried dropship")
 		
 	end
 	
 	if debugRocketTrigger then
 	
-		self:SendDockDelivery(self.humanTeam, true);
+		--self:SendDockDelivery(self.humanTeam, true);
 		print("triedrocket")
 		
 	end	
