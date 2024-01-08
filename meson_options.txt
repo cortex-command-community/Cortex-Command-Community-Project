@@ -1,5 +1,4 @@
 option('debug_type', type: 'combo', choices: ['full','minimal','release'], value:'minimal', description: 'Enable certain Debug features, that might slow down the game')
-option('cccpdatadir', type:'string', value:'.', description: 'Path to the Cortex Command Data Repository')
 option('data_install_dir', type:'string', value:'share/CortexCommand', description: 'Where to install the data files relative to prefix directory')
 option('install_fmod', type:'boolean', value: true, description: 'Wether to install the fmod library.')
 option('fmod_dir', type:'string', value:'lib/CortexCommand/', description: 'Where to install the fmod library relative to prefix directory.')
