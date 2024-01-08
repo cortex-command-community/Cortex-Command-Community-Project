@@ -71,12 +71,10 @@ jobs:
 
       - name: Update latest tag
         run: |
-          curl -X POST \
+          curl -X PATCH \
             -H "Authorization: Bearer ${{ secrets.WORKFLOW_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/git/refs \
+            https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${{ env.LATEST_TAG }} \
             -d '{
-              "ref": "refs/tags/${{ env.LATEST_TAG }}",
               "sha": "${{ github.sha }}",
-              "force": true
             }'
