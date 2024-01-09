@@ -1106,7 +1106,7 @@ namespace RTE {
 				g_ThreadMan.GetPriorityThreadPool().submit([luaState]() {
 					ZoneScopedN("Lua Garbage Collection");
 					std::lock_guard<std::recursive_mutex> lock(luaState->GetMutex());
-					lua_gc(luaState->GetLuaState(), LUA_GCSTEP, 30);
+					lua_gc(luaState->GetLuaState(), LUA_GCCOLLECT, 0); // we'd use GCSTEP but fuck lua it's trash
 					lua_gc(luaState->GetLuaState(), LUA_GCSTOP, 0);
 				})
 			);
