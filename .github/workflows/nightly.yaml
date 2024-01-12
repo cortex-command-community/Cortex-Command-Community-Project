@@ -36,7 +36,7 @@ jobs:
             echo "needs_build=true" >> $GITHUB_OUTPUT;
           else
             curr_sha=$(git rev-parse HEAD)
-            prev_sha=$(git rev-parse ${{ env.PREV_TAG }}}})
+            prev_sha=$(git rev-parse ${{ env.PREV_TAG }})
 
             if [[ "$curr_sha" == "$prev_sha" ]]; then
               echo "No changes since last nightly release. Exiting..."
