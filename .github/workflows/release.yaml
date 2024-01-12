@@ -60,6 +60,7 @@ jobs:
             --title "Release ${{ github.event.inputs.new_release_version }}" \
             --generate-notes \
             --draft \
+            --target ${{ github.ref_name }} \
             ${{format('--notes-start-tag {0}', env.LATEST_TAG) || ''}} \
             'CortexCommand.windows.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (Windows Release)' \
             'CortexCommand.linux.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (Linux Release)' \
@@ -82,7 +83,8 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${{ env.LATEST_TAG }} \
             -d '{
-              "sha": "$RELEASE_COMMIT",
+              "sha": "'"$RELEASE_COMMIT"'",
+              "ref": "${{ github.ref }}"
             }'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
