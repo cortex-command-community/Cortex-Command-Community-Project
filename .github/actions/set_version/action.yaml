@@ -4,13 +4,6 @@ inputs:
   new_release_version: 
     description: 'The new version string'
     required: true
-  commit_changes:
-    description: 'Whether to commit the changes or not'
-    required: false
-    default: "false"
-  github_token:
-    description: 'GitHub token'
-    required: true
 runs:
   using: "composite"
   steps:
@@ -25,16 +18,3 @@ runs:
         pip install meson
         meson rewrite kwargs set project // version ${{ inputs.new_release_version }}
       shell: bash
-
-    - name: Commit and push Version Changes
-      if: ${{ inputs.commit_changes == 'true' }}
-      shell: bash
-      run: |
-        git config --global user.email "action@github.com"
-        git config --global user.name "GitHub Action"
-        git add Source/System/GameVersion.h meson.build
-        git commit -m "Update version" || echo "No changes to commit"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
-

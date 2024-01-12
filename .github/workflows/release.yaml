@@ -50,8 +50,6 @@ jobs:
         uses: ./.github/actions/set_version
         with:
           new_release_version: ${{ github.event.inputs.new_release_version}}
-          commit_changes: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bundle release assets
         uses: ./.github/actions/bundle_release
@@ -68,6 +66,17 @@ jobs:
             'CortexCommand.macos.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (macOS Release)'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push Version Changes
+        shell: bash
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add Source/System/GameVersion.h meson.build
+          git commit -m "Release v${{ inputs.new_release_version }}" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
 
       - name: Update latest tag
         run: |
