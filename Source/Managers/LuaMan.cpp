@@ -80,7 +80,8 @@ namespace RTE {
 				.def("DirectoryCreate", &LuaStateWrapper::DirectoryCreate2)
 				.def("DirectoryRemove", &LuaStateWrapper::DirectoryRemove1)
 				.def("DirectoryRemove", &LuaStateWrapper::DirectoryRemove2)
-				.def("Rename", &LuaStateWrapper::Rename)
+				.def("FileRename", &LuaStateWrapper::FileRename)
+				.def("DirectoryRename", &LuaStateWrapper::DirectoryRename)
 				.def("FileReadLine", &LuaStateWrapper::FileReadLine)
 				.def("FileWriteLine", &LuaStateWrapper::FileWriteLine)
 				.def("FileEOF", &LuaStateWrapper::FileEOF),
@@ -294,7 +295,8 @@ namespace RTE {
 	bool LuaStateWrapper::DirectoryCreate2(const std::string& path, bool recursive) { return g_LuaMan.DirectoryCreate(path, recursive); }
 	bool LuaStateWrapper::DirectoryRemove1(const std::string& path) { return g_LuaMan.DirectoryRemove(path, false); }
 	bool LuaStateWrapper::DirectoryRemove2(const std::string& path, bool recursive) { return g_LuaMan.DirectoryRemove(path, recursive); }
-	bool LuaStateWrapper::Rename(const std::string& oldPath, const std::string& newPath) { return g_LuaMan.Rename(oldPath, newPath); }
+	bool LuaStateWrapper::FileRename(const std::string& oldPath, const std::string& newPath) { return g_LuaMan.FileRename(oldPath, newPath); }
+	bool LuaStateWrapper::DirectoryRename(const std::string& oldPath, const std::string& newPath) { return g_LuaMan.DirectoryRename(oldPath, newPath); }
 	std::string LuaStateWrapper::FileReadLine(int fileIndex) { return g_LuaMan.FileReadLine(fileIndex); }
 	void LuaStateWrapper::FileWriteLine(int fileIndex, const std::string& line) { return g_LuaMan.FileWriteLine(fileIndex, line); }
 	bool LuaStateWrapper::FileEOF(int fileIndex) { return g_LuaMan.FileEOF(fileIndex); }
@@ -1192,7 +1194,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaMan::Rename(const std::string& oldPath, const std::string& newPath) {
+	bool LuaMan::FileRename(const std::string& oldPath, const std::string& newPath) {
 		std::string fullOldPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(oldPath);
 		std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
 		if (IsValidModulePath(fullOldPath) && IsValidModulePath(fullNewPath)) {
@@ -1202,7 +1204,31 @@ namespace RTE {
 #endif
 			// Ensures parity between Linux which can overwrite an empty directory, while Windows can't
 			// Ensures parity between Linux which can't rename a directory to a newPath that is a file in order to overwrite it, while Windows can
-			if (!std::filesystem::exists(fullNewPath))
+			if (std::filesystem::is_regular_file(fullOldPath) && !std::filesystem::exists(fullNewPath))
+			{
+				try {
+					std::filesystem::rename(fullOldPath, fullNewPath);
+					return true;
+				} catch (const std::filesystem::filesystem_error &e) {}
+			}
+		}
+		g_ConsoleMan.PrintString("ERROR: Failed to rename oldPath " + oldPath + " to newPath " + newPath);
+		return false;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaMan::DirectoryRename(const std::string& oldPath, const std::string& newPath) {
+		std::string fullOldPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(oldPath);
+		std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
+		if (IsValidModulePath(fullOldPath) && IsValidModulePath(fullNewPath)) {
+#ifndef _WIN32
+			fullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
+			fullNewPath = GetCaseInsensitiveFullPath(fullNewPath);
+#endif
+			// Ensures parity between Linux which can overwrite an empty directory, while Windows can't
+			// Ensures parity between Linux which can't rename a directory to a newPath that is a file in order to overwrite it, while Windows can
+			if (std::filesystem::is_directory(fullOldPath) && !std::filesystem::exists(fullNewPath))
 			{
 				try {
 					std::filesystem::rename(fullOldPath, fullNewPath);

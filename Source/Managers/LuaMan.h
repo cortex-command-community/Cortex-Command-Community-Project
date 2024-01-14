@@ -299,7 +299,8 @@ namespace RTE {
 		bool DirectoryCreate2(const std::string& path, bool recursive);
 		bool DirectoryRemove1(const std::string& path);
 		bool DirectoryRemove2(const std::string& path, bool recursive);
-		bool Rename(const std::string& oldPath, const std::string& newPath);
+		bool FileRename(const std::string& oldPath, const std::string& newPath);
+		bool DirectoryRename(const std::string& oldPath, const std::string& newPath);
 		std::string FileReadLine(int fileIndex);
 		void FileWriteLine(int fileIndex, const std::string& line);
 		bool FileEOF(int fileIndex);
@@ -525,14 +526,24 @@ namespace RTE {
 		bool DirectoryRemove(const std::string &path, bool recursive);
 
 		/// <summary>
-		/// Moves or renames the filesystem object oldPath to newPath.
+		/// Moves or renames the file oldPath to newPath.
 		/// In order to get consistent behavior across Windows and Linux across all 4 combinations of oldPath and newPath being a directory/file,
 		/// the newPath isn't allowed to already exist.
 		/// </summary>
 		/// <param name="oldPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <param name="newPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <returns>Whether or not renaming succeeded.</returns>
-		bool Rename(const std::string &oldPath, const std::string &newPath);
+		bool FileRename(const std::string &oldPath, const std::string &newPath);
+
+		/// <summary>
+		/// Moves or renames the directory oldPath to newPath.
+		/// In order to get consistent behavior across Windows and Linux across all 4 combinations of oldPath and newPath being a directory/file,
+		/// the newPath isn't allowed to already exist.
+		/// </summary>
+		/// <param name="oldPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <param name="newPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
+		/// <returns>Whether or not renaming succeeded.</returns>
+		bool DirectoryRename(const std::string &oldPath, const std::string &newPath);
 
 		/// <summary>
 		/// Reads a line from a file.
