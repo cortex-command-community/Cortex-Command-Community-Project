@@ -1,0 +1,90 @@
+name: Build and Release
+# Controls when the action will run.
+on:
+  workflow_dispatch:
+    inputs:
+      new_release_version:
+        description: "New version number to release"
+        type: string
+        required: true
+
+concurrency:
+  group: release-${{ github.ref_name }}
+
+env:
+  LATEST_TAG: latest
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build-meson-releases:
+    name: Linux & macOS Release Builds
+
+    uses: ./.github/workflows/meson.yml
+    with:
+      upload_artefacts: true
+      new_release_version: ${{ github.event.inputs.new_release_version }}
+
+  build-msbuild-releases:
+    name: Windows Release Build
+
+    uses: ./.github/workflows/msbuild.yml
+    with:
+      upload_artefacts: true
+      new_release_version: ${{ github.event.inputs.new_release_version }}
+
+  release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+
+    needs: [build-msbuild-releases, build-meson-releases]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: fetch tags
+        run: git fetch --tags origin
+
+      - name: Set Version
+        if: ${{ github.event.inputs.new_release_version}}
+        uses: ./.github/actions/set_version
+        with:
+          new_release_version: ${{ github.event.inputs.new_release_version}}
+
+      - name: Bundle release assets
+        uses: ./.github/actions/bundle_release
+
+      - name: Create a new Release
+        run: |
+          gh release create v${{ github.event.inputs.new_release_version }} \
+            --title "Release ${{ github.event.inputs.new_release_version }}" \
+            --generate-notes \
+            --draft \
+            --target ${{ github.ref_name }} \
+            ${{format('--notes-start-tag {0}', env.LATEST_TAG) || ''}} \
+            'CortexCommand.windows.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (Windows Release)' \
+            'CortexCommand.linux.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (Linux Release)' \
+            'CortexCommand.macos.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (macOS Release)'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push Version Changes and Update latest tag
+        shell: bash
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add Source/System/GameVersion.h meson.build
+          git commit -m "Release v${{ inputs.new_release_version }}" || echo "No changes to commit"
+          git push
+
+          RELEASE_COMMIT=$(git rev-parse HEAD)
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.WORKFLOW_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${{ env.LATEST_TAG }} \
+            -d '{
+              "sha": "'"$RELEASE_COMMIT"'",
+              "ref": "${{ github.ref }}"
+            }'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}

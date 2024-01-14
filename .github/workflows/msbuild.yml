@@ -19,6 +19,9 @@ on:
           - "Debug Release"
           - "Debug Minimal"
           - "Debug Full"
+      new_release_version:
+        type: string
+        required: false
 
   # Triggers the workflow when called by a top-level workflow
   workflow_call:
@@ -31,7 +34,9 @@ on:
         type: string
         required: false
         default: "Final"
-
+      new_release_version:
+        type: string
+        required: false
 env:
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: RTEA.sln
@@ -53,6 +58,13 @@ jobs:
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1
+
+      - name: Set Version
+        if: ${{inputs.new_release_version}}
+        uses: ./.github/actions/set_version
+        with:
+          new_release_version: ${{inputs.new_release_version}}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
         working-directory: ${{env.GITHUB_WORKSPACE}}
