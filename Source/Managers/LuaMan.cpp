@@ -1200,10 +1200,15 @@ namespace RTE {
 			fullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
 			fullNewPath = GetCaseInsensitiveFullPath(fullNewPath);
 #endif
-			try {
-				std::filesystem::rename(fullOldPath, fullNewPath);
-				return true;
-			} catch (const std::filesystem::filesystem_error &e) {}
+			// Ensures parity between Linux which can overwrite an empty directory, while Windows can't
+			// Ensures parity between Linux which can't rename a directory to a newPath that is a file in order to overwrite it, while Windows can
+			if (!std::filesystem::exists(fullNewPath))
+			{
+				try {
+					std::filesystem::rename(fullOldPath, fullNewPath);
+					return true;
+				} catch (const std::filesystem::filesystem_error &e) {}
+			}
 		}
 		g_ConsoleMan.PrintString("ERROR: Failed to rename oldPath " + oldPath + " to newPath " + newPath);
 		return false;
