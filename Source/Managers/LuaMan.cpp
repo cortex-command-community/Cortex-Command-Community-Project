@@ -952,7 +952,7 @@ namespace RTE {
 #ifndef _WIN32
 				fullPath = *caseInsensitiveFullPath;
 #endif
-				for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(fullPath) {
+				for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(fullPath)) {
 					if (directoryEntry.is_directory()) { directoryPaths->emplace_back(directoryEntry.path().filename().generic_string()); }
 				}
 			}
@@ -975,7 +975,7 @@ namespace RTE {
 #ifndef _WIN32
 				fullPath = *caseInsensitiveFullPath;
 #endif
-				for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(fullPath) {
+				for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(fullPath)) {
 					if (directoryEntry.is_regular_file()) { filePaths->emplace_back(directoryEntry.path().filename().generic_string()); }
 				}
 			}
@@ -1056,7 +1056,7 @@ namespace RTE {
 			}
 		}
 
-		return std::optional<std::string>(inspectedPath);
+		return std::optional<std::string>(inspectedPath.generic_string());
 	}
 
 	int LuaMan::FileOpen(const std::string &path, const std::string &accessMode) {
@@ -1171,46 +1171,42 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			// TODO: The goal here is to return the same fullPath,
+			// The goal here is to return the same fullPath,
 			// but with the parent directories given the real filesys casing
-			//
-			// 1. There is no way for this lambda to fail
-			// 1. Account for the `recursive` argument of this fn
-			// 2. Let a lambda true if a parent directory has to be created,
-			// since create_directory() will return false for us in that case
-			auto caseInsensitiveFullPath = [&fullPath]() -> auto {
-				// std::filesystem::path inspectedPath = System::GetWorkingDirectory();
-				// const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
+			std::string caseInsensitiveFullPath = [&fullPath]() -> std::string {
+				std::filesystem::path inspectedPath = System::GetWorkingDirectory();
+				const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
 
-				// // Iterate over all path parts
-				// for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
-				// 	bool pathPartExists = false;
+				// Iterate over all path parts
+				for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
+					bool pathPartExists = false;
 
-				// 	// Iterate over all entries in the path part's directory,
-				// 	// to check if the path part is in there case insensitively
-				// 	for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
-				// 		if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), relativeFilePathIterator->generic_string())) {
-				// 			inspectedPath = filesystemEntryPath;
+					// Iterate over all entries in the path part's directory,
+					// to check if the path part is in there case insensitively
+					for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
+						if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), relativeFilePathIterator->generic_string())) {
+							inspectedPath = filesystemEntryPath;
 
-				// 			// If the path part is found, stop looking for it
-				// 			pathPartExists = true;
-				// 			break;
-				// 		}
-				// 	}
+							// If the path part is found, stop looking for it
+							pathPartExists = true;
+							break;
+						}
+					}
 
-				// 	if (!pathPartExists) {
-				// 		// If this is the last part, then all directories in relativeFilePath exist, but the file doesn't
-				// 		if (std::next(relativeFilePathIterator) == relativeFilePath.end()) {
-				// 			return fopen((inspectedPath / relativeFilePath.filename()).generic_string().c_str(), accessMode.c_str());
-				// 		}
+					if (!pathPartExists) {
+						// If part of the path exists, append the rest of fullPath its parts
+						relativeFilePathIterator++;
+						while (relativeFilePathIterator != relativeFilePath.end()) {
+							inspectedPath += "/" + relativeFilePathIterator->generic_string();
+							relativeFilePathIterator++;
+						}
 
-				// 		// Some directory in relativeFilePath doesn't exist, so the file can't be created
-				// 		return nullptr;
-				// 	}
-				// }
+						return inspectedPath;
+					}
+				}
 
-				// // If the file exists, open it
-				// return fopen(inspectedPath.generic_string().c_str(), accessMode.c_str());
+				// If the entire path exists
+				return inspectedPath;
 			}();
 			if (caseInsensitiveFullPath)
 #endif
