@@ -526,6 +526,8 @@ namespace RTE {
 
 		/// <summary>
 		/// Moves or renames the filesystem object oldPath to newPath.
+		/// In order to get consistent behavior across Windows and Linux across all 4 combinations of oldPath and newPath being a directory/file,
+		/// the newPath isn't allowed to already exist.
 		/// </summary>
 		/// <param name="oldPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <param name="newPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
