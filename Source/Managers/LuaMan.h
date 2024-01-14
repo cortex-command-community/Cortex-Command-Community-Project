@@ -443,8 +443,8 @@ namespace RTE {
 		/// The real path is used by the Lua file I/O handling methods to ensure full Windows compatibility.
 		/// </summary>
 		/// <param name="fullPath">Path to case-insensitively translate to a real path.</param>
-		/// <returns>An optional that contains the real path, if it existed.</returns>
-		std::optional<std::string> GetCaseInsensitiveFullPath(const std::string &fullPath);
+		/// <returns>The real path. If the path doesn't exist, it returns the fullPath argument with all the existing parent directories correctly capitalized.</returns>
+		std::string GetCaseInsensitiveFullPath(const std::string &fullPath);
 
 		/// <summary>
 		/// Returns a vector of all the directories in path, which is relative to the working directory.

@@ -940,7 +940,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: Ask Causeless whether this is an appropriate spot for this method
-	std::optional<std::string> LuaMan::GetCaseInsensitiveFullPath(const std::string &fullPath) {
+	std::string LuaMan::GetCaseInsensitiveFullPath(const std::string &fullPath) {
 		std::filesystem::path inspectedPath = System::GetWorkingDirectory();
 		const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
 
@@ -961,16 +961,16 @@ namespace RTE {
 			}
 
 			if (!pathPartExists) {
-				// TODO: This should return the same thing DirectoryCreate() does,
-				// where it just appends the rest of fullPath.
-				// This way it's the responsibility of the caller to use std::filestem::exists(),
-				// which allows DirectoryCreate() and Rename() to call this function too,
-				// since they allow the fullPath and newPath argument to not exist yet.
-				return NOTasdstd::nullopt;
+				// If part of the path exists, append the rest of fullPath its parts
+				while (relativeFilePathIterator != relativeFilePath.end()) {
+					inspectedPath /= relativeFilePathIterator->generic_string();
+					relativeFilePathIterator++;
+				}
+				break;
 			}
 		}
 
-		return std::optional<std::string>(inspectedPath.generic_string());
+		return inspectedPath.generic_string();
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -981,13 +981,10 @@ namespace RTE {
 
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
-			if (caseInsensitiveFullPath)
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
+			if (std::filesystem::exists(fullPath))
 			{
-#ifndef _WIN32
-				fullPath = *caseInsensitiveFullPath;
-#endif
 				for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(fullPath)) {
 					if (directoryEntry.is_directory()) { directoryPaths->emplace_back(directoryEntry.path().filename().generic_string()); }
 				}
@@ -1004,13 +1001,10 @@ namespace RTE {
 
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
-			if (caseInsensitiveFullPath)
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
+			if (std::filesystem::exists(fullPath))
 			{
-#ifndef _WIN32
-				fullPath = *caseInsensitiveFullPath;
-#endif
 				for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(fullPath)) {
 					if (directoryEntry.is_regular_file()) { filePaths->emplace_back(directoryEntry.path().filename().generic_string()); }
 				}
@@ -1025,15 +1019,9 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
-			if (caseInsensitiveFullPath)
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
-			{
-#ifndef _WIN32
-				fullPath = *caseInsensitiveFullPath;
-#endif
-				return std::filesystem::is_regular_file(fullPath);
-			}
+			return std::filesystem::is_regular_file(fullPath);
 		}
 		return false;
 	}
@@ -1044,15 +1032,9 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
-			if (caseInsensitiveFullPath)
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
-			{
-#ifndef _WIN32
-				fullPath = *caseInsensitiveFullPath;
-#endif
-				return std::filesystem::is_directory(fullPath);
-			}
+			return std::filesystem::is_directory(fullPath);
 		}
 		return false;
 	}
@@ -1156,16 +1138,10 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
-			if (caseInsensitiveFullPath)
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
-			{
-#ifndef _WIN32
-				fullPath = *caseInsensitiveFullPath;
-#endif
-				if (std::filesystem::is_regular_file(fullPath)) {
-					return std::filesystem::remove(fullPath);
-				}
+			if (std::filesystem::is_regular_file(fullPath)) {
+				return std::filesystem::remove(fullPath);
 			}
 		}
 		g_ConsoleMan.PrintString("ERROR: Failed to remove file " + path);
@@ -1178,49 +1154,15 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			// The goal here is to return the same fullPath,
-			// but with the parent directories given the real filesys casing
-			std::filesystem::path inspectedPath = System::GetWorkingDirectory();
-			const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
-
-			// Iterate over all path parts
-			for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
-				bool pathPartExists = false;
-
-				// Iterate over all entries in the path part's directory,
-				// to check if the path part is in there case insensitively
-				for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
-					if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), relativeFilePathIterator->generic_string())) {
-						inspectedPath = filesystemEntryPath;
-
-						// If the path part is found, stop looking for it
-						pathPartExists = true;
-						break;
-					}
-				}
-
-				if (!pathPartExists) {
-					// If part of the path exists, append the rest of fullPath its parts
-					while (relativeFilePathIterator != relativeFilePath.end()) {
-						inspectedPath /= relativeFilePathIterator->generic_string();
-						relativeFilePathIterator++;
-					}
-
-					break;
-				}
-			}
-
-			fullPath = inspectedPath;
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
-			{
-				try {
-					if (recursive) {
-						return std::filesystem::create_directories(fullPath);
-					} else {
-						return std::filesystem::create_directory(fullPath);
-					}
-				} catch (const std::filesystem::filesystem_error &e) {}
-			}
+			try {
+				if (recursive) {
+					return std::filesystem::create_directories(fullPath);
+				} else {
+					return std::filesystem::create_directory(fullPath);
+				}
+			} catch (const std::filesystem::filesystem_error &e) {}
 		}
 		g_ConsoleMan.PrintString("ERROR: Failed to remove directory " + path);
 		return false;
@@ -1232,22 +1174,16 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
-			if (caseInsensitiveFullPath)
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
-			{
-#ifndef _WIN32
-				fullPath = *caseInsensitiveFullPath;
-#endif
-				if (std::filesystem::is_directory(fullPath)) {
-					try {
-						if (recursive) {
-							return std::filesystem::remove_all(fullPath) > 0;
-						} else {
-							return std::filesystem::remove(fullPath);
-						}
-					} catch (const std::filesystem::filesystem_error &e) {}
-				}
+			if (std::filesystem::is_directory(fullPath)) {
+				try {
+					if (recursive) {
+						return std::filesystem::remove_all(fullPath) > 0;
+					} else {
+						return std::filesystem::remove(fullPath);
+					}
+				} catch (const std::filesystem::filesystem_error &e) {}
 			}
 		}
 		g_ConsoleMan.PrintString("ERROR: Failed to remove directory " + path);
@@ -1261,20 +1197,13 @@ namespace RTE {
 		std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
 		if (IsValidModulePath(fullOldPath) && IsValidModulePath(fullNewPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
-			auto caseInsensitiveFullNewPath = GetCaseInsensitiveFullPath(fullNewPath);
-			if (caseInsensitiveFullOldPath && caseInsensitiveFullNewPath)
+			fullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
+			fullNewPath = GetCaseInsensitiveFullPath(fullNewPath);
 #endif
-			{
-#ifndef _WIN32
-				fullOldPath = *caseInsensitiveFullOldPath;
-				fullNewPath = *caseInsensitiveFullNewPath;
-#endif
-				try {
-					std::filesystem::rename(fullOldPath, fullNewPath);
-					return true;
-				} catch (const std::filesystem::filesystem_error &e) {}
-			}
+			try {
+				std::filesystem::rename(fullOldPath, fullNewPath);
+				return true;
+			} catch (const std::filesystem::filesystem_error &e) {}
 		}
 		g_ConsoleMan.PrintString("ERROR: Failed to rename oldPath " + oldPath + " to newPath " + newPath);
 		return false;
