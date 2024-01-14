@@ -360,7 +360,7 @@ namespace RTE {
 
 		// TODO
 		// It would be nice to assign to least-saturated state, but that's a bit tricky with MO registering...
-		/*auto itr = std::min_element(m_ScriptStates.begin(), m_ScriptStates.end(), 
+		/*auto itr = std::min_element(m_ScriptStates.begin(), m_ScriptStates.end(),
 			[](const LuaStateWrapper& lhs, const LuaStateWrapper& rhs) { return lhs.GetRegisteredMOs().size() < rhs.GetRegisteredMOs().size(); }
 		);
 
@@ -375,7 +375,7 @@ namespace RTE {
 		bool success = m_ScriptStates[ourState].GetMutex().try_lock();
 		RTEAssert(success, "Script mutex was already locked while in a non-multithreaded environment!");
 
-		return &m_ScriptStates[ourState];	
+		return &m_ScriptStates[ourState];
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -405,13 +405,13 @@ namespace RTE {
 
     void LuaMan::ExecuteLuaScriptCallbacks() {
 		std::vector<std::function<void()>> callbacks;
-		
+
 		// Move our functions into the local buffer to clear the existing callbacks and to lock for as little time as possible
 		{
 			std::scoped_lock lock(m_ScriptCallbacksMutex);
 			callbacks.swap(m_ScriptCallbacks);
 		}
-		
+
 		for (const std::function<void()> &callback : callbacks) {
 			callback();
 		}
@@ -871,7 +871,7 @@ namespace RTE {
 
 	bool LuaStateWrapper::TableEntryIsDefined(const std::string &tableName, const std::string &indexName) {
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
-		
+
 		// Push the table onto the stack, checking if it even exists.
 		lua_getglobal(m_State, tableName.c_str());
 		if (!lua_istable(m_State, -1)) {
@@ -939,13 +939,49 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	// TODO: Ask Causeless whether this is an appropriate spot for this method
+	std::optional<std::string> LuaMan::GetCaseInsensitiveFullPath(const std::string &fullPath) {
+		std::filesystem::path inspectedPath = System::GetWorkingDirectory();
+		const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
+
+		// Iterate over all path parts
+		for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
+			bool pathPartExists = false;
+
+			// Iterate over all entries in the path part's directory,
+			// to check if the path part is in there case insensitively
+			for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
+				if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), relativeFilePathIterator->generic_string())) {
+					inspectedPath = filesystemEntryPath;
+
+					// If the path part is found, stop looking for it
+					pathPartExists = true;
+					break;
+				}
+			}
+
+			if (!pathPartExists) {
+				// TODO: This should return the same thing DirectoryCreate() does,
+				// where it just appends the rest of fullPath.
+				// This way it's the responsibility of the caller to use std::filestem::exists(),
+				// which allows DirectoryCreate() and Rename() to call this function too,
+				// since they allow the fullPath and newPath argument to not exist yet.
+				return NOTasdstd::nullopt;
+			}
+		}
+
+		return std::optional<std::string>(inspectedPath.generic_string());
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	const std::vector<std::string> * LuaMan::DirectoryList(const std::string &path) {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		auto *directoryPaths = new std::vector<std::string>();
 
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath)
+			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
 			if (caseInsensitiveFullPath)
 #endif
 			{
@@ -968,7 +1004,7 @@ namespace RTE {
 
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath)
+			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
 			if (caseInsensitiveFullPath)
 #endif
 			{
@@ -989,7 +1025,7 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath)
+			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
 			if (caseInsensitiveFullPath)
 #endif
 			{
@@ -1008,7 +1044,7 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath)
+			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
 			if (caseInsensitiveFullPath)
 #endif
 			{
@@ -1029,35 +1065,6 @@ namespace RTE {
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	// TODO: Move this shit to some other place
-	std::optional<std::string> GetCaseInsensitiveFullPath(const std::string &fullPath) {
-		std::filesystem::path inspectedPath = System::GetWorkingDirectory();
-		const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
-
-		// Iterate over all path parts
-		for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
-			bool pathPartExists = false;
-
-			// Iterate over all entries in the path part's directory,
-			// to check if the path part is in there case insensitively
-			for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
-				if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), relativeFilePathIterator->generic_string())) {
-					inspectedPath = filesystemEntryPath;
-
-					// If the path part is found, stop looking for it
-					pathPartExists = true;
-					break;
-				}
-			}
-
-			if (!pathPartExists) {
-				return std::nullopt;
-			}
-		}
-
-		return std::optional<std::string>(inspectedPath.generic_string());
-	}
 
 	int LuaMan::FileOpen(const std::string &path, const std::string &accessMode) {
 		if (c_FileAccessModes.find(accessMode) == c_FileAccessModes.end()) {
@@ -1149,7 +1156,7 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath)
+			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
 			if (caseInsensitiveFullPath)
 #endif
 			{
@@ -1173,47 +1180,39 @@ namespace RTE {
 #ifndef _WIN32
 			// The goal here is to return the same fullPath,
 			// but with the parent directories given the real filesys casing
-			std::string caseInsensitiveFullPath = [&fullPath]() -> std::string {
-				std::filesystem::path inspectedPath = System::GetWorkingDirectory();
-				const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
+			std::filesystem::path inspectedPath = System::GetWorkingDirectory();
+			const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
 
-				// Iterate over all path parts
-				for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
-					bool pathPartExists = false;
+			// Iterate over all path parts
+			for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
+				bool pathPartExists = false;
 
-					// Iterate over all entries in the path part's directory,
-					// to check if the path part is in there case insensitively
-					for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
-						if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), relativeFilePathIterator->generic_string())) {
-							inspectedPath = filesystemEntryPath;
+				// Iterate over all entries in the path part's directory,
+				// to check if the path part is in there case insensitively
+				for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
+					if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), relativeFilePathIterator->generic_string())) {
+						inspectedPath = filesystemEntryPath;
 
-							// If the path part is found, stop looking for it
-							pathPartExists = true;
-							break;
-						}
-					}
-
-					if (!pathPartExists) {
-						// If part of the path exists, append the rest of fullPath its parts
-						relativeFilePathIterator++;
-						while (relativeFilePathIterator != relativeFilePath.end()) {
-							inspectedPath += "/" + relativeFilePathIterator->generic_string();
-							relativeFilePathIterator++;
-						}
-
-						return inspectedPath;
+						// If the path part is found, stop looking for it
+						pathPartExists = true;
+						break;
 					}
 				}
 
-				// If the entire path exists
-				return inspectedPath;
-			}();
-			if (caseInsensitiveFullPath)
+				if (!pathPartExists) {
+					// If part of the path exists, append the rest of fullPath its parts
+					while (relativeFilePathIterator != relativeFilePath.end()) {
+						inspectedPath /= relativeFilePathIterator->generic_string();
+						relativeFilePathIterator++;
+					}
+
+					break;
+				}
+			}
+
+			fullPath = inspectedPath;
 #endif
 			{
-#ifndef _WIN32
-				fullPath = *caseInsensitiveFullPath;
-#endif
 				try {
 					if (recursive) {
 						return std::filesystem::create_directories(fullPath);
@@ -1233,7 +1232,7 @@ namespace RTE {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath)
+			auto caseInsensitiveFullPath = GetCaseInsensitiveFullPath(fullPath);
 			if (caseInsensitiveFullPath)
 #endif
 			{
@@ -1262,8 +1261,8 @@ namespace RTE {
 		std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
 		if (IsValidModulePath(fullOldPath) && IsValidModulePath(fullNewPath)) {
 #ifndef _WIN32
-			auto caseInsensitiveFullOldPath = GetCaseInsensitiveFullPath(fullOldPath)
-			auto caseInsensitiveFullNewPath = GetCaseInsensitiveFullPath(fullNewPath)
+			auto caseInsensitiveFullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
+			auto caseInsensitiveFullNewPath = GetCaseInsensitiveFullPath(fullNewPath);
 			if (caseInsensitiveFullOldPath && caseInsensitiveFullNewPath)
 #endif
 			{
@@ -1338,7 +1337,7 @@ namespace RTE {
 
 	void LuaMan::StartAsyncGarbageCollection() {
 		ZoneScoped;
-		
+
 		std::vector<LuaStateWrapper*> allStates;
 		allStates.reserve(m_ScriptStates.size() + 1);
 
@@ -1346,7 +1345,7 @@ namespace RTE {
 		for (LuaStateWrapper& wrapper : m_ScriptStates) {
 			allStates.push_back(&wrapper);
 		}
-		
+
 		m_GarbageCollectionTask = BS::multi_future<void>();
 		for (LuaStateWrapper* luaState : allStates) {
 			m_GarbageCollectionTask.push_back(
