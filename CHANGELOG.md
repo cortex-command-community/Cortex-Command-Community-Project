@@ -120,6 +120,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `GameActivity::LockControlledActor` Lua function to allow grab player input in the way menus (buy menu/full inventorymenu) do.
 
+- New `LuaMan` Lua I/O functions `DirectoryCreate`, `FileExists`, `DirectoryExists`, `FileRemove`, `DirectoryRemove`, `FileRename`, `DirectoryRename` and `IsValidModulePath`.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
