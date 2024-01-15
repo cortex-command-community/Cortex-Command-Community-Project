@@ -35,15 +35,15 @@ jobs:
           fi
 
       - name: Checkout code
-        if: !steps.check_manual_run.outputs.needs_build
+        if: ${{ !steps.check_manual_run.outputs.needs_build }}
         uses: actions/checkout@v3
 
       - name: fetch tags
-        if: !steps.check_manual_run.outputs.needs_build
+        if: ${{ !steps.check_manual_run.outputs.needs_build }}
         run: git fetch --tags origin
 
       - name: Check if tags point to the same commit or if the workflow was manually triggered
-        if: !steps.check_manual_run.outputs.needs_build
+        if: ${{ !steps.check_manual_run.outputs.needs_build }}
         id: check_tags
         run: |
           curr_sha=$(git rev-parse HEAD)
@@ -70,6 +70,8 @@ jobs:
     uses: ./.github/workflows/meson.yml
     with:
       upload_artefacts: true
+      build_type: "debug"
+      debug_level: "release"
 
   build-msbuild-releases:
     name: Windows Release Build
@@ -80,6 +82,7 @@ jobs:
     uses: ./.github/workflows/msbuild.yml
     with:
       upload_artefacts: true
+      build_configuration: "Debug Release"
 
   release:
     name: Publish Release
@@ -94,38 +97,8 @@ jobs:
       - name: fetch tags
         run: git fetch --tags origin
 
-      - run: mkdir release
-
-      - name: Download build artefacts
-        uses: actions/download-artifact@v3
-        with:
-          path: release
-
-      - run: ls -R release
-
-      - name: Compress Windows Release
-        run: |
-          zip -j CortexCommand.windows.zip \
-            "release/Cortex Command.exe" \
-            external/lib/win/{fmod,SDL2}.dll
-
-      - name: Compress Linux Release
-        run: |
-          zip -j CortexCommand.linux.zip \
-            "release/CortexCommand (Linux)/CortexCommand.AppImage" \
-            external/lib/linux/x86_64/libfmod.so*
-
-      - name: Compress OSX Release
-        run: |
-          zip -j CortexCommand.macos.zip \
-            "release/CortexCommand (macOS)/CortexCommand" \
-            external/lib/macos/libfmod.dylib
-
-      - name: Package Data files
-        run: |
-          zip -r -u CortexCommand.windows.zip Data
-          zip -r -u CortexCommand.linux.zip Data
-          zip -r -u CortexCommand.macos.zip Data
+      - name: Bundle Release Assets
+        uses: ./.github/actions/bundle_release
 
       - name: Get Date
         id: get_date
