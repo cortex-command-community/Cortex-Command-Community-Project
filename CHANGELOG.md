@@ -116,11 +116,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `Enum` binding for `SceneObject.BuyableMode`: `NORESTRICTIONS = 0, BUYMENUONLY = 1, OBJECTPICKERONLY = 2, SCRIPTONLY = 3`.  
 
-- Exposed `UInputMan::AbsoluteMousePos` to Lua
+- Exposed `UInputMan::AbsoluteMousePos` to Lua.
 
 - New `GameActivity::LockControlledActor` Lua function to allow grab player input in the way menus (buy menu/full inventorymenu) do.
 
 - New `LuaMan` Lua I/O functions `DirectoryCreate`, `FileExists`, `DirectoryExists`, `FileRemove`, `DirectoryRemove`, `FileRename`, `DirectoryRename` and `IsValidModulePath`.
+
+- New `FrameMan` Lua functions `SetHudDisabled(disabled, screenId)` and `IsHudDisabled(screenId)` that allows disabling a given screen's HUD, and checking whether it's currently disabled. The screenId parameters are optional and default to screen 0.
+
+- Exposed `FrameMan` property `ScreenCount` to Lua (R).
 
 </details>
 

@@ -312,7 +312,12 @@ namespace RTE {
 	void LuaMan::Initialize() {
 		m_MasterScriptState.Initialize();
 
-		m_ScriptStates = std::vector<LuaStateWrapper>(std::thread::hardware_concurrency());
+		int luaStateCount = std::thread::hardware_concurrency();
+		if (g_SettingsMan.GetNumberOfLuaStatesOverride() != -1) {
+			luaStateCount = g_SettingsMan.GetNumberOfLuaStatesOverride();
+		}
+
+		m_ScriptStates = std::vector<LuaStateWrapper>(luaStateCount);
 		for (LuaStateWrapper &luaState : m_ScriptStates) {
 			luaState.Initialize();
 		}
