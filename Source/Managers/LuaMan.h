@@ -8,8 +8,6 @@
 
 #include "BS_thread_pool.hpp"
 
-#include <optional>
-
 #define g_LuaMan LuaMan::Instance()
 
 struct lua_State;
@@ -438,15 +436,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region File I/O Handling
-		/// <summary>
-		/// If a file "foo/Bar.txt" exists, and this method is passed "FOO/BAR.TXT", then this method will return "foo/Bar.txt".
-		/// This method's purpose is to enable Linux to get the real path using a case-insensitive search.
-		/// The real path is used by the Lua file I/O handling methods to ensure full Windows compatibility.
-		/// </summary>
-		/// <param name="fullPath">Path to case-insensitively translate to a real path.</param>
-		/// <returns>The real path. If the path doesn't exist, it returns the fullPath argument with all the existing parent directories correctly capitalized.</returns>
-		std::string GetCaseInsensitiveFullPath(const std::string &fullPath);
-
 		/// <summary>
 		/// Returns a vector of all the directories in path, which is relative to the working directory.
 		/// </summary>

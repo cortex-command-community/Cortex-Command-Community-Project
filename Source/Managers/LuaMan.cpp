@@ -941,42 +941,6 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// TODO: Ask Causeless whether this is an appropriate spot for this method
-	std::string LuaMan::GetCaseInsensitiveFullPath(const std::string &fullPath) {
-		std::filesystem::path inspectedPath = System::GetWorkingDirectory();
-		const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
-
-		// Iterate over all path parts
-		for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
-			bool pathPartExists = false;
-
-			// Iterate over all entries in the path part's directory,
-			// to check if the path part is in there case insensitively
-			for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
-				if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), relativeFilePathIterator->generic_string())) {
-					inspectedPath = filesystemEntryPath;
-
-					// If the path part is found, stop looking for it
-					pathPartExists = true;
-					break;
-				}
-			}
-
-			if (!pathPartExists) {
-				// If part of the path exists, append the rest of fullPath its parts
-				while (relativeFilePathIterator != relativeFilePath.end()) {
-					inspectedPath /= relativeFilePathIterator->generic_string();
-					relativeFilePathIterator++;
-				}
-				break;
-			}
-		}
-
-		return inspectedPath.generic_string();
-	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const std::vector<std::string> * LuaMan::DirectoryList(const std::string &path) {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		auto *directoryPaths = new std::vector<std::string>();
