@@ -1043,6 +1043,10 @@ namespace RTE {
 			FILE *file = fopen(fullPath.c_str(), accessMode.c_str());
 #else
 			FILE *file = [&fullPath, &accessMode]() -> FILE* {
+				if (std::filesystem::exists(fullPath)) {
+					return fopen(fullPath.c_str(), accessMode.c_str());
+				}
+
 				std::filesystem::path inspectedPath = System::GetWorkingDirectory();
 				const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
 
