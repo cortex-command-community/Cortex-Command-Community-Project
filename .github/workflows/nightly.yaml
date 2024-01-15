@@ -47,9 +47,12 @@ jobs:
         id: check_tags
         run: |
           curr_sha=$(git rev-parse HEAD)
-          prev_sha=$(git rev-parse ${{ env.PREV_TAG }})
+          prev_sha=$(git rev-parse ${{ env.PREV_TAG }} 2>/dev/null)
 
-          if [[ "$curr_sha" == "$prev_sha" ]]; then
+          if [[ $? -ne 0 ]]; then
+            echo "Tag ${{ env.PREV_TAG }} cannot be resolved. Continuing..."
+            echo "needs_build=true" >> $GITHUB_OUTPUT;
+          elif [[ "$curr_sha" == "$prev_sha" ]]; then
             echo "No changes since last nightly release. Exiting..."
             echo "needs_build=false" >> $GITHUB_OUTPUT;
           else
