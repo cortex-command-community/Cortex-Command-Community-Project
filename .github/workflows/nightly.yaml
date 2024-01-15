@@ -1,4 +1,4 @@
-name: Nightly Development Build and Release
+name: Nightly (Development) Build and Release
 # Controls when the action will run.
 on:
   workflow_dispatch:
@@ -19,33 +19,47 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      needs_build: ${{ steps.check_build.outputs.needs_build }}
+      needs_build: ${{ steps.check_manual_run.outputs.needs_build || steps.check_tags.outputs.needs_build }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: fetch tags
-        run: git fetch --tags origin
-
-      - name: Check if tags point to the same commit or if the workflow was manually triggered
-        id: check_build
+      - name: Check if workflow was manually triggered
+        id: check_manual_run
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "Workflow dispatched manually. Continuing..."
             echo "needs_build=true" >> $GITHUB_OUTPUT;
           else
-            curr_sha=$(git rev-parse HEAD)
-            prev_sha=$(git rev-parse ${{ env.PREV_TAG }})
-
-            if [[ "$curr_sha" == "$prev_sha" ]]; then
-              echo "No changes since last nightly release. Exiting..."
-              echo "needs_build=false" >> $GITHUB_OUTPUT;
-            else
-              echo "Changes since last nightly release detected. Continuing..."
-              echo "needs_build=true" >> $GITHUB_OUTPUT;
-            fi
+            echo "Workflow triggered by a scheduled run. Continuing..."
+            echo "needs_build=false" >> $GITHUB_OUTPUT;
           fi
+
+      - name: Checkout code
+        if: !steps.check_manual_run.outputs.needs_build
+        uses: actions/checkout@v3
+
+      - name: fetch tags
+        if: !steps.check_manual_run.outputs.needs_build
+        run: git fetch --tags origin
+
+      - name: Check if tags point to the same commit or if the workflow was manually triggered
+        if: !steps.check_manual_run.outputs.needs_build
+        id: check_tags
+        run: |
+          curr_sha=$(git rev-parse HEAD)
+          prev_sha=$(git rev-parse ${{ env.PREV_TAG }} 2>/dev/null)
+
+          if [[ $? -ne 0 ]]; then
+            echo "Tag ${{ env.PREV_TAG }} cannot be resolved. Continuing..."
+            echo "needs_build=true" >> $GITHUB_OUTPUT;
+          elif [[ "$curr_sha" == "$prev_sha" ]]; then
+            echo "No changes since last nightly release. Exiting..."
+            echo "needs_build=false" >> $GITHUB_OUTPUT;
+          else
+            echo "Changes since last nightly release detected. Continuing..."
+            echo "needs_build=true" >> $GITHUB_OUTPUT;
+          fi
+        
 
   build-meson-releases:
     name: Linux & macOS Release Builds
