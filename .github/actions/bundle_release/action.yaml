@@ -18,7 +18,7 @@ runs:
       shell: bash
       run: |
         zip --must-match -j CortexCommand.windows.zip \
-          "release/Cortex Command.exe/Cortex Command.exe" \
+          "release/Cortex Command*.exe/Cortex Command*.exe" \
           external/lib/win/{fmod,SDL2}.dll
 
     - name: Compress Linux Release
