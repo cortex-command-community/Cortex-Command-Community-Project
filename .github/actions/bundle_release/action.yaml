@@ -41,8 +41,3 @@ runs:
         zip --must-match -r -u CortexCommand.windows.zip Data
         zip --must-match -r -u CortexCommand.linux.zip Data
         zip --must-match -r -u CortexCommand.macos.zip Data
-
-
- 
- 
-  
