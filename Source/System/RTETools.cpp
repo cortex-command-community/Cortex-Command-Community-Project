@@ -222,6 +222,10 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string GetCaseInsensitiveFullPath(const std::string &fullPath) {
+		if (std::filesystem::exists(fullPath)) {
+			return fullPath;
+		}
+
 		std::filesystem::path inspectedPath = System::GetWorkingDirectory();
 		const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
 
