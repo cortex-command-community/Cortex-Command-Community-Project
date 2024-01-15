@@ -1,4 +1,4 @@
-name: Build and Release
+name: Master Build and Release
 # Controls when the action will run.
 on:
   workflow_dispatch:
