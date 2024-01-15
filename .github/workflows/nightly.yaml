@@ -70,6 +70,8 @@ jobs:
     uses: ./.github/workflows/meson.yml
     with:
       upload_artefacts: true
+      build_type: "debug"
+      debug_level: "release"
 
   build-msbuild-releases:
     name: Windows Release Build
@@ -80,6 +82,7 @@ jobs:
     uses: ./.github/workflows/msbuild.yml
     with:
       upload_artefacts: true
+      build_configuration: "Debug Release"
 
   release:
     name: Publish Release
