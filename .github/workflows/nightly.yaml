@@ -35,15 +35,15 @@ jobs:
           fi
 
       - name: Checkout code
-        if: !steps.check_manual_run.outputs.needs_build
+        if: ${{ !steps.check_manual_run.outputs.needs_build }}
         uses: actions/checkout@v3
 
       - name: fetch tags
-        if: !steps.check_manual_run.outputs.needs_build
+        if: ${{ !steps.check_manual_run.outputs.needs_build }}
         run: git fetch --tags origin
 
       - name: Check if tags point to the same commit or if the workflow was manually triggered
-        if: !steps.check_manual_run.outputs.needs_build
+        if: ${{ !steps.check_manual_run.outputs.needs_build }}
         id: check_tags
         run: |
           curr_sha=$(git rev-parse HEAD)
