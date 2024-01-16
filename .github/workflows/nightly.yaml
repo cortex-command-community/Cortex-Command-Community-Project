@@ -22,7 +22,6 @@ jobs:
       needs_build: ${{ steps.check_manual_run.outputs.needs_build || steps.check_tags.outputs.needs_build }}
 
     steps:
-
       - name: Check if workflow was manually triggered
         id: check_manual_run
         run: |
@@ -35,15 +34,15 @@ jobs:
           fi
 
       - name: Checkout code
-        if: ${{ !steps.check_manual_run.outputs.needs_build }}
+        if: ${{ steps.check_manual_run.outputs.needs_build == 'false' }}
         uses: actions/checkout@v3
 
       - name: fetch tags
-        if: ${{ !steps.check_manual_run.outputs.needs_build }}
+        if: ${{ steps.check_manual_run.outputs.needs_build == 'false' }}
         run: git fetch --tags origin
 
       - name: Check if tags point to the same commit or if the workflow was manually triggered
-        if: ${{ !steps.check_manual_run.outputs.needs_build }}
+        if: ${{ steps.check_manual_run.outputs.needs_build == 'false' }}
         id: check_tags
         run: |
           curr_sha=$(git rev-parse HEAD)
@@ -59,7 +58,6 @@ jobs:
             echo "Changes since last nightly release detected. Continuing..."
             echo "needs_build=true" >> $GITHUB_OUTPUT;
           fi
-        
 
   build-meson-releases:
     name: Linux & macOS Release Builds
