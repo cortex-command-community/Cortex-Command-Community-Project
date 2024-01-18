@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      needs_build: ${{ steps.check_manual_run.outputs.needs_build || steps.check_tags.outputs.needs_build }}
+      needs_build: ${{ steps.check_manual_run.outputs.needs_build == 'true' || steps.check_tags.outputs.needs_build == 'true'  }}
 
     steps:
       - name: Check if workflow was manually triggered
