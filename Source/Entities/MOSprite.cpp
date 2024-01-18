@@ -15,6 +15,7 @@
 
 #include "AEmitter.h"
 #include "PresetMan.h"
+#include "SceneMan.h"
 
 namespace RTE {
 

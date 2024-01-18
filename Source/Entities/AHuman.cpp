@@ -26,6 +26,7 @@
 #include "PresetMan.h"
 #include "Scene.h"
 #include "SettingsMan.h"
+#include "PostProcessMan.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"

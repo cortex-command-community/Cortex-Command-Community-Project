@@ -17,6 +17,7 @@
 #include "CameraMan.h"
 #include "FrameMan.h"
 #include "PresetMan.h"
+#include "PostProcessMan.h"
 
 #include "Magazine.h"
 #include "ThrownDevice.h"

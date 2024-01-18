@@ -15,6 +15,8 @@
 #include "Atom.h"
 #include "Emission.h"
 #include "PresetMan.h"
+#include "SoundContainer.h"
+#include "PostProcessMan.h"
 
 namespace RTE {
 

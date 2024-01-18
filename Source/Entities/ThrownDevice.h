@@ -138,7 +138,7 @@ namespace RTE {
 
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
-		SoundContainer m_ActivationSound; //!< Activation sound.
+		std::shared_ptr<SoundContainer> m_ActivationSound; //!< Activation sound.
 
 		Vector m_StartThrowOffset; //!< The position offset at which a throw of this Device begins.
 		Vector m_EndThrowOffset; //!< The position offset at which a throw of this Device ends.

@@ -16,6 +16,7 @@
 #include "TimerMan.h"
 #include "AudioMan.h"
 #include "FrameMan.h"
+#include "PostProcessMan.h"
 
 #include "RakNetStatistics.h"
 #include "RakSleep.h"

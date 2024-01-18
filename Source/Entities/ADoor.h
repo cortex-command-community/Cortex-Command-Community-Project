@@ -32,7 +32,7 @@ namespace RTE {
 		/// <summary>
 		/// Constructor method used to instantiate a ADoor object in system memory. Create() should be called before using the object.
 		/// </summary>
-		ADoor() { Clear(); }
+		ADoor();
 
 		/// <summary>
 		/// Makes the ADoor object ready for use.
@@ -52,7 +52,7 @@ namespace RTE {
 		/// <summary>
 		/// Destructor method used to clean up a ADoor object before deletion from system memory.
 		/// </summary>
-		~ADoor() override { Destroy(true); }
+		~ADoor() override;
 
 		/// <summary>
 		/// Destroys and resets (through Clear()) the ADoor object.
@@ -113,7 +113,7 @@ namespace RTE {
 		/// Sets this ADoor's door move start sound. Ownership IS transferred!
 		/// </summary>
 		/// <param name="newSound">The new SoundContainer for this ADoor's door move start sound.</param>
-		void SetDoorMoveStartSound(SoundContainer *newSound) { m_DoorMoveStartSound.reset(newSound); }
+		void SetDoorMoveStartSound(SoundContainer *newSound);
 
 		/// <summary>
 		/// Gets this ADoor's door move sound. Ownership is NOT transferred!
@@ -125,7 +125,7 @@ namespace RTE {
 		/// Sets this ADoor's door move sound. Ownership IS transferred!
 		/// </summary>
 		/// <param name="newSound">The new SoundContainer for this ADoor's door move sound.</param>
-		void SetDoorMoveSound(SoundContainer *newSound) { m_DoorMoveSound.reset(newSound); }
+		void SetDoorMoveSound(SoundContainer *newSound);
 
 		/// <summary>
 		/// Gets this ADoor's door direction change sound. Ownership is NOT transferred!
@@ -137,7 +137,7 @@ namespace RTE {
 		/// Sets this ADoor's door direction change sound. Ownership IS transferred!
 		/// </summary>
 		/// <param name="newSound">The new SoundContainer for this ADoor's door direction change sound.</param>
-		void SetDoorDirectionChangeSound(SoundContainer *newSound) { m_DoorDirectionChangeSound.reset(newSound); }
+		void SetDoorDirectionChangeSound(SoundContainer *newSound);
 
 		/// <summary>
 		/// Gets this ADoor's door move end sound. Ownership is NOT transferred!
@@ -149,7 +149,7 @@ namespace RTE {
 		/// Sets this ADoor's door move end sound. Ownership IS transferred!
 		/// </summary>
 		/// <param name="newSound">The new SoundContainer for this ADoor's door move end sound.</param>
-		void SetDoorMoveEndSound(SoundContainer *newSound) { m_DoorMoveEndSound.reset(newSound); }
+		void SetDoorMoveEndSound(SoundContainer *newSound);
 #pragma endregion
 
 #pragma region Concrete Methods

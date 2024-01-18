@@ -1,4 +1,5 @@
 #include "TDExplosive.h"
+#include "SoundContainer.h"
 
 namespace RTE {
 

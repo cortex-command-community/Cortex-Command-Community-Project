@@ -33,6 +33,7 @@
 #include "SettingsMan.h"
 #include "FrameMan.h"
 #include "PerformanceMan.h"
+#include "PostProcessMan.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -762,6 +763,21 @@ void Actor::AddAIMOWaypoint(const MovableObject *pMOWaypoint)
         m_Waypoints.push_back(std::pair<Vector, const MovableObject *>(pMOWaypoint->GetPos(), pMOWaypoint));
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Actor::AlarmPoint(const Vector &alarmPoint)
+{
+    if (m_AlarmSound && m_AlarmTimer.IsPastSimTimeLimit())
+    {
+        m_AlarmSound->Play(alarmPoint);
+    }
+    
+    if (m_AlarmTimer.GetElapsedSimTimeMS() > 50)
+    {
+        m_AlarmTimer.Reset();
+        m_LastAlarmPos = m_PointingTarget = alarmPoint;
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          SwapNextInventory

@@ -16,8 +16,6 @@
 
 #include "MOSprite.h"
 #include "Gib.h"
-#include "PostProcessMan.h"
-#include "SoundContainer.h"
 
 namespace RTE
 {
@@ -26,6 +24,7 @@ class AtomGroup;
 struct HitData;
 class AEmitter;
 class Attachable;
+struct SoundContainer;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Class:           MOSRotating

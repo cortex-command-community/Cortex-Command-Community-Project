@@ -23,6 +23,8 @@
 #include "AEmitter.h"
 #include "Attachable.h"
 #include "HDFirearm.h"
+#include "SoundContainer.h"
+#include "PostProcessMan.h"
 
 #include "RTEError.h"
 

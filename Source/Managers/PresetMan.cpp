@@ -19,6 +19,7 @@
 #include "SceneObject.h"
 #include "Loadout.h"
 #include "ACraft.h"
+#include "LuaMan.h"
 //#include "AHuman.h"
 //#include "MOPixel.h"
 //#include "SLTerrain.h"
@@ -172,7 +173,7 @@ bool PresetMan::LoadAllDataModules() {
 
 		for (const std::filesystem::directory_entry &directoryEntry : modDirectoryFolders) {
 			std::string directoryEntryPath = directoryEntry.path().generic_string();
-			if (std::regex_match(directoryEntryPath, std::regex(".*\.rte"))) {
+			if (directoryEntryPath.ends_with(".rte")) {
 				std::string moduleName = directoryEntryPath.substr(directoryEntryPath.find_last_of('/') + 1, std::string::npos);
 				if (!g_SettingsMan.IsModDisabled(moduleName) && !IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
 					int moduleID = GetModuleID(moduleName);

@@ -17,6 +17,7 @@
 #include "MOSRotating.h"
 #include "PieMenu.h"
 #include "PathFinder.h"
+#include "SceneMan.h"
 
 namespace RTE
 {
@@ -867,7 +868,7 @@ ClassInfoGetters;
 //                  is there.
 // Return value:    None.
 
-	void AlarmPoint(const Vector &alarmPoint) { if (m_AlarmSound && m_AlarmTimer.IsPastSimTimeLimit()) { m_AlarmSound->Play(alarmPoint); } if (m_AlarmTimer.GetElapsedSimTimeMS() > 50) { m_AlarmTimer.Reset(); m_LastAlarmPos = m_PointingTarget = alarmPoint; } }
+	void AlarmPoint(const Vector &alarmPoint);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

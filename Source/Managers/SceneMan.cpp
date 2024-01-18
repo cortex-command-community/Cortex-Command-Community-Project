@@ -33,6 +33,7 @@
 #include "MOPixel.h"
 #include "Atom.h"
 #include "Material.h"
+#include "SoundContainer.h"
 // Temp
 #include "Controller.h"
 
