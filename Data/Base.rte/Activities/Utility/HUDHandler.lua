@@ -220,19 +220,6 @@ function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCan
 	
 end
 
-function HUDHandler:QueueFunctionCall(team, func)
-	if team and func then
-		cameraTable = {};
-		cameraTable.callback = func;
-		table.insert(self.saveTable.teamTables[team].cameraQueue, cameraTable);
-	else
-		print("ERROR: HUDHandler tried to add a camera pan event with no team, no name, or no position!");
-		return false;
-	end
-
-	return self.saveTable.teamTables[team].cameraQueue[#self.saveTable.teamTables[team].cameraQueue];
-end
-
 function HUDHandler:GetCameraPanEventCount(team)
 
 	if team then
@@ -391,7 +378,7 @@ function HUDHandler:UpdateHUDHandler()
 			end
 			
 			-- not ideal: anyone pressing any key can skip the panning event... but the alternatives are much more roundabout
-			if cameraTable.callback or self.teamCameraTimers[team]:IsPastSimMS(cameraTable.holdTime) or (not cameraTable.notCancellable and UInputMan:AnyKeyPress()) then
+			if self.teamCameraTimers[team]:IsPastSimMS(cameraTable.holdTime) or (not cameraTable.notCancellable and UInputMan:AnyKeyPress()) then
 				-- Callback functions
 				if cameraTable.callback then
 					cameraTable.callback();
