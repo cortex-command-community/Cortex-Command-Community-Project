@@ -1,5 +1,4 @@
-#ifndef _GUICONTROL_
-#define _GUICONTROL_
+#pragma once
 
 #include "GUIWriter.h"
 
@@ -315,5 +314,4 @@ protected:
 
     GUIControlManager *m_ControlManager;
 };
-};
-#endif
+}

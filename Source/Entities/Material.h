@@ -1,5 +1,4 @@
-#ifndef _RTEMATERIAL_
-#define _RTEMATERIAL_
+#pragma once
 
 #include "Entity.h"
 #include "ContentFile.h"
@@ -198,4 +197,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

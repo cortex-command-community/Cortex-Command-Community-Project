@@ -1,5 +1,4 @@
-#ifndef _RTEMOVABLEMAN_
-#define _RTEMOVABLEMAN_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MovableMan.h
@@ -1068,5 +1067,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

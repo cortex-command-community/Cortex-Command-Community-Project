@@ -1,5 +1,4 @@
-#ifndef _RTEUINPUTMAN_
-#define _RTEUINPUTMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "Vector.h"
@@ -858,4 +857,3 @@ namespace RTE {
 		UInputMan & operator=(const UInputMan &rhs) = delete;
 	};
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _RTEAHUMAN_
-#define _RTEAHUMAN_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            AHuman.h
@@ -1121,5 +1120,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

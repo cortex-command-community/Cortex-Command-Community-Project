@@ -1,5 +1,4 @@
-#ifndef _RTETHROWNDEVICE_
-#define _RTETHROWNDEVICE_
+#pragma once
 
 #include "HeldDevice.h"
 
@@ -160,4 +159,3 @@ namespace RTE {
 		ThrownDevice & operator=(const ThrownDevice &rhs) = delete;
 	};
 }
-#endif

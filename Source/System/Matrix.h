@@ -1,5 +1,4 @@
-#ifndef _RTEMATRIX_
-#define _RTEMATRIX_
+#pragma once
 
 #include "Serializable.h"
 #include "Vector.h"
@@ -308,4 +307,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

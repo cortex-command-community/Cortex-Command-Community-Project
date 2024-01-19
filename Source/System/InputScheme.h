@@ -1,5 +1,4 @@
-#ifndef _RTEINPUTSCHEME_
-#define _RTEINPUTSCHEME_
+#pragma once
 
 #include "InputMapping.h"
 #include "Constants.h"
@@ -202,4 +201,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

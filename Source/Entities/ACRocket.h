@@ -1,5 +1,4 @@
-#ifndef _RTEACROCKET_
-#define _RTEACROCKET_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            ACRocket.h
@@ -331,5 +330,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

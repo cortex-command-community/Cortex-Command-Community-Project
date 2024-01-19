@@ -1,5 +1,4 @@
-#ifndef _RTESCENEEDITOR_
-#define _RTESCENEEDITOR_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            SceneEditor.h
@@ -303,5 +302,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

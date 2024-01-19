@@ -1,5 +1,4 @@
-#ifndef _GUIFONT_
-#define _GUIFONT_
+#pragma once
 
 namespace RTE {
 
@@ -193,5 +192,4 @@ private:
     int m_Kerning; // Spacing between characters
     int m_Leading; // Spacing between lines
 };
-};
-#endif
+}

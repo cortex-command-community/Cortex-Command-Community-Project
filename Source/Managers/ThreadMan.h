@@ -1,5 +1,4 @@
-#ifndef _RTEThreadMan_
-#define _RTEThreadMan_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            ThreadMan.h
@@ -136,5 +135,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

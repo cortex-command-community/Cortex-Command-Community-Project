@@ -1,5 +1,4 @@
-#ifndef _GUIBANNER_
-#define _GUIBANNER_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            GUIBanner.h
@@ -325,5 +324,3 @@ private:
 };
 
 }; // namespace RTE
-
-#endif  //  _GUIBanner_

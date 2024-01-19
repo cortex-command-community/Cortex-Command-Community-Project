@@ -1,5 +1,4 @@
-#ifndef _RTEEDITORACTIVITY_
-#define _RTEEDITORACTIVITY_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            EditorActivity.h
@@ -366,5 +365,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

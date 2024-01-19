@@ -1,5 +1,4 @@
-#ifndef _RTEMODMANAGERGUI_
-#define _RTEMODMANAGERGUI_
+#pragma once
 
 namespace RTE {
 
@@ -138,4 +137,3 @@ namespace RTE {
 		ModManagerGUI & operator=(const ModManagerGUI &rhs) = delete;
 	};
 }
-#endif

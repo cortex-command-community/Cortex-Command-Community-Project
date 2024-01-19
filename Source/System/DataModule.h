@@ -1,5 +1,4 @@
-#ifndef _RTEDATAMODULE_
-#define _RTEDATAMODULE_
+#pragma once
 
 #include "ContentFile.h"
 #include "Constants.h"
@@ -413,4 +412,3 @@ namespace RTE {
 		DataModule & operator=(const DataModule &rhs) = delete;
 	};
 }
-#endif

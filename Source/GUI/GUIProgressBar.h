@@ -1,5 +1,4 @@
-#ifndef _GUIPROGRESSBAR_
-#define _GUIPROGRESSBAR_
+#pragma once
 
 namespace RTE {
 
@@ -234,5 +233,4 @@ private:
 
 	void BuildBitmap();
 };
-};
-#endif
+}

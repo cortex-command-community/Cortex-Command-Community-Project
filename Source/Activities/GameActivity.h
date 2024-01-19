@@ -1,5 +1,4 @@
-#ifndef _RTEGAMEACTIVITY_
-#define _RTEGAMEACTIVITY_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            GameActivity.h
@@ -1137,4 +1136,3 @@ private:
 
 } // namespace RTE
 
-#endif // File

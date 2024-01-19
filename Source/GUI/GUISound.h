@@ -1,5 +1,4 @@
-#ifndef _GUISOUND_
-#define _GUISOUND_
+#pragma once
 
 #include "SoundContainer.h"
 #include "Singleton.h"
@@ -249,4 +248,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

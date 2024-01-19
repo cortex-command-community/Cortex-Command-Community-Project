@@ -1,5 +1,4 @@
-#ifndef _RTEAREAEDITOR_
-#define _RTEAREAEDITOR_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            AreaEditor.h
@@ -298,5 +297,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

@@ -1,5 +1,4 @@
-#ifndef _RTEPRESETMAN_
-#define _RTEPRESETMAN_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            PresetMan.h
@@ -599,5 +598,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

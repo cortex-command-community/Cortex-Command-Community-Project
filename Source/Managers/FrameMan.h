@@ -1,5 +1,4 @@
-#ifndef _RTEFRAMEMAN_
-#define _RTEFRAMEMAN_
+#pragma once
 
 #include "ContentFile.h"
 #include "Timer.h"
@@ -663,4 +662,3 @@ namespace RTE {
 		FrameMan & operator=(const FrameMan &rhs) = delete;
 	};
 }
-#endif

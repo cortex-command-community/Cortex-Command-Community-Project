@@ -1,5 +1,4 @@
-#ifndef _RTELEG_
-#define _RTELEG_
+#pragma once
 
 #include "Attachable.h"
 
@@ -174,4 +173,3 @@ namespace RTE {
 		Leg & operator=(const Leg &rhs) = delete;
 	};
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _RTEICON_
-#define _RTEICON_
+#pragma once
 
 #include "Entity.h"
 #include "ContentFile.h"
@@ -108,4 +107,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

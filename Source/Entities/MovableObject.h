@@ -1,5 +1,4 @@
-#ifndef _RTEMOVABLEOBJECT_
-#define _RTEMOVABLEOBJECT_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MovableObject.h
@@ -2183,5 +2182,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

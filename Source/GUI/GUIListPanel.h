@@ -1,5 +1,4 @@
-#ifndef _GUILISTPANEL_
-#define _GUILISTPANEL_
+#pragma once
 
 #include "GUIScrollPanel.h"
 #include "GUIInterface.h"
@@ -612,5 +611,4 @@ private:
 	/// <param name="MouseWheelChange">Amount and direction of scrolling. Positive to scroll up, negative to scroll down.</param>
 	void SelectionListScrolling(int mouseWheelChange);
 };
-};
-#endif
+}

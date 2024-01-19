@@ -1,5 +1,4 @@
-#ifndef _RTEHELDDEVICE_
-#define _RTEHELDDEVICE_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            HeldDevice.h
@@ -720,5 +719,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

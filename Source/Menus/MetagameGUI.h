@@ -1,5 +1,4 @@
-#ifndef _METAGAMEGUI_
-#define _METAGAMEGUI_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MetagameGUI.h
@@ -1280,5 +1279,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif  // File

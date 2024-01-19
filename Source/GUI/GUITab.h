@@ -1,5 +1,4 @@
-#ifndef _GUITAB_
-#define _GUITAB_
+#pragma once
 
 namespace RTE {
 
@@ -217,5 +216,4 @@ private:
 
     void BuildBitmap();
 };
-};
-#endif
+}

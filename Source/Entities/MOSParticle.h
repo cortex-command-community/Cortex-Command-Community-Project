@@ -1,5 +1,4 @@
-#ifndef _RTEMOSPARTICLE_
-#define _RTEMOSPARTICLE_
+#pragma once
 
 #include "MOSprite.h"
 
@@ -169,4 +168,3 @@ namespace RTE {
 		MOSParticle & operator=(const MOSParticle &rhs) = delete;
 	};
 }
-#endif

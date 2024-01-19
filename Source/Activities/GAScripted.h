@@ -1,5 +1,4 @@
-#ifndef _RTEGASCRIPTED_
-#define _RTEGASCRIPTED_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            GAScripted.h
@@ -324,5 +323,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

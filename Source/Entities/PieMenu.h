@@ -1,5 +1,4 @@
-#ifndef _RTEPIEMENU_
-#define _RTEPIEMENU_
+#pragma once
 
 #include "PieQuadrant.h"
 #include "Controller.h"
@@ -562,4 +561,3 @@ namespace RTE {
 		PieMenu & operator=(const PieMenu &rhs) = delete;
 	};
 }
-#endif

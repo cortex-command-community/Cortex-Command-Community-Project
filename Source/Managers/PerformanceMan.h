@@ -1,5 +1,4 @@
-#ifndef _RTEPERFORMANCEMAN_
-#define _RTEPERFORMANCEMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "Timer.h"
@@ -254,4 +253,3 @@ namespace RTE {
 		PerformanceMan & operator=(const PerformanceMan &rhs) = delete;
 	};
 }
-#endif

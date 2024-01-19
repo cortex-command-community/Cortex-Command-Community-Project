@@ -1,5 +1,4 @@
-#ifndef _GUICOMBOBOX_
-#define _GUICOMBOBOX_
+#pragma once
 
 #include "GUITextPanel.h"
 #include "GUIListPanel.h"
@@ -493,5 +492,4 @@ private:
     GUIBitmap *m_DrawBitmap;
     bool m_Pushed;
 };
-};
-#endif
+}

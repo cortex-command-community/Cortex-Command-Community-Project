@@ -1,5 +1,4 @@
-#ifndef _RTEACTIVITY_
-#define _RTEACTIVITY_
+#pragma once
 
 #include "Icon.h"
 #include "Controller.h"
@@ -809,4 +808,3 @@ namespace RTE {
 		Activity & operator=(const Activity &rhs) = delete;
 	};
 }
-#endif

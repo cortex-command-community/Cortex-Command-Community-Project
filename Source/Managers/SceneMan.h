@@ -1,5 +1,4 @@
-#ifndef _RTESCENEMAN_
-#define _RTESCENEMAN_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            SceneMan.h
@@ -1516,5 +1515,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

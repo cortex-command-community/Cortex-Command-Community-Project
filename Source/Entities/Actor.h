@@ -1,5 +1,4 @@
-#ifndef _RTEACTOR_
-#define _RTEACTOR_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            Actor.h
@@ -1638,5 +1637,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

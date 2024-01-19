@@ -1,5 +1,4 @@
-#ifndef _ASSEMBLYEDITORGUI_
-#define _ASSEMBLYEDITORGUI_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            AssemblyEditorGUI.h
@@ -448,5 +447,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif  // File

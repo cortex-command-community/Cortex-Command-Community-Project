@@ -1,5 +1,4 @@
-#ifndef _RTEGIBEDITOR_
-#define _RTEGIBEDITOR_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            GibEditor.h
@@ -319,5 +318,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

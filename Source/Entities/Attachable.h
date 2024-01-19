@@ -1,5 +1,4 @@
-#ifndef _RTEATTACHABLE_
-#define _RTEATTACHABLE_
+#pragma once
 
 #include "MOSRotating.h"
 #include "PieSlice.h"
@@ -640,4 +639,3 @@ namespace RTE {
 		Attachable & operator=(const Attachable &rhs) = delete;
 	};
 }
-#endif

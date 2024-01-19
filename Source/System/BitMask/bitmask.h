@@ -18,8 +18,7 @@
     License along with this library; if not, write to the Free
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef BITMASK_H
-#define BITMASK_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -131,6 +130,4 @@ bitmask_t *bitmask_scale(const bitmask_t *m, int w, int h);
 
 #ifdef __cplusplus
 } /* End of extern "C" { */
-#endif
-
 #endif

@@ -1,5 +1,4 @@
-#ifndef _RTEAEJETPACK_
-#define _RTEAEJETPACK_
+#pragma once
 
 #include "AEmitter.h"
 
@@ -219,5 +218,3 @@ namespace RTE
 		AEJetpack & operator=(const AEJetpack &rhs) = delete;
     };
 }
-
-#endif

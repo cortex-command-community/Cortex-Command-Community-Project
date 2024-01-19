@@ -1,5 +1,4 @@
-#ifndef _RTEACRAFT_
-#define _RTEACRAFT_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            ACraft.h
@@ -697,5 +696,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

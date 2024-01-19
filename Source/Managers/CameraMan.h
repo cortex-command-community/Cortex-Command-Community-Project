@@ -1,5 +1,4 @@
-#ifndef _RTECAMERAMAN_
-#define _RTECAMERAMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "Timer.h"
@@ -287,4 +286,3 @@ namespace RTE {
 		CameraMan & operator=(const CameraMan &rhs) = delete;
 	};
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _RTESCENE_
-#define _RTESCENE_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            Scene.h
@@ -1467,5 +1466,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

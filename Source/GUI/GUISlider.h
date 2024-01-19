@@ -1,5 +1,4 @@
-#ifndef _GUISLIDER_
-#define _GUISLIDER_
+#pragma once
 
 namespace RTE {
 
@@ -329,5 +328,4 @@ private:
 
     void CalculateKnob();
 };
-};
-#endif
+}

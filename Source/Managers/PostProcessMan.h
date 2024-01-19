@@ -1,5 +1,4 @@
-#ifndef _RTEPOSTPROCESSMAN_
-#define _RTEPOSTPROCESSMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "Box.h"
@@ -307,4 +306,3 @@ namespace RTE {
 		PostProcessMan & operator=(const PostProcessMan &rhs) = delete;
 	};
 }
-#endif

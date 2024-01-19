@@ -1,5 +1,4 @@
-#ifndef _RTEGIB_
-#define _RTEGIB_
+#pragma once
 
 #include "Vector.h"
 
@@ -160,4 +159,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

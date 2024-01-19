@@ -1,5 +1,4 @@
-#ifndef _RTEMULTIPLAYERGAME_
-#define _RTEMULTIPLAYERGAME_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MultiplayerGame.h
@@ -259,5 +258,3 @@ namespace RTE
 	};
 
 } // namespace RTE
-
-#endif // File

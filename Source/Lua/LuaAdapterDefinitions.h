@@ -1,5 +1,4 @@
-#ifndef _RTELUAADAPTERDEFINITIONS_
-#define _RTELUAADAPTERDEFINITIONS_
+#pragma once
 
 #include "LuabindDefinitions.h"
 
@@ -637,6 +636,4 @@ namespace RTE {
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
-#endif
-
 #endif

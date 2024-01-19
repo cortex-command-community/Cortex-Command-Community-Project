@@ -1,5 +1,4 @@
-#ifndef _RTEREADER_
-#define _RTEREADER_
+#pragma once
 
 namespace RTE {
 
@@ -278,4 +277,3 @@ namespace RTE {
 		Reader & operator=(const Reader &rhs) = delete;
 	};
 }
-#endif

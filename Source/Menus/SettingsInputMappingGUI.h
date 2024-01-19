@@ -1,5 +1,4 @@
-#ifndef _RTESETTINGSINPUTMAPPINGGUI_
-#define _RTESETTINGSINPUTMAPPINGGUI_
+#pragma once
 
 #include "SettingsInputMappingWizardGUI.h"
 
@@ -137,4 +136,3 @@ namespace RTE {
 		SettingsInputMappingGUI & operator=(const SettingsInputMappingGUI &rhs) = delete;
 	};
 }
-#endif

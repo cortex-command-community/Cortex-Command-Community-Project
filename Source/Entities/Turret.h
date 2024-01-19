@@ -1,5 +1,4 @@
-#ifndef _RTETURRET_
-#define _RTETURRET_
+#pragma once
 
 #include "Attachable.h"
 
@@ -145,4 +144,3 @@ namespace RTE {
 		Turret & operator=(const Turret &rhs) = delete;
 	};
 }
-#endif

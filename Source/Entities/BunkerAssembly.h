@@ -1,5 +1,4 @@
-#ifndef _RTEBUNKERASSEMBLY_
-#define _RTEBUNKERASSEMBLY_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            BunkerAssembly.h
@@ -276,5 +275,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

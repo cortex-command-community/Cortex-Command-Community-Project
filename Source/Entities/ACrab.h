@@ -1,5 +1,4 @@
-#ifndef _RTEACRAB_
-#define _RTEACRAB_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            ACrab.h
@@ -655,5 +654,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

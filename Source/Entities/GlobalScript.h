@@ -1,5 +1,4 @@
-#ifndef _RTEGLOBALSCRIPT_
-#define _RTEGLOBALSCRIPT_
+#pragma once
 
 #include "PieSlice.h"
 
@@ -143,4 +142,3 @@ namespace RTE {
 		GlobalScript &operator=(const GlobalScript &rhs) = delete;
 	};
 }
-#endif

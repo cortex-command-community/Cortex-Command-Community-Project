@@ -1,5 +1,4 @@
-#ifndef _RTEPATHFINDER_
-#define _RTEPATHFINDER_
+#pragma once
 
 #include "Box.h"
 #include "System/MicroPather/micropather.h"
@@ -294,4 +293,3 @@ namespace RTE {
 		PathFinder & operator=(const PathFinder &rhs) = delete;
 	};
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _LOADOUT_
-#define _LOADOUT_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            Loadout.h
@@ -213,5 +212,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif  // File

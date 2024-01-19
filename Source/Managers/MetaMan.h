@@ -1,5 +1,4 @@
-#ifndef _RTEMETAMAN_
-#define _RTEMETAMAN_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MetaMan.h
@@ -647,5 +646,3 @@ private:
 
 };
 } // namespace RTE
-
-#endif // File

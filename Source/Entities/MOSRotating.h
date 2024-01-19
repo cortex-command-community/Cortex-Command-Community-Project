@@ -1,5 +1,4 @@
-#ifndef _RTEMOSROTATING_
-#define _RTEMOSROTATING_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MOSRotating.h
@@ -978,5 +977,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

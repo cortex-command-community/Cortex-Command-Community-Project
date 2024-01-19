@@ -1,5 +1,4 @@
-#ifndef _RTEBOX_
-#define _RTEBOX_
+#pragma once
 
 #include "Serializable.h"
 #include "Vector.h"
@@ -295,4 +294,3 @@ namespace RTE {
 		void Clear() { m_Corner.Reset(); m_Width = m_Height = 0; }
 	};
 }
-#endif

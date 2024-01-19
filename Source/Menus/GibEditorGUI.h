@@ -1,5 +1,4 @@
-#ifndef _GIBEDITORGUI_
-#define _GIBEDITORGUI_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            GibEditorGUI.h
@@ -404,5 +403,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif  // File

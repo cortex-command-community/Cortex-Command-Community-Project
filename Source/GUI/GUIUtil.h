@@ -1,5 +1,4 @@
-#ifndef _GUIUTIL_
-#define _GUIUTIL_
+#pragma once
 
 namespace RTE {
 
@@ -32,4 +31,3 @@ namespace RTE {
 		static bool SetClipboardText(const std::string &text);
 	};
 }
-#endif

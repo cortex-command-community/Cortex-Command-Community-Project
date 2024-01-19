@@ -1,5 +1,4 @@
-#ifndef _RTETIMERMAN_
-#define _RTETIMERMAN_
+#pragma once
 
 #include "Singleton.h"
 
@@ -222,4 +221,3 @@ namespace RTE {
 		TimerMan & operator=(const TimerMan &rhs) = delete;
 	};
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _RTESLTERRAIN_
-#define _RTESLTERRAIN_
+#pragma once
 
 #include "SceneLayer.h"
 #include "Matrix.h"
@@ -288,4 +287,3 @@ namespace RTE {
 		SLTerrain & operator=(const SLTerrain &rhs) = delete;
 	};
 }
-#endif

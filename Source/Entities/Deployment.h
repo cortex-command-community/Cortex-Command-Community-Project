@@ -1,5 +1,4 @@
-#ifndef _RTEDEPLOYMENT_
-#define _RTEDEPLOYMENT_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            Deployment.h
@@ -402,5 +401,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

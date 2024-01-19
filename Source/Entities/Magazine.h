@@ -1,5 +1,4 @@
-#ifndef _RTEMAGAZINE_
-#define _RTEMAGAZINE_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            Magazine.h
@@ -328,5 +327,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

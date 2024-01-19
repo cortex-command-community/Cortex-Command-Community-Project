@@ -1,5 +1,4 @@
-#ifndef _GUITEXTPANEL_
-#define _GUITEXTPANEL_
+#pragma once
 
 namespace RTE {
 
@@ -309,5 +308,4 @@ private:
     /// <returns>The index of the start of the previous contiguous group of letters or special characters in the given string, or the end of the string if there is none.</returns>
     int GetStartOfPreviousCharacterGroup(const std::string_view &stringToCheck, int currentIndex) const;
 };
-};
-#endif
+}

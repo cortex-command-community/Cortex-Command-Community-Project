@@ -1,5 +1,4 @@
-#ifndef _RTEENTITY_
-#define _RTEENTITY_
+#pragma once
 
 #include "Serializable.h"
 #include "RTEError.h"
@@ -488,4 +487,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

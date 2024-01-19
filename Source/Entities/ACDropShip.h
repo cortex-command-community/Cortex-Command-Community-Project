@@ -1,5 +1,4 @@
-#ifndef _RTEACDROPSHIP_
-#define _RTEACDROPSHIP_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            ACDropShip.h
@@ -359,5 +358,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

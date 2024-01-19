@@ -1,5 +1,4 @@
-#ifndef _AREAEDITORGUI_
-#define _AREAEDITORGUI_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            AreaEditorGUI.h
@@ -320,5 +319,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif  // File

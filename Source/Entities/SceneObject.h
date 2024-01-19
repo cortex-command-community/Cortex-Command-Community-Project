@@ -1,5 +1,4 @@
-#ifndef _RTESCENEOBJECT_
-#define _RTESCENEOBJECT_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            SceneObject.h
@@ -609,5 +608,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

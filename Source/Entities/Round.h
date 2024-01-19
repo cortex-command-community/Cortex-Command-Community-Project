@@ -1,5 +1,4 @@
-#ifndef _RTEROUND_
-#define _RTEROUND_
+#pragma once
 
 #include "SoundContainer.h"
 
@@ -182,4 +181,3 @@ namespace RTE {
 		Round & operator=(const Round &rhs) = delete;
 	};
 }
-#endif

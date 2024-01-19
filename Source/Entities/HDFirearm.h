@@ -1,5 +1,4 @@
-#ifndef _RTEHDFIREARM_
-#define _RTEHDFIREARM_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            HDFirearm.h
@@ -1036,5 +1035,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

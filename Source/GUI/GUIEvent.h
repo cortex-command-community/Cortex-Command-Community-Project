@@ -1,5 +1,4 @@
-#ifndef _GUIEVENT_
-#define _GUIEVENT_
+#pragma once
 
 namespace RTE {
 
@@ -80,5 +79,4 @@ private:
     int m_Data;
 
 };
-};
-#endif
+}

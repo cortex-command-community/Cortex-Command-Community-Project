@@ -1,5 +1,4 @@
-#ifndef _RTEWRITER_
-#define _RTEWRITER_
+#pragma once
 
 namespace RTE {
 
@@ -175,4 +174,3 @@ namespace RTE {
 		Writer & operator=(const Writer &rhs) = delete;
 	};
 }
-#endif

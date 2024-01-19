@@ -1,5 +1,4 @@
-#ifndef _RTENETWORKCLIENT_
-#define _RTENETWORKCLIENT_
+#pragma once
 
 // TODO: Figure out how to deal with anything that is defined by these and include them in implementation only to remove Windows.h macro pollution from our headers.
 #include "RakPeerInterface.h"
@@ -354,4 +353,3 @@ namespace RTE {
 		NetworkClient & operator=(const NetworkClient &rhs) = delete;
 	};
 }
-#endif

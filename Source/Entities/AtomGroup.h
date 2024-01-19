@@ -1,5 +1,4 @@
-#ifndef _RTEATOMGROUP_
-#define _RTEATOMGROUP_
+#pragma once
 
 #include "Atom.h"
 
@@ -439,4 +438,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

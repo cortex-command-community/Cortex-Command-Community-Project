@@ -1,5 +1,4 @@
-#ifndef _RTESCENARIOACTIVITYCONFIGGUI_
-#define _RTESCENARIOACTIVITYCONFIGGUI_
+#pragma once
 
 #include "Activity.h"
 
@@ -158,4 +157,3 @@ namespace RTE {
 		ScenarioActivityConfigGUI & operator=(const ScenarioActivityConfigGUI &rhs) = delete;
 	};
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _GUIBUTTON_
-#define _GUIBUTTON_
+#pragma once
 
 namespace RTE {
 
@@ -291,5 +290,4 @@ private:
 
     void BuildBitmap();
 };
-};
-#endif
+}

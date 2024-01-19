@@ -1,5 +1,4 @@
-#ifndef _RTEAUDIOMAN_
-#define _RTEAUDIOMAN_
+#pragma once
 
 #include "Constants.h"
 #include "Entity.h"
@@ -591,4 +590,3 @@ namespace RTE {
 		AudioMan & operator=(const AudioMan &rhs) = delete;
 	};
 }
-#endif

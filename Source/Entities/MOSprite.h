@@ -1,5 +1,4 @@
-#ifndef _RTEMOSPRITE_
-#define _RTEMOSPRITE_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MOSprite.h
@@ -629,5 +628,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

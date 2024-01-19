@@ -1,5 +1,4 @@
-#ifndef _RTECOLOR_
-#define _RTECOLOR_
+#pragma once
 
 #include "Serializable.h"
 
@@ -147,4 +146,3 @@ namespace RTE {
 		void Clear() { m_R = m_G = m_B = m_Index = 0; }
 	};
 }
-#endif

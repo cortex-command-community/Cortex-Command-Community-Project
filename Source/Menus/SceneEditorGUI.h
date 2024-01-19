@@ -1,5 +1,4 @@
-#ifndef _SCENEEDITORGUI_
-#define _SCENEEDITORGUI_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            SceneEditorGUI.h
@@ -416,5 +415,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif  // File

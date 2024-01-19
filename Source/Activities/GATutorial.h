@@ -1,5 +1,4 @@
-#ifndef _RTEGATUTORIAL_
-#define _RTEGATUTORIAL_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            GATutorial.h
@@ -339,5 +338,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

@@ -1,5 +1,4 @@
-#ifndef _RTEPRIMITIVE_
-#define _RTEPRIMITIVE_
+#pragma once
 
 #include "MOSprite.h"
 
@@ -706,4 +705,3 @@ namespace RTE {
 	};
 #pragma endregion
 }
-#endif

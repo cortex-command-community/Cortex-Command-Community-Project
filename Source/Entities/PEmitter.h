@@ -1,5 +1,4 @@
-#ifndef _RTEPEMITTER_
-#define _RTEPEMITTER_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            PEmitter.h
@@ -594,5 +593,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

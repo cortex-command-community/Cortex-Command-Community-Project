@@ -1,5 +1,4 @@
-#ifndef _GUISCROLLPANEL_
-#define _GUISCROLLPANEL_
+#pragma once
 
 namespace RTE {
 
@@ -344,5 +343,4 @@ private:
 
     void AdjustValue(int Delta);
 };
-};
-#endif
+}

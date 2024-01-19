@@ -1,5 +1,4 @@
-#ifndef _RTEWINDOWMAN_
-#define _RTEWINDOWMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "System/Shader.h"
@@ -398,4 +397,3 @@ namespace RTE {
 		WindowMan & operator=(const WindowMan &rhs) = delete;
 	};
 }
-#endif

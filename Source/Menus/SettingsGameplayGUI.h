@@ -1,5 +1,4 @@
-#ifndef _RTESETTINGSGAMEPLAYGUI_
-#define _RTESETTINGSGAMEPLAYGUI_
+#pragma once
 
 namespace RTE {
 
@@ -93,4 +92,3 @@ namespace RTE {
 		SettingsGameplayGUI & operator=(const SettingsGameplayGUI &rhs) = delete;
 	};
 }
-#endif

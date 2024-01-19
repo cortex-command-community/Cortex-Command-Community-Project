@@ -1,5 +1,4 @@
-#ifndef _RTEMETAPLAYER_
-#define _RTEMETAPLAYER_
+#pragma once
 
 #include "Entity.h"
 
@@ -296,4 +295,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

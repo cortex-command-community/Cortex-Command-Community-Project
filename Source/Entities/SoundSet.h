@@ -1,5 +1,4 @@
-#ifndef _RTESOUNDSET_
-#define _RTESOUNDSET_
+#pragma once
 
 #include "Vector.h"
 #include "ContentFile.h"
@@ -221,4 +220,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

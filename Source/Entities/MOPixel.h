@@ -1,5 +1,4 @@
-#ifndef _RTEMOPIXEL_
-#define _RTEMOPIXEL_
+#pragma once
 
 #include "MovableObject.h"
 
@@ -235,4 +234,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

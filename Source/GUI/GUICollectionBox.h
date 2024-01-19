@@ -1,5 +1,4 @@
-#ifndef _GUICOLLECTIONBOX_
-#define _GUICOLLECTIONBOX_
+#pragma once
 
 namespace RTE {
 
@@ -260,5 +259,4 @@ private:
 
     void BuildBitmap();
 };
-};
-#endif
+}

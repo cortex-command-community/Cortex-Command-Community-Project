@@ -1,5 +1,4 @@
-#ifndef _RTEACTIVITYMAN_
-#define _RTEACTIVITYMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "Activity.h"
@@ -305,4 +304,3 @@ namespace RTE {
 		ActivityMan & operator=(const ActivityMan &rhs) = delete;
 	};
 }
-#endif

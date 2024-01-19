@@ -1,5 +1,4 @@
-#ifndef _RTEMETASAVE_
-#define _RTEMETASAVE_
+#pragma once
 
 #include "Entity.h"
 
@@ -104,4 +103,3 @@ namespace RTE {
 		MetaSave & operator=(const MetaSave &rhs) = delete;
 	};
 }
-#endif

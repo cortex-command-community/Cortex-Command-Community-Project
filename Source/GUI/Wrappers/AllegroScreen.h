@@ -1,5 +1,4 @@
-#ifndef _ALLEGROSCREEN_
-#define _ALLEGROSCREEN_
+#pragma once
 
 #include "AllegroBitmap.h"
 
@@ -92,5 +91,4 @@ namespace RTE {
 		// Disallow the use of some implicit methods.
 		AllegroScreen & operator=(const AllegroScreen &rhs) = delete;
 	};
-};
-#endif
+}

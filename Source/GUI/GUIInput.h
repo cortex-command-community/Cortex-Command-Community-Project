@@ -1,5 +1,4 @@
-#ifndef _GUIINPUT_
-#define _GUIINPUT_
+#pragma once
 
 namespace RTE {
 
@@ -217,5 +216,4 @@ protected:
     // Whether the keyboard and joysticks also control the mouse
     bool m_KeyJoyMouseCursor;
 };
-};
-#endif
+}

@@ -1,5 +1,4 @@
-#ifndef _GUITEXTBOX_
-#define _GUITEXTBOX_
+#pragma once
 
 #include "GUITextPanel.h"
 
@@ -144,5 +143,4 @@ private:
     int m_HAlignment;
     int m_VAlignment;
 };
-};
-#endif
+}

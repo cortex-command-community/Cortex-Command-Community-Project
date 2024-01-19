@@ -1,5 +1,4 @@
-#ifndef _GUICONTROLMANAGER_
-#define _GUICONTROLMANAGER_
+#pragma once
 
 #include "GUIWriter.h"
 #include "GUIReader.h"
@@ -295,5 +294,4 @@ private:
 
 	void AddEvent(GUIEvent *Event);
 };
-};
-#endif  //  _GUICONTROLMANAGER_
+}

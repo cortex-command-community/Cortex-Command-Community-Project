@@ -1,5 +1,4 @@
-#ifndef _RTEBASEEDITOR_
-#define _RTEBASEEDITOR_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            BaseEditor.h
@@ -233,5 +232,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

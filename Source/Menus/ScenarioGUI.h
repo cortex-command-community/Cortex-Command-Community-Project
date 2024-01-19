@@ -1,5 +1,4 @@
-#ifndef _RTESCENARIOGUI_
-#define _RTESCENARIOGUI_
+#pragma once
 
 #include "ScenarioActivityConfigGUI.h"
 #include "MOSParticle.h"
@@ -216,4 +215,3 @@ namespace RTE {
 		ScenarioGUI & operator=(const ScenarioGUI &rhs) = delete;
 	};
 }
-#endif

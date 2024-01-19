@@ -1,5 +1,4 @@
-#ifndef _AREAPICKERGUI_
-#define _AREAPICKERGUI_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            AreaPickerGUI.h
@@ -309,5 +308,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif  // File

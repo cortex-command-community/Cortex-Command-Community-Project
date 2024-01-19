@@ -1,5 +1,4 @@
-#ifndef _MULTIPLAYERGAMEGUI_
-#define _MULTIPLAYERGAMEGUI_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MultiplayerGameGUI.h
@@ -156,5 +155,3 @@ namespace RTE
 	};
 
 } // namespace RTE
-
-#endif  // File

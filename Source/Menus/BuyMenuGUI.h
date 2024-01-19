@@ -1,5 +1,4 @@
-#ifndef _BUYMENUGUI_
-#define _BUYMENUGUI_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            BuyMenuGUI.h
@@ -931,5 +930,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif  // File

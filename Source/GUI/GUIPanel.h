@@ -1,5 +1,4 @@
-#ifndef _GUIPANEL_
-#define _GUIPANEL_
+#pragma once
 
 namespace RTE {
 
@@ -672,5 +671,4 @@ protected:
 
 		GUIPanel *m_SignalTarget;
 };
-};
-#endif
+}

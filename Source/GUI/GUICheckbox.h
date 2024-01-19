@@ -1,5 +1,4 @@
-#ifndef _GUICHECKBOX_
-#define _GUICHECKBOX_
+#pragma once
 
 namespace RTE {
 
@@ -231,5 +230,4 @@ private:
 
     void BuildBitmap();
 };
-};
-#endif
+}

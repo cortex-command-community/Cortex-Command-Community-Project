@@ -1,5 +1,4 @@
-#ifndef _RTECONSOLEMAN_
-#define _RTECONSOLEMAN_
+#pragma once
 
 #include "Singleton.h"
 
@@ -227,4 +226,3 @@ namespace RTE {
 		ConsoleMan & operator=(const ConsoleMan &rhs) = delete;
 	};
 }
-#endif

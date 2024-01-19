@@ -1,5 +1,4 @@
-#ifndef _RTEASSEMBLYEDITOR_
-#define _RTEASSEMBLYEDITOR_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            AssemblyEditor.h
@@ -308,5 +307,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

@@ -1,5 +1,4 @@
-#ifndef _RTEPIESLICE_
-#define _RTEPIESLICE_
+#pragma once
 
 #include "Constants.h"
 #include "LuabindObjectWrapper.h"
@@ -325,4 +324,3 @@ namespace RTE {
 		PieSlice &operator=(const PieSlice &rhs) = delete;
 	};
 }
-#endif

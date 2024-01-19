@@ -1,5 +1,4 @@
-#ifndef _RTETDEXPLOSIVE_
-#define _RTETDEXPLOSIVE_
+#pragma once
 
 #include "ThrownDevice.h"
 
@@ -102,5 +101,3 @@ namespace RTE {
 		TDExplosive & operator=(const TDExplosive &rhs) = delete;
 	};
 }
-
-#endif

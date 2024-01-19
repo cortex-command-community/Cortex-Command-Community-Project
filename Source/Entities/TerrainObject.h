@@ -1,5 +1,4 @@
-#ifndef _RTETERRAINOBJECT_
-#define _RTETERRAINOBJECT_
+#pragma once
 
 #include "SceneObject.h"
 #include "ContentFile.h"
@@ -189,4 +188,3 @@ namespace RTE {
 		void operator=(const TerrainObject &rhs) = delete;
 	};
 }
-#endif

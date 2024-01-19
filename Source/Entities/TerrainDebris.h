@@ -1,5 +1,4 @@
-#ifndef _RTETERRAINDEBRIS_
-#define _RTETERRAINDEBRIS_
+#pragma once
 
 #include "Entity.h"
 #include "Material.h"
@@ -137,4 +136,3 @@ namespace RTE {
 		void operator=(const TerrainDebris &rhs) = delete;
 	};
 }
-#endif

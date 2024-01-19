@@ -1,5 +1,4 @@
-#ifndef _GUI_
-#define _GUI_
+#pragma once
 
 #ifndef GUI_STANDALONE
 #define GUIAssert(expression, description) RTEAssert(expression, description)
@@ -45,6 +44,4 @@ inline void SetRect(GUIRect *rect, int left, int top, int right, int bottom) { r
 
 #ifndef GUI_STANDALONE
 #include "GUISound.h"
-#endif
-
 #endif

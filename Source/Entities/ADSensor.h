@@ -1,5 +1,4 @@
-#ifndef _RTEADSENSOR_
-#define _RTEADSENSOR_
+#pragma once
 
 #include "Serializable.h"
 #include "Matrix.h"
@@ -106,4 +105,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

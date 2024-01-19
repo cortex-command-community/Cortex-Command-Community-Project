@@ -1,5 +1,4 @@
-#ifndef _RTESLBACKGROUND_
-#define _RTESLBACKGROUND_
+#pragma once
 
 #include "SceneLayer.h"
 #include "Timer.h"
@@ -246,4 +245,3 @@ namespace RTE {
 		SLBackground & operator=(const SLBackground &rhs) = delete;
 	};
 }
-#endif

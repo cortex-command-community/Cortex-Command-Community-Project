@@ -1,5 +1,4 @@
-#ifndef _RTETIMER_
-#define _RTETIMER_
+#pragma once
 
 #include "TimerMan.h"
 
@@ -319,4 +318,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _RTEARM_
-#define _RTEARM_
+#pragma once
 
 #include "Attachable.h"
 
@@ -357,4 +356,3 @@ namespace RTE {
 		Arm & operator=(const Arm &rhs) = delete;
 	};
 }
-#endif

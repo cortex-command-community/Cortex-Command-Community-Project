@@ -1,5 +1,4 @@
-#ifndef _RTEEMISSION_
-#define _RTEEMISSION_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:			Emission.h
@@ -333,5 +332,4 @@ private:
 
 };
 
-} // namespace RTE
-#endif
+}

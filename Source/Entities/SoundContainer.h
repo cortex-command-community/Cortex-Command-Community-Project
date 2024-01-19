@@ -1,5 +1,4 @@
-#ifndef _RTESOUNDCONTAINER_
-#define _RTESOUNDCONTAINER_
+#pragma once
 
 #include "Entity.h"
 #include "SoundSet.h"
@@ -426,4 +425,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

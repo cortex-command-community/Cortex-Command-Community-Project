@@ -1,5 +1,4 @@
-#ifndef _GUILISTBOX_
-#define _GUILISTBOX_
+#pragma once
 
 #include "GUIListPanel.h"
 
@@ -133,5 +132,4 @@ public:
 private:
 
 };
-};
-#endif
+}

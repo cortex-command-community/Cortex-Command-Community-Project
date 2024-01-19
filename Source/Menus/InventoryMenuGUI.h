@@ -1,5 +1,4 @@
-#ifndef _RTEINVENTORYMENUGUI_
-#define _RTEINVENTORYMENUGUI_
+#pragma once
 
 #include "Timer.h"
 #include "Vector.h"
@@ -496,4 +495,3 @@ namespace RTE {
 		InventoryMenuGUI & operator=(const InventoryMenuGUI &rhs) = delete;
 	};
 }
-#endif

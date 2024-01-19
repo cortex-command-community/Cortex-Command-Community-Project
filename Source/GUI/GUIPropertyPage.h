@@ -1,5 +1,4 @@
-#ifndef _GUIPROPERTYPAGE_
-#define _GUIPROPERTYPAGE_
+#pragma once
 
 #include "GUITextPanel.h"
 #include "GUIScrollPanel.h"
@@ -246,5 +245,4 @@ private:
 
 	void BuildBitmap();
 };
-};
-#endif
+}

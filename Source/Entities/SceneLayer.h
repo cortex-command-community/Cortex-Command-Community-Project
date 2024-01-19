@@ -1,5 +1,4 @@
-#ifndef _RTESCENELAYER_
-#define _RTESCENELAYER_
+#pragma once
 
 #include "Entity.h"
 #include "ContentFile.h"
@@ -402,4 +401,3 @@ namespace RTE {
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 	};
 }
-#endif

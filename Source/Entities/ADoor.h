@@ -1,5 +1,4 @@
-#ifndef _RTEADOOR_
-#define _RTEADOOR_
+#pragma once
 
 #include "Actor.h"
 #include "ADSensor.h"
@@ -300,4 +299,3 @@ namespace RTE {
 		ADoor & operator=(const ADoor &rhs) = delete;
 	};
 }
-#endif

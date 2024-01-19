@@ -1,5 +1,4 @@
-#ifndef _RTEATOM_
-#define _RTEATOM_
+#pragma once
 
 #include "Matrix.h"
 #include "Material.h"
@@ -537,4 +536,3 @@ namespace RTE {
 		void Clear();
 	};
 }
-#endif

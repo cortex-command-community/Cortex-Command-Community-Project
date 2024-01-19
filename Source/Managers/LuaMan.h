@@ -1,5 +1,4 @@
-#ifndef _RTELUAMAN_
-#define _RTELUAMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "Entity.h"
@@ -600,4 +599,3 @@ namespace RTE {
 		LuaMan & operator=(const LuaMan &rhs) = delete;
 	};
 }
-#endif

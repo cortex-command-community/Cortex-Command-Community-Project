@@ -1,5 +1,4 @@
-#ifndef _RTEAEMITTER_
-#define _RTEAEMITTER_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            AEmitter.h
@@ -758,5 +757,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File

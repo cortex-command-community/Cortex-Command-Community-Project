@@ -1,5 +1,4 @@
-#ifndef _RTESETTINGSAUDIOGUI_
-#define _RTESETTINGSAUDIOGUI_
+#pragma once
 
 namespace RTE {
 
@@ -79,4 +78,3 @@ namespace RTE {
 		SettingsAudioGUI & operator=(const SettingsAudioGUI &rhs) = delete;
 	};
 }
-#endif

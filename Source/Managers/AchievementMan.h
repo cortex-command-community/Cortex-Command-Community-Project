@@ -1,10 +1,7 @@
 /*
-//TODO: Remake this into a nice offline achievement system eventually™.
+//TODO: Remake this into a nice offline achievement system eventuallyï¿½.
 // NO STUPID 999 GAMES THING!
 // Possibly unlock special junk to use ingame.
-
-#ifndef _ACHIEVEMENTMAN_
-#define _ACHIEVEMENTMAN_
 
 #include "Singleton.h"
 #include "Timer.h"
@@ -117,6 +114,4 @@ private:
 };
 
 } // namespace RTE
-
-#endif // _ACHIEVEMENTMAN_
 */

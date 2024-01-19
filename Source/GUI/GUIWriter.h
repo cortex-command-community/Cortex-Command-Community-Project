@@ -1,5 +1,4 @@
-#ifndef _RTEGUIWRITER_
-#define _RTEGUIWRITER_
+#pragma once
 
 namespace RTE {
 
@@ -141,4 +140,3 @@ namespace RTE {
 		GUIWriter & operator=(const GUIWriter &rhs) = delete;
 	};
 }
-#endif

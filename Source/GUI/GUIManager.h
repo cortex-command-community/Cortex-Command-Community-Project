@@ -1,5 +1,4 @@
-#ifndef _GUIMANAGER_
-#define _GUIMANAGER_
+#pragma once
 
 namespace RTE {
 
@@ -187,5 +186,4 @@ private:
     bool MouseInRect(const GUIRect *Rect, int X, int Y);
 
 };
-};
-#endif
+}

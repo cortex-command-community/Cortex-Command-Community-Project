@@ -1,5 +1,4 @@
-#ifndef _RTEPIEQUADRANT_
-#define _RTEPIEQUADRANT_
+#pragma once
 
 #include "PieSlice.h"
 
@@ -91,4 +90,3 @@ namespace RTE {
 		PieQuadrant & operator=(const PieQuadrant &rhs) = delete;
 	};
 }
-#endif

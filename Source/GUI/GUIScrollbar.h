@@ -1,5 +1,4 @@
-#ifndef _GUISCROLLBAR_
-#define _GUISCROLLBAR_
+#pragma once
 
 #include "GUIScrollPanel.h"
 
@@ -167,5 +166,4 @@ public:
 private:
 
 };
-};
-#endif
+}

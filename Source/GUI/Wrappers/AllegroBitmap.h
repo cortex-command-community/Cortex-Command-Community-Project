@@ -1,5 +1,4 @@
-#ifndef _ALLEGROBITMAP_
-#define _ALLEGROBITMAP_
+#pragma once
 
 #include "GUIInterface.h"
 #include "ContentFile.h"
@@ -193,5 +192,4 @@ namespace RTE {
 		// Disallow the use of some implicit methods.
 		AllegroBitmap & operator=(const AllegroBitmap &rhs) = delete;
 	};
-};
-#endif
+}

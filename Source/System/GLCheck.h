@@ -1,5 +1,4 @@
-#ifndef _RTEGLCHECK_H_
-#define _RTEGLCHECK_H_
+#pragma once
 
 ///< summary>
 /// Debug function to print GL errors to the console from:
@@ -18,5 +17,4 @@ void CheckOpenGLError(const char *stmt, const char *fname, int line);
 	} while (0)
 #else
 #define GL_CHECK(stmt) stmt
-#endif
 #endif

@@ -1,5 +1,4 @@
-#ifndef _GUIRADIOBUTTON_
-#define _GUIRADIOBUTTON_
+#pragma once
 
 namespace RTE {
 
@@ -216,5 +215,4 @@ private:
 
 	void BuildBitmap();
 };
-};
-#endif
+}

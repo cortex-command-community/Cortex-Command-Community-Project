@@ -1,5 +1,4 @@
-#ifndef _RTEMULTIPLAYERSERVERLOBBY_
-#define _RTEMULTIPLAYERSERVERLOBBY_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MultiplayerServerLobby.h
@@ -305,5 +304,3 @@ namespace RTE
 	};
 
 } // namespace RTE
-
-#endif // File

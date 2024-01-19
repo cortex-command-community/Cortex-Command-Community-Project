@@ -1,5 +1,4 @@
-#ifndef _RTELIMBPATH_
-#define _RTELIMBPATH_
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            LimbPath.h
@@ -735,5 +734,3 @@ private:
 };
 
 } // namespace RTE
-
-#endif // File
