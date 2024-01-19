@@ -13,7 +13,6 @@ namespace RTE {
 	class MOSParticle : public MOSprite {
 
 	public:
-
 		EntityAllocation(MOSParticle);
 		ClassInfoGetters;
 		SerializableOverrideMethods;
@@ -40,7 +39,7 @@ namespace RTE {
 		/// <param name="velocity">A Vector specifying the initial velocity.</param>
 		/// <param name="lifetime">The amount of time in ms this MOSParticle will exist. 0 means unlimited.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(ContentFile spriteFile, const int frameCount = 1, const float mass = 1, const Vector &position = Vector(0, 0), const Vector &velocity = Vector(0, 0), const unsigned long lifetime = 0) {
+		int Create(ContentFile spriteFile, const int frameCount = 1, const float mass = 1, const Vector& position = Vector(0, 0), const Vector& velocity = Vector(0, 0), const unsigned long lifetime = 0) {
 			MOSprite::Create(spriteFile, frameCount, mass, position, velocity, lifetime);
 			return 0;
 		}
@@ -50,7 +49,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the MOSParticle to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const MOSParticle &reference);
+		int Create(const MOSParticle& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -68,7 +67,10 @@ namespace RTE {
 		/// <summary>
 		/// Resets the entire MOSParticle, including its inherited members, to their default settings or values.
 		/// </summary>
-		void Reset() override { Clear(); MOSprite::Reset(); }
+		void Reset() override {
+			Clear();
+			MOSprite::Reset();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -82,19 +84,19 @@ namespace RTE {
 		/// Gets the main material of this MOSParticle.
 		/// </summary>
 		/// <returns>The material of this MOSParticle.</returns>
-		const Material * GetMaterial() const override;
+		const Material* GetMaterial() const override;
 
 		/// <summary>
 		/// Gets the current Atom of this MOSParticle.
 		/// </summary>
 		/// <returns>A const reference to the current Atom.</returns>
-		const Atom * GetAtom() const { return m_Atom; }
+		const Atom* GetAtom() const { return m_Atom; }
 
 		/// <summary>
 		/// Replaces the current Atom of this MOSParticle with a new one.
 		/// </summary>
 		/// <param name="newAtom">A reference to the new Atom.</param>
-		void SetAtom(Atom *newAtom);
+		void SetAtom(Atom* newAtom);
 #pragma endregion
 
 #pragma region Virtual Override Methods
@@ -104,12 +106,12 @@ namespace RTE {
 		void Travel() override;
 
 		/// <summary>
-		/// Calculates the collision response when another MO's Atom collides with this MO's physical representation. 
+		/// Calculates the collision response when another MO's Atom collides with this MO's physical representation.
 		/// The effects will be applied directly to this MO, and also represented in the passed in HitData.
 		/// </summary>
 		/// <param name="hitData">Reference to the HitData struct which describes the collision. This will be modified to represent the results of the collision.</param>
 		/// <returns>Whether the collision has been deemed valid. If false, then disregard any impulses in the HitData.</returns>
-		bool CollideAtPoint(HitData &hitData) override { return true; }
+		bool CollideAtPoint(HitData& hitData) override { return true; }
 
 		/// <summary>
 		/// Does the calculations necessary to detect whether this MOSParticle is at rest or not. IsAtRest() retrieves the answer.
@@ -121,14 +123,14 @@ namespace RTE {
 		/// </summary>
 		/// <param name="hd">The HitData describing the collision in detail.</param>
 		/// <returns>Whether the MOSParticle should immediately halt any travel going on after this bounce.</returns>
-		bool OnBounce(HitData &hd) override { return false; }
+		bool OnBounce(HitData& hd) override { return false; }
 
 		/// <summary>
 		/// Defines what should happen when this MOSParticle hits and then sink into something. This is called by the owned Atom/AtomGroup of this MOSParticle during travel.
 		/// </summary>
 		/// <param name="hd">The HitData describing the collision in detail.</param>
 		/// <returns>Whether the MOSParticle should immediately halt any travel going on after this sinkage.</returns>
-		bool OnSink(HitData &hd) override { return false; }
+		bool OnSink(HitData& hd) override { return false; }
 
 		/// <summary>
 		/// Updates this MOParticle. Supposed to be done every frame.
@@ -142,18 +144,16 @@ namespace RTE {
 		/// <param name="targetPos">The absolute position of the target bitmap's upper left corner in the Scene.</param>
 		/// <param name="mode">In which mode to draw in. See the DrawMode enumeration for the modes.</param>
 		/// <param name="onlyPhysical">Whether to not draw any extra 'ghost' items of this MOSParticle, indicator arrows or hovering HUD text and so on.</param>
-		void Draw(BITMAP *targetBitmap, const Vector &targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
+		void Draw(BITMAP* targetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
-		Atom *m_Atom; //!< The Atom that will be the physical representation of this MOSParticle.
+		Atom* m_Atom; //!< The Atom that will be the physical representation of this MOSParticle.
 		float m_TimeRest; //!< Accumulated time in seconds that did not cause a frame change.
 
 	private:
-
 		/// <summary>
 		/// Sets the screen effect to draw at the final post-processing stage.
 		/// </summary>
@@ -165,8 +165,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		MOSParticle(const MOSParticle &reference) = delete;
-		MOSParticle & operator=(const MOSParticle &rhs) = delete;
+		MOSParticle(const MOSParticle& reference) = delete;
+		MOSParticle& operator=(const MOSParticle& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

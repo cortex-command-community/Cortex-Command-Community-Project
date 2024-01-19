@@ -20,7 +20,7 @@ namespace RTE {
 	std::string RTEError::s_LastIgnoredAssertDescription = "";
 	std::source_location RTEError::s_LastIgnoredAssertLocation = {};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef _WIN32
 	/// <summary>
@@ -29,7 +29,7 @@ namespace RTE {
 	/// Even if we "translate" SE exceptions to C++ exceptions it's still ass and doesn't really work, so this is what it is and it is good enough.
 	/// </summary>
 	/// <param name="exceptPtr">Struct containing information about the exception. This will be provided by the OS exception handler.</param>
-	static LONG WINAPI RTEWindowsExceptionHandler([[maybe_unused]] EXCEPTION_POINTERS *exceptPtr) {
+	static LONG WINAPI RTEWindowsExceptionHandler([[maybe_unused]] EXCEPTION_POINTERS* exceptPtr) {
 		// This sorta half-assedly works in x86 because exception handling is slightly different, but since the main target is x64 we can just not care about it.
 		// Something something ESP. ESP is a guitar brand.
 #ifndef TARGET_MACHINE_X86
@@ -51,35 +51,55 @@ namespace RTE {
 		};
 
 		// Returns a string with the type of the exception from the passed in code.
-		static auto getExceptionDescriptionFromCode = [](const DWORD &exceptCode) -> std::string {
+		static auto getExceptionDescriptionFromCode = [](const DWORD& exceptCode) -> std::string {
 			switch (exceptCode) {
-				case EXCEPTION_ACCESS_VIOLATION:			return "EXCEPTION_ACCESS_VIOLATION";
-				case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:		return "EXCEPTION_ARRAY_BOUNDS_EXCEEDED";
-				case EXCEPTION_BREAKPOINT:					return "EXCEPTION_BREAKPOINT";
-				case EXCEPTION_DATATYPE_MISALIGNMENT:		return "EXCEPTION_DATATYPE_MISALIGNMENT";
-				case EXCEPTION_FLT_DENORMAL_OPERAND:		return "EXCEPTION_FLT_DENORMAL_OPERAND";
-				case EXCEPTION_FLT_DIVIDE_BY_ZERO:			return "EXCEPTION_FLT_DIVIDE_BY_ZERO";
-				case EXCEPTION_FLT_INEXACT_RESULT:			return "EXCEPTION_FLT_INEXACT_RESULT";
-				case EXCEPTION_FLT_INVALID_OPERATION:		return "EXCEPTION_FLT_INVALID_OPERATION";
-				case EXCEPTION_FLT_OVERFLOW:				return "EXCEPTION_FLT_OVERFLOW";
-				case EXCEPTION_FLT_STACK_CHECK:				return "EXCEPTION_FLT_STACK_CHECK";
-				case EXCEPTION_FLT_UNDERFLOW:				return "EXCEPTION_FLT_UNDERFLOW";
-				case EXCEPTION_ILLEGAL_INSTRUCTION:			return "EXCEPTION_ILLEGAL_INSTRUCTION";
-				case EXCEPTION_IN_PAGE_ERROR:				return "EXCEPTION_IN_PAGE_ERROR";
-				case EXCEPTION_INT_DIVIDE_BY_ZERO:			return "EXCEPTION_INT_DIVIDE_BY_ZERO";
-				case EXCEPTION_INT_OVERFLOW:				return "EXCEPTION_INT_OVERFLOW";
-				case EXCEPTION_INVALID_DISPOSITION:			return "EXCEPTION_INVALID_DISPOSITION";
-				case EXCEPTION_NONCONTINUABLE_EXCEPTION:	return "EXCEPTION_NONCONTINUABLE_EXCEPTION";
-				case EXCEPTION_PRIV_INSTRUCTION:			return "EXCEPTION_PRIV_INSTRUCTION";
-				case EXCEPTION_SINGLE_STEP:					return "EXCEPTION_SINGLE_STEP";
-				case EXCEPTION_STACK_OVERFLOW:				return "EXCEPTION_STACK_OVERFLOW";
+				case EXCEPTION_ACCESS_VIOLATION:
+					return "EXCEPTION_ACCESS_VIOLATION";
+				case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+					return "EXCEPTION_ARRAY_BOUNDS_EXCEEDED";
+				case EXCEPTION_BREAKPOINT:
+					return "EXCEPTION_BREAKPOINT";
+				case EXCEPTION_DATATYPE_MISALIGNMENT:
+					return "EXCEPTION_DATATYPE_MISALIGNMENT";
+				case EXCEPTION_FLT_DENORMAL_OPERAND:
+					return "EXCEPTION_FLT_DENORMAL_OPERAND";
+				case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+					return "EXCEPTION_FLT_DIVIDE_BY_ZERO";
+				case EXCEPTION_FLT_INEXACT_RESULT:
+					return "EXCEPTION_FLT_INEXACT_RESULT";
+				case EXCEPTION_FLT_INVALID_OPERATION:
+					return "EXCEPTION_FLT_INVALID_OPERATION";
+				case EXCEPTION_FLT_OVERFLOW:
+					return "EXCEPTION_FLT_OVERFLOW";
+				case EXCEPTION_FLT_STACK_CHECK:
+					return "EXCEPTION_FLT_STACK_CHECK";
+				case EXCEPTION_FLT_UNDERFLOW:
+					return "EXCEPTION_FLT_UNDERFLOW";
+				case EXCEPTION_ILLEGAL_INSTRUCTION:
+					return "EXCEPTION_ILLEGAL_INSTRUCTION";
+				case EXCEPTION_IN_PAGE_ERROR:
+					return "EXCEPTION_IN_PAGE_ERROR";
+				case EXCEPTION_INT_DIVIDE_BY_ZERO:
+					return "EXCEPTION_INT_DIVIDE_BY_ZERO";
+				case EXCEPTION_INT_OVERFLOW:
+					return "EXCEPTION_INT_OVERFLOW";
+				case EXCEPTION_INVALID_DISPOSITION:
+					return "EXCEPTION_INVALID_DISPOSITION";
+				case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+					return "EXCEPTION_NONCONTINUABLE_EXCEPTION";
+				case EXCEPTION_PRIV_INSTRUCTION:
+					return "EXCEPTION_PRIV_INSTRUCTION";
+				case EXCEPTION_SINGLE_STEP:
+					return "EXCEPTION_SINGLE_STEP";
+				case EXCEPTION_STACK_OVERFLOW:
+					return "EXCEPTION_STACK_OVERFLOW";
 				default:
 					return "UNKNOWN EXCEPTION";
 			}
 		};
 
 		// Attempts to get a symbol name from the exception address.
-		static auto getSymbolNameFromAddress = [](HANDLE &procHandle, const size_t &exceptAddr) {
+		static auto getSymbolNameFromAddress = [](HANDLE& procHandle, const size_t& exceptAddr) {
 			if (SymInitialize(procHandle, nullptr, TRUE)) {
 				SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
 
@@ -115,7 +135,8 @@ namespace RTE {
 		std::string symbolNameAtAddress = getSymbolNameFromAddress(processHandle, exceptionAddress);
 		RTEError::FormatFunctionSignature(symbolNameAtAddress);
 
-		exceptionDescription << getExceptionDescriptionFromCode(exceptionCode) << " at address 0x" << std::uppercase << std::hex << exceptionAddress << ".\n\n" << symbolNameAtAddress << std::endl;
+		exceptionDescription << getExceptionDescriptionFromCode(exceptionCode) << " at address 0x" << std::uppercase << std::hex << exceptionAddress << ".\n\n"
+		                     << symbolNameAtAddress << std::endl;
 
 		RTEStackTrace stackTrace;
 
@@ -125,7 +146,7 @@ namespace RTE {
 	}
 #endif
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void RTEError::SetExceptionHandlers() {
 		// Basic handling for C++ exceptions. Doesn't give us much meaningful information.
@@ -135,9 +156,9 @@ namespace RTE {
 			if (currentException) {
 				try {
 					std::rethrow_exception(currentException);
-				} catch (const std::bad_exception &exception) {
+				} catch (const std::bad_exception& exception) {
 					RTEError::UnhandledExceptionFunc("Unable to get exception description because: " + std::string(exception.what()) + ".\n");
-				} catch (const std::exception &exception) {
+				} catch (const std::exception& exception) {
 					RTEError::UnhandledExceptionFunc(std::string(exception.what()) + ".\n");
 				}
 			} else {
@@ -158,20 +179,21 @@ namespace RTE {
 #endif
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void RTEError::ShowMessageBox(const std::string &message) {
+	void RTEError::ShowMessageBox(const std::string& message) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "RTE Warning! (>_<)", message.c_str(), nullptr);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool RTEError::ShowAbortMessageBox(const std::string &message) {
-		enum AbortMessageButton { ButtonInvalid, ButtonExit, ButtonRestart };
+	bool RTEError::ShowAbortMessageBox(const std::string& message) {
+		enum AbortMessageButton { ButtonInvalid,
+			                        ButtonExit,
+			                        ButtonRestart };
 
 		std::vector<SDL_MessageBoxButtonData> abortMessageBoxButtons = {
-			SDL_MessageBoxButtonData(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, AbortMessageButton::ButtonExit, "OK")
-		};
+		    SDL_MessageBoxButtonData(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, AbortMessageButton::ButtonExit, "OK")};
 
 		// Don't even show the restart button in debug builds.
 #ifdef RELEASE_BUILD
@@ -182,14 +204,13 @@ namespace RTE {
 #endif
 
 		SDL_MessageBoxData abortMessageBox = {
-			SDL_MESSAGEBOX_ERROR,
-			g_WindowMan.GetWindow(),
-			"RTE Aborted! (x_x)",
-			message.c_str(),
-			static_cast<int>(abortMessageBoxButtons.size()),
-			abortMessageBoxButtons.data(),
-			nullptr
-		};
+		    SDL_MESSAGEBOX_ERROR,
+		    g_WindowMan.GetWindow(),
+		    "RTE Aborted! (x_x)",
+		    message.c_str(),
+		    static_cast<int>(abortMessageBoxButtons.size()),
+		    abortMessageBoxButtons.data(),
+		    nullptr};
 
 		int pressedButton = AbortMessageButton::ButtonInvalid;
 		SDL_ShowMessageBox(&abortMessageBox, &pressedButton);
@@ -197,26 +218,27 @@ namespace RTE {
 		return pressedButton == AbortMessageButton::ButtonRestart;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool RTEError::ShowAssertMessageBox(const std::string &message) {
-		enum AssertMessageButton { ButtonInvalid, ButtonAbort, ButtonIgnore, ButtonIgnoreAll };
+	bool RTEError::ShowAssertMessageBox(const std::string& message) {
+		enum AssertMessageButton { ButtonInvalid,
+			                         ButtonAbort,
+			                         ButtonIgnore,
+			                         ButtonIgnoreAll };
 
 		std::vector<SDL_MessageBoxButtonData> assertMessageBoxButtons = {
-			SDL_MessageBoxButtonData(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, AssertMessageButton::ButtonAbort, "Abort"),
-			SDL_MessageBoxButtonData(0, AssertMessageButton::ButtonIgnore, "Ignore"),
-			SDL_MessageBoxButtonData(0, AssertMessageButton::ButtonIgnoreAll, "Ignore All")
-		};
+		    SDL_MessageBoxButtonData(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, AssertMessageButton::ButtonAbort, "Abort"),
+		    SDL_MessageBoxButtonData(0, AssertMessageButton::ButtonIgnore, "Ignore"),
+		    SDL_MessageBoxButtonData(0, AssertMessageButton::ButtonIgnoreAll, "Ignore All")};
 
 		SDL_MessageBoxData assertMessageBox = {
-			SDL_MESSAGEBOX_ERROR,
-			g_WindowMan.GetWindow(),
-			"RTE Assert! (x_x)",
-			message.c_str(),
-			static_cast<int>(assertMessageBoxButtons.size()),
-			assertMessageBoxButtons.data(),
-			nullptr
-		};
+		    SDL_MESSAGEBOX_ERROR,
+		    g_WindowMan.GetWindow(),
+		    "RTE Assert! (x_x)",
+		    message.c_str(),
+		    static_cast<int>(assertMessageBoxButtons.size()),
+		    assertMessageBoxButtons.data(),
+		    nullptr};
 
 		int pressedButton = AssertMessageButton::ButtonInvalid;
 		SDL_ShowMessageBox(&assertMessageBox, &pressedButton);
@@ -228,9 +250,9 @@ namespace RTE {
 		return pressedButton == AssertMessageButton::ButtonAbort;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void RTEError::UnhandledExceptionFunc(const std::string &description, const std::string &callstack) {
+	void RTEError::UnhandledExceptionFunc(const std::string& description, const std::string& callstack) {
 		s_CurrentlyAborting = true;
 
 		std::string exceptionMessage = "Runtime Error due to unhandled exception!\n\n" + description;
@@ -282,9 +304,9 @@ namespace RTE {
 		AbortAction;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void RTEError::AbortFunc(const std::string &description, const std::source_location &srcLocation) {
+	void RTEError::AbortFunc(const std::string& description, const std::source_location& srcLocation) {
 		s_CurrentlyAborting = true;
 
 		if (!System::IsInExternalModuleValidationMode()) {
@@ -349,9 +371,9 @@ namespace RTE {
 		AbortAction;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void RTEError::AssertFunc(const std::string &description, const std::source_location &srcLocation) {
+	void RTEError::AssertFunc(const std::string& description, const std::source_location& srcLocation) {
 		if (System::IsInExternalModuleValidationMode()) {
 			AbortFunc(description, srcLocation);
 		}
@@ -369,8 +391,8 @@ namespace RTE {
 
 		if (!s_IgnoreAllAsserts) {
 			std::string assertMessage =
-				"Assertion in file '" + fileName + "', line " + lineNum + ",\nin function '" + funcName + "'\nbecause:\n\n" + description + "\n\n"
-				"You may choose to ignore this and crash immediately\nor at some unexpected point later on.\n\nProceed at your own risk!";
+			    "Assertion in file '" + fileName + "', line " + lineNum + ",\nin function '" + funcName + "'\nbecause:\n\n" + description + "\n\n"
+			                                                                                                                                "You may choose to ignore this and crash immediately\nor at some unexpected point later on.\n\nProceed at your own risk!";
 
 			if (ShowAssertMessageBox(assertMessage)) {
 				AbortFunc(description, srcLocation);
@@ -387,14 +409,14 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool RTEError::DumpAbortScreen() {
 		int success = -1;
 		if (glReadPixels != nullptr) {
-			int w ,h;
+			int w, h;
 			SDL_GL_GetDrawableSize(g_WindowMan.GetWindow(), &w, &h);
-			if (!(w>0 && h>0)) {
+			if (!(w > 0 && h > 0)) {
 				return false;
 			}
 			BITMAP* readBuffer = create_bitmap_ex(24, w, h);
@@ -417,7 +439,7 @@ namespace RTE {
 		return success == 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool RTEError::DumpAbortSave() {
 		bool success = false;
@@ -427,16 +449,14 @@ namespace RTE {
 		return success;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void RTEError::FormatFunctionSignature(std::string &symbolName) {
+	void RTEError::FormatFunctionSignature(std::string& symbolName) {
 		// TODO: Expand this with more dumb signatures, or make something that makes more sense.
-		static const std::array<std::pair<std::regex, std::string>, 3> stlSigs {{
-			{std::regex("( >)"), ">"},
-			{std::regex("(std::basic_string<char,std::char_traits<char>,std::allocator<char>>)"), "std::string"},
-			{std::regex("(class ?std::basic_string<char,struct ?std::char_traits<char>,class ?std::allocator<char>>)"), "std::string"}
-		}};
-		for (const auto &[fullSig, simpleSig] : stlSigs) {
+		static const std::array<std::pair<std::regex, std::string>, 3> stlSigs{{{std::regex("( >)"), ">"},
+		                                                                        {std::regex("(std::basic_string<char,std::char_traits<char>,std::allocator<char>>)"), "std::string"},
+		                                                                        {std::regex("(class ?std::basic_string<char,struct ?std::char_traits<char>,class ?std::allocator<char>>)"), "std::string"}}};
+		for (const auto& [fullSig, simpleSig]: stlSigs) {
 			symbolName = std::regex_replace(symbolName, fullSig, simpleSig);
 		}
 		for (size_t pos = 0;;) {
@@ -450,4 +470,4 @@ namespace RTE {
 			}
 		}
 	}
-}
+} // namespace RTE

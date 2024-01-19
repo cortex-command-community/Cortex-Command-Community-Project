@@ -8,7 +8,7 @@ namespace RTE {
 
 	ConcreteClassInfo(PieSlice, Entity, 80);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PieSlice::Clear() {
 		m_Type = SliceType::NoType;
@@ -31,20 +31,22 @@ namespace RTE {
 		m_DrawFlippedToMatchAbsoluteAngle = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int PieSlice::Create() {
 		if (Entity::Create() < 0) {
 			return -1;
 		}
-		if (!HasIcon()) { m_Icon = std::unique_ptr<Icon>(dynamic_cast<Icon *>(g_PresetMan.GetEntityPreset("Icon", "Blank")->Clone())); }
+		if (!HasIcon()) {
+			m_Icon = std::unique_ptr<Icon>(dynamic_cast<Icon*>(g_PresetMan.GetEntityPreset("Icon", "Blank")->Clone()));
+		}
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int PieSlice::Create(const PieSlice &reference) {
+	int PieSlice::Create(const PieSlice& reference) {
 		Entity::Create(reference);
 
 		m_Type = reference.m_Type;
@@ -52,7 +54,7 @@ namespace RTE {
 		m_CanBeMiddleSlice = reference.m_CanBeMiddleSlice;
 
 		m_Enabled = reference.m_Enabled;
-		m_Icon = std::unique_ptr<Icon>(dynamic_cast<Icon *>(reference.m_Icon->Clone()));
+		m_Icon = std::unique_ptr<Icon>(dynamic_cast<Icon*>(reference.m_Icon->Clone()));
 
 		m_FunctionName = reference.m_FunctionName;
 		if (reference.m_LuabindFunctionObject) {
@@ -60,7 +62,9 @@ namespace RTE {
 			ReloadScripts();
 		}
 
-		if (reference.m_SubPieMenu) { SetSubPieMenu(dynamic_cast<PieMenu *>(reference.m_SubPieMenu->Clone())); }
+		if (reference.m_SubPieMenu) {
+			SetSubPieMenu(dynamic_cast<PieMenu*>(reference.m_SubPieMenu->Clone()));
+		}
 
 		m_StartAngle = reference.m_StartAngle;
 		m_SlotCount = reference.m_SlotCount;
@@ -71,11 +75,11 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int PieSlice::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
-		
+
 		MatchProperty("Type", { m_Type = static_cast<SliceType>(std::stoi(reader.ReadPropValue())); });
 		MatchProperty("Direction", {
 			if (std::string directionString = reader.ReadPropValue(); c_DirectionNameToDirectionsMap.find(directionString) != c_DirectionNameToDirectionsMap.end()) {
@@ -87,15 +91,17 @@ namespace RTE {
 						reader.ReportError("Direction " + directionString + " is invalid (Out of Bounds).");
 					}
 					m_Direction = static_cast<Directions>(direction);
-				} catch (const std::invalid_argument &) {
+				} catch (const std::invalid_argument&) {
 					reader.ReportError("Direction " + directionString + " is invalid.");
 				}
 			}
-			if (m_Direction == Directions::None) { reader.ReportError("Pie Slices cannot have direction None."); }
+			if (m_Direction == Directions::None) {
+				reader.ReportError("Pie Slices cannot have direction None.");
+			}
 		});
 		MatchProperty("CanBeMiddleSlice", { reader >> m_CanBeMiddleSlice; });
 		MatchProperty("Enabled", { reader >> m_Enabled; });
-		MatchProperty("Icon", { SetIcon(dynamic_cast<Icon *>(g_PresetMan.ReadReflectedPreset(reader))); });
+		MatchProperty("Icon", { SetIcon(dynamic_cast<Icon*>(g_PresetMan.ReadReflectedPreset(reader))); });
 		MatchProperty("ScriptPath", {
 			std::string scriptPath;
 			reader >> scriptPath;
@@ -110,33 +116,41 @@ namespace RTE {
 				ReloadScripts();
 			}
 		});
-		MatchProperty("SubPieMenu", { SetSubPieMenu(dynamic_cast<PieMenu *>(g_PresetMan.ReadReflectedPreset(reader))); });
+		MatchProperty("SubPieMenu", { SetSubPieMenu(dynamic_cast<PieMenu*>(g_PresetMan.ReadReflectedPreset(reader))); });
 		MatchProperty("DrawFlippedToMatchAbsoluteAngle", { reader >> m_DrawFlippedToMatchAbsoluteAngle; });
 
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int PieSlice::Save(Writer &writer) const {
+	int PieSlice::Save(Writer& writer) const {
 		Entity::Save(writer);
 
-		if (m_Type != SliceType::NoType) { writer.NewPropertyWithValue("Type", m_Type); }
-		if (m_Direction != Directions::Any) { writer.NewPropertyWithValue("Direction", static_cast<int>(m_Direction)); }
-		if (!m_Enabled) { writer.NewPropertyWithValue("Enabled", m_Enabled); }
+		if (m_Type != SliceType::NoType) {
+			writer.NewPropertyWithValue("Type", m_Type);
+		}
+		if (m_Direction != Directions::Any) {
+			writer.NewPropertyWithValue("Direction", static_cast<int>(m_Direction));
+		}
+		if (!m_Enabled) {
+			writer.NewPropertyWithValue("Enabled", m_Enabled);
+		}
 		writer.NewPropertyWithValue("Icon", m_Icon.get());
 		if (m_LuabindFunctionObject && !m_FunctionName.empty()) {
 			writer.NewPropertyWithValue("ScriptPath", m_LuabindFunctionObject->GetFilePath());
 			writer.NewPropertyWithValue("FunctionName", m_FunctionName);
 		}
-		if (m_SubPieMenu) { writer.NewPropertyWithValue("SubPieMenu", m_SubPieMenu.get()); }
+		if (m_SubPieMenu) {
+			writer.NewPropertyWithValue("SubPieMenu", m_SubPieMenu.get());
+		}
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	BITMAP * RTE::PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {
+	BITMAP* RTE::PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {
 		if (int iconFrameCount = m_Icon->GetFrameCount(); iconFrameCount > 0) {
 			if (!IsEnabled() && iconFrameCount > 2) {
 				return m_Icon->GetBitmaps8()[2];
@@ -149,45 +163,45 @@ namespace RTE {
 		return nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	PieMenu *PieSlice::GetSubPieMenu() const {
+	PieMenu* PieSlice::GetSubPieMenu() const {
 		return m_SubPieMenu.get();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PieSlice::SetSubPieMenu(PieMenu *newSubPieMenu) {
+	void PieSlice::SetSubPieMenu(PieMenu* newSubPieMenu) {
 		m_SubPieMenu = std::unique_ptr<PieMenu, PieMenuCustomDeleter>(newSubPieMenu);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    int PieSlice::ReloadScripts() {
+	int PieSlice::ReloadScripts() {
 		int status = 0;
 
 		if (m_LuabindFunctionObject) {
 			std::string filePath = m_LuabindFunctionObject->GetFilePath();
-			std::unordered_map<std::string, LuabindObjectWrapper *> scriptFileFunctions;
+			std::unordered_map<std::string, LuabindObjectWrapper*> scriptFileFunctions;
 
-			status = g_LuaMan.GetMasterScriptState().RunScriptFileAndRetrieveFunctions(filePath, { m_FunctionName }, scriptFileFunctions, true);
+			status = g_LuaMan.GetMasterScriptState().RunScriptFileAndRetrieveFunctions(filePath, {m_FunctionName}, scriptFileFunctions, true);
 			if (scriptFileFunctions.find(m_FunctionName) != scriptFileFunctions.end()) {
 				m_LuabindFunctionObject = std::unique_ptr<LuabindObjectWrapper>(scriptFileFunctions.at(m_FunctionName));
 			}
 		}
 
-        return status;
-    }
+		return status;
+	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void PieSlice::RecalculateMidAngle() {
+	void PieSlice::RecalculateMidAngle() {
 		m_MidAngle = m_StartAngle + (static_cast<float>(m_SlotCount) * PieQuadrant::c_PieSliceSlotSize / 2.0F);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PieSlice::PieMenuCustomDeleter::operator()(PieMenu *pieMenu) const {
+	void PieSlice::PieMenuCustomDeleter::operator()(PieMenu* pieMenu) const {
 		pieMenu->Destroy(true);
 	}
-}
+} // namespace RTE

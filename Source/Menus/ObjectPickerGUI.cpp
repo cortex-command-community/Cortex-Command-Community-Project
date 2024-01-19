@@ -25,9 +25,9 @@
 
 namespace RTE {
 
-	BITMAP *ObjectPickerGUI::s_Cursor = nullptr;
+	BITMAP* ObjectPickerGUI::s_Cursor = nullptr;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::Clear() {
 		m_GUIScreen = nullptr;
@@ -58,15 +58,21 @@ namespace RTE {
 		m_ExpandedModules[0] = true; // Base.rte is always expanded
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ObjectPickerGUI::Create(Controller *controller, int whichModuleSpace, const std::string_view &onlyOfType) {
+	int ObjectPickerGUI::Create(Controller* controller, int whichModuleSpace, const std::string_view& onlyOfType) {
 		RTEAssert(controller, "No controller sent to ObjectPickerGUI on creation!");
 		m_Controller = controller;
 
-		if (!m_GUIScreen) { m_GUIScreen = std::make_unique<AllegroScreen>(g_FrameMan.GetBackBuffer8()); }
-		if (!m_GUIInput) { m_GUIInput = std::make_unique<GUIInputWrapper>(controller->GetPlayer()); }
-		if (!m_GUIControlManager) { m_GUIControlManager = std::make_unique<GUIControlManager>(); }
+		if (!m_GUIScreen) {
+			m_GUIScreen = std::make_unique<AllegroScreen>(g_FrameMan.GetBackBuffer8());
+		}
+		if (!m_GUIInput) {
+			m_GUIInput = std::make_unique<GUIInputWrapper>(controller->GetPlayer());
+		}
+		if (!m_GUIControlManager) {
+			m_GUIControlManager = std::make_unique<GUIControlManager>();
+		}
 		RTEAssert(m_GUIControlManager->Create(m_GUIScreen.get(), m_GUIInput.get(), "Base.rte/GUIs/Skins", "DefaultSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/DefaultSkin.ini");
 
 		m_GUIControlManager->Load("Base.rte/GUIs/ObjectPickerGUI.ini");
@@ -78,21 +84,23 @@ namespace RTE {
 		}
 
 		if (g_FrameMan.IsInMultiplayerMode()) {
-			dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("base"))->SetSize(g_FrameMan.GetPlayerFrameBufferWidth(controller->GetPlayer()), g_FrameMan.GetPlayerFrameBufferHeight(controller->GetPlayer()));
+			dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_FrameMan.GetPlayerFrameBufferWidth(controller->GetPlayer()), g_FrameMan.GetPlayerFrameBufferHeight(controller->GetPlayer()));
 		} else {
-			dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
+			dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 		}
 
-		if (!m_ParentBox) { m_ParentBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("PickerGUIBox")); }
+		if (!m_ParentBox) {
+			m_ParentBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("PickerGUIBox"));
+		}
 		m_ParentBox->SetPositionAbs(g_FrameMan.GetPlayerFrameBufferWidth(m_Controller->GetPlayer()), 0);
 		m_ParentBox->SetEnabled(false);
 		m_ParentBox->SetVisible(false);
-		m_GroupsList = dynamic_cast<GUIListBox *>(m_GUIControlManager->GetControl("GroupsLB"));
+		m_GroupsList = dynamic_cast<GUIListBox*>(m_GUIControlManager->GetControl("GroupsLB"));
 		m_GroupsList->EnableScrollbars(false, true);
 		m_GroupsList->SetScrollBarThickness(13);
 		m_GroupsList->SetAlternateDrawMode(false);
 		m_GroupsList->SetMultiSelect(false);
-		m_ObjectsList = dynamic_cast<GUIListBox *>(m_GUIControlManager->GetControl("ObjectsLB"));
+		m_ObjectsList = dynamic_cast<GUIListBox*>(m_GUIControlManager->GetControl("ObjectsLB"));
 		m_ObjectsList->EnableScrollbars(false, true);
 		m_ObjectsList->SetScrollBarThickness(13);
 		m_ObjectsList->SetAlternateDrawMode(true);
@@ -106,8 +114,8 @@ namespace RTE {
 		}
 
 		if (!m_PopupBox) {
-			m_PopupBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("BuyGUIPopup"));
-			m_PopupText = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("PopupText"));
+			m_PopupBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("BuyGUIPopup"));
+			m_PopupText = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("PopupText"));
 			m_PopupText->SetFont(m_GUIControlManager->GetSkin()->GetFont("FontSmall.png"));
 
 			// Never enable the popup box because it steals focus and causes other windows to think the cursor left them
@@ -121,7 +129,7 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SetEnabled(bool enable) {
 		if (enable && m_PickerState != PickerState::Enabled && m_PickerState != PickerState::Enabling) {
@@ -143,7 +151,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SetNativeTechModule(int whichModule) {
 		if (whichModule >= 0 && whichModule < g_PresetMan.GetTotalModuleCount()) {
@@ -152,8 +160,8 @@ namespace RTE {
 				SetObjectsListModuleGroupExpanded(m_NativeTechModuleID);
 
 				if (!g_SettingsMan.FactionBuyMenuThemesDisabled()) {
-					if (const DataModule *techModule = g_PresetMan.GetDataModule(whichModule); techModule->IsFaction()) {
-						const DataModule::BuyMenuTheme &techBuyMenuTheme = techModule->GetFactionBuyMenuTheme();
+					if (const DataModule* techModule = g_PresetMan.GetDataModule(whichModule); techModule->IsFaction()) {
+						const DataModule::BuyMenuTheme& techBuyMenuTheme = techModule->GetFactionBuyMenuTheme();
 
 						if (!techBuyMenuTheme.SkinFilePath.empty()) {
 							// Not specifying the skin file directory allows us to load image files from the whole working directory in the skin file instead of just the specified directory.
@@ -164,14 +172,16 @@ namespace RTE {
 							m_GUIControlManager->GetSkin()->GetValue("DescriptionBoxText", "Font", &themeDescriptionBoxTextFont);
 							m_PopupText->SetFont(m_GUIControlManager->GetSkin()->GetFont(themeDescriptionBoxTextFont));
 						}
-						if (techBuyMenuTheme.BackgroundColorIndex >= 0) { m_ParentBox->SetDrawColor(std::clamp(techBuyMenuTheme.BackgroundColorIndex, 0, 255)); }
+						if (techBuyMenuTheme.BackgroundColorIndex >= 0) {
+							m_ParentBox->SetDrawColor(std::clamp(techBuyMenuTheme.BackgroundColorIndex, 0, 255));
+						}
 					}
 				}
 			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ObjectPickerGUI::SetListFocus(PickerFocus listToFocusOn) {
 		if (listToFocusOn == m_PickerFocus) {
@@ -191,10 +201,10 @@ namespace RTE {
 		return true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool ObjectPickerGUI::SelectGroupByName(const std::string_view &groupName) {
-		for (const GUIListPanel::Item *groupListItem : *m_GroupsList->GetItemList()) {
+	bool ObjectPickerGUI::SelectGroupByName(const std::string_view& groupName) {
+		for (const GUIListPanel::Item* groupListItem: *m_GroupsList->GetItemList()) {
 			if (groupListItem->m_Name == groupName) {
 				SelectGroupByIndex(groupListItem->m_ID);
 				SetListFocus(PickerFocus::ObjectList);
@@ -204,7 +214,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SelectGroupByIndex(int groupIndex, bool updateObjectsList) {
 		m_SelectedGroupIndex = (groupIndex < 0) ? m_ShownGroupIndex : groupIndex;
@@ -219,42 +229,50 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SelectNextOrPrevGroup(bool selectPrev) {
 		int groupIndex = m_SelectedGroupIndex;
 		if (selectPrev) {
 			groupIndex--;
-			if (groupIndex < 0) { groupIndex = m_GroupsList->GetItemList()->size() - 1; }
+			if (groupIndex < 0) {
+				groupIndex = m_GroupsList->GetItemList()->size() - 1;
+			}
 		} else {
 			groupIndex++;
-			if (groupIndex >= m_GroupsList->GetItemList()->size()) { groupIndex = 0; }
+			if (groupIndex >= m_GroupsList->GetItemList()->size()) {
+				groupIndex = 0;
+			}
 		}
 		SelectGroupByIndex(groupIndex);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::UpdateGroupsList() {
 		m_GroupsList->ClearList();
-		bool showAssemblySchemes = dynamic_cast<EditorActivity *>(g_ActivityMan.GetActivity());
+		bool showAssemblySchemes = dynamic_cast<EditorActivity*>(g_ActivityMan.GetActivity());
 
 		std::list<std::string> groupList;
 		g_PresetMan.GetModuleSpaceGroups(groupList, m_ModuleSpaceID, m_ShowType);
 
-		for (const std::string &groupListEntry : groupList) {
-			std::list<Entity *> objectList;
+		for (const std::string& groupListEntry: groupList) {
+			std::list<Entity*> objectList;
 			g_PresetMan.GetAllOfGroupInModuleSpace(objectList, groupListEntry, m_ShowType, m_ModuleSpaceID);
 
 			bool onlyAssembliesInGroup = true;
 			bool onlyAssemblySchemesInGroup = true;
 			bool hasObjectsToShow = false;
 
-			for (Entity *objectListEntry : objectList) {
-				if (!dynamic_cast<BunkerAssembly *>(objectListEntry)) { onlyAssembliesInGroup = false; }
-				if (!dynamic_cast<BunkerAssemblyScheme *>(objectListEntry)) { onlyAssemblySchemesInGroup = false; }
+			for (Entity* objectListEntry: objectList) {
+				if (!dynamic_cast<BunkerAssembly*>(objectListEntry)) {
+					onlyAssembliesInGroup = false;
+				}
+				if (!dynamic_cast<BunkerAssemblyScheme*>(objectListEntry)) {
+					onlyAssemblySchemesInGroup = false;
+				}
 
-				const SceneObject *sceneObject = dynamic_cast<SceneObject *>(objectListEntry);
+				const SceneObject* sceneObject = dynamic_cast<SceneObject*>(objectListEntry);
 				if (sceneObject && sceneObject->IsBuyable() && !sceneObject->IsBuyableInBuyMenuOnly() && !sceneObject->IsBuyableInScriptOnly()) {
 					hasObjectsToShow = true;
 					break;
@@ -262,17 +280,19 @@ namespace RTE {
 			}
 			// If this group is in the SettingsMan list of always visible assembly groups, then force the onlyAssembliesInGroup flag off so this group is always shown
 			if (onlyAssembliesInGroup) {
-				for (const std::string &assemblyGroup : g_SettingsMan.GetVisibleAssemblyGroupsList()) {
+				for (const std::string& assemblyGroup: g_SettingsMan.GetVisibleAssemblyGroupsList()) {
 					if (groupListEntry == assemblyGroup) {
 						onlyAssembliesInGroup = false;
 						break;
 					}
 				}
 			}
-			if (!objectList.empty() && hasObjectsToShow && (!onlyAssembliesInGroup || groupListEntry == "Assemblies") && (!onlyAssemblySchemesInGroup || showAssemblySchemes)) { m_GroupsList->AddItem(groupListEntry); }
+			if (!objectList.empty() && hasObjectsToShow && (!onlyAssembliesInGroup || groupListEntry == "Assemblies") && (!onlyAssemblySchemesInGroup || showAssemblySchemes)) {
+				m_GroupsList->AddItem(groupListEntry);
+			}
 		}
 
-		if (const GUIListPanel::Item *listItem = m_GroupsList->GetItem(0)) {
+		if (const GUIListPanel::Item* listItem = m_GroupsList->GetItem(0)) {
 			m_GroupsList->ScrollToTop();
 			m_SelectedGroupIndex = 0;
 			m_GroupsList->SetSelectedIndex(m_SelectedGroupIndex);
@@ -280,48 +300,54 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	const SceneObject * ObjectPickerGUI::GetSelectedObject() {
-		if (const GUIListPanel::Item *selectedItem = m_ObjectsList->GetSelected()) {
-			return dynamic_cast<const SceneObject *>(selectedItem->m_pEntity);
+	const SceneObject* ObjectPickerGUI::GetSelectedObject() {
+		if (const GUIListPanel::Item* selectedItem = m_ObjectsList->GetSelected()) {
+			return dynamic_cast<const SceneObject*>(selectedItem->m_pEntity);
 		}
 		return nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SelectObjectByIndex(int objectIndex, bool playSelectionSound) {
 		m_SelectedObjectIndex = objectIndex;
 		m_ObjectsList->SetSelectedIndex(m_SelectedObjectIndex);
-		if (playSelectionSound) { g_GUISound.SelectionChangeSound()->Play(m_Controller->GetPlayer()); }
+		if (playSelectionSound) {
+			g_GUISound.SelectionChangeSound()->Play(m_Controller->GetPlayer());
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SelectNextOrPrevObject(bool getPrev) {
 		int objectIndex = m_SelectedObjectIndex;
 		if (getPrev) {
 			objectIndex--;
-			if (objectIndex < 0) { objectIndex = m_ObjectsList->GetItemList()->size() - 1; }
+			if (objectIndex < 0) {
+				objectIndex = m_ObjectsList->GetItemList()->size() - 1;
+			}
 		} else {
 			objectIndex++;
-			if (objectIndex >= m_ObjectsList->GetItemList()->size()) { objectIndex = 0; }
+			if (objectIndex >= m_ObjectsList->GetItemList()->size()) {
+				objectIndex = 0;
+			}
 		}
 		SelectObjectByIndex(objectIndex);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::AddObjectsListModuleGroup(int moduleID) {
-		const DataModule *dataModule = g_PresetMan.GetDataModule(moduleID);
+		const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID);
 		std::string moduleName = dataModule->GetFriendlyName();
 		std::transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::toupper);
-		GUIBitmap *dataModuleIcon = dataModule->GetIcon() ? new AllegroBitmap(dataModule->GetIcon()) : nullptr;
+		GUIBitmap* dataModuleIcon = dataModule->GetIcon() ? new AllegroBitmap(dataModule->GetIcon()) : nullptr;
 		m_ObjectsList->AddItem(moduleName, m_ExpandedModules.at(moduleID) ? "-" : "+", dataModuleIcon, nullptr, moduleID);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SetObjectsListModuleGroupExpanded(int moduleID, bool expanded) {
 		if (moduleID > 0 && moduleID < m_ExpandedModules.size()) {
@@ -332,7 +358,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::ToggleObjectsListModuleGroupExpansion(int moduleID) {
 		if (moduleID > 0 && moduleID < m_ExpandedModules.size()) {
@@ -342,22 +368,26 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::ShowDescriptionPopupBox() {
 		std::string description = "";
-		GUIListPanel::Item *objectListItem = m_ObjectsList->GetSelected();
+		GUIListPanel::Item* objectListItem = m_ObjectsList->GetSelected();
 		if (objectListItem && objectListItem->m_pEntity && !objectListItem->m_pEntity->GetDescription().empty()) {
 			description = objectListItem->m_pEntity->GetDescription();
 		} else if (objectListItem && objectListItem->m_ExtraIndex >= 0) {
-			const DataModule *dataModule = g_PresetMan.GetDataModule(objectListItem->m_ExtraIndex);
-			if (dataModule && !dataModule->GetDescription().empty()) { description = dataModule->GetDescription(); }
+			const DataModule* dataModule = g_PresetMan.GetDataModule(objectListItem->m_ExtraIndex);
+			if (dataModule && !dataModule->GetDescription().empty()) {
+				description = dataModule->GetDescription();
+			}
 		}
 		if (!description.empty()) {
 			m_PopupBox->SetEnabled(false);
 			m_PopupBox->SetVisible(true);
 			m_PopupBox->SetPositionAbs(m_ObjectsList->GetXPos() - m_PopupBox->GetWidth() + 4, m_ObjectsList->GetYPos() + m_ObjectsList->GetStackHeight(objectListItem) - m_ObjectsList->GetScrollVerticalValue());
-			if (m_PopupBox->GetYPos() + m_PopupBox->GetHeight() > m_ParentBox->GetHeight()) { m_PopupBox->SetPositionAbs(m_PopupBox->GetXPos(), m_ParentBox->GetHeight() - m_PopupBox->GetHeight()); }
+			if (m_PopupBox->GetYPos() + m_PopupBox->GetHeight() > m_ParentBox->GetHeight()) {
+				m_PopupBox->SetPositionAbs(m_PopupBox->GetXPos(), m_ParentBox->GetHeight() - m_PopupBox->GetHeight());
+			}
 
 			m_PopupText->SetHAlignment(GUIFont::Left);
 			m_PopupText->SetText(description);
@@ -365,13 +395,13 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::UpdateObjectsList(bool selectTop) {
 		m_ObjectsList->ClearList();
-		std::vector<std::list<Entity *>> moduleList(g_PresetMan.GetTotalModuleCount(), std::list<Entity *>());
+		std::vector<std::list<Entity*>> moduleList(g_PresetMan.GetTotalModuleCount(), std::list<Entity*>());
 
-		if (const GUIListPanel::Item *groupListItem = m_GroupsList->GetSelected()) {
+		if (const GUIListPanel::Item* groupListItem = m_GroupsList->GetSelected()) {
 			if (m_ModuleSpaceID < 0) {
 				if (g_SettingsMan.ShowForeignItems() || m_NativeTechModuleID <= 0) {
 					for (int moduleID = 0; moduleID < moduleList.size(); ++moduleID) {
@@ -379,7 +409,9 @@ namespace RTE {
 					}
 				} else {
 					for (int moduleID = 0; moduleID < moduleList.size(); ++moduleID) {
-						if (moduleID == 0 || moduleID == m_NativeTechModuleID || g_PresetMan.GetDataModule(moduleID)->IsMerchant()) { g_PresetMan.GetAllOfGroup(moduleList.at(moduleID), groupListItem->m_Name, m_ShowType, moduleID); }
+						if (moduleID == 0 || moduleID == m_NativeTechModuleID || g_PresetMan.GetDataModule(moduleID)->IsMerchant()) {
+							g_PresetMan.GetAllOfGroup(moduleList.at(moduleID), groupListItem->m_Name, m_ShowType, moduleID);
+						}
 					}
 				}
 			} else {
@@ -394,16 +426,20 @@ namespace RTE {
 			if (moduleList.at(moduleID).empty()) {
 				continue;
 			}
-			std::list<SceneObject *> objectList;
-			for (Entity *moduleListEntryEntity : moduleList.at(moduleID)) {
-				SceneObject *sceneObject = dynamic_cast<SceneObject *>(moduleListEntryEntity);
-				if (sceneObject && sceneObject->IsBuyable() && !sceneObject->IsBuyableInBuyMenuOnly() && !sceneObject->IsBuyableInScriptOnly()) { objectList.emplace_back(sceneObject); }
+			std::list<SceneObject*> objectList;
+			for (Entity* moduleListEntryEntity: moduleList.at(moduleID)) {
+				SceneObject* sceneObject = dynamic_cast<SceneObject*>(moduleListEntryEntity);
+				if (sceneObject && sceneObject->IsBuyable() && !sceneObject->IsBuyableInBuyMenuOnly() && !sceneObject->IsBuyableInScriptOnly()) {
+					objectList.emplace_back(sceneObject);
+				}
 			}
 			if (!objectList.empty()) {
-				if (moduleID != 0) { AddObjectsListModuleGroup(moduleID); }
+				if (moduleID != 0) {
+					AddObjectsListModuleGroup(moduleID);
+				}
 				if (moduleID == 0 || m_ExpandedModules.at(moduleID)) {
-					for (SceneObject *objectListEntry : objectList) {
-						GUIBitmap *objectIcon = new AllegroBitmap(objectListEntry->GetGraphicalIcon());
+					for (SceneObject* objectListEntry: objectList) {
+						GUIBitmap* objectIcon = new AllegroBitmap(objectListEntry->GetGraphicalIcon());
 						m_ObjectsList->AddItem(objectListEntry->GetPresetName(), objectListEntry->GetGoldValueString(m_NativeTechModuleID, m_ForeignCostMult), objectIcon, objectListEntry);
 					}
 				}
@@ -416,23 +452,29 @@ namespace RTE {
 			SelectObjectByIndex(m_SelectedObjectIndex, false);
 			m_ObjectsList->ScrollToSelected();
 		}
-		if (const GUIListPanel::Item *selectedItem = m_ObjectsList->GetSelected()) { m_PickedObject = dynamic_cast<const SceneObject *>(selectedItem->m_pEntity); }
+		if (const GUIListPanel::Item* selectedItem = m_ObjectsList->GetSelected()) {
+			m_PickedObject = dynamic_cast<const SceneObject*>(selectedItem->m_pEntity);
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::Update() {
 		m_PopupBox->SetVisible(false);
 
-		if (m_PickerState != PickerState::Enabled && m_PickerState != PickerState::Disabled) { AnimateOpenClose(); }
-		if (m_PickerState == PickerState::Enabled || m_PickerState == PickerState::Enabling) { m_GUIControlManager->Update(true); }
+		if (m_PickerState != PickerState::Enabled && m_PickerState != PickerState::Disabled) {
+			AnimateOpenClose();
+		}
+		if (m_PickerState == PickerState::Enabled || m_PickerState == PickerState::Enabling) {
+			m_GUIControlManager->Update(true);
+		}
 		if (m_PickerState == PickerState::Enabled) {
 			m_GUIControlManager->EnableMouse(m_Controller->IsMouseControlled());
 
 			m_PickedObject = nullptr;
 			if (HandleInput()) {
-				if (const GUIListPanel::Item *selectedItem = m_ObjectsList->GetSelected()) {
-					m_PickedObject = dynamic_cast<const SceneObject *>(selectedItem->m_pEntity);
+				if (const GUIListPanel::Item* selectedItem = m_ObjectsList->GetSelected()) {
+					m_PickedObject = dynamic_cast<const SceneObject*>(selectedItem->m_pEntity);
 					if (m_PickedObject) {
 						g_GUISound.ObjectPickedSound()->Play(m_Controller->GetPlayer());
 						SetEnabled(false);
@@ -440,15 +482,19 @@ namespace RTE {
 				}
 				return;
 			}
-			if (m_PickerFocus == PickerFocus::ObjectList) { ShowDescriptionPopupBox(); }
+			if (m_PickerFocus == PickerFocus::ObjectList) {
+				ShowDescriptionPopupBox();
+			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ObjectPickerGUI::HandleInput() {
 		bool objectPickedOrPickerClosed = false;
-		if (m_Controller->IsMouseControlled()) { objectPickedOrPickerClosed = HandleMouseEvents(); }
+		if (m_Controller->IsMouseControlled()) {
+			objectPickedOrPickerClosed = HandleMouseEvents();
+		}
 
 		if (!objectPickedOrPickerClosed && !m_Controller->IsState(ControlState::PRESS_SECONDARY)) {
 			bool pressUp = m_Controller->IsState(ControlState::PRESS_UP);
@@ -493,7 +539,7 @@ namespace RTE {
 				} else if (pressScrollDown) {
 					m_ObjectsList->ScrollDown();
 				} else if (m_Controller->IsState(ControlState::PRESS_FACEBUTTON)) {
-					if (const GUIListPanel::Item *objectListItem = m_ObjectsList->GetSelected()) {
+					if (const GUIListPanel::Item* objectListItem = m_ObjectsList->GetSelected()) {
 						if (objectListItem->m_ExtraIndex >= 0) {
 							ToggleObjectsListModuleGroupExpansion(objectListItem->m_ExtraIndex);
 						} else {
@@ -510,7 +556,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ObjectPickerGUI::HandleMouseEvents() {
 		int mousePosX;
@@ -524,8 +570,10 @@ namespace RTE {
 					if (guiEvent.GetMsg() == GUIListBox::MouseDown && (guiEvent.GetData() & GUIListBox::MOUSE_LEFT)) {
 						SelectGroupByIndex(m_GroupsList->GetSelectedIndex());
 					} else if (guiEvent.GetMsg() == GUIListBox::MouseMove) {
-						const GUIListPanel::Item *groupListItem = m_GroupsList->GetItem(mousePosX, mousePosY);
-						if (groupListItem && m_SelectedGroupIndex != groupListItem->m_ID) { SelectGroupByIndex(groupListItem->m_ID, false); }
+						const GUIListPanel::Item* groupListItem = m_GroupsList->GetItem(mousePosX, mousePosY);
+						if (groupListItem && m_SelectedGroupIndex != groupListItem->m_ID) {
+							SelectGroupByIndex(groupListItem->m_ID, false);
+						}
 					} else if (guiEvent.GetMsg() == GUIListBox::MouseEnter) {
 						SetListFocus(PickerFocus::GroupList);
 					} else if (guiEvent.GetMsg() == GUIListBox::MouseLeave && m_SelectedGroupIndex != m_ShownGroupIndex) {
@@ -534,7 +582,7 @@ namespace RTE {
 				} else if (guiEvent.GetControl() == m_ObjectsList) {
 					if (guiEvent.GetMsg() == GUIListBox::MouseDown && (guiEvent.GetData() & GUIListBox::MOUSE_LEFT)) {
 						m_ObjectsList->ScrollToSelected();
-						if (const GUIListPanel::Item *objectListItem = m_ObjectsList->GetSelected()) {
+						if (const GUIListPanel::Item* objectListItem = m_ObjectsList->GetSelected()) {
 							if (objectListItem->m_ExtraIndex >= 0) {
 								ToggleObjectsListModuleGroupExpansion(objectListItem->m_ExtraIndex);
 							} else if (objectListItem->m_pEntity) {
@@ -543,8 +591,10 @@ namespace RTE {
 							}
 						}
 					} else if (guiEvent.GetMsg() == GUIListBox::MouseMove) {
-						const GUIListPanel::Item *objectListItem = m_ObjectsList->GetItem(mousePosX, mousePosY);
-						if (objectListItem && m_SelectedObjectIndex != objectListItem->m_ID) { SelectObjectByIndex(objectListItem->m_ID); }
+						const GUIListPanel::Item* objectListItem = m_ObjectsList->GetItem(mousePosX, mousePosY);
+						if (objectListItem && m_SelectedObjectIndex != objectListItem->m_ID) {
+							SelectObjectByIndex(objectListItem->m_ID);
+						}
 					} else if (guiEvent.GetMsg() == GUIListBox::MouseEnter) {
 						SetListFocus(PickerFocus::ObjectList);
 					}
@@ -558,7 +608,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::AnimateOpenClose() {
 		if (m_PickerState == PickerState::Enabling) {
@@ -591,9 +641,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ObjectPickerGUI::Draw(BITMAP *drawBitmap) const {
+	void ObjectPickerGUI::Draw(BITMAP* drawBitmap) const {
 		AllegroScreen drawScreen(drawBitmap);
 		m_GUIControlManager->Draw(&drawScreen);
 		if (IsEnabled() && m_Controller->IsMouseControlled()) {
@@ -607,4 +657,4 @@ namespace RTE {
 			}
 		}
 	}
-}
+} // namespace RTE

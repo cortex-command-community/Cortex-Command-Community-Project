@@ -5,7 +5,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUITab::GUITab(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIPanel(Manager) {
+GUITab::GUITab(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "TAB";
 	m_Image = nullptr;
 	m_ControlManager = ControlManager;
@@ -18,7 +19,7 @@ GUITab::GUITab(GUIManager *Manager, GUIControlManager *ControlManager) : GUICont
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITab::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUITab::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -35,8 +36,12 @@ void GUITab::Create(const std::string &Name, int X, int Y, int Width, int Height
 	m_Width = m_DefWidth;
 	m_Height = m_DefHeight;
 
-	if (Width != -1) { m_Width = Width; }
-	if (Height != -1) { m_Height = Height; }
+	if (Width != -1) {
+		m_Width = Width;
+	}
+	if (Height != -1) {
+		m_Height = Height;
+	}
 
 	// Make sure the button isn't too small
 	m_Width = std::max(m_Width, m_MinWidth);
@@ -45,7 +50,7 @@ void GUITab::Create(const std::string &Name, int X, int Y, int Width, int Height
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITab::Create(GUIProperties *Props) {
+void GUITab::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -70,7 +75,7 @@ void GUITab::Create(GUIProperties *Props) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITab::ChangeSkin(GUISkin *Skin) {
+void GUITab::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the checkbox bitmap
@@ -127,7 +132,7 @@ void GUITab::BuildBitmap() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITab::Draw(GUIScreen *Screen) {
+void GUITab::Draw(GUIScreen* Screen) {
 	if (!m_Image) {
 		return;
 	}
@@ -147,7 +152,7 @@ void GUITab::Draw(GUIScreen *Screen) {
 		if (m_Enabled) {
 			m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[2]);
 		} // else
-			//m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[3]);
+		  // m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[3]);
 		//}
 	}
 
@@ -195,7 +200,9 @@ void GUITab::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
 
 	// If the mouse is over the button, add the command to the event queue
-	if (PointInside(X, Y) && Buttons & MOUSE_LEFT) { SetCheck(true); }
+	if (PointInside(X, Y) && Buttons & MOUSE_LEFT) {
+		SetCheck(true);
+	}
 
 	AddEvent(GUIEvent::Notification, UnPushed, 0);
 }
@@ -215,7 +222,7 @@ void GUITab::OnMouseLeave(int X, int Y, int Buttons, int Modifier) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUITab::GetPanel() {
+GUIPanel* GUITab::GetPanel() {
 	return this;
 }
 
@@ -240,7 +247,7 @@ void GUITab::Resize(int Width, int Height) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITab::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUITab::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
@@ -269,11 +276,11 @@ void GUITab::SetCheck(bool Check) {
 
 	// Go through all my RadioButton siblings and un-check them
 	if (m_ControlParent) {
-		std::vector<GUIControl *>::iterator it;
-		std::vector<GUIControl *> *Children = m_ControlParent->GetChildren();
+		std::vector<GUIControl*>::iterator it;
+		std::vector<GUIControl*>* Children = m_ControlParent->GetChildren();
 
 		for (it = Children->begin(); it != Children->end(); it++) {
-			GUIControl *C = *it;
+			GUIControl* C = *it;
 			if (C) {
 				// Make sure this is not me
 				if (C->GetPanel() && GetPanel() && C->GetPanel()->GetPanelID() == GetPanel()->GetPanelID()) {
@@ -281,7 +288,7 @@ void GUITab::SetCheck(bool Check) {
 				}
 				// Make sure the control is a radio button
 				if (C->GetID().compare(GetID()) == 0) {
-					GUITab *R = (GUITab *)C;
+					GUITab* R = (GUITab*)C;
 					R->SetCheck(false);
 				}
 			}
@@ -297,7 +304,7 @@ bool GUITab::GetCheck() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITab::SetText(const std::string &Text) {
+void GUITab::SetText(const std::string& Text) {
 	m_Text = Text;
 }
 
@@ -309,7 +316,7 @@ std::string GUITab::GetText() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITab::ApplyProperties(GUIProperties *Props) {
+void GUITab::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	m_Properties.GetValue("Text", &m_Text);

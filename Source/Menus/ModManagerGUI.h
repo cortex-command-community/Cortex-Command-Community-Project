@@ -16,7 +16,6 @@ namespace RTE {
 	class ModManagerGUI {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a ModManagerGUI object in system memory and make it ready for use.
@@ -24,7 +23,7 @@ namespace RTE {
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this ModManagerGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this ModManagerGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="createForPauseMenu">Whether this SettingsGUI is part of ModManagerGUI and should have a slightly different layout.</param>
-		ModManagerGUI(AllegroScreen *guiScreen, GUIInputWrapper *guiInput, bool createForPauseMenu = false);
+		ModManagerGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu = false);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -41,7 +40,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Struct containing information about a valid mod DataModule.
 		/// </summary>
@@ -62,7 +60,7 @@ namespace RTE {
 			/// </summary>
 			/// <param name="rhs">ModRecord to compare with.</param>
 			/// <returns>Bool with result of the alphabetical comparison.</returns>
-			bool operator<(const ModRecord &rhs) const { return ModulePath < rhs.ModulePath; }
+			bool operator<(const ModRecord& rhs) const { return ModulePath < rhs.ModulePath; }
 		};
 
 		/// <summary>
@@ -84,7 +82,7 @@ namespace RTE {
 			/// </summary>
 			/// <param name="rhs">ScriptRecord to compare with.</param>
 			/// <returns>Bool with result of the alphabetical comparison.</returns>
-			bool operator<(const ScriptRecord &rhs) const { return PresetName < rhs.PresetName; }
+			bool operator<(const ScriptRecord& rhs) const { return PresetName < rhs.PresetName; }
 		};
 
 		std::unique_ptr<GUIControlManager> m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of the ModManagerGUI.
@@ -98,12 +96,12 @@ namespace RTE {
 		/// <summary>
 		/// GUI elements that compose the Mod Manager menu screen.
 		/// </summary>
-		GUIButton *m_BackToMainButton;
-		GUIButton *m_ToggleModButton;
-		GUIButton *m_ToggleScriptButton;
-		GUIListBox *m_ModsListBox;
-		GUIListBox *m_ScriptsListBox;
-		GUILabel *m_ModOrScriptDescriptionLabel;
+		GUIButton* m_BackToMainButton;
+		GUIButton* m_ToggleModButton;
+		GUIButton* m_ToggleScriptButton;
+		GUIListBox* m_ModsListBox;
+		GUIListBox* m_ScriptsListBox;
+		GUILabel* m_ModOrScriptDescriptionLabel;
 
 #pragma region Mod and Script Handling
 		/// <summary>
@@ -134,8 +132,8 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		ModManagerGUI(const ModManagerGUI &reference) = delete;
-		ModManagerGUI & operator=(const ModManagerGUI &rhs) = delete;
+		ModManagerGUI(const ModManagerGUI& reference) = delete;
+		ModManagerGUI& operator=(const ModManagerGUI& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

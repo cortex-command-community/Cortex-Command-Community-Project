@@ -18,7 +18,6 @@ namespace RTE {
 	class TitleScreen {
 
 	public:
-
 		/// <summary>
 		/// Enumeration for the different transition (scrolling) states of the title screen.
 		/// </summary>
@@ -48,13 +47,16 @@ namespace RTE {
 		/// Constructor method used to instantiate a TitleScreen object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used to create this TitleScreen's GUIFont. Ownership is NOT transferred!</param>
-		explicit TitleScreen(AllegroScreen *guiScreen) { Clear(); Create(guiScreen); }
+		explicit TitleScreen(AllegroScreen* guiScreen) {
+			Clear();
+			Create(guiScreen);
+		}
 
 		/// <summary>
 		/// Makes the TitleScreen object ready for use.
 		/// </summary>
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used to create this TitleScreen's GUIFont. Ownership is NOT transferred!</param>
-		void Create(AllegroScreen *guiScreen);
+		void Create(AllegroScreen* guiScreen);
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -68,13 +70,22 @@ namespace RTE {
 		/// Sets the target title transition state and, if different from the current, sets the section switch to trigger the transition.
 		/// </summary>
 		/// <param name="newTransitionState">The target title transition state.</param>
-		void SetTitleTransitionState(TitleTransition newTransitionState) { if (newTransitionState != m_TitleTransitionState) { m_TitleTransitionState = newTransitionState; m_SectionSwitch = true; } }
+		void SetTitleTransitionState(TitleTransition newTransitionState) {
+			if (newTransitionState != m_TitleTransitionState) {
+				m_TitleTransitionState = newTransitionState;
+				m_SectionSwitch = true;
+			}
+		}
 
 		/// <summary>
 		/// Sets the title transition to a pending state, stores the orbit timer elapsed time and resets the fade screen blend value.
 		/// This is used to correctly restart transition states after breaking out of the game loop back to the menu loop.
 		/// </summary>
-		void SetTitlePendingTransition() { m_TitleTransitionState = TitleTransition::TransitionPending; m_StationOrbitTimerElapsedTime = static_cast<float>(m_StationOrbitTimer.GetElapsedRealTimeS()); m_FadeAmount = 0; }
+		void SetTitlePendingTransition() {
+			m_TitleTransitionState = TitleTransition::TransitionPending;
+			m_StationOrbitTimerElapsedTime = static_cast<float>(m_StationOrbitTimer.GetElapsedRealTimeS());
+			m_FadeAmount = 0;
+		}
 
 		/// <summary>
 		/// Gets the position of the planet on the title screen scene.
@@ -108,7 +119,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different states of the intro sequence.
 		/// </summary>
@@ -143,10 +153,12 @@ namespace RTE {
 			/// <summary>
 			/// Enumeration for the different Star sizes.
 			/// </summary>
-			enum class StarSize { StarSmall, StarLarge, StarHuge };
+			enum class StarSize { StarSmall,
+				                    StarLarge,
+				                    StarHuge };
 
 			StarSize Size; //!< The size of the Star. Used for the appropriate Bitmap selection and Intensity randomization when drawing.
-			BITMAP *Bitmap; //!< The bitmap to draw, not owned by this. Not Owned.
+			BITMAP* Bitmap; //!< The bitmap to draw, not owned by this. Not Owned.
 			int Intensity; //!< Intensity value on a scale from 0 to 255.
 			Vector Position; //!< The position of the Star on the title screen scene backdrop.
 		};
@@ -196,11 +208,11 @@ namespace RTE {
 		float m_SlideFadeOutDuration; //!< How many seconds the duration of a slideshow slide fade out is supposed to elapse.
 		std::unique_ptr<GUIFont> m_IntroTextFont; //!< The GUIFont used for drawing text during the logo splash screens and slideshow.
 		std::string m_SlideshowSlideText; //!< String containing the slide text during each section of the slideshow.
-		BITMAP *m_DataRealmsLogo; //!< The DataRealms logo bitmap used in the logo splash screen. Not Owned.
-		BITMAP *m_FmodLogo; //!< The Fmod logo bitmap used in the logo splash screen. Not Owned.
+		BITMAP* m_DataRealmsLogo; //!< The DataRealms logo bitmap used in the logo splash screen. Not Owned.
+		BITMAP* m_FmodLogo; //!< The Fmod logo bitmap used in the logo splash screen. Not Owned.
 		MOSParticle m_PreGameLogoText; //!< The pre-game logo text that appears at the end of the slideshow.
 		MOSParticle m_PreGameLogoTextGlow; //!< The pre-game logo text glow.
-		std::array<BITMAP *, 8> m_IntroSlides; //!< Array that contains all the slideshow slide bitmaps. Not Owned.
+		std::array<BITMAP*, 8> m_IntroSlides; //!< Array that contains all the slideshow slide bitmaps. Not Owned.
 
 #pragma region Create Breakdown
 		/// <summary>
@@ -219,7 +231,10 @@ namespace RTE {
 		/// Sets the duration of a new section and resets the switch.
 		/// </summary>
 		/// <param name="newDuration">The duration of the new section, in seconds.</param>
-		void SetSectionDurationAndResetSwitch(float newDuration) { m_SectionDuration = newDuration; m_SectionSwitch = false; }
+		void SetSectionDurationAndResetSwitch(float newDuration) {
+			m_SectionDuration = newDuration;
+			m_SectionSwitch = false;
+		}
 
 		/// <summary>
 		/// Updates the title screen transition states and scrolls the title screen scene accordingly.
@@ -272,8 +287,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		TitleScreen(const TitleScreen &reference) = delete;
-		TitleScreen & operator=(const TitleScreen &rhs) = delete;
+		TitleScreen(const TitleScreen& reference) = delete;
+		TitleScreen& operator=(const TitleScreen& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif
