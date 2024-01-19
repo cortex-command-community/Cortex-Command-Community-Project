@@ -20,7 +20,7 @@ function Create(self)
 	self.reloadCycle = false;
 
 	self.reloadDelay = 150;
-	self.origReloadTime = 1200;
+	self.origReloadTime = 900;
 	
 	self.origStanceOffset = self.StanceOffset;
 	self.origSharpStanceOffset = self.SharpStanceOffset;
@@ -112,7 +112,7 @@ function Update(self)
 				self.SharpStanceOffset = self.origStanceOffset;
 				--self.SharpLength = self.origSharpLength;
 				self.ShakeRange = self.origShakeRange;
-				self.SharpShakeRange = self.origShakeRange;
+				self.SharpShakeRange = self.origSharpShakeRange;
 			end
 		else
 			self.FullAuto = true;
@@ -132,6 +132,8 @@ function Update(self)
 		self.cockDelay = 300;
 		if self.fanFire then
 			self.cockDelay = 100;
+			self.ShakeRange = self.fanFireShakeRange;
+			self.SharpShakeRange = self.fanFireShakeRange;
 		end
 	end
 	if self.Magazine then
@@ -144,8 +146,6 @@ function Update(self)
 			self.StanceOffset = self.fanFireStanceOffset;
 			self.SharpStanceOffset = self.fanFireStanceOffset;
 			--self.SharpLength = self.fanFireSharpLength;
-			self.ShakeRange = self.fanFireShakeRange;
-			self.SharpShakeRange = self.fanFireShakeRange;
 		elseif not self:IsActivated() then
 			self.fanFireTimer:Reset();
 			if self.fanFire then
@@ -156,7 +156,7 @@ function Update(self)
 				self.SharpStanceOffset = self.origStanceOffset;
 				--self.SharpLength = self.origSharpLength;
 				self.ShakeRange = self.origShakeRange;
-				self.SharpShakeRange = self.origShakeRange;
+				self.SharpShakeRange = self.origSharpShakeRange;
 			end
 		end
 	
@@ -178,7 +178,7 @@ function Update(self)
 		if self.loadedShell then
 			self.ReloadAngle = -0.25;
 			self.OneHandedReloadAngle = -0.4;
-			self.BaseReloadTime = self.reloadDelay * 3;
+			self.BaseReloadTime = self.reloadDelay * 1.5;
 			self.ammoCounter = math.min(self.Magazine.Capacity, self.ammoCounter + 1);
 			self.Magazine.RoundCount = self.ammoCounter;
 			self.loadedShell = false;
