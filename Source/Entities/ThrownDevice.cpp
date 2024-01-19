@@ -11,6 +11,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ThrownDevice::Clear() {
+		m_ActivationSound = std::make_shared<SoundContainer>();
 		m_ActivationSound->Reset();
 		m_StartThrowOffset.Reset();
 		m_EndThrowOffset.Reset();
