@@ -41,6 +41,7 @@ function ThreadedUpdate(self)
 			self:RequestSyncedUpdate();
 		end
 	else
+		self.target = nil;
 		if self.extraParticles then
 			local extraPar = CreateMOPixel("Ground Fire Burn Particle");
 			extraPar.Pos = self.Pos;
