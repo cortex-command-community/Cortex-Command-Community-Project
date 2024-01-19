@@ -17,7 +17,6 @@
 #include "MOSRotating.h"
 #include "PieMenu.h"
 #include "PathFinder.h"
-#include "SceneMan.h"
 
 namespace RTE
 {
@@ -173,7 +172,7 @@ ClassInfoGetters;
     /// Gets the mass of this Actor, including the mass of its Attachables, wounds and inventory.
     /// </summary>
     /// <returns>The mass of this Actor, its inventory and all its Attachables and wounds in Kilograms (kg).</returns>
-    float GetMass() const override { return MOSRotating::GetMass() + GetInventoryMass() + (m_GoldCarried * g_SceneMan.GetKgPerOz()); }
+    float GetMass() const override;
 
     /// <summary>
     /// Gets the mass that this actor had upon spawning, i.e with ini-defined inventory, gold and holding no items

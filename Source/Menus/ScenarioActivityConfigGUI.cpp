@@ -2,11 +2,12 @@
 
 #include "PresetMan.h"
 #include "UInputMan.h"
+#include "FrameMan.h"
+#include "SceneMan.h"
 
 #include "DataModule.h"
 #include "GameActivity.h"
 #include "Scene.h"
-#include "FrameMan.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"

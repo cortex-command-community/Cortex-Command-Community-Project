@@ -526,6 +526,12 @@ float Actor::GetInventoryMass() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+float Actor::GetMass() const {
+    return MOSRotating::GetMass() + GetInventoryMass() + (m_GoldCarried * g_SceneMan.GetKgPerOz());
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float Actor::GetBaseMass() {
     if (m_BaseMass == std::numeric_limits<float>::infinity()) {
         if (const Actor* presetActor = static_cast<const Actor*>(GetPreset())) {

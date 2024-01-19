@@ -1,5 +1,6 @@
 #include "ADSensor.h"
 #include "Actor.h"
+#include "SceneMan.h"
 
 namespace RTE {
 
