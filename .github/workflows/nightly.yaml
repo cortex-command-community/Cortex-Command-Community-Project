@@ -117,14 +117,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete old nightly release if it exists
-        if: steps.check_nightly.outputs.release_exists
-        run: |
-          gh release delete nightly -y
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get commit SHA
+      - name: Get commit SHA of the last nightly release
         id: get_commit_sha
         if: steps.check_nightly.outputs.release_exists
         run: |
@@ -142,13 +135,14 @@ jobs:
               "sha": "${{ steps.get_commit_sha.outputs.prev_SHA }}"
             }'
 
-      - name: Remove current nightly tag before release
+      - name: Delete the existing nightly tag and release
         if: steps.check_nightly.outputs.release_exists
         run: |
-          git tag -d nightly
-          git push origin :refs/tags/nightly
+          gh release delete nightly -y --cleanup-tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Release if it does not exist
+      - name: Create a new nightly release
         id: create_release
         run: |
           gh release create nightly \
