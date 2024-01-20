@@ -11,7 +11,6 @@ namespace RTE {
 		friend class MetagameGUI;
 
 	public:
-
 		EntityAllocation(MetaPlayer);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -26,7 +25,12 @@ namespace RTE {
 		/// Copy constructor method used to instantiate a MetaPlayer object identical to an already existing one.
 		/// </summary>
 		/// <param name="reference">A MetaPlayer object which is passed in by reference.</param>
-		MetaPlayer(const MetaPlayer &reference) { if (this != &reference) { Clear(); Create(reference); } }
+		MetaPlayer(const MetaPlayer& reference) {
+			if (this != &reference) {
+				Clear();
+				Create(reference);
+			}
+		}
 
 		/// <summary>
 		/// Makes the MetaPlayer object ready for use.
@@ -39,7 +43,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the MetaPlayer to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const MetaPlayer &reference);
+		int Create(const MetaPlayer& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -52,12 +56,20 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the MetaPlayer object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { Entity::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				Entity::Destroy();
+			}
+			Clear();
+		}
 
 		/// <summary>
 		/// Resets the entire MetaPlayer, including its inherited members, to their default settings or values.
 		/// </summary>
-		void Reset() override { Clear(); Entity::Reset(); }
+		void Reset() override {
+			Clear();
+			Entity::Reset();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -179,7 +191,11 @@ namespace RTE {
 		/// </summary>
 		/// <param name="howMuch">The amount with which to change the funds balance. This should be a positive value to decrease the funds amount.</param>
 		/// <returns>The amount of funds that were spent.</returns>
-		float SpendFunds(float howMuch) { howMuch = std::min(m_Funds, howMuch); m_Funds -= howMuch; return howMuch; }
+		float SpendFunds(float howMuch) {
+			howMuch = std::min(m_Funds, howMuch);
+			m_Funds -= howMuch;
+			return howMuch;
+		}
 
 		/// <summary>
 		/// Gets the offensive budget of this MetaPlayer for this round, in oz.
@@ -258,11 +274,16 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">A MetaPlayer reference.</param>
 		/// <returns>A reference to the changed MetaPlayer.</returns>
-		MetaPlayer & operator=(const MetaPlayer &rhs) { if (this != &rhs) { Destroy(); Create(rhs); } return *this; }
+		MetaPlayer& operator=(const MetaPlayer& rhs) {
+			if (this != &rhs) {
+				Destroy();
+				Create(rhs);
+			}
+			return *this;
+		}
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		std::string m_Name; //!< The name of the player.
@@ -288,10 +309,9 @@ namespace RTE {
 		std::string m_OffensiveTarget; //!< Name of the Scene this player is targeting for its offensive this round.
 
 	private:
-
 		/// <summary>
 		/// Clears all the member variables of this MetaPlayer, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE

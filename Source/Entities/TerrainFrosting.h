@@ -12,15 +12,16 @@ namespace RTE {
 	class TerrainFrosting : public Serializable {
 
 	public:
-
 		SerializableClassNameGetter
-		SerializableOverrideMethods
+		    SerializableOverrideMethods
 
 #pragma region Creation
-		/// <summary>
-		/// Constructor method used to instantiate a TerrainFrosting object in system memory and make it ready for use.
-		/// </summary>
-		TerrainFrosting() { Clear(); }
+		    /// <summary>
+		    /// Constructor method used to instantiate a TerrainFrosting object in system memory and make it ready for use.
+		    /// </summary>
+		    TerrainFrosting() {
+			Clear();
+		}
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -28,11 +29,10 @@ namespace RTE {
 		/// Draws the frosting layer to the specified SLTerrain according to the read-in parameters.
 		/// </summary>
 		/// <param name="terrain">The SLTerrain to frost. Ownership is NOT transferred!</param>
-		void FrostTerrain(SLTerrain *terrain) const;
+		void FrostTerrain(SLTerrain* terrain) const;
 #pragma endregion
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
 		Material m_FrostingMaterial; //!< The Material this frosting is made of.
@@ -47,7 +47,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		TerrainFrosting(const TerrainFrosting &reference) = delete;
-		void operator=(const TerrainFrosting &rhs) = delete;
+		TerrainFrosting(const TerrainFrosting& reference) = delete;
+		void operator=(const TerrainFrosting& rhs) = delete;
 	};
-}
+} // namespace RTE

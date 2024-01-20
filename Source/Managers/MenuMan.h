@@ -20,7 +20,6 @@ namespace RTE {
 	class MenuMan : public Singleton<MenuMan> {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a MenuMan object in system memory. Initialize() should be called before using the object.
@@ -58,7 +57,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different menu screens that are active based on transition states.
 		/// </summary>
@@ -111,7 +109,7 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		MenuMan(const MenuMan &reference) = delete;
-		MenuMan & operator=(const MenuMan &rhs) = delete;
+		MenuMan(const MenuMan& reference) = delete;
+		MenuMan& operator=(const MenuMan& rhs) = delete;
 	};
-}
+} // namespace RTE

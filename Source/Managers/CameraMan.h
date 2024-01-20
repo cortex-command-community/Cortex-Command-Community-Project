@@ -15,7 +15,6 @@ namespace RTE {
 		friend class SettingsMan;
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a CameraMan object in system memory. Create() should be called before using the object.
@@ -59,7 +58,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="offset">The new offset value.</param>
 		/// <param name="screenId">Which screen you want to set the offset of.</param>
-		void SetOffset(const Vector &offset, int screenId = 0);
+		void SetOffset(const Vector& offset, int screenId = 0);
 
 		/// <summary>
 		/// Gets the difference in current offset and that of the Update() before.
@@ -80,7 +79,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="center">The coordinates to center the terrain scroll on.</param>
 		/// <param name="screenId">Which screen you want to set the offset of.</param>
-		void SetScroll(const Vector &center, int screenId = 0);
+		void SetScroll(const Vector& center, int screenId = 0);
 
 		/// <summary>
 		/// Gets the team associated with a specific screen.
@@ -102,7 +101,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="screenId">Which screen you want to get the team of.</param>
 		/// <returns>A vector indicating the screen occlusion amount.</returns>
-		Vector & GetScreenOcclusion(int screenId = 0) { return m_Screens[screenId].ScreenOcclusion; }
+		Vector& GetScreenOcclusion(int screenId = 0) { return m_Screens[screenId].ScreenOcclusion; }
 
 		/// <summary>
 		/// Sets the amount that a specific screen is occluded by a GUI panel or something of the sort.
@@ -110,7 +109,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="occlusion">The amount of occlusion of the screen.</param>
 		/// <param name="screenId">Which screen you want to set the occlusion of.</param>
-		void SetScreenOcclusion(const Vector &occlusion, int screenId = 0) { m_Screens[screenId].ScreenOcclusion = occlusion; }
+		void SetScreenOcclusion(const Vector& occlusion, int screenId = 0) { m_Screens[screenId].ScreenOcclusion = occlusion; }
 
 		/// <summary>
 		/// Gets the currently set scroll target, i.e. where the center of the specific screen is trying to line up with.
@@ -125,7 +124,7 @@ namespace RTE {
 		/// <param name="targetCenter">The new target vector in Scene coordinates.</param>
 		/// <param name="speed">The normalized speed at screen the view scrolls. 0 being no movement, and 1.0 being instant movement to the target in one frame.</param>
 		/// <param name="screenId">Which screen you want to set the scroll offset of.</param>
-		void SetScrollTarget(const Vector &targetCenter, float speed = 0.1F, int screenId = 0);
+		void SetScrollTarget(const Vector& targetCenter, float speed = 0.1F, int screenId = 0);
 
 		/// <summary>
 		/// Calculates a scalar of how distant a certain point in the world is from the currently closest scroll target of all active screens.
@@ -135,7 +134,7 @@ namespace RTE {
 		/// A normalized scalar representing the distance between the closest scroll target of all active screens, to the passed in point.
 		/// 0 means it's the point is within half a screen's width of the target, and 1.0 means it's on the clear opposite side of the scene.
 		/// </returns>
-		float TargetDistanceScalar(const Vector &point) const;
+		float TargetDistanceScalar(const Vector& point) const;
 
 		/// <summary>
 		/// Makes sure the current offset won't create a view of outside the scene.
@@ -210,7 +209,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="magnitude">The amount of screen shake.</param>
 		/// <param name="position">The spatial location of the screen-shake event.</param>
-		void AddScreenShake(float magnitude, const Vector &position);
+		void AddScreenShake(float magnitude, const Vector& position);
 
 		/// <summary>
 		/// Increases the magnitude of screen shake.
@@ -242,7 +241,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// A screen. Each player should have one of these.
 		/// </summary>
@@ -260,7 +258,7 @@ namespace RTE {
 			bool TargetXWrapped = false; //!< Whether the ScrollTarget got x wrapped around the world this frame or not.
 			bool TargetYWrapped = false; //!< Whether the ScrollTarget got y wrapped around the world this frame or not.
 
-			std::array<int, 2> SeamCrossCount = { 0, 0 }; //!< Keeps track of how many times and in screen directions the wrapping seam has been crossed. This is used for keeping the background layers' scroll from jumping when wrapping around. X and Y.
+			std::array<int, 2> SeamCrossCount = {0, 0}; //!< Keeps track of how many times and in screen directions the wrapping seam has been crossed. This is used for keeping the background layers' scroll from jumping when wrapping around. X and Y.
 
 			Vector ScreenOcclusion; //!< The amount a screen is occluded or covered by GUI, etc.
 
@@ -282,7 +280,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		CameraMan(const CameraMan &reference) = delete;
-		CameraMan & operator=(const CameraMan &rhs) = delete;
+		CameraMan(const CameraMan& reference) = delete;
+		CameraMan& operator=(const CameraMan& rhs) = delete;
 	};
-}
+} // namespace RTE

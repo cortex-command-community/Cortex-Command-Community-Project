@@ -6,11 +6,11 @@
 #define g_WindowMan WindowMan::Instance()
 
 extern "C" {
-	struct SDL_Window;
-	struct SDL_Renderer;
-	struct SDL_Texture;
-	struct SDL_Rect;
-	union SDL_Event;
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Texture;
+struct SDL_Rect;
+union SDL_Event;
 }
 
 namespace RTE {
@@ -18,19 +18,19 @@ namespace RTE {
 	class Shader;
 
 	struct SDLWindowDeleter {
-		void operator() (SDL_Window *window) const;
+		void operator()(SDL_Window* window) const;
 	};
 
 	struct SDLRendererDeleter {
-		void operator()(SDL_Renderer *renderer) const;
+		void operator()(SDL_Renderer* renderer) const;
 	};
 
 	struct SDLTextureDeleter {
-		void operator()(SDL_Texture *texture) const;
+		void operator()(SDL_Texture* texture) const;
 	};
 
 	struct SDLContextDeleter {
-		void operator()(void *context) const;
+		void operator()(void* context) const;
 	};
 
 	/// <summary>
@@ -40,7 +40,6 @@ namespace RTE {
 		friend class SettingsMan;
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a WindowMan object in system memory. Initialize() should be called before using the object.
@@ -70,7 +69,7 @@ namespace RTE {
 		/// Gets a pointer to the primary game window. OWNERSHIP IS NOT TRANSFERRED!
 		/// </summary>
 		/// <returns>Pointer to the primary game window.</returns>
-		SDL_Window * GetWindow() const { return m_PrimaryWindow.get(); }
+		SDL_Window* GetWindow() const { return m_PrimaryWindow.get(); }
 
 		/// <summary>
 		/// Gets whether any of the game windows is currently in focus.
@@ -108,7 +107,6 @@ namespace RTE {
 		/// <returns>The horizontal resolution the game window is currently sized at, in pixels.</returns>
 		int GetWindowResX();
 
-		
 		/// <summary>
 		/// Gets the vertical resolution the game window is currently sized at, in pixels.
 		/// </summary>
@@ -226,7 +224,7 @@ namespace RTE {
 		/// Adds an SDL_Event to the Event queue for processing on Update.
 		/// </summary>
 		/// <param name="windowEvent">The SDL window event to queue.</param>
-		void QueueWindowEvent(const SDL_Event &windowEvent);
+		void QueueWindowEvent(const SDL_Event& windowEvent);
 
 		/// <summary>
 		/// Updates the state of this WindowMan.
@@ -250,7 +248,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		std::vector<SDL_Event> m_EventQueue; //!< List of incoming window events.
 
 		bool m_FocusEventsDispatchedByMovingBetweenWindows; //!< Whether queued events were dispatched due to raising windows when moving between windows in multi-display fullscreen in the previous update.
@@ -350,7 +347,7 @@ namespace RTE {
 		/// <param name="resX">Game window width to check.</param>
 		/// <param name="resY">Game window height to check.</param>
 		/// <param name="resMultiplier">Game window resolution multiplier to check.</param>
-		void ValidateResolution(int &resX, int &resY, float &resMultiplier) const;
+		void ValidateResolution(int& resX, int& resY, float& resMultiplier) const;
 
 		/// <summary>
 		/// Attempts to revert to the previous resolution settings if the new ones failed for whatever reason. Will recursively attempt to revert to defaults if previous settings fail as well.
@@ -378,7 +375,7 @@ namespace RTE {
 		/// Handles focus gain when switching back to the game window.
 		/// </summary>
 		/// <param name="windowThatShouldTakeInputFocus">The window that should take focus of input after all the windows are raised. This is only relevant in multi-display fullscreen.</param>
-		void DisplaySwitchIn(SDL_Window *windowThatShouldTakeInputFocus) const;
+		void DisplaySwitchIn(SDL_Window* windowThatShouldTakeInputFocus) const;
 
 		/// <summary>
 		/// Handles focus loss when switching away from the game window.
@@ -393,7 +390,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		WindowMan(const WindowMan &reference) = delete;
-		WindowMan & operator=(const WindowMan &rhs) = delete;
+		WindowMan(const WindowMan& reference) = delete;
+		WindowMan& operator=(const WindowMan& rhs) = delete;
 	};
-}
+} // namespace RTE

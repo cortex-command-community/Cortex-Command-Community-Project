@@ -29,12 +29,14 @@ namespace RTE {
 		friend class SettingsMan;
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a NetworkClient object in system memory. Create() should be called before using the object.
 		/// </summary>
-		NetworkClient() { Clear(); Initialize(); }
+		NetworkClient() {
+			Clear();
+			Initialize();
+		}
 
 		/// <summary>
 		/// Makes the NetworkClient object ready for use.
@@ -84,7 +86,7 @@ namespace RTE {
 		/// Get the coordinates of the center of the current frame.
 		/// </summary>
 		/// <returns>A vector containing the X/Y coordinates of the frame target.</returns>
-		const Vector & GetFrameTarget() const { return m_TargetPos[m_CurrentFrameNum]; }
+		const Vector& GetFrameTarget() const { return m_TargetPos[m_CurrentFrameNum]; }
 
 #pragma endregion
 
@@ -132,16 +134,15 @@ namespace RTE {
 		/// <param name="address"></param>
 		/// <param name="port"></param>
 		/// <returns></returns>
-		RakNet::SystemAddress ConnectBlocking(RakNet::RakPeerInterface *rakPeer, const char *address, unsigned short port);
+		RakNet::SystemAddress ConnectBlocking(RakNet::RakPeerInterface* rakPeer, const char* address, unsigned short port);
 #pragma endregion
 
 	protected:
-
 		static constexpr unsigned short c_PlayerNameCharLimit = 15; //!< Maximum length of the player name.
 
 		std::string m_PlayerName; //!< The player name the will be used by the client in network games.
 
-		RakNet::RakPeerInterface *m_Client; //!< The client RakPeerInterface.
+		RakNet::RakPeerInterface* m_Client; //!< The client RakPeerInterface.
 		RakNet::SystemAddress m_ClientID; //!< The client's identifier.
 
 		RakNet::SystemAddress m_ServerID; //!< The server's identifier.
@@ -175,15 +176,15 @@ namespace RTE {
 		Vector m_TargetPos[c_FramesToRemember]; //!<
 		std::list<PostEffect> m_PostEffects[c_FramesToRemember]; //!< List of post-effects received from server.
 
-		std::unordered_map<int, SoundContainer *> m_ServerSounds; //!< Unordered map of SoundContainers received from server. OWNED!!!
+		std::unordered_map<int, SoundContainer*> m_ServerSounds; //!< Unordered map of SoundContainers received from server. OWNED!!!
 
 		unsigned char m_SceneID; //!<
 		int m_CurrentSceneLayerReceived; //!<
 
-		BITMAP *m_SceneBackgroundBitmap; //!<
-		BITMAP *m_SceneForegroundBitmap; //!<
+		BITMAP* m_SceneBackgroundBitmap; //!<
+		BITMAP* m_SceneForegroundBitmap; //!<
 
-		BITMAP *m_BackgroundBitmaps[c_MaxLayersStoredForNetwork]; //!<
+		BITMAP* m_BackgroundBitmaps[c_MaxLayersStoredForNetwork]; //!<
 		LightweightSceneLayer m_BackgroundLayers[c_FramesToRemember][c_MaxLayersStoredForNetwork]; //!<
 		int m_ActiveBackgroundLayers; //!<
 		bool m_SceneWrapsX; //!<
@@ -195,7 +196,6 @@ namespace RTE {
 		int m_MouseWheelMoved; //!< Whether the mouse wheel was moved this Update. Used to make mouse wheel detection better.
 
 	private:
-
 #pragma region Update Breakdown
 		/// <summary>
 		///
@@ -209,7 +209,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="packet"></param>
 		/// <returns></returns>
-		unsigned char GetPacketIdentifier(RakNet::Packet *packet) const;
+		unsigned char GetPacketIdentifier(RakNet::Packet* packet) const;
 
 		/// <summary>
 		///
@@ -238,7 +238,7 @@ namespace RTE {
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveServerGUIDAnswer(RakNet::Packet *packet);
+		void ReceiveServerGUIDAnswer(RakNet::Packet* packet);
 
 		/// <summary>
 		///
@@ -249,19 +249,19 @@ namespace RTE {
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveFrameSetupMsg(RakNet::Packet *packet);
+		void ReceiveFrameSetupMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveFrameLineMsg(RakNet::Packet *packet);
+		void ReceiveFrameLineMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveFrameBoxMsg(RakNet::Packet *packet);
+		void ReceiveFrameBoxMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		///
@@ -272,7 +272,7 @@ namespace RTE {
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveSceneMsg(RakNet::Packet *packet);
+		void ReceiveSceneMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		///
@@ -283,7 +283,7 @@ namespace RTE {
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveSceneSetupMsg(RakNet::Packet *packet);
+		void ReceiveSceneSetupMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		///
@@ -294,25 +294,25 @@ namespace RTE {
 		/// Receive and handle a packet of terrain change data.
 		/// </summary>
 		/// <param name="packet">The packet to handle.</param>
-		void ReceiveTerrainChangeMsg(RakNet::Packet *packet);
+		void ReceiveTerrainChangeMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		/// Receive and handle a packet of post-effect data.
 		/// </summary>
 		/// <param name="packet">The packet to handle.</param>
-		void ReceivePostEffectsMsg(RakNet::Packet *packet);
+		void ReceivePostEffectsMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		/// Receive and handle a packet of sound event data.
 		/// </summary>
 		/// <param name="packet">The packet to handle.</param>
-		void ReceiveSoundEventsMsg(RakNet::Packet *packet);
+		void ReceiveSoundEventsMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		/// Receive and handle a packet of music event data.
 		/// </summary>
 		/// <param name="packet">The packet to handle.</param>
-		void ReceiveMusicEventsMsg(RakNet::Packet *packet);
+		void ReceiveMusicEventsMsg(RakNet::Packet* packet);
 #pragma endregion
 
 #pragma region Drawing
@@ -320,7 +320,7 @@ namespace RTE {
 		///
 		/// </summary>
 		/// <param name="targetBitmap"></param>
-		void DrawBackgrounds(BITMAP *targetBitmap);
+		void DrawBackgrounds(BITMAP* targetBitmap);
 
 		/// <summary>
 		///
@@ -349,7 +349,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		NetworkClient(const NetworkClient &reference) = delete;
-		NetworkClient & operator=(const NetworkClient &rhs) = delete;
+		NetworkClient(const NetworkClient& reference) = delete;
+		NetworkClient& operator=(const NetworkClient& rhs) = delete;
 	};
-}
+} // namespace RTE

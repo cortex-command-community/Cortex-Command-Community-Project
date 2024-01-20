@@ -29,7 +29,7 @@ namespace RTE {
 #pragma endregion
 
 #pragma region AI Constants
-    static constexpr float c_PathFindingDefaultDigStrength = 35.0F; //!< A default pathfinder penetration value that'll allow pathing through corpses, debris, and such stuff.
+	static constexpr float c_PathFindingDefaultDigStrength = 35.0F; //!< A default pathfinder penetration value that'll allow pathing through corpses, debris, and such stuff.
 #pragma endregion
 
 #pragma region Graphics Constants
@@ -52,9 +52,9 @@ namespace RTE {
 	enum ColorKeys {
 		g_InvalidColor = -1,
 		g_MaskColor = 0, //!< Mask color for all 8bpp bitmaps (palette index 0 (255,0,255)). This color is fully transparent.
-		//g_MOIDMaskColor = 0, //!< Mask color for 8bpp MOID layer bitmaps (palette index 0 (255,0,255)). This color is fully transparent.
+		// g_MOIDMaskColor = 0, //!< Mask color for 8bpp MOID layer bitmaps (palette index 0 (255,0,255)). This color is fully transparent.
 		g_MOIDMaskColor = 0xF81F, //!< Mask color for 16bpp MOID layer bitmaps (255,0,255). This color is fully transparent.
-		//g_MOIDMaskColor = 0xFF00FF, //!< Mask color for 32bpp MOID layer bitmaps (255,0,255). This color is fully transparent.
+		// g_MOIDMaskColor = 0xFF00FF, //!< Mask color for 32bpp MOID layer bitmaps (255,0,255). This color is fully transparent.
 		g_BlackColor = 245,
 		g_WhiteColor = 254,
 		g_RedColor = 13,
@@ -74,7 +74,12 @@ namespace RTE {
 		g_MaterialDoor = 181
 	};
 
-	enum DotGlowColor { NoDot, YellowDot, RedDot, BlueDot };
+	enum DotGlowColor {
+		NoDot,
+		YellowDot,
+		RedDot,
+		BlueDot
+	};
 
 	enum DrawBlendMode {
 		NoBlend,
@@ -92,9 +97,16 @@ namespace RTE {
 		BlendModeCount
 	};
 
-	enum BlendAmountLimits { MinBlend = 0, MaxBlend = 100 };
+	enum BlendAmountLimits {
+		MinBlend = 0,
+		MaxBlend = 100
+	};
 
-	enum TransparencyPreset { LessTrans = 25, HalfTrans = 50, MoreTrans = 75 };
+	enum TransparencyPreset {
+		LessTrans = 25,
+		HalfTrans = 50,
+		MoreTrans = 75
+	};
 
 	enum SpriteAnimMode {
 		NOANIM,
@@ -109,25 +121,25 @@ namespace RTE {
 		SpriteAnimModeCount
 	};
 
-	// GUI colors
-	#define c_GUIColorWhite makecol(255, 255, 255)
-	#define c_GUIColorYellow makecol(255, 255, 128)
-	#define c_GUIColorRed makecol(255, 100, 100)
-	#define c_GUIColorGreen makecol(128, 255, 128)
-	#define c_GUIColorCyan makecol(127, 255, 255)
-	#define c_GUIColorLightBlue makecol(109, 117, 170)
-	#define c_GUIColorBlue makecol(59, 65, 83)
-	#define c_GUIColorDarkBlue makecol(12, 20, 39)
-	#define c_GUIColorGray makecol(232, 232, 248)
+// GUI colors
+#define c_GUIColorWhite makecol(255, 255, 255)
+#define c_GUIColorYellow makecol(255, 255, 128)
+#define c_GUIColorRed makecol(255, 100, 100)
+#define c_GUIColorGreen makecol(128, 255, 128)
+#define c_GUIColorCyan makecol(127, 255, 255)
+#define c_GUIColorLightBlue makecol(109, 117, 170)
+#define c_GUIColorBlue makecol(59, 65, 83)
+#define c_GUIColorDarkBlue makecol(12, 20, 39)
+#define c_GUIColorGray makecol(232, 232, 248)
 
-	#define c_PlayerSlotColorDefault makecol(161, 109, 20)
-	#define c_PlayerSlotColorHovered makecol(203, 130, 56)
-	#define c_PlayerSlotColorDisabled makecol(104, 67, 15)
-	static constexpr std::array<float, 16> c_Quad {
-			1.0f, 1.0f, 1.0f, 0.0f,
-			1.0f, -1.0f, 1.0f, 1.0f,
-			-1.0f, 1.0f, 0.0f, 0.0f,
-			-1.0f, -1.0f, 0.0f, 1.0f};
+#define c_PlayerSlotColorDefault makecol(161, 109, 20)
+#define c_PlayerSlotColorHovered makecol(203, 130, 56)
+#define c_PlayerSlotColorDisabled makecol(104, 67, 15)
+	static constexpr std::array<float, 16> c_Quad{
+	    1.0f, 1.0f, 1.0f, 0.0f,
+	    1.0f, -1.0f, 1.0f, 1.0f,
+	    -1.0f, 1.0f, 0.0f, 0.0f,
+	    -1.0f, -1.0f, 0.0f, 1.0f};
 #pragma endregion
 
 #pragma region Math Constants
@@ -141,7 +153,7 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Audio Constants
-	static constexpr std::array<const char*, 3> c_SupportedAudioFormats = { ".wav", ".ogg", ".flac" };
+	static constexpr std::array<const char*, 3> c_SupportedAudioFormats = {".wav", ".ogg", ".flac"};
 
 	static constexpr unsigned short c_MaxSoftwareChannels = 128;
 	static constexpr unsigned short c_MaxVirtualChannels = 1024;
@@ -216,33 +228,33 @@ namespace RTE {
 	};
 
 	static const std::array<const std::string_view, InputElements::INPUT_COUNT> c_InputElementNames = {
-		"Move Up",			// INPUT_L_UP
-		"Move Down",		// INPUT_L_DOWN
-		"Move Left",		// INPUT_L_LEFT
-		"Move Right",		// INPUT_L_RIGHT
-		"Aim Up",			// INPUT_AIM_UP
-		"Aim Down",			// INPUT_AIM_DOWN
-		"Aim Left",			// INPUT_AIM_LEFT
-		"Aim Right",		// INPUT_AIM_RIGHT
-		"Fire/Activate",	// INPUT_FIRE
-		"Sharp Aim",		// INPUT_AIM
-		"Pie Menu Analog",	// INPUT_PIEMENU_ANALOG
-		"Pie Menu Digital",	// INPUT_PIEMENU_DIGITAL
-		"Jump",				// INPUT_JUMP
-		"Crouch",			// INPUT_CROUCH
-		"Next Body",		// INPUT_NEXT
-		"Prev. Body",		// INPUT_PREV
-		"Next Device",		// INPUT_WEAPON_CHANGE_NEXT
-		"Prev. Device",		// INPUT_WEAPON_CHANGE_PREV
-		"Pick Up Device",	// INPUT_WEAPON_PICKUP
-		"Drop Device",		// INPUT_WEAPON_DROP
-		"Reload Weapon",	// INPUT_WEAPON_RELOAD
-		"Start",			// INPUT_START
-		"Back",				// INPUT_BACK
-		"Analog Aim Up",	// INPUT_R_UP
-		"Analog Aim Down",	// INPUT_R_DOWN
-		"Analog Aim Left",	// INPUT_R_LEFT
-		"Analog Aim Right"	// INPUT_R_RIGHT
+	    "Move Up", // INPUT_L_UP
+	    "Move Down", // INPUT_L_DOWN
+	    "Move Left", // INPUT_L_LEFT
+	    "Move Right", // INPUT_L_RIGHT
+	    "Aim Up", // INPUT_AIM_UP
+	    "Aim Down", // INPUT_AIM_DOWN
+	    "Aim Left", // INPUT_AIM_LEFT
+	    "Aim Right", // INPUT_AIM_RIGHT
+	    "Fire/Activate", // INPUT_FIRE
+	    "Sharp Aim", // INPUT_AIM
+	    "Pie Menu Analog", // INPUT_PIEMENU_ANALOG
+	    "Pie Menu Digital", // INPUT_PIEMENU_DIGITAL
+	    "Jump", // INPUT_JUMP
+	    "Crouch", // INPUT_CROUCH
+	    "Next Body", // INPUT_NEXT
+	    "Prev. Body", // INPUT_PREV
+	    "Next Device", // INPUT_WEAPON_CHANGE_NEXT
+	    "Prev. Device", // INPUT_WEAPON_CHANGE_PREV
+	    "Pick Up Device", // INPUT_WEAPON_PICKUP
+	    "Drop Device", // INPUT_WEAPON_DROP
+	    "Reload Weapon", // INPUT_WEAPON_RELOAD
+	    "Start", // INPUT_START
+	    "Back", // INPUT_BACK
+	    "Analog Aim Up", // INPUT_R_UP
+	    "Analog Aim Down", // INPUT_R_DOWN
+	    "Analog Aim Left", // INPUT_R_LEFT
+	    "Analog Aim Right" // INPUT_R_RIGHT
 	};
 
 	/// <summary>
@@ -288,14 +300,20 @@ namespace RTE {
 	/// <summary>
 	/// Enumeration for joystick direction types.
 	/// </summary>
-	enum JoyDirections { JOYDIR_ONE = 0, JOYDIR_TWO };
+	enum JoyDirections {
+		JOYDIR_ONE = 0,
+		JOYDIR_TWO
+	};
 
 	/// <summary>
 	/// Enumeration for joystick dead zone types.
 	/// Square deadzone cuts-off any input from every axis separately. For example if x-axis has less than 20% input and y-axis has more, x-axis input is ignored.
 	/// Circle uses a round zone to capture stick position on both axis then cut-off if this position is inside the round dead zone.
 	/// </summary>
-	enum DeadZoneType { CIRCLE = 0, SQUARE = 1 };
+	enum DeadZoneType {
+		CIRCLE = 0,
+		SQUARE = 1
+	};
 #pragma endregion
 
 #pragma region Global Enumerations
@@ -314,37 +332,42 @@ namespace RTE {
 	/// <summary>
 	/// Enumeration and supporting maps for cardinal directions, as well as None and Any.
 	/// </summary>
-	enum Directions { None = -1, Up, Down, Left, Right, Any };
+	enum Directions {
+		None = -1,
+		Up,
+		Down,
+		Left,
+		Right,
+		Any
+	};
 
 	static const std::unordered_map<std::string_view, Directions> c_DirectionNameToDirectionsMap = {
-		{"None", Directions::None},
-		{"Up", Directions::Up},
-		{"Down", Directions::Down},
-		{"Left", Directions::Left},
-		{"Right", Directions::Right},
-		{"Any", Directions::Any}
-	};
+	    {"None", Directions::None},
+	    {"Up", Directions::Up},
+	    {"Down", Directions::Down},
+	    {"Left", Directions::Left},
+	    {"Right", Directions::Right},
+	    {"Any", Directions::Any}};
 
 	static const std::unordered_map<Directions, const float> c_DirectionsToRadiansMap = {
-		{Directions::Up, c_HalfPI},
-		{Directions::Down, c_OneAndAHalfPI},
-		{Directions::Left, c_PI},
-		{Directions::Right, 0.0F}
-	};
+	    {Directions::Up, c_HalfPI},
+	    {Directions::Down, c_OneAndAHalfPI},
+	    {Directions::Left, c_PI},
+	    {Directions::Right, 0.0F}};
 #pragma endregion
 
 #pragma region Un-Definitions
-	// Allegro defines these via define in astdint.h and Boost with stdlib go crazy so we need to undefine them manually.
-	#undef int8_t
-	#undef uint8_t
-	#undef int16_t
-	#undef uint16_t
-	#undef int32_t
-	#undef uint32_t
-	#undef intptr_t
-	#undef uintptr_t
-	#undef LONG_LONG
-	#undef int64_t
-	#undef uint64_t
+// Allegro defines these via define in astdint.h and Boost with stdlib go crazy so we need to undefine them manually.
+#undef int8_t
+#undef uint8_t
+#undef int16_t
+#undef uint16_t
+#undef int32_t
+#undef uint32_t
+#undef intptr_t
+#undef uintptr_t
+#undef LONG_LONG
+#undef int64_t
+#undef uint64_t
 #pragma endregion
-}
+} // namespace RTE

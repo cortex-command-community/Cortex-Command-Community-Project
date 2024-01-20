@@ -20,7 +20,6 @@ namespace RTE {
 		friend class SettingsMan;
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a ConsoleMan object in system memory. Create() should be called before using the object.
@@ -103,26 +102,26 @@ namespace RTE {
 		/// <param name="pathToLog">The path that produced the warning.</param>
 		/// <param name="readerPosition">The file and line currently being loaded.</param>
 		/// <param name="altFileExtension">The alternative file extension to the path that produced the warning (e.g. if file is ".bmp", alternative extension is ".png").</param>
-		void AddLoadWarningLogExtensionMismatchEntry(const std::string &pathToLog, const std::string &readerPosition = "", const std::string &altFileExtension = "" );
+		void AddLoadWarningLogExtensionMismatchEntry(const std::string& pathToLog, const std::string& readerPosition = "", const std::string& altFileExtension = "");
 
 		/// <summary>
 		/// Writes the entire loading warning log to a file.
 		/// </summary>
 		/// <param name="filePath">The filename of the file to write to.</param>
-		void SaveLoadWarningLog(const std::string &filePath);
+		void SaveLoadWarningLog(const std::string& filePath);
 
 		/// <summary>
 		/// Writes all the input strings to a log in the order they were entered.
 		/// </summary>
 		/// <param name="filePath">The filename of the file to write to.</param>
-		void SaveInputLog(const std::string &filePath);
+		void SaveInputLog(const std::string& filePath);
 
 		/// <summary>
 		/// Writes the entire console buffer to a file.
 		/// </summary>
 		/// <param name="filePath">The filename of the file to write to.</param>
 		/// <returns>Whether writing to the file was successful.</returns>
-		bool SaveAllText(const std::string &filePath);
+		bool SaveAllText(const std::string& filePath);
 
 		/// <summary>
 		/// Clears all previous input.
@@ -135,7 +134,7 @@ namespace RTE {
 		/// Prints a string into the console.
 		/// </summary>
 		/// <param name="stringToPrint">The string to print.</param>
-		void PrintString(const std::string &stringToPrint);
+		void PrintString(const std::string& stringToPrint);
 
 		/// <summary>
 		/// Opens the console and prints the shortcut help text.
@@ -151,26 +150,30 @@ namespace RTE {
 		/// Draws this ConsoleMan's current graphical representation to a BITMAP of choice.
 		/// </summary>
 		/// <param name="targetBitmap">A pointer to a BITMAP to draw on.</param>
-		void Draw(BITMAP *targetBitmap) const;
+		void Draw(BITMAP* targetBitmap) const;
 #pragma endregion
 
 	protected:
-
 		/// <summary>
 		/// Enumeration for console states when enabling/disabling the console. NOTE: This can't be lower down because m_ConsoleState relies on this definition.
 		/// </summary>
-		enum ConsoleState { Enabling = 0, Enabled, Disabling, Disabled };
+		enum ConsoleState {
+			Enabling = 0,
+			Enabled,
+			Disabling,
+			Disabled
+		};
 
 		ConsoleState m_ConsoleState; //!< Current state of the console.
 		bool m_ReadOnly; //!< Read-only mode where console text input is disabled and controller input should be preserved.
 		float m_ConsoleScreenRatio; //!< The ratio of the screen that the console should take up, from 0.1 to 1.0 (whole screen).
 
-		GUIScreen *m_GUIScreen; //!< GUI Screen for use by the in-game GUI.
-		GUIInput *m_GUIInput; //!< GUI Input controller.
-		GUIControlManager *m_GUIControlManager; //!< Manager of the console GUI elements.
-		GUICollectionBox *m_ParentBox; //!< Collection box of the console GUI.
-		GUILabel *m_ConsoleText; //!< The label which presents the console output.
-		GUITextBox *m_InputTextBox; //!< The TextBox which the user types in the edited line.
+		GUIScreen* m_GUIScreen; //!< GUI Screen for use by the in-game GUI.
+		GUIInput* m_GUIInput; //!< GUI Input controller.
+		GUIControlManager* m_GUIControlManager; //!< Manager of the console GUI elements.
+		GUICollectionBox* m_ParentBox; //!< Collection box of the console GUI.
+		GUILabel* m_ConsoleText; //!< The label which presents the console output.
+		GUITextBox* m_InputTextBox; //!< The TextBox which the user types in the edited line.
 
 		int m_ConsoleTextMaxNumLines; //!< Maximum number of lines to display in the console text label.
 
@@ -183,7 +186,6 @@ namespace RTE {
 		short m_LastLogMove; //!< The last direction the log marker was moved. Needed so that changing directions won't need double tapping.
 
 	private:
-
 		bool m_ConsoleUseMonospaceFont; //!< Whether the console text is using the monospace font.
 
 		/// <summary>
@@ -222,7 +224,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		ConsoleMan(const ConsoleMan &reference) = delete;
-		ConsoleMan & operator=(const ConsoleMan &rhs) = delete;
+		ConsoleMan(const ConsoleMan& reference) = delete;
+		ConsoleMan& operator=(const ConsoleMan& rhs) = delete;
 	};
-}
+} // namespace RTE

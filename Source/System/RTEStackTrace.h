@@ -11,12 +11,12 @@ namespace RTE {
 	class RTEStackTrace : public StackWalker {
 
 	public:
-
 		/// <summary>
 		/// Constructor method used to instantiate an RTEStackTrace object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="options"></param>
-		RTEStackTrace() : StackWalker() {}
+		RTEStackTrace() :
+		    StackWalker() {}
 
 		/// <summary>
 		/// Destructor method used to clean up a RTEStackTrace object before deletion from system memory.
@@ -29,10 +29,9 @@ namespace RTE {
 		/// <param name="handle">Handle to the current process. If none provided will get the current thread handle.</param>
 		/// <param name="context">Register data. If none provided will get it from the caller.</param>
 		/// <returns>A string with the call stack.</returns>
-		std::string GetCallStackAsString(const HANDLE &handle = nullptr, const CONTEXT *context = nullptr);
+		std::string GetCallStackAsString(const HANDLE& handle = nullptr, const CONTEXT* context = nullptr);
 
 	protected:
-
 		/// <summary>
 		/// Redirects the output string to the member string stream.
 		/// </summary>
@@ -40,11 +39,10 @@ namespace RTE {
 		void OnOutput(LPCSTR text) override;
 
 	private:
-
 		std::stringstream m_CallstackStream; //!< Call stack output stream.
 
 		// Disallow the use of some implicit methods.
-		RTEStackTrace(const RTEStackTrace &reference) = delete;
-		RTEStackTrace & operator=(const RTEStackTrace &rhs) = delete;
+		RTEStackTrace(const RTEStackTrace& reference) = delete;
+		RTEStackTrace& operator=(const RTEStackTrace& rhs) = delete;
 	};
-}
+} // namespace RTE

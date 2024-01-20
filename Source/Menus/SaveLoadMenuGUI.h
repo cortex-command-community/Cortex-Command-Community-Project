@@ -22,7 +22,6 @@ namespace RTE {
 	class SaveLoadMenuGUI {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a SaveLoadMenuGUI object in system memory and make it ready for use.
@@ -30,7 +29,7 @@ namespace RTE {
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this SaveLoadMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this SaveLoadMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="createForPauseMenu">Whether this SettingsGUI is part of SaveLoadMenuGUI and should have a slightly different layout.</param>
-		SaveLoadMenuGUI(AllegroScreen *guiScreen, GUIInputWrapper *guiInput, bool createForPauseMenu = false);
+		SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu = false);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -39,7 +38,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="pauseMenu">Pointer to the pause menu, if we're being called from the pause menu. Ownership is NOT transferred!</param>
 		/// <returns>Whether the player requested to return to the main menu.</returns>
-		bool HandleInputEvents(PauseMenuGUI *pauseMenu = nullptr);
+		bool HandleInputEvents(PauseMenuGUI* pauseMenu = nullptr);
 
 		/// <summary>
 		/// Causes a refresh of the save files.
@@ -78,23 +77,23 @@ namespace RTE {
 		/// <summary>
 		/// GUI elements that compose the Mod Manager menu screen.
 		/// </summary>
-		GUICollectionBox *m_SaveGameMenuBox;
-		GUIButton *m_BackToMainButton;
-		GUITextBox *m_SaveGameName;
-		GUIButton *m_LoadButton;
-		GUIButton *m_CreateButton;
-		GUIButton *m_OverwriteButton;
-		GUIButton *m_DeleteButton;
-		GUIListBox *m_SaveGamesListBox;
-		GUILabel *m_ActivityCannotBeSavedLabel;
-		GUIComboBox *m_OrderByComboBox;
+		GUICollectionBox* m_SaveGameMenuBox;
+		GUIButton* m_BackToMainButton;
+		GUITextBox* m_SaveGameName;
+		GUIButton* m_LoadButton;
+		GUIButton* m_CreateButton;
+		GUIButton* m_OverwriteButton;
+		GUIButton* m_DeleteButton;
+		GUIListBox* m_SaveGamesListBox;
+		GUILabel* m_ActivityCannotBeSavedLabel;
+		GUIComboBox* m_OrderByComboBox;
 
 		// The confirmation box and its controls
 		ConfirmDialogMode m_ConfirmDialogMode;
-		GUICollectionBox *m_ConfirmationBox;
-		GUILabel *m_ConfirmationLabel;
+		GUICollectionBox* m_ConfirmationBox;
+		GUILabel* m_ConfirmationLabel;
 		GUIButton* m_ConfirmationButton;
-		GUIButton *m_CancelButton;
+		GUIButton* m_CancelButton;
 
 #pragma region Savegame Handling
 		/// <summary>
@@ -141,7 +140,7 @@ namespace RTE {
 		void SwitchToConfirmDialogMode(ConfirmDialogMode mode);
 
 		// Disallow the use of some implicit methods.
-		SaveLoadMenuGUI(const SaveLoadMenuGUI &reference) = delete;
-		SaveLoadMenuGUI & operator=(const SaveLoadMenuGUI &rhs) = delete;
+		SaveLoadMenuGUI(const SaveLoadMenuGUI& reference) = delete;
+		SaveLoadMenuGUI& operator=(const SaveLoadMenuGUI& rhs) = delete;
 	};
-}
+} // namespace RTE

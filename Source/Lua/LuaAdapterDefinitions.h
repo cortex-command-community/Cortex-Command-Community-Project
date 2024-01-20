@@ -90,18 +90,18 @@ namespace RTE {
 
 #pragma region Entity Lua Adapter Macros
 	struct LuaAdaptersEntityCreate {
-		/// <summary>
-		/// Convenience macro to generate preset clone-create adapter functions that will return the exact pre-cast types, so we don't have to do: myNewActor = ToActor(PresetMan:GetPreset("AHuman", "Soldier Light", "All")):Clone()
-		/// But can instead do: myNewActor = CreateActor("Soldier Light", "All");
-		/// Or even: myNewActor = CreateActor("Soldier Light");
-		/// Or for a randomly selected Preset within a group: myNewActor = RandomActor("Light Troops");
-		/// </summary>
-		#define LuaEntityCreateFunctionsDeclarationsForType(TYPE)								\
-			static TYPE * Create##TYPE(std::string preseName, std::string moduleName);			\
-			static TYPE * Create##TYPE(std::string preset);										\
-			static TYPE * Random##TYPE(std::string groupName, int moduleSpaceID);				\
-			static TYPE * Random##TYPE(std::string groupName, std::string dataModuleName);		\
-			static TYPE * Random##TYPE(std::string groupName)
+/// <summary>
+/// Convenience macro to generate preset clone-create adapter functions that will return the exact pre-cast types, so we don't have to do: myNewActor = ToActor(PresetMan:GetPreset("AHuman", "Soldier Light", "All")):Clone()
+/// But can instead do: myNewActor = CreateActor("Soldier Light", "All");
+/// Or even: myNewActor = CreateActor("Soldier Light");
+/// Or for a randomly selected Preset within a group: myNewActor = RandomActor("Light Troops");
+/// </summary>
+#define LuaEntityCreateFunctionsDeclarationsForType(TYPE) \
+	static TYPE* Create##TYPE(std::string preseName, std::string moduleName); \
+	static TYPE* Create##TYPE(std::string preset); \
+	static TYPE* Random##TYPE(std::string groupName, int moduleSpaceID); \
+	static TYPE* Random##TYPE(std::string groupName, std::string dataModuleName); \
+	static TYPE* Random##TYPE(std::string groupName)
 
 		LuaEntityCreateFunctionsDeclarationsForType(SoundContainer);
 		LuaEntityCreateFunctionsDeclarationsForType(Attachable);
@@ -134,11 +134,11 @@ namespace RTE {
 	};
 
 	struct LuaAdaptersEntityClone {
-		/// <summary>
-		/// Convenience macro to generate a preset clone adapter function for a type.
-		/// </summary>
-		#define LuaEntityCloneFunctionDeclarationForType(TYPE) \
-			static TYPE * Clone##TYPE(const TYPE *thisEntity)
+/// <summary>
+/// Convenience macro to generate a preset clone adapter function for a type.
+/// </summary>
+#define LuaEntityCloneFunctionDeclarationForType(TYPE) \
+	static TYPE* Clone##TYPE(const TYPE* thisEntity)
 
 		LuaEntityCloneFunctionDeclarationForType(Entity);
 		LuaEntityCloneFunctionDeclarationForType(SoundContainer);
@@ -175,16 +175,16 @@ namespace RTE {
 	};
 
 	struct LuaAdaptersEntityCast {
-		/// <summary>
-		/// Convenience macro to generate type casting adapter functions for a type.
-		/// </summary>
-		#define LuaEntityCastFunctionsDeclarationsForType(TYPE)													\
-			static TYPE * To##TYPE(Entity *entity);																\
-			static const TYPE * ToConst##TYPE(const Entity *entity);											\
-			static bool Is##TYPE(Entity *entity);																\
-			static LuabindObjectWrapper * ToLuabindObject##TYPE(Entity *entity, lua_State *luaState)
+/// <summary>
+/// Convenience macro to generate type casting adapter functions for a type.
+/// </summary>
+#define LuaEntityCastFunctionsDeclarationsForType(TYPE) \
+	static TYPE* To##TYPE(Entity* entity); \
+	static const TYPE* ToConst##TYPE(const Entity* entity); \
+	static bool Is##TYPE(Entity* entity); \
+	static LuabindObjectWrapper* ToLuabindObject##TYPE(Entity* entity, lua_State* luaState)
 
-		static std::unordered_map<std::string, std::function<LuabindObjectWrapper * (Entity *, lua_State *)>> s_EntityToLuabindObjectCastFunctions; //!< Map of preset names to casting methods for ensuring objects are downcast properly when passed into Lua.
+		static std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> s_EntityToLuabindObjectCastFunctions; //!< Map of preset names to casting methods for ensuring objects are downcast properly when passed into Lua.
 
 		LuaEntityCastFunctionsDeclarationsForType(Entity);
 		LuaEntityCastFunctionsDeclarationsForType(SoundContainer);
@@ -226,12 +226,12 @@ namespace RTE {
 	};
 
 	struct LuaAdaptersPropertyOwnershipSafetyFaker {
-		/// <summary>
-		/// Special handling for passing ownership through properties. If you try to pass null to this normally, LuaJIT crashes.
-		/// This handling avoids that, and is a bit safer since there's no actual ownership transfer from Lua to C++.
-		/// </summary>
-		#define LuaPropertyOwnershipSafetyFakerFunctionDeclaration(OBJECTTYPE, PROPERTYTYPE, SETTERFUNCTION) \
-			static void OBJECTTYPE##SETTERFUNCTION(OBJECTTYPE *luaSelfObject, PROPERTYTYPE *objectToSet)
+/// <summary>
+/// Special handling for passing ownership through properties. If you try to pass null to this normally, LuaJIT crashes.
+/// This handling avoids that, and is a bit safer since there's no actual ownership transfer from Lua to C++.
+/// </summary>
+#define LuaPropertyOwnershipSafetyFakerFunctionDeclaration(OBJECTTYPE, PROPERTYTYPE, SETTERFUNCTION) \
+	static void OBJECTTYPE##SETTERFUNCTION(OBJECTTYPE* luaSelfObject, PROPERTYTYPE* objectToSet)
 
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(MOSRotating, SoundContainer, SetGibSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Attachable, AEmitter, SetBreakWound);
@@ -302,105 +302,105 @@ namespace RTE {
 #pragma region Entity Lua Adapters
 	struct LuaAdaptersEntity {
 		// TODO this is a temporary fix for lua PresetName setting causing scripts to have to rerun. It should be replaced with a DisplayName property someday.
-		static void SetPresetName(Entity *luaSelfObject, const std::string &presetName);
+		static void SetPresetName(Entity* luaSelfObject, const std::string& presetName);
 	};
 #pragma endregion
 
 #pragma region Scene Lua Adapters
 	struct LuaAdaptersScene {
-		static int CalculatePath1(Scene *luaSelfObject, const Vector &start, const Vector &end, bool movePathToGround, float digStrength) { return CalculatePath2(luaSelfObject, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
-		static int CalculatePath2(Scene *luaSelfObject, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team);
+		static int CalculatePath1(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength) { return CalculatePath2(luaSelfObject, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
+		static int CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team);
 
-		static void CalculatePathAsync1(Scene *luaSelfObject, const luabind::object &callback, const Vector &start, const Vector &end, bool movePathToGround, float digStrength) { return CalculatePathAsync2(luaSelfObject, callback, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
-		static void CalculatePathAsync2(Scene *luaSelfObject, const luabind::object &callback, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team);
+		static void CalculatePathAsync1(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, bool movePathToGround, float digStrength) { return CalculatePathAsync2(luaSelfObject, callback, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
+		static void CalculatePathAsync2(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team);
 	};
 #pragma endregion
 
 #pragma region Actor Lua Adapters
 	struct LuaAdaptersActor {
-		static std::vector<Vector> * GetSceneWaypoints(Actor *luaSelfObject);
+		static std::vector<Vector>* GetSceneWaypoints(Actor* luaSelfObject);
 	};
 #pragma endregion
 
 #pragma region AHuman Lua Adapters
 	struct LuaAdaptersAHuman {
-		static void ReloadFirearms(AHuman *luaSelfObject);
+		static void ReloadFirearms(AHuman* luaSelfObject);
 	};
 #pragma endregion
 
 #pragma region Attachable Lua Adapters
 	struct LuaAdaptersAttachable {
-		static Attachable * RemoveFromParent1(Attachable *luaSelfObject);
-		static Attachable * RemoveFromParent2(Attachable *luaSelfObject, bool addToMovableMan, bool addBreakWounds);
+		static Attachable* RemoveFromParent1(Attachable* luaSelfObject);
+		static Attachable* RemoveFromParent2(Attachable* luaSelfObject, bool addToMovableMan, bool addBreakWounds);
 	};
 #pragma endregion
 
 #pragma region GlobalScript Lua Adapters
 	struct LuaAdaptersGlobalScript {
-		static void Deactivate(GlobalScript *luaSelfObject);
+		static void Deactivate(GlobalScript* luaSelfObject);
 	};
 #pragma endregion
 
 #pragma region Activity Lua Adapters
 	struct LuaAdaptersActivity {
-		static void SendMessage1(Activity *luaSelfObject, const std::string &message);
-		static void SendMessage2(Activity *luaSelfObject, const std::string &message, luabind::object context);
+		static void SendMessage1(Activity* luaSelfObject, const std::string& message);
+		static void SendMessage2(Activity* luaSelfObject, const std::string& message, luabind::object context);
 	};
 #pragma endregion
 
 #pragma region MovableObject Lua Adapters
 	struct LuaAdaptersMovableObject {
-		static bool HasScript(MovableObject *luaSelfObject, const std::string &scriptPath);
-		static bool AddScript(MovableObject *luaSelfObject, const std::string &scriptPath);
-		static bool EnableScript(MovableObject *luaSelfObject, const std::string &scriptPath);
-		static bool DisableScript1(MovableObject *luaSelfObject);
-		static bool DisableScript2(MovableObject *luaSelfObject, const std::string &scriptPath);
-		static void SendMessage1(MovableObject *luaSelfObject, const std::string &message);
-		static void SendMessage2(MovableObject *luaSelfObject, const std::string &message, luabind::object context);
+		static bool HasScript(MovableObject* luaSelfObject, const std::string& scriptPath);
+		static bool AddScript(MovableObject* luaSelfObject, const std::string& scriptPath);
+		static bool EnableScript(MovableObject* luaSelfObject, const std::string& scriptPath);
+		static bool DisableScript1(MovableObject* luaSelfObject);
+		static bool DisableScript2(MovableObject* luaSelfObject, const std::string& scriptPath);
+		static void SendMessage1(MovableObject* luaSelfObject, const std::string& message);
+		static void SendMessage2(MovableObject* luaSelfObject, const std::string& message, luabind::object context);
 	};
 #pragma endregion
 
 #pragma region MOSRotating Lua Adapters
 	struct LuaAdaptersMOSRotating {
-		static void GibThis(MOSRotating *luaSelfObject);
-		static std::vector<AEmitter *> * GetWounds1(const MOSRotating *luaSelfObject);
-		static std::vector<AEmitter *> * GetWounds2(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables);
+		static void GibThis(MOSRotating* luaSelfObject);
+		static std::vector<AEmitter*>* GetWounds1(const MOSRotating* luaSelfObject);
+		static std::vector<AEmitter*>* GetWounds2(const MOSRotating* luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables);
 		// Need a seperate implementation function without the return so we can safely recurse.
-		static void GetWoundsImpl(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables, std::vector<AEmitter *> &wounds);
+		static void GetWoundsImpl(const MOSRotating* luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables, std::vector<AEmitter*>& wounds);
 	};
 #pragma endregion
 
 #pragma region BuyMenuGUI Lua Adapters
 	struct LuaAdaptersBuyMenuGUI {
-		static std::list<SceneObject*> * GetOrderList(const BuyMenuGUI *luaSelfObject);
+		static std::list<SceneObject*>* GetOrderList(const BuyMenuGUI* luaSelfObject);
 	};
 #pragma endregion
 
 #pragma region PieMenu Lua Adapters
 	struct LuaAdaptersPieMenu {
-		static int GetPieCommand(PieMenu *luaSelfObject);
-		static bool AddPieSlice(PieMenu *luaSelfObject, PieSlice *pieSliceToAdd, const Entity *pieSliceOriginalSource);
-		static bool AddPieSliceIfPresetNameIsUnique1(PieMenu *luaSelfObject, PieSlice *pieSliceToAdd, const Entity *pieSliceOriginalSource);
-		static bool AddPieSliceIfPresetNameIsUnique2(PieMenu *luaSelfObject, PieSlice *pieSliceToAdd, const Entity *pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource);
+		static int GetPieCommand(PieMenu* luaSelfObject);
+		static bool AddPieSlice(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource);
+		static bool AddPieSliceIfPresetNameIsUnique1(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource);
+		static bool AddPieSliceIfPresetNameIsUnique2(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource);
 	};
 #pragma endregion
 
 #pragma region PieSlice Lua Adapters
 	struct LuaAdaptersPieSlice {
-		static int GetType(PieSlice *luaSelfObject);
+		static int GetType(PieSlice* luaSelfObject);
 	};
 #pragma endregion
 
 #pragma region SceneObject Lua Adapters
 	struct LuaAdaptersSceneObject {
-		static float GetTotalValue(const SceneObject *luaSelfObject, int nativeModule, float foreignMult);
-		static int GetBuyableMode(const SceneObject *luaSelfObject);
+		static float GetTotalValue(const SceneObject* luaSelfObject, int nativeModule, float foreignMult);
+		static int GetBuyableMode(const SceneObject* luaSelfObject);
 	};
 #pragma endregion
 
 #pragma region Turret Lua Adapters
 	struct LuaAdaptersTurret {
-		static void AddMountedFirearm(Turret *luaSelfObject, HDFirearm *newMountedDevice);
+		static void AddMountedFirearm(Turret* luaSelfObject, HDFirearm* newMountedDevice);
 	};
 #pragma endregion
 
@@ -411,31 +411,31 @@ namespace RTE {
 		/// </summary>
 		/// <param name="movableMan">A reference to MovableMan, provided by Lua.</param>
 		/// <param name="movableObject">A pointer to the MovableObject to be added.</param>
-		static void AddMO(MovableMan &movableMan, MovableObject *movableObject);
+		static void AddMO(MovableMan& movableMan, MovableObject* movableObject);
 
 		/// <summary>
 		/// Adds the given Actor to MovableMan if it doesn't already exist in there, or prints an error if it does.
 		/// </summary>
 		/// <param name="movableMan">A reference to MovableMan, provided by Lua.</param>
 		/// <param name="actor">A pointer to the Actor to be added.</param>
-		static void AddActor(MovableMan &movableMan, Actor *actor);
+		static void AddActor(MovableMan& movableMan, Actor* actor);
 
 		/// <summary>
 		/// Adds the given item MovableObject (generally a HeldDevice) to MovableMan if it doesn't already exist in there, or prints an error if it does.
 		/// </summary>
 		/// <param name="movableMan">A reference to MovableMan, provided by Lua.</param>
 		/// <param name="item">A pointer to the item to be added.</param>
-		static void AddItem(MovableMan &movableMan, HeldDevice *item);
+		static void AddItem(MovableMan& movableMan, HeldDevice* item);
 
 		/// <summary>
 		/// Adds the given particle MovableObject to MovableMan if it doesn't already exist in there, or prints an error if it does.
 		/// </summary>
 		/// <param name="movableMan">A reference to MovableMan, provided by Lua.</param>
 		/// <param name="particle">A pointer to the particle to be added.</param>
-		static void AddParticle(MovableMan &movableMan, MovableObject *particle);
+		static void AddParticle(MovableMan& movableMan, MovableObject* particle);
 
-		static void SendGlobalMessage1(MovableMan &movableMan, const std::string& message);
-		static void SendGlobalMessage2(MovableMan &movableMan, const std::string& message, luabind::object context);
+		static void SendGlobalMessage1(MovableMan& movableMan, const std::string& message);
+		static void SendGlobalMessage2(MovableMan& movableMan, const std::string& message, luabind::object context);
 	};
 #pragma endregion
 
@@ -445,13 +445,13 @@ namespace RTE {
 		/// Gets the current number of ticks that the simulation should be updating with. Lua can't handle int64 (or long long apparently) so we'll expose this specialized function.
 		/// </summary>
 		/// <returns>The current fixed delta time that the simulation should be updating with, in ticks.</returns>
-		static double GetDeltaTimeTicks(const TimerMan &timerMan);
+		static double GetDeltaTimeTicks(const TimerMan& timerMan);
 
 		/// <summary>
 		/// Gets the number of ticks per second. Lua can't handle int64 (or long long apparently) so we'll expose this specialized function.
 		/// </summary>
 		/// <returns>The number of ticks per second.</returns>
-		static double GetTicksPerSecond(const TimerMan &timerMan);
+		static double GetTicksPerSecond(const TimerMan& timerMan);
 	};
 #pragma endregion
 
@@ -462,21 +462,21 @@ namespace RTE {
 		/// </summary>
 		/// <param name="whichButton">Which button to check for.</param>
 		/// <returns>Whether the mouse button is held or not.</returns>
-		static bool MouseButtonHeld(const UInputMan &uinputMan, int whichButton);
+		static bool MouseButtonHeld(const UInputMan& uinputMan, int whichButton);
 
 		/// <summary>
 		/// Gets whether a mouse button was pressed between the last update and the one previous to it.
 		/// </summary>
 		/// <param name="whichButton">Which button to check for.</param>
 		/// <returns>Whether the mouse button is pressed or not.</returns>
-		static bool MouseButtonPressed(const UInputMan &uinputMan, int whichButton);
+		static bool MouseButtonPressed(const UInputMan& uinputMan, int whichButton);
 
 		/// <summary>
 		/// Gets whether a mouse button was released between the last update and the one previous to it.
 		/// </summary>
 		/// <param name="whichButton">Which button to check for.</param>
 		/// <returns>Whether the mouse button is released or not.</returns>
-		static bool MouseButtonReleased(const UInputMan &uinputMan, int whichButton);
+		static bool MouseButtonReleased(const UInputMan& uinputMan, int whichButton);
 	};
 #pragma endregion
 
@@ -489,7 +489,7 @@ namespace RTE {
 		/// <param name="className">The class name of the Entity to reload.</param>
 		/// <param name="moduleName">The module name of the Entity to reload.</param>
 		/// <returns>Whether or not the Entity was reloaded.</returns>
-		static bool ReloadEntityPreset1(PresetMan &presetMan, const std::string &presetName, const std::string &className, const std::string &moduleName);
+		static bool ReloadEntityPreset1(PresetMan& presetMan, const std::string& presetName, const std::string& className, const std::string& moduleName);
 
 		/// <summary>
 		/// Reloads the specified Entity preset in PresetMan.
@@ -497,7 +497,7 @@ namespace RTE {
 		/// <param name="presetName">The preset name of the Entity to reload.</param>
 		/// <param name="className">The class name of the Entity to reload.</param>
 		/// <returns>Whether or not the Entity was reloaded.</returns>
-		static bool ReloadEntityPreset2(PresetMan &presetMan, const std::string &presetName, const std::string &className);
+		static bool ReloadEntityPreset2(PresetMan& presetMan, const std::string& presetName, const std::string& className);
 
 		/// <summary>
 		/// Gets a list all previously read in (defined) Entities which are associated with a specific group.
@@ -506,15 +506,15 @@ namespace RTE {
 		/// <param name="type">The name of the least common denominator type of the Entities you want. "All" will look at all types.</param>
 		/// <param name="whichModule">Whether to only get those of one specific DataModule (0-n), or all (-1).</param>
 		/// <returns>The list of all Entities with the given group and type in the module.</returns>
-		static std::list<Entity *> * GetAllEntitiesOfGroup(PresetMan &presetMan, const std::string &group, const std::string &type, int whichModule);
-		static std::list<Entity *> * GetAllEntitiesOfGroup2(PresetMan &presetMan, const std::string &group, const std::string &type) { return GetAllEntitiesOfGroup(presetMan, group, type, -1); }
-		static std::list<Entity *> * GetAllEntitiesOfGroup3(PresetMan &presetMan, const std::string &group) { return GetAllEntitiesOfGroup2(presetMan, group, "All"); }
-		
+		static std::list<Entity*>* GetAllEntitiesOfGroup(PresetMan& presetMan, const std::string& group, const std::string& type, int whichModule);
+		static std::list<Entity*>* GetAllEntitiesOfGroup2(PresetMan& presetMan, const std::string& group, const std::string& type) { return GetAllEntitiesOfGroup(presetMan, group, type, -1); }
+		static std::list<Entity*>* GetAllEntitiesOfGroup3(PresetMan& presetMan, const std::string& group) { return GetAllEntitiesOfGroup2(presetMan, group, "All"); }
+
 		/// <summary>
 		/// Gets a list all previously read in (defined) Entities.
 		/// </summary>
 		/// <returns>The list of all Entities.</returns>
-		static std::list<Entity *> * GetAllEntities(PresetMan &presetMan) { return GetAllEntitiesOfGroup3(presetMan, "All"); }
+		static std::list<Entity*>* GetAllEntities(PresetMan& presetMan) { return GetAllEntitiesOfGroup3(presetMan, "All"); }
 	};
 #pragma endregion
 
@@ -525,7 +525,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="boxToWrap">The Box to wrap.</param>
 		/// <returns>A list of Boxes that make up the Box to wrap, wrapped appropriately for the current Scene.</returns>
-		static const std::list<Box> * WrapBoxes(SceneMan &sceneMan, const Box &boxToWrap);
+		static const std::list<Box>* WrapBoxes(SceneMan& sceneMan, const Box& boxToWrap);
 	};
 #pragma endregion
 
@@ -538,7 +538,7 @@ namespace RTE {
 		/// <param name="centerPos">Position of primitive's center in Scene coordinates.</param>
 		/// <param name="color">Color to draw primitive with.</param>
 		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
-		static void DrawPolygonPrimitive(PrimitiveMan &primitiveMan, const Vector &centerPos, int color, const luabind::object &verticesTable);
+		static void DrawPolygonPrimitive(PrimitiveMan& primitiveMan, const Vector& centerPos, int color, const luabind::object& verticesTable);
 
 		/// <summary>
 		/// Schedule to draw a polygon primitive visible only to a specified player.
@@ -548,7 +548,7 @@ namespace RTE {
 		/// <param name="centerPos">Position of primitive's center in Scene coordinates.</param>
 		/// <param name="color">Color to draw primitive with.</param>
 		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
-		static void DrawPolygonPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &centerPos, int color, const luabind::object &verticesTable);
+		static void DrawPolygonPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& centerPos, int color, const luabind::object& verticesTable);
 
 		/// <summary>
 		/// Schedule to draw a filled polygon primitive.
@@ -557,7 +557,7 @@ namespace RTE {
 		/// <param name="startPos">Start position of the primitive in Scene coordinates.</param>
 		/// <param name="color">Color to draw primitive with.</param>
 		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
-		static void DrawPolygonFillPrimitive(PrimitiveMan &primitiveMan, const Vector &startPos, int color, const luabind::object &verticesTable);
+		static void DrawPolygonFillPrimitive(PrimitiveMan& primitiveMan, const Vector& startPos, int color, const luabind::object& verticesTable);
 
 		/// <summary>
 		/// Schedule to draw a filled polygon primitive visible only to a specified player.
@@ -567,7 +567,7 @@ namespace RTE {
 		/// <param name="startPos">Start position of the primitive in Scene coordinates.</param>
 		/// <param name="color">Color to draw primitive with.</param>
 		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
-		static void DrawPolygonFillPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &startPos, int color, const luabind::object &verticesTable);
+		static void DrawPolygonFillPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& startPos, int color, const luabind::object& verticesTable);
 
 		/// <summary>
 		/// Schedules to draw multiple primitives of varying type with transparency enabled.
@@ -575,7 +575,7 @@ namespace RTE {
 		/// <param name="primitiveMan">A reference to PrimitiveMan, provided by Lua.</param>
 		/// <param name="transValue">The transparency value the primitives should be drawn at. From 0 (opaque) to 100 (transparent).</param>
 		/// <param name="primitivesTable">A Lua table of primitives to schedule drawing for.</param>
-		static void DrawPrimitivesWithTransparency(PrimitiveMan &primitiveMan, int transValue, const luabind::object &primitivesTable);
+		static void DrawPrimitivesWithTransparency(PrimitiveMan& primitiveMan, int transValue, const luabind::object& primitivesTable);
 
 		/// <summary>
 		/// Schedule to draw multiple primitives of varying type with blending enabled.
@@ -584,7 +584,7 @@ namespace RTE {
 		/// <param name="blendMode">The blending mode the primitives should be drawn with. See DrawBlendMode enumeration.</param>
 		/// <param name="blendAmount">The blending amount for all the channels. 0-100.</param>
 		/// <param name="primitivesTable">A Lua table of primitives to schedule drawing for.</param>
-		static void DrawPrimitivesWithBlending(PrimitiveMan &primitiveMan, int blendMode, int blendAmount, const luabind::object &primitivesTable);
+		static void DrawPrimitivesWithBlending(PrimitiveMan& primitiveMan, int blendMode, int blendAmount, const luabind::object& primitivesTable);
 
 		/// <summary>
 		/// Schedule to draw multiple primitives of varying type with blending enabled.
@@ -596,7 +596,7 @@ namespace RTE {
 		/// <param name="blendAmountB">The blending amount for the Blue channel. 0-100.</param>
 		/// <param name="blendAmountA">The blending amount for the Alpha channel. 0-100.</param>
 		/// <param name="primitivesTable">A Lua table of primitives to schedule drawing for.</param>
-		static void DrawPrimitivesWithBlendingPerChannel(PrimitiveMan &primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabind::object &primitivesTable);
+		static void DrawPrimitivesWithBlendingPerChannel(PrimitiveMan& primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabind::object& primitivesTable);
 	};
 #pragma endregion
 
@@ -636,10 +636,10 @@ namespace RTE {
 		/// Explicit deletion of any Entity instance that Lua owns. It will probably be handled by the GC, but this makes it instantaneous.
 		/// </summary>
 		/// <param name="entityToDelete">The Entity to delete.</param>
-		static void DeleteEntity(Entity *entityToDelete);
+		static void DeleteEntity(Entity* entityToDelete);
 	};
 #pragma endregion
-}
+} // namespace RTE
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop

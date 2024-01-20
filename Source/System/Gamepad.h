@@ -28,7 +28,8 @@ namespace RTE {
 		/// <param name="id">The joystick ID for event handling.</param>
 		/// <param name="numAxis">Number of analog axis.</param>
 		/// <param name="numButtons">Number of buttons.</param>
-		Gamepad(int deviceIndex, SDL_JoystickID id, int numAxis, int numButtons) : m_DeviceIndex(deviceIndex), m_JoystickID(id), m_Axis(numAxis), m_DigitalAxis(numAxis), m_Buttons(numButtons) {}
+		Gamepad(int deviceIndex, SDL_JoystickID id, int numAxis, int numButtons) :
+		    m_DeviceIndex(deviceIndex), m_JoystickID(id), m_Axis(numAxis), m_DigitalAxis(numAxis), m_Buttons(numButtons) {}
 #pragma endregion
 
 #pragma region Operator Overloads
@@ -44,13 +45,13 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">A Gamepad reference as the right hand side operand.</param>
 		/// <returns>A boolean indicating whether the two operands are equal or not.</returns>
-		bool operator==(const Gamepad &rhs) const { return m_JoystickID == rhs.m_JoystickID; }
+		bool operator==(const Gamepad& rhs) const { return m_JoystickID == rhs.m_JoystickID; }
 
 		/// <summary>
 		/// Comparison operator for sorting Gamepads by ID.
 		/// </summary>
 		/// <param name="rhs">A Gamepad reference as the right hand side operand.</param>
 		/// <returns>A boolean indicating the comparison result.</returns>
-		bool operator<(const Gamepad &rhs) const { return m_JoystickID < rhs.m_JoystickID; }
+		bool operator<(const Gamepad& rhs) const { return m_JoystickID < rhs.m_JoystickID; }
 	};
-}
+} // namespace RTE

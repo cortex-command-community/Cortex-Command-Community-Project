@@ -3,10 +3,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MultiplayerGame.h
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     
+// Description:
 // Project:         Retro Terrain Engine
-// Author(s):       
-
+// Author(s):
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
@@ -14,8 +13,7 @@
 #include "RTETools.h"
 #include "ActivityMan.h"
 
-namespace RTE
-{
+namespace RTE {
 
 	class MultiplayerGameGUI;
 	class GUIScreen;
@@ -28,7 +26,6 @@ namespace RTE
 	class GUIButton;
 	class GUILabel;
 	class GUIComboBox;
-
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Class:           MultiplayerGame
@@ -44,20 +41,16 @@ namespace RTE
 		// Public member variable, method and friend function declarations
 
 	public:
-
 		// Concrete allocation and cloning definitions
 		EntityAllocation(MultiplayerGame);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-
-		enum MultiplayerGameMode
-		{
+		enum MultiplayerGameMode {
 			SETUP,
 			CONNECTION,
 			GAMEPLAY
 		};
-
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Constructor:     MultiplayerGame
@@ -68,7 +61,6 @@ namespace RTE
 
 		MultiplayerGame() { Clear(); }
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Destructor:      ~MultiplayerGame
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -77,7 +69,6 @@ namespace RTE
 		// Arguments:       None.
 
 		~MultiplayerGame() override { Destroy(true); }
-
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Create
@@ -89,7 +80,6 @@ namespace RTE
 
 		int Create() override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Create
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -98,8 +88,7 @@ namespace RTE
 		// Return value:    An error return value signaling sucess or any particular failure.
 		//                  Anything below 0 is an error signal.
 
-		int Create(const MultiplayerGame &reference);
-
+		int Create(const MultiplayerGame& reference);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Reset
@@ -109,8 +98,10 @@ namespace RTE
 		// Arguments:       None.
 		// Return value:    None.
 
-		void Reset() override { Clear(); Activity::Reset(); }
-
+		void Reset() override {
+			Clear();
+			Activity::Reset();
+		}
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Destroy
@@ -122,7 +113,6 @@ namespace RTE
 
 		void Destroy(bool notInherited = false) override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Start
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -133,7 +123,6 @@ namespace RTE
 
 		int Start() override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Pause
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -143,7 +132,6 @@ namespace RTE
 
 		void SetPaused(bool pause = true) override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  End
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -152,7 +140,6 @@ namespace RTE
 		// Return value:    None.
 
 		void End() override;
-
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Update
@@ -164,7 +151,6 @@ namespace RTE
 
 		void Update() override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  DrawGUI
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -174,8 +160,7 @@ namespace RTE
 		//                  Which screen's GUI to draw onto the bitmap.
 		// Return value:    None.
 
-		void DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos = Vector(), int which = 0) override;
-
+		void DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int which = 0) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Draw
@@ -186,8 +171,7 @@ namespace RTE
 		//                  The absolute position of the target bitmap's upper left corner in the scene.
 		// Return value:    None.
 
-		void Draw(BITMAP *pTargetBitmap, const Vector &targetPos = Vector()) override;
-
+		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Protected member variable and method declarations
@@ -197,37 +181,33 @@ namespace RTE
 		static Entity::ClassInfo m_sClass;
 
 		// The editor GUI
-		//MultiplayerGameGUI *m_pEditorGUI;
+		// MultiplayerGameGUI *m_pEditorGUI;
 
-		GUIButton *m_BackToMainButton; //!< Button to return to main menu.
+		GUIButton* m_BackToMainButton; //!< Button to return to main menu.
 
-		// 
-		GUITextBox *m_pServerNameTextBox;
+		//
+		GUITextBox* m_pServerNameTextBox;
 
-		GUITextBox *m_pPlayerNameTextBox;
+		GUITextBox* m_pPlayerNameTextBox;
 
-		GUIButton *m_pConnectButton;
+		GUIButton* m_pConnectButton;
 
+		GUITextBox* m_pNATServiceServerNameTextBox;
 
+		GUITextBox* m_pNATServerNameTextBox;
 
-		GUITextBox *m_pNATServiceServerNameTextBox;
+		GUITextBox* m_pNATServerPasswordTextBox;
 
-		GUITextBox *m_pNATServerNameTextBox;
+		GUIButton* m_pConnectNATButton;
 
-		GUITextBox *m_pNATServerPasswordTextBox;
-
-		GUIButton *m_pConnectNATButton;
-
-
-
-		GUILabel *m_pStatusLabel;
+		GUILabel* m_pStatusLabel;
 
 		// GUI Screen for use by the GUI dialog boxes. Owned
-		GUIScreen *m_pGUIScreen;
+		GUIScreen* m_pGUIScreen;
 		// Input controller for he dialog box gui.  Owned
-		GUIInput *m_pGUIInput;
+		GUIInput* m_pGUIInput;
 		// The control manager which holds all the gui elements for the dialog boxes.  Owned
-		GUIControlManager *m_pGUIController;
+		GUIControlManager* m_pGUIController;
 		// Current state of the activity
 		MultiplayerGameMode m_Mode;
 
@@ -240,12 +220,10 @@ namespace RTE
 		// Position of music being played, used to recover playback state after pause
 		double m_LastMusicPos;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Private member variable and method declarations
 
 	private:
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Method:          Clear
 		//////////////////////////////////////////////////////////////////////////////////////////

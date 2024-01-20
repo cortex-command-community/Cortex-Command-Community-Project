@@ -13,7 +13,6 @@ namespace RTE {
 	class ADSensor : public Serializable {
 
 	public:
-
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
@@ -34,7 +33,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the ADSensor to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const ADSensor &reference);
+		int Create(const ADSensor& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -61,7 +60,7 @@ namespace RTE {
 		/// Sets the starting position offset of this ADSensor from the owning ADoor position.
 		/// </summary>
 		/// <param name="startOffsetValue">The new starting coordinates relative to the m_Pos of this' ADoor.</param>
-		void SetStartOffset(const Vector &startOffsetValue) { m_StartOffset = startOffsetValue; }
+		void SetStartOffset(const Vector& startOffsetValue) { m_StartOffset = startOffsetValue; }
 
 		/// <summary>
 		/// Gets the sensor ray vector out from the start offset's position.
@@ -73,7 +72,7 @@ namespace RTE {
 		/// Sets the sensor ray vector out from the start offset's position.
 		/// </summary>
 		/// <param name="sensorRayValue">The new sensor ray vector.</param>
-		void SetSensorRay(const Vector &sensorRayValue) { m_SensorRay = sensorRayValue; }
+		void SetSensorRay(const Vector& sensorRayValue) { m_SensorRay = sensorRayValue; }
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -85,18 +84,16 @@ namespace RTE {
 		/// <param name="doorHFlipped">Flipping of this ADSensor's ADoor.</param>
 		/// <param name="ignoreMOID">Which MOID to ignore, if any.</param>
 		/// <returns>The root Actor of the first MOID hit by the sensor ray. 0 if none.</returns>
-		Actor * SenseActor(const Vector &doorPos, const Matrix &doorRot, bool doorHFlipped = false, MOID ignoreMOID = g_NoMOID);
+		Actor* SenseActor(const Vector& doorPos, const Matrix& doorRot, bool doorHFlipped = false, MOID ignoreMOID = g_NoMOID);
 #pragma endregion
 
 	protected:
-		
 		Vector m_StartOffset; //!< The offset of the sensor ray start relative to the position of its ADoor.
 		Vector m_SensorRay; //!< The ray out from the offset.
-		
+
 		short m_Skip; //!< How many pixels to skip between sensing pixels.
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly formatted type name of this object.
 
 		/// <summary>
@@ -104,4 +101,4 @@ namespace RTE {
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE

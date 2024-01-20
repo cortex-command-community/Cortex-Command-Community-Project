@@ -13,7 +13,6 @@ namespace RTE {
 	class GUIBitmap {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a GUIBitmap object in system memory.
@@ -44,13 +43,13 @@ namespace RTE {
 		/// Gets the underlying BITMAP of this GUIBitmap.
 		/// </summary>
 		/// <returns>The underlying BITMAP of this GUIBitmap.</returns>
-		virtual BITMAP * GetBitmap() const = 0;
+		virtual BITMAP* GetBitmap() const = 0;
 
 		/// <summary>
 		/// Sets the underlying BITMAP for this GUIBitmap.
 		/// </summary>
 		/// <param name="newBitmap">A pointer to the new BITMAP for this GUIBitmap.</param>
-		virtual void SetBitmap(BITMAP *newBitmap) = 0;
+		virtual void SetBitmap(BITMAP* newBitmap) = 0;
 
 		/// <summary>
 		/// Gets the width of the bitmap.
@@ -103,19 +102,19 @@ namespace RTE {
 		/// Gets the clipping rectangle of the bitmap.
 		/// </summary>
 		/// <param name="clippingRect">Pointer to a GUIRect to fill out.</param>
-		virtual void GetClipRect(GUIRect *clippingRect) const = 0;
+		virtual void GetClipRect(GUIRect* clippingRect) const = 0;
 
 		/// <summary>
 		/// Sets the clipping rectangle of the bitmap.
 		/// </summary>
 		/// <param name="clippingRect">Pointer to a GUIRect to use as the clipping rectangle, or nullptr for no clipping.</param>
-		virtual void SetClipRect(GUIRect *clippingRect) = 0;
+		virtual void SetClipRect(GUIRect* clippingRect) = 0;
 
 		/// <summary>
-		/// Sets the clipping rectangle of the specified bitmap as the intersection of its current clipping rectangle and the rectangle described by the passed-in GUIRect. 
+		/// Sets the clipping rectangle of the specified bitmap as the intersection of its current clipping rectangle and the rectangle described by the passed-in GUIRect.
 		/// </summary>
 		/// <param name="rect">Rectangle pointer.</param>
-		virtual void AddClipRect(GUIRect *rect) = 0;
+		virtual void AddClipRect(GUIRect* rect) = 0;
 #pragma endregion
 
 #pragma region Drawing
@@ -126,7 +125,7 @@ namespace RTE {
 		/// <param name="destX">Destination X position.</param>
 		/// <param name="destY">Destination Y position.</param>
 		/// <param name="srcPosAndSizeRect">Source bitmap position and size rectangle.</param>
-		virtual void Draw(GUIBitmap *destBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) = 0;
+		virtual void Draw(GUIBitmap* destBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) = 0;
 
 		/// <summary>
 		/// Draw a section of this bitmap onto another bitmap ignoring color-keyed pixels.
@@ -135,7 +134,7 @@ namespace RTE {
 		/// <param name="destX">Destination X position.</param>
 		/// <param name="destY">Destination Y position.</param>
 		/// <param name="srcPosAndSizeRect">Source bitmap position and size rectangle.</param>
-		virtual void DrawTrans(GUIBitmap *destBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) = 0;
+		virtual void DrawTrans(GUIBitmap* destBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) = 0;
 
 		/// <summary>
 		/// Draw this bitmap scaled onto another bitmap ignoring color-keyed pixels.
@@ -145,7 +144,7 @@ namespace RTE {
 		/// <param name="destY">Destination Y position.</param>
 		/// <param name="width">Target width of the bitmap.</param>
 		/// <param name="height">Target height of the bitmap.</param>
-		virtual void DrawTransScaled(GUIBitmap *destBitmap, int destX, int destY, int width, int height) = 0;
+		virtual void DrawTransScaled(GUIBitmap* destBitmap, int destX, int destY, int width, int height) = 0;
 #pragma endregion
 
 #pragma region Primitive Drawing
@@ -172,7 +171,7 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		GUIBitmap & operator=(const GUIBitmap &rhs) = delete;
+		GUIBitmap& operator=(const GUIBitmap& rhs) = delete;
 	};
 #pragma endregion
 
@@ -183,7 +182,6 @@ namespace RTE {
 	class GUIScreen {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a GUIScreen object in system memory.
@@ -195,7 +193,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="fileName">File name to create bitmap from.</param>
 		/// <returns>Pointer to the created bitmap.</returns>
-		virtual GUIBitmap * CreateBitmap(const std::string &fileName) = 0;
+		virtual GUIBitmap* CreateBitmap(const std::string& fileName) = 0;
 
 		/// <summary>
 		/// Creates an empty bitmap.
@@ -203,7 +201,7 @@ namespace RTE {
 		/// <param name="width">Bitmap width.</param>
 		/// <param name="height">Bitmap height.</param>
 		/// <returns>Pointer to the created bitmap.</returns>
-		virtual GUIBitmap * CreateBitmap(int width, int height) = 0;
+		virtual GUIBitmap* CreateBitmap(int width, int height) = 0;
 #pragma endregion
 
 #pragma region Destruction
@@ -223,7 +221,7 @@ namespace RTE {
 		/// Gets the bitmap representing the screen.
 		/// </summary>
 		/// <returns>Pointer to the bitmap representing the screen.</returns>
-		virtual GUIBitmap * GetBitmap() const = 0;
+		virtual GUIBitmap* GetBitmap() const = 0;
 #pragma endregion
 
 #pragma region Pure Virtual Methods
@@ -234,7 +232,7 @@ namespace RTE {
 		/// <param name="destX">Destination X position</param>
 		/// <param name="destY">Destination Y position</param>
 		/// <param name="srcPosAndSizeRect">Source bitmap position and size rectangle.</param>
-		virtual void DrawBitmap(GUIBitmap *guiBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) = 0;
+		virtual void DrawBitmap(GUIBitmap* guiBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) = 0;
 
 		/// <summary>
 		/// Draws a bitmap onto the back buffer ignoring color-keyed pixels.
@@ -243,7 +241,7 @@ namespace RTE {
 		/// <param name="destX">Destination X position</param>
 		/// <param name="destY">Destination Y position</param>
 		/// <param name="srcPosAndSizeRect">Source bitmap position and size rectangle.</param>
-		virtual void DrawBitmapTrans(GUIBitmap *guiBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) = 0;
+		virtual void DrawBitmapTrans(GUIBitmap* guiBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) = 0;
 
 		/// <summary>
 		/// Converts an 8bit palette index to a valid pixel format color.
@@ -255,7 +253,7 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		GUIScreen & operator=(const GUIScreen &rhs) = delete;
+		GUIScreen& operator=(const GUIScreen& rhs) = delete;
 	};
 #pragma endregion
-}
+} // namespace RTE

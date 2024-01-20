@@ -13,7 +13,6 @@ namespace RTE {
 		friend struct EntityLuaBindings;
 
 	public:
-
 		EntityAllocation(GlobalScript);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -35,7 +34,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the GlobalScript to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const GlobalScript &reference);
+		int Create(const GlobalScript& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -48,12 +47,20 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the GlobalScript object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { Entity::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				Entity::Destroy();
+			}
+			Clear();
+		}
 
 		/// <summary>
 		/// Resets the entire GlobalScript, including its inherited members, to their default settings or values.
 		/// </summary>
-		void Reset() override { Clear(); Entity::Reset(); }
+		void Reset() override {
+			Clear();
+			Entity::Reset();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -112,7 +119,7 @@ namespace RTE {
 		/// Handles when an ACraft has left the game scene and entered orbit by running the appropriate Lua function. Ownership is NOT transferred!
 		/// </summary>
 		/// <param name="orbitedCraft">The ACraft instance that entered orbit. Ownership is NOT transferred!</param>
-		void HandleCraftEnteringOrbit(const ACraft *orbitedCraft);
+		void HandleCraftEnteringOrbit(const ACraft* orbitedCraft);
 
 		/// <summary>
 		/// Updates the state of this GlobalScript every frame.
@@ -121,7 +128,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		std::string m_ScriptPath; //!< The path to the Lua script file that defines this' behaviors in update.
@@ -138,7 +144,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		GlobalScript(const GlobalScript &reference) = delete;
-		GlobalScript &operator=(const GlobalScript &rhs) = delete;
+		GlobalScript(const GlobalScript& reference) = delete;
+		GlobalScript& operator=(const GlobalScript& rhs) = delete;
 	};
-}
+} // namespace RTE

@@ -3,24 +3,21 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MultiplayerGameGUI.h
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     
+// Description:
 // Project:         GUI Library
-// Author(s):       
-
+// Author(s):
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
 
-//#include "FrameMan.h"
+// #include "FrameMan.h"
 #include "Timer.h"
 #include "Vector.h"
 #include "Controller.h"
 
 struct BITMAP;
 
-
-namespace RTE
-{
+namespace RTE {
 	class SceneObject;
 	class ObjectPickerGUI;
 	class PieMenuGUI;
@@ -28,9 +25,9 @@ namespace RTE
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Class:           MultiplayerGameGUI
 	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     
+	// Description:
 	// Parent(s):       None.
-	// Class history:   
+	// Class history:
 
 	class MultiplayerGameGUI {
 
@@ -39,12 +36,10 @@ namespace RTE
 
 	public:
 		// Different modes of this editor
-		enum GUIMode
-		{
+		enum GUIMode {
 			INACTIVE = 0,
 			ACTIVE = 1
 		};
-
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Constructor:     MultiplayerGameGUI
@@ -55,7 +50,6 @@ namespace RTE
 
 		MultiplayerGameGUI() { Clear(); }
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Destructor:      ~MultiplayerGameGUI
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +58,6 @@ namespace RTE
 		// Arguments:       None.
 
 		~MultiplayerGameGUI() { Destroy(); }
-
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Method:          Create
@@ -81,8 +74,7 @@ namespace RTE
 		// Return value:    An error return value signaling sucess or any particular failure.
 		//                  Anything below 0 is an error signal.
 
-		int Create(Controller *pController);
-
+		int Create(Controller* pController);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		//  Method:  Reset
@@ -92,8 +84,7 @@ namespace RTE
 		// Arguments:       None.
 		// Return value:    None.
 
-		 void Reset() { Clear(); }
-
+		void Reset() { Clear(); }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Method:          Destroy
@@ -104,7 +95,6 @@ namespace RTE
 
 		void Destroy();
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Method:          Update
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -112,7 +102,7 @@ namespace RTE
 		// Arguments:       None.
 		// Return value:    None.
 
-		 void Update();
+		void Update();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		//  Method:  Draw
@@ -122,21 +112,19 @@ namespace RTE
 		//                  The absolute position of the target bitmap's upper left corner in the scene.
 		// Return value:    None.
 
-		 void Draw(BITMAP *pTargetBitmap, const Vector &targetPos = Vector()) const;
+		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Protected member variable and method declarations
 
 	protected:
-
 		// Controller which conrols this menu. Not owned
-		Controller *m_pController;
+		Controller* m_pController;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Private member variable and method declarations
 
 	private:
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Method:          Clear
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -147,11 +135,9 @@ namespace RTE
 
 		void Clear();
 
-
 		// Disallow the use of some implicit methods.
-		MultiplayerGameGUI(const MultiplayerGameGUI &reference);
-		MultiplayerGameGUI & operator=(const MultiplayerGameGUI &rhs);
-
+		MultiplayerGameGUI(const MultiplayerGameGUI& reference);
+		MultiplayerGameGUI& operator=(const MultiplayerGameGUI& rhs);
 	};
 
 } // namespace RTE

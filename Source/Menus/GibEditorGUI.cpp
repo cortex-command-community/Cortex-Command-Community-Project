@@ -7,7 +7,6 @@
 //                  dtabar@datarealms.com
 //                  http://www.datarealms.com
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
 
@@ -35,11 +34,11 @@ using namespace RTE;
 #define MINZOOMFACTOR 1
 
 GibEditorGUI::GibEditorGUI() {
-    Clear();
+	Clear();
 }
 
 GibEditorGUI::~GibEditorGUI() {
-    Destroy();
+	Destroy();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -48,93 +47,89 @@ GibEditorGUI::~GibEditorGUI() {
 // Description:     Clears all the member variables of this GibEditorGUI, effectively
 //                  resetting the members of this abstraction level only.
 
-void GibEditorGUI::Clear()
-{
-    m_pController = 0;
-    m_EditMade = false;
-    m_EditorGUIMode = PICKINGGIB;
-    m_PreviousMode = ADDINGGIB;
-    m_pObjectToLoad = 0;
-    m_BlinkTimer.Reset();
-    m_BlinkMode = NOBLINK;
-    m_RepeatStartTimer.Reset();
-    m_RepeatTimer.Reset();
+void GibEditorGUI::Clear() {
+	m_pController = 0;
+	m_EditMade = false;
+	m_EditorGUIMode = PICKINGGIB;
+	m_PreviousMode = ADDINGGIB;
+	m_pObjectToLoad = 0;
+	m_BlinkTimer.Reset();
+	m_BlinkMode = NOBLINK;
+	m_RepeatStartTimer.Reset();
+	m_RepeatTimer.Reset();
 	m_PieMenu = nullptr;
-    m_pPicker = 0;
-    m_GridSnapping = false;
-    m_pZoomSource = 0;
-    m_ZoomFactor = 1;
-    m_CursorPos.Reset();
-    m_CursorOffset.Reset();
-    m_CursorInAir = true;
-    m_FacingLeft = false;
-    m_PlacedGibs.clear();
-    m_pCurrentGib = 0;
-    m_GibListOrder = -1;
-    m_DrawCurrentGib = true;
-    m_pObjectToBlink = 0;
+	m_pPicker = 0;
+	m_GridSnapping = false;
+	m_pZoomSource = 0;
+	m_ZoomFactor = 1;
+	m_CursorPos.Reset();
+	m_CursorOffset.Reset();
+	m_CursorInAir = true;
+	m_FacingLeft = false;
+	m_PlacedGibs.clear();
+	m_pCurrentGib = 0;
+	m_GibListOrder = -1;
+	m_DrawCurrentGib = true;
+	m_pObjectToBlink = 0;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Create
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Makes the GibEditorGUI object ready for use.
 
-int GibEditorGUI::Create(Controller *pController, int whichModuleSpace)
-{
-    RTEAssert(pController, "No controller sent to GibEditorGUI on creation!");
-    m_pController = pController;
+int GibEditorGUI::Create(Controller* pController, int whichModuleSpace) {
+	RTEAssert(pController, "No controller sent to GibEditorGUI on creation!");
+	m_pController = pController;
 
-	if (m_PieMenu) { m_PieMenu = nullptr; }
-	m_PieMenu = std::unique_ptr<PieMenu>(dynamic_cast<PieMenu *>(g_PresetMan.GetEntityPreset("PieMenu", "Gib Editor Pie Menu")->Clone()));
+	if (m_PieMenu) {
+		m_PieMenu = nullptr;
+	}
+	m_PieMenu = std::unique_ptr<PieMenu>(dynamic_cast<PieMenu*>(g_PresetMan.GetEntityPreset("PieMenu", "Gib Editor Pie Menu")->Clone()));
 	m_PieMenu->SetMenuController(pController);
 
-    // Allocate and (re)create the Editor GUIs
-    if (!m_pPicker)
-        m_pPicker = new ObjectPickerGUI();
-    else
-        m_pPicker->Reset();
-    // Only show MovableObject:s as valid gibs to be placed
-    m_pPicker->Create(pController, whichModuleSpace, "MovableObject");
+	// Allocate and (re)create the Editor GUIs
+	if (!m_pPicker)
+		m_pPicker = new ObjectPickerGUI();
+	else
+		m_pPicker->Reset();
+	// Only show MovableObject:s as valid gibs to be placed
+	m_pPicker->Create(pController, whichModuleSpace, "MovableObject");
 
-    // Intermediate zooming bitmap
-    m_pZoomSource = create_bitmap_ex(8, 64, 64);
+	// Intermediate zooming bitmap
+	m_pZoomSource = create_bitmap_ex(8, 64, 64);
 
-    // Cursor init
-    m_CursorPos = g_SceneMan.GetSceneDim() / 2;
+	// Cursor init
+	m_CursorPos = g_SceneMan.GetSceneDim() / 2;
 
-    // Set initial focus, category list, and label settings
-    m_EditorGUIMode = PICKINGGIB;
-    m_pCurrentGib = 0;
+	// Set initial focus, category list, and label settings
+	m_EditorGUIMode = PICKINGGIB;
+	m_pCurrentGib = 0;
 
-    // Reset repeat timers
-    m_RepeatStartTimer.Reset();
-    m_RepeatTimer.Reset();
+	// Reset repeat timers
+	m_RepeatStartTimer.Reset();
+	m_RepeatTimer.Reset();
 
-    return 0;
+	return 0;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Destroy
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Destroys and resets (through Clear()) the GibEditorGUI object.
 
-void GibEditorGUI::Destroy()
-{
-    delete m_pPicker;
+void GibEditorGUI::Destroy() {
+	delete m_pPicker;
 
-    destroy_bitmap(m_pZoomSource);
+	destroy_bitmap(m_pZoomSource);
 
-    for (std::list<MovableObject *>::iterator gItr = m_PlacedGibs.begin(); gItr != m_PlacedGibs.end(); ++gItr)
-         delete (*gItr);
+	for (std::list<MovableObject*>::iterator gItr = m_PlacedGibs.begin(); gItr != m_PlacedGibs.end(); ++gItr)
+		delete (*gItr);
 
-    delete m_pCurrentGib;
+	delete m_pCurrentGib;
 
-    Clear();
+	Clear();
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          SetController
@@ -142,13 +137,11 @@ void GibEditorGUI::Destroy()
 // Description:     Sets the controller used by this. The ownership of the controller is
 //                  NOT transferred!
 
-void GibEditorGUI::SetController(Controller *pController)
-{
-    m_pController = pController;
+void GibEditorGUI::SetController(Controller* pController) {
+	m_pController = pController;
 	m_PieMenu->SetMenuController(pController);
-    m_pPicker->SetController(pController);
+	m_pPicker->SetController(pController);
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          SetPosOnScreen
@@ -157,11 +150,9 @@ void GibEditorGUI::SetController(Controller *pController)
 //                  left corner, then 0, 0. This will affect the way the mouse is positioned
 //                  etc.
 
-void GibEditorGUI::SetPosOnScreen(int newPosX, int newPosY)
-{
-    m_pPicker->SetPosOnScreen(newPosX, newPosY);
+void GibEditorGUI::SetPosOnScreen(int newPosX, int newPosY) {
+	m_pPicker->SetPosOnScreen(newPosX, newPosY);
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          GetActivatedPieSlice
@@ -169,9 +160,8 @@ void GibEditorGUI::SetPosOnScreen(int newPosX, int newPosY)
 // Description:     Gets any Pie menu slice command activated last update.
 
 PieSliceType GibEditorGUI::GetActivatedPieSlice() const {
-    return m_PieMenu->GetPieCommand();
+	return m_PieMenu->GetPieCommand();
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          SetModuleSpace
@@ -179,124 +169,126 @@ PieSliceType GibEditorGUI::GetActivatedPieSlice() const {
 // Description:     Sets which DataModule space to be picking objects from. If -1, then
 //                  let the player pick from all loaded modules.
 
-void GibEditorGUI::SetModuleSpace(int moduleSpaceID)
-{
-    m_pPicker->SetModuleSpace(moduleSpaceID);
+void GibEditorGUI::SetModuleSpace(int moduleSpaceID) {
+	m_pPicker->SetModuleSpace(moduleSpaceID);
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Update
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Updates the state of this Menu each frame
 
-void GibEditorGUI::Update()
-{
-    // Update the user controller
-//    m_pController->Update();
+void GibEditorGUI::Update() {
+	// Update the user controller
+	//    m_pController->Update();
 
-    m_pObjectToLoad = 0;
-    m_EditMade = false;
-    m_pObjectToBlink = 0;
+	m_pObjectToLoad = 0;
+	m_EditMade = false;
+	m_pObjectToBlink = 0;
 
-    ////////////////////////////////////////////
-    // Blinking logic
-/*
-    if (m_BlinkMode == OBJECTBLINK)
-    {
-        m_pCostLabel->SetVisible(m_BlinkTimer.AlternateSim(250));
-    }
-    else if (m_BlinkMode == NOCRAFT)
-    {
-        bool blink = m_BlinkTimer.AlternateSim(250);
-        m_pCraftLabel->SetVisible(blink);
-        m_pCraftBox->SetVisible(blink);
-    }
+	////////////////////////////////////////////
+	// Blinking logic
+	/*
+	    if (m_BlinkMode == OBJECTBLINK)
+	    {
+	        m_pCostLabel->SetVisible(m_BlinkTimer.AlternateSim(250));
+	    }
+	    else if (m_BlinkMode == NOCRAFT)
+	    {
+	        bool blink = m_BlinkTimer.AlternateSim(250);
+	        m_pCraftLabel->SetVisible(blink);
+	        m_pCraftBox->SetVisible(blink);
+	    }
 
-    // Time out the blinker
-    if (m_BlinkMode != NOBLINK && m_BlinkTimer.IsPastSimMS(1500))
-    {
-        m_pCostLabel->SetVisible(true);
-        m_pCraftLabel->SetVisible(true);
-        m_pCraftBox->SetVisible(true);
-        m_BlinkMode = NOBLINK;
-    }
-*/
-    /////////////////////////////////////////////
-    // Repeating input logic
+	    // Time out the blinker
+	    if (m_BlinkMode != NOBLINK && m_BlinkTimer.IsPastSimMS(1500))
+	    {
+	        m_pCostLabel->SetVisible(true);
+	        m_pCraftLabel->SetVisible(true);
+	        m_pCraftBox->SetVisible(true);
+	        m_BlinkMode = NOBLINK;
+	    }
+	*/
+	/////////////////////////////////////////////
+	// Repeating input logic
 
-    bool pressLeft = m_pController->IsState(PRESS_LEFT);
-    bool pressRight = m_pController->IsState(PRESS_RIGHT);
-    bool pressUp = m_pController->IsState(PRESS_UP);
-    bool pressDown = m_pController->IsState(PRESS_DOWN);
+	bool pressLeft = m_pController->IsState(PRESS_LEFT);
+	bool pressRight = m_pController->IsState(PRESS_RIGHT);
+	bool pressUp = m_pController->IsState(PRESS_UP);
+	bool pressDown = m_pController->IsState(PRESS_DOWN);
 
-    // If no direction is held down, then cancel the repeating
-    if (!(m_pController->IsState(MOVE_RIGHT) || m_pController->IsState(MOVE_LEFT) || m_pController->IsState(MOVE_UP) || m_pController->IsState(MOVE_DOWN)))
-    {
-        m_RepeatStartTimer.Reset();
-        m_RepeatTimer.Reset();
-    }
+	// If no direction is held down, then cancel the repeating
+	if (!(m_pController->IsState(MOVE_RIGHT) || m_pController->IsState(MOVE_LEFT) || m_pController->IsState(MOVE_UP) || m_pController->IsState(MOVE_DOWN))) {
+		m_RepeatStartTimer.Reset();
+		m_RepeatTimer.Reset();
+	}
 
-    // Check if any direction has been held for the starting amount of time to get into repeat mode
-    if (m_RepeatStartTimer.IsPastRealMS(200))
-    {
-        // Check for the repeat interval
-        if (m_RepeatTimer.IsPastRealMS(50))
-        {
-            if (m_pController->IsState(MOVE_RIGHT))
-                pressRight = true;
-            else if (m_pController->IsState(MOVE_LEFT))
-                pressLeft = true;
+	// Check if any direction has been held for the starting amount of time to get into repeat mode
+	if (m_RepeatStartTimer.IsPastRealMS(200)) {
+		// Check for the repeat interval
+		if (m_RepeatTimer.IsPastRealMS(50)) {
+			if (m_pController->IsState(MOVE_RIGHT))
+				pressRight = true;
+			else if (m_pController->IsState(MOVE_LEFT))
+				pressLeft = true;
 
-            if (m_pController->IsState(MOVE_UP))
-                pressUp = true;
-            else if (m_pController->IsState(MOVE_DOWN))
-                pressDown = true;
+			if (m_pController->IsState(MOVE_UP))
+				pressUp = true;
+			else if (m_pController->IsState(MOVE_DOWN))
+				pressDown = true;
 
-            m_RepeatTimer.Reset();
-        }
-    }
+			m_RepeatTimer.Reset();
+		}
+	}
 
-    ///////////////////////////////////////////////
-    // Analog cursor input
+	///////////////////////////////////////////////
+	// Analog cursor input
 
-    Vector analogInput;
-    if (m_pController->GetAnalogMove().MagnitudeIsGreaterThan(0.1F))
-        analogInput = m_pController->GetAnalogMove();
-//    else if (m_pController->GetAnalogAim().MagnitudeIsGreaterThan(0.1F))
-//        analogInput = m_pController->GetAnalogAim();
+	Vector analogInput;
+	if (m_pController->GetAnalogMove().MagnitudeIsGreaterThan(0.1F))
+		analogInput = m_pController->GetAnalogMove();
+	//    else if (m_pController->GetAnalogAim().MagnitudeIsGreaterThan(0.1F))
+	//        analogInput = m_pController->GetAnalogAim();
 
-    /////////////////////////////////////////////
-    // PIE MENU
+	/////////////////////////////////////////////
+	// PIE MENU
 
 	m_PieMenu->Update();
 
-	if (PieSlice *zoomInSlice = m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorZoomIn)) { zoomInSlice->SetEnabled(m_ZoomFactor < MAXZOOMFACTOR); }
-	if (PieSlice *zoomOutSlice = m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorZoomOut)) { zoomOutSlice->SetEnabled(m_ZoomFactor > MINZOOMFACTOR); }
+	if (PieSlice* zoomInSlice = m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorZoomIn)) {
+		zoomInSlice->SetEnabled(m_ZoomFactor < MAXZOOMFACTOR);
+	}
+	if (PieSlice* zoomOutSlice = m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorZoomOut)) {
+		zoomOutSlice->SetEnabled(m_ZoomFactor > MINZOOMFACTOR);
+	}
 
-    // Show the pie menu only when the secondary button is held down
-    if (m_pController->IsState(PRESS_SECONDARY) && m_EditorGUIMode != INACTIVE && m_EditorGUIMode != PICKINGGIB) {
+	// Show the pie menu only when the secondary button is held down
+	if (m_pController->IsState(PRESS_SECONDARY) && m_EditorGUIMode != INACTIVE && m_EditorGUIMode != PICKINGGIB) {
 		m_PieMenu->SetPos(m_GridSnapping ? g_SceneMan.SnapPosition(m_CursorPos) : m_CursorPos);
 		m_PieMenu->SetEnabled(true);
 
-		std::array<PieSlice *, 2> infrontAndBehindPieSlices = { m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorInFront), m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorBehind) };
-		for (PieSlice *pieSlice : infrontAndBehindPieSlices) {
-			if (pieSlice) { pieSlice->SetEnabled(m_EditorGUIMode == ADDINGGIB); }
+		std::array<PieSlice*, 2> infrontAndBehindPieSlices = {m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorInFront), m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorBehind)};
+		for (PieSlice* pieSlice: infrontAndBehindPieSlices) {
+			if (pieSlice) {
+				pieSlice->SetEnabled(m_EditorGUIMode == ADDINGGIB);
+			}
 		}
-    }
+	}
 
-	if (!m_pController->IsState(PIE_MENU_ACTIVE) || m_EditorGUIMode == INACTIVE || m_EditorGUIMode == PICKINGGIB) { m_PieMenu->SetEnabled(false); }
+	if (!m_pController->IsState(PIE_MENU_ACTIVE) || m_EditorGUIMode == INACTIVE || m_EditorGUIMode == PICKINGGIB) {
+		m_PieMenu->SetEnabled(false);
+	}
 
-    ///////////////////////////////////////
-    // Handle pie menu selections
+	///////////////////////////////////////
+	// Handle pie menu selections
 
-    if (m_PieMenu->GetPieCommand() != PieSliceType::NoType) {
+	if (m_PieMenu->GetPieCommand() != PieSliceType::NoType) {
 		if (m_PieMenu->GetPieCommand() == PieSliceType::EditorPick) {
 			m_EditorGUIMode = PICKINGGIB;
 		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorLoad) {
-            // Set up the picker to pick an MOSRotating to load
-            m_EditorGUIMode = PICKOBJECTTOLOAD;
-            m_pPicker->ShowOnlyType("MOSRotating");
+			// Set up the picker to pick an MOSRotating to load
+			m_EditorGUIMode = PICKOBJECTTOLOAD;
+			m_pPicker->ShowOnlyType("MOSRotating");
 		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorMove) {
 			m_EditorGUIMode = MOVINGGIB;
 		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorRemove) {
@@ -308,555 +300,488 @@ void GibEditorGUI::Update()
 		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorZoomOut && m_ZoomFactor > MINZOOMFACTOR) {
 			m_ZoomFactor--;
 		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorInFront) {
-            m_PreviousMode = m_EditorGUIMode;
-            m_EditorGUIMode = PLACEINFRONT;
-        } else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorBehind) {
-            m_PreviousMode = m_EditorGUIMode;
-            m_EditorGUIMode = PLACEBEHIND;
-        }
-    }
+			m_PreviousMode = m_EditorGUIMode;
+			m_EditorGUIMode = PLACEINFRONT;
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorBehind) {
+			m_PreviousMode = m_EditorGUIMode;
+			m_EditorGUIMode = PLACEBEHIND;
+		}
+	}
 
-    //////////////////////////////////////////
-    // Picker logic
+	//////////////////////////////////////////
+	// Picker logic
 
-    // Enable or disable the picker
-    m_pPicker->SetEnabled(m_EditorGUIMode == PICKOBJECTTOLOAD || m_EditorGUIMode == PICKINGGIB);
+	// Enable or disable the picker
+	m_pPicker->SetEnabled(m_EditorGUIMode == PICKOBJECTTOLOAD || m_EditorGUIMode == PICKINGGIB);
 
-    // Update the picker GUI
-    m_pPicker->Update();
+	// Update the picker GUI
+	m_pPicker->Update();
 
-    // Picking something to load into the editor
-    if (m_EditorGUIMode == PICKOBJECTTOLOAD)
-    {
-        g_FrameMan.ClearScreenText();
-        g_FrameMan.SetScreenText("Select an object to LOAD into the gib editor ->", 0, 333);
+	// Picking something to load into the editor
+	if (m_EditorGUIMode == PICKOBJECTTOLOAD) {
+		g_FrameMan.ClearScreenText();
+		g_FrameMan.SetScreenText("Select an object to LOAD into the gib editor ->", 0, 333);
 
-        // Picked something!
-        if (m_pPicker->ObjectPicked() && !m_pPicker->IsEnabled())
-        {
-            m_pObjectToLoad = dynamic_cast<const MOSRotating *>(m_pPicker->ObjectPicked());
-            // Set picker back to showing all valid gib types
-            if (m_pObjectToLoad)
-            {
-                m_pPicker->ShowOnlyType("MovableObject");
-                g_FrameMan.ClearScreenText();
-            }
-        }
-    }
-    // Picking an object to place as a gib in currently edited object
-    else if (m_EditorGUIMode == PICKINGGIB)
-    {
-        g_FrameMan.SetScreenText("Select a new Gib object to add onto the edited object ->");
+		// Picked something!
+		if (m_pPicker->ObjectPicked() && !m_pPicker->IsEnabled()) {
+			m_pObjectToLoad = dynamic_cast<const MOSRotating*>(m_pPicker->ObjectPicked());
+			// Set picker back to showing all valid gib types
+			if (m_pObjectToLoad) {
+				m_pPicker->ShowOnlyType("MovableObject");
+				g_FrameMan.ClearScreenText();
+			}
+		}
+	}
+	// Picking an object to place as a gib in currently edited object
+	else if (m_EditorGUIMode == PICKINGGIB) {
+		g_FrameMan.SetScreenText("Select a new Gib object to add onto the edited object ->");
 
-        if (m_pPicker->ObjectPicked())
-        {
-            // Assign a copy of the picked object to be the currently held one.
-            delete m_pCurrentGib;
-            if (m_pCurrentGib = dynamic_cast<MovableObject *>(m_pPicker->ObjectPicked()->Clone()))
-            {
-                // Disable any controller, if an actor
-                Actor *pActor = dynamic_cast<Actor *>(m_pCurrentGib);
-                if (pActor)
-                    pActor->GetController()->SetDisabled(true);
-                // Set the list order to be at the end so new objects are added there
-                m_GibListOrder = -1;
-                // Update the object
-                m_pCurrentGib->Update();
-                // If done picking, revert to moving object mode
-                if (m_pPicker->DonePicking())
-                {
-                    m_EditorGUIMode = ADDINGGIB;
-                }
-            }
-        }
-    }
+		if (m_pPicker->ObjectPicked()) {
+			// Assign a copy of the picked object to be the currently held one.
+			delete m_pCurrentGib;
+			if (m_pCurrentGib = dynamic_cast<MovableObject*>(m_pPicker->ObjectPicked()->Clone())) {
+				// Disable any controller, if an actor
+				Actor* pActor = dynamic_cast<Actor*>(m_pCurrentGib);
+				if (pActor)
+					pActor->GetController()->SetDisabled(true);
+				// Set the list order to be at the end so new objects are added there
+				m_GibListOrder = -1;
+				// Update the object
+				m_pCurrentGib->Update();
+				// If done picking, revert to moving object mode
+				if (m_pPicker->DonePicking()) {
+					m_EditorGUIMode = ADDINGGIB;
+				}
+			}
+		}
+	}
 
-    if (!m_pPicker->IsVisible())
-        g_CameraMan.SetScreenOcclusion(Vector(), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+	if (!m_pPicker->IsVisible())
+		g_CameraMan.SetScreenOcclusion(Vector(), g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
 
-    /////////////////////////////////////
-    // ADDING GIB MODE
+	/////////////////////////////////////
+	// ADDING GIB MODE
 
-    if (m_EditorGUIMode == ADDINGGIB && !m_PieMenu->IsEnabled())
-    {
-        g_FrameMan.SetScreenText("Click to ADD a new gib to the edited object - Drag to place with precision", 0);
+	if (m_EditorGUIMode == ADDINGGIB && !m_PieMenu->IsEnabled()) {
+		g_FrameMan.SetScreenText("Click to ADD a new gib to the edited object - Drag to place with precision", 0);
 
-        m_DrawCurrentGib = true;
+		m_DrawCurrentGib = true;
 
-        // Trap the mouse cursor
-        g_UInputMan.TrapMousePos(true, m_pController->GetPlayer());
+		// Trap the mouse cursor
+		g_UInputMan.TrapMousePos(true, m_pController->GetPlayer());
 
-        // Move the cursor according to analog or mouse input
-        if (!analogInput.IsZero())
-        {
-            m_CursorPos += analogInput * 8;
-            // Re-enable snapping only when the cursor is moved again
-//            m_GridSnapping = true;
-        }
-        else if (!m_pController->GetMouseMovement().IsZero())
-        {
-            m_CursorPos += m_pController->GetMouseMovement();
-            // Re-enable snapping only when the cursor is moved again
-//            m_GridSnapping = true;
-        }
-        // Digital input?
-        else
-        {
-            if (pressUp)
-                m_CursorPos.m_Y -= SCENESNAPSIZE;
-            if (pressRight)
-                m_CursorPos.m_X += SCENESNAPSIZE;
-            if (pressDown)
-                m_CursorPos.m_Y += SCENESNAPSIZE;
-            if (pressLeft)
-                m_CursorPos.m_X -= SCENESNAPSIZE;
-            // Re-enable snapping only when the cursor is moved again
-//            if (pressUp || pressRight || pressDown || pressLeft)
-//                m_GridSnapping = true;
-        }
+		// Move the cursor according to analog or mouse input
+		if (!analogInput.IsZero()) {
+			m_CursorPos += analogInput * 8;
+			// Re-enable snapping only when the cursor is moved again
+			//            m_GridSnapping = true;
+		} else if (!m_pController->GetMouseMovement().IsZero()) {
+			m_CursorPos += m_pController->GetMouseMovement();
+			// Re-enable snapping only when the cursor is moved again
+			//            m_GridSnapping = true;
+		}
+		// Digital input?
+		else {
+			if (pressUp)
+				m_CursorPos.m_Y -= SCENESNAPSIZE;
+			if (pressRight)
+				m_CursorPos.m_X += SCENESNAPSIZE;
+			if (pressDown)
+				m_CursorPos.m_Y += SCENESNAPSIZE;
+			if (pressLeft)
+				m_CursorPos.m_X -= SCENESNAPSIZE;
+			// Re-enable snapping only when the cursor is moved again
+			//            if (pressUp || pressRight || pressDown || pressLeft)
+			//                m_GridSnapping = true;
+		}
 
-        // Detect whether the cursor is in the air, or if it's overlapping some terrain
-        Vector snappedPos = g_SceneMan.SnapPosition(m_CursorPos, m_GridSnapping);
-        m_CursorInAir = g_SceneMan.GetTerrMatter(snappedPos.GetFloorIntX(), snappedPos.GetFloorIntY()) == g_MaterialAir;
+		// Detect whether the cursor is in the air, or if it's overlapping some terrain
+		Vector snappedPos = g_SceneMan.SnapPosition(m_CursorPos, m_GridSnapping);
+		m_CursorInAir = g_SceneMan.GetTerrMatter(snappedPos.GetFloorIntX(), snappedPos.GetFloorIntY()) == g_MaterialAir;
 
-        // Mousewheel is used as shortcut for getting next and prev items in teh picker's object list
-        if (m_pController->IsState(SCROLL_UP) || m_pController->IsState(ControlState::ACTOR_NEXT))
-        {
-            // Assign a copy of the next picked object to be the currently held one.
-            const SceneObject *pNewObject = m_pPicker->GetPrevObject();
-            if (pNewObject)
-            {
-                delete m_pCurrentGib;
-                m_pCurrentGib = dynamic_cast<MovableObject *>(pNewObject->Clone());
-                // Disable any controller, if an actor
-                Actor *pActor = dynamic_cast<Actor *>(m_pCurrentGib);
-                if (pActor)
-                    pActor->GetController()->SetDisabled(true);
-                // Update the object
-                m_pCurrentGib->Update();
-            }
-        }
-        else if (m_pController->IsState(SCROLL_DOWN) || m_pController->IsState(ControlState::ACTOR_PREV))
-        {
-            // Assign a copy of the next picked object to be the currently held one.
-            const SceneObject *pNewObject = m_pPicker->GetNextObject();
-            if (pNewObject)
-            {
-                delete m_pCurrentGib;
-                m_pCurrentGib = dynamic_cast<MovableObject *>(pNewObject->Clone());
-                // Disable any controller, if an actor
-                Actor *pActor = dynamic_cast<Actor *>(m_pCurrentGib);
-                if (pActor)
-                    pActor->GetController()->SetDisabled(true);
-                // Update the object
-                m_pCurrentGib->Update();
-            }
-        }
+		// Mousewheel is used as shortcut for getting next and prev items in teh picker's object list
+		if (m_pController->IsState(SCROLL_UP) || m_pController->IsState(ControlState::ACTOR_NEXT)) {
+			// Assign a copy of the next picked object to be the currently held one.
+			const SceneObject* pNewObject = m_pPicker->GetPrevObject();
+			if (pNewObject) {
+				delete m_pCurrentGib;
+				m_pCurrentGib = dynamic_cast<MovableObject*>(pNewObject->Clone());
+				// Disable any controller, if an actor
+				Actor* pActor = dynamic_cast<Actor*>(m_pCurrentGib);
+				if (pActor)
+					pActor->GetController()->SetDisabled(true);
+				// Update the object
+				m_pCurrentGib->Update();
+			}
+		} else if (m_pController->IsState(SCROLL_DOWN) || m_pController->IsState(ControlState::ACTOR_PREV)) {
+			// Assign a copy of the next picked object to be the currently held one.
+			const SceneObject* pNewObject = m_pPicker->GetNextObject();
+			if (pNewObject) {
+				delete m_pCurrentGib;
+				m_pCurrentGib = dynamic_cast<MovableObject*>(pNewObject->Clone());
+				// Disable any controller, if an actor
+				Actor* pActor = dynamic_cast<Actor*>(m_pCurrentGib);
+				if (pActor)
+					pActor->GetController()->SetDisabled(true);
+				// Update the object
+				m_pCurrentGib->Update();
+			}
+		}
 
-        // Start the timer when the button is first pressed, and when the picker has deactivated
-        if (m_pController->IsState(PRESS_PRIMARY) && !m_pPicker->IsVisible())
-        {
-            m_BlinkTimer.Reset();
-            m_EditorGUIMode = PLACINGGIB;
-            m_PreviousMode = ADDINGGIB;
-            g_GUISound.PlacementBlip()->Play();
-        }
-    }
+		// Start the timer when the button is first pressed, and when the picker has deactivated
+		if (m_pController->IsState(PRESS_PRIMARY) && !m_pPicker->IsVisible()) {
+			m_BlinkTimer.Reset();
+			m_EditorGUIMode = PLACINGGIB;
+			m_PreviousMode = ADDINGGIB;
+			g_GUISound.PlacementBlip()->Play();
+		}
+	}
 
-    /////////////////////////////////////////////////////////////
-    // PLACING MODE
+	/////////////////////////////////////////////////////////////
+	// PLACING MODE
 
-    else if (m_EditorGUIMode == PLACINGGIB)
-    {
-        if (m_PreviousMode == MOVINGGIB)
-            g_FrameMan.SetScreenText("Click and drag on a placed gib to MOVE it - Click quickly to DETACH", 0);
-        else
-            g_FrameMan.SetScreenText("Click to ADD a new gib to the edited object - Drag to place with precision", 0);
+	else if (m_EditorGUIMode == PLACINGGIB) {
+		if (m_PreviousMode == MOVINGGIB)
+			g_FrameMan.SetScreenText("Click and drag on a placed gib to MOVE it - Click quickly to DETACH", 0);
+		else
+			g_FrameMan.SetScreenText("Click to ADD a new gib to the edited object - Drag to place with precision", 0);
 
-        m_DrawCurrentGib = true;
+		m_DrawCurrentGib = true;
 
-        // Freeze when first pressing down and grid snapping is still engaged
-        if (!(m_pController->IsState(PRIMARY_ACTION) && m_GridSnapping))
-        {
-            if (!analogInput.IsZero())
-            {
-                m_CursorPos += analogInput;
-                m_FacingLeft = analogInput.m_X < 0 || (m_FacingLeft && analogInput.m_X == 0);
-            }
-            // Try the mouse
-            else if (!m_pController->GetMouseMovement().IsZero())
-            {
-                m_CursorPos += m_pController->GetMouseMovement();
-                m_FacingLeft = m_pController->GetMouseMovement().m_X < 0 || (m_FacingLeft && m_pController->GetMouseMovement().m_X == 0);
-            }
-            // Digital input?
-            else
-            {
-                if (pressUp)
-                    m_CursorPos.m_Y -= 1;
-                if (pressRight)
-                {
-                    m_CursorPos.m_X += 1;
-                    m_FacingLeft = false;
-                }
-                if (pressDown)
-                    m_CursorPos.m_Y += 1;
-                if (pressLeft)
-                {
-                    m_CursorPos.m_X -= 1;
-                    m_FacingLeft = true;
-                }
-            }
+		// Freeze when first pressing down and grid snapping is still engaged
+		if (!(m_pController->IsState(PRIMARY_ACTION) && m_GridSnapping)) {
+			if (!analogInput.IsZero()) {
+				m_CursorPos += analogInput;
+				m_FacingLeft = analogInput.m_X < 0 || (m_FacingLeft && analogInput.m_X == 0);
+			}
+			// Try the mouse
+			else if (!m_pController->GetMouseMovement().IsZero()) {
+				m_CursorPos += m_pController->GetMouseMovement();
+				m_FacingLeft = m_pController->GetMouseMovement().m_X < 0 || (m_FacingLeft && m_pController->GetMouseMovement().m_X == 0);
+			}
+			// Digital input?
+			else {
+				if (pressUp)
+					m_CursorPos.m_Y -= 1;
+				if (pressRight) {
+					m_CursorPos.m_X += 1;
+					m_FacingLeft = false;
+				}
+				if (pressDown)
+					m_CursorPos.m_Y += 1;
+				if (pressLeft) {
+					m_CursorPos.m_X -= 1;
+					m_FacingLeft = true;
+				}
+			}
 
-            // Detect whether the cursor is in the air, or if it's overlapping some terrain
-            Vector snappedPos = g_SceneMan.SnapPosition(m_CursorPos, m_GridSnapping);
-            m_CursorInAir = g_SceneMan.GetTerrMatter(snappedPos.GetFloorIntX(), snappedPos.GetFloorIntY()) == g_MaterialAir;
-        }
+			// Detect whether the cursor is in the air, or if it's overlapping some terrain
+			Vector snappedPos = g_SceneMan.SnapPosition(m_CursorPos, m_GridSnapping);
+			m_CursorInAir = g_SceneMan.GetTerrMatter(snappedPos.GetFloorIntX(), snappedPos.GetFloorIntY()) == g_MaterialAir;
+		}
 
-        // Disable snapping after a small interval of holding down the button, to avoid unintentional nudges when just placing on the grid
-        if (m_pController->IsState(PRIMARY_ACTION) && m_BlinkTimer.IsPastRealMS(333) && m_GridSnapping)
-        {
-            m_GridSnapping = false;
-            m_CursorPos = g_SceneMan.SnapPosition(m_CursorPos);
-        }
+		// Disable snapping after a small interval of holding down the button, to avoid unintentional nudges when just placing on the grid
+		if (m_pController->IsState(PRIMARY_ACTION) && m_BlinkTimer.IsPastRealMS(333) && m_GridSnapping) {
+			m_GridSnapping = false;
+			m_CursorPos = g_SceneMan.SnapPosition(m_CursorPos);
+		}
 
-        if (m_pController->IsState(RELEASE_PRIMARY))
+		if (m_pController->IsState(RELEASE_PRIMARY))
 
-        // Cancel placing if secondary button is pressed
-        if (m_pController->IsState(PRESS_SECONDARY) || m_pController->IsState(PIE_MENU_ACTIVE))
-        {
-            m_EditorGUIMode = m_PreviousMode;
-        }
-        // If previous mode was moving, tear the gib loose if the button is released to soo
-        else if (m_PreviousMode == MOVINGGIB && m_pController->IsState(RELEASE_PRIMARY) && !m_BlinkTimer.IsPastRealMS(150))
-        {
-            m_EditorGUIMode = ADDINGGIB;
-        }
-        // Only place if the picker and pie menus are completely out of view, to avoid immediate placing after picking
-        else if (m_pCurrentGib && m_pController->IsState(RELEASE_PRIMARY) && !m_pPicker->IsVisible())
-        {
-            m_pCurrentGib->Update();
+			// Cancel placing if secondary button is pressed
+			if (m_pController->IsState(PRESS_SECONDARY) || m_pController->IsState(PIE_MENU_ACTIVE)) {
+				m_EditorGUIMode = m_PreviousMode;
+			}
+			// If previous mode was moving, tear the gib loose if the button is released to soo
+			else if (m_PreviousMode == MOVINGGIB && m_pController->IsState(RELEASE_PRIMARY) && !m_BlinkTimer.IsPastRealMS(150)) {
+				m_EditorGUIMode = ADDINGGIB;
+			}
+			// Only place if the picker and pie menus are completely out of view, to avoid immediate placing after picking
+			else if (m_pCurrentGib && m_pController->IsState(RELEASE_PRIMARY) && !m_pPicker->IsVisible()) {
+				m_pCurrentGib->Update();
 
-            // Add to the placed objects list
-            AddPlacedObject(dynamic_cast<MovableObject *>(m_pCurrentGib->Clone()), m_GibListOrder);
-            // Increment the list order so we place over last placed item
-            if (m_GibListOrder >= 0)
-                m_GibListOrder++;
-            g_GUISound.PlacementThud()->Play();
-//                g_GUISound.PlacementGravel()->Play();
-            m_EditMade = true;
+				// Add to the placed objects list
+				AddPlacedObject(dynamic_cast<MovableObject*>(m_pCurrentGib->Clone()), m_GibListOrder);
+				// Increment the list order so we place over last placed item
+				if (m_GibListOrder >= 0)
+					m_GibListOrder++;
+				g_GUISound.PlacementThud()->Play();
+				//                g_GUISound.PlacementGravel()->Play();
+				m_EditMade = true;
 
-// TEMP REMOVE WEHN YOU CLEAN UP THE ABOVE HARDCODED BRAIN PLACEMENT
-            if (m_EditorGUIMode != PICKINGGIB)
-// TEMP REMOVE ABOVE
-            // Go back to previous mode
-            m_EditorGUIMode = m_PreviousMode;
-        }
+				// TEMP REMOVE WEHN YOU CLEAN UP THE ABOVE HARDCODED BRAIN PLACEMENT
+				if (m_EditorGUIMode != PICKINGGIB)
+					// TEMP REMOVE ABOVE
+					// Go back to previous mode
+					m_EditorGUIMode = m_PreviousMode;
+			}
 
-        // Set the facing of AHumans based on right/left cursor movements
-        AHuman *pAHuman = dynamic_cast<AHuman *>(m_pCurrentGib);
-        if (pAHuman)
-            pAHuman->SetHFlipped(m_FacingLeft);
-    }
+		// Set the facing of AHumans based on right/left cursor movements
+		AHuman* pAHuman = dynamic_cast<AHuman*>(m_pCurrentGib);
+		if (pAHuman)
+			pAHuman->SetHFlipped(m_FacingLeft);
+	}
 
-    /////////////////////////////////////////////////////////////
-    // POINTING AT MODES
+	/////////////////////////////////////////////////////////////
+	// POINTING AT MODES
 
-    else if ((m_EditorGUIMode == MOVINGGIB || m_EditorGUIMode == DELETINGGIB || m_EditorGUIMode == PLACEINFRONT || m_EditorGUIMode == PLACEBEHIND) && !m_PieMenu->IsEnabled())
-    {
-        m_DrawCurrentGib = false;
+	else if ((m_EditorGUIMode == MOVINGGIB || m_EditorGUIMode == DELETINGGIB || m_EditorGUIMode == PLACEINFRONT || m_EditorGUIMode == PLACEBEHIND) && !m_PieMenu->IsEnabled()) {
+		m_DrawCurrentGib = false;
 
-        // Trap the mouse cursor
-        g_UInputMan.TrapMousePos(true, m_pController->GetPlayer());
+		// Trap the mouse cursor
+		g_UInputMan.TrapMousePos(true, m_pController->GetPlayer());
 
-        // Move the cursor according to analog or mouse input
-        if (!analogInput.IsZero())
-            m_CursorPos += analogInput * 4;
-        else if (!m_pController->GetMouseMovement().IsZero())
-            m_CursorPos += m_pController->GetMouseMovement() / 2;
-        // Digital input?
-        else
-        {
-            if (pressUp)
-                m_CursorPos.m_Y -= 1;
-            if (pressRight)
-                m_CursorPos.m_X += 1;
-            if (pressDown)
-                m_CursorPos.m_Y += 1;
-            if (pressLeft)
-                m_CursorPos.m_X -= 1;
-        }
+		// Move the cursor according to analog or mouse input
+		if (!analogInput.IsZero())
+			m_CursorPos += analogInput * 4;
+		else if (!m_pController->GetMouseMovement().IsZero())
+			m_CursorPos += m_pController->GetMouseMovement() / 2;
+		// Digital input?
+		else {
+			if (pressUp)
+				m_CursorPos.m_Y -= 1;
+			if (pressRight)
+				m_CursorPos.m_X += 1;
+			if (pressDown)
+				m_CursorPos.m_Y += 1;
+			if (pressLeft)
+				m_CursorPos.m_X -= 1;
+		}
 
-        /////////////////////////////////
-        // MOVING GIB MODE
+		/////////////////////////////////
+		// MOVING GIB MODE
 
-        if (m_EditorGUIMode == MOVINGGIB)
-        {
-            g_FrameMan.SetScreenText("Click and drag on a placed gib to MOVE it - Click quickly to DETACH", 0);
+		if (m_EditorGUIMode == MOVINGGIB) {
+			g_FrameMan.SetScreenText("Click and drag on a placed gib to MOVE it - Click quickly to DETACH", 0);
 
-            // Pick an object under the cursor and start moving it
-            if (m_pController->IsState(PRESS_PRIMARY) && !m_pPicker->IsVisible())
-            {
-                const MovableObject *pPicked = PickPlacedObject(m_CursorPos, &m_GibListOrder);
-                if (pPicked)
-                {
-                    // Grab the position and a copy of the the object itself before killing it from the scene
-                    m_pCurrentGib = dynamic_cast<MovableObject *>(pPicked->Clone());
-                    m_CursorOffset = m_CursorPos - m_pCurrentGib->GetPos();
-                    RemovePlacedObject(m_GibListOrder);
-                    m_EditMade = true;
+			// Pick an object under the cursor and start moving it
+			if (m_pController->IsState(PRESS_PRIMARY) && !m_pPicker->IsVisible()) {
+				const MovableObject* pPicked = PickPlacedObject(m_CursorPos, &m_GibListOrder);
+				if (pPicked) {
+					// Grab the position and a copy of the the object itself before killing it from the scene
+					m_pCurrentGib = dynamic_cast<MovableObject*>(pPicked->Clone());
+					m_CursorOffset = m_CursorPos - m_pCurrentGib->GetPos();
+					RemovePlacedObject(m_GibListOrder);
+					m_EditMade = true;
 
-                    // Go to placing mode to move it around
-                    m_EditorGUIMode = PLACINGGIB;
-                    m_PreviousMode = MOVINGGIB;
-                    m_BlinkTimer.Reset();
-                    g_GUISound.PlacementBlip()->Play();
-                    g_GUISound.PlacementGravel()->Play();
-                }
-                else
-                    g_GUISound.UserErrorSound()->Play();
-            }
-        }
+					// Go to placing mode to move it around
+					m_EditorGUIMode = PLACINGGIB;
+					m_PreviousMode = MOVINGGIB;
+					m_BlinkTimer.Reset();
+					g_GUISound.PlacementBlip()->Play();
+					g_GUISound.PlacementGravel()->Play();
+				} else
+					g_GUISound.UserErrorSound()->Play();
+			}
+		}
 
-        ////////////////////////////
-        // REMOVING GIB MODE
+		////////////////////////////
+		// REMOVING GIB MODE
 
-        else if (m_EditorGUIMode == DELETINGGIB)
-        {
-            g_FrameMan.SetScreenText("Click and hold to select an object - release to DELETE it", 0);
+		else if (m_EditorGUIMode == DELETINGGIB) {
+			g_FrameMan.SetScreenText("Click and hold to select an object - release to DELETE it", 0);
 
-            // When primary is held down, pick object and show which one will be nuked if released
-            if (m_pController->IsState(PRIMARY_ACTION) && !m_pPicker->IsVisible())
-            {
-                m_pObjectToBlink = PickPlacedObject(m_CursorPos);
-            }
-            else if (m_pController->IsState(RELEASE_PRIMARY))
-            {
-                if (PickPlacedObject(m_CursorPos, &m_GibListOrder))
-                {
-                    // Nuke it!
-                    RemovePlacedObject(m_GibListOrder);
-                    m_EditMade = true;
-// TODO: Add awesome destruction sound here
-                }
-                else
-                    g_GUISound.UserErrorSound()->Play();
-            }
-        }
+			// When primary is held down, pick object and show which one will be nuked if released
+			if (m_pController->IsState(PRIMARY_ACTION) && !m_pPicker->IsVisible()) {
+				m_pObjectToBlink = PickPlacedObject(m_CursorPos);
+			} else if (m_pController->IsState(RELEASE_PRIMARY)) {
+				if (PickPlacedObject(m_CursorPos, &m_GibListOrder)) {
+					// Nuke it!
+					RemovePlacedObject(m_GibListOrder);
+					m_EditMade = true;
+					// TODO: Add awesome destruction sound here
+				} else
+					g_GUISound.UserErrorSound()->Play();
+			}
+		}
 
-        /////////////////////////////////////
-        // PLACE IN FRONT AND BEHIND OF MODES
+		/////////////////////////////////////
+		// PLACE IN FRONT AND BEHIND OF MODES
 
-        else if (m_EditorGUIMode == PLACEINFRONT || m_EditorGUIMode == PLACEBEHIND)
-        {
-            if (m_EditorGUIMode == PLACEINFRONT)
-                g_FrameMan.SetScreenText("Click an object to place the next one IN FRONT of it", 0);
-            else if (m_EditorGUIMode == PLACEBEHIND)
-            g_FrameMan.SetScreenText("Click an object to place the next one BEHIND it", 0);
+		else if (m_EditorGUIMode == PLACEINFRONT || m_EditorGUIMode == PLACEBEHIND) {
+			if (m_EditorGUIMode == PLACEINFRONT)
+				g_FrameMan.SetScreenText("Click an object to place the next one IN FRONT of it", 0);
+			else if (m_EditorGUIMode == PLACEBEHIND)
+				g_FrameMan.SetScreenText("Click an object to place the next one BEHIND it", 0);
 
-            // When primary is held down, pick object and show which one will be nuked if released
-            if (m_pController->IsState(PRIMARY_ACTION) && !m_pPicker->IsVisible())
-            {
-                m_pObjectToBlink = PickPlacedObject(m_CursorPos);
-            }
-            else if (m_pController->IsState(RELEASE_PRIMARY))
-            {
-                if (PickPlacedObject(m_CursorPos, &m_GibListOrder))
-                {
-                    // Adjust the next list order to be in front if applicable (it's automatically behind if same order index)
-                    if (m_EditorGUIMode == PLACEINFRONT)
-                        m_GibListOrder++;
+			// When primary is held down, pick object and show which one will be nuked if released
+			if (m_pController->IsState(PRIMARY_ACTION) && !m_pPicker->IsVisible()) {
+				m_pObjectToBlink = PickPlacedObject(m_CursorPos);
+			} else if (m_pController->IsState(RELEASE_PRIMARY)) {
+				if (PickPlacedObject(m_CursorPos, &m_GibListOrder)) {
+					// Adjust the next list order to be in front if applicable (it's automatically behind if same order index)
+					if (m_EditorGUIMode == PLACEINFRONT)
+						m_GibListOrder++;
 
-                    // Go back to previous mode
-                    m_EditorGUIMode = m_PreviousMode;
-                }
-                else
-                    g_GUISound.UserErrorSound()->Play();
-            }
-        }
-    }
+					// Go back to previous mode
+					m_EditorGUIMode = m_PreviousMode;
+				} else
+					g_GUISound.UserErrorSound()->Play();
+			}
+		}
+	}
 
-    // Remove cursor offset if not applicable anymore
-    if (m_EditorGUIMode != PLACINGGIB)
-        m_CursorOffset.Reset();
+	// Remove cursor offset if not applicable anymore
+	if (m_EditorGUIMode != PLACINGGIB)
+		m_CursorOffset.Reset();
 
-    // Keep the cursor position within the world
-    g_SceneMan.ForceBounds(m_CursorPos);
-// TODO: make setscrolltarget with 'sloppy' target
-    // Scroll to the cursor's scene position
-    g_CameraMan.SetScrollTarget(m_CursorPos, 0.3, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
-    // Apply the cursor position to the currently held object
-    if (m_pCurrentGib && m_DrawCurrentGib)
-    {
+	// Keep the cursor position within the world
+	g_SceneMan.ForceBounds(m_CursorPos);
+	// TODO: make setscrolltarget with 'sloppy' target
+	// Scroll to the cursor's scene position
+	g_CameraMan.SetScrollTarget(m_CursorPos, 0.3, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
+	// Apply the cursor position to the currently held object
+	if (m_pCurrentGib && m_DrawCurrentGib) {
 		Vector gibPos = g_SceneMan.SnapPosition(m_CursorPos - m_CursorOffset, m_GridSnapping);
 		gibPos.SetX(static_cast<int>(gibPos.m_X));
 		gibPos.SetY(static_cast<int>(gibPos.m_Y));
 
-        m_pCurrentGib->SetPos(gibPos);
-        m_pCurrentGib->Update();
-    }
+		m_pCurrentGib->SetPos(gibPos);
+		m_pCurrentGib->Update();
+	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual Method:  Draw
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Draws the menu
 
-void GibEditorGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) const
-{
-    // Done, so don't draw the UI
-    if (m_EditorGUIMode == DONEEDITING)
-        return;
+void GibEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
+	// Done, so don't draw the UI
+	if (m_EditorGUIMode == DONEEDITING)
+		return;
 
-    // Draw all already placed Objects, and the currently held one in the order it is about to be placed in the scene
-    int i = 0;
-    for (std::list<MovableObject *>::const_iterator itr = m_PlacedGibs.begin(); itr != m_PlacedGibs.end(); ++itr, ++i)
-    {
-        // Draw the currently held object into the order of the list if it is to be placed inside
-        if (m_pCurrentGib && m_DrawCurrentGib && i == m_GibListOrder)
-        {
-            g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGGIB ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
-            m_pCurrentGib->Draw(pTargetBitmap, targetPos, g_DrawTrans);
-            Actor *pActor = dynamic_cast<Actor *>(m_pCurrentGib);
-            if (pActor)
-                pActor->DrawHUD(pTargetBitmap, targetPos);
-        }
+	// Draw all already placed Objects, and the currently held one in the order it is about to be placed in the scene
+	int i = 0;
+	for (std::list<MovableObject*>::const_iterator itr = m_PlacedGibs.begin(); itr != m_PlacedGibs.end(); ++itr, ++i) {
+		// Draw the currently held object into the order of the list if it is to be placed inside
+		if (m_pCurrentGib && m_DrawCurrentGib && i == m_GibListOrder) {
+			g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGGIB ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
+			m_pCurrentGib->Draw(pTargetBitmap, targetPos, g_DrawTrans);
+			Actor* pActor = dynamic_cast<Actor*>(m_pCurrentGib);
+			if (pActor)
+				pActor->DrawHUD(pTargetBitmap, targetPos);
+		}
 
-        // Blink trans if we are supposed to blink this one
-        if ((*itr) == m_pObjectToBlink)
-        {
-            g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
-            (*itr)->Draw(pTargetBitmap, targetPos, g_DrawTrans);
-        }
-        else
-            (*itr)->Draw(pTargetBitmap, targetPos);
+		// Blink trans if we are supposed to blink this one
+		if ((*itr) == m_pObjectToBlink) {
+			g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
+			(*itr)->Draw(pTargetBitmap, targetPos, g_DrawTrans);
+		} else
+			(*itr)->Draw(pTargetBitmap, targetPos);
 
-        // Draw basic HUD if an actor
-        Actor *pActor = dynamic_cast<Actor *>(*itr);
-        if (pActor)
-            pActor->DrawHUD(pTargetBitmap, targetPos);
-    }
+		// Draw basic HUD if an actor
+		Actor* pActor = dynamic_cast<Actor*>(*itr);
+		if (pActor)
+			pActor->DrawHUD(pTargetBitmap, targetPos);
+	}
 
-    // Draw picking object crosshairs and not the selected object
-    if (!m_DrawCurrentGib)
-    {
-        Vector center = m_CursorPos - targetPos;
-        putpixel(pTargetBitmap, center.m_X, center.m_Y, g_YellowGlowColor);
-        hline(pTargetBitmap, center.m_X - 5, center.m_Y, center.m_X - 2, g_YellowGlowColor);
-        hline(pTargetBitmap, center.m_X + 5, center.m_Y, center.m_X + 2, g_YellowGlowColor);
-        vline(pTargetBitmap, center.m_X, center.m_Y - 5, center.m_Y - 2, g_YellowGlowColor);
-        vline(pTargetBitmap, center.m_X, center.m_Y + 5, center.m_Y + 2, g_YellowGlowColor);
-    }
-    // If the held object will be placed at the end of the list, draw it last to the scene, transperent blinking
-    else if (m_pCurrentGib && (m_GibListOrder < 0 || m_GibListOrder == m_PlacedGibs.size()))
-    {
-        g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGGIB ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
-        m_pCurrentGib->Draw(pTargetBitmap, targetPos, g_DrawTrans);
-        Actor *pActor = dynamic_cast<Actor *>(m_pCurrentGib);
-        if (pActor)
-            pActor->DrawHUD(pTargetBitmap, targetPos);
-    }
+	// Draw picking object crosshairs and not the selected object
+	if (!m_DrawCurrentGib) {
+		Vector center = m_CursorPos - targetPos;
+		putpixel(pTargetBitmap, center.m_X, center.m_Y, g_YellowGlowColor);
+		hline(pTargetBitmap, center.m_X - 5, center.m_Y, center.m_X - 2, g_YellowGlowColor);
+		hline(pTargetBitmap, center.m_X + 5, center.m_Y, center.m_X + 2, g_YellowGlowColor);
+		vline(pTargetBitmap, center.m_X, center.m_Y - 5, center.m_Y - 2, g_YellowGlowColor);
+		vline(pTargetBitmap, center.m_X, center.m_Y + 5, center.m_Y + 2, g_YellowGlowColor);
+	}
+	// If the held object will be placed at the end of the list, draw it last to the scene, transperent blinking
+	else if (m_pCurrentGib && (m_GibListOrder < 0 || m_GibListOrder == m_PlacedGibs.size())) {
+		g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGGIB ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
+		m_pCurrentGib->Draw(pTargetBitmap, targetPos, g_DrawTrans);
+		Actor* pActor = dynamic_cast<Actor*>(m_pCurrentGib);
+		if (pActor)
+			pActor->DrawHUD(pTargetBitmap, targetPos);
+	}
 
-    // Draw the zoom window, if active
-    if (m_ZoomFactor > 1)
-    {
-        Vector sourceCenter = m_CursorPos - targetPos;
+	// Draw the zoom window, if active
+	if (m_ZoomFactor > 1) {
+		Vector sourceCenter = m_CursorPos - targetPos;
 
-        // Make sure the source is within the target bitmap
-        int halfWidth = m_pZoomSource->w / 2;
-        if (sourceCenter.m_X - halfWidth < 0)
-            sourceCenter.m_X = halfWidth;
-        else if (sourceCenter.m_X + halfWidth >= pTargetBitmap->w)
-            sourceCenter.m_X = pTargetBitmap->w - halfWidth;
-        int halfHeight = m_pZoomSource->w / 2;
-        if (sourceCenter.m_Y - halfHeight < 0)
-            sourceCenter.m_Y = halfHeight;
-        else if (sourceCenter.m_Y + halfHeight >= pTargetBitmap->h)
-            sourceCenter.m_Y = pTargetBitmap->h - halfHeight;
+		// Make sure the source is within the target bitmap
+		int halfWidth = m_pZoomSource->w / 2;
+		if (sourceCenter.m_X - halfWidth < 0)
+			sourceCenter.m_X = halfWidth;
+		else if (sourceCenter.m_X + halfWidth >= pTargetBitmap->w)
+			sourceCenter.m_X = pTargetBitmap->w - halfWidth;
+		int halfHeight = m_pZoomSource->w / 2;
+		if (sourceCenter.m_Y - halfHeight < 0)
+			sourceCenter.m_Y = halfHeight;
+		else if (sourceCenter.m_Y + halfHeight >= pTargetBitmap->h)
+			sourceCenter.m_Y = pTargetBitmap->h - halfHeight;
 
-        // Copy to the intermediate source bitmap
-        blit(pTargetBitmap, m_pZoomSource, sourceCenter.m_X - halfWidth, sourceCenter.m_Y - halfHeight, 0, 0, m_pZoomSource->w, m_pZoomSource->h);
+		// Copy to the intermediate source bitmap
+		blit(pTargetBitmap, m_pZoomSource, sourceCenter.m_X - halfWidth, sourceCenter.m_Y - halfHeight, 0, 0, m_pZoomSource->w, m_pZoomSource->h);
 
+		Vector zoomedCenter = m_CursorPos - targetPos;
 
-        Vector zoomedCenter = m_CursorPos - targetPos;
+		// Make sure the zoomed view is within the target bitmap
+		halfWidth = (m_pZoomSource->w / 2) * m_ZoomFactor;
+		if (zoomedCenter.m_X - halfWidth < 0)
+			zoomedCenter.m_X = halfWidth;
+		else if (zoomedCenter.m_X + halfWidth >= pTargetBitmap->w)
+			zoomedCenter.m_X = pTargetBitmap->w - halfWidth;
+		halfHeight = (m_pZoomSource->w / 2) * m_ZoomFactor;
+		if (zoomedCenter.m_Y - halfHeight < 0)
+			zoomedCenter.m_Y = halfHeight;
+		else if (zoomedCenter.m_Y + halfHeight >= pTargetBitmap->h)
+			zoomedCenter.m_Y = pTargetBitmap->h - halfHeight;
 
-        // Make sure the zoomed view is within the target bitmap
-        halfWidth = (m_pZoomSource->w / 2) * m_ZoomFactor;
-        if (zoomedCenter.m_X - halfWidth < 0)
-            zoomedCenter.m_X = halfWidth;
-        else if (zoomedCenter.m_X + halfWidth >= pTargetBitmap->w)
-            zoomedCenter.m_X = pTargetBitmap->w - halfWidth;
-        halfHeight = (m_pZoomSource->w / 2) * m_ZoomFactor;
-        if (zoomedCenter.m_Y - halfHeight < 0)
-            zoomedCenter.m_Y = halfHeight;
-        else if (zoomedCenter.m_Y + halfHeight >= pTargetBitmap->h)
-            zoomedCenter.m_Y = pTargetBitmap->h - halfHeight;
+		// Then draw right back but stretched to the target
+		stretch_blit(m_pZoomSource, pTargetBitmap, 0, 0, m_pZoomSource->w, m_pZoomSource->h, zoomedCenter.m_X - halfWidth, zoomedCenter.m_Y - halfHeight, m_pZoomSource->w * m_ZoomFactor, m_pZoomSource->h * m_ZoomFactor);
+		rect(pTargetBitmap, zoomedCenter.m_X - halfWidth, zoomedCenter.m_Y - halfHeight, zoomedCenter.m_X + halfWidth - 1, zoomedCenter.m_Y + halfHeight - 1, g_YellowGlowColor);
+	}
 
-        // Then draw right back but stretched to the target
-        stretch_blit(m_pZoomSource, pTargetBitmap, 0, 0, m_pZoomSource->w, m_pZoomSource->h, zoomedCenter.m_X - halfWidth, zoomedCenter.m_Y - halfHeight, m_pZoomSource->w * m_ZoomFactor, m_pZoomSource->h * m_ZoomFactor);
-        rect(pTargetBitmap, zoomedCenter.m_X - halfWidth, zoomedCenter.m_Y - halfHeight, zoomedCenter.m_X + halfWidth - 1, zoomedCenter.m_Y + halfHeight - 1, g_YellowGlowColor);
-    }
+	m_pPicker->Draw(pTargetBitmap);
 
-    m_pPicker->Draw(pTargetBitmap);
-
-    // Draw the pie menu
+	// Draw the pie menu
 	m_PieMenu->Draw(pTargetBitmap, targetPos);
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          AddPlacedObject
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Adds a MovableObject to be placed in this scene. Ownership IS transferred!
 
-void GibEditorGUI::AddPlacedObject(MovableObject *pObjectToAdd, int listOrder)
-{
-    if (!pObjectToAdd)
-        return;
+void GibEditorGUI::AddPlacedObject(MovableObject* pObjectToAdd, int listOrder) {
+	if (!pObjectToAdd)
+		return;
 
-    if (listOrder < 0 || listOrder >= m_PlacedGibs.size())
-        m_PlacedGibs.push_back(pObjectToAdd);
-    else
-    {
-        // Find the spot
-        std::list<MovableObject *>::iterator itr = m_PlacedGibs.begin();
-        for (int i = 0; i != listOrder && itr != m_PlacedGibs.end(); ++i, ++itr)
-            ;
+	if (listOrder < 0 || listOrder >= m_PlacedGibs.size())
+		m_PlacedGibs.push_back(pObjectToAdd);
+	else {
+		// Find the spot
+		std::list<MovableObject*>::iterator itr = m_PlacedGibs.begin();
+		for (int i = 0; i != listOrder && itr != m_PlacedGibs.end(); ++i, ++itr)
+			;
 
-        // Put 'er in
-        m_PlacedGibs.insert(itr, pObjectToAdd);
-    }
+		// Put 'er in
+		m_PlacedGibs.insert(itr, pObjectToAdd);
+	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          RemovePlacedObject
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Removes a MovableObject placed in this scene.
 
-void GibEditorGUI::RemovePlacedObject(int whichToRemove)
-{
-    if (m_PlacedGibs.empty())
-        return;
+void GibEditorGUI::RemovePlacedObject(int whichToRemove) {
+	if (m_PlacedGibs.empty())
+		return;
 
-    if (whichToRemove < 0 || whichToRemove >= m_PlacedGibs.size())
-    {
-        delete m_PlacedGibs.back();
-        m_PlacedGibs.pop_back();
-    }
-    else
-    {
-        // Find the spot
-        std::list<MovableObject *>::iterator itr = m_PlacedGibs.begin();
-        for (int i = 0; i != whichToRemove && itr != m_PlacedGibs.end(); ++i, ++itr)
-            ;
+	if (whichToRemove < 0 || whichToRemove >= m_PlacedGibs.size()) {
+		delete m_PlacedGibs.back();
+		m_PlacedGibs.pop_back();
+	} else {
+		// Find the spot
+		std::list<MovableObject*>::iterator itr = m_PlacedGibs.begin();
+		for (int i = 0; i != whichToRemove && itr != m_PlacedGibs.end(); ++i, ++itr)
+			;
 
-        delete (*itr);
-        m_PlacedGibs.erase(itr);
-    }
+		delete (*itr);
+		m_PlacedGibs.erase(itr);
+	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          PickPlacedObject
@@ -864,25 +789,21 @@ void GibEditorGUI::RemovePlacedObject(int whichToRemove)
 // Description:     Returns the last placed object that graphically overlaps an absolute
 //                  point in the scene.
 
-const MovableObject * GibEditorGUI::PickPlacedObject(Vector &scenePoint, int *pListOrderPlace) const
-{
-    // REVERSE!
-    int i = m_PlacedGibs.size() - 1;
-    for (std::list<MovableObject *>::const_reverse_iterator itr = m_PlacedGibs.rbegin(); itr != m_PlacedGibs.rend(); ++itr, --i)
-    {
-        if ((*itr)->IsOnScenePoint(scenePoint))
-        {
-            if (pListOrderPlace)
-                *pListOrderPlace = i;
-            return *itr;
-        }
-    }
+const MovableObject* GibEditorGUI::PickPlacedObject(Vector& scenePoint, int* pListOrderPlace) const {
+	// REVERSE!
+	int i = m_PlacedGibs.size() - 1;
+	for (std::list<MovableObject*>::const_reverse_iterator itr = m_PlacedGibs.rbegin(); itr != m_PlacedGibs.rend(); ++itr, --i) {
+		if ((*itr)->IsOnScenePoint(scenePoint)) {
+			if (pListOrderPlace)
+				*pListOrderPlace = i;
+			return *itr;
+		}
+	}
 
-    if (pListOrderPlace)
-        *pListOrderPlace = -1;
-    return 0;
+	if (pListOrderPlace)
+		*pListOrderPlace = -1;
+	return 0;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          UpdatePlacedObjects
@@ -890,10 +811,8 @@ const MovableObject * GibEditorGUI::PickPlacedObject(Vector &scenePoint, int *pL
 // Description:     Updated the objects in the placed scene objects list of this. This is
 //                  mostly for the editor to represent the items correctly.
 
-void GibEditorGUI::UpdatePlacedObjects()
-{
-    for (std::list<MovableObject *>::iterator itr = m_PlacedGibs.begin(); itr != m_PlacedGibs.end(); ++itr)
-    {
-        (*itr)->Update();
-    }
+void GibEditorGUI::UpdatePlacedObjects() {
+	for (std::list<MovableObject*>::iterator itr = m_PlacedGibs.begin(); itr != m_PlacedGibs.end(); ++itr) {
+		(*itr)->Update();
+	}
 }

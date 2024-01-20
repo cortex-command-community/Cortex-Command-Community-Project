@@ -9,7 +9,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::Clear() {
 		m_ConfiguringPlayer = Players::NoPlayer;
@@ -35,13 +35,14 @@ namespace RTE {
 		m_DualAnalogXBDiagramBitmaps.clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	SettingsInputMappingWizardGUI::SettingsInputMappingWizardGUI(GUIControlManager *parentControlManager) : m_GUIControlManager(parentControlManager) {
+	SettingsInputMappingWizardGUI::SettingsInputMappingWizardGUI(GUIControlManager* parentControlManager) :
+	    m_GUIControlManager(parentControlManager) {
 		Clear();
 
-		m_InputWizardScreenBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxInputMappingWizard"));
-		m_InputWizardTitleLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelPlayerInputMappingWizardTitle"));
+		m_InputWizardScreenBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputMappingWizard"));
+		m_InputWizardTitleLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelPlayerInputMappingWizardTitle"));
 
 		int dpadDiagramBitampCount = 13;
 		ContentFile("Base.rte/GUIs/Controllers/D-Pad.png").GetAsAnimation(m_DPadDiagramBitmaps, dpadDiagramBitampCount, COLORCONV_8_TO_32);
@@ -54,56 +55,56 @@ namespace RTE {
 		CreatePresetSelectionScreen();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::CreateManualConfigScreen() {
-		m_WizardManualConfigScreen.ManualConfigBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxWizardManualConfig"));
+		m_WizardManualConfigScreen.ManualConfigBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxWizardManualConfig"));
 
-		m_WizardManualConfigScreen.ConfigDeviceTypeLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelConfigDeviceType"));
-		m_WizardManualConfigScreen.ConfigStepDescriptionLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelConfigInputDescription"));
-		m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelRecommendedKeyInput"));
-		m_WizardManualConfigScreen.GamepadConfigRecommendedBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxGamepadRecommendedInput"));
-		m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelRecommendedGamepadInput"));
-		m_WizardManualConfigScreen.GamepadConfigRecommendedDiagramBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxRecommendedGamepadInputDiagram"));
+		m_WizardManualConfigScreen.ConfigDeviceTypeLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelConfigDeviceType"));
+		m_WizardManualConfigScreen.ConfigStepDescriptionLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelConfigInputDescription"));
+		m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelRecommendedKeyInput"));
+		m_WizardManualConfigScreen.GamepadConfigRecommendedBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxGamepadRecommendedInput"));
+		m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelRecommendedGamepadInput"));
+		m_WizardManualConfigScreen.GamepadConfigRecommendedDiagramBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxRecommendedGamepadInputDiagram"));
 
-		m_WizardManualConfigScreen.ConfigStepLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelConfigStep"));
-		m_WizardManualConfigScreen.PrevConfigStepButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonConfigPrevStep"));
-		m_WizardManualConfigScreen.NextConfigStepButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonConfigNextStep"));
-		m_WizardManualConfigScreen.ResetConfigButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonConfigRestart"));
-		m_WizardManualConfigScreen.DiscardOrApplyConfigButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonDiscardOrApply"));
+		m_WizardManualConfigScreen.ConfigStepLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelConfigStep"));
+		m_WizardManualConfigScreen.PrevConfigStepButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonConfigPrevStep"));
+		m_WizardManualConfigScreen.NextConfigStepButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonConfigNextStep"));
+		m_WizardManualConfigScreen.ResetConfigButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonConfigRestart"));
+		m_WizardManualConfigScreen.DiscardOrApplyConfigButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonDiscardOrApply"));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::CreatePresetSelectionScreen() {
-		m_WizardPresetSelectScreen.PresetSelectBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxWizardPresets"));
-		m_WizardPresetSelectScreen.CloseWizardButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonCloseWizardBox"));
+		m_WizardPresetSelectScreen.PresetSelectBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxWizardPresets"));
+		m_WizardPresetSelectScreen.CloseWizardButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonCloseWizardBox"));
 
-		m_WizardPresetSelectScreen.PresetSelectSNESButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonPresetDPadSNES"));
-		m_WizardPresetSelectScreen.PresetSelectDS4Button = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonPresetAnalogDS4"));
-		m_WizardPresetSelectScreen.PresetSelectXB360Button = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonPresetAnalogXB360"));
-		m_WizardPresetSelectScreen.StartConfigDPadTypeButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonConfigDPadType"));
-		m_WizardPresetSelectScreen.StartConfigAnalogDSTypeButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonConfigAnalogTypeDS"));
-		m_WizardPresetSelectScreen.StartConfigAnalogXBTypeButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonConfigAnalogTypeXB"));
+		m_WizardPresetSelectScreen.PresetSelectSNESButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonPresetDPadSNES"));
+		m_WizardPresetSelectScreen.PresetSelectDS4Button = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonPresetAnalogDS4"));
+		m_WizardPresetSelectScreen.PresetSelectXB360Button = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonPresetAnalogXB360"));
+		m_WizardPresetSelectScreen.StartConfigDPadTypeButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonConfigDPadType"));
+		m_WizardPresetSelectScreen.StartConfigAnalogDSTypeButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonConfigAnalogTypeDS"));
+		m_WizardPresetSelectScreen.StartConfigAnalogXBTypeButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonConfigAnalogTypeXB"));
 
 		// Ownership of the AllegroBitmaps is passed to the GUIControlManager.
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxConfigDPadTypeDiagram"))->SetDrawImage(new AllegroBitmap(m_DPadDiagramBitmaps[0]));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPresetDPadSNESDiagram"))->SetDrawImage(new AllegroBitmap(m_DPadDiagramBitmaps[0]));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxConfigAnalogTypeDSDiagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogDSDiagramBitmaps[0]));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPresetAnalogDS4Diagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogDSDiagramBitmaps[0]));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxConfigAnalogTypeXBDiagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogXBDiagramBitmaps[0]));
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPresetAnalogXB360Diagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogXBDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxConfigDPadTypeDiagram"))->SetDrawImage(new AllegroBitmap(m_DPadDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxPresetDPadSNESDiagram"))->SetDrawImage(new AllegroBitmap(m_DPadDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxConfigAnalogTypeDSDiagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogDSDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxPresetAnalogDS4Diagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogDSDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxConfigAnalogTypeXBDiagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogXBDiagramBitmaps[0]));
+		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxPresetAnalogXB360Diagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogXBDiagramBitmaps[0]));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingWizardGUI::IsEnabled() const {
 		return m_InputWizardScreenBox->GetVisible() && m_InputWizardScreenBox->GetEnabled();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SettingsInputMappingWizardGUI::SetEnabled(bool enable, int player, InputScheme *playerScheme) {
+	void SettingsInputMappingWizardGUI::SetEnabled(bool enable, int player, InputScheme* playerScheme) {
 		m_InputWizardScreenBox->SetVisible(enable);
 		m_InputWizardScreenBox->SetEnabled(enable);
 
@@ -133,19 +134,19 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	GUICollectionBox * SettingsInputMappingWizardGUI::GetActiveDialogBox() const {
+	GUICollectionBox* SettingsInputMappingWizardGUI::GetActiveDialogBox() const {
 		return (m_InputWizardScreenBox->GetEnabled() && m_InputWizardScreenBox->GetVisible()) ? m_InputWizardScreenBox : nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingWizardGUI::IsConfiguringManually() const {
 		return m_ConfiguringManually && m_WizardManualConfigScreen.ManualConfigBox->GetVisible() && m_WizardManualConfigScreen.ManualConfigBox->GetEnabled();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::ShowManualConfigScreen() {
 		m_WizardPresetSelectScreen.PresetSelectBox->SetVisible(false);
@@ -191,7 +192,7 @@ namespace RTE {
 		m_ConfiguringManually = true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::ShowPresetSelectionScreen() {
 		m_WizardManualConfigScreen.ManualConfigBox->SetVisible(false);
@@ -201,7 +202,7 @@ namespace RTE {
 		m_WizardPresetSelectScreen.PresetSelectBox->SetEnabled(true);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::ResetManualConfigSequence() {
 		m_ConfigFinished = false;
@@ -211,7 +212,7 @@ namespace RTE {
 		m_NewInputScheme.SetDevice(m_ConfiguringDevice);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::ApplyGamepadInputPreset(GamepadType gamepadType) {
 		switch (gamepadType) {
@@ -232,7 +233,7 @@ namespace RTE {
 		m_NewInputSchemeApplied = true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::ApplyManuallyConfiguredScheme() {
 		m_ConfiguringPlayerScheme->SetDevice(m_NewInputScheme.GetDevice());
@@ -254,9 +255,9 @@ namespace RTE {
 		m_ConfiguringManually = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool SettingsInputMappingWizardGUI::HandleInputEvents(GUIEvent &guiEvent) {
+	bool SettingsInputMappingWizardGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (m_WizardManualConfigScreen.ManualConfigBox->GetVisible()) {
 			HandleManualConfigScreenInputEvents(guiEvent);
 		} else if (m_WizardPresetSelectScreen.PresetSelectBox->GetVisible()) {
@@ -269,9 +270,9 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SettingsInputMappingWizardGUI::HandleManualConfigScreenInputEvents(GUIEvent &guiEvent) {
+	void SettingsInputMappingWizardGUI::HandleManualConfigScreenInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Command) {
 			if (guiEvent.GetControl() == m_WizardManualConfigScreen.PrevConfigStepButton) {
 				g_GUISound.ButtonPressSound()->Play();
@@ -303,9 +304,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SettingsInputMappingWizardGUI::HandlePresetSelectScreenInputEvents(GUIEvent &guiEvent) {
+	void SettingsInputMappingWizardGUI::HandlePresetSelectScreenInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Command) {
 			if (guiEvent.GetControl() == m_WizardPresetSelectScreen.CloseWizardButton) {
 				g_GUISound.ButtonPressSound()->Play();
@@ -332,10 +333,12 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::HandleManualConfigSequence() {
-		if (m_ConfigStepChange) { HandleManualConfigStepChange(); }
+		if (m_ConfigStepChange) {
+			HandleManualConfigStepChange();
+		}
 
 		if (m_ConfigFinished) {
 			m_GUIControlManager->GetManager()->SetFocus(m_BlinkTimer.AlternateReal(500) ? m_WizardManualConfigScreen.DiscardOrApplyConfigButton : nullptr);
@@ -364,14 +367,16 @@ namespace RTE {
 					break;
 			}
 			if (inputCaptured) {
-				if (!m_ConfigFinished) { m_ConfigStep++; }
+				if (!m_ConfigFinished) {
+					m_ConfigStep++;
+				}
 				g_GUISound.ExitMenuSound()->Play();
 				m_ConfigStepChange = true;
 			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::HandleManualConfigStepChange() {
 		int configuringDeviceSteps = 0;
@@ -408,13 +413,15 @@ namespace RTE {
 			m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetVisible(false);
 			m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetVisible(false);
 			m_WizardManualConfigScreen.GamepadConfigRecommendedBox->SetVisible(false);
-			if (m_ConfigStep < configuringDeviceSteps - 1) { m_ConfigFinished = false; }
+			if (m_ConfigStep < configuringDeviceSteps - 1) {
+				m_ConfigFinished = false;
+			}
 		}
 		m_WizardManualConfigScreen.PrevConfigStepButton->SetVisible(m_ConfigStep != 0);
 		m_WizardManualConfigScreen.NextConfigStepButton->SetVisible(m_ConfigStep < configuringDeviceSteps - 1);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 		switch (m_ConfigStep) {
@@ -586,7 +593,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 		switch (m_ConfigStep) {
@@ -710,7 +717,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingWizardGUI::UpdateGamepadDPadConfigSequence() {
 		switch (m_ConfigStep) {
@@ -844,7 +851,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 		switch (m_ConfigStep) {
@@ -1059,4 +1066,4 @@ namespace RTE {
 		}
 		return false;
 	}
-}
+} // namespace RTE

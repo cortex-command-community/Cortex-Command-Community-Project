@@ -16,7 +16,6 @@ namespace RTE {
 	class SLTerrain : public SceneLayer {
 
 	public:
-
 		EntityAllocation(SLTerrain);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -24,7 +23,11 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for the different type of layers in the SLTerrain.
 		/// </summary>
-		enum class LayerType { ForegroundLayer, BackgroundLayer, MaterialLayer };
+		enum class LayerType {
+			ForegroundLayer,
+			BackgroundLayer,
+			MaterialLayer
+		};
 
 #pragma region Creation
 		/// <summary>
@@ -43,7 +46,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the SLTerrain to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const SLTerrain &reference);
+		int Create(const SLTerrain& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -56,7 +59,12 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the SLTerrain object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { SceneLayer::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				SceneLayer::Destroy();
+			}
+			Clear();
+		}
 #pragma endregion
 
 #pragma region Data Handling
@@ -78,7 +86,7 @@ namespace RTE {
 		/// <param name="pathBase">The filepath base to the where to save the Bitmap data. This means everything up to the extension. "FG" and "Mat" etc will be added.</param>
 		/// <param name="doAsyncSaves">Whether or not to save asynchronously.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int SaveData(const std::string &pathBase, bool doAsyncSaves = true) override;
+		int SaveData(const std::string& pathBase, bool doAsyncSaves = true) override;
 
 		/// <summary>
 		/// Clears out any previously loaded bitmap data from memory.
@@ -110,19 +118,19 @@ namespace RTE {
 		/// Gets the foreground color bitmap of this SLTerrain.
 		/// </summary>
 		/// <returns>A pointer to the foreground color bitmap.</returns>
-		BITMAP * GetFGColorBitmap() { return m_FGColorLayer->GetBitmap(); }
+		BITMAP* GetFGColorBitmap() { return m_FGColorLayer->GetBitmap(); }
 
 		/// <summary>
 		/// Gets the background color bitmap of this SLTerrain.
 		/// </summary>
 		/// <returns>A pointer to the background color bitmap.</returns>
-		BITMAP * GetBGColorBitmap() { return m_BGColorLayer->GetBitmap(); }
+		BITMAP* GetBGColorBitmap() { return m_BGColorLayer->GetBitmap(); }
 
 		/// <summary>
 		/// Gets the material bitmap of this SLTerrain.
 		/// </summary>
 		/// <returns>A pointer to the material bitmap.</returns>
-		BITMAP * GetMaterialBitmap() { return m_MainBitmap; }
+		BITMAP* GetMaterialBitmap() { return m_MainBitmap; }
 
 		/// <summary>
 		/// Gets a specific pixel from the foreground color bitmap of this. LockBitmaps() must be called before using this method.
@@ -185,7 +193,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="checkBox">The box to check.</param>
 		/// <returns>Whether the box is completely buried, i.e. no corner sticks out in the Air or Cavity.</returns>
-		bool IsBoxBuried(const Box &checkBox) const;
+		bool IsBoxBuried(const Box& checkBox) const;
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -193,13 +201,13 @@ namespace RTE {
 		/// Gets a deque of unwrapped boxes which show the areas where the material layer has had objects applied to it since last call to ClearUpdatedMaterialAreas().
 		/// </summary>
 		/// <returns>Reference to the deque that has been filled with Boxes which are unwrapped and may be out of bounds of the scene!</returns>
-		std::deque<Box> & GetUpdatedMaterialAreas() { return m_UpdatedMaterialAreas; }
+		std::deque<Box>& GetUpdatedMaterialAreas() { return m_UpdatedMaterialAreas; }
 
 		/// <summary>
 		/// Adds a notification that an area of the material terrain has been updated.
 		/// </summary>
 		/// <param name="newArea">The Box defining the newly updated material area that can be unwrapped and may be out of bounds of the scene.</param>
-		void AddUpdatedMaterialArea(const Box &newArea) { m_UpdatedMaterialAreas.emplace_back(newArea); }
+		void AddUpdatedMaterialArea(const Box& newArea) { m_UpdatedMaterialAreas.emplace_back(newArea); }
 
 		/// <summary>
 		/// Removes any color pixel in the color layer of this SLTerrain wherever there is an air material pixel in the material layer.
@@ -212,7 +220,7 @@ namespace RTE {
 		/// <param name="box">Box to clean.</param>
 		/// <param name="wrapsX">Whether the scene is X-wrapped.</param>
 		/// <param name="wrapsY">Whether the scene is Y-wrapped.</param>
-		void CleanAirBox(const Box &box, bool wrapsX, bool wrapsY);
+		void CleanAirBox(const Box& box, bool wrapsX, bool wrapsY);
 
 		/// <summary>
 		/// Takes a BITMAP and scans through the pixels on this terrain for pixels which overlap with it. Erases them from the terrain and can optionally generate MOPixels based on the erased or 'dislodged' terrain pixels.
@@ -226,7 +234,7 @@ namespace RTE {
 		/// <param name="skipMOP">How many pixels to skip making MOPixels from, between each that gets made. 0 means every pixel turns into an MOPixel.</param>
 		/// <param name="maxMOPs">The max number of MOPixels to make, if they are to be made.</param>
 		/// <returns>A deque filled with the MOPixels of the terrain that are now dislodged. This will be empty if makeMOPs is false. Note that ownership of all the MOPixels in the deque IS transferred!</returns>
-		std::deque<MOPixel *> EraseSilhouette(BITMAP *sprite, const Vector &pos, const Vector &pivot, const Matrix &rotation, float scale, bool makeMOPs = true, int skipMOP = 2, int maxMOPs = 150);
+		std::deque<MOPixel*> EraseSilhouette(BITMAP* sprite, const Vector& pos, const Vector& pivot, const Matrix& rotation, float scale, bool makeMOPs = true, int skipMOP = 2, int maxMOPs = 150);
 
 		/// <summary>
 		/// Returns the direction of the out-of-bounds "orbit" for this scene, where the brain must path to and where dropships/rockets come from.
@@ -247,11 +255,10 @@ namespace RTE {
 		/// <param name="targetBitmap">The bitmap to draw to.</param>
 		/// <param name="targetBox">The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.</param>
 		/// <param name="offsetNeedsScrollRatioAdjustment">Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.</param>
-		void Draw(BITMAP *targetBitmap, Box &targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;
+		void Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;
 #pragma endregion
 
 	private:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		int m_Width; //!< The width of this SLTerrain as determined by the main (material) bitmap, in pixels.
@@ -264,9 +271,9 @@ namespace RTE {
 
 		ContentFile m_DefaultBGTextureFile; //!< The background texture file that will be used to texturize Materials that have no defined background texture.
 
-		std::vector<TerrainFrosting *> m_TerrainFrostings; //!< The TerrainFrostings that need to be placed on this SLTerrain.
-		std::vector<TerrainDebris *> m_TerrainDebris; //!< The TerrainDebris that need to be  placed on this SLTerrain.
-		std::vector<TerrainObject *> m_TerrainObjects; //!< The TerrainObjects that need to be placed on this SLTerrain.
+		std::vector<TerrainFrosting*> m_TerrainFrostings; //!< The TerrainFrostings that need to be placed on this SLTerrain.
+		std::vector<TerrainDebris*> m_TerrainDebris; //!< The TerrainDebris that need to be  placed on this SLTerrain.
+		std::vector<TerrainObject*> m_TerrainObjects; //!< The TerrainObjects that need to be placed on this SLTerrain.
 
 		std::deque<Box> m_UpdatedMaterialAreas; //!< List of areas of the material layer (main bitmap) which have been affected by new objects copied to it. These boxes are NOT wrapped, and can be out of bounds!
 
@@ -283,7 +290,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		SLTerrain(const SLTerrain &reference) = delete;
-		SLTerrain & operator=(const SLTerrain &rhs) = delete;
+		SLTerrain(const SLTerrain& reference) = delete;
+		SLTerrain& operator=(const SLTerrain& rhs) = delete;
 	};
-}
+} // namespace RTE

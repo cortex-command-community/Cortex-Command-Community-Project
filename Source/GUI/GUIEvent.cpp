@@ -13,7 +13,7 @@ GUIEvent::GUIEvent() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIEvent::GUIEvent(GUIControl *Control, int Type, int Msg, int Data) {
+GUIEvent::GUIEvent(GUIControl* Control, int Type, int Msg, int Data) {
 	assert(Control);
 	m_Control = Control;
 	m_Type = Type;
@@ -29,7 +29,7 @@ int GUIEvent::GetType() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIControl * GUIEvent::GetControl() {
+GUIControl* GUIEvent::GetControl() {
 	return m_Control;
 }
 

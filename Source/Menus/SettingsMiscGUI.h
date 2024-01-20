@@ -15,13 +15,12 @@ namespace RTE {
 	class SettingsMiscGUI {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a SettingsMiscGUI object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="parentControlManager">Pointer to the parent GUIControlManager which owns all the GUIControls of this SettingsMiscGUI. Ownership is NOT transferred!</param>
-		explicit SettingsMiscGUI(GUIControlManager *parentControlManager);
+		explicit SettingsMiscGUI(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -35,27 +34,26 @@ namespace RTE {
 		/// Handles the player interaction with the SettingsMiscGUI GUI elements.
 		/// </summary>
 		/// <param name="guiEvent">The GUIEvent containing information about the player interaction with an element.</param>
-		void HandleInputEvents(GUIEvent &guiEvent);
+		void HandleInputEvents(GUIEvent& guiEvent);
 #pragma endregion
 
 	private:
-
-		GUIControlManager *m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
+		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
 		/// <summary>
 		/// GUI elements that compose the misc settings menu screen.
 		/// </summary>
-		GUICollectionBox *m_MiscSettingsBox;
-		GUICheckbox *m_SkipIntroCheckbox;
-		GUICheckbox *m_ShowToolTipsCheckbox;
-		GUICheckbox *m_ShowLoadingScreenProgressReportCheckbox;
-		GUICheckbox *m_ShowAdvancedPerfStatsCheckbox;
-		GUICheckbox *m_MeasureLoadTimeCheckbox;
-		GUICheckbox *m_UseMonospaceConsoleFontCheckbox;
-		GUICheckbox *m_DisableFactionBuyMenuThemesCheckbox;
-		GUICheckbox *m_DisableFactionBuyMenuThemeCursorsCheckbox;
-		GUILabel *m_SceneBackgroundAutoScaleLabel;
-		GUISlider *m_SceneBackgroundAutoScaleSlider;
+		GUICollectionBox* m_MiscSettingsBox;
+		GUICheckbox* m_SkipIntroCheckbox;
+		GUICheckbox* m_ShowToolTipsCheckbox;
+		GUICheckbox* m_ShowLoadingScreenProgressReportCheckbox;
+		GUICheckbox* m_ShowAdvancedPerfStatsCheckbox;
+		GUICheckbox* m_MeasureLoadTimeCheckbox;
+		GUICheckbox* m_UseMonospaceConsoleFontCheckbox;
+		GUICheckbox* m_DisableFactionBuyMenuThemesCheckbox;
+		GUICheckbox* m_DisableFactionBuyMenuThemeCursorsCheckbox;
+		GUILabel* m_SceneBackgroundAutoScaleLabel;
+		GUISlider* m_SceneBackgroundAutoScaleSlider;
 
 #pragma region Misc Settings Handling
 		/// <summary>
@@ -65,7 +63,7 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		SettingsMiscGUI(const SettingsMiscGUI &reference) = delete;
-		SettingsMiscGUI & operator=(const SettingsMiscGUI &rhs) = delete;
+		SettingsMiscGUI(const SettingsMiscGUI& reference) = delete;
+		SettingsMiscGUI& operator=(const SettingsMiscGUI& rhs) = delete;
 	};
-}
+} // namespace RTE

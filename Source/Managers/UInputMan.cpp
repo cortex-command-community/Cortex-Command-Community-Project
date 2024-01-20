@@ -24,11 +24,12 @@ namespace RTE {
 	std::vector<Gamepad> UInputMan::s_PrevJoystickStates(Players::MaxPlayerCount);
 	std::vector<Gamepad> UInputMan::s_ChangedJoystickStates(Players::MaxPlayerCount);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::Clear() {
 		m_SkipHandlingSpecialInput = false;
-		m_TextInput.clear();;
+		m_TextInput.clear();
+		;
 		m_NumJoysticks = 0;
 		m_OverrideInput = false;
 		m_AbsoluteMousePos.Reset();
@@ -37,7 +38,7 @@ namespace RTE {
 		m_MouseSensitivity = 0.6F;
 		m_MouseWheelChange = 0;
 		m_TrapMousePos = false;
-		m_PlayerScreenMouseBounds = { 0, 0, 0, 0 };
+		m_PlayerScreenMouseBounds = {0, 0, 0, 0};
 		m_MouseTrapRadius = 350;
 		m_LastDeviceWhichControlledGUICursor = InputDevice::DEVICE_KEYB_ONLY;
 		m_DisableKeyboard = false;
@@ -53,7 +54,7 @@ namespace RTE {
 		std::fill(s_PrevMouseButtonStates.begin(), s_PrevMouseButtonStates.end(), false);
 		std::fill(s_ChangedMouseButtonStates.begin(), s_ChangedMouseButtonStates.end(), false);
 
-		for (Gamepad &gamepad: s_PrevJoystickStates) {
+		for (Gamepad& gamepad: s_PrevJoystickStates) {
 			if (gamepad.m_JoystickID != -1) {
 				SDL_GameControllerClose(SDL_GameControllerFromInstanceID(gamepad.m_JoystickID));
 				gamepad.m_JoystickID = -1;
@@ -86,18 +87,18 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int UInputMan::Initialize() {
 		int numKeys;
-		const Uint8 *keyboardState = SDL_GetKeyboardState(&numKeys);
+		const Uint8* keyboardState = SDL_GetKeyboardState(&numKeys);
 		std::copy(keyboardState, keyboardState + numKeys, s_PrevKeyStates.begin());
 
 		int controllerIndex = 0;
 
 		for (size_t index = 0; index < std::min(SDL_NumJoysticks(), static_cast<int>(Players::MaxPlayerCount)); ++index) {
 			if (SDL_IsGameController(index)) {
-				SDL_GameController *controller = SDL_GameControllerOpen(index);
+				SDL_GameController* controller = SDL_GameControllerOpen(index);
 				if (!controller) {
 					g_ConsoleMan.PrintString("ERROR: Failed to connect gamepad " + std::to_string(index) + " " + std::string(SDL_GetError()));
 					continue;
@@ -109,7 +110,7 @@ namespace RTE {
 				controllerIndex++;
 				m_NumJoysticks++;
 			} else {
-				SDL_Joystick *joy = SDL_JoystickOpen(index);
+				SDL_Joystick* joy = SDL_JoystickOpen(index);
 				if (!joy) {
 					g_ConsoleMan.PrintString("ERROR: Failed to connect joystick.");
 					continue;
@@ -123,34 +124,33 @@ namespace RTE {
 		}
 
 		m_PlayerScreenMouseBounds = {
-			0,
-			0,
-			static_cast<int>(g_FrameMan.GetPlayerFrameBufferWidth(Players::NoPlayer) * g_WindowMan.GetResMultiplier()),
-			static_cast<int>(g_FrameMan.GetPlayerFrameBufferHeight(Players::NoPlayer) * g_WindowMan.GetResMultiplier())
-		};
+		    0,
+		    0,
+		    static_cast<int>(g_FrameMan.GetPlayerFrameBufferWidth(Players::NoPlayer) * g_WindowMan.GetResMultiplier()),
+		    static_cast<int>(g_FrameMan.GetPlayerFrameBufferHeight(Players::NoPlayer) * g_WindowMan.GetResMultiplier())};
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::LoadDeviceIcons() {
-		m_DeviceIcons[InputDevice::DEVICE_KEYB_ONLY] = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "Device Keyboard"));
-		m_DeviceIcons[InputDevice::DEVICE_MOUSE_KEYB] = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "Device Mouse"));
+		m_DeviceIcons[InputDevice::DEVICE_KEYB_ONLY] = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Device Keyboard"));
+		m_DeviceIcons[InputDevice::DEVICE_MOUSE_KEYB] = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Device Mouse"));
 
 		for (int gamepad = InputDevice::DEVICE_GAMEPAD_1; gamepad < InputDevice::DEVICE_COUNT; gamepad++) {
-			m_DeviceIcons[gamepad] = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "Device Gamepad " + std::to_string(gamepad - 1)));
+			m_DeviceIcons[gamepad] = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Device Gamepad " + std::to_string(gamepad - 1)));
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector UInputMan::AnalogMoveValues(int whichPlayer) {
 		Vector moveValues(0, 0);
 		InputDevice device = m_ControlScheme.at(whichPlayer).GetDevice();
 		if (device >= InputDevice::DEVICE_GAMEPAD_1) {
 			int whichJoy = GetJoystickIndex(device);
-			const std::array<InputMapping, InputElements::INPUT_COUNT> *inputElements = m_ControlScheme.at(whichPlayer).GetInputMappings();
+			const std::array<InputMapping, InputElements::INPUT_COUNT>* inputElements = m_ControlScheme.at(whichPlayer).GetInputMappings();
 
 			// Assume axes are stretched out over up-down, and left-right.
 			if (inputElements->at(InputElements::INPUT_L_LEFT).JoyDirMapped()) {
@@ -163,12 +163,14 @@ namespace RTE {
 		return moveValues;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector UInputMan::AnalogAimValues(int whichPlayer) {
 		InputDevice device = m_ControlScheme.at(whichPlayer).GetDevice();
 
-		if (IsInMultiplayerMode()) { device = InputDevice::DEVICE_MOUSE_KEYB; }
+		if (IsInMultiplayerMode()) {
+			device = InputDevice::DEVICE_MOUSE_KEYB;
+		}
 
 		Vector aimValues(0, 0);
 		if (device == InputDevice::DEVICE_MOUSE_KEYB) {
@@ -176,7 +178,7 @@ namespace RTE {
 		}
 		if (device >= InputDevice::DEVICE_GAMEPAD_1) {
 			int whichJoy = GetJoystickIndex(device);
-			const std::array<InputMapping, InputElements::INPUT_COUNT> *inputElements = m_ControlScheme.at(whichPlayer).GetInputMappings();
+			const std::array<InputMapping, InputElements::INPUT_COUNT>* inputElements = m_ControlScheme.at(whichPlayer).GetInputMappings();
 
 			// Assume axes are stretched out over up-down, and left-right
 			if (inputElements->at(InputElements::INPUT_R_LEFT).JoyDirMapped()) {
@@ -189,7 +191,7 @@ namespace RTE {
 		return aimValues;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector UInputMan::GetMenuDirectional() {
 		Vector allInput(0, 0);
@@ -237,27 +239,35 @@ namespace RTE {
 		return allInput;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::AnyKeyOrJoyInput() const {
 		bool input = AnyKeyPress();
-		if (!input) { input = AnyJoyInput(); }
+		if (!input) {
+			input = AnyJoyInput();
+		}
 		return input;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::AnyPress() const {
 		bool pressed = false;
 
-		if (!pressed) { pressed = AnyKeyPress(); }
-		if (!pressed) { pressed = AnyMouseButtonPress(); }
-		if (!pressed) { pressed = AnyJoyPress(); }
+		if (!pressed) {
+			pressed = AnyKeyPress();
+		}
+		if (!pressed) {
+			pressed = AnyMouseButtonPress();
+		}
+		if (!pressed) {
+			pressed = AnyJoyPress();
+		}
 
 		return pressed;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::AnyStartPress(bool includeSpacebar) {
 		if (KeyPressed(SDLK_ESCAPE) || (includeSpacebar && KeyPressed(SDLK_SPACE))) {
@@ -271,7 +281,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::AnyBackPress() {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -282,7 +292,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::AnyKeyPress() const {
 		for (size_t testKey = SDL_SCANCODE_A; testKey < SDL_NUM_SCANCODES; ++testKey) {
@@ -293,7 +303,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int UInputMan::MouseUsedByPlayer() const {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
@@ -304,7 +314,7 @@ namespace RTE {
 		return Players::NoPlayer;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::DisableMouseMoving(bool disable) {
 		if (disable) {
@@ -317,7 +327,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector UInputMan::GetMouseMovement(int whichPlayer) const {
 		if (IsInMultiplayerMode() && whichPlayer >= Players::PlayerOne && whichPlayer < Players::MaxPlayerCount) {
@@ -329,7 +339,7 @@ namespace RTE {
 		return Vector(0, 0);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::SetMouseValueMagnitude(float magCap, int whichPlayer) {
 		if (IsInMultiplayerMode() && whichPlayer >= Players::PlayerOne && whichPlayer < Players::MaxPlayerCount) {
@@ -338,7 +348,7 @@ namespace RTE {
 		m_AnalogMouseData.SetMagnitude(m_MouseTrapRadius * magCap);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::SetMouseValueAngle(float angle, int whichPlayer) {
 		if (IsInMultiplayerMode() && whichPlayer >= Players::PlayerOne && whichPlayer < Players::MaxPlayerCount) {
@@ -347,16 +357,16 @@ namespace RTE {
 		m_AnalogMouseData.SetAbsRadAngle(angle);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void UInputMan::SetMousePos(const Vector &newPos, int whichPlayer) const {
+	void UInputMan::SetMousePos(const Vector& newPos, int whichPlayer) const {
 		// Only mess with the mouse if the original mouse position is not above the screen and may be grabbing the title bar of the game window
 		if (!m_DisableMouseMoving && !m_TrapMousePos && (whichPlayer == Players::NoPlayer || m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB)) {
 			SDL_WarpMouseInWindow(g_WindowMan.GetWindow(), newPos.GetFloorIntX(), newPos.GetFloorIntY());
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::AnyMouseButtonPress() const {
 		for (int button = MouseButtons::MOUSE_LEFT; button < MouseButtons::MAX_MOUSE_BUTTONS; ++button) {
@@ -367,7 +377,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::TrapMousePos(bool trap, int whichPlayer) {
 		if (!IsInMultiplayerMode() && (whichPlayer == Players::NoPlayer || m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB)) {
@@ -377,7 +387,7 @@ namespace RTE {
 		m_TrapMousePosPerPlayer[whichPlayer] = trap;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::ForceMouseWithinBox(int x, int y, int width, int height, int whichPlayer) const {
 		// Only mess with the mouse if the original mouse position is not above the screen and may be grabbing the title bar of the game window.
@@ -400,11 +410,10 @@ namespace RTE {
 				}
 			} else {
 				SDL_Rect newMouseBounds = {
-					std::clamp(m_PlayerScreenMouseBounds.x + x, m_PlayerScreenMouseBounds.x, rightMostPos),
-					std::clamp(m_PlayerScreenMouseBounds.y + y, m_PlayerScreenMouseBounds.y, bottomMostPos),
-					std::clamp(width, 0, rightMostPos - x),
-					std::clamp(height, 0, bottomMostPos - y)
-				};
+				    std::clamp(m_PlayerScreenMouseBounds.x + x, m_PlayerScreenMouseBounds.x, rightMostPos),
+				    std::clamp(m_PlayerScreenMouseBounds.y + y, m_PlayerScreenMouseBounds.y, bottomMostPos),
+				    std::clamp(width, 0, rightMostPos - x),
+				    std::clamp(height, 0, bottomMostPos - y)};
 
 				if (newMouseBounds.x >= rightMostPos || newMouseBounds.y >= bottomMostPos) {
 					g_ConsoleMan.PrintString("ERROR: Trying to force mouse wihin a box that is outside the player screen bounds!");
@@ -415,7 +424,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::ForceMouseWithinPlayerScreen(bool force, int whichPlayer) {
 		float resMultiplier = g_WindowMan.GetResMultiplier();
@@ -426,20 +435,20 @@ namespace RTE {
 
 			switch (g_ActivityMan.GetActivity()->ScreenOfPlayer(whichPlayer)) {
 				case 0:
-					m_PlayerScreenMouseBounds = { 0, 0, screenWidth, screenHeight };
+					m_PlayerScreenMouseBounds = {0, 0, screenWidth, screenHeight};
 					break;
 				case 1:
 					if (g_FrameMan.GetVSplit()) {
-						m_PlayerScreenMouseBounds = { screenWidth, 0, screenWidth, screenHeight };
+						m_PlayerScreenMouseBounds = {screenWidth, 0, screenWidth, screenHeight};
 					} else {
-						m_PlayerScreenMouseBounds = { 0, screenHeight, screenWidth, screenHeight };
+						m_PlayerScreenMouseBounds = {0, screenHeight, screenWidth, screenHeight};
 					}
 					break;
 				case 2:
-					m_PlayerScreenMouseBounds = { 0, screenHeight, screenWidth, screenHeight };
+					m_PlayerScreenMouseBounds = {0, screenHeight, screenWidth, screenHeight};
 					break;
 				case 3:
-					m_PlayerScreenMouseBounds = { screenWidth, screenHeight, screenWidth, screenHeight };
+					m_PlayerScreenMouseBounds = {screenWidth, screenHeight, screenWidth, screenHeight};
 					break;
 				default:
 					force = false;
@@ -456,12 +465,12 @@ namespace RTE {
 			}
 		} else {
 			// Set the mouse bounds to the whole window so ForceMouseWithinBox is not stuck being relative to some player screen, because it can still bind the mouse even if this doesn't.
-			m_PlayerScreenMouseBounds = { 0, 0, static_cast<int>(g_WindowMan.GetResX() * resMultiplier), static_cast<int>(g_WindowMan.GetResY() * resMultiplier) };
+			m_PlayerScreenMouseBounds = {0, 0, static_cast<int>(g_WindowMan.GetResX() * resMultiplier), static_cast<int>(g_WindowMan.GetResY() * resMultiplier)};
 			SDL_SetWindowMouseRect(g_WindowMan.GetWindow(), nullptr);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int UInputMan::GetJoystickAxisCount(int whichJoy) const {
 		if (whichJoy >= 0 && whichJoy < s_PrevJoystickStates.size()) {
@@ -470,7 +479,7 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int UInputMan::WhichJoyButtonHeld(int whichJoy) const {
 		if (whichJoy >= 0 && whichJoy < s_PrevJoystickStates.size()) {
@@ -484,7 +493,7 @@ namespace RTE {
 		return JoyButtons::JOY_NONE;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int UInputMan::WhichJoyButtonPressed(int whichJoy) const {
 		if (whichJoy >= 0 && whichJoy < s_PrevJoystickStates.size()) {
@@ -497,7 +506,7 @@ namespace RTE {
 		return JoyButtons::JOY_NONE;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float UInputMan::AnalogAxisValue(int whichJoy, int whichAxis) const {
 		if (whichJoy < s_PrevJoystickStates.size() && whichAxis < s_PrevJoystickStates[whichJoy].m_Axis.size()) {
@@ -506,14 +515,14 @@ namespace RTE {
 				return analogValue;
 			}
 		}
-		return  0;
+		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::AnyJoyInput(bool checkForPresses) const {
 		int gamepadIndex = 0;
-		for (const Gamepad &gamepad : s_PrevJoystickStates) {
+		for (const Gamepad& gamepad: s_PrevJoystickStates) {
 			for (int button = 0; button < gamepad.m_Buttons.size(); ++button) {
 				if (!checkForPresses) {
 					if (gamepad.m_Buttons[button]) {
@@ -537,7 +546,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::AnyJoyButtonPress(int whichJoy) const {
 		for (int button = 0; button < s_PrevJoystickStates[whichJoy].m_Buttons.size(); ++button) {
@@ -548,7 +557,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector UInputMan::GetNetworkAccumulatedRawMouseMovement(int player) {
 		Vector accumulatedMovement = m_NetworkAccumulatedRawMouseMovement[player];
@@ -556,7 +565,7 @@ namespace RTE {
 		return accumulatedMovement;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::ClearNetworkAccumulatedStates() {
 		for (int inputState = InputState::Pressed; inputState < InputState::InputStateCount; inputState++) {
@@ -566,7 +575,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::GetInputElementState(int whichPlayer, int whichElement, InputState whichState) {
 		if (IsInMultiplayerMode() && whichPlayer >= Players::PlayerOne && whichPlayer < Players::MaxPlayerCount) {
@@ -574,17 +583,21 @@ namespace RTE {
 		}
 		bool elementState = false;
 		InputDevice device = m_ControlScheme.at(whichPlayer).GetDevice();
-		const InputMapping *element = &(m_ControlScheme.at(whichPlayer).GetInputMappings()->at(whichElement));
+		const InputMapping* element = &(m_ControlScheme.at(whichPlayer).GetInputMappings()->at(whichElement));
 
 		if (!elementState && device == InputDevice::DEVICE_KEYB_ONLY || (device == InputDevice::DEVICE_MOUSE_KEYB && !(whichElement == InputElements::INPUT_AIM_UP || whichElement == InputElements::INPUT_AIM_DOWN))) {
 			elementState = GetKeyboardButtonState(static_cast<SDL_Scancode>(element->GetKey()), whichState);
 		}
-		if (!elementState && device == InputDevice::DEVICE_MOUSE_KEYB && m_TrapMousePos) { elementState = GetMouseButtonState(whichPlayer, element->GetMouseButton(), whichState); }
+		if (!elementState && device == InputDevice::DEVICE_MOUSE_KEYB && m_TrapMousePos) {
+			elementState = GetMouseButtonState(whichPlayer, element->GetMouseButton(), whichState);
+		}
 
 		if (!elementState && device >= InputDevice::DEVICE_GAMEPAD_1) {
 			int whichJoy = GetJoystickIndex(device);
 			elementState = GetJoystickButtonState(whichJoy, element->GetJoyButton(), whichState);
-			if (!elementState && element->JoyDirMapped()) { elementState = GetJoystickDirectionState(whichJoy, element->GetAxis(), element->GetDirection(), whichState); }
+			if (!elementState && element->JoyDirMapped()) {
+				elementState = GetJoystickDirectionState(whichJoy, element->GetAxis(), element->GetDirection(), whichState);
+			}
 		}
 		return elementState;
 	}
@@ -605,7 +618,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::GetMenuButtonState(int whichButton, InputState whichState) {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -625,7 +638,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::GetKeyboardButtonState(SDL_Scancode scancodeToTest, InputState whichState) const {
 		if (m_DisableKeyboard && (scancodeToTest >= SDL_SCANCODE_0 && scancodeToTest < SDL_SCANCODE_ESCAPE)) {
@@ -644,7 +657,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::GetMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const {
 		if (whichButton < MouseButtons::MOUSE_LEFT || whichButton >= MouseButtons::MAX_MOUSE_BUTTONS) {
@@ -668,7 +681,7 @@ namespace RTE {
 	}
 
 	bool UInputMan::GetNetworkMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const {
-		
+
 		if (whichPlayer == Players::NoPlayer || whichPlayer >= Players::MaxPlayerCount) {
 			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 				if (GetNetworkMouseButtonState(player, whichButton, whichState)) {
@@ -691,7 +704,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::GetJoystickButtonState(int whichJoy, int whichButton, InputState whichState) const {
 		if (whichJoy < 0 || whichJoy >= s_PrevJoystickStates.size() || whichButton < 0 || whichButton >= s_PrevJoystickStates[whichJoy].m_Buttons.size()) {
@@ -715,7 +728,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool UInputMan::GetJoystickDirectionState(int whichJoy, int whichAxis, int whichDir, InputState whichState) const {
 		if (whichJoy < 0 || whichJoy >= s_PrevJoystickStates.size() || whichAxis < 0 || whichAxis >= s_PrevJoystickStates[whichJoy].m_DigitalAxis.size()) {
@@ -752,20 +765,20 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void UInputMan::QueueInputEvent(const SDL_Event &inputEvent) {
+	void UInputMan::QueueInputEvent(const SDL_Event& inputEvent) {
 		m_EventQueue.emplace_back(inputEvent);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int UInputMan::Update() {
 		m_LastDeviceWhichControlledGUICursor = InputDevice::DEVICE_KEYB_ONLY;
 
 		std::fill(s_ChangedKeyStates.begin(), s_ChangedKeyStates.end(), false);
 		std::fill(s_ChangedMouseButtonStates.begin(), s_ChangedMouseButtonStates.end(), false);
-		for (Gamepad &gamepad : s_ChangedJoystickStates) {
+		for (Gamepad& gamepad: s_ChangedJoystickStates) {
 			std::fill(gamepad.m_Buttons.begin(), gamepad.m_Buttons.end(), false);
 			std::fill(gamepad.m_Axis.begin(), gamepad.m_Axis.end(), 0);
 			std::fill(gamepad.m_DigitalAxis.begin(), gamepad.m_DigitalAxis.end(), 0);
@@ -841,7 +854,7 @@ namespace RTE {
 				case SDL_CONTROLLERBUTTONUP:
 				case SDL_JOYBUTTONDOWN:
 				case SDL_JOYBUTTONUP:
-					if (std::vector<Gamepad>::iterator device = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), (inputEvent.type == SDL_CONTROLLERBUTTONDOWN || inputEvent.type == SDL_CONTROLLERBUTTONUP) ? inputEvent.cbutton.which : inputEvent.jbutton.which);  device != s_PrevJoystickStates.end()) {
+					if (std::vector<Gamepad>::iterator device = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), (inputEvent.type == SDL_CONTROLLERBUTTONDOWN || inputEvent.type == SDL_CONTROLLERBUTTONUP) ? inputEvent.cbutton.which : inputEvent.jbutton.which); device != s_PrevJoystickStates.end()) {
 						int button = -1;
 						int state = -1;
 						if (SDL_IsGameController(device->m_DeviceIndex)) {
@@ -881,7 +894,6 @@ namespace RTE {
 				default:
 					break;
 			}
-
 		}
 		m_EventQueue.clear();
 		m_RawMouseMovement *= m_MouseSensitivity;
@@ -900,7 +912,7 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::HandleSpecialInput() {
 		// If we launched into editor directly, skip the logic and quit quickly.
@@ -910,7 +922,7 @@ namespace RTE {
 		}
 
 		if (g_ActivityMan.IsInActivity()) {
-			const GameActivity *gameActivity = dynamic_cast<GameActivity *>(g_ActivityMan.GetActivity());
+			const GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity());
 			// Don't allow pausing and returning to main menu when running in server mode to not disrupt the simulation for the clients
 			if (!g_NetworkServer.IsServerModeEnabled() && AnyStartPress(false) && (!gameActivity || !gameActivity->IsBuyGUIVisible(-1))) {
 				g_ActivityMan.PauseActivity(true, FlagShiftState());
@@ -933,13 +945,13 @@ namespace RTE {
 			// Ctrl+S to save continuous ScreenDumps
 			if (KeyHeld(SDLK_s)) {
 				g_FrameMan.SaveScreenToPNG("ScreenDump");
-			// Ctrl+W to save a WorldDump
+				// Ctrl+W to save a WorldDump
 			} else if (KeyPressed(SDLK_w)) {
 				g_FrameMan.SaveWorldToPNG("WorldDump");
-			// Ctrl+M to cycle draw modes
+				// Ctrl+M to cycle draw modes
 			} else if (KeyPressed(SDLK_m)) {
 				g_SceneMan.SetLayerDrawMode((g_SceneMan.GetLayerDrawMode() + 1) % 3);
-			// Ctrl+P to toggle performance stats
+				// Ctrl+P to toggle performance stats
 			} else if (KeyPressed(SDLK_p)) {
 				g_PerformanceMan.ShowPerformanceStats(!g_PerformanceMan.IsShowingPerformanceStats());
 			} else if (KeyPressed(SDLK_F2)) {
@@ -956,10 +968,10 @@ namespace RTE {
 		} else if (!FlagCtrlState() && FlagAltState()) {
 			if (KeyPressed(SDLK_F2)) {
 				ContentFile::ReloadAllBitmaps();
-			// Alt+Enter to switch resolution multiplier
+				// Alt+Enter to switch resolution multiplier
 			} else if (KeyPressed(SDLK_RETURN)) {
 				g_WindowMan.ToggleFullscreen();
-			// Alt+W to save ScenePreviewDump (miniature WorldDump)
+				// Alt+W to save ScenePreviewDump (miniature WorldDump)
 			} else if (KeyPressed(SDLK_w)) {
 				g_FrameMan.SaveWorldPreviewToPNG("ScenePreviewDump");
 			} else if (g_PerformanceMan.IsShowingPerformanceStats()) {
@@ -986,7 +998,7 @@ namespace RTE {
 				g_ActivityMan.LoadAndLaunchGame("QuickSave");
 			} else if (KeyPressed(SDLK_F10)) {
 				g_ConsoleMan.ClearLog();
-			// F12 to save a single ScreenDump - Note that F12 triggers a breakpoint when the VS debugger is attached, regardless of config - this is by design. Thanks Microsoft.
+				// F12 to save a single ScreenDump - Note that F12 triggers a breakpoint when the VS debugger is attached, regardless of config - this is by design. Thanks Microsoft.
 			} else if (KeyPressed(SDLK_F12)) {
 				g_FrameMan.SaveScreenToPNG("ScreenDump");
 			}
@@ -1011,7 +1023,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::UpdateMouseInput() {
 		// Detect and store mouse movement input, translated to analog stick emulation
@@ -1037,9 +1049,7 @@ namespace RTE {
 			}
 		}
 	}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::UpdateJoystickAxis(std::vector<Gamepad>::iterator device, int axis, int value) {
 		if (device != s_PrevJoystickStates.end()) {
@@ -1067,7 +1077,7 @@ namespace RTE {
 			bool isAxisMapped = false;
 			if (joystickPlayer != Players::NoPlayer && deadZone > 0.0F) {
 				Vector aimValues;
-				const std::array<InputMapping, InputElements::INPUT_COUNT> *inputElements = m_ControlScheme[joystickPlayer].GetInputMappings();
+				const std::array<InputMapping, InputElements::INPUT_COUNT>* inputElements = m_ControlScheme[joystickPlayer].GetInputMappings();
 				std::array<InputElements, 4> elementsToCheck = {InputElements::INPUT_L_LEFT, InputElements::INPUT_L_UP, InputElements::INPUT_R_LEFT, InputElements::INPUT_R_UP};
 
 				for (size_t i = 0; i < elementsToCheck.size(); i += 2) {
@@ -1109,7 +1119,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::UpdateJoystickDigitalAxis() {
 		for (size_t i = 0; i < s_PrevJoystickStates.size(); ++i) {
@@ -1130,16 +1140,16 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void UInputMan::HandleGamepadHotPlug(int deviceIndex) {
-		SDL_Joystick *controller = nullptr;
+		SDL_Joystick* controller = nullptr;
 		int controllerIndex = 0;
 
 		for (controllerIndex = 0; controllerIndex < s_PrevJoystickStates.size(); ++controllerIndex) {
 			if (s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex || s_PrevJoystickStates[controllerIndex].m_DeviceIndex == -1) {
 				if (SDL_IsGameController(deviceIndex)) {
-					SDL_GameController *gameController = SDL_GameControllerOpen(deviceIndex);
+					SDL_GameController* gameController = SDL_GameControllerOpen(deviceIndex);
 					if (!gameController) {
 						std::string connectString = s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex ? "reconnect" : "connect";
 						g_ConsoleMan.PrintString("ERROR: Failed to " + connectString + " Gamepad " + std::to_string(controllerIndex + 1));
@@ -1182,8 +1192,7 @@ namespace RTE {
 		}
 	}
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	void UInputMan::UpdateNetworkMouseMovement() {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 			if (!m_NetworkAccumulatedRawMouseMovement[player].IsZero()) {
@@ -1194,24 +1203,23 @@ namespace RTE {
 			}
 			m_NetworkAccumulatedRawMouseMovement[player].Reset();
 
-
 			// Reset mouse wheel state to stop over-wheeling
 			m_NetworkMouseWheelState[player] = 0;
 		}
 	}
 
 	void UInputMan::ClearNetworkChangedState() {
-			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
-				for (int element = InputElements::INPUT_L_UP; element < InputElements::INPUT_COUNT; element++) {
-					m_NetworkServerChangedInputElementState[player][element] = false;
-				}
-				for (int mouseButton = MouseButtons::MOUSE_LEFT; mouseButton < MouseButtons::MAX_MOUSE_BUTTONS; mouseButton++) {
-					m_NetworkServerChangedMouseButtonState[player][mouseButton] = false;
-				}
-				m_NetworkMouseWheelState[player] = 0;
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			for (int element = InputElements::INPUT_L_UP; element < InputElements::INPUT_COUNT; element++) {
+				m_NetworkServerChangedInputElementState[player][element] = false;
 			}
+			for (int mouseButton = MouseButtons::MOUSE_LEFT; mouseButton < MouseButtons::MAX_MOUSE_BUTTONS; mouseButton++) {
+				m_NetworkServerChangedMouseButtonState[player][mouseButton] = false;
+			}
+			m_NetworkMouseWheelState[player] = 0;
+		}
 	}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	void UInputMan::SetNetworkInputElementState(int player, int element, bool newState) {
 		if (element >= InputElements::INPUT_L_UP && element < InputElements::INPUT_COUNT && player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
 			m_NetworkServerChangedInputElementState[player][element] = (newState != m_NetworkServerPreviousInputElementState[player][element]);
@@ -1219,7 +1227,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	void UInputMan::SetNetworkMouseButtonState(int player, int whichButton, InputState whichState, bool newState) {
 		if (whichButton >= MouseButtons::MOUSE_LEFT && whichButton < MouseButtons::MAX_MOUSE_BUTTONS && player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
 			m_NetworkServerChangedMouseButtonState[player][whichButton] = (newState != m_NetworkServerPreviousMouseButtonState[player][whichButton]);
@@ -1227,7 +1235,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	void UInputMan::StoreInputEventsForNextUpdate() {
 		// Store pressed and released events to be picked by NetworkClient during its update. These will be cleared after update so we don't care about false but we store the result regardless.
 		for (int inputState = InputState::Pressed; inputState < InputState::InputStateCount; inputState++) {
@@ -1237,7 +1245,4 @@ namespace RTE {
 		}
 	}
 
-
-
-
-}
+} // namespace RTE

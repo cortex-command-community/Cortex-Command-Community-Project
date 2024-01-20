@@ -11,7 +11,7 @@ namespace RTE {
 	/// </summary>
 	struct SoundData {
 		ContentFile SoundFile;
-		FMOD::Sound *SoundObject;
+		FMOD::Sound* SoundObject;
 		Vector Offset = Vector();
 		float MinimumAudibleDistance = 0.0F;
 		float AttenuationStartDistance = -1.0F;
@@ -24,7 +24,6 @@ namespace RTE {
 		friend struct EntityLuaBindings;
 
 	public:
-
 		SerializableOverrideMethods;
 
 		/// <summary>
@@ -47,7 +46,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the SoundSet to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const SoundSet &reference);
+		int Create(const SoundSet& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -69,21 +68,21 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reader">A Reader lined up to the value of the property to be read.</param>
 		/// <returns>SoundData for the newly read sound.</returns>
-		static SoundData ReadAndGetSoundData(Reader &reader);
+		static SoundData ReadAndGetSoundData(Reader& reader);
 
 		/// <summary>
 		/// Handles turning a SoundCelectionCycleMode from its user-friendly name in INI to its enum value, using the static SoundSelectionCycleMap.
 		/// </summary>
 		/// <param name="reader">A Reader lined up to the value of the property to be read.</param>
 		/// <returns>The appropriate SoundSelectionCycleMode for the given INI value.</returns>
-		static SoundSelectionCycleMode ReadSoundSelectionCycleMode(Reader &reader);
+		static SoundSelectionCycleMode ReadSoundSelectionCycleMode(Reader& reader);
 
 		/// <summary>
 		/// Handles writing the given SoundSelectionCycleMode out to the given Writer, using the static SoundSelectionCycleMap.
 		/// </summary>
 		/// <param name="writer">A Writer filled in with the property to write to.</param>
 		/// <param name="soundSelectionCycleMode">The SoundSelectionCycleMode to write.</param>
-		static void SaveSoundSelectionCycleMode(Writer &writer, SoundSelectionCycleMode soundSelectionCycleMode);
+		static void SaveSoundSelectionCycleMode(Writer& writer, SoundSelectionCycleMode soundSelectionCycleMode);
 #pragma endregion
 
 #pragma region SoundData and SoundSet Addition
@@ -91,14 +90,14 @@ namespace RTE {
 		/// Adds a new sound to this SoundSet, spitting out a Lua error if it fails. The sound will have default configuration.
 		/// </summary>
 		/// <param name="soundFilePath">A path to the new sound to add. This will be handled through PresetMan.</param>
-		void AddSound(const std::string &soundFilePath) { AddSound(soundFilePath, false); }
+		void AddSound(const std::string& soundFilePath) { AddSound(soundFilePath, false); }
 
 		/// <summary>
 		/// Adds a new sound to this SoundSet, either spitting out a Lua error or aborting if it fails. The sound will have default configuration.
 		/// </summary>
 		/// <param name="soundFilePath">A path to the new sound to add. This will be handled through PresetMan.</param>
 		/// <param name="abortGameForInvalidSound">Whether to abort the game if the sound couldn't be added, or just show a console error.</param>
-		void AddSound(const std::string &soundFilePath, bool abortGameForInvalidSound) { AddSound(soundFilePath, Vector(), 0, -1, abortGameForInvalidSound); }
+		void AddSound(const std::string& soundFilePath, bool abortGameForInvalidSound) { AddSound(soundFilePath, Vector(), 0, -1, abortGameForInvalidSound); }
 
 		/// <summary>
 		/// Adds a new sound to this SoundSet, spitting out a Lua error if it fails. The sound will be configured based on parameters.
@@ -107,7 +106,7 @@ namespace RTE {
 		/// <param name="offset">The offset position to play this sound at, where (0, 0) is no offset.</param>
 		/// <param name="minimumAudibleDistance">The minimum distance at which this sound will be audible. 0 means there is none, which is normally the case.</param>
 		/// <param name="attenuationStartDistance">The attenuation start distance for this sound, -1 sets it to default.</param>
-		void AddSound(const std::string &soundFilePath, const Vector &offset, float minimumAudibleDistance, float attenuationStartDistance) { AddSound(soundFilePath, offset, minimumAudibleDistance, attenuationStartDistance, false); }
+		void AddSound(const std::string& soundFilePath, const Vector& offset, float minimumAudibleDistance, float attenuationStartDistance) { AddSound(soundFilePath, offset, minimumAudibleDistance, attenuationStartDistance, false); }
 
 		/// <summary>
 		/// Adds a new sound to this SoundSet, either spitting out a Lua error or aborting if it fails. The sound will be configured based on parameters.
@@ -117,14 +116,14 @@ namespace RTE {
 		/// <param name="minimumAudibleDistance">The minimum distance at which this sound will be audible. 0 means there is none, which is normally the case.</param>
 		/// <param name="attenuationStartDistance">The attenuation start distance for this sound, -1 sets it to default.</param>
 		/// <param name="abortGameForInvalidSound">Whether to abort the game if the sound couldn't be added, or just show a console error.</param>
-		void AddSound(const std::string &soundFilePath, const Vector &offset, float minimumAudibleDistance, float attenuationStartDistance, bool abortGameForInvalidSound);
+		void AddSound(const std::string& soundFilePath, const Vector& offset, float minimumAudibleDistance, float attenuationStartDistance, bool abortGameForInvalidSound);
 
 		/// <summary>
 		/// Removes all instances of the sound with the given filepath from this SoundSet. Does not remove it from any sub-SoundSets.
 		/// </summary>
 		/// <param name="soundFilePath">The path to the sound to be removed from this SoundSet.</param>
 		/// <returns>Whether or not a sound with the given filepath was found in this SoundSet.</returns>
-		bool RemoveSound(const std::string &soundFilePath) { return RemoveSound(soundFilePath, false); }
+		bool RemoveSound(const std::string& soundFilePath) { return RemoveSound(soundFilePath, false); }
 
 		/// <summary>
 		/// Removes all instances of the sound with the given filepath from this SoundSet, optionally removing it from all sub-SoundSets as well.
@@ -132,19 +131,19 @@ namespace RTE {
 		/// <param name="soundFilePath">The path to the sound to be removed from this SoundSet.</param>
 		/// <param name="removeFromSubSoundSets">Whether or not to remove the sound from any sub-SoundSets as well as this SoundSet.</param>
 		/// <returns>Whether or not a sound with the given filepath was found in this SoundSet or, if set to remove from sub-SoundSets, any of its sub-SoundSets.</returns>
-		bool RemoveSound(const std::string &soundFilePath, bool removeFromSubSoundSets);
+		bool RemoveSound(const std::string& soundFilePath, bool removeFromSubSoundSets);
 
 		/// <summary>
 		/// Adds a copy of the given SoundData to this SoundSet.
 		/// </summary>
 		/// <param name="soundDataToAdd">The SoundData to copy to this SoundSet.</param>
-		void AddSoundData(const SoundData &soundDataToAdd) { m_SoundData.push_back(soundDataToAdd); }
+		void AddSoundData(const SoundData& soundDataToAdd) { m_SoundData.push_back(soundDataToAdd); }
 
 		/// <summary>
 		/// Adds a copy of the passed in SoundSet as a sub SoundSet of this SoundSet. Ownership IS transferred!
 		/// </summary>
 		/// <param name="soundSetToAdd">A reference to the SoundSet to be copied in as a sub SoundSet of this SoundSet. Ownership IS transferred!</param>
-		void AddSoundSet(const SoundSet &soundSetToAdd) { m_SubSoundSets.push_back(soundSetToAdd); }
+		void AddSoundSet(const SoundSet& soundSetToAdd) { m_SubSoundSets.push_back(soundSetToAdd); }
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -164,27 +163,32 @@ namespace RTE {
 		/// Sets the SoundSelectionCycleMode for this SoundSet, which is used to determine what SoundSet to select next time SelectNextSounds is called.
 		/// </summary>
 		/// <param name="newSoundSelectionCycleMOde">The new SoundSelectionCycleMode for this SoundSet.</param>
-		void SetSoundSelectionCycleMode(SoundSelectionCycleMode newSoundSelectionCycleMode) { m_SoundSelectionCycleMode = newSoundSelectionCycleMode; if (m_SoundSelectionCycleMode == SoundSelectionCycleMode::FORWARDS) { m_CurrentSelection.second = -1; } }
+		void SetSoundSelectionCycleMode(SoundSelectionCycleMode newSoundSelectionCycleMode) {
+			m_SoundSelectionCycleMode = newSoundSelectionCycleMode;
+			if (m_SoundSelectionCycleMode == SoundSelectionCycleMode::FORWARDS) {
+				m_CurrentSelection.second = -1;
+			}
+		}
 
 		/// <summary>
 		/// Fills the passed in vector with the flattened SoundData in the SoundSet, optionally only getting currently selected SoundData.
 		/// </summary>
 		/// <param name="flattenedSoundData">A reference vector of SoundData references to be filled with this SoundSet's flattened SoundData.</param>
 		/// <param name="onlyGetSelectedSoundData">Whether to only get SoundData that is currently selected, or to get all SoundData in this SoundSet.</param>
-		void GetFlattenedSoundData(std::vector<SoundData *> &flattenedSoundData, bool onlyGetSelectedSoundData);
+		void GetFlattenedSoundData(std::vector<SoundData*>& flattenedSoundData, bool onlyGetSelectedSoundData);
 
 		/// <summary>
 		/// Fills the passed in vector with the flattened SoundData in the SoundSet, optionally only getting currently selected SoundData.
 		/// </summary>
 		/// <param name="flattenedSoundData">A reference vector of SoundData references to be filled with this SoundSet's flattened SoundData.</param>
 		/// <param name="onlyGetSelectedSoundData">Whether to only get SoundData that is currently selected, or to get all SoundData in this SoundSet.</param>
-		void GetFlattenedSoundData(std::vector<const SoundData *> &flattenedSoundData, bool onlyGetSelectedSoundData) const;
+		void GetFlattenedSoundData(std::vector<const SoundData*>& flattenedSoundData, bool onlyGetSelectedSoundData) const;
 
 		/// <summary>
 		/// Gets the vector of SubSoundSets for this SoundSet.
 		/// </summary>
 		/// <returns>The vector of SubSoundSets for this SoundSet.</returns>
-		std::vector<SoundSet> & GetSubSoundSets() { return m_SubSoundSets; }
+		std::vector<SoundSet>& GetSubSoundSets() { return m_SubSoundSets; }
 #pragma endregion
 
 #pragma region Miscellaneous
@@ -200,11 +204,10 @@ namespace RTE {
 		/// Gets the class name of this Serializable.
 		/// </summary>
 		/// <returns>A string with the friendly-formatted type name of this object.</returns>
-		const std::string &GetClassName() const override { return m_sClassName; }
+		const std::string& GetClassName() const override { return m_sClassName; }
 #pragma endregion
 
 	private:
-
 		static const std::string m_sClassName; //!< A string with the friendly-formatted type name of this object.
 		static const std::unordered_map<std::string, SoundSet::SoundSelectionCycleMode> c_SoundSelectionCycleModeMap; //!< A map of strings to SoundSelectionCycleModes to support string parsing for the SoundCycleMode enum. Populated in the implementing cpp file.
 
@@ -219,4 +222,4 @@ namespace RTE {
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE

@@ -10,7 +10,6 @@ namespace RTE {
 	class ThrownDevice : public HeldDevice {
 
 	public:
-
 		EntityAllocation(ThrownDevice);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -32,7 +31,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the ThrownDevice to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const ThrownDevice &reference);
+		int Create(const ThrownDevice& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -45,12 +44,20 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { HeldDevice::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				HeldDevice::Destroy();
+			}
+			Clear();
+		}
 
 		/// <summary>
 		/// Resets the entire ThrownDevice, including its inherited members, to their default settings or values.
 		/// </summary>
-		void Reset() override { Clear(); Attachable::Reset(); }
+		void Reset() override {
+			Clear();
+			Attachable::Reset();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -130,11 +137,15 @@ namespace RTE {
 		/// <summary>
 		/// Does the calculations necessary to detect whether this ThrownDevice is at rest or not. IsAtRest() retrieves the answer.
 		/// </summary>
-		void RestDetection() override { HeldDevice::RestDetection(); if (m_Activated) { m_RestTimer.Reset(); } }
+		void RestDetection() override {
+			HeldDevice::RestDetection();
+			if (m_Activated) {
+				m_RestTimer.Reset();
+			}
+		}
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		std::shared_ptr<SoundContainer> m_ActivationSound; //!< Activation sound.
@@ -145,17 +156,16 @@ namespace RTE {
 		float m_MaxThrowVel; //!< The maximum throw velocity this gets when thrown.
 		long m_TriggerDelay; //!< Time in millisecs from the time of being thrown to triggering whatever it is that this ThrownDevice does.
 		bool m_ActivatesWhenReleased; //!< Whether this activates when its throw is started, or waits until it is released from the arm that is throwing it.
-		const MovableObject *m_StrikerLever; //!< Striker lever particle MovableObject preset instance.
+		const MovableObject* m_StrikerLever; //!< Striker lever particle MovableObject preset instance.
 
 	private:
-
 		/// <summary>
 		/// Clears all the member variables of this ThrownDevice, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		ThrownDevice(const ThrownDevice &reference) = delete;
-		ThrownDevice & operator=(const ThrownDevice &rhs) = delete;
+		ThrownDevice(const ThrownDevice& reference) = delete;
+		ThrownDevice& operator=(const ThrownDevice& rhs) = delete;
 	};
-}
+} // namespace RTE

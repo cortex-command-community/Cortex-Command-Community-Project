@@ -14,14 +14,17 @@ namespace RTE {
 		friend struct EntityLuaBindings;
 
 	public:
-
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
 		/// <summary>
 		/// Different types of logic for the Gib to use when applying velocity to its GibParticles.
 		/// </summary>
-		enum SpreadMode { SpreadRandom, SpreadEven, SpreadSpiral };
+		enum SpreadMode {
+			SpreadRandom,
+			SpreadEven,
+			SpreadSpiral
+		};
 
 #pragma region Creation
 		/// <summary>
@@ -34,7 +37,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the Gib to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Gib &reference);
+		int Create(const Gib& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -54,13 +57,13 @@ namespace RTE {
 		/// Gets the reference particle to be used as a Gib. Ownership is NOT transferred!
 		/// </summary>
 		/// <returns>A pointer to the particle to be used as a Gib.</returns>
-		const MovableObject * GetParticlePreset() const { return m_GibParticle; }
+		const MovableObject* GetParticlePreset() const { return m_GibParticle; }
 
 		/// <summary>
 		/// Sets the reference particle to be used as a Gib. Ownership is NOT transferred!
 		/// </summary>
 		/// <param name="newParticlePreset">A pointer to the new particle to be used as a Gib.</param>
-		void SetParticlePreset(const MovableObject *newParticlePreset) { m_GibParticle = newParticlePreset; }
+		void SetParticlePreset(const MovableObject* newParticlePreset) { m_GibParticle = newParticlePreset; }
 
 		/// <summary>
 		/// Gets the spawn offset of this Gib from the parent's position.
@@ -137,8 +140,7 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
-		const MovableObject *m_GibParticle; //!< The pointer to the preset instance that copies of will be created as this Gib. Not Owned.
+		const MovableObject* m_GibParticle; //!< The pointer to the preset instance that copies of will be created as this Gib. Not Owned.
 		Vector m_Offset; //!< Offset spawn position from owner/parent's position.
 		unsigned int m_Count; //!< The number of copies of the GibParticle that will be spawned.
 		float m_Spread; //!< The angle spread of the spawned GibParticle objects to each side of the parent's angle in radians.
@@ -150,7 +152,6 @@ namespace RTE {
 		SpreadMode m_SpreadMode; //!< Determines what kind of logic is used when applying velocity to the GibParticle objects.
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
 		/// <summary>
@@ -158,4 +159,4 @@ namespace RTE {
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE

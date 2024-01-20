@@ -22,7 +22,6 @@ namespace RTE {
 	class MainMenuGUI {
 
 	public:
-
 		/// <summary>
 		/// Enumeration for the results of the MainMenuGUI input and event update.
 		/// </summary>
@@ -43,14 +42,17 @@ namespace RTE {
 		/// </summary>
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this MainMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this MainMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		MainMenuGUI(AllegroScreen *guiScreen, GUIInputWrapper *guiInput) { Clear(); Create(guiScreen, guiInput); }
+		MainMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
+			Clear();
+			Create(guiScreen, guiInput);
+		}
 
 		/// <summary>
 		/// Makes the MainMenuGUI object ready for use.
 		/// </summary>
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this MainMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this MainMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		void Create(AllegroScreen *guiScreen, GUIInputWrapper *guiInput);
+		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -67,7 +69,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different sub-menu screens of the main menu.
 		/// </summary>
@@ -114,8 +115,8 @@ namespace RTE {
 
 		std::unique_ptr<GUIControlManager> m_MainMenuScreenGUIControlManager; //!< The GUIControlManager which owns all the GUIControls of the MainMenuGUI main screen. Alternative to changing skins at runtime which is expensive, since the main screen now has a unique skin.
 		std::unique_ptr<GUIControlManager> m_SubMenuScreenGUIControlManager; //!< The GUIControlManager which owns all the GUIControls of the MainMenuGUI sub-menus.
-		GUIControlManager *m_ActiveGUIControlManager; //!< The GUIControlManager that is currently being updated and drawn to the screen.
-		GUICollectionBox *m_ActiveDialogBox; // The currently active GUICollectionBox in any of the main or sub-menu screens that acts as a dialog box and requires drawing an overlay.
+		GUIControlManager* m_ActiveGUIControlManager; //!< The GUIControlManager that is currently being updated and drawn to the screen.
+		GUICollectionBox* m_ActiveDialogBox; // The currently active GUICollectionBox in any of the main or sub-menu screens that acts as a dialog box and requires drawing an overlay.
 
 		MenuScreen m_ActiveMenuScreen; //!< The currently active menu screen that is being updated and drawn to the screen. See MenuScreen enumeration.
 		MainMenuUpdateResult m_UpdateResult; //!< The result of the MainMenuGUI update. See MainMenuUpdateResult enumeration.
@@ -133,17 +134,17 @@ namespace RTE {
 		// Right now the way this works is the font graphic has different character visuals for uppercase and lowercase and the visual change happens by applying the appropriate case string when hovering/unhovering.
 		std::array<std::string, MenuButton::ResumeButton + 1> m_MainScreenButtonHoveredText; //!< Array containing uppercase strings of the main screen buttons text that are used to display the larger font when a button is hovered over.
 		std::array<std::string, MenuButton::ResumeButton + 1> m_MainScreenButtonUnhoveredText; //!< Array containing lowercase strings of the main menu screen buttons text that are used to display the smaller font when a button is not hovered over.
-		GUIButton *m_MainScreenHoveredButton; //!< The currently hovered main screen button.
+		GUIButton* m_MainScreenHoveredButton; //!< The currently hovered main screen button.
 		int m_MainScreenPrevHoveredButtonIndex; //!< The index of the previously hovered main screen button in the main menu button array.
 
 		/// <summary>
 		/// GUI elements that compose the main menu screen.
 		/// </summary>
-		GUILabel *m_VersionLabel;
-		GUILabel *m_CreditsTextLabel;
-		GUICollectionBox *m_CreditsScrollPanel;
-		std::array<GUICollectionBox *, MenuScreen::ScreenCount> m_MainMenuScreens;
-		std::array<GUIButton *, MenuButton::ButtonCount> m_MainMenuButtons;
+		GUILabel* m_VersionLabel;
+		GUILabel* m_CreditsTextLabel;
+		GUICollectionBox* m_CreditsScrollPanel;
+		std::array<GUICollectionBox*, MenuScreen::ScreenCount> m_MainMenuScreens;
+		std::array<GUIButton*, MenuButton::ButtonCount> m_MainMenuButtons;
 
 #pragma region Create Breakdown
 		/// <summary>
@@ -239,31 +240,31 @@ namespace RTE {
 		/// Handles the player interaction with the main screen GUI elements.
 		/// </summary>
 		/// <param name="guiEventControl">Pointer to the GUI element that the player interacted with.</param>
-		void HandleMainScreenInputEvents(const GUIControl *guiEventControl);
+		void HandleMainScreenInputEvents(const GUIControl* guiEventControl);
 
 		/// <summary>
 		/// Handles the player interaction with the MetaGame notice screen GUI elements.
 		/// </summary>
 		/// <param name="guiEventControl">Pointer to the GUI element that the player interacted with.</param>
-		void HandleMetaGameNoticeScreenInputEvents(const GUIControl *guiEventControl);
+		void HandleMetaGameNoticeScreenInputEvents(const GUIControl* guiEventControl);
 
 		/// <summary>
 		/// Handles the player interaction with the editor selection screen GUI elements.
 		/// </summary>
 		/// <param name="guiEventControl">Pointer to the GUI element that the player interacted with.</param>
-		void HandleEditorsScreenInputEvents(const GUIControl *guiEventControl);
+		void HandleEditorsScreenInputEvents(const GUIControl* guiEventControl);
 
 		/// <summary>
 		/// Handles the player interaction with the quit screen GUI elements.
 		/// </summary>
 		/// <param name="guiEventControl">Pointer to the GUI element that the player interacted with.</param>
-		void HandleQuitScreenInputEvents(const GUIControl *guiEventControl);
+		void HandleQuitScreenInputEvents(const GUIControl* guiEventControl);
 
 		/// <summary>
 		/// Updates the currently hovered main screen button text to give the hovered visual and updates the previously hovered button to remove the hovered visual.
 		/// </summary>
 		/// <param name="hoveredButton">Pointer to the currently hovered main screen button, if any. Acquired by GUIControlManager::GetControlUnderPoint.</param>
-		void UpdateMainScreenHoveredButton(const GUIButton *hoveredButton);
+		void UpdateMainScreenHoveredButton(const GUIButton* hoveredButton);
 #pragma endregion
 
 		/// <summary>
@@ -272,7 +273,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		MainMenuGUI(const MainMenuGUI &reference) = delete;
-		MainMenuGUI & operator=(const MainMenuGUI &rhs) = delete;
+		MainMenuGUI(const MainMenuGUI& reference) = delete;
+		MainMenuGUI& operator=(const MainMenuGUI& rhs) = delete;
 	};
-}
+} // namespace RTE

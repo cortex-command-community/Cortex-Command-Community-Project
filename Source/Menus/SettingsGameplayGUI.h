@@ -16,13 +16,12 @@ namespace RTE {
 	class SettingsGameplayGUI {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a SettingsGameplayGUI object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="parentControlManager">Pointer to the parent GUIControlManager which owns all the GUIControls of this SettingsGameplayGUI. Ownership is NOT transferred!</param>
-		explicit SettingsGameplayGUI(GUIControlManager *parentControlManager);
+		explicit SettingsGameplayGUI(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -36,34 +35,33 @@ namespace RTE {
 		/// Handles the player interaction with the SettingsInputGUI GUI elements.
 		/// </summary>
 		/// <param name="guiEvent">The GUIEvent containing information about the player interaction with an element.</param>
-		void HandleInputEvents(GUIEvent &guiEvent);
+		void HandleInputEvents(GUIEvent& guiEvent);
 #pragma endregion
 
 	private:
-
-		GUIControlManager *m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
+		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
 		/// <summary>
 		/// GUI elements that compose the gameplay settings menu screen.
 		/// </summary>
-		GUICollectionBox *m_GameplaySettingsBox;
-		GUICheckbox *m_FlashOnBrainDamageCheckbox;
-		GUICheckbox *m_BlipOnRevealUnseenCheckbox;
-		GUICheckbox *m_ShowForeignItemsCheckbox;
-		GUICheckbox *m_EnableCrabBombsCheckbox;
-		GUICheckbox *m_EndlessMetaGameCheckbox;
-		GUICheckbox *m_ShowEnemyHUDCheckbox;
-		GUICheckbox *m_EnableSmartBuyMenuNavigationCheckbox;
-		GUITextBox *m_MaxUnheldItemsTextbox;
-		GUITextBox *m_CrabBombThresholdTextbox;
+		GUICollectionBox* m_GameplaySettingsBox;
+		GUICheckbox* m_FlashOnBrainDamageCheckbox;
+		GUICheckbox* m_BlipOnRevealUnseenCheckbox;
+		GUICheckbox* m_ShowForeignItemsCheckbox;
+		GUICheckbox* m_EnableCrabBombsCheckbox;
+		GUICheckbox* m_EndlessMetaGameCheckbox;
+		GUICheckbox* m_ShowEnemyHUDCheckbox;
+		GUICheckbox* m_EnableSmartBuyMenuNavigationCheckbox;
+		GUITextBox* m_MaxUnheldItemsTextbox;
+		GUITextBox* m_CrabBombThresholdTextbox;
 
-		GUISlider *m_UnheldItemsHUDDisplayRangeSlider;
-		GUILabel *m_UnheldItemsHUDDisplayRangeLabel;
+		GUISlider* m_UnheldItemsHUDDisplayRangeSlider;
+		GUILabel* m_UnheldItemsHUDDisplayRangeLabel;
 
-		GUICheckbox *m_AlwaysDisplayUnheldItemsInStrategicModeCheckbox;
+		GUICheckbox* m_AlwaysDisplayUnheldItemsInStrategicModeCheckbox;
 
-		GUISlider *m_ScreenShakeStrengthSlider;
-		GUILabel *m_ScreenShakeStrengthLabel;
+		GUISlider* m_ScreenShakeStrengthSlider;
+		GUILabel* m_ScreenShakeStrengthLabel;
 
 #pragma region Gameplay Settings Handling
 		/// <summary>
@@ -88,7 +86,7 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		SettingsGameplayGUI(const SettingsGameplayGUI &reference) = delete;
-		SettingsGameplayGUI & operator=(const SettingsGameplayGUI &rhs) = delete;
+		SettingsGameplayGUI(const SettingsGameplayGUI& reference) = delete;
+		SettingsGameplayGUI& operator=(const SettingsGameplayGUI& rhs) = delete;
 	};
-}
+} // namespace RTE

@@ -8,9 +8,10 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	GUIInputWrapper::GUIInputWrapper(int whichPlayer, bool keyJoyMouseCursor) : GUIInput(whichPlayer, keyJoyMouseCursor) {
+	GUIInputWrapper::GUIInputWrapper(int whichPlayer, bool keyJoyMouseCursor) :
+	    GUIInput(whichPlayer, keyJoyMouseCursor) {
 		m_KeyTimer = std::make_unique<Timer>();
 		m_CursorAccelTimer = std::make_unique<Timer>();
 
@@ -20,11 +21,11 @@ namespace RTE {
 		m_KeyHoldDuration.fill(-1);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GUIInputWrapper::ConvertKeyEvent(SDL_Scancode sdlKey, int guilibKey, float elapsedS) {
 		int nKeys;
-		const Uint8 *sdlKeyState = SDL_GetKeyboardState(&nKeys);
+		const Uint8* sdlKeyState = SDL_GetKeyboardState(&nKeys);
 		if (sdlKeyState[sdlKey]) {
 			if (m_KeyHoldDuration[guilibKey] < 0) {
 				m_KeyboardBuffer[guilibKey] = GUIInput::Pushed;
@@ -46,7 +47,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GUIInputWrapper::Update() {
 		float keyElapsedTime = static_cast<float>(m_KeyTimer->GetElapsedRealTimeS());
@@ -56,7 +57,9 @@ namespace RTE {
 		UpdateMouseInput();
 
 		// If joysticks and keyboard can control the mouse cursor too.
-		if (m_KeyJoyMouseCursor) { UpdateKeyJoyMouseInput(keyElapsedTime); }
+		if (m_KeyJoyMouseCursor) {
+			UpdateKeyJoyMouseInput(keyElapsedTime);
+		}
 
 		// Update the mouse position of this GUIInput, based on the SDL mouse vars (which may have been altered by joystick or keyboard input).
 		Vector mousePos = g_UInputMan.GetAbsoluteMousePosition();
@@ -64,7 +67,7 @@ namespace RTE {
 		m_MouseY = static_cast<int>(mousePos.GetY() / static_cast<float>(g_WindowMan.GetResMultiplier()));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GUIInputWrapper::UpdateKeyboardInput(float keyElapsedTime) {
 		// Clear the keyboard buffer, we need it to check for changes.
@@ -100,13 +103,21 @@ namespace RTE {
 		m_Modifier = GUIInput::ModNone;
 		SDL_Keymod keyShifts = SDL_GetModState();
 
-		if (keyShifts & KMOD_SHIFT) { m_Modifier |= GUIInput::ModShift; }
-		if (keyShifts & KMOD_ALT) { m_Modifier |= GUIInput::ModAlt; }
-		if (keyShifts & KMOD_CTRL) { m_Modifier |= GUIInput::ModCtrl; }
-		if (keyShifts & KMOD_GUI) { m_Modifier |= GUIInput::ModCommand; }
+		if (keyShifts & KMOD_SHIFT) {
+			m_Modifier |= GUIInput::ModShift;
+		}
+		if (keyShifts & KMOD_ALT) {
+			m_Modifier |= GUIInput::ModAlt;
+		}
+		if (keyShifts & KMOD_CTRL) {
+			m_Modifier |= GUIInput::ModCtrl;
+		}
+		if (keyShifts & KMOD_GUI) {
+			m_Modifier |= GUIInput::ModCommand;
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GUIInputWrapper::UpdateMouseInput() {
 		int discard;
@@ -209,15 +220,17 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GUIInputWrapper::UpdateKeyJoyMouseInput(float keyElapsedTime) {
-		//TODO Try to not use magic numbers throughout this method.
+		// TODO Try to not use magic numbers throughout this method.
 		float mouseDenominator = g_WindowMan.GetResMultiplier();
 		Vector joyKeyDirectional = g_UInputMan.GetMenuDirectional() * 5;
 
 		// See how much to accelerate the joystick input based on how long the stick has been pushed around.
-		if (joyKeyDirectional.MagnitudeIsLessThan(0.95F)) { m_CursorAccelTimer->Reset(); }
+		if (joyKeyDirectional.MagnitudeIsLessThan(0.95F)) {
+			m_CursorAccelTimer->Reset();
+		}
 
 		float acceleration = 0.25F + static_cast<float>(std::min(m_CursorAccelTimer->GetElapsedRealTimeS(), 0.5)) * 20.0F;
 		Vector newMousePos = g_UInputMan.GetAbsoluteMousePosition();
@@ -248,4 +261,4 @@ namespace RTE {
 			m_MouseButtonsEvents[0] = GUIInput::None;
 		}
 	}
-}
+} // namespace RTE

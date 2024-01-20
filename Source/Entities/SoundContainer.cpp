@@ -8,24 +8,22 @@ namespace RTE {
 	ConcreteClassInfo(SoundContainer, Entity, 50);
 
 	const std::unordered_map<std::string, SoundContainer::SoundOverlapMode> SoundContainer::c_SoundOverlapModeMap = {
-		{"Overlap", SoundContainer::SoundOverlapMode::OVERLAP},
-		{"Restart", SoundContainer::SoundOverlapMode::RESTART},
-		{"Ignore Play", SoundContainer::SoundOverlapMode::IGNORE_PLAY}
-	};
+	    {"Overlap", SoundContainer::SoundOverlapMode::OVERLAP},
+	    {"Restart", SoundContainer::SoundOverlapMode::RESTART},
+	    {"Ignore Play", SoundContainer::SoundOverlapMode::IGNORE_PLAY}};
 
 	const std::unordered_map<std::string, SoundContainer::BusRouting> SoundContainer::c_BusRoutingMap = {
-		{"SFX", SoundContainer::BusRouting::SFX},
-		{"UI", SoundContainer::BusRouting::UI},
-		{"Music", SoundContainer::BusRouting::MUSIC}
-	};
+	    {"SFX", SoundContainer::BusRouting::SFX},
+	    {"UI", SoundContainer::BusRouting::UI},
+	    {"Music", SoundContainer::BusRouting::MUSIC}};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SoundContainer::SoundContainer() {
 		Clear();
 	}
 
-	SoundContainer::SoundContainer(const SoundContainer &reference) {
+	SoundContainer::SoundContainer(const SoundContainer& reference) {
 		Clear();
 		Create(reference);
 	}
@@ -34,7 +32,7 @@ namespace RTE {
 		Destroy(true);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SoundContainer::Clear() {
 		m_TopLevelSoundSet = std::make_shared<SoundSet>();
@@ -60,9 +58,9 @@ namespace RTE {
 		m_PitchVariation = 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SoundContainer::Create(const SoundContainer &reference) {
+	int SoundContainer::Create(const SoundContainer& reference) {
 		Entity::Create(reference);
 
 		m_TopLevelSoundSet->Create(*reference.m_TopLevelSoundSet);
@@ -88,9 +86,9 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SoundContainer::Create(const std::string &soundFilePath, bool immobile, bool affectedByGlobalPitch, BusRouting busRouting) {
+	int SoundContainer::Create(const std::string& soundFilePath, bool immobile, bool affectedByGlobalPitch, BusRouting busRouting) {
 		m_TopLevelSoundSet->AddSound(soundFilePath, true);
 		SetImmobile(immobile);
 		SetAffectedByGlobalPitch(affectedByGlobalPitch);
@@ -98,11 +96,11 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SoundContainer::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
-		
+
 		MatchProperty("SpecialBehaviour_TopLevelSoundSet", { reader >> *m_TopLevelSoundSet; });
 		MatchProperty("AddSound", { m_TopLevelSoundSet->AddSoundData(SoundSet::ReadAndGetSoundData(reader)); });
 		MatchProperty("AddSoundSet", {
@@ -118,7 +116,7 @@ namespace RTE {
 			} else {
 				try {
 					m_SoundOverlapMode = static_cast<SoundOverlapMode>(std::stoi(soundOverlapModeString));
-				} catch (const std::exception &) {
+				} catch (const std::exception&) {
 					reader.ReportError("Cycle mode " + soundOverlapModeString + " is invalid.");
 				}
 			}
@@ -130,7 +128,7 @@ namespace RTE {
 			} else {
 				try {
 					m_BusRouting = static_cast<BusRouting>(std::stoi(busRoutingString));
-				} catch (const std::exception &) {
+				} catch (const std::exception&) {
 					reader.ReportError("Tried to route to non-existent sound bus " + busRoutingString);
 				}
 			}
@@ -139,13 +137,17 @@ namespace RTE {
 		MatchProperty("AttenuationStartDistance", { reader >> m_AttenuationStartDistance; });
 		MatchProperty("CustomPanValue", {
 			reader >> m_CustomPanValue;
-			if (m_CustomPanValue < -1.0f || m_CustomPanValue > 1.0f) { reader.ReportError("SoundContainer CustomPanValue must be between -1 and 1."); }
+			if (m_CustomPanValue < -1.0f || m_CustomPanValue > 1.0f) {
+				reader.ReportError("SoundContainer CustomPanValue must be between -1 and 1.");
+			}
 		});
 		MatchProperty("PanningStrengthMultiplier", { reader >> m_PanningStrengthMultiplier; });
 		MatchProperty("LoopSetting", { reader >> m_Loops; });
 		MatchProperty("Priority", {
 			reader >> m_Priority;
-			if (m_Priority < 0 || m_Priority > 256) { reader.ReportError("SoundContainer priority must be between 256 (lowest priority) and 0 (highest priority)."); }
+			if (m_Priority < 0 || m_Priority > 256) {
+				reader.ReportError("SoundContainer priority must be between 256 (lowest priority) and 0 (highest priority).");
+			}
 		});
 		MatchProperty("AffectedByGlobalPitch", { reader >> m_AffectedByGlobalPitch; });
 		MatchProperty("Position", { reader >> m_Pos; });
@@ -156,9 +158,9 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	int SoundContainer::Save(Writer &writer) const {
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	int SoundContainer::Save(Writer& writer) const {
 		Entity::Save(writer);
 
 		// Due to writer limitations, the top level SoundSet has to be explicitly written out, even though SoundContainer standard behaviour is to hide it in INI and just have properties be part of the SoundContainer.
@@ -204,18 +206,18 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SoundContainer::HasAnySounds() const {
 		return m_TopLevelSoundSet->HasAnySounds();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SoundContainer::GetLength(LengthOfSoundType type) const {
 		if (!m_SoundPropertiesUpToDate) {
 			// Todo - use a post-load fixup stage instead of lazily initializing shit everywhere... Eugh.
-			const_cast<SoundContainer *>(this)->UpdateSoundProperties();
+			const_cast<SoundContainer*>(this)->UpdateSoundProperties();
 			const_cast<SoundContainer*>(this)->m_TopLevelSoundSet->SelectNextSounds();
 		}
 
@@ -223,7 +225,7 @@ namespace RTE {
 		m_TopLevelSoundSet->GetFlattenedSoundData(flattenedSoundData, type == LengthOfSoundType::NextPlayed);
 
 		float lengthMilliseconds = 0.0f;
-		for (const SoundData *selectedSoundData : flattenedSoundData) {
+		for (const SoundData* selectedSoundData: flattenedSoundData) {
 			unsigned int length;
 			selectedSoundData->SoundObject->getLength(&length, FMOD_TIMEUNIT_MS);
 			lengthMilliseconds = std::max(lengthMilliseconds, static_cast<float>(length));
@@ -232,31 +234,31 @@ namespace RTE {
 		return lengthMilliseconds;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SoundContainer::SetTopLevelSoundSet(const SoundSet &newTopLevelSoundSet) {
+	void SoundContainer::SetTopLevelSoundSet(const SoundSet& newTopLevelSoundSet) {
 		*m_TopLevelSoundSet = newTopLevelSoundSet;
 		m_SoundPropertiesUpToDate = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::vector<std::size_t> SoundContainer::GetSelectedSoundHashes() const {
 		std::vector<size_t> soundHashes;
-		std::vector<const SoundData *> flattenedSoundData;
+		std::vector<const SoundData*> flattenedSoundData;
 		m_TopLevelSoundSet->GetFlattenedSoundData(flattenedSoundData, false);
-		for (const SoundData *selectedSoundData : flattenedSoundData) {
+		for (const SoundData* selectedSoundData: flattenedSoundData) {
 			soundHashes.push_back(selectedSoundData->SoundFile.GetHash());
 		}
 		return soundHashes;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	const SoundData * SoundContainer::GetSoundDataForSound(const FMOD::Sound *sound) const {
-		std::vector<const SoundData *> flattenedSoundData;
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	const SoundData* SoundContainer::GetSoundDataForSound(const FMOD::Sound* sound) const {
+		std::vector<const SoundData*> flattenedSoundData;
 		m_TopLevelSoundSet->GetFlattenedSoundData(flattenedSoundData, false);
-		for (const SoundData *soundData : flattenedSoundData) {
+		for (const SoundData* soundData: flattenedSoundData) {
 			if (sound == soundData->SoundObject) {
 				return soundData;
 			}
@@ -264,7 +266,7 @@ namespace RTE {
 		return nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SoundContainer::Play(int player) {
 		if (HasAnySounds()) {
@@ -276,19 +278,18 @@ namespace RTE {
 				}
 			}
 			return g_AudioMan.PlaySoundContainer(this, player);
-
 		}
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FMOD_RESULT SoundContainer::UpdateSoundProperties() {
 		FMOD_RESULT result = FMOD_OK;
 
-		std::vector<SoundData *> flattenedSoundData;
+		std::vector<SoundData*> flattenedSoundData;
 		m_TopLevelSoundSet->GetFlattenedSoundData(flattenedSoundData, false);
-		for (SoundData *soundData : flattenedSoundData) {
+		for (SoundData* soundData: flattenedSoundData) {
 			FMOD_MODE soundMode = (m_Loops == 0) ? FMOD_LOOP_OFF : FMOD_LOOP_NORMAL;
 			if (m_Immobile) {
 				soundMode |= FMOD_2D;
@@ -308,4 +309,4 @@ namespace RTE {
 
 		return result;
 	}
-}
+} // namespace RTE

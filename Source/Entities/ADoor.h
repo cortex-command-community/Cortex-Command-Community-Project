@@ -13,7 +13,6 @@ namespace RTE {
 	class ADoor : public Actor {
 
 	public:
-
 		EntityAllocation(ADoor);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -44,7 +43,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the ADoor to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const ADoor &reference);
+		int Create(const ADoor& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -62,7 +61,10 @@ namespace RTE {
 		/// <summary>
 		/// Resets the entire ADoor, including its inherited members, to their default settings or values.
 		/// </summary>
-		void Reset() override { Clear(); Actor::Reset(); }
+		void Reset() override {
+			Clear();
+			Actor::Reset();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -70,13 +72,13 @@ namespace RTE {
 		/// Gets the moving door Attachable of this ADoor
 		/// </summary>
 		/// <returns>A pointer to the door Attachable of this. Ownership is NOT transferred!</returns>
-		Attachable * GetDoor() const { return m_Door; }
+		Attachable* GetDoor() const { return m_Door; }
 
 		/// <summary>
 		/// Sets the moving door Attachable for this ADoor.
 		/// </summary>
 		/// <param name="newDoor">The new moving door attachable to use.</param>
-		void SetDoor(Attachable *newDoor);
+		void SetDoor(Attachable* newDoor);
 
 		/// <summary>
 		/// Gets the current state of the door.
@@ -106,49 +108,49 @@ namespace RTE {
 		/// Gets this ADoor's door move start sound. Ownership is NOT transferred!
 		/// </summary>
 		/// <returns>The SoundContainer for this ADoor's door move start sound.</returns>
-		SoundContainer * GetDoorMoveStartSound() const { return m_DoorMoveStartSound.get(); }
+		SoundContainer* GetDoorMoveStartSound() const { return m_DoorMoveStartSound.get(); }
 
 		/// <summary>
 		/// Sets this ADoor's door move start sound. Ownership IS transferred!
 		/// </summary>
 		/// <param name="newSound">The new SoundContainer for this ADoor's door move start sound.</param>
-		void SetDoorMoveStartSound(SoundContainer *newSound);
+		void SetDoorMoveStartSound(SoundContainer* newSound);
 
 		/// <summary>
 		/// Gets this ADoor's door move sound. Ownership is NOT transferred!
 		/// </summary>
 		/// <returns>The SoundContainer for this ADoor's door move sound.</returns>
-		SoundContainer * GetDoorMoveSound() const { return m_DoorMoveSound.get(); }
+		SoundContainer* GetDoorMoveSound() const { return m_DoorMoveSound.get(); }
 
 		/// <summary>
 		/// Sets this ADoor's door move sound. Ownership IS transferred!
 		/// </summary>
 		/// <param name="newSound">The new SoundContainer for this ADoor's door move sound.</param>
-		void SetDoorMoveSound(SoundContainer *newSound);
+		void SetDoorMoveSound(SoundContainer* newSound);
 
 		/// <summary>
 		/// Gets this ADoor's door direction change sound. Ownership is NOT transferred!
 		/// </summary>
 		/// <returns>The SoundContainer for this ADoor's door direction change sound.</returns>
-		SoundContainer * GetDoorDirectionChangeSound() const { return m_DoorDirectionChangeSound.get(); }
+		SoundContainer* GetDoorDirectionChangeSound() const { return m_DoorDirectionChangeSound.get(); }
 
 		/// <summary>
 		/// Sets this ADoor's door direction change sound. Ownership IS transferred!
 		/// </summary>
 		/// <param name="newSound">The new SoundContainer for this ADoor's door direction change sound.</param>
-		void SetDoorDirectionChangeSound(SoundContainer *newSound);
+		void SetDoorDirectionChangeSound(SoundContainer* newSound);
 
 		/// <summary>
 		/// Gets this ADoor's door move end sound. Ownership is NOT transferred!
 		/// </summary>
 		/// <returns>The SoundContainer for this ADoor's door move end sound.</returns>
-		SoundContainer * GetDoorMoveEndSound() const { return m_DoorMoveEndSound.get(); }
+		SoundContainer* GetDoorMoveEndSound() const { return m_DoorMoveEndSound.get(); }
 
 		/// <summary>
 		/// Sets this ADoor's door move end sound. Ownership IS transferred!
 		/// </summary>
 		/// <param name="newSound">The new SoundContainer for this ADoor's door move end sound.</param>
-		void SetDoorMoveEndSound(SoundContainer *newSound);
+		void SetDoorMoveEndSound(SoundContainer* newSound);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -186,7 +188,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="impactImpulse">The impulse (kg * m/s) of the impact causing the gibbing to happen.</param>
 		/// <param name="movableObjectToIgnore">A pointer to an MO which the Gibs and Attachables should not be colliding with.</param>
-		void GibThis(const Vector &impactImpulse = Vector(), MovableObject *movableObjectToIgnore = nullptr) override;
+		void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr) override;
 
 		/// <summary>
 		/// Ensures all attachables and wounds are positioned and rotated correctly. Must be run when this ADoor is added to MovableMan to avoid issues with Attachables spawning in at (0, 0).
@@ -205,11 +207,10 @@ namespace RTE {
 		/// <param name="targetPos">The absolute position of the target bitmap's upper left corner in the Scene.</param>
 		/// <param name="whichScreen">Which player's screen this is being drawn to. May affect what HUD elements get drawn etc.</param>
 		/// <param name="playerControlled">Whether or not this MovableObject is currently player controlled (not applicable for ADoor)</param>
-		void DrawHUD(BITMAP *targetBitmap, const Vector &targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
+		void DrawHUD(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		int m_InitialSpriteAnimDuration; //!< This stores the original SpriteAnimDuration value so we can drive the death spin-up animation using LERP. For internal use only.
@@ -218,7 +219,7 @@ namespace RTE {
 		Timer m_SensorTimer; //!< Times the exit interval.
 		long m_SensorInterval; //!< The delay between each sensing pass in ms.
 
-		Attachable *m_Door; //!< Actual door module that moves. Owned by this.
+		Attachable* m_Door; //!< Actual door module that moves. Owned by this.
 
 		DoorState m_DoorState; //!< Current door action state.
 		DoorState m_DoorStateOnStop; //!< The state this door was in when it was stopped. For internal use only.
@@ -237,7 +238,7 @@ namespace RTE {
 		bool m_ResumeAfterStop; //!< Whether the door is starting movement after being forced stopped. For internal use only.
 		bool m_ChangedDirectionAfterStop; //!< Whether the door changed directions while moving between states. For internal use only.
 		double m_DoorMoveStopTime; //!< The elapsed time of m_DoorMoveTimer when the door was forced stopped. For internal use only.
-		
+
 		Timer m_ResetToDefaultStateTimer; //!< Timer for the resetting to the default state.
 		int m_ResetToDefaultStateDelay; //!< How long the door stays in the non-default state before returning to the default state.
 
@@ -252,11 +253,10 @@ namespace RTE {
 
 		std::unique_ptr<SoundContainer> m_DoorMoveStartSound; //!< Sound played when the door starts moving from fully open/closed position towards the opposite end.
 		std::unique_ptr<SoundContainer> m_DoorMoveSound; //!< Sound played while the door is moving between open/closed position.
-		std::unique_ptr<SoundContainer> m_DoorDirectionChangeSound; //!< Sound played when the door is interrupted while moving and changes directions. 
+		std::unique_ptr<SoundContainer> m_DoorDirectionChangeSound; //!< Sound played when the door is interrupted while moving and changes directions.
 		std::unique_ptr<SoundContainer> m_DoorMoveEndSound; //!< Sound played when the door stops moving and is at fully open/closed position.
 
 	private:
-
 #pragma region Update Breakdown
 		/// <summary>
 		/// Iterates through the sensor list looking for actors and acts accordingly. Resets to the default state if none are found and past the delay timer. This is called from Update().
@@ -295,7 +295,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		ADoor(const ADoor &reference) = delete;
-		ADoor & operator=(const ADoor &rhs) = delete;
+		ADoor(const ADoor& reference) = delete;
+		ADoor& operator=(const ADoor& rhs) = delete;
 	};
-}
+} // namespace RTE

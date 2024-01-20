@@ -8,7 +8,6 @@ namespace RTE {
 	class GUIReader {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a GUIReader object in system memory. Create() should be called before using the object.
@@ -20,7 +19,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="fileName">Path to the file to open for reading. If the file doesn't exist the stream will fail to open.</param>
 		/// <returns>An error return value signaling success or any particular failure.  Anything below 0 is an error signal.</returns>
-		int Create(const std::string &fileName);
+		int Create(const std::string& fileName);
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -28,7 +27,7 @@ namespace RTE {
 		/// Gets a pointer to the istream of this reader.
 		/// </summary>
 		/// <returns>A pointer to the istream object for this reader.</returns>
-		std::istream * GetStream() const;
+		std::istream* GetStream() const;
 
 		/// <summary>
 		/// Gets the path of the current file this reader is reading from.
@@ -87,7 +86,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="stringToTrim">String to remove whitespace from.</param>
 		/// <returns>The string that was passed in, sans whitespace in the front and end.</returns>
-		std::string TrimString(const std::string &stringToTrim) const;
+		std::string TrimString(const std::string& stringToTrim) const;
 
 		/// <summary>
 		/// Discards all whitespace, newlines and comment lines (which start with '//') so that the next thing to be read will be actual data.
@@ -107,7 +106,7 @@ namespace RTE {
 		/// Makes an error message box pop up for the user that tells them something went wrong with the reading, and where.
 		/// </summary>
 		/// <param name="errorDesc">The message describing what's wrong.</param>
-		void ReportError(const std::string &errorDesc) const;
+		void ReportError(const std::string& errorDesc) const;
 #pragma endregion
 
 #pragma region Operator Overloads
@@ -116,22 +115,21 @@ namespace RTE {
 		/// </summary>
 		/// <param name="var">A reference to the variable that will be filled by the extracted data.</param>
 		/// <returns>A GUIReader reference for further use in an expression.</returns>
-		GUIReader & operator>>(bool &var);
-		GUIReader & operator>>(char &var);
-		GUIReader & operator>>(unsigned char &var);
-		GUIReader & operator>>(short &var);
-		GUIReader & operator>>(unsigned short &var);
-		GUIReader & operator>>(int &var);
-		GUIReader & operator>>(unsigned int &var);
-		GUIReader & operator>>(long &var);
-		GUIReader & operator>>(unsigned long &var);
-		GUIReader & operator>>(float &var);
-		GUIReader & operator>>(double &var);
-		GUIReader & operator>>(std::string &var);
+		GUIReader& operator>>(bool& var);
+		GUIReader& operator>>(char& var);
+		GUIReader& operator>>(unsigned char& var);
+		GUIReader& operator>>(short& var);
+		GUIReader& operator>>(unsigned short& var);
+		GUIReader& operator>>(int& var);
+		GUIReader& operator>>(unsigned int& var);
+		GUIReader& operator>>(long& var);
+		GUIReader& operator>>(unsigned long& var);
+		GUIReader& operator>>(float& var);
+		GUIReader& operator>>(double& var);
+		GUIReader& operator>>(std::string& var);
 #pragma endregion
 
 	protected:
-
 		/// <summary>
 		/// A struct containing information from the currently used stream.
 		/// </summary>
@@ -139,10 +137,10 @@ namespace RTE {
 			/// <summary>
 			/// Constructor method used to instantiate a StreamInfo object in system memory.
 			/// </summary>
-			StreamInfo(std::ifstream *stream, const std::string &filePath, int currentLine, int prevIndent);
+			StreamInfo(std::ifstream* stream, const std::string& filePath, int currentLine, int prevIndent);
 
 			// NOTE: These members are owned by the reader that owns this struct, so are not deleted when this is destroyed.
-			std::ifstream *Stream; //!< Currently used stream, is not on the StreamStack until a new stream is opened.
+			std::ifstream* Stream; //!< Currently used stream, is not on the StreamStack until a new stream is opened.
 			std::string FilePath; //!< Currently used stream's filepath.
 			int CurrentLine; //!< The line number the stream is on.
 			int PreviousIndent; //!< Count of tabs encountered on the last line DiscardEmptySpace() discarded.
@@ -169,7 +167,6 @@ namespace RTE {
 		int m_ObjectEndings;
 
 	private:
-
 #pragma region Reading Operations
 		/// <summary>
 		/// When ReadPropName encounters the property name "IncludeFile", it will automatically call this function to get started reading on that file.
@@ -192,7 +189,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		GUIReader(const GUIReader &reference) = delete;
-		GUIReader & operator=(const GUIReader &rhs) = delete;
+		GUIReader(const GUIReader& reference) = delete;
+		GUIReader& operator=(const GUIReader& rhs) = delete;
 	};
-}
+} // namespace RTE

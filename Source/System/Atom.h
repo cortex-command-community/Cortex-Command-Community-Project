@@ -9,7 +9,10 @@ namespace RTE {
 	class SLTerrain;
 	class MovableObject;
 
-	enum { HITOR = 0, HITEE = 1 };
+	enum {
+		HITOR = 0,
+		HITEE = 1
+	};
 
 #pragma region HitData
 	/// <summary>
@@ -17,12 +20,12 @@ namespace RTE {
 	/// </summary>
 	struct HitData {
 
-		MovableObject *Body[2]; //!< Pointers to the two hitting bodies. If hitee is 0, that means collision with terrain. The HitData struct doesn't own these.
-		MovableObject *RootBody[2]; //!< Pointers to root parents of the two hitting bodies. If hitee is 0, that means collision with terrain. The HitData struct doesn't own these.
+		MovableObject* Body[2]; //!< Pointers to the two hitting bodies. If hitee is 0, that means collision with terrain. The HitData struct doesn't own these.
+		MovableObject* RootBody[2]; //!< Pointers to root parents of the two hitting bodies. If hitee is 0, that means collision with terrain. The HitData struct doesn't own these.
 
 		Vector BitmapNormal; //!< The approximated normal vector of the bitmap that the hitee is presenting to the hittor at the collision point. The inverse of this is the one representing the hittor bitmap.
 
-		const Material *HitMaterial[2]; //!< The material of the respective bodies at the hit point.
+		const Material* HitMaterial[2]; //!< The material of the respective bodies at the hit point.
 
 		float TotalMass[2]; //!< Total mass of each body.
 		float MomInertia[2]; //!< Moment of inertia. If 0, assume to be a point mass.
@@ -55,7 +58,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">A HitData reference.</param>
 		/// <returns>A reference to the changed HitData.</returns>
-		HitData & operator=(const HitData &rhs);
+		HitData& operator=(const HitData& rhs);
 
 		/// <summary>
 		/// Clears all the member variables of this HitData, effectively resetting the members of this abstraction level only.
@@ -70,7 +73,6 @@ namespace RTE {
 	class Atom : public Serializable {
 
 	public:
-
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
@@ -84,7 +86,12 @@ namespace RTE {
 		/// Copy constructor method used to instantiate an Atom object identical to an already existing one.
 		/// </summary>
 		/// <param name="reference">An Atom object which is passed in by reference.</param>
-		Atom(const Atom &reference) { if (this != &reference) { Clear(); Create(reference); } }
+		Atom(const Atom& reference) {
+			if (this != &reference) {
+				Clear();
+				Create(reference);
+			}
+		}
 
 		/// <summary>
 		/// Convenience constructor to both instantiate an Atom in memory and Create it at the same time.
@@ -94,7 +101,10 @@ namespace RTE {
 		/// <param name="owner">The owner MovableObject of this Atom. Ownership is NOT transferred!</param>
 		/// <param name="trailColor">The trail color.</param>
 		/// <param name="trailLength">The trail length. If 0, no trail will be drawn.</param>
-		Atom(const Vector &offset, Material const *material, MovableObject *owner, Color trailColor = Color(), int trailLength = 0) { Clear(); Create(offset, material, owner, trailColor, trailLength); }
+		Atom(const Vector& offset, Material const* material, MovableObject* owner, Color trailColor = Color(), int trailLength = 0) {
+			Clear();
+			Create(offset, material, owner, trailColor, trailLength);
+		}
 
 		/// <summary>
 		/// Convenience constructor to both instantiate an Atom in memory and Create it at the same time.
@@ -104,14 +114,17 @@ namespace RTE {
 		/// <param name="owner">The owner MovableObject of this Atom. Ownership is NOT transferred!</param>
 		/// <param name="trailColor">The trail color.</param>
 		/// <param name="trailLength">The trail length. If 0, no trail will be drawn.</param>
-		Atom(const Vector &offset, unsigned char materialID, MovableObject *owner, Color trailColor = Color(), int trailLength = 0) { Clear(); Create(offset, g_SceneMan.GetMaterialFromID(materialID), owner, trailColor, trailLength); }
+		Atom(const Vector& offset, unsigned char materialID, MovableObject* owner, Color trailColor = Color(), int trailLength = 0) {
+			Clear();
+			Create(offset, g_SceneMan.GetMaterialFromID(materialID), owner, trailColor, trailLength);
+		}
 
 		/// <summary>
 		/// Creates an Atom to be identical to another, by deep copy.
 		/// </summary>
 		/// <param name="reference">A reference to the Atom to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Atom &reference);
+		int Create(const Atom& reference);
 
 		/// <summary>
 		/// Makes the Atom object ready for use.
@@ -122,7 +135,7 @@ namespace RTE {
 		/// <param name="trailColor">The trail color.</param>
 		/// <param name="trailLength">The trail length. If 0, no trail will be drawn.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Vector &offset, Material const *material, MovableObject *owner, Color trailColor = Color(), int trailLength = 0);
+		int Create(const Vector& offset, Material const* material, MovableObject* owner, Color trailColor = Color(), int trailLength = 0);
 #pragma endregion
 
 #pragma region Destruction
@@ -142,7 +155,7 @@ namespace RTE {
 		/// Grabs from the pre-allocated pool, an available chunk of memory the exact size of an Atom. OWNERSHIP IS TRANSFERRED!
 		/// </summary>
 		/// <returns>A pointer to the pre-allocated pool memory. OWNERSHIP IS TRANSFERRED!</returns>
-		static void * GetPoolMemory();
+		static void* GetPoolMemory();
 
 		/// <summary>
 		/// Adds a certain number of newly allocated instances to this' pool.
@@ -155,7 +168,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="returnedMemory">The raw chunk of memory that is being returned. Needs to be the same size as an Atom. OWNERSHIP IS TRANSFERRED!</param>
 		/// <returns>The count of outstanding memory chunks after this was returned.</returns>
-		static int ReturnPoolMemory(void *returnedMemory);
+		static int ReturnPoolMemory(void* returnedMemory);
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -163,13 +176,13 @@ namespace RTE {
 		/// Gets the current owner MovableObject of this AtomGroup.
 		/// </summary>
 		/// <returns>A const pointer to the owner.</returns>
-		const MovableObject * GetOwner() const { return m_OwnerMO; }
+		const MovableObject* GetOwner() const { return m_OwnerMO; }
 
 		/// <summary>
 		/// Sets the current owner MovableObject of this AtomGroup.
 		/// </summary>
 		/// <param name="newOwner">A pointer to the new owner. Ownership is NOT transferred!</param>
-		void SetOwner(MovableObject *newOwner) { m_OwnerMO = newOwner; }
+		void SetOwner(MovableObject* newOwner) { m_OwnerMO = newOwner; }
 
 		/// <summary>
 		/// Gets the group ID of this Atom.
@@ -187,13 +200,13 @@ namespace RTE {
 		/// Gets the material of this Atom.
 		/// </summary>
 		/// <returns>The material of this Atom.</returns>
-		Material const * GetMaterial() const { return m_Material ? m_Material : g_SceneMan.GetMaterialFromID(g_MaterialAir); }
+		Material const* GetMaterial() const { return m_Material ? m_Material : g_SceneMan.GetMaterialFromID(g_MaterialAir); }
 
 		/// <summary>
 		/// Sets the material of this Atom.
 		/// </summary>
 		/// <param name="newMat">The new material of this Atom.</param>
-		void SetMaterial(const Material *newMat) { m_Material = newMat; }
+		void SetMaterial(const Material* newMat) { m_Material = newMat; }
 
 		/// <summary>
 		/// Gets the Color of this Atom's trail.
@@ -235,25 +248,25 @@ namespace RTE {
 		/// Gets the offset vector that was first set for this Atom. The GetOffset may have additional offsets baked into it if this is part of an group.
 		/// </summary>
 		/// <returns>The original offset Vector.</returns>
-		const Vector & GetOriginalOffset() const { return m_OriginalOffset; }
+		const Vector& GetOriginalOffset() const { return m_OriginalOffset; }
 
 		/// <summary>
 		/// Gets the offset vector.
 		/// </summary>
 		/// <returns>The current offset Vector.</returns>
-		const Vector & GetOffset() const { return m_Offset; }
+		const Vector& GetOffset() const { return m_Offset; }
 
 		/// <summary>
 		/// Sets a new offset vector for the collision calculations.
 		/// </summary>
 		/// <param name="newOffset">A const reference to a Vector that will be used as offset.</param>
-		void SetOffset(const Vector &newOffset) { m_Offset = newOffset; }
+		void SetOffset(const Vector& newOffset) { m_Offset = newOffset; }
 
 		/// <summary>
 		/// Gets the surface normal of this vector, if it has been successfully calculated. If not, it'll be a 0 vector.
 		/// </summary>
 		/// <returns>The current normalized surface normal Vector of this.</returns>
-		const Vector & GetNormal() const { return m_Normal; }
+		const Vector& GetNormal() const { return m_Normal; }
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -264,7 +277,7 @@ namespace RTE {
 		/// <param name="sprite">The bitmap to check against. Ownership IS NOT transferred!</param>
 		/// <param name="spriteCenter">Where on the bitmap the center of the object is. This atom's offset will be applied automatically before checking for its normal.</param>
 		/// <returns>Whether normal was successfully derived from the bitmap. If not, then a provisional one is derived from the offset.</returns>
-		bool CalculateNormal(BITMAP *sprite, Vector spriteCenter);
+		bool CalculateNormal(BITMAP* sprite, Vector spriteCenter);
 #pragma endregion
 
 #pragma region Collision
@@ -272,13 +285,13 @@ namespace RTE {
 		/// Gets the stored data struct on the last collision experienced by this Atom.
 		/// </summary>
 		/// <returns>The Vector describing the velocity of this Atom at the last time it hit something.</returns>
-		HitData & GetHitData() { return m_LastHit; }
+		HitData& GetHitData() { return m_LastHit; }
 
 		/// <summary>
 		/// Sets the HitData struct this Atom uses to represent the last hit it experienced.
 		/// </summary>
 		/// <param name="newHitData">A reference to a HitData struct that will be copied to the Atom's.</param>
-		void SetHitData(const HitData &newHitData) { m_LastHit = newHitData; }
+		void SetHitData(const HitData& newHitData) { m_LastHit = newHitData; }
 
 		/// <summary>
 		/// Checks whether this Atom is set to ignore collisions with the terrain.
@@ -309,7 +322,7 @@ namespace RTE {
 		/// AtomGroup may set this shared list of ignored MOIDs to avoid setting and removing ignored MOIDs for every atom one by one. The list is maintained only by AtomGroup, Atom never owns it.
 		/// </summary>
 		/// <param name="ignoreMOIDsByGroup">New MOIDs list to ignore.</param>
-		void SetIgnoreMOIDsByGroup(std::vector<MOID> const * ignoreMOIDsByGroup) { m_IgnoreMOIDsByGroup = ignoreMOIDsByGroup; };
+		void SetIgnoreMOIDsByGroup(std::vector<MOID> const* ignoreMOIDsByGroup) { m_IgnoreMOIDsByGroup = ignoreMOIDsByGroup; };
 
 		/// <summary>
 		/// Clear the list of MOIDs that this Atom is set to ignore collisions with during its next travel sequence.
@@ -351,7 +364,7 @@ namespace RTE {
 		/// </summary>
 		/// <remarks>Collision data should already be set by SetHitData().</remarks>
 		/// <returns>The resulting HitData of this Atom with all the information about the collision filled out.</returns>
-		HitData & TerrHitResponse();
+		HitData& TerrHitResponse();
 #pragma endregion
 
 #pragma region Travel
@@ -446,28 +459,33 @@ namespace RTE {
 		/// </summary>
 		/// <param name="size"></param>
 		/// <returns></returns>
-		static void *operator new (size_t size) { return Atom::GetPoolMemory(); }
+		static void* operator new(size_t size) { return Atom::GetPoolMemory(); }
 
 		/// <summary>
 		/// Delete operator overload for the pool deallocation of Atoms.
 		/// </summary>
 		/// <param name="instance"></param>
-		static void operator delete (void *instance) { Atom::ReturnPoolMemory(instance); }
+		static void operator delete(void* instance) { Atom::ReturnPoolMemory(instance); }
 
 		/// <summary>
 		/// An assignment operator for setting one Atom equal to another.
 		/// </summary>
 		/// <param name="rhs">An Atom reference.</param>
 		/// <returns>A reference to the changed Atom.</returns>
-		Atom & operator=(const Atom &rhs) { if (this != &rhs) { Destroy(); Create(rhs); } return *this; }
+		Atom& operator=(const Atom& rhs) {
+			if (this != &rhs) {
+				Destroy();
+				Create(rhs);
+			}
+			return *this;
+		}
 #pragma endregion
 
 	protected:
-
 		static constexpr int c_NormalCheckCount = 16; //!< Array size for offsets to form circle in s_NormalChecks.
 
 		static std::mutex s_MemoryPoolMutex;
-		static std::vector<void *> s_AllocatedPool; //!< Pool of pre-allocated Atoms.
+		static std::vector<void*> s_AllocatedPool; //!< Pool of pre-allocated Atoms.
 		static int s_PoolAllocBlockCount; //!< The number of instances to fill up the pool of Atoms with each time it runs dry.
 		static int s_InstancesInUse; //!< The number of allocated instances passed out from the pool.
 		static const int s_NormalChecks[c_NormalCheckCount][2]; //!< This forms a circle around the Atom's offset center, to check for key color pixels in order to determine the normal at the Atom's position.
@@ -475,7 +493,7 @@ namespace RTE {
 		Vector m_Offset; //!< The offset of this Atom for collision calculations.
 		Vector m_OriginalOffset; //!< This offset is before altering the m_Offset for use in composite groups.
 		Vector m_Normal; //!< The current normalized surface normal Vector of this Atom.
-		Material const * m_Material; //!< The material this Atom is made of.
+		Material const* m_Material; //!< The material this Atom is made of.
 		int m_SubgroupID; //!< Identifying ID for adding and removing atoms from AtomGroups.
 
 		bool m_StepWasTaken; //!< Whether the last call to StepForward actually resulted in a step or not.
@@ -490,10 +508,10 @@ namespace RTE {
 		bool m_MOHitsDisabled; //!< Temporary disabling of MO collisions for this.
 		bool m_TerrainHitsDisabled; //!< Temporary disabling of terrain collisions for this. Will be re-enabled once out of terrain again.
 
-		MovableObject *m_OwnerMO; //!< The owner of this Atom. The owner is obviously not owned by this Atom.
+		MovableObject* m_OwnerMO; //!< The owner of this Atom. The owner is obviously not owned by this Atom.
 		MOID m_IgnoreMOID; //!< Special ignored MOID.
 		std::vector<MOID> m_IgnoreMOIDs; //!< ignore hits with MOs of these IDs.
-		std::vector<MOID> const * m_IgnoreMOIDsByGroup; //!< Also ignore hits with MOs of these IDs. This one may be set externally by atom group.
+		std::vector<MOID> const* m_IgnoreMOIDsByGroup; //!< Also ignore hits with MOs of these IDs. This one may be set externally by atom group.
 
 		HitData m_LastHit; //!< Data containing information on the last collision experienced by this Atom.
 		MOID m_MOIDHit; //!< The MO, if any, this Atom hit on the last step.
@@ -527,7 +545,6 @@ namespace RTE {
 		bool m_SubStepped;
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this.
 
 		/// <summary>
@@ -535,4 +552,4 @@ namespace RTE {
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE

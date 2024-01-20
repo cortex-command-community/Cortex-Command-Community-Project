@@ -92,7 +92,7 @@ namespace std {
 	/// Custom std::hash specialization to allow using std::array as key in hash table based containers.
 	/// </summary>
 	template <typename Type, size_t Size> struct hash<array<Type, Size>> {
-		size_t operator()(const array<Type, Size> &arr) const {
+		size_t operator()(const array<Type, Size>& arr) const {
 			hash<Type> hasher;
 			size_t outHash = 0;
 			for (size_t i = 0; i < Size; ++i) {
@@ -102,4 +102,4 @@ namespace std {
 			return outHash;
 		}
 	};
-}
+} // namespace std

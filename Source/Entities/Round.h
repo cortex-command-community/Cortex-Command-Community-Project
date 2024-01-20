@@ -12,7 +12,6 @@ namespace RTE {
 	class Round : public Entity {
 
 	public:
-
 		EntityAllocation(Round);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -34,7 +33,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the Round to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Round &reference);
+		int Create(const Round& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -47,12 +46,20 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the Round object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { Entity::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				Entity::Destroy();
+			}
+			Clear();
+		}
 
 		/// <summary>
 		/// Resets the entire Round, including its inherited members, to their default settings or values.
 		/// </summary>
-		void Reset() override { Clear(); Entity::Reset(); }
+		void Reset() override {
+			Clear();
+			Entity::Reset();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -72,13 +79,13 @@ namespace RTE {
 		/// Gets the next particle contained in this Round. Ownership is NOT transferred!
 		/// </summary>
 		/// <returns>A pointer to the next particle, or 0 if this Round is empty.</returns>
-		const MovableObject * GetNextParticle() const { return (m_ParticleCount > 0) ? m_Particle : 0; }
+		const MovableObject* GetNextParticle() const { return (m_ParticleCount > 0) ? m_Particle : 0; }
 
 		/// <summary>
 		/// Gets the next particle contained in this Round, and removes it from the stack. Ownership IS transferred!
 		/// </summary>
 		/// <returns>A pointer to the next particle, or 0 if this Round is empty.</returns>
-		MovableObject * PopNextParticle();
+		MovableObject* PopNextParticle();
 
 		/// <summary>
 		/// Gets the velocity at which this round is to be fired.
@@ -108,7 +115,7 @@ namespace RTE {
 		/// Gets the shell casing preset of this Round. Ownership IS NOT transferred!
 		/// </summary>
 		/// <returns>A pointer to the shell casing preset, or 0 if this Round has no shell.</returns>
-		const MovableObject * GetShell() const { return m_Shell; }
+		const MovableObject* GetShell() const { return m_Shell; }
 
 		/// <summary>
 		/// Gets the maximum velocity at which this round's shell is to be ejected.
@@ -126,7 +133,7 @@ namespace RTE {
 		/// Gets the extra firing sound of this Round, which can be played in addition to the weapon's own firing sound. OWNERSHIP IS NOT TRANSFERRED!
 		/// </summary>
 		/// <returns>A sound with the firing sample of this round.</returns>
-		SoundContainer * GetFireSound() { return &m_FireSound; }
+		SoundContainer* GetFireSound() { return &m_FireSound; }
 #pragma endregion
 
 #pragma region AI Properties
@@ -150,17 +157,16 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
-		const MovableObject *m_Particle; //!< Round particle MovableObject preset instance.
+		const MovableObject* m_Particle; //!< Round particle MovableObject preset instance.
 		int m_ParticleCount; //!< How many particle copies there are in this Round.
 		float m_FireVel; //!< The velocity with which this Round is fired.
 		bool m_InheritsFirerVelocity; //!< Whether or not this Round should inherit velocity from its firer.
 		float m_Separation; //!< The range of separation between particles in this Round, in pixels.
 		float m_LifeVariation; //!< The random variation in life time of each fired particle, in percentage of their life time.
 
-		const MovableObject *m_Shell; //!< Shell particle MovableObject preset instance.
+		const MovableObject* m_Shell; //!< Shell particle MovableObject preset instance.
 		float m_ShellVel; //!< The maximum velocity with which this Round's shell/casing is launched.
 
 		SoundContainer m_FireSound; //!< The extra firing audio of this Round being fired.
@@ -170,14 +176,13 @@ namespace RTE {
 		int m_AIPenetration; //!< For overriding the bullets ability to penetrate material when executing the AI shooting scripts.
 
 	private:
-
 		/// <summary>
 		/// Clears all the member variables of this Round, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		Round(const Round &reference) = delete;
-		Round & operator=(const Round &rhs) = delete;
+		Round(const Round& reference) = delete;
+		Round& operator=(const Round& rhs) = delete;
 	};
-}
+} // namespace RTE

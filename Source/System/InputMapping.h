@@ -10,7 +10,6 @@ namespace RTE {
 	class InputMapping : public Serializable {
 
 	public:
-
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
@@ -25,7 +24,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the InputMapping to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const InputMapping &reference);
+		int Create(const InputMapping& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -46,7 +45,7 @@ namespace RTE {
 		/// Sets the description of the input scheme preset that this element is part of, if any preset has been set for this element's scheme.
 		/// </summary>
 		/// <param name="presetDescription">The description associated with this element by the scheme preset, if any has been set. This string should be empty otherwise.</param>
-		void SetPresetDescription(const std::string &presetDescription) { m_PresetDescription = presetDescription; }
+		void SetPresetDescription(const std::string& presetDescription) { m_PresetDescription = presetDescription; }
 #pragma endregion
 
 #pragma region Keyboard Getters and Setters
@@ -95,7 +94,11 @@ namespace RTE {
 		/// </summary>
 		/// <param name="newAxis">The number of the axis this should be mapped to.</param>
 		/// <param name="newDirection">The number of the direction this should be mapped to.</param>
-		void SetDirection(int newAxis, int newDirection) { m_DirectionMapped = true; m_AxisMap = newAxis; m_DirectionMap = newDirection; }
+		void SetDirection(int newAxis, int newDirection) {
+			m_DirectionMapped = true;
+			m_AxisMap = newAxis;
+			m_DirectionMap = newDirection;
+		}
 
 		/// <summary>
 		/// Gets the joystick button mapping.
@@ -117,7 +120,6 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
 		std::string m_PresetDescription; //!< The friendly description that is associated with the scheme preset element, if any is set.
 
 		int m_KeyMap; //!< The keyboard key mapping.
@@ -130,7 +132,6 @@ namespace RTE {
 		int m_DirectionMap; //!< The joystick direction mapping.
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
 		/// <summary>
@@ -138,4 +139,4 @@ namespace RTE {
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE

@@ -11,7 +11,6 @@ namespace RTE {
 	class InputScheme : public Serializable {
 
 	public:
-
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
@@ -42,7 +41,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the InputScheme to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const InputScheme &reference);
+		int Create(const InputScheme& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -87,7 +86,7 @@ namespace RTE {
 		/// Gets the InputMappings for this.
 		/// </summary>
 		/// <returns>The input mappings array, which is INPUT_COUNT large.</returns>
-		std::array<InputMapping, InputElements::INPUT_COUNT> * GetInputMappings() { return &m_InputMappings; }
+		std::array<InputMapping, InputElements::INPUT_COUNT>* GetInputMappings() { return &m_InputMappings; }
 #pragma endregion
 
 #pragma region Input Mapping Getters and Setters
@@ -181,7 +180,6 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
 		InputDevice m_ActiveDevice; //!< The currently active device for this scheme.
 		InputPreset m_SchemePreset; //!< The preset this scheme was last set to, if any.
 
@@ -192,7 +190,6 @@ namespace RTE {
 		std::array<InputMapping, InputElements::INPUT_COUNT> m_InputMappings; //!< The input element mappings of this InputScheme.
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
 		/// <summary>
@@ -200,4 +197,4 @@ namespace RTE {
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE

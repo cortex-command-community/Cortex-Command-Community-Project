@@ -18,13 +18,12 @@ namespace RTE {
 	class SettingsVideoGUI {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a SettingsVideoGUI object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="parentControlManager">Pointer to the parent GUIControlManager which owns all the GUIControls of this SettingsVideoGUI. Ownership is NOT transferred!</param>
-		explicit SettingsVideoGUI(GUIControlManager *parentControlManager);
+		explicit SettingsVideoGUI(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -38,7 +37,7 @@ namespace RTE {
 		/// Gets the currently active GUICollectionBox that acts as a dialog box and requires disabling navigation and drawing an overlay.
 		/// </summary>
 		/// <returns>Pointer to the GUICollectionBox that is the currently active dialog box, if any. Ownership is NOT transferred!</returns>
-		GUICollectionBox * GetActiveDialogBox() const;
+		GUICollectionBox* GetActiveDialogBox() const;
 
 		/// <summary>
 		/// Closes the currently active GUICollectionBox that acts as a dialog box by hiding it. If the active dialog box is a sub-menu, disables it.
@@ -51,11 +50,10 @@ namespace RTE {
 		/// Handles the player interaction with the SettingsVideoGUI GUI elements.
 		/// </summary>
 		/// <param name="guiEvent">The GUIEvent containing information about the player interaction with an element.</param>
-		void HandleInputEvents(GUIEvent &guiEvent);
+		void HandleInputEvents(GUIEvent& guiEvent);
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different types of quick resolution change options.
 		/// </summary>
@@ -80,7 +78,8 @@ namespace RTE {
 			/// <param name="width">Resolution width.</param>
 			/// <param name="height">Resolution height.</param>
 			/// <param name="upscaled">Whether resolution is upscaled.</param>
-			PresetResolutionRecord(int width, int height, float scale) : Width(width), Height(height), Scale(scale) {}
+			PresetResolutionRecord(int width, int height, float scale) :
+			    Width(width), Height(height), Scale(scale) {}
 
 			/// <summary>
 			/// Makes UI displayable string with resolution info.
@@ -93,7 +92,7 @@ namespace RTE {
 			/// </summary>
 			/// <param name="rhs">The PresetResolutionRecord to compare with.</param>
 			/// <returns>Bool with the result of the comparison.</returns>
-			bool operator<(const PresetResolutionRecord &rhs) const {
+			bool operator<(const PresetResolutionRecord& rhs) const {
 				if (Width == rhs.Width && Height == rhs.Height) {
 					return Scale > rhs.Scale;
 				} else if (Width == rhs.Width) {
@@ -103,40 +102,40 @@ namespace RTE {
 			}
 		};
 
-		GUIControlManager *m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
+		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
 		std::vector<PresetResolutionRecord> m_PresetResolutions; //!< Contains PresetResolutionRecords for all the supported preset resolutions.
 
 		int m_NewResX; //!< The new resolution width to use when changing resolution.
 		int m_NewResY; //!< The new resolution height to use when changing resolution.
 		float m_NewResMultiplier; //!< How much the new resolution should be upscaled when changing resolution.
-		bool m_NewFullscreen;  //!< Whether the game will be windowed or fullscreen.
+		bool m_NewFullscreen; //!< Whether the game will be windowed or fullscreen.
 
 		/// <summary>
 		/// GUI elements that compose the video settings menu screen.
 		/// </summary>
-		GUICollectionBox *m_VideoSettingsBox;
-		GUIRadioButton *m_TwoPlayerSplitscreenHSplitRadioButton;
-		GUIRadioButton *m_TwoPlayerSplitscreenVSplitRadioButton;
-		GUICheckbox *m_EnableVSyncCheckbox;
-		GUICheckbox *m_FullscreenCheckbox;
-		GUICheckbox *m_UseMultiDisplaysCheckbox;
-		GUIRadioButton *m_PresetResolutionRadioButton;
-		GUIRadioButton *m_CustomResolutionRadioButton;
-		GUICollectionBox *m_PresetResolutionBox;
-		GUIComboBox *m_PresetResolutionComboBox;
-		GUIButton *m_PresetResolutionApplyButton;
-		GUILabel *m_PresetResolutionMessageLabel;
-		GUICollectionBox *m_CustomResolutionBox;
-		GUITextBox *m_CustomResolutionWidthTextBox;
-		GUITextBox *m_CustomResolutionHeightTextBox;
-		GUIComboBox *m_CustomResolutionMultiplierComboBox;
-		GUILabel *m_CustomResolutionMessageLabel;
-		GUIButton *m_CustomResolutionApplyButton;
-		GUICollectionBox *m_ResolutionChangeDialogBox;
-		GUIButton *m_ResolutionChangeConfirmButton;
-		GUIButton *m_ResolutionChangeCancelButton;
-		std::array<GUIButton *, ResolutionQuickChangeType::QuickChangeTypeCount> m_ResolutionQuickToggleButtons;
+		GUICollectionBox* m_VideoSettingsBox;
+		GUIRadioButton* m_TwoPlayerSplitscreenHSplitRadioButton;
+		GUIRadioButton* m_TwoPlayerSplitscreenVSplitRadioButton;
+		GUICheckbox* m_EnableVSyncCheckbox;
+		GUICheckbox* m_FullscreenCheckbox;
+		GUICheckbox* m_UseMultiDisplaysCheckbox;
+		GUIRadioButton* m_PresetResolutionRadioButton;
+		GUIRadioButton* m_CustomResolutionRadioButton;
+		GUICollectionBox* m_PresetResolutionBox;
+		GUIComboBox* m_PresetResolutionComboBox;
+		GUIButton* m_PresetResolutionApplyButton;
+		GUILabel* m_PresetResolutionMessageLabel;
+		GUICollectionBox* m_CustomResolutionBox;
+		GUITextBox* m_CustomResolutionWidthTextBox;
+		GUITextBox* m_CustomResolutionHeightTextBox;
+		GUIComboBox* m_CustomResolutionMultiplierComboBox;
+		GUILabel* m_CustomResolutionMessageLabel;
+		GUIButton* m_CustomResolutionApplyButton;
+		GUICollectionBox* m_ResolutionChangeDialogBox;
+		GUIButton* m_ResolutionChangeConfirmButton;
+		GUIButton* m_ResolutionChangeCancelButton;
+		std::array<GUIButton*, ResolutionQuickChangeType::QuickChangeTypeCount> m_ResolutionQuickToggleButtons;
 
 #pragma region Create Breakdown
 		/// <summary>
@@ -198,7 +197,7 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		SettingsVideoGUI(const SettingsVideoGUI &reference) = delete;
-		SettingsVideoGUI & operator=(const SettingsVideoGUI &rhs) = delete;
+		SettingsVideoGUI(const SettingsVideoGUI& reference) = delete;
+		SettingsVideoGUI& operator=(const SettingsVideoGUI& rhs) = delete;
 	};
-}
+} // namespace RTE

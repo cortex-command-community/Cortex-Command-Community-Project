@@ -10,7 +10,6 @@ namespace RTE {
 	class Reader {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a Reader object in system memory. Create() should be called before using the object.
@@ -25,7 +24,7 @@ namespace RTE {
 		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.</param>
 		/// <param name="failOK">Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.</param>
 		/// <param name="nonModulePath">Whether this Reader is reading from path that is not a DataModule and should just read it as provided.</param>
-		Reader(const std::string &fileName, bool overwrites = false, const ProgressCallback &progressCallback = nullptr, bool failOK = false, bool nonModulePath = false);
+		Reader(const std::string& fileName, bool overwrites = false, const ProgressCallback& progressCallback = nullptr, bool failOK = false, bool nonModulePath = false);
 
 		/// <summary>
 		/// Constructor method used to instantiate a Reader object in system memory and make it ready for reading from the passed in file path.
@@ -34,7 +33,7 @@ namespace RTE {
 		/// <param name="overwrites">Whether object definitions read here overwrite existing ones with the same names.</param>
 		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.</param>
 		/// <param name="failOK">Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.</param>
-		Reader(std::unique_ptr<std::istream> &&stream, bool overwrites = false, const ProgressCallback &progressCallback = nullptr, bool failOK = false);
+		Reader(std::unique_ptr<std::istream>&& stream, bool overwrites = false, const ProgressCallback& progressCallback = nullptr, bool failOK = false);
 
 		/// <summary>
 		/// Makes the Reader object ready for use.
@@ -44,7 +43,7 @@ namespace RTE {
 		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.</param>
 		/// <param name="failOK">Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.</param>
 		/// <returns>An error return value signaling success or any particular failure.  Anything below 0 is an error signal.</returns>
-		int Create(const std::string &fileName, bool overwrites = false, const ProgressCallback &progressCallback = nullptr, bool failOK = false);
+		int Create(const std::string& fileName, bool overwrites = false, const ProgressCallback& progressCallback = nullptr, bool failOK = false);
 
 		/// <summary>
 		/// Makes the Reader object ready for use.
@@ -54,7 +53,7 @@ namespace RTE {
 		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.</param>
 		/// <param name="failOK">Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.</param>
 		/// <returns>An error return value signaling success or any particular failure.  Anything below 0 is an error signal.</returns>
-		int Create(std::unique_ptr<std::istream> &&stream, bool overwrites = false, const ProgressCallback &progressCallback = nullptr, bool failOK = false);
+		int Create(std::unique_ptr<std::istream>&& stream, bool overwrites = false, const ProgressCallback& progressCallback = nullptr, bool failOK = false);
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -62,7 +61,7 @@ namespace RTE {
 		/// Gets the name of the DataModule this Reader is reading from.
 		/// </summary>
 		/// <returns>The name of the DataModule this reader is reading from.</returns>
-		const std::string & GetReadModuleName() const { return m_DataModuleName; }
+		const std::string& GetReadModuleName() const { return m_DataModuleName; }
 
 		/// <summary>
 		/// Gets the ID of the DataModule this Reader is reading from. If the ID is invalid, attempts to get a valid ID using the DataModule name.
@@ -74,7 +73,7 @@ namespace RTE {
 		/// Gets a pointer to the istream of this reader.
 		/// </summary>
 		/// <returns>A pointer to the istream object for this reader.</returns>
-		std::istream * GetStream() const { return m_Stream.get(); }
+		std::istream* GetStream() const { return m_Stream.get(); }
 
 		/// <summary>
 		/// Gets the path of the current file this reader is reading from.
@@ -156,7 +155,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="stringToTrim">String to remove whitespace from.</param>
 		/// <returns>The string that was passed in, sans whitespace in the front and end.</returns>
-		std::string TrimString(const std::string &stringToTrim) const;
+		std::string TrimString(const std::string& stringToTrim) const;
 
 		/// <summary>
 		/// Discards all whitespace, newlines and comment lines (which start with '//') so that the next thing to be read will be actual data.
@@ -176,7 +175,7 @@ namespace RTE {
 		/// Makes an error message box pop up for the user that tells them something went wrong with the reading, and where.
 		/// </summary>
 		/// <param name="errorDesc">The message describing what's wrong.</param>
-		void ReportError(const std::string &errorDesc) const;
+		void ReportError(const std::string& errorDesc) const;
 #pragma endregion
 
 #pragma region Operator Overloads
@@ -185,24 +184,74 @@ namespace RTE {
 		/// </summary>
 		/// <param name="var">A reference to the variable that will be filled by the extracted data.</param>
 		/// <returns>A Reader reference for further use in an expression.</returns>
-		Reader & operator>>(bool &var) { DiscardEmptySpace(); *m_Stream >> var; return *this; }
-		Reader & operator>>(char &var) { DiscardEmptySpace(); *m_Stream >> var; return *this; }
-		Reader & operator>>(unsigned char &var) { DiscardEmptySpace(); int temp; *m_Stream >> temp; var = temp; return *this; }
-		Reader & operator>>(short &var) { DiscardEmptySpace(); *m_Stream >> var; return *this; }
-		Reader & operator>>(unsigned short &var) { DiscardEmptySpace(); *m_Stream >> var; return *this; }
-		Reader & operator>>(int &var) { DiscardEmptySpace(); *m_Stream >> var; return *this; }
-		Reader & operator>>(unsigned int &var) { DiscardEmptySpace(); *m_Stream >> var; return *this; }
-		Reader & operator>>(long &var) { DiscardEmptySpace(); *m_Stream >> var; return *this; }
-		Reader & operator>>(unsigned long &var) { DiscardEmptySpace(); *m_Stream >> var; return *this; }
+		Reader& operator>>(bool& var) {
+			DiscardEmptySpace();
+			*m_Stream >> var;
+			return *this;
+		}
+		Reader& operator>>(char& var) {
+			DiscardEmptySpace();
+			*m_Stream >> var;
+			return *this;
+		}
+		Reader& operator>>(unsigned char& var) {
+			DiscardEmptySpace();
+			int temp;
+			*m_Stream >> temp;
+			var = temp;
+			return *this;
+		}
+		Reader& operator>>(short& var) {
+			DiscardEmptySpace();
+			*m_Stream >> var;
+			return *this;
+		}
+		Reader& operator>>(unsigned short& var) {
+			DiscardEmptySpace();
+			*m_Stream >> var;
+			return *this;
+		}
+		Reader& operator>>(int& var) {
+			DiscardEmptySpace();
+			*m_Stream >> var;
+			return *this;
+		}
+		Reader& operator>>(unsigned int& var) {
+			DiscardEmptySpace();
+			*m_Stream >> var;
+			return *this;
+		}
+		Reader& operator>>(long& var) {
+			DiscardEmptySpace();
+			*m_Stream >> var;
+			return *this;
+		}
+		Reader& operator>>(unsigned long& var) {
+			DiscardEmptySpace();
+			*m_Stream >> var;
+			return *this;
+		}
 		// Yeah, this is dumb - read as double and cast.
 		// This is because, for whatever fucking reason, iostream can save out floats at a precision that it's then unable to read...
-		Reader & operator>>(float &var) { DiscardEmptySpace(); double var2; *m_Stream >> var2; var = static_cast<float>(var2); return *this; }
-		Reader & operator>>(double &var) { DiscardEmptySpace(); *m_Stream >> var; return *this; }
-		Reader & operator>>(std::string &var) { var.assign(ReadLine()); return *this; }
+		Reader& operator>>(float& var) {
+			DiscardEmptySpace();
+			double var2;
+			*m_Stream >> var2;
+			var = static_cast<float>(var2);
+			return *this;
+		}
+		Reader& operator>>(double& var) {
+			DiscardEmptySpace();
+			*m_Stream >> var;
+			return *this;
+		}
+		Reader& operator>>(std::string& var) {
+			var.assign(ReadLine());
+			return *this;
+		}
 #pragma endregion
 
 	protected:
-
 		/// <summary>
 		/// A struct containing information from the currently used stream.
 		/// </summary>
@@ -210,10 +259,11 @@ namespace RTE {
 			/// <summary>
 			/// Constructor method used to instantiate a StreamInfo object in system memory.
 			/// </summary>
-			StreamInfo(std::istream *stream, const std::string &filePath, int currentLine, int prevIndent) : Stream(stream), FilePath(filePath), CurrentLine(currentLine), PreviousIndent(prevIndent) {}
+			StreamInfo(std::istream* stream, const std::string& filePath, int currentLine, int prevIndent) :
+			    Stream(stream), FilePath(filePath), CurrentLine(currentLine), PreviousIndent(prevIndent) {}
 
 			// NOTE: These members are owned by the reader that owns this struct, so are not deleted when this is destroyed.
-			std::istream *Stream; //!< Currently used stream, is not on the StreamStack until a new stream is opened.
+			std::istream* Stream; //!< Currently used stream, is not on the StreamStack until a new stream is opened.
 			std::string FilePath; //!< Currently used stream's filepath.
 			int CurrentLine; //!< The line number the stream is on.
 			int PreviousIndent; //!< Count of tabs encountered on the last line DiscardEmptySpace() discarded.
@@ -250,7 +300,6 @@ namespace RTE {
 		int m_ObjectEndings;
 
 	private:
-
 #pragma region Reading Operations
 		/// <summary>
 		/// When ReadPropName encounters the property name "IncludeFile", it will automatically call this function to get started reading on that file.
@@ -273,7 +322,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		Reader(const Reader &reference) = delete;
-		Reader & operator=(const Reader &rhs) = delete;
+		Reader(const Reader& reference) = delete;
+		Reader& operator=(const Reader& rhs) = delete;
 	};
-}
+} // namespace RTE

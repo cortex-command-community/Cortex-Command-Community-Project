@@ -15,7 +15,6 @@ namespace RTE {
 	class Activity : public Entity {
 
 	public:
-
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
@@ -103,7 +102,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the Activity to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Activity &reference);
+		int Create(const Activity& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -116,7 +115,12 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the Activity object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { Entity::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				Entity::Destroy();
+			}
+			Clear();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -180,7 +184,7 @@ namespace RTE {
 		/// <param name="scene">The Scene to check if it supports this Activity. Ownership is NOT transferred!</param>
 		/// <param name="teams">How many teams we're checking for. Some scenes may support and Activity but only for a limited number of teams. If -1, not applicable.</param>
 		/// <returns>Whether the Scene has the right stuff.</returns>
-		virtual bool SceneIsCompatible(Scene *scene, int teams = -1) { return scene && teams <= m_MinTeamsRequired; }
+		virtual bool SceneIsCompatible(Scene* scene, int teams = -1) { return scene && teams <= m_MinTeamsRequired; }
 
 		/// <summary>
 		/// Shows in which stage of the Campaign this appears.
@@ -189,7 +193,7 @@ namespace RTE {
 		int GetInCampaignStage() const { return m_InCampaignStage; }
 
 		/// <summary>
-		/// 
+		///
 		/// Sets in which stage of the Campaign this appears.
 		/// </summary>
 		/// <param name="newStage">The new stage to set. -1 means it doesn't appear in the campaign.</param>
@@ -243,14 +247,14 @@ namespace RTE {
 		/// <param name="targetBitmap">A pointer to a screen-sized BITMAP to draw on.</param>
 		/// <param name="targetPos">The absolute position of the target bitmap's upper left corner in the scene.</param>
 		/// <param name="whichScreen">Which screen's GUI to draw onto the bitmap.</param>
-		virtual void DrawGUI(BITMAP *targetBitmap, const Vector &targetPos = Vector(), int whichScreen = 0) {}
+		virtual void DrawGUI(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0) {}
 
 		/// <summary>
 		/// Draws this Activity's current graphical representation to a BITMAP of choice. This includes all game-related graphics.
 		/// </summary>
 		/// <param name="targetBitmap">A pointer to a BITMAP to draw on.</param>
 		/// <param name="targetPos">The absolute position of the target bitmap's upper left corner in the scene.</param>
-		virtual void Draw(BITMAP *targetBitmap, const Vector &targetPos = Vector()) {}
+		virtual void Draw(BITMAP* targetBitmap, const Vector& targetPos = Vector()) {}
 #pragma endregion
 
 #pragma region Player Handling
@@ -283,7 +287,7 @@ namespace RTE {
 		/// <param name="funds">How many funds this player contributes to its Team's total funds.</param>
 		/// <param name="teamIcon">The team flag icon of this player. Ownership is NOT transferred!</param>
 		/// <returns>The new total number of active players in the current game.</returns>
-		int AddPlayer(int playerToAdd, bool isHuman, int team, float funds, const Icon *teamIcon = 0);
+		int AddPlayer(int playerToAdd, bool isHuman, int team, float funds, const Icon* teamIcon = 0);
 
 		/// <summary>
 		/// Sets all players as not active in the current Activity.
@@ -356,14 +360,18 @@ namespace RTE {
 		/// Resets the message timer for one player.
 		/// </summary>
 		/// <param name="player">The player to reset the message timer for.</param>
-		void ResetMessageTimer(int player = 0) { if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) { m_MessageTimer[player].Reset(); } }
+		void ResetMessageTimer(int player = 0) {
+			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+				m_MessageTimer[player].Reset();
+			}
+		}
 
 		/// <summary>
 		/// Gets a pointer to the GUI controller of the specified player.
 		/// </summary>
 		/// <param name="player">Which player to get the Controller of.</param>
 		/// <returns>A pointer to the player's Controller. Ownership is NOT transferred!</returns>
-		Controller * GetPlayerController(int player = 0) { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? &m_PlayerController[player] : nullptr; }
+		Controller* GetPlayerController(int player = 0) { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? &m_PlayerController[player] : nullptr; }
 #pragma endregion
 
 #pragma region Team Handling
@@ -385,21 +393,29 @@ namespace RTE {
 		/// </summary>
 		/// <param name="whichTeam">Which team to set the name of. 0 = first team.</param>
 		/// <param name="newName">The name to set it to.</param>
-		void SetTeamName(int whichTeam, const std::string &newName) { if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) { m_TeamNames[whichTeam] = newName; } }
+		void SetTeamName(int whichTeam, const std::string& newName) {
+			if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
+				m_TeamNames[whichTeam] = newName;
+			}
+		}
 
 		/// <summary>
 		/// Gets the Icon of a specific team.
 		/// </summary>
 		/// <param name="whichTeam">Which team to get the Icon of. 0 = first team.</param>
 		/// <returns>The current Icon of that team.</returns>
-		const Icon * GetTeamIcon(int whichTeam = 0) const { return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? &m_TeamIcons[whichTeam] : nullptr; }
+		const Icon* GetTeamIcon(int whichTeam = 0) const { return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? &m_TeamIcons[whichTeam] : nullptr; }
 
 		/// <summary>
 		/// Sets the Icon of a specific team.
 		/// </summary>
 		/// <param name="whichTeam">Which team to set the Icon of. 0 = first team.</param>
 		/// <param name="newIcon">The Icon to set it to.</param>
-		void SetTeamIcon(int whichTeam, const Icon &newIcon) { if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) { m_TeamIcons[whichTeam] = newIcon; } }
+		void SetTeamIcon(int whichTeam, const Icon& newIcon) {
+			if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
+				m_TeamIcons[whichTeam] = newIcon;
+			}
+		}
 
 		/// <summary>
 		/// Indicates whether a specific team is active in the current game.
@@ -412,7 +428,11 @@ namespace RTE {
 		/// Sets the given team as active, even if it shouldn't be considered as such normally. Useful for Activities that don't want to define/show all used teams.
 		/// </summary>
 		/// <param name="team">The team to force as active.</param>
-		void ForceSetTeamAsActive(int team) { if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) { m_TeamActive[team] = true; } }
+		void ForceSetTeamAsActive(int team) {
+			if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
+				m_TeamActive[team] = true;
+			}
+		}
 
 		/// <summary>
 		/// Indicates whether a team is player controlled or not.
@@ -457,7 +477,11 @@ namespace RTE {
 		/// </summary>
 		/// <param name="newFunds">Which team to set the fund count for. 0 = first team.</param>
 		/// <param name="which">A float with the funds tally for the requested team.</param>
-		void SetTeamFunds(float newFunds, int whichTeam = 0) { if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) { m_TeamFunds[whichTeam] = newFunds; } }
+		void SetTeamFunds(float newFunds, int whichTeam = 0) {
+			if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
+				m_TeamFunds[whichTeam] = newFunds;
+			}
+		}
 
 		/// <summary>
 		/// Changes a team's funds level by a certain amount.
@@ -514,14 +538,14 @@ namespace RTE {
 		/// </summary>
 		/// <param name="player">Which player to get the brain actor for.</param>
 		/// <returns>A pointer to the Brain Actor. Ownership is NOT transferred!</returns>
-		Actor * GetPlayerBrain(int player = 0) const { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_Brain[player] : nullptr; }
+		Actor* GetPlayerBrain(int player = 0) const { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_Brain[player] : nullptr; }
 
 		/// <summary>
 		/// Sets the current Brain actor for a specific player.
 		/// </summary>
 		/// <param name="newBrain">A pointer to the new brain Actor. Ownership is NOT transferred!</param>
 		/// <param name="player"> Which team to set the brain actor for.</param>
-		void SetPlayerBrain(Actor *newBrain, int player = 0);
+		void SetPlayerBrain(Actor* newBrain, int player = 0);
 
 		/// <summary>
 		/// Shows whether a specific player ever had a Brain yet.
@@ -535,7 +559,10 @@ namespace RTE {
 		/// </summary>
 		/// <param name="player">Which player to set whether he had a Brain or not.</param>
 		/// <param name="hadBrain">Whether he should be flagged as having had a Brain.</param>
-		void SetPlayerHadBrain(int player, bool hadBrain = true) { if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) m_HadBrain[player] = hadBrain; }
+		void SetPlayerHadBrain(int player, bool hadBrain = true) {
+			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
+				m_HadBrain[player] = hadBrain;
+		}
 
 		/// <summary>
 		/// Shows whether a specific player's Brain was evacuated into orbit so far.
@@ -549,7 +576,11 @@ namespace RTE {
 		/// </summary>
 		/// <param name="player">Which player to check whether their Brain was evacuated.</param>
 		/// <param name="evacuated">Whether it was evacuated yet.</param>
-		void SetBrainEvacuated(int player = 0, bool evacuated = true) { if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) { m_BrainEvacuated[player] = evacuated; } }
+		void SetBrainEvacuated(int player = 0, bool evacuated = true) {
+			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+				m_BrainEvacuated[player] = evacuated;
+			}
+		}
 
 		/// <summary>
 		/// Shows whether ANY player evacuated their Brain.
@@ -562,14 +593,14 @@ namespace RTE {
 		/// </summary>
 		/// <param name="actor">Which Actor to check for player braininess.</param>
 		/// <returns>Whether any player's Brain or not.</returns>
-		bool IsAssignedBrain(Actor *actor) const;
+		bool IsAssignedBrain(Actor* actor) const;
 
 		/// <summary>
 		/// Shows which player has a specific actor as a Brain, if any.
 		/// </summary>
 		/// <param name="actor">Which Actor to check for player braininess.</param>
 		/// <returns>Which player has this assigned as a Brain, if any.</returns>
-		int IsBrainOfWhichPlayer(Actor *actor) const;
+		int IsBrainOfWhichPlayer(Actor* actor) const;
 
 		/// <summary>
 		/// Shows whether the passed in actor is the Brain of any other player.
@@ -577,7 +608,7 @@ namespace RTE {
 		/// <param name="actor">Which Actor to check for other player braininess.</param>
 		/// <param name="player">From which player's perspective to check.</param>
 		/// <returns>Whether other player's Brain or not.</returns>
-		bool IsOtherPlayerBrain(Actor *actor, int player) const;
+		bool IsOtherPlayerBrain(Actor* actor, int player) const;
 #pragma endregion
 
 #pragma region Difficulty Handling
@@ -621,7 +652,11 @@ namespace RTE {
 		/// </summary>
 		/// <param name="team">The team to set for.</param>
 		/// <param name="skill">AI skill level, 1-100.</param>
-		void SetTeamAISkill(int team, int skill) { if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) { m_TeamAISkillLevels[team] = Limit(skill, AISkillSetting::UnfairSkill, AISkillSetting::MinSkill); } }
+		void SetTeamAISkill(int team, int skill) {
+			if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
+				m_TeamAISkillLevels[team] = Limit(skill, AISkillSetting::UnfairSkill, AISkillSetting::MinSkill);
+			}
+		}
 #pragma endregion
 
 #pragma region Actor Handling
@@ -630,7 +665,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="player">Which player to get the controlled actor of.</param>
 		/// <returns>A pointer to the controlled Actor. Ownership is NOT transferred! 0 If no actor is currently controlled by this player.</returns>
-		Actor * GetControlledActor(int player = 0) { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_ControlledActor[player] : nullptr; }
+		Actor* GetControlledActor(int player = 0) { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_ControlledActor[player] : nullptr; }
 
 		/// <summary>
 		/// Makes the player's ControlledActor the leader of any squad it is a member of.
@@ -646,7 +681,7 @@ namespace RTE {
 		/// <param name="player">Player to force for.</param>
 		/// <param name="team">Which team to switch to next actor on.</param>
 		/// <returns>Whether the focus switch was successful or not.</returns>
-		virtual bool SwitchToActor(Actor *actor, int player = 0, int team = 0);
+		virtual bool SwitchToActor(Actor* actor, int player = 0, int team = 0);
 
 		/// <summary>
 		/// Forces the Activity to focus player control to the previous Actor of a specific team, other than the current one focused on.
@@ -654,7 +689,7 @@ namespace RTE {
 		/// <param name="player">Player to force for.</param>
 		/// <param name="team">Which team to switch to next Actor on.</param>
 		/// <param name="actorToSkip">An Actor pointer to skip in the sequence.</param>
-		virtual void SwitchToPrevActor(int player, int team, Actor *actorToSkip = 0) { SwitchToPrevOrNextActor(false, player, team, actorToSkip); }
+		virtual void SwitchToPrevActor(int player, int team, Actor* actorToSkip = 0) { SwitchToPrevOrNextActor(false, player, team, actorToSkip); }
 
 		/// <summary>
 		/// Forces the Activity to focus player control to the next Actor of a specific team, other than the current one focused on.
@@ -662,7 +697,7 @@ namespace RTE {
 		/// <param name="player">Player to force for.</param>
 		/// <param name="team">Which team to switch to next Actor on.</param>
 		/// <param name="actorToSkip">An Actor pointer to skip in the sequence.</param>
-		virtual void SwitchToNextActor(int player, int team, Actor *actorToSkip = 0) { SwitchToPrevOrNextActor(true, player, team, actorToSkip); }
+		virtual void SwitchToNextActor(int player, int team, Actor* actorToSkip = 0) { SwitchToPrevOrNextActor(true, player, team, actorToSkip); }
 
 		/// <summary>
 		/// Forces player to lose control of the currently selected Actor, as if it had died.
@@ -674,7 +709,7 @@ namespace RTE {
 		/// Handles when an ACraft has left the game scene and entered orbit, though does not delete it. Ownership is NOT transferred, as the ACraft's inventory is just 'unloaded'.
 		/// </summary>
 		/// <param name="orbitedCraft">The ACraft instance that entered orbit. Ownership is NOT transferred!</param>
-		virtual void HandleCraftEnteringOrbit (ACraft *orbitedCraft);
+		virtual void HandleCraftEnteringOrbit(ACraft* orbitedCraft);
 #pragma endregion
 
 #pragma region Save and Load Handling
@@ -701,30 +736,29 @@ namespace RTE {
 		/// </summary>
 		/// <param name="key">The key of the saved string.</param>
 		/// <param name="value">The string to save.</param>
-		void SaveString(const std::string &key, const std::string &value) { m_SavedValues.SaveString(key, value); };
+		void SaveString(const std::string& key, const std::string& value) { m_SavedValues.SaveString(key, value); };
 
 		/// <summary>
 		/// Loads and returns a previously saved string.
 		/// </summary>
 		/// <param name="key">The key of the string to load.</param>
-		const std::string & LoadString(const std::string &key) { return m_SavedValues.LoadString(key); };
+		const std::string& LoadString(const std::string& key) { return m_SavedValues.LoadString(key); };
 
 		/// <summary>
 		/// Saves a number which will be stored in our ini.
 		/// </summary>
 		/// <param name="key">The key of the saved number.</param>
 		/// <param name="value">The number to save.</param>
-		void SaveNumber(const std::string &key, float value) { m_SavedValues.SaveNumber(key, value); };
+		void SaveNumber(const std::string& key, float value) { m_SavedValues.SaveNumber(key, value); };
 
 		/// <summary>
 		/// Loads and returns a previously saved number.
 		/// </summary>
 		/// <param name="key">The key of the string to load.</param>
-		float LoadNumber(const std::string &key) { return m_SavedValues.LoadNumber(key); };
+		float LoadNumber(const std::string& key) { return m_SavedValues.LoadNumber(key); };
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		ActivityState m_ActivityState; //!< Current state of this Activity.
@@ -764,11 +798,11 @@ namespace RTE {
 		bool m_FundsChanged[Teams::MaxTeamCount]; //!< Whether the team funds have changed during the current frame.
 		float m_FundsContribution[Players::MaxPlayerCount]; //!< How much this player contributed to his team's funds at the start of the Activity.
 
-		Actor *m_Brain[Players::MaxPlayerCount]; //!< The Brain of each player. Not owned!
+		Actor* m_Brain[Players::MaxPlayerCount]; //!< The Brain of each player. Not owned!
 		bool m_HadBrain[Players::MaxPlayerCount]; //!< Whether each player has yet had a Brain. If not, then their Activity doesn't end if no brain is found.
 		bool m_BrainEvacuated[Players::MaxPlayerCount]; //!< Whether a player has evacuated his Brain into orbit.
 
-		Actor *m_ControlledActor[Players::MaxPlayerCount]; //!< Currently controlled actor, not owned.
+		Actor* m_ControlledActor[Players::MaxPlayerCount]; //!< Currently controlled actor, not owned.
 		Controller m_PlayerController[Players::MaxPlayerCount]; //!< The Controllers of all the players for the GUIs.
 
 		Timer m_MessageTimer[Players::MaxPlayerCount]; //!< Message timer for each player.
@@ -781,7 +815,6 @@ namespace RTE {
 		GenericSavedData m_SavedValues;
 
 	private:
-
 		/// <summary>
 		/// Shared method to get the amount of human or AI controlled brains that are left in this Activity.
 		/// </summary>
@@ -796,7 +829,7 @@ namespace RTE {
 		/// <param name="player">Player to force for.</param>
 		/// <param name="team">Which team to switch to next Actor on.</param>
 		/// <param name="skip">An Actor pointer to skip in the sequence.</param>
-		void SwitchToPrevOrNextActor(bool nextActor, int player, int team, const Actor *skip = 0);
+		void SwitchToPrevOrNextActor(bool nextActor, int player, int team, const Actor* skip = 0);
 
 		/// <summary>
 		/// Clears all the member variables of this Activity, effectively resetting the members of this abstraction level only.
@@ -804,7 +837,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		Activity(const Activity &reference) = delete;
-		Activity & operator=(const Activity &rhs) = delete;
+		Activity(const Activity& reference) = delete;
+		Activity& operator=(const Activity& rhs) = delete;
 	};
-}
+} // namespace RTE
