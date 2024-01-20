@@ -14,8 +14,6 @@ namespace RTE {
 
 	ConcreteClassInfo(GlobalScript, Entity, 10);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void GlobalScript::Clear() {
 		m_ScriptPath.clear();
 		m_LuaClassName.clear();
@@ -24,8 +22,6 @@ namespace RTE {
 		m_LateUpdate = false;
 		m_PieSlicesToAdd.clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GlobalScript::Create(const GlobalScript& reference) {
 		Entity::Create(reference);
@@ -43,8 +39,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int GlobalScript::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
 
@@ -55,8 +49,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GlobalScript::Save(Writer& writer) const {
 		Entity::Save(writer);
@@ -72,8 +64,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const std::vector<std::unique_ptr<PieSlice>>& GlobalScript::GetPieSlicesToAdd() const {
 		static const std::vector<std::unique_ptr<PieSlice>> emptyVector;
 		if (!m_HasStarted || !m_IsActive || !g_SettingsMan.IsGlobalScriptEnabled(GetModuleAndPresetName())) {
@@ -82,8 +72,6 @@ namespace RTE {
 
 		return m_PieSlicesToAdd;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GlobalScript::ReloadScripts() {
 		int error = 0;
@@ -100,8 +88,6 @@ namespace RTE {
 
 		return error;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GlobalScript::Start() {
 		if (!g_SettingsMan.IsGlobalScriptEnabled(GetModuleAndPresetName())) {
@@ -122,8 +108,6 @@ namespace RTE {
 		return error;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int GlobalScript::Pause(bool pause) const {
 		if (!m_IsActive || !m_HasStarted || !g_SettingsMan.IsGlobalScriptEnabled(GetModuleAndPresetName())) {
 			return 0;
@@ -131,8 +115,6 @@ namespace RTE {
 
 		return g_LuaMan.GetMasterScriptState().RunScriptString("if " + m_LuaClassName + ".PauseScript then " + m_LuaClassName + ":PauseScript(" + (pause ? "true" : "false") + "); end");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GlobalScript::End() const {
 		if (!m_HasStarted) {
@@ -146,8 +128,6 @@ namespace RTE {
 		return g_LuaMan.GetMasterScriptState().RunScriptString("if " + m_LuaClassName + ".EndScript then " + m_LuaClassName + ":EndScript(); end");
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void GlobalScript::HandleCraftEnteringOrbit(const ACraft* orbitedCraft) {
 		if (!m_IsActive || !!m_HasStarted || orbitedCraft == nullptr || !g_MovableMan.IsActor(orbitedCraft) || !g_SettingsMan.IsGlobalScriptEnabled(GetModuleAndPresetName())) {
 			return;
@@ -158,8 +138,6 @@ namespace RTE {
 			m_IsActive = false;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GlobalScript::Update() {
 		if (!m_IsActive) {

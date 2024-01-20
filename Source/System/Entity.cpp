@@ -9,8 +9,6 @@ namespace RTE {
 	Entity::ClassInfo Entity::m_sClass("Entity");
 	Entity::ClassInfo* Entity::ClassInfo::s_ClassHead = 0;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Entity::Clear() {
 		m_PresetName = "None";
 		m_IsOriginalPreset = false;
@@ -20,13 +18,9 @@ namespace RTE {
 		m_RandomWeight = 100;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Entity::Create() {
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Entity::Create(const Entity& reference) {
 		m_PresetName = reference.m_PresetName;
@@ -40,8 +34,6 @@ namespace RTE {
 		m_RandomWeight = reference.m_RandomWeight;
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Entity::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(
@@ -102,8 +94,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Entity::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
@@ -128,8 +118,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Entity::SavePresetCopy(Writer& writer) const {
 		// Can only save out copies with this
 		if (m_IsOriginalPreset) {
@@ -143,13 +131,9 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const Entity* Entity::GetPreset() const {
 		return g_PresetMan.GetEntityPreset(GetClassName(), GetPresetName(), m_DefinedInModule);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Entity::GetModuleAndPresetName() const {
 		if (m_DefinedInModule < 0) {
@@ -163,8 +147,6 @@ namespace RTE {
 		return dataModule->GetFileName() + "/" + GetPresetName();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string Entity::GetModuleName() const {
 		if (m_DefinedInModule >= 0) {
 			if (const DataModule* dataModule = g_PresetMan.GetDataModule(m_DefinedInModule)) {
@@ -173,8 +155,6 @@ namespace RTE {
 		}
 		return "";
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Entity::MigrateToModule(int whichModule) {
 		if (m_DefinedInModule == whichModule) {
@@ -185,8 +165,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Reader& operator>>(Reader& reader, Entity& operand) {
 		// Get this before reading Entity, since if it's the last one in its datafile, the stream will show the parent file instead
 		std::string objectFilePath = reader.GetCurrentFilePath();
@@ -196,8 +174,6 @@ namespace RTE {
 
 		return reader;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Reader& operator>>(Reader& reader, Entity* operand) {
 		if (operand) {
@@ -212,8 +188,6 @@ namespace RTE {
 		return reader;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Entity::ClassInfo::ClassInfo(const std::string& name, ClassInfo* parentInfo, MemoryAllocate allocFunc, MemoryDeallocate deallocFunc, Entity* (*newFunc)(), int allocBlockCount) :
 	    m_Name(name),
 	    m_ParentInfo(parentInfo),
@@ -227,8 +201,6 @@ namespace RTE {
 		m_PoolAllocBlockCount = (allocBlockCount > 0) ? allocBlockCount : 10;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::list<std::string> Entity::ClassInfo::GetClassNames() {
 		std::list<std::string> retList;
 		for (const ClassInfo* itr = s_ClassHead; itr != 0; itr = itr->m_NextClass) {
@@ -236,8 +208,6 @@ namespace RTE {
 		}
 		return retList;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const Entity::ClassInfo* Entity::ClassInfo::GetClass(const std::string& name) {
 		if (name.empty() || name == "None") {
@@ -251,8 +221,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Entity::ClassInfo::FillAllPools(int fillAmount) {
 		for (ClassInfo* itr = s_ClassHead; itr != 0; itr = itr->m_NextClass) {
 			if (itr->IsConcrete()) {
@@ -260,8 +228,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Entity::ClassInfo::FillPool(int fillAmount) {
 		// Default to the set block allocation size if fillAmount is 0
@@ -277,8 +243,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool Entity::ClassInfo::IsClassOrChildClassOf(const ClassInfo* classInfoToCheck) const {
 		if (GetName() == classInfoToCheck->GetName()) {
 			return true;
@@ -287,8 +251,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void* Entity::ClassInfo::GetPoolMemory() {
 		std::lock_guard<std::mutex> guard(m_Mutex);
@@ -312,8 +274,6 @@ namespace RTE {
 		return foundMemory;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Entity::ClassInfo::ReturnPoolMemory(void* returnedMemory) {
 		if (!returnedMemory) {
 			return 0;
@@ -326,8 +286,6 @@ namespace RTE {
 
 		return m_InstancesInUse;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Entity::ClassInfo::DumpPoolMemoryInfo(const Writer& fileWriter) {
 		for (const ClassInfo* itr = s_ClassHead; itr != nullptr; itr = itr->m_NextClass) {

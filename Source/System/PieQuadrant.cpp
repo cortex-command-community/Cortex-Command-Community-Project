@@ -4,8 +4,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PieQuadrant::Clear() {
 		m_Enabled = true;
 		m_Direction = Directions::None;
@@ -19,8 +17,6 @@ namespace RTE {
 		m_SlotsForPieSlices.fill(nullptr);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PieQuadrant::Create(const PieQuadrant& reference, const Entity* oldOriginalPieSliceSourceToCheck, const Entity* newOriginalPieSliceSourceToSet) {
 		m_Enabled = reference.m_Enabled;
 		m_Direction = reference.m_Direction;
@@ -32,8 +28,6 @@ namespace RTE {
 			AddPieSlice(pieSliceToAdd);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::vector<PieSlice*> PieQuadrant::GetFlattenedPieSlices(bool inCCWOrder) const {
 		std::vector<PieSlice*> pieSlices;
@@ -69,8 +63,6 @@ namespace RTE {
 		return pieSlices;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PieQuadrant::RealignPieSlices() {
 		if ((m_RightPieSlices[0] && !m_LeftPieSlices[0]) || (m_RightPieSlices[1] && !m_LeftPieSlices[1])) {
 			for (const PieSlice* pieSliceToRealign: GetFlattenedPieSlices()) {
@@ -105,8 +97,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PieQuadrant::AddPieSlice(PieSlice* pieSliceToAdd) {
 		if (!pieSliceToAdd) {
 			return false;
@@ -127,8 +117,6 @@ namespace RTE {
 
 		return sliceWasAdded;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	PieSlice* PieQuadrant::RemovePieSlice(const PieSlice* pieSliceToRemove) {
 		if (pieSliceToRemove == m_MiddlePieSlice.get()) {

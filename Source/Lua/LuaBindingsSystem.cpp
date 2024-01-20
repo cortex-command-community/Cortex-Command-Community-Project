@@ -4,8 +4,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Box) {
 		return luabind::class_<Box>("Box")
 
@@ -33,8 +31,6 @@ namespace RTE {
 		    .def("GetWithinBox", &Box::GetWithinBox)
 		    .def("IntersectsBox", &Box::IntersectsBox);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
 		return luabind::class_<Controller>("Controller")
@@ -112,8 +108,6 @@ namespace RTE {
 		                        luabind::value("CIM_INPUTMODECOUNT", Controller::InputMode::CIM_INPUTMODECOUNT)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, DataModule) {
 		return luabind::class_<DataModule>("DataModule")
 
@@ -127,8 +121,6 @@ namespace RTE {
 
 		    .def_readwrite("Presets", &DataModule::m_EntityList, luabind::return_stl_iterator);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
 		return luabind::class_<Timer>("Timer")
@@ -166,8 +158,6 @@ namespace RTE {
 		    .def("IsPastSimMS", &Timer::IsPastSimMS)
 		    .def("AlternateSim", &Timer::AlternateSim);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Vector) {
 		return luabind::class_<Vector>("Vector")
@@ -230,8 +220,6 @@ namespace RTE {
 		    .def("AbsRotateTo", &Vector::AbsRotateTo)
 		    .def("SetXY", &Vector::SetXY);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, PathRequest) {
 		using namespace micropather;

@@ -16,15 +16,11 @@ namespace RTE {
 	class ModManagerGUI;
 	class SaveLoadMenuGUI;
 
-	/// <summary>
 	/// Handling for the pause menu screen composition and interaction.
-	/// </summary>
 	class PauseMenuGUI {
 
 	public:
-		/// <summary>
 		/// Enumeration for the results of the PauseMenuGUI input and event update.
-		/// </summary>
 		enum class PauseMenuUpdateResult {
 			NoEvent,
 			BackToMain,
@@ -32,54 +28,40 @@ namespace RTE {
 		};
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a PauseMenuGUI object in system memory and make it ready for use.
-		/// </summary>
-		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
+		/// @param guiScreen Pointer to a GUIScreen interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!
+		/// @param guiInput Pointer to a GUIInput interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!
 		PauseMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
 			Clear();
 			Create(guiScreen, guiInput);
 		}
 
-		/// <summary>
 		/// Makes the PauseMenuGUI object ready for use.
-		/// </summary>
-		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
+		/// @param guiScreen Pointer to a GUIScreen interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!
+		/// @param guiInput Pointer to a GUIInput interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!
 		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput);
 #pragma endregion
 
 #pragma region Setters
-		/// <summary>
 		/// Sets the "Back to Main Menu" button text to the menu we will be going back to.
-		/// </summary>
-		/// <param name="menuName">The target menu name, e.g. "Conquest" will result in "Back to Conquest Menu".</param>
+		/// @param menuName The target menu name, e.g. "Conquest" will result in "Back to Conquest Menu".
 		void SetBackButtonTargetName(const std::string& menuName);
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Enables or disables buttons depending on the current Activity.
-		/// </summary>
 		void EnableOrDisablePauseMenuFeatures();
 
-		/// <summary>
 		/// Updates the PauseMenuGUI state.
-		/// </summary>
-		/// <returns>The result of the PauseMenuGUI input and event update. See PauseMenuUpdateResult enumeration.</returns>
+		/// @return The result of the PauseMenuGUI input and event update. See PauseMenuUpdateResult enumeration.
 		PauseMenuUpdateResult Update();
 
-		/// <summary>
 		/// Draws the PauseMenuGUI to the screen.
-		/// </summary>
 		void Draw();
 #pragma endregion
 
 	private:
-		/// <summary>
 		/// Enumeration for the different sub-menu screens of the pause menu.
-		/// </summary>
 		enum PauseMenuScreen {
 			MainScreen,
 			SaveOrLoadGameScreen,
@@ -88,9 +70,7 @@ namespace RTE {
 			ScreenCount
 		};
 
-		/// <summary>
 		/// Enumeration for all the different buttons of the pause menu.
-		/// </summary>
 		enum PauseMenuButton {
 			BackToMainButton,
 			SaveOrLoadGameButton,
@@ -124,49 +104,35 @@ namespace RTE {
 		bool m_SavingButtonsDisabled; //!< Whether the save and load buttons are disabled and hidden.
 		bool m_ModManagerButtonDisabled; //!< Whether the mod manager button is disabled and hidden.
 
-		/// <summary>
 		/// GUI elements that compose the pause menu screen.
-		/// </summary>
 		GUICollectionBox* m_PauseMenuBox;
 		std::array<GUIButton*, PauseMenuButton::ButtonCount> m_PauseMenuButtons;
 
 #pragma region Menu Screen Handling
-		/// <summary>
 		/// Sets the PauseMenuGUI to display a menu screen.
-		/// </summary>
-		/// <param name="screenToShow">Which menu screen to display. See PauseMenuScreen enumeration.</param>
-		/// <param name="playButtonPressSound">Whether to play a sound if the menu screen change is triggered by a button press.</param>
+		/// @param screenToShow Which menu screen to display. See PauseMenuScreen enumeration.
+		/// @param playButtonPressSound Whether to play a sound if the menu screen change is triggered by a button press.
 		void SetActiveMenuScreen(PauseMenuScreen screenToShow, bool playButtonPressSound = true);
 #pragma endregion
 
 #pragma region Update Breakdown
-		/// <summary>
 		/// Handles returning to the pause menu from one of the sub-menus if the player requested to return via the back button or the esc key. Also handles closing active dialog boxes with the esc key.
-		/// </summary>
-		/// <param name="backButtonPressed">Whether the player requested to return to the pause menu from one of the sub-menus via back button.</param>
+		/// @param backButtonPressed Whether the player requested to return to the pause menu from one of the sub-menus via back button.
 		void HandleBackNavigation(bool backButtonPressed);
 
-		/// <summary>
 		/// Handles the player interaction with the PauseMenuGUI GUI elements.
-		/// </summary>
-		/// <returns>Whether the player requested to return to the main menu.</returns>
+		/// @return Whether the player requested to return to the main menu.
 		bool HandleInputEvents();
 
-		/// <summary>
 		/// Updates the currently hovered button text to give the hovered visual and updates the previously hovered button to remove the hovered visual.
-		/// </summary>
-		/// <param name="hoveredButton">Pointer to the currently hovered button, if any. Acquired by GUIControlManager::GetControlUnderPoint.</param>
+		/// @param hoveredButton Pointer to the currently hovered button, if any. Acquired by GUIControlManager::GetControlUnderPoint.
 		void UpdateHoveredButton(const GUIButton* hoveredButton);
 
-		/// <summary>
 		/// Animates (blinking) the resume game button.
-		/// </summary>
 		void BlinkResumeButton();
 #pragma endregion
 
-		/// <summary>
 		/// Clears all the member variables of this PauseMenuGUI, effectively resetting the members of this object.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

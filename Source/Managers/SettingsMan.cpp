@@ -15,8 +15,6 @@ namespace RTE {
 
 	const std::string SettingsMan::c_ClassName = "SettingsMan";
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsMan::Clear() {
 		m_SettingsPath = System::GetUserdataDirectory() + "Settings.ini";
 		m_SettingsNeedOverwrite = false;
@@ -72,8 +70,6 @@ namespace RTE {
 		m_EnabledGlobalScripts.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int SettingsMan::Initialize() {
 		if (const char* settingsTempPath = std::getenv("CCCP_SETTINGSPATH")) {
 			m_SettingsPath = std::string(settingsTempPath);
@@ -105,14 +101,10 @@ namespace RTE {
 		return failureCode;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsMan::UpdateSettingsFile() const {
 		Writer settingsWriter(m_SettingsPath);
 		g_SettingsMan.Save(settingsWriter);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -234,8 +226,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SettingsMan::Save(Writer& writer) const {
 		Serializable::Save(writer);

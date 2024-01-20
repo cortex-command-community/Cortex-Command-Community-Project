@@ -6,8 +6,6 @@ namespace RTE {
 
 	RandomGenerator g_RandomGenerator;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SeedRNG() {
 		// Use a constant seed for determinism.
 		static constexpr uint32_t constSeed = []() {
@@ -29,8 +27,6 @@ namespace RTE {
 		g_RandomGenerator.Seed(constSeed);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	float LERP(float scaleStart, float scaleEnd, float startValue, float endValue, float progressScalar) {
 		if (progressScalar <= scaleStart) {
 			return startValue;
@@ -39,8 +35,6 @@ namespace RTE {
 		}
 		return startValue + ((progressScalar - scaleStart) * ((endValue - startValue) / (scaleEnd - scaleStart)));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float EaseIn(float start, float end, float progressScalar) {
 		if (progressScalar <= 0) {
@@ -52,8 +46,6 @@ namespace RTE {
 		return (end - start) * (std::sin(-t * c_HalfPI) + 1) + start;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	float EaseOut(float start, float end, float progressScalar) {
 		if (progressScalar <= 0) {
 			return start;
@@ -63,13 +55,9 @@ namespace RTE {
 		return (end - start) * -std::sin(-progressScalar * c_HalfPI) + start;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	float EaseInOut(float start, float end, float progressScalar) {
 		return start * (2 * std::pow(progressScalar, 3) - 3 * std::pow(progressScalar, 2) + 1) + end * (3 * std::pow(progressScalar, 2) - 2 * std::pow(progressScalar, 3));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Clamp(float& value, float upperLimit, float lowerLimit) {
 		// Straighten out the limits
@@ -89,8 +77,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	float Limit(float value, float upperLimit, float lowerLimit) {
 		// Straighten out the limits
 		if (upperLimit < lowerLimit) {
@@ -108,16 +94,12 @@ namespace RTE {
 		return value;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	float NormalizeAngleBetween0And2PI(float angle) {
 		while (angle < 0) {
 			angle += c_TwoPI;
 		}
 		return (angle > c_TwoPI) ? fmodf(angle + c_TwoPI, c_TwoPI) : angle;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float NormalizeAngleBetweenNegativePIAndPI(float angle) {
 		while (angle < 0) {
@@ -126,8 +108,6 @@ namespace RTE {
 		return (angle > c_PI) ? fmodf(angle + c_PI, c_TwoPI) - c_PI : angle;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool AngleWithinRange(float angleToCheck, float startAngle, float endAngle) {
 		angleToCheck = NormalizeAngleBetween0And2PI(angleToCheck);
 		startAngle = NormalizeAngleBetween0And2PI(startAngle);
@@ -135,8 +115,6 @@ namespace RTE {
 
 		return endAngle >= startAngle ? (angleToCheck >= startAngle && angleToCheck <= endAngle) : (angleToCheck >= startAngle || angleToCheck <= endAngle);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float ClampAngle(float angleToClamp, float startAngle, float endAngle) {
 		angleToClamp = NormalizeAngleBetween0And2PI(angleToClamp);
@@ -153,19 +131,13 @@ namespace RTE {
 		return angleToClamp;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool WithinBox(const Vector& point, float left, float top, float right, float bottom) {
 		return point.m_X >= left && point.m_X < right && point.m_Y >= top && point.m_Y < bottom;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool WithinBox(const Vector& point, const Vector& boxPos, float width, float height) {
 		return point.m_X >= boxPos.m_X && point.m_X < (boxPos.m_X + width) && point.m_Y >= boxPos.m_Y && point.m_Y < (boxPos.m_Y + height);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string RoundFloatToPrecision(float input, int precision, int roundingMode) {
 		if (roundingMode == 0) {
@@ -201,8 +173,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	// From https://stackoverflow.com/a/66764681, under license https://creativecommons.org/licenses/by-sa/4.0/. Minor modifications
 	uint64_t Hash(const std::string& text) {
 		constexpr uint64_t fnv_prime = 1099511628211ULL;
@@ -217,8 +187,6 @@ namespace RTE {
 
 		return hash;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string GetCaseInsensitiveFullPath(const std::string& fullPath) {
 		if (std::filesystem::exists(fullPath)) {
