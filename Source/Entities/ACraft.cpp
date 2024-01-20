@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            ACraft.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the ACraft class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "ACraft.h"
 
 #include "AtomGroup.h"
@@ -37,12 +25,6 @@ namespace RTE {
 #define EXITLINESPACING 7
 #define EXITSUCKDELAYMS 1500
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this Exit, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void ACraft::Exit::Clear() {
 		m_Offset.Reset();
 		m_Velocity.Reset();
@@ -52,11 +34,6 @@ namespace RTE {
 		m_Clear = true;
 		m_pIncomingMO = 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a Exit to be identical to another, by deep copy.
 
 	int ACraft::Exit::Create(const Exit& reference) {
 		m_Offset = reference.m_Offset;
@@ -69,25 +46,12 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Exit object ready for use.
-
 	int ACraft::Exit::Create() {
 		if (Serializable::Create() < 0)
 			return -1;
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int ACraft::Exit::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -100,12 +64,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this Exit with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int ACraft::Exit::Save(Writer& writer) const {
 		Serializable::Save(writer);
@@ -124,26 +82,12 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CheckIfClear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates whether this exit is currently clear enough of terrain to
-	//                  safely put things through without them ending up in the terrain.
-
 	bool ACraft::Exit::CheckIfClear(const Vector& pos, Matrix& rot, float size) {
 		Vector notUsed;
 		Vector ray = m_Velocity;
 		ray.SetMagnitude(size);
 		return m_Clear = !g_SceneMan.CastNotMaterialRay(pos + (m_Offset * rot), ray * rot, g_MaterialAir, notUsed);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SuckInMOs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Uses cast MO rays to see if anyhting is able to be drawn into this
-	//                  exit. If so, it will alter the positiona nd velocity of the objet so
-	//                  it flies into the exit until it is sufficiently inside and then it'll
-	//                  return the MO here, OWNERHIP NOT TRANSFERRED! It is still in MovableMan!
 
 	MOSRotating* ACraft::Exit::SuckInMOs(ACraft* pExitOwner) {
 		if (!pExitOwner || !m_Clear)
@@ -224,12 +168,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this ACraft, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void ACraft::Clear() {
 		m_AIMode = AIMODE_DELIVER;
 
@@ -261,11 +199,6 @@ namespace RTE {
 		m_ScuttleOnDeath = true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the ACraft object ready for use.
-
 	int ACraft::Create() {
 		// Read all the properties
 		if (Actor::Create() < 0)
@@ -279,11 +212,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a ACraft to be identical to another, by deep copy.
 
 	int ACraft::Create(const ACraft& reference) {
 		Actor::Create(reference);
@@ -323,14 +251,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Actor::ReadProperty(propName, reader));
 
@@ -362,12 +282,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this ACraft with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int ACraft::Save(Writer& writer) const {
 		Actor::Save(writer);
@@ -402,11 +316,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the ACraft object.
-
 	void ACraft::Destroy(bool notInherited) {
 		delete m_HatchOpenSound;
 		delete m_HatchCloseSound;
@@ -416,12 +325,6 @@ namespace RTE {
 			Actor::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetTotalValue
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the total liquidation value of this Actor and all its carried
-	//                  gold and inventory.
 
 	float ACraft::GetTotalValue(int nativeModule, float foreignMult, float nativeMult) const {
 		float totalValue = Actor::GetTotalValue(nativeModule, foreignMult, nativeMult);
@@ -436,12 +339,6 @@ namespace RTE {
 		return totalValue;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          HasObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether this carries a specifically named object in its inventory.
-	//                  Also looks through the inventories of potential passengers, as applicable.
-
 	bool ACraft::HasObject(std::string objectName) const {
 		if (Actor::HasObject(objectName))
 			return true;
@@ -453,13 +350,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          HasObjectInGroup
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether this is or carries a specifically grouped object in its
-	//                  inventory. Also looks through the inventories of potential passengers,
-	//                  as applicable.
 
 	bool ACraft::HasObjectInGroup(std::string groupName) const {
 		if (Actor::HasObjectInGroup(groupName))
@@ -473,11 +363,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets which team this belongs to, and all its inventory too.
-
 	void ACraft::SetTeam(int team) {
 		Actor::SetTeam(team);
 
@@ -489,8 +374,6 @@ namespace RTE {
 				pActor->SetTeam(team);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ACraft::HandlePieCommand(PieSlice::SliceType pieSliceIndex) {
 		if (pieSliceIndex != PieSlice::SliceType::NoType) {
@@ -524,15 +407,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          OpenHatch
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Opens the hatch doors, if they're closed.
-	// Arguments:       None.
-	// Return value:    None.
-
 	void ACraft::OpenHatch() {
 		if (m_HatchState == CLOSED || m_HatchState == CLOSING) {
 			m_HatchState = OPENING;
@@ -544,13 +418,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          CloseHatch
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Closes the hatch doors, if they're open.
-	// Arguments:       None.
-	// Return value:    None.
 
 	void ACraft::CloseHatch() {
 		if (m_HatchState == OPEN || m_HatchState == OPENING) {
@@ -571,13 +438,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  AddInventoryItem
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds an inventory item to this Actor.
-	// Arguments:       An pointer to the new item to add. Ownership IS TRANSFERRED!
-	// Return value:    None..
 
 	void ACraft::AddInventoryItem(MovableObject* pItemToAdd) {
 		if (pItemToAdd) {
@@ -603,14 +463,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DropAllInventory
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Opens the hatches and makes everything in the Rocket fly out, including
-	//                  the passenger Actors, one after another. It may not happen
-	//                  instantaneously, so check for ejection being complete with
-	//                  IsInventoryEmpty().
 
 	void ACraft::DropAllInventory() {
 		if (m_HatchState == OPEN && !m_Exits.empty()) {
@@ -730,8 +582,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	float ACraft::GetCollectedInventoryMass() const {
 		float inventoryMass = 0.0F;
 		for (const MovableObject* inventoryItem: m_CollectedInventory) {
@@ -739,8 +589,6 @@ namespace RTE {
 		}
 		return inventoryMass;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACraft::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		if (g_SettingsMan.CrabBombsEnabled() && !s_CrabBombInEffect) {
@@ -764,18 +612,11 @@ namespace RTE {
 		Actor::GibThis(impactImpulse, movableObjectToIgnore);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACraft::ResetAllTimers() {
 		MOSRotating::ResetAllTimers();
 
 		m_FlippedTimer.Reset();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this ACraft. Supposed to be done every frame.
 
 	void ACraft::Update() {
 		Actor::Update();
@@ -897,12 +738,6 @@ namespace RTE {
 
 		m_DeepCheck = true /*m_Status == DEAD*/;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DrawHUD
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this Actor's current graphical HUD overlay representation to a
-	//                  BITMAP of choice.
 
 	void ACraft::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 		m_HUDStack = -m_CharHeight / 2;

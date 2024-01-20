@@ -13,8 +13,6 @@ namespace RTE {
 	ConcreteClassInfo(SceneLayerTracked, Entity, 0);
 	ConcreteClassInfo(SceneLayer, Entity, 0);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::Clear() {
 		m_BitmapFile.Reset();
@@ -34,8 +32,6 @@ namespace RTE {
 		m_ScaledDimensions.SetXY(1.0F, 1.0F);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::Create(const ContentFile& bitmapFile, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
 		m_BitmapFile = bitmapFile;
@@ -46,8 +42,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::Create(BITMAP* bitmap, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
@@ -69,8 +63,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::Create(const SceneLayerImpl& reference) {
@@ -108,8 +100,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -121,8 +111,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::Save(Writer& writer) const {
 		Entity::Save(writer);
@@ -133,8 +121,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::Destroy(bool notInherited) {
@@ -149,8 +135,6 @@ namespace RTE {
 		}
 		Clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::InitScrollRatios(bool initForNetworkPlayer, int player) {
@@ -188,8 +172,6 @@ namespace RTE {
 		m_ScaledDimensions.SetXY(mainBitmapWidth * m_ScaleFactor.GetX(), mainBitmapHeight * m_ScaleFactor.GetY());
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::LoadData() {
 		// Load from disk and take ownership. Don't cache because the bitmap will be modified.
@@ -202,8 +184,6 @@ namespace RTE {
 		InitScrollRatios();
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::SaveData(const std::string& bitmapPath, bool doAsyncSaves) {
@@ -235,8 +215,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	std::unique_ptr<BITMAP> SceneLayerImpl<TRACK_DRAWINGS>::CopyBitmap() {
 		BITMAP* outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
@@ -246,8 +224,6 @@ namespace RTE {
 		}
 		return std::unique_ptr<BITMAP>(outputBitmap);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::ClearData() {
@@ -266,8 +242,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::SetScaleFactor(const Vector& newScale) {
 		m_ScaleFactor = newScale;
@@ -276,15 +250,11 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::GetPixel(int pixelX, int pixelY) const {
 		WrapPosition(pixelX, pixelY);
 		return (pixelX < 0 || pixelX >= m_MainBitmap->w || pixelY < 0 || pixelY >= m_MainBitmap->h) ? MaterialColorKeys::g_MaterialAir : _getpixel(m_MainBitmap, pixelX, pixelY);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::SetPixel(int pixelX, int pixelY, int materialID) {
@@ -300,14 +270,10 @@ namespace RTE {
 		RegisterDrawing(pixelX, pixelY, pixelX, pixelY);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	bool SceneLayerImpl<TRACK_DRAWINGS>::IsWithinBounds(const int pixelX, const int pixelY, const int margin) const {
 		return (m_WrapX || (pixelX >= -margin && pixelX < m_MainBitmap->w + margin)) && (m_WrapY || (pixelY >= -margin && pixelY < m_MainBitmap->h + margin));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::ClearBitmap(ColorKeys clearTo) {
@@ -335,8 +301,6 @@ namespace RTE {
 		m_Drawings.clear(); // This was copied into the new thread, so can be safely deleted.
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	bool SceneLayerImpl<TRACK_DRAWINGS>::WrapPosition(int& posX, int& posY) const {
 		int oldX = posX;
@@ -360,8 +324,6 @@ namespace RTE {
 
 		return oldX != posX || oldY != posY;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBounds(int& posX, int& posY) const {
@@ -408,8 +370,6 @@ namespace RTE {
 		return wrapped;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBoundsOrWrapPosition(Vector& pos, bool forceBounds) const {
 		int posX = pos.GetFloorIntX();
@@ -420,8 +380,6 @@ namespace RTE {
 		return wrapped;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(int left, int top, int right, int bottom) {
 		if constexpr (TRACK_DRAWINGS) {
@@ -429,16 +387,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(const Vector& center, float radius) {
 		if (radius != 0.0F) {
 			RegisterDrawing(static_cast<int>(center.GetX() - radius), static_cast<int>(center.GetY() - radius), static_cast<int>(center.GetX() + radius), static_cast<int>(center.GetY() + radius));
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
@@ -470,8 +424,6 @@ namespace RTE {
 		}
 		set_clip_rect(targetBitmap, 0, 0, targetBitmap->w - 1, targetBitmap->h - 1);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const {
@@ -510,8 +462,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const {
 		int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
@@ -549,8 +499,6 @@ namespace RTE {
 			tiledOffsetX += bitmapWidth;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::ClearDrawings(BITMAP* bitmap, const std::vector<IntRect>& drawings, ColorKeys clearTo) const {
@@ -595,8 +543,6 @@ namespace RTE {
 			clear_to_color(bitmap, clearTo);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Force instantiation
 	template class SceneLayerImpl<false>;

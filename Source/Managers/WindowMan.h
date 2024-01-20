@@ -34,217 +34,147 @@ namespace RTE {
 		void operator()(void* context) const;
 	};
 
-	/// <summary>
 	/// The singleton manager over the game window and display of frames.
-	/// </summary>
 	class WindowMan : public Singleton<WindowMan> {
 		friend class SettingsMan;
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a WindowMan object in system memory. Initialize() should be called before using the object.
-		/// </summary>
 		WindowMan();
 
-		/// <summary>
 		/// Makes the WindowMan object ready for use.
-		/// </summary>
 		void Initialize();
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up a WindowMan object before deletion from system memory.
-		/// </summary>
 		~WindowMan();
 
-		/// <summary>
 		/// Clean up GL pointers.
-		/// </summary>
 		void Destroy();
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Gets a pointer to the primary game window. OWNERSHIP IS NOT TRANSFERRED!
-		/// </summary>
-		/// <returns>Pointer to the primary game window.</returns>
+		/// @return Pointer to the primary game window.
 		SDL_Window* GetWindow() const { return m_PrimaryWindow.get(); }
 
-		/// <summary>
 		/// Gets whether any of the game windows is currently in focus.
-		/// </summary>
-		/// <returns>Whether any of the game windows is currently in focus.</returns>
+		/// @return Whether any of the game windows is currently in focus.
 		bool AnyWindowHasFocus() const { return m_AnyWindowHasFocus; }
 
-		/// <summary>
 		/// Gets the maximum horizontal resolution the game can be resized to.
-		/// </summary>
-		/// <returns>The maximum horizontal resolution the game can be resized to.</returns>
+		/// @return The maximum horizontal resolution the game can be resized to.
 		int GetMaxResX() const { return m_MaxResX; }
 
-		/// <summary>
 		/// Gets the maximum vertical resolution the game can be resized to.
-		/// </summary>
-		/// <returns>The maximum vertical resolution the game can be resized to.</returns>
+		/// @return The maximum vertical resolution the game can be resized to.
 		int GetMaxResY() const { return m_MaxResY; }
 
-		/// <summary>
 		/// Gets the horizontal resolution the game is currently sized at.
-		/// </summary>
-		/// <returns>The horizontal resolution the game is currently sized at, in pixels.</returns>
+		/// @return The horizontal resolution the game is currently sized at, in pixels.
 		int GetResX() const { return m_ResX; }
 
-		/// <summary>
 		/// Gets the vertical resolution the game is currently sized at.
-		/// </summary>
-		/// <returns>The vertical resolution the game is currently sized at, in pixels.</returns>
+		/// @return The vertical resolution the game is currently sized at, in pixels.
 		int GetResY() const { return m_ResY; }
 
-		/// <summary>
 		/// Gets the horizontal resolution the game window is currently sized at, in pixels.
-		/// </summary>
-		/// <returns>The horizontal resolution the game window is currently sized at, in pixels.</returns>
+		/// @return The horizontal resolution the game window is currently sized at, in pixels.
 		int GetWindowResX();
 
-		/// <summary>
 		/// Gets the vertical resolution the game window is currently sized at, in pixels.
-		/// </summary>
-		/// <returns>The vertical resolution the game window is currently sized at, in pixels.</returns>
+		/// @return The vertical resolution the game window is currently sized at, in pixels.
 		int GetWindowResY();
 
-		/// <summary>
 		/// Gets how many times the game resolution is currently being multiplied and the backbuffer stretched across for better readability.
-		/// </summary>
-		/// <returns>What multiple the game resolution is currently sized at.</returns>
+		/// @return What multiple the game resolution is currently sized at.
 		float GetResMultiplier() const { return m_ResMultiplier; }
 
-		/// <summary>
 		/// Gets whether VSync is enabled.
-		/// </summary>
-		/// <returns>Whether VSync is enabled.</returns>
+		/// @return Whether VSync is enabled.
 		bool GetVSyncEnabled() const { return m_EnableVSync; }
 
-		/// <summary>
 		/// Sets whether VSync is enabled.
-		/// </summary>
-		/// <param name="enable">Whether to enable VSync.</param>
+		/// @param enable Whether to enable VSync.
 		void SetVSyncEnabled(bool enable);
 
-		/// <summary>
 		/// Gets whether the game window is currently in fullscreen.
-		/// </summary>
-		/// <returns>Whether the game window is currently in fullscreen.</returns>
+		/// @return Whether the game window is currently in fullscreen.
 		bool IsFullscreen() { return m_Fullscreen; }
 
-		/// <summary>
 		/// Gets whether the multi-display arrangement should be used or whether only the display the main window is currently positioned at should be used for fullscreen.
-		/// </summary>
-		/// <returns>Whether the multi-display arrangement is used.</returns>
+		/// @return Whether the multi-display arrangement is used.
 		bool GetUseMultiDisplays() const { return m_UseMultiDisplays; }
 
-		/// <summary>
 		/// Sets whether the multi-display arrangement should be used or whether only the display the main window is currently positioned at should be used for fullscreen.
-		/// </summary>
-		/// <param name="use">Whether the multi-display arrangement should be used</param>
+		/// @param use Whether the multi-display arrangement should be used
 		void SetUseMultiDisplays(bool use) { m_UseMultiDisplays = use; }
 
-		/// <summary>
 		/// Checks whether the current resolution settings fully cover all the available displays.
-		/// </summary>
-		/// <returns>Whether the current resolution settings fully cover all the available displays.</returns>
+		/// @return Whether the current resolution settings fully cover all the available displays.
 		bool FullyCoversAllDisplays() const { return m_NumDisplays > 1 && (m_ResX * m_ResMultiplier == m_MaxResX) && (m_ResY * m_ResMultiplier == m_MaxResY); }
 
-		/// <summary>
 		/// Gets the absolute left-most position in the OS display arrangement. Used for correcting mouse position in multi-display fullscreen when the left-most display is not primary.
-		/// </summary>
-		/// <returns>The absolute left-most position in the OS display arrangement.</returns>
+		/// @return The absolute left-most position in the OS display arrangement.
 		int GetDisplayArrangementAbsOffsetX() const { return std::abs(m_DisplayArrangementLeftMostOffset); }
 
-		/// <summary>
 		/// Gets the absolute top-most position in the OS display arrangement. Used for correcting mouse position in multi-display fullscreen when the left-most display is not primary.
-		/// </summary>
-		/// <returns>The absolute top-most position in the OS display arrangement.</returns>
+		/// @return The absolute top-most position in the OS display arrangement.
 		int GetDisplayArrangementAbsOffsetY() const { return std::abs(m_DisplayArrangementTopMostOffset); }
 
-		/// <summary>
 		/// Get the screen buffer texture.
-		/// </summary>
-		/// <returns>The screen buffer texture.</returns>
+		/// @return The screen buffer texture.
 		GLuint GetScreenBufferTexture() const { return m_ScreenBufferTexture; }
 #pragma endregion
 
 #pragma region Resolution Change Handling
-		/// <summary>
 		/// Attempts to figure our what the hell the OS display arrangement is and what are the resolution capabilities for single or multi-display fullscreen.
-		/// </summary>
-		/// <param name="updatePrimaryDisplayInfo">Whether to update the stored info of the display the primary window is currently positioned at.</param>
+		/// @param updatePrimaryDisplayInfo Whether to update the stored info of the display the primary window is currently positioned at.
 		void MapDisplays(bool updatePrimaryDisplayInfo = true);
 
-		/// <summary>
 		/// Gets the horizontal resolution of the display the primary game window is currently positioned at.
-		/// </summary>
-		/// <returns>The horizontal resolution of the display the primary game window is currently positioned at.</returns>
+		/// @return The horizontal resolution of the display the primary game window is currently positioned at.
 		int GetPrimaryWindowDisplayWidth() const { return m_PrimaryWindowDisplayWidth; }
 
-		/// <summary>
 		/// Gets the vertical resolution of the display the primary game window is currently positioned at.
-		/// </summary>
-		/// <returns>The vertical resolution of the display the primary game window is currently positioned at.</returns>
+		/// @return The vertical resolution of the display the primary game window is currently positioned at.
 		int GetPrimaryWindowDisplayHeight() const { return m_PrimaryWindowDisplayHeight; }
 
-		/// <summary>
 		/// Gets whether the game resolution was changed.
-		/// </summary>
-		/// <returns>Whether the game resolution was changed.</returns>
+		/// @return Whether the game resolution was changed.
 		bool ResolutionChanged() const { return m_ResolutionChanged; }
 
-		/// <summary>
 		/// Switches the game resolution to the specified dimensions.
-		/// </summary>
-		/// <param name="newResX">New width to resize to.</param>
-		/// <param name="newResY">New height to resize to.</param>
-		/// <param name="upscaled">Whether the new resolution should be upscaled.</param>
-		/// <param name="displaysAlreadyMapped">Whether to skip mapping displays because they were already mapped elsewhere.</param>
+		/// @param newResX New width to resize to.
+		/// @param newResY New height to resize to.
+		/// @param upscaled Whether the new resolution should be upscaled.
+		/// @param displaysAlreadyMapped Whether to skip mapping displays because they were already mapped elsewhere.
 		void ChangeResolution(int newResX, int newResY, float newResMultiplier = 1.0f, bool fullscreen = false, bool displaysAlreadyMapped = false);
 
-		/// <summary>
 		/// Toggles between windowed and fullscreen mode (single display).
-		/// </summary>
 		void ToggleFullscreen();
 
-		/// <summary>
 		/// Completes the resolution change by resetting the flag.
-		/// </summary>
 		void CompleteResolutionChange() { m_ResolutionChanged = false; }
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Adds an SDL_Event to the Event queue for processing on Update.
-		/// </summary>
-		/// <param name="windowEvent">The SDL window event to queue.</param>
+		/// @param windowEvent The SDL window event to queue.
 		void QueueWindowEvent(const SDL_Event& windowEvent);
 
-		/// <summary>
 		/// Updates the state of this WindowMan.
-		/// </summary>
 		void Update();
 
-		/// <summary>
 		/// Clears the primary renderer, or all the renderers if in multi-display fullscreen.
-		/// </summary>
 		void ClearRenderer();
 
-		/// <summary>
 		/// Set this Frame to draw the game. To be set before UploadFrame. Resets on ClearRenderer.
-		/// </summary>
 		void DrawPostProcessBuffer() { m_DrawPostProcessBuffer = true; }
 
-		/// <summary>
 		/// Copies the BackBuffer32 content to GPU and shows it on screen.
-		/// </summary>
 		void UploadFrame();
 #pragma endregion
 
@@ -301,93 +231,67 @@ namespace RTE {
 		bool m_DrawPostProcessBuffer; //!< Whether to draw the PostProcessBuffer while not in Activity. Resets on Frame Clear.
 
 #pragma region Initialize Breakdown
-		/// <summary>
 		/// Creates the main game window.
-		/// </summary>
 		void CreatePrimaryWindow();
 
-		/// <summary>
 		/// Initializes all opengl objects (textures, vbo, vao, and fbo).
-		/// </summary>
 		void InitializeOpenGL();
 
-		/// <summary>
 		/// Creates the main game window renderer's drawing surface.
-		/// </summary>
 		void CreateBackBufferTexture();
 #pragma endregion
 
 #pragma region Resolution Handling
 		void SetViewportLetterboxed();
 
-		/// <summary>
 		/// Updates the stored info of the display the primary window is currently positioned at.
-		/// </summary>
 		void UpdatePrimaryDisplayInfo();
 
-		/// <summary>
 		/// Gets the maximum available window bounds for a decorated window on the specified display.
 		/// May not provide accurate results if the window is in fullscreen or has just been created.
-		/// </summary>
-		/// <param name="display">The display to get the bounds for.</param>
-		/// <returns>The maximum available window bounds for a decorated window on the specified display.</returns>
+		/// @param display The display to get the bounds for.
+		/// @return The maximum available window bounds for a decorated window on the specified display.
 		SDL_Rect GetUsableBoundsWithDecorations(int display);
 
-		/// <summary>
 		/// Calculates whether the given resolution and multiplier would create a maximized window.
-		/// </summary>
-		/// <param name="resX">Game window width to check.</param>
-		/// <param name="resY">Game window height to check.</param>
-		/// <param name="resMultiplier">Game window resolution multiplier to check.</param>
-		/// <returns>Whether the given resolution and multiplier create a maximized window.</returns>
+		/// @param resX Game window width to check.
+		/// @param resY Game window height to check.
+		/// @param resMultiplier Game window resolution multiplier to check.
+		/// @return Whether the given resolution and multiplier create a maximized window.
 		bool IsResolutionMaximized(int resX, int resY, float resMultiplier);
 
-		/// <summary>
 		/// Checks whether the passed in resolution settings make sense. If not, overrides them to prevent crashes or unexpected behavior.
-		/// </summary>
-		/// <param name="resX">Game window width to check.</param>
-		/// <param name="resY">Game window height to check.</param>
-		/// <param name="resMultiplier">Game window resolution multiplier to check.</param>
+		/// @param resX Game window width to check.
+		/// @param resY Game window height to check.
+		/// @param resMultiplier Game window resolution multiplier to check.
 		void ValidateResolution(int& resX, int& resY, float& resMultiplier) const;
 
-		/// <summary>
 		/// Attempts to revert to the previous resolution settings if the new ones failed for whatever reason. Will recursively attempt to revert to defaults if previous settings fail as well.
-		/// </summary>
-		/// <param name="revertToDefaults">Whether to attempt to revert to defaults. Will be set by this.</param>
+		/// @param revertToDefaults Whether to attempt to revert to defaults. Will be set by this.
 		void AttemptToRevertToPreviousResolution(bool revertToDefaults = false);
 #pragma endregion
 
 #pragma region Multi-Display Handling
-		/// <summary>
 		/// Clears all the multi-display data, resetting the game to a single-window-single-display state.
-		/// </summary>
 		void ClearMultiDisplayData();
 
-		/// <summary>
 		/// Resize the window to enable fullscreen on multiple displays, using the arrangement info gathered during display mapping.
-		/// </summary>
-		/// <param name="resMultiplier">Requested resolution multiplier.</param>
-		/// <returns>Whether all displays were created successfully.</returns>
+		/// @param resMultiplier Requested resolution multiplier.
+		/// @return Whether all displays were created successfully.
 		bool ChangeResolutionToMultiDisplayFullscreen(float resMultiplier);
 #pragma endregion
 
 #pragma region Display Switch Handling
-		/// <summary>
 		/// Handles focus gain when switching back to the game window.
-		/// </summary>
-		/// <param name="windowThatShouldTakeInputFocus">The window that should take focus of input after all the windows are raised. This is only relevant in multi-display fullscreen.</param>
+		/// @param windowThatShouldTakeInputFocus The window that should take focus of input after all the windows are raised. This is only relevant in multi-display fullscreen.
 		void DisplaySwitchIn(SDL_Window* windowThatShouldTakeInputFocus) const;
 
-		/// <summary>
 		/// Handles focus loss when switching away from the game window.
 		/// Will temporarily disable positioning of the mouse so that when focus is switched back to the game window, the game window won't fly away because the user clicked the title bar of the window.
-		/// </summary>
 		void DisplaySwitchOut() const;
 #pragma endregion
 
-		/// <summary>
 		/// Clears all the member variables of this WindowMan, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

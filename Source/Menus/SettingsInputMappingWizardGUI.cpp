@@ -9,8 +9,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsInputMappingWizardGUI::Clear() {
 		m_ConfiguringPlayer = Players::NoPlayer;
 		m_ConfiguringPlayerScheme = nullptr;
@@ -35,8 +33,6 @@ namespace RTE {
 		m_DualAnalogXBDiagramBitmaps.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	SettingsInputMappingWizardGUI::SettingsInputMappingWizardGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
 		Clear();
@@ -55,8 +51,6 @@ namespace RTE {
 		CreatePresetSelectionScreen();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsInputMappingWizardGUI::CreateManualConfigScreen() {
 		m_WizardManualConfigScreen.ManualConfigBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxWizardManualConfig"));
 
@@ -73,8 +67,6 @@ namespace RTE {
 		m_WizardManualConfigScreen.ResetConfigButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonConfigRestart"));
 		m_WizardManualConfigScreen.DiscardOrApplyConfigButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonDiscardOrApply"));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::CreatePresetSelectionScreen() {
 		m_WizardPresetSelectScreen.PresetSelectBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxWizardPresets"));
@@ -96,13 +88,9 @@ namespace RTE {
 		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxPresetAnalogXB360Diagram"))->SetDrawImage(new AllegroBitmap(m_DualAnalogXBDiagramBitmaps[0]));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool SettingsInputMappingWizardGUI::IsEnabled() const {
 		return m_InputWizardScreenBox->GetVisible() && m_InputWizardScreenBox->GetEnabled();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::SetEnabled(bool enable, int player, InputScheme* playerScheme) {
 		m_InputWizardScreenBox->SetVisible(enable);
@@ -134,19 +122,13 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	GUICollectionBox* SettingsInputMappingWizardGUI::GetActiveDialogBox() const {
 		return (m_InputWizardScreenBox->GetEnabled() && m_InputWizardScreenBox->GetVisible()) ? m_InputWizardScreenBox : nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool SettingsInputMappingWizardGUI::IsConfiguringManually() const {
 		return m_ConfiguringManually && m_WizardManualConfigScreen.ManualConfigBox->GetVisible() && m_WizardManualConfigScreen.ManualConfigBox->GetEnabled();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::ShowManualConfigScreen() {
 		m_WizardPresetSelectScreen.PresetSelectBox->SetVisible(false);
@@ -192,8 +174,6 @@ namespace RTE {
 		m_ConfiguringManually = true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsInputMappingWizardGUI::ShowPresetSelectionScreen() {
 		m_WizardManualConfigScreen.ManualConfigBox->SetVisible(false);
 		m_WizardManualConfigScreen.ManualConfigBox->SetEnabled(false);
@@ -202,8 +182,6 @@ namespace RTE {
 		m_WizardPresetSelectScreen.PresetSelectBox->SetEnabled(true);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsInputMappingWizardGUI::ResetManualConfigSequence() {
 		m_ConfigFinished = false;
 		m_ConfigStep = 0;
@@ -211,8 +189,6 @@ namespace RTE {
 		m_NewInputScheme.Reset();
 		m_NewInputScheme.SetDevice(m_ConfiguringDevice);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::ApplyGamepadInputPreset(GamepadType gamepadType) {
 		switch (gamepadType) {
@@ -232,8 +208,6 @@ namespace RTE {
 		g_GUISound.ButtonPressSound()->Play();
 		m_NewInputSchemeApplied = true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::ApplyManuallyConfiguredScheme() {
 		m_ConfiguringPlayerScheme->SetDevice(m_NewInputScheme.GetDevice());
@@ -255,8 +229,6 @@ namespace RTE {
 		m_ConfiguringManually = false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool SettingsInputMappingWizardGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (m_WizardManualConfigScreen.ManualConfigBox->GetVisible()) {
 			HandleManualConfigScreenInputEvents(guiEvent);
@@ -269,8 +241,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::HandleManualConfigScreenInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Command) {
@@ -304,8 +274,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsInputMappingWizardGUI::HandlePresetSelectScreenInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Command) {
 			if (guiEvent.GetControl() == m_WizardPresetSelectScreen.CloseWizardButton) {
@@ -332,8 +300,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::HandleManualConfigSequence() {
 		if (m_ConfigStepChange) {
@@ -375,8 +341,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingWizardGUI::HandleManualConfigStepChange() {
 		int configuringDeviceSteps = 0;
@@ -420,8 +384,6 @@ namespace RTE {
 		m_WizardManualConfigScreen.PrevConfigStepButton->SetVisible(m_ConfigStep != 0);
 		m_WizardManualConfigScreen.NextConfigStepButton->SetVisible(m_ConfigStep < configuringDeviceSteps - 1);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 		switch (m_ConfigStep) {
@@ -593,8 +555,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 		switch (m_ConfigStep) {
 			case 0:
@@ -716,8 +676,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingWizardGUI::UpdateGamepadDPadConfigSequence() {
 		switch (m_ConfigStep) {
@@ -850,8 +808,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 		switch (m_ConfigStep) {

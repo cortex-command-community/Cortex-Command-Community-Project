@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            BaseEditor.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the BaseEditor class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "BaseEditor.h"
 
 #include "CameraMan.h"
@@ -37,21 +25,10 @@ namespace RTE {
 
 	ConcreteClassInfo(BaseEditor, Activity, 0);
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this BaseEditor, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void BaseEditor::Clear() {
 		m_pEditorGUI = 0;
 		m_NeedSave = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the BaseEditor object ready for use.
 
 	int BaseEditor::Create() {
 		if (Activity::Create() < 0)
@@ -59,11 +36,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a BaseEditor to be identical to another, by deep copy.
 
 	int BaseEditor::Create(const BaseEditor& reference) {
 		if (Activity::Create(reference) < 0)
@@ -75,14 +47,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int BaseEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Activity::ReadProperty(propName, reader));
 		/*
@@ -93,21 +57,10 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this BaseEditor with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int BaseEditor::Save(Writer& writer) const {
 		Activity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the BaseEditor object.
 
 	void BaseEditor::Destroy(bool notInherited) {
 		delete m_pEditorGUI;
@@ -116,12 +69,6 @@ namespace RTE {
 			Activity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int BaseEditor::Start() {
 		// Set the split screen config before the Scene (and it SceneLayers, specifially) are loaded
@@ -234,32 +181,16 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void BaseEditor::SetPaused(bool pause) {
 		// Override the pause
 		m_Paused = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void BaseEditor::End() {
 		Activity::End();
 
 		m_ActivityState = ActivityState::Over;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this BaseEditor. Supposed to be done every frame
-	//                  before drawing.
 
 	void BaseEditor::Update() {
 		Activity::Update();
@@ -291,32 +222,15 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void BaseEditor::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		m_pEditorGUI->Draw(pTargetBitmap, targetPos);
 
 		Activity::DrawGUI(pTargetBitmap, targetPos, which);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this BaseEditor's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
-
 	void BaseEditor::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		Activity::Draw(pTargetBitmap, targetPos);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SaveScene
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the current scene to an appropriate ini file, and asks user if
-	//                  they want to overwrite first if scene of this name exists.
 
 	bool BaseEditor::SaveScene(std::string saveAsName, bool forceOverwrite) {
 		/*

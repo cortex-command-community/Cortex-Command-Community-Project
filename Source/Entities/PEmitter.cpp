@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            PEmitter.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the PEmitter class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "PEmitter.h"
 #include "Atom.h"
 #include "RTETools.h"
@@ -19,12 +7,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(PEmitter, MOSParticle, 100);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this PEmitter, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void PEmitter::Clear() {
 		m_EmissionList.clear();
@@ -57,22 +39,12 @@ namespace RTE {
 		m_LoudnessOnEmit = 1.0f;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Emission object ready for use.
-
 	int PEmitter::Create() {
 		if (MOSParticle::Create() < 0)
 			return -1;
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a PEmitter to be identical to another, by deep copy.
 
 	int PEmitter::Create(const PEmitter& reference) {
 		MOSParticle::Create(reference);
@@ -103,14 +75,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return MOSParticle::ReadProperty(propName, reader));
@@ -160,12 +124,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this PEmitter with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int PEmitter::Save(Writer& writer) const {
 		MOSParticle::Save(writer);
@@ -218,11 +176,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the PEmitter object.
-
 	void PEmitter::Destroy(bool notInherited) {
 		// Stop playback of sounds gracefully
 		if (m_EmissionSound.IsBeingPlayed())
@@ -238,22 +191,11 @@ namespace RTE {
 		Clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ResetEmissionTimers
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reset the timers of all emissions so they will start/stop at the
-	//                  correct relative offsets from now.
-
 	void PEmitter::ResetEmissionTimers() {
 		m_LastEmitTmr.Reset();
 		for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
 			(*eItr).ResetEmissionTimers();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          EnableEmission
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets this PEmitter to start emitting at the set rate, or to stop.
 
 	void PEmitter::EnableEmission(bool enable) {
 		if (!m_EmitEnabled && enable) {
@@ -265,11 +207,6 @@ namespace RTE {
 		}
 		m_EmitEnabled = enable;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          EstimateImpulse
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates the forces this emitter applies on any parent.
 
 	float PEmitter::EstimateImpulse(bool burst) {
 		// Calculate the impulse generated by the emissions, once and store the result
@@ -324,11 +261,6 @@ namespace RTE {
 	Attachable::GibThis(impactImpulse, internalBlast, pIgnoreMO);
 	}
 	*/
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this PEmitter. Supposed to be done every frame.
 
 	void PEmitter::Update() {
 		MOSParticle::Update();
@@ -473,12 +405,6 @@ namespace RTE {
 			m_WasEmitting = false;
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this PEmitter's current graphical representation to a
-	//                  BITMAP of choice.
 
 	void PEmitter::Draw(BITMAP* pTargetBitmap,
 	                    const Vector& targetPos,

@@ -1,18 +1,11 @@
 #ifndef _RTEACROCKET_
 #define _RTEACROCKET_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            ACRocket.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the ACRocket class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the ACRocket class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "ACraft.h"
 
 namespace RTE {
@@ -22,15 +15,9 @@ namespace RTE {
 	class Leg;
 	// class LimbPath;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           ACRocket
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A rocket craft, with main engine and rotation of the whole body as a
-	//                  means of steering.
-	// Parent(s):       ACraft.
-	// Class history:   09/02/2004 ARocket created.
-	//                  12/13/2006 ARocket changed names to ACRocket, parent changed to ACraft
-
+	/// A rocket craft, with main engine and rotation of the whole body as a
+	/// means of steering.
+	/// 12/13/2006 ARocket changed names to ACRocket, parent changed to ACraft
 	class ACRocket : public ACraft {
 		friend struct EntityLuaBindings;
 
@@ -42,227 +29,137 @@ namespace RTE {
 			GearStateCount
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ACRocket);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     ACRocket
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a ACRocket object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a ACRocket object in system
+		/// memory. Create() should be called before using the object.
 		ACRocket() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~ACRocket
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a ACRocket object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a ACRocket object before deletion
+		/// from system memory.
 		~ACRocket() override { Destroy(true); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the ACRocket object ready for use.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the ACRocket object ready for use.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a ACRocket to be identical to another, by deep copy.
-		// Arguments:       A reference to the ACRocket to deep copy.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Creates a ACRocket to be identical to another, by deep copy.
+		/// @param reference A reference to the ACRocket to deep copy.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(const ACRocket& reference);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire ACRocket, including its inherited members, to their
-		//                  default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire ACRocket, including its inherited members, to their
+		/// default settings or values.
 		void Reset() override {
 			Clear();
 			ACraft::Reset();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the SceneLayer object.
-		// Arguments:       Whether to only destroy the members defined in this derived class, or
-		//                  to destroy all inherited members also.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the SceneLayer object.
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
+		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetAltitude
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the altitide of this' pos (or appropriate low point) over the
-		//                  terrain, in pixels.
-		// Arguments:       The max altitude you care to check for. 0 Means check the whole scene's height.
-		//                  The accuracy within which measurement is acceptable. Higher number
-		//                  here means less calculation.
-		// Return value:    The rough altitude over the terrain, in pixels.
-
+		/// Gets the altitide of this' pos (or appropriate low point) over the
+		/// terrain, in pixels.
+		/// @param max The max altitude you care to check for. 0 Means check the whole scene's height. (default: 0)
+		/// @param accuracy The accuracy within which measurement is acceptable. Higher number (default: 0)
+		/// here means less calculation.
+		/// @return The rough altitude over the terrain, in pixels.
 		float GetAltitude(int max = 0, int accuracy = 0) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  PreControllerUpdate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Update called prior to controller update. Ugly hack. Supposed to be done every frame.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
 		void PreControllerUpdate() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates this MovableObject. Supposed to be done every frame.
-		// Arguments:       Nosssssssne.
-		// Return value:    None.
-
+		/// Updates this MovableObject. Supposed to be done every frame.
+		/// @param Nosssssssne.
 		void Update() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this ACRocket's current graphical representation to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the Scene.
-		//                  In which mode to draw in. See the DrawMode enumeration for the modes.
-		//                  Whether to not draw any extra 'ghost' items of this MovableObject,
-		//                  indicator arrows or hovering HUD text and so on.
-		// Return value:    None.
-
+		/// Draws this ACRocket's current graphical representation to a
+		/// BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
+		/// @param mode In which mode to draw in. See the DrawMode enumeration for the modes. (default: g_DrawColor)
+		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this MovableObject, (default: false)
+		/// indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:	GetMaxPassengers
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     The recomended, not absolute, maximum number of actors that fit in the
-		//                  invetory. Used by the activity AI.
-		// Arguments:       None.
-		// Return value:    An integer with the recomended number of actors that fit in the craft.
-		//                  Default is two.
-
+		/// Virtual method:	GetMaxPassengers
+		/// The recomended, not absolute, maximum number of actors that fit in the
+		/// invetory. Used by the activity AI.
+		/// @return An integer with the recomended number of actors that fit in the craft.
+		/// Default is two.
 		int GetMaxPassengers() const override { return m_MaxPassengers > -1 ? m_MaxPassengers : 2; }
 
-		/// <summary>
 		/// Gets the right leg of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the right Leg of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the right Leg of this ACRocket. Ownership is NOT transferred.
 		Leg* GetRightLeg() const { return m_pRLeg; }
 
-		/// <summary>
 		/// Sets the right Leg for this ACRocket.
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetRightLeg(Leg* newLeg);
 
-		/// <summary>
 		/// Gets the left Leg of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the left Leg of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the left Leg of this ACRocket. Ownership is NOT transferred.
 		Leg* GetLeftLeg() const { return m_pLLeg; }
 
-		/// <summary>
 		/// Sets the left Leg for this ACRocket.
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetLeftLeg(Leg* newLeg);
 
-		/// <summary>
 		/// Gets the main thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the main thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the main thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetMainThruster() const { return m_pMThruster; }
 
-		/// <summary>
 		/// Sets the main thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetMainThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the right side thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the right side thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the right side thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetRightThruster() const { return m_pRThruster; }
 
-		/// <summary>
 		/// Sets the right side thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetRightThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the left side thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the left side thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the left side thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetLeftThruster() const { return m_pLThruster; }
 
-		/// <summary>
 		/// Sets the left side thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetLeftThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the right side secondary thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the right side secondary thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the right side secondary thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetURightThruster() const { return m_pURThruster; }
 
-		/// <summary>
 		/// Sets the right side secondary thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetURightThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the left side secondary thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the left side secondary thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the left side secondary thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetULeftThruster() const { return m_pULThruster; }
 
-		/// <summary>
 		/// Sets the left side secondary thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetULeftThruster(AEmitter* newThruster);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			GetGearState
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the the landing gear state
-		// Arguments:       None.
-		// Return value:    Current landing gear state.
-
+		/// Method:			GetGearState
+		/// Gets the the landing gear state
+		/// @return Current landing gear state.
 		unsigned int GetGearState() const { return m_GearState; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -290,18 +187,10 @@ namespace RTE {
 		LimbPath m_Paths[2][GearStateCount];
 		float m_MaxGimbalAngle; //!< How much the main engine is able to tilt in order to stabilize the rocket.
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this ACRocket, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this ACRocket, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

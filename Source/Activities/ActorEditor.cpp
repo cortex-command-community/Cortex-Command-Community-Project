@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            ActorEditor.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the ActorEditor class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "ActorEditor.h"
 
 #include "PresetMan.h"
@@ -35,21 +23,10 @@ namespace RTE {
 
 	ConcreteClassInfo(ActorEditor, EditorActivity, 0);
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this ActorEditor, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void ActorEditor::Clear() {
 		m_pEditedActor = 0;
 		m_pPicker = 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the ActorEditor object ready for use.
 
 	int ActorEditor::Create() {
 		if (EditorActivity::Create() < 0)
@@ -59,11 +36,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a ActorEditor to be identical to another, by deep copy.
 
 	int ActorEditor::Create(const ActorEditor& reference) {
 		if (EditorActivity::Create(reference) < 0)
@@ -75,14 +47,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int ActorEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 		/*
@@ -93,21 +57,10 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this ActorEditor with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int ActorEditor::Save(Writer& writer) const {
 		EditorActivity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the ActorEditor object.
 
 	void ActorEditor::Destroy(bool notInherited) {
 		delete m_pEditedActor;
@@ -117,12 +70,6 @@ namespace RTE {
 			EditorActivity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int ActorEditor::Start() {
 		int error = EditorActivity::Start();
@@ -144,32 +91,16 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void ActorEditor::SetPaused(bool pause) {
 		// Override the pause
 		m_Paused = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void ActorEditor::End() {
 		EditorActivity::End();
 
 		m_ActivityState = ActivityState::Over;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this ActorEditor. Supposed to be done every frame
-	//                  before drawing.
 
 	void ActorEditor::Update() {
 		// And object hasn't been loaded yet, so get the loading picker going
@@ -245,11 +176,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void ActorEditor::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		// Draw the edited actor and pie menu
 		if (m_pEditedActor) {
@@ -266,20 +192,9 @@ namespace RTE {
 		EditorActivity::DrawGUI(pTargetBitmap, targetPos, which);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this ActorEditor's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
-
 	void ActorEditor::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		EditorActivity::Draw(pTargetBitmap, targetPos);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          LoadActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reloads the Actor itself and sets up the pie menu to match its setup.
 
 	bool ActorEditor::LoadActor(const Entity* pActorToLoad) {
 		if (!pActorToLoad)
@@ -311,8 +226,6 @@ namespace RTE {
 
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ActorEditor::ReloadActorData() {
 		if (m_pEditedActor) {
