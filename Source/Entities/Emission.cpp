@@ -1,12 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            Emission.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the Emission class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
 #include "Emission.h"
 #include "PresetMan.h"
 
@@ -15,12 +6,6 @@ namespace RTE {
 	// const string Emission::m_sClassName = "Emission";
 
 	ConcreteClassInfo(Emission, Entity, 100);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this Emission, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void Emission::Clear() {
 		m_pEmission = 0;
@@ -55,11 +40,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a Emission to be identical to another, by deep copy.
-
 	int Emission::Create(const Emission& reference) {
 		m_pEmission = reference.m_pEmission;
 		m_PPM = reference.m_PPM;
@@ -77,14 +57,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -122,12 +94,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this Emission with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int Emission::Save(Writer& writer) const {
 		Serializable::Save(writer);

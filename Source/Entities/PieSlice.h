@@ -9,9 +9,7 @@ namespace RTE {
 
 	class PieMenu;
 
-	/// <summary>
 	/// An individual PieSlice in a PieMenu.
-	/// </summary>
 	class PieSlice : public Entity {
 
 	public:
@@ -19,9 +17,7 @@ namespace RTE {
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-		/// <summary>
 		/// Enumeration for the types of PieSlices.
-		/// </summary>
 		enum SliceType {
 			NoType,
 			// Inventory management
@@ -68,237 +64,167 @@ namespace RTE {
 		};
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a PieSlice object in system memory. Create() should be called before using the object.
-		/// </summary>
 		PieSlice() { Clear(); }
 
-		/// <summary>
 		/// Makes the PieSlice object ready for use.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create() override;
 
-		/// <summary>
 		/// Creates a PieSlice to be identical to another, by deep copy.
-		/// </summary>
-		/// <param name="reference">A reference to the PieSlice to deep copy.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param reference A reference to the PieSlice to deep copy.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const PieSlice& reference);
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up a PieSlice object before deletion from system memory.
-		/// </summary>
 		~PieSlice() override { Destroy(true); }
 
-		/// <summary>
 		/// Resets the entire Serializable, including its inherited members, to their default settings or values.
-		/// </summary>
 		void Reset() override { Clear(); }
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Gets the SliceType of this PieSlice.
-		/// </summary>
-		/// <returns>The SliceType of this PieSlice.</returns>
+		/// @return The SliceType of this PieSlice.
 		SliceType GetType() const { return m_Type; }
 
-		/// <summary>
 		/// Sets the SliceType of this PieSlice.
-		/// </summary>
-		/// <param name="newType">The new SliceType of this PieSlice.</param>
+		/// @param newType The new SliceType of this PieSlice.
 		void SetType(SliceType newType) { m_Type = newType; }
 
-		/// <summary>
 		/// Gets the Direction of this PieSlice.
-		/// </summary>
-		/// <returns>The Direction of this PieSlice.</returns>
+		/// @return The Direction of this PieSlice.
 		Directions GetDirection() const { return m_Direction; }
 
-		/// <summary>
 		/// Sets the Direction of this PieSlice.
-		/// </summary>
-		/// <param name="newDirection">The new Direction of this PieSlice.</param>
+		/// @param newDirection The new Direction of this PieSlice.
 		void SetDirection(Directions newDirection) {
 			if (newDirection != Directions::None) {
 				m_Direction = newDirection;
 			}
 		}
 
-		/// <summary>
 		/// Gets whether or not this PieSlice can be the middle PieSlice of a PieQuadrant.
-		/// </summary>
-		/// <returns>Whether or not this PieSlice can be the middle PieSlice of a PieQuadrant.</returns>
+		/// @return Whether or not this PieSlice can be the middle PieSlice of a PieQuadrant.
 		bool GetCanBeMiddleSlice() const { return m_CanBeMiddleSlice; }
 
-		/// <summary>
 		/// Sets whether or not this PieSlice can be the middle PieSlice of a PieQuadrant.
-		/// </summary>
-		/// <param name="newCanBeMiddleSlice">Whether or not this PieSlice can be the middle PieSlice of a PieQuadrant.</param>
+		/// @param newCanBeMiddleSlice Whether or not this PieSlice can be the middle PieSlice of a PieQuadrant.
 		void SetCanBeMiddleSlice(bool newCanBeMiddleSlice) { m_CanBeMiddleSlice = newCanBeMiddleSlice; }
 
-		/// <summary>
 		/// Gets the original Entity source of this PieSlice, if there is one.
-		/// </summary>
-		/// <returns>A pointer to the original Entity source of this PieSlice, if there is one.</returns>
+		/// @return A pointer to the original Entity source of this PieSlice, if there is one.
 		const Entity* GetOriginalSource() const { return m_OriginalSource; }
 
-		/// <summary>
 		/// Sets the original Entity source of this PieSlice.
-		/// </summary>
-		/// <param name="originalSource">A pointer to the original Entity source of this PieSlice.</param>
+		/// @param originalSource A pointer to the original Entity source of this PieSlice.
 		void SetOriginalSource(const Entity* originalSource) { m_OriginalSource = originalSource; }
 
-		/// <summary>
 		/// Gets whether or not this PieSlice is enabled.
-		/// </summary>
-		/// <returns>Whether or not this PieSlice is enabled.</returns>
+		/// @return Whether or not this PieSlice is enabled.
 		bool IsEnabled() const { return m_Enabled; }
 
-		/// <summary>
 		/// Sets whether or not this PieSlice should be enabled.
-		/// </summary>
-		/// <param name="enabled">Whether or not this PieSlice should be enabled.</param>
+		/// @param enabled Whether or not this PieSlice should be enabled.
 		void SetEnabled(bool enabled) { m_Enabled = enabled; }
 
-		/// <summary>
 		/// Gets whether or not this PieSlice has a valid Icon.
-		/// </summary>
-		/// <returns>Whether or not this PieSlice has a valid Icon.</returns>
+		/// @return Whether or not this PieSlice has a valid Icon.
 		bool HasIcon() const { return m_Icon && m_Icon->GetFrameCount() > 0; }
 
-		/// <summary>
 		/// Gets the appropriate icon frame for this PieSlice.
-		/// </summary>
-		/// <param name="sliceIsSelected">Whether or not this PieSlice is selected, which may affect which icon is appropriate.</param>
-		/// <returns>The icon for this PieSlice.</returns>
+		/// @param sliceIsSelected Whether or not this PieSlice is selected, which may affect which icon is appropriate.
+		/// @return The icon for this PieSlice.
 		BITMAP* GetAppropriateIcon(bool sliceIsSelected = false) const;
 
-		/// <summary>
 		/// Sets the new Icon for this PieSlice. Ownership IS transferred.
-		/// </summary>
-		/// <param name="newIcon">The new Icon for this PieSlice.</param>
+		/// @param newIcon The new Icon for this PieSlice.
 		void SetIcon(Icon* newIcon) { m_Icon = std::unique_ptr<Icon>(newIcon); }
 
-		/// <summary>
 		/// Gets the LuabindObjectWrapper for the function this PieSlice should run when activated.
-		/// </summary>
-		/// <returns>The LuabindObjectWrapper this PieSlice should run when activated.</returns>
+		/// @return The LuabindObjectWrapper this PieSlice should run when activated.
 		const LuabindObjectWrapper* GetLuabindFunctionObjectWrapper() const { return m_LuabindFunctionObject.get(); }
 
-		/// <summary>
 		/// Gets the file path of the Lua file this PieSlice should run when activated, if any.
-		/// </summary>
-		/// <returns>The file path to the script file this PieSlice should load when activated.</returns>
+		/// @return The file path to the script file this PieSlice should load when activated.
 		std::string GetScriptPath() const { return m_LuabindFunctionObject ? m_LuabindFunctionObject->GetFilePath() : ""; }
 
-		/// <summary>
 		/// Sets the file path of the scripted file this PieSlice should run when activated.
-		/// </summary>
-		/// <param name="newScriptPath">The file path of the Lua file this PieSlice should run when activated.</param>
+		/// @param newScriptPath The file path of the Lua file this PieSlice should run when activated.
 		void SetScriptPath(const std::string& newScriptPath) {
 			m_LuabindFunctionObject = std::make_unique<LuabindObjectWrapper>(nullptr, newScriptPath);
 			ReloadScripts();
 		}
 
-		/// <summary>
 		/// Gets the name of the Lua function to run when this PieSlice is activated.
-		/// </summary>
-		/// <returns>The name of the Lua function this PieSlice should execute when activated.</returns>
+		/// @return The name of the Lua function this PieSlice should execute when activated.
 		const std::string& GetFunctionName() const { return m_FunctionName; }
 
-		/// <summary>
 		/// Sets the name of the Lua function to run when this PieSlice is activated as a scripted pie menu option.
-		/// </summary>
-		/// <param name="newFunctionName">The name of the Lua function to run when this PieSlice is activated.</param>
+		/// @param newFunctionName The name of the Lua function to run when this PieSlice is activated.
 		void SetFunctionName(const std::string& newFunctionName) {
 			m_FunctionName = newFunctionName;
 			ReloadScripts();
 		}
 
 		// TODO Ideally this would be done with a weak_ptr but I'm not sure how it'll go with LuaMan. Try it out and see
-		/// <summary>
 		/// Gets the sub-PieMenu for this PieSlice if there is one. Ownership is NOT transferred.
-		/// </summary>
-		/// <returns>The sub-PieMenu for this PieSlice if there is one. Ownership is NOT transferred.</returns>
+		/// @return The sub-PieMenu for this PieSlice if there is one. Ownership is NOT transferred.
 		PieMenu* GetSubPieMenu() const;
 
-		/// <summary>
 		/// Sets the sub-PieMenu for this PieSlice. Ownership IS transferred.
-		/// </summary>
-		/// <param name="newSubPieMenu">The new sub-PieMenu for this PieSlice. Ownership IS transferred.</param>
+		/// @param newSubPieMenu The new sub-PieMenu for this PieSlice. Ownership IS transferred.
 		void SetSubPieMenu(PieMenu* newSubPieMenu);
 #pragma endregion
 
 #pragma region Angle Getter and Setters
-		/// <summary>
 		/// Gets the start angle this PieSlice's area is set to be at in its pie menu.
-		/// </summary>
-		/// <returns>The start angle of this PieSlice's area.</returns>
+		/// @return The start angle of this PieSlice's area.
 		float GetStartAngle() const { return m_StartAngle; }
 
-		/// <summary>
 		/// Sets the start angle this PieSlice's area should be at in its pie menu.
-		/// </summary>
-		/// <param name="startAngle">The start angle to set for the PieSlice's area.</param>
+		/// @param startAngle The start angle to set for the PieSlice's area.
 		void SetStartAngle(float startAngle) {
 			m_StartAngle = startAngle;
 			RecalculateMidAngle();
 		}
 
-		/// <summary>
 		/// Gets the number of slots this PieSlice takes up.
-		/// </summary>
-		/// <returns>The number of slots this PieSlice takes up.</returns>
+		/// @return The number of slots this PieSlice takes up.
 		int GetSlotCount() const { return m_SlotCount; }
 
-		/// <summary>
 		/// Sets the number of slots this PieSlice takes up.
-		/// </summary>
-		/// <param name="slotCount">The number of slots this PieSlice should take up.</param>
+		/// @param slotCount The number of slots this PieSlice should take up.
 		void SetSlotCount(int slotCount) {
 			m_SlotCount = std::max(1, slotCount);
 			RecalculateMidAngle();
 		}
 
-		/// <summary>
 		/// Gets the mid angle this PieSlice's area is set to be at in its pie menu.
-		/// </summary>
-		/// <returns>The mid angle of this PieSlice's area.</returns>
+		/// @return The mid angle of this PieSlice's area.
 		float GetMidAngle() const { return m_MidAngle; }
 
-		/// <summary>
 		/// Sets the mid angle this PieSlice's area should be at in its pie menu.
-		/// </summary>
-		/// <param name="midAngle">The mid angle to set for the PieSlice's area.</param>
+		/// @param midAngle The mid angle to set for the PieSlice's area.
 		void SetMidAngle(float midAngle) { m_MidAngle = midAngle; }
 
-		/// <summary>
 		/// Gets whether or not this PieSlice should draw itself flipped to match its absolute angle (i.e. its angle accounting for its PieMenu's rotation).
-		/// </summary>
-		/// <returns>Whether or not this PieSlice should draw itself flipped to match its absolute angle.</returns>
+		/// @return Whether or not this PieSlice should draw itself flipped to match its absolute angle.
 		bool GetDrawFlippedToMatchAbsoluteAngle() const { return m_DrawFlippedToMatchAbsoluteAngle; }
 
-		/// <summary>
 		/// Sets whether or not this PieSlice should draw itself flipped to match its absolute angle (i.e. its angle accounting for its PieMenu's rotation).
-		/// </summary>
-		/// <param name="shouldDrawFlippedToMatchAbsoluteAngle">Whether or not this PieSlice should draw itself flipped to match its absolute angle.</param>
+		/// @param shouldDrawFlippedToMatchAbsoluteAngle Whether or not this PieSlice should draw itself flipped to match its absolute angle.
 		void SetDrawFlippedToMatchAbsoluteAngle(bool shouldDrawFlippedToMatchAbsoluteAngle) { m_DrawFlippedToMatchAbsoluteAngle = shouldDrawFlippedToMatchAbsoluteAngle; }
 #pragma endregion
 
-		/// <summary>
 		/// Reloads the the script on this PieSlice.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int ReloadScripts() final;
 
 	private:
-		/// <summary>
 		/// Custom deleter for PieMenu to avoid include problems with unique_ptr.
-		/// </summary>
 		struct PieMenuCustomDeleter {
 			void operator()(PieMenu* pieMenu) const;
 		};
@@ -324,14 +250,10 @@ namespace RTE {
 
 		bool m_DrawFlippedToMatchAbsoluteAngle; //!< Whether or not this PieSlice should draw flipped based on its absolute angle (i.e. its angle accounting for its pie menu's rotation).
 
-		/// <summary>
 		/// Recalculates this PieSlice's mid angle based on its start angle and slot count.
-		/// </summary>
 		void RecalculateMidAngle();
 
-		/// <summary>
 		/// Clears all the member variables of this PieSlice, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

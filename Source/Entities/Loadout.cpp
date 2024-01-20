@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            Loadout.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Implementation file for the Loadout class
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "Loadout.h"
 #include "PresetMan.h"
 #include "MovableObject.h"
@@ -18,12 +6,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(Loadout, Entity, 0);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this Loadout, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void Loadout::Clear() {
 		m_Complete = true;
@@ -46,11 +28,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a Loadout to be identical to another, by deep copy.
-
 	int Loadout::Create(const Loadout& reference) {
 		Entity::Create(reference);
 
@@ -62,14 +39,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -121,12 +90,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this Loadout with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int Loadout::Save(Writer& writer) const {
 		Entity::Save(writer);
 
@@ -163,13 +126,6 @@ namespace RTE {
 	    Clear();
 	}
 	*/
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CreateFirstActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates and returns the first Actor that this Loadout has and equips.
-	//                  Ownership IS transferred!! All items of the Loadout of this Deployment
-	//                  will be added to the Actor's inventory as well (and also owned by it)
 
 	Actor* Loadout::CreateFirstActor(int nativeModule, float foreignMult, float nativeMult, float& costTally) const {
 		// The Actor instance we return and pass ownership of
@@ -251,12 +207,6 @@ namespace RTE {
 		// PASSING OWNERSHIP
 		return pReturnActor;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CreateFirstDevice
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates and returns the first Device that is defined in this Loadout.
-	//                  Ownership IS transferred!! Only the first Device is created.
 
 	SceneObject* Loadout::CreateFirstDevice(int nativeModule, float foreignMult, float nativeMult, float& costTally) const {
 		// The Actor instance we return and pass ownership of

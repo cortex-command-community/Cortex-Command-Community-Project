@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            EditorActivity.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the EditorActivity class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "EditorActivity.h"
 
 #include "PresetMan.h"
@@ -35,12 +23,6 @@
 namespace RTE {
 
 	AbstractClassInfo(EditorActivity, Activity);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this EditorActivity, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void EditorActivity::Clear() {
 		// Most editors are single player affairs
@@ -80,22 +62,12 @@ namespace RTE {
 		m_pOverwriteNoButton = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the EditorActivity object ready for use.
-
 	int EditorActivity::Create() {
 		if (Activity::Create() < 0)
 			return -1;
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a EditorActivity to be identical to another, by deep copy.
 
 	int EditorActivity::Create(const EditorActivity& reference) {
 		if (Activity::Create(reference) < 0)
@@ -113,14 +85,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int EditorActivity::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(Activity::ReadProperty(propName, reader));
 		/*
@@ -131,21 +95,10 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this EditorActivity with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int EditorActivity::Save(Writer& writer) const {
 		Activity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the EditorActivity object.
 
 	void EditorActivity::Destroy(bool notInherited) {
 		delete m_pGUIController;
@@ -156,12 +109,6 @@ namespace RTE {
 			Activity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int EditorActivity::Start() {
 		int error = 0;
@@ -211,32 +158,16 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void EditorActivity::SetPaused(bool pause) {
 		// Override the pause
 		m_Paused = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void EditorActivity::End() {
 		Activity::End();
 
 		m_ActivityState = ActivityState::Over;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this EditorActivity. Supposed to be done every frame
-	//                  before drawing.
 
 	void EditorActivity::Update() {
 		// Always show teh messages of the editor
@@ -557,23 +488,12 @@ namespace RTE {
 		*/
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void EditorActivity::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		AllegroScreen drawScreen(pTargetBitmap);
 		m_pGUIController->Draw(&drawScreen);
 		if (m_EditorMode != EDITINGOBJECT)
 			m_pGUIController->DrawMouse();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this EditorActivity's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
 
 	void EditorActivity::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 	}

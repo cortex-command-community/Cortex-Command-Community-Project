@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            HDFirearm.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the HDFirearm class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "HDFirearm.h"
 
 #include "ActivityMan.h"
@@ -26,12 +14,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(HDFirearm, HeldDevice, 50);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this HDFirearm, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void HDFirearm::Clear() {
 		m_pMagazineReference = 0;
@@ -88,11 +70,6 @@ namespace RTE {
 		m_LegacyCompatibilityRoundsAlwaysFireUnflipped = false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Round object ready for use.
-
 	int HDFirearm::Create() {
 		if (HeldDevice::Create() < 0)
 			return -1;
@@ -102,11 +79,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a HDFirearm to be identical to another, by deep copy.
 
 	int HDFirearm::Create(const HDFirearm& reference) {
 		if (reference.m_pMagazine) {
@@ -185,14 +157,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int HDFirearm::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return HeldDevice::ReadProperty(propName, reader));
@@ -277,12 +241,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this HDFirearm with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int HDFirearm::Save(Writer& writer) const {
 		HeldDevice::Save(writer);
 
@@ -357,11 +315,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the HDFirearm object.
-
 	void HDFirearm::Destroy(bool notInherited) {
 		if (m_PreFireSound) {
 			m_PreFireSound->Stop();
@@ -402,8 +355,6 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void HDFirearm::SetMagazine(Magazine* newMagazine) {
 		if (m_pMagazine && m_pMagazine->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pMagazine);
@@ -426,8 +377,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void HDFirearm::SetFlash(Attachable* newFlash) {
 		if (m_pFlash && m_pFlash->IsAttached()) {
@@ -452,13 +401,9 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string HDFirearm::GetNextMagazineName() const {
 		return m_pMagazineReference->GetPresetName();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool HDFirearm::SetNextMagazineName(std::string magName) {
 		const Magazine* pNewMag = dynamic_cast<const Magazine*>(g_PresetMan.GetEntityPreset("Magazine", magName));
@@ -473,16 +418,9 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetRoundInMagCount
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the number of rounds still in the loaded magazine.
-
 	int HDFirearm::GetRoundInMagCount() const {
 		return m_pMagazine ? m_pMagazine->GetRoundCount() : 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int HDFirearm::GetRoundInMagCapacity() const {
 		if (m_pMagazine) {
@@ -493,22 +431,12 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetAIFireVel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the velocity the AI use when aiming this weapon
-
 	float HDFirearm::GetAIFireVel() {
 		if (m_AIFireVel < 0 && m_pMagazine)
 			m_AIFireVel = m_pMagazine->GetAIAimVel();
 
 		return m_AIFireVel;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetAIBulletLifeTime
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the bullet life time the AI use when aiming this weapon.
 
 	unsigned long HDFirearm::GetAIBulletLifeTime() {
 		if (m_AIBulletLifeTime == 0 && m_pMagazine) {
@@ -525,22 +453,12 @@ namespace RTE {
 		return m_AIBulletLifeTime;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetBulletAccScalar
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the bullet acceleration scalar the AI use when aiming this weapon.
-
 	float HDFirearm::GetBulletAccScalar() {
 		if (m_AIBulletAccScalar < 0 && m_pMagazine)
 			m_AIBulletAccScalar = m_pMagazine->GetBulletAccScalar();
 
 		return m_AIBulletAccScalar;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetAIBlastRadius
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the blast radius the AI use when aiming this weapon
 
 	float HDFirearm::GetAIBlastRadius() const {
 		int radius = -1;
@@ -558,22 +476,12 @@ namespace RTE {
 		return radius;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetAIPenetration
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets how much material the projectiles from this weapon can destory.
-
 	float HDFirearm::GetAIPenetration() const {
 		if (m_pMagazine)
 			return m_pMagazine->GetAIAimPenetration();
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          CompareTrajectories
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Estimates how close the projectiles from two weapons will land.
 
 	float HDFirearm::CompareTrajectories(HDFirearm* pWeapon) {
 		if (pWeapon) {
@@ -606,27 +514,13 @@ namespace RTE {
 		return 100000;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetMagazinePos
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the absolute position of the magazine or other equivalent point of
-	//                  this.
-
 	Vector HDFirearm::GetMagazinePos() const {
 		return m_Pos + RotateOffset(m_MagOff);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virutal method:  GetMuzzlePos
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the absolute position of the muzzle or other equivalent point of
-	//                  this.
-
 	Vector HDFirearm::GetMuzzlePos() const {
 		return m_Pos + RotateOffset(m_MuzzleOff);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void HDFirearm::RestDetection() {
 		HeldDevice::RestDetection();
@@ -635,12 +529,6 @@ namespace RTE {
 			m_RestTimer.Reset();
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Activate
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Activates one of this HDFirearm's features. Analogous to 'pulling
-	//                  the trigger'.
 
 	void HDFirearm::Activate() {
 		bool wasActivated = m_Activated;
@@ -659,12 +547,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Deactivate
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Deactivates one of this HDFirearm's features. Analogous to 'releasing
-	//                  the trigger'.
-
 	void HDFirearm::Deactivate() {
 		bool wasActivated = m_Activated;
 		HeldDevice::Deactivate();
@@ -681,12 +563,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:			StopActivationSound
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Aborts playing of active sound no matter what. Used to silence spinning
-	//                  weapons when weapons swapped
-
 	void HDFirearm::StopActivationSound() {
 		if (m_ActiveSound && m_ActiveSound->IsBeingPlayed())
 			m_ActiveSound->Stop();
@@ -697,8 +573,6 @@ namespace RTE {
 		// m_Activated = false;
 		// m_LastFireTmr.SetElapsedSimTimeMS(m_DeactivationDelay + 1);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void HDFirearm::Reload() {
 		if (!m_Reloading && m_Reloadable) {
@@ -730,13 +604,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  NeedsReloading
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tells whether the device is curtrently in need of being reloaded.
-
 	bool HDFirearm::NeedsReloading() const {
 		if (!m_Reloading && m_Reloadable) {
 			if (m_pMagazine) {
@@ -748,12 +615,6 @@ namespace RTE {
 		// We're currently reloading
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsFull
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tells whether the device is curtrently full and reloading won't have
-	//                  any effect.
 
 	bool HDFirearm::IsFull() const {
 		if (!m_Reloading && m_Reloadable) {
@@ -767,21 +628,12 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool HDFirearm::IsEmpty() const {
 		if (m_pMagazine) {
 			return m_pMagazine->IsEmpty();
 		}
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this HDFirearm. Supposed to be done every frame.
 
 	void HDFirearm::Update() {
 		HeldDevice::Update();
@@ -1146,20 +998,9 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:  EstimateDigStrength
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Estimates what material strength the rounds in the magazine can destroy.
-
 	float HDFirearm::EstimateDigStrength() const {
 		return m_pMagazine ? m_pMagazine->EstimateDigStrength() : m_pMagazineReference->EstimateDigStrength();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this HDFirearm's current graphical representation to a
-	//                  BITMAP of choice.
 
 	void HDFirearm::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		if (m_pFlash && m_FireFrame && !m_pFlash->IsDrawnAfterParent() && mode == g_DrawColor && !onlyPhysical) {
@@ -1172,11 +1013,6 @@ namespace RTE {
 			m_pFlash->Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DrawHUD
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws an aiming aid in front of this HeldDevice.
 
 	void HDFirearm::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 		if (!m_HUDVisible)
