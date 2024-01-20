@@ -22,6 +22,7 @@
 #include "Atom.h"
 #include "Actor.h"
 #include "SLTerrain.h"
+#include "PieMenu.h"
 
 #include "Base64/base64.h"
 #include "tracy/Tracy.hpp"
@@ -32,6 +33,14 @@ AbstractClassInfo(MovableObject, SceneObject);
 
 std::atomic<unsigned long int> MovableObject::m_UniqueIDCounter = 1;
 std::string MovableObject::ms_EmptyString = "";
+
+MovableObject::MovableObject() {
+    Clear();
+}
+
+MovableObject::~MovableObject() {
+    Destroy(true);
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Clear

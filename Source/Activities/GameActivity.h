@@ -94,7 +94,7 @@ public:
 //                  memory. Create() should be called before using the object.
 // Arguments:       None.
 
-    GameActivity() { Clear(); }
+    GameActivity();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,7 @@ public:
 //                  from system memory.
 // Arguments:       None.
 
-	~GameActivity() override { Destroy(true); }
+	~GameActivity() override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

@@ -34,6 +34,7 @@
 #include "FrameMan.h"
 #include "PerformanceMan.h"
 #include "PostProcessMan.h"
+#include "PieMenu.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -53,6 +54,13 @@ bool Actor::m_sIconsLoaded = false;
 #define ARROWTIME 1000
 
 
+Actor::Actor() {
+    Clear();
+}
+
+Actor::~Actor() {
+    Destroy(true);
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Constructor:     LuaBindRegister
@@ -1283,6 +1291,14 @@ void Actor::VerifyMOIDs()
 	{
 		RTEAssert(*it == g_NoMOID || *it < g_MovableMan.GetMOIDCount(), "Invalid MOID in actor");
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+void Actor::SetPieMenu(PieMenu *newPieMenu) {
+    m_PieMenu = std::unique_ptr<PieMenu>(newPieMenu);
+    m_PieMenu->Create(this);
+    m_PieMenu->AddWhilePieMenuOpenListener(this, std::bind(&Actor::WhilePieMenuOpenListener, this, m_PieMenu.get()));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

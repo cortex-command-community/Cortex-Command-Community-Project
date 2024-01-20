@@ -45,6 +45,19 @@ namespace RTE {
 
 	BITMAP * PieMenu::s_CursorBitmap = nullptr;
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	PieMenu::PieMenu() {
+		Clear();
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	PieMenu::~PieMenu() {
+		Destroy(true);
+	}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PieMenu::Clear() {
@@ -306,9 +319,9 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	PieSlice::SliceType PieMenu::GetPieCommand() const {
+	PieSliceType PieMenu::GetPieCommand() const {
 		const PieSlice *activatedSlice = m_ActiveSubPieMenu ? m_ActiveSubPieMenu->GetActivatedPieSlice() : m_ActivatedPieSlice;
-		return (activatedSlice == nullptr) ? PieSlice::SliceType::NoType : activatedSlice->GetType();
+		return (activatedSlice == nullptr) ? PieSliceType::NoType : activatedSlice->GetType();
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -324,7 +337,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	PieSlice * PieMenu::GetFirstPieSliceByType(PieSlice::SliceType pieSliceType) const {
+	PieSlice * PieMenu::GetFirstPieSliceByType(PieSliceType pieSliceType) const {
 		for (PieSlice *pieSlice : m_CurrentPieSlices) {
 			if (pieSlice->GetType() == pieSliceType) {
 				return pieSlice;
@@ -447,7 +460,7 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool PieMenu::RemovePieSlicesByType(PieSlice::SliceType pieSliceTypeToRemoveBy) {
+	bool PieMenu::RemovePieSlicesByType(PieSliceType pieSliceTypeToRemoveBy) {
 		bool anyPieSlicesRemoved = false;
 
 		std::vector<const PieSlice *> pieSlicesToRemove;
@@ -1129,7 +1142,7 @@ namespace RTE {
 			case IconSeparatorMode::Circle:
 			case IconSeparatorMode::Square:
 				for (const PieSlice *pieSlice : m_CurrentPieSlices) {
-					if (pieSlice->GetType() != PieSlice::SliceType::NoType) { DrawBackgroundPieSliceSeparator(backgroundBitmapToDrawTo, pieCircleCenterX, pieCircleCenterY, pieSlice->GetMidAngle() + subPieMenuRotationOffset, pieSlice == m_HoveredPieSlice && pieSlice->IsEnabled(), pieSlice->GetSubPieMenu()); }
+					if (pieSlice->GetType() != PieSliceType::NoType) { DrawBackgroundPieSliceSeparator(backgroundBitmapToDrawTo, pieCircleCenterX, pieCircleCenterY, pieSlice->GetMidAngle() + subPieMenuRotationOffset, pieSlice == m_HoveredPieSlice && pieSlice->IsEnabled(), pieSlice->GetSubPieMenu()); }
 				}
 				break;
 			default:

@@ -27,6 +27,7 @@
 #include "Controller.h"
 #include "Scene.h"
 #include "Actor.h"
+#include "PieMenu.h"
 
 #include "GUI.h"
 #include "GUIFont.h"

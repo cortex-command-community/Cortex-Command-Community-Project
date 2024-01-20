@@ -71,7 +71,7 @@ enum MOType
 //                  memory. Create() should be called before using the object.
 // Arguments:       None.
 
-    MovableObject() { Clear(); }
+    MovableObject();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ enum MOType
 //                  from system memory.
 // Arguments:       None.
 
-	~MovableObject() override { Destroy(true); }
+	~MovableObject() override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

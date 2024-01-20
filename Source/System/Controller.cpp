@@ -4,6 +4,7 @@
 #include "SettingsMan.h"
 #include "MovableMan.h"
 #include "Actor.h"
+#include "PieMenu.h"
 
 namespace RTE {
 

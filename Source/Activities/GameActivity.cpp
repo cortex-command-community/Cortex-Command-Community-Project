@@ -35,6 +35,7 @@
 #include "HeldDevice.h"
 #include "Loadout.h"
 #include "SLTerrain.h"
+#include "PieMenu.h"
 
 #include "GUI.h"
 #include "GUIFont.h"
@@ -50,6 +51,13 @@ namespace RTE {
 
 AbstractClassInfo(GameActivity, Activity);
 
+GameActivity::GameActivity() {
+    Clear();
+}
+
+GameActivity::~GameActivity() {
+    Destroy(true);
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Clear
@@ -1889,7 +1897,7 @@ void GameActivity::Update()
 			PieMenu *controlledActorPieMenu = m_ControlledActor[player]->GetPieMenu();
 			if (controlledActorPieMenu && m_ControlledActor[player]->GetController()->IsState(PIE_MENU_ACTIVE)) {
 				if (!m_BuyMenuEnabled && controlledActorPieMenu->IsEnabling()) {
-					controlledActorPieMenu->RemovePieSlicesByType(PieSlice::SliceType::BuyMenu);
+					controlledActorPieMenu->RemovePieSlicesByType(PieSliceType::BuyMenu);
 				}
 
 				if (controlledActorPieMenu->IsEnabled() && controlledActorPieMenu->HasSubPieMenuOpen() && m_InventoryMenuGUI[player]->GetMenuMode() == InventoryMenuGUI::MenuMode::Carousel) {
@@ -1902,21 +1910,21 @@ void GameActivity::Update()
 				m_InventoryMenuGUI[player]->SetEnabled(false);
 			}
 
-			if (PieSlice::SliceType command = controlledActorPieMenu->GetPieCommand(); command != PieSlice::SliceType::NoType) {
+			if (PieSliceType command = controlledActorPieMenu->GetPieCommand(); command != PieSliceType::NoType) {
 				// AI mode commands that need extra points set in special view modes here
 				//TODO I don't think these viewstates are actually used?!
-				if (command == PieSlice::SliceType::Sentry) {
+				if (command == PieSliceType::Sentry) {
 					m_ViewState[player] = ViewState::AISentryPoint;
-				} else if (command == PieSlice::SliceType::Patrol) {
+				} else if (command == PieSliceType::Patrol) {
 					m_ViewState[player] = ViewState::AIPatrolPoints;
-				} else if (command == PieSlice::SliceType::GoldDig) {
+				} else if (command == PieSliceType::GoldDig) {
 					m_ViewState[player] = ViewState::AIGoldDigPoint;
-				} else if (command == PieSlice::SliceType::GoTo) {
+				} else if (command == PieSliceType::GoTo) {
 					m_ViewState[player] = ViewState::AIGoToPoint;
 					m_ControlledActor[player]->ClearAIWaypoints();
 					m_ActorCursor[player] = m_ControlledActor[player]->GetPos();
 					m_ControlledActor[player]->GetController()->SetDisabled(true);
-				} else if (command == PieSlice::SliceType::FormSquad) {
+				} else if (command == PieSliceType::FormSquad) {
 					//Find out if we have any connected units, and disconnect them
 					bool isCommander = false;
 
@@ -1951,10 +1959,10 @@ void GameActivity::Update()
 							controlledActorPieMenu->SetEnabled(false);
 						}
 					}
-				} else if (command == PieSlice::SliceType::BuyMenu) {
+				} else if (command == PieSliceType::BuyMenu) {
 					m_pBuyGUI[player]->SetEnabled(true);
 					skipBuyUpdate = true;
-				} else if (command == PieSlice::SliceType::FullInventory) {
+				} else if (command == PieSliceType::FullInventory) {
 					controlledActorPieMenu->SetEnabled(false);
 					m_InventoryMenuGUI[player]->SetEnabled(false);
 					m_InventoryMenuGUI[player]->SetMenuMode(InventoryMenuGUI::MenuMode::Full);

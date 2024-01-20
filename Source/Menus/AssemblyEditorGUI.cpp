@@ -45,6 +45,14 @@ using namespace RTE;
 BITMAP *AssemblyEditorGUI::s_pValidPathDot = 0;
 BITMAP *AssemblyEditorGUI::s_pInvalidPathDot = 0;
 
+AssemblyEditorGUI::AssemblyEditorGUI() {
+    Clear();
+}
+
+AssemblyEditorGUI::~AssemblyEditorGUI() {
+    Destroy();
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Clear
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -241,7 +249,7 @@ bool AssemblyEditorGUI::SetCurrentObject(SceneObject *pNewObject)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Gets any Pie menu slice command activated last update.
 
-PieSlice::SliceType AssemblyEditorGUI::GetActivatedPieSlice() const {
+PieSliceType AssemblyEditorGUI::GetActivatedPieSlice() const {
     return m_PieMenu->GetPieCommand();
 }
 
@@ -385,7 +393,7 @@ void AssemblyEditorGUI::Update()
 		m_PieMenu->SetPos(m_GridSnapping ? g_SceneMan.SnapPosition(m_CursorPos) : m_CursorPos);
 		m_PieMenu->SetEnabled(true);
 
-		PieSlice *saveSlice = m_PieMenu->GetFirstPieSliceByType(PieSlice::SliceType::EditorSave);
+		PieSlice *saveSlice = m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorSave);
 		if (saveSlice) {
 			saveSlice->SetEnabled(m_pCurrentScheme != nullptr);
 			saveSlice->SetDescription(m_pCurrentScheme != nullptr ? "Save Assembly" : "Can't Save Assembly, Scheme Not Selected!");
@@ -397,14 +405,14 @@ void AssemblyEditorGUI::Update()
     ///////////////////////////////////////
     // Handle pie menu selections
 
-    if (m_PieMenu->GetPieCommand() != PieSlice::SliceType::NoType) {
-		if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorPick) {
+    if (m_PieMenu->GetPieCommand() != PieSliceType::NoType) {
+		if (m_PieMenu->GetPieCommand() == PieSliceType::EditorPick) {
 			m_EditorGUIMode = PICKINGOBJECT;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorMove) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorMove) {
 			m_EditorGUIMode = MOVINGOBJECT;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorRemove) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorRemove) {
 			m_EditorGUIMode = DELETINGOBJECT;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorDone) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorDone) {
 			m_EditorGUIMode = DONEEDITING;
 		}
 

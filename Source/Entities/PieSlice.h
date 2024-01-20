@@ -9,6 +9,54 @@ namespace RTE {
 	class PieMenu;
 
 	/// <summary>
+	/// Enumeration for the types of PieSlices.
+	/// </summary>
+	enum class PieSliceType : int {
+		NoType,
+		// Inventory management
+		Pickup,
+		Drop,
+		NextItem,
+		PreviousItem,
+		Reload,
+		// Menu and GUI activation
+		BuyMenu,
+		FullInventory,
+		Stats,
+		Map,
+		Ceasefire,
+		// Squad
+		FormSquad,
+		// AI Modes
+		AIModes,
+		Sentry,
+		Patrol,
+		BrainHunt,
+		GoldDig,
+		GoTo,
+		Return,
+		Stay,
+		Deliver,
+		Scuttle,
+		// Editor stuff
+		EditorDone,
+		EditorLoad,
+		EditorSave,
+		EditorNew,
+		EditorPick,
+		EditorMove,
+		EditorRemove,
+		EditorInFront,
+		EditorBehind,
+		EditorZoomIn,
+		EditorZoomOut,
+		EditorTeam1,
+		EditorTeam2,
+		EditorTeam3,
+		EditorTeam4
+	};
+
+	/// <summary>
 	/// An individual PieSlice in a PieMenu.
 	/// </summary>
 	class PieSlice : public Entity {
@@ -18,54 +66,6 @@ namespace RTE {
 		EntityAllocation(PieSlice);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
-
-		/// <summary>
-		/// Enumeration for the types of PieSlices.
-		/// </summary>
-		enum SliceType {
-			NoType,
-			// Inventory management
-			Pickup,
-			Drop,
-			NextItem,
-			PreviousItem,
-			Reload,
-			// Menu and GUI activation
-			BuyMenu,
-			FullInventory,
-			Stats,
-			Map,
-			Ceasefire,
-			// Squad
-			FormSquad,
-			// AI Modes
-			AIModes,
-			Sentry,
-			Patrol,
-			BrainHunt,
-			GoldDig,
-			GoTo,
-			Return,
-			Stay,
-			Deliver,
-			Scuttle,
-			// Editor stuff
-			EditorDone,
-			EditorLoad,
-			EditorSave,
-			EditorNew,
-			EditorPick,
-			EditorMove,
-			EditorRemove,
-			EditorInFront,
-			EditorBehind,
-			EditorZoomIn,
-			EditorZoomOut,
-			EditorTeam1,
-			EditorTeam2,
-			EditorTeam3,
-			EditorTeam4
-		};
 
 #pragma region Creation
 		/// <summary>
@@ -104,13 +104,13 @@ namespace RTE {
 		/// Gets the SliceType of this PieSlice.
 		/// </summary>
 		/// <returns>The SliceType of this PieSlice.</returns>
-		SliceType GetType() const { return m_Type; }
+		PieSliceType GetType() const { return m_Type; }
 
 		/// <summary>
 		/// Sets the SliceType of this PieSlice.
 		/// </summary>
 		/// <param name="newType">The new SliceType of this PieSlice.</param>
-		void SetType(SliceType newType) { m_Type = newType; }
+		void SetType(PieSliceType newType) { m_Type = newType; }
 
 		/// <summary>
 		/// Gets the Direction of this PieSlice.
@@ -290,7 +290,7 @@ namespace RTE {
 
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
-		SliceType m_Type; //!< The slice type, also used to determine the icon.
+		PieSliceType m_Type; //!< The slice type, also used to determine the icon.
 		Directions m_Direction; //!< The desired direction/location of this on the PieMenu.
 		bool m_CanBeMiddleSlice; //!< Whether or not this PieSlice is allowed to be the middle slice. Defaults to true and should usually stay that way.
 		const Entity *m_OriginalSource; //!< A pointer to the original source of this PieSlice, normally filled in when PieSlices are added to PieMenus by objects other than the PieMenu's owner, and nullptr otherwise.

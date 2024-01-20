@@ -46,6 +46,14 @@ using namespace RTE;
 BITMAP *SceneEditorGUI::s_pValidPathDot = 0;
 BITMAP *SceneEditorGUI::s_pInvalidPathDot = 0;
 
+SceneEditorGUI::SceneEditorGUI() {
+    Clear();
+}
+
+SceneEditorGUI::~SceneEditorGUI() {
+    Destroy();
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Clear
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -263,7 +271,7 @@ bool SceneEditorGUI::SetCurrentObject(SceneObject *pNewObject)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Gets any Pie menu slice command activated last update.
 
-PieSlice::SliceType SceneEditorGUI::GetActivatedPieSlice() const {
+PieSliceType SceneEditorGUI::GetActivatedPieSlice() const {
     return m_PieMenu->GetPieCommand();
 }
 
@@ -476,7 +484,7 @@ void SceneEditorGUI::Update()
         m_PieMenu->SetEnabled(true);
         m_PieMenu->SetPos(m_GridSnapping ? g_SceneMan.SnapPosition(m_CursorPos) : m_CursorPos);
 
-        std::array<PieSlice*, 2> infrontAndBehindPieSlices = { m_PieMenu->GetFirstPieSliceByType(PieSlice::SliceType::EditorInFront), m_PieMenu->GetFirstPieSliceByType(PieSlice::SliceType::EditorBehind) };
+        std::array<PieSlice*, 2> infrontAndBehindPieSlices = { m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorInFront), m_PieMenu->GetFirstPieSliceByType(PieSliceType::EditorBehind) };
         for (PieSlice* pieSlice : infrontAndBehindPieSlices) {
             if (pieSlice) { pieSlice->SetEnabled(m_EditorGUIMode == ADDINGOBJECT); }
         }
@@ -487,33 +495,33 @@ void SceneEditorGUI::Update()
     ///////////////////////////////////////
     // Handle pie menu selections
 
-    if (m_PieMenu->GetPieCommand() != PieSlice::SliceType::NoType) {
-		if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorPick) {
+    if (m_PieMenu->GetPieCommand() != PieSliceType::NoType) {
+		if (m_PieMenu->GetPieCommand() == PieSliceType::EditorPick) {
 			m_EditorGUIMode = PICKINGOBJECT;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorMove) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorMove) {
 			m_EditorGUIMode = MOVINGOBJECT;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorRemove) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorRemove) {
 			m_EditorGUIMode = DELETINGOBJECT;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::BrainHunt) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::BrainHunt) {
 			m_EditorGUIMode = INSTALLINGBRAIN;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorDone) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorDone) {
 			m_EditorGUIMode = DONEEDITING;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorInFront) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorInFront) {
             m_PreviousMode = m_EditorGUIMode;
             m_EditorGUIMode = PLACEINFRONT;
-        } else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorBehind) {
+        } else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorBehind) {
             m_PreviousMode = m_EditorGUIMode;
             m_EditorGUIMode = PLACEBEHIND;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorTeam1) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorTeam1) {
 			m_PlaceTeam = Activity::TeamOne;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorTeam2) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorTeam2) {
 			m_PlaceTeam = Activity::TeamTwo;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorTeam3) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorTeam3) {
 			m_PlaceTeam = Activity::TeamThree;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorTeam4) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorTeam4) {
 			m_PlaceTeam = Activity::TeamFour;
 			// Toggle between normal scene object editing, and AI plan editing
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::Map) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::Map) {
 			SetFeatureSet(m_FeatureSet == FeatureSets::ONLOADEDIT ? FeatureSets::AIPLANEDIT : FeatureSets::ONLOADEDIT);
 		}
 

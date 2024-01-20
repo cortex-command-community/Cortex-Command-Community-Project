@@ -6,6 +6,7 @@
 #include "PerformanceMan.h"
 #include "AEmitter.h"
 #include "Actor.h"
+#include "PieMenu.h"
 
 namespace RTE {
 

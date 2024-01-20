@@ -515,6 +515,12 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	int LuaAdaptersPieMenu::GetPieCommand(PieMenu *luaSelfObject) {
+		return static_cast<int>(luaSelfObject->GetPieCommand());
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	bool LuaAdaptersPieMenu::AddPieSlice(PieMenu *luaSelfObject, PieSlice *pieSliceToAdd, const Entity *pieSliceOriginalSource) {
 		return luaSelfObject->AddPieSlice(pieSliceToAdd, pieSliceOriginalSource, false);
 	}
@@ -529,6 +535,12 @@ namespace RTE {
 
 	bool LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2(PieMenu *luaSelfObject, PieSlice *pieSliceToAdd, const Entity *pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource) {
 		return luaSelfObject->AddPieSliceIfPresetNameIsUnique(pieSliceToAdd, pieSliceOriginalSource, onlyCheckPieSlicesWithSameOriginalSource, false);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	int LuaAdaptersPieSlice::GetType(PieSlice *luaSelfObject) {
+		return static_cast<int>(luaSelfObject->GetType());
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -69,7 +69,7 @@ public:
 //                  memory. Create() should be called before using the object.
 // Arguments:       None.
 
-    GibEditorGUI() { Clear(); }
+    GibEditorGUI();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ public:
 //                  from system memory.
 // Arguments:       None.
 
-    ~GibEditorGUI() { Destroy(); }
+    ~GibEditorGUI();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -165,9 +165,9 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Gets any Pie menu slice command activated last update.
 // Arguments:       None.
-// Return value:    The enum'd int of any slice activated. See the PieSlice::SliceType enum.
+// Return value:    The enum'd int of any slice activated. See the PieSliceType enum.
 
-	PieSlice::SliceType GetActivatedPieSlice() const;
+	PieSliceType GetActivatedPieSlice() const;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

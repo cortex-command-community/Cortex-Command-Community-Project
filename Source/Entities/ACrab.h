@@ -228,7 +228,7 @@ public:
 	/// </summary>
 	/// <param name="pieSliceType">The SliceType of the PieSlice being handled.</param>
 	/// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
-	bool HandlePieCommand(PieSlice::SliceType pieSliceType) override;
+	bool HandlePieCommand(PieSliceType pieSliceType) override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

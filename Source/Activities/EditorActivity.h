@@ -73,7 +73,7 @@ public:
 //                  memory. Create() should be called before using the object.
 // Arguments:       None.
 
-    EditorActivity() { Clear(); }
+    EditorActivity();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ public:
 //                  from system memory.
 // Arguments:       None.
 
-	~EditorActivity() override { Destroy(true); }
+	~EditorActivity() override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

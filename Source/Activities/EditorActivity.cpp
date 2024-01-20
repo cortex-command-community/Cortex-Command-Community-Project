@@ -38,6 +38,13 @@ namespace RTE {
 
 AbstractClassInfo(EditorActivity, Activity);
 
+EditorActivity::EditorActivity() {
+    Clear();
+}
+
+EditorActivity::~EditorActivity() {
+    Destroy(true);
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Clear

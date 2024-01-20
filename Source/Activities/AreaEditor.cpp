@@ -312,7 +312,7 @@ void AreaEditor::Update()
     m_NeedSave = m_pEditorGUI->EditMade() || m_NeedSave;
 
     // Get any mode change commands that the user gave the Editor GUI
-    if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorNew && m_EditorMode != NEWDIALOG)
+    if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorNew && m_EditorMode != NEWDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::NEWDIALOG;
@@ -321,20 +321,20 @@ void AreaEditor::Update()
         // Will turn on dirtyness immediately as New button is pressed below
         m_NeedSave = false;
     }
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorLoad && m_EditorMode != LOADDIALOG)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorLoad && m_EditorMode != LOADDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::LOADDIALOG;
         m_ModeChange = true;
     }
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorSave && m_EditorMode != SAVEDIALOG)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorSave && m_EditorMode != SAVEDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::SAVEDIALOG;
         m_ModeChange = true;
     }
     // Test the scene by starting a Skirmish Defense with it, after saving
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorDone || m_EditorMode == TESTINGOBJECT)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorDone || m_EditorMode == TESTINGOBJECT)
     {
         m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::INACTIVE);
 

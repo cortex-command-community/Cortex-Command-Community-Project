@@ -372,7 +372,7 @@ void GibEditor::Update()
     m_NeedSave = m_NeedSave || m_pEditorGUI->EditMade();
 
     // Get any mode change commands that the user gave the Editor GUI
-    if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorNew && m_EditorMode != NEWDIALOG)
+    if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorNew && m_EditorMode != NEWDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(GibEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::NEWDIALOG;
@@ -386,14 +386,14 @@ void GibEditor::Update()
         m_EditorMode = EditorActivity::LOADDIALOG;
         m_ModeChange = true;
     }
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorSave && m_EditorMode != SAVEDIALOG)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorSave && m_EditorMode != SAVEDIALOG)
     {
         m_pEditorGUI->SetEditorGUIMode(GibEditorGUI::INACTIVE);
         m_EditorMode = EditorActivity::SAVEDIALOG;
         m_ModeChange = true;
     }
     // Test the object by allowing the player to gib temporary test copy instances of the edited object
-    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorDone)
+    else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorDone)
     {
         // Make the copy of the current edited object
         m_pTestingObject->DestroyScriptState();

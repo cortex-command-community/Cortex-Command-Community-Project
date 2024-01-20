@@ -264,9 +264,9 @@ void ActorEditor::Update()
 		PieMenu *editedActorPieMenu = m_pEditedActor->GetPieMenu();
 		editedActorPieMenu->SetEnabled(m_PlayerController[0].IsState(ControlState::PIE_MENU_ACTIVE) && m_EditorMode != EditorActivity::LOADDIALOG);
 
-		if (editedActorPieMenu->GetPieCommand() == PieSlice::SliceType::EditorLoad) {
+		if (editedActorPieMenu->GetPieCommand() == PieSliceType::EditorLoad) {
 			ReloadActorData();
-		} else if (editedActorPieMenu->GetPieCommand() == PieSlice::SliceType::EditorPick) {
+		} else if (editedActorPieMenu->GetPieCommand() == PieSliceType::EditorPick) {
 			m_EditorMode = EditorActivity::LOADDIALOG;
 			m_ModeChange = true;
 		}

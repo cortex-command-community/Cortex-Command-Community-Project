@@ -14,8 +14,6 @@
 // Inclusions of header files
 
 #include "MOSRotating.h"
-#include "PieMenu.h"
-#include "PathFinder.h"
 
 namespace RTE
 {
@@ -28,6 +26,8 @@ namespace RTE
 
 class AtomGroup;
 class HeldDevice;
+struct PathRequest;
+enum class PieSliceType : int;
 
 #define AILINEDOTSPACING 16
 
@@ -101,7 +101,7 @@ ClassInfoGetters;
 //                  memory. Create() should be called before using the object.
 // Arguments:       None.
 
-    Actor() { Clear(); }
+    Actor();
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -111,7 +111,7 @@ ClassInfoGetters;
 //                  from system memory.
 // Arguments:       None.
 
-	~Actor() override { Destroy(true); }
+	~Actor() override;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -635,7 +635,7 @@ ClassInfoGetters;
     /// </summary>
     /// <param name="pieSliceType">The SliceType of the PieSlice being handled.</param>
     /// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
-    virtual bool HandlePieCommand(PieSlice::SliceType pieSliceType) { return false; }
+    virtual bool HandlePieCommand(PieSliceType pieSliceType) { return false; }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1407,7 +1407,7 @@ ClassInfoGetters;
 	/// Sets the PieMenu for this Actor. Ownership IS transferred.
 	/// </summary>
 	/// <param name="newPieMenu">The new PieMenu for this Actor.</param>
-	void SetPieMenu(PieMenu *newPieMenu) { m_PieMenu = std::unique_ptr<PieMenu>(newPieMenu); m_PieMenu->Create(this); m_PieMenu->AddWhilePieMenuOpenListener(this, std::bind(&Actor::WhilePieMenuOpenListener, this, m_PieMenu.get())); }
+	void SetPieMenu(PieMenu *newPieMenu);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protected member variable and method declarations

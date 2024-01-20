@@ -27,6 +27,7 @@
 #include "PresetMan.h"
 #include "FrameMan.h"
 #include "UInputMan.h"
+#include "PieMenu.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -683,18 +684,18 @@ bool ACrab::OnSink(const Vector &pos)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool ACrab::HandlePieCommand(PieSlice::SliceType pieSliceIndex) {
-    if (pieSliceIndex != PieSlice::SliceType::NoType) {
-        if (pieSliceIndex == PieSlice::SliceType::Reload) {
+bool ACrab::HandlePieCommand(PieSliceType pieSliceIndex) {
+    if (pieSliceIndex != PieSliceType::NoType) {
+        if (pieSliceIndex == PieSliceType::Reload) {
             m_Controller.SetState(WEAPON_RELOAD);
-        } else if (pieSliceIndex == PieSlice::SliceType::Sentry) {
+        } else if (pieSliceIndex == PieSliceType::Sentry) {
             m_AIMode = AIMODE_SENTRY;
-        } else if (pieSliceIndex == PieSlice::SliceType::Patrol) {
+        } else if (pieSliceIndex == PieSliceType::Patrol) {
             m_AIMode = AIMODE_PATROL;
-        } else if (pieSliceIndex == PieSlice::SliceType::BrainHunt) {
+        } else if (pieSliceIndex == PieSliceType::BrainHunt) {
             m_AIMode = AIMODE_BRAINHUNT;
             ClearAIWaypoints();
-        } else if (pieSliceIndex == PieSlice::SliceType::GoTo) {
+        } else if (pieSliceIndex == PieSliceType::GoTo) {
             m_AIMode = AIMODE_GOTO;
             ClearAIWaypoints();
             m_UpdateMovePath = true;
@@ -1816,7 +1817,7 @@ int ACrab::WhilePieMenuOpenListener(const PieMenu *pieMenu) {
 	int result = Actor::WhilePieMenuOpenListener(pieMenu);
 
 	for (PieSlice *pieSlice : GetPieMenu()->GetPieSlices()) {
-		if (pieSlice->GetType() == PieSlice::SliceType::Reload) {
+		if (pieSlice->GetType() == PieSliceType::Reload) {
 			if (m_pTurret && m_pTurret->HasMountedDevice()) {
 				pieSlice->SetDescription("Reload");
 				pieSlice->SetEnabled(!FirearmsAreFull());
