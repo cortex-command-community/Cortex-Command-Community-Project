@@ -11,8 +11,6 @@ namespace RTE {
 
 	const std::string DataModule::c_ClassName = "DataModule";
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void DataModule::Clear() {
 		m_ModuleType = DataModuleType::Unofficial;
 		m_FileName.clear();
@@ -35,8 +33,6 @@ namespace RTE {
 		m_IsFaction = false;
 		m_IsMerchant = false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int DataModule::Create(const std::string& moduleName, const ProgressCallback& progressCallback) {
 		m_FileName = std::filesystem::path(moduleName).generic_string();
@@ -78,8 +74,6 @@ namespace RTE {
 		return -1;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void DataModule::Destroy() {
 		for (const PresetEntry& preset: m_PresetList) {
 			delete preset.m_EntityPreset;
@@ -87,8 +81,6 @@ namespace RTE {
 		delete m_SupportedGameVersion;
 		Clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int DataModule::ReadModuleProperties(const std::string& moduleName, const ProgressCallback& progressCallback) {
 		m_FileName = moduleName;
@@ -108,8 +100,6 @@ namespace RTE {
 		}
 		return -1;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(if (!g_PresetMan.GetEntityPreset(reader)) { reader.ReportError("Could not understand Preset type!"); })
@@ -197,8 +187,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int DataModule::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
@@ -223,8 +211,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string DataModule::GetEntityDataLocation(const std::string& exactType, const std::string& instance) {
 		const Entity* foundEntity = GetEntityPreset(exactType, instance);
 		if (foundEntity == nullptr) {
@@ -242,8 +228,6 @@ namespace RTE {
 		return "";
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const Entity* DataModule::GetEntityPreset(const std::string& exactType, const std::string& instance) {
 		if (exactType.empty() || instance == "None" || instance.empty()) {
 			return nullptr;
@@ -258,8 +242,6 @@ namespace RTE {
 		}
 		return nullptr;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool DataModule::AddEntityPreset(Entity* entityToAdd, bool overwriteSame, const std::string& readFromFile) {
 		// Fail if the entity is unnamed or it's not the original preset.
@@ -311,8 +293,6 @@ namespace RTE {
 		return entityAdded;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool DataModule::GetGroupsWithType(std::list<std::string>& groupList, const std::string& withType) {
 		bool foundAny = false;
 
@@ -342,8 +322,6 @@ namespace RTE {
 		}
 		return foundAny;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool DataModule::GetAllOfOrNotOfGroups(std::list<Entity*>& entityList, const std::string& type, const std::vector<std::string>& groups, bool excludeGroups) {
 		if (groups.empty()) {
@@ -382,8 +360,6 @@ namespace RTE {
 		return foundAny;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool DataModule::GetAllOfType(std::list<Entity*>& entityList, const std::string& type) {
 		if (type.empty()) {
 			return false;
@@ -400,8 +376,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool DataModule::AddMaterialMapping(unsigned char fromID, unsigned char toID) {
 		RTEAssert(fromID > 0 && fromID < c_PaletteEntriesNumber && toID > 0 && toID < c_PaletteEntriesNumber, "Tried to make an out-of-bounds Material mapping");
 
@@ -410,8 +384,6 @@ namespace RTE {
 
 		return clear;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int DataModule::LoadScripts() const {
 		if (m_ScriptPath.empty()) {
@@ -426,16 +398,12 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void DataModule::ReloadAllScripts() const {
 		for (const PresetEntry& presetListEntry: m_PresetList) {
 			presetListEntry.m_EntityPreset->ReloadScripts();
 		}
 		LoadScripts();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int DataModule::FindAndRead(const ProgressCallback& progressCallback) {
 		int result = 0;
@@ -454,8 +422,6 @@ namespace RTE {
 		return result;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	// TODO: This method is almost identical to GetEntityPreset, except it doesn't return a const Entity *.
 	// Investigate if the latter needs to return const (based on what's using it) and if not, get rid of this and replace its uses. At the very least, consider renaming this
 	// See https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/87
@@ -473,8 +439,6 @@ namespace RTE {
 		}
 		return nullptr;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool DataModule::AddToTypeMap(Entity* entityToAdd) {
 		if (!entityToAdd || entityToAdd->GetPresetName() == "None" || entityToAdd->GetPresetName().empty()) {
@@ -495,8 +459,6 @@ namespace RTE {
 		}
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void DataModule::CheckSupportedGameVersion() const {
 		if (*m_SupportedGameVersion == c_GameVersion) {

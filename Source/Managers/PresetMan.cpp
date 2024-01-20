@@ -10,20 +10,14 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PresetMan::Clear() {
 		m_ReloadEntityPresetCalledThisUpdate = false;
 		m_LastReloadedEntityPresetInfo.fill("");
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PresetMan::RegisterGroup(const std::string& newGroup, int whichModule) const {
 		g_ModuleMan.GetDataModule(whichModule)->RegisterGroup(newGroup);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::GetGroups(std::list<std::string>& groupList, int whichModule, const std::string& withType, bool moduleSpace) const {
 		bool foundAny = false;
@@ -51,8 +45,6 @@ namespace RTE {
 		}
 		return foundAny;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 		// The reader is aware of which DataModule it is reading within
@@ -109,8 +101,6 @@ namespace RTE {
 		return pReturnPreset;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const Entity* PresetMan::GetEntityPreset(const std::string& typeName, std::string presetName, int whichModule) const {
 		RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
@@ -153,13 +143,9 @@ namespace RTE {
 		return pRetEntity;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const Entity* PresetMan::GetEntityPreset(const std::string& typeName, const std::string& presetName, const std::string& whichModule) const {
 		return GetEntityPreset(typeName, presetName, g_ModuleMan.GetModuleID(whichModule));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string PresetMan::GetEntityDataLocation(const std::string& type, const std::string& preset, int whichModule) const {
 		RTEAssert(whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
@@ -194,8 +180,6 @@ namespace RTE {
 		return pRetPath;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PresetMan::GetAllOfType(std::list<Entity*>& entityList, const std::string& typeName, int whichModule, bool moduleSpace) const {
 		if (typeName.empty()) {
 			return false;
@@ -222,8 +206,6 @@ namespace RTE {
 		return foundAny;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PresetMan::GetAllOfGroups(std::list<Entity*>& entityList, const std::vector<std::string>& groupNames, const std::string& typeName, int whichModule, bool moduleSpace) const {
 		RTEAssert(!groupNames.empty(), "Looking for empty groups in PresetMan::GetAllOfGroups!");
 
@@ -248,8 +230,6 @@ namespace RTE {
 		return foundAny;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PresetMan::GetAllNotOfGroups(std::list<Entity*>& entityList, const std::vector<std::string>& groupNames, const std::string& typeName, int whichModule) const {
 		if (groupNames.empty()) {
 			RTEAbort("Looking for empty groups in PresetMan::GetAllNotOfGroups!");
@@ -270,8 +250,6 @@ namespace RTE {
 		return foundAny;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Entity* PresetMan::GetRandomOfGroup(const std::string& groupName, const std::string& typeName, int whichModule, bool moduleSpace) {
 		RTEAssert(!groupName.empty(), "Looking for empty group in PresetMan::GetRandomOfGroup!");
 
@@ -283,8 +261,6 @@ namespace RTE {
 		}
 		return nullptr;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Entity* PresetMan::GetRandomBuyableOfGroupFromTech(const std::string& groupName, const std::string& typeName, int whichModule) {
 		RTEAssert(!groupName.empty(), "Looking for empty group in PresetMan::GetRandomBuyableOfGroupFromTech!");
@@ -366,8 +342,6 @@ namespace RTE {
 		return nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Actor* PresetMan::GetLoadout(const std::string& loadoutName, int whichModule, bool spawnDeliveryCraft) {
 		if (const Loadout* loadout = dynamic_cast<const Loadout*>(GetEntityPreset("Loadout", loadoutName, whichModule)); loadout) {
 			float costTally = 0.0F;
@@ -393,13 +367,9 @@ namespace RTE {
 		return nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Actor* PresetMan::GetLoadout(const std::string& loadoutName, const std::string& moduleName, bool spawnDeliveryCraft) {
 		return GetLoadout(loadoutName, g_ModuleMan.GetModuleID(moduleName), spawnDeliveryCraft);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PresetMan::ReloadAllScripts() const {
 		g_LuaMan.ClearUserModuleCache();
@@ -409,8 +379,6 @@ namespace RTE {
 		g_MovableMan.ReloadLuaScripts();
 		g_ConsoleMan.PrintString("SYSTEM: Scripts reloaded!");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::ReloadEntityPreset(const std::string& presetName, const std::string& className, const std::string& moduleName, bool storeReloadedPresetDataForQuickReloading) {
 		if (className.empty() || presetName.empty()) {
@@ -459,8 +427,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PresetMan::QuickReloadEntityPreset() {
 		for (const std::string& entityPresetInfoEntry: m_LastReloadedEntityPresetInfo) {
 			if (entityPresetInfoEntry.empty()) {
@@ -471,8 +437,6 @@ namespace RTE {
 		return ReloadEntityPreset(m_LastReloadedEntityPresetInfo[0], m_LastReloadedEntityPresetInfo[1], m_LastReloadedEntityPresetInfo[2]);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PresetMan::AddMaterialMapping(uint8_t fromID, uint8_t toID, int whichModule) const {
 		// RTEAssert(whichModule >= g_ModuleMan.GetOfficialModuleCount() && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to make a material mapping in an official or out-of-bounds DataModule!");
 
@@ -482,15 +446,11 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PresetMan::AddEntityPreset(Entity* entityToAdd, int whichModule, bool overwriteSame, const std::string& readFromFile) const {
 		RTEAssert(whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount(), "Tried to access an out of bounds data module number!");
 
 		return g_ModuleMan.GetDataModule(whichModule)->AddEntityPreset(entityToAdd, overwriteSame, readFromFile);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 		int whichModule = reader.GetReadModuleID();

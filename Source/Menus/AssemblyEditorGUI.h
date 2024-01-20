@@ -1,18 +1,11 @@
 #ifndef _ASSEMBLYEDITORGUI_
 #define _ASSEMBLYEDITORGUI_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            AssemblyEditorGUI.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     AssemblyEditorGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// AssemblyEditorGUI class
+/// @author Daniel Tabar
+/// dtabar@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 // #include "FrameMan.h"
 #include "Timer.h"
 #include "Vector.h"
@@ -29,18 +22,10 @@ namespace RTE {
 	class ObjectPickerGUI;
 	class PieMenu;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           AssemblyEditorGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A full menu system that represents the scene editing GUI for Cortex Command
-	// Parent(s):       None.
-	// Class history:   7/08/2007 AssemblyEditorGUI Created.
-
+	/// A full menu system that represents the scene editing GUI for Cortex Command
 	class AssemblyEditorGUI {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		enum FeatureSets {
 			ONLOADEDIT = 0
@@ -58,257 +43,130 @@ namespace RTE {
 			EDITORGUIMODECOUNT
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     AssemblyEditorGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a AssemblyEditorGUI object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a AssemblyEditorGUI object in system
+		/// memory. Create() should be called before using the object.
 		AssemblyEditorGUI() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~AssemblyEditorGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a AssemblyEditorGUI object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a AssemblyEditorGUI object before deletion
+		/// from system memory.
 		~AssemblyEditorGUI() { Destroy(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the AssemblyEditorGUI object ready for use.
-		// Arguments:       A poitner to a Controller which will control this Menu. Ownership is
-		//                  NOT TRANSFERRED!
-		//                  Whether the editor should have all the features enabled, like load/save
-		//                  and undo capabilities.
-		//                  Which module space that this eidtor will be able to pick objects from.
-		//                  -1 means all modules.
-		//                  Which Tech module that will be presented as the native one to the player.
-		//                  The multiplier of all foreign techs' costs.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the AssemblyEditorGUI object ready for use.
+		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
+		/// @param featureSet NOT TRANSFERRED! (default: ONLOADEDIT)
+		/// @param whichModuleSpace Whether the editor should have all the features enabled, like load/save (default: -1)
+		/// and undo capabilities.
+		/// @param nativeTechModule Which module space that this eidtor will be able to pick objects from. (default: 0)
+		/// -1 means all modules.
+		/// @param foreignCostMult Which Tech module that will be presented as the native one to the player. (default: 1.0)
+		/// The multiplier of all foreign techs' costs.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(Controller* pController, FeatureSets featureSet = ONLOADEDIT, int whichModuleSpace = -1, int nativeTechModule = 0, float foreignCostMult = 1.0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire AssemblyEditorGUI, including its inherited members, to
-		//                  their default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire AssemblyEditorGUI, including its inherited members, to
+		/// their default settings or values.
 		void Reset() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the AssemblyEditorGUI object.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the AssemblyEditorGUI object.
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetController
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the controller used by this. The ownership of the controller is
-		//                  NOT transferred!
-		// Arguments:       The new controller for this menu. Ownership is NOT transferred
-		// Return value:    None.
-
+		/// Sets the controller used by this. The ownership of the controller is
+		/// NOT transferred!
+		/// @param pController The new controller for this menu. Ownership is NOT transferred
 		void SetController(Controller* pController);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetPosOnScreen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-		//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-		//                  etc.
-		// Arguments:       The new screen position of this entire GUI.
-
+		/// Sets where on the screen that this GUI is being drawn to. If upper
+		/// left corner, then 0, 0. This will affect the way the mouse is positioned
+		/// etc.
+		/// @param newPosX The new screen position of this entire GUI.
 		void SetPosOnScreen(int newPosX, int newPosY);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetCursorPos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the absolute scene coordinates of the cursor of this Editor.
-		// Arguments:       The new cursor position in absolute scene units.
-		// Return value:    None.
-
+		/// Sets the absolute scene coordinates of the cursor of this Editor.
+		/// @param newCursorPos The new cursor position in absolute scene units.
 		void SetCursorPos(const Vector& newCursorPos) { m_CursorPos = newCursorPos; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetCurrentObject
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the new Object to be held at the cursor of this Editor. Ownership
-		//                  IS transferred!
-		// Arguments:       The new Object to be held by the cursor. Ownership IS transferred!
-		// Return value:    Whether the cursor holds a valid object after setting.
-
+		/// Sets the new Object to be held at the cursor of this Editor. Ownership
+		/// IS transferred!
+		/// @param pNewObject The new Object to be held by the cursor. Ownership IS transferred!
+		/// @return Whether the cursor holds a valid object after setting.
 		bool SetCurrentObject(SceneObject* pNewObject);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetActivatedPieSlice
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets any Pie menu slice command activated last update.
-		// Arguments:       None.
-		// Return value:    The enum'd int of any slice activated. See the PieSlice::SliceType enum.
-
+		/// Gets any Pie menu slice command activated last update.
+		/// @return The enum'd int of any slice activated. See the PieSlice::SliceType enum.
 		PieSlice::SliceType GetActivatedPieSlice() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetCurrentObject
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the currently held Object in the cursor of this Editor. Ownership
-		//                  IS NOT transferred!
-		// Arguments:       None.
-		// Return value:    The currently held object, if any. OWNERSHIP IS NOT TRANSFERRED!
-
+		/// Gets the currently held Object in the cursor of this Editor. Ownership
+		/// IS NOT transferred!
+		/// @return The currently held object, if any. OWNERSHIP IS NOT TRANSFERRED!
 		const SceneObject* GetCurrentObject() const { return m_pCurrentObject; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEditorMode
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the current mode of this editor.
-		// Arguments:       The new mode to set to, see the EditorGUIMode enum.
-		// Return value:    None.
-
+		/// Sets the current mode of this editor.
+		/// @param newMode The new mode to set to, see the EditorGUIMode enum.
 		void SetEditorGUIMode(EditorGUIMode newMode) { m_EditorGUIMode = newMode; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetEditorMode
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the current mode of this editor.
-		// Arguments:       None.
-		// Return value:    The current mode this is set to; see the EditorGUIMode enum.
-
+		/// Gets the current mode of this editor.
+		/// @return The current mode this is set to; see the EditorGUIMode enum.
 		EditorGUIMode GetEditorGUIMode() const { return m_EditorGUIMode; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetModuleSpace
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets which DataModule space to be picking objects from. If -1, then
-		//                  let the player pick from all loaded modules.
-		// Arguments:       The ID of the module to let the player pick objects from. All official
-		//                  modules' objects will alwayws be presented, in addition to the one
-		//                  passed in here.
-		// Return value:    None.
-
+		/// Sets which DataModule space to be picking objects from. If -1, then
+		/// let the player pick from all loaded modules.
+		/// @param moduleSpaceID The ID of the module to let the player pick objects from. All official (default: -1)
+		/// modules' objects will alwayws be presented, in addition to the one
+		/// passed in here.
 		void SetModuleSpace(int moduleSpaceID = -1);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetNativeTechModule
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets which DataModule ID should be treated as the native tech of the
-		//                  user of this menu.
-		// Arguments:       The module ID to set as the native one. 0 means everything is native.
-		// Return value:    None.
-
+		/// Sets which DataModule ID should be treated as the native tech of the
+		/// user of this menu.
+		/// @param whichModule The module ID to set as the native one. 0 means everything is native.
 		void SetNativeTechModule(int whichModule);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetForeignCostMultiplier
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the multiplier of the cost of any foreign Tech items.
-		// Arguments:       The scalar multiplier of the costs of foreign Tech items.
-		// Return value:    None.
-
+		/// Sets the multiplier of the cost of any foreign Tech items.
+		/// @param newMultiplier The scalar multiplier of the costs of foreign Tech items.
 		void SetForeignCostMultiplier(float newMultiplier);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          EditMade
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows whether an edit on the scene was made in the last Update.
-		// Arguments:       None.
-		// Return value:    Whether any edit was made.
-
+		/// Shows whether an edit on the scene was made in the last Update.
+		/// @return Whether any edit was made.
 		bool EditMade() const { return m_EditMade; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          TestBrainResidence
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks whether the resident brain is currently placed into a valid
-		//                  location in this scene, based on whether there is a clear path to the
-		//                  sky above it. This forces the editor into place brain mode with the
-		//                  current resident brain if the current placement is no bueno. It also
-		//                  removes the faulty brain from residence in the scene!
-		// Arguments:       Whether it's OK if we dont' have a brain right now - ie don't force
-		//                  into isntallation mode if no brain was found.
-		// Return value:    Whether a resident brain was found, AND found in a valid location!
-
+		/// Checks whether the resident brain is currently placed into a valid
+		/// location in this scene, based on whether there is a clear path to the
+		/// sky above it. This forces the editor into place brain mode with the
+		/// current resident brain if the current placement is no bueno. It also
+		/// removes the faulty brain from residence in the scene!
+		/// @param noBrainIsOK Whether it's OK if we dont' have a brain right now - ie don't force (default: false)
+		/// into isntallation mode if no brain was found.
+		/// @return Whether a resident brain was found, AND found in a valid location!
 		bool TestBrainResidence(bool noBrainIsOK = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the state of this Menu each frame
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the state of this Menu each frame
 		void Update();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the editor
-		// Arguments:       The bitmap to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the scene.
-		// Return value:    None.
-
+		/// Draws the editor
+		/// @param pTargetBitmap The bitmap to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  GetCurrentAssemblyScheme
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns a pointer to currently selected assembly scheme
-		// Arguments:       None.
-		// Return value:    Pointer to current assembly scheme.
-
+		/// Returns a pointer to currently selected assembly scheme
+		/// @return Pointer to current assembly scheme.
 		BunkerAssemblyScheme* GetCurrentAssemblyScheme() { return m_pCurrentScheme; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  GetCurrentAssemblyName
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the name of currently edited assembly
-		// Arguments:       None.
-		// Return value:    Name of currently edited assembly.
-
+		/// Returns the name of currently edited assembly
+		/// @return Name of currently edited assembly.
 		std::string GetCurrentAssemblyName() { return m_CurrentAssemblyName; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetCurrentAssemblyScheme
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets new name of currently edited assembly
-		// Arguments:       New name for assembly.
-		// Return value:    None.
-
+		/// Sets new name of currently edited assembly
+		/// @param newName New name for assembly.
 		void SetCurrentAssemblyName(std::string newName) { m_CurrentAssemblyName = newName; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePieMenu
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the PieMenu config based ont eh current editor state.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the PieMenu config based ont eh current editor state.
 		void UpdatePieMenu();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateBrainPath
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the brain path to the current brain in cursor or resident
-		//                  in the scene, if any. If there's none, the path is cleared.
-		// Arguments:       None.
-		// Return value:    Whether a resident brain was found in the scene.
-
+		/// Updates the brain path to the current brain in cursor or resident
+		/// in the scene, if any. If there's none, the path is cleared.
+		/// @return Whether a resident brain was found in the scene.
 		bool UpdateBrainPath();
 
 		enum BlinkMode {
@@ -387,18 +245,10 @@ namespace RTE {
 		// Edited assembly name
 		std::string m_CurrentAssemblyName;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this AssemblyEditorGUI, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this AssemblyEditorGUI, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

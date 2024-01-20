@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MetaMan.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the MetaMan class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MetaMan.h"
 #include "MetaSave.h"
 #include "ModuleMan.h"
@@ -29,12 +17,6 @@
 namespace RTE {
 
 	const std::string MetaMan::c_ClassName = "MetaMan";
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this MetaMan, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void MetaMan::Clear() {
 		m_pMetaGUI = 0;
@@ -61,11 +43,6 @@ namespace RTE {
 			m_TeamAISkill[team] = Activity::DefaultSkill;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MetaMan object ready for use.
-
 	int MetaMan::Initialize() {
 		//    if (Serializable::Create() < 0)
 		//        return -1;
@@ -76,11 +53,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  NewGame
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Wipes any current and sets up a new game based on a size parameter.
 
 	int MetaMan::NewGame(int gameSize) {
 		// Grab a random selection of Scene presets from all available
@@ -165,14 +137,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  EndGame
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Wipes any current metagame and sets things back to as if program start.
-	// Arguments:       None.
-	// Return value:    An error return value signaling success or any particular failure.
-	//                  Anything below 0 is an error signal.
-
 	int MetaMan::EndGame() {
 		// Reset metagame UI
 		m_pMetaGUI->SetToStartNewGame();
@@ -199,11 +163,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Load
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Load a MetaMan from disk out of the special MetaMan.rte data module
 
 	int MetaMan::Load(const MetaSave* pSave) {
 		if (!pSave)
@@ -235,14 +194,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a Reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the Reader's position is untouched.
 
 	int MetaMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -284,12 +235,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this MetaMan to an output stream for
-	//                  later recreation with Create(Reader &reader);
 
 	int MetaMan::Save(Writer& writer) const {
 		Serializable::Save(writer);
@@ -348,12 +293,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SaveSceneData
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the bitmap data of all Scenes of this Metagame that are currently
-	//                  loaded.
-
 	int MetaMan::SaveSceneData(std::string pathBase) {
 		for (std::vector<Scene*>::const_iterator sItr = m_Scenes.begin(); sItr != m_Scenes.end(); ++sItr) {
 			// Only save the data of revealed scenes that have already had their layers built and saved into files
@@ -365,12 +304,6 @@ namespace RTE {
 		}
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          LoadSceneData
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Loads the bitmap data of all Scenes of this Metagame that have once
-	//                  been saved to files.
 
 	int MetaMan::LoadSceneData() {
 		for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
@@ -384,12 +317,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ClearSceneData
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears the bitmap data of all Scenes of this Metagame that have once
-	//                  been saved to files.
-
 	int MetaMan::ClearSceneData() {
 		for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 			if ((*sItr)->ClearData() < 0)
@@ -397,11 +324,6 @@ namespace RTE {
 		}
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the MetaMan object.
 
 	void MetaMan::Destroy() {
 		delete m_pMetaGUI;
@@ -413,11 +335,6 @@ namespace RTE {
 
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetPlayerTurn
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows which player's turn is now or coming up.
 
 	int MetaMan::GetPlayerTurn() const {
 		// Player 1's turn is coming up on this round
@@ -431,11 +348,6 @@ namespace RTE {
 		return g_MetaMan.m_GameState - PLAYER1TURN;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetMetaPlayerOfInGamePlayer
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the MetaPlayer playing a specific in-game player, if any.
-
 	MetaPlayer* MetaMan::GetMetaPlayerOfInGamePlayer(int inGamePlayer) {
 		for (std::vector<MetaPlayer>::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr) {
 			if ((*itr).GetInGamePlayer() == inGamePlayer)
@@ -445,11 +357,6 @@ namespace RTE {
 		// Didn't find any metaplayer that is using that in-game player
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetNextSceneOfPlayer
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the next Scene in play that is owned by a specific player.
 
 	const Scene* MetaMan::GetNextSceneOfPlayer(int player, const Scene* pStartScene) const {
 		if (m_Scenes.empty())
@@ -484,12 +391,6 @@ namespace RTE {
 		return pFoundScene;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetTotalBrainCountOfPlayer
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the total number of brains that a player has, including ones of
-	//                  his that are resident down on sites.
-
 	int MetaMan::GetTotalBrainCountOfPlayer(int metaPlayer, bool countPoolsOnly) const {
 		if (metaPlayer <= Players::NoPlayer || metaPlayer >= Players::MaxPlayerCount)
 			return 0;
@@ -510,11 +411,6 @@ namespace RTE {
 		return brainCount;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetGoldCountOfTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the total gold funds of all the players of a specific team combined.
-
 	int MetaMan::GetGoldCountOfTeam(int team) const {
 		if (team <= Activity::NoTeam || team >= m_TeamCount)
 			return 0;
@@ -528,11 +424,6 @@ namespace RTE {
 
 		return goldTotal;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetSceneCountOfTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the total number of bases that any specific team owns.
 
 	int MetaMan::GetSceneCountOfTeam(int team) const {
 		if (team <= Activity::NoTeam || team >= m_TeamCount)
@@ -549,12 +440,6 @@ namespace RTE {
 		return sceneCount;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetTotalBrainCountOfTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the total number of brains that a team has, including ones that
-	//                  are resident down on sites.
-
 	int MetaMan::GetTotalBrainCountOfTeam(int team, bool countPoolsOnly) const {
 		if (team <= Activity::NoTeam || team >= m_TeamCount)
 			return 0;
@@ -569,12 +454,6 @@ namespace RTE {
 
 		return brainCount;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          OnlyTeamWithAnyBrainPoolLeft
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates which team, if any, is the only one left with brains in its
-	//                  pool.
 
 	int MetaMan::OnlyTeamWithAnyBrainPoolLeft() {
 		// See if only one team remains with any brains
@@ -658,12 +537,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          NoBrainsLeftInAnyPool
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether there are no brains left in any active player's pool
-	//                  at all. This does NOT count deployed brain in bases.
-
 	bool MetaMan::NoBrainsLeftInAnyPool() {
 		// Go through all players and check each for any brains in any pool
 		for (std::vector<MetaPlayer>::iterator mpItr = m_Players.begin(); mpItr != m_Players.end(); ++mpItr) {
@@ -672,12 +545,6 @@ namespace RTE {
 		}
 		return true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          WhichTeamIsLeading
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates which single team has the most owned bases, and if there's a
-	//                  tie between two teams, total owned gold funds is used as a tiebreaker.
 
 	int MetaMan::WhichTeamIsLeading() {
 		int leaderTeam = Activity::NoTeam;
@@ -734,11 +601,6 @@ namespace RTE {
 		return leaderTeam;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetSceneIncomeOfPlayer
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the total income from all scenes owned by a specific player.
-
 	float MetaMan::GetSceneIncomeOfPlayer(int metaPlayer) const {
 		float totalIncome = 0;
 
@@ -749,11 +611,6 @@ namespace RTE {
 		}
 		return totalIncome;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetBudgetedRatioOfPlayer
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the ratio of funds already allocated to budgets of this player.
 
 	float MetaMan::GetBudgetedRatioOfPlayer(int metaPlayer, const Scene* pException, bool includeOffensive, bool includeDefensive) const {
 		float totalAllocated = 0;
@@ -774,12 +631,6 @@ namespace RTE {
 		return totalAllocated / m_Players[metaPlayer].GetFunds();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetSuspend
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Suspends or unsuspends the game so exclusive GUIs and menus can be
-	//                  shown
-
 	void MetaMan::SetSuspend(bool suspend) {
 		if (suspend && !m_Suspended) {
 			m_Suspended = true;
@@ -789,11 +640,6 @@ namespace RTE {
 			m_GameSaved = false;
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          WhichTeamOwnsAllSites
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks whether one team has ownership of all revealed sites.
 
 	int MetaMan::WhichTeamOwnsAllSites() {
 		int owner = Activity::NoTeam;
@@ -818,11 +664,6 @@ namespace RTE {
 		return owner;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          IsGameOver
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks for game over condition
-
 	bool MetaMan::IsGameOver() {
 		// This is the old condition of all sites being conquered
 		//    if (m_RevealedScenes >= m_Scenes.size() && WhichTeamOwnsAllSites() != Activity::NoTeam)
@@ -836,11 +677,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          TotalScenePresets
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Yields a set of ALL eligible Scene presets for a new game.
 
 	int MetaMan::TotalScenePresets(std::list<Scene*>* pScenes) {
 		int totalCount = 0;
@@ -885,11 +721,6 @@ namespace RTE {
 		return totalCount;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SelectScenePresets
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Yields a set of randomly selected Scene presets for a new game.
-
 	int MetaMan::SelectScenePresets(int gameSize, std::list<Scene*>* pSelected) {
 		// Get the list of ALL eligible read-in Scene presets
 		std::list<Scene*> scenePresets;
@@ -923,22 +754,12 @@ namespace RTE {
 		return gameSize;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ClearActivities
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears out all the lined-up activities for the current round.
-
 	void MetaMan::ClearActivities() {
 		for (std::vector<GAScripted*>::iterator aItr = m_RoundOffensives.begin(); aItr != m_RoundOffensives.end(); ++aItr)
 			delete (*aItr);
 		m_RoundOffensives.clear();
 		m_CurrentOffensive = 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AIPlayerTurn
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Does all the things an AI player needs to do during his turn.
 
 	void MetaMan::AIPlayerTurn(int metaPlayer) {
 		if (metaPlayer < 0 || metaPlayer >= m_Players.size())
@@ -1068,11 +889,6 @@ namespace RTE {
 
 		// TODO: Pay for and schedule to scan a random unfriendly site to keep things fair
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this. Supposed to be done every frame before drawing.
 
 	void MetaMan::Update() {
 		m_pMetaGUI->Update();
@@ -1316,12 +1132,6 @@ namespace RTE {
 			m_GameState = REVEALSCENES;
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this MetaMan's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
 
 	void MetaMan::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		/*

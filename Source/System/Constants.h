@@ -181,9 +181,7 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Input Constants
-	/// <summary>
 	/// Enumeration for different types of input devices.
-	/// </summary>
 	enum InputDevice {
 		DEVICE_KEYB_ONLY = 0,
 		DEVICE_MOUSE_KEYB,
@@ -194,9 +192,7 @@ namespace RTE {
 		DEVICE_COUNT
 	};
 
-	/// <summary>
 	/// Enumeration for different elements the input scheme is composed of.
-	/// </summary>
 	enum InputElements {
 		INPUT_L_UP = 0,
 		INPUT_L_DOWN,
@@ -258,9 +254,7 @@ namespace RTE {
 	    "Analog Aim Right" // INPUT_R_RIGHT
 	};
 
-	/// <summary>
 	/// Enumeration for mouse button types.
-	/// </summary>
 	enum MouseButtons {
 		MOUSE_NONE = -1,
 		MOUSE_LEFT = 1,
@@ -269,9 +263,7 @@ namespace RTE {
 		MAX_MOUSE_BUTTONS
 	};
 
-	/// <summary>
 	/// Enumeration for joystick button types.
-	/// </summary>
 	enum JoyButtons {
 		JOY_NONE = -1,
 		JOY_1 = 0,
@@ -298,19 +290,15 @@ namespace RTE {
 		MAX_JOY_BUTTONS
 	};
 
-	/// <summary>
 	/// Enumeration for joystick direction types.
-	/// </summary>
 	enum JoyDirections {
 		JOYDIR_ONE = 0,
 		JOYDIR_TWO
 	};
 
-	/// <summary>
 	/// Enumeration for joystick dead zone types.
 	/// Square deadzone cuts-off any input from every axis separately. For example if x-axis has less than 20% input and y-axis has more, x-axis input is ignored.
 	/// Circle uses a round zone to capture stick position on both axis then cut-off if this position is inside the round dead zone.
-	/// </summary>
 	enum DeadZoneType {
 		CIRCLE = 0,
 		SQUARE = 1
@@ -318,9 +306,7 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Global Enumerations
-	/// <summary>
 	/// Enumeration all available players.
-	/// </summary>
 	enum Players {
 		NoPlayer = -1,
 		PlayerOne = 0,
@@ -330,9 +316,7 @@ namespace RTE {
 		MaxPlayerCount
 	};
 
-	/// <summary>
 	/// Enumeration and supporting maps for cardinal directions, as well as None and Any.
-	/// </summary>
 	enum Directions {
 		None = -1,
 		Up,

@@ -1,13 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MultiplayerGame.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:
-// Project:         Retro Terrain Engine
-// Author(s):
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MultiplayerGame.h"
 
 #include "WindowMan.h"
@@ -43,12 +33,6 @@ namespace RTE {
 
 	ConcreteClassInfo(MultiplayerGame, Activity, 0);
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this MultiplayerGame, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void MultiplayerGame::Clear() {
 		m_pGUIController = 0;
 		m_pGUIInput = 0;
@@ -73,21 +57,11 @@ namespace RTE {
 		m_LastMusicPos = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MultiplayerGame object ready for use.
-
 	int MultiplayerGame::Create() {
 		if (Activity::Create() < 0)
 			return -1;
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MultiplayerGame to be identical to another, by deep copy.
 
 	int MultiplayerGame::Create(const MultiplayerGame& reference) {
 		if (Activity::Create(reference) < 0)
@@ -99,33 +73,14 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int MultiplayerGame::ReadProperty(const std::string_view& propName, Reader& reader) {
 		return Activity::ReadProperty(propName, reader);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this MultiplayerGame with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int MultiplayerGame::Save(Writer& writer) const {
 		Activity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the MultiplayerGame object.
 
 	void MultiplayerGame::Destroy(bool notInherited) {
 		g_FrameMan.SetDrawNetworkBackBuffer(false);
@@ -139,12 +94,6 @@ namespace RTE {
 			Activity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int MultiplayerGame::Start() {
 		int error = Activity::Start();
@@ -210,11 +159,6 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void MultiplayerGame::SetPaused(bool pause) {
 		// Override the pause
 		// m_Paused = false;
@@ -237,23 +181,12 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
-
 	void MultiplayerGame::End() {
 		Activity::End();
 
 		m_ActivityState = ActivityState::Over;
 		g_FrameMan.SetDrawNetworkBackBuffer(false);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this MultiplayerGame. Supposed to be done every frame
-	//                  before drawing.
 
 	void MultiplayerGame::Update() {
 		Activity::Update();

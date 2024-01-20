@@ -5,8 +5,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Reader::Clear() {
 		m_Stream = nullptr;
 		m_FilePath.clear();
@@ -26,22 +24,16 @@ namespace RTE {
 		m_NonModulePath = false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Reader::Reader(const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK, bool nonModulePath) {
 		Clear();
 		m_NonModulePath = nonModulePath;
 		Create(fileName, overwrites, progressCallback, failOK);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Reader::Reader(std::unique_ptr<std::istream>&& stream, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
 		Clear();
 		Create(std::move(stream), overwrites, progressCallback, failOK);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Reader::Create(const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
 		if (fileName.empty()) {
@@ -65,8 +57,6 @@ namespace RTE {
 		return Create(std::make_unique<std::ifstream>(m_FilePath), overwrites, progressCallback, failOK);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Reader::Create(std::unique_ptr<std::istream>&& stream, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
 		m_CanFail = failOK;
 
@@ -87,21 +77,15 @@ namespace RTE {
 		return m_Stream->good() ? 0 : -1;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Reader::GetReadModuleID() const {
 		return (m_DataModuleID < 0) ? g_ModuleMan.GetModuleID(m_DataModuleName) : m_DataModuleID;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Reader::WholeFileAsString() const {
 		std::stringstream stringStream;
 		stringStream << m_Stream->rdbuf();
 		return stringStream.str();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Reader::ReadLine() {
 		DiscardEmptySpace();
@@ -131,8 +115,6 @@ namespace RTE {
 		}
 		return TrimString(retString);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Reader::ReadPropName() {
 		DiscardEmptySpace();
@@ -183,16 +165,12 @@ namespace RTE {
 		return retString;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string Reader::ReadPropValue() {
 		std::string fullLine = ReadLine();
 		size_t valuePos = fullLine.find_first_of('=');
 		std::string propValue = (valuePos == std::string::npos) ? fullLine : fullLine.substr(valuePos + 1);
 		return TrimString(propValue);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Reader::NextProperty() {
 		if (!DiscardEmptySpace() || m_EndOfStreams) {
@@ -207,8 +185,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string Reader::TrimString(const std::string& stringToTrim) const {
 		if (stringToTrim.empty()) {
 			return "";
@@ -218,8 +194,6 @@ namespace RTE {
 
 		return stringToTrim.substr(start, (end - start + 1));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Reader::DiscardEmptySpace() {
 		char peek;
@@ -328,8 +302,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Reader::ReportError(const std::string& errorDesc) const {
 		if (!m_CanFail) {
 			RTEAbort(errorDesc + "\nError happened in " + m_FilePath + " at line " + std::to_string(m_CurrentLine) + "!");
@@ -339,8 +311,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Reader::StartIncludeFile() {
 		// Report that we're including a file
@@ -389,8 +359,6 @@ namespace RTE {
 		DiscardEmptySpace();
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Reader::EndIncludeFile() {
 		if (m_ReportProgress) {

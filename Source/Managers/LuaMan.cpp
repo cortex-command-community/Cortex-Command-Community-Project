@@ -12,8 +12,6 @@ namespace RTE {
 
 	const std::unordered_set<std::string> LuaMan::c_FileAccessModes = {"r", "r+", "w", "w+", "a", "a+", "rt", "wt"};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaStateWrapper::Clear() {
 		m_State = nullptr;
 		m_TempEntity = nullptr;
@@ -21,8 +19,6 @@ namespace RTE {
 		m_LastError.clear();
 		m_CurrentlyRunningScriptPath = "";
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaStateWrapper::Initialize() {
 		m_State = luaL_newstate();
@@ -251,37 +247,25 @@ namespace RTE {
 		              "_TriggerAsyncPathCallback = function(id, param) if _AsyncPathCallbacks[id] ~= nil then _AsyncPathCallbacks[id](param); _AsyncPathCallbacks[id] = nil; end end\n");
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaStateWrapper::Destroy() {
 		lua_close(m_State);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int LuaStateWrapper::SelectRand(int minInclusive, int maxInclusive) {
 		return m_RandomGenerator.RandomNum<int>(minInclusive, maxInclusive);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	double LuaStateWrapper::RangeRand(double minInclusive, double maxInclusive) {
 		return m_RandomGenerator.RandomNum<double>(minInclusive, maxInclusive);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	double LuaStateWrapper::NormalRand() {
 		return m_RandomGenerator.RandomNormalNum<double>();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	double LuaStateWrapper::PosRand() {
 		return m_RandomGenerator.RandomNum<double>();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Passthrough LuaMan Functions
 	const std::vector<std::string>* LuaStateWrapper::DirectoryList(const std::string& path) { return g_LuaMan.DirectoryList(path); }
@@ -303,13 +287,9 @@ namespace RTE {
 	void LuaStateWrapper::FileWriteLine(int fileIndex, const std::string& line) { return g_LuaMan.FileWriteLine(fileIndex, line); }
 	bool LuaStateWrapper::FileEOF(int fileIndex) { return g_LuaMan.FileEOF(fileIndex); }
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaMan::Clear() {
 		m_OpenedFiles.fill(nullptr);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaMan::Initialize() {
 		m_MasterScriptState.Initialize();
@@ -325,39 +305,27 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaStateWrapper& LuaMan::GetMasterScriptState() {
 		return m_MasterScriptState;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaStatesArray& LuaMan::GetThreadedScriptStates() {
 		return m_ScriptStates;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	thread_local LuaStateWrapper* s_luaStateOverride = nullptr;
 	LuaStateWrapper* LuaMan::GetThreadLuaStateOverride() const {
 		return s_luaStateOverride;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaMan::SetThreadLuaStateOverride(LuaStateWrapper* luaState) {
 		s_luaStateOverride = luaState;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	thread_local LuaStateWrapper* s_currentLuaState = nullptr;
 	LuaStateWrapper* LuaMan::GetThreadCurrentLuaState() const {
 		return s_currentLuaState;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaStateWrapper* LuaMan::GetAndLockFreeScriptState() {
 		if (s_luaStateOverride) {
@@ -386,8 +354,6 @@ namespace RTE {
 		return &m_ScriptStates[ourState];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaMan::ClearUserModuleCache() {
 		m_GarbageCollectionTask.wait();
 
@@ -402,14 +368,10 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaMan::AddLuaScriptCallback(const std::function<void()>& callback) {
 		std::scoped_lock lock(m_ScriptCallbacksMutex);
 		m_ScriptCallbacks.emplace_back(callback);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaMan::ExecuteLuaScriptCallbacks() {
 		std::vector<std::function<void()>> callbacks;
@@ -425,8 +387,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const std::unordered_map<std::string, PerformanceMan::ScriptTiming> LuaMan::GetScriptTimings() const {
 		std::unordered_map<std::string, PerformanceMan::ScriptTiming> timings = m_MasterScriptState.GetScriptTimings();
 		for (const LuaStateWrapper& luaState: m_ScriptStates) {
@@ -439,8 +399,6 @@ namespace RTE {
 		return timings;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaMan::Destroy() {
 		for (int i = 0; i < c_MaxOpenFiles; ++i) {
 			FileClose(i);
@@ -448,37 +406,25 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaStateWrapper::ClearUserModuleCache() {
 		luaL_dostring(m_State, "for m, n in pairs(package.loaded) do if type(n) == \"boolean\" then package.loaded[m] = nil; end; end;");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaStateWrapper::ClearLuaScriptCache() {
 		m_ScriptCache.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Entity* LuaStateWrapper::GetTempEntity() const {
 		return m_TempEntity;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaStateWrapper::SetTempEntity(Entity* entity) {
 		m_TempEntity = entity;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const std::vector<Entity*>& LuaStateWrapper::GetTempEntityVector() const {
 		return m_TempEntityVector;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaStateWrapper::SetTempEntityVector(const std::vector<const Entity*>& entityVector) {
 		m_TempEntityVector.reserve(entityVector.size());
@@ -486,8 +432,6 @@ namespace RTE {
 			m_TempEntityVector.push_back(const_cast<Entity*>(entity));
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaStateWrapper::SetLuaPath(const std::string& filePath) {
 		const std::string moduleName = g_ModuleMan.GetModuleNameFromPath(filePath);
@@ -509,13 +453,9 @@ namespace RTE {
 		lua_pop(m_State, 1); // get rid of package table from top of stack.
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const std::unordered_map<std::string, PerformanceMan::ScriptTiming>& LuaStateWrapper::GetScriptTimings() const {
 		return m_ScriptTimings;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int LuaStateWrapper::RunScriptFunctionString(const std::string& functionName, const std::string& selfObjectName, const std::vector<std::string_view>& variablesToSafetyCheck, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments) {
 		std::stringstream scriptString;
@@ -572,8 +512,6 @@ namespace RTE {
 		return result;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int LuaStateWrapper::RunScriptString(const std::string& scriptString, bool consoleErrors) {
 		if (scriptString.empty()) {
 			return -1;
@@ -600,8 +538,6 @@ namespace RTE {
 
 		return error;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functionObject, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
 		int status = 0;
@@ -675,8 +611,6 @@ namespace RTE {
 		m_CurrentlyRunningScriptPath = "";
 		return status;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int LuaStateWrapper::RunScriptFile(const std::string& filePath, bool consoleErrors, bool doInSandboxedEnvironment) {
 		const std::string fullScriptPath = g_ModuleMan.GetFullModulePath(filePath);
@@ -754,8 +688,6 @@ namespace RTE {
 		return error;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool LuaStateWrapper::RetrieveFunctions(const std::string& funcObjectName, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper*>& outFunctionNamesAndObjects) {
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 		s_currentLuaState = this;
@@ -785,8 +717,6 @@ namespace RTE {
 
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string& filePath, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper*>& outFunctionNamesAndObjects, bool forceReload) {
 		static bool disableCaching = false;
@@ -818,8 +748,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaStateWrapper::Update() {
 		for (MovableObject* mo: m_AddedRegisteredMOs) {
 			m_RegisteredMOs.insert(mo);
@@ -827,13 +755,9 @@ namespace RTE {
 		m_AddedRegisteredMOs.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaStateWrapper::ClearScriptTimings() {
 		m_ScriptTimings.clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaStateWrapper::ExpressionIsTrue(const std::string& expression, bool consoleErrors) {
 		if (expression.empty()) {
@@ -861,8 +785,6 @@ namespace RTE {
 		return result;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaStateWrapper::SavePointerAsGlobal(void* objectToSave, const std::string& globalName) {
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 
@@ -871,8 +793,6 @@ namespace RTE {
 		// Pop and assign that pointer to a global var in the Lua state.
 		lua_setglobal(m_State, globalName.c_str());
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaStateWrapper::GlobalIsDefined(const std::string& globalName) {
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
@@ -886,8 +806,6 @@ namespace RTE {
 
 		return isDefined;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaStateWrapper::TableEntryIsDefined(const std::string& tableName, const std::string& indexName) {
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
@@ -909,26 +827,18 @@ namespace RTE {
 		return isDefined;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool LuaStateWrapper::ErrorExists() const {
 		return !m_LastError.empty();
 		;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string LuaStateWrapper::GetLastError() const {
 		return m_LastError;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaStateWrapper::ClearErrors() {
 		m_LastError.clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string LuaStateWrapper::DescribeLuaStack() {
 		int indexOfTopOfStack = lua_gettop(m_State);
@@ -960,8 +870,6 @@ namespace RTE {
 		return stackDescription.str();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const std::vector<std::string>* LuaMan::DirectoryList(const std::string& path) {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		auto* directoryPaths = new std::vector<std::string>();
@@ -980,8 +888,6 @@ namespace RTE {
 		}
 		return directoryPaths;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const std::vector<std::string>* LuaMan::FileList(const std::string& path) {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
@@ -1002,8 +908,6 @@ namespace RTE {
 		return filePaths;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool LuaMan::FileExists(const std::string& path) {
 		std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
 		if (IsValidModulePath(fullPath)) {
@@ -1014,8 +918,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaMan::DirectoryExists(const std::string& path) {
 		std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
@@ -1028,14 +930,10 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	// TODO: Move to ModuleMan, once the ModuleMan PR has been merged
 	bool LuaMan::IsValidModulePath(const std::string& path) {
 		return (path.find("..") == std::string::npos) && (path.find(System::GetModulePackageExtension()) != std::string::npos);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int LuaMan::FileOpen(const std::string& path, const std::string& accessMode) {
 		if (c_FileAccessModes.find(accessMode) == c_FileAccessModes.end()) {
@@ -1108,8 +1006,6 @@ namespace RTE {
 		return -1;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaMan::FileClose(int fileIndex) {
 		if (fileIndex > -1 && fileIndex < c_MaxOpenFiles && m_OpenedFiles.at(fileIndex)) {
 			fclose(m_OpenedFiles[fileIndex]);
@@ -1117,15 +1013,11 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaMan::FileCloseAll() {
 		for (int file = 0; file < c_MaxOpenFiles; ++file) {
 			FileClose(file);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaMan::FileRemove(const std::string& path) {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
@@ -1140,8 +1032,6 @@ namespace RTE {
 		g_ConsoleMan.PrintString("ERROR: Failed to remove file " + path);
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaMan::DirectoryCreate(const std::string& path, bool recursive) {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
@@ -1160,8 +1050,6 @@ namespace RTE {
 		g_ConsoleMan.PrintString("ERROR: Failed to remove directory " + path);
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaMan::DirectoryRemove(const std::string& path, bool recursive) {
 		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
@@ -1182,8 +1070,6 @@ namespace RTE {
 		g_ConsoleMan.PrintString("ERROR: Failed to remove directory " + path);
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaMan::FileRename(const std::string& oldPath, const std::string& newPath) {
 		std::string fullOldPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(oldPath);
@@ -1206,8 +1092,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool LuaMan::DirectoryRename(const std::string& oldPath, const std::string& newPath) {
 		std::string fullOldPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(oldPath);
 		std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
@@ -1229,8 +1113,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string LuaMan::FileReadLine(int fileIndex) {
 		if (fileIndex > -1 && fileIndex < c_MaxOpenFiles && m_OpenedFiles.at(fileIndex)) {
 			char buf[4096];
@@ -1243,8 +1125,6 @@ namespace RTE {
 		return "";
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void LuaMan::FileWriteLine(int fileIndex, const std::string& line) {
 		if (fileIndex > -1 && fileIndex < c_MaxOpenFiles && m_OpenedFiles.at(fileIndex)) {
 			if (fputs(line.c_str(), m_OpenedFiles[fileIndex]) == EOF) {
@@ -1255,8 +1135,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool LuaMan::FileEOF(int fileIndex) {
 		if (fileIndex > -1 && fileIndex < c_MaxOpenFiles && m_OpenedFiles.at(fileIndex)) {
 			return feof(m_OpenedFiles[fileIndex]);
@@ -1264,8 +1142,6 @@ namespace RTE {
 		g_ConsoleMan.PrintString("ERROR: Tried to check EOF for an invalid or closed file.");
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaMan::Update() {
 		ZoneScoped;
@@ -1281,8 +1157,6 @@ namespace RTE {
 		// Apply all deletions queued from lua
 		LuabindObjectWrapper::ApplyQueuedDeletions();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaMan::StartAsyncGarbageCollection() {
 		ZoneScoped;
@@ -1306,8 +1180,6 @@ namespace RTE {
 			    }));
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuaMan::ClearScriptTimings() {
 		m_MasterScriptState.ClearScriptTimings();

@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            SceneEditor.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the SceneEditor class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "SceneEditor.h"
 
 #include "WindowMan.h"
@@ -43,12 +31,6 @@ namespace RTE {
 
 	ConcreteClassInfo(SceneEditor, EditorActivity, 0);
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this SceneEditor, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void SceneEditor::Clear() {
 		m_pEditorGUI = 0;
 		m_pNewTerrainCombo = 0;
@@ -57,22 +39,12 @@ namespace RTE {
 		m_pNewBG3Combo = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the SceneEditor object ready for use.
-
 	int SceneEditor::Create() {
 		if (EditorActivity::Create() < 0)
 			return -1;
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a SceneEditor to be identical to another, by deep copy.
 
 	int SceneEditor::Create(const SceneEditor& reference) {
 		if (EditorActivity::Create(reference) < 0)
@@ -84,14 +56,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int SceneEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 		/*
@@ -102,21 +66,10 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this SceneEditor with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int SceneEditor::Save(Writer& writer) const {
 		EditorActivity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the SceneEditor object.
 
 	void SceneEditor::Destroy(bool notInherited) {
 		delete m_pEditorGUI;
@@ -125,12 +78,6 @@ namespace RTE {
 			EditorActivity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int SceneEditor::Start() {
 		int error = EditorActivity::Start();
@@ -225,32 +172,16 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void SceneEditor::SetPaused(bool pause) {
 		// Override the pause
 		m_Paused = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void SceneEditor::End() {
 		EditorActivity::End();
 
 		m_ActivityState = ActivityState::Over;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this SceneEditor. Supposed to be done every frame
-	//                  before drawing.
 
 	void SceneEditor::Update() {
 		EditorActivity::Update();
@@ -550,28 +481,15 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void SceneEditor::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		m_pEditorGUI->Draw(pTargetBitmap, targetPos);
 
 		EditorActivity::DrawGUI(pTargetBitmap, targetPos, which);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this SceneEditor's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
-
 	void SceneEditor::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		EditorActivity::Draw(pTargetBitmap, targetPos);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneEditor::SaveScene(const std::string& saveAsName, bool forceOverwrite) {
 		Scene* editedScene = g_SceneMan.GetScene();
@@ -640,11 +558,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateNewDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the New dialog box, populates its lists etc.
 
 	void SceneEditor::UpdateNewDialog() {
 		int scenesIndex = 0;
@@ -717,11 +630,6 @@ namespace RTE {
 		m_pNewBG3Combo->SetSelectedIndex(0);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateLoadDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Load dialog box, populates its lists etc.
-
 	void SceneEditor::UpdateLoadDialog() {
 		// Clear out the control
 		m_pLoadNameCombo->ClearList();
@@ -743,11 +651,6 @@ namespace RTE {
 		m_pLoadNameCombo->SetSelectedIndex(0);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateSaveDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Save dialog box, populates its lists etc.
-
 	void SceneEditor::UpdateSaveDialog() {
 		m_pSaveNameBox->SetText((g_SceneMan.GetScene()->GetPresetName() == "None" || !m_HasEverBeenSaved) ? "New Scene" : g_SceneMan.GetScene()->GetPresetName());
 
@@ -756,11 +659,6 @@ namespace RTE {
 		else
 			m_pSaveModuleLabel->SetText("Will save in " + g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes");
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateChangesDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Save Changes dialog box, populates its lists etc.
 
 	void SceneEditor::UpdateChangesDialog() {
 		if (m_HasEverBeenSaved) {
@@ -774,11 +672,6 @@ namespace RTE {
 			m_pChangesNameLabel->SetText("");
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateOverwriteDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Overwrite dialog box, populates its lists etc.
 
 	void SceneEditor::UpdateOverwriteDialog() {
 		if (g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == c_UserScenesModuleName)

@@ -16,8 +16,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	ModManagerGUI::ModManagerGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
 		RTEAssert(m_GUIControlManager->Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "MainMenuSubMenuSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/MainMenuSubMenuSkin.ini");
@@ -58,8 +56,6 @@ namespace RTE {
 		m_ScriptsListFetched = false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ModManagerGUI::PopulateKnownModsList() {
 		for (const auto& [moduleID, dataModule]: g_ModuleMan.GetLoadedDataModules()) {
 			if (!dataModule->IsOfficial() && !dataModule->IsUserdata()) {
@@ -88,8 +84,6 @@ namespace RTE {
 		m_ModsListFetched = true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ModManagerGUI::PopulateKnownScriptsList() {
 		std::list<Entity*> globalScriptList;
 		g_PresetMan.GetAllOfType(globalScriptList, "GlobalScript");
@@ -108,8 +102,6 @@ namespace RTE {
 		m_ScriptsListBox->ScrollToTop();
 		m_ScriptsListFetched = true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModManagerGUI::ToggleMod() {
 		int index = m_ModsListBox->GetSelectedIndex();
@@ -134,8 +126,6 @@ namespace RTE {
 			g_GUISound.ItemChangeSound()->Play();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModManagerGUI::ToggleScript() {
 		int index = m_ScriptsListBox->GetSelectedIndex();
@@ -162,8 +152,6 @@ namespace RTE {
 			g_GUISound.ItemChangeSound()->Play();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ModManagerGUI::HandleInputEvents() {
 		if (!ListsFetched()) {
@@ -200,8 +188,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModManagerGUI::Draw() const {
 		m_GUIControlManager->Draw();

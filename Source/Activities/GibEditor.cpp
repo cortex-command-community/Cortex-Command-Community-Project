@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            GibEditor.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the GibEditor class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "GibEditor.h"
 
 #include "WindowMan.h"
@@ -43,12 +31,6 @@ namespace RTE {
 
 	ConcreteClassInfo(GibEditor, EditorActivity, 0);
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this GibEditor, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void GibEditor::Clear() {
 		m_pEditedObject = 0;
 		m_pTestingObject = 0;
@@ -57,22 +39,12 @@ namespace RTE {
 		m_pEditorGUI = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the GibEditor object ready for use.
-
 	int GibEditor::Create() {
 		if (EditorActivity::Create() < 0)
 			return -1;
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a GibEditor to be identical to another, by deep copy.
 
 	int GibEditor::Create(const GibEditor& reference) {
 		if (EditorActivity::Create(reference) < 0)
@@ -84,14 +56,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int GibEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 		/*
@@ -102,21 +66,10 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this GibEditor with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int GibEditor::Save(Writer& writer) const {
 		EditorActivity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the GibEditor object.
 
 	void GibEditor::Destroy(bool notInherited) {
 		delete m_pEditedObject;
@@ -127,12 +80,6 @@ namespace RTE {
 			EditorActivity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int GibEditor::Start() {
 		int error = EditorActivity::Start();
@@ -220,32 +167,16 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void GibEditor::SetPaused(bool pause) {
 		// Override the pause
 		m_Paused = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void GibEditor::End() {
 		EditorActivity::End();
 
 		m_ActivityState = ActivityState::Over;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this GibEditor. Supposed to be done every frame
-	//                  before drawing.
 
 	void GibEditor::Update() {
 		// And object hasn't been loaded yet, so get the loading picker going
@@ -594,11 +525,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void GibEditor::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		// Testing mode
 		if (m_EditorMode == EditorActivity::TESTINGOBJECT) {
@@ -619,17 +545,9 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this GibEditor's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
-
 	void GibEditor::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		EditorActivity::Draw(pTargetBitmap, targetPos);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool GibEditor::SaveObject(const std::string& saveAsName, bool forceOverwrite) {
 		if (!m_pEditedObject) {
@@ -694,12 +612,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          StuffEditedGibs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Replaces all the gibs owned by the passed in MOSR with the ones being
-	//                  edited that represent the new gibbing setup.
-
 	void GibEditor::StuffEditedGibs(MOSRotating* pEditedObject) {
 		if (!pEditedObject)
 			return;
@@ -725,11 +637,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateNewDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the New dialog box, populates its lists etc.
 
 	void GibEditor::UpdateNewDialog() {
 		/*
@@ -784,20 +691,10 @@ namespace RTE {
 		*/
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateLoadDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Load dialog box, populates its lists etc.
-
 	void GibEditor::UpdateLoadDialog() {
 		if (m_pObjectToLoad)
 			dynamic_cast<GUILabel*>(m_pGUIController->GetControl("LoadNameLabel"))->SetText("Load object named " + m_pObjectToLoad->GetPresetName() + "?");
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateSaveDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Save dialog box, populates its lists etc.
 
 	void GibEditor::UpdateSaveDialog() {
 		if (!m_pEditedObject)
@@ -807,11 +704,6 @@ namespace RTE {
 		// TODO: Really?
 		m_pSaveModuleLabel->SetText("Will save in " + g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/");
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateChangesDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Save Changes dialog box, populates its lists etc.
 
 	void GibEditor::UpdateChangesDialog() {
 		if (!m_pEditedObject)
@@ -826,17 +718,10 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateOverwriteDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Overwrite dialog box, populates its lists etc.
-
 	void GibEditor::UpdateOverwriteDialog() {
 		if (m_pEditedObject)
 			m_pOverwriteNameLabel->SetText(g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/" + m_pEditedObject->GetPresetName() + ".ini");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GibEditor::ClearTestArea() const {
 		clear_bitmap(g_SceneMan.GetTerrain()->GetFGColorBitmap());

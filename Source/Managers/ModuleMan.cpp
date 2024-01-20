@@ -12,15 +12,11 @@ namespace RTE {
 	                                                                                          {c_UserConquestSavesModuleName, "Conquest Saves"},
 	                                                                                          {c_UserScriptedSavesModuleName, "Scripted Activity Saves"}}};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ModuleMan::Clear() {
 		m_LoadedDataModules.clear();
 		m_UnloadedDataModules.clear();
 		m_DisabledDataModuleNames.clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModuleMan::Destroy() {
 		for (const auto& [moduleID, dataModule]: m_LoadedDataModules) {
@@ -32,16 +28,12 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool ModuleMan::IsModuleEnabled(const std::string_view& moduleName) const {
 		return std::none_of(m_DisabledDataModuleNames.begin(), m_DisabledDataModuleNames.end(),
 		                    [&moduleName](const std::string_view& disabledModuleName) {
 			                    return disabledModuleName == moduleName;
 		                    });
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ModuleMan::IsModuleOfficial(const std::string_view& moduleName) const {
 		return std::any_of(c_OfficialModules.begin(), c_OfficialModules.end(),
@@ -50,16 +42,12 @@ namespace RTE {
 		                   });
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool ModuleMan::IsModuleUserdata(const std::string_view& moduleName) const {
 		return std::any_of(c_UserdataModules.begin(), c_UserdataModules.end(),
 		                   [&moduleName](const std::pair<std::string_view, std::string_view>& userdataModuleEntry) {
 			                   return userdataModuleEntry.first == moduleName;
 		                   });
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	DataModule* ModuleMan::GetDataModule(int whichModule) {
 		if (whichModule < 0 || whichModule >= GetTotalModuleCount()) {
@@ -73,8 +61,6 @@ namespace RTE {
 		return (*loadedModulesItr).second;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int ModuleMan::GetModuleID(const std::string_view& moduleName) const {
 		if (moduleName.empty()) {
 			return -1;
@@ -87,16 +73,12 @@ namespace RTE {
 		return (loadedModulesItr != m_LoadedDataModules.end()) ? (*loadedModulesItr).first : -1;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string ModuleMan::GetModuleName(int whichModule) {
 		if (const DataModule* dataModule = GetDataModule(whichModule)) {
 			return dataModule->GetFileName();
 		}
 		return "";
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string ModuleMan::GetModuleNameFromPath(const std::string& dataPath) const {
 		if (dataPath.empty()) {
@@ -120,8 +102,6 @@ namespace RTE {
 		return moduleName;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string ModuleMan::GetFullModulePath(const std::string& modulePath) const {
 		// Note: Mods may use mixed path separators, which aren't supported on non Windows systems.
 		// Since Windows supports both forward and backslash separators it's safe to replace all backslashes with forward slashes.
@@ -140,8 +120,6 @@ namespace RTE {
 		}
 		return (pathTopDir == moduleTopDir) ? modulePathGeneric : moduleTopDir + modulePathGeneric;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ModuleMan::LoadDataModule(const std::string& moduleName, DataModule::DataModuleType moduleType, const ProgressCallback& progressCallback) {
 		if (moduleName.empty()) {
@@ -177,8 +155,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool ModuleMan::UnloadDataModule(const std::string& moduleName) {
 		if (!IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
 			auto loadedModulesItr = std::find_if(m_LoadedDataModules.begin(), m_LoadedDataModules.end(),
@@ -196,8 +172,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ModuleMan::LoadAllDataModules() {
 		LoadOfficialModules();
@@ -219,8 +193,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ModuleMan::LoadOfficialModules() {
 		for (const std::string& officialModule: c_OfficialModules) {
 			if (!LoadDataModule(officialModule, DataModule::DataModuleType::Official, LoadingScreen::LoadingSplashProgressReport)) {
@@ -228,8 +200,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ModuleMan::LoadUserdataModules() {
 		for (const auto& [userdataModuleName, userdataModuleFriendlyName]: c_UserdataModules) {
@@ -254,8 +224,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ModuleMan::LoadUnofficialModules() {
 		std::vector<std::filesystem::directory_entry> modDirectoryFolders;
 		const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
@@ -276,8 +244,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModuleMan::FindAndExtractZippedModules() const {
 		const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();

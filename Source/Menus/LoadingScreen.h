@@ -12,58 +12,42 @@ namespace RTE {
 	class GUIControlManager;
 	class Writer;
 
-	/// <summary>
 	/// Handling for the loading screen composition and loading progress box when starting the game.
-	/// </summary>
 	class LoadingScreen : public Singleton<LoadingScreen> {
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a LoadingScreen object in system memory.
-		/// </summary>
 		LoadingScreen() { Clear(); }
 
-		/// <summary>
 		/// Makes the LoadingScreen object ready for use.
-		/// </summary>
-		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this LoadingScreen's GUIControlManager. Ownership is NOT transferred!</param>
-		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this LoadingScreen's GUIControlManager. Ownership is NOT transferred!</param>
-		/// <param name="progressReportDisabled">Whether the loading screen progress report is disabled meaning GUI elements and adjustments relevant to it can be skipped.</param>
+		/// @param guiScreen Pointer to a GUIScreen interface that will be used by this LoadingScreen's GUIControlManager. Ownership is NOT transferred!
+		/// @param guiInput Pointer to a GUIInput interface that will be used by this LoadingScreen's GUIControlManager. Ownership is NOT transferred!
+		/// @param progressReportDisabled Whether the loading screen progress report is disabled meaning GUI elements and adjustments relevant to it can be skipped.
 		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool progressReportDisabled);
 
-		/// <summary>
 		/// Creates the loading splash screen and draws the composed frame to the LoadingSplashBitmap.
-		/// </summary>
-		/// <param name="xOffset">Horizontal offset of the loading splash screen.</param>
+		/// @param xOffset Horizontal offset of the loading splash screen.
 		void CreateLoadingSplash(int xOffset = 0);
 
-		/// <summary>
 		/// Creates the GUIListBox that the progress report will be drawn to, if not disabled through the settings file to speed up loading times.
 		/// As it turned out, a massive amount of time is spent updating the GUI control and flipping the frame buffers.
-		/// </summary>
-		/// <param name="parentControlManager">Pointer to the parent GUIControlManager which owns all the GUIControls of this LoadingScreen. Ownership is NOT transferred!</param>
+		/// @param parentControlManager Pointer to the parent GUIControlManager which owns all the GUIControls of this LoadingScreen. Ownership is NOT transferred!
 		void CreateProgressReportListbox(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destroys and resets (through Clear()) the LoadingScreen object.
-		/// </summary>
 		void Destroy();
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Updates the loading progress report and draws it to the screen if not disabled through the settings file.
-		/// </summary>
-		/// <param name="reportString">The string to print in the report and log.</param>
-		/// <param name="newItem">Whether to start a new line in the log writer and to scroll the bitmap.</param>
+		/// @param reportString The string to print in the report and log.
+		/// @param newItem Whether to start a new line in the log writer and to scroll the bitmap.
 		static void LoadingSplashProgressReport(const std::string& reportString, bool newItem = false);
 
-		/// <summary>
 		/// Draws the loading splash to the screen.
-		/// </summary>
 		void DrawLoadingSplash();
 #pragma endregion
 
@@ -75,9 +59,7 @@ namespace RTE {
 		int m_ProgressListboxPosX; //!< Position of the progress report box on X axis.
 		int m_ProgressListboxPosY; //!< Position of the progress report box on Y axis.
 
-		/// <summary>
 		/// Clears all the member variables of this LoadingScreen, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.
