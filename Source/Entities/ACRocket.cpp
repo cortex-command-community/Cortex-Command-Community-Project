@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            ACRocket.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the ACRocket class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "ACRocket.h"
 #include "AtomGroup.h"
 #include "Attachable.h"
@@ -26,12 +14,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(ACRocket, ACraft, 10);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this ACRocket, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void ACRocket::Clear() {
 		//    m_pCapsule = 0;
@@ -55,11 +37,6 @@ namespace RTE {
 		m_MaxGimbalAngle = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the ACRocket object ready for use.
-
 	int ACRocket::Create() {
 		// Read all the properties
 		if (ACraft::Create() < 0)
@@ -79,11 +56,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a ACRocket to be identical to another, by deep copy.
 
 	int ACRocket::Create(const ACRocket& reference) {
 		if (reference.m_pRLeg) {
@@ -165,14 +137,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return ACraft::ReadProperty(propName, reader));
 
@@ -206,12 +170,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this ACRocket with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int ACRocket::Save(Writer& writer) const {
 		ACraft::Save(writer);
@@ -248,11 +206,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the ACRocket object.
-
 	void ACRocket::Destroy(bool notInherited) {
 		delete m_pBodyAG;
 		delete m_pRFootGroup;
@@ -267,12 +220,6 @@ namespace RTE {
 		Clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetAltitude
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the altitide of this' pos (or appropriate low point) over the
-	//                  terrain, in pixels.
-
 	float ACRocket::GetAltitude(int max, int accuracy) {
 		// Use the main thruster's position as the position ot measure from
 		Vector pos;
@@ -283,8 +230,6 @@ namespace RTE {
 
 		return g_SceneMan.FindAltitude(pos, max, accuracy, true);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACRocket::PreControllerUpdate() {
 		ACraft::PreControllerUpdate();
@@ -424,8 +369,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACRocket::Update() {
 		ACraft::Update();
 
@@ -452,8 +395,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACRocket::SetRightLeg(Leg* newLeg) {
 		if (m_pRLeg && m_pRLeg->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pRLeg);
@@ -475,8 +416,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACRocket::SetLeftLeg(Leg* newLeg) {
 		if (m_pLLeg && m_pLLeg->IsAttached()) {
@@ -501,8 +440,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACRocket::SetMainThruster(AEmitter* newThruster) {
 		if (m_pMThruster && m_pMThruster->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pMThruster);
@@ -525,8 +462,6 @@ namespace RTE {
 			m_pMThruster->SetInheritedRotAngleOffset(-c_HalfPI);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACRocket::SetRightThruster(AEmitter* newThruster) {
 		if (m_pRThruster && m_pRThruster->IsAttached()) {
@@ -551,8 +486,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACRocket::SetLeftThruster(AEmitter* newThruster) {
 		if (m_pLThruster && m_pLThruster->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pLThruster);
@@ -575,8 +508,6 @@ namespace RTE {
 			m_pLThruster->SetInheritedRotAngleOffset(c_PI - c_EighthPI);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACRocket::SetURightThruster(AEmitter* newThruster) {
 		if (m_pURThruster && m_pURThruster->IsAttached()) {
@@ -601,8 +532,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACRocket::SetULeftThruster(AEmitter* newThruster) {
 		if (m_pULThruster && m_pULThruster->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pULThruster);
@@ -625,8 +554,6 @@ namespace RTE {
 			m_pULThruster->SetInheritedRotAngleOffset(c_HalfPI + c_EighthPI);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACRocket::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		ACraft::Draw(pTargetBitmap, targetPos, mode, onlyPhysical);

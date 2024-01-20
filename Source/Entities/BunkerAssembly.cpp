@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            BunkerAssembly.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the BunkerAssembly class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "BunkerAssembly.h"
 #include "PresetMan.h"
 #include "ADoor.h"
@@ -20,12 +8,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(BunkerAssembly, SceneObject, 0);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this BunkerAssembly, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void BunkerAssembly::Clear() {
 		m_FGColorFile.Reset();
@@ -44,24 +26,12 @@ namespace RTE {
 		m_ParentSchemeGroup.clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the BunkerAssembly object ready for use.
-
 	int BunkerAssembly::Create() {
 		if (TerrainObject::Create() < 0)
 			return -1;
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AddPlacedObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds placed object to the internallist of placed objects for this assembly,
-	//					applies it's image to presentation bitmap and sets assembly price accordingly.
-	//					Added scene object MUST have coordinates relative to this assembly.
 
 	void BunkerAssembly::AddPlacedObject(SceneObject* pSO) {
 		m_PlacedObjects.push_back(pSO);
@@ -103,11 +73,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the BunkerAssembly object ready for use.
-
 	int BunkerAssembly::Create(BunkerAssemblyScheme* pScheme) {
 		if (TerrainObject::Create() < 0)
 			return -1;
@@ -138,11 +103,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MOPixel to be identical to another, by deep copy.
-
 	int BunkerAssembly::Create(const BunkerAssembly& reference) {
 		TerrainObject::Create(reference);
 
@@ -156,14 +116,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int BunkerAssembly::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneObject::ReadProperty(propName, reader));
@@ -241,12 +193,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this BunkerAssembly with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int BunkerAssembly::Save(Writer& writer) const {
 		SceneObject::Save(writer);
 
@@ -309,11 +255,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the BunkerAssembly object.
-
 	void BunkerAssembly::Destroy(bool notInherited) {
 		for (std::list<SceneObject*>::iterator oItr = m_PlacedObjects.begin(); oItr != m_PlacedObjects.end(); ++oItr) {
 			delete (*oItr);
@@ -338,13 +279,6 @@ namespace RTE {
 			SceneObject::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetDeployments
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Retrieves the list of random deployemtns selected to be deployed by this assembly
-	//					based on it's parent scheme MaxDeployments value. This list will always include all
-	//					brain deployments so it can be longer that MaxDeployments. OWNERSHIP NOT TRANSFERRED.
 
 	std::vector<Deployment*> BunkerAssembly::GetDeployments() {
 		std::vector<Deployment*> deploymentsList;
@@ -381,12 +315,6 @@ namespace RTE {
 		return deploymentsList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsOnScenePoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether this' current graphical representation overlaps
-	//                  a point in absolute scene coordinates.
-
 	bool BunkerAssembly::IsOnScenePoint(Vector& scenePoint) const {
 		if (!m_pPresentationBitmap)
 			return false;
@@ -402,11 +330,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets which team this Actor belongs to.
-
 	void BunkerAssembly::SetTeam(int team) {
 		TerrainObject::SetTeam(team);
 
@@ -414,12 +337,6 @@ namespace RTE {
 		for (std::list<SceneObject*>::iterator itr = m_PlacedObjects.begin(); itr != m_PlacedObjects.end(); ++itr)
 			(*itr)->SetTeam(team);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this TerrainObject's current graphical representation to a
-	//                  BITMAP of choice.
 
 	void BunkerAssembly::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		if (!m_FGColorBitmap)

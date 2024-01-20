@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MovableObject.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the MovableObject class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MovableObject.h"
 
 #include "ActivityMan.h"
@@ -31,12 +19,6 @@ namespace RTE {
 
 	std::atomic<unsigned long int> MovableObject::m_UniqueIDCounter = 1;
 	std::string MovableObject::ms_EmptyString = "";
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this MovableObject, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void MovableObject::Clear() {
 		m_MOType = TypeGeneric;
@@ -140,11 +122,6 @@ namespace RTE {
 		return *m_ThreadedLuaState;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MovableObject object ready for use.
-
 	int MovableObject::Create() {
 		if (SceneObject::Create() < 0)
 			return -1;
@@ -166,11 +143,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MovableObject object ready for use.
 
 	int MovableObject::Create(const float mass,
 	                          const Vector& position,
@@ -200,11 +172,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MovableObject to be identical to another, by deep copy.
 
 	int MovableObject::Create(const MovableObject& reference) {
 		SceneObject::Create(reference);
@@ -288,14 +255,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneObject::ReadProperty(propName, reader));
@@ -419,12 +378,6 @@ namespace RTE {
 		reader.NextProperty();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this MovableObject to an output stream for
-	//                  later recreation with Create(istream &stream);
-
 	int MovableObject::Save(Writer& writer) const {
 		SceneObject::Save(writer);
 		// TODO: Make proper save system that knows not to save redundant data!
@@ -518,8 +471,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableObject::DestroyScriptState() {
 		if (m_ThreadedLuaState) {
 			std::lock_guard<std::recursive_mutex> lock(m_ThreadedLuaState->GetMutex());
@@ -534,8 +485,6 @@ namespace RTE {
 			m_ThreadedLuaState = nullptr;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableObject::Destroy(bool notInherited) {
 		// Unfortunately, shit can still get destroyed at random from Lua states having ownership and their GC deciding to delete it.
@@ -555,8 +504,6 @@ namespace RTE {
 		}
 		Clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableObject::LoadScript(const std::string& scriptPath, bool loadAsEnabledScript) {
 		if (scriptPath.empty()) {
@@ -598,8 +545,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int MovableObject::ReloadScripts() {
 		if (m_AllLoadedScripts.empty()) {
 			return 0;
@@ -629,8 +574,6 @@ namespace RTE {
 		return status;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int MovableObject::InitializeObjectScripts() {
 		std::lock_guard<std::recursive_mutex> lock(m_ThreadedLuaState->GetMutex());
 		m_ScriptObjectName = "_ScriptedObjects[\"" + std::to_string(m_UniqueID) + "\"]";
@@ -647,8 +590,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MovableObject::EnableOrDisableScript(const std::string& scriptPath, bool enableScript) {
 		if (m_AllLoadedScripts.empty()) {
@@ -676,8 +617,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableObject::EnableOrDisableAllScripts(bool enableScripts) {
 		for (const auto& [scriptPath, scriptIsEnabled]: m_AllLoadedScripts) {
 			if (enableScripts != scriptIsEnabled) {
@@ -685,8 +624,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableObject::RunScriptedFunctionInAppropriateScripts(const std::string& functionName, bool runOnDisabledScripts, bool stopOnError, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
 		int status = 0;
@@ -718,8 +655,6 @@ namespace RTE {
 		return status;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int MovableObject::RunFunctionOfScript(const std::string& scriptPath, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments) {
 		if (m_AllLoadedScripts.empty() || !ObjectScriptsInitialized()) {
 			return -1;
@@ -740,8 +675,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/*
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -768,23 +701,13 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetAltitude
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the altitide of this' pos (or appropriate low point) over the
-	//                  terrain, in pixels.
-
 	float MovableObject::GetAltitude(int max, int accuracy) {
 		return g_SceneMan.FindAltitude(m_Pos, max, accuracy);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableObject::AddAbsForce(const Vector& force, const Vector& absPos) {
 		m_Forces.push_back(std::make_pair(force, g_SceneMan.ShortestDistance(m_Pos, absPos) * c_MPP));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableObject::AddAbsImpulseForce(const Vector& impulse, const Vector& absPos) {
 #ifndef RELEASE_BUILD
@@ -793,8 +716,6 @@ namespace RTE {
 
 		m_ImpulseForces.push_back(std::make_pair(impulse, g_SceneMan.ShortestDistance(m_Pos, absPos) * c_MPP));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableObject::RestDetection() {
 		// Translational settling detection.
@@ -808,8 +729,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool MovableObject::IsAtRest() {
 		if (m_RestThreshold < 0 || m_PinStrength) {
 			return false;
@@ -820,13 +739,6 @@ namespace RTE {
 			return m_RestTimer.IsPastSimMS(m_RestThreshold);
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  OnMOHit
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Defines what should happen when this MovableObject hits another MO.
-	//                  This is called by the owned Atom/AtomGroup of this MovableObject during
-	//                  travel.
 
 	bool MovableObject::OnMOHit(HitData& hd) {
 		if (hd.RootBody[HITOR] != hd.RootBody[HITEE] && (hd.Body[HITOR] == this || hd.Body[HITEE] == this)) {
@@ -845,8 +757,6 @@ namespace RTE {
 		RunScriptedFunctionInAppropriateScripts("OnCollideWithTerrain", false, false, {}, {std::to_string(m_TerrainMatHit)});
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Vector MovableObject::GetTotalForce() {
 		Vector totalForceVector;
 		for (const auto& [force, forceOffset]: m_Forces) {
@@ -854,13 +764,6 @@ namespace RTE {
 		}
 		return totalForceVector;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ApplyForces
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gathers and applies the global and accumulated forces. Then it clears
-	//                  out the force list.Note that this does NOT apply the accumulated
-	//                  impulses (impulse forces)!
 
 	void MovableObject::ApplyForces() {
 		// Don't apply forces to pinned objects
@@ -890,13 +793,6 @@ namespace RTE {
 		m_Forces.clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ApplyImpulses
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gathers and applies the accumulated impulse forces. Then it clears
-	//                  out the impulse list.Note that this does NOT apply the accumulated
-	//                  regular forces (non-impulse forces)!
-
 	void MovableObject::ApplyImpulses() {
 		// Don't apply forces to pinned objects
 		if (m_PinStrength > 0) {
@@ -916,12 +812,6 @@ namespace RTE {
 		// Clear out the impulses list
 		m_ImpulseForces.clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  PreTravel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Does stuff that needs to be done before Travel(). Always call before
-	//                  calling Travel.
 
 	void MovableObject::PreTravel() {
 		// Temporarily remove the representation of this from the scene MO sampler
@@ -943,19 +833,8 @@ namespace RTE {
 		m_ParticleUniqueIDHit = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Travel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Travels this MovableObject, using its physical representation.
-
 	void MovableObject::Travel() {
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  PostTravel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Does stuff that needs to be done after Travel(). Always call after
-	//                  calling Travel.
 
 	void MovableObject::PostTravel() {
 		// Toggle whether this gets hit by other AtomGroup MOs depending on whether it's going slower than a set threshold
@@ -1000,15 +879,11 @@ namespace RTE {
 		m_DistanceTravelled += m_Vel.GetMagnitude() * c_PPM * g_TimerMan.GetDeltaTimeSecs();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableObject::Update() {
 		if (m_RandomizeEffectRotAngleEveryFrame) {
 			m_EffectRotAngle = c_PI * 2.0F * RandomNormalNum();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		if (mode == g_DrawMOID && m_MOID == g_NoMOID) {
@@ -1017,8 +892,6 @@ namespace RTE {
 
 		g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, m_Pos - targetPos, 1.0F);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableObject::UpdateScripts() {
 		m_SimUpdatesSinceLastScriptedUpdate++;
@@ -1045,8 +918,6 @@ namespace RTE {
 		return status;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const std::string& MovableObject::GetStringValue(const std::string& key) const {
 		auto itr = m_StringValueMap.find(key);
 		if (itr == m_StringValueMap.end()) {
@@ -1055,8 +926,6 @@ namespace RTE {
 
 		return itr->second;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string MovableObject::GetEncodedStringValue(const std::string& key) const {
 		auto itr = m_StringValueMap.find(key);
@@ -1067,8 +936,6 @@ namespace RTE {
 		return base64_decode(itr->second);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	double MovableObject::GetNumberValue(const std::string& key) const {
 		auto itr = m_NumberValueMap.find(key);
 		if (itr == m_NumberValueMap.end()) {
@@ -1077,8 +944,6 @@ namespace RTE {
 
 		return itr->second;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Entity* MovableObject::GetObjectValue(const std::string& key) const {
 		auto itr = m_ObjectValueMap.find(key);
@@ -1089,76 +954,49 @@ namespace RTE {
 		return itr->second;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableObject::SetStringValue(const std::string& key, const std::string& value) {
 		m_StringValueMap[key] = value;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableObject::SetEncodedStringValue(const std::string& key, const std::string& value) {
 		m_StringValueMap[key] = base64_encode(value, true);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableObject::SetNumberValue(const std::string& key, double value) {
 		m_NumberValueMap[key] = value;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableObject::SetObjectValue(const std::string& key, Entity* value) {
 		m_ObjectValueMap[key] = value;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableObject::RemoveStringValue(const std::string& key) {
 		m_StringValueMap.erase(key);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableObject::RemoveNumberValue(const std::string& key) {
 		m_NumberValueMap.erase(key);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableObject::RemoveObjectValue(const std::string& key) {
 		m_ObjectValueMap.erase(key);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MovableObject::StringValueExists(const std::string& key) const {
 		return m_StringValueMap.find(key) != m_StringValueMap.end();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool MovableObject::NumberValueExists(const std::string& key) const {
 		return m_NumberValueMap.find(key) != m_NumberValueMap.end();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MovableObject::ObjectValueExists(const std::string& key) const {
 		return m_ObjectValueMap.find(key) != m_ObjectValueMap.end();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int MovableObject::WhilePieMenuOpenListener(const PieMenu* pieMenu) {
 		return RunScriptedFunctionInAppropriateScripts("WhilePieMenuOpen", false, false, {pieMenu});
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateMOID
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this' and its childrens MOID status. Supposed to be done every frame.
 
 	void MovableObject::UpdateMOID(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID, bool makeNewMOID) {
 		// Register the own MOID
@@ -1170,11 +1008,6 @@ namespace RTE {
 		// Figure out the total MOID footstep of this and all its children combined
 		m_MOIDFootprint = MOIDIndex.size() - m_MOID;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetMOIDs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Puts all MOIDs associated with this MO and all it's descendants into MOIDs vector
 
 	void MovableObject::GetMOIDs(std::vector<MOID>& MOIDs) const {
 		if (m_MOID != g_NoMOID) {
@@ -1200,13 +1033,6 @@ namespace RTE {
 		m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  RegMOID
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes this MO register itself in the MOID register and get ID:s for
-	//                  itself and its children for this frame.
-	//                  BITMAP of choice.
-
 	void MovableObject::RegMOID(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID, bool makeNewMOID) {
 		if (!makeNewMOID && GetParent()) {
 			m_MOID = GetParent()->GetID();
@@ -1221,8 +1047,6 @@ namespace RTE {
 
 		m_RootMOID = rootMOID == g_NoMOID ? m_MOID : rootMOID;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MovableObject::DrawToTerrain(SLTerrain* terrain) {
 		if (!terrain) {

@@ -1,19 +1,12 @@
 #ifndef _AREAEDITORGUI_
 #define _AREAEDITORGUI_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            AreaEditorGUI.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     AreaEditorGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
-//#include "FrameMan.h"
+/// AreaEditorGUI class
+/// @author Daniel Tabar
+/// dtabar@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
+// #include "FrameMan.h"
 #include "Scene.h"
 #include "Timer.h"
 #include "Vector.h"
@@ -28,18 +21,10 @@ namespace RTE {
 	class AreaPickerGUI;
 	class PieMenu;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           AreaEditorGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A full menu system that represents the scene editing GUI for Cortex Command
-	// Parent(s):       None.
-	// Class history:   7/08/2007 AreaEditorGUI Created.
-
+	/// A full menu system that represents the scene editing GUI for Cortex Command
 	class AreaEditorGUI {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		// Different modes of this editor
 		enum EditorGUIMode {
@@ -53,175 +38,87 @@ namespace RTE {
 			EDITORGUIMODECOUNT
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     AreaEditorGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a AreaEditorGUI Area in system
-		//                  memory. Create() should be called before using the Area.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a AreaEditorGUI Area in system
+		/// memory. Create() should be called before using the Area.
 		AreaEditorGUI() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~AreaEditorGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a AreaEditorGUI Area before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a AreaEditorGUI Area before deletion
+		/// from system memory.
 		~AreaEditorGUI() { Destroy(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the AreaEditorGUI Area ready for use.
-		// Arguments:       A poitner to a Controller which will control this Menu. Ownership is
-		//                  NOT TRANSFERRED!
-		//                  Whether the editor should have all the features enabled, like load/save
-		//                  and undo capabilities.
-		//                  Which module space that this eidtor will be able to pick Areas from.
-		//                  -1 means all modules.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the AreaEditorGUI Area ready for use.
+		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
+		/// @param fullFeatured NOT TRANSFERRED! (default: false)
+		/// @param whichModuleSpace Whether the editor should have all the features enabled, like load/save (default: -1)
+		/// and undo capabilities.
+		/// Which module space that this eidtor will be able to pick Areas from.
+		/// -1 means all modules.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(Controller* pController, bool fullFeatured = false, int whichModuleSpace = -1);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire AreaEditorGUI, including its inherited members, to
-		//                  their default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire AreaEditorGUI, including its inherited members, to
+		/// their default settings or values.
 		void Reset() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the AreaEditorGUI Area.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the AreaEditorGUI Area.
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetController
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the controller used by this. The ownership of the controller is
-		//                  NOT transferred!
-		// Arguments:       The new controller for this menu. Ownership is NOT transferred
-		// Return value:    None.
-
+		/// Sets the controller used by this. The ownership of the controller is
+		/// NOT transferred!
+		/// @param pController The new controller for this menu. Ownership is NOT transferred
 		void SetController(Controller* pController);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetPosOnScreen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-		//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-		//                  etc.
-		// Arguments:       The new screen position of this entire GUI.
-
+		/// Sets where on the screen that this GUI is being drawn to. If upper
+		/// left corner, then 0, 0. This will affect the way the mouse is positioned
+		/// etc.
+		/// @param newPosX The new screen position of this entire GUI.
 		void SetPosOnScreen(int newPosX, int newPosY);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetCursorPos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the absolute scene coordinates of the cursor of this Editor.
-		// Arguments:       The new cursor position in absolute scene units.
-		// Return value:    None.
-
+		/// Sets the absolute scene coordinates of the cursor of this Editor.
+		/// @param newCursorPos The new cursor position in absolute scene units.
 		void SetCursorPos(const Vector& newCursorPos) { m_CursorPos = newCursorPos; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetActivatedPieSlice
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets any Pie menu slice command activated last update.
-		// Arguments:       None.
-		// Return value:    The enum'd int of any slice activated. See the PieSlice::SliceType enum.
-
+		/// Gets any Pie menu slice command activated last update.
+		/// @return The enum'd int of any slice activated. See the PieSlice::SliceType enum.
 		PieSlice::SliceType GetActivatedPieSlice() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetCurrentArea
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the currently selected Area of this Editor. Ownership IS NOT
-		//                  transferred!
-		// Arguments:       The new area for this to work with, if any. OWNERSHIP IS NOT TRANSFERRED!
-		// Return value:    None.
-
+		/// Sets the currently selected Area of this Editor. Ownership IS NOT
+		/// transferred!
+		/// @param pArea The new area for this to work with, if any. OWNERSHIP IS NOT TRANSFERRED!
 		void SetCurrentArea(Scene::Area* pArea);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetCurrentArea
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the currently held Area in the cursor of this Editor. Ownership
-		//                  IS NOT transferred!
-		// Arguments:       None.
-		// Return value:    The currently held Area, if any. OWNERSHIP IS NOT TRANSFERRED!
-
+		/// Gets the currently held Area in the cursor of this Editor. Ownership
+		/// IS NOT transferred!
+		/// @return The currently held Area, if any. OWNERSHIP IS NOT TRANSFERRED!
 		Scene::Area* GetCurrentArea() { return m_pCurrentArea; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEditorMode
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the current mode of this editor.
-		// Arguments:       The new mode to set to, see the EditorGUIMode enum.
-		// Return value:    None.
-
+		/// Sets the current mode of this editor.
+		/// @param newMode The new mode to set to, see the EditorGUIMode enum.
 		void SetEditorGUIMode(EditorGUIMode newMode) { m_EditorGUIMode = newMode; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetEditorMode
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the current mode of this editor.
-		// Arguments:       None.
-		// Return value:    The current mode this is set to; see the EditorGUIMode enum.
-
+		/// Gets the current mode of this editor.
+		/// @return The current mode this is set to; see the EditorGUIMode enum.
 		EditorGUIMode GetEditorGUIMode() const { return m_EditorGUIMode; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          EditMade
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows whether an edit on the scene was made in the last Update.
-		// Arguments:       None.
-		// Return value:    Whether any edit was made.
-
+		/// Shows whether an edit on the scene was made in the last Update.
+		/// @return Whether any edit was made.
 		bool EditMade() const { return m_EditMade; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePickerList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the list that the GUI's Area picker has, from the current
-		//                  scene state.
-		// Arguments:       The name of the Area to leave selected after the list is updated.
-		// Return value:    None.
-
+		/// Updates the list that the GUI's Area picker has, from the current
+		/// scene state.
+		/// @param selectAreaName The name of the Area to leave selected after the list is updated. (default: "")
 		void UpdatePickerList(std::string selectAreaName = "");
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the state of this Menu each frame
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the state of this Menu each frame
 		void Update();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the editor
-		// Arguments:       The bitmap to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the scene.
-		// Return value:    None.
-
+		/// Draws the editor
+		/// @param pTargetBitmap The bitmap to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		enum BlinkMode {
 			NOBLINK = 0,
@@ -269,18 +166,10 @@ namespace RTE {
 		// Currently placed scene Area to make blink when drawing it. NOT OWNED.
 		const Box* m_pBoxToBlink;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this AreaEditorGUI, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this AreaEditorGUI, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

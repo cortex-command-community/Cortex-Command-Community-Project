@@ -7,14 +7,10 @@ namespace RTE {
 
 	ConcreteClassInfo(Turret, Attachable, 20);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Turret::Clear() {
 		m_MountedDevices.clear();
 		m_MountedDeviceRotationOffset = 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Turret::Create(const Turret& reference) {
 		if (!reference.m_MountedDevices.empty()) {
@@ -30,8 +26,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Turret::Destroy(bool notInherited) {
 		if (!notInherited) {
 			Attachable::Destroy();
@@ -42,8 +36,6 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Turret::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
@@ -53,8 +45,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Turret::Save(Writer& writer) const {
 		Attachable::Save(writer);
@@ -68,8 +58,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Turret::SetFirstMountedDevice(HeldDevice* newMountedDevice) {
 		if (HasMountedDevice()) {
@@ -95,8 +83,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Turret::AddMountedDevice(HeldDevice* newMountedDevice) {
 		if (newMountedDevice == nullptr) {
 			return;
@@ -119,16 +105,12 @@ namespace RTE {
 		newMountedDevice->SetSupportAvailable(true);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Turret::Update() {
 		for (HeldDevice* mountedDevice: m_MountedDevices) {
 			mountedDevice->SetRotAngle(m_Rotation.GetRadAngle() + m_MountedDeviceRotationOffset);
 		}
 		Attachable::Update();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Turret::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		Attachable::Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
@@ -140,16 +122,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Turret::SetParent(MOSRotating* newParent) {
 		Attachable::SetParent(newParent);
 		for (HeldDevice* mountedDevice: m_MountedDevices) {
 			mountedDevice->Deactivate();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Turret::RemoveMountedDevice(const HeldDevice* mountedDeviceToRemove) {
 		std::vector<HeldDevice*>::iterator mountedDeviceIterator = std::find_if(m_MountedDevices.begin(), m_MountedDevices.end(), [&mountedDeviceToRemove](const HeldDevice* mountedDevice) {

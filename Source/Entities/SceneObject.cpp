@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            SceneObject.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the SceneObject class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "SceneObject.h"
 #include "PresetMan.h"
 #include "Matrix.h"
@@ -20,12 +8,6 @@ namespace RTE {
 
 	AbstractClassInfo(SceneObject, Entity);
 	const std::string SceneObject::SOPlacer::c_ClassName = "SOPlacer";
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this SOPlacer, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void SceneObject::SOPlacer::Clear() {
 		m_pObjectReference = 0;
@@ -50,11 +32,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a SOPlacer to be identical to another, by deep copy.
-
 	int SceneObject::SOPlacer::Create(const SOPlacer& reference) {
 		m_pObjectReference = reference.m_pObjectReference;
 		m_Offset = reference.m_Offset;
@@ -64,14 +41,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int SceneObject::SOPlacer::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -93,12 +62,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this SOPlacer with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int SceneObject::SOPlacer::Save(Writer& writer) const {
 		Serializable::Save(writer);
@@ -125,12 +88,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:  GetPlacedCopy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes a copy of the preset instance, and applies the placement
-	//                  properties of this to it, finally returning it WITH OWNERSHIP.
 
 	SceneObject* SceneObject::SOPlacer::GetPlacedCopy(const SceneObject* pParent) const {
 		RTEAssert(m_pObjectReference, "No Object reference to make copy from!");
@@ -169,12 +126,6 @@ namespace RTE {
 		return pCopy;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this SceneObject, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void SceneObject::Clear() {
 		m_Pos.Reset();
 		m_OzValue = 0;
@@ -211,11 +162,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates an SceneObject object to be identical to another, by deep copy.
-
 	int SceneObject::Create(const SceneObject& reference) {
 		Entity::Create(reference);
 
@@ -228,14 +174,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a Reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the Reader's position is untouched.
 
 	int SceneObject::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -257,12 +195,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this SceneObject to an output stream for
-	//                  later recreation with Create(istream &stream);
-
 	int SceneObject::Save(Writer& writer) const {
 		Entity::Save(writer);
 		// TODO: Make proper save system that knows not to save redundant data!
@@ -283,11 +215,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the SceneObject object.
-
 	void SceneObject::Destroy(bool notInherited) {
 
 		if (!notInherited)
@@ -295,21 +222,10 @@ namespace RTE {
 		Clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetGoldValue
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the cost to purchase this item, in oz's of gold.
-
 	float SceneObject::GetGoldValue(int nativeModule, float foreignMult, float nativeMult) const {
 		// Multiply the value of this according to whether its Tech is native or not to the specified DataModule
 		return m_OzValue * ((m_DefinedInModule > 0 && nativeModule > 0 && m_DefinedInModule != nativeModule) ? foreignMult : nativeMult);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetGoldValueString
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a descriptive string describing the cost to purchase this item,
-	//                  in oz's of gold.
 
 	std::string SceneObject::GetGoldValueString(int nativeModule, float foreignMult, float nativeMult) const {
 		float subjValue = GetGoldValue(nativeModule, foreignMult, nativeMult);
@@ -324,10 +240,6 @@ namespace RTE {
 		return returnString;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DrawTeamMark
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws team sign this terrain object belongs to.
 	void SceneObject::DrawTeamMark(BITMAP* pTargetBitmap, const Vector& targetPos) const {
 		// Only do HUD if on a team
 		if (m_Team < 0)

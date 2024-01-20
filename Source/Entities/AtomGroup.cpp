@@ -17,8 +17,6 @@ namespace RTE {
 	    {"Circle", AtomGroup::AreaDistributionType::Circle},
 	    {"Square", AtomGroup::AreaDistributionType::Square}};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void AtomGroup::Clear() {
 		m_Atoms.clear();
 		m_SubGroups.clear();
@@ -34,8 +32,6 @@ namespace RTE {
 		m_AreaDistributionSurfaceAreaMultiplier = 0.5F; // Assume an oval of half our depth to width
 		m_IgnoreMOIDs.clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int AtomGroup::Create() {
 		if (Entity::Create() < 0) {
@@ -54,8 +50,6 @@ namespace RTE {
 		}
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int AtomGroup::Create(const AtomGroup& reference, bool onlyCopyOwnerAtoms) {
 		Entity::Create(reference);
@@ -102,8 +96,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int AtomGroup::Create(MOSRotating* ownerMOSRotating, Material const* material, int resolution, int depth) {
 		RTEAssert(ownerMOSRotating, "Trying to generate an AtomGroup for a MOSRotating without a sprite!");
 
@@ -117,8 +109,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -162,8 +152,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int AtomGroup::Save(Writer& writer) const {
 		Entity::Save(writer);
 
@@ -195,8 +183,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void AtomGroup::Destroy(bool notInherited) {
 		for (const Atom* atom: m_Atoms) {
 			delete atom;
@@ -207,16 +193,12 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void AtomGroup::SetAtomList(const std::vector<Atom*>& newAtoms) {
 		for (const Atom* atom: m_Atoms) {
 			delete atom;
 		}
 		m_Atoms = newAtoms;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float AtomGroup::CalculateMaxRadius() const {
 		float sqrMagnitude = 0.0F;
@@ -231,8 +213,6 @@ namespace RTE {
 		return std::sqrt(sqrLongest);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void AtomGroup::SetOwner(MOSRotating* newOwner) {
 		m_OwnerMOSR = newOwner;
 		for (Atom* atom: m_Atoms) {
@@ -240,13 +220,9 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Vector AtomGroup::GetAdjustedAtomOffset(const Atom* atom) const {
 		return atom->GetOffset().GetXFlipped(m_OwnerMOSR->m_HFlipped) * m_OwnerMOSR->GetRotMatrix();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float AtomGroup::GetMomentOfInertia() {
 		float currentOwnerMass = (m_OwnerMOSR->GetMass() != 0 ? m_OwnerMOSR->GetMass() : 0.0001F);
@@ -268,8 +244,6 @@ namespace RTE {
 
 		return m_MomentOfInertia;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AtomGroup::AddAtoms(const std::vector<Atom*>& atomList, long subgroupID, const Vector& offset, const Matrix& offsetRotation) {
 		if (m_SubGroups.count(subgroupID) == 0) {
@@ -294,8 +268,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool AtomGroup::RemoveAtoms(long removeID) {
 		std::size_t oldSize = m_Atoms.size();
 
@@ -319,8 +291,6 @@ namespace RTE {
 		return removedAny;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool AtomGroup::UpdateSubAtoms(long subgroupID, const Vector& newOffset, const Matrix& newOffsetRotation) {
 		if (m_SubGroups.empty() || m_SubGroups.count(subgroupID) == 0) {
 			return false;
@@ -333,13 +303,9 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	float AtomGroup::Travel(float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
 		return Travel(m_OwnerMOSR->m_Pos, m_OwnerMOSR->m_Vel, m_OwnerMOSR->m_Rotation, m_OwnerMOSR->m_AngularVel, m_OwnerMOSR->m_DidWrap, m_OwnerMOSR->m_TravelImpulse, m_OwnerMOSR->GetMass(), travelTime, callOnBounce, callOnSink, scenePreLocked);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: Break down and rework this trainwreck.
 	float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, float& angularVel, bool& didWrap, Vector& totalImpulse, float mass, float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
@@ -784,8 +750,6 @@ namespace RTE {
 		}
 		return timeLeft;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: Break down and rework this dumpsterfire.
 	Vector AtomGroup::PushTravel(Vector& position, const Vector& velocity, float pushForce, bool& didWrap, float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
@@ -1242,8 +1206,6 @@ namespace RTE {
 		return returnPush;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
 		RTEAssert(m_OwnerMOSR, "Tried to push-as-limb an AtomGroup that has no parent!");
 
@@ -1317,8 +1279,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void AtomGroup::FlailAsLimb(const Vector& ownerPos, const Vector& jointOffset, const float limbRadius, const Vector& velocity, const float angularVel, const float mass, const float travelTime) {
 		RTEAssert(m_OwnerMOSR, "Tried to flail an AtomGroup that has no parent!");
 
@@ -1338,8 +1298,6 @@ namespace RTE {
 		}
 		return;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AtomGroup::InTerrain() const {
 		RTEAssert(m_OwnerMOSR, "Tried to check overlap with terrain for an AtomGroup that has no parent!");
@@ -1363,8 +1321,6 @@ namespace RTE {
 		return penetrates;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	float AtomGroup::RatioInTerrain() const {
 		RTEAssert(m_OwnerMOSR, "Tried to check ratio in terrain for an AtomGroup that has no parent!");
 
@@ -1385,8 +1341,6 @@ namespace RTE {
 
 		return static_cast<float>(inTerrain) / static_cast<float>(m_Atoms.size());
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: Look into breaking this into smaller methods.
 	bool AtomGroup::ResolveTerrainIntersection(Vector& position, unsigned char strongerThan) const {
@@ -1470,8 +1424,6 @@ namespace RTE {
 		// TODO: Figure out if a check for clearness after moving the position is actually needed and add one so this return is accurate.
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: Look into breaking this into smaller methods.
 	bool AtomGroup::ResolveMOSIntersection(Vector& position) {
@@ -1612,8 +1564,6 @@ namespace RTE {
 		return intersectingAtoms.empty();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	float AtomGroup::GetSurfaceArea(int pixelWidth) const {
 		float distributionAmount;
 
@@ -1637,8 +1587,6 @@ namespace RTE {
 		return distributionAmount * m_AreaDistributionSurfaceAreaMultiplier;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void AtomGroup::Draw(BITMAP* targetBitmap, const Vector& targetPos, bool useLimbPos, unsigned char color) const {
 		Vector atomPos;
 		Vector normal;
@@ -1659,8 +1607,6 @@ namespace RTE {
 		}
 		release_bitmap(targetBitmap);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: dan pls.
 	void AtomGroup::GenerateAtomGroup(MOSRotating* ownerMOSRotating) {
@@ -1866,8 +1812,6 @@ namespace RTE {
 			AddAtomToGroup(ownerMOSRotating, spriteOffset, spriteWidth / 2, spriteHeight / 2, false);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AtomGroup::AddAtomToGroup(MOSRotating* ownerMOSRotating, const Vector& spriteOffset, int x, int y, bool calcNormal) {
 		Atom* atomToAdd = new Atom(Vector(static_cast<float>(x) + spriteOffset.GetFloorIntX(), static_cast<float>(y) + spriteOffset.GetFloorIntY()), m_Material, ownerMOSRotating);
