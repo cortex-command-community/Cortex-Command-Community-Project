@@ -28,9 +28,11 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for the mouse cursor actions in menus.
 		/// </summary>
-		enum MenuCursorButtons { MENU_PRIMARY,
-			                       MENU_SECONDARY,
-			                       MENU_EITHER };
+		enum MenuCursorButtons {
+			MENU_PRIMARY,
+			MENU_SECONDARY,
+			MENU_EITHER
+		};
 
 #pragma region Creation
 		/// <summary>
@@ -654,10 +656,12 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for the different states an input element or button can be in.
 		/// </summary>
-		enum InputState { Held,
-			                Pressed,
-			                Released,
-			                InputStateCount };
+		enum InputState {
+			Held,
+			Pressed,
+			Released,
+			InputStateCount
+		};
 
 		static std::array<uint8_t, SDL_NUM_SCANCODES> s_PrevKeyStates; //!< Key states as they were the previous update.
 		static std::array<uint8_t, SDL_NUM_SCANCODES> s_ChangedKeyStates; //!< Key states that have changed.

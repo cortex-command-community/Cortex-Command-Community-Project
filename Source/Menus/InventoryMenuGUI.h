@@ -31,9 +31,11 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for the modes an InventoryMenuGUI can have.
 		/// </summary>
-		enum class MenuMode { Carousel,
-			                    Full,
-			                    Transfer };
+		enum class MenuMode {
+			Carousel,
+			Full,
+			Transfer
+		};
 
 #pragma region Creation
 		/// <summary>
@@ -207,17 +209,21 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for enabled states when enabling/disabling the InventoryMenuGUI.
 		/// </summary>
-		enum class EnabledState { Enabling,
-			                        Enabled,
-			                        Disabling,
-			                        Disabled };
+		enum class EnabledState {
+			Enabling,
+			Enabled,
+			Disabling,
+			Disabled
+		};
 
 		/// <summary>
 		/// Enumeration for which direction an inventory is being swapped in.
 		/// </summary>
-		enum class CarouselAnimationDirection { Left = -1,
-			                                      None,
-			                                      Right };
+		enum class CarouselAnimationDirection {
+			Left = -1,
+			None,
+			Right
+		};
 
 		static constexpr int c_ItemsPerRow = 5; //!< The number of items per row of the inventory display. MUST be an odd number. Used in all MenuModes.
 		static constexpr int c_MinimumItemPadding = 1; //!< The padding between item icons and their containing boxes. Items will have at least this much padding on all sides. Used in all MenuModes.

@@ -75,10 +75,12 @@ namespace RTE {
 		g_MaterialDoor = 181
 	};
 
-	enum DotGlowColor { NoDot,
-		                  YellowDot,
-		                  RedDot,
-		                  BlueDot };
+	enum DotGlowColor {
+		NoDot,
+		YellowDot,
+		RedDot,
+		BlueDot
+	};
 
 	enum DrawBlendMode {
 		NoBlend,
@@ -96,12 +98,16 @@ namespace RTE {
 		BlendModeCount
 	};
 
-	enum BlendAmountLimits { MinBlend = 0,
-		                       MaxBlend = 100 };
+	enum BlendAmountLimits {
+		MinBlend = 0,
+		MaxBlend = 100
+	};
 
-	enum TransparencyPreset { LessTrans = 25,
-		                        HalfTrans = 50,
-		                        MoreTrans = 75 };
+	enum TransparencyPreset {
+		LessTrans = 25,
+		HalfTrans = 50,
+		MoreTrans = 75
+	};
 
 	enum SpriteAnimMode {
 		NOANIM,
@@ -295,16 +301,20 @@ namespace RTE {
 	/// <summary>
 	/// Enumeration for joystick direction types.
 	/// </summary>
-	enum JoyDirections { JOYDIR_ONE = 0,
-		                   JOYDIR_TWO };
+	enum JoyDirections {
+		JOYDIR_ONE = 0,
+		JOYDIR_TWO
+	};
 
 	/// <summary>
 	/// Enumeration for joystick dead zone types.
 	/// Square deadzone cuts-off any input from every axis separately. For example if x-axis has less than 20% input and y-axis has more, x-axis input is ignored.
 	/// Circle uses a round zone to capture stick position on both axis then cut-off if this position is inside the round dead zone.
 	/// </summary>
-	enum DeadZoneType { CIRCLE = 0,
-		                  SQUARE = 1 };
+	enum DeadZoneType {
+		CIRCLE = 0,
+		SQUARE = 1
+	};
 #pragma endregion
 
 #pragma region Global Enumerations
@@ -323,12 +333,14 @@ namespace RTE {
 	/// <summary>
 	/// Enumeration and supporting maps for cardinal directions, as well as None and Any.
 	/// </summary>
-	enum Directions { None = -1,
-		                Up,
-		                Down,
-		                Left,
-		                Right,
-		                Any };
+	enum Directions {
+		None = -1,
+		Up,
+		Down,
+		Left,
+		Right,
+		Any
+	};
 
 	static const std::unordered_map<std::string_view, Directions> c_DirectionNameToDirectionsMap = {
 	    {"None", Directions::None},

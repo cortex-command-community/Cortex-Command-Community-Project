@@ -40,10 +40,12 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for the different buyable modes of this SceneObject.
 		/// </summary>
-		enum class BuyableMode { NoRestrictions,
-			                       BuyMenuOnly,
-			                       ObjectPickerOnly,
-			                       ScriptOnly };
+		enum class BuyableMode {
+			NoRestrictions,
+			BuyMenuOnly,
+			ObjectPickerOnly,
+			ScriptOnly
+		};
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Nested class:    SOPlacer

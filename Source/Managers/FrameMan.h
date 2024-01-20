@@ -488,10 +488,12 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration with different settings for the SaveBitmap() method.
 		/// </summary>
-		enum SaveBitmapMode { SingleBitmap,
-			                    ScreenDump,
-			                    WorldDump,
-			                    ScenePreviewDump };
+		enum SaveBitmapMode {
+			SingleBitmap,
+			ScreenDump,
+			WorldDump,
+			ScenePreviewDump
+		};
 
 		static const std::array<std::function<void(int r, int g, int b, int a)>, DrawBlendMode::BlendModeCount> c_BlenderSetterFunctions; //!< Array of function references to Allegro blender setters for convenient access when creating new color tables.
 

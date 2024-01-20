@@ -6,8 +6,10 @@
 
 namespace RTE {
 
-	enum Axes { X = 0,
-		          Y = 1 };
+	enum Axes {
+		X = 0,
+		Y = 1
+	};
 
 	/// <summary>
 	/// A useful 2D float vector.

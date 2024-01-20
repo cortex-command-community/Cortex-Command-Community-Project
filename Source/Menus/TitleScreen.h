@@ -153,9 +153,11 @@ namespace RTE {
 			/// <summary>
 			/// Enumeration for the different Star sizes.
 			/// </summary>
-			enum class StarSize { StarSmall,
-				                    StarLarge,
-				                    StarHuge };
+			enum class StarSize {
+				StarSmall,
+				StarLarge,
+				StarHuge
+			};
 
 			StarSize Size; //!< The size of the Star. Used for the appropriate Bitmap selection and Intensity randomization when drawing.
 			BITMAP* Bitmap; //!< The bitmap to draw, not owned by this. Not Owned.

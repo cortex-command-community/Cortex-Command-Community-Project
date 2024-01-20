@@ -57,15 +57,15 @@ namespace RTE {
 		    public :
 
 		    enum MenuScreens {
-			    ROOTBOX = 0,
-			    NEWDIALOG,
-			    LOADDIALOG,
-			    SAVEDIALOG,
-			    MENUDIALOG,
-			    STATSDIALOG,
-			    SCENEINFOBOX,
-			    SCREENCOUNT
-		    };
+			ROOTBOX = 0,
+			NEWDIALOG,
+			LOADDIALOG,
+			SAVEDIALOG,
+			MENUDIALOG,
+			STATSDIALOG,
+			SCENEINFOBOX,
+			SCREENCOUNT
+		};
 
 		// For storing lines to be drawn upon draw time
 		struct SiteLine {

@@ -169,16 +169,20 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for ObjectPicker states when enabling/disabling the ObjectPicker.
 		/// </summary>
-		enum class PickerState { Enabling,
-			                       Enabled,
-			                       Disabling,
-			                       Disabled };
+		enum class PickerState {
+			Enabling,
+			Enabled,
+			Disabling,
+			Disabled
+		};
 
 		/// <summary>
 		/// Enumeration for the ObjectPicker columns ListBox focus states.
 		/// </summary>
-		enum class PickerFocus { GroupList,
-			                       ObjectList };
+		enum class PickerFocus {
+			GroupList,
+			ObjectList
+		};
 
 		static BITMAP* s_Cursor; //!< The cursor image shared by all pickers.
 

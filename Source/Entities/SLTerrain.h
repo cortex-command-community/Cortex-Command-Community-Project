@@ -24,9 +24,11 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for the different type of layers in the SLTerrain.
 		/// </summary>
-		enum class LayerType { ForegroundLayer,
-			                     BackgroundLayer,
-			                     MaterialLayer };
+		enum class LayerType {
+			ForegroundLayer,
+			BackgroundLayer,
+			MaterialLayer
+		};
 
 #pragma region Creation
 		/// <summary>

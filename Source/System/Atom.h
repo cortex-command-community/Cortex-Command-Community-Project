@@ -10,8 +10,10 @@ namespace RTE {
 	class SLTerrain;
 	class MovableObject;
 
-	enum { HITOR = 0,
-		     HITEE = 1 };
+	enum {
+		HITOR = 0,
+		HITEE = 1
+	};
 
 #pragma region HitData
 	/// <summary>

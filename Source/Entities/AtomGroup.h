@@ -389,9 +389,11 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for how the AtomGroup's area is distributed. Linear means it acts a 2D line whereas Circle/Square acts as a pseudo-3d circle/square.
 		/// </summary>
-		enum class AreaDistributionType { Linear,
-			                                Circle,
-			                                Square };
+		enum class AreaDistributionType {
+			Linear,
+			Circle,
+			Square
+		};
 
 		static const std::unordered_map<std::string, AreaDistributionType> c_AreaDistributionTypeMap; //!< A map of strings to AreaDistributionTypes to support string parsing for the AreaDistributionType enum.
 

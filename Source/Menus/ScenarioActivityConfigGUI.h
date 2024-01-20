@@ -65,14 +65,18 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for all the player columns in the player setup box. "Extends" the Players enumeration by adding an entry for the CPU player.
 		/// </summary>
-		enum PlayerColumns { PlayerCPU = Players::MaxPlayerCount,
-			                   PlayerColumnCount };
+		enum PlayerColumns {
+			PlayerCPU = Players::MaxPlayerCount,
+			PlayerColumnCount
+		};
 
 		/// <summary>
 		/// Enumeration for all the team rows in the player setup box. "Extends" the Teams enumeration by adding an entry for unused (disabled) Team.
 		/// </summary>
-		enum TeamRows { DisabledTeam = Activity::Teams::MaxTeamCount,
-			              TeamRowCount };
+		enum TeamRows {
+			DisabledTeam = Activity::Teams::MaxTeamCount,
+			TeamRowCount
+		};
 
 		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 

@@ -210,10 +210,12 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for the different modes of SLBackground auto-scaling.
 		/// </summary>
-		enum LayerAutoScaleMode { AutoScaleOff,
-			                        FitScreen,
-			                        AlwaysUpscaled,
-			                        LayerAutoScaleModeCount };
+		enum LayerAutoScaleMode {
+			AutoScaleOff,
+			FitScreen,
+			AlwaysUpscaled,
+			LayerAutoScaleModeCount
+		};
 
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 

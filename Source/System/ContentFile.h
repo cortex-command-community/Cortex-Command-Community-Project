@@ -198,17 +198,21 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for loading BITMAPs by bit depth. NOTE: This can't be lower down because s_LoadedBitmaps relies on this definition.
 		/// </summary>
-		enum BitDepths { Eight = 0,
-			               ThirtyTwo,
-			               BitDepthCount };
+		enum BitDepths {
+			Eight = 0,
+			ThirtyTwo,
+			BitDepthCount
+		};
 
 		/// <summary>
 		/// Enumeration for the image file information types that can be stored.
 		/// </summary>
-		enum ImageFileInfoType { ImageBitDepth,
-			                       ImageWidth,
-			                       ImageHeight,
-			                       ImageInfoTypeCount };
+		enum ImageFileInfoType {
+			ImageBitDepth,
+			ImageWidth,
+			ImageHeight,
+			ImageInfoTypeCount
+		};
 
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 

@@ -188,9 +188,11 @@ namespace RTE {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool RTEError::ShowAbortMessageBox(const std::string& message) {
-		enum AbortMessageButton { ButtonInvalid,
-			                        ButtonExit,
-			                        ButtonRestart };
+		enum AbortMessageButton {
+			ButtonInvalid,
+			ButtonExit,
+			ButtonRestart
+		};
 
 		std::vector<SDL_MessageBoxButtonData> abortMessageBoxButtons = {
 		    SDL_MessageBoxButtonData(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, AbortMessageButton::ButtonExit, "OK")};
@@ -221,10 +223,12 @@ namespace RTE {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool RTEError::ShowAssertMessageBox(const std::string& message) {
-		enum AssertMessageButton { ButtonInvalid,
-			                         ButtonAbort,
-			                         ButtonIgnore,
-			                         ButtonIgnoreAll };
+		enum AssertMessageButton {
+			ButtonInvalid,
+			ButtonAbort,
+			ButtonIgnore,
+			ButtonIgnoreAll
+		};
 
 		std::vector<SDL_MessageBoxButtonData> assertMessageBoxButtons = {
 		    SDL_MessageBoxButtonData(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, AssertMessageButton::ButtonAbort, "Abort"),

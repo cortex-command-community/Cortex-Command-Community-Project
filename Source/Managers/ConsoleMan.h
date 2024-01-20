@@ -158,10 +158,12 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for console states when enabling/disabling the console. NOTE: This can't be lower down because m_ConsoleState relies on this definition.
 		/// </summary>
-		enum ConsoleState { Enabling = 0,
-			                  Enabled,
-			                  Disabling,
-			                  Disabled };
+		enum ConsoleState {
+			Enabling = 0,
+			Enabled,
+			Disabling,
+			Disabled
+		};
 
 		ConsoleState m_ConsoleState; //!< Current state of the console.
 		bool m_ReadOnly; //!< Read-only mode where console text input is disabled and controller input should be preserved.

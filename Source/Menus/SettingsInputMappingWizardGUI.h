@@ -74,9 +74,11 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for the different types of gamepads that can be configured.
 		/// </summary>
-		enum GamepadType { DPad,
-			                 AnalogDualShock,
-			                 AnalogXbox };
+		enum GamepadType {
+			DPad,
+			AnalogDualShock,
+			AnalogXbox
+		};
 
 		/// <summary>
 		/// Struct containing GUI elements that compose the input mapping wizard manual configuration menu screen.

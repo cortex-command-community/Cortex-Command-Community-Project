@@ -395,31 +395,39 @@ namespace RTE {
 		/// <summary>
 		/// Enumeration for enabled states when enabling/disabling the PieMenu.
 		/// </summary>
-		enum class EnabledState { Enabling,
-			                        Enabled,
-			                        Disabling,
-			                        Disabled };
+		enum class EnabledState {
+			Enabling,
+			Enabled,
+			Disabling,
+			Disabled
+		};
 
 		/// <summary>
 		/// Enumeration for the modes a PieMenu can have.
 		/// </summary>
-		enum class MenuMode { Normal,
-			                    Wobble,
-			                    Freeze };
+		enum class MenuMode {
+			Normal,
+			Wobble,
+			Freeze
+		};
 
 		/// <summary>
 		/// Enumeration for the different item separator modes available to the PieMenu.
 		/// </summary>
-		enum class IconSeparatorMode { Line,
-			                             Circle,
-			                             Square };
+		enum class IconSeparatorMode {
+			Line,
+			Circle,
+			Square
+		};
 
 		/// <summary>
 		/// Enumeration for helping keyboard PieMenu navigation. Specifies the ways the cursor should move from one PieQuadrant to another.
 		/// </summary>
-		enum class MoveToPieQuadrantMode { Start,
-			                                 Middle,
-			                                 End };
+		enum class MoveToPieQuadrantMode {
+			Start,
+			Middle,
+			End
+		};
 
 		static constexpr int c_EnablingDelay = 50; //!< Time in ms for how long it takes to enable/disable.
 		static constexpr int c_DefaultFullRadius = 58; //!< The radius the menu should have when fully enabled, in pixels.
