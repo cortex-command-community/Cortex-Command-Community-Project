@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            ACDropShip.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the ACDropShip class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "ACDropShip.h"
 #include "AtomGroup.h"
 #include "Controller.h"
@@ -22,12 +10,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(ACDropShip, ACraft, 10);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this ACDropShip, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void ACDropShip::Clear() {
 		m_pBodyAG = 0;
@@ -46,11 +28,6 @@ namespace RTE {
 		m_HoverHeightModifier = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the ACDropShip object ready for use.
-
 	int ACDropShip::Create() {
 		if (ACraft::Create() < 0)
 			return -1;
@@ -61,11 +38,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a ACDropShip to be identical to another, by deep copy.
 
 	int ACDropShip::Create(const ACDropShip& reference) {
 		if (reference.m_pRThruster) {
@@ -124,14 +96,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int ACDropShip::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return ACraft::ReadProperty(propName, reader));
 
@@ -149,12 +113,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this ACDropShip with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int ACDropShip::Save(Writer& writer) const {
 		ACraft::Save(writer);
@@ -184,11 +142,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the ACDropShip object.
-
 	void ACDropShip::Destroy(bool notInherited) {
 		delete m_pBodyAG;
 
@@ -196,12 +149,6 @@ namespace RTE {
 			ACraft::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetAltitude
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the altitide of this' pos (or appropriate low point) over the
-	//                  terrain, in pixels.
 
 	float ACDropShip::GetAltitude(int max, int accuracy) {
 		// Check altitude both thrusters, and report the one closest to the ground.
@@ -229,11 +176,6 @@ namespace RTE {
 		// Return the lowest of the three
 		return MIN(cAlt, MIN(rAlt, lAlt));
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DetectObstacle
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks for obstacles in the travel direction.
 
 	MOID ACDropShip::DetectObstacle(float distance) {
 		// Check altitude both thrusters, and report the one closest to the ground.
@@ -277,8 +219,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACDropShip::PreControllerUpdate() {
 		ZoneScoped;
@@ -491,8 +431,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACDropShip::SetRightThruster(AEmitter* newThruster) {
 		if (m_pRThruster && m_pRThruster->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pRThruster);
@@ -515,8 +453,6 @@ namespace RTE {
 			m_pRThruster->SetInheritsRotAngle(false);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACDropShip::SetLeftThruster(AEmitter* newThruster) {
 		if (m_pLThruster && m_pLThruster->IsAttached()) {
@@ -541,8 +477,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACDropShip::SetURightThruster(AEmitter* newThruster) {
 		if (m_pURThruster && m_pURThruster->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pURThruster);
@@ -564,8 +498,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACDropShip::SetULeftThruster(AEmitter* newThruster) {
 		if (m_pULThruster && m_pULThruster->IsAttached()) {
@@ -589,8 +521,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACDropShip::SetRightHatch(Attachable* newHatch) {
 		if (m_pRHatch && m_pRHatch->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pRHatch);
@@ -611,8 +541,6 @@ namespace RTE {
 			m_pRHatch->SetInheritsRotAngle(false);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACDropShip::SetLeftHatch(Attachable* newHatch) {
 		if (m_pLHatch && m_pLHatch->IsAttached()) {

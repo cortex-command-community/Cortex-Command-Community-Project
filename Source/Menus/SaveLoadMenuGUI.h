@@ -17,38 +17,28 @@ namespace RTE {
 	class GUIComboBox;
 	class GUICollectionBox;
 
-	/// <summary>
 	/// Integrated savegame user interface composition and handling.
-	/// </summary>
 	class SaveLoadMenuGUI {
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a SaveLoadMenuGUI object in system memory and make it ready for use.
-		/// </summary>
-		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this SaveLoadMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this SaveLoadMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		/// <param name="createForPauseMenu">Whether this SettingsGUI is part of SaveLoadMenuGUI and should have a slightly different layout.</param>
+		/// @param guiScreen Pointer to a GUIScreen interface that will be used by this SaveLoadMenuGUI's GUIControlManager. Ownership is NOT transferred!
+		/// @param guiInput Pointer to a GUIInput interface that will be used by this SaveLoadMenuGUI's GUIControlManager. Ownership is NOT transferred!
+		/// @param createForPauseMenu Whether this SettingsGUI is part of SaveLoadMenuGUI and should have a slightly different layout.
 		SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu = false);
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Handles the player interaction with the SaveLoadMenuGUI GUI elements.
-		/// </summary>
-		/// <param name="pauseMenu">Pointer to the pause menu, if we're being called from the pause menu. Ownership is NOT transferred!</param>
-		/// <returns>Whether the player requested to return to the main menu.</returns>
+		/// @param pauseMenu Pointer to the pause menu, if we're being called from the pause menu. Ownership is NOT transferred!
+		/// @return Whether the player requested to return to the main menu.
 		bool HandleInputEvents(PauseMenuGUI* pauseMenu = nullptr);
 
-		/// <summary>
 		/// Causes a refresh of the save files.
-		/// </summary>
 		void Refresh();
 
-		/// <summary>
 		/// Draws the SaveLoadMenuGUI to the screen.
-		/// </summary>
 		void Draw() const;
 #pragma endregion
 
@@ -59,9 +49,7 @@ namespace RTE {
 			ConfirmDelete
 		};
 
-		/// <summary>
 		/// Struct containing information about a valid Savegame.
-		/// </summary>
 		struct SaveRecord {
 			std::filesystem::path SavePath; //!< Savegame filepath.
 			std::filesystem::file_time_type SaveDate; //!< Last modified date.
@@ -75,9 +63,7 @@ namespace RTE {
 
 		bool m_SaveGamesFetched; //!< Whether the savegames list has been fetched.
 
-		/// <summary>
 		/// GUI elements that compose the Mod Manager menu screen.
-		/// </summary>
 		GUICollectionBox* m_SaveGameMenuBox;
 		GUIButton* m_BackToMainButton;
 		GUITextBox* m_SaveGameName;
@@ -97,47 +83,31 @@ namespace RTE {
 		GUIButton* m_CancelButton;
 
 #pragma region Savegame Handling
-		/// <summary>
 		/// Gets whether both lists were fetched, even if nothing valid was added to them.
-		/// </summary>
-		/// <returns>Whether save games were fetched, even if nothing valid was added to them.</returns>
+		/// @return Whether save games were fetched, even if nothing valid was added to them.
 		bool ListsFetched() const { return m_SaveGamesFetched; }
 
-		/// <summary>
 		/// Fills the SaveGames list with all valid savegames.
-		/// </summary>
 		void PopulateSaveGamesList();
 
-		/// <summary>
 		/// Updates the SaveGamesListBox GUI.
-		/// </summary>
 		void UpdateSaveGamesGUIList();
 
-		/// <summary>
 		/// Loads the currently selected savefile.
-		/// </summary>
-		/// <returns>Whether a same was succesfully loaded.</returns>
+		/// @return Whether a same was succesfully loaded.
 		bool LoadSave();
 
-		/// <summary>
 		/// Creates a new savefile (or overwrites the existing one) with the name from the textbox.
-		/// </summary>
 		void CreateSave();
 
-		/// <summary>
 		/// Deletes the savefile with the name from the textbox.
-		/// </summary>
 		void DeleteSave();
 #pragma endregion
 
-		/// <summary>
 		/// Updates buttons and sets whether or not they should be enabled.
-		/// </summary>
 		void UpdateButtonEnabledStates();
 
-		/// <summary>
 		/// Shows confirmation box for overwrite or delete.
-		/// </summary>
 		void SwitchToConfirmDialogMode(ConfirmDialogMode mode);
 
 		// Disallow the use of some implicit methods.

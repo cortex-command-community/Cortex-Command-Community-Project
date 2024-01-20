@@ -1,15 +1,8 @@
 #ifndef _RTEThreadMan_
 #define _RTEThreadMan_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            ThreadMan.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the ThreadMan class.
-// Project:         Retro Terrain Engine
-// Author(s):
-//
-//
-
+/// Header file for the ThreadMan class.
+/// Author(s):
 #include "Singleton.h"
 
 #include "Activity.h"
@@ -33,9 +26,7 @@ namespace RTE {
 		std::vector<std::function<void(float)>> m_RenderQueue;
 	};
 
-	/// <summary>
 	/// The manager for any long-running background threads (i.e the simulation thread), and managing communication between threads.
-	/// </summary>
 	class ThreadMan : public Singleton<ThreadMan> {
 	public:
 		ThreadMan() { Clear(); }
@@ -45,37 +36,25 @@ namespace RTE {
 
 		void Destroy();
 
-		/// <summary>
 		/// Updates the state of this ThreadMan. Supposed to be done every render frame.
-		/// </summary>
 		void Update();
 
-		/// <summary>
 		/// Notifies us that the next sim update will be drawn, and transfers the
 		/// required information from the current simulation update to a drawable format.
-		/// </summary>
 		void TransferSimStateToRenderer();
 
-		/// <summary>
 		/// Tells us whether or not there's a new sim frame waiting to be drawn.
-		/// </summary>
 		bool NewSimFrameIsReady() { return m_NewSimFrame; }
 
-		/// <summary>
 		/// Get a game state we can safely read from the render thread.
-		/// </summary>
 		const RenderableGameState& GetDrawableGameState() const { return *m_GameStateDrawable; }
 
 		std::vector<std::function<void(float)>>& GetSimRenderQueue() { return m_SimRenderQueue; }
 
-		/// <summary>
 		/// Queue a function that will be ran in the sim thread
-		/// </summary>
 		void QueueInSimulationThread(std::function<void(void)> funcToRun);
 
-		/// <summary>
 		/// Run all queued functions for the sim thread
-		/// </summary>
 		void RunSimulationThreadFunctions();
 
 		BITMAP* GetRenderTarget() const { return m_RenderTarget; }

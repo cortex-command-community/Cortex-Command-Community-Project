@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A collection box control class that contains child controls.
-	/// </summary>
 	class GUICollectionBox : public GUIControl, public GUIPanel {
 
 	public:
@@ -22,199 +20,97 @@ namespace RTE {
 			Panel
 		} DrawType;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUICollectionBox
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUICollectionBox object in
-		//                  system memory.
-		// Arguments:       GUIManager, GUIControlManager.
-
+		/// Constructor method used to instantiate a GUICollectionBox object in
+		/// system memory.
+		/// @param Manager GUIManager, GUIControlManager.
 		GUICollectionBox(GUIManager* Manager, GUIControlManager* ControlManager);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~GUICollectionBox
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up this before deletion from memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up this before deletion from memory.
 		~GUICollectionBox() { Destroy(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control has been created.
-		// Arguments:       Name, Position.
-
+		/// Called when the control has been created.
+		/// @param Name Name, Position.
 		void Create(const std::string& Name, int X, int Y, int Width = -1, int Height = -1) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control has been created.
-		// Arguments:       Properties.
-
+		/// Called when the control has been created.
+		/// @param Props Properties.
 		void Create(GUIProperties* Props) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and frees this' allocated data
-		// Arguments:       None.
-
+		/// Destroys and frees this' allocated data
 		void Destroy() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ChangeSkin
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the skin has been changed.
-		// Arguments:       New skin pointer.
-
+		/// Called when the skin has been changed.
+		/// @param Skin New skin pointer.
 		void ChangeSkin(GUISkin* Skin) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the panel
-		// Arguments:       Screen class
-
+		/// Draws the panel
+		/// @param Screen Screen class
 		void Draw(GUIScreen* Screen) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  OnMouseDown
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes down on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes down on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseDown(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  OnMouseUp
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes up on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes up on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseUp(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseMove
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse moves (over the panel, or when captured).
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse moves (over the panel, or when captured).
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseMove(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Move
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control needs to be moved.
-		// Arguments:       New position.
-
+		/// Called when the control needs to be moved.
+		/// @param X New position.
 		void Move(int X, int Y) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Resize
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control needs to be resized.
-		// Arguments:       New size.
-
+		/// Called when the control needs to be resized.
+		/// @param Width New size.
 		void Resize(int Width, int Height) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetControlRect
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the rectangle of the control.
-		// Arguments:       Position, Size.
-
+		/// Gets the rectangle of the control.
+		/// @param X Position, Size.
 		void GetControlRect(int* X, int* Y, int* Width, int* Height) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetPanel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the panel of the control.
-		// Arguments:       None.
-		// Returns:         0 if the control does not have a panel, otherwise the topmost panel.
-
+		/// Returns the panel of the control.
+		/// @return 0 if the control does not have a panel, otherwise the topmost panel.
 		GUIPanel* GetPanel() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetControlID
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns a string representing the control's ID
-		// Arguments:       None.
-
+		/// Returns a string representing the control's ID
 		static std::string GetControlID() { return "COLLECTIONBOX"; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          StoreProperties
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the control to store the values into properties.
-		// Arguments:       None.
-
+		/// Gets the control to store the values into properties.
 		void StoreProperties() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDrawImage
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the drawing image bitmap to draw
-		// Arguments:       Bitmap, ownership IS transferred!
-
+		/// Sets the drawing image bitmap to draw
+		/// @param Bitmap Bitmap, ownership IS transferred!
 		void SetDrawImage(GUIBitmap* Bitmap);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDrawImage
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the drawing image bitmap that is being drawn
-		// Arguments:       Bitmap, ownership IS NOT transferred!
-
+		/// Gets the drawing image bitmap that is being drawn
+		/// @param Bitmap, ownership IS NOT transferred!
 		GUIBitmap* GetDrawImage() { return m_DrawBitmap; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDrawBackground
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether to draw the background.
-		// Arguments:       Draw.
-
+		/// Sets whether to draw the background.
+		/// @param DrawBack Draw.
 		void SetDrawBackground(bool DrawBack);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDrawType
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the drawing type.
-		// Arguments:       Type.
-
+		/// Sets the drawing type.
+		/// @param Type Type.
 		void SetDrawType(int Type);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDrawType
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the current drawing type.
-		// Arguments:       None.
-		// Returns:         Type.
-
+		/// Gets the current drawing type.
+		/// @return Type.
 		int GetDrawType() const { return m_DrawType; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDrawColor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the drawing color.
-		// Arguments:       Color.
-
+		/// Sets the drawing color.
+		/// @param Color Color.
 		void SetDrawColor(unsigned long Color);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDrawColor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the drawing color.
-		// Returns:         Color.
-
+		/// Gets the drawing color.
+		/// @return Color.
 		unsigned long GetDrawColor() const { return m_DrawColor; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ApplyProperties
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Applies new properties to the control.
-		// Arguments:       GUIProperties.
-
+		/// Applies new properties to the control.
+		/// @param Props GUIProperties.
 		void ApplyProperties(GUIProperties* Props) override;
 
 	private:
@@ -225,12 +121,7 @@ namespace RTE {
 		unsigned long m_DrawColor;
 		GUIBitmap* m_DrawBitmap;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BuildBitmap
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Create the button bitmap to draw.
-		// Arguments:       None.
-
+		/// Create the button bitmap to draw.
 		void BuildBitmap();
 	};
 }; // namespace RTE

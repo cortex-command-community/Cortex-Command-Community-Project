@@ -12,16 +12,12 @@ namespace RTE {
 
 	class AllegroBitmap;
 
-	/// <summary>
 	/// Singleton manager responsible for all performance stats counting and drawing.
-	/// </summary>
 	class PerformanceMan : public Singleton<PerformanceMan> {
 		friend class SettingsMan;
 
 	public:
-		/// <summary>
 		/// Enumeration of all available performance counters.
-		/// </summary>
 		enum PerformanceCounters {
 			SimTotal = 0,
 			ActorsAI,
@@ -34,141 +30,97 @@ namespace RTE {
 			PerfCounterCount
 		};
 
-		/// <summary>
 		/// Used to store Lua script execution timing information.
-		/// </summary>
 		struct ScriptTiming {
 			long long m_Time;
 			int m_CallCount;
 		};
 
 #pragma region Creation
-		/// <summary>
 		///  Constructor method used to instantiate a PerformanceMan object in system memory. Create() should be called before using the object.
-		/// </summary>
 		PerformanceMan() { Clear(); }
 
-		/// <summary>
 		/// Makes the PerformanceMan object ready for use.
-		/// </summary>
 		void Initialize();
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up a PerformanceMan object before deletion from system memory.
-		/// </summary>
 		~PerformanceMan() { Destroy(); }
 
-		/// <summary>
 		/// Destroys and resets (through Clear()) the PerformanceMan object.
-		/// </summary>
 		void Destroy() { Clear(); }
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Tells whether to display the performance stats on-screen or not.
-		/// </summary>
-		/// <returns>Whether to show the performance stats or not.</returns>
+		/// @return Whether to show the performance stats or not.
 		bool IsShowingPerformanceStats() const { return m_ShowPerfStats; }
 
-		/// <summary>
 		/// Sets whether to display the performance stats on-screen or not.
-		/// </summary>
-		/// <param name="showStats">Whether to show the performance stats or not.</param>
+		/// @param showStats Whether to show the performance stats or not.
 		void ShowPerformanceStats(bool showStats = true) { m_ShowPerfStats = showStats; }
 
-		/// <summary>
 		/// Tells whether to display the performance graphs on-screen or not.
-		/// </summary>
-		/// <returns>Whether to show the performance graphs or not.</returns>
+		/// @return Whether to show the performance graphs or not.
 		bool AdvancedPerformanceStatsEnabled() const { return m_AdvancedPerfStats; }
 
-		/// <summary>
 		/// Sets whether to display the performance graphs on-screen or not.
-		/// </summary>
-		/// <param name="showGraphs">Whether to show the performance graphs or not.</param>
+		/// @param showGraphs Whether to show the performance graphs or not.
 		void ShowAdvancedPerformanceStats(bool showGraphs = true) { m_AdvancedPerfStats = showGraphs; }
 
-		/// <summary>
 		/// Gets the average of the MSPF reading buffer, calculated each frame.
-		/// </summary>
-		/// <returns>The average value of the MSPF reading buffer.</returns>
+		/// @return The average value of the MSPF reading buffer.
 		float GetMSPFAverage() const { return m_MSPFAverage; }
 
-		/// <summary>
 		/// Gets the average of the MSPU reading buffer, calculated each frame.
-		/// </summary>
-		/// <returns>The average value of the MSPF reading buffer.</returns>
+		/// @return The average value of the MSPF reading buffer.
 		float GetMSPUAverage() const { return m_MSPUAverage; }
 #pragma endregion
 
 #pragma region Performance Counter Handling
-		/// <summary>
 		/// Moves sample counter to next sample and clears it's values.
-		/// </summary>
 		void NewPerformanceSample();
 
-		/// <summary>
 		/// Saves current absolute time in microseconds as a start of performance measurement.
-		/// </summary>
-		/// <param name="counter">Counter to start measurement for.</param>
+		/// @param counter Counter to start measurement for.
 		void StartPerformanceMeasurement(PerformanceCounters counter);
 
-		/// <summary>
 		/// Saves current absolute time in microseconds as an end of performance measurement. The difference is added to the value of current performance sample.
-		/// </summary>
-		/// <param name="counter">Counter to stop and updated measurement for.</param>
+		/// @param counter Counter to stop and updated measurement for.
 		void StopPerformanceMeasurement(PerformanceCounters counter);
 
-		/// <summary>
 		/// Sets the current ping value to display.
-		/// </summary>
-		/// <param name="ping">Ping value to display.</param>
+		/// @param ping Ping value to display.
 		void SetCurrentPing(int ping) { m_CurrentPing = ping; }
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Resets the sim update timer.
-		/// </summary>
 		void ResetSimUpdateTimer() const { m_SimUpdateTimer->Reset(); }
 
-		/// <summary>
 		/// Updates the draw time measurements and recalculates the averages. Supposed to be done every draw iteration.
-		/// </summary>
-		/// <param name="measuredUpdateTime">The total sim update time measured in the game loop iteration.</param>
-		/// <param name="measuredDrawTime">The total draw time measured in the game loop iteration.</param>
+		/// @param measuredUpdateTime The total sim update time measured in the game loop iteration.
+		/// @param measuredDrawTime The total draw time measured in the game loop iteration.
 		void UpdateMSPD(long long measuredDrawTime);
 
-		/// <summary>
 		/// Updates the sim time measurements and recalculates the averages. Supposed to be done every simulation update.
-		/// </summary>
-		/// <param name="measuredUpdateTime">The total sim update time measured in the game loop iteration.</param>
+		/// @param measuredUpdateTime The total sim update time measured in the game loop iteration.
 		void UpdateMSPU(long long measuredUpdateTime);
 
-		/// <summary>
 		/// Updates the full frametime measurements and recalculates the averages. Supposed to be done every simulation update.
-		/// </summary>
-		/// <param name="measuredUpdateTime">The total frame time measured in the game loop iteration.</param>
+		/// @param measuredUpdateTime The total frame time measured in the game loop iteration.
 		void UpdateMSPF(long long measuredFrameTime);
 
-		/// <summary>
 		/// Draws the performance stats to the screen.
-		/// </summary>
-		/// <param name="bitmapToDrawTo">The BITMAP to draw the performance stats to.</param>
+		/// @param bitmapToDrawTo The BITMAP to draw the performance stats to.
 		void Draw(BITMAP* bitmapToDrawTo);
 
-		/// <summary>
 		/// Draws the current ping value to the screen.
-		/// </summary>
 		void DrawCurrentPing() const;
 #pragma endregion
 
-		/// <summary>
 		/// Updates m_SortedScriptTimings so PerformanceMan::Draw() can list how long scripts took.
-		/// </summary>
 		void UpdateSortedScriptTimings(const std::unordered_map<std::string, ScriptTiming>& scriptTimings);
 
 	protected:
@@ -208,42 +160,30 @@ namespace RTE {
 
 	private:
 #pragma region Performance Counter Handling
-		/// <summary>
 		/// Adds provided value to current sample of specified performance counter.
-		/// </summary>
-		/// <param name="counter">Counter to update.</param>
-		/// <param name="value">Value to add to this counter.</param>
+		/// @param counter Counter to update.
+		/// @param value Value to add to this counter.
 		void AddPerformanceSample(PerformanceCounters counter, uint64_t value) { m_PerfData[counter].at(m_Sample) += value; }
 
-		/// <summary>
 		/// Calculates current sample's percentages from SIM_TOTAL for all performance counters and stores them to m_PerfPercenrages.
-		/// </summary>
 		void CalculateSamplePercentages();
 
-		/// <summary>
 		/// Returns an average value of c_Average last samples for specified performance counter.
-		/// </summary>
-		/// <param name="counter">Counter to get average value from.</param>
-		/// <returns>An average value for specified counter.</returns>
+		/// @param counter Counter to get average value from.
+		/// @return An average value for specified counter.
 		uint64_t GetPerformanceCounterAverage(PerformanceCounters counter) const;
 #pragma endregion
 
-		/// <summary>
 		/// Stores the new time measurement into the specified deque, recalculates the average and stores it in the specified variable.
-		/// </summary>
-		/// <param name="timeMeasurements">The deque of time measurements to store the new measurement in and to recalculate the average with.</param>
-		/// <param name="avgResult">The variable the recalculated average should be stored in.</param>
-		/// <param name="newTimeMeasurement">The new time measurement to store.</param>
+		/// @param timeMeasurements The deque of time measurements to store the new measurement in and to recalculate the average with.
+		/// @param avgResult The variable the recalculated average should be stored in.
+		/// @param newTimeMeasurement The new time measurement to store.
 		void CalculateTimeAverage(std::deque<float>& timeMeasurements, std::atomic<float>& avgResult, float newTimeMeasurement) const;
 
-		/// <summary>
 		/// Draws the performance graphs to the screen. This will be called by Draw() if advanced performance stats are enabled.
-		/// </summary>
 		void DrawPeformanceGraphs(AllegroBitmap& bitmapToDrawTo);
 
-		/// <summary>
 		/// Clears all the member variables of this PerformanceMan, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

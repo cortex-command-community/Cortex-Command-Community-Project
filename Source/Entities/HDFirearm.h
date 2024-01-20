@@ -1,36 +1,21 @@
 #ifndef _RTEHDFIREARM_
 #define _RTEHDFIREARM_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            HDFirearm.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the HDFirearm class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the HDFirearm class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "HeldDevice.h"
 
 namespace RTE {
 
 	class Magazine;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           HDFirearm
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A firearm device that fires projectile MO's and discharges shell MO's.
-	// Parent(s):       HeldDevice.
-	// Class history:   07/1/2002 HDFirearm created.
-
+	/// A firearm device that fires projectile MO's and discharges shell MO's.
 	class HDFirearm : public HeldDevice {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(HDFirearm);
@@ -38,816 +23,451 @@ namespace RTE {
 		ClassInfoGetters;
 		AddScriptFunctionNames(HeldDevice, "OnFire", "OnReload");
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     HDFirearm
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a HDFirearm object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a HDFirearm object in system
+		/// memory. Create() should be called before using the object.
 		HDFirearm() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~HDFirearm
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a HDFirearm object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a HDFirearm object before deletion
+		/// from system memory.
 		~HDFirearm() override { Destroy(true); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the HDFirearm object ready for use.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the HDFirearm object ready for use.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a HDFirearm to be identical to another, by deep copy.
-		// Arguments:       A reference to the HDFirearm to deep copy.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Creates a HDFirearm to be identical to another, by deep copy.
+		/// @param reference A reference to the HDFirearm to deep copy.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(const HDFirearm& reference);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire HDFirearm, including its inherited members, to their
-		//                  default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire HDFirearm, including its inherited members, to their
+		/// default settings or values.
 		void Reset() override {
 			Clear();
 			HeldDevice::Reset();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the SceneLayer object.
-		// Arguments:       Whether to only destroy the members defined in this derived class, or
-		//                  to destroy all inherited members also.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the SceneLayer object.
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
+		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  GetReloadEndOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets reload end offset, in ms. This is how early the ReloadEnd
-		//					sound is played compared to actual end of reload.
-		// Arguments:       None.
-		// Return value:    The reload end offset, in ms.
-
+		/// Gets reload end offset, in ms. This is how early the ReloadEnd
+		/// sound is played compared to actual end of reload.
+		/// @return The reload end offset, in ms.
 		int GetReloadEndOffset() const { return m_ReloadEndOffset; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetReloadEndOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets reload end offset, in ms. This is how early the ReloadEnd
-		//					sound is played compared to actual end of reload.
-		// Arguments:       The new reload end offset, in ms.
-		// Return value:    None.
-
+		/// Sets reload end offset, in ms. This is how early the ReloadEnd
+		/// sound is played compared to actual end of reload.
+		/// @param newRate The new reload end offset, in ms.
 		void SetReloadEndOffset(int newRate) { m_ReloadEndOffset = newRate; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  GetRateOfFire
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the rate of fire of this. This applies even if semi-auto. it
-		//                  limits how quickly a new round can be fired after the last.
-		// Arguments:       None.
-		// Return value:    The rate of fire, in rounds per min.
-
+		/// Gets the rate of fire of this. This applies even if semi-auto. it
+		/// limits how quickly a new round can be fired after the last.
+		/// @return The rate of fire, in rounds per min.
 		int GetRateOfFire() const { return m_RateOfFire; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetRateOfFire
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the rate of fire of this. This applies even if semi-auto. it
-		//                  limits how quickly a new round can be fired after the last.
-		// Arguments:       The new rate of fire, in rounds per min.
-		// Return value:    None.
-
+		/// Sets the rate of fire of this. This applies even if semi-auto. it
+		/// limits how quickly a new round can be fired after the last.
+		/// @param newRate The new rate of fire, in rounds per min.
 		void SetRateOfFire(int newRate) { m_RateOfFire = newRate; }
 
-		/// <summary>
 		/// Gets the minimum time in between shots, in MS.
-		/// </summary>
-		/// <returns>The minimum time in between shots, in MS.</returns>
+		/// @return The minimum time in between shots, in MS.
 		double GetMSPerRound() const { return 60000.0 / static_cast<double>(m_RateOfFire); }
 
-		/// <summary>
 		/// Gets the Magazine of this HDFirearm.
-		/// </summary>
-		/// <returns>A pointer to Magazine of this HDFirearm. Ownership is NOT transferred!</returns>
+		/// @return A pointer to Magazine of this HDFirearm. Ownership is NOT transferred!
 		Magazine* GetMagazine() const { return m_pMagazine; }
 
-		/// <summary>
 		/// Sets the Magazine for this HDFirearm. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newMagazine">The new Magazine to use.</param>
+		/// @param newMagazine The new Magazine to use.
 		void SetMagazine(Magazine* newMagazine);
 
-		/// <summary>
 		/// Gets the flash of this HDFirearm.
-		/// </summary>
-		/// <returns>A pointer to flash of this HDFirearm. Ownership is NOT transferred!</returns>
+		/// @return A pointer to flash of this HDFirearm. Ownership is NOT transferred!
 		Attachable* GetFlash() const { return m_pFlash; }
 
-		/// <summary>
 		/// Sets the flash for this HDFirearm. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newTurret">The new flash to use.</param>
+		/// @param newTurret The new flash to use.
 		void SetFlash(Attachable* newFlash);
 
-		/// <summary>
 		/// Gets the preset name of the next Magazine that will be loaded into this gun.
-		/// </summary>
-		/// <returns>The preset name of the next Magazine that will be loaded into this gun.</returns>
+		/// @return The preset name of the next Magazine that will be loaded into this gun.
 		std::string GetNextMagazineName() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetNextMagazineName
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the Preset name of the next Magazine that will be loaded into
-		//                  this gun. This changes all future mags that will be reloaded.
-		// Arguments:       The preset name of the new Magazine to load into this from now on.
-		// Return value:    Whether the specified magazine was found and successfully prepared.
-
+		/// Sets the Preset name of the next Magazine that will be loaded into
+		/// this gun. This changes all future mags that will be reloaded.
+		/// @param magName The preset name of the new Magazine to load into this from now on.
+		/// @return Whether the specified magazine was found and successfully prepared.
 		bool SetNextMagazineName(std::string magName);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetRoundInMagCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the number of rounds still in the loaded magazine. Negative value
-		//                  means infinite ammo.
-		// Arguments:       None.
-		// Return value:    An int with the number of rounds in the magazine currently in this
-		//                  HDFirearm. Negative means infinite ammo.
-
+		/// Gets the number of rounds still in the loaded magazine. Negative value
+		/// means infinite ammo.
+		/// @return An int with the number of rounds in the magazine currently in this
+		/// HDFirearm. Negative means infinite ammo.
 		int GetRoundInMagCount() const;
 
-		/// <summary>
 		/// Gets the maximum RoundCount a Magazine of this HDFirearm can hold.
 		/// If there is no Magazine, it gets the RoundCount of the reference Magazine.
-		/// </summary>
-		/// <returns>An int with the maximum RoundCount the magazine or magazine reference of this HDFirearm can hold.</returns>
+		/// @return An int with the maximum RoundCount the magazine or magazine reference of this HDFirearm can hold.
 		int GetRoundInMagCapacity() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetActivationDelay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the delay before firing.
-		// Arguments:       None.
-		// Return value:    An int with the activation delay in ms.
-
+		/// Gets the delay before firing.
+		/// @return An int with the activation delay in ms.
 		int GetActivationDelay() const { return m_ActivationDelay; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetActivationDelay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the delay before firing.
-		// Arguments:       An int with the activation delay in ms.
-		// Return value:    None.
-
+		/// Sets the delay before firing.
+		/// @param delay An int with the activation delay in ms.
 		void SetActivationDelay(int delay) { m_ActivationDelay = delay; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDeactivationDelay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the delay between release of activation and another can be started.
-		// Arguments:       None.
-		// Return value:    An int with the delay in ms.
-
+		/// Gets the delay between release of activation and another can be started.
+		/// @return An int with the delay in ms.
 		int GetDeactivationDelay() const { return m_DeactivationDelay; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDeactivationDelay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the delay between release of activation and another can be started.
-		// Arguments:       An int with the delay in ms.
-		// Return value:    None.
-
+		/// Sets the delay between release of activation and another can be started.
+		/// @param delay An int with the delay in ms.
 		void SetDeactivationDelay(int delay) { m_DeactivationDelay = delay; };
 
-		/// <summary>
 		/// Gets the base time this HDFirearm takes to reload, in milliseconds.
-		/// </summary>
-		/// <returns>The base time this HeldDevice takes to reload, in milliseconds.</returns>
+		/// @return The base time this HeldDevice takes to reload, in milliseconds.
 		int GetBaseReloadTime() const { return m_BaseReloadTime; };
 
-		/// <summary>
 		/// Sets the base time this HDFirearm takes to reload, in milliseconds.
-		/// </summary>
-		/// <param name="delay">The base time this HDFirearm should take to reload, in milliseconds.</param>
+		/// @param delay The base time this HDFirearm should take to reload, in milliseconds.
 		void SetBaseReloadTime(int newReloadTime) {
 			m_BaseReloadTime = newReloadTime;
 			CorrectReloadTimerForSupportAvailable();
 		};
 
-		/// <summary>
 		/// Gets how long this HDFirearm currently takes to reload, in milliseconds.
-		/// </summary>
-		/// <returns>How long this HDFirearm currently takes to reload, in milliseconds.</returns>
+		/// @return How long this HDFirearm currently takes to reload, in milliseconds.
 		int GetReloadTime() const { return m_ReloadTmr.GetSimTimeLimitMS() <= 0 ? m_BaseReloadTime : static_cast<int>(std::floor(m_ReloadTmr.GetSimTimeLimitMS())); };
 
-		/// <summary>
 		/// Gets whether or not this HDFirearm allows dual-reload, i.e. if it's one-handed and dual-wieldable, it can reload at the same time as another weapon that also allows dual-reload.
-		/// </summary>
-		/// <returns>Whether or not this HDFirearm allows dual-reload.</returns>
+		/// @return Whether or not this HDFirearm allows dual-reload.
 		bool IsDualReloadable() const { return m_DualReloadable; }
 
-		/// <summary>
 		/// Sets whether or not this HDFirearm allows dual-reloading.
-		/// </summary>
-		/// <param name="newDualReloadable">The new value for whether or not this HDFirearm should allow dual-reloading.</param>
+		/// @param newDualReloadable The new value for whether or not this HDFirearm should allow dual-reloading.
 		void SetDualReloadable(bool newDualReloadable) { m_DualReloadable = newDualReloadable; }
 
-		/// <summary>
 		/// Gets the multiplier to be applied to reload time when this HDFirearm is being reloaded one-handed.
-		/// </summary>
-		/// <returns>The multiplier to be applied to reload time when this HDFirearm is being reloaded one-handed.</returns>
+		/// @return The multiplier to be applied to reload time when this HDFirearm is being reloaded one-handed.
 		float GetOneHandedReloadTimeMultiplier() const { return m_OneHandedReloadTimeMultiplier; }
 
-		/// <summary>
 		/// Sets the multiplier to be applied to reload time when this HDFirearm is being reloaded one-handed.
-		/// </summary>
-		/// <param name="newDualReloadTimeMultiplier">The new multiplier to be applied to reload time when this HDFirearm is being reloaded one-handed.</param>
+		/// @param newDualReloadTimeMultiplier The new multiplier to be applied to reload time when this HDFirearm is being reloaded one-handed.
 		void SetOneHandedReloadTimeMultiplier(float newOneHandedReloadTimeMultiplier) { m_OneHandedReloadTimeMultiplier = newOneHandedReloadTimeMultiplier; }
 
-		/// <summary>
 		/// Gets the reload angle this HDFirearm will use when support is available.
-		/// </summary>
-		/// <returns>The reload angle this HDFirearm will use when support is available, in radians.</returns>
+		/// @return The reload angle this HDFirearm will use when support is available, in radians.
 		float GetReloadAngle() const { return m_ReloadAngle; }
 
-		/// <summary>
 		/// Sets the reload angle this HDFirearm should use when support is available.
-		/// </summary>
-		/// <param name="newReloadAngle">The new reload angle this HDFirearm should use when support is available.</param>
+		/// @param newReloadAngle The new reload angle this HDFirearm should use when support is available.
 		void SetReloadAngle(float newReloadAngle) { m_ReloadAngle = newReloadAngle; }
 
-		/// <summary>
 		/// Gets the reload angle this HDFirearm will use when support is not available.
-		/// </summary>
-		/// <returns>The reload angle this HDFirearm will use when support is not available, in radians.</returns>
+		/// @return The reload angle this HDFirearm will use when support is not available, in radians.
 		float GetOneHandedReloadAngle() const { return m_OneHandedReloadAngle; }
 
-		/// <summary>
 		/// Sets the reload angle this HDFirearm should use when support is not available.
-		/// </summary>
-		/// <param name="newOneHandedReloadAngle">The new reload angle this HDFirearm should use when support is not available.</param>
+		/// @param newOneHandedReloadAngle The new reload angle this HDFirearm should use when support is not available.
 		void SetOneHandedReloadAngle(float newOneHandedReloadAngle) { m_OneHandedReloadAngle = newOneHandedReloadAngle; }
 
-		/// <summary>
 		/// Gets the reload angle this HDFirearm is currently using, based on whether or not support is available.
-		/// </summary>
-		/// <returns>The current reload angle of this HDFirearm, in radians.</returns>
+		/// @return The current reload angle of this HDFirearm, in radians.
 		float GetCurrentReloadAngle() const { return m_SupportAvailable ? m_ReloadAngle : m_OneHandedReloadAngle; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetShakeRange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the range of normal shaking of entire weapon.
-		// Arguments:       None.
-		// Return value:    A float with the range in degrees.
-
+		/// Gets the range of normal shaking of entire weapon.
+		/// @return A float with the range in degrees.
 		float GetShakeRange() const { return m_ShakeRange; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetShakeRange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the range of normal shaking of entire weapon.
-		// Arguments:       A float with the range in degrees.
-		// Return value:    None.
-
+		/// Sets the range of normal shaking of entire weapon.
+		/// @param range A float with the range in degrees.
 		void SetShakeRange(float range) { m_ShakeRange = range; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSharpShakeRange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the range of shaking of entire weapon during sharp aiming.
-		// Arguments:       None.
-		// Return value:    A float with the range in degrees.
-
+		/// Gets the range of shaking of entire weapon during sharp aiming.
+		/// @return A float with the range in degrees.
 		float GetSharpShakeRange() const { return m_SharpShakeRange; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetSharpShakeRange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the range of shaking of entire weapon during sharp aiming.
-		// Arguments:       A float with the range in degrees.
-		// Return value:    None.
-
+		/// Sets the range of shaking of entire weapon during sharp aiming.
+		/// @param range A float with the range in degrees.
 		void SetSharpShakeRange(float range) { m_SharpShakeRange = range; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetNoSupportFactor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the factor for how much more weapon shakes if it isn't supported
-		//                  by a second hand.
-		// Arguments:       None.
-		// Return value:    A float with the factor.
-
+		/// Gets the factor for how much more weapon shakes if it isn't supported
+		/// by a second hand.
+		/// @return A float with the factor.
 		float GetNoSupportFactor() const { return m_NoSupportFactor; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetNoSupportFactor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the factor for how much more weapon shakes if it isn't supported
-		//                  by a second hand.
-		// Arguments:       A float with the factor.
-		// Return value:    None.
-
+		/// Sets the factor for how much more weapon shakes if it isn't supported
+		/// by a second hand.
+		/// @param factor A float with the factor.
 		void SetNoSupportFactor(float factor) { m_NoSupportFactor = factor; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetParticleSpreadRange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the range of spread angle of fired particles, in one direction.
-		// Arguments:       None.
-		// Return value:    A float with the range in degrees.
-
+		/// Gets the range of spread angle of fired particles, in one direction.
+		/// @return A float with the range in degrees.
 		float GetParticleSpreadRange() const { return m_ParticleSpreadRange; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetParticleSpreadRange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the range of spread angle of fired particles, in one direction.
-		// Arguments:       A float with the range in degrees.
-		// Return value:    None.
-
+		/// Sets the range of spread angle of fired particles, in one direction.
+		/// @param range A float with the range in degrees.
 		void SetParticleSpreadRange(float range) { m_ParticleSpreadRange = range; };
 
-		/// <summary>
 		/// Gets the random velocity variation scalar at which this HDFirearm's shell is to be ejected.
-		/// </summary>
-		/// <returns>A float with the scalar value.</returns>
+		/// @return A float with the scalar value.
 		float GetShellVelVariation() const { return m_ShellVelVariation; }
 
-		/// <summary>
 		/// Sets the random velocity variation scalar at which this HDFirearm's shell is to be ejected.
-		/// </summary>
-		/// <param name = newValue>The new velocity variation scalar.</param>
+		/// @param newValue The new velocity variation scalar.
 		void SetShellVelVariation(float newVariation) { m_ShellVelVariation = newVariation; }
 
-		/// <summary>
 		/// Sets the stiffness scalar of the joint of this HDFirearm. Unlike Attachable::SetJointStiffness, there are no limitations on this value.
 		/// 1.0 means impulse forces on this attachable will be transferred to the parent with 100% strength, 0 means they will not transfer at all, negative values will apply negative force, which may behave oddly.
-		/// </summary>
-		/// <param name="jointStiffness">A float describing the normalized stiffness scalar of this Attachable's joint.</param>
+		/// @param jointStiffness A float describing the normalized stiffness scalar of this Attachable's joint.
 		void SetJointStiffness(float jointStiffness) override { m_JointStiffness = jointStiffness; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetAIFireVel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the velocity the AI use when aiming this weapon.
-		// Arguments:       None.
-		// Return value:    A float with the velocity in m/s.
-
+		/// Gets the velocity the AI use when aiming this weapon.
+		/// @return A float with the velocity in m/s.
 		float GetAIFireVel();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetAIBulletLifeTime
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the bullet life time the AI use when aiming this weapon.
-		// Arguments:       None.
-		// Return value:    A float with the life time in ms.
-
+		/// Gets the bullet life time the AI use when aiming this weapon.
+		/// @return A float with the life time in ms.
 		unsigned long GetAIBulletLifeTime();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetBulletAccScalar
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the bullet acceleration scalar the AI use when aiming this weapon.
-		// Arguments:       None.
-		// Return value:    A float with the scalar.
-
+		/// Gets the bullet acceleration scalar the AI use when aiming this weapon.
+		/// @return A float with the scalar.
 		float GetBulletAccScalar();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetAIBlastRadius
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the blast radius the AI use when aiming this weapon.
-		// Arguments:       None.
-		// Return value:    A float with the blast radius in pixels.
-
+		/// Gets the blast radius the AI use when aiming this weapon.
+		/// @return A float with the blast radius in pixels.
 		float GetAIBlastRadius() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetAIPenetration
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets how much material the projectiles from this weapon can destory.
-		// Arguments:       None.
-		// Return value:    A float with the material strength.
-
+		/// Gets how much material the projectiles from this weapon can destory.
+		/// @return A float with the material strength.
 		float GetAIPenetration() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CompareTrajectories
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Estimates how close the projectiles from two weapons will land.
-		// Arguments:       A HDFirearm pointer to compare with.
-		// Return value:    A float with the distance in pixels.
-
+		/// Estimates how close the projectiles from two weapons will land.
+		/// @param pWeapon A HDFirearm pointer to compare with.
+		/// @return A float with the distance in pixels.
 		float CompareTrajectories(HDFirearm* pWeapon);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetMagazinePos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the absolute position of the magazine or other equivalent point of
-		//                  this.
-		// Arguments:       None.
-		// Return value:    A vector describing the absolute world coordinates for the magazine
-		//                  attachment point of this
-
+		/// Gets the absolute position of the magazine or other equivalent point of
+		/// this.
+		/// @return A vector describing the absolute world coordinates for the magazine
+		/// attachment point of this
 		Vector GetMagazinePos() const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetMuzzlePos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the absolute position of the muzzle or other equivalent point of
-		//                  this.
-		// Arguments:       None.
-		// Return value:    A vector describing the absolute world coordinates for the muzzle point
-		//                  of this
-
+		/// Gets the absolute position of the muzzle or other equivalent point of
+		/// this.
+		/// @return A vector describing the absolute world coordinates for the muzzle point
+		/// of this
 		Vector GetMuzzlePos() const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetMuzzleOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the unrotated relative offset from the position to the muzzle or
-		//                  other equivalent point of this.
-		// Arguments:       None.
-		// Return value:    A unrotated vector describing the relative for the muzzle point of
-		//                  this from this' position.
-
+		/// Gets the unrotated relative offset from the position to the muzzle or
+		/// other equivalent point of this.
+		/// @return A unrotated vector describing the relative for the muzzle point of
+		/// this from this' position.
 		Vector GetMuzzleOffset() const override { return m_MuzzleOff; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SetMuzzleOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the unrotated relative offset from the position to the muzzle or
-		//                  other equivalent point of this.
-		// Arguments:       Bew ofsset value.
-		// Return value:    None.
-
+		/// Sets the unrotated relative offset from the position to the muzzle or
+		/// other equivalent point of this.
+		/// @param newOffset Bew ofsset value.
 		void SetMuzzleOffset(Vector newOffset) override { m_MuzzleOff = newOffset; }
 
-		/// <summary>
 		/// Gets this HDFirearm's pre fire sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this HDFirearm's pre fire sound.</returns>
+		/// @return The SoundContainer for this HDFirearm's pre fire sound.
 		SoundContainer* GetPreFireSound() const { return m_PreFireSound; }
 
-		/// <summary>
 		/// Sets this HDFirearm's pre fire sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this HDFirearm's pre fire sound.</param>
+		/// @param newSound The new SoundContainer for this HDFirearm's pre fire sound.
 		void SetPreFireSound(SoundContainer* newSound) { m_PreFireSound = newSound; }
 
-		/// <summary>
 		/// Gets this HDFirearm's fire sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this HDFirearm's fire sound.</returns>
+		/// @return The SoundContainer for this HDFirearm's fire sound.
 		SoundContainer* GetFireSound() const { return m_FireSound; }
 
-		/// <summary>
 		/// Sets this HDFirearm's fire sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this HDFirearm's fire sound.</param>
+		/// @param newSound The new SoundContainer for this HDFirearm's fire sound.
 		void SetFireSound(SoundContainer* newSound) { m_FireSound = newSound; }
 
-		/// <summary>
 		/// Gets this HDFirearm's fire echo sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this HDFirearm's fire echo sound.</returns>
+		/// @return The SoundContainer for this HDFirearm's fire echo sound.
 		SoundContainer* GetFireEchoSound() const { return m_FireEchoSound; }
 
-		/// <summary>
 		/// Sets this HDFirearm's fire echo sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this HDFirearm's fire echo sound.</param>
+		/// @param newSound The new SoundContainer for this HDFirearm's fire echo sound.
 		void SetFireEchoSound(SoundContainer* newSound) { m_FireEchoSound = newSound; }
 
-		/// <summary>
 		/// Gets this HDFirearm's active sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this HDFirearm's active sound.</returns>
+		/// @return The SoundContainer for this HDFirearm's active sound.
 		SoundContainer* GetActiveSound() const { return m_ActiveSound; }
 
-		/// <summary>
 		/// Sets this HDFirearm's active sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this HDFirearm's active sound.</param>
+		/// @param newSound The new SoundContainer for this HDFirearm's active sound.
 		void SetActiveSound(SoundContainer* newSound) { m_ActiveSound = newSound; }
 
-		/// <summary>
 		/// Gets this HDFirearm's deactivation sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this HDFirearm's deactivation sound.</returns>
+		/// @return The SoundContainer for this HDFirearm's deactivation sound.
 		SoundContainer* GetDeactivationSound() const { return m_DeactivationSound; }
 
-		/// <summary>
 		/// Sets this HDFirearm's deactivation sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this HDFirearm's deactivation sound.</param>
+		/// @param newSound The new SoundContainer for this HDFirearm's deactivation sound.
 		void SetDeactivationSound(SoundContainer* newSound) { m_DeactivationSound = newSound; }
 
-		/// <summary>
 		/// Gets this HDFirearm's empty sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this HDFirearm's empty sound.</returns>
+		/// @return The SoundContainer for this HDFirearm's empty sound.
 		SoundContainer* GetEmptySound() const { return m_EmptySound; }
 
-		/// <summary>
 		/// Sets this HDFirearm's empty sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this HDFirearm's empty sound.</param>
+		/// @param newSound The new SoundContainer for this HDFirearm's empty sound.
 		void SetEmptySound(SoundContainer* newSound) { m_EmptySound = newSound; }
 
-		/// <summary>
 		/// Gets this HDFirearm's reload start sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this HDFirearm's reload start sound.</returns>
+		/// @return The SoundContainer for this HDFirearm's reload start sound.
 		SoundContainer* GetReloadStartSound() const { return m_ReloadStartSound; }
 
-		/// <summary>
 		/// Sets this HDFirearm's reload start sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this HDFirearm's reload start sound.</param>
+		/// @param newSound The new SoundContainer for this HDFirearm's reload start sound.
 		void SetReloadStartSound(SoundContainer* newSound) { m_ReloadStartSound = newSound; }
 
-		/// <summary>
 		/// Gets this HDFirearm's reload end sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this HDFirearm's reload end sound.</returns>
+		/// @return The SoundContainer for this HDFirearm's reload end sound.
 		SoundContainer* GetReloadEndSound() const { return m_ReloadEndSound; }
 
-		/// <summary>
 		/// Sets this HDFirearm's reload end sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this HDFirearm's reload end sound.</param>
+		/// @param newSound The new SoundContainer for this HDFirearm's reload end sound.
 		void SetReloadEndSound(SoundContainer* newSound) { m_ReloadEndSound = newSound; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  ResetAllTimers
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resest all the timers used by this. Can be emitters, etc. This is to
-		//                  prevent backed up emissions to come out all at once while this has been
-		//                  held dormant in an inventory.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resest all the timers used by this. Can be emitters, etc. This is to
+		/// prevent backed up emissions to come out all at once while this has been
+		/// held dormant in an inventory.
 		void ResetAllTimers() override {
 			HeldDevice::ResetAllTimers();
 			m_LastFireTmr.Reset();
 			m_ReloadTmr.Reset();
 		}
 
-		/// <summary>
 		/// Gets this HDFirearm's reload progress as a scalar from 0 to 1.
-		/// </summary>
-		/// <returns>The reload progress as a scalar from 0 to 1.</returns>
+		/// @return The reload progress as a scalar from 0 to 1.
 		float GetReloadProgress() const { return IsReloading() && m_BaseReloadTime > 0 ? static_cast<float>(m_ReloadTmr.SimTimeLimitProgress()) : 1.0F; }
 
-		/// <summary>
 		/// Does the calculations necessary to detect whether this HDFirearm is at rest or not. IsAtRest() retrieves the answer.
-		/// </summary>
 		void RestDetection() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Activate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Activates one of this HDFirearm's features. Analogous to 'pulling
-		//                  the trigger'.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Activates one of this HDFirearm's features. Analogous to 'pulling
+		/// the trigger'.
 		void Activate() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Deactivate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Deactivates one of this HDFirearm's features. Analogous to 'releasing
-		//                  the trigger'.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Deactivates one of this HDFirearm's features. Analogous to 'releasing
+		/// the trigger'.
 		void Deactivate() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			StopActivationSound
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Aborts playing of active sound no matter what. Used to silence spinning
-		//                  weapons when weapons swapped
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Method:			StopActivationSound
+		/// Aborts playing of active sound no matter what. Used to silence spinning
+		/// weapons when weapons swapped
 		void StopActivationSound();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reload
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Throws out the currently used Magazine, if any, and puts in a new one
-		//                  after the reload delay is up.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Throws out the currently used Magazine, if any, and puts in a new one
+		/// after the reload delay is up.
 		void Reload() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  IsReloading
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device is curtrently being reloaded.
-		// Arguments:       None.
-		// Return value:    Whetehr being reloaded.
-
+		/// Tells whether the device is curtrently being reloaded.
+		/// @return Whetehr being reloaded.
 		bool IsReloading() const override { return m_Reloading; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  DoneReloading
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device just finished reloading this frame.
-		// Arguments:       None.
-		// Return value:    Whether just done reloading this frame.
-
+		/// Tells whether the device just finished reloading this frame.
+		/// @return Whether just done reloading this frame.
 		bool DoneReloading() const override { return m_DoneReloading; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  NeedsReloading
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device is curtrently in need of being reloaded.
-		// Arguments:       None.
-		// Return value:    Whetehr in need of reloading (ie not full).
-
+		/// Tells whether the device is curtrently in need of being reloaded.
+		/// @return Whetehr in need of reloading (ie not full).
 		bool NeedsReloading() const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  IsFull
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device is curtrently full and reloading won't have
-		//                  any effect.
-		// Arguments:       None.
-		// Return value:    Whetehr magazine is full or not.
-
+		/// Tells whether the device is curtrently full and reloading won't have
+		/// any effect.
+		/// @return Whetehr magazine is full or not.
 		bool IsFull() const override;
 
 		bool IsEmpty() const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  IsFullAuto
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device is fully automatic or not.
-		// Arguments:       None.
-		// Return value:    Whether the player can hold down fire and this will fire repeatedly.
-
+		/// Tells whether the device is fully automatic or not.
+		/// @return Whether the player can hold down fire and this will fire repeatedly.
 		bool IsFullAuto() const { return m_FullAuto; }
 
-		/// <summary>
 		/// Gets whether this HDFirearm is set to be reloadable or not.
-		/// </summary>
-		/// <returns>Whether this HDFirearm is reloadable.</returns>
+		/// @return Whether this HDFirearm is reloadable.
 		bool IsReloadable() const { return m_Reloadable; }
 
-		/// <summary>
 		/// Sets whether this HDFirearm is reloadable or not and halts the reloading process.
-		/// </summary>
-		/// <param name="isReloadable">Whether this HDFirearm is reloadable.</param>
+		/// @param isReloadable Whether this HDFirearm is reloadable.
 		void SetReloadable(bool isReloadable) {
 			m_Reloadable = isReloadable;
 			m_Reloading = m_Reloading && m_Reloadable;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetFullAuto
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether the device is fully automatic or not.
-		// Arguments:       New value.
-		// Return value:    None.
-
+		/// Sets whether the device is fully automatic or not.
+		/// @param newValue New value.
 		void SetFullAuto(bool newValue) { m_FullAuto = newValue; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates this MovableObject. Supposed to be done every frame.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this HDFirearm's current graphical representation to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the Scene.
-		//                  In which mode to draw in. See the DrawMode enumeration for the modes.
-		//                  Whether to not draw any extra 'ghost' items of this MovableObject,
-		//                  indicator arrows or hovering HUD text and so on.
-		// Return value:    None.
-
+		/// Draws this HDFirearm's current graphical representation to a
+		/// BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
+		/// @param mode In which mode to draw in. See the DrawMode enumeration for the modes. (default: g_DrawColor)
+		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this MovableObject, (default: false)
+		/// indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  DrawHUD
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws an aiming aid in front of this HeldDevice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the Scene.
-		//                  Which player's screen this is being drawn to. May affect what HUD elements
-		//                  get drawn etc.
-		// Return value:    None.
-
+		/// Draws an aiming aid in front of this HeldDevice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
+		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements (default: 0)
+		/// get drawn etc.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  EstimateDigStrength
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Estimates what material strength one round in the magazine can destroy.
-		// Arguments:       None.
-		// Return value:    The maximum material strength the regular or the tracer round can destroy.
-
+		/// Estimates what material strength one round in the magazine can destroy.
+		/// @return The maximum material strength the regular or the tracer round can destroy.
 		float EstimateDigStrength() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  FiredOnce
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Whether at least one round has already been	fired during the current activation.
-		// Arguments:       None.
-		// Return value:    Returns true if at least one round has already been fired during the current activation.
-
+		/// Whether at least one round has already been	fired during the current activation.
+		/// @return Returns true if at least one round has already been fired during the current activation.
 		bool FiredOnce() const { return m_FiredOnce; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  FiredFrame
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Whether at least one round has already been fired during the current frame.
-		// Arguments:       None.
-		// Return value:    Returns true at least one round has already been fired during the current frame.
-
+		/// Whether at least one round has already been fired during the current frame.
+		/// @return Returns true at least one round has already been fired during the current frame.
 		bool FiredFrame() const { return m_FireFrame; }
 
-		/// <summary>
 		/// Gets whether this HDFirearm is ready to be fired.
-		/// </summary>
-		/// <returns>Whether this HDFirearm is ready to pop another Round.</returns>
+		/// @return Whether this HDFirearm is ready to pop another Round.
 		bool CanFire() const { return m_LastFireTmr.IsPastSimMS(GetMSPerRound()); }
 
-		/// <summary>
 		/// Gets whether this HDFirearm is halfway to be fired. Used for evenly spacing out dual-wielded fire.
-		/// </summary>
-		/// <returns>Whether this HDFirearm is halfway to pop another Round.</returns>
+		/// @return Whether this HDFirearm is halfway to pop another Round.
 		bool HalfwayToNextRound() const { return m_LastFireTmr.IsPastSimMS(GetMSPerRound() / 2.0); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  RoundsFired
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     How many rounds were fired during this frame.
-		// Arguments:       None.
-		// Return value:    Returns the number of rounds fired during this frame.
-
+		/// How many rounds were fired during this frame.
+		/// @return Returns the number of rounds fired during this frame.
 		int RoundsFired() const { return m_RoundsFired; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  IsAnimatedManually
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     If true then the m_Frame property is not changed bye the Update function
-		// Arguments:       None.
-		// Return value:    Whether this HDFirearm is animated manually.
-
+		/// If true then the m_Frame property is not changed bye the Update function
+		/// @return Whether this HDFirearm is animated manually.
 		bool IsAnimatedManually() const { return m_IsAnimatedManually; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetAnimatedManually
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets Whether this HDFirearm is animated manually.
-		// Arguments:       Manual animation flag value.
-		// Return value:    None.
-
+		/// Sets Whether this HDFirearm is animated manually.
+		/// @param newValue Manual animation flag value.
 		void SetAnimatedManually(bool newValue) { m_IsAnimatedManually = newValue; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
-		/// <summary>
 		/// Sets this Attachable's parent MOSRotating, and also sets its Team based on its parent and, if the Attachable is set to collide, adds/removes Atoms to its new/old parent.
 		/// Additionally, sets this HDFirearm as not firing or reloading, and resets its reload timer.
-		/// </summary>
-		/// <param name="newParent">A pointer to the MOSRotating to set as the new parent. Ownership is NOT transferred!</param>
+		/// @param newParent A pointer to the MOSRotating to set as the new parent. Ownership is NOT transferred!
 		void SetParent(MOSRotating* newParent) override {
 			HeldDevice::SetParent(newParent);
 			Deactivate();
@@ -969,23 +589,13 @@ namespace RTE {
 		    std::string m_BallisticScriptFunction;
 		*/
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		/// <summary>
 		/// Ensures the reload Timer's time limit is set accordingly, based on whether the HDFirearm has support available.
-		/// </summary>
 		void CorrectReloadTimerForSupportAvailable() { m_ReloadTmr.SetSimTimeLimitMS(static_cast<double>(static_cast<float>(m_BaseReloadTime) * (m_SupportAvailable ? 1.0F : m_OneHandedReloadTimeMultiplier))); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this HDFirearm, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this HDFirearm, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

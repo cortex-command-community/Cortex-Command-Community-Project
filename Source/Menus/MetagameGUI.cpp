@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MetagameGUI.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Implementation file for the MetagameGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MetagameGUI.h"
 
 #include "WindowMan.h"
@@ -65,11 +53,6 @@ using namespace RTE;
 #define BRAINOVERLAP 2
 
 const std::string MetagameGUI::c_ClassName = "MetagameGUI";
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws a neat animation over a site to show it changing team ownership.
 
 void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 	if (!drawBitmap)
@@ -131,12 +114,6 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 		rect(drawBitmap, m_CenterPos.m_X - radius, m_CenterPos.m_Y - radius, m_CenterPos.m_X + radius, m_CenterPos.m_Y + radius, m_Color);
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Clear
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all the member variables of this MetagameGUI, effectively
-//                  resetting the members of this abstraction level only.
 
 void MetagameGUI::Clear() {
 	m_RootBoxMaxWidth = 0;
@@ -299,12 +276,6 @@ void MetagameGUI::Clear() {
 	m_StationPosOnOrbit.Reset();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:		SetToStartNewGame
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Resets internal state of GUI to show 'Start new campaign' screen
-// Arguments:       None.
-// Return value:    None.
 void MetagameGUI::SetToStartNewGame() {
 	g_MetaMan.SetSuspend(true);
 	HideAllScreens();
@@ -312,11 +283,6 @@ void MetagameGUI::SetToStartNewGame() {
 	// UpdatePlayerBars();
 	SwitchToScreen(MetagameGUI::NEWDIALOG);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the MetagameGUI object ready for use.
 
 int MetagameGUI::Create() {
 	for (int metaPlayer = Players::PlayerOne; metaPlayer < Players::MaxPlayerCount; ++metaPlayer) {
@@ -331,11 +297,6 @@ int MetagameGUI::Create() {
 
 	return 0;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the MetagameGUI object ready for use.
 
 int MetagameGUI::Create(Controller* pController) {
 	RTEAssert(pController, "No controller sent to MetagameGUI on creation!");
@@ -614,10 +575,6 @@ int MetagameGUI::Create(Controller* pController) {
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          MoveLocationsIntoTheScreen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Moves any locations closer to the center of the planet if they were left out
 void MetagameGUI::MoveLocationsIntoTheScreen() {
 	// Clear offsets
 	for (std::vector<Scene*>::iterator pItr = g_MetaMan.m_Scenes.begin(); pItr != g_MetaMan.m_Scenes.end(); ++pItr)
@@ -677,14 +634,6 @@ void MetagameGUI::MoveLocationsIntoTheScreen() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  ReadProperty
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Reads a property value from a Reader stream. If the name isn't
-//                  recognized by this class, then ReadProperty of the parent class
-//                  is called. If the property isn't recognized by any of the base classes,
-//                  false is returned, and the Reader's position is untouched.
-
 int MetagameGUI::ReadProperty(const std::string_view& propName, Reader& reader) {
 	Vector tempPos;
 
@@ -719,12 +668,6 @@ int MetagameGUI::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Save
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Saves the complete state of this MetagameGUI to an output stream for
-//                  later recreation with Create(Reader &reader);
-
 int MetagameGUI::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
@@ -737,11 +680,6 @@ int MetagameGUI::Save(Writer& writer) const {
 
 	return 0;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Destroy
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Destroys and resets (through Clear()) the MetagameGUI object.
 
 void MetagameGUI::Destroy() {
 	delete m_pGUIController;
@@ -756,19 +694,9 @@ void MetagameGUI::Destroy() {
 	Clear();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetGUIControlManager
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the GUIControlManager owned and used by this.
-
 GUIControlManager* MetagameGUI::GetGUIControlManager() {
 	return m_pGUIController;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetEnabled
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Enables or disables the menu. This will animate it in and out of view.
 
 void MetagameGUI::SetEnabled(bool enable) {
 	if (enable && m_MenuEnabled != ENABLED && m_MenuEnabled != ENABLING) {
@@ -811,11 +739,6 @@ void MetagameGUI::SetEnabled(bool enable) {
 	m_ScreenChange = true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SelectScene
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Tries to select a specifically named scene on the metagame field.
-
 void MetagameGUI::SelectScene(Scene* pScene) {
 	m_pSelectedScene = pScene;
 
@@ -851,11 +774,6 @@ void MetagameGUI::SelectScene(Scene* pScene) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SelectScene
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Tries to select a specifically named scene on the metagame field.
-
 bool MetagameGUI::SelectScene(std::string sceneName) {
 	for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 		// Only allow selection if the Scene is revealed yet!
@@ -867,11 +785,6 @@ bool MetagameGUI::SelectScene(std::string sceneName) {
 
 	return false;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SwitchToScreen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Switches to showing a specific menu screen/mode.
 
 void MetagameGUI::SwitchToScreen(int newScreen) {
 	RTEAssert(newScreen >= ROOTBOX && newScreen < SCREENCOUNT, "Tried to switch to an out of bounds screen!");
@@ -888,11 +801,6 @@ void MetagameGUI::SwitchToScreen(int newScreen) {
 	// Suspend game depending on which screen it is
 	g_MetaMan.SetSuspend(m_MenuScreen != ROOTBOX && m_MenuScreen != STATSDIALOG && m_MenuScreen != SCENEINFOBOX);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetRoundName
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes a round number into a nice friendly text string. "ONE" for 1 etc
 
 std::string MetagameGUI::GetRoundName(int roundNumber) {
 	if (roundNumber < 12) {
@@ -925,12 +833,6 @@ std::string MetagameGUI::GetRoundName(int roundNumber) {
 	std::snprintf(numStr, sizeof(numStr), "%d", roundNumber + 1);
 	return std::string(numStr);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          StartNewGame
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Attempts to start a new Metagame using the settings set in the
-//                  New Game dialog box.
 
 bool MetagameGUI::StartNewGame() {
 	// Prepare the UI for the game intro/start
@@ -1118,12 +1020,6 @@ bool MetagameGUI::StartNewGame() {
 	return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          LoadGame
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Attempts to load a Metagame from disk using the settings set in the
-//                  Load Game dialog box.
-
 bool MetagameGUI::LoadGame() {
 	// Get the MetaSave to load from the previously temporarily saved combobox selection
 	if (m_pSelectedGameToLoad) {
@@ -1167,12 +1063,6 @@ bool MetagameGUI::LoadGame() {
 	g_ConsoleMan.PrintString("ERROR: Failed to load the Metagame");
 	return false;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SaveGame
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Attempts to save a Metagame to disk using the settings set in the
-//                  Save Game dialog box.
 
 bool MetagameGUI::SaveGame(std::string saveName, std::string savePath, bool resaveSceneData) {
 	const std::string fullSavePath = g_PresetMan.GetFullModulePath(savePath);
@@ -1226,12 +1116,6 @@ bool MetagameGUI::SaveGame(std::string saveName, std::string savePath, bool resa
 	return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SaveGameFromDialog
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Attempts to save a Metagame to disk using the settings set in the
-//                  Save Game dialog box.
-
 bool MetagameGUI::SaveGameFromDialog() {
 	std::string saveName;
 	std::string savePath;
@@ -1261,11 +1145,6 @@ bool MetagameGUI::SaveGameFromDialog() {
 	// First load all bitmap data of all Scenes in the current Metagame that have once saved em, so we can re-save them to the new files
 	return SaveGame(saveName, savePath, true);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the state of this Menu each frame
 
 void MetagameGUI::Update() {
 	// Update the input controller
@@ -1766,11 +1645,6 @@ void MetagameGUI::Update() {
 		m_PrevMousePos = mousePos;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the menu
-
 void MetagameGUI::Draw(BITMAP* drawBitmap) {
 	// Don't draw site lines and dots if we're in the menus
 	if (!g_MetaMan.IsSuspended()) {
@@ -1902,13 +1776,6 @@ void MetagameGUI::Draw(BITMAP* drawBitmap) {
 		m_pBannerYellowBottom->Draw(drawBitmap);
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateInput
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the user input processing.
-// Arguments:       None.
-// Return value:    None.
 
 void MetagameGUI::UpdateInput() {
 	// If esc pressed, show campaign dialog if applicable
@@ -2545,11 +2412,6 @@ void MetagameGUI::UpdateInput() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          HideAllScreens
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Hides all menu screens, so one can easily be unhidden and shown only.
-
 void MetagameGUI::HideAllScreens() {
 	for (int iscreen = 0; iscreen < SCREENCOUNT; ++iscreen) {
 		if (m_apScreenBox[iscreen] && iscreen != ROOTBOX)
@@ -2584,11 +2446,6 @@ void MetagameGUI::HideAllScreens() {
 	m_ScreenChange = true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          KeepBoxOnScreen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes sure a specific box doesn't end up moved completely off-screen.
-
 void MetagameGUI::KeepBoxOnScreen(GUICollectionBox* pBox, int margin) {
 	if (margin < 0) {
 		// Use the dimensions of the box itself to prevent it from at all going outside the screen
@@ -2612,12 +2469,6 @@ void MetagameGUI::KeepBoxOnScreen(GUICollectionBox* pBox, int margin) {
 			pBox->SetPositionAbs(pBox->GetXPos(), m_apScreenBox[ROOTBOX]->GetHeight() - margin);
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          CompletedActivity
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Handles what happens after an Activity within the Metagame was
-//                  run and completed fully.
 
 void MetagameGUI::CompletedActivity() {
 	Activity* pDoneActivity = dynamic_cast<Activity*>(g_ActivityMan.GetActivity());
@@ -2749,13 +2600,6 @@ void MetagameGUI::CompletedActivity() {
 		}
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AutoResolveOffensive
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Automatically resolves an offensive fight without actually launching
-//                  and going through an Activity. Will randomly determine who won and
-//                  what the consequences are.
 
 bool MetagameGUI::AutoResolveOffensive(GAScripted* pOffensive, Scene* pScene, bool brainCheck) {
 	bool changedOwnership = false;
@@ -2972,11 +2816,6 @@ bool MetagameGUI::AutoResolveOffensive(GAScripted* pOffensive, Scene* pScene, bo
 	return changedOwnership;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateSiteRevealing
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the New Site Revealing animation
-
 void MetagameGUI::UpdateSiteRevealing() {
 	// First set up all the targets we'll be animating into view
 	if (g_MetaMan.m_StateChanged) {
@@ -3055,11 +2894,6 @@ void MetagameGUI::UpdateSiteRevealing() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateSiteChangeAnim
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates team ownership change animations, if any.
-
 void MetagameGUI::UpdateSiteChangeAnim() {
 	// Continue animating the existing markers
 	double animInterval = 600;
@@ -3086,11 +2920,6 @@ void MetagameGUI::UpdateSiteChangeAnim() {
 			itr++;
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateIncomeCounting
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the Count Income animation
 
 void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 	// First set up all the site lines we should be animating into view
@@ -3516,11 +3345,6 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateHumanPlayerTurn
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates a human player's turn
-
 void MetagameGUI::UpdateHumanPlayerTurn(int metaPlayer) {
 	// In-game player - IMPORTANT to pass this to the Scenes, and not the metaplayer
 	int player = g_MetaMan.m_Players[metaPlayer].GetInGamePlayer();
@@ -3553,11 +3377,6 @@ void MetagameGUI::UpdateHumanPlayerTurn(int metaPlayer) {
 		m_pGameMessageLabel->SetVisible(false);
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateBaseBuilding
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the Base Building animation
 
 void MetagameGUI::UpdateBaseBuilding() {
 	m_pPhaseLabel->SetText("Building Bases");
@@ -3804,12 +3623,6 @@ void MetagameGUI::UpdateBaseBuilding() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetupOffensives
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets up the Activities that represent all the offensive actions of
-//                  the teams this round.
-
 void MetagameGUI::SetupOffensives() {
 	// Clear out the old ones, if any
 	g_MetaMan.ClearActivities();
@@ -3896,11 +3709,6 @@ void MetagameGUI::SetupOffensives() {
 	    }
 	*/
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateOffensives
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the offensive actions animation
 
 void MetagameGUI::UpdateOffensives() {
 	char str[256];
@@ -4562,11 +4370,6 @@ void MetagameGUI::UpdateOffensives() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          FinalizeOffensive
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Finishes one battle in the UpdateOffensives and moves onto the next.
-
 bool MetagameGUI::FinalizeOffensive() {
 	// No Offensives this round? then skip all this business
 	if (g_MetaMan.m_RoundOffensives.empty() || g_MetaMan.m_CurrentOffensive < 0 || g_MetaMan.m_CurrentOffensive >= g_MetaMan.m_RoundOffensives.size() || !m_pAnimScene) {
@@ -4636,11 +4439,6 @@ bool MetagameGUI::FinalizeOffensive() {
 	return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          ResetBattleInfo
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Hides and resets all battle info labels and panels
-
 void MetagameGUI::ResetBattleInfo() {
 	int mp = 0;
 	for (std::vector<MetaPlayer>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
@@ -4662,12 +4460,6 @@ void MetagameGUI::ResetBattleInfo() {
 	// Done reviewing the battle too
 	m_PostBattleReview = false;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateBattleQuads
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates which player get placed in which quad around a fought-over
-//                  site.
 
 void MetagameGUI::UpdateBattleQuads(Vector targetPos) {
 	// Start with a clean slate
@@ -4701,12 +4493,6 @@ void MetagameGUI::UpdateBattleQuads(Vector targetPos) {
 		mp++;
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePreBattleAttackers
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the animation and display of the info for the current
-//                  offensive battle being next in line for this round.
 
 void MetagameGUI::UpdatePreBattleAttackers(float progress) {
 	// Sanity check that we have any offensive battle activity and scene to display around
@@ -4843,12 +4629,6 @@ void MetagameGUI::UpdatePreBattleAttackers(float progress) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePreBattleDefenders
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the animation and display of the info for the current
-//                  offensive battle's defenders being next in line for this round.
-
 void MetagameGUI::UpdatePreBattleDefenders(float progress) {
 	// Sanity check that we have any offensive battle activity and scene to display around
 	if (g_MetaMan.m_CurrentOffensive >= g_MetaMan.m_RoundOffensives.size() ||
@@ -4971,12 +4751,6 @@ void MetagameGUI::UpdatePreBattleDefenders(float progress) {
 		mp++;
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePostBattleRetreaters
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the animation and display of the info for the current
-//                  offensive battle's retreating brains going back to their pools
 
 void MetagameGUI::UpdatePostBattleRetreaters(float progress) {
 	// Sanity check that we have any offensive battle activity and scene to display around
@@ -5113,12 +4887,6 @@ void MetagameGUI::UpdatePostBattleRetreaters(float progress) {
 		mp++;
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePostBattleResidents
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the animation and display of the info for the current done
-//                  offensive battle's winning brains going back into the site.
 
 void MetagameGUI::UpdatePostBattleResidents(float progress) {
 	// Sanity check that we have any offensive battle activity and scene to display around
@@ -5325,12 +5093,6 @@ void MetagameGUI::UpdatePostBattleResidents(float progress) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePlayerActionLines
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the action lines as per what the player has chosen to do
-//                  during the current turn so far.
-
 float MetagameGUI::UpdatePlayerActionLines(int metaPlayer) //, bool addUnallocated)
 {
 	// Make sure we're in a player turn phase
@@ -5372,11 +5134,6 @@ float MetagameGUI::UpdatePlayerActionLines(int metaPlayer) //, bool addUnallocat
 
 	return meterStart;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateScenesBox
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the contents of the scene selection box.
 
 void MetagameGUI::UpdateScenesBox(bool sceneChanged) {
 	// Always show the info box if something is selected
@@ -5559,11 +5316,6 @@ void MetagameGUI::UpdateScenesBox(bool sceneChanged) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateAISkillSliders
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates AI skill sliders and labels for all players.
-
 void MetagameGUI::UpdateAISkillSliders(int player) {
 	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
 		m_apPlayerAISkillLabel[player]->SetText(Activity::GetAISkillString(m_apPlayerAISkillSlider[player]->GetValue()));
@@ -5576,11 +5328,6 @@ void MetagameGUI::UpdateAISkillSliders(int player) {
 		}
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateGameSizeLabels
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the game size label of the new game dialog
 
 void MetagameGUI::UpdateGameSizeLabels() {
 	// How many players do we have set to go
@@ -5629,11 +5376,6 @@ void MetagameGUI::UpdateGameSizeLabels() {
 	else
 		m_pDifficultyLabel->SetText("Difficulty: Nuts!");
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePlayerSetup
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the player setup controls of the new game dialog
 
 void MetagameGUI::UpdatePlayerSetup() {
 	int humanPlayers = 0;
@@ -5704,11 +5446,6 @@ void MetagameGUI::UpdatePlayerSetup() {
 	// Update the game size label since the number of players may have changed
 	UpdateGameSizeLabels();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePlayerBars
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the floating player bars with current funds, flag, etc.
 
 void MetagameGUI::UpdatePlayerBars() {
 	if (g_MetaMan.m_GameState >= MetaMan::NOGAME && g_MetaMan.m_GameState <= MetaMan::ENDROUND && !g_MetaMan.IsSuspended()) {
@@ -5830,11 +5567,6 @@ void MetagameGUI::UpdatePlayerBars() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateSiteHoverLabel
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the floating label over a planet site.
-
 void MetagameGUI::UpdateSiteNameLabel(bool visible, std::string text, const Vector& location, float height) {
 	// Set up the hover label to appear over any hovered scene location
 	m_pScenePlanetLabel->SetVisible(visible);
@@ -5858,11 +5590,6 @@ void MetagameGUI::UpdateSiteNameLabel(bool visible, std::string text, const Vect
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          PlayerTextIndication
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Starts an animation of a label showing a text string over a player bar
-
 void MetagameGUI::PlayerTextIndication(int metaPlayer, std::string text, const Vector& screenPos, double animLengthMS) {
 	m_apFundsChangeLabel[metaPlayer]->SetText(text);
 	m_apFundsChangeLabel[metaPlayer]->SetHAlignment(GUIFont::Centre);
@@ -5876,11 +5603,6 @@ void MetagameGUI::PlayerTextIndication(int metaPlayer, std::string text, const V
 	m_apFundsChangeTimer[metaPlayer].Reset();
 	m_apFundsChangeTimer[metaPlayer].SetRealTimeLimitMS(animLengthMS);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          FundsChangeIndication
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Starts an animation of a label showing funds changing for a player
 
 void MetagameGUI::FundsChangeIndication(int metaPlayer, float change, const Vector& screenPos, double animLengthMS) {
 	char str[256];
@@ -5897,11 +5619,6 @@ void MetagameGUI::FundsChangeIndication(int metaPlayer, float change, const Vect
 	m_apFundsChangeTimer[metaPlayer].Reset();
 	m_apFundsChangeTimer[metaPlayer].SetRealTimeLimitMS(animLengthMS);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          BrainsChangeIndication
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Starts an animation of a label showing brains changing for a metaPlayer
 
 void MetagameGUI::BrainsChangeIndication(int metaPlayer, int change, const Vector& screenPos, int fontAlignment, double animLengthMS) {
 	char str[256];
@@ -5922,11 +5639,6 @@ void MetagameGUI::BrainsChangeIndication(int metaPlayer, int change, const Vecto
 	m_apBrainsChangeTimer[metaPlayer].SetRealTimeLimitMS(animLengthMS);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RemoveSiteLine
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Removes a specific index siteline out of a vector.
-
 bool MetagameGUI::RemoveSiteLine(std::vector<SiteLine>& lineList, int removeIndex) {
 	if (lineList.empty())
 		return false;
@@ -5942,11 +5654,6 @@ bool MetagameGUI::RemoveSiteLine(std::vector<SiteLine>& lineList, int removeInde
 	return removed;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetPlayerLineFunds
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the total funds of all visible lines of a specific player.
-
 float MetagameGUI::GetPlayerLineFunds(std::vector<SiteLine>& lineList, int metaPlayer, bool onlyVisible) {
 	if (metaPlayer < Players::PlayerOne || metaPlayer >= g_MetaMan.m_Players.size())
 		return 0;
@@ -5959,12 +5666,6 @@ float MetagameGUI::GetPlayerLineFunds(std::vector<SiteLine>& lineList, int metaP
 
 	return totalFunds;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePlayerLineRatios
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the site line meter ratios of a player based on their fund
-//                  amounts and visibilty.
 
 void MetagameGUI::UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, int metaPlayer, bool onlyVisible, float total) {
 	if (metaPlayer < Players::PlayerOne || metaPlayer >= g_MetaMan.m_Players.size())
@@ -5983,12 +5684,6 @@ void MetagameGUI::UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, int me
 		}
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          DrawGlowLine
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws a fancy thick flickering line to point out scene points on the
-//                  planet.
 
 void MetagameGUI::DrawGlowLine(BITMAP* drawBitmap, const Vector& start, const Vector& end, int color) {
 	int blendAmount = 210 + RandomNum(-15, 15);
@@ -6014,12 +5709,6 @@ void MetagameGUI::DrawGlowLine(BITMAP* drawBitmap, const Vector& start, const Ve
 	line(drawBitmap, start.m_X, start.m_Y + 1, end.m_X, end.m_Y + 1, color);
 	line(drawBitmap, start.m_X, start.m_Y - 1, end.m_X, end.m_Y - 1, color);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          DrawScreenLineToSitePoint
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws a fancy thick flickering lines to point out scene points on the
-//                  planet, FROM an arbitrary screen point.
 
 bool MetagameGUI::DrawScreenLineToSitePoint(BITMAP* drawBitmap,
                                             const Vector& screenPoint,
@@ -6135,12 +5824,6 @@ bool MetagameGUI::DrawScreenLineToSitePoint(BITMAP* drawBitmap,
 
 	return totalSegments <= onlyFirstSegments && totalSegments <= onlyLastSegments;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          DrawPlayerLineToSitePoint
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws a fancy thick flickering lines to point out scene points on the
-//                  planet, FROM a floating player bar, showing a certain ratio.
 
 bool MetagameGUI::DrawPlayerLineToSitePoint(BITMAP* drawBitmap,
                                             int metaPlayer,

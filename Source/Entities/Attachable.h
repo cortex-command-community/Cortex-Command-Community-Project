@@ -8,9 +8,7 @@ namespace RTE {
 
 	class AEmitter;
 
-	/// <summary>
 	/// An articulated, detachable part of an Actor's body.
-	/// </summary>
 	class Attachable : public MOSRotating {
 		friend class MOSRotating;
 
@@ -21,35 +19,25 @@ namespace RTE {
 		ClassInfoGetters;
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a Attachable object in system memory. Create() should be called before using the object.
-		/// </summary>
 		Attachable() { Clear(); }
 
-		/// <summary>
 		/// Makes the Attachable object ready for use.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create() override;
 
-		/// <summary>
 		/// Creates an Attachable to be identical to another, by deep copy.
-		/// </summary>
-		/// <param name="reference">A reference to the Attachable to deep copy.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param reference A reference to the Attachable to deep copy.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const Attachable& reference);
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up an Attachable object before deletion from system memory.
-		/// </summary>
 		~Attachable() override { Destroy(true); }
 
-		/// <summary>
 		/// Destroys and resets (through Clear()) the Attachable object.
-		/// </summary>
-		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override {
 			if (!notInherited) {
 				MOSRotating::Destroy();
@@ -57,9 +45,7 @@ namespace RTE {
 			Clear();
 		}
 
-		/// <summary>
 		/// Resets the entire Attachable, including its inherited members, to their default settings or values.
-		/// </summary>
 		void Reset() override {
 			Clear();
 			MOSRotating::Reset();
@@ -67,502 +53,357 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Parent Getters and Setters
-		/// <summary>
 		/// Gets the MOSRotating which is the parent of this Attachable.
-		/// </summary>
-		/// <returns>A pointer to the parent of this Attachable.</returns>
+		/// @return A pointer to the parent of this Attachable.
 		MOSRotating* GetParent() override { return m_Parent; }
 
-		/// <summary>
 		/// Gets the MOSRotating which is the parent of this Attachable.
-		/// </summary>
-		/// <returns>A pointer to the parent of this Attachable.</returns>
+		/// @return A pointer to the parent of this Attachable.
 		const MOSRotating* GetParent() const override { return m_Parent; }
 
-		/// <summary>
 		/// Indicates whether this Attachable is attached to an MOSRotating parent or not.
-		/// </summary>
-		/// <returns>Whether it's attached or not.</returns>
+		/// @return Whether it's attached or not.
 		bool IsAttached() const { return m_Parent != nullptr; }
 
-		/// <summary>
 		/// Indicates whether this Attachable is attached to the specified MOSRotating or not.
-		/// </summary>
-		/// <param name="parentToCheck">A pointer to which MOSRotating you want to check for.</param>
-		/// <returns>Whether it's attached or not.</returns>
+		/// @param parentToCheck A pointer to which MOSRotating you want to check for.
+		/// @return Whether it's attached or not.
 		bool IsAttachedTo(const MOSRotating* parentToCheck) const { return m_Parent == parentToCheck; }
 
-		/// <summary>
 		/// Gets the MO which is the ultimate root parent of this Attachable and its parent.
-		/// </summary>
-		/// <returns>A pointer to the highest root parent of this Attachable.</returns>
+		/// @return A pointer to the highest root parent of this Attachable.
 		MovableObject* GetRootParent() override { return m_Parent ? m_Parent->GetRootParent() : this; }
 
-		/// <summary>
 		/// Gets the MO which is the ultimate root parent of this Attachable and its parent.
-		/// </summary>
-		/// <returns>A pointer to the highest root parent of this Attachable.</returns>
+		/// @return A pointer to the highest root parent of this Attachable.
 		const MovableObject* GetRootParent() const override { return m_Parent ? m_Parent->GetRootParent() : this; }
 
-		/// <summary>
 		/// Gets the stored offset between this Attachable's parent's position and the joint position. This should be maintained by the parent.
-		/// </summary>
-		/// <returns>A const reference Vector describing the offset from the parent's position to the joint position.</returns>
+		/// @return A const reference Vector describing the offset from the parent's position to the joint position.
 		const Vector& GetParentOffset() const { return m_ParentOffset; }
 
-		/// <summary>
 		/// Sets the stored offset between this Attachable's parent's Pos and the joint position. This should be maintained by the parent.
-		/// </summary>
-		/// <param name="newParentOffset">A const reference to the new parent offset.</param>
+		/// @param newParentOffset A const reference to the new parent offset.
 		void SetParentOffset(const Vector& newParentOffset) { m_ParentOffset = newParentOffset; }
 
-		/// <summary>
 		/// Gets whether this Attachable is to be drawn after (in front of) or before (behind) its parent.
-		/// </summary>
-		/// <returns>Whether this Attachable is to be drawn after its parent or not.</returns>
+		/// @return Whether this Attachable is to be drawn after its parent or not.
 		bool IsDrawnAfterParent() const override { return m_DrawAfterParent; }
 
-		/// <summary>
 		/// Sets whether this Attachable is to be drawn after (in front of) or before (behind) its parent.
-		/// </summary>
-		/// <param name="drawAfterParent">Whether this Attachable is to be drawn after its parent.</param>
+		/// @param drawAfterParent Whether this Attachable is to be drawn after its parent.
 		void SetDrawnAfterParent(bool drawAfterParent) { m_DrawAfterParent = drawAfterParent; }
 
-		/// <summary>
 		/// Gets whether this Attachable should be drawn normally by its parent.
 		/// Some attachables (e.g. AEmitter flashes) require custom handling for when they should or shouldn't draw, to be done by the specific parent class.
-		/// </summary>
-		/// <returns>Whether this Attachable should be drawn normally by its parent.</returns>
+		/// @return Whether this Attachable should be drawn normally by its parent.
 		bool IsDrawnNormallyByParent() const { return m_DrawnNormallyByParent; }
 
-		/// <summary>
 		/// Sets whether this Attachable should be drawn normally by its parent.
 		/// Some attachables (e.g. AEmitter flashes) require custom handling for when they should or shouldn't draw, to be done by the specific parent class.
-		/// </summary>
-		/// <param name="drawnNormallyByParent">Whether this Attachable should be drawn normally by its parent.</param>
+		/// @param drawnNormallyByParent Whether this Attachable should be drawn normally by its parent.
 		void SetDrawnNormallyByParent(bool drawnNormallyByParent) { m_DrawnNormallyByParent = drawnNormallyByParent; }
 
-		/// <summary>
 		/// Gets whether this Attachable will be deleted when removed from its parent. Has no effect until the Attachable has been added to a parent.
-		/// </summary>
-		/// <returns>Whether this Attachable is marked to be deleted when removed from its parent or not.</returns>
+		/// @return Whether this Attachable is marked to be deleted when removed from its parent or not.
 		bool GetDeleteWhenRemovedFromParent() const { return m_DeleteWhenRemovedFromParent; }
 
-		/// <summary>
 		/// Sets whether this Attachable will be deleted when removed from its parent.
-		/// </summary>
-		/// <param name="deleteWhenRemovedFromParent">Whether this Attachable should be deleted when removed from its parent.</param>
+		/// @param deleteWhenRemovedFromParent Whether this Attachable should be deleted when removed from its parent.
 		void SetDeleteWhenRemovedFromParent(bool deleteWhenRemovedFromParent) { m_DeleteWhenRemovedFromParent = deleteWhenRemovedFromParent; }
 
-		/// <summary>
 		/// Gets whether this Attachable will gib when removed from its parent. Has no effect until the Attachable has been added to a parent.
-		/// </summary>
-		/// <returns>Whether this Attachable is marked to gib when removed from its parent or not.</returns>
+		/// @return Whether this Attachable is marked to gib when removed from its parent or not.
 		bool GetGibWhenRemovedFromParent() const { return m_GibWhenRemovedFromParent; }
 
-		/// <summary>
 		/// Sets whether this Attachable will gib when removed from its parent.
-		/// </summary>
-		/// <param name="gibWhenRemovedFromParent">Whether this Attachable should gib when removed from its parent.</param>
+		/// @param gibWhenRemovedFromParent Whether this Attachable should gib when removed from its parent.
 		void SetGibWhenRemovedFromParent(bool gibWhenRemovedFromParent) { m_GibWhenRemovedFromParent = gibWhenRemovedFromParent; }
 
-		/// <summary>
 		/// Gets whether forces transferred from this Attachable should be applied at its parent's offset (rotated to match the parent) where they will produce torque, or directly at its parent's position.
-		/// </summary>
-		/// <returns>Whether forces transferred from this Attachable should be applied at an offset.</returns>
+		/// @return Whether forces transferred from this Attachable should be applied at an offset.
 		bool GetApplyTransferredForcesAtOffset() const { return m_ApplyTransferredForcesAtOffset; }
 
-		/// <summary>
 		/// Sets whether forces transferred from this Attachable should be applied at its parent's offset (rotated to match the parent) where they will produce torque, or directly at its parent's position.
-		/// </summary>
-		/// <param name="appliesTransferredForcesAtOffset">Whether forces transferred from this Attachable should be applied at an offset.</param>
+		/// @param appliesTransferredForcesAtOffset Whether forces transferred from this Attachable should be applied at an offset.
 		void SetApplyTransferredForcesAtOffset(bool appliesTransferredForcesAtOffset) { m_ApplyTransferredForcesAtOffset = appliesTransferredForcesAtOffset; }
 #pragma endregion
 
 #pragma region Parent Gib Handling Getters and Setters
-		/// <summary>
 		/// Gets the percentage chance that this Attachable will gib when its parent does. 0 means never, 1 means always.
-		/// </summary>
-		/// <returns>A float with the percentage chance this Attachable will gib when its parent gibs.</returns>
+		/// @return A float with the percentage chance this Attachable will gib when its parent gibs.
 		float GetGibWithParentChance() const { return m_GibWithParentChance; }
 
-		/// <summary>
 		/// Sets the percentage chance that this Attachable will gib when its parent does. 0 means never, 1 means always.
-		/// </summary>
-		/// <param name="gibWithParentChance">A float describing the percentage chance this Attachable will gib when its parent gibs.</param>
+		/// @param gibWithParentChance A float describing the percentage chance this Attachable will gib when its parent gibs.
 		void SetGibWithParentChance(float gibWithParentChance) { m_GibWithParentChance = gibWithParentChance; }
 
-		/// <summary>
 		/// Gets the multiplier for how strongly this Attachable's parent's gib blast strength will be applied to it when its parent's gibs
-		/// </summary>
-		/// <returns>A float with the parent gib blast strength multiplier of this Attachable.</returns>
+		/// @return A float with the parent gib blast strength multiplier of this Attachable.
 		float GetParentGibBlastStrengthMultiplier() const { return m_ParentGibBlastStrengthMultiplier; }
 
-		/// <summary>
 		/// Sets the multiplier for how strongly this Attachable's parent's gib blast strength will be applied to it when its parent's gibs
-		/// </summary>
-		/// <param name="parentGibBlastStrengthMultiplier">A float describing the parent gib blast strength multiplier of this Attachable.</param>
+		/// @param parentGibBlastStrengthMultiplier A float describing the parent gib blast strength multiplier of this Attachable.
 		void SetParentGibBlastStrengthMultiplier(float parentGibBlastStrengthMultiplier) { m_ParentGibBlastStrengthMultiplier = parentGibBlastStrengthMultiplier; }
 #pragma endregion
 
 #pragma region Temporary Handling for Wounds, to be Replaced by a Wound Object in Future
-		/// <summary>
 		/// Gets whether or not this Attachable is a wound, as determined by its parent MOSR.
-		/// </summary>
-		/// <returns>Whether or not this Attachable is a wound.</returns>
+		/// @return Whether or not this Attachable is a wound.
 		bool IsWound() const { return m_IsWound; }
 
-		/// <summary>
 		/// Sets whether or not this Attachable is a wound, to be done by its parent MOSR.
-		/// </summary>
-		/// <param name="isWound">Whether or not this Attachable should be a wound.</param>
+		/// @param isWound Whether or not this Attachable should be a wound.
 		void SetIsWound(bool isWound) { m_IsWound = isWound; }
 #pragma endregion
 
 #pragma region Joint Getters and Setters
-		/// <summary>
 		/// Gets the amount of impulse force the joint of this Attachable can handle before breaking.
-		/// </summary>
-		/// <returns>A float with the max tolerated impulse force in kg * m/s.</returns>
+		/// @return A float with the max tolerated impulse force in kg * m/s.
 		float GetJointStrength() const { return m_JointStrength; }
 
-		/// <summary>
 		/// Sets the amount of impulse force the joint of this Attachable can handle before breaking.
-		/// </summary>
-		/// <param name="jointStrength">A float describing the max tolerated impulse force in Newtons (kg * m/s).</param>
+		/// @param jointStrength A float describing the max tolerated impulse force in Newtons (kg * m/s).
 		void SetJointStrength(float jointStrength) { m_JointStrength = jointStrength; }
 
-		/// <summary>
 		/// Gets the stiffness scalar of the joint of this Attachable, normalized between 0 and 1.0.
 		/// 1.0 means impulse forces on this attachable will be transferred to the parent with 100% strength, 0 means they will not transfer at all.
-		/// </summary>
-		/// <returns>The normalized stiffness scalar of this Attachable's joint.</returns>
+		/// @return The normalized stiffness scalar of this Attachable's joint.
 		float GetJointStiffness() const { return m_JointStiffness; }
 
-		/// <summary>
 		/// Sets the stiffness scalar of the joint of this Attachable, limited between 0 and 1.0.
 		/// 1.0 means impulse forces on this attachable will be transferred to the parent with 100% strength, 0 means they will not transfer at all.
-		/// </summary>
-		/// <param name="jointStiffness">A float describing the normalized stiffness scalar of this Attachable's joint. It will automatically be limited between 0 and 1.0.</param>
+		/// @param jointStiffness A float describing the normalized stiffness scalar of this Attachable's joint. It will automatically be limited between 0 and 1.0.
 		virtual void SetJointStiffness(float jointStiffness) { m_JointStiffness = std::clamp(jointStiffness, 0.0F, 1.0F); }
 
-		/// <summary>
 		/// Gets the offset of the joint (the point around which this Attachable and its parent hinge) from this Attachable's center of mass/origin.
-		/// </summary>
-		/// <returns>A const reference Vector describing the offset of the joint relative to this Attachable's origin/center of mass position.</returns>
+		/// @return A const reference Vector describing the offset of the joint relative to this Attachable's origin/center of mass position.
 		const Vector& GetJointOffset() const { return m_JointOffset; }
 
-		/// <summary>
 		/// Sets the offset of the joint (the point around which this Attachable and its parent hinge) from this Attachable's center of mass/origin.
-		/// </summary>
-		/// <param name="newJointOffset">A Vector describing the offset of the joint relative to the this Attachable's origin/center of mass position.</param>
+		/// @param newJointOffset A Vector describing the offset of the joint relative to the this Attachable's origin/center of mass position.
 		void SetJointOffset(const Vector& newJointOffset) { m_JointOffset = newJointOffset; }
 
-		/// <summary>
 		/// Gets the absolute position of the joint that the parent of this Attachable sets upon Update().
-		/// </summary>
-		/// <returns>A Vector describing the current absolute position of the joint.</returns>
+		/// @return A Vector describing the current absolute position of the joint.
 		const Vector& GetJointPos() const { return m_JointPos; }
 #pragma endregion
 
 #pragma region Force Transferral
-		/// <summary>
 		/// Bundles up all the accumulated forces of this Attachable and calculates how they transfer to the joint, and therefore to the parent.
 		/// If the accumulated forces exceed the joint strength of this Attachable, the jointForces Vector will be filled to the limit and false will be returned.
 		/// Additionally, in this case, the Attachable will remove itself from its parent.
-		/// </summary>
-		/// <param name="jointForces">A vector that will have the forces affecting the joint ADDED to it.</param>
-		/// <returns>False if the Attachable has no parent or its accumulated forces are greater than its joint strength, otherwise true.</returns>
+		/// @param jointForces A vector that will have the forces affecting the joint ADDED to it.
+		/// @return False if the Attachable has no parent or its accumulated forces are greater than its joint strength, otherwise true.
 		bool TransferJointForces(Vector& jointForces);
 
-		/// <summary>
 		/// Bundles up all the accumulated impulse forces of this Attachable and calculates how they transfer to the joint, and therefore to the parent.
 		/// If the accumulated impulse forces exceed the joint strength or gib impulse limit of this Attachable, the jointImpulses Vector will be filled up to that limit and false will be returned.
 		/// Additionally, in this case, the Attachable will remove itself from its parent and gib itself if appropriate.
-		/// </summary>
-		/// <param name="jointImpulses">A vector that will have the impulse forces affecting the joint ADDED to it.</param>
-		/// <param name="jointStiffnessValueToUse">An optional override for the Attachable's joint stiffness for this function call. Primarily used to allow subclasses to perform special behavior.</param>
-		/// <param name="jointStrengthValueToUse">An optional override for the Attachable's joint strength for this function call. Primarily used to allow subclasses to perform special behavior.</param>
-		/// <param name="gibImpulseLimitValueToUse">An optional override for the Attachable's gib impulse limit for this function call. Primarily used to allow subclasses to perform special behavior.</param>
-		/// <returns>False if the Attachable has no parent or its accumulated forces are greater than its joint strength or gib impulse limit, otherwise true.</returns>
+		/// @param jointImpulses A vector that will have the impulse forces affecting the joint ADDED to it.
+		/// @param jointStiffnessValueToUse An optional override for the Attachable's joint stiffness for this function call. Primarily used to allow subclasses to perform special behavior.
+		/// @param jointStrengthValueToUse An optional override for the Attachable's joint strength for this function call. Primarily used to allow subclasses to perform special behavior.
+		/// @param gibImpulseLimitValueToUse An optional override for the Attachable's gib impulse limit for this function call. Primarily used to allow subclasses to perform special behavior.
+		/// @return False if the Attachable has no parent or its accumulated forces are greater than its joint strength or gib impulse limit, otherwise true.
 		virtual bool TransferJointImpulses(Vector& jointImpulses, float jointStiffnessValueToUse = -1, float jointStrengthValueToUse = -1, float gibImpulseLimitValueToUse = -1);
 #pragma endregion
 
 #pragma region Damage and Wound Management
-		/// <summary>
 		/// Adds the specified number of damage points to this attachable.
-		/// </summary>
-		/// <param name="damageAmount">The amount of damage to add.</param>
+		/// @param damageAmount The amount of damage to add.
 		void AddDamage(float damageAmount) { m_DamageCount += damageAmount; }
 
-		/// <summary>
 		/// Calculates the amount of damage this Attachable has sustained since the last time this method was called and returns it, modified by the Attachable's damage multiplier.
 		/// This should normally be called AFTER updating this Attachable in order to get the correct damage for a given frame.
-		/// </summary>
-		/// <returns>A float with the damage accumulated, multiplied by the Attachable's damage multiplier, since the last time this method was called.</returns>
+		/// @return A float with the damage accumulated, multiplied by the Attachable's damage multiplier, since the last time this method was called.
 		float CollectDamage();
 
-		/// <summary>
 		/// Gets the AEmitter that represents the wound added to this Attachable when it gets detached from its parent. OWNERSHIP IS NOT TRANSFERRED!
-		/// </summary>
-		/// <returns>A const pointer to the break wound AEmitter.</returns>
+		/// @return A const pointer to the break wound AEmitter.
 		const AEmitter* GetBreakWound() const { return m_BreakWound; }
 
-		/// <summary>
 		/// Sets the AEmitter that represents the wound added to this Attachable when it gets detached from its parent. OWNERSHIP IS NOT TRANSFERRED!
-		/// </summary>
-		/// <param name="breakWound">The AEmitter to use for this Attachable's breakwound.</param>
+		/// @param breakWound The AEmitter to use for this Attachable's breakwound.
 		void SetBreakWound(AEmitter* breakWound) { m_BreakWound = breakWound; }
 
-		/// <summary>
 		/// Gets the AEmitter that represents the wound added to this Attachable's parent when this Attachable gets detached from its parent. OWNERSHIP IS NOT TRANSFERRED!
-		/// </summary>
-		/// <returns>A const pointer to the parent break wound AEmitter.</returns>
+		/// @return A const pointer to the parent break wound AEmitter.
 		const AEmitter* GetParentBreakWound() const { return m_ParentBreakWound; }
 
-		/// <summary>
 		/// Sets the AEmitter that represents the wound added to this Attachable's parent when this Attachable gets detached from its parent. OWNERSHIP IS NOT TRANSFERRED!
-		/// </summary>
-		/// <param name="breakWound">The AEmitter to use for the parent's breakwound.</param>
+		/// @param breakWound The AEmitter to use for the parent's breakwound.
 		void SetParentBreakWound(AEmitter* breakWound) { m_ParentBreakWound = breakWound; }
 #pragma endregion
 
 #pragma region Inherited Value Getters and Setters
-		/// <summary>
 		/// Gets whether or not this Attachable inherits its parent's HFlipped value, i.e. whether it has its HFlipped value reset to match/reverse its parent's every frame, if attached.
 		/// 0 means no inheritance, 1 means normal inheritance, anything else means reversed inheritance (i.e. if the parent's HFlipped value is true, this Attachable's HFlipped value will be false).
-		/// </summary>
-		/// <returns>Whether or not this Attachable inherits its parent's HFlipped value.</returns>
+		/// @return Whether or not this Attachable inherits its parent's HFlipped value.
 		int InheritsHFlipped() const { return m_InheritsHFlipped; }
 
-		/// <summary>
 		/// Sets whether or not this Attachable inherits its parent's HFlipped value, i.e. whether it has its HFlipped value reset to match/reverse its parent's every frame, if attached.
 		/// 0 means no inheritance, 1 means normal inheritance, anything else means reversed inheritance (i.e. if the parent's HFlipped value is true, this Attachable's HFlipped value will be false).
-		/// </summary>
-		/// <param name="inheritsRotAngle">Whether or not to inherit its parent's HFlipped value.</param>
+		/// @param inheritsRotAngle Whether or not to inherit its parent's HFlipped value.
 		void SetInheritsHFlipped(int inheritsHFlipped) { m_InheritsHFlipped = inheritsHFlipped; }
 
-		/// <summary>
 		/// Gets whether or not this Attachable inherits its RotAngle from its parent, i.e. whether it has its RotAngle reset to match its parent every frame, if attached.
-		/// </summary>
-		/// <returns>Whether or not this Attachable inherits its parent's RotAngle.</returns>
+		/// @return Whether or not this Attachable inherits its parent's RotAngle.
 		bool InheritsRotAngle() const { return m_InheritsRotAngle; }
 
-		/// <summary>
 		/// Sets whether or not this Attachable inherits its RotAngle from its parent, i.e. whether it has its RotAngle reset to match its parent every frame, if attached.
-		/// </summary>
-		/// <param name="inheritsRotAngle">Whether or not to inherit its parent's RotAngle.</param>
+		/// @param inheritsRotAngle Whether or not to inherit its parent's RotAngle.
 		void SetInheritsRotAngle(bool inheritsRotAngle) { m_InheritsRotAngle = inheritsRotAngle; }
 
-		/// <summary>
 		/// Gets the offset of this Attachable's rotation angle from its parent. Only actually applied if the Attachable is set to inherit its parent's rotation angle.
-		/// </summary>
-		/// <returns>This Attachable's inherited rotation angle offset.</returns>
+		/// @return This Attachable's inherited rotation angle offset.
 		float GetInheritedRotAngleOffset() const { return m_InheritedRotAngleOffset; }
 
-		/// <summary>
 		/// Sets the offset of this Attachable's rotation angle from its parent. Only actually applied if the Attachable is set to inherit its parent's rotation angle.
-		/// </summary>
-		/// <param name="inheritedRotAngleOffset">Thee new rotation angle offset for this Attachable.</param>
+		/// @param inheritedRotAngleOffset Thee new rotation angle offset for this Attachable.
 		void SetInheritedRotAngleOffset(float inheritedRotAngleOffset) { m_InheritedRotAngleOffset = inheritedRotAngleOffset; }
 
-		/// <summary>
 		/// Gets whether or not this Attachable inherits its Frame from its parent, if attached.
-		/// </summary>
-		/// <returns>Whether or not this Attachable inherits its parent's Frame.</returns>
+		/// @return Whether or not this Attachable inherits its parent's Frame.
 		bool InheritsFrame() const { return m_InheritsFrame; }
 
-		/// <summary>
 		/// Sets whether or not this Attachable inherits its Frame from its parent, if attached.
-		/// </summary>
-		/// <param name="inheritsFrame">Whether or not to inherit its parent's Frame.</param>
+		/// @param inheritsFrame Whether or not to inherit its parent's Frame.
 		void SetInheritsFrame(bool inheritsFrame) { m_InheritsFrame = inheritsFrame; }
 #pragma endregion
 
 #pragma region Collision Management
-		/// <summary>
 		/// Gets the subgroup ID of this' Atoms.
-		/// </summary>
-		/// <returns>The subgroup ID of this' Atoms.</returns>
+		/// @return The subgroup ID of this' Atoms.
 		long GetAtomSubgroupID() const { return m_AtomSubgroupID; }
 
-		/// <summary>
 		/// Sets the subgroup ID of this' Atoms
-		/// </summary>
-		/// <param name="newID">A long describing the new subgroup id of this' Atoms.</param>
+		/// @param newID A long describing the new subgroup id of this' Atoms.
 		void SetAtomSubgroupID(long subgroupID = 0) { m_AtomSubgroupID = subgroupID; }
 
-		/// <summary>
 		/// Gets whether this Attachable currently has terrain collisions enabled and it's atoms are present in the parent AtomGroup.
 		/// Attachables with Attachable parents that don't collide with terrain will not collide with terrain. This chains up to the root parent.
-		/// </summary>
-		/// <return>If true, terrain collisions while attached are enabled and atoms are present in parent AtomGroup.</return>
+		/// @return If true, terrain collisions while attached are enabled and atoms are present in parent AtomGroup.
 		bool GetCollidesWithTerrainWhileAttached() const { return m_CollidesWithTerrainWhileAttached; }
 
-		/// <summary>
 		/// Sets whether this Attachable currently has terrain collisions enabled and it's atoms are present in the parent AtomGroup.
-		/// </summary>
-		/// <param name="collidesWithTerrainWhileAttached">Whether this attachable currently has terrain collisions enabled and it's atoms are present in the parent AtomGroup.</param>
+		/// @param collidesWithTerrainWhileAttached Whether this attachable currently has terrain collisions enabled and it's atoms are present in the parent AtomGroup.
 		void SetCollidesWithTerrainWhileAttached(bool collidesWithTerrainWhileAttached);
 
-		/// <summary>
 		/// Gets whether this Attachable is currently able to collide with terrain, taking into account its terrain collision settings and those of its parent and so on.
-		/// </summary>
-		/// <returns>Whether this Attachable is currently able to collide with terrain, taking into account its terrain collision settings and those of its parent and so on.</returns>
+		/// @return Whether this Attachable is currently able to collide with terrain, taking into account its terrain collision settings and those of its parent and so on.
 		bool CanCollideWithTerrain() const;
 
-		/// <summary>
 		/// Gets whether this Attachable currently ignores collisions with single-atom particles.
-		/// </summary>
-		/// <return>>Whether this attachable ignores collisions with single-atom particles.</return>
+		/// @return >Whether this attachable ignores collisions with single-atom particles.
 		bool GetIgnoresParticlesWhileAttached() const { return m_IgnoresParticlesWhileAttached; }
 
-		/// <summary>
 		/// Sets whether this Attachable currently ignores collisions with single-atom particles.
-		/// </summary>
-		/// <param name="collidesWithTerrainWhileAttached">Whether this attachable ignores collisions with single-atom particles.</param>
+		/// @param collidesWithTerrainWhileAttached Whether this attachable ignores collisions with single-atom particles.
 		void SetIgnoresParticlesWhileAttached(bool ignoresParticlesWhileAttached) { m_IgnoresParticlesWhileAttached = ignoresParticlesWhileAttached; }
 #pragma endregion
 
 #pragma region Override Methods
-		/// <summary>
 		/// Calculates the collision response when another MO's Atom collides with this MO's physical representation.
 		/// The effects will be applied directly to this MO, and also represented in the passed in HitData.
-		/// </summary>
-		/// <param name="hitData">Reference to the HitData struct which describes the collision. This will be modified to represent the results of the collision.</param>
-		/// <returns>Whether the collision has been deemed valid. If false, then disregard any impulses in the HitData.</returns>
+		/// @param hitData Reference to the HitData struct which describes the collision. This will be modified to represent the results of the collision.
+		/// @return Whether the collision has been deemed valid. If false, then disregard any impulses in the HitData.
 		bool CollideAtPoint(HitData& hitData) override;
 
-		/// <summary>
 		/// Determines whether a particle which has hit this MO will penetrate, and if so, whether it gets lodged or exits on the other side of this MO.
 		/// Appropriate effects will be determined and applied ONLY IF there was penetration! If not, nothing will be affected.
-		/// </summary>
-		/// <param name="hitData">The HitData describing the collision in detail, the impulses have to have been filled out!</param>
-		/// <returns>
+		/// @param hitData The HitData describing the collision in detail, the impulses have to have been filled out!
+		/// @return
 		/// Whether the particle managed to penetrate into this MO or not.
 		/// If something other than an MOPixel or MOSParticle is being passed in as the hitor, false will trivially be returned here.
-		/// </returns>
 		bool ParticlePenetration(HitData& hitData) override;
 
-		/// <summary>
 		/// Destroys this Attachable and creates its specified Gibs in its place with appropriate velocities.
 		/// Any Attachables are removed and also given appropriate velocities.
-		/// </summary>
-		/// <param name="impactImpulse">The impulse (kg * m/s) of the impact causing the gibbing to happen.</param>
-		/// <param name="movableObjectToIgnore">A pointer to an MO which the Gibs and Attachables should not be colliding with.</param>
+		/// @param impactImpulse The impulse (kg * m/s) of the impact causing the gibbing to happen.
+		/// @param movableObjectToIgnore A pointer to an MO which the Gibs and Attachables should not be colliding with.
 		void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr) override;
 
-		/// <summary>
 		/// Checks if the given Attachable should affect radius, and handles it if it should.
-		/// </summary>
-		/// <param name="attachable">The Attachable to check.</param>
-		/// <returns>Whether the radius affecting Attachable changed as a result of this call.</returns>
+		/// @param attachable The Attachable to check.
+		/// @return Whether the radius affecting Attachable changed as a result of this call.
 		bool HandlePotentialRadiusAffectingAttachable(const Attachable* attachable) override;
 
-		/// <summary>
 		/// Updates this Attachable's Lua scripts.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int UpdateScripts() override;
 
-		/// <summary>
 		/// Updates this Attachable. Supposed to be done every frame.
 		///	NOTE - Attachable subclasses that do things before calling Attachable::Update should make sure to call Attachable::PreUpdate.
-		/// </summary>
 		void Update() override;
 #pragma endregion
 
-		/// <summary>
 		/// Pre-update method that should be run by all Attachable sub-classes that do things before calling Attachable::Update.
-		/// </summary>
 		void PreUpdate();
 
 #pragma region Override Methods for Handling Mass
-		/// <summary>
 		/// Sets the mass of this Attachable.
-		/// </summary>
-		/// <param name="newMass">A float specifying the new mass value in Kilograms (kg).</param>
+		/// @param newMass A float specifying the new mass value in Kilograms (kg).
 		void SetMass(const float newMass) final;
 
-		/// <summary>
 		/// Updates the total mass of Attachables and wounds for this Attachable, intended to be used when Attachables' masses get modified. Simply subtracts the old mass and adds the new one.
-		/// </summary>
-		/// <param name="oldAttachableOrWoundMass">The mass the Attachable or wound had before its mass was modified.</param>
-		/// <param name="newAttachableOrWoundMass">The up-to-date mass of the Attachable or wound after its mass was modified.</param>
+		/// @param oldAttachableOrWoundMass The mass the Attachable or wound had before its mass was modified.
+		/// @param newAttachableOrWoundMass The up-to-date mass of the Attachable or wound after its mass was modified.
 		void UpdateAttachableAndWoundMass(float oldAttachableOrWoundMass, float newAttachableOrWoundMass) final;
 
-		/// <summary>
 		/// Adds the passed in Attachable the list of Attachables and sets its parent to this Attachable.
-		/// </summary>
-		/// <param name="attachable">The Attachable to add.</param>
+		/// @param attachable The Attachable to add.
 		void AddAttachable(Attachable* attachable) final { MOSRotating::AddAttachable(attachable); }
 
-		/// <summary>
 		/// Adds the passed in Attachable the list of Attachables, changes its parent offset to the passed in Vector, and sets its parent to this Attachable.
-		/// </summary>
-		/// <param name="attachable">The Attachable to add.</param>
-		/// <param name="parentOffsetToSet">The Vector to set as the Attachable's parent offset.</param>
+		/// @param attachable The Attachable to add.
+		/// @param parentOffsetToSet The Vector to set as the Attachable's parent offset.
 		void AddAttachable(Attachable* attachable, const Vector& parentOffsetToSet) final;
 
-		/// <summary>
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
-		/// </summary>
-		/// <param name="attachableUniqueID">The UniqueID of the Attachable to remove.</param>
-		/// <returns>A pointer to the removed Attachable. Ownership IS transferred!</returns>
+		/// @param attachableUniqueID The UniqueID of the Attachable to remove.
+		/// @return A pointer to the removed Attachable. Ownership IS transferred!
 		Attachable* RemoveAttachable(long attachableUniqueID) final { return MOSRotating::RemoveAttachable(attachableUniqueID); }
 
-		/// <summary>
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Optionally adds it to MovableMan and/or adds break wounds.
 		/// If the Attachable is not set to delete or delete when removed from its parent, and addToMovableMan is false, the caller must hang onto a pointer to the Attachable ahead of time to avoid memory leaks.
-		/// </summary>
-		/// <param name="attachableUniqueID">The UniqueID of the Attachable to remove.</param>
-		/// <param name="addToMovableMan">Whether or not to add the Attachable to MovableMan once it has been removed.</param>
-		/// <param name="addBreakWounds">Whether or not to add break wounds to the removed Attachable and this Attachable.</param>
-		/// <returns>A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!</returns>
+		/// @param attachableUniqueID The UniqueID of the Attachable to remove.
+		/// @param addToMovableMan Whether or not to add the Attachable to MovableMan once it has been removed.
+		/// @param addBreakWounds Whether or not to add break wounds to the removed Attachable and this Attachable.
+		/// @return A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!
 		Attachable* RemoveAttachable(long attachableUniqueID, bool addToMovableMan, bool addBreakWounds) final { return MOSRotating::RemoveAttachable(attachableUniqueID, addToMovableMan, addBreakWounds); }
 
-		/// <summary>
 		/// Removes the passed in Attachable and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
-		/// </summary>
-		/// <param name="attachable">The Attachable to remove.</param>
-		/// <returns>A pointer to the removed Attachable. Ownership IS transferred!</returns>
+		/// @param attachable The Attachable to remove.
+		/// @return A pointer to the removed Attachable. Ownership IS transferred!
 		Attachable* RemoveAttachable(Attachable* attachable) final { return MOSRotating::RemoveAttachable(attachable); }
 
-		/// <summary>
 		/// Removes the passed in Attachable and sets its parent to nullptr. Optionally adds it to MovableMan and/or adds break wounds.
 		/// If the Attachable is not set to delete or delete when removed from its parent, and addToMovableMan is false, the caller must hang onto a pointer to the Attachable ahead of time to avoid memory leaks.
-		/// </summary>
-		/// <param name="attachable">The Attachable to remove.</param>
-		/// <param name="addToMovableMan">Whether or not to add the Attachable to MovableMan once it has been removed.</param>
-		/// <param name="addBreakWounds">Whether or not to add break wounds to the removed Attachable and this Attachable.</param>
-		/// <returns>A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!</returns>
+		/// @param attachable The Attachable to remove.
+		/// @param addToMovableMan Whether or not to add the Attachable to MovableMan once it has been removed.
+		/// @param addBreakWounds Whether or not to add break wounds to the removed Attachable and this Attachable.
+		/// @return A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!
 		Attachable* RemoveAttachable(Attachable* attachable, bool addToMovableMan, bool addBreakWounds) final;
 
-		/// <summary>
 		/// Adds the passed in wound AEmitter to the list of wounds and changes its parent offset to the passed in Vector.
-		/// </summary>
-		/// <param name="woundToAdd">The wound AEmitter to add.</param>
-		/// <param name="parentOffsetToSet">The vector to set as the wound AEmitter's parent offset.</param>
-		/// <param name="checkGibWoundLimit">Whether to gib this Attachable if adding this wound raises its wound count past its gib wound limit. Defaults to true.</param>
+		/// @param woundToAdd The wound AEmitter to add.
+		/// @param parentOffsetToSet The vector to set as the wound AEmitter's parent offset.
+		/// @param checkGibWoundLimit Whether to gib this Attachable if adding this wound raises its wound count past its gib wound limit. Defaults to true.
 		void AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit = true) final;
 
-		/// <summary>
 		/// Removes the specified number of wounds from this Attachable, and returns damage caused by these removed wounds.
 		/// Includes any Attachables (and their Attachables, etc.) that have a positive damage multiplier.
-		/// </summary>
-		/// <param name="numberOfWoundsToRemove">The number of wounds that should be removed.</param>
-		/// <returns>The amount of damage caused by these wounds, taking damage multipliers into account.</returns>
+		/// @param numberOfWoundsToRemove The number of wounds that should be removed.
+		/// @return The amount of damage caused by these wounds, taking damage multipliers into account.
 		float RemoveWounds(int numberOfWoundsToRemove) final { return MOSRotating::RemoveWounds(numberOfWoundsToRemove); }
 
-		/// <summary>
 		/// Removes the specified number of wounds from this Attachable, and returns damage caused by these removed wounds.
 		/// Optionally removes wounds from Attachables (and their Attachables, etc.) that match the conditions set by the provided inclusion parameters.
-		/// </summary>
-		/// <param name="numberOfWoundsToRemove">The number of wounds that should be removed.</param>
-		/// <param name="includePositiveDamageAttachables">Whether to count wounds from Attachables that have a positive damage multiplier, i.e. those that damage their parent (this Attachable) when wounded.</param>
-		/// <param name="includeNegativeDamageAttachables">Whether to count wounds from Attachables that have a negative damage multiplier, i.e. those that heal their parent (this Attachable) when wounded.</param>
-		/// <param name="includeNoDamageAttachables">Whether to count wounds from Attachables that a zero damage multiplier, i.e. those that do not affect their parent (this Attachable) when wounded.</param>
-		/// <returns>The amount of damage caused by these wounds, taking damage multipliers into account.</returns>
+		/// @param numberOfWoundsToRemove The number of wounds that should be removed.
+		/// @param includePositiveDamageAttachables Whether to count wounds from Attachables that have a positive damage multiplier, i.e. those that damage their parent (this Attachable) when wounded.
+		/// @param includeNegativeDamageAttachables Whether to count wounds from Attachables that have a negative damage multiplier, i.e. those that heal their parent (this Attachable) when wounded.
+		/// @param includeNoDamageAttachables Whether to count wounds from Attachables that a zero damage multiplier, i.e. those that do not affect their parent (this Attachable) when wounded.
+		/// @return The amount of damage caused by these wounds, taking damage multipliers into account.
 		float RemoveWounds(int numberOfWoundsToRemove, bool includeAttachablesWithAPositiveDamageMultiplier, bool includeAttachablesWithANegativeDamageMultiplier, bool includeAttachablesWithNoDamageMultiplier) override;
 #pragma endregion
 
@@ -608,37 +449,27 @@ namespace RTE {
 		float m_PrevRotAngleOffset; //!< The previous frame's difference between this Attachable's RotAngle and it's root parent's RotAngle.
 		bool m_PreUpdateHasRunThisFrame; //!< Whether or not PreUpdate has run this frame. PreUpdate, like Update, should only run once per frame.
 
-		/// <summary>
 		/// Sets this Attachable's parent MOSRotating, and also sets its Team based on its parent and, if the Attachable is set to collide, adds/removes Atoms to its new/old parent.
-		/// </summary>
-		/// <param name="newParent">A pointer to the MOSRotating to set as the new parent. Ownership is NOT transferred!</param>
+		/// @param newParent A pointer to the MOSRotating to set as the new parent. Ownership is NOT transferred!
 		virtual void SetParent(MOSRotating* newParent);
 
 	private:
-		/// <summary>
 		/// Updates the position of this Attachable based on its parent offset and joint offset. Used during update and when something sets these offsets through setters.
-		/// </summary>
-		/// <param name="newAdded">Whether this attachable was just added to it's parent.</param>
+		/// @param newAdded Whether this attachable was just added to it's parent.
 		void UpdatePositionAndJointPositionBasedOnOffsets(bool newAdded = false);
 
-		/// <summary>
 		/// Turns on/off this Attachable's terrain collisions while it is attached by adding/removing its Atoms to/from its root parent's AtomGroup.
-		/// </summary>
-		/// <param name="addAtoms">Whether to add this Attachable's Atoms to the root parent's AtomGroup or remove them.</param>
-		/// <param name="propagateToChildAttachables">Whether this Atom addition or removal should be propagated to any child Attachables (as appropriate).</param>
+		/// @param addAtoms Whether to add this Attachable's Atoms to the root parent's AtomGroup or remove them.
+		/// @param propagateToChildAttachables Whether this Atom addition or removal should be propagated to any child Attachables (as appropriate).
 		void AddOrRemoveAtomsFromRootParentAtomGroup(bool addAtoms, bool propagateToChildAttachables);
 
-		/// <summary>
 		/// Add or removes this Attachable's PieSlices and PieMenu listeners, as well as those of any of its child Attachables, from the given PieMenu (should be the root parent's PieMenu).
 		/// Note that listeners are only added for Attachables that have at least one script file with the appropriate Lua function.
-		/// </summary>
-		/// <param name="pieMenuToModify">The PieMenu to modify, passed in to keep the recursion simple and clean.</param>
-		/// <param name="addToPieMenu">Whether to add this Attachable's PieSlices and listeners to, or remove them from, the root parent's PieMenu.</param>
+		/// @param pieMenuToModify The PieMenu to modify, passed in to keep the recursion simple and clean.
+		/// @param addToPieMenu Whether to add this Attachable's PieSlices and listeners to, or remove them from, the root parent's PieMenu.
 		void AddOrRemovePieSlicesAndListenersFromPieMenu(PieMenu* pieMenuToModify, bool addToPieMenu);
 
-		/// <summary>
 		/// Clears all the member variables of this Attachable, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

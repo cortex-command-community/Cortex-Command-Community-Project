@@ -13,8 +13,6 @@ namespace RTE {
 	thread_local std::array<uint64_t, PerformanceMan::PerformanceCounters::PerfCounterCount> s_PerfMeasureStart; //!< Current measurement start time in microseconds.
 	thread_local std::array<uint64_t, PerformanceMan::PerformanceCounters::PerfCounterCount> s_PerfMeasureStop; //!< Current measurement stop time in microseconds.
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PerformanceMan::Clear() {
 		m_ShowPerfStats = false;
 		m_AdvancedPerfStats = true;
@@ -29,8 +27,6 @@ namespace RTE {
 		m_CurrentPing = 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PerformanceMan::Initialize() {
 		m_SimUpdateTimer = std::make_unique<Timer>();
 
@@ -42,20 +38,14 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PerformanceMan::StartPerformanceMeasurement(PerformanceCounters counter) {
 		s_PerfMeasureStart[counter] = g_TimerMan.GetAbsoluteTime();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::StopPerformanceMeasurement(PerformanceCounters counter) {
 		s_PerfMeasureStop[counter] = g_TimerMan.GetAbsoluteTime();
 		AddPerformanceSample(counter, s_PerfMeasureStop[counter] - s_PerfMeasureStart[counter]);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::NewPerformanceSample() {
 		m_Sample++;
@@ -69,16 +59,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PerformanceMan::CalculateSamplePercentages() {
 		for (int counter = 0; counter < PerformanceCounters::PerfCounterCount; ++counter) {
 			int samplePercentage = static_cast<int>(static_cast<float>(m_PerfData[counter][m_Sample]) / static_cast<float>(m_PerfData[counter][PerformanceCounters::SimTotal]) * 100);
 			m_PerfPercentages[counter][m_Sample] = samplePercentage;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	uint64_t PerformanceMan::GetPerformanceCounterAverage(PerformanceCounters counter) const {
 		uint64_t totalPerformanceMeasurement = 0;
@@ -92,8 +78,6 @@ namespace RTE {
 		}
 		return totalPerformanceMeasurement / c_Average;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::CalculateTimeAverage(std::deque<float>& timeMeasurements, std::atomic<float>& avgResult, float newTimeMeasurement) const {
 		static std::mutex mut;
@@ -112,25 +96,17 @@ namespace RTE {
 		avgResult = averageTime;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PerformanceMan::UpdateMSPU(long long measuredUpdateTime) {
 		CalculateTimeAverage(m_MSPUs, m_MSPUAverage, static_cast<float>(measuredUpdateTime / 1000));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::UpdateMSPD(long long measuredDrawTime) {
 		CalculateTimeAverage(m_MSPDs, m_MSPDAverage, static_cast<float>(measuredDrawTime / 1000));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PerformanceMan::UpdateMSPF(long long measuredFrameTime) {
 		CalculateTimeAverage(m_MSPFs, m_MSPFAverage, static_cast<float>(measuredFrameTime / 1000));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::Draw(BITMAP* bitmapToDrawTo) {
 		if (m_ShowPerfStats) {
@@ -192,8 +168,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PerformanceMan::DrawPeformanceGraphs(AllegroBitmap& bitmapToDrawTo) {
 		CalculateSamplePercentages();
 
@@ -244,14 +218,10 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PerformanceMan::DrawCurrentPing() const {
 		AllegroBitmap allegroBitmap(g_FrameMan.GetBackBuffer8());
 		g_FrameMan.GetLargeFont()->DrawAligned(&allegroBitmap, g_FrameMan.GetBackBuffer8()->w - 25, g_FrameMan.GetBackBuffer8()->h - 14, "PING: " + std::to_string(m_CurrentPing), GUIFont::Right);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::UpdateSortedScriptTimings(const std::unordered_map<std::string, ScriptTiming>& scriptTimings) {
 		std::vector<std::pair<std::string, ScriptTiming>> sortedScriptTimings;

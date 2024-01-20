@@ -1,13 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MultiplayerServerLobby.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:
-// Project:         Retro Terrain Engine
-// Author(s):
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MultiplayerServerLobby.h"
 
 #include "PresetMan.h"
@@ -43,12 +33,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(MultiplayerServerLobby, Activity, 0);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this MultiplayerServerLobby, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void MultiplayerServerLobby::Clear() {
 		// m_pEditorGUI = 0;
@@ -103,22 +87,12 @@ namespace RTE {
 		m_pUIDrawBitmap = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MultiplayerServerLobby object ready for use.
-
 	int MultiplayerServerLobby::Create() {
 		if (Activity::Create() < 0)
 			return -1;
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MultiplayerServerLobby to be identical to another, by deep copy.
 
 	int MultiplayerServerLobby::Create(const MultiplayerServerLobby& reference) {
 		if (Activity::Create(reference) < 0)
@@ -130,33 +104,14 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int MultiplayerServerLobby::ReadProperty(const std::string_view& propName, Reader& reader) {
 		return Activity::ReadProperty(propName, reader);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this MultiplayerServerLobby with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int MultiplayerServerLobby::Save(Writer& writer) const {
 		Activity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the MultiplayerServerLobby object.
 
 	void MultiplayerServerLobby::Destroy(bool notInherited) {
 		delete m_pGUIController;
@@ -174,12 +129,6 @@ namespace RTE {
 			Activity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int MultiplayerServerLobby::Start() {
 		int error = GameActivity::Start();
@@ -1023,13 +972,6 @@ namespace RTE {
 
 		UpdateInput();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          UpdateInput
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the user input processing.
-	// Arguments:       None.
-	// Return value:    None.
 
 	void MultiplayerServerLobby::UpdateInput() {
 		// Move the dialog to the center of the player 0 screen so it could operate in absoute mouse coordintaes of the player 0 screen

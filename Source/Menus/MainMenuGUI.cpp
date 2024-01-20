@@ -20,8 +20,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::Clear() {
 		m_RootBoxMaxWidth = 0;
 
@@ -53,8 +51,6 @@ namespace RTE {
 		m_MainScreenHoveredButton = nullptr;
 		m_MainScreenPrevHoveredButtonIndex = 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
 		m_MainMenuScreenGUIControlManager = std::make_unique<GUIControlManager>();
@@ -90,8 +86,6 @@ namespace RTE {
 		SetActiveMenuScreen(g_WindowMan.ResolutionChanged() ? MenuScreen::SettingsScreen : MenuScreen::MainScreen, false);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::CreateMainScreen() {
 		m_MainMenuScreens[MenuScreen::MainScreen] = dynamic_cast<GUICollectionBox*>(m_MainMenuScreenGUIControlManager->GetControl("MainScreen"));
 		m_MainMenuScreens[MenuScreen::MainScreen]->CenterInParent(true, false);
@@ -123,8 +117,6 @@ namespace RTE {
 		m_VersionLabel->SetPositionAbs(10, g_WindowMan.GetResY() - m_VersionLabel->GetTextHeight() - 5);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::CreateMetaGameNoticeScreen() {
 		m_MainMenuScreens[MenuScreen::MetaGameNoticeScreen] = dynamic_cast<GUICollectionBox*>(m_SubMenuScreenGUIControlManager->GetControl("MetaScreen"));
 		m_MainMenuScreens[MenuScreen::MetaGameNoticeScreen]->CenterInParent(true, false);
@@ -132,8 +124,6 @@ namespace RTE {
 		m_MainMenuButtons[MenuButton::PlayTutorialButton] = dynamic_cast<GUIButton*>(m_SubMenuScreenGUIControlManager->GetControl("ButtonTutorial"));
 		m_MainMenuButtons[MenuButton::MetaGameContinueButton] = dynamic_cast<GUIButton*>(m_SubMenuScreenGUIControlManager->GetControl("ButtonContinue"));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::CreateEditorsScreen() {
 		m_MainMenuScreens[MenuScreen::EditorScreen] = dynamic_cast<GUICollectionBox*>(m_SubMenuScreenGUIControlManager->GetControl("EditorScreen"));
@@ -145,8 +135,6 @@ namespace RTE {
 		m_MainMenuButtons[MenuButton::GibEditorButton] = dynamic_cast<GUIButton*>(m_SubMenuScreenGUIControlManager->GetControl("ButtonGibPlacement"));
 		m_MainMenuButtons[MenuButton::ActorEditorButton] = dynamic_cast<GUIButton*>(m_SubMenuScreenGUIControlManager->GetControl("ButtonActorEditor"));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::CreateCreditsScreen() {
 		m_MainMenuScreens[MenuScreen::CreditsScreen] = dynamic_cast<GUICollectionBox*>(m_SubMenuScreenGUIControlManager->GetControl("CreditsScreen"));
@@ -173,8 +161,6 @@ namespace RTE {
 		m_CreditsTextLabel->ResizeHeightToFit();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::CreateQuitScreen() {
 		m_MainMenuScreens[MenuScreen::QuitScreen] = dynamic_cast<GUICollectionBox*>(m_SubMenuScreenGUIControlManager->GetControl("QuitConfirmBox"));
 		m_MainMenuScreens[MenuScreen::QuitScreen]->CenterInParent(true, false);
@@ -182,8 +168,6 @@ namespace RTE {
 		m_MainMenuButtons[MenuButton::QuitConfirmButton] = dynamic_cast<GUIButton*>(m_SubMenuScreenGUIControlManager->GetControl("QuitConfirmButton"));
 		m_MainMenuButtons[MenuButton::QuitCancelButton] = dynamic_cast<GUIButton*>(m_SubMenuScreenGUIControlManager->GetControl("QuitCancelButton"));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::HideAllScreens() {
 		for (GUICollectionBox* menuScreen: m_MainMenuScreens) {
@@ -193,8 +177,6 @@ namespace RTE {
 		}
 		m_MenuScreenChange = true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::SetActiveMenuScreen(MenuScreen screenToShow, bool playButtonPressSound) {
 		if (screenToShow != m_ActiveMenuScreen) {
@@ -213,8 +195,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::ShowMainScreen() {
 		m_VersionLabel->SetVisible(true);
 
@@ -226,8 +206,6 @@ namespace RTE {
 
 		m_MenuScreenChange = false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::ShowMetaGameNoticeScreen() {
 		m_MainMenuScreens[MenuScreen::MetaGameNoticeScreen]->SetVisible(true);
@@ -252,8 +230,6 @@ namespace RTE {
 		m_MenuScreenChange = false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::ShowEditorsScreen() {
 		m_MainMenuScreens[MenuScreen::EditorScreen]->SetVisible(true);
 		m_MainMenuScreens[MenuScreen::EditorScreen]->GUIPanel::AddChild(m_MainMenuButtons[MenuButton::BackToMainButton]);
@@ -263,8 +239,6 @@ namespace RTE {
 
 		m_MenuScreenChange = false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::ShowCreditsScreen() {
 		m_MainMenuScreens[MenuScreen::CreditsScreen]->SetVisible(true);
@@ -281,8 +255,6 @@ namespace RTE {
 		m_MenuScreenChange = false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::ShowQuitScreenOrQuit() {
 		if (m_ActiveMenuScreen != MenuScreen::QuitScreen && g_ActivityMan.GetActivity() && (g_ActivityMan.GetActivity()->GetActivityState() == Activity::Running || g_ActivityMan.GetActivity()->GetActivityState() == Activity::Editing)) {
 			SetActiveMenuScreen(MenuScreen::QuitScreen);
@@ -292,8 +264,6 @@ namespace RTE {
 			m_UpdateResult = MainMenuUpdateResult::Quit;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::ShowAndBlinkResumeButton() {
 		if (!m_MainMenuButtons[MenuButton::ResumeButton]->GetVisible()) {
@@ -311,8 +281,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool MainMenuGUI::RollCredits() {
 		int scrollDuration = m_CreditsTextLabel->GetHeight() * 50;
 		float scrollDist = static_cast<float>(m_CreditsScrollPanel->GetHeight() + m_CreditsTextLabel->GetHeight());
@@ -324,8 +292,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MainMenuGUI::MainMenuUpdateResult MainMenuGUI::Update() {
 		m_UpdateResult = MainMenuUpdateResult::NoEvent;
@@ -387,8 +353,6 @@ namespace RTE {
 		return m_UpdateResult;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::HandleBackNavigation(bool backButtonPressed) {
 		if ((!m_ActiveDialogBox || m_ActiveDialogBox == m_MainMenuScreens[MenuScreen::QuitScreen]) && (backButtonPressed || g_UInputMan.KeyPressed(SDLK_ESCAPE))) {
 			if (m_ActiveMenuScreen != MenuScreen::MainScreen) {
@@ -410,8 +374,6 @@ namespace RTE {
 			m_SettingsMenu->CloseActiveDialogBox();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MainMenuGUI::HandleInputEvents() {
 		if (m_ActiveMenuScreen == MenuScreen::MainScreen) {
@@ -451,8 +413,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::HandleMainScreenInputEvents(const GUIControl* guiEventControl) {
 		if (guiEventControl == m_MainMenuButtons[MenuButton::MetaGameButton]) {
 			if (!m_MetaGameNoticeShown) {
@@ -486,8 +446,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::HandleMetaGameNoticeScreenInputEvents(const GUIControl* guiEventControl) {
 		if (guiEventControl == m_MainMenuButtons[MenuButton::PlayTutorialButton]) {
 			m_UpdateResult = MainMenuUpdateResult::ActivityStarted;
@@ -497,8 +455,6 @@ namespace RTE {
 			SetActiveMenuScreen(MenuScreen::MainScreen);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::HandleEditorsScreenInputEvents(const GUIControl* guiEventControl) {
 		std::string editorToStart;
@@ -521,8 +477,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MainMenuGUI::HandleQuitScreenInputEvents(const GUIControl* guiEventControl) {
 		if (guiEventControl == m_MainMenuButtons[MenuButton::QuitConfirmButton]) {
 			m_UpdateResult = MainMenuUpdateResult::Quit;
@@ -531,8 +485,6 @@ namespace RTE {
 			SetActiveMenuScreen(MenuScreen::MainScreen);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::UpdateMainScreenHoveredButton(const GUIButton* hoveredButton) {
 		int hoveredButtonIndex = -1;
@@ -553,8 +505,6 @@ namespace RTE {
 			m_MainScreenHoveredButton = nullptr;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MainMenuGUI::Draw() {
 		// Early return to avoid single frame flicker when title screen goes into transition from the meta notice screen to meta config screen.

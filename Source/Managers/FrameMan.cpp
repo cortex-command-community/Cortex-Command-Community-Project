@@ -45,8 +45,6 @@ namespace RTE {
 	    nullptr // Transparency does not rely on the blender setting, it creates a map with the dedicated function instead of with the generic one.
 	};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void FrameMan::Clear() {
 		m_HSplit = false;
 		m_VSplit = false;
@@ -94,8 +92,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int FrameMan::Initialize() {
 		set_color_depth(c_BPP);
 		// Sets the allowed color conversions when loading bitmaps from files
@@ -121,8 +117,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int FrameMan::CreateBackBuffers() {
 		int resX = g_WindowMan.GetResX();
@@ -175,8 +169,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void FrameMan::CreatePresetColorTables() {
 		// Create RGB lookup table that supposedly speeds up calculation of other color tables.
 		create_rgb_table(&m_RGBTable, m_DefaultPalette, nullptr);
@@ -195,8 +187,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void FrameMan::Destroy() {
 		for (const GUIScreen* guiScreen: m_GUIScreens) {
 			delete guiScreen;
@@ -209,8 +199,6 @@ namespace RTE {
 		}
 		Clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void FrameMan::Update() {
 		// Remove all scheduled primitives, those will be re-added by updates from other entities.
@@ -253,8 +241,6 @@ namespace RTE {
 		// g_MovableMan.DrawHUD(nullptr, targetPos, playerScreen);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 		if (m_PlayerScreen) {
 			release_bitmap(m_PlayerScreen.get());
@@ -287,8 +273,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Vector FrameMan::GetMiddleOfPlayerScreen(int whichPlayer) {
 		Vector middleOfPlayerScreen;
 
@@ -307,8 +291,6 @@ namespace RTE {
 		}
 		return middleOfPlayerScreen;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int FrameMan::GetPlayerFrameBufferWidth(int whichPlayer) const {
 		if (IsInMultiplayerMode()) {
@@ -329,8 +311,6 @@ namespace RTE {
 		return m_PlayerScreenWidth;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int FrameMan::GetPlayerFrameBufferHeight(int whichPlayer) const {
 		if (IsInMultiplayerMode()) {
 			if (whichPlayer < 0 || whichPlayer >= c_MaxScreenCount) {
@@ -350,13 +330,9 @@ namespace RTE {
 		return m_PlayerScreenHeight;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int FrameMan::CalculateTextHeight(const std::string& text, int maxWidth, bool isSmall) {
 		return isSmall ? GetSmallFont()->CalculateHeight(text, maxWidth) : GetLargeFont()->CalculateHeight(text, maxWidth);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string FrameMan::SplitStringToFitWidth(const std::string& stringToSplit, int widthLimit, bool useSmallFont) {
 		GUIFont* fontToUse = GetFont(useSmallFont, false);
@@ -397,13 +373,9 @@ namespace RTE {
 		return splitString;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int FrameMan::CalculateTextWidth(const std::string& text, bool isSmall) {
 		return isSmall ? GetSmallFont()->CalculateWidth(text) : GetLargeFont()->CalculateWidth(text);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void FrameMan::SetScreenText(const std::string& message, int whichScreen, int blinkInterval, int displayDuration, bool centered) {
 		// See if we can overwrite the previous message
@@ -416,8 +388,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void FrameMan::ClearScreenText(int whichScreen) {
 		if (whichScreen >= 0 && whichScreen < c_MaxScreenCount) {
 			m_ScreenText[whichScreen].clear();
@@ -426,8 +396,6 @@ namespace RTE {
 			m_TextBlinking[whichScreen] = 0;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void FrameMan::SetColorTable(DrawBlendMode blendMode, std::array<int, 4> colorChannelBlendAmounts) {
 		RTEAssert(blendMode > DrawBlendMode::NoBlend && blendMode < DrawBlendMode::BlendModeCount, "Invalid DrawBlendMode or DrawBlendMode::NoBlend passed into FrameMan::SetColorTable. See DrawBlendMode enumeration for defined values.");
@@ -479,8 +447,6 @@ namespace RTE {
 		m_ColorTables[blendMode].at(colorChannelBlendAmounts).second = usedPresetTransparencyTable ? -1 : (g_TimerMan.GetAbsoluteTime() / 10000);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void FrameMan::SetTransTableFromPreset(TransparencyPreset transPreset) {
 		RTEAssert(transPreset == TransparencyPreset::LessTrans || transPreset == TransparencyPreset::HalfTrans || transPreset == TransparencyPreset::MoreTrans, "Undefined transparency preset value passed in. See TransparencyPreset enumeration for defined values.");
 		std::array<int, 4> colorChannelBlendAmounts = {transPreset, transPreset, transPreset, BlendAmountLimits::MinBlend};
@@ -489,8 +455,6 @@ namespace RTE {
 			m_ColorTables[DrawBlendMode::BlendTransparency].at(colorChannelBlendAmounts).second = -1;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void FrameMan::CreateNewNetworkPlayerBackBuffer(int player, int width, int height) {
 		for (int f = 0; f < 2; f++) {
@@ -502,8 +466,6 @@ namespace RTE {
 		m_PlayerScreenWidth = width;
 		m_PlayerScreenHeight = height;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool FrameMan::LoadPalette(const std::string& palettePath) {
 		const std::string fullPalettePath = g_PresetMan.GetFullModulePath(palettePath);
@@ -520,8 +482,6 @@ namespace RTE {
 
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase, BITMAP* bitmapToSave) {
 		if ((modeToSave == WorldDump || modeToSave == ScenePreviewDump) && !g_ActivityMan.ActivityRunning()) {
@@ -631,8 +591,6 @@ namespace RTE {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->line[0]);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int FrameMan::SaveIndexedPNG(const char* fileName, BITMAP* bitmapToSave) const {
 		// nullptr for the PALETTE parameter here because the bitmap is 32bpp and whatever we index it with will end up wrong anyway.
 		save_png(fileName, bitmapToSave, nullptr);
@@ -654,8 +612,6 @@ namespace RTE {
 
 		return saveResult;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int FrameMan::SharedDrawLine(BITMAP* bitmap, const Vector& start, const Vector& end, int color, int altColor, int skip, int skipStart, bool shortestWrap, bool drawDot, BITMAP* dot) const {
 		RTEAssert(bitmap, "Trying to draw line to null Bitmap");
@@ -754,8 +710,6 @@ namespace RTE {
 		return skipped;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	GUIFont* FrameMan::GetFont(bool isSmall, bool trueColor) {
 		size_t colorIndex = trueColor ? 1 : 0;
 
@@ -791,8 +745,6 @@ namespace RTE {
 		return m_LargeFonts[colorIndex];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void FrameMan::UpdateScreenOffsetForSplitScreen(int playerScreen, Vector& screenOffset) const {
 		switch (playerScreen) {
 			case Players::PlayerTwo:
@@ -818,8 +770,6 @@ namespace RTE {
 				break;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void FrameMan::Draw() {
 		ZoneScopedN("Draw");
@@ -971,8 +921,6 @@ namespace RTE {
 		g_ConsoleMan.Draw(m_BackBuffer32.get());
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void FrameMan::DrawScreenText(int playerScreen, AllegroBitmap playerGUIBitmap) {
 		int textPosY = 0;
 		// Only draw screen text to actual human players
@@ -1016,8 +964,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void FrameMan::DrawScreenFlash(int playerScreen, BITMAP* playerGUIBitmap) {
 		if (m_FlashScreenColor[playerScreen] != -1) {
 			// If set to flash for a period of time, first be solid and then start flashing slower
@@ -1036,8 +982,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void FrameMan::DrawWorldDump(bool drawForScenePreview) const {
 		float worldBitmapWidth = static_cast<float>(m_WorldDumpBuffer->w);
@@ -1093,8 +1037,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void FrameMan::PrepareFrameForNetwork() {
 		int dx = 0;

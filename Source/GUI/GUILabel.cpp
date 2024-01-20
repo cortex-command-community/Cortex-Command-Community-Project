@@ -3,8 +3,6 @@
 
 using namespace RTE;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 GUILabel::GUILabel(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "LABEL";
@@ -19,8 +17,6 @@ GUILabel::GUILabel(GUIManager* Manager, GUIControlManager* ControlManager) :
 	m_OverflowScrollState = OverflowScrollState::Deactivated;
 	m_OverflowScrollTimer = Timer();
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUILabel::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -50,8 +46,6 @@ void GUILabel::Create(const std::string& Name, int X, int Y, int Width, int Heig
 	m_Width = std::max(m_Width, m_MinWidth);
 	m_Height = std::max(m_Height, m_MinHeight);
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUILabel::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
@@ -101,8 +95,6 @@ void GUILabel::Create(GUIProperties* Props) {
 	Props->GetValue("VerticalOverflowScroll", &m_VerticalOverflowScroll);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GUILabel::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
@@ -118,14 +110,10 @@ void GUILabel::ChangeSkin(GUISkin* Skin) {
 	m_Font->CacheColor(m_FontColor);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GUILabel::Draw(GUIScreen* Screen) {
 	Draw(Screen->GetBitmap());
 	GUIPanel::Draw(Screen);
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUILabel::Draw(GUIBitmap* Bitmap, bool overwiteFontColorAndKerning) {
 	// Setup the clipping
@@ -212,16 +200,12 @@ void GUILabel::Draw(GUIBitmap* Bitmap, bool overwiteFontColorAndKerning) {
 	Bitmap->SetClipRect(nullptr);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GUILabel::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	if (Buttons & MOUSE_LEFT) {
 		CaptureMouse();
 		SetFocus();
 	}
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUILabel::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	// If the mouse is over the button, add the clicked notification to the event queue
@@ -232,19 +216,13 @@ void GUILabel::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 GUIPanel* GUILabel::GetPanel() {
 	return this;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GUILabel::Move(int X, int Y) {
 	GUIPanel::SetPositionAbs(X, Y);
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUILabel::Resize(int Width, int Height) {
 	// Make sure the control isn't too small
@@ -254,8 +232,6 @@ void GUILabel::Resize(int Width, int Height) {
 	GUIPanel::SetSize(Width, Height);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 int GUILabel::ResizeHeightToFit() {
 	int newHeight = m_Font->CalculateHeight(m_Text, m_Width);
 	GUIPanel::SetSize(m_Width, newHeight);
@@ -263,19 +239,13 @@ int GUILabel::ResizeHeightToFit() {
 	return newHeight;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GUILabel::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 int GUILabel::GetTextHeight() {
 	return m_Font->CalculateHeight(m_Text, m_Width);
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUILabel::SetHorizontalOverflowScroll(bool newOverflowScroll) {
 	m_HorizontalOverflowScroll = newOverflowScroll;
@@ -286,8 +256,6 @@ void GUILabel::SetHorizontalOverflowScroll(bool newOverflowScroll) {
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GUILabel::SetVerticalOverflowScroll(bool newOverflowScroll) {
 	m_VerticalOverflowScroll = newOverflowScroll;
 	if (m_VerticalOverflowScroll) {
@@ -297,16 +265,12 @@ void GUILabel::SetVerticalOverflowScroll(bool newOverflowScroll) {
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GUILabel::ActivateDeactivateOverflowScroll(bool activateScroll) {
 	if (OverflowScrollIsEnabled() && activateScroll != OverflowScrollIsActivated()) {
 		m_OverflowScrollState = activateScroll ? OverflowScrollState::WaitAtStart : OverflowScrollState::Deactivated;
 		m_OverflowScrollTimer.SetRealTimeLimitMS(-1);
 	}
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUILabel::StoreProperties() {
 	m_Properties.AddVariable("Text", m_Text);
@@ -328,8 +292,6 @@ void GUILabel::StoreProperties() {
 	m_Properties.AddVariable("HorizontalOverflowScroll", m_HorizontalOverflowScroll);
 	m_Properties.AddVariable("VerticalOverflowScroll", m_VerticalOverflowScroll);
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUILabel::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);

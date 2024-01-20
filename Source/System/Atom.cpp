@@ -23,8 +23,6 @@ namespace RTE {
 	// This forms a circle around the Atom's offset center, to check for mask color pixels in order to determine the normal at the Atom's position.
 	const int Atom::s_NormalChecks[c_NormalCheckCount][2] = {{0, -3}, {1, -3}, {2, -2}, {3, -1}, {3, 0}, {3, 1}, {2, 2}, {1, 3}, {0, 3}, {-1, 3}, {-2, 2}, {-3, 1}, {-3, 0}, {-3, -1}, {-2, -2}, {-1, -3}};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Atom::Clear() {
 		m_Offset.Reset();
 		m_OriginalOffset.Reset();
@@ -65,8 +63,6 @@ namespace RTE {
 		// m_Delta[m_Dom] = 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Atom::Create(const Vector& offset, Material const* material, MovableObject* owner, Color trailColor, int trailLength) {
 		m_Offset = m_OriginalOffset = offset;
 		// Use the offset as normal for now
@@ -79,8 +75,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Atom::Create(const Atom& reference) {
 		m_Offset = reference.m_Offset;
@@ -98,8 +92,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Atom::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -122,8 +114,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Atom::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
@@ -136,8 +126,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void* Atom::GetPoolMemory() {
 		std::lock_guard<std::mutex> guard(s_MemoryPoolMutex);
@@ -159,8 +147,6 @@ namespace RTE {
 		return foundMemory;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Atom::FillPool(int fillAmount) {
 		// Default to the set block allocation size if fillAmount is 0
 		if (fillAmount <= 0) {
@@ -176,8 +162,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int Atom::ReturnPoolMemory(void* returnedMemory) {
 		if (!returnedMemory) {
 			return false;
@@ -191,8 +175,6 @@ namespace RTE {
 
 		return s_InstancesInUse;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Atom::CalculateNormal(BITMAP* sprite, Vector spriteCenter) {
 		RTEAssert(sprite, "Trying to set up Atom normal without passing in bitmap");
@@ -234,8 +216,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool Atom::IsIgnoringMOID(MOID whichMOID) {
 		if (whichMOID == m_IgnoreMOID) {
 			return true;
@@ -274,8 +254,6 @@ namespace RTE {
 		}
 		return ignored;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Atom::MOHitResponse() {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
@@ -348,8 +326,6 @@ namespace RTE {
 		RTEAbort("Atom not supposed to do MO hit response if it didn't hit anything!");
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	HitData& Atom::TerrHitResponse() {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
@@ -425,8 +401,6 @@ namespace RTE {
 		return m_LastHit;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool Atom::SetupPos(Vector startPos) {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
 
@@ -452,8 +426,6 @@ namespace RTE {
 
 		return m_MOIDHit != g_NoMOID || m_TerrainMatHit != g_MaterialAir;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Atom::SetupSeg(Vector startPos, Vector trajectory, float stepRatio) {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
@@ -507,8 +479,6 @@ namespace RTE {
 		// Return how many steps there are for this atom to take
 		return m_Delta[m_Dom] - m_DomSteps;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Atom::StepForward(int numSteps) {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
@@ -596,8 +566,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void Atom::StepBack() {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
 
@@ -620,8 +588,6 @@ namespace RTE {
 			g_SceneMan.WrapPosition(m_IntPos[X], m_IntPos[Y]);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
 		ZoneScoped;
@@ -1073,8 +1039,6 @@ namespace RTE {
 		return hitCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void HitData::Clear() {
 		HitPoint.Reset();
 		VelDiff.Reset();
@@ -1096,8 +1060,6 @@ namespace RTE {
 			Terminate[i] = false;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	HitData& HitData::operator=(const HitData& rhs) {
 		if (this == &rhs) {

@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MOSRotating.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the MOSRotating class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MOSRotating.h"
 
 #include "CameraMan.h"
@@ -39,12 +27,6 @@ namespace RTE {
 	thread_local BITMAP* s_pTempBitmap128 = nullptr;
 	thread_local BITMAP* s_pTempBitmap256 = nullptr;
 	thread_local BITMAP* s_pTempBitmap512 = nullptr;
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this MOSRotating, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void MOSRotating::Clear() {
 		m_pAtomGroup = 0;
@@ -84,11 +66,6 @@ namespace RTE {
 		m_FlashWhiteTimer.Reset();
 		m_FlashWhiteTimer.SetRealTimeLimitMS(0);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MOSParticle object ready for use.
 
 	int MOSRotating::Create() {
 		if (MOSprite::Create() < 0)
@@ -146,11 +123,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MOSParticle object ready for use.
-
 	int MOSRotating::Create(ContentFile spriteFile,
 	                        const int frameCount,
 	                        const float mass,
@@ -165,11 +137,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MOSRotating to be identical to another, by deep copy.
 
 	int MOSRotating::Create(const MOSRotating& reference) {
 		MOSprite::Create(reference);
@@ -241,14 +208,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return MOSprite::ReadProperty(propName, reader));
 
@@ -317,12 +276,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this MOSRotating with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int MOSRotating::Save(Writer& writer) const {
 		MOSprite::Save(writer);
 
@@ -366,8 +319,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int MOSRotating::GetGibWoundLimit(bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) const {
 		int gibWoundLimit = m_GibWoundLimit;
 		if (includePositiveDamageAttachables || includeNegativeDamageAttachables || includeNoDamageAttachables) {
@@ -383,8 +334,6 @@ namespace RTE {
 		}
 		return gibWoundLimit;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MOSRotating::GetWoundCount(bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) const {
 		int woundCount = m_Wounds.size();
@@ -402,8 +351,6 @@ namespace RTE {
 		return woundCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Attachable* MOSRotating::GetNearestDetachableAttachableToOffset(const Vector& offset) const {
 		Attachable* nearestAttachable = nullptr;
 		float closestRadius = m_SpriteRadius;
@@ -418,8 +365,6 @@ namespace RTE {
 		}
 		return nearestAttachable;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSRotating::DetachAttachablesFromImpulse(Vector& impulseVector) {
 		float impulseRemainder = impulseVector.GetMagnitude();
@@ -442,8 +387,6 @@ namespace RTE {
 		}
 		impulseVector.SetMagnitude(impulseRemainder);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSRotating::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit) {
 		if (woundToAdd && !m_ToDelete) {
@@ -471,8 +414,6 @@ namespace RTE {
 			m_Wounds.push_back(woundToAdd);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float MOSRotating::RemoveWounds(int numberOfWoundsToRemove, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) {
 		float damage = 0;
@@ -548,13 +489,6 @@ namespace RTE {
 		MovableObject::DestroyScriptState();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the MOSRotating object.
-
 	void MOSRotating::Destroy(bool notInherited) {
 		delete m_pAtomGroup;
 		delete m_pDeepGroup;
@@ -578,21 +512,12 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::SetAsNoID() {
 		MovableObject::SetAsNoID();
 		for (Attachable* attachable: m_Attachables) {
 			attachable->SetAsNoID();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetMaterial
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the main Material of this MOSRotating.
 
 	Material const* MOSRotating::GetMaterial() const {
 		//    if (m_pAtomGroup)
@@ -614,13 +539,6 @@ namespace RTE {
 	    return false;
 	}
 	*/
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetDrawPriority
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the drawing priority of this MovableObject, if two things were
-	//                  overlap when copying to the terrain, the higher priority MO would
-	//                  end up getting drawn.
 
 	int MOSRotating::GetDrawPriority() const {
 		return INT_MAX;
@@ -654,23 +572,11 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AddRecoil
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds recoil effects to this MOSprite.
-
 	void MOSRotating::AddRecoil() {
 		m_RecoilOffset.SetXY(1, 0);
 		m_RecoilOffset.RadRotate(m_Rotation.GetRadAngle() + c_PI);
 		m_Recoiled = true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CollideAtPoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates the collision response when another MO's Atom collides with
-	//                  this MO's physical representation. The effects will be applied
-	//                  directly to this MO, and also represented in the passed in HitData.
 
 	bool MOSRotating::CollideAtPoint(HitData& hd) {
 		if (m_ToDelete) {
@@ -740,36 +646,14 @@ namespace RTE {
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          OnBounce
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Defines what should happen when this MovableObject hits and then
-	//                  bounces off of something. This is called by the owned Atom/AtomGroup
-	//                  of this MovableObject during travel.
-
 	bool MOSRotating::OnBounce(HitData& hd) {
 
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          OnSink
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Defines what should happen when this MovableObject hits and then
-	//                  sink into something. This is called by the owned Atom/AtomGroup
-	//                  of this MovableObject during travel.
-
 	bool MOSRotating::OnSink(HitData& hd) {
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ParticlePenetration
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Determines whether a particle which has hit this MO will penetrate,
-	//                  and if so, whether it gets lodged or exits on the other side of this
-	//                  MO. Appropriate effects will be determined and applied ONLY IF there
-	//                  was penetration! If not, nothing will be affected.
 
 	bool MOSRotating::ParticlePenetration(HitData& hd) {
 		// Only particles can penetrate.
@@ -929,8 +813,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		if (m_MissionCritical || m_ToDelete) {
 			return;
@@ -962,8 +844,6 @@ namespace RTE {
 
 		m_ToDelete = true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		if (m_GibScreenShakeAmount != -1.0F) {
@@ -1088,8 +968,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::RemoveAttachablesWhenGibbing(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		const std::vector<Attachable*> nonVolatileAttachablesVectorForLuaSafety{m_Attachables.begin(), m_Attachables.end()};
 		for (Attachable* attachable: nonVolatileAttachablesVectorForLuaSafety) {
@@ -1116,20 +994,9 @@ namespace RTE {
 		m_Attachables.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  MoveOutOfTerrain
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks whether any of the Atom:s in this MovableObject are on top of
-	//                  terrain pixels, and if so, attempt to move this out so none of this'
-	//                  Atoms are on top of the terrain any more.
-
 	bool MOSRotating::MoveOutOfTerrain(unsigned char strongerThan) {
 		return m_pAtomGroup->ResolveTerrainIntersection(m_Pos, strongerThan);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSRotating::ApplyForces() {
 		float deltaTime = g_TimerMan.GetDeltaTimeSecs();
@@ -1142,8 +1009,6 @@ namespace RTE {
 
 		MOSprite::ApplyForces();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSRotating::ApplyImpulses() {
 		for (const auto& [impulseForceVector, impulseForceOffset]: m_ImpulseForces) {
@@ -1177,15 +1042,6 @@ namespace RTE {
 		MOSprite::ApplyImpulses();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ResetAllTimers
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Resest all the timers used by this. Can be emitters, etc. This is to
-	//                  prevent backed up emissions to come out all at once while this has been
-	//                  held dormant in an inventory.
-
 	void MOSRotating::ResetAllTimers() {
 		MovableObject::ResetAllTimers();
 
@@ -1195,8 +1051,6 @@ namespace RTE {
 		for (auto attachable = m_Attachables.begin(); attachable != m_Attachables.end(); ++attachable)
 			(*attachable)->ResetAllTimers();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSRotating::RestDetection() {
 		MOSprite::RestDetection();
@@ -1234,8 +1088,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool MOSRotating::IsAtRest() {
 		if (m_RestThreshold < 0 || m_PinStrength != 0) {
 			return false;
@@ -1244,8 +1096,6 @@ namespace RTE {
 		}
 		return m_RestTimer.IsPastSimMS(m_RestThreshold);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MOSRotating::IsOnScenePoint(Vector& scenePoint) const {
 		if (!m_aSprite[m_Frame]) {
@@ -1271,13 +1121,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  EraseFromTerrain
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Cuts this' silhouette out from the terrain's material and color layers.
-
 	void MOSRotating::EraseFromTerrain() {
 		Vector pivot = -m_SpriteOffset;
 
@@ -1298,12 +1141,6 @@ namespace RTE {
 
 		std::deque<MOPixel*> pixels = g_SceneMan.GetTerrain()->EraseSilhouette(m_HFlipped ? m_pFlipBitmap : m_aSprite[m_Frame], m_Pos, pivot, m_Rotation, m_Scale, false);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DeepCheck
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks if any of this' deep group atmos are on top of the terrain, and
-	//                  if so, erases this' silhouette from the terrain.
 
 	bool MOSRotating::DeepCheck(bool makeMOPs, int skipMOP, int maxMOPs) {
 		// Check for deep penetration of the terrain and
@@ -1365,22 +1202,9 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  PreTravel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Does stuff that needs to be done before Travel(). Always call before
-	//                  calling Travel.
-	// Arguments:       None.
-	// Return value:    None.
-
 	void MOSRotating::PreTravel() {
 		MOSprite::PreTravel();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Travel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Travels this MovableObject, using its physical representation.
 
 	void MOSRotating::Travel() {
 		MOSprite::Travel();
@@ -1414,12 +1238,6 @@ namespace RTE {
 		// Now clear out the ignore override for next frame
 		m_pAtomGroup->ClearMOIDIgnoreList();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  PostTravel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Does stuff that needs to be done after Update(). Always call after
-	//                  calling Update.
 
 	void MOSRotating::PostTravel() {
 		// Check for stupid velocities to gib instead of outright deletion that MOSprite::PostTravel() will do
@@ -1466,11 +1284,6 @@ namespace RTE {
 			attachable->PostTravel();
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this MOSRotating. Supposed to be done every frame.
 
 	void MOSRotating::Update() {
 		MOSprite::Update();
@@ -1529,8 +1342,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::PostUpdate() {
 		for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
 			(*itr)->PostUpdate();
@@ -1542,8 +1353,6 @@ namespace RTE {
 
 		MovableObject::PostUpdate();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO This should just be defined in MOSR instead of having an empty definition in MO. MOSR would need to override UpdateMOID accordingly, but this would clean things up a little.
 	void MOSRotating::UpdateChildMOIDs(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID, bool makeNewMOID) {
@@ -1557,8 +1366,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool MOSRotating::AttachableIsHardcoded(const Attachable* attachableToCheck) const {
 		if (attachableToCheck->GetParent() != this) {
 			return false;
@@ -1568,15 +1375,11 @@ namespace RTE {
 		return m_HardcodedAttachableUniqueIDsAndRemovers.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndRemovers.end() || m_HardcodedAttachableUniqueIDsAndSetters.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndSetters.end();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::AddAttachable(Attachable* attachable) {
 		if (attachable) {
 			AddAttachable(attachable, attachable->GetParentOffset());
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSRotating::AddAttachable(Attachable* attachable, const Vector& parentOffsetToSet) {
 		if (attachable) {
@@ -1593,16 +1396,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	Attachable* MOSRotating::RemoveAttachable(long attachableUniqueID, bool addToMovableMan, bool addBreakWounds) {
 		if (MovableObject* attachableAsMovableObject = g_MovableMan.FindObjectByUniqueID(attachableUniqueID)) {
 			return RemoveAttachable(dynamic_cast<Attachable*>(attachableAsMovableObject), addToMovableMan, addBreakWounds);
 		}
 		return nullptr;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Attachable* MOSRotating::RemoveAttachable(Attachable* attachable, bool addToMovableMan, bool addBreakWounds) {
 		if (!attachable || !attachable->IsAttached()) {
@@ -1674,14 +1473,10 @@ namespace RTE {
 		return attachable;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::RemoveAndDeleteAttachable(Attachable* attachable) {
 		attachable->SetToDelete();
 		RemoveAttachable(attachable);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSRotating::RemoveOrDestroyAllAttachables(bool destroy) {
 		Attachable* attachable;
@@ -1699,8 +1494,6 @@ namespace RTE {
 		m_Attachables.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::GetMOIDs(std::vector<MOID>& MOIDs) const {
 		MOIDs.reserve(GetMOIDFootprint());
 		MOSprite::GetMOIDs(MOIDs);
@@ -1711,22 +1504,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::SetWhichMOToNotHit(MovableObject* moToNotHit, float forHowLong) {
 		MOSprite::SetWhichMOToNotHit(moToNotHit, forHowLong);
 		for (Attachable* attachable: m_Attachables) {
 			attachable->SetWhichMOToNotHit(moToNotHit, forHowLong);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this MOSRotating's current graphical representation to a
-	//                  BITMAP of choice.
 
 	void MOSRotating::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		RTEAssert(!m_aSprite.empty(), "No sprite bitmaps loaded to draw!");
@@ -2015,8 +1798,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::CorrectAttachableAndWoundPositionsAndRotations() const {
 		for (Attachable* attachable: m_Attachables) {
 			attachable->PreUpdate();
@@ -2032,8 +1813,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MOSRotating::OnSave() {
 		for (AEmitter* wound: m_Wounds) {
 			wound->OnSave();
@@ -2043,8 +1822,6 @@ namespace RTE {
 		}
 		MovableObject::OnSave();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MOSRotating::TransferForcesFromAttachable(Attachable* attachable) {
 		bool intact = false;
@@ -2060,8 +1837,6 @@ namespace RTE {
 		}
 		return intact;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSRotating::NewFrame() {
 		MOSprite::NewFrame();

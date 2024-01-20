@@ -1,18 +1,11 @@
 #ifndef _RTESCENE_
 #define _RTESCENE_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            Scene.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the Scene class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the Scene class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "Entity.h"
 #include "Box.h"
 #include "Activity.h"
@@ -30,20 +23,12 @@ namespace RTE {
 	class SceneObject;
 	class Deployment;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           Scene
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Contains everything that defines a complete scene.
-	// Parent(s):       Entity.
-	// Class history:   08/02/2006 Scene created.
-
+	/// Contains everything that defines a complete scene.
 	class Scene : public Entity {
 
 		friend struct EntityLuaBindings;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -56,13 +41,7 @@ namespace RTE {
 			PLACEDSETSCOUNT
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Nested class:    Area
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Something to bundle the properties of scene areas together
-		// Parent(s):       Serializable.
-		// Class history:   07/18/2008 Area created.
-
+		/// Something to bundle the properties of scene areas together
 		class Area :
 		    public Serializable {
 
@@ -72,20 +51,13 @@ namespace RTE {
 
 			friend struct EntityLuaBindings;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Public member variable, method and friend function declarations
-
+			/// Public member variable, method and friend function declarations
 		public:
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Constructor:     Area
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Constructor method used to instantiate a Area object in system
-			//                  memory. Create() should be called before using the object.
-			// Arguments:       None.
-
+			/// Constructor method used to instantiate a Area object in system
+			/// memory. Create() should be called before using the object.
 			Area() {
 				Clear();
 				Create();
@@ -100,185 +72,106 @@ namespace RTE {
 				Create(reference);
 			}
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  Create
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Makes the Area object ready for use.
-			// Arguments:       None.
-			// Return value:    An error return value signaling sucess or any particular failure.
-			//                  Anything below 0 is an error signal.
-
+			/// Makes the Area object ready for use.
+			/// @return An error return value signaling sucess or any particular failure.
+			/// Anything below 0 is an error signal.
 			int Create() override;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  Create
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Creates a Area to be identical to another, by deep copy.
-			// Arguments:       A reference to the Area to deep copy.
-			// Return value:    An error return value signaling sucess or any particular failure.
-			//                  Anything below 0 is an error signal.
-
+			/// Creates a Area to be identical to another, by deep copy.
+			/// @param reference A reference to the Area to deep copy.
+			/// @return An error return value signaling sucess or any particular failure.
+			/// Anything below 0 is an error signal.
 			int Create(const Area& reference);
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  Reset
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Resets the entire Serializable, including its inherited members, to their
-			//                  default settings or values.
-			// Arguments:       None.
-			// Return value:    None.
-
+			/// Resets the entire Serializable, including its inherited members, to their
+			/// default settings or values.
 			void Reset() override { Clear(); }
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  AddBox
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Adds a Box to this' area coverage.
-			// Arguments:       The Box to add. A copy will be made and added.
-			// Return value:    Whether the Box was successfully added or not.
-
+			/// Adds a Box to this' area coverage.
+			/// @param newBox The Box to add. A copy will be made and added.
+			/// @return Whether the Box was successfully added or not.
 			bool AddBox(const Box& newBox);
 
-			/// <summary>
 			/// Removes the first Box in the Area that has the same Corner, Width and Height of the passed-in Box.
-			/// </summary>
-			/// <param name="boxToRemove">A Box whose values are used to determine what Box to remove.</param>
-			/// <returns>Whether or not a Box was removed.</returns>
+			/// @param boxToRemove A Box whose values are used to determine what Box to remove.
+			/// @return Whether or not a Box was removed.
 			bool RemoveBox(const Box& boxToRemove);
 
-			/// <summary>
 			/// Gets the first Box in this Area.
-			/// </summary>
-			/// <returns>The first Box in this Area.</returns>
+			/// @return The first Box in this Area.
 			const Box* GetFirstBox() const { return m_BoxList.empty() ? nullptr : &m_BoxList[0]; }
 
-			/// <summary>
 			/// Gets the boxes for this area.
-			/// </summary>
-			/// <returns>The boxes in this Area.</returns>
+			/// @return The boxes in this Area.
 			const std::vector<Box>& GetBoxes() const { return m_BoxList; }
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  HasNoArea
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Shows whether this really has no Area at all, ie it doesn't have any
-			//                  Box:es with both width and height.
-			// Arguments:       None.
-			// Return value:    Whether this Area actually covers any area.
-
+			/// Shows whether this really has no Area at all, ie it doesn't have any
+			/// Box:es with both width and height.
+			/// @return Whether this Area actually covers any area.
 			bool HasNoArea() const;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  IsInside
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Shows whether a point is anywhere inside this Area's coverage.
-			// Arguments:       The point to check if it's inside the Area, in absolute scene coordinates.
-			// Return value:    Whether the point is inside any of this Area's Box:es.
-
+			/// Shows whether a point is anywhere inside this Area's coverage.
+			/// @param point The point to check if it's inside the Area, in absolute scene coordinates.
+			/// @return Whether the point is inside any of this Area's Box:es.
 			bool IsInside(const Vector& point) const;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  IsInsideX
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Shows whether a coordinate is anywhere inside this Area's coverage, in the
-			//                  X-axis only.
-			// Arguments:       The x coord to check if it's inside the Area, in absolute scene units.
-			// Return value:    Whether the point is inside any of this Area's Box:es in the X axis.
-
+			/// Shows whether a coordinate is anywhere inside this Area's coverage, in the
+			/// X-axis only.
+			/// @param pointX The x coord to check if it's inside the Area, in absolute scene units.
+			/// @return Whether the point is inside any of this Area's Box:es in the X axis.
 			bool IsInsideX(float pointX) const;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  IsInsideY
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Shows whether a coordinate is anywhere inside this Area's coverage, in the
-			//                  Y-axis only.
-			// Arguments:       The x coord to check if it's inside the Area, in absolute scene units.
-			// Return value:    Whether the point is inside any of this Area's Box:es in the Y axis.
-
+			/// Shows whether a coordinate is anywhere inside this Area's coverage, in the
+			/// Y-axis only.
+			/// @param pointY The x coord to check if it's inside the Area, in absolute scene units.
+			/// @return Whether the point is inside any of this Area's Box:es in the Y axis.
 			bool IsInsideY(float pointY) const;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  MovePointInsideX
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Moves a coordinate to the closest value which is within any of this
-			//                  Area's Box:es, in the X axis only.
-			// Arguments:       The x coord to transform to the closest inside poistion in the x-axis.
-			//                  Which direction to limit the search to. < 0 means can only look in the
-			//                  negative dir, 0 means can look in both directions.
-			// Return value:    Whether the point was moved at all to get inside this' x-space.
-
+			/// Moves a coordinate to the closest value which is within any of this
+			/// Area's Box:es, in the X axis only.
+			/// @param pointX The x coord to transform to the closest inside poistion in the x-axis.
+			/// @param direction Which direction to limit the search to. < 0 means can only look in the (default: 0)
+			/// negative dir, 0 means can look in both directions.
+			/// @return Whether the point was moved at all to get inside this' x-space.
 			bool MovePointInsideX(float& pointX, int direction = 0) const;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  GetBoxInside
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Gets the first Box encountered in this that contains a specific point.
-			// Arguments:       The point to check for Box collision, in absolute scene coordinates.
-			// Return value:    Pointer to the first Box which was found to contain the point. 0 if
-			//                  none was found. OWNERSHIP IS NOT TRANSFERRED!
-
+			/// Gets the first Box encountered in this that contains a specific point.
+			/// @param point The point to check for Box collision, in absolute scene coordinates.
+			/// @return Pointer to the first Box which was found to contain the point. 0 if
+			/// none was found. OWNERSHIP IS NOT TRANSFERRED!
 			Box* GetBoxInside(const Vector& point);
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  RemoveBoxInside
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Removes the first Box encountered in this that contains a specific point.
-			// Arguments:       The point to check for Box collision, in absolute scene coordinates.
-			// Return value:    Copy of the Box that was removed. Will be  NoArea Box if none was found.
-
+			/// Removes the first Box encountered in this that contains a specific point.
+			/// @param point The point to check for Box collision, in absolute scene coordinates.
+			/// @return Copy of the Box that was removed. Will be  NoArea Box if none was found.
 			Box RemoveBoxInside(const Vector& point);
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  GetCenterPoint
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Gets a center point for this of all the boxes waeighted by their sizes.
-			// Arguments:       None.
-			// Return value:    A center point of this area, can be outside the actual area though, if
-			//                  pulled apart by two separate boxes, for example. 0,0 if this has no Area
-
+			/// Gets a center point for this of all the boxes waeighted by their sizes.
+			/// @return A center point of this area, can be outside the actual area though, if
+			/// pulled apart by two separate boxes, for example. 0,0 if this has no Area
 			Vector GetCenterPoint() const;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  GetRandomPoint
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Gets a random coordinate contained within any of this' Box:es.
-			// Arguments:       None.
-			// Return value:    A random point that is within this Area. 0,0 if this has no Area
-
+			/// Gets a random coordinate contained within any of this' Box:es.
+			/// @return A random point that is within this Area. 0,0 if this has no Area
 			Vector GetRandomPoint() const;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Virtual method:  GetName
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Gets the name of the Area
-			// Arguments:       None.
-			// Return value:    The name used to ID this Area.
-
+			/// Gets the name of the Area
+			/// @return The name used to ID this Area.
 			std::string GetName() const { return m_Name; }
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Protected member variable and method declarations
-
+			/// Protected member variable and method declarations
 		protected:
 			// The list of Box:es defining the Area in the owner Scene
 			std::vector<Box> m_BoxList;
 			// The name tag of this Area
 			std::string m_Name;
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Private member variable and method declarations
-
+			/// Private member variable and method declarations
 		private:
 			static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Method:          Clear
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Clears all the member variables of this Exit, effectively
-			//                  resetting the members of this abstraction level only.
-			// Arguments:       None.
-			// Return value:    None.
-
+			/// Clears all the member variables of this Exit, effectively
+			/// resetting the members of this abstraction level only.
 			void Clear();
 		};
 
@@ -303,582 +196,326 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Scene)
 
-		    //////////////////////////////////////////////////////////////////////////////////////////
-		    // Constructor:     Scene
-		    //////////////////////////////////////////////////////////////////////////////////////////
-		    // Description:     Constructor method used to instantiate a Scene object in system
-		    //                  memory. Create() should be called before using the object.
-		    // Arguments:       None.
-
+		    /// Constructor method used to instantiate a Scene object in system
+		    /// memory. Create() should be called before using the object.
 		    Scene() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~Scene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a Scene object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a Scene object before deletion
+		/// from system memory.
 		~Scene() override { Destroy(true); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the Scene object ready for use.
-		// Arguments:       The Terrain to use. Ownership IS transferred!
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the Scene object ready for use.
+		/// @param pNewTerrain The Terrain to use. Ownership IS transferred!
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(SLTerrain* pNewTerrain);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a Scene to be identical to another, by deep copy.
-		// Arguments:       A reference to the Scene to deep copy.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Creates a Scene to be identical to another, by deep copy.
+		/// @param reference A reference to the Scene to deep copy.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(const Scene& reference);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  LoadData
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Actually loads previously specified/created data into memory. Has
-		//                  to be done before using this Scene.
-		// Arguments:       Whetehr to actually place out all the sceneobjects associated with the
-		//                  Scene's definition. If not, they still remain in the internal placed
-		//                  objects list. This avoids messing with the MovableMan at all.
-		//                  Whether to do pathfinding init, which should be avoided if we are only
-		//                  loading and saving purposes of MetaMan, for example.
-		//					Whether to place actors and deployments (doors not affected).
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Actually loads previously specified/created data into memory. Has
+		/// to be done before using this Scene.
+		/// @param placeObjects Whetehr to actually place out all the sceneobjects associated with the (default: true)
+		/// @param initPathfinding Scene's definition. If not, they still remain in the internal placed (default: true)
+		/// objects list. This avoids messing with the MovableMan at all.
+		/// @param placeUnits Whether to do pathfinding init, which should be avoided if we are only (default: true)
+		/// loading and saving purposes of MetaMan, for example.
+		/// Whether to place actors and deployments (doors not affected).
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int LoadData(bool placeObjects = true, bool initPathfinding = true, bool placeUnits = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  ExpandAIPlanAssemblySchemes
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Replace all assembly shemes by corresponding bunker assemblies in
-		//					AI plan objects set.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Replace all assembly shemes by corresponding bunker assemblies in
+		/// AI plan objects set.
 		int ExpandAIPlanAssemblySchemes();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SaveData
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Saves data currently in memory to disk.
-		// Arguments:       The filepath base to the where to save the Bitmap data. This means
-		//                  everything up to the extension. "FG" and "Mat" etc will be added.
-		//					Whether or not to save asynchronously.
-		// Return value:    An error return value signaling success or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Saves data currently in memory to disk.
+		/// @param pathBase The filepath base to the where to save the Bitmap data. This means
+		/// everything up to the extension. "FG" and "Mat" etc will be added.
+		/// @param doAsyncSaves Whether or not to save asynchronously. (default: true)
+		/// @return An error return value signaling success or any particular failure.
+		/// Anything below 0 is an error signal.
 		int SaveData(std::string pathBase, bool doAsyncSaves = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SavePreview
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Saves preview bitmap for this scene.
-		//
-		// Arguments:       The full filepath the where to save the Bitmap data.
-		// Return value:    None.
-
+		/// Saves preview bitmap for this scene.
+		/// @param bitmapPath The full filepath the where to save the Bitmap data.
 		int SavePreview(const std::string& bitmapPath);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  ClearData
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears out any previously loaded bitmap data from memory.
-		// Arguments:       None.
-		// Return value:    An error return value signaling success or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Clears out any previously loaded bitmap data from memory.
+		/// @return An error return value signaling success or any particular failure.
+		/// Anything below 0 is an error signal.
 		int ClearData();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire Scene, including its inherited members, to
-		//                  their default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire Scene, including its inherited members, to
+		/// their default settings or values.
 		void Reset() override {
 			Clear();
 			Entity::Reset();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Pure V. method:  Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the Scene object.
-		// Arguments:       Whether to only destroy the members defined in this derived class, or
-		//                  to destroy all inherited members also.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the Scene object.
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
+		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual Method:  MigrateToModule
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes this an original Preset in a different module than it was before.
-		//                  It severs ties deeply to the old module it was saved in.
-		// Arguments:       The ID of the new module.
-		// Return value:    Whether the migration was successful. If you tried to migrate to the
-		//                  same module it already was in, this would return false.
-
+		/// Makes this an original Preset in a different module than it was before.
+		/// It severs ties deeply to the old module it was saved in.
+		/// @param whichModule The ID of the new module.
+		/// @return Whether the migration was successful. If you tried to migrate to the
+		/// same module it already was in, this would return false.
 		bool MigrateToModule(int whichModule) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetLocation
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the specified location of this scene on the planet view
-		// Arguments:       None.
-		// Return value:    A Vector showing the location of this scene on the planet view.
-
+		/// Gets the specified location of this scene on the planet view
+		/// @return A Vector showing the location of this scene on the planet view.
 		Vector GetLocation() const { return m_Location; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetLocationOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the specified temporary location offset of this scene on the planet view.
-		// Arguments:       None.
-		// Return value:    A Vector showing the temporary location offset of this scene on the planet view.
-
+		/// Gets the specified temporary location offset of this scene on the planet view.
+		/// @return A Vector showing the temporary location offset of this scene on the planet view.
 		Vector GetLocationOffset() const { return m_LocationOffset; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetLocationOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the specified temporary location offset of this scene on the planet view.
-		// Arguments:       A Vector showing the temporary location offset of this scene on the planet view.
-		// Return value:    None.
-
+		/// Sets the specified temporary location offset of this scene on the planet view.
+		/// @param newOffset A Vector showing the temporary location offset of this scene on the planet view.
 		void SetLocationOffset(Vector newOffset) { m_LocationOffset = newOffset; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsMetagamePlayable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows whether this is compatible with metagame play at all.
-		// Arguments:       None.
-		// Return value:    Whether this can be used on the metagame map.
-
+		/// Shows whether this is compatible with metagame play at all.
+		/// @return Whether this can be used on the metagame map.
 		bool IsMetagamePlayable() const { return m_MetagamePlayable; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsRevealed
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows whether this is revealed on the metagame map.
-		// Arguments:       None.
-		// Return value:    Whether this can be seen on the metagame map yet.
-
+		/// Shows whether this is revealed on the metagame map.
+		/// @return Whether this can be seen on the metagame map yet.
 		bool IsRevealed() const { return m_Revealed; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTeamOwnership
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows which team owns this Scene in a Metagame, if any
-		// Arguments:       None.
-		// Return value:    The team that owns this site in a Metagame, if any
-
+		/// Shows which team owns this Scene in a Metagame, if any
+		/// @return The team that owns this site in a Metagame, if any
 		int GetTeamOwnership() const { return m_OwnedByTeam; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetRoundIncome
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows how much income this Scene pulls in for its owning team each
-		//                  round of a metagame.
-		// Arguments:       None.
-		// Return value:    The income in oz that this generates each metagame round.
-
+		/// Shows how much income this Scene pulls in for its owning team each
+		/// round of a metagame.
+		/// @return The income in oz that this generates each metagame round.
 		float GetRoundIncome() const { return m_RoundIncome; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetBuildBudget
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows how much gold this Scene is budgeted to be built for this round.
-		// Arguments:       Which player's set budget to show.
-		// Return value:    The budget in oz that this is allocated to have built for this round.
-
+		/// Shows how much gold this Scene is budgeted to be built for this round.
+		/// @param player Which player's set budget to show.
+		/// @return The budget in oz that this is allocated to have built for this round.
 		float GetBuildBudget(int player) const { return m_BuildBudget[player]; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetBuildBudgetRatio
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows how much of a player's budget this Scene is allocated to be
-		//                  built for this round.
-		// Arguments:       Which player's set budget ratio to show.
-		// Return value:    The budget in normalized ratio that this is allocated last round.
-
+		/// Shows how much of a player's budget this Scene is allocated to be
+		/// built for this round.
+		/// @param player Which player's set budget ratio to show.
+		/// @return The budget in normalized ratio that this is allocated last round.
 		float GetBuildBudgetRatio(int player) const { return m_BuildBudgetRatio[player]; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetAutoDesigned
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether this should be automatically designed by the AI plan
-		//                  even if owned by human players.
-		// Arguments:       What to set the setting to.
-		// Return value:    None.
-
+		/// Sets whether this should be automatically designed by the AI plan
+		/// even if owned by human players.
+		/// @param autoDesigned What to set the setting to. (default: true)
 		void SetAutoDesigned(bool autoDesigned = true) { m_AutoDesigned = autoDesigned; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetAutoDesigned
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether this should be automatically designed by the AI plan
-		//                  even if owned by human players.
-		// Arguments:       None.
-		// Return value:    Whether this should be autodesigned or not.
-
+		/// Tells whether this should be automatically designed by the AI plan
+		/// even if owned by human players.
+		/// @return Whether this should be autodesigned or not.
 		bool GetAutoDesigned() const { return m_AutoDesigned; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetTotalInvestment
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the total defense investment this scene has experienced by all
-		//                  teams since the metagame started.
-		// Arguments:       What to set the total investment in gold oz) to.
-		// Return value:    None.
-
+		/// Sets the total defense investment this scene has experienced by all
+		/// teams since the metagame started.
+		/// @param totalInvestment What to set the total investment in gold oz) to.
 		void SetTotalInvestment(float totalInvestment) { m_TotalInvestment = totalInvestment; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTotalInvestment
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the total defense investment this scene has experienced by all
-		//                  teams since the metagame started.
-		// Arguments:       None.
-		// Return value:    The total investment in this scene.
-
+		/// Gets the total defense investment this scene has experienced by all
+		/// teams since the metagame started.
+		/// @return The total investment in this scene.
 		float GetTotalInvestment() const { return m_TotalInvestment; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTerrain
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the SLTerrain.
-		// Arguments:       None.
-		// Return value:    A pointer to the SLTerrain. Ownership is NOT transferred!
-
+		/// Gets the SLTerrain.
+		/// @return A pointer to the SLTerrain. Ownership is NOT transferred!
 		SLTerrain* GetTerrain() { return m_pTerrain; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetBackLayers
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets access to the background layer list.
-		// Arguments:       None.
-		// Return value:    A reference to the std::list containing all the background layers.
-		//                  Ownership is NOT transferred!
-
+		/// Gets access to the background layer list.
+		/// @return A reference to the std::list containing all the background layers.
+		/// Ownership is NOT transferred!
 		std::list<SLBackground*>& GetBackLayers() { return m_BackLayerList; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddArea
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds area to the list if this scene's areas.
-		// Arguments:       Area to add.
-		// Return value:    None.
-
+		/// Adds area to the list if this scene's areas.
+		/// @param m_AreaList.push_back(newArea Area to add.
 		void AddArea(Scene::Area& newArea) { m_AreaList.push_back(newArea); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          FillUnseenLayer
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a new SceneLayer for a specific team and fills it with black
-		//                  pixels that end up being a specific size on the screen.
-		// Arguments:       A Vector with the desired dimensions of the unseen layer's chunky pixels.
-		//                  Which team to get the unseen layer for.
-		//                  Whether to create the unseen layers now, or wait until next time
-		//                  LoadData is called on this.
-		// Return value:    None.
-
+		/// Creates a new SceneLayer for a specific team and fills it with black
+		/// pixels that end up being a specific size on the screen.
+		/// @param pixelSize A Vector with the desired dimensions of the unseen layer's chunky pixels.
+		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
+		/// @param createNow Whether to create the unseen layers now, or wait until next time (default: true)
+		/// LoadData is called on this.
 		void FillUnseenLayer(Vector pixelSize, int team = Activity::TeamOne, bool createNow = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetUnseenLayer
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the unseen layer of a specific team.
-		// Arguments:       The new SceneLayer to use as the new unseen layer, Ownership IS XFERRED!
-		//                  Which team to get the unseen layer for.
-		// Return value:    None.
-
+		/// Sets the unseen layer of a specific team.
+		/// @param pNewLayer The new SceneLayer to use as the new unseen layer, Ownership IS XFERRED!
+		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
 		void SetUnseenLayer(SceneLayer* pNewLayer, int team = Activity::TeamOne);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetUnseenLayer
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the unseen layer of a specific team.
-		// Arguments:       Which team to get the unseen layer for.
-		// Return value:    A pointer to the SceneLayer representing what hasn't been seen by a
-		//                  specific team yet. Ownership is NOT transferred!
-
+		/// Gets the unseen layer of a specific team.
+		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
+		/// @return A pointer to the SceneLayer representing what hasn't been seen by a
+		/// specific team yet. Ownership is NOT transferred!
 		SceneLayer* GetUnseenLayer(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayer[team] : 0; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSeenPixels
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the list of pixels that have been seen on a team's unseen layer.
-		// Arguments:       Which team to get the unseen layer for.
-		// Return value:    The list of pixel coordinates in the unseen layer's scale.
-
+		/// Gets the list of pixels that have been seen on a team's unseen layer.
+		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
+		/// @return The list of pixel coordinates in the unseen layer's scale.
 		std::list<Vector>& GetSeenPixels(int team = Activity::TeamOne) { return m_SeenPixels[team]; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ClearSeenPixels
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the pixels that have been seen on a team's unseen layer.
-		// Arguments:       Which team to get the unseen layer for.
-		// Return value:    None.
-
+		/// Clears the pixels that have been seen on a team's unseen layer.
+		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
 		void ClearSeenPixels(int team = Activity::TeamOne);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CleanOrphanPixel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks a specific unseen pixel for only having two or less unseen
-		//                  neighbors, and if so, makes it seen.
-		// Arguments:       Coordinates to the pixel to check for orphaness.
-		//                  The direction we might be checking 'from', ie the neighbor we can
-		//                  already assume is seen without poking at the unseen map.
-		//                  Which team's unseen layer to check the pixel on.
-		// Return value:    Whether the pixel was deemed to be orphan and thus cleaned up.
-
+		/// Checks a specific unseen pixel for only having two or less unseen
+		/// neighbors, and if so, makes it seen.
+		/// @param posX Coordinates to the pixel to check for orphaness.
+		/// @param posY The direction we might be checking 'from', ie the neighbor we can
+		/// already assume is seen without poking at the unseen map.
+		/// @param checkingFrom Which team's unseen layer to check the pixel on. (default: NODIR)
+		/// @return Whether the pixel was deemed to be orphan and thus cleaned up.
 		bool CleanOrphanPixel(int posX, int posY, NeighborDirection checkingFrom = NODIR, int team = Activity::TeamOne);
 
-		/// <summary>
 		/// Gets the total dimensions (width and height) of the scene, in pixels.
-		/// </summary>
-		/// <returns>A Vector describing the scene dimensions.</returns>
+		/// @return A Vector describing the scene dimensions.
 		Vector GetDimensions() const;
 
-		/// <summary>
 		/// Gets the total width of the scene, in pixels.
-		/// </summary>
-		/// <returns>An int describing the scene width.</returns>
+		/// @return An int describing the scene width.
 		int GetWidth() const;
 
-		/// <summary>
 		/// Gets the total height of the scene, in pixels.
-		/// </summary>
-		/// <returns>An int describing the scene height.</returns>
+		/// @return An int describing the scene height.
 		int GetHeight() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          WrapsX
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the scene wraps its scrolling around the X axis.
-		// Arguments:       None.
-		// Return value:    Whether the scene wraps around the X axis or not.
-
+		/// Indicates whether the scene wraps its scrolling around the X axis.
+		/// @return Whether the scene wraps around the X axis or not.
 		bool WrapsX() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          WrapsY
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the scene wraps its scrolling around the Y axis.
-		// Arguments:       None.
-		// Return value:    Whether the scene wraps around the Y axis or not.
-
+		/// Indicates whether the scene wraps its scrolling around the Y axis.
+		/// @return Whether the scene wraps around the Y axis or not.
 		bool WrapsY() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          PlaceResidentBrain
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Places the individual brain of a single player which may be stationed
-		//                  on this Scene, and registers them as such in an Activity.
-		// Arguments:       The player's brain to place.
-		//                  The Activity to register the placed brains with. OWNERSHIP IS NOT TRANSFERRED!
-		// Return value:    If the brain was successfully found as resident and placed.
-
+		/// Places the individual brain of a single player which may be stationed
+		/// on this Scene, and registers them as such in an Activity.
+		/// @param player The player's brain to place.
+		/// @param newActivity The Activity to register the placed brains with. OWNERSHIP IS NOT TRANSFERRED!
+		/// @return If the brain was successfully found as resident and placed.
 		bool PlaceResidentBrain(int player, Activity& newActivity);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          PlaceResidentBrains
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Places the individual brains of the various players which may be
-		//                  stationed on this Scene, and registers them as such in an Activity.
-		// Arguments:       The Activity to register the placed brains with. OWNERSHIP IS NOT TRANSFERRED!
-		// Return value:    How many brains were finally placed.
-
+		/// Places the individual brains of the various players which may be
+		/// stationed on this Scene, and registers them as such in an Activity.
+		/// @param newActivity The Activity to register the placed brains with. OWNERSHIP IS NOT TRANSFERRED!
+		/// @return How many brains were finally placed.
 		int PlaceResidentBrains(Activity& newActivity);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RetrieveResidentBrains
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Looks at the Activity and its players' registered brain Actors, and
-		//                  saves them as resident brains for this Scene. Done when a fight is over
-		//                  and the survivors remain!
-		// Arguments:       The Activity to check for registered brains. OWNERSHIP IS NOT TRANSFERRED!
-		// Return value:    How many brains were found registered with the passed in Activity.
-
+		/// Looks at the Activity and its players' registered brain Actors, and
+		/// saves them as resident brains for this Scene. Done when a fight is over
+		/// and the survivors remain!
+		/// @param oldActivity The Activity to check for registered brains. OWNERSHIP IS NOT TRANSFERRED!
+		/// @return How many brains were found registered with the passed in Activity.
 		int RetrieveResidentBrains(Activity& oldActivity);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RetrieveSceneObjects
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sucks up all the Actors, Items and Particles currently active in MovableMan and
-		//                  puts them into this' list of objects to place on next load.
-		// Arguments:       The team to only retrieve Actors of. If NoTeam, then all will be grabbed.
-		//                  Whether to not get any brains at all.
-		// Return value:    How many objects were found knocking about in the world, and stored.
-
+		/// Sucks up all the Actors, Items and Particles currently active in MovableMan and
+		/// puts them into this' list of objects to place on next load.
+		/// @param transferOwnership The team to only retrieve Actors of. If NoTeam, then all will be grabbed.
+		/// @param onlyTeam Whether to not get any brains at all. (default: -1)
+		/// @return How many objects were found knocking about in the world, and stored.
 		int RetrieveSceneObjects(bool transferOwnership, int onlyTeam = -1, bool noBrains = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetPlacedObjects
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the list of SceneObject:s which are placed in this scene on loading.
-		// Arguments:       Which set of placed objects to get. See the PlacedObjectSets enum.
-		// Return value:    The list of of placed objects. Ownership is NOT transferred!
-
+		/// Gets the list of SceneObject:s which are placed in this scene on loading.
+		/// @param whichSet Which set of placed objects to get. See the PlacedObjectSets enum.
+		/// @return The list of of placed objects. Ownership is NOT transferred!
 		const std::list<SceneObject*>* GetPlacedObjects(int whichSet) const { return &m_PlacedObjects[whichSet]; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddPlacedObject
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds a SceneObject to be placed in this scene. Ownership IS transferred!
-		// Arguments:       Which set of placed objects to add to. See the PlacedObjectSets enum.
-		//                  The SceneObject instance to add, OIT!
-		//                  Where in the list the object should be inserted. -1 means at the end
-		//                  of the list.
-		// Return value:    None.
-
+		/// Adds a SceneObject to be placed in this scene. Ownership IS transferred!
+		/// @param whichSet Which set of placed objects to add to. See the PlacedObjectSets enum.
+		/// @param pObjectToAdd The SceneObject instance to add, OIT!
+		/// @param listOrder Where in the list the object should be inserted. -1 means at the end (default: -1)
+		/// of the list.
 		void AddPlacedObject(int whichSet, SceneObject* pObjectToAdd, int listOrder = -1);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemovePlacedObject
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes a SceneObject placed in this scene.
-		// Arguments:       Which set of placed objects to rem from. See the PlacedObjectSets enum.
-		//                  The list order number of the object to remove. If -1, the last one is removed.
-		// Return value:    None.
-
+		/// Removes a SceneObject placed in this scene.
+		/// @param whichSet Which set of placed objects to rem from. See the PlacedObjectSets enum.
+		/// @param whichToRemove The list order number of the object to remove. If -1, the last one is removed. (default: -1)
 		void RemovePlacedObject(int whichSet, int whichToRemove = -1);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          PickPlacedObject
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the last placed object that graphically overlaps an absolute
-		//                  point in the scene.
-		// Arguments:       Which set of placed objects to pick from. See the PlacedObjectSets enum.
-		//                  The point in absolute scene coordinates that will be used to pick the
-		//                  last placed SceneObject which overlaps it.
-		//                  An int which will be filled out with the order place of any found object
-		//                  in the list. if nothing is found, it will get a value of -1.
-		// Return value:    The last hit SceneObject, if any. Ownership is NOT transferred!
-
+		/// Returns the last placed object that graphically overlaps an absolute
+		/// point in the scene.
+		/// @param whichSet Which set of placed objects to pick from. See the PlacedObjectSets enum.
+		/// @param scenePoint The point in absolute scene coordinates that will be used to pick the
+		/// last placed SceneObject which overlaps it.
+		/// @param pListOrderPlace An int which will be filled out with the order place of any found object (default: 0)
+		/// in the list. if nothing is found, it will get a value of -1.
+		/// @return The last hit SceneObject, if any. Ownership is NOT transferred!
 		const SceneObject* PickPlacedObject(int whichSet, Vector& scenePoint, int* pListOrderPlace = 0) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          PickPlacedActorInRange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the last placed actor object that is closer than range to scenePoint
-		//
-		// Arguments:       Which set of placed objects to pick from. See the PlacedObjectSets enum.
-		//                  The point in absolute scene coordinates that will be used to pick the
-		//                  closest placed SceneObject near it.
-		//                  The range to check for nearby objects.
-		//                  An int which will be filled out with the order place of any found object
-		//                  in the list. if nothing is found, it will get a value of -1.
-		//
-		// Return value:    The closest actor SceneObject, if any. Ownership is NOT transferred!
-
+		/// Returns the last placed actor object that is closer than range to scenePoint
+		/// @param whichSet Which set of placed objects to pick from. See the PlacedObjectSets enum.
+		/// @param scenePoint The point in absolute scene coordinates that will be used to pick the
+		/// closest placed SceneObject near it.
+		/// @param range The range to check for nearby objects.
+		/// @param pListOrderPlace An int which will be filled out with the order place of any found object
+		/// in the list. if nothing is found, it will get a value of -1.
+		/// @return The closest actor SceneObject, if any. Ownership is NOT transferred!
 		const SceneObject* PickPlacedActorInRange(int whichSet, Vector& scenePoint, int range, int* pListOrderPlace) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePlacedObjects
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updated the objects in the placed scene objects list of this. This is
-		//                  mostly for the editor to represent the items correctly.
-		// Arguments:       Which set of placed objects to update. See the PlacedObjectSets enum.
-		// Return value:    None.
-
+		/// Updated the objects in the placed scene objects list of this. This is
+		/// mostly for the editor to represent the items correctly.
+		/// @param whichSet Which set of placed objects to update. See the PlacedObjectSets enum.
 		void UpdatePlacedObjects(int whichSet);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ClearPlacedObjectSet
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes all entries in a specific set of placed Objects.
-		// Arguments:       Which set of placed objects to clear. See the PlacedObjectSets enum.
-		//                  Whether or not we have ownership of these items, and should delete them.
-		// Return value:    How many things were removed in teh process of clearing that set.
-
+		/// Removes all entries in a specific set of placed Objects.
+		/// @param whichSet Which set of placed objects to clear. See the PlacedObjectSets enum.
+		/// @param weHaveOwnership Whether or not we have ownership of these items, and should delete them. (default: true)
+		/// @return How many things were removed in teh process of clearing that set.
 		int ClearPlacedObjectSet(int whichSet, bool weHaveOwnership = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetResidentBrain
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the resident brain Actor of a specific player from this scene,
-		//                  if there is any. OWNERSHIP IS NOT TRANSFERRED!
-		// Arguments:       Which player to get the resident brain of.
-		// Return value:    The SO containing the brain, or 0 if there aren't any of that player.
-
+		/// Gets the resident brain Actor of a specific player from this scene,
+		/// if there is any. OWNERSHIP IS NOT TRANSFERRED!
+		/// @param player Which player to get the resident brain of.
+		/// @return The SO containing the brain, or 0 if there aren't any of that player.
 		SceneObject* GetResidentBrain(int player) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetResidentBrain
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the resident brain Actor of a specific player from this scene,
-		//                  if there is any. Ownership IS transferred!
-		// Arguments:       Which player to set the resident brain of.
-		//                  The Actor to set as the resident brain of the specified player.
-		// Return value:    None.
-
+		/// Sets the resident brain Actor of a specific player from this scene,
+		/// if there is any. Ownership IS transferred!
+		/// @param player Which player to set the resident brain of.
+		/// @param pNewBrain The Actor to set as the resident brain of the specified player.
 		void SetResidentBrain(int player, SceneObject* pNewBrain);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetResidentBrainCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the number of brains currently residing in this scene.
-		// Arguments:       None.
-		// Return value:    The number of resident brains who are installed here.
-
+		/// Gets the number of brains currently residing in this scene.
+		/// @return The number of resident brains who are installed here.
 		int GetResidentBrainCount() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetArea
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds one or modifies an existing area of this Scene.
-		// Arguments:       The area to add or modify of the same name in this Scene. Ownership is
-		//                  NOT transferred!
-		// Return value:    Whether the specified area was previously defined in this scene.
-
+		/// Adds one or modifies an existing area of this Scene.
+		/// @param newArea The area to add or modify of the same name in this Scene. Ownership is
+		/// NOT transferred!
+		/// @return Whether the specified area was previously defined in this scene.
 		bool SetArea(Area& newArea);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          HasArea
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks for the existence of a specific Area identified by a name.
-		//                  This won't throw any errors to the console if the Area isn't found.
-		// Arguments:       The name of the Area to try to find in this Scene.
-		// Return value:    Whether the specified area is defined in this Scene.
-
+		/// Checks for the existence of a specific Area identified by a name.
+		/// This won't throw any errors to the console if the Area isn't found.
+		/// @param areaName The name of the Area to try to find in this Scene.
+		/// @return Whether the specified area is defined in this Scene.
 		bool HasArea(std::string areaName);
 
-		/// <summary>
 		/// Gets a specified Area identified by name. Ownership is NOT transferred!
-		/// </summary>
-		/// <param name="areaName">The name of the Area to try to get.</param>
-		/// <param name="required">Whether the area is required, and should throw an error if not found.</param>
-		/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
+		/// @param areaName The name of the Area to try to get.
+		/// @param required Whether the area is required, and should throw an error if not found.
+		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
 		Area* GetArea(const std::string_view& areaName, bool required);
 
-		/// <summary>
 		/// Gets a specified Area identified by name. Ownership is NOT transferred!
-		/// </summary>
-		/// <param name="areaName">The name of the Area to try to get.</param>
-		/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
+		/// @param areaName The name of the Area to try to get.
+		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
 		Area* GetArea(const std::string& areaName) { return GetArea(areaName, true); }
 
-		/// <summary>
 		/// Gets a specified Area identified by name, showing a Lua warning if it's not found. Ownership is NOT transferred!
 		/// Using this function will not add the area to the list of required areas which Scenario GUI uses to show compatible areas.
-		/// </summary>
-		/// <param name="areaName">The name of the Area to try to get.</param>
-		/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
+		/// @param areaName The name of the Area to try to get.
+		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
 		Area* GetOptionalArea(const std::string& areaName) { return GetArea(areaName, false); }
 
 		void AddNavigatableArea(const std::string& areaName) {
@@ -890,362 +527,200 @@ namespace RTE {
 			m_NavigatableAreasUpToDate = false;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveArea
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes a specific Area identified by a name.
-		// Arguments:       The name of the Area to try to remove.
-		// Return value:    Whether an Area of that name was found, and subsequently removed.
-
+		/// Removes a specific Area identified by a name.
+		/// @param areaName The name of the Area to try to remove.
+		/// @return Whether an Area of that name was found, and subsequently removed.
 		bool RemoveArea(std::string areaName);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          WithinArea
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks if a point is within a specific named Area of this Scene. If
-		//                  no Area of the name is found, this just returns false without error.
-		// Arguments:       The name of the Area to try to check against.
-		//                  The point to see if it's within the specified Area.
-		// Return value:    Whether any Area of that name was found, AND the point falls within it.
-
+		/// Checks if a point is within a specific named Area of this Scene. If
+		/// no Area of the name is found, this just returns false without error.
+		/// @param areaName The name of the Area to try to check against.
+		/// @param point The point to see if it's within the specified Area.
+		/// @return Whether any Area of that name was found, AND the point falls within it.
 		bool WithinArea(std::string areaName, const Vector& point) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetGlobalAcc
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the global acceleration (in m/s^2) that is applied to all movable
-		//                  objects' velocities during every frame. Typically models gravity.
-		// Arguments:       None.
-		// Return value:    A Vector describing the global acceleration.
-
+		/// Gets the global acceleration (in m/s^2) that is applied to all movable
+		/// objects' velocities during every frame. Typically models gravity.
+		/// @return A Vector describing the global acceleration.
 		Vector GetGlobalAcc() const { return m_GlobalAcc; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetGlobalAcc
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the global acceleration (in m/s^2) that is applied to all movable
-		//                  objects' velocities during every frame. Typically models gravity.
-		// Arguments:       A Vector describing the global acceleration.
-		// Return value:    None.
-
+		/// Sets the global acceleration (in m/s^2) that is applied to all movable
+		/// objects' velocities during every frame. Typically models gravity.
+		/// @param newValue A Vector describing the global acceleration.
 		void SetGlobalAcc(Vector newValue) { m_GlobalAcc = newValue; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMetasceneParent
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns parent scene name of this metascene.
-		// Arguments:       None.
-		// Return value:    Name of a parent scene.
-
+		/// Returns parent scene name of this metascene.
+		/// @return Name of a parent scene.
 		std::string GetMetasceneParent() const { return m_MetasceneParent; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetLocation
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the specified location of this Scene in the scene
-		// Arguments:       A Vector with the desired location of this Scene in the scene.
-		// Return value:    None.
-
+		/// Sets the specified location of this Scene in the scene
+		/// @param newLocation A Vector with the desired location of this Scene in the scene.
 		void SetLocation(const Vector& newLocation) { m_Location = newLocation; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetMetagamePlayable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether this can be played in the Metagame map at all.
-		// Arguments:       Whether this is compatible with metagame play at all.
-		// Return value:    None.
-
+		/// Sets whether this can be played in the Metagame map at all.
+		/// @param isPlayable Whether this is compatible with metagame play at all.
 		void SetMetagamePlayable(bool isPlayable) { m_MetagamePlayable = isPlayable; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetRevealed
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether this should show up on the Metagame map yet.
-		// Arguments:       Whether to reveal this on the metagame map or not.
-		// Return value:    None.
-
+		/// Sets whether this should show up on the Metagame map yet.
+		/// @param isRevealed Whether to reveal this on the metagame map or not.
 		void SetRevealed(bool isRevealed) { m_Revealed = isRevealed; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetTeamOwnership
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the team who owns this Scene in a Metagame
-		// Arguments:       The team who should now own this Scene
-		// Return value:    None.
-
+		/// Sets the team who owns this Scene in a Metagame
+		/// @param newTeam The team who should now own this Scene
 		void SetTeamOwnership(int newTeam);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetBuildBudget
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets how much gold this Scene is budgeted to be built for this round.
-		// Arguments:       The player whom is setting the budget.
-		//                  The budget in oz that this is allocated to have built for this round.
-		// Return value:    None.
-
+		/// Sets how much gold this Scene is budgeted to be built for this round.
+		/// @param player The player whom is setting the budget.
+		/// @param budget The budget in oz that this is allocated to have built for this round.
 		void SetBuildBudget(int player, float budget) { m_BuildBudget[player] = budget; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetBuildBudgetRatio
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets how much of a player's budget this Scene is budgeted to be build
-		//                  for each turn.
-		// Arguments:       The player whom is setting the budget ratio.
-		//                  The budget in normalized ratio that this is allocated of the total.
-		// Return value:    None.
-
+		/// Sets how much of a player's budget this Scene is budgeted to be build
+		/// for each turn.
+		/// @param player The player whom is setting the budget ratio.
+		/// @param budgetRatio The budget in normalized ratio that this is allocated of the total.
 		void SetBuildBudgetRatio(int player, float budgetRatio) { m_BuildBudgetRatio[player] = budgetRatio; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CalcBuildBudgetUse
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Figure out exactly how much of the build budget would be used if
-		//                  as many blueprint objects as can be afforded and exists would be built.
-		// Arguments:       The player for whom we are calculating this budget use.
-		//                  An optional int that will be filled with number of objects that can
-		//                  acutally be built.
-		//                  An optional int that will be filled with number of objects that can
-		//                  built out of the AI plan set, AFTER the blueprints are built.
-		// Return value:    The amount of funds that would be applied to the building of objects.
-
+		/// Figure out exactly how much of the build budget would be used if
+		/// as many blueprint objects as can be afforded and exists would be built.
+		/// @param player The player for whom we are calculating this budget use.
+		/// @param pAffordCount An optional int that will be filled with number of objects that can (default: 0)
+		/// acutally be built.
+		/// @param pAffordAIPlanCount An optional int that will be filled with number of objects that can (default: 0)
+		/// built out of the AI plan set, AFTER the blueprints are built.
+		/// @return The amount of funds that would be applied to the building of objects.
 		float CalcBuildBudgetUse(int player, int* pAffordCount = 0, int* pAffordAIPlanCount = 0) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ApplyAIPlan
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Puts the pre-built AI base plan into effect by transferring as many
-		//                  pieces as the current base budget allows from the AI plan to the actual
-		//                  blueprints to be built at this Scene.
-		// Arguments:       The AI player whom is putting his plans into motion.
-		//                  An optional int that will be filled with number of objects that were
-		//                  acutally moved from the AI plan to the blueprints.
-		// Return value:    The value of the AI plan objects that were put onto the blueprints.
-
+		/// Puts the pre-built AI base plan into effect by transferring as many
+		/// pieces as the current base budget allows from the AI plan to the actual
+		/// blueprints to be built at this Scene.
+		/// @param player The AI player whom is putting his plans into motion.
+		/// @param pObjectsApplied An optional int that will be filled with number of objects that were (default: 0)
+		/// acutally moved from the AI plan to the blueprints.
+		/// @return The value of the AI plan objects that were put onto the blueprints.
 		float ApplyAIPlan(int player, int* pObjectsApplied = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ApplyBuildBudget
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Actually builds as many objects in the specific player's Blueprint
-		//                  list as can be afforded by his build budget. The budget is deducted
-		//                  accordingly.
-		// Arguments:       The player whom is using his budget.
-		//                  An optional int that will be filled with number of objects that were
-		//                  acutally built.
-		// Return value:    The amount of funds that were applied to the building of objects.
-
+		/// Actually builds as many objects in the specific player's Blueprint
+		/// list as can be afforded by his build budget. The budget is deducted
+		/// accordingly.
+		/// @param player The player whom is using his budget.
+		/// @param pObjectsBuilt An optional int that will be filled with number of objects that were (default: 0)
+		/// acutally built.
+		/// @return The amount of funds that were applied to the building of objects.
 		float ApplyBuildBudget(int player, int* pObjectsBuilt = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveAllPlacedActors
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Remove all actors that are in the placed set of objects to load for
-		//                  this scene. All except for an optionally specified team, that is.
-		// Arguments:       Remove all actors but of this team.
-		// Return value:    How many actors were actually removed.
-
+		/// Remove all actors that are in the placed set of objects to load for
+		/// this scene. All except for an optionally specified team, that is.
+		/// @param exceptTeam Remove all actors but of this team. (default: -1)
+		/// @return How many actors were actually removed.
 		int RemoveAllPlacedActors(int exceptTeam = -1);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetOwnerOfAllDoors
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the ownership of all doors placed in this scene to a specific team
-		// Arguments:       The team to change the ownership to
-		//                  The player which placed these doors.
-		// Return value:    How many doors were actually affected.
-
+		/// Sets the ownership of all doors placed in this scene to a specific team
+		/// @param team The team to change the ownership to
+		/// @param player The player which placed these doors.
+		/// @return How many doors were actually affected.
 		int SetOwnerOfAllDoors(int team, int player);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsScanScheduled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether a specific team has scheduled an orbital Scan of this.
-		// Arguments:       The team to check for.
-		// Return value:    Whether the scan has been scheduled and paid for.
-
+		/// Tells whether a specific team has scheduled an orbital Scan of this.
+		/// @param team The team to check for.
+		/// @return Whether the scan has been scheduled and paid for.
 		bool IsScanScheduled(int team) const { return m_ScanScheduled[team]; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetScheduledScan
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets this to be orbitally scanned by a specific team on next load.
-		// Arguments:       The team to schedule the scan for.
-		//                  Whether to actually schedule the scan or clear it.
-		// Return value:    None.
-
+		/// Sets this to be orbitally scanned by a specific team on next load.
+		/// @param team The team to schedule the scan for.
+		/// @param scan Whether to actually schedule the scan or clear it. (default: true)
 		void SetScheduledScan(int team, bool scan = true) { m_ScanScheduled[team] = scan; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ResetPathFinding
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Recalculates all of the pathfinding data. This is very expensive, so
-		//                  do very rarely!
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Recalculates all of the pathfinding data. This is very expensive, so
+		/// do very rarely!
 		void ResetPathFinding();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BlockUntilAllPathingRequestsComplete
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Blocks this thread until all pathing requests are completed.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Blocks this thread until all pathing requests are completed.
 		void BlockUntilAllPathingRequestsComplete();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePathFinding
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Recalculates only the areas of the pathfinding data that have been
-		//                  marked as outdated.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Recalculates only the areas of the pathfinding data that have been
+		/// marked as outdated.
 		void UpdatePathFinding();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          PathFindingUpdated
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the pathfinding data has been updated in the last frame.
-		// Arguments:       None.
-		// Return value:    Whether the pathfinding data was recalculated fully or partially.
-
+		/// Tells whether the pathfinding data has been updated in the last frame.
+		/// @return Whether the pathfinding data was recalculated fully or partially.
 		bool PathFindingUpdated() { return m_PathfindingUpdated; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CalculatePath
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates and returns the least difficult path between two points on
-		//                  the current scene. Takes both distance and materials into account.
-		//                  When pathing using the NoTeam pathFinder, no doors are considered passable.
-		// Arguments:       Start and end positions on the scene to find the path between.
-		//                  A list which will be filled out with waypoints between the start and end.
-		//                  The maximum material strength any actor traveling along the path can dig through.
-		//                  The team we're pathing for (doors for this team will be considered passable)
-		// Return value:    The total minimum difficulty cost calculated between the two points on
-		//                  the scene.
-
+		/// Calculates and returns the least difficult path between two points on
+		/// the current scene. Takes both distance and materials into account.
+		/// When pathing using the NoTeam pathFinder, no doors are considered passable.
+		/// @param start Start and end positions on the scene to find the path between.
+		/// @param end A list which will be filled out with waypoints between the start and end.
+		/// @param pathResult The maximum material strength any actor traveling along the path can dig through.
+		/// @param digStrength The team we're pathing for (doors for this team will be considered passable) (default: c_PathFindingDefaultDigStrength)
+		/// @return The total minimum difficulty cost calculated between the two points on
+		/// the scene.
 		float CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam);
 
-		/// <summary>
 		/// Asynchronously calculates the least difficult path between two points on the current Scene. Takes both distance and materials into account.
 		/// When pathing using the NoTeam pathFinder, no doors are considered passable.
-		/// </summary>
-		/// <param name="start">Start position of the pathfinding request.</param>
-		/// <param name="end">End position of the pathfinding request.</param>
-		/// <param name="digStrength">The maximum material strength any actor traveling along the path can dig through.</param>
-		/// <param name="team">The team we're pathing for (doors for this team will be considered passable)</param>
-		/// <returns>A shared pointer to the volatile PathRequest to be used to track whehter the asynchrnous path calculation has been completed, and check its results.</returns>
+		/// @param start Start position of the pathfinding request.
+		/// @param end End position of the pathfinding request.
+		/// @param digStrength The maximum material strength any actor traveling along the path can dig through.
+		/// @param team The team we're pathing for (doors for this team will be considered passable)
+		/// @return A shared pointer to the volatile PathRequest to be used to track whehter the asynchrnous path calculation has been completed, and check its results.
 		std::shared_ptr<volatile PathRequest> CalculatePathAsync(const Vector& start, const Vector& end, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam, PathCompleteCallback callback = nullptr);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetScenePathSize
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets how many waypoints there are in the ScenePath currently
-		// Arguments:       None.
-		// Return value:    The number of waypoints in the ScenePath.
-
+		/// Gets how many waypoints there are in the ScenePath currently
+		/// @return The number of waypoints in the ScenePath.
 		int GetScenePathSize() const;
 
 		std::list<Vector>& GetScenePath();
 
-		/// <summary>
 		/// Returns whether two position represent the same path nodes.
-		/// </summary>
-		/// <param name="pos1">First coordinates to compare.</param>
-		/// <param name="pos2">Second coordinates to compare.</param>
-		/// <returns>Whether both coordinates represent the same path node.</returns>
+		/// @param pos1 First coordinates to compare.
+		/// @param pos2 Second coordinates to compare.
+		/// @return Whether both coordinates represent the same path node.
 		bool PositionsAreTheSamePathNode(const Vector& pos1, const Vector& pos2) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Lock
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Locks all dynamic internal scene bitmaps so that manipulaitons of the
-		//                  scene's color and matter representations can take place.
-		//                  Doing it in a separate method like this is more efficient because
-		//                  many bitmap manipulaitons can be performed between a lock and unlock.
-		//                  UnlockScene() should always be called after accesses are completed.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Locks all dynamic internal scene bitmaps so that manipulaitons of the
+		/// scene's color and matter representations can take place.
+		/// Doing it in a separate method like this is more efficient because
+		/// many bitmap manipulaitons can be performed between a lock and unlock.
+		/// UnlockScene() should always be called after accesses are completed.
 		void Lock();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Unlock
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Unlocks the scene's bitmaps and prevents access to display memory.
-		//                  Doing it in a separate method like this is more efficient because
-		//                  many bitmap accesses can be performed between a lock and an unlock.
-		//                  UnlockScene() should only be called after LockScene().
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Unlocks the scene's bitmaps and prevents access to display memory.
+		/// Doing it in a separate method like this is more efficient because
+		/// many bitmap accesses can be performed between a lock and an unlock.
+		/// UnlockScene() should only be called after LockScene().
 		void Unlock();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsLocked
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the entire scene is currently locked or not.
-		// Arguments:       None.
-		// Return value:    Whether the entire scene is currently locked or not.
-
+		/// Indicates whether the entire scene is currently locked or not.
+		/// @return Whether the entire scene is currently locked or not.
 		bool IsLocked() const { return m_Locked; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the state of this Scene. Supposed to be done every frame
-		//                  before drawing.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the state of this Scene. Supposed to be done every frame
+		/// before drawing.
 		void UpdateSim();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsMetagameInternal
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Whether this scene is a temprorary metagame scene and should
-		//					not be used anywhere except in metagame.
-		// Arguments:       None.
-		// Return value:    Whether scene belongs to metagame or not.
-
+		/// Whether this scene is a temprorary metagame scene and should
+		/// not be used anywhere except in metagame.
+		/// @return Whether scene belongs to metagame or not.
 		bool IsMetagameInternal() const { return m_IsMetagameInternal; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetMetagameInternal
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether this scene is a temprorary metagame scene and should
-		//					not be used anywhere except in metagame.
-		// Arguments:       New value.
-		// Return value:    None.
-
+		/// Sets whether this scene is a temprorary metagame scene and should
+		/// not be used anywhere except in metagame.
+		/// @param newValue New value.
 		void SetMetagameInternal(bool newValue) { m_IsMetagameInternal = newValue; }
 
-		/// <summary>
 		/// Gets whether this Scene is a saved game Scene copy and should not be used anywhere except for game saving and loading.
-		/// </summary>
-		/// <returns>Whether this Scene is a saved game Scene copy.</returns>
+		/// @return Whether this Scene is a saved game Scene copy.
 		bool IsSavedGameInternal() const { return m_IsSavedGameInternal; }
 
-		/// <summary>
 		/// Sets whether this Scene is a saved game Scene copy and should not be used anywhere except for game saving and loading.
-		/// </summary>
-		/// <param name="newValue">Whether this Scene is a saved game Scene copy.</param>
+		/// @param newValue Whether this Scene is a saved game Scene copy.
 		void SetSavedGameInternal(bool newValue) { m_IsSavedGameInternal = newValue; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetPreviewBitmap
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns preview bitmap pointer for this scene.
-		// Arguments:       None.
-		// Return value:    Pointer to preview bitmap.
-
+		/// Returns preview bitmap pointer for this scene.
+		/// @return Pointer to preview bitmap.
 		BITMAP* GetPreviewBitmap() const { return m_pPreviewBitmap; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -1329,34 +804,22 @@ namespace RTE {
 
 		std::list<Deployment*> m_Deployments;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		/// <summary>
 		/// Gets the pathfinder for a given team.
-		/// </summary>
-		/// <param name="team">The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.</param>
-		/// <returns>A pointer to the pathfinder for the given team.</returns>
+		/// @param team The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.
+		/// @return A pointer to the pathfinder for the given team.
 		std::unique_ptr<PathFinder>& GetPathFinder(Activity::Teams team);
 
-		/// <summary>
 		/// Serializes the SceneObject via the Writer. Necessary because full serialization doesn't know how to deal with duplicate properties.
-		/// </summary>
-		/// <param name="writer">The Writer being used for serialization.</param>
-		/// <param name="sceneObjectToSave">The SceneObject to save.</param>
-		/// <param name="isChildAttachable">Convenience flag for whether or not this SceneObject is a child Attachable, and certain properties shouldn't be saved.</param>
-		/// <param name="saveFullData">Whether or not to save most data. Turned off for stuff like SceneEditor saves.</param>
+		/// @param writer The Writer being used for serialization.
+		/// @param sceneObjectToSave The SceneObject to save.
+		/// @param isChildAttachable Convenience flag for whether or not this SceneObject is a child Attachable, and certain properties shouldn't be saved.
+		/// @param saveFullData Whether or not to save most data. Turned off for stuff like SceneEditor saves.
 		void SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave, bool isChildAttachable, bool saveFullData) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this Scene, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this Scene, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.
