@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            AreaEditor.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the AreaEditor class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "AreaEditor.h"
 
 #include "WindowMan.h"
@@ -42,21 +30,10 @@ namespace RTE {
 
 	ConcreteClassInfo(AreaEditor, EditorActivity, 0);
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this AreaEditor, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void AreaEditor::Clear() {
 		m_pEditorGUI = 0;
 		m_pNewAreaName = 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the AreaEditor object ready for use.
 
 	int AreaEditor::Create() {
 		if (EditorActivity::Create() < 0)
@@ -64,11 +41,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a AreaEditor to be identical to another, by deep copy.
 
 	int AreaEditor::Create(const AreaEditor& reference) {
 		if (EditorActivity::Create(reference) < 0)
@@ -80,14 +52,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int AreaEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 		/*
@@ -98,21 +62,10 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this AreaEditor with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int AreaEditor::Save(Writer& writer) const {
 		EditorActivity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the AreaEditor object.
 
 	void AreaEditor::Destroy(bool notInherited) {
 		delete m_pEditorGUI;
@@ -121,12 +74,6 @@ namespace RTE {
 			EditorActivity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int AreaEditor::Start() {
 		int error = EditorActivity::Start();
@@ -212,32 +159,16 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void AreaEditor::SetPaused(bool pause) {
 		// Override the pause
 		m_Paused = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void AreaEditor::End() {
 		EditorActivity::End();
 
 		m_ActivityState = ActivityState::Over;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this AreaEditor. Supposed to be done every frame
-	//                  before drawing.
 
 	void AreaEditor::Update() {
 		EditorActivity::Update();
@@ -498,28 +429,15 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void AreaEditor::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		m_pEditorGUI->Draw(pTargetBitmap, targetPos);
 
 		EditorActivity::DrawGUI(pTargetBitmap, targetPos, which);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this AreaEditor's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
-
 	void AreaEditor::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		EditorActivity::Draw(pTargetBitmap, targetPos);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AreaEditor::SaveScene(const std::string& saveAsName, bool forceOverwrite) {
 		Scene* editedScene = g_SceneMan.GetScene();
@@ -589,21 +507,11 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateNewDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the New dialog box, populates its lists etc.
-
 	void AreaEditor::UpdateNewDialog() {
 		// Reset the new Area name text field
 		if (m_pNewAreaName->GetText().empty())
 			m_pNewAreaName->SetText("Test Area 1");
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateLoadDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Load dialog box, populates its lists etc.
 
 	void AreaEditor::UpdateLoadDialog() {
 		// Clear out the control
@@ -626,11 +534,6 @@ namespace RTE {
 		m_pLoadNameCombo->SetSelectedIndex(0);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateSaveDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Save dialog box, populates its lists etc.
-
 	void AreaEditor::UpdateSaveDialog() {
 		m_pSaveNameBox->SetText((g_SceneMan.GetScene()->GetPresetName() == "None" || !m_HasEverBeenSaved) ? "New Scene" : g_SceneMan.GetScene()->GetPresetName());
 		if (g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == c_UserScenesModuleName)
@@ -638,11 +541,6 @@ namespace RTE {
 		else
 			m_pSaveModuleLabel->SetText("Will save in " + g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes");
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateChangesDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Save Changes dialog box, populates its lists etc.
 
 	void AreaEditor::UpdateChangesDialog() {
 		if (m_HasEverBeenSaved) {
@@ -656,11 +554,6 @@ namespace RTE {
 			m_pChangesNameLabel->SetText("");
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateOverwriteDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Overwrite dialog box, populates its lists etc.
 
 	void AreaEditor::UpdateOverwriteDialog() {
 		if (g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() == c_UserScenesModuleName)

@@ -7,8 +7,6 @@ namespace RTE {
 
 	ConcreteClassInfo(SLBackground, SceneLayer, 0);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SLBackground::Clear() {
 		m_Bitmaps.clear();
 		m_FrameCount = 1;
@@ -31,8 +29,6 @@ namespace RTE {
 
 		m_IgnoreAutoScale = false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLBackground::Create() {
 		SceneLayer::Create();
@@ -57,8 +53,6 @@ namespace RTE {
 		}
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLBackground::Create(const SLBackground& reference) {
 		SceneLayer::Create(reference);
@@ -89,8 +83,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneLayer::ReadProperty(propName, reader));
@@ -123,8 +115,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int SLBackground::Save(Writer& writer) const {
 		SceneLayer::Save(writer);
 
@@ -145,8 +135,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SLBackground::InitScaleFactors() {
 		if (!m_IgnoreAutoScale) {
 			float fitScreenScaleFactor = std::clamp(static_cast<float>(std::min(g_SceneMan.GetSceneHeight(), g_FrameMan.GetPlayerScreenHeight())) / static_cast<float>(m_MainBitmap->h), 1.0F, 2.0F);
@@ -166,8 +154,6 @@ namespace RTE {
 			InitScrollRatios();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLBackground::Update() {
 		if (!m_IsAnimatedManually && m_SpriteAnimMode != SpriteAnimMode::NOANIM) {
@@ -213,8 +199,6 @@ namespace RTE {
 			m_Offset.SetXY(std::floor((m_Offset.GetX() * m_ScrollRatio.GetX()) + m_AutoScrollOffset.GetX()), std::floor((m_Offset.GetY() * m_ScrollRatio.GetY()) + m_AutoScrollOffset.GetY()));
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLBackground::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 		SceneLayer::Draw(targetBitmap, targetBox, !IsAutoScrolling());

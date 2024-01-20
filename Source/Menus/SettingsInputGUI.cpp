@@ -10,8 +10,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	SettingsInputGUI::SettingsInputGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
 		m_InputSettingsBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputSettings"));
@@ -40,14 +38,10 @@ namespace RTE {
 		m_InputMappingConfigMenu = std::make_unique<SettingsInputMappingGUI>(parentControlManager);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsInputGUI::SetEnabled(bool enable) const {
 		m_InputSettingsBox->SetVisible(enable);
 		m_InputSettingsBox->SetEnabled(enable);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::ResetPlayerInputSettings(int player) {
 		if (m_PlayerInputSettingsBoxes.at(player).ResetControlsButton->GetText() == "Reset") {
@@ -74,8 +68,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsInputGUI::SetPlayerNextOrPrevInputDevice(int player, bool nextDevice) {
 		int currentDevice = static_cast<int>(g_UInputMan.GetControlScheme(player)->GetDevice());
 
@@ -94,8 +86,6 @@ namespace RTE {
 		UpdatePlayerSelectedDeviceLabel(player);
 		ShowOrHidePlayerInputDeviceSensitivityControls(player);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::UpdatePlayerSelectedDeviceLabel(int player) {
 		std::string deviceLabel;
@@ -124,8 +114,6 @@ namespace RTE {
 		}
 		m_PlayerInputSettingsBoxes.at(player).SelectedDeviceLabel->SetText(deviceLabel);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::ShowOrHidePlayerInputDeviceSensitivityControls(int player) {
 		m_PlayerInputSettingsBoxes.at(player).SensitivityLabel->SetVisible(false);
@@ -158,8 +146,6 @@ namespace RTE {
 		UpdatePlayerInputSensitivityControlValues(player);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SettingsInputGUI::UpdatePlayerInputSensitivityControlValues(int player) {
 		switch (g_UInputMan.GetControlScheme(player)->GetDevice()) {
 			case InputDevice::DEVICE_KEYB_ONLY:
@@ -191,8 +177,6 @@ namespace RTE {
 				break;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (m_InputMappingConfigMenu->IsEnabled()) {
