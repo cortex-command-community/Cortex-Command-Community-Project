@@ -4,9 +4,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A light-weight Entity for storing only the necessary info about how to load an entire MetaMan state from disk.
-	/// </summary>
 	class MetaSave : public Entity {
 
 	public:
@@ -15,36 +13,26 @@ namespace RTE {
 		ClassInfoGetters;
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a MetaSave object in system memory. Create() should be called before using the object.
-		/// </summary>
 		MetaSave() { Clear(); }
 
-		/// <summary>
 		/// Makes the MetaSave object ready for use from the currently loaded MetaMan state.
-		/// </summary>
-		/// <param name="savePath">The path of the file to where the MetaMan state should be saved.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param savePath The path of the file to where the MetaMan state should be saved.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(std::string savePath);
 
-		/// <summary>
 		/// Creates a MetaSave to be identical to another, by deep copy.
-		/// </summary>
-		/// <param name="reference">A reference to the MetaSave to deep copy.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param reference A reference to the MetaSave to deep copy.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const MetaSave& reference);
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up a MetaSave object before deletion from system memory.
-		/// </summary>
 		~MetaSave() override { Destroy(true); }
 
-		/// <summary>
 		/// Destroys and resets (through Clear()) the MetaSave object.
-		/// </summary>
-		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override {
 			if (!notInherited) {
 				Entity::Destroy();
@@ -54,34 +42,24 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Getters
-		/// <summary>
 		/// Gets the full path to the ini file that stores the state of the MetaMan this is associated with.
-		/// </summary>
-		/// <returns>The path to the ini with the MetaMan state info.</returns>
+		/// @return The path to the ini with the MetaMan state info.
 		std::string GetSavePath() const { return m_SavePath; }
 
-		/// <summary>
 		/// Gets the total number of players this game has (including AIs).
-		/// </summary>
-		/// <returns>The player count.</returns>
+		/// @return The player count.
 		int GetPlayerCount() const { return m_PlayerCount; }
 
-		/// <summary>
 		/// Gets the difficulty for this game.
-		/// </summary>
-		/// <returns>Difficulty setting.</returns>
+		/// @return Difficulty setting.
 		int GetDifficulty() const { return m_Difficulty; }
 
-		/// <summary>
 		/// Gets the round number that this game is on.
-		/// </summary>
-		/// <returns>The round count.</returns>
+		/// @return The round count.
 		int GetRoundCount() const { return m_RoundCount; }
 
-		/// <summary>
 		/// Gets the total number of Scenes this game has.
-		/// </summary>
-		/// <returns>The number of Scenes.</returns>
+		/// @return The number of Scenes.
 		int GetSiteCount() const { return m_SiteCount; }
 #pragma endregion
 
@@ -95,9 +73,7 @@ namespace RTE {
 		int m_SiteCount; //!< The site count of this game.
 
 	private:
-		/// <summary>
 		/// Clears all the member variables of this MetaSave, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

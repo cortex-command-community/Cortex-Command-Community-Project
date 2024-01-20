@@ -6,9 +6,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// Represents a material and holds all the relevant data.
-	/// </summary>
 	class Material : public Entity {
 
 	public:
@@ -17,15 +15,11 @@ namespace RTE {
 		ClassInfoGetters;
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a Material object in system memory. Create() should be called before using the object.
-		/// </summary>
 		Material() { Clear(); }
 
-		/// <summary>
 		/// Copy constructor method used to instantiate a Material object identical to an already existing one.
-		/// </summary>
-		/// <param name="reference">A Material object which is passed in by reference.</param>
+		/// @param reference A Material object which is passed in by reference.
 		Material(const Material& reference) {
 			if (this != &reference) {
 				Clear();
@@ -33,18 +27,14 @@ namespace RTE {
 			}
 		}
 
-		/// <summary>
 		/// Creates a Material to be identical to another, by deep copy.
-		/// </summary>
-		/// <param name="reference">A reference to the Material to deep copy.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param reference A reference to the Material to deep copy.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const Material& reference);
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Resets the entire Material, including its inherited members, to it's default settings or values.
-		/// </summary>
 		void Reset() override {
 			Clear();
 			Entity::Reset();
@@ -52,115 +42,79 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Gets the foreground texture bitmap of this Material, if any is associated with it.
-		/// </summary>
-		/// <returns>Pointer to the foreground texture bitmap of this Material.</returns>
+		/// @return Pointer to the foreground texture bitmap of this Material.
 		BITMAP* GetFGTexture() const { return m_TerrainFGTexture; }
 
-		/// <summary>
 		/// Gets the background texture bitmap of this Material, if any is associated with it.
-		/// </summary>
-		/// <returns>Pointer to the background texture bitmap of this Material.</returns>
+		/// @return Pointer to the background texture bitmap of this Material.
 		BITMAP* GetBGTexture() const { return m_TerrainBGTexture; }
 
-		/// <summary>
 		/// Gets the index of this Material in the material palette.
-		/// </summary>
-		/// <returns>The index of this Material in the material palette. 0 - 255.</returns>
+		/// @return The index of this Material in the material palette. 0 - 255.
 		unsigned char GetIndex() const { return m_Index; }
 
-		/// <summary>
 		/// Sets the index of this Material in the material palette to the next specified value.
-		/// </summary>
-		/// <param name="newIndex">The new index of this Material in the material palette. 0 - 255.</param>
+		/// @param newIndex The new index of this Material in the material palette. 0 - 255.
 		void SetIndex(unsigned char newIndex) { m_Index = newIndex; }
 
-		/// <summary>
 		/// Gets the drawing priority of this Material. The higher the number, the higher chances that a pixel of this material will be drawn on top of others. Will default to Integrity if no Priority has been defined.
-		/// </summary>
-		/// <returns>The drawing priority of this Material.</returns>
+		/// @return The drawing priority of this Material.
 		int GetPriority() const { return m_Priority < 0 ? static_cast<int>(std::ceil(m_Integrity)) : m_Priority; }
 
-		/// <summary>
 		/// Gets the amount of times a dislodged pixel of this Material will attempt to relocate to an open position.
-		/// </summary>
-		/// <returns>The amount of attempts at relocating.</returns>
+		/// @return The amount of attempts at relocating.
 		int GetPiling() const { return m_Piling; }
 
-		/// <summary>
 		/// The impulse force that a particle needs to knock loose a terrain pixel of this material. In kg * m/s.
-		/// </summary>
-		/// <returns>The impulse force that a particle needs to knock loose a terrain pixel of this material.</returns>
+		/// @return The impulse force that a particle needs to knock loose a terrain pixel of this material.
 		float GetIntegrity() const { return m_Integrity; }
 
-		/// <summary>
 		/// Gets the scalar value that defines the restitution of this Material. 1.0 = no kinetic energy is lost in a collision, 0.0 = all energy is lost (plastic).
-		/// </summary>
-		/// <returns>A float scalar value that defines the restitution of this Material.</returns>
+		/// @return A float scalar value that defines the restitution of this Material.
 		float GetRestitution() const { return m_Restitution; }
 
-		/// <summary>
 		/// Gets the scalar value that defines the friction of this Material. 1.0 = will snag onto everything, 0.0 = will glide with no friction.
-		/// </summary>
-		/// <returns>A float scalar value that defines the friction of this Material.</returns>
+		/// @return A float scalar value that defines the friction of this Material.
 		float GetFriction() const { return m_Friction; }
 
-		/// <summary>
 		/// Gets the scalar value that defines the stickiness of this Material. 1.0 = will stick to everything, 0.0 = will never stick to anything.
-		/// </summary>
-		/// <returns>A float scalar value that defines the stickiness of this Material.</returns>
+		/// @return A float scalar value that defines the stickiness of this Material.
 		float GetStickiness() const { return m_Stickiness; }
 
-		/// <summary>
 		/// Gets the density of this Material in Kg/L.
-		/// </summary>
-		/// <returns>The density of this Material.</returns>
+		/// @return The density of this Material.
 		float GetVolumeDensity() const { return m_VolumeDensity; }
 
-		/// <summary>
 		/// Gets the density of this Material in kg/pixel, usually calculated from the KG per Volume L property.
-		/// </summary>
-		/// <returns>The pixel density of this Material.</returns>
+		/// @return The pixel density of this Material.
 		float GetPixelDensity() const { return m_PixelDensity; }
 
-		/// <summary>
 		/// If this material transforms into something else when settling into the terrain, this will return that different material index. If not, it will just return the regular index of this material.
-		/// </summary>
-		/// <returns>The settling material index of this or the regular index.</returns>
+		/// @return The settling material index of this or the regular index.
 		unsigned char GetSettleMaterial() const { return (m_SettleMaterialIndex != 0) ? m_SettleMaterialIndex : m_Index; }
 
-		/// <summary>
 		/// Gets the material index to spawn instead of this one for special effects.
-		/// </summary>
-		/// <returns>The material index to spawn instead of this one for special effects. 0 means to spawn the same material as this.</returns>
+		/// @return The material index to spawn instead of this one for special effects. 0 means to spawn the same material as this.
 		unsigned char GetSpawnMaterial() const { return m_SpawnMaterialIndex; }
 
-		/// <summary>
 		/// Whether this material is scrap material made from gibs of things that have already been blown apart.
-		/// </summary>
-		/// <returns>Whether this material is scrap material.</returns>
+		/// @return Whether this material is scrap material.
 		bool IsScrap() const { return m_IsScrap; }
 
-		/// <summary>
 		/// Gets the Color of this Material.
-		/// </summary>
-		/// <returns>The color of this material.</returns>
+		/// @return The color of this material.
 		Color GetColor() const { return m_Color; }
 
-		/// <summary>
 		/// Indicates whether or not to use the Material's own color when a pixel of this Material is knocked loose from the terrain.
-		/// </summary>
-		/// <returns>Whether the Material's color, or the terrain pixel's color should be applied.</returns>
+		/// @return Whether the Material's color, or the terrain pixel's color should be applied.
 		bool UsesOwnColor() const { return m_UseOwnColor; }
 #pragma endregion
 
 #pragma region Operator Overloads
-		/// <summary>
 		/// An assignment operator for setting one Material equal to another.
-		/// </summary>
-		/// <param name="rhs">A Material reference.</param>
-		/// <returns>A reference to the changed Material.</returns>
+		/// @param rhs A Material reference.
+		/// @return A reference to the changed Material.
 		Material& operator=(const Material& rhs) {
 			if (this != &rhs) {
 				Destroy();
@@ -202,9 +156,7 @@ namespace RTE {
 		BITMAP* m_TerrainBGTexture; //!< The background texture of this Material, used when building an SLTerrain. Not owned.
 
 	private:
-		/// <summary>
 		/// Clears all the member variables of this Material, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 	};
 } // namespace RTE

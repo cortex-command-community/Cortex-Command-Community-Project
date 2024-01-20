@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MOSprite.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the MOSprite class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MOSprite.h"
 
 #include "AEmitter.h"
@@ -19,12 +7,6 @@
 namespace RTE {
 
 	AbstractClassInfo(MOSprite, MovableObject);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this MOSprite, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void MOSprite::Clear() {
 		m_SpriteFile.Reset();
@@ -51,11 +33,6 @@ namespace RTE {
 		m_pExitWound = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MOSprite object ready for use.
-
 	int MOSprite::Create() {
 		if (MovableObject::Create() < 0)
 			return -1;
@@ -81,11 +58,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MOSprite object ready for use.
-
 	int MOSprite::Create(ContentFile spriteFile,
 	                     const int frameCount,
 	                     const float mass,
@@ -110,11 +82,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MOSprite to be identical to another, by deep copy.
 
 	int MOSprite::Create(const MOSprite& reference) {
 		MovableObject::Create(reference);
@@ -146,14 +113,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int MOSprite::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return MovableObject::ReadProperty(propName, reader));
@@ -199,10 +158,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetEntryWound
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets entry wound emitter for this MOSprite
 	void MOSprite::SetEntryWound(std::string presetName, std::string moduleName) {
 		if (presetName == "")
 			m_pEntryWound = 0;
@@ -210,10 +165,6 @@ namespace RTE {
 			m_pEntryWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, moduleName));
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetExitWound
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets exit wound emitter for this MOSprite
 	void MOSprite::SetExitWound(std::string presetName, std::string moduleName) {
 		if (presetName == "")
 			m_pExitWound = 0;
@@ -221,29 +172,13 @@ namespace RTE {
 			m_pExitWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, moduleName));
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetEntryWoundPresetName
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns entry wound emitter preset name for this MOSprite
-
 	std::string MOSprite::GetEntryWoundPresetName() const {
 		return m_pEntryWound ? m_pEntryWound->GetPresetName() : "";
 	};
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetExitWoundPresetName
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns exit wound emitter preset name for this MOSprite
-
 	std::string MOSprite::GetExitWoundPresetName() const {
 		return m_pExitWound ? m_pExitWound->GetPresetName() : "";
 	};
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this MOSprite with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int MOSprite::Save(Writer& writer) const {
 		MovableObject::Save(writer);
@@ -275,11 +210,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the MOSprite object.
-
 	void MOSprite::Destroy(bool notInherited) {
 		//    delete m_pEntryWound; Not doing this anymore since we're not owning
 		//    delete m_pExitWound;
@@ -310,11 +240,6 @@ namespace RTE {
 		return is_inside_bitmap(sprite, localX, localY, 0) && _getpixel(sprite, localX, localY) != ColorKeys::g_MaskColor;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetFrame
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Hard-sets the frame this sprite is supposed to show.
-
 	void MOSprite::SetFrame(unsigned int newFrame) {
 		if (newFrame < 0)
 			newFrame = 0;
@@ -324,13 +249,6 @@ namespace RTE {
 		m_Frame = newFrame;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetNextFrame
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Hard-sets the frame this sprite is supposed to show, to the
-	//                  consecutive one after the current one. If currently the last fame is
-	//                  this will set it to the be the first, looping the animation.
-
 	bool MOSprite::SetNextFrame() {
 		if (++m_Frame >= m_FrameCount) {
 			m_Frame = 0;
@@ -338,12 +256,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsOnScenePoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether this' current graphical representation overlaps
-	//                  a point in absolute scene coordinates.
 
 	bool MOSprite::IsOnScenePoint(Vector& scenePoint) const {
 		if (!m_aSprite[m_Frame])
@@ -406,34 +318,17 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  RotateOffset
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Rotates a vector offset from this MORotating's position according to
-	//                  the rotate angle and flipping.
-
 	Vector MOSprite::RotateOffset(const Vector& offset) const {
 		Vector rotOff(offset.GetXFlipped(m_HFlipped));
 		rotOff *= const_cast<Matrix&>(m_Rotation);
 		return rotOff;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UnRotateOffset
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Rotates a vector offset from this MORotating's position according to
-	//                  the NEGATIVE rotate angle and takes flipping into account.
-
 	Vector MOSprite::UnRotateOffset(const Vector& offset) const {
 		Vector rotOff(offset.GetXFlipped(m_HFlipped));
 		rotOff /= const_cast<Matrix&>(m_Rotation);
 		return rotOff;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Pure v. method:  Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this MOSprite. Supposed to be done every frame.
 
 	void MOSprite::Update() {
 		MovableObject::Update();
@@ -490,12 +385,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this MOSprite's current graphical representation to a
-	//                  BITMAP of choice.
 
 	void MOSprite::Draw(BITMAP* pTargetBitmap,
 	                    const Vector& targetPos,

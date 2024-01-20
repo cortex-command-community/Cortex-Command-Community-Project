@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            GAScripted.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the GAScripted class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "GAScripted.h"
 
 #include "SceneMan.h"
@@ -42,23 +30,12 @@ namespace RTE {
 
 	ConcreteClassInfo(GAScripted, GameActivity, 0);
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this GAScripted, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void GAScripted::Clear() {
 		m_ScriptPath.clear();
 		m_LuaClassName.clear();
 		m_RequiredAreas.clear();
 		m_PieSlicesToAdd.clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the GAScripted object ready for use.
 
 	int GAScripted::Create() {
 		if (GameActivity::Create() < 0) {
@@ -84,11 +61,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a GAScripted to be identical to another, by deep copy.
-
 	int GAScripted::Create(const GAScripted& reference) {
 		if (GameActivity::Create(reference) < 0) {
 			return -1;
@@ -106,14 +78,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return GameActivity::ReadProperty(propName, reader));
 
@@ -129,12 +93,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this GAScripted with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int GAScripted::Save(Writer& writer) const {
 		// Hmm. We should probably be calling this prior to the writer Save, instead of const-casting.
@@ -152,11 +110,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the GAScripted object.
-
 	void GAScripted::Destroy(bool notInherited) {
 		// Delete global scripts
 		for (std::vector<GlobalScript*>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {
@@ -171,14 +124,6 @@ namespace RTE {
 
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReloadScripts
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reloads the preset scripts of this object, from the same script file
-	//                  path as was originally defined. This will also update the original
-	//                  preset in the PresetMan with the updated scripts so future objects
-	//                  spawned will use the new scripts.
 
 	int GAScripted::ReloadScripts() {
 		if (m_ScriptPath.empty()) {
@@ -208,8 +153,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void GAScripted::RefreshActivityFunctions() {
 		m_ScriptFunctions.clear();
 		if (m_ScriptPath.empty()) {
@@ -225,19 +168,9 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool GAScripted::HasSaveFunction() const {
 		return m_ScriptFunctions.find("OnSave") != m_ScriptFunctions.end();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SceneIsCompatible
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tells if a particular Scene supports this specific Activity on it.
-	//                  Usually that means certain Area:s need to be defined in the Scene.
 
 	bool GAScripted::SceneIsCompatible(Scene* pScene, int teams) {
 		if (!GameActivity::SceneIsCompatible(pScene, teams)) {
@@ -281,8 +214,6 @@ namespace RTE {
 		return g_LuaMan.GetMasterScriptState().GlobalIsDefined("TestScene");
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void GAScripted::HandleCraftEnteringOrbit(ACraft* orbitedCraft) {
 		GameActivity::HandleCraftEnteringOrbit(orbitedCraft);
 
@@ -293,14 +224,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int GAScripted::Start() {
 		ActivityState initialActivityState = m_ActivityState;
@@ -351,11 +274,6 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void GAScripted::SetPaused(bool pause) {
 		GameActivity::SetPaused(pause);
 
@@ -366,11 +284,6 @@ namespace RTE {
 			(*sItr)->Pause(pause);
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void GAScripted::End() {
 		GameActivity::End();
@@ -402,12 +315,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this GAScripted. Supposed to be done every frame
-	//                  before drawing.
-
 	void GAScripted::Update() {
 		GameActivity::Update();
 
@@ -436,11 +343,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateGlobalScripts
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates globals scripts loaded with this activity.
-
 	void GAScripted::UpdateGlobalScripts(bool lateUpdate) {
 		ZoneScoped;
 
@@ -452,20 +354,9 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void GAScripted::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		GameActivity::DrawGUI(pTargetBitmap, targetPos, which);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this GAScripted's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
 
 	void GAScripted::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		GameActivity::Draw(pTargetBitmap, targetPos);
@@ -482,12 +373,6 @@ namespace RTE {
 
 		return error;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CollectRequiredAreas
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Goes through the script file and checks for any mentions and uses of
-	//                  Area:s that are required for this Activity to run in a Scene.
 
 	void GAScripted::CollectRequiredAreas() {
 		// Open the script file so we can check it out
@@ -545,8 +430,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void GAScripted::AddPieSlicesToActiveActorPieMenus() {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 			if (m_IsActive[player] && m_IsHuman[player] && m_ControlledActor[player] && m_ViewState[player] != ViewState::DeathWatch && m_ViewState[player] != ViewState::ActorSelect && m_ViewState[player] != ViewState::AIGoToPoint && m_ViewState[player] != ViewState::UnitSelectCircle) {
@@ -564,7 +447,5 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace RTE

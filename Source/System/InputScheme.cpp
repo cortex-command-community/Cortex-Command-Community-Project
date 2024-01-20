@@ -5,8 +5,6 @@ namespace RTE {
 
 	const std::string InputScheme::c_ClassName = "InputScheme";
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void InputScheme::Clear() {
 		m_ActiveDevice = InputDevice::DEVICE_KEYB_ONLY;
 		m_SchemePreset = InputPreset::NoPreset;
@@ -18,8 +16,6 @@ namespace RTE {
 			inputMapping.Reset();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int InputScheme::Create(const InputScheme& reference) {
 		m_ActiveDevice = reference.m_ActiveDevice;
@@ -33,8 +29,6 @@ namespace RTE {
 		}
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int InputScheme::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -74,8 +68,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int InputScheme::Save(Writer& writer) const {
 		Serializable::Save(writer);
@@ -120,8 +112,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void InputScheme::ResetToPlayerDefaults(Players player) {
 		switch (player) {
 			case Players::PlayerOne:
@@ -148,8 +138,6 @@ namespace RTE {
 		m_JoystickDeadzone = 0.01F;
 		m_DigitalAimSpeed = 1.0F;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InputScheme::SetPreset(InputPreset schemePreset) {
 		m_SchemePreset = schemePreset;
@@ -365,8 +353,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string InputScheme::GetMappingName(int whichElement) const {
 		const InputMapping* inputElement = &(m_InputMappings.at(whichElement));
 		if (m_SchemePreset != InputScheme::InputPreset::NoPreset && !inputElement->GetPresetDescription().empty()) {
@@ -404,8 +390,6 @@ namespace RTE {
 		return "";
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool InputScheme::CaptureKeyMapping(int whichInput) {
 		for (int whichKey = SDL_SCANCODE_A; whichKey < SDL_NUM_SCANCODES; ++whichKey) {
 			// Don't allow mapping special keys used by UInputMan.
@@ -420,8 +404,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool InputScheme::CaptureJoystickMapping(int whichJoy, int whichInput) {
 		if (whichJoy < 0) {

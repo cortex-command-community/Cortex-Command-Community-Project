@@ -1,17 +1,10 @@
 #pragma once
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            AreaPickerGUI.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     AreaPickerGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// AreaPickerGUI class
+/// @author Daniel Tabar
+/// dtabar@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 // #include "FrameMan.h"
 #include "Timer.h"
 #include "Controller.h"
@@ -30,189 +23,91 @@ namespace RTE {
 	class GUIButton;
 	class GUILabel;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           AreaPickerGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A GUI for picking isntance areas in Cortex Command
-	// Parent(s):       None.
-	// Class history:   7/16/2007 AreaPickerGUI Created.
-
+	/// A GUI for picking isntance areas in Cortex Command
 	class AreaPickerGUI {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     AreaPickerGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a AreaPickerGUI area in system
-		//                  memory. Create() should be called before using the area.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a AreaPickerGUI area in system
+		/// memory. Create() should be called before using the area.
 		AreaPickerGUI() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~AreaPickerGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a AreaPickerGUI area before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a AreaPickerGUI area before deletion
+		/// from system memory.
 		~AreaPickerGUI() { Destroy(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the AreaPickerGUI area ready for use.
-		// Arguments:       A poitner to a Controller which will control this Menu. Ownership is
-		//                  NOT TRANSFERRED!
-		//                  Which lowest common denominator type to be showing.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the AreaPickerGUI area ready for use.
+		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
+		/// @param onlyOfType NOT TRANSFERRED! (default: "All")
+		/// Which lowest common denominator type to be showing.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(Controller* pController, std::string onlyOfType = "All");
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire AreaPickerGUI, including its inherited members, to
-		//                  their default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire AreaPickerGUI, including its inherited members, to
+		/// their default settings or values.
 		void Reset() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the AreaPickerGUI area.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the AreaPickerGUI area.
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetController
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the controller used by this. The ownership of the controller is
-		//                  NOT transferred!
-		// Arguments:       The new controller for this menu. Ownership is NOT transferred
-		// Return value:    None.
-
+		/// Sets the controller used by this. The ownership of the controller is
+		/// NOT transferred!
+		/// @param pController The new controller for this menu. Ownership is NOT transferred
 		void SetController(Controller* pController) { m_pController = pController; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Enables or disables the menu. This will animate it in and out of view.
-		// Arguments:       Whether to enable or disable the menu.
-		// Return value:    None.
-
+		/// Enables or disables the menu. This will animate it in and out of view.
+		/// @param enable Whether to enable or disable the menu. (default: true)
 		void SetEnabled(bool enable = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the menu is enabled or not.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Reports whether the menu is enabled or not.
 		bool IsEnabled() const { return m_PickerEnabled == ENABLED || m_PickerEnabled == ENABLING; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsVisible
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the menu is at all visible or not.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Reports whether the menu is at all visible or not.
 		bool IsVisible() const { return m_PickerEnabled != DISABLED; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetPosOnScreen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-		//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-		//                  etc.
-		// Arguments:       The new screen position of this entire GUI.
-
+		/// Sets where on the screen that this GUI is being drawn to. If upper
+		/// left corner, then 0, 0. This will affect the way the mouse is positioned
+		/// etc.
+		/// @param newPosX The new screen position of this entire GUI.
 		void SetPosOnScreen(int newPosX, int newPosY);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AreaPicked
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether and which Area has been picked by the player. This
-		//                  may happen even though the player isn't done with the picker. (ie
-		//                  a different area is picked each time the user selects something else
-		//                  in the areas list).
-		// Arguments:       None.
-		// Return value:    Whether an area has been picked bt the player. 0 if not. Ownership
-		//                  is NOT transferred!
-
+		/// Reports whether and which Area has been picked by the player. This
+		/// may happen even though the player isn't done with the picker. (ie
+		/// a different area is picked each time the user selects something else
+		/// in the areas list).
+		/// @return Whether an area has been picked bt the player. 0 if not. Ownership
+		/// is NOT transferred!
 		Scene::Area* AreaPicked() { return m_pPickedArea; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DonePicking
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the user has finished using the picker, and the final
-		//                  picked Area is returned.
-		// Arguments:       None.
-		// Return value:    Whether an area has been positively and finally picked bt the player.
-		//                  0 if not. Ownership is NOT transferred!
-
+		/// Reports whether the user has finished using the picker, and the final
+		/// picked Area is returned.
+		/// @return Whether an area has been positively and finally picked bt the player.
+		/// 0 if not. Ownership is NOT transferred!
 		Scene::Area* DonePicking() { return !IsEnabled() && m_pPickedArea ? m_pPickedArea : 0; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetNextArea
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the next area in the areas list, even if the picker is disabled.
-		// Arguments:       None.
-		// Return value:    The next area in the picker list, looping around if necessary.
-		//                  0 if no area can be selected. OWNERSHIP IS NOT TRANSFERRED!
-
+		/// Gets the next area in the areas list, even if the picker is disabled.
+		/// @return The next area in the picker list, looping around if necessary.
+		/// 0 if no area can be selected. OWNERSHIP IS NOT TRANSFERRED!
 		Scene::Area* GetNextArea();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetPrevArea
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the prev area in the areas list, even if the picker is disabled.
-		// Arguments:       None.
-		// Return value:    The prev area in the picker list, looping around if necessary.
-		//                  0 if no area can be selected. OWNERSHIP IS NOT TRANSFERRED!
-
+		/// Gets the prev area in the areas list, even if the picker is disabled.
+		/// @return The prev area in the picker list, looping around if necessary.
+		/// 0 if no area can be selected. OWNERSHIP IS NOT TRANSFERRED!
 		Scene::Area* GetPrevArea();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateAreasList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds all areas of the currently selected group to the Areas list.
-		// Arguments:       The name of the Area to leave selected after the list is updated.
-		// Return value:    None.
-
+		/// Adds all areas of the currently selected group to the Areas list.
+		/// @param selectAreaName The name of the Area to leave selected after the list is updated. (default: "")
 		void UpdateAreasList(std::string selectAreaName = "");
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the state of this Menu each frame
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the state of this Menu each frame
 		void Update();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the menu
-		// Arguments:       The bitmap to draw on.
-		// Return value:    None.
-
+		/// Draws the menu
+		/// @param drawBitmap The bitmap to draw on.
 		void Draw(BITMAP* drawBitmap) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		enum PickerEnabled {
 			ENABLING = 0,
@@ -260,18 +155,10 @@ namespace RTE {
 		// Screen position of the cursor
 		Vector m_CursorPos;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this AreaPickerGUI, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this AreaPickerGUI, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

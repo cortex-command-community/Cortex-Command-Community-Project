@@ -4,8 +4,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void GUISound::Clear() {
 		m_SplashSound.Reset();
 		m_EnterMenuSound.Reset();
@@ -35,8 +33,6 @@ namespace RTE {
 		m_PlacementThud.Reset();
 		m_PlacementGravel.Reset();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GUISound::Initialize() {
 		// Interface sounds should not be pitched to reinforce the appearance of time decoupling between simulation and UI.

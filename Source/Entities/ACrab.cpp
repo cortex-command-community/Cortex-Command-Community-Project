@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            ACrab.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the ACrab class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "ACrab.h"
 
 #include "AtomGroup.h"
@@ -36,12 +24,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(ACrab, Actor, 20);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this ACrab, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void ACrab::Clear() {
 		m_pTurret = 0;
@@ -91,11 +73,6 @@ namespace RTE {
 		m_AimRangeLowerLimit = -1;
 		m_LockMouseAimInput = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the ACrab object ready for use.
 
 	int ACrab::Create() {
 		// Read all the properties
@@ -156,11 +133,6 @@ namespace RTE {
 	                         health);
 	}
 	*/
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a ACrab to be identical to another, by deep copy.
 
 	int ACrab::Create(const ACrab& reference) {
 		if (reference.m_pLBGLeg) {
@@ -270,14 +242,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int ACrab::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Actor::ReadProperty(propName, reader));
 
@@ -370,12 +334,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this ACrab with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int ACrab::Save(Writer& writer) const {
 		Actor::Save(writer);
 
@@ -425,11 +383,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the ACrab object.
-
 	void ACrab::Destroy(bool notInherited) {
 		delete m_pLFGFootGroup;
 		delete m_pLBGFootGroup;
@@ -475,20 +428,12 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetEyePos
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the absoltue position of this' eye, or equivalent, where look
-	//                  vector starts from.
-
 	Vector ACrab::GetEyePos() const {
 		if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice())
 			return m_pTurret->GetFirstMountedDevice()->GetPos();
 
 		return m_Pos;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACrab::SetTurret(Turret* newTurret) {
 		if (m_pTurret && m_pTurret->IsAttached()) {
@@ -511,8 +456,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACrab::SetJetpack(AEJetpack* newJetpack) {
 		if (m_pJetpack && m_pJetpack->IsAttached()) {
@@ -538,8 +481,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACrab::SetLeftFGLeg(Leg* newLeg) {
 		if (m_pLFGLeg && m_pLFGLeg->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pLFGLeg);
@@ -562,8 +503,6 @@ namespace RTE {
 			m_pLFGLeg->SetInheritsHFlipped(-1);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACrab::SetLeftBGLeg(Leg* newLeg) {
 		if (m_pLBGLeg && m_pLBGLeg->IsAttached()) {
@@ -588,8 +527,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACrab::SetRightFGLeg(Leg* newLeg) {
 		if (m_pRFGLeg && m_pRFGLeg->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pRFGLeg);
@@ -611,8 +548,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACrab::SetRightBGLeg(Leg* newLeg) {
 		if (m_pRBGLeg && m_pRBGLeg->IsAttached()) {
@@ -636,18 +571,9 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	BITMAP* ACrab::GetGraphicalIcon() const {
 		return m_GraphicalIcon ? m_GraphicalIcon : (m_pTurret ? m_pTurret->GetSpriteFrame(0) : GetSpriteFrame(0));
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CollideAtPoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates the collision response when another MO's Atom collides with
-	//                  this MO's physical representation. The effects will be applied
-	//                  directly to this MO, and also represented in the passed in HitData.
 
 	bool ACrab::CollideAtPoint(HitData& hd) {
 		return Actor::CollideAtPoint(hd);
@@ -713,8 +639,6 @@ namespace RTE {
 	}
 	*/
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool ACrab::HandlePieCommand(PieSliceType pieSliceIndex) {
 		if (pieSliceIndex != PieSliceType::NoType) {
 			if (pieSliceIndex == PieSliceType::Reload) {
@@ -737,13 +661,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  GetEquippedItem
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns whatever is equipped in the turret, if anything. OWNERSHIP IS NOT TRANSFERRED!
-
 	MovableObject* ACrab::GetEquippedItem() const {
 		if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice()) {
 			return m_pTurret->GetFirstMountedDevice();
@@ -751,12 +668,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmIsReady
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the currently held device's current mag is empty on
-	//                  ammo or not.
 
 	bool ACrab::FirearmIsReady() const {
 		if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice()) {
@@ -770,19 +681,9 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmIsEmpty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the currently held HDFirearm's is out of ammo.
-
 	bool ACrab::FirearmIsEmpty() const {
 		return !FirearmIsReady() && m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmNeedsReload
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the currently held HDFirearm's is almost out of ammo.
 
 	bool ACrab::FirearmsAreFull() const {
 		if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice()) {
@@ -794,8 +695,6 @@ namespace RTE {
 		}
 		return true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ACrab::FirearmNeedsReload() const {
 		if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice()) {
@@ -809,11 +708,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmIsSemiAuto
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the currently held HDFirearm's is semi or full auto.
-
 	bool ACrab::FirearmIsSemiAuto() const {
 		if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice()) {
 			HDFirearm* pWeapon = dynamic_cast<HDFirearm*>(m_pTurret->GetFirstMountedDevice());
@@ -821,13 +715,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  ReloadFirearms
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reloads the currently held firearms, if any.
-	// Arguments:       None.
-	// Return value:    None.
 
 	void ACrab::ReloadFirearms() {
 		if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice()) {
@@ -839,12 +726,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmActivationDelay
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns the currently held device's delay between pulling the trigger
-	//                  and activating.
-
 	int ACrab::FirearmActivationDelay() const {
 		// Check if the currently held device is already the desired type
 		if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice()) {
@@ -855,12 +736,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsWithinRange
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tells whether a point on the scene is within range of the currently
-	//                  used device and aiming status, if applicable.
 
 	bool ACrab::IsWithinRange(Vector& point) const {
 		if (m_SharpAimMaxedOut)
@@ -884,13 +759,6 @@ namespace RTE {
 
 		return sqrDistance <= (range * range);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Look
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Casts an unseen-revealing ray in the direction of where this is facing.
-	// Arguments:       The degree angle to deviate from the current view point in the ray
-	//                  casting. A random ray will be chosen out of this +-range.
 
 	bool ACrab::Look(float FOVSpread, float range) {
 		if (!g_SceneMan.AnythingUnseen(m_Team))
@@ -925,13 +793,6 @@ namespace RTE {
 		// Cast the seeing ray, adjusting the skip to match the resolution of the unseen map
 		return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  LookForMOs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Casts an MO detecting ray in the direction of where the head is looking
-	//                  at the time. Factors including head rotation, sharp aim mode, and
-	//                  other variables determine how this ray is cast.
 
 	MovableObject* ACrab::LookForMOs(float FOVSpread, unsigned char ignoreMaterial, bool ignoreAllTerrain) {
 		MovableObject* pSeenMO = 0;
@@ -998,8 +859,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	void ACrab::PreControllerUpdate() {
 		ZoneScoped;
@@ -1418,8 +1277,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACrab::Update() {
 		ZoneScoped;
 
@@ -1552,8 +1409,6 @@ namespace RTE {
 		//    m_DeepCheck = true/*m_Status == DEAD*/;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ACrab::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		Actor::Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
 
@@ -1571,12 +1426,6 @@ namespace RTE {
 			m_Paths[RIGHTSIDE][FGROUND][WALK].Draw(pTargetBitmap, targetPos, 122);
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DrawHUD
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this Actor's current graphical HUD overlay representation to a
-	//                  BITMAP of choice.
 
 	void ACrab::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 		m_HUDStack = -m_CharHeight / 2;
@@ -1787,19 +1636,9 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetLimbPathSpeed
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get walking limb path speed for the specified preset.
-
 	float ACrab::GetLimbPathSpeed(int speedPreset) const {
 		return m_Paths[LEFTSIDE][FGROUND][WALK].GetSpeed(speedPreset);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetLimbPathSpeed
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Set walking limb path speed for the specified preset.
 
 	void ACrab::SetLimbPathSpeed(int speedPreset, float speed) {
 		m_Paths[LEFTSIDE][FGROUND][WALK].OverrideSpeed(speedPreset, speed);
@@ -1809,21 +1648,9 @@ namespace RTE {
 		m_Paths[RIGHTSIDE][BGROUND][WALK].OverrideSpeed(speedPreset, speed);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetLimbPathPushForce
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the force that a limb traveling walking LimbPath can push against
-	//                  stuff in the scene with.
-
 	float ACrab::GetLimbPathPushForce() const {
 		return m_Paths[LEFTSIDE][FGROUND][WALK].GetDefaultPushForce();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetLimbPathPushForce
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets the default force that a limb traveling walking LimbPath can push against
-	//                  stuff in the scene with.
 
 	void ACrab::SetLimbPathPushForce(float force) {
 		m_Paths[LEFTSIDE][FGROUND][WALK].OverridePushForce(force);
@@ -1832,8 +1659,6 @@ namespace RTE {
 		m_Paths[LEFTSIDE][BGROUND][WALK].OverridePushForce(force);
 		m_Paths[RIGHTSIDE][BGROUND][WALK].OverridePushForce(force);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int ACrab::WhilePieMenuOpenListener(const PieMenu* pieMenu) {
 		int result = Actor::WhilePieMenuOpenListener(pieMenu);

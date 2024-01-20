@@ -6,9 +6,7 @@ namespace RTE {
 
 	class SLTerrain;
 
-	/// <summary>
 	/// A layer of material on top of another material on the terrain.
-	/// </summary>
 	class TerrainFrosting : public Serializable {
 
 	public:
@@ -16,19 +14,15 @@ namespace RTE {
 		    SerializableOverrideMethods
 
 #pragma region Creation
-		    /// <summary>
 		    /// Constructor method used to instantiate a TerrainFrosting object in system memory and make it ready for use.
-		    /// </summary>
 		    TerrainFrosting() {
 			Clear();
 		}
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Draws the frosting layer to the specified SLTerrain according to the read-in parameters.
-		/// </summary>
-		/// <param name="terrain">The SLTerrain to frost. Ownership is NOT transferred!</param>
+		/// @param terrain The SLTerrain to frost. Ownership is NOT transferred!
 		void FrostTerrain(SLTerrain* terrain) const;
 #pragma endregion
 
@@ -41,9 +35,7 @@ namespace RTE {
 		int m_MaxThickness; //!< The maximum height above the target Material, in pixels.
 		bool m_InAirOnly; //!< Whether the frosting only appears where there is air (i.e. does not appear where the terrain background layer is showing).
 
-		/// <summary>
 		/// Clears all the member variables of this TerrainFrosting, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

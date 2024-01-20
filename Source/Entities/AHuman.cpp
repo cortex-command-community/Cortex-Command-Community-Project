@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            AHuman.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the AHuman class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "AHuman.h"
 
 #include "AtomGroup.h"
@@ -38,12 +26,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(AHuman, Actor, 20);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this AHuman, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void AHuman::Clear() {
 		m_pHead = 0;
@@ -110,11 +92,6 @@ namespace RTE {
 		m_JumpTimer.Reset();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the AHuman object ready for use.
-
 	int AHuman::Create() {
 		if (Actor::Create() < 0) {
 			return -1;
@@ -150,11 +127,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a AHuman to be identical to another, by deep copy.
 
 	int AHuman::Create(const AHuman& reference) {
 		if (reference.m_pBGArm) {
@@ -263,14 +235,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Actor::ReadProperty(propName, reader));
 
@@ -336,12 +300,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this AHuman with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int AHuman::Save(Writer& writer) const {
 		Actor::Save(writer);
 
@@ -403,11 +361,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the AHuman object.
-
 	void AHuman::Destroy(bool notInherited) {
 		delete m_pFGHandGroup;
 		delete m_pBGHandGroup;
@@ -422,12 +375,6 @@ namespace RTE {
 		Clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetTotalValue
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the total liquidation value of this Actor and all its carried
-	//                  gold and inventory.
-
 	float AHuman::GetTotalValue(int nativeModule, float foreignMult, float nativeMult) const {
 		float totalValue = Actor::GetTotalValue(nativeModule, foreignMult, nativeMult);
 
@@ -437,12 +384,6 @@ namespace RTE {
 
 		return totalValue;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          HasObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether this carries a specifically named object in its inventory.
-	//                  Also looks through the inventories of potential passengers, as applicable.
 
 	bool AHuman::HasObject(std::string objectName) const {
 		bool found = Actor::HasObject(objectName);
@@ -456,13 +397,6 @@ namespace RTE {
 		return found;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          HasObjectInGroup
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether this is or carries a specifically grouped object in its
-	//                  inventory. Also looks through the inventories of potential passengers,
-	//                  as applicable.
-
 	bool AHuman::HasObjectInGroup(std::string groupName) const {
 		bool found = Actor::HasObjectInGroup(groupName);
 
@@ -475,23 +409,12 @@ namespace RTE {
 		return found;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetCPUPos
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the absoltue position of this' brain, or equivalent.
-
 	Vector AHuman::GetCPUPos() const {
 		if (m_pHead && m_pHead->IsAttached())
 			return m_Pos + ((m_pHead->GetParentOffset().GetXFlipped(m_HFlipped) * m_Rotation) * 1.5);
 
 		return m_Pos;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetEyePos
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the absoltue position of this' eye, or equivalent, where look
-	//                  vector starts from.
 
 	Vector AHuman::GetEyePos() const {
 		if (m_pHead && m_pHead->IsAttached()) {
@@ -500,8 +423,6 @@ namespace RTE {
 
 		return m_Pos;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AHuman::SetHead(Attachable* newHead) {
 		if (m_pHead && m_pHead->IsAttached()) {
@@ -527,8 +448,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void AHuman::SetJetpack(AEJetpack* newJetpack) {
 		if (m_pJetpack && m_pJetpack->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pJetpack);
@@ -551,8 +470,6 @@ namespace RTE {
 			m_pJetpack->SetApplyTransferredForcesAtOffset(false);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AHuman::SetFGArm(Arm* newArm) {
 		if (m_pFGArm && m_pFGArm->IsAttached()) {
@@ -578,8 +495,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void AHuman::SetBGArm(Arm* newArm) {
 		if (m_pBGArm && m_pBGArm->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pBGArm);
@@ -603,8 +518,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void AHuman::SetFGLeg(Leg* newLeg) {
 		if (m_pFGLeg && m_pFGLeg->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pFGLeg);
@@ -626,8 +539,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AHuman::SetBGLeg(Leg* newLeg) {
 		if (m_pBGLeg && m_pBGLeg->IsAttached()) {
@@ -652,20 +563,9 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	BITMAP* AHuman::GetGraphicalIcon() const {
 		return m_GraphicalIcon ? m_GraphicalIcon : (m_pHead ? m_pHead->GetSpriteFrame(0) : GetSpriteFrame(0));
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CollideAtPoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates the collision response when another MO's Atom collides with
-	//                  this MO's physical representation. The effects will be applied
-	//                  directly to this MO, and also represented in the passed in HitData.
 
 	bool AHuman::CollideAtPoint(HitData& hd) {
 		return Actor::CollideAtPoint(hd);
@@ -731,8 +631,6 @@ namespace RTE {
 	}
 	*/
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool AHuman::HandlePieCommand(PieSliceType pieSliceIndex) {
 		if (pieSliceIndex != PieSliceType::NoType) {
 			if (pieSliceIndex == PieSliceType::Pickup) {
@@ -765,14 +663,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  AddInventoryItem
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds an inventory item to this AHuman. This also puts that item
-	//                  directly in the hands of this if they are empty.
-
 	void AHuman::AddInventoryItem(MovableObject* pItemToAdd) {
 		// If we have nothing in inventory, and nothing in our hands, just grab this first thing added to us.
 		if (HeldDevice* itemToAddAsHeldDevice = dynamic_cast<HeldDevice*>(pItemToAdd); itemToAddAsHeldDevice && m_Inventory.empty() && m_pFGArm && m_pFGArm->IsAttached() && !m_pFGArm->GetHeldDevice()) {
@@ -785,8 +675,6 @@ namespace RTE {
 		EquipShieldInBGArm();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	MovableObject* AHuman::SwapNextInventory(MovableObject* inventoryItemToSwapIn, bool muteSound) {
 		MovableObject* swappedInventoryItem = Actor::SwapNextInventory(inventoryItemToSwapIn, muteSound);
 		while (!dynamic_cast<HeldDevice*>(swappedInventoryItem) && !m_Inventory.empty()) {
@@ -797,8 +685,6 @@ namespace RTE {
 		return swappedInventoryItem;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	MovableObject* AHuman::SwapPrevInventory(MovableObject* inventoryItemToSwapIn) {
 		MovableObject* swappedInventoryItem = Actor::SwapPrevInventory(inventoryItemToSwapIn);
 		while (!dynamic_cast<HeldDevice*>(swappedInventoryItem) && !m_Inventory.empty()) {
@@ -808,15 +694,6 @@ namespace RTE {
 
 		return swappedInventoryItem;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  EquipFirearm
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Switches the currently held device (if any) to the first found firearm
-	//                  in the inventory. If the held device already is a firearm, or no
-	//                  firearm is in inventory, nothing happens.
 
 	bool AHuman::EquipFirearm(bool doEquip) {
 		if (!(m_pFGArm && m_pFGArm->IsAttached())) {
@@ -865,13 +742,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  EquipDeviceInGroup
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Switches the currently held device (if any) to the first found device
-	//                  of the specified group in the inventory. If the held device already
-	//                  is of that group, or no device is in inventory, nothing happens.
 
 	bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 		if (!(m_pFGArm && m_pFGArm->IsAttached())) {
@@ -931,13 +801,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  EquipLoadedFirearmInGroup
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Switches the currently held device (if any) to the first loaded HDFirearm
-	//                  of the specified group in the inventory. If no such weapon is in the
-	//                  inventory, nothing happens.
-
 	bool AHuman::EquipLoadedFirearmInGroup(std::string group, std::string excludeGroup, bool doEquip) {
 		if (!(m_pFGArm && m_pFGArm->IsAttached())) {
 			return false;
@@ -983,13 +846,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  EquipNamedDevice
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Switches the currently held device (if any) to the first found device
-	//                  of with the specified preset name in the inventory. If the held device already
-	//                  is of that preset name, or no device is in inventory, nothing happens.
 
 	bool AHuman::EquipNamedDevice(const std::string& moduleName, const std::string& presetName, bool doEquip) {
 		if (!(m_pFGArm && m_pFGArm->IsAttached())) {
@@ -1037,13 +893,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  EquipThrowable
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Switches the currently held device (if any) to the first found ThrownDevice
-	//                  in the inventory. If the held device already is a ThrownDevice, or no
-	//                  ThrownDevice  is in inventory, nothing happens.
 
 	bool AHuman::EquipThrowable(bool doEquip) {
 		if (!(m_pFGArm && m_pFGArm->IsAttached())) {
@@ -1093,8 +942,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	bool AHuman::EquipDiggingTool(bool doEquip) {
 		if (!(m_pFGArm && m_pFGArm->IsAttached())) {
 			return false;
@@ -1126,8 +973,6 @@ namespace RTE {
 		return strongestDigger != nullptr;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	float AHuman::EstimateDigStrength() const {
 		float maxPenetration = Actor::EstimateDigStrength();
 
@@ -1147,15 +992,6 @@ namespace RTE {
 
 		return maxPenetration;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  EquipShield
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Switches the currently held device (if any) to the first found shield
-	//                  in the inventory. If the held device already is a shield, or no
-	//                  shield is in inventory, nothing happens.
 
 	bool AHuman::EquipShield() {
 		if (!(m_pFGArm && m_pFGArm->IsAttached())) {
@@ -1200,13 +1036,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  EquipShieldInBGArm
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tries to equip the first shield in inventory to the background arm;
-	//                  this only works if nothing is held at all, or the FG arm holds a
-	//                  one-handed device, or we're in inventory mode.
 
 	bool AHuman::EquipShieldInBGArm() {
 		if (!(m_pBGArm && m_pBGArm->IsAttached())) {
@@ -1259,8 +1088,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	bool AHuman::UnequipFGArm() {
 		if (m_pFGArm) {
 			if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
@@ -1272,8 +1099,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AHuman::UnequipBGArm() {
 		if (m_pBGArm) {
@@ -1287,8 +1112,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	float AHuman::GetEquippedMass() const {
 		float equippedMass = 0;
 		if (MovableObject* fgDevice = GetEquippedItem()) {
@@ -1299,12 +1122,6 @@ namespace RTE {
 		}
 		return equippedMass;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmIsReady
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the currently held device's current mag is empty on
-	//                  ammo or not.
 
 	bool AHuman::FirearmIsReady() const {
 		// Check if the currently held device is already the desired type
@@ -1317,11 +1134,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  ThrowableIsReady
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the currently held ThrownDevice's is ready to go.
-
 	bool AHuman::ThrowableIsReady() const {
 		// Check if the currently held thrown device is already the desired type
 		if (m_pFGArm && m_pFGArm->IsAttached()) {
@@ -1333,11 +1145,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmIsEmpty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the currently held HDFirearm's is out of ammo.
-
 	bool AHuman::FirearmIsEmpty() const {
 		if (m_pFGArm && m_pFGArm->IsAttached()) {
 			const HDFirearm* pWeapon = dynamic_cast<HDFirearm*>(m_pFGArm->GetHeldDevice());
@@ -1348,11 +1155,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmNeedsReload
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the currently held HDFirearm's is almost out of ammo.
-
 	bool AHuman::FirearmNeedsReload() const {
 		if (const HDFirearm* fgWeapon = dynamic_cast<HDFirearm*>(GetEquippedItem()); fgWeapon && fgWeapon->NeedsReloading()) {
 			return true;
@@ -1362,8 +1164,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AHuman::FirearmsAreReloading(bool onlyIfAllFirearmsAreReloading) const {
 		int reloadingFirearmCount = 0;
@@ -1389,13 +1189,6 @@ namespace RTE {
 		return onlyIfAllFirearmsAreReloading ? reloadingFirearmCount == totalFirearmCount : reloadingFirearmCount > 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmIsSemiAuto
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the currently held HDFirearm's is semi or full auto.
-
 	bool AHuman::FirearmIsSemiAuto() const {
 		if (m_pFGArm && m_pFGArm->IsAttached()) {
 			const HDFirearm* pWeapon = dynamic_cast<HDFirearm*>(m_pFGArm->GetHeldDevice());
@@ -1403,13 +1196,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  ReloadFirearm
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reloads the currently held firearm, if any.
-	// Arguments:       None.
-	// Return value:    None.
 
 	void AHuman::ReloadFirearms(bool onlyReloadEmptyFirearms) {
 		for (Arm* arm: {m_pFGArm, m_pBGArm}) {
@@ -1465,12 +1251,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  FirearmActivationDelay
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns the currently held device's delay between pulling the trigger
-	//                  and activating.
-
 	int AHuman::FirearmActivationDelay() const {
 		// Check if the currently held device is already the desired type
 		if (m_pFGArm && m_pFGArm->IsAttached()) {
@@ -1481,12 +1261,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsWithinRange
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tells whether a point on the scene is within range of the currently
-	//                  used device and aiming status, if applicable.
 
 	bool AHuman::IsWithinRange(Vector& point) const {
 		if (m_SharpAimMaxedOut)
@@ -1516,13 +1290,6 @@ namespace RTE {
 
 		return sqrDistance <= (range * range);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Look
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Casts an unseen-revealing ray in the direction of where this is facing.
-	// Arguments:       The degree angle to deviate from the current view point in the ray
-	//                  casting. A random ray will be chosen out of this +-range.
 
 	bool AHuman::Look(float FOVSpread, float range) {
 		if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false)
@@ -1558,24 +1325,12 @@ namespace RTE {
 		return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  LookForGold
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Casts a material detecting ray in the direction of where this is facing.
-
 	bool AHuman::LookForGold(float FOVSpread, float range, Vector& foundLocation) const {
 		Vector ray(m_HFlipped ? -range : range, 0);
 		ray.DegRotate(FOVSpread * RandomNormalNum());
 
 		return g_SceneMan.CastMaterialRay(m_Pos, ray, g_MaterialGold, foundLocation, 4);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  LookForMOs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Casts an MO detecting ray in the direction of where the head is looking
-	//                  at the time. Factors including head rotation, sharp aim mode, and
-	//                  other variables determine how this ray is cast.
 
 	MovableObject* AHuman::LookForMOs(float FOVSpread, unsigned char ignoreMaterial, bool ignoreAllTerrain) {
 		MovableObject* pSeenMO = 0;
@@ -1609,13 +1364,6 @@ namespace RTE {
 		return pSeenMO;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ResetAllTimers
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Resest all the timers used by this. Can be emitters, etc. This is to
-	//                  prevent backed up emissions to come out all at once while this has been
-	//                  held dormant in an inventory.
-
 	void AHuman::ResetAllTimers() {
 		Actor::ResetAllTimers();
 
@@ -1623,8 +1371,6 @@ namespace RTE {
 			m_pFGArm->GetHeldDevice()->ResetAllTimers();
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	void AHuman::OnNewMovePath() {
 		Actor::OnNewMovePath();
@@ -1658,8 +1404,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 		if (m_Controller.IsState(BODY_JUMP)) {
 			m_WalkAngle[whichLayer] = Matrix(c_QuarterPI * GetFlipFactor());
@@ -1690,8 +1434,6 @@ namespace RTE {
 			m_WalkAngle[whichLayer] = walkAngle;
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	void AHuman::UpdateCrouching() {
 		if (!m_Controller.IsState(BODY_JUMP) && m_pHead) {
@@ -1738,8 +1480,6 @@ namespace RTE {
 			m_WalkPathOffset.Reset();
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	void AHuman::PreControllerUpdate() {
 		ZoneScoped;
@@ -2613,8 +2353,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	void AHuman::Update() {
 		ZoneScoped;
 
@@ -2791,8 +2529,6 @@ namespace RTE {
 		//    m_DeepCheck = true/*m_Status == DEAD*/;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	void AHuman::DrawThrowingReticle(BITMAP* targetBitmap, const Vector& targetPos, float progressScalar) const {
 		const int pointCount = 9;
 		Vector points[pointCount];
@@ -2817,12 +2553,6 @@ namespace RTE {
 
 		release_bitmap(targetBitmap);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this AHuman's current graphical representation to a
-	//                  BITMAP of choice.
 
 	void AHuman::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		Actor::Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
@@ -2857,12 +2587,6 @@ namespace RTE {
 			m_Paths[m_HFlipped][CLIMB].Draw(pTargetBitmap, targetPos, 165);
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DrawHUD
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this Actor's current graphical HUD overlay representation to a
-	//                  BITMAP of choice.
 
 	void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 		m_HUDStack = -m_CharHeight / 2;
@@ -3137,8 +2861,6 @@ namespace RTE {
 		m_Paths[FGROUND][WALK].OverridePushForce(force);
 		m_Paths[BGROUND][WALK].OverridePushForce(force);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int AHuman::WhilePieMenuOpenListener(const PieMenu* pieMenu) {
 		int result = Actor::WhilePieMenuOpenListener(pieMenu);

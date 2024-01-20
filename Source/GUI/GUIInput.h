@@ -2,9 +2,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// An interface class inherited by the different types of input methods.
-	/// </summary>
 	class GUIInput {
 
 	public:
@@ -50,68 +48,42 @@ namespace RTE {
 			Key_PageDown = 0x0000009A
 		} Keys;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUIInput
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUIInput object in system
-		//                  memory.
-		// Arguments:       Whether the keyboard and joysticks also can control the mouse cursor.
-
+		/// Constructor method used to instantiate a GUIInput object in system
+		/// memory.
+		/// @param whichPlayer Whether the keyboard and joysticks also can control the mouse cursor.
 		GUIInput(int whichPlayer, bool keyJoyMouseCursor = false);
 
 		virtual ~GUIInput() { Destroy(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual Method:    Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroy the screen
-		// Arguments:       None.
-
+		/// Destroy the screen
 		virtual void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetMouseOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the offset for the mouse input to be adjusted by. This should
-		//                  be used when the GUI is being drawn somewhere else on the screen than
-		//                  the upper left corner. These values should be from the GUI to the upper
-		//                  left corner.
-		// Arguments:       The new offset.
-
+		/// Sets the offset for the mouse input to be adjusted by. This should
+		/// be used when the GUI is being drawn somewhere else on the screen than
+		/// the upper left corner. These values should be from the GUI to the upper
+		/// left corner.
+		/// @param mouseOffsetX The new offset.
 		void SetMouseOffset(int mouseOffsetX, int mouseOffsetY) {
 			m_MouseOffsetX = mouseOffsetX;
 			m_MouseOffsetY = mouseOffsetY;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMouseOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the offset for the mouse input to be adjusted by. This should
-		//                  These values should be from the GUI to the upper of the screen.
-		//                  left corner.
-		// Arguments:       The new offset.
-
+		/// Sets the offset for the mouse input to be adjusted by. This should
+		/// These values should be from the GUI to the upper of the screen.
+		/// left corner.
+		/// @param mouseOffsetX The new offset.
 		void GetMouseOffset(int& mouseOffsetX, int& mouseOffsetY) const {
 			mouseOffsetX = m_MouseOffsetX;
 			mouseOffsetY = m_MouseOffsetY;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual Method:    Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the Input.
-		// Arguments:       None.
-
+		/// Updates the Input.
 		virtual void Update();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetKeyboard
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Copies the keyboard buffer into an array. The keyboard buffer is
-		//					ordered by ascii code and each entry contains a GUInput::Event enum
-		//					state.
-		// Arguments:       Buffer array.
-
+		/// Copies the keyboard buffer into an array. The keyboard buffer is
+		/// ordered by ascii code and each entry contains a GUInput::Event enum
+		/// state.
+		/// @param Buffer Buffer array.
 		void GetKeyboard(unsigned char* Buffer) const;
 
 		unsigned char GetAsciiState(unsigned char ascii) const;
@@ -123,46 +95,29 @@ namespace RTE {
 			return !m_TextInput.empty();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMouseButtons
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Copies the mouse button states into an array
-		// Arguments:       State array.
-
+		/// Copies the mouse button states into an array
+		/// @param Events State array.
 		void GetMouseButtons(int* Events, int* States) const;
 
 		static void SetNetworkMouseButton(int whichPlayer, int state1, int state2, int state3);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMousePosition
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the mouse position
-		// Arguments:       Pointers to store the X and Y coordinates in
-
+		/// Gets the mouse position
+		/// @param X Pointers to store the X and Y coordinates in
 		void GetMousePosition(int* X, int* Y) const;
 
 		static void SetNetworkMouseMovement(int whichPlayer, int x, int y);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetModifier
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the key modifiers.
-		// Arguments:       None.
-
+		/// Gets the key modifiers.
 		int GetModifier() const;
 
-		/// <summary>
 		/// This function returns how much the mouse scroll wheel has moved. Positive integer is scroll up, negative is scroll down.
-		/// </summary>
-		/// <returns>Mouse scroll wheel movement in integer value.</returns>
+		/// @return Mouse scroll wheel movement in integer value.
 		int GetMouseWheelChange() const {
 			return m_MouseWheelChange;
 		}
 
-		/// <summary>
 		/// Sets whether the keyboard and joysticks also control the mouse.
-		/// </summary>
-		/// <param name="enableKeyJoyMouseCursor">Whether the keyboard and joysticks also control the mouse or not.</param>
+		/// @param enableKeyJoyMouseCursor Whether the keyboard and joysticks also control the mouse or not.
 		void SetKeyJoyMouseCursor(bool enableKeyJoyMouseCursor) { m_KeyJoyMouseCursor = enableKeyJoyMouseCursor; }
 
 	protected:

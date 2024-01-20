@@ -14,52 +14,36 @@ namespace RTE {
 	class ScenarioGUI;
 	class PauseMenuGUI;
 
-	/// <summary>
 	/// The singleton manager responsible for handling all the out-of-game menu screens (main menu, scenario menu, etc.).
-	/// </summary>
 	class MenuMan : public Singleton<MenuMan> {
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a MenuMan object in system memory. Initialize() should be called before using the object.
-		/// </summary>
 		MenuMan() = default;
 
-		/// <summary>
 		/// Makes the MenuMan object ready for use.
-		/// </summary>
-		/// <param name="firstTimeInit">Whether this is initializing for the first time, meaning the game is booting up, so the loading screen needs to be shown and all module loading should happen.</param>
+		/// @param firstTimeInit Whether this is initializing for the first time, meaning the game is booting up, so the loading screen needs to be shown and all module loading should happen.
 		void Initialize(bool firstTimeInit = true);
 
-		/// <summary>
 		/// Reinitializes all the Main Menu GUIs after a resolution change. Must be done otherwise the GUIs retain the original resolution settings and become all screwy.
-		/// </summary>
 		void Reinitialize();
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Sets the appropriate TitleScreen transition before entering the menu loop.
-		/// </summary>
 		void HandleTransitionIntoMenuLoop();
 
-		/// <summary>
 		/// Updates the MenuMan state.
-		/// </summary>
-		/// <returns>Whether the MenuMan update has reached a state where the menu loop should be exited so the simulation loop can proceed.</returns>
+		/// @return Whether the MenuMan update has reached a state where the menu loop should be exited so the simulation loop can proceed.
 		bool Update();
 
-		/// <summary>
 		/// Draws the MenuMan to the screen.
-		/// </summary>
 		void Draw() const;
 #pragma endregion
 
 	private:
-		/// <summary>
 		/// Enumeration for the different menu screens that are active based on transition states.
-		/// </summary>
 		enum ActiveMenu {
 			MenusDisabled,
 			MainMenuActive,
@@ -80,31 +64,21 @@ namespace RTE {
 		std::unique_ptr<PauseMenuGUI> m_PauseMenu; //!< The game pause menu screen.
 
 #pragma region Updates
-		/// <summary>
 		/// Sets the active menu screen to be enabled, updated and drawn to the screen, besides the title screen which is always active.
-		/// </summary>
 		void SetActiveMenu();
 
-		/// <summary>
 		/// Updates the main menu screen and handles the update results.
-		/// </summary>
-		/// <returns>Whether the program was set to be terminated by the user through the main menu screen.</returns>
+		/// @return Whether the program was set to be terminated by the user through the main menu screen.
 		bool UpdateMainMenu() const;
 
-		/// <summary>
 		/// Updates the scenario menu screen and handles the update results.
-		/// </summary>
 		void UpdateScenarioMenu() const;
 
-		/// <summary>
 		/// Updates the MetaGame menu screen and handles the update results.
-		/// </summary>
-		/// <returns>Whether the program was set to be terminated by the user through the MetaGame menu screen.</returns>
+		/// @return Whether the program was set to be terminated by the user through the MetaGame menu screen.
 		bool UpdateMetaGameMenu() const;
 
-		/// <summary>
 		/// Updates the pause menu screen and handles the update results.
-		/// </summary>
 		void UpdatePauseMenu() const;
 #pragma endregion
 

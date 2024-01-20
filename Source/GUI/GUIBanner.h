@@ -1,14 +1,9 @@
 #pragma once
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            GUIBanner.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     GUIBanner class
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
+/// GUIBanner class
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
 #include "Vector.h"
 #include "Timer.h"
 #include "allegro.h"
@@ -19,19 +14,11 @@ struct BITMAP;
 
 namespace RTE {
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           GUIBanner
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A class to handle the drawing of LARGE text banners that fly across
-	//                  the screen, grabbing the player's attention.
-	// Parent(s):       None.
-	// Class history:   5/7/2011 GUIBanner Created.
-
+	/// A class to handle the drawing of LARGE text banners that fly across
+	/// the screen, grabbing the player's attention.
 	class GUIBanner {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		enum FontMode {
 			REGULAR = 0,
@@ -79,151 +66,80 @@ namespace RTE {
 			float m_Speed;
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUIBanner
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUIBanner object in system
-		//                  memory.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Constructor method used to instantiate a GUIBanner object in system
+		/// memory.
 		GUIBanner();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Create the font from an image file.
-		// Arguments:       Path to the font bitmap file.
-		//                  Path to the blurred font bitmap file.
-		//                  At which color bit depth to load the font files as.
-		// Return value:    None.
-
+		/// Create the font from an image file.
+		/// @param fontFilePath Path to the font bitmap file.
+		/// @param fontBlurFilePath Path to the blurred font bitmap file.
+		/// @param bitDepth At which color bit depth to load the font files as.
 		bool Create(const std::string fontFilePath, const std::string fontBlurFilePath, int bitDepth);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys the font data
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Destroys the font data
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetBannerText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the currently displayed text string.
-		// Arguments:       None.
-		// Return value:    The currently displayed text string.
-
+		/// Gets the currently displayed text string.
+		/// @return The currently displayed text string.
 		std::string GetBannerText() const { return m_BannerText; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetAnimState
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the current state of the overall animation of this banner.
-		// Arguments:       None.
-		// Return value:    The current state of the animation.
-
+		/// Gets the current state of the overall animation of this banner.
+		/// @return The current state of the animation.
 		AnimState GetAnimState() const { return m_AnimState; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsVisible
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether this banner is currently showing anything on screen.
-		// Arguments:       None.
-		// Return value:    Whether this is showing anything presently.
-
+		/// Tells whether this banner is currently showing anything on screen.
+		/// @return Whether this is showing anything presently.
 		bool IsVisible() const { return m_AnimState >= SHOWING && m_AnimState <= HIDING; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CalculateWidth
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the width of a piece of text.
-		// Arguments:       Text.
-		// Return value:    None.
-
+		/// Calculates the width of a piece of text.
+		/// @param Text Text.
 		int CalculateWidth(const std::string Text, FontMode mode) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CalculateWidth
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the width of a piece of text.
-		// Arguments:       Character.
-		// Return value:    None.
-
+		/// Calculates the width of a piece of text.
+		/// @param Character Character.
 		int CalculateWidth(const char Character, FontMode mode) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetFontHeight
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the font height.
-		// Arguments:       None.
-		// Return value:    The font height in pixels.
-
+		/// Gets the font height.
+		/// @return The font height in pixels.
 		int GetFontHeight() const { return m_FontHeight; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetKerning
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get the character kerning (spacing)
-		// Arguments:       None.
-		// Return value:    Spacing between characters, in pixels. 1 = one empty pixel
-		//                  between chars, 0 = chars are touching.
-
+		/// Get the character kerning (spacing)
+		/// @return Spacing between characters, in pixels. 1 = one empty pixel
+		/// between chars, 0 = chars are touching.
 		int GetKerning() const { return m_Kerning; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetKerning
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Set the character kerning (spacing), in pixels. 1 = one empty pixel
-		//                  between chars, 0 = chars are touching.
-		// Arguments:       The new kerning value.
-		// Return value:    None.
-
+		/// Set the character kerning (spacing), in pixels. 1 = one empty pixel
+		/// between chars, 0 = chars are touching.
+		/// @param newKerning The new kerning value. (default: 1)
 		void SetKerning(int newKerning = 1) { m_Kerning = newKerning; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SpaceBetween
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells how much space, in pixels, currently exists between two flying
-		//                  characters.
-		// Arguments:       The first FlyingChar.
-		//                  The font mode of the first character.
-		//                  The second FlyingChar.
-		//                  The font mode of the second character.
-		// Return value:    The space, in pixels.
-
+		/// Tells how much space, in pixels, currently exists between two flying
+		/// characters.
+		/// @param first The first FlyingChar.
+		/// @param firstMode The font mode of the first character.
+		/// @param second The second FlyingChar.
+		/// @param secondMode The font mode of the second character.
+		/// @return The space, in pixels.
 		int SpaceBetween(const FlyingChar& first, FontMode firstMode, const FlyingChar& second, FontMode secondMode) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ShowText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Starts the display animation of a text string in this banner's font.
-		//                  This only needs to be called once per display animation. Any currently
-		//                  played animation will be interrupted and the banner restarted.
-		// Arguments:       The text to display.
-		//                  The animation mode to display the text in.
-		//                  The duration of the animation the text is displayed in. Negative value
-		//                  means the text pauses at the display/center until HideText is called.
-		//                  The width and height of the bitmap target this will be displayed on.
-		//                  The Y position the banner should appear on the target, in normalized
-		//                  value. 0.5 = banner midline is centered on halfway down the target.
-		//                  The speed at which the characters will fly, in pixels per second.
-		//                  The spacing between the flying characters, in pixels.
-		// Return value:    None.
-
+		/// Starts the display animation of a text string in this banner's font.
+		/// This only needs to be called once per display animation. Any currently
+		/// played animation will be interrupted and the banner restarted.
+		/// @param text The text to display.
+		/// @param mode The animation mode to display the text in.
+		/// @param duration The duration of the animation the text is displayed in. Negative value
+		/// means the text pauses at the display/center until HideText is called.
+		/// @param targetSize The width and height of the bitmap target this will be displayed on.
+		/// @param yOnTarget The Y position the banner should appear on the target, in normalized
+		/// value. 0.5 = banner midline is centered on halfway down the target.
+		/// @param flySpeed The speed at which the characters will fly, in pixels per second. (default: 1500)
+		/// @param flySpacing The spacing between the flying characters, in pixels. (default: 100)
 		void ShowText(const std::string& text, AnimMode mode, long duration, Vector targetSize, float yOnTarget, int flySpeed = 1500, int flySpacing = 100);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          HideText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells the banner to animate away elegantly. Especially useful when
-		//                  a ShowText is waiting with a negative duration.
-		// Arguments:       The speed at which the characters will fly, in pixels per second.
-		//                  The spacing between the flying characters, in pixels.
-		// Return value:    None.
-
+		/// Tells the banner to animate away elegantly. Especially useful when
+		/// a ShowText is waiting with a negative duration.
+		/// @param flySpeed The speed at which the characters will fly, in pixels per second. (default: 1500)
+		/// @param flySpacing The spacing between the flying characters, in pixels. (default: 100)
 		void HideText(int flySpeed = 1500, int flySpacing = 100) {
 			if (m_AnimState <= SHOW) {
 				m_AnimState = HIDING;
@@ -232,40 +148,21 @@ namespace RTE {
 			m_FlySpacing = flySpacing;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ClearText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Abruptly clears any text without animating it away. Resets this thing.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Abruptly clears any text without animating it away. Resets this thing.
 		void ClearText() {
 			m_BannerText.clear();
 			m_BannerChars.clear();
 			m_AnimState = NOTSTARTED;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the position of the flying characters of this banner.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the position of the flying characters of this banner.
 		void Update();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws text to a bitmap.
-		// Arguments:       The target bitmap to draw to.
-		// Return value:    None.
-
+		/// Draws text to a bitmap.
+		/// @param pTargetBitmap The target bitmap to draw to.
 		void Draw(BITMAP* pTargetBitmap);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
 		// Font bitmap files - not owned
 		BITMAP* m_pFontImage[FONTMODECOUNT];

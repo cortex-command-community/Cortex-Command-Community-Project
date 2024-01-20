@@ -11,15 +11,11 @@ namespace RTE {
 	class AllegroScreen;
 	class GUIFont;
 
-	/// <summary>
 	/// Handling for the title screen scene composition, intro sequence and transitions between menu screens.
-	/// </summary>
 	class TitleScreen {
 
 	public:
-		/// <summary>
 		/// Enumeration for the different transition (scrolling) states of the title screen.
-		/// </summary>
 		enum class TitleTransition {
 			MainMenu,
 			MainMenuToScenario,
@@ -42,33 +38,25 @@ namespace RTE {
 		};
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a TitleScreen object in system memory and make it ready for use.
-		/// </summary>
-		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used to create this TitleScreen's GUIFont. Ownership is NOT transferred!</param>
+		/// @param guiScreen Pointer to a GUIScreen interface that will be used to create this TitleScreen's GUIFont. Ownership is NOT transferred!
 		explicit TitleScreen(AllegroScreen* guiScreen) {
 			Clear();
 			Create(guiScreen);
 		}
 
-		/// <summary>
 		/// Makes the TitleScreen object ready for use.
-		/// </summary>
-		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used to create this TitleScreen's GUIFont. Ownership is NOT transferred!</param>
+		/// @param guiScreen Pointer to a GUIScreen interface that will be used to create this TitleScreen's GUIFont. Ownership is NOT transferred!
 		void Create(AllegroScreen* guiScreen);
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Gets the current title transition state.
-		/// </summary>
-		/// <returns>The current title transition state. See TitleTransition enumeration for values.</returns>
+		/// @return The current title transition state. See TitleTransition enumeration for values.
 		TitleTransition GetTitleTransitionState() const { return m_TitleTransitionState; }
 
-		/// <summary>
 		/// Sets the target title transition state and, if different from the current, sets the section switch to trigger the transition.
-		/// </summary>
-		/// <param name="newTransitionState">The target title transition state.</param>
+		/// @param newTransitionState The target title transition state.
 		void SetTitleTransitionState(TitleTransition newTransitionState) {
 			if (newTransitionState != m_TitleTransitionState) {
 				m_TitleTransitionState = newTransitionState;
@@ -76,51 +64,37 @@ namespace RTE {
 			}
 		}
 
-		/// <summary>
 		/// Sets the title transition to a pending state, stores the orbit timer elapsed time and resets the fade screen blend value.
 		/// This is used to correctly restart transition states after breaking out of the game loop back to the menu loop.
-		/// </summary>
 		void SetTitlePendingTransition() {
 			m_TitleTransitionState = TitleTransition::TransitionPending;
 			m_StationOrbitTimerElapsedTime = static_cast<float>(m_StationOrbitTimer.GetElapsedRealTimeS());
 			m_FadeAmount = 0;
 		}
 
-		/// <summary>
 		/// Gets the position of the planet on the title screen scene.
-		/// </summary>
-		/// <returns>Vector with the position of the planet on the title screen scene.</returns>
+		/// @return Vector with the position of the planet on the title screen scene.
 		Vector GetPlanetPos() const { return m_PlanetPos; }
 
-		/// <summary>
 		/// Gets the radius of the planet.
-		/// </summary>
-		/// <returns>The radius of the planet.</returns>
+		/// @return The radius of the planet.
 		float GetPlanetRadius() const { return m_PlanetRadius; }
 
-		/// <summary>
 		/// Gets the position of the station on the planet orbit.
-		/// </summary>
-		/// <returns>Vector with the position of the station on the planet orbit.</returns>
+		/// @return Vector with the position of the station on the planet orbit.
 		Vector GetStationPos() const { return m_StationOffset; }
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Updates the TitleScreen state.
-		/// </summary>
 		void Update();
 
-		/// <summary>
 		/// Draws the TitleScreen to the screen.
-		/// </summary>
 		void Draw();
 #pragma endregion
 
 	private:
-		/// <summary>
 		/// Enumeration for the different states of the intro sequence.
-		/// </summary>
 		enum class IntroSequence {
 			DataRealmsLogoFadeIn,
 			DataRealmsLogoDisplay,
@@ -145,13 +119,9 @@ namespace RTE {
 			MainMenuAppear
 		};
 
-		/// <summary>
 		/// Struct that holds information for a title screen scene backdrop star.
-		/// </summary>
 		struct Star {
-			/// <summary>
 			/// Enumeration for the different Star sizes.
-			/// </summary>
 			enum class StarSize {
 				StarSmall,
 				StarLarge,
@@ -216,75 +186,51 @@ namespace RTE {
 		std::array<BITMAP*, 8> m_IntroSlides; //!< Array that contains all the slideshow slide bitmaps. Not Owned.
 
 #pragma region Create Breakdown
-		/// <summary>
 		/// Creates all the elements that compose the title screen scene.
-		/// </summary>
 		void CreateTitleElements();
 
-		/// <summary>
 		/// Creates the intro sequence slideshow slides.
-		/// </summary>
 		void CreateIntroSequenceSlides();
 #pragma endregion
 
 #pragma region Title Scene Handling
-		/// <summary>
 		/// Sets the duration of a new section and resets the switch.
-		/// </summary>
-		/// <param name="newDuration">The duration of the new section, in seconds.</param>
+		/// @param newDuration The duration of the new section, in seconds.
 		void SetSectionDurationAndResetSwitch(float newDuration) {
 			m_SectionDuration = newDuration;
 			m_SectionSwitch = false;
 		}
 
-		/// <summary>
 		/// Updates the title screen transition states and scrolls the title screen scene accordingly.
-		/// </summary>
 		void UpdateTitleTransitions();
 
-		/// <summary>
 		/// Draws the whole title screen scene to the screen.
-		/// </summary>
 		void DrawTitleScreenScene();
 
-		/// <summary>
 		/// Draws the game logo and effects to the screen.
-		/// </summary>
 		void DrawGameLogo();
 
-		/// <summary>
 		/// Draws the overlay bitmap for fade in/out or darkening effects to the screen.
-		/// </summary>
 		void DrawOverlayEffectBitmap() const;
 #pragma endregion
 
 #pragma region Intro Sequence Handling
-		/// <summary>
 		/// Updates the state of the intro sequence logo splash.
-		/// </summary>
-		/// <param name="skipSection">Whether the current section of the logo splash sequence should be skipped.</param>
+		/// @param skipSection Whether the current section of the logo splash sequence should be skipped.
 		void UpdateIntroLogoSequence(bool skipSection = false);
 
-		/// <summary>
 		/// Updates the state of the intro sequence slideshow.
-		/// </summary>
-		/// <param name="skipSlideshow">Whether the whole slideshow should be skipped.</param>
+		/// @param skipSlideshow Whether the whole slideshow should be skipped.
 		void UpdateIntroSlideshowSequence(bool skipSlideshow = false);
 
-		/// <summary>
 		/// Updates the state of the intro pre-main menu sequence.
-		/// </summary>
 		void UpdateIntroPreMainMenuSequence();
 
-		/// <summary>
 		/// Draws the current slideshow sequence slide to the screen.
-		/// </summary>
 		void DrawSlideshowSlide();
 #pragma endregion
 
-		/// <summary>
 		/// Clears all the member variables of this TitleScreen, effectively resetting the members of this object.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

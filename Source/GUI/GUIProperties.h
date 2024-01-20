@@ -2,196 +2,99 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A class containing properties for controls and skins.
-	/// </summary>
 	class GUIProperties {
 
 	public:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUIProperties
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUIProperties object in
-		//                  system memory.
-		// Arguments:       Name of section.
-
+		/// Constructor method used to instantiate a GUIProperties object in
+		/// system memory.
+		/// @param Name Name of section.
 		explicit GUIProperties(const std::string& Name);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUIProperties
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUIProperties object in
-		//                  system memory.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a GUIProperties object in
+		/// system memory.
 		GUIProperties();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      GUIProperties
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to free a GUIProperties object in system
-		//                  memory.
-		// Arguments:       None.
-
+		/// Destructor method used to free a GUIProperties object in system
+		/// memory.
 		~GUIProperties();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the properties.
-		// Arguments:       None.
-
+		/// Clears the properties.
 		void Clear();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddVariable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds a new variable to the properties
-		// Arguments:       Variable, Value
-
+		/// Adds a new variable to the properties
+		/// @param Variable Variable, Value
 		void AddVariable(const std::string& Variable, const std::string& Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddVariable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds a new variable to the properties
-		// Arguments:       Variable, Value
-
+		/// Adds a new variable to the properties
+		/// @param Variable Variable, Value
 		void AddVariable(const std::string& Variable, char* Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddVariable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds a new variable to the properties
-		// Arguments:       Variable, Value
-
+		/// Adds a new variable to the properties
+		/// @param Variable Variable, Value
 		void AddVariable(const std::string& Variable, int Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddVariable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds a new variable to the properties
-		// Arguments:       Variable, Value
-
+		/// Adds a new variable to the properties
+		/// @param Variable Variable, Value
 		void AddVariable(const std::string& Variable, bool Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Changes the value of a property.
-		// Arguments:       Variable, Value
-		// Returns:         True if the variable was set. Otherwise false.
-
+		/// Changes the value of a property.
+		/// @param Variable Variable, Value
+		/// @return True if the variable was set. Otherwise false.
 		bool SetValue(const std::string& Variable, const std::string& Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Changes the value of a property.
-		// Arguments:       Variable, Value
-		// Returns:         True if the variable was set. Otherwise false.
-
+		/// Changes the value of a property.
+		/// @param Variable Variable, Value
+		/// @return True if the variable was set. Otherwise false.
 		bool SetValue(const std::string& Variable, int Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the properties with properties from another instance.
-		// Arguments:       Pointer to a Properties class, whether to add variables.
-
+		/// Updates the properties with properties from another instance.
+		/// @param Props Pointer to a Properties class, whether to add variables.
 		void Update(GUIProperties* Props, bool Add = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a string value
-		// Arguments:       Variable, String pointer
-
+		/// Gets a string value
+		/// @param Variable Variable, String pointer
 		bool GetValue(const std::string& Variable, std::string* Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a string array of values
-		// Arguments:       Variable, String array, max size of array
-		// Returns:         Number of elements read
-
+		/// Gets a string array of values
+		/// @param Variable Variable, String array, max size of array
+		/// @return Number of elements read
 		int GetValue(const std::string& Variable, std::string* Array, int MaxArraySize);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets an integer array of values
-		// Arguments:       Variable, Integer array, max size of array
-		// Returns:         Number of elements read
-
+		/// Gets an integer array of values
+		/// @param Variable Variable, Integer array, max size of array
+		/// @return Number of elements read
 		int GetValue(const std::string& Variable, int* Array, int MaxArraySize);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a single interger
-		// Arguments:       Variable, Integer pointer
-
+		/// Gets a single interger
+		/// @param Variable Variable, Integer pointer
 		bool GetValue(const std::string& Variable, int* Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a single unsigned interger
-		// Arguments:       Variable, Unsigned Integer pointer
-
+		/// Gets a single unsigned interger
+		/// @param Variable Variable, Unsigned Integer pointer
 		bool GetValue(const std::string& Variable, unsigned long* Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a boolean value
-		// Arguments:       Variable, Boolean pointer
-
+		/// Gets a boolean value
+		/// @param Variable Variable, Boolean pointer
 		bool GetValue(const std::string& Variable, bool* Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetName
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the property name
-
+		/// Gets the property name
 		std::string GetName() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ToString
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Converts the properties to a string
-
+		/// Converts the properties to a string
 		std::string ToString();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the variable count in the properties
-
+		/// Gets the variable count in the properties
 		int GetCount() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetVariable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a variable based on index
-
+		/// Gets a variable based on index
 		bool GetVariable(int Index, std::string* Name, std::string* Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetVariable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets a variable based on index
-
+		/// Sets a variable based on index
 		bool SetVariable(int Index, const std::string& Name, const std::string& Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Sort
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sorts the list by variable name
-		// Arguments:       True for ascending, False for descending
-
+		/// Sorts the list by variable name
+		/// @param Ascending True for ascending, False for descending
 		void Sort(bool Ascending);
 
 	private:

@@ -7,9 +7,7 @@ namespace RTE {
 
 	class Entity;
 
-	/// <summary>
 	/// A listbox panel class used for controls requiring a listbox.
-	/// </summary>
 	class GUIListPanel : public GUIPanel {
 
 	public:
@@ -53,444 +51,229 @@ namespace RTE {
 			}
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUIListPanel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUIListPanel object in
-		//                  system memory.
-		// Arguments:       GUIManager.
-
+		/// Constructor method used to instantiate a GUIListPanel object in
+		/// system memory.
+		/// @param Manager GUIManager.
 		GUIListPanel(GUIManager* Manager);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUIListPanel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUIListPanel object in
-		//                  system memory.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a GUIListPanel object in
+		/// system memory.
 		GUIListPanel();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Create the listpanel
-		// Arguments:       Position, Size.
-
+		/// Create the listpanel
+		/// @param X Position, Size.
 		void Create(int X, int Y, int Width, int Height);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the panel has been destroyed.
-		// Arguments:       None.
-
+		/// Called when the panel has been destroyed.
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Add an item to the list.
-		// Arguments:       Name, extraText, Text which will be displayed right-justified in the item.
-		//                  a Bitmap object pointer alternatively pointing to a bitmap to display
-		//                  in the list. Ownership IS transferred!
-		//                  An Extra menu-specific index that this item may be associated with.
-		//                  Object instance associated with the item. Ownership is NOT TRANSFERRED!
-
+		/// Add an item to the list.
+		/// @param Name Name, extraText, Text which will be displayed right-justified in the item.
+		/// a Bitmap object pointer alternatively pointing to a bitmap to display
+		/// in the list. Ownership IS transferred!
+		/// @param rightText An Extra menu-specific index that this item may be associated with. (default: "")
+		/// @param pBitmap Object instance associated with the item. Ownership is NOT TRANSFERRED! (default: nullptr)
 		void AddItem(const std::string& Name, const std::string& rightText = "", GUIBitmap* pBitmap = nullptr, const Entity* pEntity = 0, const int extraIndex = -1, const int offsetX = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ClearList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the list.
-		// Arguments:       None.
-
+		/// Clears the list.
 		void ClearList();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ChangeSkin
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the skin has been changed.
-		// Arguments:       New skin pointer.
-
+		/// Called when the skin has been changed.
+		/// @param Skin New skin pointer.
 		void ChangeSkin(GUISkin* Skin);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the panel
-		// Arguments:       Screen class
-
+		/// Draws the panel
+		/// @param Screen Screen class
 		void Draw(GUIScreen* Screen) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseDown
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes down on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes down on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseDown(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseUp
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes up on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes up on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseUp(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseMove
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse moves (over the panel, or when captured).
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse moves (over the panel, or when captured).
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseMove(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseEnter
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse enters the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse enters the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseEnter(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseLeave
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse leaves the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse leaves the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseLeave(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnDoubleClick
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse has double-clicked on the pane.
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse has double-clicked on the pane.
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnDoubleClick(int X, int Y, int Buttons, int Modifier) override;
 
-		/// <summary>
 		/// Called when the mouse scroll wheel is moved.
-		/// </summary>
-		/// <param name="x">Mouse X position.</param>
-		/// <param name="y">Mouse Y position.</param>
-		/// <param name="modifier">Activated modifier buttons.</param>
-		/// <param name="mouseWheelChange">The amount of wheel movement. Positive is scroll up, negative is scroll down.</param>
+		/// @param x Mouse X position.
+		/// @param y Mouse Y position.
+		/// @param modifier Activated modifier buttons.
+		/// @param mouseWheelChange The amount of wheel movement. Positive is scroll up, negative is scroll down.
 		void OnMouseWheelChange(int x, int y, int modifier, int mouseWheelChange) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnKeyPress
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when a key is pressed (OnDown & repeating).
-		// Arguments:       KeyCode, Modifier.
-
+		/// Called when a key is pressed (OnDown & repeating).
+		/// @param KeyCode KeyCode, Modifier.
 		void OnKeyPress(int KeyCode, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnKeyDown
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when a key goes down.
-		// Arguments:       KeyCode, Modifier.
-
+		/// Called when a key goes down.
+		/// @param KeyCode KeyCode, Modifier.
 		void OnKeyDown(int KeyCode, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          PointInsideList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks if a point is inside the panel, but not on the scrollbars if
-		//                  they are visible
-		// Arguments:       X, Y Coordinates of point
-		// Return value:    A boolean of the check result
-
+		/// Checks if a point is inside the panel, but not on the scrollbars if
+		/// they are visible
+		/// @param X X, Y Coordinates of point
+		/// @return A boolean of the check result
 		bool PointInsideList(int X, int Y);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual Method:  OnGainFocus
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the panel gains focus.
-		// Arguments:       None.
-
+		/// Called when the panel gains focus.
 		void OnGainFocus() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual Method:  OnLoseFocus
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the panel looses focus.
-		// Arguments:       None.
-
+		/// Called when the panel looses focus.
 		void OnLoseFocus() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ReceiveSignal
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when receiving a signal.
-		// Arguments:       Signal source, Signal code, Signal data.
-
+		/// Called when receiving a signal.
+		/// @param Source Signal source, Signal code, Signal data.
 		void ReceiveSignal(GUIPanel* Source, int Code, int Data) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BeginUpdate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Locks the control from updating every time a new item is added.
-		// Arguments:       None.
-
+		/// Locks the control from updating every time a new item is added.
 		void BeginUpdate();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          EndUpdate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     UnLocks the control from updating every time a new item is added.
-		//                  Will automatically update the control.
-		// Arguments:       None.
-
+		/// UnLocks the control from updating every time a new item is added.
+		/// Will automatically update the control.
 		void EndUpdate();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetMultiSelect
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the multi-selection value.
-		// Arguments:       MultiSelect
-
+		/// Sets the multi-selection value.
+		/// @param MultiSelect MultiSelect
 		void SetMultiSelect(bool MultiSelect);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMultiSelect
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the multi-selection value.
-		// Arguments:       None.
-
+		/// Gets the multi-selection value.
 		bool GetMultiSelect() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetHotTracking
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the hot tracking value.
-		// Arguments:       HotTrack.
-
+		/// Sets the hot tracking value.
+		/// @param HotTrack HotTrack.
 		void SetHotTracking(bool HotTrack);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSelected
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the selected (or first in the selected list) item.
-		// Arguments:       None.
-
+		/// Gets the selected (or first in the selected list) item.
 		Item* GetSelected();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetItemList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the item list.
-		// Arguments:       None.
-
+		/// Gets the item list.
 		std::vector<Item*>* GetItemList();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets an item at the index.
-		// Arguments:       Index.
-
+		/// Gets an item at the index.
+		/// @param Index Index.
 		Item* GetItem(int Index);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets an item at a specific absolute screen coordinate, if any.
-		// Arguments:       The absolute screen coordinates to get the item from.
-
+		/// Gets an item at a specific absolute screen coordinate, if any.
+		/// @param X The absolute screen coordinates to get the item from.
 		Item* GetItem(int X, int Y);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetItemHeight
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the drawing height of the item passed in.
-		// Arguments:       Pointer to the Item to get the height of. Ownership is NOT transferred!
-
+		/// Gets the drawing height of the item passed in.
+		/// @param pItem Pointer to the Item to get the height of. Ownership is NOT transferred!
 		int GetItemHeight(Item* pItem);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetStackHeight
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the height, in pixels, of the stack of items up to a specific one.
-		//                  E.g. If the specified one is the first (top) in the list, 0 is returned.
-		//                  If the second one is specified, the height of the first is returned.
-		//                  If the third is specified, the sum of the first and second items' heights
-		//                  is returned. If 0 is passed, the entire stack's height is returned.
-		// Arguments:       Pointer to the Item to get the height up to. Ownership is NOT transferred!
-		//                  If 0 is passed, the entire stack's height is returned.
-
+		/// Gets the height, in pixels, of the stack of items up to a specific one.
+		/// E.g. If the specified one is the first (top) in the list, 0 is returned.
+		/// If the second one is specified, the height of the first is returned.
+		/// If the third is specified, the sum of the first and second items' heights
+		/// is returned. If 0 is passed, the entire stack's height is returned.
+		/// @param pItem Pointer to the Item to get the height up to. Ownership is NOT transferred! (default: nullptr)
+		/// If 0 is passed, the entire stack's height is returned.
 		int GetStackHeight(Item* pItem = nullptr);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetScrollVerticalValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the scroll value, in pixels, of the vertical axis.
-		// Arguments:       The scroll value in pixels.
-
+		/// Gets the scroll value, in pixels, of the vertical axis.
+		/// @param m_VertScroll->GetValue( The scroll value in pixels.
 		int GetScrollVerticalValue() const { return m_VertScroll->GetValue(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetItemValues
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the values of a specific Item.
-		// Arguments:       Index and Item reference.
-
+		/// Sets the values of a specific Item.
+		/// @param Index Index and Item reference.
 		void SetItemValues(int Index, Item& item);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSelectedIndex
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the selected (or first in the selected list) index.
-		// Arguments:       None.
-		// Returns:         Index, or -1 if there is no items selected.
-
+		/// Gets the selected (or first in the selected list) index.
+		/// @return Index, or -1 if there is no items selected.
 		int GetSelectedIndex();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetSelectedIndex
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Selects the item at the index.
-		// Arguments:       Index.
-
+		/// Selects the item at the index.
+		/// @param Index Index.
 		void SetSelectedIndex(int Index);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetAlternateDrawMode
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Selects this to draw its items differently, with lines instead of
-		//                  rectangles, etc
-		// Arguments:       The new mode setting.
-
+		/// Selects this to draw its items differently, with lines instead of
+		/// rectangles, etc
+		/// @param enableAltDrawMode The new mode setting. (default: true)
 		void SetAlternateDrawMode(bool enableAltDrawMode = true) { m_AlternateDrawMode = enableAltDrawMode; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSelectionList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the selection list.
-		// Arguments:       None.
-
+		/// Gets the selection list.
 		std::vector<Item*>* GetSelectionList();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DeleteItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Deletes an item at the index.
-		// Arguments:       Index.
-
+		/// Deletes an item at the index.
+		/// @param Index Index.
 		void DeleteItem(int Index);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetSize
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adjusts the size of the panel.
-		// Arguments:       Width, Height.
-
+		/// Adjusts the size of the panel.
+		/// @param Width Width, Height.
 		void SetSize(int Width, int Height) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetPositionAbs
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adjusts the position of the panel.
-		// Arguments:       X, Y.
-
+		/// Adjusts the position of the panel.
+		/// @param X X, Y.
 		void SetPositionAbs(int X, int Y);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          EnableScrollbars
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the enabled state of both scrollbars.
-		// Arguments:       Horz, Vert
-
+		/// Sets the enabled state of both scrollbars.
+		/// @param Horizontal Horz, Vert
 		void EnableScrollbars(bool Horizontal, bool Vertical);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ScrollToItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adjusts the vertical scrollbar to show the specific item in the list.
-		// Arguments:       The item you want to show.
-
+		/// Adjusts the vertical scrollbar to show the specific item in the list.
+		/// @param pItem The item you want to show.
 		void ScrollToItem(Item* pItem);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ScrollToSelected
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adjusts the vertical scrollbar to show the first selected item in the
-		//                  list.
-		// Arguments:       None.
-
+		/// Adjusts the vertical scrollbar to show the first selected item in the
+		/// list.
 		void ScrollToSelected();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ScrollToTop
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adjusts the vertical scrollbar to show the top of the list
-		// Arguments:       None.
-
+		/// Adjusts the vertical scrollbar to show the top of the list
 		void ScrollToTop();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ScrollToBottom
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adjusts the vertical scrollbar to show the bottom of the list
-		// Arguments:       None.
-
+		/// Adjusts the vertical scrollbar to show the bottom of the list
 		void ScrollToBottom();
 
-		/// <summary>
 		/// Scrolls the GUIListPanel up.
-		/// </summary>
 		void ScrollUp();
 
-		/// <summary>
 		/// Scrolls the GUIListPanel down.
-		/// </summary>
 		void ScrollDown();
 
-		/// <summary>
 		/// Scrolls the the GUIListPanel to a specific position
-		/// </summary>
-		/// <param name="position">The position to scroll to.</param>
+		/// @param position The position to scroll to.
 		void ScrollTo(int position);
 
-		/// <summary>
 		/// Sets whether the scroll panel scrolls in a loop or not.
-		/// </summary>
-		/// <param name="scrollLoop">True to scroll in a loop, false to scroll with edge stopping.</param>
+		/// @param scrollLoop True to scroll in a loop, false to scroll with edge stopping.
 		void SetSelectionScrollingLoop(bool scrollLoop);
 
-		/// <summary>
 		/// Sets whether the list panel can be scrolled with the mouse scroll wheel.
-		/// </summary>
-		/// <param name="mouseScroll">True to enable scrolling, false to disable.</param>
+		/// @param mouseScroll True to enable scrolling, false to disable.
 		void SetMouseScrolling(bool mouseScroll);
 
-		/// <summary>
 		/// Sets the thickness (width on vertical, height on horizontal) of the ListPanel's scroll bars and adjusts them to the new thickness.
-		/// </summary>
-		/// <param name="newThickness">The new scroll bar thickness, in pixels.</param>
+		/// @param newThickness The new scroll bar thickness, in pixels.
 		void SetScrollBarThickness(int newThickness) {
 			m_ScrollBarThickness = newThickness;
 			AdjustScrollbars();
 		}
 
-		/// <summary>
 		/// Sets the padding around the ListPanel's scrollbars and adjusts them to the new padding. Used to better size and position scrollbars within panel bounds, allowing to not overdraw on panel borders.
-		/// </summary>
-		/// <param name="newPadding">The new scrollbar padding, in pixels.</param>
+		/// @param newPadding The new scrollbar padding, in pixels.
 		void SetScrollBarPadding(int newPadding) {
 			m_ScrollBarPadding = newPadding;
 			AdjustScrollbars();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BuildBitmap
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Build the bitmap.
-		// Arguments:       UpdateBase, UpdateText.
-
+		/// Build the bitmap.
+		/// @param UpdateBase UpdateBase, UpdateText.
 		void BuildBitmap(bool UpdateBase, bool UpdateText);
 
 	private:
@@ -527,40 +310,22 @@ namespace RTE {
 		unsigned long m_SelectedColorIndex;
 		unsigned long m_UnselectedColorIndex;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BuildDrawBitmap
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Build the drawing bitmap.
-		// Arguments:       None.
-
+		/// Build the drawing bitmap.
 		void BuildDrawBitmap();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AdjustScrollbars
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adjusts the scrollbars.
-		// Arguments:       None.
-
+		/// Adjusts the scrollbars.
 		void AdjustScrollbars();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SelectItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Selects an item based on mouse position.
-		// Arguments:       Mouse Position, Modifier.
-
+		/// Selects an item based on mouse position.
+		/// @param X Mouse Position, Modifier.
 		void SelectItem(int X, int Y, int Modifier);
 
-		/// <summary>
 		/// Perform list scrolling through the scrollbar.
-		/// </summary>
-		/// <param name="MouseWheelChange">Amount and direction of scrolling. Positive to scroll up, negative to scroll down.</param>
+		/// @param MouseWheelChange Amount and direction of scrolling. Positive to scroll up, negative to scroll down.
 		void ScrollBarScrolling(int mouseWheelChange);
 
-		/// <summary>
 		/// Perform list scrolling by changing the currently selected list item.
-		/// </summary>
-		/// <param name="MouseWheelChange">Amount and direction of scrolling. Positive to scroll up, negative to scroll down.</param>
+		/// @param MouseWheelChange Amount and direction of scrolling. Positive to scroll up, negative to scroll down.
 		void SelectionListScrolling(int mouseWheelChange);
 	};
 } // namespace RTE

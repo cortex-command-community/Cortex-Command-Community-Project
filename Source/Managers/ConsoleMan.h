@@ -13,150 +13,104 @@ namespace RTE {
 	class GUITextBox;
 	class GUILabel;
 
-	/// <summary>
 	/// The singleton manager of the lua console.
-	/// </summary>
 	class ConsoleMan : public Singleton<ConsoleMan> {
 		friend class SettingsMan;
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a ConsoleMan object in system memory. Create() should be called before using the object.
-		/// </summary>
 		ConsoleMan() { Clear(); }
 
-		/// <summary>
 		/// Makes the ConsoleMan object ready for use.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Initialize();
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up a ConsoleMan object before deletion from system memory.
-		/// </summary>
 		~ConsoleMan() { Destroy(); }
 
-		/// <summary>
 		/// Destroys and resets (through Clear()) the ConsoleMan object.
-		/// </summary>
 		void Destroy();
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Reports whether the console is enabled or not.
-		/// </summary>
-		/// <returns>Whether the console is enabled or not.</returns>
+		/// @return Whether the console is enabled or not.
 		bool IsEnabled() const { return m_ConsoleState == ConsoleState::Enabled || m_ConsoleState == ConsoleState::Enabling; }
 
-		/// <summary>
 		/// Enables or disables the console.
-		/// </summary>
-		/// <param name="enable">Whether to enable or disable the console.</param>
+		/// @param enable Whether to enable or disable the console.
 		void SetEnabled(bool enable = true);
 
-		/// <summary>
 		/// Reports whether the console is in read-only mode or not.
-		/// </summary>
-		/// <returns>Whether the console is in read-only mode or not.</returns>
+		/// @return Whether the console is in read-only mode or not.
 		bool IsReadOnly() const { return m_ReadOnly; }
 
-		/// <summary>
 		/// Gets how much of the screen that the console is covering when opened.
-		/// </summary>
-		/// <returns>The ratio of the screen that is covered.</returns>
+		/// @return The ratio of the screen that is covered.
 		float GetConsoleScreenSize() const { return m_ConsoleScreenRatio; }
 
-		/// <summary>
 		/// Sets how much of the screen that the console should cover when opened.
-		/// </summary>
-		/// <param name="screenRatio">The ratio of the screen to cover. 0 - 1.0.</param>
+		/// @param screenRatio The ratio of the screen to cover. 0 - 1.0.
 		void SetConsoleScreenSize(float screenRatio = 0.3F);
 
-		/// <summary>
 		/// Gets whether the console text is using the monospace font or the regular proportional one.
-		/// </summary>
-		/// <returns>Whether the console text is using the monospace font or the regular proportional one.</returns>
+		/// @return Whether the console text is using the monospace font or the regular proportional one.
 		bool GetConsoleUseMonospaceFont() const { return m_ConsoleUseMonospaceFont; }
 
-		/// <summary>
 		/// Sets whether the console text is using the monospace font and changes to the appropriate skin to apply the setting.
-		/// </summary>
-		/// <param name="useFont">Whether to use the monospace font or not.</param>
+		/// @param useFont Whether to use the monospace font or not.
 		void SetConsoleUseMonospaceFont(bool useFont);
 #pragma endregion
 
 #pragma region Logging
-		/// <summary>
 		/// Gets whether the loading warning log has any warnings logged or not.
-		/// </summary>
-		/// <returns>Whether the log has logged warnings.</returns>
+		/// @return Whether the log has logged warnings.
 		bool LoadWarningsExist() const { return !m_LoadWarningLog.empty(); }
 
-		/// <summary>
 		/// Adds a new file extension mismatch entry to the loading warning log.
-		/// </summary>
-		/// <param name="pathToLog">The path that produced the warning.</param>
-		/// <param name="readerPosition">The file and line currently being loaded.</param>
-		/// <param name="altFileExtension">The alternative file extension to the path that produced the warning (e.g. if file is ".bmp", alternative extension is ".png").</param>
+		/// @param pathToLog The path that produced the warning.
+		/// @param readerPosition The file and line currently being loaded.
+		/// @param altFileExtension The alternative file extension to the path that produced the warning (e.g. if file is ".bmp", alternative extension is ".png").
 		void AddLoadWarningLogExtensionMismatchEntry(const std::string& pathToLog, const std::string& readerPosition = "", const std::string& altFileExtension = "");
 
-		/// <summary>
 		/// Writes the entire loading warning log to a file.
-		/// </summary>
-		/// <param name="filePath">The filename of the file to write to.</param>
+		/// @param filePath The filename of the file to write to.
 		void SaveLoadWarningLog(const std::string& filePath);
 
-		/// <summary>
 		/// Writes all the input strings to a log in the order they were entered.
-		/// </summary>
-		/// <param name="filePath">The filename of the file to write to.</param>
+		/// @param filePath The filename of the file to write to.
 		void SaveInputLog(const std::string& filePath);
 
-		/// <summary>
 		/// Writes the entire console buffer to a file.
-		/// </summary>
-		/// <param name="filePath">The filename of the file to write to.</param>
-		/// <returns>Whether writing to the file was successful.</returns>
+		/// @param filePath The filename of the file to write to.
+		/// @return Whether writing to the file was successful.
 		bool SaveAllText(const std::string& filePath);
 
-		/// <summary>
 		/// Clears all previous input.
-		/// </summary>
 		void ClearLog();
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Prints a string into the console.
-		/// </summary>
-		/// <param name="stringToPrint">The string to print.</param>
+		/// @param stringToPrint The string to print.
 		void PrintString(const std::string& stringToPrint);
 
-		/// <summary>
 		/// Opens the console and prints the shortcut help text.
-		/// </summary>
 		void ShowShortcuts();
 
-		/// <summary>
 		/// Updates the state of this ConsoleMan. Supposed to be done every frame before drawing.
-		/// </summary>
 		void Update();
 
-		/// <summary>
 		/// Draws this ConsoleMan's current graphical representation to a BITMAP of choice.
-		/// </summary>
-		/// <param name="targetBitmap">A pointer to a BITMAP to draw on.</param>
+		/// @param targetBitmap A pointer to a BITMAP to draw on.
 		void Draw(BITMAP* targetBitmap) const;
 #pragma endregion
 
 	protected:
-		/// <summary>
 		/// Enumeration for console states when enabling/disabling the console. NOTE: This can't be lower down because m_ConsoleState relies on this definition.
-		/// </summary>
 		enum ConsoleState {
 			Enabling = 0,
 			Enabled,
@@ -188,39 +142,27 @@ namespace RTE {
 	private:
 		bool m_ConsoleUseMonospaceFont; //!< Whether the console text is using the monospace font.
 
-		/// <summary>
 		/// Sets the console to read-only mode and enables it.
-		/// </summary>
 		void SetReadOnly();
 
 #pragma region Update Breakdown
-		/// <summary>
 		/// Console open/close animation handling and GUI element enabling/disabling. This is called from Update().
-		/// </summary>
 		void ConsoleOpenClose();
 
-		/// <summary>
 		/// Executes the string currently in the console textbox or multiple strings if a newline character is found.
 		/// The input string is saved to the input log if it's different from the previous string. This is called from Update().
-		/// </summary>
-		/// <param name="feedEmptyString">Whether to just pass in an empty string to make a new line.</param>
+		/// @param feedEmptyString Whether to just pass in an empty string to make a new line.
 		void FeedString(bool feedEmptyString = false);
 
-		/// <summary>
 		/// Loads a previously entered console string from the input log when pressing up or down. This is called from Update().
-		/// </summary>
-		/// <param name="nextEntry">Whether to load the next entry in the log (true) or the previous (false).</param>
+		/// @param nextEntry Whether to load the next entry in the log (true) or the previous (false).
 		void LoadLoggedInput(bool nextEntry);
 
-		/// <summary>
 		/// Removes any grave accents (`) that are pasted or typed into the textbox by opening/closing it. This is called from Update().
-		/// </summary>
 		void RemoveGraveAccents() const;
 #pragma endregion
 
-		/// <summary>
 		/// Clears all the member variables of this ConsoleMan, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

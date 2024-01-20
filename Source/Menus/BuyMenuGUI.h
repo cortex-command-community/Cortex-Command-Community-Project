@@ -1,17 +1,10 @@
 #pragma once
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            BuyMenuGUI.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     BuyMenuGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// BuyMenuGUI class
+/// @author Daniel Tabar
+/// dtabar@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 // #include "FrameMan.h"
 #include "Timer.h"
 #include "Controller.h"
@@ -35,538 +28,277 @@ namespace RTE {
 	class MovableObject;
 	class ACraft;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           BuyMenuGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A full menu system that represents a purchasing GUI for Cortex Command
-	// Parent(s):       None.
-	// Class history:   8/22/2006 BuyMenuGUI Created.
-
+	/// A full menu system that represents a purchasing GUI for Cortex Command
 	class BuyMenuGUI {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     BuyMenuGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a BuyMenuGUI object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a BuyMenuGUI object in system
+		/// memory. Create() should be called before using the object.
 		BuyMenuGUI() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~BuyMenuGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a BuyMenuGUI object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a BuyMenuGUI object before deletion
+		/// from system memory.
 		~BuyMenuGUI() { Destroy(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the BuyMenuGUI object ready for use.
-		// Arguments:       A poitner to a Controller which will control this Menu. Ownership is
-		//                  NOT TRANSFERRED!
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the BuyMenuGUI object ready for use.
+		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
+		/// NOT TRANSFERRED!
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(Controller* pController);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire BuyMenuGUI, including its inherited members, to
-		//                  their default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire BuyMenuGUI, including its inherited members, to
+		/// their default settings or values.
 		void Reset() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the BuyMenuGUI object.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the BuyMenuGUI object.
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  LoadAllLoadoutsFromFile
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Loads or re-loads all the loadout presets from the appropriate files
-		//                  on disk. This will first clear out all current loadout presets!
-		// Arguments:       None.
-		// Return value:    Success or not.
-
+		/// Loads or re-loads all the loadout presets from the appropriate files
+		/// on disk. This will first clear out all current loadout presets!
+		/// @return Success or not.
 		bool LoadAllLoadoutsFromFile();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SaveAllLoadoutsToFile
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Saves all the loadouts to appropriate file on disk. Does NOT save
-		//                  any named presets which will be loaded from the standard preset
-		//                  loadouts first anyway.
-		// Arguments:       None.
-		// Return value:    Success or not.
-
+		/// Saves all the loadouts to appropriate file on disk. Does NOT save
+		/// any named presets which will be loaded from the standard preset
+		/// loadouts first anyway.
+		/// @return Success or not.
 		bool SaveAllLoadoutsToFile();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetController
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the controller used by this. The ownership of the controller is
-		//                  NOT transferred!
-		// Arguments:       The new controller for this menu. Ownership is NOT transferred
-		// Return value:    None.
-
+		/// Sets the controller used by this. The ownership of the controller is
+		/// NOT transferred!
+		/// @param pController The new controller for this menu. Ownership is NOT transferred
 		void SetController(Controller* pController) { m_pController = pController; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Enables or disables the menu. This will animate it in and out of view.
-		// Arguments:       Whether to enable or disable the menu.
-		// Return value:    None.
-
+		/// Enables or disables the menu. This will animate it in and out of view.
+		/// @param enable Whether to enable or disable the menu. (default: true)
 		void SetEnabled(bool enable = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the menu is enabled or not.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Reports whether the menu is enabled or not.
 		bool IsEnabled() const { return m_MenuEnabled == ENABLED || m_MenuEnabled == ENABLING; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsVisible
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the menu is at all visible or not.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Reports whether the menu is at all visible or not.
 		bool IsVisible() const { return m_MenuEnabled == ENABLED || m_MenuEnabled == ENABLING || m_MenuEnabled == DISABLING; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetPosOnScreen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-		//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-		//                  etc.
-		// Arguments:       The new screen position of this entire GUI.
-
+		/// Sets where on the screen that this GUI is being drawn to. If upper
+		/// left corner, then 0, 0. This will affect the way the mouse is positioned
+		/// etc.
+		/// @param newPosX The new screen position of this entire GUI.
 		void SetPosOnScreen(int newPosX, int newPosY);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetMetaPlayer
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets which MetaPlayer uses this menu, if any.
-		// Arguments:       The index of the MetaPlayer that uses this menu.
-		// Return value:    None.
-
+		/// Sets which MetaPlayer uses this menu, if any.
+		/// @param metaPlayer The index of the MetaPlayer that uses this menu.
 		void SetMetaPlayer(int metaPlayer);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMetaPlayer
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets which MetaPlayer uses this menu, if any.
-		// Arguments:       None.
-		// Return value:    Metaplayer who owns this buy menu
-
+		/// Gets which MetaPlayer uses this menu, if any.
+		/// @return Metaplayer who owns this buy menu
 		int GetMetaPlayer() const { return m_MetaPlayer; }
 
-		/// <summary>
 		/// Sets which DataModule ID should be treated as the native tech of the user of this menu.
 		/// This will also apply the DataModule's faction BuyMenu theme, if applicable.
-		/// </summary>
-		/// <param name="whichModule">The module ID to set as the native one. 0 means everything is native.</param>
+		/// @param whichModule The module ID to set as the native one. 0 means everything is native.
 		void SetNativeTechModule(int whichModule);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetForeignCostMultiplier
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the multiplier of the cost of any foreign Tech items.
-		// Arguments:       The scalar multiplier of the costs of foreign Tech items.
-		// Return value:    None.
-
+		/// Sets the multiplier of the cost of any foreign Tech items.
+		/// @param newMultiplier The scalar multiplier of the costs of foreign Tech items.
 		void SetForeignCostMultiplier(float newMultiplier) { m_ForeignCostMult = newMultiplier; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetModuleExpanded
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether a data module shown in the item menu should be expanded
-		//                  or not.
-		// Arguments:       The module ID to set as expanded.
-		//                  Whether should be expanded or not.
-		// Return value:    None.
-
+		/// Sets whether a data module shown in the item menu should be expanded
+		/// or not.
+		/// @param whichModule The module ID to set as expanded.
+		/// @param expanded Whether should be expanded or not. (default: true)
 		void SetModuleExpanded(int whichModule, bool expanded = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          PurchaseMade
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether a purchase was made during the last Update.
-		// Arguments:       None.
-		// Return value:    Wheter the BUY button was pressed or not during the last update.
-
+		/// Reports whether a purchase was made during the last Update.
+		/// @return Wheter the BUY button was pressed or not during the last update.
 		bool PurchaseMade() const { return m_PurchaseMade; }
 
-		/// <summary>
 		/// Gets the width of the current delivery craft.
-		/// </summary>
-		/// <returns>The width of the delivery craft, in pixels.</returns>
+		/// @return The width of the delivery craft, in pixels.
 		int GetDeliveryWidth() const { return m_DeliveryWidth; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetOrderList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Return the list of things currently in the purchase order list box.
-		// Arguments:       A reference to a an empty list to fill with the Object:s ordered.
-		//                  Ownership of the Object:s is NOT TRANSFERRED!
-		// Return value:    Whetehr any items were put in the list at all. false if there are no
-		//                  items in the order listbox.
-
+		/// Return the list of things currently in the purchase order list box.
+		/// @param listToFill A reference to a an empty list to fill with the Object:s ordered.
+		/// Ownership of the Object:s is NOT TRANSFERRED!
+		/// @return Whetehr any items were put in the list at all. false if there are no
+		/// items in the order listbox.
 		bool GetOrderList(std::list<const SceneObject*>& listToFill) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetLoadoutPresets
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Return the list of loadouts currently saved as presets.
-		// Arguments:       None.
-		// Return value:    A reference to the list of loadout presets.
-
+		/// Return the list of loadouts currently saved as presets.
+		/// @return A reference to the list of loadout presets.
 		std::vector<Loadout>& GetLoadoutPresets() { return m_Loadouts; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SaveCurrentLoadout
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Saves the current loadout into a Set.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Saves the current loadout into a Set.
 		void SaveCurrentLoadout();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDeliveryCraftPreset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Return the intended delivery vehicle instance from the order.
-		// Arguments:       None.
-		// Return value:    The poiner to the specified delivery craft instance. Note that this is
-		//                  just PresetMan's const pointer, so ownership is NOT transferred!
-
+		/// Return the intended delivery vehicle instance from the order.
+		/// @return The poiner to the specified delivery craft instance. Note that this is
+		/// just PresetMan's const pointer, so ownership is NOT transferred!
 		const SceneObject* GetDeliveryCraftPreset() { return m_pSelectedCraft; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTotalCost
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Return the total cost of everything listed in the order box.
-		// Arguments:       Whether or not to include delivery cost.
-		// Return value:    The total cost in ounces of gold.
-
+		/// Return the total cost of everything listed in the order box.
+		/// @param includeDelivery Whether or not to include delivery cost. (default: true)
+		/// @return The total cost in ounces of gold.
 		float GetTotalCost(bool includeDelivery = true) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTotalOrderCost
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Return the total cost of everything listed in the order box, including delivery costs.
-		// Arguments:       None.
-		// Return value:    The total cost in ounces of gold.
-
+		/// Return the total cost of everything listed in the order box, including delivery costs.
+		/// @return The total cost in ounces of gold.
 		float GetTotalOrderCost() const { return GetTotalCost(true); };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTotalCartCost
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Return the total cost of everything listed in the order box, excluding delivery costs.
-		// Arguments:       None.
-		// Return value:    The total cost in ounces of gold.
-
+		/// Return the total cost of everything listed in the order box, excluding delivery costs.
+		/// @return The total cost in ounces of gold.
 		float GetTotalCartCost() const { return GetTotalCost(false); }
 
-		/// <summary>
 		/// Return the total mass of all items listed in the order box.
-		/// </summary>
-		/// <returns>The total mass (in kg) of the BuyMenu's cart.</returns>
+		/// @return The total mass (in kg) of the BuyMenu's cart.
 		float GetTotalOrderMass() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetCraftMass
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Return mass of craft used in the order box.
-		// Arguments:       None.
-		// Return value:    The total mass in kg.
-
+		/// Return mass of craft used in the order box.
+		/// @return The total mass in kg.
 		float GetCraftMass();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTotalOrderPassengers
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Return teh total number of passengers in the order box.
-		// Arguments:       None.
-		// Return value:    The total number of passengers.
-
+		/// Return teh total number of passengers in the order box.
+		/// @return The total number of passengers.
 		int GetTotalOrderPassengers() const;
 
-		/// <summary>
 		/// Enable or disable the equipment selection mode for this BuyMenuGUI.
-		/// </summary>
-		/// <param name="enabled">Whether or not equipment selection mode should be enabled.</param>
+		/// @param enabled Whether or not equipment selection mode should be enabled.
 		void EnableEquipmentSelection(bool enabled);
 
-		/// <summary>
 		/// Updates the nesting level for every item in the cart.
-		/// </summary>
 		void UpdateItemNestingLevels();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the state of this Menu each frame
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the state of this Menu each frame
 		void Update();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the menu
-		// Arguments:       The bitmap to draw on.
-		// Return value:    None.
-
+		/// Draws the menu
+		/// @param drawBitmap The bitmap to draw on.
 		void Draw(BITMAP* drawBitmap) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			EnforceMaxPassengersConstraint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether passenger count constraints are enforced by this buy menu.
-		// Arguments:       None.
-		// Return value:    True if passenger constraints are enforced by this menu, false otherwise
-
+		/// Method:			EnforceMaxPassengersConstraint
+		/// Tells whether passenger count constraints are enforced by this buy menu.
+		/// @return True if passenger constraints are enforced by this menu, false otherwise
 		bool EnforceMaxPassengersConstraint() const { return m_EnforceMaxPassengersConstraint; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			SetEnforceMaxPassengersConstraint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether passenger count constraints are enforced by this buy menu.
-		// Arguments:       True to enforce passenger constraints by this menu, false otherwise
-		// Return value:    None.
-
+		/// Method:			SetEnforceMaxPassengersConstraint
+		/// Sets whether passenger count constraints are enforced by this buy menu.
+		/// @param enforce True to enforce passenger constraints by this menu, false otherwise
 		void SetEnforceMaxPassengersConstraint(bool enforce) { m_EnforceMaxPassengersConstraint = enforce; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			EnforceMaxMassConstraint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether mass constraints are enforced by this buy menu.
-		// Arguments:       True if mass constraints are enforced by this menu, false otherwise
-		// Return value:    None.
-
+		/// Method:			EnforceMaxMassConstraint
+		/// Sets whether mass constraints are enforced by this buy menu.
+		/// @param True if mass constraints are enforced by this menu, false otherwise
 		bool EnforceMaxMassConstraint() const { return m_EnforceMaxMassConstraint; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			SetEnforceMaxMassConstraint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether mass constraints are enforced by this buy menu.
-		// Arguments:       True to enforce mass constraints by this menu, false otherwise
-		// Return value:    None.
-
+		/// Method:			SetEnforceMaxMassConstraint
+		/// Sets whether mass constraints are enforced by this buy menu.
+		/// @param enforce True to enforce mass constraints by this menu, false otherwise
 		void SetEnforceMaxMassConstraint(bool enforce) { m_EnforceMaxMassConstraint = enforce; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			AddAllowedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds an item to the list of allowed items.
-		//					If the list is not empty then everything not in the list is removed from the buy menu
-		//					Items will be removed from the buy menu when it's called, category changed or after a ForceRefresh().
-		// Arguments:       Full preset name to add.
-		// Return value:    None.
-
+		/// Method:			AddAllowedItem
+		/// Adds an item to the list of allowed items.
+		/// If the list is not empty then everything not in the list is removed from the buy menu
+		/// Items will be removed from the buy menu when it's called, category changed or after a ForceRefresh().
+		/// @param presetName Full preset name to add.
 		void AddAllowedItem(std::string presetName) { m_AllowedItems[presetName] = true; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			RemoveAllowedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes an item from the list of allowed items.
-		// Arguments:       Full preset name to remove.
-		// Return value:    None.
-
+		/// Method:			RemoveAllowedItem
+		/// Removes an item from the list of allowed items.
+		/// @param m_AllowedItems.erase(presetName Full preset name to remove.
 		void RemoveAllowedItem(std::string presetName) { m_AllowedItems.erase(presetName); };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			ClearAllowedItems
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the list of allowed items
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Method:			ClearAllowedItems
+		/// Clears the list of allowed items
 		void ClearAllowedItems() { m_AllowedItems.clear(); };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			IsAllowedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns true if the item is in allowed list
-		// Arguments:       Full preset name.
-		// Return value:    None.
-
+		/// Method:			IsAllowedItem
+		/// Returns true if the item is in allowed list
+		/// @param ! Full preset name. (default: m_AllowedItems.end()
 		bool IsAllowedItem(std::string presetName) { return m_AllowedItems.find(presetName) != m_AllowedItems.end(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			AddAlwaysAllowedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds an item to the list of always allowed items. This list overrides all previous constraints.
-		// Arguments:       Full preset name to add.
-		// Return value:    None.
-
+		/// Method:			AddAlwaysAllowedItem
+		/// Adds an item to the list of always allowed items. This list overrides all previous constraints.
+		/// @param presetName Full preset name to add.
 		void AddAlwaysAllowedItem(std::string presetName) { m_AlwaysAllowedItems[presetName] = true; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			RemoveAlwaysAllowedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes an item from the list of always allowed items.
-		// Arguments:       Full preset name to remove.
-		// Return value:    None.
-
+		/// Method:			RemoveAlwaysAllowedItem
+		/// Removes an item from the list of always allowed items.
+		/// @param m_AlwaysAllowedItems.erase(presetName Full preset name to remove.
 		void RemoveAlwaysAllowedItem(std::string presetName) { m_AlwaysAllowedItems.erase(presetName); };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			ClearAlwaysAllowedItems
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the list of allowed items
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Method:			ClearAlwaysAllowedItems
+		/// Clears the list of allowed items
 		void ClearAlwaysAllowedItems() { m_AlwaysAllowedItems.clear(); };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			IsAlwaysAllowedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns true if the item is in always allowed list
-		// Arguments:       Full preset name.
-		// Return value:    None.
-
+		/// Method:			IsAlwaysAllowedItem
+		/// Returns true if the item is in always allowed list
+		/// @param ! Full preset name. (default: m_AlwaysAllowedItems.end()
 		bool IsAlwaysAllowedItem(std::string presetName) { return m_AlwaysAllowedItems.find(presetName) != m_AlwaysAllowedItems.end(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			AddProhibitedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds an item prohibited to buy from the buy menu.
-		//					The item will be removed from the buy menu when it's called, category changed or after a ForceRefresh().
-		// Arguments:       Full preset name to add.
-		// Return value:    None.
-
+		/// Method:			AddProhibitedItem
+		/// Adds an item prohibited to buy from the buy menu.
+		/// The item will be removed from the buy menu when it's called, category changed or after a ForceRefresh().
+		/// @param presetName Full preset name to add.
 		void AddProhibitedItem(std::string presetName) { m_ProhibitedItems[presetName] = true; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			RemoveProhibitedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes item from the list of prohibited items
-		// Arguments:       Full preset name to remove.
-		// Return value:    None.
-
+		/// Method:			RemoveProhibitedItem
+		/// Removes item from the list of prohibited items
+		/// @param m_ProhibitedItems.erase(presetName Full preset name to remove.
 		void RemoveProhibitedItem(std::string presetName) { m_ProhibitedItems.erase(presetName); };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			ClearProhibitedItems
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the list of prohibited items
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Method:			ClearProhibitedItems
+		/// Clears the list of prohibited items
 		void ClearProhibitedItems() { m_ProhibitedItems.clear(); };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			IsProhibitedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns true if the item is in prohibited list
-		// Arguments:       Full preset name.
-		// Return value:    None.
-
+		/// Method:			IsProhibitedItem
+		/// Returns true if the item is in prohibited list
+		/// @param ! Full preset name. (default: m_ProhibitedItems.end()
 		bool IsProhibitedItem(std::string presetName) { return m_ProhibitedItems.find(presetName) != m_ProhibitedItems.end(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			ForceRefresh
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Forces a refresh update of the list of buy menu items
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Method:			ForceRefresh
+		/// Forces a refresh update of the list of buy menu items
 		void ForceRefresh() { CategoryChange(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			ClearCartList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clear the cart out of items selected for purchase
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Method:			ClearCartList
+		/// Clear the cart out of items selected for purchase
 		void ClearCartList();
 
-		/// <summary>
 		/// Adds an item to the cart.
-		/// </summary>
-		/// <param name="name">The name shown for the item.</param>
-		/// <param name="rightText">The text that is shown right-aligned on the item (typically the cost of the item).</param>
-		/// <param name="pBitmap">The sprite image rendered for the item. This takes ownership!</param>
-		/// <param name="pEntity">The entity that this item refers to and will create when bought.</param>
-		/// <param name="extraIndex">Extra index for special indexing or reference that the item is associated with. Menu-specific.</param>
+		/// @param name The name shown for the item.
+		/// @param rightText The text that is shown right-aligned on the item (typically the cost of the item).
+		/// @param pBitmap The sprite image rendered for the item. This takes ownership!
+		/// @param pEntity The entity that this item refers to and will create when bought.
+		/// @param extraIndex Extra index for special indexing or reference that the item is associated with. Menu-specific.
 		void AddCartItem(const std::string& name, const std::string& rightText = "", GUIBitmap* pBitmap = nullptr, const Entity* pEntity = 0, const int extraIndex = -1);
 
-		/// <summary>
 		/// Duplicates an item in the cart.
-		/// </summary>
-		/// <param name="itemIndex">The index of the item to duplicate.</param>
+		/// @param itemIndex The index of the item to duplicate.
 		void DuplicateCartItem(const int itemIndex);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			LoadDefaultLoadoutToCart
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Loads the default loadout to the cart
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Method:			LoadDefaultLoadoutToCart
+		/// Loads the default loadout to the cart
 		void LoadDefaultLoadoutToCart() { DeployLoadout(0); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			SetOnlyShowOwnedItems
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     If set to true only owned items will be shown in buy menu. Overriden by AlwaysAllowed list.
-		// Arguments:       Value.
-		// Return value:    None.
-
+		/// Method:			SetOnlyShowOwnedItems
+		/// If set to true only owned items will be shown in buy menu. Overriden by AlwaysAllowed list.
+		/// @param value Value.
 		void SetOnlyShowOwnedItems(bool value) { m_OnlyShowOwnedItems = value; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			GetOnlyShowOwnedItems
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns whether only owned items will be shown in buy menu. Overriden by AlwaysAllowed list.
-		// Arguments:       None.
-		// Return value:    Whether only owned items will be shown in buy menu.
-
+		/// Method:			GetOnlyShowOwnedItems
+		/// Returns whether only owned items will be shown in buy menu. Overriden by AlwaysAllowed list.
+		/// @return Whether only owned items will be shown in buy menu.
 		bool GetOnlyShowOwnedItems() const { return m_OnlyShowOwnedItems; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			SetOwnedItemsAmount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the amount of specified items to be owned in this buy menu
-		// Arguments:       Full preset name of item to own. Amount of owned items.
-		// Return value:    None.
-
+		/// Method:			SetOwnedItemsAmount
+		/// Sets the amount of specified items to be owned in this buy menu
+		/// @param presetName Full preset name of item to own. Amount of owned items.
 		void SetOwnedItemsAmount(std::string presetName, int amount) { m_OwnedItems[presetName] = amount; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			GetOwnedItemsAmount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the amount of specified items owned in this buy menu
-		// Arguments:       Full preset name of item.
-		// Return value:    Amount of owned items.
-
+		/// Method:			GetOwnedItemsAmount
+		/// Returns the amount of specified items owned in this buy menu
+		/// @param presetName Full preset name of item.
+		/// @return Amount of owned items.
 		int GetOwnedItemsAmount(std::string presetName) {
 			if (m_OwnedItems.find(presetName) != m_OwnedItems.end())
 				return m_OwnedItems[presetName];
@@ -574,106 +306,59 @@ namespace RTE {
 				return 0;
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:			CommitPurchase
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Deducts 1 piece of owned item and return true if purchase can be made or false if the item is out of stock.
-		// Arguments:       Full preset name of item.
-		// Return value:    Whether the purchase can be conducted or the item is out of stock.
-
+		/// Method:			CommitPurchase
+		/// Deducts 1 piece of owned item and return true if purchase can be made or false if the item is out of stock.
+		/// @param presetName Full preset name of item.
+		/// @return Whether the purchase can be conducted or the item is out of stock.
 		bool CommitPurchase(std::string presetName);
 
 #pragma region Faction Theme Handling
-		/// <summary>
 		/// Changes the banner image to the one specified. If none is specified, resets it to the default banner image.
-		/// </summary>
-		/// <param name="imagePath">Path to image to set as banner.</param>
+		/// @param imagePath Path to image to set as banner.
 		void SetBannerImage(const std::string& imagePath);
 
-		/// <summary>
 		/// Changes the logo image to the one specified. If none is specified, resets it to the default logo image.
-		/// </summary>
-		/// <param name="imagePath">Path to image to set as logo.</param>
+		/// @param imagePath Path to image to set as logo.
 		void SetLogoImage(const std::string& imagePath);
 #pragma endregion
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  CategoryChange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes sure all things that to happen when category is changed, happens.
-		// Arguments:       Wheter to change focus to the category tabs or not.
-		// Return value:    None.
-
+		/// Makes sure all things that to happen when category is changed, happens.
+		/// @param focusOnCategoryTabs Wheter to change focus to the category tabs or not. (default: true)
 		void CategoryChange(bool focusOnCategoryTabs = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  DeployLoadout
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Loads the loadout set into the cart, replacing whatever's there now.
-		// Arguments:       The index of the loadout to load.
-		// Return value:    Whether it was loaded successfully or not.
-
+		/// Loads the loadout set into the cart, replacing whatever's there now.
+		/// @param index The index of the loadout to load.
+		/// @return Whether it was loaded successfully or not.
 		bool DeployLoadout(int index);
 
-		/// <summary>
 		/// Adds all objects of a specific type already defined in PresetMan to the current shop/item list. They will be grouped into the different data modules they were read from.
-		/// </summary>
-		/// <param name="moduleList">Reference to the data module vector of entity lists to add the items to.</param>
-		/// <param name="type">The name of the class to add all objects of. "" or "All" looks for all.</param>
-		/// <param name="groups">The name of the groups to add all objects of. An empty vector or "All" looks for all.</param>
-		/// <param name="excludeGroups">Whether the specified groups should be excluded, meaning all objects NOT associated with the groups will be added.</param>
+		/// @param moduleList Reference to the data module vector of entity lists to add the items to.
+		/// @param type The name of the class to add all objects of. "" or "All" looks for all.
+		/// @param groups The name of the groups to add all objects of. An empty vector or "All" looks for all.
+		/// @param excludeGroups Whether the specified groups should be excluded, meaning all objects NOT associated with the groups will be added.
 		void AddObjectsToItemList(std::vector<std::list<Entity*>>& moduleList, const std::string& type = "", const std::vector<std::string>& groups = {}, bool excludeGroups = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddPresetsToItemList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds all loadout presets' representations to the item GUI list.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Adds all loadout presets' representations to the item GUI list.
 		void AddPresetsToItemList();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateTotalCostLabel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the text of the total cost label to reflect the total cost of
-		//                  all the items in teh order box.
-		// Arguments:       The team to display the total funds of.
-		// Return value:    None.
-
+		/// Updates the text of the total cost label to reflect the total cost of
+		/// all the items in teh order box.
+		/// @param whichTeam The team to display the total funds of. (default: 0)
 		void UpdateTotalCostLabel(int whichTeam = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateTotalMassLabel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the text of the specified label to reflect the total mass of
-		//                  all the items in the order box.
-		// Arguments:       Craft to read MaxMass from. Label to update.
-		// Return value:    None.
-
+		/// Updates the text of the specified label to reflect the total mass of
+		/// all the items in the order box.
+		/// @param pCraft Craft to read MaxMass from. Label to update.
 		void UpdateTotalMassLabel(const ACraft* pCraft, GUILabel* pLabel) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateTotalPassengersLabel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the text of the specified label to reflect the total passenger count of
-		//                  all the items in teh order box.
-		// Arguments:       Craft to read MaxPassengers from. Label to update.
-		// Return value:    None.
-
+		/// Updates the text of the specified label to reflect the total passenger count of
+		/// all the items in teh order box.
+		/// @param pCraft Craft to read MaxPassengers from. Label to update.
 		void UpdateTotalPassengersLabel(const ACraft* pCraft, GUILabel* pLabel) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  TryPurchase
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Attempts to make a purchase with everything already set up.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Attempts to make a purchase with everything already set up.
 		void TryPurchase();
 
 		enum MenuEnabled {
@@ -844,26 +529,16 @@ namespace RTE {
 		// A map of owned items, for which the gold will not be deducted when bought
 		std::map<std::string, int> m_OwnedItems;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
 		static const std::string c_DefaultBannerImagePath; //!< Path to the default banner image.
 		static const std::string c_DefaultLogoImagePath; //!< Path to the default logo image.
 
-		/// <summary>
 		/// Refresh tab disabled states, so tabs get properly enabled/disabled based on whether or not equipment selection mode is enabled.
-		/// </summary>
 		void RefreshTabDisabledStates();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this BuyMenuGUI, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this BuyMenuGUI, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

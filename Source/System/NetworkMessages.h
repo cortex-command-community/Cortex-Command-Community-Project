@@ -5,9 +5,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// Enumeration for the different types of network message IDs.
-	/// </summary>
 	enum CustomMessageIDTypes {
 		ID_CUSTOM_START = ID_USER_PACKET_ENUM,
 		ID_NAT_SERVER_REGISTER_SERVER,
@@ -41,9 +39,7 @@ namespace RTE {
 
 	// TODO: Figure out all these and add comments.
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgRegisterServer {
 		unsigned char Id;
 
@@ -52,16 +48,12 @@ namespace RTE {
 		char ServerGuid[64];
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgRegisterServerAccepted {
 		unsigned char Id;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgGetServerRequest {
 		unsigned char Id;
 
@@ -69,25 +61,19 @@ namespace RTE {
 		char ServerPassword[64];
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgGetServerAnswer {
 		unsigned char Id;
 
 		char ServerGuid[64];
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgGetServerNoAnswer {
 		unsigned char Id;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgRegister {
 		unsigned char Id;
 
@@ -97,9 +83,7 @@ namespace RTE {
 		char Name[64];
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgFrameSetup {
 		unsigned char Id;
 		unsigned char FrameNumber;
@@ -117,9 +101,7 @@ namespace RTE {
 		float OffsetY[c_MaxLayersStoredForNetwork];
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgFrameLine {
 		unsigned char Id;
 		unsigned char FrameNumber;
@@ -130,9 +112,7 @@ namespace RTE {
 		unsigned short int UncompressedSize;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgFrameBox {
 		unsigned char Id;
 
@@ -142,23 +122,17 @@ namespace RTE {
 		unsigned short int DataSize;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgDisconnect {
 		unsigned char Id;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgAccepted {
 		unsigned char Id;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct LightweightSceneLayer {
 		size_t BitmapHash;
 		bool DrawTrans;
@@ -184,9 +158,7 @@ namespace RTE {
 		unsigned char FillDownColor;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgSceneSetup {
 		unsigned char Id;
 		unsigned char SceneId;
@@ -198,9 +170,7 @@ namespace RTE {
 		LightweightSceneLayer BackgroundLayers[c_MaxLayersStoredForNetwork];
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgSceneLine {
 		unsigned char Id;
 		unsigned char SceneId;
@@ -212,23 +182,17 @@ namespace RTE {
 		unsigned short int UncompressedSize;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgSceneEnd {
 		unsigned char Id;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgSceneAccepted {
 		unsigned char Id;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgTerrainChange {
 		unsigned char Id;
 
@@ -243,9 +207,7 @@ namespace RTE {
 		unsigned short int UncompressedSize;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct PostEffectNetworkData {
 		short int X;
 		short int Y;
@@ -254,36 +216,28 @@ namespace RTE {
 		float Angle;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgPostEffects {
 		unsigned char Id;
 		unsigned char FrameNumber;
 		int PostEffectsCount;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgSoundEvents {
 		unsigned char Id;
 		unsigned char FrameNumber;
 		int SoundEventsCount;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgMusicEvents {
 		unsigned char Id;
 		unsigned char FrameNumber;
 		int MusicEventsCount;
 	};
 
-	/// <summary>
 	///
-	/// </summary>
 	struct MsgInput {
 		unsigned char Id;
 

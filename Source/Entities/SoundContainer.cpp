@@ -17,8 +17,6 @@ namespace RTE {
 	    {"UI", SoundContainer::BusRouting::UI},
 	    {"Music", SoundContainer::BusRouting::MUSIC}};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	SoundContainer::SoundContainer() {
 		Clear();
 	}
@@ -31,8 +29,6 @@ namespace RTE {
 	SoundContainer::~SoundContainer() {
 		Destroy(true);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SoundContainer::Clear() {
 		m_TopLevelSoundSet = std::make_shared<SoundSet>();
@@ -57,8 +53,6 @@ namespace RTE {
 		m_Pitch = 1.0F;
 		m_PitchVariation = 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SoundContainer::Create(const SoundContainer& reference) {
 		Entity::Create(reference);
@@ -86,8 +80,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int SoundContainer::Create(const std::string& soundFilePath, bool immobile, bool affectedByGlobalPitch, BusRouting busRouting) {
 		m_TopLevelSoundSet->AddSound(soundFilePath, true);
 		SetImmobile(immobile);
@@ -95,8 +87,6 @@ namespace RTE {
 		SetBusRouting(busRouting);
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -158,8 +148,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int SoundContainer::Save(Writer& writer) const {
 		Entity::Save(writer);
 
@@ -206,13 +194,9 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool SoundContainer::HasAnySounds() const {
 		return m_TopLevelSoundSet->HasAnySounds();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SoundContainer::GetLength(LengthOfSoundType type) const {
 		if (!m_SoundPropertiesUpToDate) {
@@ -234,14 +218,10 @@ namespace RTE {
 		return lengthMilliseconds;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SoundContainer::SetTopLevelSoundSet(const SoundSet& newTopLevelSoundSet) {
 		*m_TopLevelSoundSet = newTopLevelSoundSet;
 		m_SoundPropertiesUpToDate = false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::vector<std::size_t> SoundContainer::GetSelectedSoundHashes() const {
 		std::vector<size_t> soundHashes;
@@ -253,8 +233,6 @@ namespace RTE {
 		return soundHashes;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const SoundData* SoundContainer::GetSoundDataForSound(const FMOD::Sound* sound) const {
 		std::vector<const SoundData*> flattenedSoundData;
 		m_TopLevelSoundSet->GetFlattenedSoundData(flattenedSoundData, false);
@@ -265,8 +243,6 @@ namespace RTE {
 		}
 		return nullptr;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SoundContainer::Play(int player) {
 		if (HasAnySounds()) {
@@ -281,8 +257,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FMOD_RESULT SoundContainer::UpdateSoundProperties() {
 		FMOD_RESULT result = FMOD_OK;

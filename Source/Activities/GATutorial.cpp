@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            GATutorial.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the GATutorial class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "GATutorial.h"
 
 #include "SceneMan.h"
@@ -48,12 +36,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this GATutorial, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void GATutorial::Clear() {
 		m_TutorialPlayer = Players::PlayerOne;
 
@@ -86,11 +68,6 @@ namespace RTE {
 		m_pCPUBrain = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the GATutorial object ready for use.
-
 	int GATutorial::Create() {
 		if (GameActivity::Create() < 0)
 			return -1;
@@ -99,11 +76,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a GATutorial to be identical to another, by deep copy.
 
 	int GATutorial::Create(const GATutorial& reference) {
 		if (GameActivity::Create(reference) < 0)
@@ -138,14 +110,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int GATutorial::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return GameActivity::ReadProperty(propName, reader));
 		/*
@@ -158,33 +122,16 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this GATutorial with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int GATutorial::Save(Writer& writer) const {
 		GameActivity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the GATutorial object.
 
 	void GATutorial::Destroy(bool notInherited) {
 		if (!notInherited)
 			GameActivity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SceneIsCompatible
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tells if a particular Scene supports this specific Activity on it.
-	//                  Usually that means certain Area:s need to be defined in the Scene.
 
 	bool GATutorial::SceneIsCompatible(Scene* pScene, int teams) {
 		if (!GameActivity::SceneIsCompatible(pScene, teams))
@@ -196,12 +143,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int GATutorial::Start() {
 		int error = GameActivity::Start();
@@ -355,11 +296,6 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void GATutorial::SetPaused(bool pause) {
 		GameActivity::SetPaused(pause);
 
@@ -367,11 +303,6 @@ namespace RTE {
 		if (!pause)
 			SetupAreas();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void GATutorial::End() {
 		GameActivity::End();
@@ -420,12 +351,6 @@ namespace RTE {
 	    GameActivity::UpdateEditing();
 	}
 	*/
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this GATutorial. Supposed to be done every frame
-	//                  before drawing.
 
 	void GATutorial::Update() {
 		// Avoid game logic when we're editing
@@ -741,11 +666,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void GATutorial::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		GameActivity::DrawGUI(pTargetBitmap, targetPos, which);
 
@@ -771,22 +691,9 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this GATutorial's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
-
 	void GATutorial::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		GameActivity::Draw(pTargetBitmap, targetPos);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  InitAIs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Goes through all Actor:s currently in the MovableMan and gives each
-	//                  one not controlled by a Controller a CAI and appropriate AIMode setting
-	//                  based on team and CPU team.
 
 	void GATutorial::InitAIs() {
 		Actor* pActor = 0;
@@ -821,12 +728,6 @@ namespace RTE {
 			} while (pActor && pActor != pFirstActor);
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetupAreas
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets up or resets the Tutorial Areas to show the current control
-	//                  mappings etc.
 
 	void GATutorial::SetupAreas() {
 		int device = g_UInputMan.GetControlScheme(m_TutorialPlayer)->GetDevice();

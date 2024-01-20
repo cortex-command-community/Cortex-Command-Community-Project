@@ -1,5 +1,5 @@
 /*
-//TODO: Remake this into a nice offline achievement system eventually�.
+//TODO: Remake this into a nice offline achievement system eventuallyï¿½.
 // NO STUPID 999 GAMES THING!
 // Possibly unlock special junk to use ingame.
 

@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            AreaEditorGUI.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Implementation file for the AreaEditorGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datArealms.com
-//                  http://www.datArealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "AreaEditorGUI.h"
 
 #include "CameraMan.h"
@@ -39,12 +27,6 @@ AreaEditorGUI::~AreaEditorGUI() {
 	Destroy();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Clear
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all the member variables of this AreaEditorGUI, effectively
-//                  resetting the members of this abstraction level only.
-
 void AreaEditorGUI::Clear() {
 	m_pController = 0;
 	m_FullFeatured = false;
@@ -65,11 +47,6 @@ void AreaEditorGUI::Clear() {
 	m_EditedBox.Reset();
 	m_pBoxToBlink = 0;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the AreaEditorGUI Area ready for use.
 
 int AreaEditorGUI::Create(Controller* pController, bool fullFeatured, int whichModuleSpace) {
 	RTEAssert(pController, "No controller sent to AreaEditorGUI on creation!");
@@ -105,22 +82,11 @@ int AreaEditorGUI::Create(Controller* pController, bool fullFeatured, int whichM
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Destroy
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Destroys and resets (through Clear()) the AreaEditorGUI Area.
-
 void AreaEditorGUI::Destroy() {
 	delete m_pPicker;
 
 	Clear();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetController
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the controller used by this. The ownership of the controller is
-//                  NOT transferred!
 
 void AreaEditorGUI::SetController(Controller* pController) {
 	m_pController = pController;
@@ -128,31 +94,13 @@ void AreaEditorGUI::SetController(Controller* pController) {
 	m_pPicker->SetController(pController);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetPosOnScreen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-//                  etc.
-
 void AreaEditorGUI::SetPosOnScreen(int newPosX, int newPosY) {
 	m_pPicker->SetPosOnScreen(newPosX, newPosY);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetActivatedPieSlice
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets any Pie menu slice command activated last update.
-
 PieSliceType AreaEditorGUI::GetActivatedPieSlice() const {
 	return m_PieMenu->GetPieCommand();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetCurrentArea
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the currently selected Area of this Editor. Ownership IS NOT
-//                  transferred!
 
 void AreaEditorGUI::SetCurrentArea(Scene::Area* pArea) {
 	if (!pArea)
@@ -172,20 +120,9 @@ void AreaEditorGUI::SetCurrentArea(Scene::Area* pArea) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePickerList
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the list that the GUI's Area picker has, from the current
-//                  scene state.
-
 void AreaEditorGUI::UpdatePickerList(std::string selectAreaName) {
 	m_pPicker->UpdateAreasList(selectAreaName);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the state of this Menu each frame
 
 void AreaEditorGUI::Update() {
 	// Update the user controller
@@ -532,11 +469,6 @@ void AreaEditorGUI::Update() {
 	// Scroll to the cursor's scene position
 	g_CameraMan.SetScrollTarget(m_CursorPos, 0.3, g_ActivityMan.GetActivity()->ScreenOfPlayer(m_pController->GetPlayer()));
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the menu
 
 void AreaEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
 	// Done or can't, so don't draw the UI

@@ -7,9 +7,7 @@ namespace RTE {
 
 	class Attachable;
 
-	/// <summary>
 	/// A sliding or swinging door.
-	/// </summary>
 	class ADoor : public Actor {
 
 	public:
@@ -27,40 +25,28 @@ namespace RTE {
 		};
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a ADoor object in system memory. Create() should be called before using the object.
-		/// </summary>
 		ADoor();
 
-		/// <summary>
 		/// Makes the ADoor object ready for use.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create() override { return Actor::Create(); }
 
-		/// <summary>
 		/// Creates a ADoor to be identical to another, by deep copy.
-		/// </summary>
-		/// <param name="reference">A reference to the ADoor to deep copy.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param reference A reference to the ADoor to deep copy.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const ADoor& reference);
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up a ADoor object before deletion from system memory.
-		/// </summary>
 		~ADoor() override;
 
-		/// <summary>
 		/// Destroys and resets (through Clear()) the ADoor object.
-		/// </summary>
-		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
-		/// <summary>
 		/// Resets the entire ADoor, including its inherited members, to their default settings or values.
-		/// </summary>
 		void Reset() override {
 			Clear();
 			Actor::Reset();
@@ -68,145 +54,99 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Gets the moving door Attachable of this ADoor
-		/// </summary>
-		/// <returns>A pointer to the door Attachable of this. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the door Attachable of this. Ownership is NOT transferred!
 		Attachable* GetDoor() const { return m_Door; }
 
-		/// <summary>
 		/// Sets the moving door Attachable for this ADoor.
-		/// </summary>
-		/// <param name="newDoor">The new moving door attachable to use.</param>
+		/// @param newDoor The new moving door attachable to use.
 		void SetDoor(Attachable* newDoor);
 
-		/// <summary>
 		/// Gets the current state of the door.
-		/// </summary>
-		/// <returns>The current state of this ADoor. See the DoorState enum.</returns>
+		/// @return The current state of this ADoor. See the DoorState enum.
 		DoorState GetDoorState() const { return m_DoorState; }
 
-		/// <summary>
 		/// Sets whether this ADoor closes (or opens) after a while by default.
-		/// </summary>
-		/// <param name="closedByDefault">Whether the door by default goes to a closed position. If not, then it will open after a while.</param>
+		/// @param closedByDefault Whether the door by default goes to a closed position. If not, then it will open after a while.
 		void SetClosedByDefault(bool closedByDefault) { m_ClosedByDefault = closedByDefault; }
 
-		/// <summary>
 		/// Tells whether the player can switch control to this at all.
-		/// </summary>
-		/// <returns>Whether a player can control this at all.</returns>
+		/// @return Whether a player can control this at all.
 		bool IsControllable() const override { return false; }
 
-		/// <summary>
 		/// Gets whether or not this ADoor's door material has been drawn.
-		/// </summary>
-		/// <returns>Whether or not this ADoor's door material has been drawn.</returns>
+		/// @return Whether or not this ADoor's door material has been drawn.
 		bool GetDoorMaterialDrawn() const { return m_DoorMaterialDrawn; }
 
-		/// <summary>
 		/// Gets this ADoor's door move start sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this ADoor's door move start sound.</returns>
+		/// @return The SoundContainer for this ADoor's door move start sound.
 		SoundContainer* GetDoorMoveStartSound() const { return m_DoorMoveStartSound.get(); }
 
-		/// <summary>
 		/// Sets this ADoor's door move start sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this ADoor's door move start sound.</param>
+		/// @param newSound The new SoundContainer for this ADoor's door move start sound.
 		void SetDoorMoveStartSound(SoundContainer* newSound);
 
-		/// <summary>
 		/// Gets this ADoor's door move sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this ADoor's door move sound.</returns>
+		/// @return The SoundContainer for this ADoor's door move sound.
 		SoundContainer* GetDoorMoveSound() const { return m_DoorMoveSound.get(); }
 
-		/// <summary>
 		/// Sets this ADoor's door move sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this ADoor's door move sound.</param>
+		/// @param newSound The new SoundContainer for this ADoor's door move sound.
 		void SetDoorMoveSound(SoundContainer* newSound);
 
-		/// <summary>
 		/// Gets this ADoor's door direction change sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this ADoor's door direction change sound.</returns>
+		/// @return The SoundContainer for this ADoor's door direction change sound.
 		SoundContainer* GetDoorDirectionChangeSound() const { return m_DoorDirectionChangeSound.get(); }
 
-		/// <summary>
 		/// Sets this ADoor's door direction change sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this ADoor's door direction change sound.</param>
+		/// @param newSound The new SoundContainer for this ADoor's door direction change sound.
 		void SetDoorDirectionChangeSound(SoundContainer* newSound);
 
-		/// <summary>
 		/// Gets this ADoor's door move end sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this ADoor's door move end sound.</returns>
+		/// @return The SoundContainer for this ADoor's door move end sound.
 		SoundContainer* GetDoorMoveEndSound() const { return m_DoorMoveEndSound.get(); }
 
-		/// <summary>
 		/// Sets this ADoor's door move end sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this ADoor's door move end sound.</param>
+		/// @param newSound The new SoundContainer for this ADoor's door move end sound.
 		void SetDoorMoveEndSound(SoundContainer* newSound);
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Opens the door if it's closed.
-		/// </summary>
 		void OpenDoor();
 
-		/// <summary>
 		/// Closes the door if it's open.
-		/// </summary>
 		void CloseDoor();
 
-		/// <summary>
 		/// Force the door to stop at the exact position it is.
-		/// </summary>
 		void StopDoor();
 
-		/// <summary>
 		/// Used to temporarily remove or add back the material drawing of this in the Scene. Used for making pathfinding work through doors.
-		/// </summary>
-		/// <param name="erase">Whether to erase door material (true) or draw it (false).</param>
+		/// @param erase Whether to erase door material (true) or draw it (false).
 		void TempEraseOrRedrawDoorMaterial(bool erase);
 
-		/// <summary>
 		/// Resets the sensor Timer for this ADoor, effectively making it ignore Actors.
-		/// </summary>
 		void ResetSensorTimer() { m_SensorTimer.Reset(); }
 #pragma endregion
 
 #pragma region Virtual Override Methods
-		/// <summary>
 		/// Destroys this ADoor and creates its specified Gibs in its place with appropriate velocities.
 		/// Any Attachables are removed and also given appropriate velocities.
-		/// </summary>
-		/// <param name="impactImpulse">The impulse (kg * m/s) of the impact causing the gibbing to happen.</param>
-		/// <param name="movableObjectToIgnore">A pointer to an MO which the Gibs and Attachables should not be colliding with.</param>
+		/// @param impactImpulse The impulse (kg * m/s) of the impact causing the gibbing to happen.
+		/// @param movableObjectToIgnore A pointer to an MO which the Gibs and Attachables should not be colliding with.
 		void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr) override;
 
-		/// <summary>
 		/// Ensures all attachables and wounds are positioned and rotated correctly. Must be run when this ADoor is added to MovableMan to avoid issues with Attachables spawning in at (0, 0).
-		/// </summary>
 		void CorrectAttachableAndWoundPositionsAndRotations() const override;
 
-		/// <summary>
 		/// Updates this ADoor. Supposed to be done every frame.
-		/// </summary>
 		void Update() override;
 
-		/// <summary>
 		/// Draws this ADoor's current graphical HUD overlay representation to a BITMAP of choice.
-		/// </summary>
-		/// <param name="targetBitmap">A pointer to a BITMAP to draw on.</param>
-		/// <param name="targetPos">The absolute position of the target bitmap's upper left corner in the Scene.</param>
-		/// <param name="whichScreen">Which player's screen this is being drawn to. May affect what HUD elements get drawn etc.</param>
-		/// <param name="playerControlled">Whether or not this MovableObject is currently player controlled (not applicable for ADoor)</param>
+		/// @param targetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene.
+		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements get drawn etc.
+		/// @param playerControlled Whether or not this MovableObject is currently player controlled (not applicable for ADoor)
 		void DrawHUD(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 #pragma endregion
 
@@ -258,40 +198,28 @@ namespace RTE {
 
 	private:
 #pragma region Update Breakdown
-		/// <summary>
 		/// Iterates through the sensor list looking for actors and acts accordingly. Resets to the default state if none are found and past the delay timer. This is called from Update().
-		/// </summary>
 		void UpdateSensors();
 
-		/// <summary>
 		/// Updates the door attachable position and movement based on the current state of this ADoor. This is called from Update().
-		/// </summary>
 		void UpdateDoorAttachableActions();
 #pragma endregion
 
-		/// <summary>
 		/// Shared method for the door opening/closing sequence. This is called from OpenDoor() and CloseDoor().
-		/// </summary>
 		void SharedDoorControls();
 
-		/// <summary>
 		/// Draws the material under the position of the door attachable, to create terrain collision detection for the doors.
-		/// </summary>
-		/// <param name="disallowErasingMaterialBeforeDrawing">Whether to disallow calling EraseDoorMaterial before drawing. Defaults to false, which means normal behaviour applies and this may erase the material before drawing it.</param>
-		/// <param name="updateMaterialArea">Whether to tell the Scene's Terrain that this door has modified the material layer.</param>
+		/// @param disallowErasingMaterialBeforeDrawing Whether to disallow calling EraseDoorMaterial before drawing. Defaults to false, which means normal behaviour applies and this may erase the material before drawing it.
+		/// @param updateMaterialArea Whether to tell the Scene's Terrain that this door has modified the material layer.
 		void DrawDoorMaterial(bool disallowErasingMaterialBeforeDrawing = false, bool updateMaterialArea = true);
 
-		/// <summary>
 		/// Flood-fills the material area under the last position of the door attachable that matches the material index of it.
 		/// This is to get rid of the material footprint made with DrawDoorMaterial when the door part starts to move.
-		/// </summary>
-		/// <param name="updateMaterialArea">Whether to tell the Scene's Terrain that this door has modified the material layer..</param>
-		/// <returns>Whether the fill erasure was successful (if the same material as the door was found and erased).</returns>
+		/// @param updateMaterialArea Whether to tell the Scene's Terrain that this door has modified the material layer..
+		/// @return Whether the fill erasure was successful (if the same material as the door was found and erased).
 		bool EraseDoorMaterial(bool updateMaterialArea = true);
 
-		/// <summary>
 		/// Clears all the member variables of this ADoor, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

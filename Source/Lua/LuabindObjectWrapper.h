@@ -20,21 +20,15 @@ namespace RTE {
 	}
 #pragma endregion
 
-	/// <summary>
 	/// A wrapper for luabind objects, to avoid include problems with luabind.
-	/// </summary>
 	class LuabindObjectWrapper {
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used for LuabindObjectWrapper.
-		/// </summary>
 		LuabindObjectWrapper() = default;
 
-		/// <summary>
 		/// Constructor method used to instantiate a LuabindObjectWrapper object in system memory.
-		/// </summary>
 		explicit LuabindObjectWrapper(luabind::adl::object* luabindObject, const std::string_view& filePath, bool ownsObject = true) :
 		    m_LuabindObject(luabindObject), m_FilePath(filePath), m_OwnsObject(ownsObject) {}
 #pragma endregion
@@ -42,28 +36,20 @@ namespace RTE {
 #pragma region Destruction
 		static void ApplyQueuedDeletions();
 
-		/// <summary>
 		/// Destructor method used to clean up a LuabindObjectWrapper object before deletion from system memory.
-		/// </summary>
 		~LuabindObjectWrapper();
 #pragma endregion
 
-		/// <summary>
 		/// Attempts to copy a luabind object into another state.
-		/// </summary>
 		LuabindObjectWrapper GetCopyForState(lua_State& newState) const;
 
 #pragma region Getters
-		/// <summary>
 		/// Gets the LuabindObjectWrapper's luabind object. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The LuabindObjectWrapper's luabind object.</returns>
+		/// @return The LuabindObjectWrapper's luabind object.
 		luabind::adl::object* GetLuabindObject() const { return m_LuabindObject; }
 
-		/// <summary>
 		/// Gets the LuabindObjectWrapper's file path.
-		/// </summary>
-		/// <returns>The LuabindObjectWrapper's file path.</returns>
+		/// @return The LuabindObjectWrapper's file path.
 		const std::string& GetFilePath() const { return m_FilePath; }
 #pragma endregion
 

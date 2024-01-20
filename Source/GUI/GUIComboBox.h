@@ -7,14 +7,10 @@ namespace RTE {
 
 	class GUIComboBoxButton;
 
-	/// <summary>
 	/// A ComboBox control class.
-	/// </summary>
 	class GUIComboBox : public GUIControl, public GUIPanel {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		// Notifications
 		enum {
@@ -28,324 +24,151 @@ namespace RTE {
 			DropDownList,
 		} DropDownStyles;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUIComboBox
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUIComboBox object in
-		//                  system memory.
-		// Arguments:       GUIManager, GUIControlManager.
-
+		/// Constructor method used to instantiate a GUIComboBox object in
+		/// system memory.
+		/// @param Manager GUIManager, GUIControlManager.
 		GUIComboBox(GUIManager* Manager, GUIControlManager* ControlManager);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control has been created.
-		// Arguments:       Name, Position.
-
+		/// Called when the control has been created.
+		/// @param Name Name, Position.
 		void Create(const std::string& Name, int X, int Y, int Width = -1, int Height = -1) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control has been created.
-		// Arguments:       Properties.
-
+		/// Called when the control has been created.
+		/// @param Props Properties.
 		void Create(GUIProperties* Props) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control has been destroyed.
-		// Arguments:       None.
-
+		/// Called when the control has been destroyed.
 		void Destroy() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Activate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control is activated and ready for use.
-		// Arguments:       None.
-
+		/// Called when the control is activated and ready for use.
 		void Activate() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ChangeSkin
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the skin has been changed.
-		// Arguments:       New skin pointer.
-
+		/// Called when the skin has been changed.
+		/// @param Skin New skin pointer.
 		void ChangeSkin(GUISkin* Skin) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the panel
-		// Arguments:       Screen class
-
+		/// Draws the panel
+		/// @param Screen Screen class
 		void Draw(GUIScreen* Screen) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetPanel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the panel of the control.
-		// Arguments:       None.
-		// Returns:         0 if the control does not have a panel, otherwise the topmost panel.
-
+		/// Returns the panel of the control.
+		/// @return 0 if the control does not have a panel, otherwise the topmost panel.
 		GUIPanel* GetPanel() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetListPanel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the ListPanel component of the control.
-		// Arguments:       None.
-		// Returns:         The ListPanel component of this ComboBox.
-
+		/// Returns the ListPanel component of the control.
+		/// @return The ListPanel component of this ComboBox.
 		GUIListPanel* GetListPanel() { return m_ListPanel; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetControlID
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns a string representing the control's ID
-		// Arguments:       None.
-
+		/// Returns a string representing the control's ID
 		static std::string GetControlID() { return "COMBOBOX"; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ReceiveSignal
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when receiving a signal.
-		// Arguments:       Signal source, Signal code, Signal data.
-
+		/// Called when receiving a signal.
+		/// @param Source Signal source, Signal code, Signal data.
 		void ReceiveSignal(GUIPanel* Source, int Code, int Data) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BeginUpdate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Locks the control from updating every time a new item is added.
-		// Arguments:       None.
-
+		/// Locks the control from updating every time a new item is added.
 		void BeginUpdate();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          EndUpdate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     UnLocks the control from updating every time a new item is added.
-		//                  Will automatically update the control.
-		// Arguments:       None.
-
+		/// UnLocks the control from updating every time a new item is added.
+		/// Will automatically update the control.
 		void EndUpdate();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Move
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control needs to be moved.
-		// Arguments:       New position.
-
+		/// Called when the control needs to be moved.
+		/// @param X New position.
 		void Move(int X, int Y) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Resize
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control needs to be resized.
-		// Arguments:       New size.
-
+		/// Called when the control needs to be resized.
+		/// @param Width New size.
 		void Resize(int Width, int Height) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetControlRect
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the rectangle of the control.
-		// Arguments:       Position, Size.
-
+		/// Gets the rectangle of the control.
+		/// @param X Position, Size.
 		void GetControlRect(int* X, int* Y, int* Width, int* Height) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Add an item to the list.
-		// Arguments:       Name, Extra text, bitmap to show in the list, extra entity data
-
+		/// Add an item to the list.
+		/// @param Name Name, Extra text, bitmap to show in the list, extra entity data
 		void AddItem(const std::string& Name, const std::string& ExtraText = "", GUIBitmap* pBitmap = nullptr, const Entity* pEntity = nullptr);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DeleteItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Delete an item from the list.
-		// Arguments:       Item Index.
-
+		/// Delete an item from the list.
+		/// @param Index Item Index.
 		void DeleteItem(int Index);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ClearList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the list.
-		// Arguments:       None.
-
+		/// Clears the list.
 		void ClearList();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get the item count.
-		// Arguments:       None.
-
+		/// Get the item count.
 		int GetCount();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSelectedIndex
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get the index of the selected item.
-		// Arguments:       None.
-
+		/// Get the index of the selected item.
 		int GetSelectedIndex();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetOldSelectionIndex
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get the index of the previously selected item before the selection is
-		//                  made.
-		// Arguments:       None.
-
+		/// Get the index of the previously selected item before the selection is
+		/// made.
 		int GetOldSelectionIndex() const { return m_OldSelection; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetSelectedIndex
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the index of the selected item.
-		// Arguments:       None.
-
+		/// Sets the index of the selected item.
 		void SetSelectedIndex(int Index);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RollbackSelection
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Rolls back the selection to the previous selected item.
-		// Arguments:       None.
-		// Returns:         Whether the rollback worked and was performed.
-
+		/// Rolls back the selection to the previous selected item.
+		/// @return Whether the rollback worked and was performed.
 		bool RollbackSelection();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the Item structure at the index.
-		// Arguments:       Index.
-		// Returns:         Pointer to the item structure. 0 if the index was invalid.
-
+		/// Returns the Item structure at the index.
+		/// @param Index Index.
+		/// @return Pointer to the item structure. 0 if the index was invalid.
 		GUIListPanel::Item* GetItem(int Index);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSelectedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the Item structure at the currently selected index.
-		// Arguments:       Index.
-		// Returns:         Pointer to the item structure. 0 if nothing valid is selected.
-
+		/// Returns the Item structure at the currently selected index.
+		/// @param GetItem(GetSelectedIndex() Index.
+		/// @return Pointer to the item structure. 0 if nothing valid is selected.
 		GUIListPanel::Item* GetSelectedItem() { return GetItem(GetSelectedIndex()); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDropHeight
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the drop height of the list.
-		// Arguments:       Height.
-
+		/// Sets the drop height of the list.
+		/// @param Drop Height.
 		void SetDropHeight(int Drop);
 
-		/// <summary>
 		/// Gets the drop height of the list.
-		/// </summary>
-		/// <returns>The drop height of the list.</returns>
+		/// @return The drop height of the list.
 		int GetDropHeight() const { return m_DropHeight; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          StoreProperties
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the control to store the values into properties.
-		// Arguments:       None.
-
+		/// Gets the control to store the values into properties.
 		void StoreProperties() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDropDownStyle
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the drop down style of the combo box.
-		// Arguments:       Style.
-
+		/// Sets the drop down style of the combo box.
+		/// @param Style Style.
 		void SetDropDownStyle(int Style);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDropDownStyle
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the drop down style of the combo box.
-		// Arguments:       None.
-
+		/// Gets the drop down style of the combo box.
 		int GetDropDownStyle() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetVisible
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the visibility of the control.
-		// Arguments:       Visible.
-
+		/// Sets the visibility of the control.
+		/// @param Visible Visible.
 		void SetVisible(bool Visible) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetVisible
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the visibility of the control.
-		// Arguments:       None.
-
+		/// Gets the visibility of the control.
 		bool GetVisible() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the enabled state of the control.
-		// Arguments:       Enabled.
-
+		/// Sets the enabled state of the control.
+		/// @param Enabled Enabled.
 		void SetEnabled(bool Enabled) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the enabled state of the control.
-		// Arguments:       None.
-
+		/// Gets the enabled state of the control.
 		bool GetEnabled() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets text (only if style is DropDown).
-		// Arguments:       None.
-		// Returns:         Text. Returns empty string is style is not DropDown.
-
+		/// Gets text (only if style is DropDown).
+		/// @return Text. Returns empty string is style is not DropDown.
 		std::string GetText();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets text (only if style is DropDown).
-		// Arguments:       Text.
-
+		/// Sets text (only if style is DropDown).
+		/// @param Text Text.
 		void SetText(const std::string& Text);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ApplyProperties
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Applies new properties to the control.
-		// Arguments:       GUIProperties.
-
+		/// Applies new properties to the control.
+		/// @param Props GUIProperties.
 		void ApplyProperties(GUIProperties* Props) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsDropped
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows whether the list is currently dropped down or not.
-		// Arguments:       None.
-		// Returns:         Whether this is currently dropped down and showing the list.
-
+		/// Shows whether the list is currently dropped down or not.
+		/// @return Whether this is currently dropped down and showing the list.
 		bool IsDropped() { return m_ListPanel->_GetVisible(); }
 
 	private:
@@ -361,9 +184,7 @@ namespace RTE {
 		GUIComboBoxButton* m_Button;
 	};
 
-	/// <summary>
 	/// A ComboBoxButton control class.
-	/// </summary>
 	class GUIComboBoxButton : public GUIPanel {
 
 	public:
@@ -372,69 +193,36 @@ namespace RTE {
 			Clicked
 		} Signals;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUIComboBoxButton
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUIComboBoxButton object in
-		//                  system memory.
-		// Arguments:       GUIManager.
-
+		/// Constructor method used to instantiate a GUIComboBoxButton object in
+		/// system memory.
+		/// @param Manager GUIManager.
 		explicit GUIComboBoxButton(GUIManager* Manager);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ChangeSkin
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the skin has been changed.
-		// Arguments:       New skin pointer.
-
+		/// Called when the skin has been changed.
+		/// @param Skin New skin pointer.
 		void ChangeSkin(GUISkin* Skin);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the panel
-		// Arguments:       Screen class
-
+		/// Draws the panel
+		/// @param Screen Screen class
 		void Draw(GUIScreen* Screen) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Create the panel.
-		// Arguments:       Position, Size.
-
+		/// Create the panel.
+		/// @param X Position, Size.
 		void Create(int X, int Y, int Width, int Height);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys the button.
-		// Arguments:       None.
-
+		/// Destroys the button.
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseDown
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes down on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes down on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseDown(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseUp
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes up on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes up on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseUp(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetPushed
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the pushed state of the button.
-		// Arguments:       Pushed.
-
+		/// Sets the pushed state of the button.
+		/// @param Pushed Pushed.
 		void SetPushed(bool Pushed);
 
 	private:

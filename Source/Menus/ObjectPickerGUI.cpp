@@ -27,8 +27,6 @@ namespace RTE {
 
 	BITMAP* ObjectPickerGUI::s_Cursor = nullptr;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ObjectPickerGUI::Clear() {
 		m_GUIScreen = nullptr;
 		m_GUIInput = nullptr;
@@ -57,8 +55,6 @@ namespace RTE {
 		std::fill(m_ExpandedModules.begin(), m_ExpandedModules.end(), false);
 		m_ExpandedModules[0] = true; // Base.rte is always expanded
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int ObjectPickerGUI::Create(Controller* controller, int whichModuleSpace, const std::string_view& onlyOfType) {
 		RTEAssert(controller, "No controller sent to ObjectPickerGUI on creation!");
@@ -129,8 +125,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ObjectPickerGUI::SetEnabled(bool enable) {
 		if (enable && m_PickerState != PickerState::Enabled && m_PickerState != PickerState::Enabling) {
 			m_PickerState = PickerState::Enabling;
@@ -150,8 +144,6 @@ namespace RTE {
 			g_GUISound.ExitMenuSound()->Play(m_Controller->GetPlayer());
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SetNativeTechModule(int whichModule) {
 		if (whichModule >= 0 && whichModule < g_PresetMan.GetTotalModuleCount()) {
@@ -181,8 +173,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool ObjectPickerGUI::SetListFocus(PickerFocus listToFocusOn) {
 		if (listToFocusOn == m_PickerFocus) {
 			return false;
@@ -201,8 +191,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool ObjectPickerGUI::SelectGroupByName(const std::string_view& groupName) {
 		for (const GUIListPanel::Item* groupListItem: *m_GroupsList->GetItemList()) {
 			if (groupListItem->m_Name == groupName) {
@@ -213,8 +201,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SelectGroupByIndex(int groupIndex, bool updateObjectsList) {
 		m_SelectedGroupIndex = (groupIndex < 0) ? m_ShownGroupIndex : groupIndex;
@@ -228,8 +214,6 @@ namespace RTE {
 			g_GUISound.SelectionChangeSound()->Play(m_Controller->GetPlayer());
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SelectNextOrPrevGroup(bool selectPrev) {
 		int groupIndex = m_SelectedGroupIndex;
@@ -246,8 +230,6 @@ namespace RTE {
 		}
 		SelectGroupByIndex(groupIndex);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::UpdateGroupsList() {
 		m_GroupsList->ClearList();
@@ -300,16 +282,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const SceneObject* ObjectPickerGUI::GetSelectedObject() {
 		if (const GUIListPanel::Item* selectedItem = m_ObjectsList->GetSelected()) {
 			return dynamic_cast<const SceneObject*>(selectedItem->m_pEntity);
 		}
 		return nullptr;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SelectObjectByIndex(int objectIndex, bool playSelectionSound) {
 		m_SelectedObjectIndex = objectIndex;
@@ -318,8 +296,6 @@ namespace RTE {
 			g_GUISound.SelectionChangeSound()->Play(m_Controller->GetPlayer());
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SelectNextOrPrevObject(bool getPrev) {
 		int objectIndex = m_SelectedObjectIndex;
@@ -337,8 +313,6 @@ namespace RTE {
 		SelectObjectByIndex(objectIndex);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ObjectPickerGUI::AddObjectsListModuleGroup(int moduleID) {
 		const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID);
 		std::string moduleName = dataModule->GetFriendlyName();
@@ -346,8 +320,6 @@ namespace RTE {
 		GUIBitmap* dataModuleIcon = dataModule->GetIcon() ? new AllegroBitmap(dataModule->GetIcon()) : nullptr;
 		m_ObjectsList->AddItem(moduleName, m_ExpandedModules.at(moduleID) ? "-" : "+", dataModuleIcon, nullptr, moduleID);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::SetObjectsListModuleGroupExpanded(int moduleID, bool expanded) {
 		if (moduleID > 0 && moduleID < m_ExpandedModules.size()) {
@@ -358,8 +330,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ObjectPickerGUI::ToggleObjectsListModuleGroupExpansion(int moduleID) {
 		if (moduleID > 0 && moduleID < m_ExpandedModules.size()) {
 			m_ExpandedModules.at(moduleID) = !m_ExpandedModules.at(moduleID);
@@ -367,8 +337,6 @@ namespace RTE {
 			g_GUISound.ItemChangeSound()->Play(m_Controller->GetPlayer());
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::ShowDescriptionPopupBox() {
 		std::string description = "";
@@ -394,8 +362,6 @@ namespace RTE {
 			m_PopupBox->Resize(m_PopupBox->GetWidth(), m_PopupText->ResizeHeightToFit() + 10);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::UpdateObjectsList(bool selectTop) {
 		m_ObjectsList->ClearList();
@@ -457,8 +423,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ObjectPickerGUI::Update() {
 		m_PopupBox->SetVisible(false);
 
@@ -487,8 +451,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ObjectPickerGUI::HandleInput() {
 		bool objectPickedOrPickerClosed = false;
@@ -556,8 +518,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool ObjectPickerGUI::HandleMouseEvents() {
 		int mousePosX;
 		int mousePosY;
@@ -608,8 +568,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ObjectPickerGUI::AnimateOpenClose() {
 		if (m_PickerState == PickerState::Enabling) {
 			m_ParentBox->SetVisible(true);
@@ -640,8 +598,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ObjectPickerGUI::Draw(BITMAP* drawBitmap) const {
 		AllegroScreen drawScreen(drawBitmap);

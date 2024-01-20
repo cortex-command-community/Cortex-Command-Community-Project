@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            Magazine.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the Magazine class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "Magazine.h"
 #include "PresetMan.h"
 #include "AEmitter.h"
@@ -17,12 +5,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(Magazine, Attachable, 50);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this Magazine, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void Magazine::Clear() {
 		m_RoundCount = 0;
@@ -39,11 +21,6 @@ namespace RTE {
 		// NOTE: This special override of a parent class member variable avoids needing an extra variable to avoid overwriting INI values.
 		m_CollidesWithTerrainWhileAttached = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Magazine object ready for use.
 
 	int Magazine::Create() {
 		if (Attachable::Create() < 0)
@@ -72,11 +49,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a Magazine to be identical to another, by deep copy.
-
 	int Magazine::Create(const Magazine& reference) {
 		Attachable::Create(reference);
 
@@ -93,14 +65,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int Magazine::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
@@ -116,12 +80,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this Magazine with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int Magazine::Save(Writer& writer) const {
 		Attachable::Save(writer);
@@ -142,23 +100,12 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the Magazine object.
-
 	void Magazine::Destroy(bool notInherited) {
 
 		if (!notInherited)
 			Attachable::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetNextRound
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the next Round preset of ammo in this Magazine, without removing
-	//                  it. Ownership IS NOT transferred!
 
 	const Round* Magazine::GetNextRound() const {
 		const Round* tempRound = 0;
@@ -170,12 +117,6 @@ namespace RTE {
 		}
 		return tempRound;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  PopNextRound
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the next Round of ammo in this Magazine, and removes it from the
-	//                  stack. Ownership IS transferred!
 
 	Round* Magazine::PopNextRound() {
 		Round* tempRound = 0;
@@ -190,11 +131,6 @@ namespace RTE {
 		}
 		return tempRound;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:  EstimateDigStrength
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Estimates what material strength the rounds in the magazine can destroy.
 
 	float Magazine::EstimateDigStrength() const {
 		float maxPenetration = 1;
@@ -223,11 +159,6 @@ namespace RTE {
 		return maxPenetration;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetBulletAccScalar
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the bullet acceleration scalar the AI use when aiming this weapon.
-
 	float Magazine::GetBulletAccScalar() {
 		const Round* pRound = GetNextRound();
 		if (pRound) {
@@ -238,11 +169,6 @@ namespace RTE {
 
 		return 1;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this Magazine. Supposed to be done every frame.
 
 	void Magazine::Update() {
 		Attachable::Update();

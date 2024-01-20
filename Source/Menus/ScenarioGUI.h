@@ -16,15 +16,11 @@ namespace RTE {
 	class GUIButton;
 	class GUILabel;
 
-	/// <summary>
 	/// Handling for the scenario menu screen composition and sub-menu interaction.
-	/// </summary>
 	class ScenarioGUI {
 
 	public:
-		/// <summary>
 		/// Enumeration for the results of the ScenarioGUI input and event update.
-		/// </summary>
 		enum class ScenarioMenuUpdateResult {
 			NoEvent,
 			BackToMain,
@@ -33,43 +29,33 @@ namespace RTE {
 		};
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate this ScenarioGUI object in system memory.
-		/// </summary>
-		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!</param>
+		/// @param guiScreen Pointer to a GUIScreen interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!
+		/// @param guiInput Pointer to a GUIInput interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!
 		ScenarioGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
 			Clear();
 			Create(guiScreen, guiInput);
 		}
 
-		/// <summary>
 		/// Makes the ScenarioGUI object ready for use.
-		/// </summary>
-		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!</param>
+		/// @param guiScreen Pointer to a GUIScreen interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!
+		/// @param guiInput Pointer to a GUIInput interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!
 		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput);
 #pragma endregion
 
 #pragma region Setters
-		/// <summary>
 		/// Enables the GUI elements for the menu, sets the planet coordinates on the screen so the menu can properly overlay it, and fetches the Scenes and Activities lists.
-		/// </summary>
-		/// <param name="center">The absolute screen coordinates of the planet's center.</param>
-		/// <param name="radius">The radius, in screen pixel units, of the planet.</param>
+		/// @param center The absolute screen coordinates of the planet's center.
+		/// @param radius The radius, in screen pixel units, of the planet.
 		void SetEnabled(const Vector& center, float radius);
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Updates the ScenarioGUI state.
-		/// </summary>
-		/// <returns>The result of the ScenarioGUI input and event update. See ScenarioMenuUpdateResult enumeration.</returns>
+		/// @return The result of the ScenarioGUI input and event update. See ScenarioMenuUpdateResult enumeration.
 		ScenarioMenuUpdateResult Update();
 
-		/// <summary>
 		/// Draws the ScenarioGUI to the screen.
-		/// </summary>
 		void Draw() const;
 #pragma endregion
 
@@ -101,9 +87,7 @@ namespace RTE {
 
 		std::unique_ptr<ScenarioActivityConfigGUI> m_ActivityConfigBox; //!< The Activity configuration box.
 
-		/// <summary>
 		/// GUI elements that compose the scenario menu screen.
-		/// </summary>
 		GUICollectionBox* m_RootBox;
 		GUICollectionBox* m_ActivityConfigBoxRootBox;
 		GUIButton* m_BackToMainButton;
@@ -121,94 +105,66 @@ namespace RTE {
 		GUILabel* m_SitePointNameLabel;
 
 #pragma region Create Breakdown
-		/// <summary>
 		/// Creates all the elements that compose the Activity info box.
-		/// </summary>
 		void CreateActivityInfoBox();
 
-		/// <summary>
 		/// Creates all the elements that compose the Scene info box.
-		/// </summary>
 		void CreateSceneInfoBox();
 #pragma endregion
 
 #pragma region Scenario Menu Handling
-		/// <summary>
 		/// Sets the CollectionBox that is currently being dragged, if applicable.
-		/// </summary>
-		/// <param name="mouseX">Mouse X position.</param>
-		/// <param name="mouseY">Mouse Y position.</param>
+		/// @param mouseX Mouse X position.
+		/// @param mouseY Mouse Y position.
 		void SetDraggedBox(int mouseX, int mouseY);
 
-		/// <summary>
 		/// Sets the selected Activity, refreshes the compatible Scenes on the planet and updates the Activity info box appropriately.
-		/// </summary>
-		/// <param name="newSelectedActivity">The new selected Activity.</param>
+		/// @param newSelectedActivity The new selected Activity.
 		void SetSelectedActivity(const Activity* newSelectedActivity);
 
-		/// <summary>
 		/// Sets the currently selected Scene and updates the Scene info box appropriately.
-		/// </summary>
-		/// <param name="newSelectedScene">The new selected Scene.</param>
+		/// @param newSelectedScene The new selected Scene.
 		void SetSelectedScene(Scene* newSelectedScene);
 
-		/// <summary>
 		/// Moves the CollectionBox that is selected as being dragged, if any.
-		/// </summary>
-		/// <param name="mouseX">Mouse X position to calculate box position.</param>
-		/// <param name="mouseY">Mouse Y position to calculate box position.</param>
+		/// @param mouseX Mouse X position to calculate box position.
+		/// @param mouseY Mouse Y position to calculate box position.
 		void DragBox(int mouseX, int mouseY);
 
-		/// <summary>
 		/// Fetches all the available Scenes and Activity presets from PresetMan.
-		/// </summary>
 		void FetchActivitiesAndScenesLists();
 
-		/// <summary>
 		/// Adjusts the positions of the site points on the planet if they don't fit the screen or overlap.
-		/// </summary>
-		/// <param name="sceneList">Vector of Scenes to adjust positions for.</param>
+		/// @param sceneList Vector of Scenes to adjust positions for.
 		void AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& sceneList) const;
 
-		/// <summary>
 		/// Calculates how to draw lines from the Scene info box to the selected site point on the planet.
-		/// </summary>
 		void CalculateLinesToSitePoint();
 #pragma endregion
 
 #pragma region Update Breakdown
-		/// <summary>
 		/// Displays the site name label if the mouse is over a site point.
-		/// </summary>
-		/// <param name="mouseX">Mouse X position.</param>
-		/// <param name="mouseY">Mouse Y position.</param>
+		/// @param mouseX Mouse X position.
+		/// @param mouseY Mouse Y position.
 		void UpdateHoveredSitePointLabel(int mouseX, int mouseY);
 
-		/// <summary>
 		/// Handles the player interaction with the ScenarioGUI GUI elements.
-		/// </summary>
-		/// <param name="mouseX">Mouse X position.</param>
-		/// <param name="mouseY">Mouse Y position.</param>
+		/// @param mouseX Mouse X position.
+		/// @param mouseY Mouse Y position.
 		void HandleInputEvents(int mouseX, int mouseY);
 #pragma endregion
 
 #pragma region Draw Breakdown
-		/// <summary>
 		/// Draws the site points on top of the planet.
-		/// </summary>
-		/// <param name="drawBitmap">The bitmap to draw on.</param>
+		/// @param drawBitmap The bitmap to draw on.
 		void DrawSitePoints(BITMAP* drawBitmap) const;
 
-		/// <summary>
 		/// Draws fancy thick flickering lines from the Scene info box to the selected scene point on the planet.
-		/// </summary>
-		/// <param name="drawBitmap">The bitmap to draw to.</param>
+		/// @param drawBitmap The bitmap to draw to.
 		void DrawLinesToSitePoint(BITMAP* drawBitmap) const;
 #pragma endregion
 
-		/// <summary>
 		/// Clears all the member variables of this ScenarioGUI, effectively resetting the members of this object.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

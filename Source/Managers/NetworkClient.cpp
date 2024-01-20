@@ -17,8 +17,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::Clear() {
 		m_LastInputSentTime = 0;
 		m_ReceivedData = 0;
@@ -61,8 +59,6 @@ namespace RTE {
 		m_ServerSounds.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int NetworkClient::Initialize() {
 		// Record the first client that connects to us so we can pass it to the ping function
 		m_ClientID = RakNet::UNASSIGNED_SYSTEM_ADDRESS;
@@ -70,8 +66,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::Connect(std::string serverName, unsigned short serverPort, std::string playerName) {
 		g_ConsoleMan.PrintString("CLIENT: Connecting to " + serverName);
@@ -86,8 +80,6 @@ namespace RTE {
 		g_ConsoleMan.PrintString((connectionAttempt == RakNet::CONNECTION_ATTEMPT_STARTED) ? "CLIENT: Connect request sent" : "CLIENT: Unable to connect");
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::ConnectNAT(RakNet::SystemAddress address) {
 		g_ConsoleMan.PrintString("CLIENT: Connecting to server through NAT");
 		g_ConsoleMan.PrintString(address.ToString());
@@ -97,8 +89,6 @@ namespace RTE {
 
 		g_ConsoleMan.PrintString((connectionAttempt == RakNet::CONNECTION_ATTEMPT_STARTED) ? "CLIENT: Connect request sent" : "CLIENT: Unable to connect");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::Disconnect() {
 		if (m_IsConnected || m_IsRegistered) {
@@ -112,8 +102,6 @@ namespace RTE {
 		m_Client->CloseConnection(addr, true);
 		g_ConsoleMan.PrintString("CLIENT: Disconnect");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::PerformNATPunchThrough(std::string serviceServerName, unsigned short serviceServerPort, std::string playerName, std::string serverName, std::string serverPassword) {
 		m_UseNATPunchThroughService = true;
@@ -137,8 +125,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	RakNet::SystemAddress NetworkClient::ConnectBlocking(RakNet::RakPeerInterface* rakPeer, const char* address, unsigned short port) {
 		if (rakPeer->Connect(address, port, nullptr, 0) != RakNet::CONNECTION_ATTEMPT_STARTED) {
 			return RakNet::UNASSIGNED_SYSTEM_ADDRESS;
@@ -158,8 +144,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	unsigned char NetworkClient::GetPacketIdentifier(RakNet::Packet* packet) const {
 		if (packet == nullptr) {
 			return 255;
@@ -172,8 +156,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::SendRegisterMsg() {
 		MsgRegister msg = {};
 		msg.Id = ID_CLT_REGISTER;
@@ -184,14 +166,10 @@ namespace RTE {
 		g_ConsoleMan.PrintString("CLIENT: Registration Sent");
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::ReceiveAcceptedMsg() {
 		g_ConsoleMan.PrintString("CLIENT: Registration accepted.");
 		m_IsRegistered = true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::SendDisconnectMsg() {
 		MsgRegister msg = {};
@@ -199,8 +177,6 @@ namespace RTE {
 		m_Client->Send((const char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, m_ServerID, false);
 		g_ConsoleMan.PrintString("CLIENT: Disconnection Sent");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::SendServerGUIDRequest(RakNet::SystemAddress address, std::string serverName, std::string serverPassword) {
 		MsgGetServerRequest msg = {};
@@ -210,8 +186,6 @@ namespace RTE {
 		m_Client->Send((const char*)&msg, sizeof(RTE::MsgGetServerRequest), IMMEDIATE_PRIORITY, RELIABLE, 0, address, false);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::ReceiveServerGUIDAnswer(RakNet::Packet* packet) {
 		const MsgGetServerAnswer* msg = (MsgGetServerAnswer*)packet->data;
 		m_ServerGUID.FromString(msg->ServerGuid);
@@ -219,8 +193,6 @@ namespace RTE {
 		g_ConsoleMan.PrintString("CLIENT: Open NAT to server");
 		g_ConsoleMan.PrintString(m_ServerGUID.ToString());
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::SendInputMsg() {
 		MsgInput msg = {};
@@ -267,8 +239,6 @@ namespace RTE {
 		m_Client->Send((const char*)&msg, sizeof(msg), IMMEDIATE_PRIORITY, RELIABLE_ORDERED, 0, m_ServerID, false);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::ReceiveFrameSetupMsg(RakNet::Packet* packet) {
 		const MsgFrameSetup* frameData = (MsgFrameSetup*)packet->data;
 		if (frameData->FrameNumber >= c_FramesToRemember) {
@@ -295,8 +265,6 @@ namespace RTE {
 			m_BackgroundLayers[m_CurrentFrameNum][i].OffsetY = frameData->OffsetY[i];
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::ReceiveFrameLineMsg(RakNet::Packet* packet) {
 		const MsgFrameLine* frameData = (MsgFrameLine*)packet->data;
@@ -337,8 +305,6 @@ namespace RTE {
 		}
 		release_bitmap(bmp);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::ReceiveFrameBoxMsg(RakNet::Packet* packet) {
 		const MsgFrameBox* frameData = (MsgFrameBox*)packet->data;
@@ -447,16 +413,12 @@ namespace RTE {
 		release_bitmap(bmp);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::SendSceneAcceptedMsg() {
 		MsgRegister msg = {};
 		msg.Id = ID_CLT_SCENE_ACCEPTED;
 		m_Client->Send((const char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, m_ServerID, false);
 		g_ConsoleMan.PrintString("CLIENT: Scene ACK Sent");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::ReceiveSceneMsg(RakNet::Packet* packet) {
 		const MsgSceneLine* frameData = (MsgSceneLine*)packet->data;
@@ -497,14 +459,10 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::ReceiveSceneEndMsg() {
 		g_ConsoleMan.PrintString("CLIENT: Scene received.");
 		SendSceneAcceptedMsg();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::ReceiveSceneSetupMsg(RakNet::Packet* packet) {
 		clear_to_color(g_FrameMan.GetNetworkBackBufferIntermediateGUI8Ready(0), g_MaskColor);
@@ -579,16 +537,12 @@ namespace RTE {
 		g_ConsoleMan.PrintString("CLIENT: Scene setup accepted");
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::SendSceneSetupAcceptedMsg() {
 		MsgRegister msg;
 		msg.Id = ID_CLT_SCENE_SETUP_ACCEPTED;
 		m_Client->Send((const char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, m_ServerID, false);
 		g_ConsoleMan.PrintString("CLIENT: Scene setup ACK Sent");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::ReceiveTerrainChangeMsg(RakNet::Packet* packet) {
 		const MsgTerrainChange* frameData = (MsgTerrainChange*)packet->data;
@@ -625,8 +579,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::ReceivePostEffectsMsg(RakNet::Packet* packet) {
 		MsgPostEffects* msg = (MsgPostEffects*)packet->data;
 		const PostEffectNetworkData* effDataPtr = (PostEffectNetworkData*)((char*)msg + sizeof(MsgPostEffects));
@@ -644,8 +596,6 @@ namespace RTE {
 			effDataPtr++;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::ReceiveSoundEventsMsg(RakNet::Packet* packet) {
 		MsgSoundEvents* msg = (MsgSoundEvents*)packet->data;
@@ -724,8 +674,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::ReceiveMusicEventsMsg(RakNet::Packet* packet) {
 		MsgMusicEvents* msg = (MsgMusicEvents*)packet->data;
 		const AudioMan::NetworkMusicData* musicDataPointer = (AudioMan::NetworkMusicData*)((char*)msg + sizeof(MsgMusicEvents));
@@ -762,8 +710,6 @@ namespace RTE {
 			musicDataPointer++;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::DrawBackgrounds(BITMAP* targetBitmap) {
 		for (int i = m_ActiveBackgroundLayers - 1; i >= 0; i--) {
@@ -945,13 +891,9 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkClient::DrawPostEffects(int frame) {
 		g_PostProcessMan.SetNetworkPostEffectsList(0, m_PostEffects[frame]);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::DrawFrame(int frameNumber, bool useInterlacing, bool clearFramebuffer) {
 		BITMAP* src_bmp = g_FrameMan.GetNetworkBackBufferIntermediate8Ready(0);
@@ -1052,8 +994,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::Update() {
 		HandleNetworkPackets();
@@ -1157,8 +1097,6 @@ namespace RTE {
 		m_ShowFillRate = g_UInputMan.KeyHeld(KEY_0);
 #endif
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkClient::HandleNetworkPackets() {
 		std::string msg;

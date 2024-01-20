@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            AssemblyEditorGUI.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Implementation file for the AssemblyEditorGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "AssemblyEditorGUI.h"
 
 #include "CameraMan.h"
@@ -52,12 +40,6 @@ AssemblyEditorGUI::~AssemblyEditorGUI() {
 	Destroy();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Clear
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all the member variables of this AssemblyEditorGUI, effectively
-//                  resetting the members of this abstraction level only.
-
 void AssemblyEditorGUI::Clear() {
 	m_pController = 0;
 	m_FeatureSet = ONLOADEDIT;
@@ -91,11 +73,6 @@ void AssemblyEditorGUI::Clear() {
 	m_pCurrentScheme = 0;
 	m_CurrentAssemblyName.clear();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the AssemblyEditorGUI object ready for use.
 
 int AssemblyEditorGUI::Create(Controller* pController, FeatureSets featureSet, int whichModuleSpace, int nativeTechModule, float foreignCostMult) {
 	RTEAssert(pController, "No controller sent to AssemblyEditorGUI on creation!");
@@ -160,11 +137,6 @@ int AssemblyEditorGUI::Create(Controller* pController, FeatureSets featureSet, i
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Destroy
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Destroys and resets (through Clear()) the AssemblyEditorGUI object.
-
 void AssemblyEditorGUI::Destroy() {
 	delete m_pPicker;
 	delete m_pCurrentObject;
@@ -173,34 +145,15 @@ void AssemblyEditorGUI::Destroy() {
 	Clear();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetController
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the controller used by this. The ownership of the controller is
-//                  NOT transferred!
-
 void AssemblyEditorGUI::SetController(Controller* pController) {
 	m_pController = pController;
 	m_PieMenu->SetMenuController(pController);
 	m_pPicker->SetController(pController);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetPosOnScreen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-//                  etc.
-
 void AssemblyEditorGUI::SetPosOnScreen(int newPosX, int newPosY) {
 	m_pPicker->SetPosOnScreen(newPosX, newPosY);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetCurrentObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the new Object to be held at the cursor of this Editor. Ownership
-//                  IS transferred!
 
 bool AssemblyEditorGUI::SetCurrentObject(SceneObject* pNewObject) {
 	if (m_pCurrentObject == pNewObject)
@@ -228,30 +181,13 @@ bool AssemblyEditorGUI::SetCurrentObject(SceneObject* pNewObject) {
 	return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetActivatedPieSlice
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets any Pie menu slice command activated last update.
-
 PieSliceType AssemblyEditorGUI::GetActivatedPieSlice() const {
 	return m_PieMenu->GetPieCommand();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetModuleSpace
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets which DataModule space to be picking objects from. If -1, then
-//                  let the player pick from all loaded modules.
-
 void AssemblyEditorGUI::SetModuleSpace(int moduleSpaceID) {
 	m_pPicker->SetModuleSpace(moduleSpaceID);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetNativeTechModule
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets which DataModule ID should be treated as the native tech of the
-//                  user of this menu.
 
 void AssemblyEditorGUI::SetNativeTechModule(int whichModule) {
 	if (whichModule >= 0 && whichModule < g_PresetMan.GetTotalModuleCount()) {
@@ -260,34 +196,15 @@ void AssemblyEditorGUI::SetNativeTechModule(int whichModule) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetForeignCostMultiplier
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the multiplier of the cost of any foreign Tech items.
-
 void AssemblyEditorGUI::SetForeignCostMultiplier(float newMultiplier) {
 	m_ForeignCostMult = newMultiplier;
 	m_pPicker->SetForeignCostMultiplier(m_ForeignCostMult);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          TestBrainResidence
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Checks whether the resident brain is currently placed into a valid
-//                  location in this scene, based on whether there is a clear path to the
-//                  sky above it. This forces the editor into place brain mode with the
-//                  current resident brain if the current placement is no bueno. It also
-//                  removes the faulty brain from residence in the scene!
-
 bool AssemblyEditorGUI::TestBrainResidence(bool noBrainIsOK) {
 	// Brain is fine, leave it be
 	return false;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the state of this Menu each frame
 
 void AssemblyEditorGUI::Update() {
 	// Update the user controller
@@ -867,11 +784,6 @@ void AssemblyEditorGUI::Update() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the menu
-
 void AssemblyEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
 	// Done, so don't draw the UI
 	if (m_EditorGUIMode == DONEEDITING)
@@ -944,12 +856,6 @@ void AssemblyEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) con
 	// Draw the pie menu
 	m_PieMenu->Draw(pTargetBitmap, targetPos);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateBrainPath
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the brain path to the current resident brain, if any. If
-//                  there's none, the path is cleared.
 
 bool AssemblyEditorGUI::UpdateBrainPath() {
 	// First see if we have a brain in hand

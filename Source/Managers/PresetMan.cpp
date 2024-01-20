@@ -1,17 +1,5 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            PresetMan.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the PresetMan class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
 // Suppress compiler warning about unrecognized escape sequence on line 183
 #pragma warning(disable : 4129)
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
 
 #include "PresetMan.h"
 #include "DataModule.h"
@@ -35,12 +23,6 @@ namespace RTE {
 	const std::array<std::pair<std::string, std::string>, 3> PresetMan::c_UserdataModules = {{{c_UserScenesModuleName, "User Scenes"},
 	                                                                                          {c_UserConquestSavesModuleName, "Conquest Saves"},
 	                                                                                          {c_UserScriptedSavesModuleName, "Scripted Activity Saves"}}};
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this PresetMan, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void PresetMan::Clear() {
 		m_pDataModules.clear();
@@ -72,11 +54,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the PresetMan entity.
-
 	void PresetMan::Destroy() {
 		for (std::vector<DataModule*>::iterator dmItr = m_pDataModules.begin(); dmItr != m_pDataModules.end(); ++dmItr) {
 			delete (*dmItr);
@@ -84,8 +61,6 @@ namespace RTE {
 
 		Clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, bool userdata, const ProgressCallback& progressCallback) {
 		if (moduleName.empty()) {
@@ -135,8 +110,6 @@ namespace RTE {
 		newModule = nullptr;
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::LoadAllDataModules() {
 		auto moduleLoadTimerStart = std::chrono::steady_clock::now();
@@ -199,30 +172,15 @@ namespace RTE {
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetDataModule
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a specific loaded DataModule
-
 	const DataModule* PresetMan::GetDataModule(int whichModule) {
 		RTEAssert(whichModule >= 0 && whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 		return m_pDataModules[whichModule];
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetDataModuleName
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a name specific loaded DataModule
-
 	const std::string PresetMan::GetDataModuleName(int whichModule) {
 		RTEAssert(whichModule >= 0 && whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 		return m_pDataModules[whichModule]->GetFileName();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetModuleID
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the ID of a loaded DataModule.
 
 	int PresetMan::GetModuleID(std::string moduleName) {
 		// Lower-case search name so we can match up against the already-lowercase names in m_DataModuleIDs
@@ -273,8 +231,6 @@ namespace RTE {
 		return -1;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	std::string PresetMan::GetModuleNameFromPath(const std::string& dataPath) const {
 		if (dataPath.empty()) {
 			return "";
@@ -297,8 +253,6 @@ namespace RTE {
 		return moduleName;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int PresetMan::GetModuleIDFromPath(const std::string& dataPath) {
 		if (dataPath.empty()) {
 			return -1;
@@ -306,13 +260,9 @@ namespace RTE {
 		return GetModuleID(GetModuleNameFromPath(dataPath));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PresetMan::IsModuleOfficial(const std::string& moduleName) const {
 		return std::find(c_OfficialModules.begin(), c_OfficialModules.end(), moduleName) != c_OfficialModules.end();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::IsModuleUserdata(const std::string& moduleName) const {
 		auto userdataModuleItr = std::find_if(c_UserdataModules.begin(), c_UserdataModules.end(),
@@ -321,8 +271,6 @@ namespace RTE {
 		                                      });
 		return userdataModuleItr != c_UserdataModules.end();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string PresetMan::GetFullModulePath(const std::string& modulePath) const {
 		// Note: Mods may use mixed path separators, which aren't supported on non Windows systems.
@@ -343,24 +291,11 @@ namespace RTE {
 		return (pathTopDir == moduleTopDir) ? modulePathGeneric : moduleTopDir + modulePathGeneric;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AddEntityPreset
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds an Entity instance's pointer and name associations to the
-	//                  internal list of already read in Entity:s. Ownership is NOT transferred!
-	//                  If there already is an instance defined, nothing happens. If there
-	//                  is not, a clone is made of the passed-in Entity and added to the library.
-
 	bool PresetMan::AddEntityPreset(Entity* pEntToAdd, int whichModule, bool overwriteSame, std::string readFromFile) {
 		RTEAssert(whichModule >= 0 && whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 
 		return m_pDataModules[whichModule]->AddEntityPreset(pEntToAdd, overwriteSame, readFromFile);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetEntityPreset
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a previously read in (defined) Entity, by type and instance name.
 
 	const Entity* PresetMan::GetEntityPreset(std::string type, std::string preset, int whichModule) {
 		RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
@@ -397,16 +332,6 @@ namespace RTE {
 
 		return pRetEntity;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetEntityPreset
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads an instance of an Entity that will be used as preset
-	//                  to later on be used to generate more instances of the same state.
-	//                  Will check if there was already one of the same class and instance
-	//                  name read in previously, and will return  that one if found, or
-	//                  add the newly read in one to this PresetMan's list if not found to
-	//                  exist there previously. Ownership is NOT transferred!
 
 	const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 		// The reader is aware of which DataModule it is reading within
@@ -455,13 +380,6 @@ namespace RTE {
 		return pReturnPreset;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ReadReflectedPreset
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads an preset of an Entity and tries to add it to the list of
-	//                  read-in presets. Regardless of whether there is a name collision,
-	//                  the read-in preset will be returned, ownership TRANSFERRED!
-
 	Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 		// The reader is aware of which DataModule it's reading within
 		int whichModule = reader.GetReadModuleID();
@@ -496,11 +414,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetAllOfType
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds to a list all previously read in (defined) Entitys, by type.
-
 	bool PresetMan::GetAllOfType(std::list<Entity*>& entityList, std::string type, int whichModule) {
 		if (type.empty())
 			return false;
@@ -521,12 +434,6 @@ namespace RTE {
 
 		return foundAny;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetAllOfTypeInModuleSpace
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds to a list all previously read in (defined) Entitys which are
-	//                  of a specific type, and only exist in a specific module space.
 
 	bool PresetMan::GetAllOfTypeInModuleSpace(std::list<Entity*>& entityList, std::string type, int whichModuleSpace) {
 		if (type.empty())
@@ -550,8 +457,6 @@ namespace RTE {
 		return foundAny;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PresetMan::GetAllOfGroups(std::list<Entity*>& entityList, const std::vector<std::string>& groups, const std::string& type, int whichModule) {
 		RTEAssert(!groups.empty(), "Looking for empty groups in PresetMan::GetAllOfGroups!");
 		bool foundAny = false;
@@ -566,8 +471,6 @@ namespace RTE {
 		}
 		return foundAny;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::GetAllNotOfGroups(std::list<Entity*>& entityList, const std::vector<std::string>& groups, const std::string& type, int whichModule) {
 		if (groups.empty()) {
@@ -588,12 +491,6 @@ namespace RTE {
 		}
 		return foundAny;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetRandomOfGroup
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns a previously read in (defined) Entity which is randomly
-	//                  selected from a specific group.
 
 	Entity* PresetMan::GetRandomOfGroup(std::string group, std::string type, int whichModule) {
 		RTEAssert(!group.empty(), "Looking for empty group!");
@@ -631,12 +528,6 @@ namespace RTE {
 		RTEAssert(0, "Tried selecting randomly but didn't?");
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetRandomOfGroupFromTech
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns a previously read in (defined) Entity which is randomly
-	//                  selected from a specific group.
 
 	Entity* PresetMan::GetRandomBuyableOfGroupFromTech(std::string group, std::string type, int whichModule) {
 		RTEAssert(!group.empty(), "Looking for empty group!");
@@ -731,13 +622,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetAllOfGroupInModuleSpace
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds to a list all previously read in (defined) Entitys which are
-	//                  associated with a specific group, and only exist in a specific module
-	//                  space.
-
 	bool PresetMan::GetAllOfGroupInModuleSpace(std::list<Entity*>& entityList, std::string group, std::string type, int whichModuleSpace) {
 		RTEAssert(!group.empty(), "Looking for empty group!");
 
@@ -758,13 +642,6 @@ namespace RTE {
 
 		return foundAny;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetRandomOfGroupInModuleSpace
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns a previously read in (defined) Entity which is associated with
-	//                  a specific group, randomly selected and only exist in a specific module
-	//                  space.
 
 	Entity* PresetMan::GetRandomOfGroupInModuleSpace(std::string group, std::string type, int whichModuleSpace) {
 		RTEAssert(!group.empty(), "Looking for empty group!");
@@ -803,11 +680,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetEntityDataLocation
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:    Gets the data file path of a previously read in (defined) Entity.
-
 	std::string PresetMan::GetEntityDataLocation(std::string type, std::string preset, int whichModule) {
 		RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 
@@ -836,8 +708,6 @@ namespace RTE {
 		return pRetPath;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void PresetMan::ReloadAllScripts() const {
 		g_LuaMan.ClearUserModuleCache();
 		for (const DataModule* dataModule: m_pDataModules) {
@@ -846,8 +716,6 @@ namespace RTE {
 		g_MovableMan.ReloadLuaScripts();
 		g_ConsoleMan.PrintString("SYSTEM: Scripts reloaded!");
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PresetMan::ReloadEntityPreset(const std::string& presetName, const std::string& className, const std::string& moduleName, bool storeReloadedPresetDataForQuickReloading) {
 		if (className.empty() || presetName.empty()) {
@@ -896,8 +764,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool PresetMan::QuickReloadEntityPreset() {
 		for (const std::string& entityPresetInfoEntry: m_LastReloadedEntityPresetInfo) {
 			if (entityPresetInfoEntry.empty()) {
@@ -908,24 +774,11 @@ namespace RTE {
 		return ReloadEntityPreset(m_LastReloadedEntityPresetInfo[0], m_LastReloadedEntityPresetInfo[1], m_LastReloadedEntityPresetInfo[2]);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AddMaterialMapping
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds a Material mapping local to a DataModule. This is used for when
-	//                  multiple DataModule:s are loading conflicting Material:s, and need to
-	//                  resolve the conflicts by mapping their materials to ID's different than
-	//                  those specified in the data files.
-
 	bool PresetMan::AddMaterialMapping(int fromID, int toID, int whichModule) {
 		RTEAssert(whichModule >= m_OfficialModuleCount && whichModule < m_pDataModules.size(), "Tried to make a material mapping in an offical or out-of-bounds DataModule!");
 
 		return m_pDataModules[whichModule]->AddMaterialMapping(fromID, toID);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RegisterGroup
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Registers the existence of an Entity group, and in which module.
 
 	void PresetMan::RegisterGroup(std::string newGroup, int whichModule) {
 		RTEAssert(whichModule >= 0 && whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
@@ -938,11 +791,6 @@ namespace RTE {
 		// Register in the specified module too
 		m_pDataModules[whichModule]->RegisterGroup(newGroup);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetGroups
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the list of all groups registered in a specific module.
 
 	bool PresetMan::GetGroups(std::list<std::string>& groupList, int whichModule, std::string withType) const {
 		RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
@@ -982,12 +830,6 @@ namespace RTE {
 		return foundAny;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetModuleSpaceGroups
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Fills out a list with all groups registered in all official, PLUS a
-	//                  a specific non-official module as well.
-
 	bool PresetMan::GetModuleSpaceGroups(std::list<std::string>& groupList, int whichModule, std::string withType) const {
 		RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 
@@ -1025,19 +867,9 @@ namespace RTE {
 		return foundAny;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetLoadout
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates and returns actor defined in the specified loadout.
-
 	Actor* PresetMan::GetLoadout(std::string loadoutName, std::string module, bool spawnDropShip) {
 		return GetLoadout(loadoutName, GetModuleID(module), spawnDropShip);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetLoadout
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates and returns actor defined in the specified loadout.
 
 	Actor* PresetMan::GetLoadout(std::string loadoutName, int moduleNumber, bool spawnDropShip) {
 		if (spawnDropShip) {
@@ -1072,8 +904,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PresetMan::FindAndExtractZippedModules() const {
 		for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(System::GetWorkingDirectory() + System::GetModDirectory())) {

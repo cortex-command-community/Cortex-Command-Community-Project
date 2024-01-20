@@ -26,8 +26,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::BackgroundSendThreadFunction(NetworkServer* server, short player) {
 		const int sleepTime = 1000000 / server->m_EncodingFps;
 		while (server->IsServerModeEnabled() && server->IsPlayerConnected(player)) {
@@ -46,8 +44,6 @@ namespace RTE {
 		}
 		server->SetThreadExitReason(player, NetworkServer::THREAD_FINISH);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::Clear() {
 		m_SleepWhenIdle = false;
@@ -148,8 +144,6 @@ namespace RTE {
 		m_LastPackedReceived = nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int NetworkServer::Initialize() {
 		m_IsInServerMode = false;
 		m_ServerPort = "";
@@ -192,8 +186,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::Destroy() {
 		// Send a signal that server is going to shutdown
 		m_IsInServerMode = false;
@@ -219,8 +211,6 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool NetworkServer::ReadyForSimulation() {
 		short playersReady = 0;
 		short playersTotal = 0;
@@ -237,8 +227,6 @@ namespace RTE {
 		return playersReady >= playersTotal;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::SetServerPort(const std::string& newPort) {
 		bool useDefault = false;
 		for (const char& stringChar: newPort) {
@@ -250,8 +238,6 @@ namespace RTE {
 		}
 		m_ServerPort = useDefault ? "8000" : newPort;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::Start() {
 		RakNet::SocketDescriptor socketDescriptors[1];
@@ -300,8 +286,6 @@ namespace RTE {
 		m_Server->SetUnreliableTimeout(50);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::LockScene(bool isLocked) {
 		for (int i = 0; i < c_MaxClients; i++) {
 			if (isLocked) {
@@ -312,8 +296,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::ResetScene() {
 		m_SceneID++;
 		for (int i = 0; i < c_MaxClients; i++) {
@@ -323,8 +305,6 @@ namespace RTE {
 			m_SendFrameData[i] = false;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::RegisterTerrainChange(NetworkTerrainChange terrainChange) {
 		if (m_IsInServerMode) {
@@ -338,8 +318,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	unsigned char NetworkServer::GetPacketIdentifier(RakNet::Packet* packet) const {
 		if (packet == 0) {
 			return 255;
@@ -351,8 +329,6 @@ namespace RTE {
 			return packet->data[0];
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ReceiveNewIncomingConnection(RakNet::Packet* packet) {
 		std::string msg;
@@ -400,15 +376,11 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::SendAcceptedMsg(short player) {
 		MsgAccepted msg;
 		msg.Id = ID_SRV_ACCEPTED;
 		m_Server->Send((const char*)&msg, sizeof(MsgAccepted), HIGH_PRIORITY, RELIABLE_SEQUENCED, 0, m_ClientConnections[player].ClientId, false);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ReceiveDisconnection(RakNet::Packet* packet) {
 		std::string msg = "ID_CONNECTION_LOST from";
@@ -430,8 +402,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ReceiveRegisterMsg(RakNet::Packet* packet) {
 		std::string msg;
@@ -479,8 +449,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::SendNATServerRegistrationMsg(RakNet::SystemAddress address) {
 		MsgRegisterServer msg = {};
 		msg.Id = ID_NAT_SERVER_REGISTER_SERVER;
@@ -494,8 +462,6 @@ namespace RTE {
 
 		m_Server->Send((const char*)&msg, payloadSize, IMMEDIATE_PRIORITY, RELIABLE, 0, address, false);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ReceiveInputMsg(RakNet::Packet* packet) {
 		const MsgInput* m = (MsgInput*)packet->data;
@@ -567,8 +533,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::ProcessInputMsg(short player, MsgInput msg) {
 		if (player >= 0 && player < c_MaxClients) {
 			Vector input;
@@ -609,15 +573,11 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::ClearInputMessages(short player) {
 		if (player >= 0 && player < c_MaxClients) {
 			m_InputMessages[player].clear();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendSoundData(short player) {
 		std::list<AudioMan::NetworkSoundData> events;
@@ -674,8 +634,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::SendMusicData(short player) {
 		std::list<AudioMan::NetworkMusicData> events;
 		g_AudioMan.GetMusicEvents(player, events);
@@ -724,8 +682,6 @@ namespace RTE {
 			m_DataSentTotal[player] += payloadSize;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendSceneSetupData(short player) {
 		MsgSceneSetup msgSceneSetup = {};
@@ -798,8 +754,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::ReceiveSceneSetupDataAccepted(RakNet::Packet* packet) {
 		short player = -1;
 
@@ -815,8 +769,6 @@ namespace RTE {
 			m_SendFrameData[player] = false;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendSceneData(short player) {
 		// Check for congestion
@@ -933,8 +885,6 @@ namespace RTE {
 		SendSceneEndMsg(player);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::ClearTerrainChangeQueue(short player) {
 		m_Mutex[player].lock();
 		while (!m_PendingTerrainChanges[player].empty()) {
@@ -946,8 +896,6 @@ namespace RTE {
 		m_Mutex[player].unlock();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool NetworkServer::NeedToProcessTerrainChanges(short player) {
 		bool result;
 
@@ -957,8 +905,6 @@ namespace RTE {
 
 		return result;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ProcessTerrainChanges(short player) {
 		m_Mutex[player].lock();
@@ -1006,8 +952,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendTerrainChangeMsg(short player, NetworkTerrainChange terrainChange) {
 		if (terrainChange.w == 1 && terrainChange.h == 1) {
@@ -1093,8 +1037,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::ReceiveSceneAcceptedMsg(RakNet::Packet* packet) {
 		for (short player = 0; player < c_MaxClients; player++) {
 			if (m_ClientConnections[player].ClientId == packet->systemAddress) {
@@ -1103,15 +1045,11 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::SendSceneEndMsg(short player) {
 		MsgSceneEnd msg = {};
 		msg.Id = ID_SRV_SCENE_END;
 		m_Server->Send((const char*)&msg, sizeof(MsgSceneSetup), HIGH_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::CreateBackBuffer(short player, int w, int h) {
 		m_BackBuffer8[player] = create_bitmap_ex(8, w, h);
@@ -1129,8 +1067,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::ClearBackBuffer(int player, int w, int h) {
 		clear_to_color(m_BackBuffer8[player], ColorKeys::g_MaskColor);
 		clear_to_color(m_BackBufferGUI8[player], ColorKeys::g_MaskColor);
@@ -1143,8 +1079,6 @@ namespace RTE {
 			memset(m_PixelLineBuffersGUIPrev[player], 0, lines * boxSize);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::DestroyBackBuffer(short player) {
 		if (m_BackBuffer8) {
@@ -1165,8 +1099,6 @@ namespace RTE {
 		m_BackBufferGUI8[player] = nullptr;
 		m_PixelLineBuffersGUIPrev[player] = nullptr;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendFrameSetupMsg(short player) {
 		MsgFrameSetup msgFrameSetup;
@@ -1199,8 +1131,6 @@ namespace RTE {
 
 		m_SendSceneData[player] = false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendPostEffectData(short player) {
 		std::list<PostEffect> effects;
@@ -1255,8 +1185,6 @@ namespace RTE {
 			m_DataSentTotal[player] += payloadSize;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int NetworkServer::SendFrame(short player) {
 		long long currentTicks = g_TimerMan.GetRealTickCount();
@@ -1652,8 +1580,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void NetworkServer::UpdateStats(short player) {
 		long long currentTicks = g_TimerMan.GetRealTickCount();
 
@@ -1690,8 +1616,6 @@ namespace RTE {
 			m_PingTimer[player]->Reset();
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::DrawStatisticsData() {
 		int midX = g_WindowMan.GetResX() / 2;
@@ -1842,8 +1766,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	RakNet::SystemAddress NetworkServer::ConnectBlocking(RakNet::RakPeerInterface* rakPeer, const char* address, unsigned short port) {
 		if (rakPeer->Connect(address, port, 0, 0) != RakNet::CONNECTION_ATTEMPT_STARTED) {
 			return RakNet::UNASSIGNED_SYSTEM_ADDRESS;
@@ -1863,8 +1785,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::Update(bool processInput) {
 		HandleNetworkPackets();
@@ -1967,8 +1887,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::HandleNetworkPackets() {
 		for (RakNet::Packet* packet = m_Server->Receive(); packet; m_Server->DeallocatePacket(packet), packet = m_Server->Receive()) {
