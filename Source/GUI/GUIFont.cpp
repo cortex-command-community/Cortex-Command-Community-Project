@@ -4,7 +4,7 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIFont::GUIFont(const std::string &Name) {
+GUIFont::GUIFont(const std::string& Name) {
 	m_Screen = nullptr;
 	m_Font = nullptr;
 	m_FontHeight = 0;
@@ -22,7 +22,7 @@ GUIFont::GUIFont(const std::string &Name) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUIFont::Load(GUIScreen *Screen, const std::string &Filename) {
+bool GUIFont::Load(GUIScreen* Screen, const std::string& Filename) {
 	assert(Screen);
 
 	m_Screen = Screen;
@@ -80,7 +80,9 @@ bool GUIFont::Load(GUIScreen *Screen, const std::string &Filename) {
 		for (int j = y; j < y + m_FontHeight; j++) {
 			for (int i = x; i < x + w; i++) {
 				unsigned long Pixel = m_Font->GetPixel(i, j);
-				if (Pixel != Red && Pixel != BackG) { Height = std::max(Height, j - y); }
+				if (Pixel != Red && Pixel != BackG) {
+					Height = std::max(Height, j - y);
+				}
 			}
 		}
 
@@ -107,16 +109,16 @@ bool GUIFont::Load(GUIScreen *Screen, const std::string &Filename) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIFont::Draw(GUIBitmap *Bitmap, int X, int Y, const std::string &Text, unsigned long Shadow) {
+void GUIFont::Draw(GUIBitmap* Bitmap, int X, int Y, const std::string& Text, unsigned long Shadow) {
 	unsigned char c;
 	GUIRect Rect;
-	GUIBitmap *Surf = m_CurrentBitmap;
+	GUIBitmap* Surf = m_CurrentBitmap;
 	int initX = X;
 
 	assert(Surf);
 
 	// Make the shadow color
-	FontColor *FSC = nullptr;
+	FontColor* FSC = nullptr;
 	if (Shadow) {
 		FSC = GetFontColor(Shadow);
 		if (!FSC) {
@@ -133,8 +135,12 @@ void GUIFont::Draw(GUIBitmap *Bitmap, int X, int Y, const std::string &Text, uns
 			Y += m_FontHeight;
 			X = initX;
 		}
-		if (c == '\t') { X += m_Characters[' '].m_Width * 4; }
-		if (c < 0) { c += m_CharIndexCap; }
+		if (c == '\t') {
+			X += m_Characters[' '].m_Width * 4;
+		}
+		if (c < 0) {
+			c += m_CharIndexCap;
+		}
 		if (c < 32 || c >= m_CharIndexCap) {
 			continue;
 		}
@@ -145,7 +151,9 @@ void GUIFont::Draw(GUIBitmap *Bitmap, int X, int Y, const std::string &Text, uns
 		SetRect(&Rect, offX, offY, offX + CharWidth, offY + m_FontHeight);
 
 		// Draw the shadow
-		if (Shadow && FSC) { FSC->m_Bitmap->DrawTrans(Bitmap, X + 1, Y + 1, &Rect); }
+		if (Shadow && FSC) {
+			FSC->m_Bitmap->DrawTrans(Bitmap, X + 1, Y + 1, &Rect);
+		}
 
 		// Draw the main color
 		Surf->DrawTrans(Bitmap, X, Y, &Rect);
@@ -157,7 +165,7 @@ void GUIFont::Draw(GUIBitmap *Bitmap, int X, int Y, const std::string &Text, uns
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIFont::DrawAligned(GUIBitmap *Bitmap, int X, int Y, const std::string &Text, int HAlign, int VAlign, int MaxWidth, unsigned long Shadow) {
+void GUIFont::DrawAligned(GUIBitmap* Bitmap, int X, int Y, const std::string& Text, int HAlign, int VAlign, int MaxWidth, unsigned long Shadow) {
 	std::string TextLine = Text;
 	int lineStartPos = 0;
 	int lineEndPos = 0;
@@ -244,7 +252,7 @@ void GUIFont::SetColor(unsigned long Color) {
 	if (Color != m_CurrentColor) {
 
 		// Find the cached color
-		FontColor *FC = GetFontColor(Color);
+		FontColor* FC = GetFontColor(Color);
 
 		// Use the cached color, otherwise just draw the default bitmap
 		if (FC) {
@@ -256,7 +264,7 @@ void GUIFont::SetColor(unsigned long Color) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int GUIFont::CalculateWidth(const std::string &Text) {
+int GUIFont::CalculateWidth(const std::string& Text) {
 	unsigned char c;
 	int Width = 0;
 	int WidestLine = 0;
@@ -266,11 +274,15 @@ int GUIFont::CalculateWidth(const std::string &Text) {
 		c = Text.at(i);
 		// Reset line counting if newline encountered
 		if (c == '\n') {
-			if (Width > WidestLine) { WidestLine = Width; }
+			if (Width > WidestLine) {
+				WidestLine = Width;
+			}
 			Width = 0;
 			continue;
 		}
-		if (c < 0) { c += m_CharIndexCap; }
+		if (c < 0) {
+			c += m_CharIndexCap;
+		}
 
 		if (c < 32 || c >= m_CharIndexCap) {
 			continue;
@@ -281,7 +293,9 @@ int GUIFont::CalculateWidth(const std::string &Text) {
 		// Add kerning
 		Width += m_Kerning;
 	}
-	if (Width > WidestLine) { WidestLine = Width; }
+	if (Width > WidestLine) {
+		WidestLine = Width;
+	}
 
 	return WidestLine;
 }
@@ -297,7 +311,7 @@ int GUIFont::CalculateWidth(const char Character) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int GUIFont::CalculateHeight(const std::string &Text, int MaxWidth) {
+int GUIFont::CalculateHeight(const std::string& Text, int MaxWidth) {
 	if (Text.empty()) {
 		return 0;
 	}
@@ -319,7 +333,9 @@ int GUIFont::CalculateHeight(const std::string &Text, int MaxWidth) {
 		if (c < 32 || c >= m_CharIndexCap) {
 			continue;
 		}
-		if (c == ' ') { lastSpacePos = i; }
+		if (c == ' ') {
+			lastSpacePos = i;
+		}
 
 		Width += m_Characters[c].m_Width + m_Kerning;
 		if (MaxWidth > 0 && Width > MaxWidth) {
@@ -365,7 +381,9 @@ void GUIFont::CacheColor(unsigned long Color) {
 	// Go through the bitmap and change the pixels
 	for (int y = 0; y < FC.m_Bitmap->GetHeight(); y++) {
 		for (int x = 0; x < FC.m_Bitmap->GetWidth(); x++) {
-			if (FC.m_Bitmap->GetPixel(x, y) == m_MainColor) { FC.m_Bitmap->SetPixel(x, y, Color); }
+			if (FC.m_Bitmap->GetPixel(x, y) == m_MainColor) {
+				FC.m_Bitmap->SetPixel(x, y, Color);
+			}
 		}
 	}
 
@@ -375,9 +393,9 @@ void GUIFont::CacheColor(unsigned long Color) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIFont::FontColor * GUIFont::GetFontColor(unsigned long Color) {
+GUIFont::FontColor* GUIFont::GetFontColor(unsigned long Color) {
 	std::vector<FontColor>::iterator it;
-	FontColor *F = nullptr;
+	FontColor* F = nullptr;
 	for (it = m_ColorCache.begin(); it != m_ColorCache.end(); it++) {
 		F = &(*it);
 
@@ -419,7 +437,7 @@ void GUIFont::Destroy() {
 
 	// Go through the color cache and destroy the bitmaps
 	std::vector<FontColor>::iterator it;
-	FontColor *FC = 0;
+	FontColor* FC = 0;
 	for (it = m_ColorCache.begin(); it != m_ColorCache.end(); it++) {
 		FC = &(*it);
 		if (FC && FC->m_Bitmap) {

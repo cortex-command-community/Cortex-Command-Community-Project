@@ -6,12 +6,12 @@ using namespace RTE;
 
 bool GUIInput::m_OverrideInput = false;
 
-int GUIInput::m_NetworkMouseButtonsEvents[4][3] = { { -1, -1, -1 }, { -1, -1, -1 }, { -1, -1, -1 }, { -1, -1, -1 } };
-int GUIInput::m_NetworkMouseButtonsStates[4][3] = { { -1, -1, -1 }, { -1, -1, -1 }, { -1, -1, -1 }, { -1, -1, -1 } };
-int GUIInput::m_PrevNetworkMouseButtonsStates[4][3] = { { -1, -1, -1 }, { -1, -1, -1 }, { -1, -1, -1 }, { -1, -1, -1 } };
+int GUIInput::m_NetworkMouseButtonsEvents[4][3] = {{-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}};
+int GUIInput::m_NetworkMouseButtonsStates[4][3] = {{-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}};
+int GUIInput::m_PrevNetworkMouseButtonsStates[4][3] = {{-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}};
 
-int GUIInput::m_NetworkMouseX[4] = { 0, 0, 0, 0 };
-int GUIInput::m_NetworkMouseY[4] = { 0, 0, 0, 0 };
+int GUIInput::m_NetworkMouseX[4] = {0, 0, 0, 0};
+int GUIInput::m_NetworkMouseY[4] = {0, 0, 0, 0};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,8 +25,8 @@ GUIInput::GUIInput(int whichPlayer, bool keyJoyMouseCursor) {
 	m_TextInput.clear();
 	m_HasTextInput = false;
 
-	//memset(m_NetworkMouseButtonsEvents, -1, sizeof(int) * 3);
-	//memset(m_NetworkMouseButtonsStates, -1, sizeof(int) * 3);
+	// memset(m_NetworkMouseButtonsEvents, -1, sizeof(int) * 3);
+	// memset(m_NetworkMouseButtonsStates, -1, sizeof(int) * 3);
 
 	m_MouseX = 0;
 	m_MouseY = 0;
@@ -50,8 +50,10 @@ void GUIInput::Destroy() {}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIInput::GetKeyboard(unsigned char *Buffer) const {
-	if (Buffer) { memcpy(Buffer, m_KeyboardBuffer, sizeof(unsigned char) * KEYBOARD_BUFFER_SIZE); }
+void GUIInput::GetKeyboard(unsigned char* Buffer) const {
+	if (Buffer) {
+		memcpy(Buffer, m_KeyboardBuffer, sizeof(unsigned char) * KEYBOARD_BUFFER_SIZE);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,10 +70,14 @@ unsigned char GUIInput::GetScanCodeState(unsigned char scancode) const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIInput::GetMouseButtons(int *Buttons, int *States) const {
+void GUIInput::GetMouseButtons(int* Buttons, int* States) const {
 	if (!m_OverrideInput) {
-		if (Buttons) { memcpy(Buttons, m_MouseButtonsEvents, sizeof(int) * 3); }
-		if (States) { memcpy(States, m_MouseButtonsStates, sizeof(int) * 3); }
+		if (Buttons) {
+			memcpy(Buttons, m_MouseButtonsEvents, sizeof(int) * 3);
+		}
+		if (States) {
+			memcpy(States, m_MouseButtonsStates, sizeof(int) * 3);
+		}
 	} else {
 		for (int i = 0; i < 3; i++) {
 			Buttons[i] = -1;
@@ -109,18 +115,30 @@ void GUIInput::SetNetworkMouseButton(int whichPlayer, int state1, int state2, in
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIInput::GetMousePosition(int *X, int *Y) const {
+void GUIInput::GetMousePosition(int* X, int* Y) const {
 	if (m_OverrideInput) {
 		if (m_Player >= 0 && m_Player < 4) {
-			if (X) { *X = (m_NetworkMouseX[m_Player] + m_MouseOffsetX); }
-			if (Y) { *Y = (m_NetworkMouseY[m_Player] + m_MouseOffsetY); }
+			if (X) {
+				*X = (m_NetworkMouseX[m_Player] + m_MouseOffsetX);
+			}
+			if (Y) {
+				*Y = (m_NetworkMouseY[m_Player] + m_MouseOffsetY);
+			}
 		} else {
-			if (X) { *X = (m_NetworkMouseX[0] + m_MouseOffsetX); }
-			if (Y) { *Y = (m_NetworkMouseY[0] + m_MouseOffsetY); }
+			if (X) {
+				*X = (m_NetworkMouseX[0] + m_MouseOffsetX);
+			}
+			if (Y) {
+				*Y = (m_NetworkMouseY[0] + m_MouseOffsetY);
+			}
 		}
 	} else {
-		if (X) { *X = (m_MouseX + m_MouseOffsetX); }
-		if (Y) { *Y = (m_MouseY + m_MouseOffsetY); }
+		if (X) {
+			*X = (m_MouseX + m_MouseOffsetX);
+		}
+		if (Y) {
+			*Y = (m_MouseY + m_MouseOffsetY);
+		}
 	}
 }
 

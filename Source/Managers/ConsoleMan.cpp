@@ -16,7 +16,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::Clear() {
 		m_ConsoleState = ConsoleState::Disabled;
@@ -38,12 +38,18 @@ namespace RTE {
 		m_ConsoleUseMonospaceFont = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int ConsoleMan::Initialize() {
-		if (!m_GUIScreen) { m_GUIScreen = new AllegroScreen(g_FrameMan.GetBackBuffer32()); }
-		if (!m_GUIInput) { m_GUIInput = new GUIInputWrapper(-1); }
-		if (!m_GUIControlManager) { m_GUIControlManager = new GUIControlManager(); }
+		if (!m_GUIScreen) {
+			m_GUIScreen = new AllegroScreen(g_FrameMan.GetBackBuffer32());
+		}
+		if (!m_GUIInput) {
+			m_GUIInput = new GUIInputWrapper(-1);
+		}
+		if (!m_GUIControlManager) {
+			m_GUIControlManager = new GUIControlManager();
+		}
 
 		if (!m_GUIControlManager->Create(m_GUIScreen, m_GUIInput, "Base.rte/GUIs/Skins/Menus", m_ConsoleUseMonospaceFont ? "ConsoleMonospaceSkin.ini" : "ConsoleSkin.ini")) {
 			RTEAbort("Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/ConsoleSkin.ini");
@@ -53,14 +59,14 @@ namespace RTE {
 		m_GUIControlManager->EnableMouse(false);
 
 		// Stretch the invisible root box to fill the screen
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
+		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
 		if (!m_ParentBox) {
-			m_ParentBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("ConsoleGUIBox"));
+			m_ParentBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("ConsoleGUIBox"));
 			m_ParentBox->SetDrawType(GUICollectionBox::Color);
 		}
-		m_ConsoleText = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("ConsoleLabel"));
-		m_InputTextBox = dynamic_cast<GUITextBox *>(m_GUIControlManager->GetControl("InputTB"));
+		m_ConsoleText = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("ConsoleLabel"));
+		m_InputTextBox = dynamic_cast<GUITextBox*>(m_GUIControlManager->GetControl("InputTB"));
 
 		SetConsoleScreenSize(m_ConsoleScreenRatio);
 
@@ -68,15 +74,19 @@ namespace RTE {
 		m_ParentBox->SetEnabled(false);
 		m_ParentBox->SetVisible(false);
 
-		if (!g_WindowMan.ResolutionChanged()) { m_OutputLog.emplace_back("- RTE Lua Console -\nSee the Data Realms Wiki for commands: http://www.datarealms.com/wiki/\nPress F1 for a list of helpful shortcuts\n-------------------------------------"); }
+		if (!g_WindowMan.ResolutionChanged()) {
+			m_OutputLog.emplace_back("- RTE Lua Console -\nSee the Data Realms Wiki for commands: http://www.datarealms.com/wiki/\nPress F1 for a list of helpful shortcuts\n-------------------------------------");
+		}
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::Destroy() {
-		if (!g_WindowMan.ResolutionChanged()) { SaveAllText("LogConsole.txt"); }
+		if (!g_WindowMan.ResolutionChanged()) {
+			SaveAllText("LogConsole.txt");
+		}
 
 		delete m_GUIControlManager;
 		delete m_GUIInput;
@@ -92,7 +102,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::SetEnabled(bool enable) {
 		if (enable && m_ConsoleState != ConsoleState::Enabled && m_ConsoleState != ConsoleState::Enabling) {
@@ -104,7 +114,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::SetReadOnly() {
 		if (!m_ReadOnly) {
@@ -116,7 +126,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::SetConsoleScreenSize(float screenRatio) {
 		m_ConsoleScreenRatio = Limit(screenRatio, 1.0F, 0.1F);
@@ -132,61 +142,67 @@ namespace RTE {
 		m_InputTextBox->Resize(m_ParentBox->GetWidth() - 3, m_InputTextBox->GetHeight());
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::SetConsoleUseMonospaceFont(bool useFont) {
 		m_ConsoleUseMonospaceFont = useFont;
-		if (m_GUIControlManager) { m_GUIControlManager->ChangeSkin("Base.rte/GUIs/Skins/Menus", m_ConsoleUseMonospaceFont ? "ConsoleMonospaceSkin.ini" : "ConsoleSkin.ini"); }
+		if (m_GUIControlManager) {
+			m_GUIControlManager->ChangeSkin("Base.rte/GUIs/Skins/Menus", m_ConsoleUseMonospaceFont ? "ConsoleMonospaceSkin.ini" : "ConsoleSkin.ini");
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ConsoleMan::AddLoadWarningLogExtensionMismatchEntry(const std::string &pathToLog, const std::string &readerPosition, const std::string &altFileExtension) {
+	void ConsoleMan::AddLoadWarningLogExtensionMismatchEntry(const std::string& pathToLog, const std::string& readerPosition, const std::string& altFileExtension) {
 		const std::string pathAndAccessLocation = "\"" + pathToLog + "\" referenced " + readerPosition + ". ";
 		std::string newEntry = pathAndAccessLocation + (!altFileExtension.empty() ? "Found and loaded a file with \"" + altFileExtension + "\" extension." : "The file was not loaded.");
 		if (g_PresetMan.GetReloadEntityPresetCalledThisUpdate()) {
 			PrintString(newEntry);
 		} else {
 			std::transform(newEntry.begin(), newEntry.end(), newEntry.begin(), ::tolower);
-			if (m_LoadWarningLog.find(newEntry) == m_LoadWarningLog.end()) { m_LoadWarningLog.emplace(newEntry); }
+			if (m_LoadWarningLog.find(newEntry) == m_LoadWarningLog.end()) {
+				m_LoadWarningLog.emplace(newEntry);
+			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ConsoleMan::SaveLoadWarningLog(const std::string &filePath) {
+	void ConsoleMan::SaveLoadWarningLog(const std::string& filePath) {
 		Writer logWriter(filePath.c_str());
 		if (logWriter.WriterOK()) {
 			logWriter << "// Warnings produced during loading:";
 			logWriter.NewLine(false);
-			for (const std::string &logEntry : m_LoadWarningLog) {
+			for (const std::string& logEntry: m_LoadWarningLog) {
 				logWriter.NewLineString(logEntry, false);
 			}
 			PrintString("SYSTEM: Loading warning log saved to " + filePath);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ConsoleMan::SaveInputLog(const std::string &filePath) {
+	void ConsoleMan::SaveInputLog(const std::string& filePath) {
 		Writer logWriter(filePath.c_str());
 		if (logWriter.WriterOK()) {
 			for (std::deque<std::string>::reverse_iterator logItr = m_InputLog.rbegin(); logItr != m_InputLog.rend(); ++logItr) {
 				logWriter << *logItr;
 				// Add semicolon so the line input becomes a statement
-				if (!logItr->empty() && (*logItr)[logItr->length() - 1] != ';') { logWriter << ";"; }
+				if (!logItr->empty() && (*logItr)[logItr->length() - 1] != ';') {
+					logWriter << ";";
+				}
 				logWriter << "\n";
 			}
 			PrintString("SYSTEM: Console input log saved to " + filePath);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool ConsoleMan::SaveAllText(const std::string &filePath) {
+	bool ConsoleMan::SaveAllText(const std::string& filePath) {
 		Writer logWriter(filePath.c_str());
 		if (logWriter.WriterOK()) {
-			for (const std::string &loggedString : m_OutputLog) {
+			for (const std::string& loggedString: m_OutputLog) {
 				logWriter << loggedString;
 			}
 			logWriter.EndWrite();
@@ -196,7 +212,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::ClearLog() {
 		m_InputLog.clear();
@@ -204,51 +220,52 @@ namespace RTE {
 		m_OutputLog.clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ConsoleMan::PrintString(const std::string &stringToPrint) {
+	void ConsoleMan::PrintString(const std::string& stringToPrint) {
 		static std::mutex printStringMutex;
 		std::scoped_lock<std::mutex> printStringLock(printStringMutex);
 
 		m_OutputLog.emplace_back("\n" + stringToPrint);
-		if (System::IsLoggingToCLI()) { 
-			System::PrintToCLI(stringToPrint); 
+		if (System::IsLoggingToCLI()) {
+			System::PrintToCLI(stringToPrint);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::ShowShortcuts() {
-		if (!IsEnabled()) { SetEnabled(); }
+		if (!IsEnabled()) {
+			SetEnabled();
+		}
 
 		PrintString(
-			"\n--- SHORTCUTS ---\n"
-			"CTRL + ~ - Console in read-only mode without input capture\n"
-			"CTRL + DOWN / UP - Increase/decrease console size (Only while console is open)\n"
-			"CTRL + S - Make continuous screenshots while the keys are held\n"
-			"CTRL + W - Make a screenshot of the entire level\n"
-			"ALT  + W - Make a miniature preview image of the entire level\n"
-			"CTRL + P - Show performance stats\n"
-			"ALT  + P - Show advanced performance stats (Only while performance stats are visible)\n"
-			"CTRL + R - Reset activity\n"
-			"CTRL + M - Switch display mode: Draw -> Material -> MO\n"
-			"CTRL + O - Toggle one sim update per frame\n"
-			"SHIFT + ESC - Skip pause menu when pausing activity (straight to scenario/conquest menu)\n"
-			"----------------\n"
-			"F2 - Reload all Lua scripts\n"
-			"ALT  + F2 - Reload all sprites\n"
-			"CTRL + F2 - Quick reload Entity preset previously reloaded with PresetMan:ReloadEntityPreset\n"
-			"F3 - Save console log\n"
-			"F4 - Save console user input log\n"
-			"F5 - Quick save\n"
-			"F9 - Load latest quick-save\n"
-			"CTRL + F9 - Load latest auto-save\n"
-			"F10 - Clear Console log\n"
-			"F12 - Make a single screenshot"
-		);
+		    "\n--- SHORTCUTS ---\n"
+		    "CTRL + ~ - Console in read-only mode without input capture\n"
+		    "CTRL + DOWN / UP - Increase/decrease console size (Only while console is open)\n"
+		    "CTRL + S - Make continuous screenshots while the keys are held\n"
+		    "CTRL + W - Make a screenshot of the entire level\n"
+		    "ALT  + W - Make a miniature preview image of the entire level\n"
+		    "CTRL + P - Show performance stats\n"
+		    "ALT  + P - Show advanced performance stats (Only while performance stats are visible)\n"
+		    "CTRL + R - Reset activity\n"
+		    "CTRL + M - Switch display mode: Draw -> Material -> MO\n"
+		    "CTRL + O - Toggle one sim update per frame\n"
+		    "SHIFT + ESC - Skip pause menu when pausing activity (straight to scenario/conquest menu)\n"
+		    "----------------\n"
+		    "F2 - Reload all Lua scripts\n"
+		    "ALT  + F2 - Reload all sprites\n"
+		    "CTRL + F2 - Quick reload Entity preset previously reloaded with PresetMan:ReloadEntityPreset\n"
+		    "F3 - Save console log\n"
+		    "F4 - Save console user input log\n"
+		    "F5 - Quick save\n"
+		    "F9 - Load latest quick-save\n"
+		    "CTRL + F9 - Load latest auto-save\n"
+		    "F10 - Clear Console log\n"
+		    "F12 - Make a single screenshot");
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::Update() {
 		if (g_UInputMan.FlagCtrlState() && g_UInputMan.KeyPressed(SDL_SCANCODE_GRAVE)) {
@@ -276,7 +293,9 @@ namespace RTE {
 			}
 		}
 
-		if (m_ConsoleState != ConsoleState::Enabled && m_ConsoleState != ConsoleState::Disabled) { ConsoleOpenClose(); }
+		if (m_ConsoleState != ConsoleState::Enabled && m_ConsoleState != ConsoleState::Disabled) {
+			ConsoleOpenClose();
+		}
 
 		std::stringstream consoleText;
 		for (std::deque<std::string>::iterator logIterator = (m_OutputLog.size() < m_ConsoleTextMaxNumLines) ? m_OutputLog.begin() : m_OutputLog.end() - m_ConsoleTextMaxNumLines; logIterator != m_OutputLog.end(); ++logIterator) {
@@ -320,7 +339,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::ConsoleOpenClose() {
 		float travelCompletionDistance;
@@ -332,7 +351,9 @@ namespace RTE {
 			travelCompletionDistance = std::floor(static_cast<float>(m_ParentBox->GetYPos()) * 0.5F);
 			m_ParentBox->SetPositionAbs(0, m_ParentBox->GetYPos() - static_cast<int>(travelCompletionDistance));
 
-			if (m_ParentBox->GetYPos() >= 0) { m_ConsoleState = ConsoleState::Enabled; }
+			if (m_ParentBox->GetYPos() >= 0) {
+				m_ConsoleState = ConsoleState::Enabled;
+			}
 		} else if (m_ConsoleState == ConsoleState::Disabling) {
 			travelCompletionDistance = std::ceil((static_cast<float>(m_ParentBox->GetHeight()) + static_cast<float>(m_ParentBox->GetYPos())) * 0.5F);
 			m_ParentBox->SetPositionAbs(0, m_ParentBox->GetYPos() - static_cast<int>(travelCompletionDistance));
@@ -354,7 +375,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::FeedString(bool feedEmptyString) {
 		char strLine[1024];
@@ -370,8 +391,12 @@ namespace RTE {
 					m_OutputLog.emplace_back("\n" + line);
 					g_LuaMan.GetMasterScriptState().RunScriptString(line, false);
 
-					if (g_LuaMan.GetMasterScriptState().ErrorExists()) { m_OutputLog.emplace_back("\nERROR: " + g_LuaMan.GetMasterScriptState().GetLastError()); }
-					if (m_InputLog.empty() || m_InputLog.front() != line) { m_InputLog.push_front(line); }
+					if (g_LuaMan.GetMasterScriptState().ErrorExists()) {
+						m_OutputLog.emplace_back("\nERROR: " + g_LuaMan.GetMasterScriptState().GetLastError());
+					}
+					if (m_InputLog.empty() || m_InputLog.front() != line) {
+						m_InputLog.push_front(line);
+					}
 
 					m_InputLogPosition = m_InputLog.begin();
 					m_LastLogMove = 0;
@@ -384,12 +409,14 @@ namespace RTE {
 		m_InputTextBox->SetText("");
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::LoadLoggedInput(bool nextEntry) {
 		if (nextEntry) {
 			// See if we should decrement doubly because the last move was in the opposite direction
-			if (m_LastLogMove > 0 && m_InputLogPosition != m_InputLog.begin()) { --m_InputLogPosition; }
+			if (m_LastLogMove > 0 && m_InputLogPosition != m_InputLog.begin()) {
+				--m_InputLogPosition;
+			}
 
 			if (m_InputLogPosition == m_InputLog.begin()) {
 				m_InputTextBox->SetText("");
@@ -402,7 +429,9 @@ namespace RTE {
 			}
 		} else {
 			// See if we should increment doubly because the last move was in the opposite direction
-			if (m_LastLogMove < 0 && m_InputLogPosition != m_InputLog.end() - 1) { ++m_InputLogPosition; }
+			if (m_LastLogMove < 0 && m_InputLogPosition != m_InputLog.end() - 1) {
+				++m_InputLogPosition;
+			}
 
 			m_InputTextBox->SetText(*m_InputLogPosition);
 			m_InputTextBox->SetCursorPos(m_InputTextBox->GetText().length());
@@ -417,7 +446,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ConsoleMan::RemoveGraveAccents() const {
 		std::string textBoxString = m_InputTextBox->GetText();
@@ -428,12 +457,12 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ConsoleMan::Draw(BITMAP *targetBitmap) const {
+	void ConsoleMan::Draw(BITMAP* targetBitmap) const {
 		if (m_ConsoleState != ConsoleState::Disabled) {
 			AllegroScreen drawScreen(targetBitmap);
 			m_GUIControlManager->Draw(&drawScreen);
 		}
 	}
-}
+} // namespace RTE

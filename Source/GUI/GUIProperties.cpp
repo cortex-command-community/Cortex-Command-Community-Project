@@ -4,7 +4,7 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIProperties::GUIProperties(const std::string &Name) {
+GUIProperties::GUIProperties(const std::string& Name) {
 	m_Name = Name;
 	m_VariableList.clear();
 }
@@ -26,10 +26,10 @@ GUIProperties::~GUIProperties() {
 
 void GUIProperties::Clear() {
 	// Free the list
-	std::vector <PropVariable *>::iterator it;
+	std::vector<PropVariable*>::iterator it;
 
 	for (it = m_VariableList.begin(); it != m_VariableList.end(); it++) {
-		PropVariable *p = *it;
+		PropVariable* p = *it;
 
 		// Free the property
 		delete p;
@@ -39,7 +39,7 @@ void GUIProperties::Clear() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIProperties::AddVariable(const std::string &Variable, const std::string &Value) {
+void GUIProperties::AddVariable(const std::string& Variable, const std::string& Value) {
 	// If this property already exists, just update it
 	std::string Val;
 	if (GetValue(Variable, &Val)) {
@@ -47,7 +47,7 @@ void GUIProperties::AddVariable(const std::string &Variable, const std::string &
 		return;
 	}
 
-	PropVariable *Prop = new PropVariable;
+	PropVariable* Prop = new PropVariable;
 
 	Prop->m_Name = Variable;
 	Prop->m_Value = Value;
@@ -57,7 +57,7 @@ void GUIProperties::AddVariable(const std::string &Variable, const std::string &
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIProperties::AddVariable(const std::string &Variable, char *Value) {
+void GUIProperties::AddVariable(const std::string& Variable, char* Value) {
 	std::string Val = Value;
 
 	AddVariable(Variable, Val);
@@ -65,7 +65,7 @@ void GUIProperties::AddVariable(const std::string &Variable, char *Value) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIProperties::AddVariable(const std::string &Variable, int Value) {
+void GUIProperties::AddVariable(const std::string& Variable, int Value) {
 	char buf[32];
 	std::snprintf(buf, sizeof(buf), "%i", Value);
 	std::string Val(buf);
@@ -74,19 +74,19 @@ void GUIProperties::AddVariable(const std::string &Variable, int Value) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIProperties::AddVariable(const std::string &Variable, bool Value) {
+void GUIProperties::AddVariable(const std::string& Variable, bool Value) {
 	std::string Val = Value ? "True" : "False";
 	AddVariable(Variable, Val);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUIProperties::SetValue(const std::string &Variable, const std::string &Value) {
+bool GUIProperties::SetValue(const std::string& Variable, const std::string& Value) {
 	// Find the property
-	std::vector <PropVariable *>::iterator it;
+	std::vector<PropVariable*>::iterator it;
 
 	for (it = m_VariableList.begin(); it != m_VariableList.end(); it++) {
-		PropVariable *p = *it;
+		PropVariable* p = *it;
 
 		// Matching name?
 		if (stricmp(p->m_Name.c_str(), Variable.c_str()) == 0) {
@@ -101,7 +101,7 @@ bool GUIProperties::SetValue(const std::string &Variable, const std::string &Val
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUIProperties::SetValue(const std::string &Variable, int Value) {
+bool GUIProperties::SetValue(const std::string& Variable, int Value) {
 	char buf[64];
 	std::snprintf(buf, sizeof(buf), "%i", Value);
 
@@ -110,27 +110,29 @@ bool GUIProperties::SetValue(const std::string &Variable, int Value) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIProperties::Update(GUIProperties *Props, bool Add) {
+void GUIProperties::Update(GUIProperties* Props, bool Add) {
 	assert(Props);
 
-	std::vector <PropVariable *>::iterator it1;
+	std::vector<PropVariable*>::iterator it1;
 
 	for (it1 = Props->m_VariableList.begin(); it1 != Props->m_VariableList.end(); it1++) {
-		const PropVariable *Src = *it1;
+		const PropVariable* Src = *it1;
 
 		// Set the variable
-		if (!SetValue(Src->m_Name, Src->m_Value) && Add) { AddVariable(Src->m_Name, Src->m_Value); }
+		if (!SetValue(Src->m_Name, Src->m_Value) && Add) {
+			AddVariable(Src->m_Name, Src->m_Value);
+		}
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUIProperties::GetValue(const std::string &Variable, std::string *Value) {
+bool GUIProperties::GetValue(const std::string& Variable, std::string* Value) {
 	// Find the property
-	std::vector <PropVariable *>::iterator it;
+	std::vector<PropVariable*>::iterator it;
 
 	for (it = m_VariableList.begin(); it != m_VariableList.end(); it++) {
-		const PropVariable *p = *it;
+		const PropVariable* p = *it;
 
 		// Matching name?
 		if (stricmp(p->m_Name.c_str(), Variable.c_str()) == 0) {
@@ -145,7 +147,7 @@ bool GUIProperties::GetValue(const std::string &Variable, std::string *Value) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int GUIProperties::GetValue(const std::string &Variable, std::string *Array, int MaxArraySize) {
+int GUIProperties::GetValue(const std::string& Variable, std::string* Array, int MaxArraySize) {
 	assert(Array);
 
 	std::string Value;
@@ -155,13 +157,13 @@ int GUIProperties::GetValue(const std::string &Variable, std::string *Array, int
 		return 0;
 	}
 	// Create a c string version of the value for tokenizing
-	char *str = new char[Value.length() + 1];
+	char* str = new char[Value.length() + 1];
 	if (!str) {
 		return 0;
 	}
 	// Tokenize the string
 	strcpy(str, Value.c_str());
-	char *tok = strtok(str, ",");
+	char* tok = strtok(str, ",");
 	int count = 0;
 
 	while (tok && count < MaxArraySize) {
@@ -177,7 +179,7 @@ int GUIProperties::GetValue(const std::string &Variable, std::string *Array, int
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int GUIProperties::GetValue(const std::string &Variable, int *Array, int MaxArraySize) {
+int GUIProperties::GetValue(const std::string& Variable, int* Array, int MaxArraySize) {
 	assert(Array);
 
 	std::string Value;
@@ -187,13 +189,13 @@ int GUIProperties::GetValue(const std::string &Variable, int *Array, int MaxArra
 		return 0;
 	}
 	// Create a c string version of the value for tokenizing
-	char *str = new char[Value.length() + 1];
+	char* str = new char[Value.length() + 1];
 	if (!str) {
 		return 0;
 	}
 	// Tokenize the string
 	strcpy(str, Value.c_str());
-	char *tok = strtok(str, ",");
+	char* tok = strtok(str, ",");
 	int count = 0;
 
 	while (tok && count < MaxArraySize) {
@@ -209,7 +211,7 @@ int GUIProperties::GetValue(const std::string &Variable, int *Array, int MaxArra
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUIProperties::GetValue(const std::string &Variable, int *Value) {
+bool GUIProperties::GetValue(const std::string& Variable, int* Value) {
 	assert(Value);
 
 	std::string val;
@@ -226,7 +228,7 @@ bool GUIProperties::GetValue(const std::string &Variable, int *Value) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUIProperties::GetValue(const std::string &Variable, unsigned long *Value) {
+bool GUIProperties::GetValue(const std::string& Variable, unsigned long* Value) {
 	assert(Value);
 
 	std::string val;
@@ -243,7 +245,7 @@ bool GUIProperties::GetValue(const std::string &Variable, unsigned long *Value) 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUIProperties::GetValue(const std::string &Variable, bool *Value) {
+bool GUIProperties::GetValue(const std::string& Variable, bool* Value) {
 	assert(Value);
 
 	std::string val;
@@ -256,7 +258,9 @@ bool GUIProperties::GetValue(const std::string &Variable, bool *Value) {
 	*Value = false;
 
 	// Convert the string into a boolean
-	if (stricmp(val.c_str(), "true") == 0) { *Value = true; }
+	if (stricmp(val.c_str(), "true") == 0) {
+		*Value = true;
+	}
 
 	// Found the value
 	return true;
@@ -274,9 +278,9 @@ std::string GUIProperties::ToString() {
 	std::string OutString = "";
 
 	// Go through each value
-	std::vector <PropVariable *>::iterator it;
+	std::vector<PropVariable*>::iterator it;
 	for (it = m_VariableList.begin(); it != m_VariableList.end(); it++) {
-		const PropVariable *V = *it;
+		const PropVariable* V = *it;
 
 		OutString += V->m_Name;
 		OutString.append(" = ");
@@ -294,27 +298,31 @@ int GUIProperties::GetCount() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUIProperties::GetVariable(int Index, std::string *Name, std::string *Value) {
+bool GUIProperties::GetVariable(int Index, std::string* Name, std::string* Value) {
 	// Check for a bad index
 	if (Index < 0 || Index >= m_VariableList.size()) {
 		return false;
 	}
 
-	const PropVariable *P = (PropVariable *)m_VariableList.at(Index);
-	if (Name) { *Name = P->m_Name; }
-	if (Value) { *Value = P->m_Value; }
+	const PropVariable* P = (PropVariable*)m_VariableList.at(Index);
+	if (Name) {
+		*Name = P->m_Name;
+	}
+	if (Value) {
+		*Value = P->m_Value;
+	}
 
 	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUIProperties::SetVariable(int Index, const std::string &Name, const std::string &Value) {
+bool GUIProperties::SetVariable(int Index, const std::string& Name, const std::string& Value) {
 	// Check for a bad index
 	if (Index < 0 || Index >= m_VariableList.size()) {
 		return false;
 	}
-	PropVariable *P = m_VariableList.at(Index);
+	PropVariable* P = m_VariableList.at(Index);
 	P->m_Name = Name;
 	P->m_Value = Value;
 
@@ -330,8 +338,8 @@ void GUIProperties::Sort(bool Ascending) {
 
 		for (int j = 0; j < m_VariableList.size() - 1 - i; j++) {
 
-			PropVariable *V = m_VariableList.at(j);
-			PropVariable *V2 = m_VariableList.at(j + 1);
+			PropVariable* V = m_VariableList.at(j);
+			PropVariable* V2 = m_VariableList.at(j + 1);
 
 			if ((V->m_Name.compare(V2->m_Name) > 0 && Ascending) || (V->m_Name.compare(V2->m_Name) < 0 && !Ascending)) {
 				// Swap em

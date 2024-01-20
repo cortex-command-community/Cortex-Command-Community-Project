@@ -23,14 +23,15 @@ namespace RTE {
 		/// <param name="top">Y position of the IntRect top left corner.</param>
 		/// <param name="right">X position of the IntRect bottom right corner.</param>
 		/// <param name="bottom">Y position of the IntRect bottom right corner.</param>
-		IntRect(int left, int top, int right, int bottom) : m_Left(left), m_Top(top), m_Right(right), m_Bottom(bottom) {}
+		IntRect(int left, int top, int right, int bottom) :
+		    m_Left(left), m_Top(top), m_Right(right), m_Bottom(bottom) {}
 
 		/// <summary>
 		/// Checks whether this IntRect is intersecting another one.
 		/// </summary>
 		/// <param name="rhs">The other IntRect to check for intersection with.</param>
 		/// <returns>Whether this IntRect is intersecting another one.</returns>
-		bool Intersects(const IntRect &rhs) const { return m_Left < rhs.m_Right && m_Right > rhs.m_Left && m_Top < rhs.m_Bottom && m_Bottom > rhs.m_Top; }
+		bool Intersects(const IntRect& rhs) const { return m_Left < rhs.m_Right && m_Right > rhs.m_Left && m_Top < rhs.m_Bottom && m_Bottom > rhs.m_Top; }
 
 		/// <summary>
 		/// If this and the passed in IntRect intersect, this will be modified to represent the boolean AND of the two.
@@ -38,7 +39,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">THe other IntRect to cut against.</param>
 		/// <returns>Whether an intersection was detected and this was cut down to the AND of the two IntRects.</returns>
-		bool IntersectionCut(const IntRect &rhs);
+		bool IntersectionCut(const IntRect& rhs);
 	};
 
 	/// <summary>
@@ -47,7 +48,6 @@ namespace RTE {
 	class Box : public Serializable {
 
 	public:
-
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
@@ -66,7 +66,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="corner1">Vector position of the upper left corner of this box.</param>
 		/// <param name="corner2">Vector position of the lower right corner of this box.</param>
-		Box(const Vector &corner1, const Vector &corner2) { Create(corner1, corner2); }
+		Box(const Vector& corner1, const Vector& corner2) { Create(corner1, corner2); }
 
 		/// <summary>
 		/// Constructor method used to instantiate a Box object from four float values defining the initial corners of this Box.
@@ -84,13 +84,13 @@ namespace RTE {
 		/// <param name="corner">Vector position of the upper left corner of this box.</param>
 		/// <param name="width">Width of this box.</param>
 		/// <param name="height">Height of this box.</param>
-		Box(const Vector &corner, float width, float height) { Create(corner, width, height); }
+		Box(const Vector& corner, float width, float height) { Create(corner, width, height); }
 
 		/// <summary>
 		/// Copy constructor method used to instantiate a Box object identical to an already existing one.
 		/// </summary>
 		/// <param name="reference">A Box object which is passed in by reference.</param>
-		Box(const Box &reference) { Create(reference); }
+		Box(const Box& reference) { Create(reference); }
 
 		/// <summary>
 		/// Makes the Box object ready for use.
@@ -98,7 +98,7 @@ namespace RTE {
 		/// <param name="corner1">Vector position of the upper left corner of this box.</param>
 		/// <param name="corner2">Vector position of the lower right corner of this box.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Vector &corner1, const Vector &corner2);
+		int Create(const Vector& corner1, const Vector& corner2);
 
 		/// <summary>
 		/// Makes the Box object ready for use.
@@ -117,14 +117,14 @@ namespace RTE {
 		/// <param name="width">Width of this box.</param>
 		/// <param name="height">Height of this box.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Vector &corner, float width, float height);
+		int Create(const Vector& corner, float width, float height);
 
 		/// <summary>
 		/// Creates a Box to be identical to another, by deep copy.
 		/// </summary>
 		/// <param name="reference">A reference to the Box to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Box &reference);
+		int Create(const Box& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -158,7 +158,7 @@ namespace RTE {
 		/// Sets the primary corner of this box.
 		/// </summary>
 		/// <param name="newCorner">A Vector with the new primary corner.</param>
-		void SetCorner(const Vector &newCorner) { m_Corner = newCorner; }
+		void SetCorner(const Vector& newCorner) { m_Corner = newCorner; }
 
 		/// <summary>
 		/// Gets the center point of this Box' area, in absolute Scene coordinates.
@@ -170,7 +170,7 @@ namespace RTE {
 		/// Sets the primary corner of this box, by specifying where the center ought to be.
 		/// </summary>
 		/// <param name="newCenter">A Vector with the new center point.</param>
-		void SetCenter(const Vector &newCenter) { m_Corner.SetXY(newCenter.m_X - (m_Width / 2), newCenter.m_Y - (m_Height / 2)); }
+		void SetCenter(const Vector& newCenter) { m_Corner.SetXY(newCenter.m_X - (m_Width / 2), newCenter.m_Y - (m_Height / 2)); }
 
 		/// <summary>
 		/// Gets the width of this box. Note that this can be negative if the box hasn't been righted with Unflip().
@@ -215,14 +215,14 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">The other Box to check for intersection with.</param>
 		/// <returns>Intersecting the other box or not.</returns>
-		bool IntersectsBox(const Box &rhs);
+		bool IntersectsBox(const Box& rhs);
 
 		/// <summary>
 		/// Tells whether a point is within the Box or not, taking potential flipping into account.
 		/// </summary>
 		/// <param name="point">The Vector describing the point to test for within box bounds.</param>
 		/// <returns>Inside the box or not. False if the box IsEmpty()</returns>
-		bool IsWithinBox(const Vector &point) const;
+		bool IsWithinBox(const Vector& point) const;
 
 		/// <summary>
 		/// Tells whether an X coordinate is within the Box's X-range or not, taking potential flipping into account.
@@ -243,7 +243,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="point">The Vector describing the point to constrain inside the box.</param>
 		/// <returns>The resulting point inside the box.</returns>
-		Vector GetWithinBox(const Vector &point) const { return Vector(GetWithinBoxX(point.m_X), GetWithinBoxY(point.m_Y)); }
+		Vector GetWithinBox(const Vector& point) const { return Vector(GetWithinBoxX(point.m_X), GetWithinBoxY(point.m_Y)); }
 
 		/// <summary>
 		/// Returns an X value constrained inside the Box and returns it.
@@ -266,7 +266,12 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">A Box reference.</param>
 		/// <returns>A reference to the changed Box.</returns>
-		Box & operator=(const Box &rhs) { if (*this != rhs) { Create(rhs); } return *this; }
+		Box& operator=(const Box& rhs) {
+			if (*this != rhs) {
+				Create(rhs);
+			}
+			return *this;
+		}
 
 		/// <summary>
 		/// An equality operator for testing if any two Boxes are equal.
@@ -274,7 +279,7 @@ namespace RTE {
 		/// <param name="lhs">A Box reference as the left hand side operand.</param>
 		/// <param name="rhs">A Box reference as the right hand side operand.</param>
 		/// <returns>A boolean indicating whether the two operands are equal or not.</returns>
-		friend bool operator==(const Box &lhs, const Box &rhs) { return lhs.m_Corner == rhs.m_Corner && lhs.m_Width == rhs.m_Width && lhs.m_Height == rhs.m_Height; }
+		friend bool operator==(const Box& lhs, const Box& rhs) { return lhs.m_Corner == rhs.m_Corner && lhs.m_Width == rhs.m_Width && lhs.m_Height == rhs.m_Height; }
 
 		/// <summary>
 		/// An inequality operator for testing if any two Boxes are unequal.
@@ -282,17 +287,19 @@ namespace RTE {
 		/// <param name="lhs">A Box reference as the left hand side operand.</param>
 		/// <param name="rhs">A Box reference as the right hand side operand.</param>
 		/// <returns>A boolean indicating whether the two operands are unequal or not.</returns>
-		friend bool operator!=(const Box &lhs, const Box &rhs) { return lhs.m_Corner != rhs.m_Corner || lhs.m_Width != rhs.m_Width || lhs.m_Height != rhs.m_Height; }
+		friend bool operator!=(const Box& lhs, const Box& rhs) { return lhs.m_Corner != rhs.m_Corner || lhs.m_Width != rhs.m_Width || lhs.m_Height != rhs.m_Height; }
 #pragma endregion
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this.
 
 		/// <summary>
 		/// Clears all the member variables of this Box, effectively resetting the members of this abstraction level only.
 		/// </summary>
-		void Clear() { m_Corner.Reset(); m_Width = m_Height = 0; }
+		void Clear() {
+			m_Corner.Reset();
+			m_Width = m_Height = 0;
+		}
 	};
-}
+} // namespace RTE
 #endif
