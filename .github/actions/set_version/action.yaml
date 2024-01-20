@@ -1,0 +1,20 @@
+name: 'Set Version'
+description: 'Updates all references to the current game version'
+inputs:
+  new_release_version: 
+    description: 'The new version string'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Set Constants.h GameVersion
+      run: sed -i -E '/c_VersionString = /s/"[^"]*"/"${{inputs.new_release_version}}"/' Source/System/GameVersion.h
+      shell: bash
+
+    - uses: actions/setup-python@v3
+
+    - name: Rewrite meson version
+      run: |
+        pip install meson
+        meson rewrite kwargs set project // version ${{ inputs.new_release_version }}
+      shell: bash
