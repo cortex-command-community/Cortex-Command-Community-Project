@@ -1,8 +1,8 @@
 ---
 Language:        Cpp
 # BasedOnStyle:  LLVM
-AccessModifierOffset: -2
-AlignAfterOpenBracket: BlockIndent
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: false
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
@@ -25,23 +25,6 @@ AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: No
 BinPackArguments: true
 BinPackParameters: true
-BraceWrapping:
-  AfterCaseLabel:  false
-  AfterClass:      false
-  AfterControlStatement: false
-  AfterEnum:       false
-  AfterFunction:   false
-  AfterNamespace:  false
-  AfterObjCDeclaration: false
-  AfterStruct:     false
-  AfterUnion:      false
-  AfterExternBlock: false
-  BeforeCatch:     false
-  BeforeElse:      false
-  IndentBraces:    false
-  SplitEmptyFunction: false
-  SplitEmptyRecord: false
-  SplitEmptyNamespace: false
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Attach
 BreakBeforeInheritanceComma: false
@@ -56,7 +39,7 @@ ColumnLimit:    0
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
-#ContinuationIndentWidth: 4
+ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
 DeriveLineEnding: true
 DerivePointerAlignment: false
@@ -67,34 +50,20 @@ ForEachMacros:
   - foreach
   - Q_FOREACH
   - BOOST_FOREACH
+StatementMacros:
+  - SerializableClassNameGetter
+  - SerializableOverrideMethods
+  - ClassInfoGetters
 IncludeBlocks:   Preserve
-IncludeCategories:
-  - Regex:           '^"(llvm|llvm-c|clang|clang-c)/'
-    Priority:        2
-    SortPriority:    0
-  - Regex:           '^(<|"(gtest|gmock|isl|json)/)'
-    Priority:        3
-    SortPriority:    0
-  - Regex:           '.*'
-    Priority:        1
-    SortPriority:    0
-IncludeIsMainRegex: '(Test)?$'
-IncludeIsMainSourceRegex: ''
 IndentCaseLabels: true
 IndentGotoLabels: true
-IndentWidth:     2
+IndentWidth:     4
 IndentWrappedFunctionNames: false
-JavaScriptQuotes: Leave
-JavaScriptWrapImports: true
 KeepEmptyLinesAtTheStartOfBlocks: true
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
-ObjCBinPackProtocolList: Auto
-ObjCBlockIndentWidth: 2
-ObjCSpaceAfterProperty: false
-ObjCSpaceBeforeProtocolList: true
 PenaltyBreakAssignment: 2
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
@@ -102,9 +71,9 @@ PenaltyBreakFirstLessLess: 120
 PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
-PenaltyReturnTypeOnItsOwnLine: 60
+PenaltyReturnTypeOnItsOwnLine: 6000
 PointerAlignment: Left
-ReflowComments:  true
+ReflowComments:  false
 SortIncludes:    false
 SortUsingDeclarations: false
 SpaceAfterCStyleCast: false
@@ -130,7 +99,7 @@ Standard:        c++17
 StatementMacros:
   - Q_UNUSED
   - QT_REQUIRE_VERSION
-TabWidth: 2
+TabWidth: 4
 UseCRLF:         false
 UseTab:          ForIndentation
 ...
