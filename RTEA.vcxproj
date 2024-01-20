@@ -816,7 +816,7 @@
     <ClInclude Include="Source\Managers\ActivityMan.h" />
     <ClInclude Include="Source\Managers\AudioMan.h" />
     <ClInclude Include="Source\Managers\ConsoleMan.h" />
-    <ClInclude Include="managers\FrameMan.h" />
+    <ClInclude Include="Source\Managers\FrameMan.h" />
     <ClInclude Include="Source\Managers\LuaMan.h" />
     <ClInclude Include="Source\Managers\MetaMan.h" />
     <ClInclude Include="Source\Managers\MovableMan.h" />
