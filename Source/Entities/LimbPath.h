@@ -220,7 +220,7 @@ namespace RTE {
 
 		/// Gets the current segment as a number, rather than an iterator.
 		/// @return The current segment as a number.
-		int GetCurrentSegmentNumber() const;
+		unsigned int GetCurrentSegmentNumber() const;
 
 		/// Sets a new array of 'waypoints' or segments of this LimbPath.
 		/// @param newSpeed An int specifying how many segments there are in the following
