@@ -24,7 +24,7 @@ namespace RTE {
 		Vector targetPos;
 	};
 
-	using PathCompleteCallback = std::function<void (std::shared_ptr<volatile PathRequest>)>;
+	using PathCompleteCallback = std::function<void(std::shared_ptr<volatile PathRequest>)>;
 
 	/// <summary>
 	/// Contains everything related to a PathNode on the path grid used by PathFinder.
@@ -40,34 +40,34 @@ namespace RTE {
 		/// <summary>
 		/// Pointers to all adjacent PathNodes, in clockwise order with top first. These are not owned, and may be 0 if adjacent to non-wrapping scene border.
 		/// </summary>
-		std::array<PathNode *, c_MaxAdjacentNodeCount> AdjacentNodes;
-		PathNode *&Up = AdjacentNodes[0];
-		PathNode *&UpRight = AdjacentNodes[1];
-		PathNode *&Right = AdjacentNodes[2];
-		PathNode *&RightDown = AdjacentNodes[3];
-		PathNode *&Down = AdjacentNodes[4];
-		PathNode *&DownLeft = AdjacentNodes[5];
-		PathNode *&Left = AdjacentNodes[6];
-		PathNode *&LeftUp = AdjacentNodes[7];
+		std::array<PathNode*, c_MaxAdjacentNodeCount> AdjacentNodes;
+		PathNode*& Up = AdjacentNodes[0];
+		PathNode*& UpRight = AdjacentNodes[1];
+		PathNode*& Right = AdjacentNodes[2];
+		PathNode*& RightDown = AdjacentNodes[3];
+		PathNode*& Down = AdjacentNodes[4];
+		PathNode*& DownLeft = AdjacentNodes[5];
+		PathNode*& Left = AdjacentNodes[6];
+		PathNode*& LeftUp = AdjacentNodes[7];
 
 		/// <summary>
 		/// The strongest material between us and our adjacent PathNodes, in clockwise order with top first.
 		/// </summary>
-		std::array<const Material *, c_MaxAdjacentNodeCount> AdjacentNodeBlockingMaterials;
-		const Material *&UpMaterial = AdjacentNodeBlockingMaterials[0];
-		const Material *&UpRightMaterial = AdjacentNodeBlockingMaterials[1];
-		const Material *&RightMaterial = AdjacentNodeBlockingMaterials[2];
-		const Material *&RightDownMaterial = AdjacentNodeBlockingMaterials[3];
-		const Material *&DownMaterial = AdjacentNodeBlockingMaterials[4];
-		const Material *&DownLeftMaterial = AdjacentNodeBlockingMaterials[5];
-		const Material *&LeftMaterial = AdjacentNodeBlockingMaterials[6];
-		const Material *&LeftUpMaterial = AdjacentNodeBlockingMaterials[7];
+		std::array<const Material*, c_MaxAdjacentNodeCount> AdjacentNodeBlockingMaterials;
+		const Material*& UpMaterial = AdjacentNodeBlockingMaterials[0];
+		const Material*& UpRightMaterial = AdjacentNodeBlockingMaterials[1];
+		const Material*& RightMaterial = AdjacentNodeBlockingMaterials[2];
+		const Material*& RightDownMaterial = AdjacentNodeBlockingMaterials[3];
+		const Material*& DownMaterial = AdjacentNodeBlockingMaterials[4];
+		const Material*& DownLeftMaterial = AdjacentNodeBlockingMaterials[5];
+		const Material*& LeftMaterial = AdjacentNodeBlockingMaterials[6];
+		const Material*& LeftUpMaterial = AdjacentNodeBlockingMaterials[7];
 
 		/// <summary>
 		/// Constructor method used to instantiate a PathNode object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="pos">Absolute position of the center of the PathNode in the scene.</param>
-		explicit PathNode(const Vector &pos);
+		explicit PathNode(const Vector& pos);
 	};
 
 	/// <summary>
@@ -76,14 +76,16 @@ namespace RTE {
 	class PathFinder : public Graph {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a PathFinder object.
 		/// </summary>
 		/// <param name="nodeDimension">The width and height in scene pixels that of each PathNode should represent.</param>
 		/// <param name="allocate">The block size that the PathNode cache is allocated from. Should be about a fourth of the total number of PathNodes.</param>
-		PathFinder(int nodeDimension) { Clear(); Create(nodeDimension); }
+		PathFinder(int nodeDimension) {
+			Clear();
+			Create(nodeDimension);
+		}
 
 		/// <summary>
 		/// Makes the PathFinder object ready for use.
@@ -121,7 +123,7 @@ namespace RTE {
 		/// <param name="totalCostResult">The total minimum difficulty cost calculated between the two points on the scene.</param>
 		/// <param name="digStrength">What material strength the search is capable of digging through.</param>
 		/// <returns>Success or failure, expressed as SOLVED, NO_SOLUTION, or START_END_SAME.</returns>
-		int CalculatePath(Vector start, Vector end, std::list<Vector> &pathResult, float &totalCostResult, float digStrength);
+		int CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float digStrength);
 
 		/// <summary>
 		/// Calculates and returns the least difficult path between two points on the current scene.
@@ -151,7 +153,7 @@ namespace RTE {
 		/// <param name="boxList">The deque of Boxes representing the updated areas.</param>
 		/// <param name="nodeUpdateLimit">The maximum number of PathNodes we'll try to update this frame. True PathNode update count can be higher if we received a big box, as we always do at least 1 box.</param>
 		/// <returns>The set of PathNode ids that were updated.</returns>
-		std::vector<int> RecalculateAreaCosts(std::deque<Box> &boxList, int nodeUpdateLimit);
+		std::vector<int> RecalculateAreaCosts(std::deque<Box>& boxList, int nodeUpdateLimit);
 
 		/// <summary>
 		/// Updates a set of PathNodes, adjusting their transitions.
@@ -159,7 +161,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="nodeVec">The set of PathNode IDs to update.</param>
 		/// <returns>Whether any PathNode costs changed.</returns>
-		bool UpdateNodeList(const std::vector<int> &nodeVec);
+		bool UpdateNodeList(const std::vector<int>& nodeVec);
 
 		/// <summary>
 		/// Implementation of the abstract interface of Graph.
@@ -168,7 +170,7 @@ namespace RTE {
 		/// <param name="startState">Pointer to PathNode to start from. OWNERSHIP IS NOT TRANSFERRED!</param>
 		/// <param name="endState">PathNode to end up at. OWNERSHIP IS NOT TRANSFERRED!</param>
 		/// <returns>The cost of the absolutely fastest possible way between the two points, as if traveled through air all the way.</returns>
-		float LeastCostEstimate(void *startState, void *endState) override;
+		float LeastCostEstimate(void* startState, void* endState) override;
 
 		/// <summary>
 		/// Implementation of the abstract interface of Graph.
@@ -176,7 +178,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="state">Pointer to PathNode to get to cost of all adjacents for. OWNERSHIP IS NOT TRANSFERRED!</param>
 		/// <param name="adjacentList">An empty vector which will be filled out with all the valid PathNodes adjacent to the one passed in. If at non-wrapping edge of seam, those non existent PathNodes won't be added.</param>
-		void AdjacentCost(void *state, std::vector<micropather::StateCost> *adjacentList) override;
+		void AdjacentCost(void* state, std::vector<micropather::StateCost>* adjacentList) override;
 
 		/// <summary>
 		/// Returns whether two position represent the same path nodes.
@@ -207,15 +209,14 @@ namespace RTE {
 		/// Since void* aren't really human readable, this will print out some concise info without an ending newline.
 		/// </summary>
 		/// <param name="state">The state to print out info about.</param>
-		void PrintStateInfo(void *state) override {}
+		void PrintStateInfo(void* state) override {}
 #pragma endregion
 
 	private:
-
 		static constexpr float c_NodeCostChangeEpsilon = 5.0F; //!< The minimum change in a PathNodes's cost for the pathfinder to recognize a change and reset itself. This is so minor changes (e.g. blood particles) don't force constant pathfinder resets.
 
-		MicroPather *m_Pather; //!< The actual pathing object that does the pathfinding work. Owned.
-		std::vector<PathNode> m_NodeGrid;  //!< The array of PathNodes representing the grid on the scene.
+		MicroPather* m_Pather; //!< The actual pathing object that does the pathfinding work. Owned.
+		std::vector<PathNode> m_NodeGrid; //!< The array of PathNodes representing the grid on the scene.
 		unsigned int m_NodeDimension; //!< The width and height of each PathNode, in pixels on the scene.
 		int m_GridWidth; //!< The width of the pathing grid, in PathNodes.
 		int m_GridHeight; //!< The height of the pathing grid, in PathNodes.
@@ -227,7 +228,7 @@ namespace RTE {
 		/// Gets the pather for this thread. Lazily-initialized for each new thread that needs a pather.
 		/// </summary>
 		/// <returns>The pather for this thread.</returns>
-		MicroPather * GetPather();
+		MicroPather* GetPather();
 
 #pragma region Path Cost Updates
 		/// <summary>
@@ -236,7 +237,7 @@ namespace RTE {
 		/// <param name="start">Origin point.</param>
 		/// <param name="end">Destination point.</param>
 		/// <returns>The strongest material.</returns>
-		const Material * StrongestMaterialAlongLine(const Vector &start, const Vector &end) const;
+		const Material* StrongestMaterialAlongLine(const Vector& start, const Vector& end) const;
 
 		/// <summary>
 		/// Helper function for updating all the values of cost edges going out from a specific PathNodes.
@@ -244,7 +245,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="node">The PathNode to update all costs of. It's safe to pass nullptr here. OWNERSHIP IS NOT TRANSFERRED!</param>
 		/// <returns>Whether the PathNodes costs changed.</returns>
-		bool UpdateNodeCosts(PathNode *node) const;
+		bool UpdateNodeCosts(PathNode* node) const;
 
 		/// <summary>
 		/// Helper function for getting the PathNode ids in a Box.
@@ -258,14 +259,14 @@ namespace RTE {
 		/// </summary>
 		/// <param name="material">The Material to get the transition cost for.</param>
 		/// <returns>The transition cost for the Material.</returns>
-		float GetMaterialTransitionCost(const Material &material) const;
+		float GetMaterialTransitionCost(const Material& material) const;
 
 		/// <summary>
 		/// Gets the average cost for all transitions out of this PathNode, ignoring infinities/unpathable transitions.
 		/// </summary>
 		/// <param name="node">The PathNode to get the average transition cost for.</param>
 		/// <returns>The average transition cost.</returns>
-		float GetNodeAverageTransitionCost(const PathNode &node) const;
+		float GetNodeAverageTransitionCost(const PathNode& node) const;
 #pragma endregion
 
 		/// <summary>
@@ -274,7 +275,7 @@ namespace RTE {
 		/// <param name="x">The X coordinate, in PathNodes.</param>
 		/// <param name="y">The Y coordinate, in PathNodes.</param>
 		/// <returns>The PathNode at the given coordinates.</returns>
-		PathNode * GetPathNodeAtGridCoords(int x, int y);
+		PathNode* GetPathNodeAtGridCoords(int x, int y);
 
 		/// <summary>
 		/// Gets the PathNode id at the given coordinates.
@@ -290,8 +291,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		PathFinder(const PathFinder &reference) = delete;
-		PathFinder & operator=(const PathFinder &rhs) = delete;
+		PathFinder(const PathFinder& reference) = delete;
+		PathFinder& operator=(const PathFinder& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

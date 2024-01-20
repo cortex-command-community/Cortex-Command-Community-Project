@@ -24,13 +24,13 @@
 
 namespace RTE {
 
-	void SDLWindowDeleter::operator()(SDL_Window *window) const { SDL_DestroyWindow(window); }
-	void SDLRendererDeleter::operator()(SDL_Renderer *renderer) const { SDL_DestroyRenderer(renderer); }
-	void SDLTextureDeleter::operator()(SDL_Texture *texture) const { SDL_DestroyTexture(texture); }
+	void SDLWindowDeleter::operator()(SDL_Window* window) const { SDL_DestroyWindow(window); }
+	void SDLRendererDeleter::operator()(SDL_Renderer* renderer) const { SDL_DestroyRenderer(renderer); }
+	void SDLTextureDeleter::operator()(SDL_Texture* texture) const { SDL_DestroyTexture(texture); }
 
 	void SDLContextDeleter::operator()(SDL_GLContext context) const { SDL_GL_DeleteContext(context); }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::Clear() {
 		m_EventQueue.clear();
@@ -67,7 +67,7 @@ namespace RTE {
 		m_UseMultiDisplays = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::ClearMultiDisplayData() {
 		m_MultiDisplayTextureOffsets.clear();
@@ -75,13 +75,13 @@ namespace RTE {
 		m_MultiDisplayWindows.clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	WindowMan::WindowMan() {
 		Clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	WindowMan::~WindowMan() = default;
 
@@ -93,7 +93,7 @@ namespace RTE {
 		glDeleteFramebuffers(1, &m_ScreenBufferFBO);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::Initialize() {
 		m_NumDisplays = SDL_GetNumVideoDisplays();
@@ -129,7 +129,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::CreatePrimaryWindow() {
 		std::string windowTitle = "Cortex Command Community Project";
@@ -180,7 +180,7 @@ namespace RTE {
 		}
 
 #ifdef __linux__
-		SDL_Surface *iconSurface = IMG_ReadXPMFromArray(ccicon);
+		SDL_Surface* iconSurface = IMG_ReadXPMFromArray(ccicon);
 		if (iconSurface) {
 			SDL_SetWindowIcon(m_PrimaryWindow.get(), iconSurface);
 			SDL_FreeSurface(iconSurface);
@@ -213,7 +213,7 @@ namespace RTE {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(c_Quad), c_Quad.data(), GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
 		glGenTextures(1, &m_BackBuffer32Texture);
@@ -222,7 +222,7 @@ namespace RTE {
 		TracyGpuContext;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::CreateBackBufferTexture() {
 		glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture);
@@ -235,7 +235,7 @@ namespace RTE {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int WindowMan::GetWindowResX() {
 		int w, h;
@@ -263,7 +263,7 @@ namespace RTE {
 		SDL_GL_SetSwapInterval(sdlEnableVSync);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::UpdatePrimaryDisplayInfo() {
 		m_PrimaryWindowDisplayIndex = SDL_GetWindowDisplayIndex(m_PrimaryWindow.get());
@@ -276,14 +276,14 @@ namespace RTE {
 	}
 
 	SDL_Rect WindowMan::GetUsableBoundsWithDecorations(int display) {
-		if(m_Fullscreen) {
+		if (m_Fullscreen) {
 			SDL_Rect displayBounds;
 			SDL_GetDisplayBounds(display, &displayBounds);
 			return displayBounds;
 		}
 		SDL_Rect displayBounds;
 		SDL_GetDisplayUsableBounds(display, &displayBounds);
-	
+
 		int top, left, bottom, right;
 		SDL_GetWindowBordersSize(m_PrimaryWindow.get(), &top, &left, &bottom, &right);
 		displayBounds.x += left;
@@ -298,15 +298,14 @@ namespace RTE {
 		if (resMultiplier == 1) {
 			return (resX == displayBounds.w) && (resY == displayBounds.h);
 		} else {
-			return glm::epsilonEqual<float>(resX * resMultiplier, displayBounds.w, resMultiplier) 
-				&& glm::epsilonEqual<float>(resY * resMultiplier, displayBounds.h, resMultiplier);
+			return glm::epsilonEqual<float>(resX * resMultiplier, displayBounds.w, resMultiplier) && glm::epsilonEqual<float>(resY * resMultiplier, displayBounds.h, resMultiplier);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::MapDisplays(bool updatePrimaryDisplayInfo) {
-		auto setSingleDisplayMode = [this](const std::string &errorMsg = "") {
+		auto setSingleDisplayMode = [this](const std::string& errorMsg = "") {
 			m_MaxResX = m_PrimaryWindowDisplayWidth;
 			m_MaxResY = m_PrimaryWindowDisplayHeight;
 			m_MaxResMultiplier = std::min<float>(m_MaxResX / static_cast<float>(c_MinResX), m_MaxResY / static_cast<float>(c_MinResY));
@@ -361,11 +360,11 @@ namespace RTE {
 		}
 
 		std::stable_sort(m_ValidDisplayIndicesAndBoundsForMultiDisplayFullscreen.begin(), m_ValidDisplayIndicesAndBoundsForMultiDisplayFullscreen.end(),
-			[](auto left, auto right) {
-				return left.second.x < right.second.x;
-			});
+		                 [](auto left, auto right) {
+			                 return left.second.x < right.second.x;
+		                 });
 
-		for (const auto &[displayIndex, displayBounds] : m_ValidDisplayIndicesAndBoundsForMultiDisplayFullscreen) {
+		for (const auto& [displayIndex, displayBounds]: m_ValidDisplayIndicesAndBoundsForMultiDisplayFullscreen) {
 			// Translate display offsets to backbuffer offsets, where the top left corner is (0,0) to figure out if the display arrangement is unreasonable garbage, i.e not top or bottom edge aligned.
 			// If any of the translated offsets ends up negative, or over-positive for the Y offset, disallow going into multi-display fullscreen
 			// because we'll just end up with an access violation when trying to read from the backbuffer pixel array during rendering.
@@ -378,7 +377,7 @@ namespace RTE {
 			}
 		}
 
-		for (const auto &[displayIndex, displayBounds] : m_ValidDisplayIndicesAndBoundsForMultiDisplayFullscreen) {
+		for (const auto& [displayIndex, displayBounds]: m_ValidDisplayIndicesAndBoundsForMultiDisplayFullscreen) {
 #if SDL_VERSION_ATLEAST(2, 24, 0)
 			m_DisplayArrangmentLeftMostDisplayIndex = SDL_GetRectDisplayIndex(&displayBounds);
 			if (m_DisplayArrangmentLeftMostDisplayIndex >= 0) {
@@ -404,17 +403,16 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void WindowMan::ValidateResolution(int &resX, int &resY, float &resMultiplier) const {
+	void WindowMan::ValidateResolution(int& resX, int& resY, float& resMultiplier) const {
 		if (resX < c_MinResX || resY < c_MinResY) {
 			resX = c_MinResX;
 			resY = c_MinResY;
 			resMultiplier = 1.0f;
 			RTEError::ShowMessageBox("Resolution too low, overriding to fit!");
 			g_SettingsMan.SetSettingsNeedOverwrite();
-		}
-		else if (resMultiplier > m_MaxResMultiplier) {
+		} else if (resMultiplier > m_MaxResMultiplier) {
 			resMultiplier = 1.0f;
 			RTEError::ShowMessageBox("Resolution multiplier too high, overriding to fit!");
 			g_SettingsMan.SetSettingsNeedOverwrite();
@@ -440,7 +438,7 @@ namespace RTE {
 		m_PrimaryWindowViewport = std::make_unique<SDL_Rect>(offsetX, windowH - offsetY - height, width, height);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::AttemptToRevertToPreviousResolution(bool revertToDefaults) {
 		auto setDefaultResSettings = [this]() {
@@ -474,7 +472,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::ChangeResolution(int newResX, int newResY, float newResMultiplier, bool fullscreen, bool displaysAlreadyMapped) {
 
@@ -540,7 +538,7 @@ namespace RTE {
 		g_ConsoleMan.PrintString("SYSTEM: " + std::string(!recoveredToPreviousSettings ? "Switched to different resolution." : "Failed to switch to different resolution. Reverted to previous settings."));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::ToggleFullscreen() {
 		bool fullscreen = !m_Fullscreen;
@@ -557,7 +555,7 @@ namespace RTE {
 			ChangeResolution(m_ResX, m_ResY, m_ResMultiplier, fullscreen, true);
 		}
 
-		if(!fullscreen) {
+		if (!fullscreen) {
 			SDL_SetWindowFullscreen(m_PrimaryWindow.get(), 0);
 			SDL_SetWindowMinimumSize(m_PrimaryWindow.get(), c_MinResX, c_MinResY);
 		} else {
@@ -571,7 +569,7 @@ namespace RTE {
 		SetViewportLetterboxed();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool WindowMan::ChangeResolutionToMultiDisplayFullscreen(float resMultiplier) {
 		if (!m_CanMultiDisplayFullscreen) {
@@ -589,7 +587,7 @@ namespace RTE {
 
 		bool errorSettingFullscreen = false;
 
-		for (const auto &[displayIndex, displayBounds] : m_ValidDisplayIndicesAndBoundsForMultiDisplayFullscreen) {
+		for (const auto& [displayIndex, displayBounds]: m_ValidDisplayIndicesAndBoundsForMultiDisplayFullscreen) {
 			int displayOffsetX = displayBounds.x;
 			int displayOffsetY = displayBounds.y;
 			int displayWidth = displayBounds.w;
@@ -613,11 +611,11 @@ namespace RTE {
 
 			glm::mat4 textureOffset = glm::translate(glm::mat4(1), {m_DisplayArrangementLeftMostOffset, m_DisplayArrangementTopMostOffset, 0.0f});
 			textureOffset = glm::scale(textureOffset, {m_MaxResX * 0.5f, m_MaxResY * 0.5f, 1.0f});
-			textureOffset = glm::translate(textureOffset, {1.0f, 1.0f, 0.0f}); //Shift the quad so we're scaling from top left instead of center.
+			textureOffset = glm::translate(textureOffset, {1.0f, 1.0f, 0.0f}); // Shift the quad so we're scaling from top left instead of center.
 
 			m_MultiDisplayTextureOffsets.emplace_back(textureOffset);
 			glm::mat4 projection = glm::ortho(static_cast<float>(textureOffsetX), static_cast<float>(textureOffsetX + displayWidth), static_cast<float>(textureOffsetY), static_cast<float>(textureOffsetY + displayHeight), -1.0f, 1.0f);
-			m_MultiDisplayProjections.emplace_back( projection);
+			m_MultiDisplayProjections.emplace_back(projection);
 		}
 
 		if (errorSettingFullscreen) {
@@ -630,14 +628,14 @@ namespace RTE {
 		return true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void WindowMan::DisplaySwitchIn(SDL_Window *windowThatShouldTakeInputFocus) const {
+	void WindowMan::DisplaySwitchIn(SDL_Window* windowThatShouldTakeInputFocus) const {
 		g_UInputMan.DisableMouseMoving(false);
 		g_UInputMan.DisableKeys(false);
 
 		if (!m_MultiDisplayWindows.empty()) {
-			for (const auto &window : m_MultiDisplayWindows) {
+			for (const auto& window: m_MultiDisplayWindows) {
 				SDL_RaiseWindow(window.get());
 			}
 			SDL_RaiseWindow(windowThatShouldTakeInputFocus);
@@ -649,7 +647,7 @@ namespace RTE {
 		SDL_ShowCursor(SDL_DISABLE);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::DisplaySwitchOut() const {
 		g_UInputMan.DisableMouseMoving(true);
@@ -660,16 +658,16 @@ namespace RTE {
 		SDL_SetCursor(nullptr);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void WindowMan::QueueWindowEvent(const SDL_Event &windowEvent) {
+	void WindowMan::QueueWindowEvent(const SDL_Event& windowEvent) {
 		if (g_UInputMan.IsInMultiplayerMode()) {
 			return;
 		}
 		m_EventQueue.emplace_back(windowEvent);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::Update() {
 		// Some bullshit we have to deal with to correctly focus windows in multi-display fullscreen so mouse binding/unbinding works correctly. Not relevant for single window.
@@ -693,7 +691,7 @@ namespace RTE {
 			switch (windowEvent.window.event) {
 				case SDL_WINDOWEVENT_ENTER:
 					if (SDL_GetWindowID(SDL_GetMouseFocus()) > 0 && m_AnyWindowHasFocus && FullyCoversAllDisplays()) {
-						for (const auto &window : m_MultiDisplayWindows) {
+						for (const auto& window: m_MultiDisplayWindows) {
 							SDL_RaiseWindow(window.get());
 						}
 						SDL_RaiseWindow(SDL_GetWindowFromID(windowID));
@@ -724,7 +722,7 @@ namespace RTE {
 		m_EventQueue.clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::ClearRenderer() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -737,7 +735,7 @@ namespace RTE {
 		m_DrawPostProcessBuffer = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void WindowMan::UploadFrame() {
 		TracyGpuZone("Upload Frame");

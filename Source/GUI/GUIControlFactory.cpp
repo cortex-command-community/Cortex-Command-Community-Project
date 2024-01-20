@@ -18,7 +18,7 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIControl * GUIControlFactory::CreateControl(GUIManager *Manager, GUIControlManager *ControlManager, const std::string &ControlName) {
+GUIControl* GUIControlFactory::CreateControl(GUIManager* Manager, GUIControlManager* ControlManager, const std::string& ControlName) {
 	// Button
 	if (ControlName.compare(GUIButton::GetControlID()) == 0) {
 		return new GUIButton(Manager, ControlManager);

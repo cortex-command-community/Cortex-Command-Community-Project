@@ -14,7 +14,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LoadingScreen::Clear() {
 		m_LoadingLogWriter = nullptr;
@@ -24,9 +24,9 @@ namespace RTE {
 		m_ProgressListboxPosY = 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LoadingScreen::Create(AllegroScreen *guiScreen, GUIInputWrapper *guiInput, bool progressReportDisabled) {
+	void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool progressReportDisabled) {
 		GUIControlManager loadingScreenManager;
 		RTEAssert(loadingScreenManager.Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "LoadingScreenSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/LoadingScreenSkin.ini");
 		loadingScreenManager.Load("Base.rte/GUIs/LoadingGUI.ini");
@@ -59,14 +59,14 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LoadingScreen::CreateLoadingSplash(int xOffset) {
 		if (m_LoadingSplashBitmap) {
 			destroy_bitmap(m_LoadingSplashBitmap);
 			m_LoadingSplashBitmap = nullptr;
 		}
-		const BITMAP *backbuffer = g_FrameMan.GetBackBuffer32();
+		const BITMAP* backbuffer = g_FrameMan.GetBackBuffer32();
 
 		m_LoadingSplashBitmap = create_bitmap_ex(FrameMan::c_BPP, backbuffer->w, backbuffer->h);
 		clear_bitmap(m_LoadingSplashBitmap);
@@ -79,14 +79,16 @@ namespace RTE {
 		loadingSplash.Draw(m_LoadingSplashBitmap, loadingSplashTargetBox);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LoadingScreen::CreateProgressReportListbox(GUIControlManager *parentControlManager) {
-		dynamic_cast<GUICollectionBox *>(parentControlManager->GetControl("root"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
-		GUIListBox *listBox = dynamic_cast<GUIListBox *>(parentControlManager->GetControl("ProgressBox"));
+	void LoadingScreen::CreateProgressReportListbox(GUIControlManager* parentControlManager) {
+		dynamic_cast<GUICollectionBox*>(parentControlManager->GetControl("root"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
+		GUIListBox* listBox = dynamic_cast<GUIListBox*>(parentControlManager->GetControl("ProgressBox"));
 
 		// Make the box a bit bigger if there's room in higher, HD resolutions.
-		if (g_WindowMan.GetResX() >= c_DefaultResX) { listBox->Resize((g_WindowMan.GetResX() / 3) - 12, listBox->GetHeight()); }
+		if (g_WindowMan.GetResX() >= c_DefaultResX) {
+			listBox->Resize((g_WindowMan.GetResX() / 3) - 12, listBox->GetHeight());
+		}
 
 		listBox->SetPositionRel(g_WindowMan.GetResX() - listBox->GetWidth() - 12, (g_WindowMan.GetResY() / 2) - (listBox->GetHeight() / 2));
 		listBox->ClearList();
@@ -102,7 +104,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LoadingScreen::Destroy() {
 		destroy_bitmap(m_LoadingSplashBitmap);
@@ -112,15 +114,21 @@ namespace RTE {
 		Clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LoadingScreen::LoadingSplashProgressReport(const std::string &reportString, bool newItem) {
-		if (System::IsLoggingToCLI()) { System::PrintLoadingToCLI(reportString, newItem); }
+	void LoadingScreen::LoadingSplashProgressReport(const std::string& reportString, bool newItem) {
+		if (System::IsLoggingToCLI()) {
+			System::PrintLoadingToCLI(reportString, newItem);
+		}
 
 		if (newItem) {
 			// Write out the last line to the log file before starting a new one and scroll the bitmap upwards.
-			if (g_LoadingScreen.m_LoadingLogWriter) { g_LoadingScreen.m_LoadingLogWriter->NewLineString(reportString, false); }
-			if (g_LoadingScreen.m_ProgressListboxBitmap) { blit(g_LoadingScreen.m_ProgressListboxBitmap, g_LoadingScreen.m_ProgressListboxBitmap, 2, 12, 2, 2, g_LoadingScreen.m_ProgressListboxBitmap->w - 3, g_LoadingScreen.m_ProgressListboxBitmap->h - 12); }
+			if (g_LoadingScreen.m_LoadingLogWriter) {
+				g_LoadingScreen.m_LoadingLogWriter->NewLineString(reportString, false);
+			}
+			if (g_LoadingScreen.m_ProgressListboxBitmap) {
+				blit(g_LoadingScreen.m_ProgressListboxBitmap, g_LoadingScreen.m_ProgressListboxBitmap, 2, 12, 2, 2, g_LoadingScreen.m_ProgressListboxBitmap->w - 3, g_LoadingScreen.m_ProgressListboxBitmap->h - 12);
+			}
 		}
 
 		if (g_LoadingScreen.m_ProgressListboxBitmap) {
@@ -141,9 +149,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LoadingScreen::DrawLoadingSplash() {
 		draw_sprite(g_FrameMan.GetBackBuffer32(), m_LoadingSplashBitmap, 0, 0);
 	}
-}
+} // namespace RTE

@@ -9,13 +9,12 @@ namespace RTE {
 	class System {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Store the current working directory and create any missing subdirectories.
 		/// </summary>
 		/// <param name="thisExePathAndName">The path and name of this executable.</param>
-		static void Initialize(const char *thisExePathAndName);
+		static void Initialize(const char* thisExePathAndName);
 #pragma endregion
 
 #pragma region Program Termination
@@ -42,56 +41,56 @@ namespace RTE {
 		/// Gets the absolute path to this executable.
 		/// </summary>
 		/// <returns>Absolute path to this executable.</returns>
-		static const std::string & GetThisExePathAndName() { return s_ThisExePathAndName; }
+		static const std::string& GetThisExePathAndName() { return s_ThisExePathAndName; }
 
 		/// <summary>
 		/// Gets the current working directory.
 		/// </summary>
 		/// <returns>Absolute path to current working directory.</returns>
-		static const std::string & GetWorkingDirectory() { return s_WorkingDirectory; }
+		static const std::string& GetWorkingDirectory() { return s_WorkingDirectory; }
 
 		/// <summary>
 		/// Gets the game data directory name.
 		/// </summary>
 		/// <returns>Folder name of the game data directory.</returns>
-		static const std::string & GetDataDirectory() { return s_DataDirectory; }
+		static const std::string& GetDataDirectory() { return s_DataDirectory; }
 
 		/// <summary>
 		/// Gets the screenshot directory name.
 		/// </summary>
 		/// <returns>Folder name of the screenshots directory.</returns>
-		static const std::string & GetScreenshotDirectory() { return s_ScreenshotDirectory; }
+		static const std::string& GetScreenshotDirectory() { return s_ScreenshotDirectory; }
 
 		/// <summary>
 		/// Gets the mod directory name.
 		/// </summary>
 		/// <returns>Folder name of the mod directory.</returns>
-		static const std::string & GetModDirectory() { return s_ModDirectory; }
+		static const std::string& GetModDirectory() { return s_ModDirectory; }
 
 		/// <summary>
 		/// Gets the userdata directory name.
 		/// </summary>
 		/// <returns>Folder name of the userdata directory.</returns>
-		static const std::string & GetUserdataDirectory() { return s_UserdataDirectory; }
+		static const std::string& GetUserdataDirectory() { return s_UserdataDirectory; }
 
 		/// <summary>
 		/// Gets the extension that determines a directory/file is an RTE module.
 		/// </summary>
 		/// <returns>String containing the RTE module extension.</returns>
-		static const std::string & GetModulePackageExtension() { return s_ModulePackageExtension; }
+		static const std::string& GetModulePackageExtension() { return s_ModulePackageExtension; }
 
 		/// <summary>
 		/// Gets the extension that determines a file is a zipped RTE module.
 		/// </summary>
 		/// <returns>String containing the zipped RTE module extension.</returns>
-		static const std::string & GetZippedModulePackageExtension() { return s_ZippedModulePackageExtension; }
+		static const std::string& GetZippedModulePackageExtension() { return s_ZippedModulePackageExtension; }
 
 		/// <summary>
 		/// Create a directory.
 		/// </summary>
 		/// <param name="path">Path to create.</param>
 		/// <returns>Returns 0 if successful.</returns>
-		static bool MakeDirectory(const std::string &pathToMake);
+		static bool MakeDirectory(const std::string& pathToMake);
 #pragma endregion
 
 #pragma region Filesystem
@@ -112,10 +111,10 @@ namespace RTE {
 		/// </summary>
 		/// <param name="pathToCheck">The path to check.</param>
 		/// <returns>Whether the file exists.</returns>
-		static bool PathExistsCaseSensitive(const std::string &pathToCheck);
+		static bool PathExistsCaseSensitive(const std::string& pathToCheck);
 #pragma endregion
 
-#pragma region Command-Line Interface
+#pragma region Command - Line Interface
 		/// <summary>
 		/// Tells whether printing loading progress report and console to command-line is enabled or not.
 		/// </summary>
@@ -130,13 +129,13 @@ namespace RTE {
 		/// <summary>
 		/// Prints the loading progress report to command-line.
 		/// </summary>
-		static void PrintLoadingToCLI(const std::string &reportString, bool newItem = false);
+		static void PrintLoadingToCLI(const std::string& reportString, bool newItem = false);
 
 		/// <summary>
 		/// Prints console output to command-line.
 		/// </summary>
 		/// <param name="inputString"></param>
-		static void PrintToCLI(const std::string &stringToPrint);
+		static void PrintToCLI(const std::string& stringToPrint);
 #pragma endregion
 
 #pragma region Archived DataModule Handling
@@ -145,7 +144,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="zippedModulePath">Path to the module to extract.</param>
 		/// <returns>A string containing the progress report of the extraction.</returns>
-		static std::string ExtractZippedDataModule(const std::string &zippedModulePath);
+		static std::string ExtractZippedDataModule(const std::string& zippedModulePath);
 #pragma endregion
 
 #pragma region Module Validation
@@ -166,7 +165,7 @@ namespace RTE {
 		/// Fires up the default browser for the current OS on a specific URL.
 		/// </summary>
 		/// <param name="goToURL">A string with the URL to send the browser to.</param>
-		static void OpenBrowserToURL(const std::string_view &goToURL) { std::system(std::string("start ").append(goToURL).c_str()); }
+		static void OpenBrowserToURL(const std::string_view& goToURL) { std::system(std::string("start ").append(goToURL).c_str()); }
 
 		/// <summary>
 		/// Searches through an ASCII file on disk for a specific string and tells whether it was found or not.
@@ -174,11 +173,10 @@ namespace RTE {
 		/// <param name="">The path to the ASCII file to search.</param>
 		/// <param name="">The exact string to look for. Case sensitive!</param>
 		/// <returns>0 if the string was found in the file or 1 if not. -1 if the file was inaccessible.</returns>
-		static int ASCIIFileContainsString(const std::string & filePath, const std::string_view & findString);
+		static int ASCIIFileContainsString(const std::string& filePath, const std::string_view& findString);
 #pragma endregion
 
 	private:
-
 		static bool s_Quit; //!< Whether the user requested program termination through GUI or the window close button.
 		static bool s_LogToCLI; //!< Bool to tell whether to print the loading log and anything specified with PrintToCLI to command-line or not.
 		static bool s_ExternalModuleValidation; //!< Whether to run the program in a special mode where it will immediately quit without any messages after either successful loading of all modules or aborting during loading. For use by an external tool.
@@ -200,5 +198,5 @@ namespace RTE {
 		static constexpr int s_FileBufferSize = 8192; //!< Buffer to hold data read from the zip file.
 		static constexpr int s_MaxUnzippedFileSize = 104857600; //!< Maximum size of single file being extracted from zip archive (100MiB).
 	};
-}
+} // namespace RTE
 #endif

@@ -6,7 +6,7 @@ namespace RTE {
 
 	ConcreteClassInfo(Leg, Attachable, 50);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Leg::Clear() {
 		m_Foot = nullptr;
@@ -27,7 +27,7 @@ namespace RTE {
 		m_MoveSpeed = 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Leg::Create() {
 		if (Attachable::Create() < 0) {
@@ -40,7 +40,9 @@ namespace RTE {
 		// Ensure Legs don't collide with terrain when attached since their expansion/contraction is frame based so atom group doesn't know how to account for it.
 		SetCollidesWithTerrainWhileAttached(false);
 
-		if (m_ContractedOffset.GetSqrMagnitude() > m_ExtendedOffset.GetSqrMagnitude()) { std::swap(m_ContractedOffset, m_ExtendedOffset); }
+		if (m_ContractedOffset.GetSqrMagnitude() > m_ExtendedOffset.GetSqrMagnitude()) {
+			std::swap(m_ContractedOffset, m_ExtendedOffset);
+		}
 
 		m_MinExtension = m_ContractedOffset.GetMagnitude();
 		m_MaxExtension = m_ExtendedOffset.GetMagnitude();
@@ -48,12 +50,12 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Leg::Create(const Leg &reference) {
+	int Leg::Create(const Leg& reference) {
 		if (reference.m_Foot) {
 			m_ReferenceHardcodedAttachableUniqueIDs.insert(reference.m_Foot->GetUniqueID());
-			SetFoot(dynamic_cast<Attachable *>(reference.m_Foot->Clone()));
+			SetFoot(dynamic_cast<Attachable*>(reference.m_Foot->Clone()));
 		}
 		Attachable::Create(reference);
 
@@ -75,12 +77,12 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Leg::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int Leg::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Attachable::ReadProperty(propName, reader));
-		
-		MatchProperty("Foot", { SetFoot(dynamic_cast<Attachable *>(g_PresetMan.ReadReflectedPreset(reader))); });
+
+		MatchProperty("Foot", { SetFoot(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
 		MatchProperty("ContractedOffset", {
 			reader >> m_ContractedOffset;
 			m_MinExtension = m_ContractedOffset.GetMagnitude();
@@ -96,9 +98,9 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Leg::Save(Writer &writer) const {
+	int Leg::Save(Writer& writer) const {
 		Attachable::Save(writer);
 
 		writer.NewProperty("Foot");
@@ -117,41 +119,45 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Leg::SetFoot(Attachable *newFoot) {
-		if (m_Foot && m_Foot->IsAttached()) { RemoveAndDeleteAttachable(m_Foot); }
+	void Leg::SetFoot(Attachable* newFoot) {
+		if (m_Foot && m_Foot->IsAttached()) {
+			RemoveAndDeleteAttachable(m_Foot);
+		}
 		if (newFoot == nullptr) {
 			m_Foot = nullptr;
 		} else {
 			m_Foot = newFoot;
 			AddAttachable(newFoot);
 
-			m_HardcodedAttachableUniqueIDsAndSetters.insert({newFoot->GetUniqueID(), [](MOSRotating *parent, Attachable *attachable) {
-				dynamic_cast<Leg *>(parent)->SetFoot(attachable);
-			}});
+			m_HardcodedAttachableUniqueIDsAndSetters.insert({newFoot->GetUniqueID(), [](MOSRotating* parent, Attachable* attachable) {
+				                                                 dynamic_cast<Leg*>(parent)->SetFoot(attachable);
+			                                                 }});
 
-			if (m_Foot->HasNoSetDamageMultiplier()) { m_Foot->SetDamageMultiplier(1.0F); }
+			if (m_Foot->HasNoSetDamageMultiplier()) {
+				m_Foot->SetDamageMultiplier(1.0F);
+			}
 			m_Foot->SetInheritsRotAngle(false);
 			m_Foot->SetParentGibBlastStrengthMultiplier(0.0F);
 			m_Foot->SetCollidesWithTerrainWhileAttached(false);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	AtomGroup * Leg::GetFootGroupFromFootAtomGroup() {
+	AtomGroup* Leg::GetFootGroupFromFootAtomGroup() {
 		if (!m_Foot) {
 			return nullptr;
 		}
 
-		AtomGroup *footGroup = dynamic_cast<AtomGroup *>(m_Foot->GetAtomGroup()->Clone());
+		AtomGroup* footGroup = dynamic_cast<AtomGroup*>(m_Foot->GetAtomGroup()->Clone());
 
 		int atomLeftMostOffset = m_Foot->GetSpriteWidth();
 		int atomTopMostOffset = m_Foot->GetSpriteHeight();
 		int atomBottomMostOffset = 0;
 
-		for (const Atom *atom : footGroup->GetAtomList()) {
+		for (const Atom* atom: footGroup->GetAtomList()) {
 			int atomOffsetX = atom->GetOriginalOffset().GetFloorIntX();
 			int atomOffsetY = atom->GetOriginalOffset().GetFloorIntY();
 			// Auto-generated AtomGroups are created empty so a single Atom is added at 0,0. Ignore it and any others to not screw up detecting the left-most and top-most offsets.
@@ -163,7 +169,7 @@ namespace RTE {
 		}
 		int groupCenterOffsetY = (atomTopMostOffset + atomBottomMostOffset) / 2;
 
-		std::vector<Atom *> filteredAtomList;
+		std::vector<Atom*> filteredAtomList;
 
 		// We want the FootGroup to end up with an "L" shape, so filter all the top and right Atoms while taking into account the heel might be slant and the sole might not be flat. The extra Atoms are not necessary and might (further) screw up some walking physics.
 		// Start from the bottom so we can filter any Atom that might be above the bottom-most one on the same X offset.
@@ -172,7 +178,7 @@ namespace RTE {
 			int atomOffsetY = (*atomItr)->GetOriginalOffset().GetFloorIntY();
 
 			bool haveBottomMostAtomOnThisXOffset = false;
-			for (const Atom *filteredAtom : filteredAtomList) {
+			for (const Atom* filteredAtom: filteredAtomList) {
 				haveBottomMostAtomOnThisXOffset = (filteredAtom->GetOriginalOffset().GetFloorIntX() == atomOffsetX) && (filteredAtom->GetOriginalOffset().GetFloorIntY() > atomOffsetY);
 				if (haveBottomMostAtomOnThisXOffset) {
 					break;
@@ -180,7 +186,7 @@ namespace RTE {
 			}
 
 			if (atomOffsetX == atomLeftMostOffset || atomOffsetY == atomBottomMostOffset || (!haveBottomMostAtomOnThisXOffset && atomOffsetX > atomLeftMostOffset && atomOffsetY >= groupCenterOffsetY)) {
-				Atom *newAtom = new Atom(*(*atomItr));
+				Atom* newAtom = new Atom(*(*atomItr));
 				newAtom->SetMaterial(g_SceneMan.GetMaterialFromID(MaterialColorKeys::g_MaterialRubber));
 
 				filteredAtomList.emplace_back(newAtom);
@@ -192,7 +198,7 @@ namespace RTE {
 		return footGroup;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Leg::Update() {
 		Attachable::PreUpdate();
@@ -219,13 +225,15 @@ namespace RTE {
 		UpdateFootFrameAndRotation();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Leg::UpdateCurrentAnkleOffset() {
 		if (IsAttached()) {
 			Vector targetOffset = g_SceneMan.ShortestDistance(m_JointPos, m_TargetPosition, g_SceneMan.SceneWrapsX());
 			Vector rotatedTargetOffset = targetOffset.GetRadRotatedCopy(m_Parent->GetRotAngle());
-			if (m_WillIdle && rotatedTargetOffset.m_Y < -std::abs(rotatedTargetOffset.m_X)) { targetOffset = m_Parent->RotateOffset(m_IdleOffset); }
+			if (m_WillIdle && rotatedTargetOffset.m_Y < -std::abs(rotatedTargetOffset.m_X)) {
+				targetOffset = m_Parent->RotateOffset(m_IdleOffset);
+			}
 
 			Vector distanceFromTargetOffsetToAnkleOffset(targetOffset - m_AnkleOffset);
 			m_AnkleOffset += distanceFromTargetOffsetToAnkleOffset * m_MoveSpeed;
@@ -236,7 +244,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Leg::UpdateLegRotation() {
 		if (IsAttached()) {
@@ -257,7 +265,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Leg::UpdateFootFrameAndRotation() {
 		if (m_Foot) {
@@ -278,4 +286,4 @@ namespace RTE {
 			}
 		}
 	}
-}
+} // namespace RTE

@@ -10,27 +10,28 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	SettingsInputGUI::SettingsInputGUI(GUIControlManager *parentControlManager) : m_GUIControlManager(parentControlManager) {
-		m_InputSettingsBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxInputSettings"));
+	SettingsInputGUI::SettingsInputGUI(GUIControlManager* parentControlManager) :
+	    m_GUIControlManager(parentControlManager) {
+		m_InputSettingsBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputSettings"));
 
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 			std::string playerNum = std::to_string(player + 1);
 
-			m_PlayerInputSettingsBoxes[player].SelectedDeviceLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelP" + playerNum + "SelectedDevice"));
+			m_PlayerInputSettingsBoxes[player].SelectedDeviceLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelP" + playerNum + "SelectedDevice"));
 
-			m_PlayerInputSettingsBoxes[player].NextDeviceButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "NextDevice"));
-			m_PlayerInputSettingsBoxes[player].PrevDeviceButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "PrevDevice"));
-			m_PlayerInputSettingsBoxes[player].ConfigureControlsButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "Config"));
-			m_PlayerInputSettingsBoxes[player].ResetControlsButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "Clear"));
+			m_PlayerInputSettingsBoxes[player].NextDeviceButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "NextDevice"));
+			m_PlayerInputSettingsBoxes[player].PrevDeviceButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "PrevDevice"));
+			m_PlayerInputSettingsBoxes[player].ConfigureControlsButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "Config"));
+			m_PlayerInputSettingsBoxes[player].ResetControlsButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "Clear"));
 
-			m_PlayerInputSettingsBoxes[player].SensitivityLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelP" + playerNum + "Sensitivity"));
-			m_PlayerInputSettingsBoxes[player].SensitivitySlider = dynamic_cast<GUISlider *>(m_GUIControlManager->GetControl("SliderP" + playerNum + "Sensitivity"));
+			m_PlayerInputSettingsBoxes[player].SensitivityLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelP" + playerNum + "Sensitivity"));
+			m_PlayerInputSettingsBoxes[player].SensitivitySlider = dynamic_cast<GUISlider*>(m_GUIControlManager->GetControl("SliderP" + playerNum + "Sensitivity"));
 
-			m_PlayerInputSettingsBoxes[player].DeadZoneControlsBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxP" + playerNum + "DeadzoneControls"));
-			m_PlayerInputSettingsBoxes[player].CircleDeadZoneRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneCircle"));
-			m_PlayerInputSettingsBoxes[player].SquareDeadZoneRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneSquare"));
+			m_PlayerInputSettingsBoxes[player].DeadZoneControlsBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxP" + playerNum + "DeadzoneControls"));
+			m_PlayerInputSettingsBoxes[player].CircleDeadZoneRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneCircle"));
+			m_PlayerInputSettingsBoxes[player].SquareDeadZoneRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneSquare"));
 		}
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 			UpdatePlayerSelectedDeviceLabel(player);
@@ -39,26 +40,30 @@ namespace RTE {
 		m_InputMappingConfigMenu = std::make_unique<SettingsInputMappingGUI>(parentControlManager);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::SetEnabled(bool enable) const {
 		m_InputSettingsBox->SetVisible(enable);
 		m_InputSettingsBox->SetEnabled(enable);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::ResetPlayerInputSettings(int player) {
 		if (m_PlayerInputSettingsBoxes.at(player).ResetControlsButton->GetText() == "Reset") {
 			// Only one player's reset button can be pending confirmation at a time, so cancel any other pending confirmations.
 			for (int otherPlayer = Players::PlayerOne; otherPlayer < Players::MaxPlayerCount; ++otherPlayer) {
-				if (otherPlayer != player) { m_PlayerInputSettingsBoxes.at(otherPlayer).ResetControlsButton->SetText("Reset"); }
+				if (otherPlayer != player) {
+					m_PlayerInputSettingsBoxes.at(otherPlayer).ResetControlsButton->SetText("Reset");
+				}
 			}
 			m_PlayerInputSettingsBoxes.at(player).ResetControlsButton->SetText("CONFIRM?");
 		} else {
-			InputScheme *playerControlScheme = g_UInputMan.GetControlScheme(player);
+			InputScheme* playerControlScheme = g_UInputMan.GetControlScheme(player);
 			playerControlScheme->ResetToPlayerDefaults(static_cast<Players>(player));
-			if (playerControlScheme->GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) { g_UInputMan.SetMouseSensitivity(0.6F); }
+			if (playerControlScheme->GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+				g_UInputMan.SetMouseSensitivity(0.6F);
+			}
 
 			UpdatePlayerSelectedDeviceLabel(player);
 			ShowOrHidePlayerInputDeviceSensitivityControls(player);
@@ -69,24 +74,28 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::SetPlayerNextOrPrevInputDevice(int player, bool nextDevice) {
 		int currentDevice = static_cast<int>(g_UInputMan.GetControlScheme(player)->GetDevice());
 
 		if (nextDevice) {
 			currentDevice++;
-			if (currentDevice >= InputDevice::DEVICE_COUNT) { currentDevice = InputDevice::DEVICE_KEYB_ONLY; }
+			if (currentDevice >= InputDevice::DEVICE_COUNT) {
+				currentDevice = InputDevice::DEVICE_KEYB_ONLY;
+			}
 		} else {
 			currentDevice--;
-			if (currentDevice < InputDevice::DEVICE_KEYB_ONLY) { currentDevice = InputDevice::DEVICE_GAMEPAD_4; }
+			if (currentDevice < InputDevice::DEVICE_KEYB_ONLY) {
+				currentDevice = InputDevice::DEVICE_GAMEPAD_4;
+			}
 		}
 		g_UInputMan.GetControlScheme(player)->SetDevice(static_cast<InputDevice>(currentDevice));
 		UpdatePlayerSelectedDeviceLabel(player);
 		ShowOrHidePlayerInputDeviceSensitivityControls(player);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::UpdatePlayerSelectedDeviceLabel(int player) {
 		std::string deviceLabel;
@@ -116,7 +125,7 @@ namespace RTE {
 		m_PlayerInputSettingsBoxes.at(player).SelectedDeviceLabel->SetText(deviceLabel);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::ShowOrHidePlayerInputDeviceSensitivityControls(int player) {
 		m_PlayerInputSettingsBoxes.at(player).SensitivityLabel->SetVisible(false);
@@ -149,7 +158,7 @@ namespace RTE {
 		UpdatePlayerInputSensitivityControlValues(player);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputGUI::UpdatePlayerInputSensitivityControlValues(int player) {
 		switch (g_UInputMan.GetControlScheme(player)->GetDevice()) {
@@ -183,9 +192,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SettingsInputGUI::HandleInputEvents(GUIEvent &guiEvent) {
+	void SettingsInputGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (m_InputMappingConfigMenu->IsEnabled()) {
 			m_InputMappingConfigMenu->HandleInputEvents(guiEvent);
 			return;
@@ -221,4 +230,4 @@ namespace RTE {
 			}
 		}
 	}
-}
+} // namespace RTE

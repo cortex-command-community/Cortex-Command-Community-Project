@@ -6,7 +6,7 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUISkin::GUISkin(GUIScreen *Screen) {
+GUISkin::GUISkin(GUIScreen* Screen) {
 	m_Screen = Screen;
 	m_FontCache.clear();
 
@@ -34,7 +34,7 @@ void GUISkin::Clear() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUISkin::Load(const std::string &directory, const std::string &fileName) {
+bool GUISkin::Load(const std::string& directory, const std::string& fileName) {
 	// Destroy any previous instances
 	Destroy();
 
@@ -57,7 +57,7 @@ bool GUISkin::Load(const std::string &directory, const std::string &fileName) {
 	}
 
 	// Go through the skin file adding the sections and properties
-	GUIProperties *CurProp = nullptr;
+	GUIProperties* CurProp = nullptr;
 
 	while (!skinFile.GetStream()->eof()) {
 		std::string line = skinFile.ReadLine();
@@ -68,7 +68,7 @@ bool GUISkin::Load(const std::string &directory, const std::string &fileName) {
 
 		// Is the line a section?
 		if (line.front() == '[' && line.back() == ']') {
-			GUIProperties *p = new GUIProperties(line.substr(1, line.size() - 2));
+			GUIProperties* p = new GUIProperties(line.substr(1, line.size() - 2));
 			CurProp = p;
 			m_PropList.push_back(p);
 			continue;
@@ -100,12 +100,12 @@ bool GUISkin::Load(const std::string &directory, const std::string &fileName) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUISkin::GetValue(const std::string &Section, const std::string &Variable, std::string *Value) {
-	std::vector <GUIProperties *>::iterator it;
+bool GUISkin::GetValue(const std::string& Section, const std::string& Variable, std::string* Value) {
+	std::vector<GUIProperties*>::iterator it;
 
 	// Find the property
 	for (it = m_PropList.begin(); it != m_PropList.end(); it++) {
-		GUIProperties *p = *it;
+		GUIProperties* p = *it;
 
 		if (stricmp(p->GetName().c_str(), Section.c_str()) == 0 && p->GetValue(Variable, Value)) {
 			return true;
@@ -118,12 +118,12 @@ bool GUISkin::GetValue(const std::string &Section, const std::string &Variable, 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int GUISkin::GetValue(const std::string &Section, const std::string &Variable, int *Array, int MaxArraySize) {
-	std::vector <GUIProperties *>::iterator it;
+int GUISkin::GetValue(const std::string& Section, const std::string& Variable, int* Array, int MaxArraySize) {
+	std::vector<GUIProperties*>::iterator it;
 
 	// Find the property
 	for (it = m_PropList.begin(); it != m_PropList.end(); it++) {
-		GUIProperties *p = *it;
+		GUIProperties* p = *it;
 
 		if (stricmp(p->GetName().c_str(), Section.c_str()) == 0 && p->GetValue(Variable, Array, MaxArraySize)) {
 			return true;
@@ -136,12 +136,12 @@ int GUISkin::GetValue(const std::string &Section, const std::string &Variable, i
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUISkin::GetValue(const std::string &Section, const std::string &Variable, int *Value) {
-	std::vector <GUIProperties *>::iterator it;
+bool GUISkin::GetValue(const std::string& Section, const std::string& Variable, int* Value) {
+	std::vector<GUIProperties*>::iterator it;
 
 	// Find the property
 	for (it = m_PropList.begin(); it != m_PropList.end(); it++) {
-		GUIProperties *p = *it;
+		GUIProperties* p = *it;
 
 		if (stricmp(p->GetName().c_str(), Section.c_str()) == 0 && p->GetValue(Variable, Value)) {
 			return true;
@@ -154,12 +154,12 @@ bool GUISkin::GetValue(const std::string &Section, const std::string &Variable, 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool GUISkin::GetValue(const std::string &Section, const std::string &Variable, unsigned long *Value) {
-	std::vector <GUIProperties *>::iterator it;
+bool GUISkin::GetValue(const std::string& Section, const std::string& Variable, unsigned long* Value) {
+	std::vector<GUIProperties*>::iterator it;
 
 	// Find the property
 	for (it = m_PropList.begin(); it != m_PropList.end(); it++) {
-		GUIProperties *p = *it;
+		GUIProperties* p = *it;
 
 		if (stricmp(p->GetName().c_str(), Section.c_str()) == 0 && p->GetValue(Variable, Value)) {
 			return true;
@@ -173,22 +173,24 @@ bool GUISkin::GetValue(const std::string &Section, const std::string &Variable, 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUISkin::Destroy() {
-	std::vector <GUIProperties *>::iterator it;
+	std::vector<GUIProperties*>::iterator it;
 
 	// Free the properties
 	for (it = m_PropList.begin(); it != m_PropList.end(); it++) {
-		GUIProperties *p = *it;
+		GUIProperties* p = *it;
 
-		if (p) { delete p; }
+		if (p) {
+			delete p;
+		}
 	}
 
 	m_PropList.clear();
 
 	// Destroy the fonts in the list
-	std::vector<GUIFont *>::iterator itf;
+	std::vector<GUIFont*>::iterator itf;
 
 	for (itf = m_FontCache.begin(); itf != m_FontCache.end(); itf++) {
-		GUIFont *F = *itf;
+		GUIFont* F = *itf;
 		if (F) {
 			F->Destroy();
 			delete F;
@@ -197,12 +199,11 @@ void GUISkin::Destroy() {
 
 	m_FontCache.clear();
 
-
 	// Destroy the images in the image cache
-	std::vector<GUIBitmap *>::iterator iti;
+	std::vector<GUIBitmap*>::iterator iti;
 
 	for (iti = m_ImageCache.begin(); iti != m_ImageCache.end(); iti++) {
-		GUIBitmap *Surf = *iti;
+		GUIBitmap* Surf = *iti;
 		if (Surf) {
 			Surf->Destroy();
 			delete Surf;
@@ -214,20 +215,20 @@ void GUISkin::Destroy() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIBitmap * GUISkin::CreateBitmap(int Width, int Height) {
+GUIBitmap* GUISkin::CreateBitmap(int Width, int Height) {
 	return m_Screen->CreateBitmap(Width, Height);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIBitmap * GUISkin::CreateBitmap(const std::string &Filename) {
+GUIBitmap* GUISkin::CreateBitmap(const std::string& Filename) {
 	// Add the filename onto the current directory
 	std::string File = m_Directory + Filename;
 
 	// Check if the image is in our cache
-	std::vector<GUIBitmap *>::iterator it;
+	std::vector<GUIBitmap*>::iterator it;
 	for (it = m_ImageCache.begin(); it != m_ImageCache.end(); it++) {
-		GUIBitmap *Surf = *it;
+		GUIBitmap* Surf = *it;
 
 		if (stricmp(File.c_str(), Surf->GetDataPath().c_str()) == 0) {
 			return Surf;
@@ -235,7 +236,7 @@ GUIBitmap * GUISkin::CreateBitmap(const std::string &Filename) {
 	}
 
 	// Not found in cache, so we create a new bitmap from the file
-	GUIBitmap *Bitmap = m_Screen->CreateBitmap(File);
+	GUIBitmap* Bitmap = m_Screen->CreateBitmap(File);
 	if (!Bitmap) {
 		return nullptr;
 	}
@@ -247,19 +248,19 @@ GUIBitmap * GUISkin::CreateBitmap(const std::string &Filename) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIFont * GUISkin::GetFont(const std::string &Name) {
+GUIFont* GUISkin::GetFont(const std::string& Name) {
 	// Check if the font is already in the list
-	std::vector<GUIFont *>::iterator it;
+	std::vector<GUIFont*>::iterator it;
 
 	for (it = m_FontCache.begin(); it != m_FontCache.end(); it++) {
-		GUIFont *F = *it;
+		GUIFont* F = *it;
 		if (stricmp(F->GetName().c_str(), Name.c_str()) == 0) {
 			return F;
 		}
 	}
 
 	// Not found, so we create the font
-	GUIFont *Font = new GUIFont(Name);
+	GUIFont* Font = new GUIFont(Name);
 	if (!Font->Load(m_Screen, m_Directory + Name)) {
 		delete Font;
 		return nullptr;
@@ -272,7 +273,7 @@ GUIFont * GUISkin::GetFont(const std::string &Name) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIBitmap * GUISkin::LoadMousePointer(const std::string &Section) {
+GUIBitmap* GUISkin::LoadMousePointer(const std::string& Section) {
 	std::string File;
 	int ColorKey;
 
@@ -282,7 +283,7 @@ GUIBitmap * GUISkin::LoadMousePointer(const std::string &Section) {
 	if (!GetValue(Section, "ColorKeyIndex", &ColorKey)) {
 		return nullptr;
 	}
-	GUIBitmap *Bitmap = CreateBitmap(File);
+	GUIBitmap* Bitmap = CreateBitmap(File);
 	if (!Bitmap) {
 		return nullptr;
 	}
@@ -292,17 +293,19 @@ GUIBitmap * GUISkin::LoadMousePointer(const std::string &Section) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUISkin::DrawMouse(int Image, int X, int Y, GUIScreen *guiScreenOverride) {
+void GUISkin::DrawMouse(int Image, int X, int Y, GUIScreen* guiScreenOverride) {
 	assert(Image >= 0 && Image <= 2);
 
-	GUIScreen *targetScreen = guiScreenOverride ? guiScreenOverride : m_Screen;
+	GUIScreen* targetScreen = guiScreenOverride ? guiScreenOverride : m_Screen;
 
-	if (m_MousePointers[Image]) { targetScreen->DrawBitmapTrans(m_MousePointers[Image], X - 1, Y - 1, nullptr); }
+	if (m_MousePointers[Image]) {
+		targetScreen->DrawBitmapTrans(m_MousePointers[Image], X - 1, Y - 1, nullptr);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUISkin::BuildStandardRect(GUIBitmap *Dest, const std::string &Section, int X, int Y, int Width, int Height, bool buildBG, bool buildFrame, GUIRect *borderSizes) {
+void GUISkin::BuildStandardRect(GUIBitmap* Dest, const std::string& Section, int X, int Y, int Width, int Height, bool buildBG, bool buildFrame, GUIRect* borderSizes) {
 	// Note: For a control to use a 'Standard Rect' it must use the 8 side names, a filler name and a filename property.
 
 	int VTopLeft[4];
@@ -321,7 +324,7 @@ void GUISkin::BuildStandardRect(GUIBitmap *Dest, const std::string &Section, int
 	// Load the filename
 	std::string Filename;
 	GetValue(Section, "Filename", &Filename);
-	GUIBitmap *SrcBitmap = CreateBitmap(Filename);
+	GUIBitmap* SrcBitmap = CreateBitmap(Filename);
 
 	// Set the color key to be the same color as the Top-Right hand corner pixel
 	SrcBitmap->SetColorKey(SrcBitmap->GetPixel(SrcBitmap->GetWidth() - 1, 0));
@@ -393,7 +396,9 @@ void GUISkin::BuildStandardRect(GUIBitmap *Dest, const std::string &Section, int
 		SrcBitmap->DrawTrans(Dest, X, Y + Height - VBottomLeft[3], &Rect);
 	}
 
-	if (borderSizes) { SetRect(borderSizes, VLeft[2], VTop[3], VRight[2], VBottom[3]); }
+	if (borderSizes) {
+		SetRect(borderSizes, VLeft[2], VTop[3], VRight[2], VBottom[3]);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
