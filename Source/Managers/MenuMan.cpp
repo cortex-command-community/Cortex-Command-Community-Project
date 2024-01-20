@@ -21,7 +21,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MenuMan::Initialize(bool firstTimeInit) {
 		m_ActiveMenu = ActiveMenu::MenusDisabled;
@@ -29,7 +29,9 @@ namespace RTE {
 		m_GUIScreen = std::make_unique<AllegroScreen>(g_FrameMan.GetBackBuffer32());
 		m_GUIInput = std::make_unique<GUIInputWrapper>(-1, g_UInputMan.GetJoystickCount() > 0);
 
-		if (firstTimeInit) { g_LoadingScreen.Create(m_GUIScreen.get(), m_GUIInput.get(), g_SettingsMan.GetLoadingScreenProgressReportDisabled()); }
+		if (firstTimeInit) {
+			g_LoadingScreen.Create(m_GUIScreen.get(), m_GUIInput.get(), g_SettingsMan.GetLoadingScreenProgressReportDisabled());
+		}
 
 		m_TitleScreen = std::make_unique<TitleScreen>(m_GUIScreen.get());
 		m_MainMenu = std::make_unique<MainMenuGUI>(m_GUIScreen.get(), m_GUIInput.get());
@@ -41,7 +43,7 @@ namespace RTE {
 		g_MetaMan.GetGUI()->Create(m_MenuController.get());
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MenuMan::Reinitialize() {
 		g_MetaMan.GetGUI()->Destroy();
@@ -55,7 +57,7 @@ namespace RTE {
 		Initialize(false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MenuMan::SetActiveMenu() {
 		ActiveMenu newActiveMenu = ActiveMenu::MenusDisabled;
@@ -93,7 +95,7 @@ namespace RTE {
 					if (g_MetaMan.GameInProgress()) {
 						m_PauseMenu->SetBackButtonTargetName("Conquest");
 					} else {
-						if (const Activity *activity = g_ActivityMan.GetActivity(); activity && activity->GetPresetName() == "None") {
+						if (const Activity* activity = g_ActivityMan.GetActivity(); activity && activity->GetPresetName() == "None") {
 							m_PauseMenu->SetBackButtonTargetName("Main");
 						} else {
 							m_PauseMenu->SetBackButtonTargetName("Scenario");
@@ -106,7 +108,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MenuMan::HandleTransitionIntoMenuLoop() {
 		if (g_MetaMan.GameInProgress()) {
@@ -116,7 +118,7 @@ namespace RTE {
 				m_TitleScreen->SetTitleTransitionState(TitleScreen::TitleTransition::PauseMenu);
 			}
 		} else if (!g_ActivityMan.ActivitySetToRestart()) {
-			if (const Activity *activity = g_ActivityMan.GetActivity(); activity) {
+			if (const Activity* activity = g_ActivityMan.GetActivity(); activity) {
 				if (activity->GetPresetName() == "None") {
 					// If we're in the editors or in online multiplayer then return to main menu instead of scenario menu.
 					m_TitleScreen->SetTitleTransitionState(TitleScreen::TitleTransition::ScrollingFadeIn);
@@ -133,7 +135,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MenuMan::Update() {
 		m_TitleScreen->Update();
@@ -171,7 +173,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MenuMan::UpdateMainMenu() const {
 		switch (m_MainMenu->Update()) {
@@ -203,7 +205,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MenuMan::UpdateScenarioMenu() const {
 		switch (m_ScenarioMenu->Update()) {
@@ -216,7 +218,9 @@ namespace RTE {
 				break;
 			case ScenarioGUI::ScenarioMenuUpdateResult::ActivityStarted:
 				m_TitleScreen->SetTitleTransitionState(TitleScreen::TitleTransition::FadeOut);
-				if (g_MetaMan.GameInProgress()) { g_MetaMan.EndGame(); }
+				if (g_MetaMan.GameInProgress()) {
+					g_MetaMan.EndGame();
+				}
 				g_ActivityMan.SetRestartActivity();
 				break;
 			default:
@@ -224,7 +228,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MenuMan::UpdateMetaGameMenu() const {
 		g_MetaMan.GetGUI()->SetStationOrbitPos(m_TitleScreen->GetStationPos());
@@ -243,7 +247,7 @@ namespace RTE {
 		return g_MetaMan.GetGUI()->QuitProgram();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MenuMan::UpdatePauseMenu() const {
 		switch (m_PauseMenu->Update()) {
@@ -259,7 +263,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MenuMan::Draw() const {
 		g_FrameMan.ClearBackBuffer32();
@@ -297,19 +301,23 @@ namespace RTE {
 				int mouseX = 0;
 				int mouseY = 0;
 				m_GUIInput->GetMousePosition(&mouseX, &mouseY);
-				BITMAP *deviceIcon = g_UInputMan.GetDeviceIcon(device)->GetBitmaps32()[0];
-				if (deviceIcon) { draw_sprite(g_FrameMan.GetBackBuffer32(), deviceIcon, mouseX + (deviceIcon->w / 2), mouseY - (deviceIcon->h / 5)); }
+				BITMAP* deviceIcon = g_UInputMan.GetDeviceIcon(device)->GetBitmaps32()[0];
+				if (deviceIcon) {
+					draw_sprite(g_FrameMan.GetBackBuffer32(), deviceIcon, mouseX + (deviceIcon->w / 2), mouseY - (deviceIcon->h / 5));
+				}
 			}
 			// Show which joysticks are detected by the game.
 			for (int playerIndex = Players::PlayerOne; playerIndex < Players::MaxPlayerCount; playerIndex++) {
 				if (g_UInputMan.JoystickActive(playerIndex)) {
 					int matchedDevice = InputDevice::DEVICE_GAMEPAD_1 + playerIndex;
 					if (matchedDevice != device) {
-						BITMAP *deviceIcon = g_UInputMan.GetDeviceIcon(matchedDevice)->GetBitmaps32()[0];
-						if (deviceIcon) { draw_sprite(g_FrameMan.GetBackBuffer32(), deviceIcon, g_WindowMan.GetResX() - 30 * g_UInputMan.GetJoystickCount() + 30 * playerIndex, g_WindowMan.GetResY() - 25); }
+						BITMAP* deviceIcon = g_UInputMan.GetDeviceIcon(matchedDevice)->GetBitmaps32()[0];
+						if (deviceIcon) {
+							draw_sprite(g_FrameMan.GetBackBuffer32(), deviceIcon, g_WindowMan.GetResX() - 30 * g_UInputMan.GetJoystickCount() + 30 * playerIndex, g_WindowMan.GetResY() - 25);
+						}
 					}
 				}
 			}
 		}
 	}
-}
+} // namespace RTE

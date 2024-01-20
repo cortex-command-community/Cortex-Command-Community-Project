@@ -22,7 +22,7 @@ namespace luabind {
 	/// </summary>
 	/// <param name="ptr">The smart pointer to get raw pointer for.</param>
 	/// <returns>Raw pointer of the passed in smart pointer.</returns>
-	template<class Type> Type * get_pointer(boost::shared_ptr<Type> &ptr) {
+	template <class Type> Type* get_pointer(boost::shared_ptr<Type>& ptr) {
 		return ptr.get();
 	}
 
@@ -30,7 +30,7 @@ namespace luabind {
 	/// Can't have global enums in the master state so we use this dummy struct as a class and register the enums under it.
 	/// </summary>
 	struct enum_wrapper {};
-}
+} // namespace luabind
 
 namespace RTE {
 	/// <summary>
@@ -55,7 +55,7 @@ namespace RTE {
 	/// </summary>
 	/// <param name="luaState">The Lua master state.</param>
 	/// <returns>An error signal, 1, so Lua correctly reports that there's been an error.</returns>
-	static int AddFileAndLineToError(lua_State *luaState) {
+	static int AddFileAndLineToError(lua_State* luaState) {
 		lua_Debug luaDebug;
 		if (lua_getstack(luaState, 2, &luaDebug) > 0) {
 			lua_getinfo(luaState, "Sln", &luaDebug);
@@ -79,7 +79,7 @@ namespace RTE {
 	/// <param name="luaTable">The Lua table object to convert to vector.</param>
 	/// <returns>A C++ vector containing all the objects from the Lua table. Ownership is transferred!</returns>
 	/// <remarks>In case of type mismatch (by specifying wrong type or a mix of types in the Lua table) object_cast will print an error to the console and throw, so no need to check what it returns before emplacing.</remarks>
-	template <typename Type> static std::vector<Type> ConvertLuaTableToVectorOfType(const luabind::object &luaObject) {
+	template <typename Type> static std::vector<Type> ConvertLuaTableToVectorOfType(const luabind::object& luaObject) {
 		std::vector<Type> outVector = {};
 		if (luaObject.is_valid() && luabind::type(luaObject) == LUA_TTABLE) {
 			for (luabind::iterator tableItr(luaObject), tableEnd; tableItr != tableEnd; ++tableItr) {
@@ -88,5 +88,5 @@ namespace RTE {
 		}
 		return outVector;
 	}
-}
+} // namespace RTE
 #endif

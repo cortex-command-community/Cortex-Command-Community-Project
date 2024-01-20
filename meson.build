@@ -14,7 +14,7 @@ override_options = []
 suffix=''
 
 if compiler.get_id() == 'clang'
-  error('LLVM clang is not supported due to missing features of the clang standard library. (std::execution)')
+  warning('LLVM clang is not directly supported due to missing features of the clang standard library. Remember to set cpp_std to gnu++20 or force libstdc++ otherwise (std::execution)')
 endif
 
 if host_machine.system() == 'darwin' and get_option('b_lto')
