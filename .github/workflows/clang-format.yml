@@ -1,0 +1,44 @@
+name: clang-format
+
+on:
+  # Triggers the workflow when called by a top-level workflow
+  workflow_call:
+    inputs:
+      upload_artefacts:
+        type: boolean
+        required: false
+        default: false
+      build_type: # "release" | "debug"
+        type: string
+        required: false
+        default: "release"
+      debug_level: # "full" | "minimal" | "release"
+        type: string
+        required: false
+        default: "release"
+      new_release_version:
+        type: string
+        required: false
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    name: Format sources
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+
+      - name: Install dependencies
+        run: sudo apt-get install -y clang-format
+
+      - name: Run clang-format
+        run: |
+            .github/scripts/run-clang-format.py -r Source Data/Base.rte/Shaders \
+                --exclude Source/System/Base64 \
+                --exclude Source/System/BitMask \
+                --exclude Source/System/glad \
+                --exclude Source/System/MicroPather \
+                --exclude Source/System/Semver200 \
+                --exclude Source/System/StackWalker

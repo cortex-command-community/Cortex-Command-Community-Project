@@ -2118,7 +2118,7 @@ namespace RTE {
 					MovableObject* pHitMO = g_MovableMan.GetMOFromID(checkMOID);
 					if (pHitMO) {
 						checkMOID = pHitMO->GetRootID();
-#ifdef DRAW_MOID_LAYER // Unnecessary with non-drawn MOIDs - they'll be culled out at the spatial partition level.
+#ifdef DRAW_MOID_LAYER // Unnecessary with non-drawn MOIDs - they'll be culled out at the spatial partition level. \
 						// Check if we're supposed to ignore the team of what we hit
 						if (ignoreTeam != Activity::NoTeam) {
 							pHitMO = pHitMO->GetRootParent();
