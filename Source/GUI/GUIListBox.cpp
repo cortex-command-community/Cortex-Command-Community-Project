@@ -5,14 +5,15 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIListBox::GUIListBox(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIListPanel(Manager) {
+GUIListBox::GUIListBox(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIListPanel(Manager) {
 	m_ControlID = "LISTBOX";
 	m_ControlManager = ControlManager;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIListBox::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUIListBox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -26,8 +27,12 @@ void GUIListBox::Create(const std::string &Name, int X, int Y, int Width, int He
 	// Create the ListPanel
 	int w = m_DefWidth;
 	int h = m_DefHeight;
-	if (Width != -1) { w = Width; }
-	if (Height != -1) { h = Height; }
+	if (Width != -1) {
+		w = Width;
+	}
+	if (Height != -1) {
+		h = Height;
+	}
 
 	// Make sure the control isn't too small
 	w = std::max(w, m_MinWidth);
@@ -38,7 +43,7 @@ void GUIListBox::Create(const std::string &Name, int X, int Y, int Width, int He
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIListBox::Create(GUIProperties *Props) {
+void GUIListBox::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -72,7 +77,7 @@ void GUIListBox::Destroy() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIListBox::ChangeSkin(GUISkin *Skin) {
+void GUIListBox::ChangeSkin(GUISkin* Skin) {
 	GUIListPanel::ChangeSkin(Skin);
 }
 
@@ -94,13 +99,13 @@ void GUIListBox::Resize(int Width, int Height) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUIListBox::GetPanel() {
+GUIPanel* GUIListBox::GetPanel() {
 	return this;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIListBox::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUIListBox::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIListPanel::GetRect(X, Y, Width, Height);
 }
 
@@ -112,7 +117,7 @@ void GUIListBox::StoreProperties() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIListBox::ReceiveSignal(GUIPanel *Source, int Code, int Data) {
+void GUIListBox::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	if (Source->GetPanelID() == GetPanelID()) {
 		if (Code == GUIListPanel::MouseMove) {
 			AddEvent(GUIEvent::Notification, MouseMove, Data);
@@ -140,7 +145,7 @@ void GUIListBox::ReceiveSignal(GUIPanel *Source, int Code, int Data) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIListBox::ApplyProperties(GUIProperties *Props) {
+void GUIListBox::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	bool Multi = false;

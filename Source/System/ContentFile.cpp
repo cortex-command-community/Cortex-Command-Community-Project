@@ -13,11 +13,11 @@ namespace RTE {
 
 	const std::string ContentFile::c_ClassName = "ContentFile";
 
-	std::array<std::unordered_map<std::string, BITMAP *>, ContentFile::BitDepths::BitDepthCount> ContentFile::s_LoadedBitmaps;
-	std::unordered_map<std::string, FMOD::Sound *> ContentFile::s_LoadedSamples;
+	std::array<std::unordered_map<std::string, BITMAP*>, ContentFile::BitDepths::BitDepthCount> ContentFile::s_LoadedBitmaps;
+	std::unordered_map<std::string, FMOD::Sound*> ContentFile::s_LoadedSamples;
 	std::unordered_map<size_t, std::string> ContentFile::s_PathHashes;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ContentFile::Clear() {
 		m_DataPath.clear();
@@ -31,17 +31,17 @@ namespace RTE {
 		m_ImageFileInfo.fill(-1);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ContentFile::Create(const char *filePath) {
+	int ContentFile::Create(const char* filePath) {
 		SetDataPath(filePath);
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ContentFile::Create(const ContentFile &reference) {
+	int ContentFile::Create(const ContentFile& reference) {
 		m_DataPath = reference.m_DataPath;
 		m_DataPathExtension = reference.m_DataPathExtension;
 		m_DataPathWithoutExtension = reference.m_DataPathWithoutExtension;
@@ -50,46 +50,47 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ContentFile::FreeAllLoaded() {
 		for (int depth = BitDepths::Eight; depth < BitDepths::BitDepthCount; ++depth) {
-			for (const auto &[bitmapPath, bitmapPtr] : s_LoadedBitmaps[depth]) {
+			for (const auto& [bitmapPath, bitmapPtr]: s_LoadedBitmaps[depth]) {
 				destroy_bitmap(bitmapPtr);
 			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ContentFile::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
-		
+
 		MatchForwards("FilePath") MatchProperty("Path", { SetDataPath(reader.ReadPropValue()); });
-		
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ContentFile::Save(Writer &writer) const {
+	int ContentFile::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
-		if (!m_DataPath.empty()) { writer.NewPropertyWithValue("FilePath", m_DataPath); }
+		if (!m_DataPath.empty()) {
+			writer.NewPropertyWithValue("FilePath", m_DataPath);
+		}
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int ContentFile::GetDataModuleID() const {
 		return (m_DataModuleID < 0) ? g_PresetMan.GetModuleIDFromPath(m_DataPath) : m_DataModuleID;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ContentFile::SetDataPath(const std::string &newDataPath) {
+	void ContentFile::SetDataPath(const std::string& newDataPath) {
 		m_DataPath = g_PresetMan.GetFullModulePath(newDataPath);
 		m_DataPathExtension = std::filesystem::path(m_DataPath).extension().string();
 
@@ -102,31 +103,31 @@ namespace RTE {
 		m_DataModuleID = g_PresetMan.GetModuleIDFromPath(m_DataPath);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	size_t ContentFile::GetHash() const {
 		return Hash(m_DataPath);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ContentFile::SetFormattedReaderPosition(const std::string &newPosition) {
+	void ContentFile::SetFormattedReaderPosition(const std::string& newPosition) {
 		m_FormattedReaderPosition = newPosition;
 		m_DataPathAndReaderPosition = m_DataPath + "\n" + newPosition;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int ContentFile::GetImageFileInfo(ImageFileInfoType infoTypeToGet) {
 		bool fetchFileInfo = false;
-		for (const int &fileInfoEntry : m_ImageFileInfo) {
+		for (const int& fileInfoEntry: m_ImageFileInfo) {
 			if (fileInfoEntry == -1) {
 				fetchFileInfo = true;
 				break;
 			}
 		}
 		if (fetchFileInfo) {
-			FILE *imageFile = fopen(m_DataPath.c_str(), "rb");
+			FILE* imageFile = fopen(m_DataPath.c_str(), "rb");
 			RTEAssert(imageFile, "Failed to open file prior to reading info of image file with following path and name:\n\n" + m_DataPath + "\n\nThe file may not exist or be corrupt.");
 
 			if (m_DataPathExtension == ".png") {
@@ -141,9 +142,9 @@ namespace RTE {
 		return m_ImageFileInfo[infoTypeToGet];
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ContentFile::ReadAndStorePNGFileInfo(FILE *imageFile) {
+	void ContentFile::ReadAndStorePNGFileInfo(FILE* imageFile) {
 		std::array<uint8_t, 8> fileSignature = {};
 
 		// Read the first 8 bytes to then verify they match the PNG file signature which is { 137, 80, 78, 71, 13, 10, 26, 10 } or { '\211', 'P', 'N', 'G', '\r', '\n', '\032', '\n' }.
@@ -167,10 +168,10 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ContentFile::ReadAndStoreBMPFileInfo(FILE *imageFile) {
-		std::array<uint8_t, 2> bmpSignature = { 0x42, 0x4D }; // { 'B', 'M' }.
+	void ContentFile::ReadAndStoreBMPFileInfo(FILE* imageFile) {
+		std::array<uint8_t, 2> bmpSignature = {0x42, 0x4D}; // { 'B', 'M' }.
 		std::array<uint8_t, 2> fileSignature = {};
 
 		// Read the first 2 bytes to then verify they match the BMP file signature.
@@ -202,24 +203,24 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ContentFile::ReloadAllBitmaps() {
-		for (const std::unordered_map<std::string, BITMAP *> &bitmapCache : s_LoadedBitmaps) {
-			for (const auto &[filePath, oldBitmap] : bitmapCache) {
+		for (const std::unordered_map<std::string, BITMAP*>& bitmapCache: s_LoadedBitmaps) {
+			for (const auto& [filePath, oldBitmap]: bitmapCache) {
 				ReloadBitmap(filePath);
 			}
 		}
 		g_ConsoleMan.PrintString("SYSTEM: Sprites reloaded");
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	BITMAP * ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std::string &dataPathToSpecificFrame) {
+	BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std::string& dataPathToSpecificFrame) {
 		if (m_DataPath.empty()) {
 			return nullptr;
 		}
-		BITMAP *returnBitmap = nullptr;
+		BITMAP* returnBitmap = nullptr;
 		const int bitDepth = conversionMode == COLORCONV_8_TO_32 ? BitDepths::ThirtyTwo : BitDepths::Eight;
 		std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
 
@@ -228,7 +229,7 @@ namespace RTE {
 		}
 
 		// Check if the file has already been read and loaded from the disk and, if so, use that data.
-		std::unordered_map<std::string, BITMAP *>::iterator foundBitmap = s_LoadedBitmaps[bitDepth].find(dataPathToLoad);
+		std::unordered_map<std::string, BITMAP*>::iterator foundBitmap = s_LoadedBitmaps[bitDepth].find(dataPathToLoad);
 		if (storeBitmap && foundBitmap != s_LoadedBitmaps[bitDepth].end()) {
 			returnBitmap = (*foundBitmap).second;
 		} else {
@@ -247,14 +248,16 @@ namespace RTE {
 			returnBitmap = LoadAndReleaseBitmap(conversionMode, dataPathToLoad); // NOTE: This takes ownership of the bitmap file
 
 			// Insert the bitmap into the map, PASSING OVER OWNERSHIP OF THE LOADED DATAFILE
-			if (storeBitmap) { s_LoadedBitmaps[bitDepth].try_emplace(dataPathToLoad, returnBitmap); }
+			if (storeBitmap) {
+				s_LoadedBitmaps[bitDepth].try_emplace(dataPathToLoad, returnBitmap);
+			}
 		}
 		return returnBitmap;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ContentFile::GetAsAnimation(std::vector<BITMAP *> &vectorToFill, int frameCount, int conversionMode) {
+	void ContentFile::GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCount, int conversionMode) {
 		if (m_DataPath.empty() || frameCount < 1) {
 			return;
 		}
@@ -282,15 +285,15 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	BITMAP * ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string &dataPathToSpecificFrame) {
+	BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string& dataPathToSpecificFrame) {
 		if (m_DataPath.empty()) {
 			return nullptr;
 		}
 		const std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
 
-		BITMAP *returnBitmap = nullptr;
+		BITMAP* returnBitmap = nullptr;
 
 		PALETTE currentPalette;
 		get_palette(currentPalette);
@@ -303,19 +306,19 @@ namespace RTE {
 		return returnBitmap;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	FMOD::Sound * ContentFile::GetAsSound(bool abortGameForInvalidSound, bool asyncLoading) {
+	FMOD::Sound* ContentFile::GetAsSound(bool abortGameForInvalidSound, bool asyncLoading) {
 		if (m_DataPath.empty() || !g_AudioMan.IsAudioEnabled()) {
 			return nullptr;
 		}
-		FMOD::Sound *returnSample = nullptr;
+		FMOD::Sound* returnSample = nullptr;
 
-		std::unordered_map<std::string, FMOD::Sound *>::iterator foundSound = s_LoadedSamples.find(m_DataPath);
+		std::unordered_map<std::string, FMOD::Sound*>::iterator foundSound = s_LoadedSamples.find(m_DataPath);
 		if (foundSound != s_LoadedSamples.end()) {
 			returnSample = (*foundSound).second;
 		} else {
-			returnSample = LoadAndReleaseSound(abortGameForInvalidSound, asyncLoading); //NOTE: This takes ownership of the sample file
+			returnSample = LoadAndReleaseSound(abortGameForInvalidSound, asyncLoading); // NOTE: This takes ownership of the sample file
 
 			// Insert the Sound object into the map, PASSING OVER OWNERSHIP OF THE LOADED FILE
 			s_LoadedSamples.try_emplace(m_DataPath, returnSample);
@@ -323,15 +326,15 @@ namespace RTE {
 		return returnSample;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	FMOD::Sound * ContentFile::LoadAndReleaseSound(bool abortGameForInvalidSound, bool asyncLoading) {
+	FMOD::Sound* ContentFile::LoadAndReleaseSound(bool abortGameForInvalidSound, bool asyncLoading) {
 		if (m_DataPath.empty() || !g_AudioMan.IsAudioEnabled()) {
 			return nullptr;
 		}
 		if (!System::PathExistsCaseSensitive(m_DataPath)) {
 			bool foundAltExtension = false;
-			for (const std::string &altFileExtension : c_SupportedAudioFormats) {
+			for (const std::string& altFileExtension: c_SupportedAudioFormats) {
 				const std::string altDataPathToLoad = m_DataPathWithoutExtension + altFileExtension;
 				if (System::PathExistsCaseSensitive(altDataPathToLoad)) {
 					g_ConsoleMan.AddLoadWarningLogExtensionMismatchEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
@@ -353,7 +356,7 @@ namespace RTE {
 			g_ConsoleMan.PrintString("ERROR: " + errorMessage + m_DataPath);
 			return nullptr;
 		}
-		FMOD::Sound *returnSample = nullptr;
+		FMOD::Sound* returnSample = nullptr;
 
 		FMOD_MODE fmodFlags = FMOD_CREATESAMPLE | FMOD_3D | (asyncLoading ? FMOD_NONBLOCKING : FMOD_DEFAULT);
 		FMOD_RESULT result = g_AudioMan.GetAudioSystem()->createSound(m_DataPath.c_str(), fmodFlags, nullptr, &returnSample);
@@ -367,9 +370,9 @@ namespace RTE {
 		return returnSample;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ContentFile::ReloadBitmap(const std::string &filePath, int conversionMode) {
+	void ContentFile::ReloadBitmap(const std::string& filePath, int conversionMode) {
 		const int bitDepth = (conversionMode == COLORCONV_8_TO_32) ? BitDepths::ThirtyTwo : BitDepths::Eight;
 
 		auto bmpItr = s_LoadedBitmaps[bitDepth].find(filePath);
@@ -381,8 +384,8 @@ namespace RTE {
 		get_palette(currentPalette);
 		set_color_conversion((conversionMode == COLORCONV_NONE) ? COLORCONV_MOST : conversionMode);
 
-		BITMAP *loadedBitmap = (*bmpItr).second;
-		BITMAP *newBitmap = load_bitmap(filePath.c_str(), currentPalette);
+		BITMAP* loadedBitmap = (*bmpItr).second;
+		BITMAP* newBitmap = load_bitmap(filePath.c_str(), currentPalette);
 		AddAlphaChannel(newBitmap);
 		BITMAP swap;
 
@@ -393,7 +396,7 @@ namespace RTE {
 		destroy_bitmap(newBitmap);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ContentFile::AddAlphaChannel(BITMAP* bitmap) {
 		if (!bitmap) {
@@ -406,9 +409,9 @@ namespace RTE {
 			for (int x = 0; x < bitmap->w; ++x) {
 				unsigned long color = _getpixel32(bitmap, x, y);
 				if (color != MASK_COLOR_32) {
-					_putpixel32(bitmap, x, y, color|(0xFF << 24));
+					_putpixel32(bitmap, x, y, color | (0xFF << 24));
 				}
 			}
 		}
 	}
-}
+} // namespace RTE

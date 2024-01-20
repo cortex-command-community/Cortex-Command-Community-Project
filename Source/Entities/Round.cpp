@@ -6,7 +6,7 @@ namespace RTE {
 
 	ConcreteClassInfo(Round, Entity, 500);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Round::Clear() {
 		m_Particle = 0;
@@ -23,7 +23,7 @@ namespace RTE {
 		m_AIPenetration = -1;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Round::Create() {
 		if (Entity::Create() < 0) {
@@ -31,22 +31,26 @@ namespace RTE {
 		}
 
 		if (m_AILifeTime == 0) {
-			const MovableObject *bullet = GetNextParticle();
-			if (bullet) { m_AILifeTime = bullet->GetLifetime(); }
+			const MovableObject* bullet = GetNextParticle();
+			if (bullet) {
+				m_AILifeTime = bullet->GetLifetime();
+			}
 		}
-		if (m_AIFireVel < 0) { m_AIFireVel = m_FireVel; }
+		if (m_AIFireVel < 0) {
+			m_AIFireVel = m_FireVel;
+		}
 
 		if (m_AIPenetration < 0) {
-			const MovableObject *bullet = GetNextParticle();
-			m_AIPenetration = (bullet && dynamic_cast<const MOPixel *>(bullet)) ? bullet->GetMass() * bullet->GetSharpness() * m_AIFireVel : 0;
+			const MovableObject* bullet = GetNextParticle();
+			m_AIPenetration = (bullet && dynamic_cast<const MOPixel*>(bullet)) ? bullet->GetMass() * bullet->GetSharpness() * m_AIFireVel : 0;
 		}
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Round::Create(const Round &reference) {
+	int Round::Create(const Round& reference) {
 		Entity::Create(reference);
 
 		m_Particle = reference.m_Particle;
@@ -65,13 +69,13 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Round::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int Round::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
-		
+
 		MatchProperty("Particle", {
-			m_Particle = dynamic_cast<const MovableObject *>(g_PresetMan.GetEntityPreset(reader));
+			m_Particle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader));
 			RTEAssert(m_Particle, "Stream suggests allocating an unallocable type in Round::Create!");
 		});
 		MatchProperty("ParticleCount", { reader >> m_ParticleCount; });
@@ -79,20 +83,19 @@ namespace RTE {
 		MatchProperty("InheritsFirerVelocity", { reader >> m_InheritsFirerVelocity; });
 		MatchProperty("Separation", { reader >> m_Separation; });
 		MatchProperty("LifeVariation", { reader >> m_LifeVariation; });
-		MatchProperty("Shell", { m_Shell = dynamic_cast<const MovableObject *>(g_PresetMan.GetEntityPreset(reader)); });
+		MatchProperty("Shell", { m_Shell = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader)); });
 		MatchProperty("ShellVelocity", { reader >> m_ShellVel; });
 		MatchProperty("FireSound", { reader >> m_FireSound; });
 		MatchProperty("AILifeTime", { reader >> m_AILifeTime; });
 		MatchProperty("AIFireVel", { reader >> m_AIFireVel; });
 		MatchProperty("AIPenetration", { reader >> m_AIPenetration; });
-		
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Round::Save(Writer &writer) const {
+	int Round::Save(Writer& writer) const {
 		Entity::Save(writer);
 
 		writer.NewProperty("Particle");
@@ -122,11 +125,11 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	MovableObject * Round::PopNextParticle() {
-		MovableObject *tempParticle = (m_ParticleCount > 0) ? dynamic_cast<MovableObject *>(m_Particle->Clone()) : 0;
+	MovableObject* Round::PopNextParticle() {
+		MovableObject* tempParticle = (m_ParticleCount > 0) ? dynamic_cast<MovableObject*>(m_Particle->Clone()) : 0;
 		m_ParticleCount--;
 		return tempParticle;
 	}
-}
+} // namespace RTE

@@ -21,7 +21,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::Clear() {
 		m_GUIControlManager = nullptr;
@@ -49,25 +49,25 @@ namespace RTE {
 		m_PauseMenuButtons.fill(nullptr);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PauseMenuGUI::Create(AllegroScreen *guiScreen, GUIInputWrapper *guiInput) {
+	void PauseMenuGUI::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
 		RTEAssert(m_GUIControlManager->Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "MainMenuScreenSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/MainMenuScreenSkin.ini");
 		m_GUIControlManager->Load("Base.rte/GUIs/PauseMenuGUI.ini");
 
 		int rootBoxMaxWidth = g_WindowMan.FullyCoversAllDisplays() ? g_WindowMan.GetPrimaryWindowDisplayWidth() / g_WindowMan.GetResMultiplier() : g_WindowMan.GetResX();
 
-		dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("root"))->Resize(rootBoxMaxWidth, g_WindowMan.GetResY());
+		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("root"))->Resize(rootBoxMaxWidth, g_WindowMan.GetResY());
 
-		m_PauseMenuBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("PauseScreen"));
+		m_PauseMenuBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("PauseScreen"));
 		m_PauseMenuBox->CenterInParent(true, true);
 
-		m_PauseMenuButtons[PauseMenuButton::BackToMainButton] = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonBackToMain"));
-		m_PauseMenuButtons[PauseMenuButton::SaveOrLoadGameButton] = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonSaveOrLoadGame"));
-		m_PauseMenuButtons[PauseMenuButton::SettingsButton] = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonSettings"));
-		m_PauseMenuButtons[PauseMenuButton::ModManagerButton] = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonModManager"));
-		m_PauseMenuButtons[PauseMenuButton::ResumeButton] = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonResume"));
+		m_PauseMenuButtons[PauseMenuButton::BackToMainButton] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonBackToMain"));
+		m_PauseMenuButtons[PauseMenuButton::SaveOrLoadGameButton] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonSaveOrLoadGame"));
+		m_PauseMenuButtons[PauseMenuButton::SettingsButton] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonSettings"));
+		m_PauseMenuButtons[PauseMenuButton::ModManagerButton] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonModManager"));
+		m_PauseMenuButtons[PauseMenuButton::ResumeButton] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonResume"));
 
 		for (size_t pauseMenuButton = 0; pauseMenuButton < m_PauseMenuButtons.size(); ++pauseMenuButton) {
 			std::string buttonText = m_PauseMenuButtons[pauseMenuButton]->GetText();
@@ -84,7 +84,7 @@ namespace RTE {
 		if (m_BackdropBitmap) {
 			destroy_bitmap(m_BackdropBitmap);
 		}
-		const BITMAP *backbuffer = g_FrameMan.GetBackBuffer32();
+		const BITMAP* backbuffer = g_FrameMan.GetBackBuffer32();
 		m_BackdropBitmap = create_bitmap_ex(FrameMan::c_BPP, backbuffer->w, backbuffer->h);
 		unsigned int halfTransBlack = makeacol32(0, 0, 0, 96);
 		clear_to_color(m_BackdropBitmap, halfTransBlack);
@@ -94,9 +94,9 @@ namespace RTE {
 		m_ModManagerMenu = std::make_unique<ModManagerGUI>(guiScreen, guiInput, true);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PauseMenuGUI::SetBackButtonTargetName(const std::string &menuName) {
+	void PauseMenuGUI::SetBackButtonTargetName(const std::string& menuName) {
 		std::string newButtonText = "Back to " + menuName + " Menu";
 
 		std::transform(newButtonText.begin(), newButtonText.end(), newButtonText.begin(), ::toupper);
@@ -111,17 +111,17 @@ namespace RTE {
 		m_PauseMenuButtons[PauseMenuButton::BackToMainButton]->CenterInParent(true, false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::EnableOrDisablePauseMenuFeatures() {
 		bool disableModManager = true;
 
-		if (const Activity *activity = g_ActivityMan.GetActivity(); activity) {
+		if (const Activity* activity = g_ActivityMan.GetActivity(); activity) {
 			disableModManager = activity->GetClassName() != "GAScripted";
 		}
 
 		if (m_ModManagerButtonDisabled != disableModManager) {
-			GUIButton *modManagerButton = m_PauseMenuButtons[PauseMenuButton::ModManagerButton];
+			GUIButton* modManagerButton = m_PauseMenuButtons[PauseMenuButton::ModManagerButton];
 
 			modManagerButton->SetEnabled(!disableModManager);
 			modManagerButton->SetVisible(!disableModManager);
@@ -135,7 +135,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::SetActiveMenuScreen(PauseMenuScreen screenToShow, bool playButtonPressSound) {
 		if (screenToShow != m_ActiveMenuScreen) {
@@ -149,7 +149,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	PauseMenuGUI::PauseMenuUpdateResult PauseMenuGUI::Update() {
 		m_UpdateResult = PauseMenuUpdateResult::NoEvent;
@@ -183,7 +183,7 @@ namespace RTE {
 		return m_UpdateResult;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::HandleBackNavigation(bool backButtonPressed) {
 		if (!m_ActiveDialogBox && (backButtonPressed || g_UInputMan.KeyPressed(SDLK_ESCAPE))) {
@@ -205,14 +205,14 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PauseMenuGUI::HandleInputEvents() {
 		if (m_ActiveMenuScreen == PauseMenuScreen::MainScreen) {
 			int mousePosX;
 			int mousePosY;
 			m_GUIControlManager->GetManager()->GetInputController()->GetMousePosition(&mousePosX, &mousePosY);
-			UpdateHoveredButton(dynamic_cast<GUIButton *>(m_GUIControlManager->GetControlUnderPoint(mousePosX, mousePosY, m_PauseMenuBox, 1)));
+			UpdateHoveredButton(dynamic_cast<GUIButton*>(m_GUIControlManager->GetControlUnderPoint(mousePosX, mousePosY, m_PauseMenuBox, 1)));
 		}
 		m_GUIControlManager->Update();
 
@@ -232,16 +232,16 @@ namespace RTE {
 					m_UpdateResult = PauseMenuUpdateResult::BackToMain;
 				}
 			}
-			if (guiEvent.GetType() == GUIEvent::Notification && (guiEvent.GetMsg() == GUIButton::Focused && dynamic_cast<GUIButton *>(guiEvent.GetControl()))) {
+			if (guiEvent.GetType() == GUIEvent::Notification && (guiEvent.GetMsg() == GUIButton::Focused && dynamic_cast<GUIButton*>(guiEvent.GetControl()))) {
 				g_GUISound.SelectionChangeSound()->Play();
 			}
 		}
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PauseMenuGUI::UpdateHoveredButton(const GUIButton *hoveredButton) {
+	void PauseMenuGUI::UpdateHoveredButton(const GUIButton* hoveredButton) {
 		int hoveredButtonIndex = -1;
 		if (hoveredButton) {
 			hoveredButtonIndex = std::distance(m_PauseMenuButtons.begin(), std::find(m_PauseMenuButtons.begin(), m_PauseMenuButtons.end(), hoveredButton));
@@ -261,7 +261,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::BlinkResumeButton() {
 		if (m_HoveredButton && m_HoveredButton == m_PauseMenuButtons[PauseMenuButton::ResumeButton]) {
@@ -271,7 +271,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::Draw() {
 		g_WindowMan.DrawPostProcessBuffer();
@@ -298,4 +298,4 @@ namespace RTE {
 		}
 		m_GUIControlManager->DrawMouse();
 	}
-}
+} // namespace RTE

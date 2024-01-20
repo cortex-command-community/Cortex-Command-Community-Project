@@ -4,10 +4,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // File:            MultiplayerServerLobby.h
 //////////////////////////////////////////////////////////////////////////////////////////
-// Description:     
+// Description:
 // Project:         Retro Terrain Engine
-// Author(s):       
-
+// Author(s):
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
@@ -16,8 +15,7 @@
 #include "ActivityMan.h"
 #include "GameActivity.h"
 
-namespace RTE
-{
+namespace RTE {
 	class GUIScreen;
 	class GUIInput;
 	class GUIControlManager;
@@ -34,7 +32,6 @@ namespace RTE
 	class Scene;
 	class Activity;
 
-
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Class:           MultiplayerServerLobby
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +46,6 @@ namespace RTE
 		// Public member variable, method and friend function declarations
 
 	public:
-
 		// Concrete allocation and cloning definitions
 		EntityAllocation(MultiplayerServerLobby);
 		SerializableOverrideMethods;
@@ -64,7 +60,6 @@ namespace RTE
 
 		MultiplayerServerLobby() { Clear(); }
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Destructor:      ~MultiplayerServerLobby
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +68,6 @@ namespace RTE
 		// Arguments:       None.
 
 		~MultiplayerServerLobby() override { Destroy(true); }
-
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Create
@@ -85,7 +79,6 @@ namespace RTE
 
 		int Create() override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Create
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -94,8 +87,7 @@ namespace RTE
 		// Return value:    An error return value signaling sucess or any particular failure.
 		//                  Anything below 0 is an error signal.
 
-		int Create(const MultiplayerServerLobby &reference);
-
+		int Create(const MultiplayerServerLobby& reference);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Reset
@@ -105,8 +97,10 @@ namespace RTE
 		// Arguments:       None.
 		// Return value:    None.
 
-		void Reset() override { Clear(); Activity::Reset(); }
-
+		void Reset() override {
+			Clear();
+			Activity::Reset();
+		}
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Destroy
@@ -118,7 +112,6 @@ namespace RTE
 
 		void Destroy(bool notInherited = false) override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Start
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -129,7 +122,6 @@ namespace RTE
 
 		int Start() override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Pause
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -139,7 +131,6 @@ namespace RTE
 
 		void SetPaused(bool pause = true) override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  End
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -148,7 +139,6 @@ namespace RTE
 		// Return value:    None.
 
 		void End() override;
-
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Update
@@ -160,7 +150,6 @@ namespace RTE
 
 		void Update() override;
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  DrawGUI
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -170,8 +159,7 @@ namespace RTE
 		//                  Which screen's GUI to draw onto the bitmap.
 		// Return value:    None.
 
-		void DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos = Vector(), int which = 0) override;
-
+		void DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int which = 0) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Virtual method:  Draw
@@ -182,17 +170,17 @@ namespace RTE
 		//                  The absolute position of the target bitmap's upper left corner in the scene.
 		// Return value:    None.
 
-		void Draw(BITMAP *pTargetBitmap, const Vector &targetPos = Vector()) override;
+		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
 		void UpdateInput();
 
 		void UpdateActivityBox();
 
-		//void UpdateScenesBox();
+		// void UpdateScenesBox();
 
 		void UpdatePlayersBox(bool newActivity);
 
-		void UpdateGoldSlider(const GameActivity * pSelectedGA);
+		void UpdateGoldSlider(const GameActivity* pSelectedGA);
 
 		void UpdateDifficultySlider();
 
@@ -204,95 +192,89 @@ namespace RTE
 
 		int PlayerCount();
 
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Protected member variable and method declarations
 
 	protected:
-
 		// These add on the player and team max counts
-		enum PlayerColumns
-		{
+		enum PlayerColumns {
 			PLAYER_CPU = Players::MaxPlayerCount,
 			PLAYERCOLUMNCOUNT
 		};
 
-		enum TeamRows
-		{
+		enum TeamRows {
 			TEAM_DISABLED = Teams::MaxTeamCount,
 			TEAMROWCOUNT
 		};
-
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;
 
 		// The editor GUI
-		//MultiplayerServerLobbyGUI *m_pEditorGUI;
+		// MultiplayerServerLobbyGUI *m_pEditorGUI;
 
 		// GUI Screen for use by the GUI dialog boxes. Owned
-		GUIScreen *m_pGUIScreen;
+		GUIScreen* m_pGUIScreen;
 		// Input controller for he dialog box gui.  Owned
-		GUIInput *m_pGUIInput;
+		GUIInput* m_pGUIInput;
 		// The control manager which holds all the gui elements for the dialog boxes.  Owned
-		GUIControlManager *m_pGUIController;
+		GUIControlManager* m_pGUIController;
 
-		GUICollectionBox *m_pRootBox;
-		GUICollectionBox *m_pPlayerSetupBox;
+		GUICollectionBox* m_pRootBox;
+		GUICollectionBox* m_pPlayerSetupBox;
 
 		// Activity selection screen controls
-		GUIComboBox *m_pActivitySelect;
-		GUIComboBox *m_pSceneSelect;
-		GUILabel *m_pDifficultyLabel;
-		GUISlider *m_pDifficultySlider;
+		GUIComboBox* m_pActivitySelect;
+		GUIComboBox* m_pSceneSelect;
+		GUILabel* m_pDifficultyLabel;
+		GUISlider* m_pDifficultySlider;
 
-		GUICollectionBox *m_aapPlayerBoxes[PLAYERCOLUMNCOUNT][TEAMROWCOUNT];
-		GUICollectionBox *m_apTeamBoxes[TEAMROWCOUNT];
-		GUILabel *m_apTeamNameLabels[TEAMROWCOUNT];
-		GUILabel *m_pStartErrorLabel;
-		GUILabel *m_pCPULockLabel;
+		GUICollectionBox* m_aapPlayerBoxes[PLAYERCOLUMNCOUNT][TEAMROWCOUNT];
+		GUICollectionBox* m_apTeamBoxes[TEAMROWCOUNT];
+		GUILabel* m_apTeamNameLabels[TEAMROWCOUNT];
+		GUILabel* m_pStartErrorLabel;
+		GUILabel* m_pCPULockLabel;
 		// Which team the CPU is locked to, if any
 		int m_LockedCPUTeam;
 
-		//Tech selection combos
-		GUIComboBox *m_apTeamTechSelect[Teams::MaxTeamCount];
+		// Tech selection combos
+		GUIComboBox* m_apTeamTechSelect[Teams::MaxTeamCount];
 
 		// AI skill selection
-		GUISlider *m_apTeamAISkillSlider[Teams::MaxTeamCount];
-		GUILabel *m_apTeamAISkillLabel[Teams::MaxTeamCount];
+		GUISlider* m_apTeamAISkillSlider[Teams::MaxTeamCount];
+		GUILabel* m_apTeamAISkillLabel[Teams::MaxTeamCount];
 
-		GUILabel *m_pGoldLabel;
-		GUISlider *m_pGoldSlider;
-		GUICheckbox *m_pFogOfWarCheckbox;
-		GUICheckbox *m_pRequireClearPathToOrbitCheckbox;
-		GUICheckbox *m_pDeployUnitsCheckbox;
+		GUILabel* m_pGoldLabel;
+		GUISlider* m_pGoldSlider;
+		GUICheckbox* m_pFogOfWarCheckbox;
+		GUICheckbox* m_pRequireClearPathToOrbitCheckbox;
+		GUICheckbox* m_pDeployUnitsCheckbox;
 
-		const Icon *m_apPlayerIcons[c_MaxClients];
+		const Icon* m_apPlayerIcons[c_MaxClients];
 
-		GUILabel * m_apPlayerNameLabel[c_MaxClients];
+		GUILabel* m_apPlayerNameLabel[c_MaxClients];
 
 		BITMAP* m_pUIDrawBitmap;
 
-		BITMAP * m_pCursor;
+		BITMAP* m_pCursor;
 
-		BITMAP *m_pScenePreviewBitmap;
-		BITMAP *m_pDefaultPreviewBitmap;
+		BITMAP* m_pScenePreviewBitmap;
+		BITMAP* m_pDefaultPreviewBitmap;
 
-		GUIButton *m_pStartScenarioButton;
+		GUIButton* m_pStartScenarioButton;
 
 		// The scene preset currently selected, NOT OWNED
-		const Scene *m_pSelectedScene;
+		const Scene* m_pSelectedScene;
 
 		// The current set of Scenes being displayed - not owned, nor are the scenes
-		std::list<Scene *> *m_pScenes;
+		std::list<Scene*>* m_pScenes;
 		// The map of Activity:ies, and the Scene:s compatible with each, neither of which are owned here
-		std::map<Activity *, std::list<Scene *> > m_Activities;
+		std::map<Activity*, std::list<Scene*>> m_Activities;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Private member variable and method declarations
 
 	private:
-
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Method:          Clear
 		//////////////////////////////////////////////////////////////////////////////////////////

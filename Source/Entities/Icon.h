@@ -12,7 +12,6 @@ namespace RTE {
 	class Icon : public Entity {
 
 	public:
-
 		EntityAllocation(Icon);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -27,7 +26,12 @@ namespace RTE {
 		/// Copy constructor method used to instantiate an Icon object identical to an already existing one.
 		/// </summary>
 		/// <param name="reference">An Icon object which is passed in by reference.</param>
-		Icon(const Icon &reference) { if (this != &reference) { Clear(); Create(reference); } }
+		Icon(const Icon& reference) {
+			if (this != &reference) {
+				Clear();
+				Create(reference);
+			}
+		}
 
 		/// <summary>
 		/// Makes the Icon object ready for use.
@@ -40,7 +44,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the Icon to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Icon &reference);
+		int Create(const Icon& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -58,7 +62,10 @@ namespace RTE {
 		/// <summary>
 		/// Resets the entire Icon, including its inherited members, to their default settings or values.
 		/// </summary>
-		void Reset() override { Clear(); Entity::Reset(); }
+		void Reset() override {
+			Clear();
+			Entity::Reset();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -72,13 +79,13 @@ namespace RTE {
 		/// Gets the array of 8-bit bitmaps of this Icon, as many as GetFrameCount says. Neither the array nor the BITMAPs are transferred ownership!
 		/// </summary>
 		/// <returns>The BITMAPs in 8bpp of this Icon.</returns>
-		std::vector<BITMAP *> GetBitmaps8() const { return m_BitmapsIndexed; }
+		std::vector<BITMAP*> GetBitmaps8() const { return m_BitmapsIndexed; }
 
 		/// <summary>
 		/// Gets the array of 32-bit bitmaps of this Icon, as many as GetFrameCount says. Neither the array nor the BITMAPs are transferred ownership!
 		/// </summary>
 		/// <returns>The BITMAPs in 32bpp of this Icon.</returns>
-		std::vector<BITMAP *> GetBitmaps32() const { return m_BitmapsTrueColor; }
+		std::vector<BITMAP*> GetBitmaps32() const { return m_BitmapsTrueColor; }
 #pragma endregion
 
 #pragma region Operator Overloads
@@ -87,25 +94,29 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">An Icon reference.</param>
 		/// <returns>A reference to the changed Icon.</returns>
-		Icon & operator=(const Icon &rhs) { if (this != &rhs) { Destroy(); Create(rhs); } return *this; }
+		Icon& operator=(const Icon& rhs) {
+			if (this != &rhs) {
+				Destroy();
+				Create(rhs);
+			}
+			return *this;
+		}
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		ContentFile m_BitmapFile; //!< ContentFile containing the bitmap file of this Icon.
 		unsigned int m_FrameCount; //!< Number of frames in this Icon's animation.
 
-		std::vector<BITMAP *> m_BitmapsIndexed; //!< Vector containing the 8bpp BITMAPs of this Icon. BITMAPs are NOT owned!
-		std::vector<BITMAP *> m_BitmapsTrueColor; //!< Vector containing the 32bpp BITMAPs of this Icon. BITMAPs are NOT owned!
+		std::vector<BITMAP*> m_BitmapsIndexed; //!< Vector containing the 8bpp BITMAPs of this Icon. BITMAPs are NOT owned!
+		std::vector<BITMAP*> m_BitmapsTrueColor; //!< Vector containing the 32bpp BITMAPs of this Icon. BITMAPs are NOT owned!
 
 	private:
-
 		/// <summary>
 		/// Clears all the member variables of this Icon, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE
 #endif

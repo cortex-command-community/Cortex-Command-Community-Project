@@ -5,7 +5,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIScrollPanel::GUIScrollPanel(GUIManager *Manager) : GUIPanel(Manager) {
+GUIScrollPanel::GUIScrollPanel(GUIManager* Manager) :
+    GUIPanel(Manager) {
 	m_Skin = nullptr;
 	m_DrawBitmap[0] = m_DrawBitmap[1] = m_DrawBitmap[2] = nullptr;
 	m_ButtonSize = 17;
@@ -21,7 +22,8 @@ GUIScrollPanel::GUIScrollPanel(GUIManager *Manager) : GUIPanel(Manager) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIScrollPanel::GUIScrollPanel() : GUIPanel() {
+GUIScrollPanel::GUIScrollPanel() :
+    GUIPanel() {
 	m_Skin = nullptr;
 	m_DrawBitmap[0] = m_DrawBitmap[1] = m_DrawBitmap[2] = nullptr;
 	m_ButtonSize = 17;
@@ -69,26 +71,30 @@ void GUIScrollPanel::Destroy() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollPanel::LoadProps(GUIProperties *Props) {
+void GUIScrollPanel::LoadProps(GUIProperties* Props) {
 	assert(Props);
 
 	std::string Ori;
 	Props->GetValue("Orientation", &Ori);
 
 	m_Orientation = Horizontal;
-	if (stricmp(Ori.c_str(), "Vertical") == 0) { m_Orientation = Vertical; }
+	if (stricmp(Ori.c_str(), "Vertical") == 0) {
+		m_Orientation = Vertical;
+	}
 
 	Props->GetValue("Minimum", &m_Minimum);
 	Props->GetValue("Maximum", &m_Maximum);
 	Props->GetValue("Value", &m_Value);
 	Props->GetValue("PageSize", &m_PageSize);
 	Props->GetValue("SmallChange", &m_SmallChange);
-	if (!Props->GetValue("ValueResolution", &m_ValueResolution)) { m_ValueResolution = std::max((m_Maximum - m_Minimum) / 100, 1); }
+	if (!Props->GetValue("ValueResolution", &m_ValueResolution)) {
+		m_ValueResolution = std::max((m_Maximum - m_Minimum) / 100, 1);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollPanel::ChangeSkin(GUISkin *Skin) {
+void GUIScrollPanel::ChangeSkin(GUISkin* Skin) {
 	assert(Skin);
 
 	m_Skin = Skin;
@@ -106,7 +112,9 @@ void GUIScrollPanel::BuildBitmap(bool UpdateSize, bool UpdateKnob) {
 	}
 
 	// If we update the size, the knob is automatically updated
-	if (UpdateSize) { UpdateKnob = true; }
+	if (UpdateSize) {
+		UpdateKnob = true;
+	}
 
 	// Free the old bitmaps
 	if (UpdateSize) {
@@ -132,7 +140,6 @@ void GUIScrollPanel::BuildBitmap(bool UpdateSize, bool UpdateKnob) {
 	// Calculate the knob size & position
 	CalculateKnob();
 
-
 	// Create the 3 bitmaps
 	if (m_Orientation == Vertical) {
 		// Vertical
@@ -140,14 +147,18 @@ void GUIScrollPanel::BuildBitmap(bool UpdateSize, bool UpdateKnob) {
 			m_DrawBitmap[ButtonStates] = m_Skin->CreateBitmap(m_Width * 2, m_ButtonSize * 2);
 			m_DrawBitmap[Back] = m_Skin->CreateBitmap(m_Width, m_Height);
 		}
-		if (UpdateKnob) { m_DrawBitmap[KnobStates] = m_Skin->CreateBitmap(m_Width * 2, m_KnobLength); }
+		if (UpdateKnob) {
+			m_DrawBitmap[KnobStates] = m_Skin->CreateBitmap(m_Width * 2, m_KnobLength);
+		}
 	} else {
 		// Horizontal
 		if (UpdateSize) {
 			m_DrawBitmap[ButtonStates] = m_Skin->CreateBitmap(m_ButtonSize * 2, m_Height * 2);
 			m_DrawBitmap[Back] = m_Skin->CreateBitmap(m_Width, m_Height);
 		}
-		if (UpdateKnob) { m_DrawBitmap[KnobStates] = m_Skin->CreateBitmap(m_KnobLength, m_Height * 2); }
+		if (UpdateKnob) {
+			m_DrawBitmap[KnobStates] = m_Skin->CreateBitmap(m_KnobLength, m_Height * 2);
+		}
 	}
 
 	// Update the buttons and the background
@@ -164,7 +175,6 @@ void GUIScrollPanel::BuildBitmap(bool UpdateSize, bool UpdateKnob) {
 		// Build the background
 		BuildBackground();
 	}
-
 
 	// Update the knob
 	if (UpdateKnob && m_KnobLength > 0) {
@@ -186,7 +196,7 @@ void GUIScrollPanel::BuildBitmap(bool UpdateSize, bool UpdateKnob) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollPanel::BuildButton(const std::string &ArrowName, int Y, int Width, int Height) {
+void GUIScrollPanel::BuildButton(const std::string& ArrowName, int Y, int Width, int Height) {
 	// Create the buttons
 	m_Skin->BuildStandardRect(m_DrawBitmap[ButtonStates], "ScrollButton_Up", 0, Y, Width, Height);
 
@@ -199,7 +209,7 @@ void GUIScrollPanel::BuildButton(const std::string &ArrowName, int Y, int Width,
 	// Load the image file
 	std::string Filename;
 	m_Skin->GetValue(ArrowName, "Filename", &Filename);
-	GUIBitmap *Arrow = m_Skin->CreateBitmap(Filename);
+	GUIBitmap* Arrow = m_Skin->CreateBitmap(Filename);
 	if (!Arrow) {
 		return;
 	}
@@ -224,7 +234,7 @@ void GUIScrollPanel::BuildBackground() {
 	std::string Filename;
 	m_Skin->GetValue("ScrollBackground", "Filename", &Filename);
 
-	GUIBitmap *Background = m_Skin->CreateBitmap(Filename);
+	GUIBitmap* Background = m_Skin->CreateBitmap(Filename);
 	if (!Background) {
 		return;
 	}
@@ -244,8 +254,10 @@ void GUIScrollPanel::BuildBackground() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollPanel::BuildKnob(const std::string &Section, int X, int Y, int Width, int Height) {
-	if (m_DrawBitmap[KnobStates]) { m_Skin->BuildStandardRect(m_DrawBitmap[KnobStates], Section, X, Y, Width, Height); }
+void GUIScrollPanel::BuildKnob(const std::string& Section, int X, int Y, int Width, int Height) {
+	if (m_DrawBitmap[KnobStates]) {
+		m_Skin->BuildStandardRect(m_DrawBitmap[KnobStates], Section, X, Y, Width, Height);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,13 +328,15 @@ void GUIScrollPanel::SetSmallChange(int SmallChange) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollPanel::Draw(GUIScreen *Screen) {
+void GUIScrollPanel::Draw(GUIScreen* Screen) {
 	GUIRect Rect;
 
 	// Do we need to rebuild?
-	if (m_RebuildKnob || m_RebuildSize) { BuildBitmap(m_RebuildSize, m_RebuildKnob); }
+	if (m_RebuildKnob || m_RebuildSize) {
+		BuildBitmap(m_RebuildSize, m_RebuildKnob);
+	}
 
-	GUIBitmap *Dest = Screen->GetBitmap();
+	GUIBitmap* Dest = Screen->GetBitmap();
 
 	// Draw the background
 	m_DrawBitmap[Back]->Draw(Dest, m_X, m_Y, 0);
@@ -528,7 +542,9 @@ void GUIScrollPanel::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 			m_Value = std::max(m_Value, m_Minimum);
 			m_Value = std::min(m_Value, m_Maximum - m_PageSize);
 
-			if (OldValue != m_Value) { SendSignal(ChangeValue, 0); }
+			if (OldValue != m_Value) {
+				SendSignal(ChangeValue, 0);
+			}
 		}
 	}
 }
@@ -638,8 +654,12 @@ void GUIScrollPanel::CalculateKnob() {
 	int MoveLength = 1;
 
 	// Calculate the length of the movable area (panel minus buttons)
-	if (m_Orientation == Vertical) { MoveLength = m_Height - m_ButtonSize * 2; }
-	if (m_Orientation == Horizontal) { MoveLength = m_Width - m_ButtonSize * 2; }
+	if (m_Orientation == Vertical) {
+		MoveLength = m_Height - m_ButtonSize * 2;
+	}
+	if (m_Orientation == Horizontal) {
+		MoveLength = m_Width - m_ButtonSize * 2;
+	}
 
 	// Calculate the knob length
 	m_KnobLength = 0;
@@ -650,8 +670,12 @@ void GUIScrollPanel::CalculateKnob() {
 	}
 	// Make sure the knob is not too small
 	m_KnobLength = std::max(m_KnobLength, m_MinimumKnobSize);
-	if (MoveLength > 0) { m_KnobLength = std::min(m_KnobLength, MoveLength); }
-	if (m_KnobLength < 0) { m_KnobLength = 0; }
+	if (MoveLength > 0) {
+		m_KnobLength = std::min(m_KnobLength, MoveLength);
+	}
+	if (m_KnobLength < 0) {
+		m_KnobLength = 0;
+	}
 
 	// Calculate the knob position
 	m_KnobPosition = 0;
@@ -681,12 +705,14 @@ void GUIScrollPanel::AdjustValue(int Delta) {
 	// Calculate the new knob position
 	CalculateKnob();
 
-	if (OldValue != m_Value) { SendSignal(ChangeValue, 0); }
+	if (OldValue != m_Value) {
+		SendSignal(ChangeValue, 0);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollPanel::SaveProps(GUIProperties *Props) const {
+void GUIScrollPanel::SaveProps(GUIProperties* Props) const {
 	assert(Props);
 
 	Props->AddVariable("Orientation", m_Orientation == Horizontal ? "Horizontal" : "Vertical");

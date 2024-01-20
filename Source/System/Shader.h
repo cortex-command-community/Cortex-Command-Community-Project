@@ -7,23 +7,22 @@
 namespace RTE {
 	class Shader {
 	public:
-
-		/// <summary> 
+		/// <summary>
 		/// Constructs an empty shader program, which can be initialized using `Shader::Compile`
 		/// </summary>
 		Shader();
-		
-		/// <summary> 
+
+		/// <summary>
 		/// Constructs a Shader from vertex shader file and fragment shader file.
 		/// </summary>
 		/// <param name="vertexFilename">
 		/// Filepath to the vertex shader file.
 		/// </param>
 		/// <param name="fragPath">
-		/// Filepath to the fragment shader file. 
+		/// Filepath to the fragment shader file.
 		/// </param>
-		Shader(const std::string &vertexFilename, const std::string &fragPath);
-		
+		Shader(const std::string& vertexFilename, const std::string& fragPath);
+
 		/// <summary>
 		/// Destructor.
 		/// </summary>
@@ -38,7 +37,7 @@ namespace RTE {
 		/// <param name="fragPath">
 		/// Filepath to the fragment shader
 		/// </param>
-		bool Compile(const std::string &vertexFilename, const std::string &fragPath);
+		bool Compile(const std::string& vertexFilename, const std::string& fragPath);
 
 		void Use();
 #pragma region Uniform handling
@@ -51,7 +50,7 @@ namespace RTE {
 		/// <returns>
 		/// A GLint containing the location of the requested uniform.
 		/// </returns>
-		int32_t GetUniformLocation(const std::string &name);
+		int32_t GetUniformLocation(const std::string& name);
 
 		/// <summary>
 		/// Set a boolean uniform value in the active program by name.
@@ -62,7 +61,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The boolean value to set the uniform to.
 		/// </param>
-		void SetBool(const std::string &name, bool value);
+		void SetBool(const std::string& name, bool value);
 
 		/// <summary>
 		/// Set an integer uniform value in the active program by name.
@@ -73,7 +72,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The integer value to set the uniform to.
 		/// </param>
-		void SetInt(const std::string &name, int value);
+		void SetInt(const std::string& name, int value);
 
 		/// <summary>
 		/// Set a float uniform value in the active program by name.
@@ -84,7 +83,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The float value to set the uniform to.
 		/// </param>
-		void SetFloat(const std::string &name, float value);
+		void SetFloat(const std::string& name, float value);
 
 		/// <summary>
 		/// Set a float mat4 uniform value in the active program by name.
@@ -95,7 +94,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The float mat4 value to set the uniform to.
 		/// </param>
-		void SetMatrix4f(const std::string &name, const glm::mat4 &value);
+		void SetMatrix4f(const std::string& name, const glm::mat4& value);
 
 		/// <summary>
 		/// Set a float vec2 uniform value in the active program by name.
@@ -106,7 +105,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The float vec2 value to set the uniform to.
 		/// </param>
-		void SetVector2f(const std::string &name, const glm::vec2 &value);
+		void SetVector2f(const std::string& name, const glm::vec2& value);
 
 		/// <summary>
 		/// Set a float vec3 uniform value in the active program by name.
@@ -117,7 +116,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The float vec3 value to set the uniform to.
 		/// </param>
-		void SetVector3f(const std::string &name, const glm::vec3 &value);
+		void SetVector3f(const std::string& name, const glm::vec3& value);
 
 		/// <summary>
 		/// Set a float vec4 uniform value in the active program by name.
@@ -128,7 +127,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The float vec4 value to set the uniform to.
 		/// </param>
-		void SetVector4f(const std::string &name, const glm::vec4 &value);
+		void SetVector4f(const std::string& name, const glm::vec4& value);
 
 		/// <summary>
 		/// Set a boolean uniform value in the active program by location.
@@ -172,7 +171,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The float mat4 value to set the uniform to.
 		/// </param>
-		static void SetMatrix4f(int32_t uniformLoc, const glm::mat4 &value);
+		static void SetMatrix4f(int32_t uniformLoc, const glm::mat4& value);
 
 		/// <summary>
 		/// Set a float vec2 uniform value in the active program by location.
@@ -183,7 +182,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The float vec2 value to set the uniform to.
 		/// </param>
-		static void SetVector2f(int32_t uniformLoc, const glm::vec2 &value);
+		static void SetVector2f(int32_t uniformLoc, const glm::vec2& value);
 
 		/// <summary>
 		/// Set a float vec3 uniform value in the active program by location.
@@ -194,7 +193,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The float vec3 value to set the uniform to.
 		/// </param>
-		static void SetVector3f(int32_t uniformLoc, const glm::vec3 &value);
+		static void SetVector3f(int32_t uniformLoc, const glm::vec3& value);
 
 		/// <summary>
 		/// Set a float vec4 uniform value in the active program by location.
@@ -205,7 +204,7 @@ namespace RTE {
 		/// <param name="value">
 		/// The float vec4 value to set the uniform to.
 		/// </param>
-		static void SetVector4f(int32_t uniformLoc, const glm::vec4 &value);
+		static void SetVector4f(int32_t uniformLoc, const glm::vec4& value);
 #pragma endregion
 
 #pragma region Engine Defined Uniforms
@@ -269,9 +268,9 @@ namespace RTE {
 		/// <returns>
 		/// Whether compilation was successful.
 		/// </returns>
-		bool CompileShader(uint32_t shaderID, const std::string &data, std::string &error);
+		bool CompileShader(uint32_t shaderID, const std::string& data, std::string& error);
 
-		/// <summary> 
+		/// <summary>
 		/// Links a shader program from a vertex and fragment shader.
 		/// </summary>
 		/// <param name="vtxShader">

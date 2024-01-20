@@ -26,48 +26,49 @@ namespace RTE {
 #if __cpp_lib_format >= 201907L
 		return std::format("{}x{} ({:.1g}x Fullscreen scale)", Width, Height, Scale);
 #else
-		return std::to_string(Width) + "x" + std::to_string(Height); 
+		return std::to_string(Width) + "x" + std::to_string(Height);
 #endif
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	SettingsVideoGUI::SettingsVideoGUI(GUIControlManager *parentControlManager) : m_GUIControlManager(parentControlManager) {
+	SettingsVideoGUI::SettingsVideoGUI(GUIControlManager* parentControlManager) :
+	    m_GUIControlManager(parentControlManager) {
 		m_NewResX = g_WindowMan.GetResX();
 		m_NewResY = g_WindowMan.GetResY();
 		m_NewResMultiplier = g_WindowMan.GetResMultiplier();
 		m_NewFullscreen = g_WindowMan.IsFullscreen();
 
-		m_VideoSettingsBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxVideoSettings"));
+		m_VideoSettingsBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxVideoSettings"));
 
-		m_ResolutionQuickToggleButtons[ResolutionQuickChangeType::Windowed] = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonQuickWindowed"));
-		m_ResolutionQuickToggleButtons[ResolutionQuickChangeType::Fullscreen] = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonQuickBorderless"));
+		m_ResolutionQuickToggleButtons[ResolutionQuickChangeType::Windowed] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonQuickWindowed"));
+		m_ResolutionQuickToggleButtons[ResolutionQuickChangeType::Fullscreen] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonQuickBorderless"));
 
-		m_TwoPlayerSplitscreenHSplitRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioSplitscreenHoriz"));
-		m_TwoPlayerSplitscreenVSplitRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioSplitscreenVert"));
+		m_TwoPlayerSplitscreenHSplitRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioSplitscreenHoriz"));
+		m_TwoPlayerSplitscreenVSplitRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioSplitscreenVert"));
 		m_TwoPlayerSplitscreenVSplitRadioButton->SetCheck(g_FrameMan.GetTwoPlayerVSplit());
 
-		m_EnableVSyncCheckbox = dynamic_cast<GUICheckbox *>(m_GUIControlManager->GetControl("CheckboxEnableVSync"));
+		m_EnableVSyncCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxEnableVSync"));
 		m_EnableVSyncCheckbox->SetCheck(g_WindowMan.GetVSyncEnabled());
 
-		m_FullscreenCheckbox = dynamic_cast<GUICheckbox *>(m_GUIControlManager->GetControl("CheckboxFullscreen"));
+		m_FullscreenCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxFullscreen"));
 		m_FullscreenCheckbox->SetCheck(m_NewFullscreen);
 
-		m_UseMultiDisplaysCheckbox = dynamic_cast<GUICheckbox *>(m_GUIControlManager->GetControl("CheckboxUseMultiDisplays"));
+		m_UseMultiDisplaysCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxUseMultiDisplays"));
 		m_UseMultiDisplaysCheckbox->SetCheck(g_WindowMan.GetUseMultiDisplays());
 		m_UseMultiDisplaysCheckbox->SetVisible(m_UseMultiDisplaysCheckbox->GetVisible() && SDL_GetNumVideoDisplays() > 1);
 
-		m_PresetResolutionRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioPresetResolution"));
-		m_CustomResolutionRadioButton = dynamic_cast<GUIRadioButton *>(m_GUIControlManager->GetControl("RadioCustomResolution"));
+		m_PresetResolutionRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioPresetResolution"));
+		m_CustomResolutionRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioCustomResolution"));
 
-		m_ResolutionChangeDialogBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("ResolutionChangeDialog"));
+		m_ResolutionChangeDialogBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("ResolutionChangeDialog"));
 		m_ResolutionChangeDialogBox->SetVisible(false);
 
-		const GUICollectionBox *settingsRootBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
+		const GUICollectionBox* settingsRootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
 		m_ResolutionChangeDialogBox->SetPositionAbs(settingsRootBox->GetXPos() + ((settingsRootBox->GetWidth() - m_ResolutionChangeDialogBox->GetWidth()) / 2), settingsRootBox->GetYPos() + ((settingsRootBox->GetHeight() - m_ResolutionChangeDialogBox->GetHeight()) / 2));
 
-		m_ResolutionChangeConfirmButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonConfirmResolutionChange"));
-		m_ResolutionChangeCancelButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonCancelResolutionChange"));
+		m_ResolutionChangeConfirmButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonConfirmResolutionChange"));
+		m_ResolutionChangeCancelButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonCancelResolutionChange"));
 
 		CreatePresetResolutionBox();
 		CreateCustomResolutionBox();
@@ -82,37 +83,37 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::CreatePresetResolutionBox() {
-		m_PresetResolutionBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionPresetResolution"));
-		m_PresetResolutionComboBox = dynamic_cast<GUIComboBox *>(m_GUIControlManager->GetControl("ComboPresetResolution"));
-		m_PresetResolutionApplyButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonApplyPresetResolution"));
-		m_PresetResolutionMessageLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelPresetResolutonValidation"));
+		m_PresetResolutionBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionPresetResolution"));
+		m_PresetResolutionComboBox = dynamic_cast<GUIComboBox*>(m_GUIControlManager->GetControl("ComboPresetResolution"));
+		m_PresetResolutionApplyButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonApplyPresetResolution"));
+		m_PresetResolutionMessageLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelPresetResolutonValidation"));
 		m_PresetResolutionMessageLabel->SetVisible(false);
 
 		PopulateResolutionsComboBox();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::CreateCustomResolutionBox() {
-		m_CustomResolutionBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionCustomResolution"));
+		m_CustomResolutionBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionCustomResolution"));
 		m_CustomResolutionBox->SetVisible(false);
 
-		m_CustomResolutionWidthTextBox = dynamic_cast<GUITextBox *>(m_GUIControlManager->GetControl("TextboxCustomWidth"));
+		m_CustomResolutionWidthTextBox = dynamic_cast<GUITextBox*>(m_GUIControlManager->GetControl("TextboxCustomWidth"));
 		m_CustomResolutionWidthTextBox->SetNumericOnly(true);
 		m_CustomResolutionWidthTextBox->SetMaxNumericValue(g_WindowMan.GetMaxResX());
 		m_CustomResolutionWidthTextBox->SetMaxTextLength(4);
 		m_CustomResolutionWidthTextBox->SetText(std::to_string(static_cast<int>(g_WindowMan.GetResX())));
 
-		m_CustomResolutionHeightTextBox = dynamic_cast<GUITextBox *>(m_GUIControlManager->GetControl("TextboxCustomHeight"));
+		m_CustomResolutionHeightTextBox = dynamic_cast<GUITextBox*>(m_GUIControlManager->GetControl("TextboxCustomHeight"));
 		m_CustomResolutionHeightTextBox->SetNumericOnly(true);
 		m_CustomResolutionHeightTextBox->SetMaxNumericValue(g_WindowMan.GetMaxResY());
 		m_CustomResolutionHeightTextBox->SetMaxTextLength(4);
 		m_CustomResolutionHeightTextBox->SetText(std::to_string(static_cast<int>(g_WindowMan.GetResY())));
 
-		m_CustomResolutionMultiplierComboBox = dynamic_cast<GUIComboBox *>(m_GUIControlManager->GetControl("ComboboxResolutionMultiplier"));
+		m_CustomResolutionMultiplierComboBox = dynamic_cast<GUIComboBox*>(m_GUIControlManager->GetControl("ComboboxResolutionMultiplier"));
 		PopulateResMultplierComboBox();
 #if __cpp_lib_format >= 201907L
 		m_CustomResolutionMultiplierComboBox->SetText(std::format("{:.3g}x", m_NewResMultiplier));
@@ -120,12 +121,12 @@ namespace RTE {
 		m_CustomResolutionMultiplierComboBox->SetText(std::to_string(m_NewResMultiplier));
 #endif
 
-		m_CustomResolutionApplyButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonApplyCustomResolution"));
-		m_CustomResolutionMessageLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelCustomResolutionValidation"));
+		m_CustomResolutionApplyButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonApplyCustomResolution"));
+		m_CustomResolutionMessageLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelCustomResolutionValidation"));
 		m_CustomResolutionMessageLabel->SetVisible(false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::SetEnabled(bool enable) const {
 		m_VideoSettingsBox->SetVisible(enable);
@@ -146,13 +147,13 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	GUICollectionBox * SettingsVideoGUI::GetActiveDialogBox() const {
+	GUICollectionBox* SettingsVideoGUI::GetActiveDialogBox() const {
 		return (m_ResolutionChangeDialogBox->GetEnabled() && m_ResolutionChangeDialogBox->GetVisible()) ? m_ResolutionChangeDialogBox : nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::CloseActiveDialogBox() const {
 		if (m_ResolutionChangeDialogBox->GetEnabled() && m_ResolutionChangeDialogBox->GetVisible()) {
@@ -161,7 +162,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsVideoGUI::IsSupportedResolution(int width, int height) const {
 		if ((width >= c_MinResX && height >= c_MinResY) && (width <= g_WindowMan.GetMaxResX() && height <= g_WindowMan.GetMaxResY())) {
@@ -170,7 +171,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::PopulateResolutionsComboBox() {
 		m_PresetResolutions.clear();
@@ -195,7 +196,7 @@ namespace RTE {
 		float defaultScale = std::min<float>(std::round(g_WindowMan.GetMaxResX() / static_cast<float>(c_DefaultResX)), std::round(g_WindowMan.GetMaxResY() / static_cast<float>(c_DefaultResY)));
 
 		for (int i = 0; i < m_PresetResolutions.size(); ++i) {
-			const PresetResolutionRecord &resRecord = m_PresetResolutions[i];
+			const PresetResolutionRecord& resRecord = m_PresetResolutions[i];
 			m_PresetResolutionComboBox->AddItem(resRecord.GetDisplayString());
 			if (m_PresetResolutionComboBox->GetSelectedIndex() < 0 && (glm::epsilonEqual(resRecord.Scale, defaultScale, 0.5f))) {
 				m_PresetResolutionComboBox->SetSelectedIndex(i);
@@ -220,7 +221,7 @@ namespace RTE {
 		m_CustomResolutionMultiplierComboBox->SetSelectedIndex(0);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::UpdateCustomResolutionLimits() {
 		g_WindowMan.MapDisplays();
@@ -238,7 +239,7 @@ namespace RTE {
 			m_CustomResolutionHeightTextBox->SetText(std::to_string(newMaxResY));
 		}
 	}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::ApplyNewResolution(bool displaysWereMapped) {
 		bool needWarning = (g_WindowMan.GetResX() != m_NewResX) && (g_WindowMan.GetResY() != m_NewResY);
@@ -257,7 +258,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::ApplyQuickChangeResolution(ResolutionQuickChangeType resolutionChangeType) {
 		g_WindowMan.MapDisplays();
@@ -297,7 +298,7 @@ namespace RTE {
 		ApplyNewResolution(true);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::ApplyPresetResolution() {
 		int presetResListEntryID = m_PresetResolutionComboBox->GetSelectedIndex();
@@ -317,7 +318,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::ApplyCustomResolution() {
 		m_CustomResolutionMessageLabel->SetVisible(false);
@@ -349,7 +350,6 @@ namespace RTE {
 			m_CustomResolutionHeightTextBox->SetText(std::to_string(m_NewResY));
 		}
 
-
 		bool invalidResolution = false;
 		if (m_NewResX < c_MinResX || m_NewResY < c_MinResY) {
 			m_CustomResolutionMessageLabel->SetText("Resolution width or height lower than the minimum (" + std::to_string(c_MinResX) + "x" + std::to_string(c_MinResY) + ") is not supported.");
@@ -366,9 +366,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SettingsVideoGUI::HandleInputEvents(GUIEvent &guiEvent) {
+	void SettingsVideoGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Command) {
 			if (guiEvent.GetMsg() == GUIButton::Pushed) {
 				if (guiEvent.GetControl() == m_ResolutionQuickToggleButtons[ResolutionQuickChangeType::Windowed]) {
