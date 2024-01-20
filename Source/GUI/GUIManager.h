@@ -5,9 +5,7 @@ namespace RTE {
 
 	class Timer;
 
-	/// <summary>
 	/// The main manager that handles all the panels and inputs.
-	/// </summary>
 	class GUIManager {
 
 	public:

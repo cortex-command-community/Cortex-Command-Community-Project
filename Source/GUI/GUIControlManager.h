@@ -6,9 +6,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A class used to manage the GUI as a whole and provide the interface between the GUI and the rest of the system.
-	/// </summary>
 	class GUIControlManager {
 		friend class GUIControl;
 
@@ -103,10 +101,8 @@ namespace RTE {
 
 		void Draw(GUIScreen* pScreen);
 
-		/// <summary>
 		/// Draws the mouse to the backbuffer.
-		/// </summary>
-		/// <param name="pScreen">The GUIScreen to draw to, overriding the one passed in on construction.</param>
+		/// @param pScreen The GUIScreen to draw to, overriding the one passed in on construction.
 		void DrawMouse(GUIScreen* guiScreen = nullptr);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -242,10 +238,8 @@ namespace RTE {
 
 		bool Load(const std::string& Filename, bool keepOld = false);
 
-		/// <summary>
 		/// Gets the GUIScreen that this GUIControlManager is drawing itself to.
-		/// </summary>
-		/// <returns>Pointer to the GUIScreen that this GUIControlManager is drawing itself to.</returns>
+		/// @return Pointer to the GUIScreen that this GUIControlManager is drawing itself to.
 		GUIScreen* GetScreen() const { return m_Screen; }
 
 	private:

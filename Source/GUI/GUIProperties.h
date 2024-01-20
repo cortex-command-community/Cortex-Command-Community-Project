@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A class containing properties for controls and skins.
-	/// </summary>
 	class GUIProperties {
 
 	public:

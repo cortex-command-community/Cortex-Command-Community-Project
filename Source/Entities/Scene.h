@@ -139,23 +139,17 @@ namespace RTE {
 
 			bool AddBox(const Box& newBox);
 
-			/// <summary>
 			/// Removes the first Box in the Area that has the same Corner, Width and Height of the passed-in Box.
-			/// </summary>
-			/// <param name="boxToRemove">A Box whose values are used to determine what Box to remove.</param>
-			/// <returns>Whether or not a Box was removed.</returns>
+			/// @param boxToRemove A Box whose values are used to determine what Box to remove.
+			/// @return Whether or not a Box was removed.
 			bool RemoveBox(const Box& boxToRemove);
 
-			/// <summary>
 			/// Gets the first Box in this Area.
-			/// </summary>
-			/// <returns>The first Box in this Area.</returns>
+			/// @return The first Box in this Area.
 			const Box* GetFirstBox() const { return m_BoxList.empty() ? nullptr : &m_BoxList[0]; }
 
-			/// <summary>
 			/// Gets the boxes for this area.
-			/// </summary>
-			/// <returns>The boxes in this Area.</returns>
+			/// @return The boxes in this Area.
 			const std::vector<Box>& GetBoxes() const { return m_BoxList; }
 
 			//////////////////////////////////////////////////////////////////////////////////////////
@@ -648,22 +642,16 @@ namespace RTE {
 
 		bool CleanOrphanPixel(int posX, int posY, NeighborDirection checkingFrom = NODIR, int team = Activity::TeamOne);
 
-		/// <summary>
 		/// Gets the total dimensions (width and height) of the scene, in pixels.
-		/// </summary>
-		/// <returns>A Vector describing the scene dimensions.</returns>
+		/// @return A Vector describing the scene dimensions.
 		Vector GetDimensions() const;
 
-		/// <summary>
 		/// Gets the total width of the scene, in pixels.
-		/// </summary>
-		/// <returns>An int describing the scene width.</returns>
+		/// @return An int describing the scene width.
 		int GetWidth() const;
 
-		/// <summary>
 		/// Gets the total height of the scene, in pixels.
-		/// </summary>
-		/// <returns>An int describing the scene height.</returns>
+		/// @return An int describing the scene height.
 		int GetHeight() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -858,27 +846,21 @@ namespace RTE {
 
 		bool HasArea(std::string areaName);
 
-		/// <summary>
 		/// Gets a specified Area identified by name. Ownership is NOT transferred!
-		/// </summary>
-		/// <param name="areaName">The name of the Area to try to get.</param>
-		/// <param name="required">Whether the area is required, and should throw an error if not found.</param>
-		/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
+		/// @param areaName The name of the Area to try to get.
+		/// @param required Whether the area is required, and should throw an error if not found.
+		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
 		Area* GetArea(const std::string_view& areaName, bool required);
 
-		/// <summary>
 		/// Gets a specified Area identified by name. Ownership is NOT transferred!
-		/// </summary>
-		/// <param name="areaName">The name of the Area to try to get.</param>
-		/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
+		/// @param areaName The name of the Area to try to get.
+		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
 		Area* GetArea(const std::string& areaName) { return GetArea(areaName, true); }
 
-		/// <summary>
 		/// Gets a specified Area identified by name, showing a Lua warning if it's not found. Ownership is NOT transferred!
 		/// Using this function will not add the area to the list of required areas which Scenario GUI uses to show compatible areas.
-		/// </summary>
-		/// <param name="areaName">The name of the Area to try to get.</param>
-		/// <returns>A pointer to the Area asked for, or nullptr if no Area of that name was found.</returns>
+		/// @param areaName The name of the Area to try to get.
+		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
 		Area* GetOptionalArea(const std::string& areaName) { return GetArea(areaName, false); }
 
 		void AddNavigatableArea(const std::string& areaName) {
@@ -1128,15 +1110,13 @@ namespace RTE {
 
 		float CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam);
 
-		/// <summary>
 		/// Asynchronously calculates the least difficult path between two points on the current Scene. Takes both distance and materials into account.
 		/// When pathing using the NoTeam pathFinder, no doors are considered passable.
-		/// </summary>
-		/// <param name="start">Start position of the pathfinding request.</param>
-		/// <param name="end">End position of the pathfinding request.</param>
-		/// <param name="digStrength">The maximum material strength any actor traveling along the path can dig through.</param>
-		/// <param name="team">The team we're pathing for (doors for this team will be considered passable)</param>
-		/// <returns>A shared pointer to the volatile PathRequest to be used to track whehter the asynchrnous path calculation has been completed, and check its results.</returns>
+		/// @param start Start position of the pathfinding request.
+		/// @param end End position of the pathfinding request.
+		/// @param digStrength The maximum material strength any actor traveling along the path can dig through.
+		/// @param team The team we're pathing for (doors for this team will be considered passable)
+		/// @return A shared pointer to the volatile PathRequest to be used to track whehter the asynchrnous path calculation has been completed, and check its results.
 		std::shared_ptr<volatile PathRequest> CalculatePathAsync(const Vector& start, const Vector& end, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam, PathCompleteCallback callback = nullptr);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1150,12 +1130,10 @@ namespace RTE {
 
 		std::list<Vector>& GetScenePath();
 
-		/// <summary>
 		/// Returns whether two position represent the same path nodes.
-		/// </summary>
-		/// <param name="pos1">First coordinates to compare.</param>
-		/// <param name="pos2">Second coordinates to compare.</param>
-		/// <returns>Whether both coordinates represent the same path node.</returns>
+		/// @param pos1 First coordinates to compare.
+		/// @param pos2 Second coordinates to compare.
+		/// @return Whether both coordinates represent the same path node.
 		bool PositionsAreTheSamePathNode(const Vector& pos1, const Vector& pos2) const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1222,16 +1200,12 @@ namespace RTE {
 
 		void SetMetagameInternal(bool newValue) { m_IsMetagameInternal = newValue; }
 
-		/// <summary>
 		/// Gets whether this Scene is a saved game Scene copy and should not be used anywhere except for game saving and loading.
-		/// </summary>
-		/// <returns>Whether this Scene is a saved game Scene copy.</returns>
+		/// @return Whether this Scene is a saved game Scene copy.
 		bool IsSavedGameInternal() const { return m_IsSavedGameInternal; }
 
-		/// <summary>
 		/// Sets whether this Scene is a saved game Scene copy and should not be used anywhere except for game saving and loading.
-		/// </summary>
-		/// <param name="newValue">Whether this Scene is a saved game Scene copy.</param>
+		/// @param newValue Whether this Scene is a saved game Scene copy.
 		void SetSavedGameInternal(bool newValue) { m_IsSavedGameInternal = newValue; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1333,20 +1307,16 @@ namespace RTE {
 		// Private member variable and method declarations
 
 	private:
-		/// <summary>
 		/// Gets the pathfinder for a given team.
-		/// </summary>
-		/// <param name="team">The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.</param>
-		/// <returns>A pointer to the pathfinder for the given team.</returns>
+		/// @param team The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.
+		/// @return A pointer to the pathfinder for the given team.
 		std::unique_ptr<PathFinder>& GetPathFinder(Activity::Teams team);
 
-		/// <summary>
 		/// Serializes the SceneObject via the Writer. Necessary because full serialization doesn't know how to deal with duplicate properties.
-		/// </summary>
-		/// <param name="writer">The Writer being used for serialization.</param>
-		/// <param name="sceneObjectToSave">The SceneObject to save.</param>
-		/// <param name="isChildAttachable">Convenience flag for whether or not this SceneObject is a child Attachable, and certain properties shouldn't be saved.</param>
-		/// <param name="saveFullData">Whether or not to save most data. Turned off for stuff like SceneEditor saves.</param>
+		/// @param writer The Writer being used for serialization.
+		/// @param sceneObjectToSave The SceneObject to save.
+		/// @param isChildAttachable Convenience flag for whether or not this SceneObject is a child Attachable, and certain properties shouldn't be saved.
+		/// @param saveFullData Whether or not to save most data. Turned off for stuff like SceneEditor saves.
 		void SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave, bool isChildAttachable, bool saveFullData) const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////

@@ -127,10 +127,8 @@ namespace RTE {
 
 		void SetController(Controller* pController);
 
-		/// <summary>
 		/// Sets the FeatureSet for this SceneEditorGUI, and sets up the PieMenu accordingly.
-		/// </summary>
-		/// <param name="newFeatureSet">The new FeatureSet for this SceneEditorGUI.</param>
+		/// @param newFeatureSet The new FeatureSet for this SceneEditorGUI.
 		void SetFeatureSet(SceneEditorGUI::FeatureSets newFeatureSet);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -276,16 +274,12 @@ namespace RTE {
 		// Protected member variable and method declarations
 
 	protected:
-		/// <summary>
 		/// Updates the path to the current brain in the cursor or resident in the scene, if any. If there's none, the path is cleared.
-		/// </summary>
-		/// <returns>Whether a brain was found in the cursor or the scene.</returns>
+		/// @return Whether a brain was found in the cursor or the scene.
 		bool UpdateBrainPath();
 
-		/// <summary>
 		/// Updates the path from the designated position to orbit, and its cost.
-		/// </summary>
-		/// <param name="brainPos">The designated position of the brain.</param>
+		/// @param brainPos The designated position of the brain.
 		void UpdateBrainSkyPathAndCost(Vector brainPos);
 
 		enum BlinkMode {

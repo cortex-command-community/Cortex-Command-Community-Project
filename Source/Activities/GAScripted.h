@@ -135,9 +135,7 @@ namespace RTE {
 
 		int ReloadScripts() override;
 
-		/// <summary>
 		/// Refreshes our activity functions to find any changes from script.
-		/// </summary>
 		void RefreshActivityFunctions();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -161,10 +159,8 @@ namespace RTE {
 
 		bool SceneIsCompatible(Scene* pScene, int teams = -1) override;
 
-		/// <summary>
 		/// Handles when an ACraft has left the game scene and entered orbit, though does not delete it. Ownership is NOT transferred, as the ACraft's inventory is just 'unloaded'.
-		/// </summary>
-		/// <param name="orbitedCraft">The ACraft instance that entered orbit. Ownership is NOT transferred!</param>
+		/// @param orbitedCraft The ACraft instance that entered orbit. Ownership is NOT transferred!
 		void HandleCraftEnteringOrbit(ACraft* orbitedCraft) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -280,15 +276,11 @@ namespace RTE {
 		// Private member variable and method declarations
 
 	private:
-		/// <summary>
 		/// Returns whether this GAScripted has an OnSave function, to act as a default for whether saving is allowed or not.
-		/// </summary>
-		/// <returns>Whether this GAScripted has an OnSave function</returns>
+		/// @return Whether this GAScripted has an OnSave function
 		bool HasSaveFunction() const;
 
-		/// <summary>
 		/// Adds this GAScripted's PieSlices, and any active GlobalScripts' PieSlices, to any active PieMenus.
-		/// </summary>
 		void AddPieSlicesToActiveActorPieMenus();
 
 		//////////////////////////////////////////////////////////////////////////////////////////

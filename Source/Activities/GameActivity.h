@@ -235,11 +235,9 @@ namespace RTE {
 
 		BuyMenuGUI* GetBuyGUI(unsigned int which = 0) const { return m_pBuyGUI[which]; }
 
-		/// <summary>
 		/// Checks if the in-game GUI Object is visible for a specific player.
-		/// </summary>
-		/// <param name="which">Which player to check the GUI for. -1 will check all players.</param>
-		/// <returns>Whether or not the BuyMenuGUI is visible for input player(s).</returns>
+		/// @param which Which player to check the GUI for. -1 will check all players.
+		/// @return Whether or not the BuyMenuGUI is visible for input player(s).
 		bool IsBuyGUIVisible(int which = 0) const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -251,14 +249,12 @@ namespace RTE {
 
 		SceneEditorGUI* GetEditorGUI(unsigned int which = 0) const { return m_pEditorGUI[which]; }
 
-		/// <summary>
 		/// Locks a player controlled actor to a specific controller mode.
 		/// Locking the actor will disable player input, including switching actors.
-		/// </summary>
-		/// <param name="player">Which player to lock the actor for.</param>
-		/// <param name="lock">Whether to lock or unlock the actor. (Default: true)</param>
-		/// <param name="lockToMode">Which controller mode to lock the actor to. (Default: `CIM_AI`)</param>
-		/// <returns>Whether the (un)lock was performed.</returns>
+		/// @param player Which player to lock the actor for.
+		/// @param lock Whether to lock or unlock the actor. (Default: true)
+		/// @param lockToMode Which controller mode to lock the actor to. (Default: `CIM_AI`)
+		/// @return Whether the (un)lock was performed.
 		bool LockControlledActor(Players player, bool lock = true, Controller::InputMode lockToMode = Controller::InputMode::CIM_AI);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -735,10 +731,8 @@ namespace RTE {
 		// Return value:
 		int GetDefaultGoldNutsDifficulty() const { return m_DefaultGoldNutsDifficulty; }
 
-		/// <summary>
 		/// Gets the default gold for max difficulty.
-		/// </summary>
-		/// <returns>The default gold for max difficulty.</returns>
+		/// @return The default gold for max difficulty.
 		int GetDefaultGoldMaxDifficulty() const { return m_DefaultGoldMaxDifficulty; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////

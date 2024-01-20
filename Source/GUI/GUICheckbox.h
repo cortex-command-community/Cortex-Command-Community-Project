@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A checkbox control class.
-	/// </summary>
 	class GUICheckbox : public GUIControl, public GUIPanel {
 
 	public:

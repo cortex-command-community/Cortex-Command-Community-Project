@@ -337,11 +337,9 @@ namespace RTE {
 
 		void SetTeam(int team) override;
 
-		/// <summary>
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
-		/// </summary>
-		/// <param name="pieSliceType">The SliceType of the PieSlice being handled.</param>
-		/// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
+		/// @param pieSliceType The SliceType of the PieSlice being handled.
+		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
 		bool HandlePieCommand(PieSlice::SliceType pieSliceType) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -393,16 +391,12 @@ namespace RTE {
 
 		void DropAllInventory() override;
 
-		/// <summary>
 		/// Gets the mass of this ACraft's inventory of newly collected items.
-		/// </summary>
-		/// <returns>The mass of this ACraft's newly collected inventory.</returns>
+		/// @return The mass of this ACraft's newly collected inventory.
 		float GetCollectedInventoryMass() const;
 
-		/// <summary>
 		/// Gets the mass of this ACraft, including the mass of its Attachables, wounds and inventory.
-		/// </summary>
-		/// <returns>The mass of this ACraft, its inventory and all its Attachables and wounds in Kilograms (kg).</returns>
+		/// @return The mass of this ACraft, its inventory and all its Attachables and wounds in Kilograms (kg).
 		float GetMass() const override { return Actor::GetMass() + GetCollectedInventoryMass(); }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -414,9 +408,7 @@ namespace RTE {
 
 		bool HasDelivered() { return m_HasDelivered; }
 
-		/// <summary>
 		/// Resets all the timers related to this, including the scuttle timer.
-		/// </summary>
 		void ResetAllTimers() override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -481,71 +473,49 @@ namespace RTE {
 
 		void SetDeliveryDelayMultiplier(float newValue) { m_DeliveryDelayMultiplier = newValue; }
 
-		/// <summary>
 		/// Gets whether this ACraft will scuttle automatically on death.
-		/// </summary>
-		/// <returns>Whether this ACraft will scuttle automatically on death.</returns>
+		/// @return Whether this ACraft will scuttle automatically on death.
 		bool GetScuttleOnDeath() const { return m_ScuttleOnDeath; }
 
-		/// <summary>
 		/// Sets whether this ACraft will scuttle automatically on death.
-		/// </summary>
-		/// <param name="scuttleOnDeath">Whether this ACraft will scuttle automatically on death.</param>
+		/// @param scuttleOnDeath Whether this ACraft will scuttle automatically on death.
 		void SetScuttleOnDeath(bool scuttleOnDeath) { m_ScuttleOnDeath = scuttleOnDeath; }
 
-		/// <summary>
 		/// Gets the hatch opening/closing delay of this ACraft.
-		/// </summary>
-		/// <returns>The hatch delay of this ACraft.</returns>
+		/// @return The hatch delay of this ACraft.
 		int GetHatchDelay() const { return m_HatchDelay; }
 
-		/// <summary>
 		/// Sets the hatch opening/closing delay of this ACraft.
-		/// </summary>
-		/// <param name="newDelay">The new hatch delay of this ACraft.</param>
+		/// @param newDelay The new hatch delay of this ACraft.
 		void SetHatchDelay(int newDelay) { m_HatchDelay = newDelay; }
 
-		/// <summary>
 		/// Destroys this ACraft and creates its specified Gibs in its place with appropriate velocities. Any Attachables are removed and also given appropriate velocities.
-		/// </summary>
-		/// <param name="impactImpulse">The impulse (kg * m/s) of the impact causing the gibbing to happen.</param>
-		/// <param name="movableObjectToIgnore">A pointer to an MO which the Gibs and Attachables should not be colliding with.</param>
+		/// @param impactImpulse The impulse (kg * m/s) of the impact causing the gibbing to happen.
+		/// @param movableObjectToIgnore A pointer to an MO which the Gibs and Attachables should not be colliding with.
 		void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr) override;
 
-		/// <summary>
 		/// Gets this ACraft's hatch opening sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this ACraft's hatch opening sound.</returns>
+		/// @return The SoundContainer for this ACraft's hatch opening sound.
 		SoundContainer* GetHatchOpenSound() const { return m_HatchOpenSound; }
 
-		/// <summary>
 		/// Sets this ACraft's hatch opening sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this ACraft's hatch opening sound.</param>
+		/// @param newSound The new SoundContainer for this ACraft's hatch opening sound.
 		void SetHatchOpenSound(SoundContainer* newSound) { m_HatchOpenSound = newSound; }
 
-		/// <summary>
 		/// Gets this ACraft's hatch closing sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this ACraft's hatch closing sound.</returns>
+		/// @return The SoundContainer for this ACraft's hatch closing sound.
 		SoundContainer* GetHatchCloseSound() const { return m_HatchCloseSound; }
 
-		/// <summary>
 		/// Sets this ACraft's hatch closing sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this ACraft's hatch closing sound.</param>
+		/// @param newSound The new SoundContainer for this ACraft's hatch closing sound.
 		void SetHatchCloseSound(SoundContainer* newSound) { m_HatchCloseSound = newSound; }
 
-		/// <summary>
 		/// Gets this ACraft's crash sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this ACraft's crash sound.</returns>
+		/// @return The SoundContainer for this ACraft's crash sound.
 		SoundContainer* GetCrashSound() const { return m_CrashSound; }
 
-		/// <summary>
 		/// Sets this ACraft's crash sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this ACraft's crash sound.</param>
+		/// @param newSound The new SoundContainer for this ACraft's crash sound.
 		void SetCrashSound(SoundContainer* newSound) { m_CrashSound = newSound; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////

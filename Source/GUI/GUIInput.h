@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// An interface class inherited by the different types of input methods.
-	/// </summary>
 	class GUIInput {
 
 	public:
@@ -152,18 +150,14 @@ namespace RTE {
 
 		int GetModifier() const;
 
-		/// <summary>
 		/// This function returns how much the mouse scroll wheel has moved. Positive integer is scroll up, negative is scroll down.
-		/// </summary>
-		/// <returns>Mouse scroll wheel movement in integer value.</returns>
+		/// @return Mouse scroll wheel movement in integer value.
 		int GetMouseWheelChange() const {
 			return m_MouseWheelChange;
 		}
 
-		/// <summary>
 		/// Sets whether the keyboard and joysticks also control the mouse.
-		/// </summary>
-		/// <param name="enableKeyJoyMouseCursor">Whether the keyboard and joysticks also control the mouse or not.</param>
+		/// @param enableKeyJoyMouseCursor Whether the keyboard and joysticks also control the mouse or not.
 		void SetKeyJoyMouseCursor(bool enableKeyJoyMouseCursor) { m_KeyJoyMouseCursor = enableKeyJoyMouseCursor; }
 
 	protected:

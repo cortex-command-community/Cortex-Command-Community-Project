@@ -183,104 +183,72 @@ namespace RTE {
 
 		Vector GetEyePos() const override;
 
-		/// <summary>
 		/// Gets the head of this AHuman.
-		/// </summary>
-		/// <returns>A pointer to the head of this AHuman. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the head of this AHuman. Ownership is NOT transferred.
 		Attachable* GetHead() const { return m_pHead; }
 
-		/// <summary>
 		/// Sets the head for this AHuman.
-		/// </summary>
-		/// <param name="newHead">The new head to use.</param>
+		/// @param newHead The new head to use.
 		void SetHead(Attachable* newHead);
 
-		/// <summary>
 		/// Gets the jetpack of this AHuman.
-		/// </summary>
-		/// <returns>A pointer to the jetpack of this AHuman. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the jetpack of this AHuman. Ownership is NOT transferred.
 		AEJetpack* GetJetpack() const { return m_pJetpack; }
 
-		/// <summary>
 		/// Sets the jetpack for this AHuman.
-		/// </summary>
-		/// <param name="newJetpack">The new jetpack to use.</param>
+		/// @param newJetpack The new jetpack to use.
 		void SetJetpack(AEJetpack* newJetpack);
 
-		/// <summary>
 		/// Gets the foreground Arm of this AHuman.
-		/// </summary>
-		/// <returns>A pointer to the foreground Arm of this AHuman. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the foreground Arm of this AHuman. Ownership is NOT transferred.
 		Arm* GetFGArm() const { return m_pFGArm; }
 
-		/// <summary>
 		/// Sets the foreground Arm for this AHuman.
-		/// </summary>
-		/// <param name="newArm">The new Arm to use.</param>
+		/// @param newArm The new Arm to use.
 		void SetFGArm(Arm* newArm);
 
-		/// <summary>
 		/// Gets the background arm of this AHuman.
-		/// </summary>
-		/// <returns>A pointer to the background arm of this AHuman. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the background arm of this AHuman. Ownership is NOT transferred.
 		Arm* GetBGArm() const { return m_pBGArm; }
 
-		/// <summary>
 		/// Sets the background Arm for this AHuman.
-		/// </summary>
-		/// <param name="newArm">The new Arm to use.</param>
+		/// @param newArm The new Arm to use.
 		void SetBGArm(Arm* newArm);
 
-		/// <summary>
 		/// Gets the foreground Leg of this AHuman.
-		/// </summary>
-		/// <returns>A pointer to the foreground Leg of this AHuman. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the foreground Leg of this AHuman. Ownership is NOT transferred.
 		Leg* GetFGLeg() const { return m_pFGLeg; }
 
-		/// <summary>
 		/// Sets the foreground Leg for this AHuman.
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetFGLeg(Leg* newLeg);
 
-		/// <summary>
 		/// Gets the background Leg of this AHuman.
-		/// </summary>
-		/// <returns>A pointer to the background Leg of this AHuman. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the background Leg of this AHuman. Ownership is NOT transferred.
 		Leg* GetBGLeg() const { return m_pBGLeg; }
 
-		/// <summary>
 		/// Sets the background Leg for this AHuman.
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetBGLeg(Leg* newLeg);
 
-		/// <summary>
 		/// Gets the foot Attachable of this AHuman's foreground Leg.
-		/// </summary>
-		/// <returns>A pointer to the foot Attachable of this AHuman's foreground Leg. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the foot Attachable of this AHuman's foreground Leg. Ownership is NOT transferred!
 		Attachable* GetFGFoot() const { return m_pFGLeg ? m_pFGLeg->GetFoot() : nullptr; }
 
-		/// <summary>
 		/// Sets the foot Attachable of this AHuman's foreground Leg.
-		/// </summary>
-		/// <param name="newFoot">The new foot for this AHuman's foreground Leg to use.</param>
+		/// @param newFoot The new foot for this AHuman's foreground Leg to use.
 		void SetFGFoot(Attachable* newFoot) {
 			if (m_pFGLeg && m_pFGLeg->IsAttached()) {
 				m_pFGLeg->SetFoot(newFoot);
 			}
 		}
 
-		/// <summary>
 		/// Gets the foot Attachable of this AHuman's background Leg.
-		/// </summary>
-		/// <returns>A pointer to the foot Attachable of this AHuman's background Leg. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the foot Attachable of this AHuman's background Leg. Ownership is NOT transferred!
 		Attachable* GetBGFoot() const { return m_pBGLeg ? m_pBGLeg->GetFoot() : nullptr; }
 
-		/// <summary>
 		/// Sets the foot Attachable of this AHuman's background Leg.
-		/// </summary>
-		/// <param name="newFoot">The new foot for this AHuman's background Leg to use.</param>
+		/// @param newFoot The new foot for this AHuman's background Leg to use.
 		void SetBGFoot(Attachable* newFoot) {
 			if (m_pBGLeg && m_pBGLeg->IsAttached()) {
 				m_pBGLeg->SetFoot(newFoot);
@@ -288,25 +256,19 @@ namespace RTE {
 		}
 
 		/// Gets this AHuman's UpperBodyState.
-		/// </summary>
-		/// <returns>This AHuman's UpperBodyState.</returns>
+		/// @return This AHuman's UpperBodyState.
 		UpperBodyState GetUpperBodyState() const { return m_ArmsState; }
 
-		/// <summary>
 		/// Sets this AHuman's UpperBodyState to the new state.
-		/// </summary>
-		/// <param name="newUpperBodyState">This AHuman's new UpperBodyState.</param>
+		/// @param newUpperBodyState This AHuman's new UpperBodyState.
 		void SetUpperBodyState(UpperBodyState newUpperBodyState) { m_ArmsState = newUpperBodyState; }
 
 		/// Gets this AHuman's ProneState.
-		/// </summary>
-		/// <returns>This AHuman's ProneState.</returns>
+		/// @return This AHuman's ProneState.
 		ProneState GetProneState() const { return m_ProneState; }
 
-		/// <summary>
 		/// Sets this AHuman's ProneState to the new state.
-		/// </summary>
-		/// <param name="newProneState">This AHuman's new ProneState.</param>
+		/// @param newProneState This AHuman's new ProneState.
 		void SetProneState(ProneState newProneState) { m_ProneState = newProneState; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -322,11 +284,9 @@ namespace RTE {
 
 		bool CollideAtPoint(HitData& hitData) override;
 
-		/// <summary>
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
-		/// </summary>
-		/// <param name="pieSliceType">The SliceType of the PieSlice being handled.</param>
-		/// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
+		/// @param pieSliceType The SliceType of the PieSlice being handled.
+		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
 		bool HandlePieCommand(PieSlice::SliceType pieSliceType) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -339,21 +299,17 @@ namespace RTE {
 
 		void AddInventoryItem(MovableObject* pItemToAdd) override;
 
-		/// <summary>
 		/// Swaps the next MovableObject carried by this AHuman and puts one not currently carried into the back of the inventory of this.
 		/// For safety reasons, this will dump any non-HeldDevice inventory items it finds into MovableMan, ensuring the returned item is a HeldDevice (but not casted to one, for overload purposes).
-		/// </summary>
-		/// <param name="inventoryItemToSwapIn">A pointer to the external MovableObject to swap in. Ownership IS transferred.</param>
-		/// <param name="muteSound">Whether or not to mute the sound on this event.</param>
-		/// <returns>The next HeldDevice in this AHuman's inventory, if there are any.</returns>
+		/// @param inventoryItemToSwapIn A pointer to the external MovableObject to swap in. Ownership IS transferred.
+		/// @param muteSound Whether or not to mute the sound on this event.
+		/// @return The next HeldDevice in this AHuman's inventory, if there are any.
 		MovableObject* SwapNextInventory(MovableObject* inventoryItemToSwapIn = nullptr, bool muteSound = false) override;
 
-		/// <summary>
 		/// Swaps the previous MovableObject carried by this AHuman and puts one not currently carried into the back of the inventory of this.
 		/// For safety reasons, this will dump any non-HeldDevice inventory items it finds into MovableMan, ensuring the returned item is a HeldDevice (but not casted to one, for overload purposes).
-		/// </summary>
-		/// <param name="inventoryItemToSwapIn">A pointer to the external MovableObject to swap in. Ownership IS transferred.</param>
-		/// <returns>The previous HeldDevice in this AHuman's inventory, if there are any.</returns>
+		/// @param inventoryItemToSwapIn A pointer to the external MovableObject to swap in. Ownership IS transferred.
+		/// @return The previous HeldDevice in this AHuman's inventory, if there are any.
 		MovableObject* SwapPrevInventory(MovableObject* inventoryItemToSwapIn = nullptr) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -395,23 +351,19 @@ namespace RTE {
 
 		bool EquipLoadedFirearmInGroup(std::string group, std::string exludeGroup, bool doEquip = true);
 
-		/// <summary>
 		/// Switches the equipped HeldDevice (if any) to the first found device with the specified preset name in the inventory.
 		/// If the equipped HeldDevice is of that module and preset name, nothing happens.
-		/// </summary>
-		/// <param name="presetName">The preset name of the HeldDevice to equip.</param>
-		/// <param name="doEquip">Whether to actually equip any matching item found in the inventory, or just report whether or not it's there.</param>
-		/// <returns>Whether a matching HeldDevice was successfully found/switched -o, or already held.</returns>
+		/// @param presetName The preset name of the HeldDevice to equip.
+		/// @param doEquip Whether to actually equip any matching item found in the inventory, or just report whether or not it's there.
+		/// @return Whether a matching HeldDevice was successfully found/switched -o, or already held.
 		bool EquipNamedDevice(const std::string& presetName, bool doEquip) { return EquipNamedDevice("", presetName, doEquip); }
 
-		/// <summary>
 		/// Switches the equipped HeldDevice (if any) to the first found device with the specified module and preset name in the inventory.
 		/// If the equipped HeldDevice is of that module and preset name, nothing happens.
-		/// </summary>
-		/// <param name="moduleName">The module name of the HeldDevice to equip.</param>
-		/// <param name="presetName">The preset name of the HeldDevice to equip.</param>
-		/// <param name="doEquip">Whether to actually equip any matching item found in the inventory, or just report whether or not it's there.</param>
-		/// <returns>Whether a matching HeldDevice was successfully found/switched -o, or already held.</returns>
+		/// @param moduleName The module name of the HeldDevice to equip.
+		/// @param presetName The preset name of the HeldDevice to equip.
+		/// @param doEquip Whether to actually equip any matching item found in the inventory, or just report whether or not it's there.
+		/// @return Whether a matching HeldDevice was successfully found/switched -o, or already held.
 		bool EquipNamedDevice(const std::string& moduleName, const std::string& presetName, bool doEquip);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -426,17 +378,13 @@ namespace RTE {
 
 		bool EquipThrowable(bool doEquip = true);
 
-		/// <summary>
 		/// Switches the currently held device (if any) to the strongest digging tool in the inventory.
-		/// </summary>
-		/// <param name="doEquip">Whether to actually equip the strongest digging tool, or just report whether a digging tool was found.</param>
-		/// <returns>Whether or not the strongest digging tool was successfully equipped.</returns>
+		/// @param doEquip Whether to actually equip the strongest digging tool, or just report whether a digging tool was found.
+		/// @return Whether or not the strongest digging tool was successfully equipped.
 		bool EquipDiggingTool(bool doEquip = true);
 
-		/// <summary>
 		/// Estimates what material strength any digger this AHuman is carrying can penetrate.
-		/// </summary>
-		/// <returns>The maximum material strength this AHuman's digger can penetrate, or a default dig strength if they don't have a digger.</returns>
+		/// @return The maximum material strength this AHuman's digger can penetrate, or a default dig strength if they don't have a digger.
 		float EstimateDigStrength() const override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -472,48 +420,34 @@ namespace RTE {
 
 		//	bool EquipDualWieldableInBGArm();
 
-		/// <summary>
 		/// Gets the throw chargeup progress of this AHuman.
-		/// </summary>
-		/// <returns>The throw chargeup progress, as a scalar from 0 to 1.</returns>
+		/// @return The throw chargeup progress, as a scalar from 0 to 1.
 		float GetThrowProgress() const { return m_ThrowPrepTime > 0 ? static_cast<float>(std::min(m_ThrowTmr.GetElapsedSimTimeMS() / static_cast<double>(m_ThrowPrepTime), 1.0)) : 1.0F; }
 
-		/// <summary>
 		/// Unequips whatever is in the FG arm and puts it into the inventory.
-		/// </summary>
-		/// <returns>Whether there was anything to unequip.</returns>
+		/// @return Whether there was anything to unequip.
 		bool UnequipFGArm();
 
-		/// <summary>
 		/// Unequips whatever is in the BG arm and puts it into the inventory.
-		/// </summary>
-		/// <returns>Whether there was anything to unequip.</returns>
+		/// @return Whether there was anything to unequip.
 		bool UnequipBGArm();
 
-		/// <summary>
 		/// Unequips whatever is in either of the arms and puts them into the inventory.
-		/// </summary>
 		void UnequipArms() {
 			UnequipBGArm();
 			UnequipFGArm();
 		}
 
-		/// <summary>
 		/// Gets the FG Arm's HeldDevice. Ownership is NOT transferred.
-		/// </summary>
-		/// <returns>The FG Arm's HeldDevice.</returns>
+		/// @return The FG Arm's HeldDevice.
 		HeldDevice* GetEquippedItem() const { return m_pFGArm ? m_pFGArm->GetHeldDevice() : nullptr; }
 
-		/// <summary>
 		/// Gets the BG Arm's HeldDevice. Ownership is NOT transferred.
-		/// </summary>
-		/// <returns>The BG Arm's HeldDevice.</returns>
+		/// @return The BG Arm's HeldDevice.
 		HeldDevice* GetEquippedBGItem() const { return m_pBGArm ? m_pBGArm->GetHeldDevice() : nullptr; }
 
-		/// <summary>
 		/// Gets the total mass of this AHuman's currently equipped devices.
-		/// </summary>
-		/// <returns>The mass of this AHuman's equipped devices.</returns>
+		/// @return The mass of this AHuman's equipped devices.
 		float GetEquippedMass() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -553,10 +487,8 @@ namespace RTE {
 
 		bool FirearmNeedsReload() const;
 
-		/// <summary>
 		/// Indicates whether currently held HDFirearms are reloading. If the parameter is true, it will only return true if all firearms are reloading, otherwise it will return whether any firearm is reloading.
-		/// </summary>
-		/// <returns>Whether or not currently held HDFirearms are reloading.</returns>
+		/// @return Whether or not currently held HDFirearms are reloading.
 		bool FirearmsAreReloading(bool onlyIfAllFirearmsAreReloading) const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -636,10 +568,8 @@ namespace RTE {
 
 		MovableObject* LookForMOs(float FOVSpread = 45, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false);
 
-		/// <summary>
 		/// Gets the GUI representation of this AHuman, only defaulting to its Head or body if no GraphicalIcon has been defined.
-		/// </summary>
-		/// <returns>The graphical representation of this AHuman as a BITMAP.</returns>
+		/// @return The graphical representation of this AHuman as a BITMAP.
 		BITMAP* GetGraphicalIcon() const override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -653,41 +583,29 @@ namespace RTE {
 
 		void ResetAllTimers() override;
 
-		/// <summary>
 		/// Detects slopes in terrain and updates the walk path rotation for the corresponding Layer accordingly.
-		/// </summary>
-		/// <param name="whichLayer">The Layer in question.</param>
+		/// @param whichLayer The Layer in question.
 		void UpdateWalkAngle(AHuman::Layer whichLayer);
 
-		/// <summary>
 		/// Detects overhead ceilings and crouches for them.
-		/// </summary>
 		void UpdateCrouching();
 
-		/// <summary>
 		/// Gets the walk path rotation for the specified Layer.
-		/// </summary>
-		/// <param name="whichLayer">The Layer in question.</param>
-		/// <returns>The walk angle in radians.</returns>
+		/// @param whichLayer The Layer in question.
+		/// @return The walk angle in radians.
 		float GetWalkAngle(AHuman::Layer whichLayer) const { return m_WalkAngle[whichLayer].GetRadAngle(); }
 
-		/// <summary>
 		/// Sets the walk path rotation for the specified Layer.
-		/// </summary>
-		/// <param name="whichLayer">The Layer in question.</param>
-		/// <param name="angle">The angle to set.</param>
+		/// @param whichLayer The Layer in question.
+		/// @param angle The angle to set.
 		void SetWalkAngle(AHuman::Layer whichLayer, float angle) { m_WalkAngle[whichLayer] = Matrix(angle); }
 
-		/// <summary>
 		/// Gets whether this AHuman has just taken a stride this frame.
-		/// </summary>
-		/// <returns>Whether this AHuman has taken a stride this frame or not.</returns>
+		/// @return Whether this AHuman has taken a stride this frame or not.
 		bool StrideFrame() const { return m_StrideFrame; }
 
-		/// <summary>
 		/// Gets whether this AHuman is currently attempting to climb something, using arms.
-		/// </summary>
-		/// <returns>Whether this AHuman is currently climbing or not.</returns>
+		/// @return Whether this AHuman is currently climbing or not.
 		bool IsClimbing() const { return m_ArmClimbing[FGROUND] || m_ArmClimbing[BGROUND]; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -735,12 +653,10 @@ namespace RTE {
 
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
-		/// <summary>
 		/// Gets the LimbPath corresponding to the passed in Layer and MovementState values.
-		/// </summary>
-		/// <param name="layer">Whether to get foreground or background LimbPath.</param>
-		/// <param name="movementState">Which movement state to get the LimbPath for.</param>
-		/// <returns>The LimbPath corresponding to the passed in Layer and MovementState values.</returns>
+		/// @param layer Whether to get foreground or background LimbPath.
+		/// @param movementState Which movement state to get the LimbPath for.
+		/// @return The LimbPath corresponding to the passed in Layer and MovementState values.
 		LimbPath* GetLimbPath(Layer layer, MovementState movementState) { return &m_Paths[layer][movementState]; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -781,126 +697,88 @@ namespace RTE {
 
 		void SetLimbPathPushForce(float force);
 
-		/// <summary>
 		/// Gets the target rot angle for the given MovementState.
-		/// </summary>
-		/// <param name="movementState">The MovementState to get the rot angle target for.</param>
-		/// <returns>The target rot angle for the given MovementState.</returns>
+		/// @param movementState The MovementState to get the rot angle target for.
+		/// @return The target rot angle for the given MovementState.
 		float GetRotAngleTarget(MovementState movementState) { return m_RotAngleTargets[movementState]; }
 
-		/// <summary>
 		/// Sets the target rot angle for the given MovementState.
-		/// </summary>
-		/// <param name="movementState">The MovementState to get the rot angle target for.</param>
-		/// <param name="newRotAngleTarget">The new rot angle target to use.</param>
+		/// @param movementState The MovementState to get the rot angle target for.
+		/// @param newRotAngleTarget The new rot angle target to use.
 		void SetRotAngleTarget(MovementState movementState, float newRotAngleTarget) { m_RotAngleTargets[movementState] = newRotAngleTarget; }
 
-		/// <summary>
 		/// Gets the duration it takes this AHuman to fully charge a throw.
-		/// </summary>
-		/// <returns>The duration it takes to fully charge a throw in MS.</returns>
+		/// @return The duration it takes to fully charge a throw in MS.
 		long GetThrowPrepTime() const { return m_ThrowPrepTime; }
 
-		/// <summary>
 		/// Sets the duration it takes this AHuman to fully charge a throw.
-		/// </summary>
-		/// <param name="newPrepTime">New duration to fully charge a throw in MS.</param>
+		/// @param newPrepTime New duration to fully charge a throw in MS.
 		void SetThrowPrepTime(long newPrepTime) { m_ThrowPrepTime = newPrepTime; }
 
-		/// <summary>
 		/// Gets the rate at which this AHuman's Arms will swing with Leg movement, if they're not holding or supporting a HeldDevice.
-		/// </summary>
-		/// <returns>The arm swing rate of this AHuman.</returns>
+		/// @return The arm swing rate of this AHuman.
 		float GetArmSwingRate() const { return m_ArmSwingRate; }
 
-		/// <summary>
 		/// Sets the rate at which this AHuman's Arms will swing with Leg movement, if they're not holding or supporting a HeldDevice.
-		/// </summary>
-		/// <param name="newValue">The new arm swing rate for this AHuman.</param>
+		/// @param newValue The new arm swing rate for this AHuman.
 		void SetArmSwingRate(float newValue) { m_ArmSwingRate = newValue; }
 
-		/// <summary>
 		/// Gets the rate at which this AHuman's Arms will sway with Leg movement, if they're holding or supporting a HeldDevice.
-		/// </summary>
-		/// <returns>The device arm sway rate of this AHuman.</returns>
+		/// @return The device arm sway rate of this AHuman.
 		float GetDeviceArmSwayRate() const { return m_DeviceArmSwayRate; }
 
-		/// <summary>
 		/// Sets the rate at which this AHuman's Arms will sway with Leg movement, if they're holding or supporting a HeldDevice.
-		/// </summary>
-		/// <param name="newValue">The new device arm sway rate for this AHuman.</param>
+		/// @param newValue The new device arm sway rate for this AHuman.
 		void SetDeviceArmSwayRate(float newValue) { m_DeviceArmSwayRate = newValue; }
 
-		/// <summary>
 		/// Gets this AHuman's max walkpath adjustment upwards to crouch below low ceilings.
-		/// </summary>
-		/// <returns>This AHuman's max walkpath adjustment.</returns>
+		/// @return This AHuman's max walkpath adjustment.
 		float GetMaxWalkPathCrouchShift() const { return m_MaxWalkPathCrouchShift; }
 
-		/// <summary>
 		/// Sets this AHuman's max walkpath adjustment upwards to crouch below low ceilings.
-		/// </summary>
-		/// <param name="newValue">The new value for this AHuman's max walkpath adjustment.</param>
+		/// @param newValue The new value for this AHuman's max walkpath adjustment.
 		void SetMaxWalkPathCrouchShift(float newValue) { m_MaxWalkPathCrouchShift = newValue; }
 
-		/// <summary>
 		/// Gets this AHuman's max crouch rotation to duck below low ceilings.
-		/// </summary>
-		/// <returns>This AHuman's max crouch rotation adjustment.</returns>
+		/// @return This AHuman's max crouch rotation adjustment.
 		float GetMaxCrouchRotation() const { return m_MaxCrouchRotation; }
 
-		/// <summary>
 		/// Sets this AHuman's max crouch rotation to duck below low ceilings.
-		/// </summary>
-		/// <param name="newValue">The new value for this AHuman's max crouch rotation adjustment.</param>
+		/// @param newValue The new value for this AHuman's max crouch rotation adjustment.
 		void SetMaxCrouchRotation(float newValue) { m_MaxCrouchRotation = newValue; }
 
-		/// <summary>
 		/// Gets this AHuman's current crouch amount. 0.0 == fully standing, 1.0 == fully crouched.
-		/// </summary>
-		/// <returns>This AHuman's current crouch amount.</returns>
+		/// @return This AHuman's current crouch amount.
 		float GetCrouchAmount() const { return (m_WalkPathOffset.m_Y * -1.0F) / m_MaxWalkPathCrouchShift; }
 
-		/// <summary>
 		/// Gets this AHuman's current crouch amount override. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
-		/// </summary>
-		/// <returns>This AHuman's current crouch amount override.</returns>
+		/// @return This AHuman's current crouch amount override.
 		float GetCrouchAmountOverride() const { return m_CrouchAmountOverride; }
 
-		/// <summary>
 		/// Sets this AHuman's current crouch amount override.
-		/// </summary>
-		/// <param name="newValue">The new value for this AHuman's current crouch amount override.</param>
+		/// @param newValue The new value for this AHuman's current crouch amount override.
 		void SetCrouchAmountOverride(float newValue) { m_CrouchAmountOverride = newValue; }
 
-		/// <summary>
 		/// Gets this AHuman's stride sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this AHuman's stride sound.</returns>
+		/// @return The SoundContainer for this AHuman's stride sound.
 		SoundContainer* GetStrideSound() const { return m_StrideSound; }
 
-		/// <summary>
 		/// Sets this AHuman's stride sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this AHuman's stride sound.</param>
+		/// @param newSound The new SoundContainer for this AHuman's stride sound.
 		void SetStrideSound(SoundContainer* newSound) { m_StrideSound = newSound; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Protected member variable and method declarations
 
 	protected:
-		/// <summary>
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
-		/// </summary>
 		void OnNewMovePath() override;
 
-		/// <summary>
 		/// Draws an aiming aid in front of this AHuman for throwing.
-		/// </summary>
-		/// <param name="targetBitmap">A pointer to a BITMAP to draw on.</param>
-		/// <param name="targetPos">The absolute position of the target bitmap's upper left corner in the Scene.</param>
-		/// <param name="progressScalar">A normalized scalar that determines the magnitude of the reticle, to indicate force in the throw.</param>
+		/// @param targetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene.
+		/// @param progressScalar A normalized scalar that determines the magnitude of the reticle, to indicate force in the throw.
 		void DrawThrowingReticle(BITMAP* targetBitmap, const Vector& targetPos = Vector(), float progressScalar = 1.0F) const;
 
 		// Member variables
@@ -1047,11 +925,9 @@ namespace RTE {
 		Timer m_JumpTimer;
 
 #pragma region Event Handling
-		/// <summary>
 		/// Event listener to be run while this AHuman's PieMenu is opened.
-		/// </summary>
-		/// <param name="pieMenu">The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param pieMenu The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int WhilePieMenuOpenListener(const PieMenu* pieMenu) override;
 #pragma endregion
 

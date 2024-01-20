@@ -5,9 +5,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A Scrollbar control class.
-	/// </summary>
 	class GUIScrollbar : public GUIControl, public GUIScrollPanel {
 
 	public:
@@ -74,13 +72,11 @@ namespace RTE {
 
 		void OnMouseUp(int X, int Y, int Buttons, int Modifier) override;
 
-		/// <summary>
 		/// Called when the mouse scroll wheel is moved.
-		/// </summary>
-		/// <param name="x">Mouse X position.</param>
-		/// <param name="y">Mouse Y position.</param>
-		/// <param name="modifier">Activated modifier buttons.</param>
-		/// <param name="mouseWheelChange">The amount of wheel movement. Positive is scroll up, negative is scroll down.</param>
+		/// @param x Mouse X position.
+		/// @param y Mouse Y position.
+		/// @param modifier Activated modifier buttons.
+		/// @param mouseWheelChange The amount of wheel movement. Positive is scroll up, negative is scroll down.
 		void OnMouseWheelChange(int x, int y, int modifier, int mouseWheelChange) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////

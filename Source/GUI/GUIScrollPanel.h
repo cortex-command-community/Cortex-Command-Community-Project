@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A scrollbar panel class used for controls requiring a scrollbar.
-	/// </summary>
 	class GUIScrollPanel : public GUIPanel {
 
 	public:
@@ -215,10 +213,8 @@ namespace RTE {
 
 		int GetSmallChange() const;
 
-		/// <summary>
 		/// Gets the value resolution for this scroll panel.
-		/// </summary>
-		/// <returns>The value resolution</returns>
+		/// @return The value resolution
 		int GetValueResolution() const;
 
 	protected:

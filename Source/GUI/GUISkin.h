@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// Skin class used for the controls to get skin details.
-	/// </summary>
 	class GUISkin {
 
 	public:
@@ -108,13 +106,11 @@ namespace RTE {
 
 		GUIFont* GetFont(const std::string& Name);
 
-		/// <summary>
 		/// Draws the mouse onto the screen.
-		/// </summary>
-		/// <param name="Image">Mouse image ID.</param>
-		/// <param name="X">Horizontal position on the screen.</param>
-		/// <param name="Y">Vertical position on the screen.</param>
-		/// <param name="pScreen">The GUIScreen to draw to, overriding the one passed in on construction.</param>
+		/// @param Image Mouse image ID.
+		/// @param X Horizontal position on the screen.
+		/// @param Y Vertical position on the screen.
+		/// @param pScreen The GUIScreen to draw to, overriding the one passed in on construction.
 		void DrawMouse(int Image, int X, int Y, GUIScreen* guiScreenOverride = nullptr);
 
 		//////////////////////////////////////////////////////////////////////////////////////////

@@ -88,9 +88,7 @@ namespace RTE {
 
 		~SceneMan() { Destroy(); }
 
-		/// <summary>
 		/// Makes the SceneMan object ready for use.
-		/// </summary>
 		void Initialize() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -173,16 +171,12 @@ namespace RTE {
 
 		const Scene* GetSceneToLoad() { return m_pSceneToLoad; }
 
-		/// <summary>
 		/// Gets whether objects are placed when the Scene is initially started. Used for saving/loading games.
-		/// </summary>
-		/// <returns>Whether objects are placed when the Scene is initially started.</returns>
+		/// @return Whether objects are placed when the Scene is initially started.
 		bool GetPlaceObjectsOnLoad() const { return m_PlaceObjects; }
 
-		/// <summary>
 		/// Gets whether units are placed when the Scene is initially started. Used for saving/loading games.
-		/// </summary>
-		/// <returns>Whether units are placed when the Scene is initially started.</returns>
+		/// @return Whether units are placed when the Scene is initially started.
 		bool GetPlaceUnitsOnLoad() const { return m_PlaceUnits; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -322,10 +316,8 @@ namespace RTE {
 
 		bool SceneWrapsY() const;
 
-		/// <summary>
 		/// Gets the orbit direction for the current scene.
-		/// </summary>
-		/// <returns>The orbit direction for the current scene.</returns>
+		/// @return The orbit direction for the current scene.
 		Directions GetSceneOrbitDirection() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -400,27 +392,21 @@ namespace RTE {
 
 		unsigned char GetTerrMatter(int pixelX, int pixelY);
 
-		/// <summary>
 		/// Gets a MOID from pixel coordinates in the Scene. LockScene() must be called before using this method.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the Scene pixel to test.</param>
-		/// <param name="pixelY">The Y coordinate of the Scene pixel to test.</param>
-		/// <param name="ignoreTeam">The team to ignore.</param>
-		/// <returns>The MOID currently at the specified pixel coordinates.</returns>
+		/// @param pixelX The X coordinate of the Scene pixel to test.
+		/// @param pixelY The Y coordinate of the Scene pixel to test.
+		/// @param ignoreTeam The team to ignore.
+		/// @return The MOID currently at the specified pixel coordinates.
 		MOID GetMOIDPixel(int pixelX, int pixelY, int ignoreTeam);
 
-		/// <summary>
 		/// Gets a MOID from pixel coordinates in the Scene. LockScene() must be called before using this method.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the Scene pixel to test.</param>
-		/// <param name="pixelY">The Y coordinate of the Scene pixel to test.</param>
-		/// <returns>The MOID currently at the specified pixel coordinates.</returns>
+		/// @param pixelX The X coordinate of the Scene pixel to test.
+		/// @param pixelY The Y coordinate of the Scene pixel to test.
+		/// @return The MOID currently at the specified pixel coordinates.
 		MOID GetMOIDPixel(int pixelX, int pixelY) { return GetMOIDPixel(pixelX, pixelY, Activity::NoTeam); }
 
-		/// <summary>
 		/// Gets this Scene's MOID SpatialPartitionGrid.
-		/// </summary>
-		/// <returns>This Scene's MOID SpatialPartitionGrid.</returns>
+		/// @return This Scene's MOID SpatialPartitionGrid.
 		const SpatialPartitionGrid& GetMOIDGrid() const { return m_MOIDsGrid; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -496,24 +482,20 @@ namespace RTE {
 
 		bool SceneIsLocked() const;
 
-		/// <summary>
 		/// Registers an area to be drawn upon, so it can be tracked and cleared later.
-		/// </summary>
-		/// <param name="bitmap">The bitmap being drawn upon.</param>
-		/// <param name="moid">The MOID, if we're drawing MOIDs.</param>
-		/// <param name="left">The left boundary of the draw area.</param>
-		/// <param name="top">The top boundary of the drawn area.</param>
-		/// <param name="right">The right boundary of the draw area.</param>
-		/// <param name="bottom">The bottom boundary of the draw area.</param>
+		/// @param bitmap The bitmap being drawn upon.
+		/// @param moid The MOID, if we're drawing MOIDs.
+		/// @param left The left boundary of the draw area.
+		/// @param top The top boundary of the drawn area.
+		/// @param right The right boundary of the draw area.
+		/// @param bottom The bottom boundary of the draw area.
 		void RegisterDrawing(const BITMAP* bitmap, int moid, int left, int top, int right, int bottom);
 
-		/// <summary>
 		/// Registers an area of to be drawn upon, so it can be tracked and cleared later.
-		/// </summary>
-		/// <param name="bitmap">The bitmap being drawn upon.</param>
-		/// <param name="moid">The MOID, if we're drawing MOIDs.</param>
-		/// <param name="center">The centre position of the drawn area.</param>
-		/// <param name="radius">The radius of the drawn area.</param>
+		/// @param bitmap The bitmap being drawn upon.
+		/// @param moid The MOID, if we're drawing MOIDs.
+		/// @param center The centre position of the drawn area.
+		/// @param radius The radius of the drawn area.
 		void RegisterDrawing(const BITMAP* bitmap, int moid, const Vector& center, float radius);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -634,12 +616,10 @@ namespace RTE {
 		                  int maxArea,
 		                  bool remove = false);
 
-		/// <summary>
 		/// Removes a pixel from the terrain and adds it to MovableMan.
-		/// </summary>
-		/// <param name="posX">The X coordinate of the terrain pixel.</param>
-		/// <param name="posX">The Y coordinate of the terrain pixel.</param>
-		/// <returns>The newly dislodged pixel, if one was found.</returns>
+		/// @param posX The X coordinate of the terrain pixel.
+		/// @param posX The Y coordinate of the terrain pixel.
+		/// @return The newly dislodged pixel, if one was found.
 		MovableObject* DislodgePixel(int posX, int posY);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1314,28 +1294,20 @@ namespace RTE {
 
 		void RegisterTerrainChange(int x, int y, int w, int h, unsigned char color, bool back);
 
-		/// <summary>
 		/// Gets an intermediate bitmap that is used for drawing a settled MovableObject into the terrain.
-		/// </summary>
-		/// <param name="moDiameter">The diameter of the MovableObject to calculate the required bitmap size.</param>
-		/// <returns>Pointer to the temp BITMAP of the appropriate size. Ownership is NOT transferred!</returns>
+		/// @param moDiameter The diameter of the MovableObject to calculate the required bitmap size.
+		/// @return Pointer to the temp BITMAP of the appropriate size. Ownership is NOT transferred!
 		BITMAP* GetIntermediateBitmapForSettlingIntoTerrain(int moDiameter) const;
 
-		/// <summary>
 		/// Sets the current scene pointer to null
-		/// </summary>
 		void ClearCurrentScene();
 
-		/// <summary>
 		/// Gets the maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
-		/// </summary>
-		/// <returns>The compacting height of scrap terrain.</returns>
+		/// @return The compacting height of scrap terrain.
 		int GetScrapCompactingHeight() const { return m_ScrapCompactingHeight; }
 
-		/// <summary>
 		/// Sets the maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
-		/// </summary>
-		/// <param name="newHeight">The new compacting height, in pixels.</param>
+		/// @param newHeight The new compacting height, in pixels.
 		void SetScrapCompactingHeight(int newHeight) { m_ScrapCompactingHeight = newHeight; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////

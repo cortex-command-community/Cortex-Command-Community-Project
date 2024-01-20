@@ -138,79 +138,59 @@ namespace RTE {
 		void Destroy(bool notInherited = false) override;
 
 #pragma region Script Handling
-		/// <summary>
 		/// Loads the script at the given script path onto the object, checking for appropriately named functions within it.
 		/// If the script contains a Create function and this MO's scripts are running, the Create function will be run immediately.
-		/// </summary>
-		/// <param name="scriptPath">The path to the script to load.</param>
-		/// <param name="loadAsEnabledScript">Whether or not the script should load as enabled. Defaults to true.</param>
-		/// <returns>0 on success. -1 if scriptPath is empty. -2 if the script is already loaded. -3 if setup to load the script or modify the global lua state fails. -4 if the script fails to load.</returns>
+		/// @param scriptPath The path to the script to load.
+		/// @param loadAsEnabledScript Whether or not the script should load as enabled. Defaults to true.
+		/// @return 0 on success. -1 if scriptPath is empty. -2 if the script is already loaded. -3 if setup to load the script or modify the global lua state fails. -4 if the script fails to load.
 		virtual int LoadScript(const std::string& scriptPath, bool loadAsEnabledScript = true);
 
-		/// <summary>
 		/// Reloads the all of the scripts on this object. This will also reload scripts for the original preset in PresetMan so future objects spawned will use the new scripts.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int ReloadScripts() final;
 
-		/// <summary>
 		/// Gets whether or not the object has a script name, and there were no errors when initializing its Lua scripts. If there were, the object would need to be reloaded.
-		/// </summary>
-		/// <returns>Whether or not the object's scripts have been successfully initialized.</returns>
+		/// @return Whether or not the object's scripts have been successfully initialized.
 		bool ObjectScriptsInitialized() const { return !m_ScriptObjectName.empty() && m_ScriptObjectName != "ERROR"; }
 
-		/// <summary>
 		/// Checks if this MO has any scripts on it.
-		/// </summary>
-		/// <returns>Whether or not this MO has any scripts on it.</returns>
+		/// @return Whether or not this MO has any scripts on it.
 		bool HasAnyScripts() const { return !m_AllLoadedScripts.empty(); }
 
-		/// <summary>
 		/// Checks if the script at the given path is one of the scripts on this MO.
-		/// </summary>
-		/// <param name="scriptPath">The path to the script to check.</param>
-		/// <returns>Whether or not the script is on this MO.</returns>
+		/// @param scriptPath The path to the script to check.
+		/// @return Whether or not the script is on this MO.
 		bool HasScript(const std::string& scriptPath) const { return m_AllLoadedScripts.find(scriptPath) != m_AllLoadedScripts.end(); }
 
-		/// <summary>
 		/// Checks if the script at the given path is one of the enabled scripts on this MO.
-		/// </summary>
-		/// <param name="scriptPath">The path to the script to check.</param>
-		/// <returns>Whether or not the script is enabled on this MO.</returns>
+		/// @param scriptPath The path to the script to check.
+		/// @return Whether or not the script is enabled on this MO.
 		bool ScriptEnabled(const std::string& scriptPath) const {
 			auto scriptPathIterator = m_AllLoadedScripts.find(scriptPath);
 			return scriptPathIterator != m_AllLoadedScripts.end() && scriptPathIterator->second == true;
 		}
 
-		/// <summary>
 		/// Enables or dsiableds the script at the given path on this MO.
-		/// </summary>
-		/// <param name="scriptPath">The path to the script to enable or disable</param>
-		/// <param name="enableScript">Whether to enable the script, or disable it.</param>
-		/// <returns>Whether or not the script was successfully eanbled/disabled.</returns>
+		/// @param scriptPath The path to the script to enable or disable
+		/// @param enableScript Whether to enable the script, or disable it.
+		/// @return Whether or not the script was successfully eanbled/disabled.
 		bool EnableOrDisableScript(const std::string& scriptPath, bool enableScript);
 
-		/// <summary>
 		/// Enables or disables all scripts on this MovableObject.
-		/// </summary>
-		/// <param name="enableScripts">Whether to enable (true) or disable (false) all scripts on this MovableObject.</param>
+		/// @param enableScripts Whether to enable (true) or disable (false) all scripts on this MovableObject.
 		void EnableOrDisableAllScripts(bool enableScripts);
 
-		/// <summary>
 		/// Runs the given function in all scripts that have it, with the given arguments, with the ability to not run on disabled scripts and to cease running if there's an error.
 		/// The first argument to the function will always be 'self'. If either argument list is not empty, its entries will be passed into the Lua function in order, with entity arguments first.
-		/// </summary>
-		/// <param name="functionName">The name of the function to run.</param>
-		/// <param name="runOnDisabledScripts">Whether to run the function on disabled scripts. Defaults to false.</param>
-		/// <param name="stopOnError">Whether to stop if there's an error running any script, or simply print it to the console and continue. Defaults to false.</param>
-		/// <param name="functionEntityArguments">Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.</param>
-		/// <param name="functionLiteralArguments">Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param functionName The name of the function to run.
+		/// @param runOnDisabledScripts Whether to run the function on disabled scripts. Defaults to false.
+		/// @param stopOnError Whether to stop if there's an error running any script, or simply print it to the console and continue. Defaults to false.
+		/// @param functionEntityArguments Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.
+		/// @param functionLiteralArguments Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int RunScriptedFunctionInAppropriateScripts(const std::string& functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 
-		/// <summary>
 		/// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
-		/// </summary>
 		virtual void DestroyScriptState();
 #pragma endregion
 
@@ -232,10 +212,8 @@ namespace RTE {
 
 		virtual float GetMass() const { return m_Mass; }
 
-		/// <summary>
 		/// Gets the previous position vector of this MovableObject, prior to this frame.
-		/// </summary>
-		/// <returns>A Vector describing the previous position vector.</returns>
+		/// @return A Vector describing the previous position vector.
 		const Vector& GetPrevPos() const { return m_PrevPos; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -247,16 +225,12 @@ namespace RTE {
 
 		const Vector& GetVel() const { return m_Vel; }
 
-		/// <summary>
 		/// Gets the previous velocity vector of this MovableObject, prior to this frame.
-		/// </summary>
-		/// <returns>A Vector describing the previous velocity vector.</returns>
+		/// @return A Vector describing the previous velocity vector.
 		const Vector& GetPrevVel() const { return m_PrevVel; }
 
-		/// <summary>
 		/// Gets the amount of distance this MO has travelled since its creation, in pixels.
-		/// </summary>
-		/// <returns>The amount of distance this MO has travelled, in pixels.</returns>
+		/// @return The amount of distance this MO has travelled, in pixels.
 		float GetDistanceTravelled() const { return m_DistanceTravelled; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -407,10 +381,8 @@ namespace RTE {
 
 		int GetMOIDFootprint() const { return m_MOIDFootprint; }
 
-		/// <summary>
 		/// Returns whether or not this MovableObject has ever been added to MovableMan. Does not account for removal from MovableMan.
-		/// </summary>
-		/// <returns>Whether or not this MovableObject has ever been added to MovableMan.</returns>
+		/// @return Whether or not this MovableObject has ever been added to MovableMan.
 		bool HasEverBeenAddedToMovableMan() const { return m_HasEverBeenAddedToMovableMan; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -423,28 +395,20 @@ namespace RTE {
 
 		float GetSharpness() const { return m_Sharpness; }
 
-		/// <summary>
 		/// Placeholder method to allow for ease of use with Attachables. Returns nullptr for classes that aren't derived from Attachable.
-		/// </summary>
-		/// <returns>Nothing.</returns>
+		/// @return Nothing.
 		virtual MOSRotating* GetParent() { return nullptr; }
 
-		/// <summary>
 		/// Placeholder method to allow for ease of use with Attachables. Returns nullptr for classes that aren't derived from Attachable.
-		/// </summary>
-		/// <returns>Nothing.</returns>
+		/// @return Nothing.
 		virtual const MOSRotating* GetParent() const { return nullptr; }
 
-		/// <summary>
 		/// Returns a pointer to this MO, this is to enable Attachables to get their root nodes.
-		/// </summary>
-		/// <returns>A pointer to this MovableObject.</returns>
+		/// @return A pointer to this MovableObject.
 		virtual MovableObject* GetRootParent() { return this; }
 
-		/// <summary>
 		/// Returns a pointer to this MO, this is to enable Attachables to get their root nodes.
-		/// </summary>
-		/// <returns>A pointer to this MovableObject.</returns>
+		/// @return A pointer to this MovableObject.
 		virtual const MovableObject* GetRootParent() const { return this; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -498,10 +462,8 @@ namespace RTE {
 
 		bool GetsHitByMOs() const { return m_GetsHitByMOs; }
 
-		/// <summary>
 		/// Sets the team of this MovableObject.
-		/// </summary>
-		/// <param name="team">The new team to assign.</returns>
+		/// @param team The new team to assign.
 		void SetTeam(int team) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -575,16 +537,12 @@ namespace RTE {
 
 		void SetIgnoreTerrain(bool ignores) { m_IgnoreTerrain = ignores; }
 
-		/// <summary>
 		/// Gets whether this MO ignores collisions with actors.
-		/// </summary>
-		/// <returns>Whether this MO ignores collisions with actors.</returns>
+		/// @return Whether this MO ignores collisions with actors.
 		bool GetIgnoresActorHits() const { return m_IgnoresActorHits; }
 
-		/// <summary>
 		/// Sets whether this MO ignores collisions with actors.
-		/// </summary>
-		/// <param name="value">Whether this MO will ignore collisions with actors.</returns>
+		/// @param value Whether this MO will ignore collisions with actors.
 		void SetIgnoresActorHits(bool value) { m_IgnoresActorHits = value; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -683,16 +641,12 @@ namespace RTE {
 
 		float GetEffectRotAngle() const { return m_EffectRotAngle; }
 
-		/// <summary>
 		/// Gets the starting strength of this MovableObject's effect.
-		/// </summary>
-		/// <returns>The starting strength of the effect, 0-255.</returns>
+		/// @return The starting strength of the effect, 0-255.
 		int GetEffectStartStrength() const { return m_EffectStartStrength; }
 
-		/// <summary>
 		/// Gets the stopping strength of this MovableObject's effect.
-		/// </summary>
-		/// <returns>The stopping strength of the effect, 0-255.</returns>
+		/// @return The stopping strength of the effect, 0-255.
 		int GetEffectStopStrength() const { return m_EffectStopStrength; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -732,15 +686,11 @@ namespace RTE {
 
 		void SetAge(double newAge = 0) { m_AgeTimer.SetElapsedSimTimeMS(newAge); }
 
-		/// <summary>
 		/// Sets the MOID of this MovableObject to be g_NoMOID (255) for this frame.
-		/// </summary>
 		virtual void SetAsNoID() { m_MOID = g_NoMOID; }
 
-		/// <summary>
 		/// Sets this MovableObject as having been added to MovableMan. Should only really be done in MovableMan::Add/Remove Actor/Item/Particle.
-		/// </summary>
-		/// <param name="addedToMovableMan">Whether or not this MovableObject has been added to MovableMan.</param>
+		/// @param addedToMovableMan Whether or not this MovableObject has been added to MovableMan.
 		void SetAsAddedToMovableMan(bool addedToMovableMan = true) {
 			if (addedToMovableMan) {
 				m_HasEverBeenAddedToMovableMan = true;
@@ -777,17 +727,13 @@ namespace RTE {
 
 		void SetToGetHitByMOs(bool getHitByMOs = true) { m_GetsHitByMOs = getHitByMOs; }
 
-		/// <summary>
 		/// Gets the MO this MO is set not to hit even when MO hitting is enabled on this MO.
-		/// </summary>
-		/// <returns>The MO this MO is set not to hit.</returns>
+		/// @return The MO this MO is set not to hit.
 		const MovableObject* GetWhichMOToNotHit() const { return m_pMOToNotHit; }
 
-		/// <summary>
 		/// Sets this MO to not hit a specific other MO and all its children even when MO hitting is enabled on this MO.
-		/// </summary>
-		/// <param name="moToNotHit">A pointer to the MO to not be hitting. Null pointer means don't ignore anyhting. Ownership is NOT transferred!</param>
-		/// <param name="forHowLong">How long, in seconds, to ignore the specified MO. A negative number means forever.</param>
+		/// @param moToNotHit A pointer to the MO to not be hitting. Null pointer means don't ignore anyhting. Ownership is NOT transferred!
+		/// @param forHowLong How long, in seconds, to ignore the specified MO. A negative number means forever.
 		virtual void SetWhichMOToNotHit(MovableObject* moToNotHit = nullptr, float forHowLong = -1) {
 			m_pMOToNotHit = moToNotHit;
 			m_MOIgnoreTimer.Reset();
@@ -969,12 +915,10 @@ namespace RTE {
 
 		virtual bool IsDrawnAfterParent() const { return true; }
 
-		/// <summary>
 		/// Whether a set of X, Y coordinates overlap us (in world space).
-		/// </summary>
-		/// <param name="pixelX">The given X coordinate, in world space.</param>
-		/// <param name="pixelY">The given Y coordinate, in world space.</param>
-		/// <returns>Whether the given coordinate overlap us.</returns>
+		/// @param pixelX The given X coordinate, in world space.
+		/// @param pixelY The given Y coordinate, in world space.
+		/// @return Whether the given coordinate overlap us.
 		virtual bool HitTestAtPixel(int pixelX, int pixelY) const { return false; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1108,23 +1052,17 @@ namespace RTE {
 
 		virtual void ResetAllTimers() {}
 
-		/// <summary>
 		/// Does the calculations necessary to detect whether this MovableObject is at rest or not. IsAtRest() retrieves the answer.
-		/// </summary>
 		virtual void RestDetection();
 
-		/// <summary>
 		/// Forces this MovableObject out of resting conditions.
-		/// </summary>
 		virtual void NotResting() {
 			m_RestTimer.Reset();
 			m_ToSettle = false;
 			m_VelOscillations = 0;
 		}
 
-		/// <summary>
 		/// Indicates whether this MovableObject has been at rest with no movement for longer than its RestThreshold.
-		/// </summary>
 		virtual bool IsAtRest();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1293,10 +1231,8 @@ namespace RTE {
 				return Vector(0, 0);
 		}
 
-		/// <summary>
 		/// Gets the total sum of all forces applied to this MovableObject in a single Vector.
-		/// </summary>
-		/// <returns>The total sum of all forces applied to this MovableObject.</returns>
+		/// @return The total sum of all forces applied to this MovableObject.
 		virtual Vector GetTotalForce();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1337,10 +1273,8 @@ namespace RTE {
 				m_Forces[n].second = v;
 		}
 
-		/// <summary>
 		/// Gets the pairs of impulse forces and their offsets that have to be applied.
-		/// </summary>
-		/// <returns>A constant reference to the deque of impulses for this MovableObject.</returns>
+		/// @return A constant reference to the deque of impulses for this MovableObject.
 		const std::deque<std::pair<Vector, Vector>>& GetImpulses() { return m_ImpulseForces; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1404,16 +1338,12 @@ namespace RTE {
 				m_ImpulseForces[n].second = v;
 		}
 
-		/// <summary>
 		/// Gets the number of Sim updates that run between each script update for this MovableObject.
-		/// </summary>
-		/// <returns>The number of Sim updates that run between each script update for this MovableObject.</returns>
+		/// @return The number of Sim updates that run between each script update for this MovableObject.
 		int GetSimUpdatesBetweenScriptedUpdates() const { return m_SimUpdatesBetweenScriptedUpdates; }
 
-		/// <summary>
 		/// Sets the number of Sim updates that run between each script update for this MovableObject.
-		/// </summary>
-		/// <param name="newSimUpdatesBetweenScriptedUpdates">The new number of Sim updates that run between each script update for this MovableObject.</param>
+		/// @param newSimUpdatesBetweenScriptedUpdates The new number of Sim updates that run between each script update for this MovableObject.
 		void SetSimUpdatesBetweenScriptedUpdates(int newSimUpdatesBetweenScriptedUpdates) { m_SimUpdatesBetweenScriptedUpdates = std::max(1, newSimUpdatesBetweenScriptedUpdates); }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1467,124 +1397,88 @@ namespace RTE {
 
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
-		/// <summary>
 		/// Updates this MovableObject's Lua scripts.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		virtual int UpdateScripts();
 
-		/// <summary>
 		/// Gets a const reference to this MOSRotating's map of string values.
-		/// </summary>
-		/// <returns>A const reference to this MOSRotating's map of string values.</returns>
+		/// @return A const reference to this MOSRotating's map of string values.
 		const std::unordered_map<std::string, std::string>& GetStringValueMap() const { return m_StringValueMap; }
 
-		/// <summary>
 		/// Gets a const reference to this MOSRotating's map of number values.
-		/// </summary>
-		/// <returns>A const reference to this MOSRotating's map of number values.</returns>
+		/// @return A const reference to this MOSRotating's map of number values.
 		const std::unordered_map<std::string, double>& GetNumberValueMap() const { return m_NumberValueMap; }
 
-		/// <summary>
 		/// Returns the string value associated with the specified key or "" if it does not exist.
-		/// </summary>
-		/// <param name="key">Key to retrieve value.</params>
-		/// <returns>The value associated with the key.</returns>
+		/// @param key Key to retrieve value.
+		/// @return The value associated with the key.
 		const std::string& GetStringValue(const std::string& key) const;
 
-		/// <summary>
 		/// Returns an encoded string value associated with the specified key or "" if it does not exist.
-		/// </summary>
-		/// <param name="key">Key to retrieve value.</params>
-		/// <returns>The value associated with the key.</returns>
+		/// @param key Key to retrieve value.
+		/// @return The value associated with the key.
 		std::string GetEncodedStringValue(const std::string& key) const;
 
-		/// <summary>
 		/// Returns the number value associated with the specified key or 0 if it does not exist.
-		/// </summary>
-		/// <param name="key">Key to retrieve value.</params>
-		/// <returns>The value associated with the key.</returns>
+		/// @param key Key to retrieve value.
+		/// @return The value associated with the key.
 		double GetNumberValue(const std::string& key) const;
 
-		/// <summary>
 		/// Returns the entity value associated with the specified key or nullptr if it does not exist.
-		/// </summary>
-		/// <param name="key">Key to retrieve value.</params>
-		/// <returns>The value associated with the key.</returns>
+		/// @param key Key to retrieve value.
+		/// @return The value associated with the key.
 		Entity* GetObjectValue(const std::string& key) const;
 
-		/// <summary>
 		/// Sets the string value associated with the specified key.
-		/// </summary>
-		/// <param name="key">Key to retrieve value.</params>
-		/// <param name="value">The new value to be associated with the key.</returns>
+		/// @param key Key to retrieve value.
+		/// @param value The new value to be associated with the key.
 		void SetStringValue(const std::string& key, const std::string& value);
 
-		/// <summary>
 		/// Sets the string value associated with the specified key.
-		/// </summary>
-		/// <param name="key">Key to retrieve value.</params>
-		/// <param name="value">The new value to be associated with the key.</returns>
+		/// @param key Key to retrieve value.
+		/// @param value The new value to be associated with the key.
 		void SetEncodedStringValue(const std::string& key, const std::string& value);
 
-		/// <summary>
 		/// Sets the number value associated with the specified key.
-		/// </summary>
-		/// <param name="key">Key to retrieve value.</params>
-		/// <param name="value">The new value to be associated with the key.</returns>
+		/// @param key Key to retrieve value.
+		/// @param value The new value to be associated with the key.
 		void SetNumberValue(const std::string& key, double value);
 
-		/// <summary>
 		/// Sets the entity value associated with the specified key.
-		/// </summary>
-		/// <param name="key">Key to retrieve value.</params>
-		/// <param name="value">The new value to be associated with the key.</returns>
+		/// @param key Key to retrieve value.
+		/// @param value The new value to be associated with the key.
 		void SetObjectValue(const std::string& key, Entity* value);
 
-		/// <summary>
 		/// Remove the string value associated with the specified key.
-		/// </summary>
-		/// <param name="key">The key to remove.</params>
+		/// @param key The key to remove.
 		void RemoveStringValue(const std::string& key);
 
-		/// <summary>
 		/// Remove the number value associated with the specified key.
-		/// </summary>
-		/// <param name="key">The key to remove.</params>
+		/// @param key The key to remove.
 		void RemoveNumberValue(const std::string& key);
 
-		/// <summary>
 		/// Remove the entity value associated with the specified key.
-		/// </summary>
-		/// <param name="key">The key to remove.</params>
+		/// @param key The key to remove.
 		void RemoveObjectValue(const std::string& key);
 
-		/// <summary>
 		/// Checks whether the string value associated with the specified key exists.
-		/// </summary>
-		/// <param name="key">The key to check.</params>
-		/// <returns>Whether or not there is an associated value for this key.</returns>
+		/// @param key The key to check.
+		/// @return Whether or not there is an associated value for this key.
 		bool StringValueExists(const std::string& key) const;
 
-		/// <summary>
 		/// Checks whether the number value associated with the specified key exists.
-		/// </summary>
-		/// <param name="key">The key to check.</params>
-		/// <returns>Whether or not there is an associated value for this key.</returns>
+		/// @param key The key to check.
+		/// @return Whether or not there is an associated value for this key.
 		bool NumberValueExists(const std::string& key) const;
 
-		/// <summary>
 		/// Checks whether the entity value associated with the specified key exists.
-		/// </summary>
-		/// <param name="key">The key to check.</params>
-		/// <returns>Whether or not there is an associated value for this key.</returns>
+		/// @param key The key to check.
+		/// @return Whether or not there is an associated value for this key.
 		bool ObjectValueExists(const std::string& key) const;
 
-		/// <summary>
 		/// Event listener to be run while this MovableObject's PieMenu is opened.
-		/// </summary>
-		/// <param name="pieMenu">The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param pieMenu The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		virtual int WhilePieMenuOpenListener(const PieMenu* pieMenu);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1656,10 +1550,8 @@ namespace RTE {
 
 		unsigned long int const GetUniqueID() const { return m_UniqueID; }
 
-		/// <summary>
 		/// Gets the preset name and unique ID of this MO, often useful for error messages.
-		/// </summary>
-		/// <returns>A string containing the unique ID and preset name of this MO.</returns>
+		/// @return A string containing the unique ID and preset name of this MO.
 		std::string GetPresetNameAndUniqueID() const { return m_PresetName + ", UID: " + std::to_string(m_UniqueID); }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1720,28 +1612,20 @@ namespace RTE {
 
 		void SetWoundDamageMultiplier(float value) { m_WoundDamageMultiplier = value; }
 
-		/// <summary>
 		/// Gets whether or not this MovableObject should apply wound damage when it collides with another MovableObject.
-		/// </summary>
-		/// <returns>Whether or not this MovableObject should apply wound damage when it collides with another MovableObject.</returns>
+		/// @return Whether or not this MovableObject should apply wound damage when it collides with another MovableObject.
 		bool GetApplyWoundDamageOnCollision() const { return m_ApplyWoundDamageOnCollision; }
 
-		/// <summary>
 		/// Sets whether or not this MovableObject should apply wound damage when it collides with another MovableObject.
-		/// </summary>
-		/// <param name="applyWoundDamageOnCollision">Whether or not this MovableObject should apply wound damage on collision.</param>
+		/// @param applyWoundDamageOnCollision Whether or not this MovableObject should apply wound damage on collision.
 		void SetApplyWoundDamageOnCollision(bool applyWoundDamageOnCollision) { m_ApplyWoundDamageOnCollision = applyWoundDamageOnCollision; }
 
-		/// <summary>
 		/// Gets whether or not this MovableObject should apply burst wound damage when it collides with another MovableObject.
-		/// </summary>
-		/// <returns>Whether or not this MovableObject should apply burst wound damage when it collides with another MovableObject.</returns>
+		/// @return Whether or not this MovableObject should apply burst wound damage when it collides with another MovableObject.
 		bool GetApplyWoundBurstDamageOnCollision() const { return m_ApplyWoundBurstDamageOnCollision; }
 
-		/// <summary>
 		/// Sets whether or not this MovableObject should apply burst wound damage when it collides with another MovableObject.
-		/// </summary>
-		/// <param name="applyWoundDamageOnCollision">Whether or not this MovableObject should apply burst wound damage on collision.</param>
+		/// @param applyWoundDamageOnCollision Whether or not this MovableObject should apply burst wound damage on collision.
 		void SetApplyWoundBurstDamageOnCollision(bool applyWoundBurstDamageOnCollision) { m_ApplyWoundBurstDamageOnCollision = applyWoundBurstDamageOnCollision; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1814,71 +1698,51 @@ namespace RTE {
 
 		void SetHitWhatTerrMaterial(unsigned char matID);
 
-		/// <summary>
 		/// Gets whether this MO's RootParent can GetHitByMOs and is currently traveling.
-		/// </summary>
-		/// <returns>Whether this MO's RootParent can GetHitByMOs and is currently traveling.</returns>
+		/// @return Whether this MO's RootParent can GetHitByMOs and is currently traveling.
 		bool GetTraveling() const { return GetRootParent()->m_IsTraveling; }
 
-		/// <summary>
 		/// Sets whether this MO's RootParent is currently traveling.
-		/// </summary>
-		/// <param name="newValue">Whether this MO's RootParent is currently traveling.</param>
+		/// @param newValue Whether this MO's RootParent is currently traveling.
 		void SetTraveling(bool newValue) { GetRootParent()->m_IsTraveling = newValue; }
 
-		/// <summary>
 		/// Draws this MovableObject's graphical and material representations to the specified SLTerrain's respective layers.
-		/// </summary>
-		/// <param name="terrain">The SLTerrain to draw this MovableObject to. Ownership is NOT transferred!</param>
-		/// <returns>Whether the object was successfully drawn to the terrain.</returns>
+		/// @param terrain The SLTerrain to draw this MovableObject to. Ownership is NOT transferred!
+		/// @return Whether the object was successfully drawn to the terrain.
 		bool DrawToTerrain(SLTerrain* terrain);
 
-		/// <summary>
 		/// Used to get the Lua state that handles our scripts.
-		/// </summary>
-		/// <returns>Our lua state. Can potentially be nullptr if we're not setup yet.</returns>
+		/// @return Our lua state. Can potentially be nullptr if we're not setup yet.
 		LuaStateWrapper* GetLuaState() { return m_ThreadedLuaState; }
 
-		/// <summary>
 		/// Method to be run when the game is saved via ActivityMan::SaveCurrentGame. Not currently used in metagame or editor saving.
-		/// </summary>
 		virtual void OnSave() { RunScriptedFunctionInAppropriateScripts("OnSave"); }
 
-		/// <summary>
 		/// Requests a synced update for the MO this frame.
-		/// </summary>
 		virtual void RequestSyncedUpdate() { m_RequestedSyncedUpdate = true; }
 
-		/// <summary>
 		/// Resets the requested update flag.
-		/// </summary>
 		virtual void ResetRequestedSyncedUpdateFlag() { m_RequestedSyncedUpdate = false; }
 
-		/// <summary>
 		/// Returns whether this MO has requested a synced update this frame.
-		/// </summary>
-		/// <returns>Whether this MO has requested a synced update this frame.</returns>
+		/// @return Whether this MO has requested a synced update this frame.
 		virtual bool HasRequestedSyncedUpdate() { return m_RequestedSyncedUpdate; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Protected member variable and method declarations
 
 	protected:
-		/// <summary>
 		/// Does necessary work to setup a script object name for this object, allowing it to be accessed in Lua, then runs all of the MO's scripts' Create functions in Lua.
-		/// </summary>
-		/// <returns>0 on success, -2 if it fails to setup the script object in Lua, and -3 if it fails to run any Create function.</returns>
+		/// @return 0 on success, -2 if it fails to setup the script object in Lua, and -3 if it fails to run any Create function.
 		int InitializeObjectScripts();
 
-		/// <summary>
 		/// Runs the given function for the given script, with the given arguments. The first argument to the function will always be 'self'.
 		/// If either argument list is not empty, its entries will be passed into the Lua function in order, with entity arguments first.
-		/// </summary>
-		/// <param name="scriptPath">The path to the script to run.</param>
-		/// <param name="functionName">The name of the function to run.</param>
-		/// <param name="functionEntityArguments">Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.</param>
-		/// <param name="functionLiteralArguments">Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param scriptPath The path to the script to run.
+		/// @param functionName The name of the function to run.
+		/// @param functionEntityArguments Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.
+		/// @param functionLiteralArguments Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int RunFunctionOfScript(const std::string& scriptPath, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>());
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -2084,24 +1948,18 @@ namespace RTE {
 		// Private member variable and method declarations
 
 	private:
-		/// <summary>
 		/// Clears all the member variables of this MovableObject, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
-		/// <summary>
 		/// Handles reading for custom values, dealing with the various types of custom values.
-		/// </summary>
-		/// <param name="reader">A Reader lined up to the custom value type to be read.</param>
+		/// @param reader A Reader lined up to the custom value type to be read.
 		void ReadCustomValueProperty(Reader& reader);
 
-		/// <summary>
 		/// Returns the script state to use for a given script path.
 		/// This will be locked to our thread and safe to use - ensure that it'll be unlocked after use!
-		/// </summary>
-		/// <param name="scriptPath">The path to the script to check for thread safety.</param>
-		/// <param name="function">A LuaFunction, to use as an early-out check instead of redundantly hashing and checking the filepath string.</param>
-		/// <returns>A script state.</returns>
+		/// @param scriptPath The path to the script to check for thread safety.
+		/// @param function A LuaFunction, to use as an early-out check instead of redundantly hashing and checking the filepath string.
+		/// @return A script state.
 		LuaStateWrapper& GetAndLockStateForScript(const std::string& scriptPath, const LuaFunction* function = nullptr);
 
 		// Disallow the use of some implicit methods.

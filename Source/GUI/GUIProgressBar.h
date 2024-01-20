@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A progressbar control class.
-	/// </summary>
 	class GUIProgressBar : public GUIControl, public GUIPanel {
 
 	public:

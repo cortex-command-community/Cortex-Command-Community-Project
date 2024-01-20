@@ -6,9 +6,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A property page control class.
-	/// </summary>
 	class GUIPropertyPage : public GUIControl, public GUIPanel {
 
 	public:

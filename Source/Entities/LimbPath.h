@@ -129,16 +129,12 @@ namespace RTE {
 
 		void Destroy(bool notInherited = false) override;
 
-		/// <summary>
 		/// Gets the coordinates where the limb should start at the start of the LimbPath cycle, relative to the owning AtomGroup's local origin.
-		/// </summary>
-		/// <returns>A Vector with the start position.</returns>
+		/// @return A Vector with the start position.
 		const Vector& GetStartOffset() const { return m_Start; }
 
-		/// <summary>
 		/// Sets the coordinates where the limb should start at the start of the LimbPath cycle, relative to the owning AtomGroup's local origin.
-		/// </summary>
-		/// <param name="newStartOffset">A Vector with the new start offset.</param>
+		/// @param newStartOffset A Vector with the new start offset.
 		void SetStartOffset(const Vector& newStartOffset) { m_Start = newStartOffset; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -151,11 +147,9 @@ namespace RTE {
 
 		unsigned int GetSegCount() const { return m_Segments.size(); }
 
-		/// <summary>
 		/// Gets a pointer to the segment at the given index. Ownership is NOT transferred.
-		/// </summary>
-		/// <param name="segmentIndex">The index of the segment to get.</param>
-		/// <returns>A pointer to the segment at the given index. Ownership is NOT transferred.</returns>
+		/// @param segmentIndex The index of the segment to get.
+		/// @return A pointer to the segment at the given index. Ownership is NOT transferred.
 		Vector* GetSegment(int segmentIndex) {
 			if (segmentIndex >= 0 && segmentIndex < m_Segments.size()) {
 				return &m_Segments.at(segmentIndex);
@@ -163,10 +157,8 @@ namespace RTE {
 			return nullptr;
 		}
 
-		/// <summary>
 		/// Gets whether or not foot collisions should be disabled, i.e. the limbpath's progress is greater than the FootCollisionsDisabledSegment value.
-		/// </summary>
-		/// <returns>Whether or not foot collisions should be disabled for this limbpath at its current progress.</returns>
+		/// @return Whether or not foot collisions should be disabled for this limbpath at its current progress.
 		bool FootCollisionsShouldBeDisabled() const { return m_FootCollisionsDisabledSegment >= 0 && GetSegCount() - GetCurrentSegmentNumber() <= m_FootCollisionsDisabledSegment; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -233,16 +225,12 @@ namespace RTE {
 				return 0;
 		}
 
-		/// <summary>
 		/// Sets the current travel speed multiplier.
-		/// </summary>
-		/// <param="newValue">The new travel speed multiplier.</returns>
+		/// @param newValue The new travel speed multiplier.
 		void SetTravelSpeedMultiplier(float newValue) { m_TravelSpeedMultiplier = newValue; }
 
-		/// <summary>
 		/// Gets the current travel speed multiplier.
-		/// </summary>
-		/// <returns>The current travel speed multiplier.</returns>
+		/// @return The current travel speed multiplier.
 		float GetTravelSpeedMultiplier() const { return m_TravelSpeedMultiplier; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -357,10 +345,8 @@ namespace RTE {
 
 		float GetRegularProgress() const;
 
-		/// <summary>
 		/// Gets the current segment as a number, rather than an iterator.
-		/// </summary>
-		/// <returns>The current segment as a number.</returns>
+		/// @return The current segment as a number.
 		int GetCurrentSegmentNumber() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -434,10 +420,8 @@ namespace RTE {
 
 		void SetHFlip(bool hflipped) { m_HFlipped = hflipped; }
 
-		/// <summary>
 		/// Gets the h flip.
-		/// </summary>
-		/// <returns>The h flip.</returns>
+		/// @return The h flip.
 		bool GetHFlip() { return m_HFlipped; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -476,16 +460,12 @@ namespace RTE {
 			m_Rotation.SetXFlipped(m_HFlipped);
 		}
 
-		/// <summary>
 		/// Sets the new rotation offset.
-		/// </summary>
-		/// <param name="rotationOffset">The new rotation offset, in local space.</param>
+		/// @param rotationOffset The new rotation offset, in local space.
 		void SetRotationOffset(const Vector& rotationOffset) { m_RotationOffset = rotationOffset; }
 
-		/// <summary>
 		/// Sets the new position offset.
-		/// </summary>
-		/// <param name="rotationOffset">The new position offset, in local space.</param>
+		/// @param rotationOffset The new position offset, in local space.
 		void SetPositionOffset(const Vector& positionOffset) { m_PositionOffset = positionOffset; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -581,16 +561,12 @@ namespace RTE {
 
 		bool IsStaticPoint() const { return m_Segments.empty(); }
 
-		/// <summary>
 		/// Returns the lowest y position of this LimbPath.
-		/// </summary>
-		/// <returns>The lowest y position of this LimbPath.</returns>
+		/// @return The lowest y position of this LimbPath.
 		float GetLowestY() const;
 
-		/// <summary>
 		/// Returns the middle x position of this LimbPath.
-		/// </summary>
-		/// <returns>The middle x position of this LimbPath.</returns>
+		/// @return The middle x position of this LimbPath.
 		float GetMiddleX() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -689,11 +665,9 @@ namespace RTE {
 
 		void Clear();
 
-		/// <summary>
 		/// Rotates a point to match our rotation and rotation offset.
-		/// </summary>
-		/// <param name="point">The point to rotate.</param>
-		/// <returns>The rotated point.</returns>
+		/// @param point The point to rotate.
+		/// @return The rotated point.
 		Vector RotatePoint(const Vector& point) const;
 	};
 

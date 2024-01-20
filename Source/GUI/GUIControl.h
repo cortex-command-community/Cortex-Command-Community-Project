@@ -7,9 +7,7 @@ namespace RTE {
 
 	class GUIControlManager;
 
-	/// <summary>
 	/// A base class inherited by all controls.
-	/// </summary>
 	class GUIControl {
 
 	public:

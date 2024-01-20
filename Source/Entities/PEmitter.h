@@ -109,10 +109,8 @@ namespace RTE {
 
 		bool IsEmitting() const { return m_EmitEnabled; }
 
-		/// <summary>
 		/// Returns whether this emitter was emitting last frame.
-		/// </summary>
-		/// <returns>Whether this emitter was emitting last frame.</returns>
+		/// @return Whether this emitter was emitting last frame.
 		bool WasEmitting() const { return m_WasEmitting; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -262,16 +260,12 @@ namespace RTE {
 
 		float GetThrottle() const { return m_Throttle; }
 
-		/// <summary>
 		/// Gets the adjusted throttle multiplier that is factored into the emission rate of this PEmitter.
-		/// </summary>
-		/// <returns>The throttle strength as a multiplier.</returns>
+		/// @return The throttle strength as a multiplier.
 		float GetThrottleFactor() const { return LERP(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle); }
 
-		/// <summary>
 		/// Gets the throttle value that will achieve a given throttle factor that is factored into the emission rate of this AEmitter.
-		/// </summary>
-		/// <returns>The throttle value that will achieve the given throttle factor.</returns>
+		/// @return The throttle value that will achieve the given throttle factor.
 		float GetThrottleForThrottleFactor(float throttleFactor) const { return LERP(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor); }
 
 		/*
@@ -326,10 +320,8 @@ namespace RTE {
 
 		void SetFlashScale(float flashScale = 1.0f) { m_FlashScale = flashScale; }
 
-		/// <summary>
 		/// Gets the display scale factor of the flash effect. This is purely visual.
-		/// </summary>
-		/// <returns>The scale factor of the flash draw.</returns>
+		/// @return The scale factor of the flash draw.
 		float GetFlashScale() const { return m_FlashScale; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -472,22 +464,16 @@ namespace RTE {
 
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
-		/// <summary>
 		/// Gets the number of emissions left before emitter is disabled.
-		/// </summary>
-		/// <returns>The number of emissions left before emitter is disabled.</returns>
+		/// @return The number of emissions left before emitter is disabled.
 		long GetEmitCountLimit() const { return m_EmitCountLimit; }
 
-		/// <summary>
 		/// Sets the number of emissions left before emitter is disabled.
-		/// </summary>
-		/// <param name="newValue">New number of emissions left.</param>
+		/// @param newValue New number of emissions left.
 		void SetEmitCountLimit(long newValue) { m_EmitCountLimit = newValue; }
 
-		/// <summary>
 		/// Returns whether this emitter just started emitting this frame.
-		/// </summary>
-		/// <returns>Whether this emitter just started emitting this frame.</returns>
+		/// @return Whether this emitter just started emitting this frame.
 		bool JustStartedEmitting() const { return !m_WasEmitting && m_EmitEnabled; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////

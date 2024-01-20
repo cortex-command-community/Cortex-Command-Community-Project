@@ -98,10 +98,8 @@ namespace RTE {
 
 		bool IsEmitting() const { return m_EmitEnabled; }
 
-		/// <summary>
 		/// Returns whether this emitter was emitting last frame.
-		/// </summary>
-		/// <returns>Whether this emitter was emitting last frame.</returns>
+		/// @return Whether this emitter was emitting last frame.
 		bool WasEmitting() const { return m_WasEmitting; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -132,16 +130,12 @@ namespace RTE {
 
 		float EstimateImpulse(bool burst = false);
 
-		/// <summary>
 		/// Gets the rate at which all of the Emissions of this AEmitter, combined, emit their particles.
-		/// </summary>
-		/// <returns>The combined particles per minute of all Emissions in this AEmitter.</returns>
+		/// @return The combined particles per minute of all Emissions in this AEmitter.
 		float GetTotalParticlesPerMinute() const;
 
-		/// <summary>
 		/// Gets the number of particles that will be emitted by all the Emissions of this AEmitter combined, in one shot when a burst is triggered.
-		/// </summary>
-		/// <returns>The combined burst size of all Emissions in this AEmitter.</returns>
+		/// @return The combined burst size of all Emissions in this AEmitter.
 		int GetTotalBurstSize() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -165,16 +159,12 @@ namespace RTE {
 
 		const Matrix& GetEmitAngleMatrix() const { return m_EmitAngle; }
 
-		/// <summary>
 		/// Gets the offset of the emission point from this' sprite center, which gets rotated with this.
-		/// </summary>
-		/// <returns>The emission offset.</returns>
+		/// @return The emission offset.
 		Vector GetEmitOffset() const { return m_EmissionOffset; }
 
-		/// <summary>
 		/// Sets the offset of the emission point from this' sprite center, which gets rotated with this.
-		/// </summary>
-		/// <param name="newOffset">The new emission offset.</param>
+		/// @param newOffset The new emission offset.
 		void SetEmitOffset(const Vector& newOffset) { m_EmissionOffset = newOffset; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -254,52 +244,38 @@ namespace RTE {
 
 		float GetThrottle() const { return m_Throttle; }
 
-		/// <summary>
 		/// Gets the adjusted throttle multiplier that is factored into the emission rate of this AEmitter.
-		/// </summary>
-		/// <returns>The throttle strength as a multiplier.</returns>
+		/// @return The throttle strength as a multiplier.
 		float GetThrottleFactor() const { return LERP(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle); }
 
-		/// <summary>
 		/// Gets the throttle value that will achieve a given throttle factor that is factored into the emission rate of this AEmitter.
-		/// </summary>
-		/// <returns>The throttle value that will achieve the given throttle factor.</returns>
+		/// @return The throttle value that will achieve the given throttle factor.
 		float GetThrottleForThrottleFactor(float throttleFactor) const { return LERP(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor); }
 
-		/// <summary>
 		/// Returns a scaled throttle value that represents a linear increase of force.
 		/// Because of (bad) reasons, throttle is in the range -1.0F to 1.0F, where -1.0F is "minimum force" and 1.0F is "maximum force".
 		/// 0.0F is "whoever the fuck knows?" force. As such, multiplying throttle by 2 does not mean twice the force emitted, instead it means "whoever the fuck knows?" additional force emitted.
 		/// All work and no play makes Jack a dull boy. All work and no play makes Jack a dull boy. All work and no play makes Jack a dull boy.
 		/// ...this helper function lets us apply a scale to throttle and get a sensible result.
-		/// </summary>
-		/// <param name="throttle">The throttle value to be considered.</param>
-		/// <param name="multiplier">The multiplier to scale by, in terms of absolute force emitted.</param>
-		/// <returns>Adjusted throttle value scaled by the multiplier value.</returns>
+		/// @param throttle The throttle value to be considered.
+		/// @param multiplier The multiplier to scale by, in terms of absolute force emitted.
+		/// @return Adjusted throttle value scaled by the multiplier value.
 		float GetScaledThrottle(float throttle, float multiplier) const;
 
-		/// <summary>
 		/// Gets the negative throttle multiplier of this AEmitter.
-		/// </summary>
-		/// <returns>The negative throttle multiplier of this AEmitter.</returns>
+		/// @return The negative throttle multiplier of this AEmitter.
 		float GetNegativeThrottleMultiplier() const { return m_NegativeThrottleMultiplier; }
 
-		/// <summary>
 		/// Gets the positive throttle multiplier of this AEmitter.
-		/// </summary>
-		/// <returns>The positive throttle multiplier of this AEmitter.</returns>
+		/// @return The positive throttle multiplier of this AEmitter.
 		float GetPositiveThrottleMultiplier() const { return m_PositiveThrottleMultiplier; }
 
-		/// <summary>
 		/// Sets the negative throttle multiplier of this AEmitter.
-		/// </summary>
-		/// <param name="newValue">The new throttle multiplier of this AEmitter.</param>
+		/// @param newValue The new throttle multiplier of this AEmitter.
 		void SetNegativeThrottleMultiplier(float newValue) { m_NegativeThrottleMultiplier = newValue; }
 
-		/// <summary>
 		/// Sets the positive throttle multiplier of this AEmitter.
-		/// </summary>
-		/// <param name="newValue">The new throttle multiplier of this AEmitter.</param>
+		/// @param newValue The new throttle multiplier of this AEmitter.
 		void SetPositiveThrottleMultiplier(float newValue) { m_PositiveThrottleMultiplier = newValue; }
 
 		/*
@@ -344,16 +320,12 @@ namespace RTE {
 
 		void SetBurstSpacing(const float spacing) { m_BurstSpacing = spacing; }
 
-		/// <summary>
 		/// Gets the flash of this AEmitter.
-		/// </summary>
-		/// <returns>A pointer to the AEmitter's flash. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the AEmitter's flash. Ownership is NOT transferred!
 		Attachable* GetFlash() const { return m_pFlash; }
 
-		/// <summary>
 		/// Sets the flash for this AEmitter. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newFlash">The new flash to use.</param>
+		/// @param newFlash The new flash to use.
 		void SetFlash(Attachable* newFlash);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -576,10 +548,8 @@ namespace RTE {
 
 		bool IsDamaging() { return (m_EmitDamage > 0 || m_BurstDamage > 0) && m_EmitterDamageMultiplier > 0; }
 
-		/// <summary>
 		/// Gets the number of emissions emitted since emission was last enabled.
-		/// </summary>
-		/// <returns>The number of emissions emitted since emission was last enabled.</returns>
+		/// @return The number of emissions emitted since emission was last enabled.
 		long GetEmitCount() const { return m_EmitCount; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -600,46 +570,32 @@ namespace RTE {
 
 		void SetEmitCountLimit(long newValue) { m_EmitCountLimit = newValue; }
 
-		/// <summary>
 		/// Gets this AEmitter's emission sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this AEmitter's emission sound.</returns>
+		/// @return The SoundContainer for this AEmitter's emission sound.
 		SoundContainer* GetEmissionSound() const { return m_EmissionSound; }
 
-		/// <summary>
 		/// Sets this AEmitter's emission sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this AEmitter's emission sound.</param>
+		/// @param newSound The new SoundContainer for this AEmitter's emission sound.
 		void SetEmissionSound(SoundContainer* newSound) { m_EmissionSound = newSound; }
 
-		/// <summary>
 		/// Gets this AEmitter's burst sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this AEmitter's burst sound.</returns>
+		/// @return The SoundContainer for this AEmitter's burst sound.
 		SoundContainer* GetBurstSound() const { return m_BurstSound; }
 
-		/// <summary>
 		/// Sets this AEmitter's burst sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this AEmitter's burst sound.</param>
+		/// @param newSound The new SoundContainer for this AEmitter's burst sound.
 		void SetBurstSound(SoundContainer* newSound) { m_BurstSound = newSound; }
 
-		/// <summary>
 		/// Gets this AEmitter's end sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this AEmitter's end sound.</returns>
+		/// @return The SoundContainer for this AEmitter's end sound.
 		SoundContainer* GetEndSound() const { return m_EndSound; }
 
-		/// <summary>
 		/// Sets this AEmitter's end sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this AEmitter's end sound.</param>
+		/// @param newSound The new SoundContainer for this AEmitter's end sound.
 		void SetEndSound(SoundContainer* newSound) { m_EndSound = newSound; }
 
-		/// <summary>
 		/// Returns whether this emitter just started emitting this frame.
-		/// </summary>
-		/// <returns>Whether this emitter just started emitting this frame.</returns>
+		/// @return Whether this emitter just started emitting this frame.
 		bool JustStartedEmitting() const { return !m_WasEmitting && m_EmitEnabled; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////

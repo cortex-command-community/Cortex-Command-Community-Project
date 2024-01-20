@@ -46,9 +46,7 @@ namespace RTE {
 			Create();
 		}
 
-		/// <summary>
 		/// Makes the TimerMan object ready for use.
-		/// </summary>
 		void Initialize(){};
 
 		//////////////////////////////////////////////////////////////////////////////////////////

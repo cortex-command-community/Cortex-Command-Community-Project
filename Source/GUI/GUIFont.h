@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A class to handle the drawing of text.
-	/// </summary>
 	class GUIFont {
 
 	public:

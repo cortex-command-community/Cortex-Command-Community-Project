@@ -6,9 +6,7 @@ namespace RTE {
 	class GUIPanel;
 	class GUIManager;
 
-	/// <summary>
 	/// A rectangle 'window' in the GUI that recieves mouse and keyboard events.
-	/// </summary>
 	class GUIPanel {
 
 	public:
@@ -191,13 +189,11 @@ namespace RTE {
 
 		virtual void OnMouseHover(int X, int Y, int Buttons, int Modifier);
 
-		/// <summary>
 		/// Called when the mouse scroll wheel is moved.
-		/// </summary>
-		/// <param name="x">Mouse X position.</param>
-		/// <param name="y">Mouse Y position.</param>
-		/// <param name="modifier">Activated modifier buttons.</param>
-		/// <param name="mouseWheelChange">The amount of wheel movement. Positive is scroll up, negative is scroll down.</param>
+		/// @param x Mouse X position.
+		/// @param y Mouse Y position.
+		/// @param modifier Activated modifier buttons.
+		/// @param mouseWheelChange The amount of wheel movement. Positive is scroll up, negative is scroll down.
 		virtual void OnMouseWheelChange(int x, int y, int modifier, int mouseWheelChange){};
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -224,10 +220,8 @@ namespace RTE {
 
 		virtual void OnKeyPress(int KeyCode, int Modifier);
 
-		/// <summary>
 		/// Called when text input is received.
-		/// </summary>
-		/// <param name="inputText">The input text being received.</param>
+		/// @param inputText The input text being received.
 		virtual void OnTextInput(std::string_view inputText);
 
 		//////////////////////////////////////////////////////////////////////////////////////////

@@ -13,68 +13,48 @@ namespace RTE {
 	class GUIScrollbar;
 	class GUIEvent;
 
-	/// <summary>
 	/// Handling for player input mapping settings through the game settings user interface.
-	/// </summary>
 	class SettingsInputMappingGUI {
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a SettingsInputMappingGUI object in system memory and make it ready for use.
-		/// </summary>
-		/// <param name="parentControlManager">Pointer to the parent GUIControlManager which owns all the GUIControls of this SettingsInputMappingGUI. Ownership is NOT transferred!</param>
+		/// @param parentControlManager Pointer to the parent GUIControlManager which owns all the GUIControls of this SettingsInputMappingGUI. Ownership is NOT transferred!
 		explicit SettingsInputMappingGUI(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Gets whether this SettingsInputMappingGUI is currently visible and enabled.
-		/// </summary>
-		/// <returns>Whether this SettingsInputMappingGUI is currently visible and enabled.</returns>
+		/// @return Whether this SettingsInputMappingGUI is currently visible and enabled.
 		bool IsEnabled() const;
 
-		/// <summary>
 		/// Enables or disables the SettingsInputMappingGUI.
-		/// </summary>
-		/// <param name="enable">Show and enable or hide and disable the SettingsInputMappingGUI.</param>
-		/// <param name="player">The player this SettingsInputMappingGUI is configuring input mapping for.</param>
+		/// @param enable Show and enable or hide and disable the SettingsInputMappingGUI.
+		/// @param player The player this SettingsInputMappingGUI is configuring input mapping for.
 		void SetEnabled(bool enable = true, int player = 0);
 
-		/// <summary>
 		/// Gets the currently active GUICollectionBox that acts as a dialog box and requires disabling navigation and drawing an overlay.
-		/// </summary>
-		/// <returns>Pointer to the GUICollectionBox that is the currently active dialog box, if any. Ownership is NOT transferred!</returns>
+		/// @return Pointer to the GUICollectionBox that is the currently active dialog box, if any. Ownership is NOT transferred!
 		GUICollectionBox* GetActiveDialogBox() const;
 
-		/// <summary>
 		/// Closes the currently active GUICollectionBox that acts as a dialog box by hiding it. If the active dialog box is a sub-menu, disables it.
-		/// </summary>
 		void CloseActiveDialogBox();
 
-		/// <summary>
 		/// Gets whether this SettingsInputMappingGUI needs to capture input for manual configuration.
-		/// </summary>
-		/// <returns>Whether this SettingsInputMappingGUI needs to capture input for manual configuration.</returns>
+		/// @return Whether this SettingsInputMappingGUI needs to capture input for manual configuration.
 		bool IsConfiguringManually() const;
 
-		/// <summary>
 		/// Gets the SettingsInputMappingWizardGUI of this SettingsInputMappingGUI.
-		/// </summary>
-		/// <returns>Pointer to the SettingsInputMappingWizardGUI of this SettingsInputMappingGUI. Ownership is NOT transferred!</returns>
+		/// @return Pointer to the SettingsInputMappingWizardGUI of this SettingsInputMappingGUI. Ownership is NOT transferred!
 		SettingsInputMappingWizardGUI* GetInputConfigWizardMenu() { return m_InputConfigWizardMenu.get(); }
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Handles the player interaction with the SettingsInputMappingGUI GUI elements.
-		/// </summary>
-		/// <param name="guiEvent">The GUIEvent containing information about the player interaction with an element.</param>
+		/// @param guiEvent The GUIEvent containing information about the player interaction with an element.
 		void HandleInputEvents(GUIEvent& guiEvent);
 
-		/// <summary>
 		/// Handles capturing input and updating the manual input configuration sequence.
-		/// </summary>
 		void HandleManualConfigSequence();
 #pragma endregion
 
@@ -93,9 +73,7 @@ namespace RTE {
 
 		std::unique_ptr<SettingsInputMappingWizardGUI> m_InputConfigWizardMenu; //!< The input mapping config wizard.
 
-		/// <summary>
 		/// GUI elements that compose the input mapping settings menu screen.
-		/// </summary>
 		GUICollectionBox* m_InputMappingSettingsBox;
 		GUILabel* m_InputMappingSettingsLabel;
 		GUIButton* m_CloseMappingBoxButton;
@@ -108,25 +86,17 @@ namespace RTE {
 		std::array<GUIButton*, InputElements::INPUT_COUNT> m_InputMapButton;
 
 #pragma region Input Mapping Settings Handling
-		/// <summary>
 		/// Shows and enables the input mapping capture box, starting the input capture sequence.
-		/// </summary>
-		/// <param name="inputElement"></param>
+		/// @param inputElement 
 		void ShowInputMappingCaptureBox(InputElements inputElement);
 
-		/// <summary>
 		/// Hides and disables the input mapping capture box, ending the input capture sequence.
-		/// </summary>
 		void HideInputMappingCaptureBox();
 
-		/// <summary>
 		/// Updates the mapping button key labels with the configuring player's InputScheme mappings.
-		/// </summary>
 		void UpdateMappingButtonLabels();
 
-		/// <summary>
 		/// Updates the input mapping scrolling box scroll position.
-		/// </summary>
 		void UpdateScrollingInputBoxScrollPosition();
 #pragma endregion
 

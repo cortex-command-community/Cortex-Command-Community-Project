@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A radiobutton control class.
-	/// </summary>
 	class GUIRadioButton : public GUIControl, public GUIPanel {
 
 	public:

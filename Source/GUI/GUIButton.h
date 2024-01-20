@@ -5,9 +5,7 @@ namespace RTE {
 
 	class GUILabel;
 
-	/// <summary>
 	/// A button control class.
-	/// </summary>
 	class GUIButton : public GUIControl, public GUIPanel {
 
 	public:
@@ -181,66 +179,46 @@ namespace RTE {
 
 		void Resize(int Width, int Height) override;
 
-		/// <summary>
 		/// Gets whether or not this button is currently pushed.
-		/// </summary>
-		/// <returns>Whether or not this button is currently pushed.</returns>
+		/// @return Whether or not this button is currently pushed.
 		bool IsPushed() const { return m_Pushed; }
 
-		/// <summary>
 		/// Sets whether or not this button is currently pushed.
-		/// </summary>
-		/// <param name="pushed">Whether or not this button should be pushed.</param>
+		/// @param pushed Whether or not this button should be pushed.
 		void SetPushed(bool pushed = false);
 
-		/// <summary>
 		/// Gets whether or not this button is currently being moused over.
-		/// </summary>
-		/// <returns>Whether or not this button is currently being moused over.</returns>
+		/// @return Whether or not this button is currently being moused over.
 		bool IsMousedOver() const { return m_Over; }
 
-		/// <summary>
 		/// Gets the text of this GUIButton's GUILabel.
-		/// </summary>
-		/// <returns>The text of this GUIButton's GUILabel.</returns>
+		/// @return The text of this GUIButton's GUILabel.
 		const std::string& GetText() const;
 
-		/// <summary>
 		/// Sets the text of this GUIButton's GUILabel.
-		/// </summary>
-		/// <param name="newText">The new text for this GUIButton's GUILabel.</param>
-		/// <param name="noBitmapRebuild">Lets this method NOT rebuild the button bitmap, even if the icon has changed. Defaults to false and should almost always stay that way.</param>
+		/// @param newText The new text for this GUIButton's GUILabel.
+		/// @param noBitmapRebuild Lets this method NOT rebuild the button bitmap, even if the icon has changed. Defaults to false and should almost always stay that way.
 		void SetText(const std::string_view& newText, bool noBitmapRebuild = false);
 
-		/// <summary>
 		/// Sets whether or not this GUIButton's text should scroll horizontally (right) when it overflows the button.
-		/// </summary>
-		/// <param name="newOverflowScroll">Whether or not this GUIButton's text should scroll horizontally when it overflows.</param>
+		/// @param newOverflowScroll Whether or not this GUIButton's text should scroll horizontally when it overflows.
 		void SetHorizontalOverflowScroll(bool newOverflowScroll);
 
-		/// <summary>
 		/// Sets whether or not this GUIButton's text should scroll vertically (down) when it overflows the button.
-		/// </summary>
-		/// <param name="newOverflowScroll">Whether or not this GUIButton's text should scroll vertically when it overflows.</param>
+		/// @param newOverflowScroll Whether or not this GUIButton's text should scroll vertically when it overflows.
 		void SetVerticalOverflowScroll(bool newOverflowScroll);
 
-		/// <summary>
 		/// Gets whether or not this GUIButton has an icon with a Bitmap.
-		/// </summary>
 		bool HasIcon() const { return m_Icon->GetBitmap(); }
 
-		/// <summary>
 		/// Sets the icon for this GUIButton. Ownership is NOT transferred.
-		/// </summary>
-		/// <param name="newIcon">A pointer to the new icon BITMAP for this GUIButton.</param>
-		/// <param name="noBitmapRebuild">Lets this method NOT rebuild the button bitmap, even if the icon has changed. Defaults to false and should almost always stay that way.</param>
+		/// @param newIcon A pointer to the new icon BITMAP for this GUIButton.
+		/// @param noBitmapRebuild Lets this method NOT rebuild the button bitmap, even if the icon has changed. Defaults to false and should almost always stay that way.
 		void SetIcon(BITMAP* newIcon, bool noBitmapRebuild = false);
 
-		/// <summary>
 		/// Helper method to set both text and icon for this GUIButton at the same time.
-		/// </summary>
-		/// <param name="newIcon">A pointer to the new icon BITMAP for this GUIButton.</param>
-		/// <param name="newText">The new text for this GUIButton's GUILabel.</param>
+		/// @param newIcon A pointer to the new icon BITMAP for this GUIButton.
+		/// @param newText The new text for this GUIButton's GUILabel.
 		void SetIconAndText(BITMAP* newIcon, const std::string_view& newText);
 
 		//////////////////////////////////////////////////////////////////////////////////////////

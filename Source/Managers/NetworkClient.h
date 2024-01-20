@@ -23,118 +23,86 @@ namespace RTE {
 
 	class SoundContainer;
 
-	/// <summary>
 	/// The centralized singleton manager of the network multiplayer client.
-	/// </summary>
 	class NetworkClient : public Singleton<NetworkClient> {
 		friend class SettingsMan;
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a NetworkClient object in system memory. Create() should be called before using the object.
-		/// </summary>
 		NetworkClient() {
 			Clear();
 			Initialize();
 		}
 
-		/// <summary>
 		/// Makes the NetworkClient object ready for use.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Initialize();
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up a NetworkClient object before deletion from system memory.
-		/// </summary>
 		~NetworkClient() { Destroy(); }
 
-		/// <summary>
 		/// Destroys and resets (through Clear()) the NetworkClient object.
-		/// </summary>
 		void Destroy() { Clear(); }
 #pragma endregion
 
 #pragma region Getters
-		/// <summary>
 		/// Gets whether the client is connected and registered to a server.
-		/// </summary>
-		/// <returns>Whether the client is connected and registered to a server.</returns>
+		/// @return Whether the client is connected and registered to a server.
 		bool IsConnectedAndRegistered() const { return m_IsConnected && m_IsRegistered; }
 
-		/// <summary>
 		/// Gets scene width for network client.
-		/// </summary>
-		/// <returns>Current scene width.</returns>
+		/// @return Current scene width.
 		int GetSceneWidth() const { return m_SceneWidth; }
 
-		/// <summary>
 		/// Gets scene height for network client.
-		/// </summary>
-		/// <returns>Current scene height.</returns>
+		/// @return Current scene height.
 		int GetSceneHeight() const { return m_SceneHeight; }
 
-		/// <summary>
 		/// Indicates whether the scene wraps its scrolling around the X axis for network client.
-		/// </summary>
-		/// <returns>Whether the scene wraps around the X axis or not.</returns>
+		/// @return Whether the scene wraps around the X axis or not.
 		bool SceneWrapsX() const { return m_SceneWrapsX; }
 
-		/// <summary>
 		/// Get the coordinates of the center of the current frame.
-		/// </summary>
-		/// <returns>A vector containing the X/Y coordinates of the frame target.</returns>
+		/// @return A vector containing the X/Y coordinates of the frame target.
 		const Vector& GetFrameTarget() const { return m_TargetPos[m_CurrentFrameNum]; }
 
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Updates the state of this NetworkClient. Supposed to be done every frame.
-		/// </summary>
 		void Update();
 #pragma endregion
 
 #pragma region Connection Handling
-		/// <summary>
 		/// Connects the client to a server.
-		/// </summary>
-		/// <param name="serverName">Server name (or address) to connect to.</param>
-		/// <param name="serverPort">Server port.</param>
-		/// <param name="playerName">Player name to be used in network game.</param>
+		/// @param serverName Server name (or address) to connect to.
+		/// @param serverPort Server port.
+		/// @param playerName Player name to be used in network game.
 		void Connect(std::string serverName, unsigned short serverPort, std::string playerName);
 
-		/// <summary>
 		/// Connects the client to a server through a NAT service.
-		/// </summary>
-		/// <param name="address">The NAT service address.</param>
+		/// @param address The NAT service address.
 		void ConnectNAT(RakNet::SystemAddress address);
 
-		/// <summary>
 		/// Disconnects the client from the currently connected server.
-		/// </summary>
 		void Disconnect();
 
-		/// <summary>
 		/// Connects to a NAT service and performs punch-through.
-		/// </summary>
-		/// <param name="serviceServerName">NAT service server name (or address) to use for punch-through.</param>
-		/// <param name="serviceServerPort">NAT service server port.</param>
-		/// <param name="playerName">Player name to be used in network game.</param>
-		/// <param name="serverName">Server name (or address) to connect to.</param>
-		/// <param name="serverPassword">Server password.</param>
+		/// @param serviceServerName NAT service server name (or address) to use for punch-through.
+		/// @param serviceServerPort NAT service server port.
+		/// @param playerName Player name to be used in network game.
+		/// @param serverName Server name (or address) to connect to.
+		/// @param serverPassword Server password.
 		void PerformNATPunchThrough(std::string serviceServerName, unsigned short serviceServerPort, std::string playerName, std::string serverName, std::string serverPassword);
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="rakPeer"></param>
-		/// <param name="address"></param>
-		/// <param name="port"></param>
-		/// <returns></returns>
+		/// @param rakPeer 
+		/// @param address 
+		/// @param port 
+		/// @return 
 		RakNet::SystemAddress ConnectBlocking(RakNet::RakPeerInterface* rakPeer, const char* address, unsigned short port);
 #pragma endregion
 
@@ -198,155 +166,105 @@ namespace RTE {
 
 	private:
 #pragma region Update Breakdown
-		/// <summary>
 		///
-		/// </summary>
 		void HandleNetworkPackets();
 #pragma endregion
 
 #pragma region Network Event Handling
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="packet"></param>
-		/// <returns></returns>
+		/// @param packet 
+		/// @return 
 		unsigned char GetPacketIdentifier(RakNet::Packet* packet) const;
 
-		/// <summary>
 		///
-		/// </summary>
 		void SendRegisterMsg();
 
-		/// <summary>
 		///
-		/// </summary>
 		void ReceiveAcceptedMsg();
 
-		/// <summary>
 		///
-		/// </summary>
 		void SendDisconnectMsg();
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="address"></param>
-		/// <param name="serverName"></param>
-		/// <param name="serverPassword"></param>
+		/// @param address 
+		/// @param serverName 
+		/// @param serverPassword 
 		void SendServerGUIDRequest(RakNet::SystemAddress address, std::string serverName, std::string serverPassword);
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="packet"></param>
+		/// @param packet 
 		void ReceiveServerGUIDAnswer(RakNet::Packet* packet);
 
-		/// <summary>
 		///
-		/// </summary>
 		void SendInputMsg();
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="packet"></param>
+		/// @param packet 
 		void ReceiveFrameSetupMsg(RakNet::Packet* packet);
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="packet"></param>
+		/// @param packet 
 		void ReceiveFrameLineMsg(RakNet::Packet* packet);
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="packet"></param>
+		/// @param packet 
 		void ReceiveFrameBoxMsg(RakNet::Packet* packet);
 
-		/// <summary>
 		///
-		/// </summary>
 		void SendSceneAcceptedMsg();
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="packet"></param>
+		/// @param packet 
 		void ReceiveSceneMsg(RakNet::Packet* packet);
 
-		/// <summary>
 		///
-		/// </summary>
 		void ReceiveSceneEndMsg();
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="packet"></param>
+		/// @param packet 
 		void ReceiveSceneSetupMsg(RakNet::Packet* packet);
 
-		/// <summary>
 		///
-		/// </summary>
 		void SendSceneSetupAcceptedMsg();
 
-		/// <summary>
 		/// Receive and handle a packet of terrain change data.
-		/// </summary>
-		/// <param name="packet">The packet to handle.</param>
+		/// @param packet The packet to handle.
 		void ReceiveTerrainChangeMsg(RakNet::Packet* packet);
 
-		/// <summary>
 		/// Receive and handle a packet of post-effect data.
-		/// </summary>
-		/// <param name="packet">The packet to handle.</param>
+		/// @param packet The packet to handle.
 		void ReceivePostEffectsMsg(RakNet::Packet* packet);
 
-		/// <summary>
 		/// Receive and handle a packet of sound event data.
-		/// </summary>
-		/// <param name="packet">The packet to handle.</param>
+		/// @param packet The packet to handle.
 		void ReceiveSoundEventsMsg(RakNet::Packet* packet);
 
-		/// <summary>
 		/// Receive and handle a packet of music event data.
-		/// </summary>
-		/// <param name="packet">The packet to handle.</param>
+		/// @param packet The packet to handle.
 		void ReceiveMusicEventsMsg(RakNet::Packet* packet);
 #pragma endregion
 
 #pragma region Drawing
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="targetBitmap"></param>
+		/// @param targetBitmap 
 		void DrawBackgrounds(BITMAP* targetBitmap);
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="frame"></param>
+		/// @param frame 
 		void DrawPostEffects(int frame);
 
-		/// <summary>
 		///
-		/// </summary>
-		/// <param name="frameNumber"></param>
-		/// <param name="useInterlacing"></param>
-		/// <param name="clearFramebuffer"></param>
+		/// @param frameNumber 
+		/// @param useInterlacing 
+		/// @param clearFramebuffer 
 		void DrawFrame(int frameNumber, bool useInterlacing, bool clearFramebuffer);
 #pragma endregion
 
-		/// <summary>
 		/// Gets the ping time between the client and the server.
-		/// </summary>
-		/// <returns>The ping time between the client and the server.</returns>
+		/// @return The ping time between the client and the server.
 		int GetPing() const { return IsConnectedAndRegistered() ? m_Client->GetLastPing(m_ServerID) : 0; }
 
-		/// <summary>
 		/// Clears all the member variables of this NetworkClient, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

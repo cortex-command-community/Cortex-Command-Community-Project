@@ -65,9 +65,7 @@ namespace RTE {
 		CONTROLSTATECOUNT
 	};
 
-	/// <summary>
 	/// A class controlling MovableObjects through either player input, networking, scripting, AI, etc.
-	/// </summary>
 	class Controller {
 
 	public:
@@ -85,94 +83,72 @@ namespace RTE {
 		};
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a Controller object in system memory. Create() should be called before using the object.
-		/// </summary>
 		Controller() { Clear(); }
 
-		/// <summary>
 		/// Constructor method used to instantiate a Controller object in system memory. Create() should be called before using the object.
-		/// </summary>
-		/// <param name="mode">The controller input mode, like AI, player etc.</param>
-		/// <param name="controlledActor">The Actor this is supposed to control. Ownership is NOT transferred!</param>
+		/// @param mode The controller input mode, like AI, player etc.
+		/// @param controlledActor The Actor this is supposed to control. Ownership is NOT transferred!
 		Controller(InputMode mode, Actor* controlledActor) {
 			Clear();
 			Create(mode, controlledActor);
 		}
 
-		/// <summary>
 		/// Constructor method used to instantiate a Controller object in system memory. Create() should be called before using the object.
-		/// </summary>
-		/// <param name="mode">The controller input mode, like AI, player etc.</param>
-		/// <param name="player">Which human player is controlling this.</param>
+		/// @param mode The controller input mode, like AI, player etc.
+		/// @param player Which human player is controlling this.
 		Controller(InputMode mode, int player = Players::PlayerOne) {
 			Clear();
 			Create(mode, player);
 		}
 
-		/// <summary>
 		/// Copy constructor method used to instantiate a Controller object identical to an already existing one.
-		/// </summary>
-		/// <param name="reference">A Controller object which is passed in by reference.</param>
+		/// @param reference A Controller object which is passed in by reference.
 		Controller(const Controller& reference) {
 			if (this != &reference) {
 				Create(reference);
 			}
 		}
 
-		/// <summary>
 		/// Makes the Controller object ready for use.
-		/// </summary>
-		/// <param name="mode">The controller input mode, like AI, player etc.</param>
-		/// <param name="controlledActor">The Actor this is supposed to control. Ownership is NOT transferred!</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param mode The controller input mode, like AI, player etc.
+		/// @param controlledActor The Actor this is supposed to control. Ownership is NOT transferred!
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(InputMode mode, Actor* controlledActor);
 
-		/// <summary>
 		/// Makes the Controller object ready for use.
-		/// </summary>
-		/// <param name="mode">The controller input mode, like AI, player etc.</param>
-		/// <param name="player">Which player is controlling this.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param mode The controller input mode, like AI, player etc.
+		/// @param player Which player is controlling this.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(InputMode mode, int player) {
 			m_InputMode = mode;
 			m_Player = player;
 			return 0;
 		}
 
-		/// <summary>
 		/// Creates a Controller to be identical to another, by deep copy.
-		/// </summary>
-		/// <param name="reference">A reference to the Controller to deep copy.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param reference A reference to the Controller to deep copy.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const Controller& reference);
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Resets the entire Controller, including its inherited members, to their default settings or values.
-		/// </summary>
 		void Reset() { Clear(); }
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Shortcut to indicate if in player input mode.
-		/// </summary>
-		/// <param name="otherThanPlayer">If you want to check if it's controlled by a player, AND that player is someone else than a specific one, pass in that player number here.</param>
-		/// <returns>Whether input mode is set to player input.</returns>
+		/// @param otherThanPlayer If you want to check if it's controlled by a player, AND that player is someone else than a specific one, pass in that player number here.
+		/// @return Whether input mode is set to player input.
 		bool IsPlayerControlled(int otherThanPlayer = Players::NoPlayer) const { return (m_InputMode == InputMode::CIM_PLAYER && (otherThanPlayer < Players::PlayerOne || m_Player != otherThanPlayer)); }
 
-		/// <summary>
 		/// Shows whether this controller is disabled.
-		/// </summary>
-		/// <returns>Whether disabled.</returns>
+		/// @return Whether disabled.
 		bool IsDisabled() const { return m_InputMode == InputMode::CIM_DISABLED || m_Disabled; }
 
-		/// <summary>
 		/// Sets whether this is a disabled controller that doesn't give any new output.
-		/// </summary>
-		/// <param name="disabled">Disabled or not.</param>
+		/// @param disabled Disabled or not.
 		void SetDisabled(bool disabled = true) {
 			if (m_Disabled != disabled) {
 				m_ReleaseTimer.Reset();
@@ -181,33 +157,25 @@ namespace RTE {
 			m_Disabled = disabled;
 		}
 
-		/// <summary>
 		/// Shows whether the current controller is in a specific state.
-		/// </summary>
-		/// <param name="controlState">What control state to check for.</param>
-		/// <returns>Whether the controller is in the specified state.</returns>
+		/// @param controlState What control state to check for.
+		/// @return Whether the controller is in the specified state.
 		bool IsState(ControlState controlState) const { return m_ControlStates[controlState]; };
 
-		/// <summary>
 		/// Sets one of this controller's states.
-		/// </summary>
-		/// <param name="controlState>Which state to set.</param>
-		/// <param name="setting">Value of the state being set.</param>
+		/// @param controlStat Which state to set.
+		/// @param setting Value of the state being set.
 		void SetState(ControlState controlState, bool setting = true) {
 			RTEAssert(controlState >= 0 && controlState < ControlState::CONTROLSTATECOUNT, "Control state out of whack");
 			m_ControlStates[controlState] = setting;
 		};
 
-		/// <summary>
 		/// Gets the current mode of input for this Controller.
-		/// </summary>
-		/// <returns>The InputMode that this controller is currently using.</returns>
+		/// @return The InputMode that this controller is currently using.
 		InputMode GetInputMode() const { return m_InputMode; }
 
-		/// <summary>
 		/// Sets the mode of input for this Controller.
-		/// </summary>
-		/// <param name="newMode">The new InputMode for this controller to use.</param>
+		/// @param newMode The new InputMode for this controller to use.
 		void SetInputMode(InputMode newMode) {
 			if (m_InputMode != newMode) {
 				m_ReleaseTimer.Reset();
@@ -215,108 +183,74 @@ namespace RTE {
 			m_InputMode = newMode;
 		}
 
-		/// <summary>
 		/// Gets the analog movement input data.
-		/// </summary>
-		/// <returns>A vector with the analog movement data, both axes ranging form -1.0 to 1.0.</returns>
+		/// @return A vector with the analog movement data, both axes ranging form -1.0 to 1.0.
 		Vector GetAnalogMove() const { return m_AnalogMove; }
 
-		/// <summary>
 		/// Sets the analog movement vector state of this.
-		/// </summary>
-		/// <param name="newMove">The new analog movement vector.</param>
+		/// @param newMove The new analog movement vector.
 		void SetAnalogMove(const Vector& newMove) { m_AnalogMove = newMove; }
 
-		/// <summary>
 		/// Gets the analog aiming input data.
-		/// </summary>
-		/// <returns>A vector with the analog aiming data, both axes ranging form -1.0 to 1.0.</returns>
+		/// @return A vector with the analog aiming data, both axes ranging form -1.0 to 1.0.
 		Vector GetAnalogAim() const { return m_AnalogAim; }
 
-		/// <summary>
 		/// Sets the analog aiming vector state of this.
-		/// </summary>
-		/// <param name="newAim">The new analog aiming vector.</param>
+		/// @param newAim The new analog aiming vector.
 		void SetAnalogAim(const Vector& newAim) { m_AnalogAim = newAim; }
 
-		/// <summary>
 		/// Gets the analog menu input data.
-		/// </summary>
-		/// <returns>A vector with the analog menu data, both axes ranging form -1.0 to 1.0.</returns>
+		/// @return A vector with the analog menu data, both axes ranging form -1.0 to 1.0.
 		Vector GetAnalogCursor() const { return m_AnalogCursor; }
 
-		/// <summary>
 		/// Sets the analog cursor to the specified position.
-		/// </summary>
-		/// <param name="newAnalogCursor">The position the analog cursor should be set to.</param>
+		/// @param newAnalogCursor The position the analog cursor should be set to.
 		void SetAnalogCursor(const Vector& newAnalogCursor) { m_AnalogCursor = newAnalogCursor; }
 
-		/// <summary>
 		/// Sets the analog cursor angle limits for the given player (does nothing for player -1). The limit end is always CCW from the limit start.
-		/// </summary>
-		/// <param name="angleLimitStart">The starting angle limit for the analog cursor.</param>
-		/// <param name="angleLimitEnd">The ending angle limit for the analog cursor.</param>
+		/// @param angleLimitStart The starting angle limit for the analog cursor.
+		/// @param angleLimitEnd The ending angle limit for the analog cursor.
 		void SetAnalogCursorAngleLimits(float angleLimitStart, float angleLimitEnd) { m_AnalogCursorAngleLimits = {{angleLimitStart, angleLimitEnd}, true}; }
 
-		/// <summary>
 		/// Clears the analog cursor aim limits for the given player (does nothing for player -1).
-		/// </summary>
 		void ClearAnalogCursorAngleLimits() { m_AnalogCursorAngleLimits.second = false; }
 
-		/// <summary>
 		/// Adds relative movement to a passed-in vector. Uses the appropriate input method currently of this.
-		/// </summary>
-		/// <param name="cursorPos"> The vector to alter.</param>
-		/// <param name="moveScale">The scale of the input. 1.0 is 'normal'.</param>
-		/// <returns>Whether the vector was altered or not.</returns>
+		/// @param cursorPos The vector to alter.
+		/// @param moveScale The scale of the input. 1.0 is 'normal'.
+		/// @return Whether the vector was altered or not.
 		bool RelativeCursorMovement(Vector& cursorPos, float moveScale = 1.0F) const;
 
-		/// <summary>
 		/// Indicates whether this is listening to mouse input at all.
-		/// </summary>
-		/// <returns>Whether this is using mouse input at all.</returns>
+		/// @return Whether this is using mouse input at all.
 		bool IsMouseControlled() const;
 
-		/// <summary>
 		/// Indicates whether this is only listening to keyboard input.
-		/// </summary>
-		/// <returns>Whether this is only using keyboard input.</returns>
+		/// @return Whether this is only using keyboard input.
 		bool IsKeyboardOnlyControlled() const;
 
-		/// <summary>
 		/// Indicates whether this is listening to gamepad at all.
-		/// </summary>
-		/// <returns>Whether this is using gamepad input at all.</returns>
+		/// @return Whether this is using gamepad input at all.
 		bool IsGamepadControlled() const;
 
-		/// <summary>
 		/// Gets the relative movement of the mouse since last update.
-		/// </summary>
-		/// <returns>The relative mouse movements, in both axes.</returns>
+		/// @return The relative mouse movements, in both axes.
 		const Vector& GetMouseMovement() const { return m_MouseMovement; }
 
-		/// <summary>
 		/// Get the digital aim speed multiplier of the scheme associated with this Controller.
-		/// </summary>
-		/// <returns>The digital aim speed set to the scheme of this Controller.</returns>
+		/// @return The digital aim speed set to the scheme of this Controller.
 		float GetDigitalAimSpeed() const;
 
-		/// <summary>
 		/// Gets the player this is listening. Unlike GetPlayer, this ignores the input mode.
-		/// </summary>
-		/// <returns>The player this is listening to, regardless of input mode.</returns>
+		/// @return The player this is listening to, regardless of input mode.
 		int GetPlayerRaw() const { return m_Player; }
 
-		/// <summary>
 		/// Gets which player's input this is listening to, if in player input mode.
-		/// </summary>
-		/// <returns>The player number, or -1 if not in player input mode.</returns>
+		/// @return The player number, or -1 if not in player input mode.
 		int GetPlayer() const { return (m_InputMode == InputMode::CIM_PLAYER) ? m_Player : Players::NoPlayer; }
 
-		/// <summary>
 		/// Sets which player's input this is listening to, and will enable player input mode.
-		/// </summary>
-		/// <param name="player">The player number.</param>
+		/// @param player The player number.
 		void SetPlayer(int player) {
 			m_Player = player;
 			if (m_Player >= Players::PlayerOne) {
@@ -324,59 +258,43 @@ namespace RTE {
 			}
 		}
 
-		/// <summary>
 		/// Gets the Team number using this controller.
-		/// </summary>
-		/// <returns>An int representing the team which this Controller belongs to. 0 is the first team. 0 if no team is using it.</returns>
+		/// @return An int representing the team which this Controller belongs to. 0 is the first team. 0 if no team is using it.
 		int GetTeam() const;
 
-		/// <summary>
 		/// Sets the team which is controlling this Controller's controlled Actor.
-		/// </summary>
-		/// <param name="team">The team number. 0 is the first team.</param>
+		/// @param team The team number. 0 is the first team.
 		void SetTeam(short team);
 
-		/// <summary>
 		/// Gets which Actor is being controlled by this. 0 if none.
-		/// </summary>
-		/// <returns>A pointer to the Actor which is being controlled by this. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the Actor which is being controlled by this. Ownership is NOT transferred!
 		Actor* GetControlledActor() const { return m_ControlledActor; }
 
-		/// <summary>
 		/// Sets which Actor is supposed to be controlled by this.
-		/// </summary>
-		/// <param name="controlledActor">A pointer to a an Actor which is being controlled by this. Ownership is NOT transferred!</param>
+		/// @param controlledActor A pointer to a an Actor which is being controlled by this. Ownership is NOT transferred!
 		void SetControlledActor(Actor* controlledActor = nullptr) { m_ControlledActor = controlledActor; }
 
-		/// <summary>
 		/// Returns whether the AI should be updated this frame.
-		/// </summary>
-		/// <returns>Whether the AI should be updated this frame.</returns>
+		/// @return Whether the AI should be updated this frame.
 		bool ShouldUpdateAIThisFrame() const;
 #pragma endregion
 
 #pragma region Virtual Override Methods
-		/// <summary>
 		/// Updates this Controller. Supposed to be done every frame.
-		/// </summary>
 		void Update();
 #pragma endregion
 
 #pragma region Operator Overloads
-		/// <summary>
 		/// An assignment operator for setting one Controller equal to another.
-		/// </summary>
-		/// <param name="rhs">A Controller reference.</param>
-		/// <returns>A reference to the changed Controller.</returns>
+		/// @param rhs A Controller reference.
+		/// @return A reference to the changed Controller.
 		Controller& operator=(const Controller& rhs);
 #pragma endregion
 
 #pragma region Misc
-		/// <summary>
 		/// Overrides this controller, setting it to match another controller. This is useful for multithreading, where the Lua script can use a copied controller in a multi-threaded context, before overriding the controller in a single-threaded context.
 		/// This is exposed to Lua API to be clear, whereas ownership relies on operator overloading is rather temperamental :)
-		/// </summary>
-		/// <param="otherController">The other controller's state to copy. Ownership is not transferred</returns>
+		/// @param otherController The other controller's state to copy. Ownership is not transferred
 		void Override(const Controller& otherController);
 #pragma endregion
 
@@ -390,18 +308,14 @@ namespace RTE {
 
 		Actor* m_ControlledActor; //!< The actor controlled by this.
 
-		/// <summary>
 		/// The last player this controlled. This is necessary so we still have some control after controlled's death.
 		/// If this is -1, no player is controlling/ed, even if in player control input mode.
-		/// </summary>
 		int m_Player;
 
 		int m_Team; //!< The last team this controlled. This is necessary so we still have some control after controlled's death.
 
-		/// <summary>
 		/// These are hacks to make the switch to brain shortcut work without immediately switching away by
 		/// detecting the release of the previous and next buttons after pressing them both down to get to the brain.
-		/// </summary>
 		bool m_NextIgnore;
 		bool m_PrevIgnore;
 
@@ -422,36 +336,24 @@ namespace RTE {
 
 	private:
 #pragma region Update Breakdown
-		/// <summary>
 		/// Updates the player's inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
 		/// This method will call both UpdatePlayerPieMenuInput and UpdatePlayerAnalogInput.
-		/// </summary>
 		void UpdatePlayerInput();
 
-		/// <summary>
 		/// Updates the player's PieMenu inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
-		/// </summary>
 		void UpdatePlayerPieMenuInput();
 
-		/// <summary>
 		/// Updates the player's analog inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
-		/// </summary>
 		void UpdatePlayerAnalogInput();
 
-		/// <summary>
 		/// Clears the command state, meaning no input is given and our actor will be idle.
-		/// </summary>
 		void ResetCommandState();
 
-		/// <summary>
 		/// Requests and applies input from the player.
-		/// </summary>
 		void GetInputFromPlayer();
 #pragma endregion
 
-		/// <summary>
 		/// Clears all the member variables of this Controller, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 	};
 } // namespace RTE

@@ -142,13 +142,11 @@ namespace RTE {
 
 		int GetMOIDCount() { return m_MOIDIndex.size(); }
 
-		/// <summary>
 		/// Gets a MOID from pixel coordinates in the Scene.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the Scene pixel to get the MOID of.</param>
-		/// <param name="pixelY">The Y coordinate of the Scene pixel to get the MOID of.</param>
-		/// <param name="moidList">The collection of MOIDs to check the against the specified coordinates.</param>
-		/// <returns>The topmost MOID currently at the specified pixel coordinates.</returns>
+		/// @param pixelX The X coordinate of the Scene pixel to get the MOID of.
+		/// @param pixelY The Y coordinate of the Scene pixel to get the MOID of.
+		/// @param moidList The collection of MOIDs to check the against the specified coordinates.
+		/// @return The topmost MOID currently at the specified pixel coordinates.
 		MOID GetMOIDPixel(int pixelX, int pixelY, const std::vector<int>& moidList);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -233,29 +231,25 @@ namespace RTE {
 
 		Actor* GetPrevTeamActor(int team = 0, Actor* pBeforeThis = 0);
 
-		/// <summary>
 		/// Get a pointer to an Actor in the internal Actor list that is of a specifc team and closest to a specific scene point.
-		/// </summary>
-		/// <param name="team">Which team to try to get an Actor for. 0 means first team, 1 means 2nd.</param>
-		/// <param name="player">The player to get the Actor for. This affects which brain can be marked.</param>
-		/// <param name="scenePoint">The Scene point to search for the closest to.</param>
-		/// <param name="maxRadius">The maximum radius around that scene point to search.</param>
-		/// <param name="getDistance">A Vector to be filled out with the distance of the returned closest to the search point. Will be unaltered if no object was found within radius.</param>
-		/// <param name="excludeThis">An Actor to exclude from the search. OWNERSHIP IS NOT TRANSFERRED!</param>
-		/// <returns>An Actor pointer to the requested team's Actor closest to the Scene point, but not outside the max radius. If no Actor other than the excluded one was found within the radius of the point, nullptr is returned.</returns>
+		/// @param team Which team to try to get an Actor for. 0 means first team, 1 means 2nd.
+		/// @param player The player to get the Actor for. This affects which brain can be marked.
+		/// @param scenePoint The Scene point to search for the closest to.
+		/// @param maxRadius The maximum radius around that scene point to search.
+		/// @param getDistance A Vector to be filled out with the distance of the returned closest to the search point. Will be unaltered if no object was found within radius.
+		/// @param excludeThis An Actor to exclude from the search. OWNERSHIP IS NOT TRANSFERRED!
+		/// @return An Actor pointer to the requested team's Actor closest to the Scene point, but not outside the max radius. If no Actor other than the excluded one was found within the radius of the point, nullptr is returned.
 		Actor* GetClosestTeamActor(int team, int player, const Vector& scenePoint, int maxRadius, Vector& getDistance, const Actor* excludeThis = nullptr) { return GetClosestTeamActor(team, player, scenePoint, maxRadius, getDistance, false, excludeThis); }
 
-		/// <summary>
 		/// Get a pointer to an Actor in the internal Actor list that is of a specifc team and closest to a specific scene point.
-		/// </summary>
-		/// <param name="team">Which team to try to get an Actor for. 0 means first team, 1 means 2nd.</param>
-		/// <param name="player">The player to get the Actor for. This affects which brain can be marked.</param>
-		/// <param name="scenePoint">The Scene point to search for the closest to.</param>
-		/// <param name="maxRadius">The maximum radius around that scene point to search.</param>
-		/// <param name="getDistance">A Vector to be filled out with the distance of the returned closest to the search point. Will be unaltered if no object was found within radius.</param>
-		/// <param name="onlyPlayerControllableActors">Whether to only get Actors that are flagged as player controllable.</param>
-		/// <param name="excludeThis">An Actor to exclude from the search. OWNERSHIP IS NOT TRANSFERRED!</param>
-		/// <returns>An Actor pointer to the requested team's Actor closest to the Scene point, but not outside the max radius. If no Actor other than the excluded one was found within the radius of the point, nullptr is returned.</returns>
+		/// @param team Which team to try to get an Actor for. 0 means first team, 1 means 2nd.
+		/// @param player The player to get the Actor for. This affects which brain can be marked.
+		/// @param scenePoint The Scene point to search for the closest to.
+		/// @param maxRadius The maximum radius around that scene point to search.
+		/// @param getDistance A Vector to be filled out with the distance of the returned closest to the search point. Will be unaltered if no object was found within radius.
+		/// @param onlyPlayerControllableActors Whether to only get Actors that are flagged as player controllable.
+		/// @param excludeThis An Actor to exclude from the search. OWNERSHIP IS NOT TRANSFERRED!
+		/// @return An Actor pointer to the requested team's Actor closest to the Scene point, but not outside the max radius. If no Actor other than the excluded one was found within the radius of the point, nullptr is returned.
 		Actor* GetClosestTeamActor(int team, int player, const Vector& scenePoint, int maxRadius, Vector& getDistance, bool onlyPlayerControllableActors, const Actor* excludeThis = nullptr);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -421,29 +415,21 @@ namespace RTE {
 
 		void SortTeamRoster(int team) { m_SortTeamRoster[team] = true; }
 
-		/// <summary>
 		/// Adds a MovableObject to this, after it is determined what it is and the best way to add it is. E.g. if it's an Actor, it will be added as such. Ownership IS transferred!
-		/// </summary>
-		/// <param name="movableObjectToAdd">A pointer to the MovableObject to add. Ownership IS transferred!</param>
-		/// <returns>Whether the MovableObject was successfully added or not. Note that Ownership IS transferred either way, but the MovableObject will be deleted if this is not successful.</returns>
+		/// @param movableObjectToAdd A pointer to the MovableObject to add. Ownership IS transferred!
+		/// @return Whether the MovableObject was successfully added or not. Note that Ownership IS transferred either way, but the MovableObject will be deleted if this is not successful.
 		bool AddMO(MovableObject* movableObjectToAdd);
 
-		/// <summary>
 		/// Adds an Actor to the internal list of Actors. Destruction and deletion will be taken care of automatically. Ownership IS transferred!
-		/// </summary>
-		/// <param name="actorToAdd">A pointer to the Actor to add. Ownership IS transferred!</param>
+		/// @param actorToAdd A pointer to the Actor to add. Ownership IS transferred!
 		void AddActor(Actor* actorToAdd);
 
-		/// <summary>
 		/// Adds a pickup-able item to the internal list of items. Destruction and deletion will be taken care of automatically. Ownership IS transferred!
-		/// </summary>
-		/// <param name="itemToAdd">A pointer to the item to add. Ownership IS transferred!</param>
+		/// @param itemToAdd A pointer to the item to add. Ownership IS transferred!
 		void AddItem(HeldDevice* itemToAdd);
 
-		/// <summary>
 		/// Adds a MovableObject to the internal list of particles. Destruction and deletion will be taken care of automatically. Ownership IS transferred!
-		/// </summary>
-		/// <param name="particleToAdd">A pointer to the MovableObject to add. Ownership is transferred!</param>
+		/// @param particleToAdd A pointer to the MovableObject to add. Ownership is transferred!
 		void AddParticle(MovableObject* particleToAdd);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -573,12 +559,10 @@ namespace RTE {
 
 		bool IsOfActor(MOID checkMOID);
 
-		/// <summary>
 		/// Gives a unique, contiguous id per-actor. This is regenerated every frame.
-		/// </summary>
-		/// <param name="actor">The actor to get a contiguous id for.</param>
-		/// <returns>A contiguous id for the actor. Returns -1 if the actor doesn't exist in MovableMan.</returns>
-		/// <remarks>This function is used for AI throttling.</remarks>
+		/// @param actor The actor to get a contiguous id for.
+		/// @return A contiguous id for the actor. Returns -1 if the actor doesn't exist in MovableMan.
+		/// @remark This function is used for AI throttling.
 		int GetContiguousActorID(const Actor* actor) const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -604,57 +588,44 @@ namespace RTE {
 
 		bool RemoveMO(MovableObject* pMOToRem);
 
-		/// <summary>
 		/// Kills and destroys all Actors of a specific Team.
-		/// </summary>
-		/// <param name="teamToKill">The team to annihilate. If NoTeam is passed in, then NO Actors die.</param>
-		/// <returns>How many Actors were killed.</returns>
+		/// @param teamToKill The team to annihilate. If NoTeam is passed in, then NO Actors die.
+		/// @return How many Actors were killed.
 		int KillAllTeamActors(int teamToKill) const;
 
-		/// <summary>
 		/// Kills and destroys all enemy Actors of a specific Team.
-		/// </summary>
-		/// <param name="teamNotToKill">The team to NOT annihilate. If NoTeam is passed in, then ALL Actors die.</param>
-		/// <returns>How many Actors were killed.</returns>
+		/// @param teamNotToKill The team to NOT annihilate. If NoTeam is passed in, then ALL Actors die.
+		/// @return How many Actors were killed.
 		int KillAllEnemyActors(int teamNotToKill = Activity::NoTeam) const;
 
-		/// <summary>
 		/// Adds all Actors in MovableMan to the given list.
-		/// </summary>
-		/// <param name="transferOwnership">Whether or not ownership of the Actors should be transferred from MovableMan to the list.</param>
-		/// <param name="actorList">The list to be filled with Actors.</param>
-		/// <param name="onlyTeam">The team to get Actors of. If NoTeam, then all teams will be used.</param>
-		/// <param name="noBrains">Whether or not to get brain Actors.</param>
-		/// <returns>The number of Actors added to the list.</returns>
+		/// @param transferOwnership Whether or not ownership of the Actors should be transferred from MovableMan to the list.
+		/// @param actorList The list to be filled with Actors.
+		/// @param onlyTeam The team to get Actors of. If NoTeam, then all teams will be used.
+		/// @param noBrains Whether or not to get brain Actors.
+		/// @return The number of Actors added to the list.
 		int GetAllActors(bool transferOwnership, std::list<SceneObject*>& actorList, int onlyTeam = -1, bool noBrains = false);
 
-		/// </summary>
-		/// <param name="transferOwnership">Whether or not ownershp of the items shoudl be transferred from MovableMan to the list.</param>
-		/// <param name="itemList">The list to be filled with items.</param>
-		/// <returns>The number of items added to the list.</returns>
+		/// @param transferOwnership Whether or not ownershp of the items shoudl be transferred from MovableMan to the list.
+		/// @param itemList The list to be filled with items.
+		/// @return The number of items added to the list.
 		int GetAllItems(bool transferOwnership, std::list<SceneObject*>& itemList);
 
-		/// <summary>
 		/// Adds all particles in MovableMan to the given list.
-		/// </summary>
-		/// <param name="transferOwnership">Whether or not ownership of the particles should be transferred from MovableMan to the list.</param>
-		/// <param name="particleList">The list to be filled with particles.</param>
-		/// <returns>The number of particles added to the list.</returns>
+		/// @param transferOwnership Whether or not ownership of the particles should be transferred from MovableMan to the list.
+		/// @param particleList The list to be filled with particles.
+		/// @return The number of particles added to the list.
 		int GetAllParticles(bool transferOwnership, std::list<SceneObject*>& particleList);
 
-		/// <summary>
 		/// Opens all doors and keeps them open until this is called again with false.
-		/// </summary>
-		/// <param name="open">Whether to open all doors (true), or close all doors (false).</param>
-		/// <param name="team">Which team to open doors for. NoTeam means all teams.</param>
+		/// @param open Whether to open all doors (true), or close all doors (false).
+		/// @param team Which team to open doors for. NoTeam means all teams.
 		void OpenAllDoors(bool open = true, int team = Activity::NoTeam) const;
 
-		/// <summary>
 		/// Temporarily erases or redraws any material door representations of a specific team.
 		/// Used to make pathfinding work better, allowing Actors to navigate through firendly bases despite the door material layer.
-		/// </summary>
-		/// <param name="eraseDoorMaterial">Whether to erase door material, thereby overriding it, or redraw it and undo the override.</param>
-		/// <param name="team">Which team to do this for, NoTeam means all teams.</param>
+		/// @param eraseDoorMaterial Whether to erase door material, thereby overriding it, or redraw it and undo the override.
+		/// @param team Which team to do this for, NoTeam means all teams.
 		void OverrideMaterialDoors(bool eraseDoorMaterial, int team = Activity::NoTeam) const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -829,65 +800,49 @@ namespace RTE {
 
 		unsigned int GetSimUpdateFrameNumber() const { return m_SimUpdateFrameNumber; }
 
-		/// <summary>
 		/// Gets pointers to the MOs that are within the given Box, and whose team is not ignored.
-		/// </summary>
-		/// <param name="box">The Box to get MOs within.</param>
-		/// <param name="ignoreTeam">The team to ignore.</param>
-		/// <param name="getsHitByMOsOnly">Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.</param>
-		/// <returns>Pointers to the MOs that are within the given Box, and whose team is not ignored.</returns>
+		/// @param box The Box to get MOs within.
+		/// @param ignoreTeam The team to ignore.
+		/// @param getsHitByMOsOnly Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.
+		/// @return Pointers to the MOs that are within the given Box, and whose team is not ignored.
 		const std::vector<MovableObject*>* GetMOsInBox(const Box& box, int ignoreTeam, bool getsHitByMOsOnly) const;
 
-		/// <summary>
 		/// Gets pointers to the MOs that are within the given Box, and whose team is not ignored.
-		/// </summary>
-		/// <param name="box">The Box to get MOs within.</param>
-		/// <param name="ignoreTeam">The team to ignore.</param>
-		/// <returns>Pointers to the MOs that are within the given Box, and whose team is not ignored.</returns>
+		/// @param box The Box to get MOs within.
+		/// @param ignoreTeam The team to ignore.
+		/// @return Pointers to the MOs that are within the given Box, and whose team is not ignored.
 		const std::vector<MovableObject*>* GetMOsInBox(const Box& box, int ignoreTeam) const { return GetMOsInBox(box, ignoreTeam, false); }
 
-		/// <summary>
 		/// Gets pointers to the MOs that are within the given Box.
-		/// </summary>
-		/// <param name="box">The Box to get MOs within.</param>
-		/// <returns>Pointers to the MOs that are within the given Box.</returns>
+		/// @param box The Box to get MOs within.
+		/// @return Pointers to the MOs that are within the given Box.
 		const std::vector<MovableObject*>* GetMOsInBox(const Box& box) const { return GetMOsInBox(box, Activity::NoTeam); }
 
-		/// <summary>
 		/// Gets pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.
-		/// </summary>
-		/// <param name="centre">The position to check for MOs in.</param>
-		/// <param name="radius">The radius to check for MOs within.</param>
-		/// <param name="ignoreTeam">The team to ignore.</param>
-		/// <param name="getsHitByMOsOnly">Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.</param>
-		/// <returns>Pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.</returns>
+		/// @param centre The position to check for MOs in.
+		/// @param radius The radius to check for MOs within.
+		/// @param ignoreTeam The team to ignore.
+		/// @param getsHitByMOsOnly Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.
+		/// @return Pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.
 		const std::vector<MovableObject*>* GetMOsInRadius(const Vector& centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const;
 
-		/// <summary>
 		/// Gets pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.
-		/// </summary>
-		/// <param name="centre">The position to check for MOs in.</param>
-		/// <param name="radius">The radius to check for MOs within.</param>
-		/// <param name="ignoreTeam">The team to ignore.</param>
-		/// <returns>Pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.</returns>
+		/// @param centre The position to check for MOs in.
+		/// @param radius The radius to check for MOs within.
+		/// @param ignoreTeam The team to ignore.
+		/// @return Pointers to the MOs that are within the specified radius of the given centre position, and whose team is not ignored.
 		const std::vector<MovableObject*>* GetMOsInRadius(const Vector& centre, float radius, int ignoreTeam) const { return GetMOsInRadius(centre, radius, ignoreTeam, false); }
 
-		/// <summary>
 		/// Gets pointers to the MOs that are within the specified radius of the given centre position.
-		/// </summary>
-		/// <param name="centre">The position to check for MOs in.</param>
-		/// <param name="radius">The radius to check for MOs within.</param>
-		/// <returns>Pointers to the MOs that are within the specified radius of the given centre position.</returns>
+		/// @param centre The position to check for MOs in.
+		/// @param radius The radius to check for MOs within.
+		/// @return Pointers to the MOs that are within the specified radius of the given centre position.
 		const std::vector<MovableObject*>* GetMOsInRadius(const Vector& centre, float radius) const { return GetMOsInRadius(centre, radius, Activity::NoTeam); }
 
-		/// <summary>
 		/// Runs a lua function on all MOs in the simulation, including owned child MOs.
-		/// </summary>
 		void RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 
-		/// <summary>
 		/// Clears all cached lua functions on all MOs, including owned child MOs.
-		/// </summary>
 		void ReloadLuaScripts();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -987,23 +942,17 @@ namespace RTE {
 
 		void Clear();
 
-		/// <summary>
 		/// Travels all of our MOs, updating their location/velocity/physical characteristics.
-		/// </summary>
 		void Travel();
 
-		/// <summary>
 		/// Updates the controllers of all the actors we own.
 		/// This is needed for a tricky reason - we want the controller from the activity to override the normal controller state
 		/// So we need to update the controller state prior to activity, so the changes from activity are layered on top.
-		/// </summary>
 		void UpdateControllers();
 
-		/// <summary>
 		/// Updates all things that need to be done before we update the controllers.
 		/// This is needed because of a very awkward and ugly old code path where controllers were updated in the middle of update, and various mods relied of this behaviour for actions that were therefore delayed by a frame
 		/// Ideally we wouldn't need this, but this is all very fragile code and I'd prefer to avoid breaking things.
-		/// </summary>
 		void PreControllerUpdate();
 
 		// Disallow the use of some implicit methods.

@@ -150,76 +150,52 @@ namespace RTE {
 
 		int GetMaxPassengers() const override { return m_MaxPassengers > -1 ? m_MaxPassengers : 4; }
 
-		/// <summary>
 		/// Gets the right side thruster of this ACDropship.
-		/// </summary>
-		/// <returns>A pointer to the right side thruster of this ACDropship. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the right side thruster of this ACDropship. Ownership is NOT transferred.
 		AEmitter* GetRightThruster() const { return m_pRThruster; }
 
-		/// <summary>
 		/// Sets the right side thruster for this ACDropship.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetRightThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the left side thruster of this ACDropship.
-		/// </summary>
-		/// <returns>A pointer to the left side thruster of this ACDropship. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the left side thruster of this ACDropship. Ownership is NOT transferred.
 		AEmitter* GetLeftThruster() const { return m_pLThruster; }
 
-		/// <summary>
 		/// Sets the left side thruster for this ACDropship.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetLeftThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the right side secondary thruster of this ACDropship.
-		/// </summary>
-		/// <returns>A pointer to the right side secondary thruster of this ACDropship. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the right side secondary thruster of this ACDropship. Ownership is NOT transferred.
 		AEmitter* GetURightThruster() const { return m_pURThruster; }
 
-		/// <summary>
 		/// Sets the right side secondary thruster for this ACDropship.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetURightThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the left side secondary thruster of this ACDropship.
-		/// </summary>
-		/// <returns>A pointer to the left side secondary thruster of this ACDropship. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the left side secondary thruster of this ACDropship. Ownership is NOT transferred.
 		AEmitter* GetULeftThruster() const { return m_pULThruster; }
 
-		/// <summary>
 		/// Sets the left side secondary thruster for this ACDropship.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetULeftThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the left side hatch of this ACDropship.
-		/// </summary>
-		/// <returns>A pointer to the left side hatch of this ACDropship. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the left side hatch of this ACDropship. Ownership is NOT transferred.
 		Attachable* GetLeftHatch() const { return m_pLHatch; }
 
-		/// <summary>
 		/// Sets the left side hatch for this ACDropship.
-		/// </summary>
-		/// <param name="newHatch">The new hatch to use.</param>
+		/// @param newHatch The new hatch to use.
 		void SetLeftHatch(Attachable* newHatch);
 
-		/// <summary>
 		/// Gets the right side hatch of this ACDropship.
-		/// </summary>
-		/// <returns>A pointer to the right side hatch of this ACDropship. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the right side hatch of this ACDropship. Ownership is NOT transferred.
 		Attachable* GetRightHatch() const { return m_pRHatch; }
 
-		/// <summary>
 		/// Sets the right side hatch for this ACDropship.
-		/// </summary>
-		/// <param name="newHatch">The new hatch to use.</param>
+		/// @param newHatch The new hatch to use.
 		void SetRightHatch(Attachable* newHatch);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -267,16 +243,12 @@ namespace RTE {
 
 		float GetLateralControl() const { return m_LateralControl; }
 
-		/// <summary>
 		/// Gets the modifier for height at which this ACDropship should hover above terrain.
-		/// </summary>
-		/// <returns>The modifier for height at which this ACDropship should hover above terrain.</returns>
+		/// @return The modifier for height at which this ACDropship should hover above terrain.
 		float GetHoverHeightModifier() const { return m_HoverHeightModifier; }
 
-		/// <summary>
 		/// Sets the modifier for height at which this ACDropship should hover above terrain.
-		/// </summary>
-		/// <param name="newHoverHeightModifier">The new modifier for height at which this ACDropship should hover above terrain.</param>
+		/// @param newHoverHeightModifier The new modifier for height at which this ACDropship should hover above terrain.
 		void SetHoverHeightModifier(float newHoverHeightModifier) { m_HoverHeightModifier = newHoverHeightModifier; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////

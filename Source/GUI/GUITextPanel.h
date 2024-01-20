@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A text panel class.
-	/// </summary>
 	class GUITextPanel : public GUIPanel {
 
 	public:
@@ -199,22 +197,16 @@ namespace RTE {
 
 		bool GetLocked() const;
 
-		/// <summary>
 		/// Sets this text panel to accept numeric symbols only.
-		/// </summary>
-		/// <param name="numericOnly">Whether to accept numeric symbols only or not.</param>
+		/// @param numericOnly Whether to accept numeric symbols only or not.
 		void SetNumericOnly(bool numericOnly) { m_NumericOnly = numericOnly; }
 
-		/// <summary>
 		/// Sets this text panel's maximum numeric value when in numeric only mode.
-		/// </summary>
-		/// <param name="maxValue">The maximum numeric value. 0 means no maximum value.</param>
+		/// @param maxValue The maximum numeric value. 0 means no maximum value.
 		void SetMaxNumericValue(int maxValue) { m_MaxNumericValue = maxValue; }
 
-		/// <summary>
 		/// Sets the maximum length of the text this text panel can contain.
-		/// </summary>
-		/// <param name="maxLength">The maximum length of the text this text panel can contain.</param>
+		/// @param maxLength The maximum length of the text this text panel can contain.
 		void SetMaxTextLength(int maxLength) { m_MaxTextLength = maxLength; }
 
 	private:
@@ -266,22 +258,18 @@ namespace RTE {
 
 		void DoSelection(int Start, int End);
 
-		/// <summary>
 		/// Gets the index of the start of the next contiguous group of letters or special characters in the given string, or the end of the string if there is none.
 		/// Generally used to deal with ctrl + arrows style behavior.
-		/// </summary>
-		/// <param name="stringToCheck">A string_view of the string to look for the next word in.</param>
-		/// <param name="currentIndex">The index in the string to start looking from.</param>
-		/// <returns>The index of the start of the next contiguous group of letters or special characters in the given string, or the end of the string if there is none.</returns>
+		/// @param stringToCheck A string_view of the string to look for the next word in.
+		/// @param currentIndex The index in the string to start looking from.
+		/// @return The index of the start of the next contiguous group of letters or special characters in the given string, or the end of the string if there is none.
 		int GetStartOfNextCharacterGroup(const std::string_view& stringToCheck, int currentIndex) const;
 
-		/// <summary>
 		/// Gets the index of the start of the previous contiguous group of letters or special characters in the given string, or the end of the string if there is none.
 		/// Generally used to deal with ctrl + arrows style behavior.
-		/// </summary>
-		/// <param name="stringToCheck">A string_view of the string to look for the next word in.</param>
-		/// <param name="currentIndex">The index in the string to start looking from.</param>
-		/// <returns>The index of the start of the previous contiguous group of letters or special characters in the given string, or the end of the string if there is none.</returns>
+		/// @param stringToCheck A string_view of the string to look for the next word in.
+		/// @param currentIndex The index in the string to start looking from.
+		/// @return The index of the start of the previous contiguous group of letters or special characters in the given string, or the end of the string if there is none.
 		int GetStartOfPreviousCharacterGroup(const std::string_view& stringToCheck, int currentIndex) const;
 	};
 }; // namespace RTE

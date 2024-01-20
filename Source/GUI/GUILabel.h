@@ -7,9 +7,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A label control class.
-	/// </summary>
 	class GUILabel : public GUIControl, public GUIPanel {
 
 	public:
@@ -66,11 +64,9 @@ namespace RTE {
 
 		void Draw(GUIScreen* Screen) override;
 
-		/// <summary>
 		/// Draws the Label to the given GUIBitmap.
-		/// </summary>
-		/// <param name="Bitmap">The GUIBitmap to draw the label to.</param>
-		/// <param name="overwiteFontColorAndKerning">Whether to overwrite the font's color and kerning with the stored values. Defaults to true, which is usually what you want.</param>
+		/// @param Bitmap The GUIBitmap to draw the label to.
+		/// @param overwiteFontColorAndKerning Whether to overwrite the font's color and kerning with the stored values. Defaults to true, which is usually what you want.
 		void Draw(GUIBitmap* Bitmap, bool overwiteFontColorAndKerning = true);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -197,46 +193,32 @@ namespace RTE {
 
 		int GetVAlignment() const { return m_VAlignment; }
 
-		/// <summary>
 		/// Gets whether or not this GUILabel should scroll horizontally (right) when it overflows.
-		/// </summary>
-		/// <returns>Whether or not this GUILabel should scroll horizontally when it overflows.</returns>
+		/// @return Whether or not this GUILabel should scroll horizontally when it overflows.
 		bool GetHorizontalOverflowScroll() const { return m_HorizontalOverflowScroll; }
 
-		/// <summary>
 		/// Sets whether or not this GUILabel should scroll horizontally (right) when it overflows. Mutually exclusive with horizontal overflow scrolling.
-		/// </summary>
-		/// <param name="newOverflowScroll">Whether or not this GUILabel should scroll horizontally when it overflows.</param>
+		/// @param newOverflowScroll Whether or not this GUILabel should scroll horizontally when it overflows.
 		void SetHorizontalOverflowScroll(bool newOverflowScroll);
 
-		/// <summary>
 		/// Gets whether or not this GUILabel should scroll vertically (down) when it overflows.
-		/// </summary>
-		/// <returns>Whether or not this GUILabel should scroll vertically when it overflows.</returns>
+		/// @return Whether or not this GUILabel should scroll vertically when it overflows.
 		bool GetVerticalOverflowScroll() const { return m_VerticalOverflowScroll; }
 
-		/// <summary>
 		/// Sets whether or not this GUILabel should scroll vertically (down) when it overflows. Mutually exclusive with horizontal overflow scrolling.
-		/// </summary>
-		/// <param name="newOverflowScroll">Whether or not this GUILabel should scroll vertically when it overflows.</param>
+		/// @param newOverflowScroll Whether or not this GUILabel should scroll vertically when it overflows.
 		void SetVerticalOverflowScroll(bool newOverflowScroll);
 
-		/// <summary>
 		/// Gets whether or not horizontal or vertical overflow scrolling is turned on.
-		/// </summary>
-		/// <returns>Whether or not horizontal or vertical overflow scrolling is turned on.</returns>
+		/// @return Whether or not horizontal or vertical overflow scrolling is turned on.
 		bool OverflowScrollIsEnabled() const { return m_HorizontalOverflowScroll || m_VerticalOverflowScroll; }
 
-		/// <summary>
 		/// Gets whether or not horizontal/vertical scrolling is happening.
-		/// </summary>
-		/// <returns>Whether or not horizontal/vertical scrolling is happening.</returns>
+		/// @return Whether or not horizontal/vertical scrolling is happening.
 		bool OverflowScrollIsActivated() const { return OverflowScrollIsEnabled() && m_OverflowScrollState != OverflowScrollState::Deactivated; }
 
-		/// <summary>
 		/// Sets whether or not horizontal/vertical scrolling should be happening. When it's deactivated, text will instantly go back to un-scrolled.
-		/// </summary>
-		/// <param name="activateScroll">Whether the overflow scrolling should activate (true) or deactivate (false).</param>
+		/// @param activateScroll Whether the overflow scrolling should activate (true) or deactivate (false).
 		void ActivateDeactivateOverflowScroll(bool activateScroll);
 
 		//////////////////////////////////////////////////////////////////////////////////////////

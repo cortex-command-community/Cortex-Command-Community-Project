@@ -11,9 +11,7 @@ namespace RTE {
 	class TerrainObject;
 	class TerrainDebris;
 
-	/// <summary>
 	/// Collection of scrolling layers that compose the terrain of the Scene.
-	/// </summary>
 	class SLTerrain : public SceneLayer {
 
 	public:
@@ -21,9 +19,7 @@ namespace RTE {
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-		/// <summary>
 		/// Enumeration for the different type of layers in the SLTerrain.
-		/// </summary>
 		enum class LayerType {
 			ForegroundLayer,
 			BackgroundLayer,
@@ -31,35 +27,25 @@ namespace RTE {
 		};
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a SLTerrain object in system memory. Create() should be called before using the object.
-		/// </summary>
 		SLTerrain() { Clear(); }
 
-		/// <summary>
 		/// Makes the SLTerrain object ready for use.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create() override;
 
-		/// <summary>
 		/// Creates a SLTerrain to be identical to another, by deep copy.
-		/// </summary>
-		/// <param name="reference">A reference to the SLTerrain to deep copy.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param reference A reference to the SLTerrain to deep copy.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const SLTerrain& reference);
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up a SLTerrain object before deletion from system memory.
-		/// </summary>
 		~SLTerrain() override { Destroy(true); }
 
-		/// <summary>
 		/// Destroys and resets (through Clear()) the SLTerrain object.
-		/// </summary>
-		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override {
 			if (!notInherited) {
 				SceneLayer::Destroy();
@@ -69,193 +55,141 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Data Handling
-		/// <summary>
 		/// Whether this SLTerrain's bitmap data is loaded from a file or was generated at runtime.
-		/// </summary>
-		/// <returns>Whether this SLTerrain's bitmap data was loaded from a file or was generated at runtime.</returns>
+		/// @return Whether this SLTerrain's bitmap data was loaded from a file or was generated at runtime.
 		bool IsLoadedFromDisk() const override { return (m_FGColorLayer && m_FGColorLayer->IsLoadedFromDisk()) && (m_BGColorLayer && m_BGColorLayer->IsLoadedFromDisk()); }
 
-		/// <summary>
 		/// Loads previously specified/created bitmap data into memory. Has to be done before using this SLTerrain if the bitmap was not generated at runtime.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int LoadData() override;
 
-		/// <summary>
 		/// Saves bitmap data currently in memory to disk.
-		/// </summary>
-		/// <param name="pathBase">The filepath base to the where to save the Bitmap data. This means everything up to the extension. "FG" and "Mat" etc will be added.</param>
-		/// <param name="doAsyncSaves">Whether or not to save asynchronously.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param pathBase The filepath base to the where to save the Bitmap data. This means everything up to the extension. "FG" and "Mat" etc will be added.
+		/// @param doAsyncSaves Whether or not to save asynchronously.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int SaveData(const std::string& pathBase, bool doAsyncSaves = true) override;
 
-		/// <summary>
 		/// Clears out any previously loaded bitmap data from memory.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int ClearData() override;
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Gets the width of this SLTerrain as determined by the main (material) bitmap.
-		/// </summary>
-		/// <returns>The width of this SLTerrain, in pixels.</returns>
+		/// @return The width of this SLTerrain, in pixels.
 		int GetWidth() const { return m_Width; }
 
-		/// <summary>
 		/// Gets the height of this SLTerrain as determined by the main (material) bitmap.
-		/// </summary>
-		/// <returns>The height of this SLTerrain, in pixels.</returns>
+		/// @return The height of this SLTerrain, in pixels.
 		int GetHeight() const { return m_Height; }
 
-		/// <summary>
 		/// Sets the layer of this SLTerrain that should be drawn to the screen when Draw() is called.
-		/// </summary>
-		/// <param name="layerToDraw">The layer that should be drawn. See LayerType enumeration.</param>
+		/// @param layerToDraw The layer that should be drawn. See LayerType enumeration.
 		void SetLayerToDraw(LayerType layerToDraw) { m_LayerToDraw = layerToDraw; }
 
-		/// <summary>
 		/// Gets the foreground color bitmap of this SLTerrain.
-		/// </summary>
-		/// <returns>A pointer to the foreground color bitmap.</returns>
+		/// @return A pointer to the foreground color bitmap.
 		BITMAP* GetFGColorBitmap() { return m_FGColorLayer->GetBitmap(); }
 
-		/// <summary>
 		/// Gets the background color bitmap of this SLTerrain.
-		/// </summary>
-		/// <returns>A pointer to the background color bitmap.</returns>
+		/// @return A pointer to the background color bitmap.
 		BITMAP* GetBGColorBitmap() { return m_BGColorLayer->GetBitmap(); }
 
-		/// <summary>
 		/// Gets the material bitmap of this SLTerrain.
-		/// </summary>
-		/// <returns>A pointer to the material bitmap.</returns>
+		/// @return A pointer to the material bitmap.
 		BITMAP* GetMaterialBitmap() { return m_MainBitmap; }
 
-		/// <summary>
 		/// Gets a specific pixel from the foreground color bitmap of this. LockBitmaps() must be called before using this method.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the pixel to get.</param>
-		/// <param name="pixelY">The Y coordinate of the pixel to get.</param>
-		/// <returns>An int specifying the requested pixel's foreground color index.</returns>
+		/// @param pixelX The X coordinate of the pixel to get.
+		/// @param pixelY The Y coordinate of the pixel to get.
+		/// @return An int specifying the requested pixel's foreground color index.
 		int GetFGColorPixel(int pixelX, int pixelY) const { return m_FGColorLayer->GetPixel(pixelX, pixelY); }
 
-		/// <summary>
 		/// Sets a specific pixel on the foreground color bitmap of this SLTerrain to a specific color. LockBitmaps() must be called before using this method.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the pixel to set.</param>
-		/// <param name="pixelY">The Y coordinate of the pixel to set.</param>
-		/// <param name="materialID">The color index to set the pixel to.</param>
+		/// @param pixelX The X coordinate of the pixel to set.
+		/// @param pixelY The Y coordinate of the pixel to set.
+		/// @param materialID The color index to set the pixel to.
 		void SetFGColorPixel(int pixelX, int pixelY, const int materialID) const { m_FGColorLayer->SetPixel(pixelX, pixelY, materialID); }
 
-		/// <summary>
 		/// Gets a specific pixel from the background color bitmap of this. LockBitmaps() must be called before using this method.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the pixel to get.</param>
-		/// <param name="pixelY">The Y coordinate of the pixel to get.</param>
-		/// <returns>An int specifying the requested pixel's background color index.</returns>
+		/// @param pixelX The X coordinate of the pixel to get.
+		/// @param pixelY The Y coordinate of the pixel to get.
+		/// @return An int specifying the requested pixel's background color index.
 		int GetBGColorPixel(int pixelX, int pixelY) const { return m_BGColorLayer->GetPixel(pixelX, pixelY); }
 
-		/// <summary>
 		/// Sets a specific pixel on the background color bitmap of this SLTerrain to a specific color. LockBitmaps() must be called before using this method.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the pixel to set.</param>
-		/// <param name="pixelY">The Y coordinate of the pixel to set.</param>
-		/// <param name="materialID">The color index to set the pixel to.</param>
+		/// @param pixelX The X coordinate of the pixel to set.
+		/// @param pixelY The Y coordinate of the pixel to set.
+		/// @param materialID The color index to set the pixel to.
 		void SetBGColorPixel(int pixelX, int pixelY, int materialID) const { m_BGColorLayer->SetPixel(pixelX, pixelY, materialID); }
 
-		/// <summary>
 		/// Gets a specific pixel from the material bitmap of this SceneLayer. LockBitmaps() must be called before using this method.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the pixel to get.</param>
-		/// <param name="pixelY">The Y coordinate of the pixel to get.</param>
-		/// <returns>An int specifying the requested pixel's material index.</returns>
+		/// @param pixelX The X coordinate of the pixel to get.
+		/// @param pixelY The Y coordinate of the pixel to get.
+		/// @return An int specifying the requested pixel's material index.
 		int GetMaterialPixel(int pixelX, int pixelY) const { return GetPixel(pixelX, pixelY); }
 
-		/// <summary>
 		/// Sets a specific pixel on the material bitmap of this SLTerrain to a specific material. LockMaterialBitmap() must be called before using this method.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the pixel to set.</param>
-		/// <param name="pixelY">The Y coordinate of the pixel to set.</param>
-		/// <param name="materialID">The material index to set the pixel to.</param>
+		/// @param pixelX The X coordinate of the pixel to set.
+		/// @param pixelY The Y coordinate of the pixel to set.
+		/// @param materialID The material index to set the pixel to.
 		void SetMaterialPixel(int pixelX, int pixelY, int materialID) { SetPixel(pixelX, pixelY, materialID); }
 
-		/// <summary>
 		/// Indicates whether a terrain pixel is of Air or Cavity material.
-		/// </summary>
-		/// <param name="pixelX">The X coordinate of the pixel to check.</param>
-		/// <param name="pixelY">The Y coordinate of the pixel to check.</param>
-		/// <returns>Whether the terrain pixel is of Air or Cavity material.</returns>
+		/// @param pixelX The X coordinate of the pixel to check.
+		/// @param pixelY The Y coordinate of the pixel to check.
+		/// @return Whether the terrain pixel is of Air or Cavity material.
 		bool IsAirPixel(int pixelX, int pixelY) const;
 
-		/// <summary>
 		/// Checks whether a bounding box is completely buried in the terrain.
-		/// </summary>
-		/// <param name="checkBox">The box to check.</param>
-		/// <returns>Whether the box is completely buried, i.e. no corner sticks out in the Air or Cavity.</returns>
+		/// @param checkBox The box to check.
+		/// @return Whether the box is completely buried, i.e. no corner sticks out in the Air or Cavity.
 		bool IsBoxBuried(const Box& checkBox) const;
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Gets a deque of unwrapped boxes which show the areas where the material layer has had objects applied to it since last call to ClearUpdatedMaterialAreas().
-		/// </summary>
-		/// <returns>Reference to the deque that has been filled with Boxes which are unwrapped and may be out of bounds of the scene!</returns>
+		/// @return Reference to the deque that has been filled with Boxes which are unwrapped and may be out of bounds of the scene!
 		std::deque<Box>& GetUpdatedMaterialAreas() { return m_UpdatedMaterialAreas; }
 
-		/// <summary>
 		/// Adds a notification that an area of the material terrain has been updated.
-		/// </summary>
-		/// <param name="newArea">The Box defining the newly updated material area that can be unwrapped and may be out of bounds of the scene.</param>
+		/// @param newArea The Box defining the newly updated material area that can be unwrapped and may be out of bounds of the scene.
 		void AddUpdatedMaterialArea(const Box& newArea) { m_UpdatedMaterialAreas.emplace_back(newArea); }
 
-		/// <summary>
 		/// Removes any color pixel in the color layer of this SLTerrain wherever there is an air material pixel in the material layer.
-		/// </summary>
 		void CleanAir();
 
-		/// <summary>
 		/// Removes any color pixel in the color layer of this SLTerrain wherever there is an air material pixel in the material layer inside the specified box.
-		/// </summary>
-		/// <param name="box">Box to clean.</param>
-		/// <param name="wrapsX">Whether the scene is X-wrapped.</param>
-		/// <param name="wrapsY">Whether the scene is Y-wrapped.</param>
+		/// @param box Box to clean.
+		/// @param wrapsX Whether the scene is X-wrapped.
+		/// @param wrapsY Whether the scene is Y-wrapped.
 		void CleanAirBox(const Box& box, bool wrapsX, bool wrapsY);
 
-		/// <summary>
 		/// Takes a BITMAP and scans through the pixels on this terrain for pixels which overlap with it. Erases them from the terrain and can optionally generate MOPixels based on the erased or 'dislodged' terrain pixels.
-		/// </summary>
-		/// <param name="sprite">A pointer to the source BITMAP whose silhouette will be used as a cookie-cutter on the terrain.</param>
-		/// <param name="pos">The position coordinates of the sprite.</param>
-		/// <param name="pivot">The pivot coordinate of the sprite.</param>
-		/// <param name="rotation">The sprite's current rotation in radians.</param>
-		/// <param name="scale">The sprite's current scale coefficient.</param>
-		/// <param name="makeMOPs">Whether to generate any MOPixels from the erased terrain pixels.</param>
-		/// <param name="skipMOP">How many pixels to skip making MOPixels from, between each that gets made. 0 means every pixel turns into an MOPixel.</param>
-		/// <param name="maxMOPs">The max number of MOPixels to make, if they are to be made.</param>
-		/// <returns>A deque filled with the MOPixels of the terrain that are now dislodged. This will be empty if makeMOPs is false. Note that ownership of all the MOPixels in the deque IS transferred!</returns>
+		/// @param sprite A pointer to the source BITMAP whose silhouette will be used as a cookie-cutter on the terrain.
+		/// @param pos The position coordinates of the sprite.
+		/// @param pivot The pivot coordinate of the sprite.
+		/// @param rotation The sprite's current rotation in radians.
+		/// @param scale The sprite's current scale coefficient.
+		/// @param makeMOPs Whether to generate any MOPixels from the erased terrain pixels.
+		/// @param skipMOP How many pixels to skip making MOPixels from, between each that gets made. 0 means every pixel turns into an MOPixel.
+		/// @param maxMOPs The max number of MOPixels to make, if they are to be made.
+		/// @return A deque filled with the MOPixels of the terrain that are now dislodged. This will be empty if makeMOPs is false. Note that ownership of all the MOPixels in the deque IS transferred!
 		std::deque<MOPixel*> EraseSilhouette(BITMAP* sprite, const Vector& pos, const Vector& pivot, const Matrix& rotation, float scale, bool makeMOPs = true, int skipMOP = 2, int maxMOPs = 150);
 
-		/// <summary>
 		/// Returns the direction of the out-of-bounds "orbit" for this scene, where the brain must path to and where dropships/rockets come from.
-		/// </summary>
-		/// <returns>The orbit direction, either Up, Down, Left or Right..</returns>
+		/// @return The orbit direction, either Up, Down, Left or Right..
 		Directions GetOrbitDirection() { return m_OrbitDirection; }
 #pragma endregion
 
 #pragma region Virtual Override Methods
-		/// <summary>
 		/// Updates the state of this SLTerrain.
-		/// </summary>
 		void Update() override;
 
-		/// <summary>
 		/// Draws this SLTerrain's current scrolled position to a bitmap.
-		/// </summary>
-		/// <param name="targetBitmap">The bitmap to draw to.</param>
-		/// <param name="targetBox">The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.</param>
-		/// <param name="offsetNeedsScrollRatioAdjustment">Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.</param>
+		/// @param targetBitmap The bitmap to draw to.
+		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
+		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
 		void Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;
 #pragma endregion
 
@@ -280,14 +214,10 @@ namespace RTE {
 
 		Directions m_OrbitDirection; //!< The direction of the out-of-bounds "orbit" for this scene, where the brain must path to and where dropships/rockets come from.
 
-		/// <summary>
 		/// Applies Material textures to the foreground and background color layers, based on the loaded material layer (main bitmap).
-		/// </summary>
 		void TexturizeTerrain();
 
-		/// <summary>
 		/// Clears all the member variables of this SLTerrain, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

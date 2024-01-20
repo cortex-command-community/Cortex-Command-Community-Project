@@ -183,11 +183,9 @@ namespace RTE {
 
 		int GetMetaPlayer() const { return m_MetaPlayer; }
 
-		/// <summary>
 		/// Sets which DataModule ID should be treated as the native tech of the user of this menu.
 		/// This will also apply the DataModule's faction BuyMenu theme, if applicable.
-		/// </summary>
-		/// <param name="whichModule">The module ID to set as the native one. 0 means everything is native.</param>
+		/// @param whichModule The module ID to set as the native one. 0 means everything is native.
 		void SetNativeTechModule(int whichModule);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -219,10 +217,8 @@ namespace RTE {
 
 		bool PurchaseMade() const { return m_PurchaseMade; }
 
-		/// <summary>
 		/// Gets the width of the current delivery craft.
-		/// </summary>
-		/// <returns>The width of the delivery craft, in pixels.</returns>
+		/// @return The width of the delivery craft, in pixels.
 		int GetDeliveryWidth() const { return m_DeliveryWidth; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -291,10 +287,8 @@ namespace RTE {
 
 		float GetTotalCartCost() const { return GetTotalCost(false); }
 
-		/// <summary>
 		/// Return the total mass of all items listed in the order box.
-		/// </summary>
-		/// <returns>The total mass (in kg) of the BuyMenu's cart.</returns>
+		/// @return The total mass (in kg) of the BuyMenu's cart.
 		float GetTotalOrderMass() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -315,15 +309,11 @@ namespace RTE {
 
 		int GetTotalOrderPassengers() const;
 
-		/// <summary>
 		/// Enable or disable the equipment selection mode for this BuyMenuGUI.
-		/// </summary>
-		/// <param name="enabled">Whether or not equipment selection mode should be enabled.</param>
+		/// @param enabled Whether or not equipment selection mode should be enabled.
 		void EnableEquipmentSelection(bool enabled);
 
-		/// <summary>
 		/// Updates the nesting level for every item in the cart.
-		/// </summary>
 		void UpdateItemNestingLevels();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -509,20 +499,16 @@ namespace RTE {
 
 		void ClearCartList();
 
-		/// <summary>
 		/// Adds an item to the cart.
-		/// </summary>
-		/// <param name="name">The name shown for the item.</param>
-		/// <param name="rightText">The text that is shown right-aligned on the item (typically the cost of the item).</param>
-		/// <param name="pBitmap">The sprite image rendered for the item. This takes ownership!</param>
-		/// <param name="pEntity">The entity that this item refers to and will create when bought.</param>
-		/// <param name="extraIndex">Extra index for special indexing or reference that the item is associated with. Menu-specific.</param>
+		/// @param name The name shown for the item.
+		/// @param rightText The text that is shown right-aligned on the item (typically the cost of the item).
+		/// @param pBitmap The sprite image rendered for the item. This takes ownership!
+		/// @param pEntity The entity that this item refers to and will create when bought.
+		/// @param extraIndex Extra index for special indexing or reference that the item is associated with. Menu-specific.
 		void AddCartItem(const std::string& name, const std::string& rightText = "", GUIBitmap* pBitmap = nullptr, const Entity* pEntity = 0, const int extraIndex = -1);
 
-		/// <summary>
 		/// Duplicates an item in the cart.
-		/// </summary>
-		/// <param name="itemIndex">The index of the item to duplicate.</param>
+		/// @param itemIndex The index of the item to duplicate.
 		void DuplicateCartItem(const int itemIndex);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -585,16 +571,12 @@ namespace RTE {
 		bool CommitPurchase(std::string presetName);
 
 #pragma region Faction Theme Handling
-		/// <summary>
 		/// Changes the banner image to the one specified. If none is specified, resets it to the default banner image.
-		/// </summary>
-		/// <param name="imagePath">Path to image to set as banner.</param>
+		/// @param imagePath Path to image to set as banner.
 		void SetBannerImage(const std::string& imagePath);
 
-		/// <summary>
 		/// Changes the logo image to the one specified. If none is specified, resets it to the default logo image.
-		/// </summary>
-		/// <param name="imagePath">Path to image to set as logo.</param>
+		/// @param imagePath Path to image to set as logo.
 		void SetLogoImage(const std::string& imagePath);
 #pragma endregion
 
@@ -620,13 +602,11 @@ namespace RTE {
 
 		bool DeployLoadout(int index);
 
-		/// <summary>
 		/// Adds all objects of a specific type already defined in PresetMan to the current shop/item list. They will be grouped into the different data modules they were read from.
-		/// </summary>
-		/// <param name="moduleList">Reference to the data module vector of entity lists to add the items to.</param>
-		/// <param name="type">The name of the class to add all objects of. "" or "All" looks for all.</param>
-		/// <param name="groups">The name of the groups to add all objects of. An empty vector or "All" looks for all.</param>
-		/// <param name="excludeGroups">Whether the specified groups should be excluded, meaning all objects NOT associated with the groups will be added.</param>
+		/// @param moduleList Reference to the data module vector of entity lists to add the items to.
+		/// @param type The name of the class to add all objects of. "" or "All" looks for all.
+		/// @param groups The name of the groups to add all objects of. An empty vector or "All" looks for all.
+		/// @param excludeGroups Whether the specified groups should be excluded, meaning all objects NOT associated with the groups will be added.
 		void AddObjectsToItemList(std::vector<std::list<Entity*>>& moduleList, const std::string& type = "", const std::vector<std::string>& groups = {}, bool excludeGroups = false);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -852,9 +832,7 @@ namespace RTE {
 		static const std::string c_DefaultBannerImagePath; //!< Path to the default banner image.
 		static const std::string c_DefaultLogoImagePath; //!< Path to the default logo image.
 
-		/// <summary>
 		/// Refresh tab disabled states, so tabs get properly enabled/disabled based on whether or not equipment selection mode is enabled.
-		/// </summary>
 		void RefreshTabDisabledStates();
 
 		//////////////////////////////////////////////////////////////////////////////////////////

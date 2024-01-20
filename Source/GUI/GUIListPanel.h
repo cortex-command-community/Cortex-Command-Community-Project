@@ -8,9 +8,7 @@ namespace RTE {
 
 	class Entity;
 
-	/// <summary>
 	/// A listbox panel class used for controls requiring a listbox.
-	/// </summary>
 	class GUIListPanel : public GUIPanel {
 
 	public:
@@ -172,13 +170,11 @@ namespace RTE {
 
 		void OnDoubleClick(int X, int Y, int Buttons, int Modifier) override;
 
-		/// <summary>
 		/// Called when the mouse scroll wheel is moved.
-		/// </summary>
-		/// <param name="x">Mouse X position.</param>
-		/// <param name="y">Mouse Y position.</param>
-		/// <param name="modifier">Activated modifier buttons.</param>
-		/// <param name="mouseWheelChange">The amount of wheel movement. Positive is scroll up, negative is scroll down.</param>
+		/// @param x Mouse X position.
+		/// @param y Mouse Y position.
+		/// @param modifier Activated modifier buttons.
+		/// @param mouseWheelChange The amount of wheel movement. Positive is scroll up, negative is scroll down.
 		void OnMouseWheelChange(int x, int y, int modifier, int mouseWheelChange) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -440,47 +436,33 @@ namespace RTE {
 
 		void ScrollToBottom();
 
-		/// <summary>
 		/// Scrolls the GUIListPanel up.
-		/// </summary>
 		void ScrollUp();
 
-		/// <summary>
 		/// Scrolls the GUIListPanel down.
-		/// </summary>
 		void ScrollDown();
 
-		/// <summary>
 		/// Scrolls the the GUIListPanel to a specific position
-		/// </summary>
-		/// <param name="position">The position to scroll to.</param>
+		/// @param position The position to scroll to.
 		void ScrollTo(int position);
 
-		/// <summary>
 		/// Sets whether the scroll panel scrolls in a loop or not.
-		/// </summary>
-		/// <param name="scrollLoop">True to scroll in a loop, false to scroll with edge stopping.</param>
+		/// @param scrollLoop True to scroll in a loop, false to scroll with edge stopping.
 		void SetSelectionScrollingLoop(bool scrollLoop);
 
-		/// <summary>
 		/// Sets whether the list panel can be scrolled with the mouse scroll wheel.
-		/// </summary>
-		/// <param name="mouseScroll">True to enable scrolling, false to disable.</param>
+		/// @param mouseScroll True to enable scrolling, false to disable.
 		void SetMouseScrolling(bool mouseScroll);
 
-		/// <summary>
 		/// Sets the thickness (width on vertical, height on horizontal) of the ListPanel's scroll bars and adjusts them to the new thickness.
-		/// </summary>
-		/// <param name="newThickness">The new scroll bar thickness, in pixels.</param>
+		/// @param newThickness The new scroll bar thickness, in pixels.
 		void SetScrollBarThickness(int newThickness) {
 			m_ScrollBarThickness = newThickness;
 			AdjustScrollbars();
 		}
 
-		/// <summary>
 		/// Sets the padding around the ListPanel's scrollbars and adjusts them to the new padding. Used to better size and position scrollbars within panel bounds, allowing to not overdraw on panel borders.
-		/// </summary>
-		/// <param name="newPadding">The new scrollbar padding, in pixels.</param>
+		/// @param newPadding The new scrollbar padding, in pixels.
 		void SetScrollBarPadding(int newPadding) {
 			m_ScrollBarPadding = newPadding;
 			AdjustScrollbars();
@@ -552,16 +534,12 @@ namespace RTE {
 
 		void SelectItem(int X, int Y, int Modifier);
 
-		/// <summary>
 		/// Perform list scrolling through the scrollbar.
-		/// </summary>
-		/// <param name="MouseWheelChange">Amount and direction of scrolling. Positive to scroll up, negative to scroll down.</param>
+		/// @param MouseWheelChange Amount and direction of scrolling. Positive to scroll up, negative to scroll down.
 		void ScrollBarScrolling(int mouseWheelChange);
 
-		/// <summary>
 		/// Perform list scrolling by changing the currently selected list item.
-		/// </summary>
-		/// <param name="MouseWheelChange">Amount and direction of scrolling. Positive to scroll up, negative to scroll down.</param>
+		/// @param MouseWheelChange Amount and direction of scrolling. Positive to scroll up, negative to scroll down.
 		void SelectionListScrolling(int mouseWheelChange);
 	};
 }; // namespace RTE

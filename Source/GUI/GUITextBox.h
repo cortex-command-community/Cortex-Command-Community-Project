@@ -5,9 +5,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A TextBox control class.
-	/// </summary>
 	class GUITextBox : public GUIControl, public GUITextPanel {
 
 	public:

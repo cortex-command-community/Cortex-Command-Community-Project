@@ -167,88 +167,60 @@ namespace RTE {
 
 		int GetMaxPassengers() const override { return m_MaxPassengers > -1 ? m_MaxPassengers : 2; }
 
-		/// <summary>
 		/// Gets the right leg of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the right Leg of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the right Leg of this ACRocket. Ownership is NOT transferred.
 		Leg* GetRightLeg() const { return m_pRLeg; }
 
-		/// <summary>
 		/// Sets the right Leg for this ACRocket.
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetRightLeg(Leg* newLeg);
 
-		/// <summary>
 		/// Gets the left Leg of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the left Leg of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the left Leg of this ACRocket. Ownership is NOT transferred.
 		Leg* GetLeftLeg() const { return m_pLLeg; }
 
-		/// <summary>
 		/// Sets the left Leg for this ACRocket.
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetLeftLeg(Leg* newLeg);
 
-		/// <summary>
 		/// Gets the main thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the main thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the main thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetMainThruster() const { return m_pMThruster; }
 
-		/// <summary>
 		/// Sets the main thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetMainThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the right side thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the right side thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the right side thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetRightThruster() const { return m_pRThruster; }
 
-		/// <summary>
 		/// Sets the right side thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetRightThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the left side thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the left side thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the left side thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetLeftThruster() const { return m_pLThruster; }
 
-		/// <summary>
 		/// Sets the left side thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetLeftThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the right side secondary thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the right side secondary thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the right side secondary thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetURightThruster() const { return m_pURThruster; }
 
-		/// <summary>
 		/// Sets the right side secondary thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetURightThruster(AEmitter* newThruster);
 
-		/// <summary>
 		/// Gets the left side secondary thruster of this ACRocket.
-		/// </summary>
-		/// <returns>A pointer to the left side secondary thruster of this ACRocket. Ownership is NOT transferred.</returns>
+		/// @return A pointer to the left side secondary thruster of this ACRocket. Ownership is NOT transferred.
 		AEmitter* GetULeftThruster() const { return m_pULThruster; }
 
-		/// <summary>
 		/// Sets the left side secondary thruster for this ACRocket.
-		/// </summary>
-		/// <param name="newThruster">The new thruster to use.</param>
+		/// @param newThruster The new thruster to use.
 		void SetULeftThruster(AEmitter* newThruster);
 
 		//////////////////////////////////////////////////////////////////////////////////////////

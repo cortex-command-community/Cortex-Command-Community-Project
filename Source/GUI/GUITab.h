@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A tab control class.
-	/// </summary>
 	class GUITab : public GUIControl, public GUIPanel {
 
 	public:

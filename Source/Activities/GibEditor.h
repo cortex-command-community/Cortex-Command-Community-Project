@@ -192,12 +192,10 @@ namespace RTE {
 		// Protected member variable and method declarations
 
 	protected:
-		/// <summary>
 		/// Saves the current object to an appropriate ini file, and asks user if they want to overwrite first if object of this name exists.
-		/// </summary>
-		/// <param name="saveAsName">The name of the new object to be saved.</param>
-		/// <param name="forceOverwrite">Whether to force any existing Object of that name to be overwritten if it already exists.</param>
-		/// <returns>Whether actually managed to save. Will return false both if an object of this name already exists (and not overwriting), or if other error.</returns>
+		/// @param saveAsName The name of the new object to be saved.
+		/// @param forceOverwrite Whether to force any existing Object of that name to be overwritten if it already exists.
+		/// @return Whether actually managed to save. Will return false both if an object of this name already exists (and not overwriting), or if other error.
 		bool SaveObject(const std::string& saveAsName, bool forceOverwrite = false);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -273,9 +271,7 @@ namespace RTE {
 		// Private member variable and method declarations
 
 	private:
-		/// <summary>
 		/// Clears all the layers of the testing area terrain so nothing that somehow settled lingers between edited object changes and testing phases.
-		/// </summary>
 		void ClearTestArea() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////

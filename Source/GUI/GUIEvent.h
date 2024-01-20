@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A class to hold event information.
-	/// </summary>
 	class GUIEvent {
 
 	public:

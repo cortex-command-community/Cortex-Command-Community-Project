@@ -405,10 +405,8 @@ namespace RTE {
 		// Return value:    None.
 		void SetToStartNewGame();
 
-		/// <summary>
 		/// Sets where the station is located on the planet orbit.
-		/// </summary>
-		/// <param name="newStationPos">The position of the station on the planet orbit.</param>
+		/// @param newStationPos The position of the station on the planet orbit.
 		void SetStationOrbitPos(const Vector& newStationPos) { m_StationPosOnOrbit = newStationPos; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////

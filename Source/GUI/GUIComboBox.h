@@ -8,9 +8,7 @@ namespace RTE {
 
 	class GUIComboBoxButton;
 
-	/// <summary>
 	/// A ComboBox control class.
-	/// </summary>
 	class GUIComboBox : public GUIControl, public GUIPanel {
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -253,10 +251,8 @@ namespace RTE {
 
 		void SetDropHeight(int Drop);
 
-		/// <summary>
 		/// Gets the drop height of the list.
-		/// </summary>
-		/// <returns>The drop height of the list.</returns>
+		/// @return The drop height of the list.
 		int GetDropHeight() const { return m_DropHeight; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -362,9 +358,7 @@ namespace RTE {
 		GUIComboBoxButton* m_Button;
 	};
 
-	/// <summary>
 	/// A ComboBoxButton control class.
-	/// </summary>
 	class GUIComboBoxButton : public GUIPanel {
 
 	public:

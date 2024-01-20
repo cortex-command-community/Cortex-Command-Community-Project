@@ -37,9 +37,7 @@ namespace RTE {
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-		/// <summary>
 		/// Enumeration for the different buyable modes of this SceneObject.
-		/// </summary>
 		enum class BuyableMode {
 			NoRestrictions,
 			BuyMenuOnly,
@@ -427,28 +425,20 @@ namespace RTE {
 
 		bool IsBuyable() const { return m_Buyable; }
 
-		/// <summary>
 		/// Gets the BuyableMode of this SceneObject.
-		/// </summary>
-		/// <returns>The BuyableMode of this SceneObject</returns>
+		/// @return The BuyableMode of this SceneObject
 		BuyableMode GetBuyableMode() const { return m_BuyableMode; }
 
-		/// <summary>
 		/// Gets whether this SceneObject is available only in the BuyMenu list when buyable.
-		/// </summary>
-		/// <returns>Whether this SceneObject is available only in the BuyMenu list when buyable.</returns>
+		/// @return Whether this SceneObject is available only in the BuyMenu list when buyable.
 		bool IsBuyableInBuyMenuOnly() const { return m_BuyableMode == BuyableMode::BuyMenuOnly; }
 
-		/// <summary>
 		/// Gets whether this SceneObject is available only in the ObjectPicker list when buyable.
-		/// </summary>
-		/// <returns>Whether this SceneObject is available only in the ObjectPicker list when buyable.</returns>
+		/// @return Whether this SceneObject is available only in the ObjectPicker list when buyable.
 		bool IsBuyableInObjectPickerOnly() const { return m_BuyableMode == BuyableMode::ObjectPickerOnly; }
 
-		/// <summary>
 		/// Gets whether this SceneObject is available only by lua functions like CreateRandom
-		/// </summary>
-		/// <returns>Whether this SceneObject is available only in the AI list when buyable.</returns>
+		/// @return Whether this SceneObject is available only in the AI list when buyable.
 		bool IsBuyableInScriptOnly() const { return m_BuyableMode == BuyableMode::ScriptOnly; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////

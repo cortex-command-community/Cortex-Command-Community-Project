@@ -5,9 +5,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A ListBox control class.
-	/// </summary>
 	class GUIListBox : public GUIControl, public GUIListPanel {
 
 	public:

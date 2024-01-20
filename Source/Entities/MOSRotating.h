@@ -124,72 +124,50 @@ namespace RTE {
 
 		void Destroy(bool notInherited = false) override;
 
-		/// <summary>
 		/// Gets the radius of this MOSRotating, not including any Attachables.
-		/// </summary>
-		/// <returns></returns>
+		/// @return 
 		float GetIndividualRadius() const { return m_SpriteRadius; }
 
-		/// <summary>
 		/// Gets the radius of this MOSRotating, including any Attachables.
-		/// </summary>
-		/// <returns>The radius of this MOSRotating, including any Attachables.</returns>
+		/// @return The radius of this MOSRotating, including any Attachables.
 		float GetRadius() const override { return std::max(m_SpriteRadius, m_FarthestAttachableDistanceAndRadius); }
 
-		/// <summary>
 		/// Gets the diameter of this MOSRotating, not including any Attachables.
-		/// </summary>
-		/// <returns></returns>
+		/// @return 
 		float GetIndividualDiameter() const { return m_SpriteDiameter; }
 
-		/// <summary>
 		/// Gets the diameter of this MOSRotating, including any Attachables.
-		/// </summary>
-		/// <returns>The diameter of this MOSRotating, including any Attachables.</returns>
+		/// @return The diameter of this MOSRotating, including any Attachables.
 		float GetDiameter() const override { return GetRadius() * 2.0F; }
 
-		/// <summary>
 		/// Checks if the given Attachable should affect radius, and handles it if it should.
-		/// </summary>
-		/// <param name="attachable">The Attachable to check.</param>
-		/// <returns>Whether the radius affecting Attachable changed as a result of this call.</returns>
+		/// @param attachable The Attachable to check.
+		/// @return Whether the radius affecting Attachable changed as a result of this call.
 		virtual bool HandlePotentialRadiusAffectingAttachable(const Attachable* attachable);
 
-		/// <summary>
 		/// Gets the mass value of this MOSRotating, not including any Attachables or wounds.
-		/// </summary>
-		/// <returns>The mass of this MOSRotating.</returns>
+		/// @return The mass of this MOSRotating.
 		float GetIndividualMass() const { return MovableObject::GetMass(); }
 
-		/// <summary>
 		/// Gets the mass value of this MOSRotating, including the mass of all its Attachables and wounds, and their Attachables and so on.
-		/// </summary>
-		/// <returns>The mass of this MOSRotating and all of its Attachables and wounds in Kilograms (kg).</returns>
+		/// @return The mass of this MOSRotating and all of its Attachables and wounds in Kilograms (kg).
 		float GetMass() const override { return MovableObject::GetMass() + m_AttachableAndWoundMass; }
 
-		/// <summary>
 		/// Updates the total mass of Attachables and wounds for this MOSRotating, intended to be used when Attachables' masses get modified. Simply subtracts the old mass and adds the new one.
-		/// </summary>
-		/// <param name="oldAttachableOrWoundMass">The mass the Attachable or wound had before its mass was modified.</param>
-		/// <param name="newAttachableOrWoundMass">The up-to-date mass of the Attachable or wound after its mass was modified.</param>
+		/// @param oldAttachableOrWoundMass The mass the Attachable or wound had before its mass was modified.
+		/// @param newAttachableOrWoundMass The up-to-date mass of the Attachable or wound after its mass was modified.
 		virtual void UpdateAttachableAndWoundMass(float oldAttachableOrWoundMass, float newAttachableOrWoundMass) { m_AttachableAndWoundMass += newAttachableOrWoundMass - oldAttachableOrWoundMass; }
 
-		/// <summary>
 		/// Gets the MOIDs of this MOSRotating and all its Attachables and Wounds, putting them into the MOIDs vector.
-		/// </summary>
-		/// <param name="MOIDs">The vector that will store all the MOIDs of this MOSRotating.</param>
+		/// @param MOIDs The vector that will store all the MOIDs of this MOSRotating.
 		void GetMOIDs(std::vector<MOID>& MOIDs) const override;
 
-		/// <summary>
 		/// Sets the MOID of this MOSRotating and any Attachables on it to be g_NoMOID (255) for this frame.
-		/// </summary>
 		void SetAsNoID() override;
 
-		/// <summary>
 		/// Sets this MOSRotating to not hit a specific other MO and all its children even though MO hitting is enabled on this MOSRotating.
-		/// </summary>
-		/// <param name="moToNotHit">A pointer to the MO to not be hitting. Null pointer means don't ignore anything. Ownership is NOT transferred!</param>
-		/// <param name="forHowLong">How long, in seconds, to ignore the specified MO. A negative number means forever.</param>
+		/// @param moToNotHit A pointer to the MO to not be hitting. Null pointer means don't ignore anything. Ownership is NOT transferred!
+		/// @param forHowLong How long, in seconds, to ignore the specified MO. A negative number means forever.
 		void SetWhichMOToNotHit(MovableObject* moToNotHit = nullptr, float forHowLong = -1) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -317,12 +295,10 @@ namespace RTE {
 
 		bool CollideAtPoint(HitData& hitData) override;
 
-		/// <summary>
 		/// Defines what should happen when this MovableObject hits and then bounces off of something.
 		/// This is called by the owned Atom/AtomGroup of this MovableObject during travel.
-		/// </summary>
-		/// <param name="hd">The HitData describing the collision in detail.</param>
-		/// <return>Whether the MovableObject should immediately halt any travel going on after this bounce.</return>
+		/// @param hd The HitData describing the collision in detail.
+		/// @return Whether the MovableObject should immediately halt any travel going on after this bounce.
 		bool OnBounce(HitData& hd) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -352,11 +328,9 @@ namespace RTE {
 
 		virtual bool ParticlePenetration(HitData& hd);
 
-		/// <summary>
 		/// Destroys this MOSRotating and creates its specified Gibs in its place with appropriate velocities. Any Attachables are removed and also given appropriate velocities.
-		/// </summary>
-		/// <param name="impactImpulse">The impulse (kg * m/s) of the impact causing the gibbing to happen.</param>
-		/// <param name="movableObjectToIgnore">A pointer to an MO which the Gibs and Attachables should not be colliding with.</param>
+		/// @param impactImpulse The impulse (kg * m/s) of the impact causing the gibbing to happen.
+		/// @param movableObjectToIgnore A pointer to an MO which the Gibs and Attachables should not be colliding with.
 		virtual void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -372,99 +346,71 @@ namespace RTE {
 
 		bool MoveOutOfTerrain(unsigned char strongerThan = g_MaterialAir) override;
 
-		/// <summary>
 		/// Gathers, clears and applies this MOSRotating's accumulated forces.
-		/// </summary>
 		void ApplyForces() override;
 
-		/// <summary>
 		/// Gathers, clears and applies this MOSRotating's accumulated impulse forces, gibbing if appropriate.
-		/// </summary>
 		void ApplyImpulses() override;
 
-		/// <summary>
 		/// Gets the list of Attachables on this MOSRotating.
-		/// </summary>
-		/// <returns>The list of Attachables on this MOSRotating.</returns>
+		/// @return The list of Attachables on this MOSRotating.
 		const std::list<Attachable*>& GetAttachables() const { return m_Attachables; }
 
-		/// <summary>
 		/// Gets whether or not the given Attachable is a hardcoded Attachable (e.g. an Arm, Leg, Turret, etc.)
-		/// </summary>
-		/// <param name="attachableToCheck">The Attachable to check.</param>
-		/// <returns>Whether or not the Attachable is hardcoded.</returns>
+		/// @param attachableToCheck The Attachable to check.
+		/// @return Whether or not the Attachable is hardcoded.
 		bool AttachableIsHardcoded(const Attachable* attachableToCheck) const;
 
-		/// <summary>
 		/// Adds the passed in Attachable the list of Attachables and sets its parent to this MOSRotating.
-		/// </summary>
-		/// <param name="attachable">The Attachable to add.</param>
+		/// @param attachable The Attachable to add.
 		virtual void AddAttachable(Attachable* attachable);
 
-		/// <summary>
 		/// Adds the passed in Attachable the list of Attachables, changes its parent offset to the passed in Vector, and sets its parent to this MOSRotating.
-		/// </summary>
-		/// <param name="attachable">The Attachable to add.</param>
-		/// <param name="parentOffsetToSet">The Vector to set as the Attachable's parent offset.</param>
+		/// @param attachable The Attachable to add.
+		/// @param parentOffsetToSet The Vector to set as the Attachable's parent offset.
 		virtual void AddAttachable(Attachable* attachable, const Vector& parentOffsetToSet);
 
-		/// <summary>
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
-		/// </summary>
-		/// <param name="attachableUniqueID">The UniqueID of the Attachable to remove.</param>
-		/// <returns>A pointer to the removed Attachable. Ownership IS transferred!</returns>
+		/// @param attachableUniqueID The UniqueID of the Attachable to remove.
+		/// @return A pointer to the removed Attachable. Ownership IS transferred!
 		virtual Attachable* RemoveAttachable(long attachableUniqueID) { return RemoveAttachable(attachableUniqueID, false, false); }
 
-		/// <summary>
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Optionally adds it to MovableMan and/or adds break wounds.
 		/// If the Attachable is not set to delete or delete when removed from its parent, and addToMovableMan is false, the caller must hang onto a pointer to the Attachable ahead of time to avoid memory leaks.
-		/// </summary>
-		/// <param name="attachableUniqueID">The UniqueID of the Attachable to remove.</param>
-		/// <param name="addToMovableMan">Whether or not to add the Attachable to MovableMan once it has been removed.</param>
-		/// <param name="addBreakWounds">Whether or not to add break wounds to the removed Attachable and this MOSRotating.</param>
-		/// <returns>A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!</returns>
+		/// @param attachableUniqueID The UniqueID of the Attachable to remove.
+		/// @param addToMovableMan Whether or not to add the Attachable to MovableMan once it has been removed.
+		/// @param addBreakWounds Whether or not to add break wounds to the removed Attachable and this MOSRotating.
+		/// @return A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!
 		virtual Attachable* RemoveAttachable(long attachableUniqueID, bool addToMovableMan, bool addBreakWounds);
 
-		/// <summary>
 		/// Removes the passed in Attachable and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
-		/// </summary>
-		/// <param name="attachable">The Attachable to remove.</param>
-		/// <returns>A pointer to the removed Attachable. Ownership IS transferred!</returns>
+		/// @param attachable The Attachable to remove.
+		/// @return A pointer to the removed Attachable. Ownership IS transferred!
 		virtual Attachable* RemoveAttachable(Attachable* attachable) { return RemoveAttachable(attachable, false, false); }
 
-		/// <summary>
 		/// Removes the passed in Attachable and sets its parent to nullptr. Optionally adds it to MovableMan and/or adds break wounds.
 		/// If the Attachable is not set to delete or delete when removed from its parent, and addToMovableMan is false, the caller must hang onto a pointer to the Attachable ahead of time to avoid memory leaks.
-		/// </summary>
-		/// <param name="attachable">The Attachable to remove.</param>
-		/// <param name="addToMovableMan">Whether or not to add the Attachable to MovableMan once it has been removed.</param>
-		/// <param name="addBreakWounds">Whether or not to add break wounds to the removed Attachable and this MOSRotating.</param>
-		/// <returns>A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!</returns>
+		/// @param attachable The Attachable to remove.
+		/// @param addToMovableMan Whether or not to add the Attachable to MovableMan once it has been removed.
+		/// @param addBreakWounds Whether or not to add break wounds to the removed Attachable and this MOSRotating.
+		/// @return A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!
 		virtual Attachable* RemoveAttachable(Attachable* attachable, bool addToMovableMan, bool addBreakWounds);
 
-		/// <summary>
 		/// Removes the passed in Attachable, and sets it to delete so it will go straight to MovableMan and be handled there.
-		/// </summary>
-		/// <param name="attachable">The Attacahble to remove and delete.</param>
+		/// @param attachable The Attacahble to remove and delete.
 		void RemoveAndDeleteAttachable(Attachable* attachable);
 
-		/// <summary>
 		/// Either removes or deletes all of this MOSRotating's Attachables.
-		/// </summary>
-		/// <param name="destroy">Whether to remove or delete the Attachables. Setting this to true deletes them, setting it to false removes them.</param>
+		/// @param destroy Whether to remove or delete the Attachables. Setting this to true deletes them, setting it to false removes them.
 		void RemoveOrDestroyAllAttachables(bool destroy);
 
-		/// <summary>
 		/// Gets a damage-transferring, impulse-vulnerable Attachable nearest to the passed in offset.
-		/// </summary>
-		/// <param name="offset">The offset that will be compared to each Attachable's ParentOffset.</param>
-		/// <returns>The nearest detachable Attachable, or nullptr if none was found.</returns>
+		/// @param offset The offset that will be compared to each Attachable's ParentOffset.
+		/// @return The nearest detachable Attachable, or nullptr if none was found.
 		Attachable* GetNearestDetachableAttachableToOffset(const Vector& offset) const;
 
-		/// <summary>
 		/// Gibs or detaches any Attachables that would normally gib or detach from the passed in impulses.
-		/// </summary>
-		/// <param name="impulseVector">The impulse vector which determines the Attachables to gib or detach. Will be filled out with the remainder of impulses.</param>
+		/// @param impulseVector The impulse vector which determines the Attachables to gib or detach. Will be filled out with the remainder of impulses.
 		void DetachAttachablesFromImpulse(Vector& impulseVector);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -478,21 +424,15 @@ namespace RTE {
 
 		void ResetAllTimers() override;
 
-		/// <summary>
 		/// Does the calculations necessary to detect whether this MOSRotating is at rest or not. IsAtRest() retrieves the answer.
-		/// </summary>
 		void RestDetection() override;
 
-		/// <summary>
 		/// Indicates whether this MOSRotating has been at rest with no movement for longer than its RestThreshold.
-		/// </summary>
 		bool IsAtRest() override;
 
-		/// <summary>
 		/// Indicates whether this MOSRotating's current graphical representation, including its Attachables, overlaps a point in absolute scene coordinates.
-		/// </summary>
-		/// <param name="scenePoint">The point in absolute scene coordinates to check for overlap with.</param>
-		/// <returns>Whether or not this MOSRotating's graphical representation overlaps the given scene point.</returns>
+		/// @param scenePoint The point in absolute scene coordinates to check for overlap with.
+		/// @return Whether or not this MOSRotating's graphical representation overlaps the given scene point.
 		bool IsOnScenePoint(Vector& scenePoint) const override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -580,136 +520,98 @@ namespace RTE {
 
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
-		/// <summary>
 		/// Gets the gib impulse limit for this MOSRotating, i.e. the amount of impulse force required in a frame to gib this MOSRotating.
-		/// </summary>
-		/// <returns>The gib impulse limit of this MOSRotating.</returns>
+		/// @return The gib impulse limit of this MOSRotating.
 		float GetGibImpulseLimit() const { return m_GibImpulseLimit; }
 
-		/// <summary>
 		/// Sets the gib impulse limit for this MOSRotating, i.e. the amount of impulse force required in a frame to gib this MOSRotating.
-		/// </summary>
-		/// <param name="newGibImpulseLimit">The new gib impulse limit to use.</param>
+		/// @param newGibImpulseLimit The new gib impulse limit to use.
 		void SetGibImpulseLimit(float newGibImpulseLimit) { m_GibImpulseLimit = newGibImpulseLimit; }
 
-		/// <summary>
 		/// Gets the gib wound limit for this MOSRotating, i.e. the total number of wounds required to gib this MOSRotating. Does not include any Attachables.
-		/// </summary>
-		/// <returns></returns>
+		/// @return 
 		int GetGibWoundLimit() const { return GetGibWoundLimit(false, false, false); }
 
-		/// <summary>
 		/// Gets the gib wound limit for this MOSRotating, i.e. the total number of wounds required to gib this MOSRotating.
 		/// Optionally adds the gib wound limits of Attachables (and their Attachables, etc.) that match the conditions set by the provided parameters.
-		/// </summary>
-		/// <param name="includePositiveDamageAttachables">Whether to count wounds from Attachables that have a positive damage multiplier, i.e. those that damage their parent (this MOSRotating) when wounded.</param>
-		/// <param name="includeNegativeDamageAttachables">Whether to count wounds from Attachables that have a negative damage multiplier, i.e. those that heal their parent (this MOSRotating) when wounded.</param>
-		/// <param name="includeNoDamageAttachables">Whether to count wounds from Attachables that a zero damage multiplier, i.e. those that do not affect their parent (this MOSRotating) when wounded.</param>
-		/// <returns>The wound limit of this MOSRotating and, optionally, its Attachables.</returns>
+		/// @param includePositiveDamageAttachables Whether to count wounds from Attachables that have a positive damage multiplier, i.e. those that damage their parent (this MOSRotating) when wounded.
+		/// @param includeNegativeDamageAttachables Whether to count wounds from Attachables that have a negative damage multiplier, i.e. those that heal their parent (this MOSRotating) when wounded.
+		/// @param includeNoDamageAttachables Whether to count wounds from Attachables that a zero damage multiplier, i.e. those that do not affect their parent (this MOSRotating) when wounded.
+		/// @return The wound limit of this MOSRotating and, optionally, its Attachables.
 		int GetGibWoundLimit(bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) const;
 
-		/// <summary>
 		/// Sets the gib wound limit for this MOSRotating, i.e. the total number of wounds required to gib this MOSRotating.
 		/// This will not directly trigger gibbing, even if the limit is lower than the current number of wounds.
-		/// </summary>
-		/// <param name="newLimit">The new gib wound limit to use.</param>
+		/// @param newLimit The new gib wound limit to use.
 		void SetGibWoundLimit(int newGibWoundLimit) { m_GibWoundLimit = newGibWoundLimit; }
 
-		/// <summary>
 		/// Gets the rate at which wound count of this MOSRotating will diminish the impulse limit.
-		/// </summary>
-		/// <returns>The rate at which wound count affects the impulse limit.</returns>
+		/// @return The rate at which wound count affects the impulse limit.
 		float GetWoundCountAffectsImpulseLimitRatio() const { return m_WoundCountAffectsImpulseLimitRatio; }
 
-		/// <summary>
 		/// Gets whether this MOSRotating should gib at the end of its lifetime instead of just being deleted.
-		/// </summary>
-		/// <returns>Whether this MOSRotating should gib at the end of its lifetime instead of just being deleted.</returns>
+		/// @return Whether this MOSRotating should gib at the end of its lifetime instead of just being deleted.
 		bool GetGibAtEndOfLifetime() const { return m_GibAtEndOfLifetime; }
 
-		/// <summary>
 		/// Sets whether this MOSRotating should gib at the end of its lifetime instead of just being deleted.
-		/// </summary>
-		/// <param name="shouldGibAtEndOfLifetime">Whether or not this MOSRotating should gib at the end of its lifetime instead of just being deleted.</param>
+		/// @param shouldGibAtEndOfLifetime Whether or not this MOSRotating should gib at the end of its lifetime instead of just being deleted.
 		void SetGibAtEndOfLifetime(bool shouldGibAtEndOfLifetime) { m_GibAtEndOfLifetime = shouldGibAtEndOfLifetime; }
 
-		/// <summary>
 		/// Gets the gib blast strength this MOSRotating, i.e. the strength with which Gibs and Attachables will be launched when this MOSRotating is gibbed.
-		/// </summary>
-		/// <returns>The gib blast strength of this MOSRotating.</returns>
+		/// @return The gib blast strength of this MOSRotating.
 		float GetGibBlastStrength() const { return m_GibBlastStrength; }
 
-		/// <summary>
 		/// Sets the gib blast strength this MOSRotating, i.e. the strength with which Gibs and Attachables will be launched when this MOSRotating is gibbed.
-		/// </summary>
-		/// <param name="newGibBlastStrength">The new gib blast strength to use.</param>
+		/// @param newGibBlastStrength The new gib blast strength to use.
 		void SetGibBlastStrength(float newGibBlastStrength) { m_GibBlastStrength = newGibBlastStrength; }
 
-		/// <summary>
 		/// Gets the amount of screenshake this will cause upon gibbing.
-		/// </summary>
-		/// <returns>The amount of screenshake this will cause when gibbing. If -1, this is calculated automatically.</returns>
+		/// @return The amount of screenshake this will cause when gibbing. If -1, this is calculated automatically.
 		float GetGibScreenShakeAmount() const { return m_GibScreenShakeAmount; }
 
-		/// <summary>
 		/// Gets a const reference to the list of Attachables on this MOSRotating.
-		/// </summary>
-		/// <returns>A const reference to the list of Attachables on this MOSRotating.</returns>
+		/// @return A const reference to the list of Attachables on this MOSRotating.
 		const std::list<Attachable*>& GetAttachableList() const { return m_Attachables; }
 
-		/// <summary>
 		/// Gets a const reference to the list of wounds on this MOSRotating.
-		/// </summary>
-		/// <returns>A const reference to the list of wounds on this MOSRotating.</returns>
+		/// @return A const reference to the list of wounds on this MOSRotating.
 		const std::vector<AEmitter*>& GetWoundList() const { return m_Wounds; }
 
-		/// <summary>
 		/// Gets the number of wounds attached to this MOSRotating.
 		/// Includes any Attachables (and their Attachables, etc.) that have a positive damage multiplier.
-		/// <returns>The number of wounds on this MOSRotating.</returns>
-		/// </summary>
+		/// @return The number of wounds on this MOSRotating.
 		int GetWoundCount() const { return GetWoundCount(true, false, false); }
 
-		/// <summary>
 		/// Gets the number of wounds attached to this MOSRotating.
 		/// Optionally adds the wound counts of Attachables (and their Attachables, etc.) that match the conditions set by the provided parameters.
-		/// <param name="includePositiveDamageAttachables">Whether to count wounds from Attachables that have a positive damage multiplier, i.e. those that damage their parent (this MOSRotating) when wounded.</param>
-		/// <param name="includeNegativeDamageAttachables">Whether to count wounds from Attachables that have a negative damage multiplier, i.e. those that heal their parent (this MOSRotating) when wounded.</param>
-		/// <param name="includeNoDamageAttachables">Whether to count wounds from Attachables that a zero damage multiplier, i.e. those that do not affect their parent (this MOSRotating) when wounded.</param>
-		/// <returns>The number of wounds on this MOSRotating and, optionally, its Attachables.</returns>
-		/// </summary>
+		/// @param includePositiveDamageAttachables Whether to count wounds from Attachables that have a positive damage multiplier, i.e. those that damage their parent (this MOSRotating) when wounded.
+		/// @param includeNegativeDamageAttachables Whether to count wounds from Attachables that have a negative damage multiplier, i.e. those that heal their parent (this MOSRotating) when wounded.
+		/// @param includeNoDamageAttachables Whether to count wounds from Attachables that a zero damage multiplier, i.e. those that do not affect their parent (this MOSRotating) when wounded.
+		/// @return The number of wounds on this MOSRotating and, optionally, its Attachables.
 		int GetWoundCount(bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) const;
 
-		/// <summary>
 		/// Adds the passed in wound AEmitter to the list of wounds and changes its parent offset to the passed in Vector.
-		/// </summary>
-		/// <param name="woundToAdd">The wound AEmitter to add.</param>
-		/// <param name="parentOffsetToSet">The vector to set as the wound AEmitter's parent offset.</param>
-		/// <param name="checkGibWoundLimit">Whether to gib this MOSRotating if adding this wound raises its wound count past its gib wound limit. Defaults to true.</param>
+		/// @param woundToAdd The wound AEmitter to add.
+		/// @param parentOffsetToSet The vector to set as the wound AEmitter's parent offset.
+		/// @param checkGibWoundLimit Whether to gib this MOSRotating if adding this wound raises its wound count past its gib wound limit. Defaults to true.
 		virtual void AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit = true);
 
-		/// <summary>
 		/// Removes the specified number of wounds from this MOSRotating, and returns damage caused by these removed wounds.
 		/// Includes any Attachables (and their Attachables, etc.) that have a positive damage multiplier.
-		/// </summary>
-		/// <param name="numberOfWoundsToRemove">The number of wounds that should be removed.</param>
-		/// <returns>The amount of damage caused by these wounds, taking damage multipliers into account.</returns>
+		/// @param numberOfWoundsToRemove The number of wounds that should be removed.
+		/// @return The amount of damage caused by these wounds, taking damage multipliers into account.
 		virtual float RemoveWounds(int numberOfWoundsToRemove) { return RemoveWounds(numberOfWoundsToRemove, true, false, false); }
 
-		/// <summary>
 		/// Removes the specified number of wounds from this MOSRotating, and returns damage caused by these removed wounds.
 		/// Optionally removes wounds from Attachables (and their Attachables, etc.) that match the conditions set by the provided inclusion parameters.
-		/// </summary>
-		/// <param name="numberOfWoundsToRemove">The number of wounds that should be removed.</param>
-		/// <param name="includePositiveDamageAttachables">Whether to count wounds from Attachables that have a positive damage multiplier, i.e. those that damage their parent (this MOSRotating) when wounded.</param>
-		/// <param name="includeNegativeDamageAttachables">Whether to count wounds from Attachables that have a negative damage multiplier, i.e. those that heal their parent (this MOSRotating) when wounded.</param>
-		/// <param name="includeNoDamageAttachables">Whether to count wounds from Attachables that a zero damage multiplier, i.e. those that do not affect their parent (this MOSRotating) when wounded.</param>
-		/// <returns>The amount of damage caused by these wounds, taking damage multipliers into account.</returns>
+		/// @param numberOfWoundsToRemove The number of wounds that should be removed.
+		/// @param includePositiveDamageAttachables Whether to count wounds from Attachables that have a positive damage multiplier, i.e. those that damage their parent (this MOSRotating) when wounded.
+		/// @param includeNegativeDamageAttachables Whether to count wounds from Attachables that have a negative damage multiplier, i.e. those that heal their parent (this MOSRotating) when wounded.
+		/// @param includeNoDamageAttachables Whether to count wounds from Attachables that a zero damage multiplier, i.e. those that do not affect their parent (this MOSRotating) when wounded.
+		/// @return The amount of damage caused by these wounds, taking damage multipliers into account.
 		virtual float RemoveWounds(int numberOfWoundsToRemove, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables);
 
-		/// <summary>
 		/// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
-		/// </summary>
 		void DestroyScriptState();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -733,28 +635,20 @@ namespace RTE {
 
 		float GetDamageMultiplier() const { return m_DamageMultiplier; }
 
-		/// <summary>
 		/// Gets whether the damage multiplier for this MOSRotating has been directly set, or is at its default value.
-		/// </summary>
-		/// <returns>Whether the damage multiplier for this MOSRotating has been set.</returns>
+		/// @return Whether the damage multiplier for this MOSRotating has been set.
 		bool HasNoSetDamageMultiplier() const { return m_NoSetDamageMultiplier; }
 
-		/// <summary>
 		/// Gets the velocity orientation scalar of this MOSRotating.
-		/// </summary>
-		/// <returns>New scalar value.</returns>
+		/// @return New scalar value.
 		float GetOrientToVel() const { return m_OrientToVel; }
 
-		/// <summary>
 		/// Sets the velocity orientation scalar of this MOSRotating.
-		/// </summary>
-		/// <param name="newValue">New scalar value.</param>
+		/// @param newValue New scalar value.
 		void SetOrientToVel(float newValue) { m_OrientToVel = newValue; }
 
-		/// <summary>
 		/// Sets this MOSRotating and all its children to drawn white for a specified amount of time.
-		/// </summary>
-		/// <param name="durationMS">Duration of flash in real time MS.</param>
+		/// @param durationMS Duration of flash in real time MS.
 		void FlashWhite(int durationMS = 32) {
 			m_FlashWhiteTimer.SetRealTimeLimitMS(durationMS);
 			m_FlashWhiteTimer.Reset();
@@ -778,37 +672,27 @@ namespace RTE {
 
 		void SetTravelImpulse(Vector impulse) { m_TravelImpulse = impulse; }
 
-		/// <summary>
 		/// Gets this MOSRotating's gib sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this MOSRotating's gib sound.</returns>
+		/// @return The SoundContainer for this MOSRotating's gib sound.
 		SoundContainer* GetGibSound() const { return m_GibSound; }
 
-		/// <summary>
 		/// Sets this MOSRotating's gib sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this MOSRotating's gib sound.</param>
+		/// @param newSound The new SoundContainer for this MOSRotating's gib sound.
 		void SetGibSound(SoundContainer* newSound) { m_GibSound = newSound; }
 
-		/// <summary>
 		/// Ensures all attachables and wounds are positioned and rotated correctly. Must be run when this MOSRotating is added to MovableMan to avoid issues with Attachables spawning in at (0, 0).
-		/// </summary>
 		virtual void CorrectAttachableAndWoundPositionsAndRotations() const;
 
-		/// <summary>
 		/// Method to be run when the game is saved via ActivityMan::SaveCurrentGame. Not currently used in metagame or editor saving.
-		/// </summary>
 		void OnSave() override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Protected member variable and method declarations
 
 	protected:
-		/// <summary>
 		/// Transfers forces and impulse forces from the given Attachable to this MOSRotating, gibbing and/or removing the Attachable if needed.
-		/// </summary>
-		/// <param name="attachable">A pointer to the Attachable to apply forces from. Ownership is NOT transferred!</param>
-		/// <returns>Whether or not the Attachable has been removed, in which case it'll usually be passed to MovableMan.</returns>
+		/// @param attachable A pointer to the Attachable to apply forces from. Ownership is NOT transferred!
+		/// @return Whether or not the Attachable has been removed, in which case it'll usually be passed to MovableMan.
 		bool TransferForcesFromAttachable(Attachable* attachable);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -825,18 +709,14 @@ namespace RTE {
 
 		void UpdateChildMOIDs(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID = g_NoMOID, bool makeNewMOID = true) override;
 
-		/// <summary>
 		/// Creates the particles specified by this MOSRotating's list of Gibs and adds them to MovableMan with appropriately randomized velocities, based on this MOSRotating's gib blast strength.
-		/// </summary>
-		/// <param name="impactImpulse">The impulse (kg * m/s) of the impact that caused the gibbing to happen.</param>
-		/// <param name="movableObjectToIgnore">A pointer to an MO which the Attachables should not be colliding with.</param>
+		/// @param impactImpulse The impulse (kg * m/s) of the impact that caused the gibbing to happen.
+		/// @param movableObjectToIgnore A pointer to an MO which the Attachables should not be colliding with.
 		void CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObject* movableObjectToIgnore);
 
-		/// <summary>
 		/// Removes all Attachables from this MOSR, deleting them or adding them to MovableMan as appropriate, and giving them randomized velocities based on their properties and this MOSRotating's gib blast strength.
-		/// </summary>
-		/// <param name="impactImpulse">The impulse (kg * m/s) of the impact that caused the gibbing to happen.</param>
-		/// <param name="movableObjectToIgnore">A pointer to an MO which the Attachables should not be colliding with.</param>
+		/// @param impactImpulse The impulse (kg * m/s) of the impact that caused the gibbing to happen.
+		/// @param movableObjectToIgnore A pointer to an MO which the Attachables should not be colliding with.
 		void RemoveAttachablesWhenGibbing(const Vector& impactImpulse, MovableObject* movableObjectToIgnore);
 
 		// Member variables

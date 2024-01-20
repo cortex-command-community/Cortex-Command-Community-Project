@@ -230,52 +230,36 @@ namespace RTE {
 
 		void SetSharpLength(float newLength) { m_MaxSharpLength = newLength; }
 
-		/// <summary>
 		/// Gets whether this HeldDevice can be supported when held.
-		/// </summary>
-		/// <returns>Whether this HeldDevice can be supported when held.</returns>
+		/// @return Whether this HeldDevice can be supported when held.
 		bool IsSupportable() const { return m_Supportable; }
 
-		/// <summary>
 		/// Sets whether this HeldDevice can be supported when held.
-		/// </summary>
-		/// <param name="shouldBeSupportable">Whether this HeldDevice can be supported when held.</param>
+		/// @param shouldBeSupportable Whether this HeldDevice can be supported when held.
 		void SetSupportable(bool shouldBeSupportable) { m_Supportable = shouldBeSupportable; }
 
-		/// <summary>
 		/// Gets whether this HeldDevice is currently supported by a second Arm.
-		/// </summary>
-		/// <returns>Whether this HeldDevice is supported or not.</returns>
+		/// @return Whether this HeldDevice is supported or not.
 		bool GetSupported() const { return m_Supportable && m_Supported; }
 
-		/// <summary>
 		/// Sets whether this HeldDevice is currently supported by a second Arm.
-		/// </summary>
-		/// <param name="supported">Whether this HeldDevice is being supported.</param>
+		/// @param supported Whether this HeldDevice is being supported.
 		void SetSupported(bool supported) { m_Supported = m_Supportable && supported; }
 
-		/// <summary>
 		/// Gets whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
-		/// </summary>
-		/// <returns>Whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).</returns>
+		/// @return Whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
 		bool GetSupportAvailable() const { return m_Supportable && m_SupportAvailable; }
 
-		/// <summary>
 		/// Sets whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
-		/// </summary>
-		/// <param name="supported">Whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).</param>
+		/// @param supported Whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
 		void SetSupportAvailable(bool supportAvailable) { m_SupportAvailable = m_Supportable && supportAvailable; }
 
-		/// <summary>
 		/// Gets whether this HeldDevice while be held at the support offset with the off-hand when reloading.
-		/// </summary>
-		/// <returns>Whether this HeldDevice while be held at the support offset with the off-hand when reloading.</returns>
+		/// @return Whether this HeldDevice while be held at the support offset with the off-hand when reloading.
 		bool GetUseSupportOffsetWhileReloading() const { return m_UseSupportOffsetWhileReloading; }
 
-		/// <summary>
 		/// Sets whether this HeldDevice while be held at the support offset with the off-hand when reloading.
-		/// </summary>
-		/// <param name="value">Whether this HeldDevice while be held at the support offset with the off-hand when reloading.</param>
+		/// @param value Whether this HeldDevice while be held at the support offset with the off-hand when reloading.
 		void SetUseSupportOffsetWhileReloading(bool value) { m_UseSupportOffsetWhileReloading = value; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -296,87 +280,61 @@ namespace RTE {
 
 		void SetSupportOffset(Vector newOffset) { m_SupportOffset = newOffset; }
 
-		/// <summary>
 		/// Gets whether this HeldDevice has any limitations on what can pick it up.
-		/// </summary>
-		/// <returns>Whether this HeldDevice has any limitations on what can pick it up.</returns>
+		/// @return Whether this HeldDevice has any limitations on what can pick it up.
 		bool HasPickupLimitations() const { return IsUnPickupable() || !m_PickupableByPresetNames.empty(); }
 
-		/// <summary>
 		/// Gets whether this HeldDevice cannot be picked up at all.
-		/// </summary>
-		/// <returns>Whether this HeldDevice cannot be picked up at all.</returns>
+		/// @return Whether this HeldDevice cannot be picked up at all.
 		bool IsUnPickupable() const { return m_IsUnPickupable; }
 
-		/// <summary>
 		/// Sets whether this HeldDevice cannot be picked up at all.
-		/// </summary>
-		/// <param name="shouldBeUnPickupable">Whether this HeldDevice cannot be picked up at all. True means it cannot, false means any other limitations will apply normally.</param>
+		/// @param shouldBeUnPickupable Whether this HeldDevice cannot be picked up at all. True means it cannot, false means any other limitations will apply normally.
 		void SetUnPickupable(bool shouldBeUnPickupable) { m_IsUnPickupable = shouldBeUnPickupable; }
 
-		/// <summary>
 		/// Checks whether the given Actor can pick up this HeldDevice.
-		/// </summary>
-		/// <param name="actor">The Actor to check. Ownership is NOT transferred.</param>
-		/// <returns>Whether the given Actor can pick up this HeldDevice.</returns>
+		/// @param actor The Actor to check. Ownership is NOT transferred.
+		/// @return Whether the given Actor can pick up this HeldDevice.
 		bool IsPickupableBy(const Actor* actor) const { return !HasPickupLimitations() || m_PickupableByPresetNames.find(actor->GetPresetName()) != m_PickupableByPresetNames.end(); }
 
-		/// <summary>
 		/// Specify that objects with the given PresetName can pick up this HeldDevice.
-		/// </summary>
-		/// <param name="presetName">The PresetName of an object that should be able to pick up this HeldDevice.</param>
+		/// @param presetName The PresetName of an object that should be able to pick up this HeldDevice.
 		void AddPickupableByPresetName(const std::string& presetName) {
 			SetUnPickupable(false);
 			m_PickupableByPresetNames.insert(presetName);
 		}
 
-		/// <summary>
 		/// Remove allowance for objects with the given PresetName to pick up this HeldDevice.
 		/// Note that if the last allowance is removed, the HeldDevice will no longer have pickup limitations, rather than setting itself as unpickupable.
-		/// </summary>
-		/// <param name="actorPresetName">The PresetName of an object that should no longer be able to pick up this HeldDevice.</param>
+		/// @param actorPresetName The PresetName of an object that should no longer be able to pick up this HeldDevice.
 		void RemovePickupableByPresetName(const std::string& actorPresetName);
 
-		/// <summary>
 		/// Gets the multiplier for how well this HeldDevice can be gripped by Arms.
-		/// </summary>
-		/// <returns>The grip strength multiplier for this HeldDevice.</returns>
+		/// @return The grip strength multiplier for this HeldDevice.
 		float GetGripStrengthMultiplier() const { return m_GripStrengthMultiplier; }
 
-		/// <summary>
 		/// Sets the multiplier for how well this HeldDevice can be gripped by Arms.
-		/// </summary>
-		/// <param name="gripStrengthMultiplier">The new grip strength multiplier for this HeldDevice.</param>
+		/// @param gripStrengthMultiplier The new grip strength multiplier for this HeldDevice.
 		void SetGripStrengthMultiplier(float gripStrengthMultiplier) { m_GripStrengthMultiplier = gripStrengthMultiplier; }
 
-		/// <summary>
 		/// Gets whether this can get hit by MOs when held.
-		/// </summary>
-		/// <returns>Whether this can get hit by MOs when held.</returns>
+		/// @return Whether this can get hit by MOs when held.
 		bool GetsHitByMOsWhenHeld() const { return m_GetsHitByMOsWhenHeld; }
 
-		/// <summary>
 		/// Sets whether this can get hit by MOs when held.
-		/// </summary>
-		/// <param name="value">Whether this can get hit by MOs when held.</param>
+		/// @param value Whether this can get hit by MOs when held.
 		void SetGetsHitByMOsWhenHeld(bool value) { m_GetsHitByMOsWhenHeld = value; }
 
-		/// <summary>
 		/// Gets whether this HeldDevice is currently being held or not.
-		/// </summary>
-		/// <returns>Whether this HeldDevice is currently being held or not.</returns>
+		/// @return Whether this HeldDevice is currently being held or not.
 		bool IsBeingHeld() const;
 
-		/// <summary>
 		/// Gets the visual recoil multiplier.
-		/// </summary>
-		/// <returns>A float with the scalar value.</returns>
+		/// @return A float with the scalar value.
 		float GetVisualRecoilMultiplier() const { return m_VisualRecoilMultiplier; }
 
-		/// <summary>
 		/// Sets the visual recoil multiplier.
-		/// </summary>
-		/// <param name="value">The new recoil multiplier scalar.</param>
+		/// @param value The new recoil multiplier scalar.
 		void SetVisualRecoilMultiplier(float value) { m_VisualRecoilMultiplier = value; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -506,10 +464,8 @@ namespace RTE {
 
 		virtual bool IsActivated() const { return m_Activated; }
 
-		/// <summary>
 		/// Gets the activation Timer for this HeldDevice.
-		/// </summary>
-		/// <returns>The activation Timer for this HeldDevice.</returns>
+		/// @return The activation Timer for this HeldDevice.
 		const Timer& GetActivationTimer() const { return m_ActivationTimer; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -549,10 +505,8 @@ namespace RTE {
 
 		virtual bool IsFull() const { return true; }
 
-		/// <summary>
 		/// Tells whether this HeldDevice is currently empty of ammo.
-		/// </summary>
-		/// <returns>Whether this HeldDevice is empty.</returns>
+		/// @return Whether this HeldDevice is empty.
 		virtual bool IsEmpty() const { return false; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -591,25 +545,21 @@ namespace RTE {
 
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
-		/// <summary>
 		/// Resest all the timers used by this. Can be emitters, etc. This is to prevent backed up emissions to come out all at once while this has been held dormant in an inventory.
-		/// </summary>
 		void ResetAllTimers() override {
 			Attachable::ResetAllTimers();
 			m_ActivationTimer.Reset();
 		}
 
 #pragma region Force Transferral
-		/// <summary>
 		/// Bundles up all the accumulated impulse forces of this HeldDevice and calculates how they transfer to the joint, and therefore to the parent.
 		/// If the accumulated impulse forces exceed the joint strength or gib impulse limit of this HeldDevice, the jointImpulses Vector will be filled up to that limit and false will be returned.
 		/// Additionally, in this case, the HeldDevice will remove itself from its parent, destabilizing said parent if it's an Actor, and gib itself if appropriate.
-		/// </summary>
-		/// <param name="jointImpulses">A vector that will have the impulse forces affecting the joint ADDED to it.</param>
-		/// <param name="jointStiffnessValueToUse">An optional override for the HeldDevice's joint stiffness for this function call. Primarily used to allow subclasses to perform special behavior.</param>
-		/// <param name="jointStrengthValueToUse">An optional override for the HeldDevice's joint strength for this function call. Primarily used to allow subclasses to perform special behavior.</param>
-		/// <param name="gibImpulseLimitValueToUse">An optional override for the HeldDevice's gib impulse limit for this function call. Primarily used to allow subclasses to perform special behavior.</param>
-		/// <returns>False if the HeldDevice has no parent or its accumulated forces are greater than its joint strength or gib impulse limit, otherwise true.</returns>
+		/// @param jointImpulses A vector that will have the impulse forces affecting the joint ADDED to it.
+		/// @param jointStiffnessValueToUse An optional override for the HeldDevice's joint stiffness for this function call. Primarily used to allow subclasses to perform special behavior.
+		/// @param jointStrengthValueToUse An optional override for the HeldDevice's joint strength for this function call. Primarily used to allow subclasses to perform special behavior.
+		/// @param gibImpulseLimitValueToUse An optional override for the HeldDevice's gib impulse limit for this function call. Primarily used to allow subclasses to perform special behavior.
+		/// @return False if the HeldDevice has no parent or its accumulated forces are greater than its joint strength or gib impulse limit, otherwise true.
 		bool TransferJointImpulses(Vector& jointImpulses, float jointStiffnessValueToUse = -1, float jointStrengthValueToUse = -1, float gibImpulseLimitValueToUse = -1) override;
 #pragma endregion
 

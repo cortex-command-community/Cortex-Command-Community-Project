@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A slider control class.
-	/// </summary>
 	class GUISlider : public GUIControl, public GUIPanel {
 
 	public:
@@ -100,13 +98,11 @@ namespace RTE {
 
 		void OnMouseMove(int X, int Y, int Buttons, int Modifier) override;
 
-		/// <summary>
 		/// Called when the mouse scroll wheel is moved.
-		/// </summary>
-		/// <param name="x">Mouse X position.</param>
-		/// <param name="y">Mouse Y position.</param>
-		/// <param name="modifier">Activated modifier buttons.</param>
-		/// <param name="mouseWheelChange">The amount of wheel movement. Positive is scroll up, negative is scroll down.</param>
+		/// @param x Mouse X position.
+		/// @param y Mouse Y position.
+		/// @param modifier Activated modifier buttons.
+		/// @param mouseWheelChange The amount of wheel movement. Positive is scroll up, negative is scroll down.
 		void OnMouseWheelChange(int x, int y, int modifier, int mouseWheelChange) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -246,10 +242,8 @@ namespace RTE {
 
 		void ApplyProperties(GUIProperties* Props) override;
 
-		/// <summary>
 		/// Sets the value resolution for this slider.
-		/// </summary>
-		/// <param name="valueRes">The new value resolution</param>
+		/// @param valueRes The new value resolution
 		void SetValueResolution(int valueRes);
 
 	private:

@@ -203,12 +203,10 @@ namespace RTE {
 
 		BunkerAssembly* BuildAssembly(std::string saveAsName);
 
-		/// <summary>
 		/// Saves the current BunkerAssembly to an appropriate ini file, and asks user if they want to overwrite first if a BunkerAssembly of this name exists.
-		/// </summary>
-		/// <param name="saveAsName">The name of the new BunkerAssembly to be saved.</param>
-		/// <param name="forceOverwrite">Whether to force any existing BunkerAssembly of that name to be overwritten if it already exists.</param>
-		/// <returns>Whether actually managed to save. Will return false both if a BunkerAssembly of this name already exists, or if other error.</returns>
+		/// @param saveAsName The name of the new BunkerAssembly to be saved.
+		/// @param forceOverwrite Whether to force any existing BunkerAssembly of that name to be overwritten if it already exists.
+		/// @return Whether actually managed to save. Will return false both if a BunkerAssembly of this name already exists, or if other error.
 		bool SaveAssembly(const std::string& saveAsName, bool forceOverwrite = false);
 
 		//////////////////////////////////////////////////////////////////////////////////////////

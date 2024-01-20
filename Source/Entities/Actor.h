@@ -140,9 +140,7 @@ namespace RTE {
 			m_MOType = MovableObject::TypeActor;
 		}
 
-		/// <summary>
 		/// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
-		/// </summary>
 		void DestroyScriptState();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -155,22 +153,16 @@ namespace RTE {
 
 		void Destroy(bool notInherited = false) override;
 
-		/// <summary>
 		/// Gets the mass of this Actor's inventory. Does not include any equipped item (for actor subtypes that have that).
-		/// </summary>
-		/// <returns>The mass of this Actor's inventory.</returns>
+		/// @return The mass of this Actor's inventory.
 		float GetInventoryMass() const;
 
-		/// <summary>
 		/// Gets the mass of this Actor, including the mass of its Attachables, wounds and inventory.
-		/// </summary>
-		/// <returns>The mass of this Actor, its inventory and all its Attachables and wounds in Kilograms (kg).</returns>
+		/// @return The mass of this Actor, its inventory and all its Attachables and wounds in Kilograms (kg).
 		float GetMass() const override { return MOSRotating::GetMass() + GetInventoryMass() + (m_GoldCarried * g_SceneMan.GetKgPerOz()); }
 
-		/// <summary>
 		/// Gets the mass that this actor had upon spawning, i.e with ini-defined inventory, gold and holding no items
-		/// </summary>
-		/// <returns>The base mass of this Actor, in Kilograms (kg).</returns>
+		/// @return The base mass of this Actor, in Kilograms (kg).
 		float GetBaseMass();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -200,16 +192,12 @@ namespace RTE {
 
 		virtual bool IsControllable() const { return true; }
 
-		/// <summary>
 		/// Gets whether or not this Actor can be controlled by human players. Note that this does not protect the Actor's Controller from having its input mode forced to CIM_PLAYER (e.g. via Lua).
-		/// </summary>
-		/// <returns>Whether or not this Actor can be controlled by human players.</returns>
+		/// @return Whether or not this Actor can be controlled by human players.
 		bool IsPlayerControllable() const { return m_PlayerControllable; }
 
-		/// <summary>
 		/// Sets whether or not this Actor can be controlled by human players.
-		/// </summary>
-		/// <param name="playerControllable">Whether or not this Actor should be able to be controlled by human players.</param>
+		/// @param playerControllable Whether or not this Actor should be able to be controlled by human players.
 		void SetPlayerControllable(bool playerControllable) { m_PlayerControllable = playerControllable; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -221,22 +209,16 @@ namespace RTE {
 
 		int GetStatus() const { return m_Status; }
 
-		/// <summary>
 		/// Gets this Actor's health value.
-		/// </summary>
-		/// <returns>A float describing this Actor's health.</returns>
+		/// @return A float describing this Actor's health.
 		float GetHealth() const { return m_Health; }
 
-		/// <summary>
 		/// Gets this Actor's previous health value, prior to this frame.
-		/// </summary>
-		/// <returns>A float describing this Actor's previous health.</returns>
+		/// @return A float describing this Actor's previous health.
 		float GetPrevHealth() const { return m_PrevHealth; }
 
-		/// <summary>
 		/// Gets this Actor's maximum health value.
-		/// </summary>
-		/// <returns>A float describing this Actor's max health.</returns>
+		/// @return A float describing this Actor's max health.
 		float GetMaxHealth() const { return m_MaxHealth; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -358,28 +340,20 @@ namespace RTE {
 
 		Vector GetAboveHUDPos() const override { return m_Pos + Vector(0, m_HUDStack + 6); }
 
-		/// <summary>
 		/// Gets the offset position of the holster where this Actor draws his devices from.
-		/// </summary>
-		/// <returns>The offset position of the holster.</returns>
+		/// @return The offset position of the holster.
 		Vector GetHolsterOffset() const { return m_HolsterOffset; }
 
-		/// <summary>
 		/// Sets the offset position of the holster where this Actor draws his devices from.
-		/// </summary>
-		/// <param name="newOffset">A new holster offset.</param>
+		/// @param newOffset A new holster offset.
 		void SetHolsterOffset(Vector newOffset) { m_HolsterOffset = newOffset; }
 
-		/// <summary>
 		/// Gets the offset position of where this Actor reloads his devices from.
-		/// </summary>
-		/// <returns>The offset position of the where this Actor reloads his devices from.</returns>
+		/// @return The offset position of the where this Actor reloads his devices from.
 		Vector GetReloadOffset() const { return m_ReloadOffset; }
 
-		/// <summary>
 		/// Sets the offset position of the where this Actor reloads his devices from.
-		/// </summary>
-		/// <param name="newOffset">The new offset position of where this Actor reloads his devices from.</param>
+		/// @param newOffset The new offset position of where this Actor reloads his devices from.
 		void SetReloadOffset(Vector newOffset) { m_ReloadOffset = newOffset; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -393,10 +367,8 @@ namespace RTE {
 
 		Vector GetViewPoint() const { return m_ViewPoint.IsZero() ? m_Pos : m_ViewPoint; }
 
-		/// <summary>
 		/// Gets the item that is within reach of the Actor at this frame, ready to be be picked up. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>A pointer to the item that has been determined to be within reach of this Actor, if any.</returns>
+		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any.
 		HeldDevice* GetItemInReach() const { return m_pItemInReach; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -461,14 +433,11 @@ namespace RTE {
 		}
 
 		/// Gets this Actor's MovementState.
-		/// </summary>
-		/// <returns>This Actor's MovementState.</returns>
+		/// @return This Actor's MovementState.
 		MovementState GetMovementState() const { return m_MoveState; }
 
-		/// <summary>
 		/// Sets this Actor's MovementState to the new state.
-		/// </summary>
-		/// <param name="newMovementState">This Actor's new MovementState.</param>
+		/// @param newMovementState This Actor's new MovementState.
 		void SetMovementState(MovementState newMovementState) { m_MoveState = newMovementState; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -562,22 +531,16 @@ namespace RTE {
 
 		void AddGold(float goldOz);
 
-		/// <summary>
 		/// Does the calculations necessary to detect whether this Actor is at rest or not. IsAtRest() retrieves the answer.
-		/// </summary>
 		void RestDetection() override;
 
-		/// <summary>
 		/// Adds health points to this Actor's current health value.
-		/// </summary>
-		/// <param name="setHealth">A float specifying the value to add.</param>
-		/// <returns>The resulting total health of this Actor.</returns>
+		/// @param setHealth A float specifying the value to add.
+		/// @return The resulting total health of this Actor.
 		const float AddHealth(const float addedHealth) { return m_Health += addedHealth; }
 
-		/// <summary>
 		/// Sets this Actor's current health value.
-		/// </summary>
-		/// <param name="setHealth">A float specifying the value to set to.</param>
+		/// @param setHealth A float specifying the value to set to.
 		void SetHealth(const float setHealth) { m_Health = setHealth; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -598,11 +561,9 @@ namespace RTE {
 
 		bool IsDead() const { return m_Status == DEAD; }
 
-		/// <summary>
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
-		/// </summary>
-		/// <param name="pieSliceType">The SliceType of the PieSlice being handled.</param>
-		/// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
+		/// @param pieSliceType The SliceType of the PieSlice being handled.
+		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
 		virtual bool HandlePieCommand(PieSlice::SliceType pieSliceType) { return false; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -695,10 +656,8 @@ namespace RTE {
 
 		MOID GetAIMOWaypointID() const;
 
-		/// <summary>
 		/// Gets the list of waypoints for this Actor.
-		/// </summary>
-		/// <returns>The list of waypoints for this Actor.</returns>
+		/// @return The list of waypoints for this Actor.
 		const std::list<std::pair<Vector, const MovableObject*>>& GetWaypointList() const { return m_Waypoints; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -748,10 +707,8 @@ namespace RTE {
 
 		void AddToMovePathEnd(Vector newCoordinate) { m_MovePath.push_back(newCoordinate); }
 
-		/// <summary>
 		/// Gets the last position in this Actor's move path.
-		/// </summary>
-		/// <returns>The last position in this Actor's move path.</returns>
+		/// @return The last position in this Actor's move path.
 		Vector GetMovePathEnd() const { return m_MovePath.back(); }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -790,10 +747,8 @@ namespace RTE {
 			return false;
 		}
 
-		/// <summary>
 		/// Gets a pointer to the MovableObject move target of this Actor.
-		/// </summary>
-		/// <returns>A pointer to the MovableObject move target of this Actor.</returns>
+		/// @return A pointer to the MovableObject move target of this Actor.
 		const MovableObject* GetMOMoveTarget() const { return m_pMOMoveTarget; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -814,16 +769,12 @@ namespace RTE {
 
 		float GetPerceptiveness() const { return m_Perceptiveness; }
 
-		/// <summary>
 		/// Gets whether this actor is able to reveal unseen areas by looking.
-		/// </summary>
-		/// <returns>Whether this actor can reveal unseen areas.</returns>
+		/// @return Whether this actor can reveal unseen areas.
 		bool GetCanRevealUnseen() const { return m_CanRevealUnseen; }
 
-		/// <summary>
 		/// Sets whether this actor can reveal unseen areas by looking.
-		/// </summary>
-		/// <param name="newCanRevealUnseen">Whether this actor can reveal unseen areas.</param>
+		/// @param newCanRevealUnseen Whether this actor can reveal unseen areas.
 		void SetCanRevealUnseen(bool newCanRevealUnseen) { m_CanRevealUnseen = newCanRevealUnseen; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -896,18 +847,14 @@ namespace RTE {
 
 		void RemoveInventoryItem(const std::string& presetName) { RemoveInventoryItem("", presetName); }
 
-		/// <summary>
 		/// Removes the first inventory item with the given module name and preset name.
-		/// </summary>
-		/// <param name="moduleName">The module name of the item to remove.</param>
-		/// <param name="presetName">The preset name of the item to remove.</param>
+		/// @param moduleName The module name of the item to remove.
+		/// @param presetName The preset name of the item to remove.
 		void RemoveInventoryItem(const std::string& moduleName, const std::string& presetName);
 
-		/// <summary>
 		/// Removes and returns the inventory item at the given index. Ownership IS transferred.
-		/// </summary>
-		/// <param name="inventoryIndex">The index of the inventory item to remove.</param>
-		/// <returns>An owning pointer to the removed inventory item.</returns>
+		/// @param inventoryIndex The index of the inventory item to remove.
+		/// @return An owning pointer to the removed inventory item.
 		MovableObject* RemoveInventoryItemAtIndex(int inventoryIndex);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -935,21 +882,17 @@ namespace RTE {
 
 		virtual MovableObject* SwapPrevInventory(MovableObject* pSwapIn = nullptr);
 
-		/// <summary>
 		/// Swaps the inventory items at the given indices. Will return false if a given index is invalid.
-		/// </summary>
-		/// <param name="inventoryIndex1">The index of one item.</param>
-		/// <param name="inventoryIndex2">The index of the other item.</param>
-		/// <returns>Whether or not the swap was successful.</returns>
+		/// @param inventoryIndex1 The index of one item.
+		/// @param inventoryIndex2 The index of the other item.
+		/// @return Whether or not the swap was successful.
 		bool SwapInventoryItemsByIndex(int inventoryIndex1, int inventoryIndex2);
 
-		/// <summary>
 		/// Sets the inventory item at the given index as the new inventory item, and gives back the one that was originally there.
 		/// If an invalid index is given, the new item will be put in the back of the inventory, and nullptr will be returned.
-		/// </summary>
-		/// <param name="newInventoryItem">The new item that should be at the given inventory index. Cannot be a nullptr. Ownership IS transferred.</param>
-		/// <param name="inventoryIndex">The inventory index the new item should be placed at.</param>
-		/// <returns>The inventory item that used to be at the inventory index. Ownership IS transferred.</returns>
+		/// @param newInventoryItem The new item that should be at the given inventory index. Cannot be a nullptr. Ownership IS transferred.
+		/// @param inventoryIndex The inventory index the new item should be placed at.
+		/// @return The inventory item that used to be at the inventory index. Ownership IS transferred.
 		MovableObject* SetInventoryItemAtIndex(MovableObject* newInventoryItem, int inventoryIndex);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -963,9 +906,7 @@ namespace RTE {
 
 		virtual void DropAllInventory();
 
-		/// <summary>
 		/// Converts all of the Gold carried by this Actor into MovableObjects and ejects them into the Scene.
-		/// </summary>
 		virtual void DropAllGold();
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -995,22 +936,16 @@ namespace RTE {
 
 		const std::deque<MovableObject*>* GetInventory() const { return &m_Inventory; }
 
-		/// <summary>
 		/// Returns the maximum total mass this Actor can carry in its inventory.
-		/// </summary>
-		/// <returns>The maximum carriable mass of this Actor.</returns>
+		/// @return The maximum carriable mass of this Actor.
 		float GetMaxInventoryMass() const { return m_MaxInventoryMass; }
 
-		/// <summary>
 		/// Attempts to add an item to the front of our inventory.
-		/// </summary>
-		/// <returns>Whether we succeeded in adding the item. We may fail if the object doesn't exist or is set to delete.</returns>
+		/// @return Whether we succeeded in adding the item. We may fail if the object doesn't exist or is set to delete.
 		bool AddToInventoryFront(MovableObject* itemToAdd);
 
-		/// <summary>
 		/// Attempts to add an item to the back of our inventory.
-		/// </summary>
-		/// <returns>Whether we succeeded in adding the item. We may fail if the object doesn't exist or is set to delete.</returns>
+		/// @return Whether we succeeded in adding the item. We may fail if the object doesn't exist or is set to delete.
 		bool AddToInventoryBack(MovableObject* itemToAdd);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1043,12 +978,10 @@ namespace RTE {
 
 		void DrawWaypoints(bool drawWaypoints = true) { m_DrawWaypoints = drawWaypoints; }
 
-		/// <summary>
 		/// Destroys this MOSRotating and creates its specified Gibs in its place with appropriate velocities.
 		/// Any Attachables are removed and also given appropriate velocities.
-		/// </summary>
-		/// <param name="impactImpulse">The impulse (kg * m/s) of the impact causing the gibbing to happen.</param>
-		/// <param name="movableObjectToIgnore">A pointer to an MO which the Gibs and Attachables should not be colliding with.</param>
+		/// @param impactImpulse The impulse (kg * m/s) of the impact causing the gibbing to happen.
+		/// @param movableObjectToIgnore A pointer to an MO which the Gibs and Attachables should not be colliding with.
 		void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1111,33 +1044,23 @@ namespace RTE {
 
 		int GetMovePathSize() const { return m_MovePath.size(); }
 
-		/// <summary>
 		/// Starts updating this Actor's movepath.
-		/// </summary>
 		virtual void UpdateMovePath();
 
-		/// <summary>
 		/// Returns whether we're waiting on a new pending movepath.
-		/// </summary>
-		/// <returns>Whether we're waiting on a new pending movepath.</returns>
+		/// @return Whether we're waiting on a new pending movepath.
 		bool IsWaitingOnNewMovePath() const { return m_PathRequest != nullptr || m_UpdateMovePath; }
 
-		/// <summary>
 		/// Estimates what material strength this actor can penetrate.
-		/// </summary>
-		/// <returns>The actor's dig strength.</returns>
+		/// @return The actor's dig strength.
 		virtual float EstimateDigStrength() const;
 
-		/// <summary>
 		/// Gets this Actor's base dig strength, or the strength of terrain they can expect to walk through without tools.
-		/// </summary>
-		/// <returns>The actors base dig strength.</returns>
+		/// @return The actors base dig strength.
 		float GetAIBaseDigStrength() const { return m_AIBaseDigStrength; }
 
-		/// <summary>
 		/// Sets this Actor's base dig strength, or the strength of terrain they can expect to walk through without tools.
-		/// </summary>
-		/// <param name="newAIBaseDigStrength">The new base dig strength for this Actor.</param>
+		/// @param newAIBaseDigStrength The new base dig strength for this Actor.
 		void SetAIBaseDigStrength(float newAIBaseDigStrength) { m_AIBaseDigStrength = newAIBaseDigStrength; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -1243,149 +1166,101 @@ namespace RTE {
 
 		void SetTravelImpulseDamage(float value) { m_TravelImpulseDamage = value; }
 
-		/// <summary>
 		/// Gets this Actor's body hit sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this Actor's body hit sound.</returns>
+		/// @return The SoundContainer for this Actor's body hit sound.
 		SoundContainer* GetBodyHitSound() const { return m_BodyHitSound; }
 
-		/// <summary>
 		/// Sets this Actor's body hit sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this Actor's body hit sound.</param>
+		/// @param newSound The new SoundContainer for this Actor's body hit sound.
 		void SetBodyHitSound(SoundContainer* newSound) { m_BodyHitSound = newSound; }
 
-		/// <summary>
 		/// Gets this Actor's alarm sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this Actor's alarm sound.</returns>
+		/// @return The SoundContainer for this Actor's alarm sound.
 		SoundContainer* GetAlarmSound() const { return m_AlarmSound; }
 
-		/// <summary>
 		/// Sets this Actor's alarm sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this Actor's alarm sound.</param>
+		/// @param newSound The new SoundContainer for this Actor's alarm sound.
 		void SetAlarmSound(SoundContainer* newSound) { m_AlarmSound = newSound; }
 
-		/// <summary>
 		/// Gets this Actor's pain sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this Actor's pain sound.</returns>
+		/// @return The SoundContainer for this Actor's pain sound.
 		SoundContainer* GetPainSound() const { return m_PainSound; }
 
-		/// <summary>
 		/// Sets this Actor's pain sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this Actor's pain sound.</param>
+		/// @param newSound The new SoundContainer for this Actor's pain sound.
 		void SetPainSound(SoundContainer* newSound) { m_PainSound = newSound; }
 
-		/// <summary>
 		/// Gets this Actor's death sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this Actor's death sound.</returns>
+		/// @return The SoundContainer for this Actor's death sound.
 		SoundContainer* GetDeathSound() const { return m_DeathSound; }
 
-		/// <summary>
 		/// Sets this Actor's death sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this Actor's death sound.</param>
+		/// @param newSound The new SoundContainer for this Actor's death sound.
 		void SetDeathSound(SoundContainer* newSound) { m_DeathSound = newSound; }
 
-		/// <summary>
 		/// Gets this Actor's device switch sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this Actor's device switch sound.</returns>
+		/// @return The SoundContainer for this Actor's device switch sound.
 		SoundContainer* GetDeviceSwitchSound() const { return m_DeviceSwitchSound; }
 
-		/// <summary>
 		/// Sets this Actor's device switch sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this Actor's device switch sound.</param>
+		/// @param newSound The new SoundContainer for this Actor's device switch sound.
 		void SetDeviceSwitchSound(SoundContainer* newSound) { m_DeviceSwitchSound = newSound; }
 
-		/// <summary>
 		/// Gets the X and Y thresholds for how fast the actor can travel before losing stability.
-		/// </summary>
-		/// <returns>A Vector with the X and Y thresholds for how fast the actor can travel before losing stability.</returns>
+		/// @return A Vector with the X and Y thresholds for how fast the actor can travel before losing stability.
 		Vector GetStableVel() const { return m_StableVel; }
 
-		/// <summary>
 		/// Sets the X and Y thresholds for how fast the actor can travel before losing stability.
-		/// </summary>
-		/// <param name="newVelX">New value for how fast the actor can travel before losing stability on X axis.</param>
-		/// <param name="newVelY">New value for how fast the actor can travel before losing stability on Y axis.</param>
+		/// @param newVelX New value for how fast the actor can travel before losing stability on X axis.
+		/// @param newVelY New value for how fast the actor can travel before losing stability on Y axis.
 		void SetStableVel(float newVelX, float newVelY) { m_StableVel.SetXY(newVelX, newVelY); }
 
-		/// <summary>
 		/// Sets the X and Y thresholds for how fast the actor can travel before losing stability.
-		/// </summary>
-		/// <param name="newVelVector">Vector with new values for how fast the actor can travel before losing stability on both axis.</param>
+		/// @param newVelVector Vector with new values for how fast the actor can travel before losing stability on both axis.
 		void SetStableVel(Vector newVelVector) { m_StableVel = newVelVector; }
 
-		/// <summary>
 		/// Gets the recovery delay from UNSTABLE to STABLE, in MS.
-		/// </summary>
-		/// <returns>The recovery delay, in MS.</returns>
+		/// @return The recovery delay, in MS.
 		int GetStableRecoverDelay() const { return m_StableRecoverDelay; }
 
-		/// <summary>
 		/// Sets the recovery delay from UNSTABLE to STABLE, in MS.
-		/// </summary>
-		/// <param name="newRecoverDelay">The recovery delay, in MS.</param>
+		/// @param newRecoverDelay The recovery delay, in MS.
 		void SetStableRecoverDelay(int newRecoverDelay) { m_StableRecoverDelay = newRecoverDelay; }
 
-		/// <summary>
 		/// Gets the distance in which the Actor will have considered itself to have reached it's waypoint.
-		/// </summary>
-		/// <returns>The move proximity limit.</returns>
+		/// @return The move proximity limit.
 		float GetMoveProximityLimit() const { return m_MoveProximityLimit; }
 
-		/// <summary>
 		/// Sets the distance in which the Actor will have considered itself to have reached it's waypoint.
-		/// </summary>
-		/// <param name="newProximityLimit">The move proximity limit.</param>
+		/// @param newProximityLimit The move proximity limit.
 		void SetMoveProximityLimit(float newProximityLimit) { m_MoveProximityLimit = newProximityLimit; }
 
-		/// <summary>
 		/// Gets whether or not this Actor has the organic flag set and should be considered as organic.
-		/// </summary>
-		/// <returns>Whether or not this Actor has the organic flag set and should be considered as organic.</returns>
+		/// @return Whether or not this Actor has the organic flag set and should be considered as organic.
 		bool IsOrganic() const { return m_Organic; }
 
-		/// <summary>
 		/// Gets whether or not this Actor has the mechanical flag set and should be considered as mechanical.
-		/// </summary>
-		/// <returns>Whether or not this Actor has the mechanical flag set and should be considered as mechanical.</returns>
+		/// @return Whether or not this Actor has the mechanical flag set and should be considered as mechanical.
 		bool IsMechanical() const { return m_Mechanical; }
 
-		/// <summary>
 		/// Gets whether or not this Actor's limb push forces have been disabled.
-		/// </summary>
-		/// <returns>Whether or not this Actor's limb push forces have been disabled.</returns>
+		/// @return Whether or not this Actor's limb push forces have been disabled.
 		bool GetLimbPushForcesAndCollisionsDisabled() const { return m_LimbPushForcesAndCollisionsDisabled; }
 
-		/// <summary>
 		/// Sets whether or not this Actor's limb push forces should be disabled.
-		/// </summary>
-		/// <param name="newLimbPushForcesAndCollisionsDisabled">Whether or not this Actor's limb push forces should be disabled.</param>
+		/// @param newLimbPushForcesAndCollisionsDisabled Whether or not this Actor's limb push forces should be disabled.
 		void SetLimbPushForcesAndCollisionsDisabled(bool newLimbPushForcesAndCollisionsDisabled) { m_LimbPushForcesAndCollisionsDisabled = newLimbPushForcesAndCollisionsDisabled; }
 
-		/// <summary>
 		/// Gets the default PieMenu name for this type.
-		/// </summary>
-		/// <returns>The default PieMenu name for this type.</returns>
+		/// @return The default PieMenu name for this type.
 		virtual std::string GetDefaultPieMenuName() const { return "Default Actor Pie Menu"; }
 
-		/// <summary>
 		/// Gets a pointer to the PieMenu for this Actor. Ownership is NOT transferred.
-		/// </summary>
-		/// <returns>The PieMenu for this Actor.</returns>
+		/// @return The PieMenu for this Actor.
 		PieMenu* GetPieMenu() const { return m_PieMenu.get(); }
 
-		/// <summary>
 		/// Sets the PieMenu for this Actor. Ownership IS transferred.
-		/// </summary>
-		/// <param name="newPieMenu">The new PieMenu for this Actor.</param>
+		/// @param newPieMenu The new PieMenu for this Actor.
 		void SetPieMenu(PieMenu* newPieMenu) {
 			m_PieMenu = std::unique_ptr<PieMenu>(newPieMenu);
 			m_PieMenu->Create(this);
@@ -1396,10 +1271,8 @@ namespace RTE {
 		// Protected member variable and method declarations
 
 	protected:
-		/// <summary>
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
-		/// </summary>
 		virtual void OnNewMovePath();
 
 		// Member variables

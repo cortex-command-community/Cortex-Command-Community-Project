@@ -229,18 +229,14 @@ namespace RTE {
 
 		float GetRotAngle() const override { return m_Rotation.GetRadAngle(); }
 
-		/// <summary>
 		/// Gets the previous rotational angle of this MOSprite, prior to this frame.
-		/// </summary>
-		/// <returns>The previous rotational angle in radians.</returns>
+		/// @return The previous rotational angle in radians.
 		float GetPrevRotAngle() const { return m_PrevRotation.GetRadAngle(); }
 
-		/// <summary>
 		/// Whether a set of X, Y coordinates overlap us (in world space).
-		/// </summary>
-		/// <param name="pixelX">The given X coordinate, in world space.</param>
-		/// <param name="pixelY">The given Y coordinate, in world space.</param>
-		/// <returns>Whether the given coordinate overlap us.</returns>
+		/// @param pixelX The given X coordinate, in world space.
+		/// @param pixelY The given Y coordinate, in world space.
+		/// @return Whether the given coordinate overlap us.
 		bool HitTestAtPixel(int pixelX, int pixelY) const override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -350,27 +346,19 @@ namespace RTE {
 
 		void SetAngularVel(float newRotVel) override { m_AngularVel = newRotVel; }
 
-		/// <summary>
 		/// Gets the GUI representation of this MOSprite, either based on the first frame of its sprite or separately defined icon file.
-		/// </summary>
-		/// <returns>The graphical representation of this MOSprite as a BITMAP.</returns>
+		/// @return The graphical representation of this MOSprite as a BITMAP.
 		BITMAP* GetGraphicalIcon() const override { return m_GraphicalIcon != nullptr ? m_GraphicalIcon : m_aSprite[0]; }
 
-		/// <summary>
 		/// Gets the width of this MOSprite's GUI icon.
-		/// </summary>
-		/// <returns>The width of the GUI icon bitmap.</returns>
+		/// @return The width of the GUI icon bitmap.
 		int GetIconWidth() const { return GetGraphicalIcon()->w; }
 
-		/// <summary>
 		/// Gets the height of this MOSprite's GUI icon.
-		/// </summary>
-		/// <returns>The height of the GUI icon bitmap.</returns>
+		/// @return The height of the GUI icon bitmap.
 		int GetIconHeight() const { return GetGraphicalIcon()->h; }
 
-		/// <summary>
 		/// Forces this MOSprite out of resting conditions.
-		/// </summary>
 		void NotResting() override {
 			MovableObject::NotResting();
 			m_AngOscillations = 0;
@@ -433,11 +421,9 @@ namespace RTE {
 
 		Vector UnRotateOffset(const Vector& offset) const;
 
-		/// <summary>
 		/// Adjusts an absolute angle based on wether this MOSprite is flipped.
-		/// </summary>
-		/// <param name="angle">The input angle in radians.</param>
-		/// <returns>The output angle in radians, which will be unaltered if this MOSprite is not flipped.</returns>
+		/// @param angle The input angle in radians.
+		/// @return The output angle in radians, which will be unaltered if this MOSprite is not flipped.
 		float FacingAngle(float angle) const { return (m_HFlipped ? c_PI : 0) + (angle * GetFlipFactor()); }
 
 		//////////////////////////////////////////////////////////////////////////////////////////

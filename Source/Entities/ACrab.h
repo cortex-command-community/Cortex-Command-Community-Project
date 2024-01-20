@@ -128,76 +128,52 @@ namespace RTE {
 
 		Vector GetEyePos() const override;
 
-		/// <summary>
 		/// Gets the Turret of this ACrab.
-		/// </summary>
-		/// <returns>A pointer to Turret of this ACrab. Ownership is NOT transferred!</returns>
+		/// @return A pointer to Turret of this ACrab. Ownership is NOT transferred!
 		Turret* GetTurret() const { return m_pTurret; }
 
-		/// <summary>
 		/// Sets the Turret for this ACrab. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newTurret">The new Turret to use.</param>
+		/// @param newTurret The new Turret to use.
 		void SetTurret(Turret* newTurret);
 
-		/// <summary>
 		/// Gets the jetpack of this ACrab.
-		/// </summary>
-		/// <returns>A pointer to the jetpack of this ACrab. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the jetpack of this ACrab. Ownership is NOT transferred!
 		AEJetpack* GetJetpack() const { return m_pJetpack; }
 
-		/// <summary>
 		/// Sets the jetpack for this ACrab. Ownership IS Transferred!
-		/// </summary>
-		/// <param name="newJetpack">The new jetpack to use.</param>
+		/// @param newJetpack The new jetpack to use.
 		void SetJetpack(AEJetpack* newJetpack);
 
-		/// <summary>
 		/// Gets the left foreground Leg of this ACrab.
-		/// </summary>
-		/// <returns>A pointer to the left foreground Leg of this ACrab. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the left foreground Leg of this ACrab. Ownership is NOT transferred!
 		Leg* GetLeftFGLeg() const { return m_pLFGLeg; }
 
-		/// <summary>
 		/// Sets the left foreground Leg for this ACrab. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetLeftFGLeg(Leg* newLeg);
 
-		/// <summary>
 		/// Gets the left background Leg of this ACrab.
-		/// </summary>
-		/// <returns>A pointer to the left background Leg of this ACrab. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the left background Leg of this ACrab. Ownership is NOT transferred!
 		Leg* GetLeftBGLeg() const { return m_pLBGLeg; }
 
-		/// <summary>
 		/// Sets the left background Leg for this ACrab. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetLeftBGLeg(Leg* newLeg);
 
-		/// <summary>
 		/// Gets the right foreground Leg of this ACrab.
-		/// </summary>
-		/// <returns>A pointer to the right foreground Leg of this ACrab. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the right foreground Leg of this ACrab. Ownership is NOT transferred!
 		Leg* GetRightFGLeg() const { return m_pRFGLeg; }
 
-		/// <summary>
 		/// Sets the right foreground Leg for this ACrab. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetRightFGLeg(Leg* newLeg);
 
-		/// <summary>
 		/// Gets the right BG Leg of this ACrab.
-		/// </summary>
-		/// <returns>A pointer to the right background Leg of this ACrab. Ownership is NOT transferred!</returns>
+		/// @return A pointer to the right background Leg of this ACrab. Ownership is NOT transferred!
 		Leg* GetRightBGLeg() const { return m_pRBGLeg; }
 
-		/// <summary>
 		/// Sets the right background Leg for this ACrab. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newLeg">The new Leg to use.</param>
+		/// @param newLeg The new Leg to use.
 		void SetRightBGLeg(Leg* newLeg);
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -213,11 +189,9 @@ namespace RTE {
 
 		bool CollideAtPoint(HitData& hitData) override;
 
-		/// <summary>
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
-		/// </summary>
-		/// <param name="pieSliceType">The SliceType of the PieSlice being handled.</param>
-		/// <returns>Whether or not the activated PieSlice SliceType was able to be handled.</returns>
+		/// @param pieSliceType The SliceType of the PieSlice being handled.
+		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
 		bool HandlePieCommand(PieSlice::SliceType pieSliceType) override;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -257,10 +231,8 @@ namespace RTE {
 
 		bool FirearmNeedsReload() const;
 
-		/// <summary>
 		/// Gets whether or not all of this ACrab's Turret's HDFirearms are full.
-		/// </summary>
-		/// <returns>Whether or not all of this ACrab's Turret's HDFirearms are full. Will return true if there is no Turret or no HDFirearms.</returns>
+		/// @return Whether or not all of this ACrab's Turret's HDFirearms are full. Will return true if there is no Turret or no HDFirearms.
 		bool FirearmsAreFull() const;
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -326,16 +298,12 @@ namespace RTE {
 
 		MovableObject* LookForMOs(float FOVSpread = 45, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false);
 
-		/// <summary>
 		/// Gets the GUI representation of this ACrab, only defaulting to its Turret or body if no GraphicalIcon has been defined.
-		/// </summary>
-		/// <returns>The graphical representation of this ACrab as a BITMAP.</returns>
+		/// @return The graphical representation of this ACrab as a BITMAP.
 		BITMAP* GetGraphicalIcon() const override;
 
-		/// <summary>
 		/// Gets whether this ACrab has just taken a stride this frame.
-		/// </summary>
-		/// <returns>Whether this ACrab has taken a stride this frame or not.</returns>
+		/// @return Whether this ACrab has taken a stride this frame or not.
 		bool StrideFrame() const { return m_StrideFrame; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -383,13 +351,11 @@ namespace RTE {
 
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
-		/// <summary>
 		/// Gets the LimbPath corresponding to the passed in Side, Layer and MovementState values.
-		/// </summary>
-		/// <param name="side">Whether to get the left or right side.</param>
-		/// <param name="layer">Whether to get foreground or background LimbPath.</param>
-		/// <param name="movementState">Which movement state to get the LimbPath for.</param>
-		/// <returns>The LimbPath corresponding to the passed in Layer and MovementState values.</returns>
+		/// @param side Whether to get the left or right side.
+		/// @param layer Whether to get foreground or background LimbPath.
+		/// @param movementState Which movement state to get the LimbPath for.
+		/// @return The LimbPath corresponding to the passed in Layer and MovementState values.
 		LimbPath* GetLimbPath(Side side, Layer layer, MovementState movementState) { return &m_Paths[side][layer][movementState]; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -430,50 +396,36 @@ namespace RTE {
 
 		void SetLimbPathPushForce(float force);
 
-		/// <summary>
 		/// Gets this ACrab's stride sound. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SoundContainer for this ACrab's stride sound.</returns>
+		/// @return The SoundContainer for this ACrab's stride sound.
 		SoundContainer* GetStrideSound() const { return m_StrideSound; }
 
-		/// <summary>
 		/// Sets this ACrab's stride sound. Ownership IS transferred!
-		/// </summary>
-		/// <param name="newSound">The new SoundContainer for this ACrab's stride sound.</param>
+		/// @param newSound The new SoundContainer for this ACrab's stride sound.
 		void SetStrideSound(SoundContainer* newSound) { m_StrideSound = newSound; }
 
-		/// <summary>
 		/// Gets the upper limit of this ACrab's aim range.
-		/// </summary>
-		/// <returns>The upper limit of this ACrab's aim range.</returns>
+		/// @return The upper limit of this ACrab's aim range.
 		float GetAimRangeUpperLimit() const { return m_AimRangeUpperLimit; }
 
-		/// <summary>
 		/// Sets the upper limit of this ACrab's aim range.
-		/// </summary>
-		/// <param name="aimRangeUpperLimit">The new upper limit of this ACrab's aim range.</param>
+		/// @param aimRangeUpperLimit The new upper limit of this ACrab's aim range.
 		void SetAimRangeUpperLimit(float aimRangeUpperLimit) { m_AimRangeUpperLimit = aimRangeUpperLimit; }
 
-		/// <summary>
 		/// Gets the lower limit of this ACrab's aim range.
-		/// </summary>
-		/// <returns>The lower limit of this ACrab's aim range.</returns>
+		/// @return The lower limit of this ACrab's aim range.
 		float GetAimRangeLowerLimit() const { return m_AimRangeLowerLimit; }
 
-		/// <summary>
 		/// Sets the lower limit of this ACrab's aim range.
-		/// </summary>
-		/// <param name="aimRangeLowerLimit">The new lower limit of this ACrab's aim range.</param>
+		/// @param aimRangeLowerLimit The new lower limit of this ACrab's aim range.
 		void SetAimRangeLowerLimit(float aimRangeLowerLimit) { m_AimRangeLowerLimit = aimRangeLowerLimit; }
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// Protected member variable and method declarations
 
 	protected:
-		/// <summary>
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
-		/// </summary>
 		void OnNewMovePath() override;
 
 		// Member variables
@@ -592,11 +544,9 @@ namespace RTE {
 		bool m_LockMouseAimInput;
 
 #pragma region Event Handling
-		/// <summary>
 		/// Event listener to be run while this ACrab's PieMenu is opened.
-		/// </summary>
-		/// <param name="pieMenu">The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param pieMenu The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int WhilePieMenuOpenListener(const PieMenu* pieMenu) override;
 #pragma endregion
 
