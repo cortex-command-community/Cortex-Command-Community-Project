@@ -6,9 +6,9 @@ AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: false
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
-AlignEscapedNewlines: DontAlign 
+AlignEscapedNewlines: DontAlign
 AlignOperands:   true
-AlignTrailingComments: false 
+AlignTrailingComments: false
 AllowAllArgumentsOnNextLine: true
 AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
@@ -73,7 +73,7 @@ PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 6000
 PointerAlignment: Left
-ReflowComments:  false
+ReflowComments:  true
 SortIncludes:    false
 SortUsingDeclarations: false
 SpaceAfterCStyleCast: false
@@ -95,6 +95,7 @@ SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 SpaceBeforeSquareBrackets: false
+InsertNewlineAtEOF: true
 Standard:        c++17
 StatementMacros:
   - Q_UNUSED
