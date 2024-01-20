@@ -19,7 +19,7 @@ namespace RTE {
 			delete m_Instance;
 		}
 
-		MicroPather *m_Instance;
+		MicroPather* m_Instance;
 	};
 
 	thread_local MicroPatherWrapper s_Pather;
@@ -29,24 +29,25 @@ namespace RTE {
 	// TODO: Enhance MicroPather to add that capability (or write our own pather)!
 	thread_local float s_DigStrength = 0.0F;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	PathNode::PathNode(const Vector &pos) : Pos(pos) {
-		const Material *outOfBounds = g_SceneMan.GetMaterialFromID(MaterialColorKeys::g_MaterialOutOfBounds);
+	PathNode::PathNode(const Vector& pos) :
+	    Pos(pos) {
+		const Material* outOfBounds = g_SceneMan.GetMaterialFromID(MaterialColorKeys::g_MaterialOutOfBounds);
 		for (int i = 0; i < c_MaxAdjacentNodeCount; i++) {
 			AdjacentNodes[i] = nullptr;
 			AdjacentNodeBlockingMaterials[i] = outOfBounds; // Costs are infinite unless recalculated as otherwise.
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::Clear() {
 		m_NodeGrid.clear();
 		m_NodeDimension = SCENEGRIDSIZE;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int PathFinder::Create(int nodeDimension) {
 		RTEAssert(g_SceneMan.GetScene(), "Scene doesn't exist or isn't loaded when creating PathFinder!");
@@ -80,7 +81,7 @@ namespace RTE {
 					nodePos.m_X = sceneWidth - 1.0F;
 				}
 
-				// Add the newly created node to the column. 
+				// Add the newly created node to the column.
 				// Warning! Emplace back must be used to ensure this is constructed in-place, as otherwise the Up/Right/Down etc references will be incorrect.
 				m_NodeGrid.emplace_back(nodePos);
 
@@ -93,7 +94,7 @@ namespace RTE {
 		// Assign all the adjacent nodes on each node. GetPathNodeAtGridCoords handles Scene wrapping.
 		for (int x = 0; x < m_GridWidth; ++x) {
 			for (int y = 0; y < m_GridHeight; ++y) {
-				PathNode &node = *GetPathNodeAtGridCoords(x, y);
+				PathNode& node = *GetPathNodeAtGridCoords(x, y);
 
 				node.Up = GetPathNodeAtGridCoords(x, y - 1);
 				node.Right = GetPathNodeAtGridCoords(x + 1, y);
@@ -111,23 +112,23 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::Destroy() {
 		Clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	MicroPather * PathFinder::GetPather() {
+	MicroPather* PathFinder::GetPather() {
 		// TODO: cache a collection of pathers. For async pathfinding right now we create a new pather for every thread!
 		if (!s_Pather.m_Instance || s_Pather.m_Instance->GetGraph() != this) {
 			// First time this thread has asked for a pather, let's initialize it
 			delete s_Pather.m_Instance; // Might be reinitialized and Graph ptrs mismatch, in that case delete the old one
-			
+
 			// TODO: test dynamically setting this. The code below sets it based on map area and block size, with a hefty upper limit.
-			//int sceneArea = m_GridWidth * m_GridHeight;
-			//unsigned int numberOfBlocksToAllocate = std::min(128000, sceneArea / (m_NodeDimension * m_NodeDimension));
+			// int sceneArea = m_GridWidth * m_GridHeight;
+			// unsigned int numberOfBlocksToAllocate = std::min(128000, sceneArea / (m_NodeDimension * m_NodeDimension));
 			unsigned int numberOfBlocksToAllocate = 4000;
 			s_Pather.m_Instance = new MicroPather(this, numberOfBlocksToAllocate, PathNode::c_MaxAdjacentNodeCount, false);
 		}
@@ -135,13 +136,13 @@ namespace RTE {
 		return s_Pather.m_Instance;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector> &pathResult, float &totalCostResult, float digStrength) {
+	int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float digStrength) {
 		ZoneScoped;
-		
+
 		++m_CurrentPathingRequests;
-		
+
 		// Make sure start and end are within scene bounds.
 		g_SceneMan.ForceBounds(start);
 		g_SceneMan.ForceBounds(end);
@@ -163,7 +164,7 @@ namespace RTE {
 
 		// Do the actual pathfinding, fetch out the list of states that comprise the best path.
 		int result = MicroPather::NO_SOLUTION;
-		std::vector<void *> statePath;
+		std::vector<void*> statePath;
 
 		// If end node is invalid, there's no path
 		PathNode* endNode = GetPathNodeAtGridCoords(endNodeX, endNodeY);
@@ -179,12 +180,12 @@ namespace RTE {
 		if (!statePath.empty()) {
 			// Replace the approximate first point from the pathfound path with the exact starting point.
 			pathResult.push_back(start);
-			std::vector<void *>::iterator itr = statePath.begin();
+			std::vector<void*>::iterator itr = statePath.begin();
 			itr++;
 
 			// Convert from a list of state void pointers to a list of scene position vectors.
 			for (; itr != statePath.end(); ++itr) {
-				pathResult.push_back((static_cast<PathNode *>(*itr))->Pos);
+				pathResult.push_back((static_cast<PathNode*>(*itr))->Pos);
 			}
 
 			// Adjust the last point to be exactly where the end is supposed to be (really?).
@@ -204,20 +205,20 @@ namespace RTE {
 		return result;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector start, Vector end, float digStrength, PathCompleteCallback callback) {
 		std::shared_ptr<volatile PathRequest> pathRequest = std::make_shared<PathRequest>();
 
-		const_cast<Vector &>(pathRequest->startPos) = start;
-		const_cast<Vector &>(pathRequest->targetPos) = end;
+		const_cast<Vector&>(pathRequest->startPos) = start;
+		const_cast<Vector&>(pathRequest->targetPos) = end;
 
 		g_ThreadMan.GetBackgroundThreadPool().push_task([this, start, end, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
 			// Cast away the volatile-ness - only matters outside (and complicates the API otherwise)
-			PathRequest &request = const_cast<PathRequest &>(*volRequest);
+			PathRequest& request = const_cast<PathRequest&>(*volRequest);
 
 			int status = this->CalculatePath(start, end, request.path, request.totalCost, digStrength);
-			
+
 			request.status = status;
 			request.pathLength = request.path.size();
 
@@ -228,18 +229,19 @@ namespace RTE {
 			// Have to set to complete after the callback, so anything that blocks on it knows that the callback will have been called by now
 			// This has the awkward side-effect that the complete flag is actually false during the callback - but that's fine, if it's called we know it's complete anyways
 			request.complete = true;
-		}, pathRequest);
+		},
+		                                                pathRequest);
 
 		return pathRequest;
-    }
+	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void PathFinder::RecalculateAllCosts() {
-        RTEAssert(g_SceneMan.GetScene(), "Scene doesn't exist or isn't loaded when recalculating PathFinder!");
+	void PathFinder::RecalculateAllCosts() {
+		RTEAssert(g_SceneMan.GetScene(), "Scene doesn't exist or isn't loaded when recalculating PathFinder!");
 
 		// Deadlock until all path requests are complete
-		while (m_CurrentPathingRequests.load() != 0) { };
+		while (m_CurrentPathingRequests.load() != 0) {};
 
 		// I hate this copy, but fuck it.
 		std::vector<int> pathNodesIdsVec;
@@ -249,18 +251,18 @@ namespace RTE {
 		}
 
 		UpdateNodeList(pathNodesIdsVec);
-    }
+	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box> &boxList, int nodeUpdateLimit) {
+	std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, int nodeUpdateLimit) {
 		ZoneScoped;
-		
+
 		std::unordered_set<int> nodeIDsToUpdate;
 
 		while (!boxList.empty()) {
 			std::vector<int> nodesInside = GetNodeIdsInBox(boxList.front());
-			for (int nodeId : nodesInside) {
+			for (int nodeId: nodesInside) {
 				nodeIDsToUpdate.insert(nodeId);
 			}
 
@@ -283,16 +285,16 @@ namespace RTE {
 		return nodeVec;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	float PathFinder::LeastCostEstimate(void *startState, void *endState) {
-		return g_SceneMan.ShortestDistance((static_cast<PathNode *>(startState))->Pos, (static_cast<PathNode *>(endState))->Pos).GetMagnitude() / m_NodeDimension;
+	float PathFinder::LeastCostEstimate(void* startState, void* endState) {
+		return g_SceneMan.ShortestDistance((static_cast<PathNode*>(startState))->Pos, (static_cast<PathNode*>(endState))->Pos).GetMagnitude() / m_NodeDimension;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PathFinder::AdjacentCost(void *state, std::vector<micropather::StateCost> *adjacentList) {
-		const PathNode *node = static_cast<PathNode *>(state);
+	void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* adjacentList) {
+		const PathNode* node = static_cast<PathNode*>(state);
 		micropather::StateCost adjCost;
 
 		// We do a little trick here, where we radiate out a little percentage of our average cost in all directions.
@@ -306,49 +308,49 @@ namespace RTE {
 		// Add cost for digging upwards.
 		if (node->Up && node->Up->m_Navigatable) {
 			adjCost.cost = 1.0F + extraUpCost + (GetMaterialTransitionCost(*node->UpMaterial) * 4.0F) + radiatedCost; // Four times more expensive when digging.
-			adjCost.state = static_cast<void *>(node->Up);
+			adjCost.state = static_cast<void*>(node->Up);
 			adjacentList->push_back(adjCost);
 		}
 		if (node->Right && node->Right->m_Navigatable) {
 			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->RightMaterial) + radiatedCost;
-			adjCost.state = static_cast<void *>(node->Right);
+			adjCost.state = static_cast<void*>(node->Right);
 			adjacentList->push_back(adjCost);
 		}
 		if (node->Down && node->Down->m_Navigatable) {
 			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->DownMaterial) + radiatedCost;
-			adjCost.state = static_cast<void *>(node->Down);
+			adjCost.state = static_cast<void*>(node->Down);
 			adjacentList->push_back(adjCost);
 		}
 		if (node->Left && node->Left->m_Navigatable) {
 			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->LeftMaterial) + radiatedCost;
-			adjCost.state = static_cast<void *>(node->Left);
+			adjCost.state = static_cast<void*>(node->Left);
 			adjacentList->push_back(adjCost);
 		}
 
 		// Add cost for digging at 45 degrees and for digging upwards.
 		if (node->UpRight && node->UpRight->m_Navigatable) {
-			adjCost.cost = 1.4F + extraUpCost + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;  // Three times more expensive when digging.
-			adjCost.state = static_cast<void *>(node->UpRight);
+			adjCost.cost = 1.4F + extraUpCost + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
+			adjCost.state = static_cast<void*>(node->UpRight);
 			adjacentList->push_back(adjCost);
 		}
 		if (node->RightDown && node->RightDown->m_Navigatable) {
 			adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->RightDownMaterial) * 1.4F) + radiatedCost;
-			adjCost.state = static_cast<void *>(node->RightDown);
+			adjCost.state = static_cast<void*>(node->RightDown);
 			adjacentList->push_back(adjCost);
 		}
 		if (node->DownLeft && node->DownLeft->m_Navigatable) {
 			adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->DownLeftMaterial) * 1.4F) + radiatedCost;
-			adjCost.state = static_cast<void *>(node->DownLeft);
+			adjCost.state = static_cast<void*>(node->DownLeft);
 			adjacentList->push_back(adjCost);
 		}
 		if (node->LeftUp && node->LeftUp->m_Navigatable) {
-			adjCost.cost = 1.4F + extraUpCost + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;  // Three times more expensive when digging.
-			adjCost.state = static_cast<void *>(node->LeftUp);
+			adjCost.cost = 1.4F + extraUpCost + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
+			adjCost.state = static_cast<void*>(node->LeftUp);
 			adjacentList->push_back(adjCost);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PathFinder::PositionsAreTheSamePathNode(const Vector& pos1, const Vector& pos2) const {
 		int startNodeX = std::floor(pos1.m_X / static_cast<float>(m_NodeDimension));
@@ -358,9 +360,9 @@ namespace RTE {
 		return startNodeX == endNodeX && startNodeY == endNodeY;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	float PathFinder::GetMaterialTransitionCost(const Material &material) const {
+	float PathFinder::GetMaterialTransitionCost(const Material& material) const {
 		float strength = material.GetIntegrity();
 		// Always treat doors as diggable.
 		if (strength > s_DigStrength && material.GetIndex() != MaterialColorKeys::g_MaterialDoor) {
@@ -369,22 +371,22 @@ namespace RTE {
 		return strength;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	const Material * PathFinder::StrongestMaterialAlongLine(const Vector &start, const Vector &end) const {
+	const Material* PathFinder::StrongestMaterialAlongLine(const Vector& start, const Vector& end) const {
 		return g_SceneMan.CastMaxStrengthRayMaterial(start, end, 0, MaterialColorKeys::g_MaterialAir);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool PathFinder::UpdateNodeCosts(PathNode *node) const {
+	bool PathFinder::UpdateNodeCosts(PathNode* node) const {
 		if (!node) {
 			return false;
 		}
 
-		std::array<const Material *, PathNode::c_MaxAdjacentNodeCount> oldMaterials = node->AdjacentNodeBlockingMaterials;
+		std::array<const Material*, PathNode::c_MaxAdjacentNodeCount> oldMaterials = node->AdjacentNodeBlockingMaterials;
 
-		auto getStrongerMaterial = [](const Material *first, const Material *second) {
+		auto getStrongerMaterial = [](const Material* first, const Material* second) {
 			return first->GetIntegrity() > second->GetIntegrity() ? first : second;
 		};
 
@@ -408,8 +410,8 @@ namespace RTE {
 		}
 
 		for (int i = 0; i < PathNode::c_MaxAdjacentNodeCount; ++i) {
-			const Material *oldMat = oldMaterials[i];
-			const Material *newMat = node->AdjacentNodeBlockingMaterials[i];
+			const Material* oldMat = oldMaterials[i];
+			const Material* newMat = node->AdjacentNodeBlockingMaterials[i];
 
 			// Check if the material strength is more than our delta, or if a door has appeared/disappeared (since we handle their costs in a special manner).
 			float delta = std::abs(oldMat->GetIntegrity() - newMat->GetIntegrity());
@@ -424,7 +426,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::vector<int> PathFinder::GetNodeIdsInBox(Box box) {
 		std::vector<int> result;
@@ -450,12 +452,12 @@ namespace RTE {
 		return result;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	float PathFinder::GetNodeAverageTransitionCost(const PathNode &node) const {
+	float PathFinder::GetNodeAverageTransitionCost(const PathNode& node) const {
 		float totalCostOfAdjacentNodes = 0.0F;
 		int count = 0;
-		for (const Material *material : node.AdjacentNodeBlockingMaterials) {
+		for (const Material* material: node.AdjacentNodeBlockingMaterials) {
 			// Don't use node transition cost, because we don't care about digging.
 			float cost = material->GetIntegrity();
 			if (cost < std::numeric_limits<float>::max()) {
@@ -466,61 +468,66 @@ namespace RTE {
 		return totalCostOfAdjacentNodes / std::max(static_cast<float>(count), 1.0F);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool PathFinder::UpdateNodeList(const std::vector<int> &nodeVec) {
+	bool PathFinder::UpdateNodeList(const std::vector<int>& nodeVec) {
 		ZoneScoped;
-		
+
 		std::atomic<bool> anyChange = false;
 
 		// Update all the costs going out from each node.
 		std::for_each(
-			std::execution::par_unseq,
-			nodeVec.begin(),
-			nodeVec.end(),
-			[this, &anyChange](int nodeId) {
-				if (UpdateNodeCosts(&m_NodeGrid[nodeId])) {
-					anyChange = true;
-				}
-			}
-		);
+		    std::execution::par_unseq,
+		    nodeVec.begin(),
+		    nodeVec.end(),
+		    [this, &anyChange](int nodeId) {
+			    if (UpdateNodeCosts(&m_NodeGrid[nodeId])) {
+				    anyChange = true;
+			    }
+		    });
 
 		if (anyChange) {
 			// UpdateNodeCosts only calculates Materials for Right and Down directions, so each PathNode's Up and Left direction Materials need to be matched to the respective neighbor's opposite direction Materials.
 			// For example, this PathNode's Left Material is its Left neighbor's Right Material.
 			std::for_each(
-				std::execution::par_unseq,
-				nodeVec.begin(),
-				nodeVec.end(),
-				[this](int nodeId) {
-					PathNode *node = &m_NodeGrid[nodeId];
-					if (node->Right) { node->Right->LeftMaterial = node->RightMaterial; }
-					if (node->Down) { node->Down->UpMaterial = node->DownMaterial; }
-					if (node->UpRight) { node->UpRight->DownLeftMaterial = node->UpRightMaterial; }
-					if (node->RightDown) { node->RightDown->LeftUpMaterial = node->RightDownMaterial; }
-				}
-			);
+			    std::execution::par_unseq,
+			    nodeVec.begin(),
+			    nodeVec.end(),
+			    [this](int nodeId) {
+				    PathNode* node = &m_NodeGrid[nodeId];
+				    if (node->Right) {
+					    node->Right->LeftMaterial = node->RightMaterial;
+				    }
+				    if (node->Down) {
+					    node->Down->UpMaterial = node->DownMaterial;
+				    }
+				    if (node->UpRight) {
+					    node->UpRight->DownLeftMaterial = node->UpRightMaterial;
+				    }
+				    if (node->RightDown) {
+					    node->RightDown->LeftUpMaterial = node->RightDownMaterial;
+				    }
+			    });
 		}
 
 		return anyChange;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::MarkBoxNavigatable(Box box, bool navigatable) {
 		std::vector<int> pathNodesInBox = GetNodeIdsInBox(box);
 		std::for_each(
-			std::execution::par_unseq,
-			pathNodesInBox.begin(),
-			pathNodesInBox.end(),
-			[this, navigatable](int nodeId) {
-				PathNode* node = &m_NodeGrid[nodeId];
-				node->m_Navigatable = navigatable;
-			}
-		);
+		    std::execution::par_unseq,
+		    pathNodesInBox.begin(),
+		    pathNodesInBox.end(),
+		    [this, navigatable](int nodeId) {
+			    PathNode* node = &m_NodeGrid[nodeId];
+			    node->m_Navigatable = navigatable;
+		    });
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::MarkAllNodesNavigatable(bool navigatable) {
 		std::vector<int> pathNodesIdsVec;
@@ -530,24 +537,23 @@ namespace RTE {
 		}
 
 		std::for_each(
-			std::execution::par_unseq,
-			pathNodesIdsVec.begin(),
-			pathNodesIdsVec.end(),
-			[this, navigatable](int nodeId) {
-				PathNode* node = &m_NodeGrid[nodeId];
-				node->m_Navigatable = navigatable;
-			}
-		);
+		    std::execution::par_unseq,
+		    pathNodesIdsVec.begin(),
+		    pathNodesIdsVec.end(),
+		    [this, navigatable](int nodeId) {
+			    PathNode* node = &m_NodeGrid[nodeId];
+			    node->m_Navigatable = navigatable;
+		    });
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	PathNode * PathFinder::GetPathNodeAtGridCoords(int x, int y) {
+	PathNode* PathFinder::GetPathNodeAtGridCoords(int x, int y) {
 		int nodeId = ConvertCoordsToNodeId(x, y);
 		return nodeId != -1 ? &m_NodeGrid[nodeId] : nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int PathFinder::ConvertCoordsToNodeId(int x, int y) {
 		if (m_WrapsX) {
@@ -566,4 +572,4 @@ namespace RTE {
 
 		return (y * m_GridWidth) + x;
 	}
-}
+} // namespace RTE

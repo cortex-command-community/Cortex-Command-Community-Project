@@ -13,7 +13,7 @@ namespace RTE {
 
 	ConcreteClassInfo(SLTerrain, SceneLayer, 0);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLTerrain::Clear() {
 		m_Width = 0;
@@ -29,7 +29,7 @@ namespace RTE {
 		m_OrbitDirection = Directions::Up;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLTerrain::Create() {
 		SceneLayer::Create();
@@ -37,36 +37,40 @@ namespace RTE {
 		m_Width = m_BitmapFile.GetImageWidth();
 		m_Height = m_BitmapFile.GetImageHeight();
 
-		if (!m_FGColorLayer.get()) { m_FGColorLayer = std::make_unique<SceneLayer>(); }
-		if (!m_BGColorLayer.get()) { m_BGColorLayer = std::make_unique<SceneLayer>(); }
+		if (!m_FGColorLayer.get()) {
+			m_FGColorLayer = std::make_unique<SceneLayer>();
+		}
+		if (!m_BGColorLayer.get()) {
+			m_BGColorLayer = std::make_unique<SceneLayer>();
+		}
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SLTerrain::Create(const SLTerrain &reference) {
+	int SLTerrain::Create(const SLTerrain& reference) {
 		SceneLayer::Create(reference);
 
 		m_Width = reference.m_Width;
 		m_Height = reference.m_Height;
 
 		// Copy the layers but not the layer BITMAPs because they will be loaded later by LoadData.
-		m_FGColorLayer.reset(dynamic_cast<SceneLayer *>(reference.m_FGColorLayer->Clone()));
-		m_BGColorLayer.reset(dynamic_cast<SceneLayer *>(reference.m_BGColorLayer->Clone()));
+		m_FGColorLayer.reset(dynamic_cast<SceneLayer*>(reference.m_FGColorLayer->Clone()));
+		m_BGColorLayer.reset(dynamic_cast<SceneLayer*>(reference.m_BGColorLayer->Clone()));
 
 		m_DefaultBGTextureFile = reference.m_DefaultBGTextureFile;
 
 		m_TerrainFrostings.clear();
-		for (TerrainFrosting *terrainFrosting : reference.m_TerrainFrostings) {
+		for (TerrainFrosting* terrainFrosting: reference.m_TerrainFrostings) {
 			m_TerrainFrostings.emplace_back(terrainFrosting);
 		}
 		m_TerrainDebris.clear();
-		for (TerrainDebris *terrainDebris : reference.m_TerrainDebris) {
+		for (TerrainDebris* terrainDebris: reference.m_TerrainDebris) {
 			m_TerrainDebris.emplace_back(terrainDebris);
 		}
 		m_TerrainObjects.clear();
-		for (TerrainObject *terrainObject : reference.m_TerrainObjects) {
+		for (TerrainObject* terrainObject: reference.m_TerrainObjects) {
 			m_TerrainObjects.emplace_back(terrainObject);
 		}
 
@@ -75,11 +79,11 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SLTerrain::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneLayer::ReadProperty(propName, reader));
-		
+
 		MatchProperty("BackgroundTexture", { reader >> m_DefaultBGTextureFile; });
 		MatchProperty("FGColorLayer", {
 			m_FGColorLayer = std::make_unique<SceneLayer>();
@@ -119,13 +123,13 @@ namespace RTE {
 				reader.ReportError("Unknown OrbitDirection '" + orbitDirection + "'!");
 			}
 		});
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SLTerrain::Save(Writer &writer) const {
+	int SLTerrain::Save(Writer& writer) const {
 		SceneLayer::Save(writer);
 
 		// Only write the background texture info if the background itself is not saved out as a file already, since saved, pre-rendered bitmaps don't need texturing.
@@ -139,13 +143,13 @@ namespace RTE {
 		if (m_FGColorLayer->IsLoadedFromDisk()) {
 			writer.NewPropertyWithValue("FGColorLayer", m_FGColorLayer.get());
 		} else {
-			for (const TerrainFrosting *terrainFrosting : m_TerrainFrostings) {
+			for (const TerrainFrosting* terrainFrosting: m_TerrainFrostings) {
 				writer.NewPropertyWithValue("AddTerrainFrosting", terrainFrosting);
 			}
-			for (const TerrainDebris *terrainDebris : m_TerrainDebris) {
+			for (const TerrainDebris* terrainDebris: m_TerrainDebris) {
 				writer.NewPropertyWithValue("AddTerrainDebris", terrainDebris);
 			}
-			for (const TerrainObject *terrainObject : m_TerrainObjects) {
+			for (const TerrainObject* terrainObject: m_TerrainObjects) {
 				// Write out only what is needed to place a copy of this in the Terrain
 				writer.NewProperty("PlaceTerrainObject");
 				writer.ObjectStart(terrainObject->GetClassName());
@@ -157,39 +161,39 @@ namespace RTE {
 
 		writer.NewProperty("OrbitDirection");
 		switch (m_OrbitDirection) {
-		default:
-		case Directions::Up:
-			writer << "Up";
-			break;
-		case Directions::Down:
-			writer << "Down";
-			break;
-		case Directions::Left:
-			writer << "Left";
-			break;
-		case Directions::Right:
-			writer << "Right";
-			break;
+			default:
+			case Directions::Up:
+				writer << "Up";
+				break;
+			case Directions::Down:
+				writer << "Down";
+				break;
+			case Directions::Left:
+				writer << "Left";
+				break;
+			case Directions::Right:
+				writer << "Right";
+				break;
 		}
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: Break this down and refactor.
 	void SLTerrain::TexturizeTerrain() {
-		BITMAP *defaultBGLayerTexture = m_DefaultBGTextureFile.GetAsBitmap();
+		BITMAP* defaultBGLayerTexture = m_DefaultBGTextureFile.GetAsBitmap();
 
 		BITMAP* fgLayerTexture = m_FGColorLayer->GetBitmap();
 		BITMAP* bgLayerTexture = m_BGColorLayer->GetBitmap();
 
-		const std::array<Material *, c_PaletteEntriesNumber> &materialPalette = g_SceneMan.GetMaterialPalette();
-		const std::array<unsigned char, c_PaletteEntriesNumber> &materialMappings = g_PresetMan.GetDataModule(m_BitmapFile.GetDataModuleID())->GetAllMaterialMappings();
+		const std::array<Material*, c_PaletteEntriesNumber>& materialPalette = g_SceneMan.GetMaterialPalette();
+		const std::array<unsigned char, c_PaletteEntriesNumber>& materialMappings = g_PresetMan.GetDataModule(m_BitmapFile.GetDataModuleID())->GetAllMaterialMappings();
 
-		std::array<BITMAP *, c_PaletteEntriesNumber> materialFGTextures;
+		std::array<BITMAP*, c_PaletteEntriesNumber> materialFGTextures;
 		materialFGTextures.fill(nullptr);
-		std::array<BITMAP *, c_PaletteEntriesNumber> materialBGTextures;
+		std::array<BITMAP*, c_PaletteEntriesNumber> materialBGTextures;
 		materialBGTextures.fill(nullptr);
 		std::array<int, c_PaletteEntriesNumber> materialColors;
 		materialColors.fill(0);
@@ -202,64 +206,64 @@ namespace RTE {
 		// Go through each pixel on the main bitmap, which contains all the material pixels loaded from the bitmap.
 		// Place texture pixels on the FG layer corresponding to the materials on the main material bitmap.
 		std::for_each(std::execution::par_unseq, std::begin(rows), std::end(rows),
-			[&](int yPos) {
-				for (int xPos = 0; xPos < m_MainBitmap->w; ++xPos) {
-					int matIndex = _getpixel(m_MainBitmap, xPos, yPos);
+		              [&](int yPos) {
+			              for (int xPos = 0; xPos < m_MainBitmap->w; ++xPos) {
+				              int matIndex = _getpixel(m_MainBitmap, xPos, yPos);
 
-					// Map any materials defined in this data module but initially collided with other material ID's and thus were displaced to other ID's.
-					if (materialMappings[matIndex] != 0) {
-						// Assign the mapping and put it onto the material bitmap too.
-						matIndex = materialMappings[matIndex];
-						_putpixel(m_MainBitmap, xPos, yPos, matIndex);
-					}
+				              // Map any materials defined in this data module but initially collided with other material ID's and thus were displaced to other ID's.
+				              if (materialMappings[matIndex] != 0) {
+					              // Assign the mapping and put it onto the material bitmap too.
+					              matIndex = materialMappings[matIndex];
+					              _putpixel(m_MainBitmap, xPos, yPos, matIndex);
+				              }
 
-					RTEAssert(matIndex >= 0 && matIndex < c_PaletteEntriesNumber, "Invalid material index!");
+				              RTEAssert(matIndex >= 0 && matIndex < c_PaletteEntriesNumber, "Invalid material index!");
 
-					// Validate the material, or fallback to default material.
-					const Material* material = materialPalette[matIndex] ? materialPalette[matIndex] : materialPalette[MaterialColorKeys::g_MaterialOutOfBounds];
+				              // Validate the material, or fallback to default material.
+				              const Material* material = materialPalette[matIndex] ? materialPalette[matIndex] : materialPalette[MaterialColorKeys::g_MaterialOutOfBounds];
 
-					BITMAP* fgTexture = materialFGTextures[matIndex];
-					BITMAP* bgTexture = materialBGTextures[matIndex];
+				              BITMAP* fgTexture = materialFGTextures[matIndex];
+				              BITMAP* bgTexture = materialBGTextures[matIndex];
 
-					// If haven't read a pixel of this material before, then get its texture so we can quickly access it.
-					if (!fgTexture && material->GetFGTexture()) {
-						fgTexture = materialFGTextures[matIndex] = material->GetFGTexture();
-					}
+				              // If haven't read a pixel of this material before, then get its texture so we can quickly access it.
+				              if (!fgTexture && material->GetFGTexture()) {
+					              fgTexture = materialFGTextures[matIndex] = material->GetFGTexture();
+				              }
 
-					if (!bgTexture && material->GetBGTexture()) {
-						bgTexture = materialBGTextures[matIndex] = material->GetBGTexture();
-					}
+				              if (!bgTexture && material->GetBGTexture()) {
+					              bgTexture = materialBGTextures[matIndex] = material->GetBGTexture();
+				              }
 
-					int fgPixelColor = 0;
+				              int fgPixelColor = 0;
 
-					// If actually no texture for the material, then use the material's solid color instead.
-					if (!fgTexture) {
-						if (materialColors[matIndex] == 0) { 
-							materialColors[matIndex] = material->GetColor().GetIndex(); 
-						}
-						fgPixelColor = materialColors[matIndex];
-					} else {
-						fgPixelColor = _getpixel(fgTexture, xPos % fgTexture->w, yPos % fgTexture->h);
-					}
-					_putpixel(fgLayerTexture, xPos, yPos, fgPixelColor);
+				              // If actually no texture for the material, then use the material's solid color instead.
+				              if (!fgTexture) {
+					              if (materialColors[matIndex] == 0) {
+						              materialColors[matIndex] = material->GetColor().GetIndex();
+					              }
+					              fgPixelColor = materialColors[matIndex];
+				              } else {
+					              fgPixelColor = _getpixel(fgTexture, xPos % fgTexture->w, yPos % fgTexture->h);
+				              }
+				              _putpixel(fgLayerTexture, xPos, yPos, fgPixelColor);
 
-					int bgPixelColor = 0;
-					if (matIndex == 0) {
-						bgPixelColor = ColorKeys::g_MaskColor;
-					} else {
-						if (!bgTexture) {
-							bgPixelColor = _getpixel(defaultBGLayerTexture, xPos % defaultBGLayerTexture->w, yPos % defaultBGLayerTexture->h);
-						} else {
-							bgPixelColor = _getpixel(bgTexture, xPos % bgTexture->w, yPos% bgTexture->h);
-						}
-					}
+				              int bgPixelColor = 0;
+				              if (matIndex == 0) {
+					              bgPixelColor = ColorKeys::g_MaskColor;
+				              } else {
+					              if (!bgTexture) {
+						              bgPixelColor = _getpixel(defaultBGLayerTexture, xPos % defaultBGLayerTexture->w, yPos % defaultBGLayerTexture->h);
+					              } else {
+						              bgPixelColor = _getpixel(bgTexture, xPos % bgTexture->w, yPos % bgTexture->h);
+					              }
+				              }
 
-					_putpixel(bgLayerTexture, xPos, yPos, bgPixelColor);
-				}
-			});
+				              _putpixel(bgLayerTexture, xPos, yPos, bgPixelColor);
+			              }
+		              });
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLTerrain::LoadData() {
 		SceneLayer::LoadData();
@@ -279,13 +283,13 @@ namespace RTE {
 
 			TexturizeTerrain();
 
-			for (const TerrainFrosting *terrainFrosting : m_TerrainFrostings) {
+			for (const TerrainFrosting* terrainFrosting: m_TerrainFrostings) {
 				terrainFrosting->FrostTerrain(this);
 			}
-			for (TerrainDebris *terrainDebris : m_TerrainDebris) {
+			for (TerrainDebris* terrainDebris: m_TerrainDebris) {
 				terrainDebris->ScatterOnTerrain(this);
 			}
-			for (TerrainObject *terrainObject : m_TerrainObjects) {
+			for (TerrainObject* terrainObject: m_TerrainObjects) {
 				terrainObject->PlaceOnTerrain(this);
 			}
 			CleanAir();
@@ -293,9 +297,9 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SLTerrain::SaveData(const std::string &pathBase, bool doAsyncSaves) {
+	int SLTerrain::SaveData(const std::string& pathBase, bool doAsyncSaves) {
 		if (pathBase.empty()) {
 			return -1;
 		}
@@ -305,7 +309,7 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLTerrain::ClearData() {
 		RTEAssert(SceneLayer::ClearData() == 0, "Failed to clear material bitmap data of an SLTerrain!");
@@ -314,16 +318,16 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SLTerrain::IsAirPixel(const int pixelX, const int pixelY) const {
 		int checkPixel = GetPixel(pixelX, pixelY);
 		return checkPixel == MaterialColorKeys::g_MaterialAir || checkPixel == MaterialColorKeys::g_MaterialCavity;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool SLTerrain::IsBoxBuried(const Box &checkBox) const {
+	bool SLTerrain::IsBoxBuried(const Box& checkBox) const {
 		bool buried = true;
 		buried = buried && !IsAirPixel(checkBox.GetCorner().GetFloorIntX(), checkBox.GetCorner().GetFloorIntY());
 		buried = buried && !IsAirPixel(static_cast<int>(checkBox.GetCorner().GetX() + checkBox.GetWidth()), checkBox.GetCorner().GetFloorIntY());
@@ -332,28 +336,30 @@ namespace RTE {
 		return buried;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLTerrain::CleanAir() {
 		std::vector<int> rows(m_MainBitmap->h); // we loop through h first, because we want each thread to have sequential memory that they're touching
 		std::iota(std::begin(rows), std::end(rows), 0);
 
 		std::for_each(std::execution::par_unseq, std::begin(rows), std::end(rows),
-			[&](int yPos) {
-				for (int xPos = 0; xPos < m_MainBitmap->w; ++xPos) {
-					int matPixel = _getpixel(m_MainBitmap, xPos, yPos);
-					if (matPixel == MaterialColorKeys::g_MaterialCavity) {
-						_putpixel(m_MainBitmap, xPos, yPos, MaterialColorKeys::g_MaterialAir);
-						matPixel = MaterialColorKeys::g_MaterialAir;
-					}
-					if (matPixel == MaterialColorKeys::g_MaterialAir) { _putpixel(m_FGColorLayer->GetBitmap(), xPos, yPos, ColorKeys::g_MaskColor); }
-				}
-			});
+		              [&](int yPos) {
+			              for (int xPos = 0; xPos < m_MainBitmap->w; ++xPos) {
+				              int matPixel = _getpixel(m_MainBitmap, xPos, yPos);
+				              if (matPixel == MaterialColorKeys::g_MaterialCavity) {
+					              _putpixel(m_MainBitmap, xPos, yPos, MaterialColorKeys::g_MaterialAir);
+					              matPixel = MaterialColorKeys::g_MaterialAir;
+				              }
+				              if (matPixel == MaterialColorKeys::g_MaterialAir) {
+					              _putpixel(m_FGColorLayer->GetBitmap(), xPos, yPos, ColorKeys::g_MaskColor);
+				              }
+			              }
+		              });
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SLTerrain::CleanAirBox(const Box &box, bool wrapsX, bool wrapsY) {
+	void SLTerrain::CleanAirBox(const Box& box, bool wrapsX, bool wrapsY) {
 		int width = m_MainBitmap->w;
 		int height = m_MainBitmap->h;
 
@@ -363,12 +369,20 @@ namespace RTE {
 				int wrappedY = y;
 
 				if (wrapsX) {
-					if (wrappedX < 0) { wrappedX += width; }
-					if (wrappedX >= width) { wrappedX -= width; }
+					if (wrappedX < 0) {
+						wrappedX += width;
+					}
+					if (wrappedX >= width) {
+						wrappedX -= width;
+					}
 				}
 				if (wrapsY) {
-					if (wrappedY < 0) { wrappedY += height; }
-					if (wrappedY >= height) { wrappedY -= height; }
+					if (wrappedY < 0) {
+						wrappedY += height;
+					}
+					if (wrappedY >= height) {
+						wrappedY -= height;
+					}
 				}
 				if (wrappedX >= 0 && wrappedX < width && wrappedY >= 0 && wrappedY < height) {
 					int matPixel = _getpixel(m_MainBitmap, wrappedX, wrappedY);
@@ -376,16 +390,18 @@ namespace RTE {
 						_putpixel(m_MainBitmap, wrappedX, wrappedY, MaterialColorKeys::g_MaterialAir);
 						matPixel = MaterialColorKeys::g_MaterialAir;
 					}
-					if (matPixel == MaterialColorKeys::g_MaterialAir) { _putpixel(m_FGColorLayer->GetBitmap(), wrappedX, wrappedY, ColorKeys::g_MaskColor); }
+					if (matPixel == MaterialColorKeys::g_MaterialAir) {
+						_putpixel(m_FGColorLayer->GetBitmap(), wrappedX, wrappedY, ColorKeys::g_MaskColor);
+					}
 				}
 			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: OPTIMIZE THIS, IT'S A TIME HOG. MAYBE JSUT STAMP THE OUTLINE AND SAMPLE SOME RANDOM PARTICLES?
-	std::deque<MOPixel *> SLTerrain::EraseSilhouette(BITMAP *sprite, const Vector &pos, const Vector &pivot, const Matrix &rotation, float scale, bool makeMOPs, int skipMOP, int maxMOPs) {
+	std::deque<MOPixel*> SLTerrain::EraseSilhouette(BITMAP* sprite, const Vector& pos, const Vector& pivot, const Matrix& rotation, float scale, bool makeMOPs, int skipMOP, int maxMOPs) {
 		RTEAssert(sprite, "Null BITMAP passed to SLTerrain::EraseSilhouette");
 
 		int maxWidth = static_cast<int>(static_cast<float>(sprite->w + std::abs(pivot.GetFloorIntX() - (sprite->w / 2))) * scale);
@@ -393,11 +409,11 @@ namespace RTE {
 		int maxDiameter = static_cast<int>(std::sqrt(static_cast<float>(maxWidth * maxWidth + maxHeight * maxHeight)) * 2.0F);
 		int skipCount = skipMOP;
 
-		BITMAP *tempBitmap = g_SceneMan.GetIntermediateBitmapForSettlingIntoTerrain(maxDiameter);
+		BITMAP* tempBitmap = g_SceneMan.GetIntermediateBitmapForSettlingIntoTerrain(maxDiameter);
 		clear_bitmap(tempBitmap);
 		pivot_scaled_sprite(tempBitmap, sprite, tempBitmap->w / 2, tempBitmap->h / 2, pivot.GetFloorIntX(), pivot.GetFloorIntY(), ftofix(rotation.GetAllegroAngle()), ftofix(scale));
 
-		std::deque<MOPixel *> dislodgedMOPixels;
+		std::deque<MOPixel*> dislodgedMOPixels;
 
 		// Test intersection between color pixels of the test bitmap and non-air pixels of the terrain, then generate and collect MOPixels that represent the terrain overlap and clear the same pixels out of the terrain.
 		for (int testY = 0; testY < tempBitmap->h; ++testY) {
@@ -444,8 +460,8 @@ namespace RTE {
 					// Only add PixelMO if we're not due to skip any.
 					if (makeMOPs && matPixel != MaterialColorKeys::g_MaterialAir && colorPixel != ColorKeys::g_MaskColor && ++skipCount > skipMOP && dislodgedMOPixels.size() < maxMOPs) {
 						skipCount = 0;
-						const Material *sceneMat = g_SceneMan.GetMaterialFromID(matPixel);
-						const Material *spawnMat = sceneMat->GetSpawnMaterial() ? g_SceneMan.GetMaterialFromID(sceneMat->GetSpawnMaterial()) : sceneMat;
+						const Material* sceneMat = g_SceneMan.GetMaterialFromID(matPixel);
+						const Material* spawnMat = sceneMat->GetSpawnMaterial() ? g_SceneMan.GetMaterialFromID(sceneMat->GetSpawnMaterial()) : sceneMat;
 
 						std::unique_ptr<Atom> terrainPixelAtom = std::make_unique<Atom>(Vector(), spawnMat->GetIndex(), nullptr, colorPixel, 2);
 						std::unique_ptr<MOPixel> terrainPixel = std::make_unique<MOPixel>(colorPixel, spawnMat->GetPixelDensity(), Vector(static_cast<float>(terrX), static_cast<float>(terrY)), Vector(), terrainPixelAtom.release(), 0);
@@ -457,7 +473,9 @@ namespace RTE {
 					}
 
 					// Clear the terrain pixels.
-					if (matPixel != MaterialColorKeys::g_MaterialAir) { putpixel(m_MainBitmap, terrX, terrY, MaterialColorKeys::g_MaterialAir); }
+					if (matPixel != MaterialColorKeys::g_MaterialAir) {
+						putpixel(m_MainBitmap, terrX, terrY, MaterialColorKeys::g_MaterialAir);
+					}
 					if (colorPixel != ColorKeys::g_MaskColor) {
 						putpixel(m_FGColorLayer->GetBitmap(), terrX, terrY, ColorKeys::g_MaskColor);
 						g_SceneMan.RegisterTerrainChange(terrX, terrY, 1, 1, ColorKeys::g_MaskColor, false);
@@ -471,7 +489,7 @@ namespace RTE {
 		return dislodgedMOPixels;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLTerrain::Update() {
 		SceneLayer::Update();
@@ -480,9 +498,9 @@ namespace RTE {
 		m_BGColorLayer->SetOffset(m_Offset);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SLTerrain::Draw(BITMAP *targetBitmap, Box &targetBox, bool offsetNeedsScrollRatioAdjustment) {
+	void SLTerrain::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 		switch (m_LayerToDraw) {
 			case LayerType::MaterialLayer:
 				SceneLayer::Draw(targetBitmap, targetBox);
@@ -498,4 +516,4 @@ namespace RTE {
 				break;
 		}
 	}
-}
+} // namespace RTE

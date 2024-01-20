@@ -8,12 +8,11 @@ namespace RTE {
 	const std::string SoundSet::m_sClassName = "SoundSet";
 
 	const std::unordered_map<std::string, SoundSet::SoundSelectionCycleMode> SoundSet::c_SoundSelectionCycleModeMap = {
-		{"random", SoundSelectionCycleMode::RANDOM},
-		{"forwards", SoundSelectionCycleMode::FORWARDS},
-		{"all", SoundSelectionCycleMode::ALL}
-	};
+	    {"random", SoundSelectionCycleMode::RANDOM},
+	    {"forwards", SoundSelectionCycleMode::FORWARDS},
+	    {"all", SoundSelectionCycleMode::ALL}};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SoundSet::Clear() {
 		m_SoundSelectionCycleMode = SoundSelectionCycleMode::RANDOM;
@@ -23,15 +22,15 @@ namespace RTE {
 		m_SubSoundSets.clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SoundSet::Create(const SoundSet &reference) {
+	int SoundSet::Create(const SoundSet& reference) {
 		m_SoundSelectionCycleMode = reference.m_SoundSelectionCycleMode;
 		m_CurrentSelection = reference.m_CurrentSelection;
-		for (SoundData referenceSoundData : reference.m_SoundData) {
+		for (SoundData referenceSoundData: reference.m_SoundData) {
 			m_SoundData.push_back(referenceSoundData);
 		}
-		for (const SoundSet &referenceSoundSet : reference.m_SubSoundSets) {
+		for (const SoundSet& referenceSoundSet: reference.m_SubSoundSets) {
 			SoundSet soundSet;
 			soundSet.Create(referenceSoundSet);
 			m_SubSoundSets.push_back(soundSet);
@@ -40,11 +39,11 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SoundSet::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int SoundSet::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
-		
+
 		MatchProperty("SoundSelectionCycleMode", { SetSoundSelectionCycleMode(ReadSoundSelectionCycleMode(reader)); });
 		MatchProperty("AddSound", { AddSoundData(ReadAndGetSoundData(reader)); });
 		MatchProperty("AddSoundSet", {
@@ -52,27 +51,29 @@ namespace RTE {
 			reader >> soundSetToAdd;
 			AddSoundSet(soundSetToAdd);
 		});
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	SoundSet::SoundData SoundSet::ReadAndGetSoundData(Reader &reader) {
+	SoundSet::SoundData SoundSet::ReadAndGetSoundData(Reader& reader) {
 		SoundSet::SoundData soundData;
 
 		/// <summary>
 		/// Internal lambda function to load an audio file by path in as a ContentFile, which in turn loads it into FMOD, then returns SoundData for it in the outParam outSoundData.
 		/// </summary>
 		/// <param name="soundPath">The path to the sound file.</param>
-		auto readSoundFromPath = [&soundData, &reader](const std::string &soundPath) {
+		auto readSoundFromPath = [&soundData, &reader](const std::string& soundPath) {
 			ContentFile soundFile(soundPath.c_str());
 
 			/// As Serializable::Create(&reader) isn't being used here, we need to set our formatted reader position manually.
 			soundFile.SetFormattedReaderPosition("in file " + reader.GetCurrentFilePath() + " on line " + reader.GetCurrentFileLine());
 
-			FMOD::Sound *soundObject = soundFile.GetAsSound();
-			if (g_AudioMan.IsAudioEnabled() && !soundObject) { reader.ReportError(std::string("Failed to load the sound from the file")); }
+			FMOD::Sound* soundObject = soundFile.GetAsSound();
+			if (g_AudioMan.IsAudioEnabled() && !soundObject) {
+				reader.ReportError(std::string("Failed to load the sound from the file"));
+			}
 
 			soundData.SoundFile = soundFile;
 			soundData.SoundObject = soundObject;
@@ -100,13 +101,15 @@ namespace RTE {
 		return soundData;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	SoundSet::SoundSelectionCycleMode SoundSet::ReadSoundSelectionCycleMode(Reader &reader) {
+	SoundSet::SoundSelectionCycleMode SoundSet::ReadSoundSelectionCycleMode(Reader& reader) {
 		SoundSelectionCycleMode soundSelectionCycleModeToReturn;
 		std::string soundSelectionCycleModeString = reader.ReadPropValue();
 		std::locale locale;
-		for (char &character : soundSelectionCycleModeString) { character = std::tolower(character, locale); }
+		for (char& character: soundSelectionCycleModeString) {
+			character = std::tolower(character, locale);
+		}
 
 		std::unordered_map<std::string, SoundSelectionCycleMode>::const_iterator soundSelectionCycleMode = c_SoundSelectionCycleModeMap.find(soundSelectionCycleModeString);
 		if (soundSelectionCycleMode != c_SoundSelectionCycleModeMap.end()) {
@@ -114,23 +117,23 @@ namespace RTE {
 		} else {
 			try {
 				soundSelectionCycleModeToReturn = static_cast<SoundSelectionCycleMode>(std::stoi(soundSelectionCycleModeString));
-			} catch (const std::exception &) {
+			} catch (const std::exception&) {
 				reader.ReportError("Sound selection cycle mode " + soundSelectionCycleModeString + " is invalid.");
 			}
 		}
-		
+
 		return soundSelectionCycleModeToReturn;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SoundSet::Save(Writer &writer) const {
+	int SoundSet::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
 		writer.NewProperty("SoundSelectionCycleMode");
 		SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
 
-		for (const SoundData &soundData : m_SoundData) {
+		for (const SoundData& soundData: m_SoundData) {
 			writer.NewProperty("AddSound");
 			writer.ObjectStart("ContentFile");
 
@@ -146,7 +149,7 @@ namespace RTE {
 			writer.ObjectEnd();
 		}
 
-		for (const SoundSet &subSoundSet : m_SubSoundSets) {
+		for (const SoundSet& subSoundSet: m_SubSoundSets) {
 			writer.NewProperty("AddSoundSet");
 			writer.ObjectStart("SoundSet");
 			writer << subSoundSet;
@@ -156,9 +159,9 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	void SoundSet::SaveSoundSelectionCycleMode(Writer &writer, SoundSelectionCycleMode soundSelectionCycleMode) {
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void SoundSet::SaveSoundSelectionCycleMode(Writer& writer, SoundSelectionCycleMode soundSelectionCycleMode) {
 		auto cycleModeMapEntry = std::find_if(c_SoundSelectionCycleModeMap.begin(), c_SoundSelectionCycleModeMap.end(), [&soundSelectionCycleMode = soundSelectionCycleMode](auto element) { return element.second == soundSelectionCycleMode; });
 		if (cycleModeMapEntry != c_SoundSelectionCycleModeMap.end()) {
 			writer << cycleModeMapEntry->first;
@@ -167,11 +170,11 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SoundSet::AddSound(const std::string &soundFilePath, const Vector &offset, float minimumAudibleDistance, float attenuationStartDistance, bool abortGameForInvalidSound) {
+	void SoundSet::AddSound(const std::string& soundFilePath, const Vector& offset, float minimumAudibleDistance, float attenuationStartDistance, bool abortGameForInvalidSound) {
 		ContentFile soundFile(soundFilePath.c_str());
-		FMOD::Sound *soundObject = soundFile.GetAsSound(abortGameForInvalidSound, false);
+		FMOD::Sound* soundObject = soundFile.GetAsSound(abortGameForInvalidSound, false);
 		if (!soundObject) {
 			return;
 		}
@@ -179,24 +182,28 @@ namespace RTE {
 		m_SoundData.push_back({soundFile, soundObject, offset, minimumAudibleDistance, attenuationStartDistance});
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool SoundSet::RemoveSound(const std::string &soundFilePath, bool removeFromSubSoundSets) {
-		auto soundsToRemove = std::remove_if(m_SoundData.begin(), m_SoundData.end(), [&soundFilePath](const SoundSet::SoundData &soundData) { return soundData.SoundFile.GetDataPath() == soundFilePath; });
+	bool SoundSet::RemoveSound(const std::string& soundFilePath, bool removeFromSubSoundSets) {
+		auto soundsToRemove = std::remove_if(m_SoundData.begin(), m_SoundData.end(), [&soundFilePath](const SoundSet::SoundData& soundData) { return soundData.SoundFile.GetDataPath() == soundFilePath; });
 		bool anySoundsToRemove = soundsToRemove != m_SoundData.end();
-		if (anySoundsToRemove) { m_SoundData.erase(soundsToRemove, m_SoundData.end()); }
+		if (anySoundsToRemove) {
+			m_SoundData.erase(soundsToRemove, m_SoundData.end());
+		}
 		if (removeFromSubSoundSets) {
-			for (SoundSet subSoundSet : m_SubSoundSets) { anySoundsToRemove |= RemoveSound(soundFilePath, removeFromSubSoundSets); }
+			for (SoundSet subSoundSet: m_SubSoundSets) {
+				anySoundsToRemove |= RemoveSound(soundFilePath, removeFromSubSoundSets);
+			}
 		}
 		return anySoundsToRemove;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SoundSet::HasAnySounds(bool includeSubSoundSets) const {
 		bool hasAnySounds = !m_SoundData.empty();
 		if (!hasAnySounds && includeSubSoundSets) {
-			for (const SoundSet &subSoundSet : m_SubSoundSets) {
+			for (const SoundSet& subSoundSet: m_SubSoundSets) {
 				hasAnySounds = subSoundSet.HasAnySounds();
 				if (hasAnySounds) {
 					break;
@@ -206,12 +213,16 @@ namespace RTE {
 		return hasAnySounds;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SoundSet::GetFlattenedSoundData(std::vector<SoundData *> &flattenedSoundData, bool onlyGetSelectedSoundData) {
+	void SoundSet::GetFlattenedSoundData(std::vector<SoundData*>& flattenedSoundData, bool onlyGetSelectedSoundData) {
 		if (!onlyGetSelectedSoundData || m_SoundSelectionCycleMode == SoundSelectionCycleMode::ALL) {
-			for (SoundData &soundData : m_SoundData) { flattenedSoundData.push_back(&soundData); }
-			for (SoundSet &subSoundSet : m_SubSoundSets) { subSoundSet.GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData); }
+			for (SoundData& soundData: m_SoundData) {
+				flattenedSoundData.push_back(&soundData);
+			}
+			for (SoundSet& subSoundSet: m_SubSoundSets) {
+				subSoundSet.GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
+			}
 		} else {
 			if (m_CurrentSelection.first == false) {
 				flattenedSoundData.push_back(&m_SoundData[m_CurrentSelection.second]);
@@ -221,12 +232,16 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SoundSet::GetFlattenedSoundData(std::vector<const SoundData *> &flattenedSoundData, bool onlyGetSelectedSoundData) const {
+	void SoundSet::GetFlattenedSoundData(std::vector<const SoundData*>& flattenedSoundData, bool onlyGetSelectedSoundData) const {
 		if (!onlyGetSelectedSoundData || m_SoundSelectionCycleMode == SoundSelectionCycleMode::ALL) {
-			for (const SoundData &soundData : m_SoundData) { flattenedSoundData.push_back(&soundData); }
-			for (const SoundSet &subSoundSet : m_SubSoundSets) { subSoundSet.GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData); }
+			for (const SoundData& soundData: m_SoundData) {
+				flattenedSoundData.push_back(&soundData);
+			}
+			for (const SoundSet& subSoundSet: m_SubSoundSets) {
+				subSoundSet.GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
+			}
 		} else {
 			if (m_CurrentSelection.first == false) {
 				flattenedSoundData.push_back(&m_SoundData[m_CurrentSelection.second]);
@@ -236,11 +251,11 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SoundSet::SelectNextSounds() {
 		if (m_SoundSelectionCycleMode == SoundSelectionCycleMode::ALL) {
-			for (SoundSet &subSoundSet : m_SubSoundSets) {
+			for (SoundSet& subSoundSet: m_SubSoundSets) {
 				if (!subSoundSet.SelectNextSounds()) {
 					return false;
 				}
@@ -311,4 +326,4 @@ namespace RTE {
 
 		return true;
 	}
-}
+} // namespace RTE

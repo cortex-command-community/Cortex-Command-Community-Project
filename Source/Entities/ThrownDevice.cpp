@@ -7,7 +7,7 @@ namespace RTE {
 
 	ConcreteClassInfo(ThrownDevice, HeldDevice, 50);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ThrownDevice::Clear() {
 		m_ActivationSound.Reset();
@@ -20,7 +20,7 @@ namespace RTE {
 		m_StrikerLever = nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int ThrownDevice::Create() {
 		if (HeldDevice::Create() < 0) {
@@ -31,9 +31,9 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ThrownDevice::Create(const ThrownDevice &reference) {
+	int ThrownDevice::Create(const ThrownDevice& reference) {
 		HeldDevice::Create(reference);
 
 		m_MOType = MovableObject::TypeThrownDevice;
@@ -51,11 +51,11 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ThrownDevice::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return HeldDevice::ReadProperty(propName, reader));
-		
+
 		MatchProperty("ActivationSound", { reader >> m_ActivationSound; });
 		MatchProperty("StartThrowOffset", { reader >> m_StartThrowOffset; });
 		MatchProperty("EndThrowOffset", { reader >> m_EndThrowOffset; });
@@ -63,14 +63,14 @@ namespace RTE {
 		MatchProperty("MaxThrowVel", { reader >> m_MaxThrowVel; });
 		MatchProperty("TriggerDelay", { reader >> m_TriggerDelay; });
 		MatchProperty("ActivatesWhenReleased", { reader >> m_ActivatesWhenReleased; });
-		MatchProperty("StrikerLever", { m_StrikerLever = dynamic_cast<const MovableObject *>(g_PresetMan.GetEntityPreset(reader)); });
+		MatchProperty("StrikerLever", { m_StrikerLever = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader)); });
 
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ThrownDevice::Save(Writer &writer) const {
+	int ThrownDevice::Save(Writer& writer) const {
 		HeldDevice::Save(writer);
 
 		writer.NewProperty("ActivationSound");
@@ -93,32 +93,34 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength() {
 		if (m_MaxThrowVel > 0) {
 			return m_MaxThrowVel;
-		} else if (const Arm *parentAsArm = dynamic_cast<Arm *>(GetParent())) {
+		} else if (const Arm* parentAsArm = dynamic_cast<Arm*>(GetParent())) {
 			return (parentAsArm->GetThrowStrength() + std::abs(GetRootParent()->GetAngularVel() * 0.5F)) / std::sqrt(std::abs(GetMass()) + 1.0F);
 		}
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ThrownDevice::ResetAllTimers() {
 		double elapsedTime = m_Activated ? m_ActivationTimer.GetElapsedSimTimeMS() : 0;
 		HeldDevice::ResetAllTimers();
-		if (m_Activated) { m_ActivationTimer.SetElapsedSimTimeMS(elapsedTime); }
+		if (m_Activated) {
+			m_ActivationTimer.SetElapsedSimTimeMS(elapsedTime);
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ThrownDevice::Activate() {
 		if (!m_Activated) {
 			m_ActivationTimer.Reset();
 			m_ActivationSound.Play(m_Pos);
-			if (MovableObject *strikerLever = m_StrikerLever ? dynamic_cast<MovableObject *>(m_StrikerLever->Clone()) : nullptr) {
+			if (MovableObject* strikerLever = m_StrikerLever ? dynamic_cast<MovableObject*>(m_StrikerLever->Clone()) : nullptr) {
 				Vector randomVel(m_Vel.GetMagnitude() * 0.25F + 1.0F, 0);
 
 				strikerLever->SetVel(m_Vel * 0.5F + randomVel.RadRotate(c_PI * RandomNormalNum()));
@@ -133,4 +135,4 @@ namespace RTE {
 			m_Activated = true;
 		}
 	}
-}
+} // namespace RTE

@@ -13,7 +13,7 @@ namespace RTE {
 	ConcreteClassInfo(SceneLayerTracked, Entity, 0);
 	ConcreteClassInfo(SceneLayer, Entity, 0);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::Clear() {
@@ -34,10 +34,10 @@ namespace RTE {
 		m_ScaledDimensions.SetXY(1.0F, 1.0F);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	int SceneLayerImpl<TRACK_DRAWINGS>::Create(const ContentFile &bitmapFile, bool drawMasked, const Vector &offset, bool wrapX, bool wrapY, const Vector &scrollInfo) {
+	int SceneLayerImpl<TRACK_DRAWINGS>::Create(const ContentFile& bitmapFile, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
 		m_BitmapFile = bitmapFile;
 		m_MainBitmap = m_BitmapFile.GetAsBitmap();
 		Create(m_MainBitmap, drawMasked, offset, wrapX, wrapY, scrollInfo);
@@ -47,10 +47,10 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	int SceneLayerImpl<TRACK_DRAWINGS>::Create(BITMAP *bitmap, bool drawMasked, const Vector &offset, bool wrapX, bool wrapY, const Vector &scrollInfo) {
+	int SceneLayerImpl<TRACK_DRAWINGS>::Create(BITMAP* bitmap, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
 		m_MainBitmap = bitmap;
 		RTEAssert(m_MainBitmap, "Null bitmap passed in when creating SceneLayerImpl!");
 
@@ -70,10 +70,10 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	int SceneLayerImpl<TRACK_DRAWINGS>::Create(const SceneLayerImpl &reference) {
+	int SceneLayerImpl<TRACK_DRAWINGS>::Create(const SceneLayerImpl& reference) {
 		Entity::Create(reference);
 
 		m_BitmapFile = reference.m_BitmapFile;
@@ -88,7 +88,7 @@ namespace RTE {
 
 		if (reference.m_MainBitmap) {
 			// Make a copy of the bitmap because it can be modified in some use cases.
-			BITMAP *bitmapToCopy = reference.m_MainBitmap;
+			BITMAP* bitmapToCopy = reference.m_MainBitmap;
 			RTEAssert(bitmapToCopy, "Couldn't load the bitmap file specified for SceneLayerImpl!");
 
 			m_MainBitmap = create_bitmap_ex(bitmap_color_depth(bitmapToCopy), bitmapToCopy->w, bitmapToCopy->h);
@@ -108,24 +108,23 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	int SceneLayerImpl<TRACK_DRAWINGS>::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int SceneLayerImpl<TRACK_DRAWINGS>::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
-		
+
 		MatchProperty("WrapX", { reader >> m_WrapX; });
 		MatchProperty("WrapY", { reader >> m_WrapY; });
 		MatchProperty("BitmapFile", { reader >> m_BitmapFile; });
-		
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	int SceneLayerImpl<TRACK_DRAWINGS>::Save(Writer &writer) const {
+	int SceneLayerImpl<TRACK_DRAWINGS>::Save(Writer& writer) const {
 		Entity::Save(writer);
 
 		writer.NewPropertyWithValue("WrapX", m_WrapX);
@@ -135,17 +134,23 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::Destroy(bool notInherited) {
-		if (m_MainBitmapOwned) { destroy_bitmap(m_MainBitmap); }
-		if (m_BackBitmap) { destroy_bitmap(m_BackBitmap); }
-		if (!notInherited) { Entity::Destroy(); }
+		if (m_MainBitmapOwned) {
+			destroy_bitmap(m_MainBitmap);
+		}
+		if (m_BackBitmap) {
+			destroy_bitmap(m_BackBitmap);
+		}
+		if (!notInherited) {
+			Entity::Destroy();
+		}
 		Clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::InitScrollRatios(bool initForNetworkPlayer, int player) {
@@ -183,7 +188,7 @@ namespace RTE {
 		m_ScaledDimensions.SetXY(mainBitmapWidth * m_ScaleFactor.GetX(), mainBitmapHeight * m_ScaleFactor.GetY());
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::LoadData() {
@@ -198,20 +203,20 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	int SceneLayerImpl<TRACK_DRAWINGS>::SaveData(const std::string &bitmapPath, bool doAsyncSaves) {
+	int SceneLayerImpl<TRACK_DRAWINGS>::SaveData(const std::string& bitmapPath, bool doAsyncSaves) {
 		if (bitmapPath.empty()) {
 			return -1;
 		}
 
 		if (m_MainBitmap) {
 			// Make a copy of the bitmap to pass to the thread because the bitmap may be offloaded mid thread and everything will be on fire.
-			BITMAP *outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
+			BITMAP* outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
 			blit(m_MainBitmap, outputBitmap, 0, 0, 0, 0, m_MainBitmap->w, m_MainBitmap->h);
 
-			auto saveLayerBitmap = [bitmapPath, doAsyncSaves](BITMAP *bitmapToSave) {
+			auto saveLayerBitmap = [bitmapPath, doAsyncSaves](BITMAP* bitmapToSave) {
 				PALETTE palette;
 				get_palette(palette);
 				if (save_png(bitmapPath.c_str(), bitmapToSave, palette) != 0) {
@@ -222,7 +227,7 @@ namespace RTE {
 
 			m_BitmapFile.SetDataPath(bitmapPath);
 			if (doAsyncSaves) {
-				g_ActivityMan.GetSaveGameTask().push_back( g_ThreadMan.GetBackgroundThreadPool().submit(saveLayerBitmap, outputBitmap) );
+				g_ActivityMan.GetSaveGameTask().push_back(g_ThreadMan.GetBackgroundThreadPool().submit(saveLayerBitmap, outputBitmap));
 			} else {
 				saveLayerBitmap(outputBitmap);
 			}
@@ -230,30 +235,36 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::ClearData() {
-		if (m_MainBitmap && m_MainBitmapOwned) { destroy_bitmap(m_MainBitmap); }
+		if (m_MainBitmap && m_MainBitmapOwned) {
+			destroy_bitmap(m_MainBitmap);
+		}
 		m_MainBitmap = nullptr;
 		m_MainBitmapOwned = false;
 
-		if (m_BackBitmap) { destroy_bitmap(m_BackBitmap); }
+		if (m_BackBitmap) {
+			destroy_bitmap(m_BackBitmap);
+		}
 		m_BackBitmap = nullptr;
 		m_LastClearColor = ColorKeys::g_InvalidColor;
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	void SceneLayerImpl<TRACK_DRAWINGS>::SetScaleFactor(const Vector &newScale) {
+	void SceneLayerImpl<TRACK_DRAWINGS>::SetScaleFactor(const Vector& newScale) {
 		m_ScaleFactor = newScale;
-		if (m_MainBitmap) { m_ScaledDimensions.SetXY(static_cast<float>(m_MainBitmap->w) * newScale.GetX(), static_cast<float>(m_MainBitmap->h) * newScale.GetY()); }
+		if (m_MainBitmap) {
+			m_ScaledDimensions.SetXY(static_cast<float>(m_MainBitmap->w) * newScale.GetX(), static_cast<float>(m_MainBitmap->h) * newScale.GetY());
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	int SceneLayerImpl<TRACK_DRAWINGS>::GetPixel(int pixelX, int pixelY) const {
@@ -261,7 +272,7 @@ namespace RTE {
 		return (pixelX < 0 || pixelX >= m_MainBitmap->w || pixelY < 0 || pixelY >= m_MainBitmap->h) ? MaterialColorKeys::g_MaterialAir : _getpixel(m_MainBitmap, pixelX, pixelY);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::SetPixel(int pixelX, int pixelY, int materialID) {
@@ -277,14 +288,14 @@ namespace RTE {
 		RegisterDrawing(pixelX, pixelY, pixelX, pixelY);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	bool SceneLayerImpl<TRACK_DRAWINGS>::IsWithinBounds(const int pixelX, const int pixelY, const int margin) const {
 		return (m_WrapX || (pixelX >= -margin && pixelX < m_MainBitmap->w + margin)) && (m_WrapY || (pixelY >= -margin && pixelY < m_MainBitmap->h + margin));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::ClearBitmap(ColorKeys clearTo) {
@@ -303,18 +314,19 @@ namespace RTE {
 		std::swap(m_MainBitmap, m_BackBitmap);
 
 		// Start a new thread to clear the backbuffer bitmap asynchronously.
-		m_BitmapClearTask = g_ThreadMan.GetPriorityThreadPool().submit([this, clearTo](BITMAP *bitmap, std::vector<IntRect> drawings) {
+		m_BitmapClearTask = g_ThreadMan.GetPriorityThreadPool().submit([this, clearTo](BITMAP* bitmap, std::vector<IntRect> drawings) {
 			ZoneScopedN("Clear Tracked Backbuffer");
 			ClearDrawings(bitmap, drawings, clearTo);
-		}, m_BackBitmap, m_Drawings);
+		},
+		                                                               m_BackBitmap, m_Drawings);
 
 		m_Drawings.clear(); // This was copied into the new thread, so can be safely deleted.
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	bool SceneLayerImpl<TRACK_DRAWINGS>::WrapPosition(int &posX, int &posY) const {
+	bool SceneLayerImpl<TRACK_DRAWINGS>::WrapPosition(int& posX, int& posY) const {
 		int oldX = posX;
 		int oldY = posY;
 
@@ -337,10 +349,10 @@ namespace RTE {
 		return oldX != posX || oldY != posY;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBounds(int &posX, int &posY) const {
+	bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBounds(int& posX, int& posY) const {
 		bool wrapped = false;
 		int width = m_ScaledDimensions.GetFloorIntX();
 		int height = m_ScaledDimensions.GetFloorIntY();
@@ -384,10 +396,10 @@ namespace RTE {
 		return wrapped;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBoundsOrWrapPosition(Vector &pos, bool forceBounds) const {
+	bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBoundsOrWrapPosition(Vector& pos, bool forceBounds) const {
 		int posX = pos.GetFloorIntX();
 		int posY = pos.GetFloorIntY();
 		bool wrapped = forceBounds ? ForceBounds(posX, posY) : WrapPosition(posX, posY);
@@ -396,7 +408,7 @@ namespace RTE {
 		return wrapped;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(int left, int top, int right, int bottom) {
@@ -405,25 +417,33 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(const Vector &center, float radius) {
+	void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(const Vector& center, float radius) {
 		if (radius != 0.0F) {
 			RegisterDrawing(static_cast<int>(center.GetX() - radius), static_cast<int>(center.GetY() - radius), static_cast<int>(center.GetX() + radius), static_cast<int>(center.GetY() + radius));
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	void SceneLayerImpl<TRACK_DRAWINGS>::Draw(BITMAP *targetBitmap, Box &targetBox, bool offsetNeedsScrollRatioAdjustment) {
+	void SceneLayerImpl<TRACK_DRAWINGS>::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 		RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
 
-		if (offsetNeedsScrollRatioAdjustment) { m_Offset.SetXY(std::floor(m_Offset.GetX() * m_ScrollRatio.GetX()), std::floor(m_Offset.GetY() * m_ScrollRatio.GetY())); }
-		if (targetBox.IsEmpty()) { targetBox = Box(Vector(), static_cast<float>(targetBitmap->w), static_cast<float>(targetBitmap->h)); }
-		if (!m_WrapX && static_cast<float>(targetBitmap->w) > targetBox.GetWidth()) { m_Offset.SetX(0); }
-		if (!m_WrapY && static_cast<float>(targetBitmap->h) > targetBox.GetHeight()) { m_Offset.SetY(0); }
+		if (offsetNeedsScrollRatioAdjustment) {
+			m_Offset.SetXY(std::floor(m_Offset.GetX() * m_ScrollRatio.GetX()), std::floor(m_Offset.GetY() * m_ScrollRatio.GetY()));
+		}
+		if (targetBox.IsEmpty()) {
+			targetBox = Box(Vector(), static_cast<float>(targetBitmap->w), static_cast<float>(targetBitmap->h));
+		}
+		if (!m_WrapX && static_cast<float>(targetBitmap->w) > targetBox.GetWidth()) {
+			m_Offset.SetX(0);
+		}
+		if (!m_WrapY && static_cast<float>(targetBitmap->h) > targetBox.GetHeight()) {
+			m_Offset.SetY(0);
+		}
 
 		m_Offset -= m_OriginOffset;
 		WrapPosition(m_Offset);
@@ -439,17 +459,17 @@ namespace RTE {
 		set_clip_rect(targetBitmap, 0, 0, targetBitmap->w - 1, targetBitmap->h - 1);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(BITMAP *targetBitmap, const Box &targetBox, bool drawScaled) const {
+	void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const {
 		if (!drawScaled) {
-			std::array<int, 2> sourcePosX = { m_Offset.GetFloorIntX(), 0 };
-			std::array<int, 2> sourcePosY = { m_Offset.GetFloorIntY(), 0 };
-			std::array<int, 2> sourceWidth = { m_MainBitmap->w - m_Offset.GetFloorIntX(), m_Offset.GetFloorIntX() };
-			std::array<int, 2> sourceHeight = { m_MainBitmap->h - m_Offset.GetFloorIntY(), m_Offset.GetFloorIntY() };
-			std::array<int, 2> destPosX = { targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_MainBitmap->w - m_Offset.GetFloorIntX() };
-			std::array<int, 2> destPosY = { targetBox.GetCorner().GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_MainBitmap->h - m_Offset.GetFloorIntY() };
+			std::array<int, 2> sourcePosX = {m_Offset.GetFloorIntX(), 0};
+			std::array<int, 2> sourcePosY = {m_Offset.GetFloorIntY(), 0};
+			std::array<int, 2> sourceWidth = {m_MainBitmap->w - m_Offset.GetFloorIntX(), m_Offset.GetFloorIntX()};
+			std::array<int, 2> sourceHeight = {m_MainBitmap->h - m_Offset.GetFloorIntY(), m_Offset.GetFloorIntY()};
+			std::array<int, 2> destPosX = {targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_MainBitmap->w - m_Offset.GetFloorIntX()};
+			std::array<int, 2> destPosY = {targetBox.GetCorner().GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_MainBitmap->h - m_Offset.GetFloorIntY()};
 
 			for (int i = 0; i < 2; ++i) {
 				for (int j = 0; j < 2; ++j) {
@@ -461,10 +481,10 @@ namespace RTE {
 				}
 			}
 		} else {
-			std::array<int, 2> sourceWidth = { m_MainBitmap->w, m_Offset.GetFloorIntX() / m_ScaleFactor.GetFloorIntX() };
-			std::array<int, 2> sourceHeight = { m_MainBitmap->h, m_Offset.GetFloorIntY() / m_ScaleFactor.GetFloorIntY() };
-			std::array<int, 2> destPosX = { targetBox.GetCorner().GetFloorIntX() - m_Offset.GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_ScaledDimensions.GetFloorIntX() - m_Offset.GetFloorIntX() };
-			std::array<int, 2> destPosY = { targetBox.GetCorner().GetFloorIntY() - m_Offset.GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_ScaledDimensions.GetFloorIntY() - m_Offset.GetFloorIntY() };
+			std::array<int, 2> sourceWidth = {m_MainBitmap->w, m_Offset.GetFloorIntX() / m_ScaleFactor.GetFloorIntX()};
+			std::array<int, 2> sourceHeight = {m_MainBitmap->h, m_Offset.GetFloorIntY() / m_ScaleFactor.GetFloorIntY()};
+			std::array<int, 2> destPosX = {targetBox.GetCorner().GetFloorIntX() - m_Offset.GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_ScaledDimensions.GetFloorIntX() - m_Offset.GetFloorIntX()};
+			std::array<int, 2> destPosY = {targetBox.GetCorner().GetFloorIntY() - m_Offset.GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_ScaledDimensions.GetFloorIntY() - m_Offset.GetFloorIntY()};
 
 			for (int i = 0; i < 2; ++i) {
 				for (int j = 0; j < 2; ++j) {
@@ -478,10 +498,10 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(BITMAP *targetBitmap, const Box &targetBox, bool drawScaled) const {
+	void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const {
 		int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
 		int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
 		int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(targetBitmap->w, static_cast<int>(targetBox.GetWidth()));
@@ -518,12 +538,12 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <bool TRACK_DRAWINGS>
-	void SceneLayerImpl<TRACK_DRAWINGS>::ClearDrawings(BITMAP* bitmap, const std::vector<IntRect> &drawings, ColorKeys clearTo) const {
+	void SceneLayerImpl<TRACK_DRAWINGS>::ClearDrawings(BITMAP* bitmap, const std::vector<IntRect>& drawings, ColorKeys clearTo) const {
 		if constexpr (TRACK_DRAWINGS) {
-			for (const IntRect &rect : drawings) {
+			for (const IntRect& rect: drawings) {
 				int left = rect.m_Left;
 				int top = rect.m_Top;
 				int bottom = rect.m_Bottom;
@@ -564,9 +584,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Force instantiation
 	template class SceneLayerImpl<false>;
 	template class SceneLayerImpl<true>;
-}
+} // namespace RTE
