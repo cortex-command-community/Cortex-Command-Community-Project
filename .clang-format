@@ -95,7 +95,7 @@ SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 SpaceBeforeSquareBrackets: false
-InsertNewlineAtEOF: true
+#InsertNewlineAtEOF: true
 Standard:        c++17
 StatementMacros:
   - Q_UNUSED
