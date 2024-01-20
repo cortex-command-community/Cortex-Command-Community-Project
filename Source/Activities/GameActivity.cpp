@@ -1430,55 +1430,50 @@ void GameActivity::Update()
                 m_ControlledActor[player] = 0;
         }
 
-        ///////////////////////////////////////////
         // Player-commanded actor switching
-
-        // Switch to brain actor directly if the player wants to
-        if (m_PlayerController[player].IsState(ACTOR_BRAIN) && m_ViewState[player] != ViewState::ActorSelect)
-        {
-            SwitchToActor(m_Brain[player], player, team);
-            m_ViewState[player] = ViewState::Normal;
-        }
-        // Switch to next actor if the player wants to. Don't do it while the buy menu is open
-        else if (m_PlayerController[player].IsState(ACTOR_NEXT) && m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible() && !m_LuaLockActor[player])
-        {
-			if (m_ControlledActor[player] && m_ControlledActor[player]->GetPieMenu()) {
-				m_ControlledActor[player]->GetPieMenu()->SetEnabled(false);
-			}
-            SwitchToNextActor(player, team);
-            m_ViewState[player] = ViewState::Normal;
-            g_FrameMan.ClearScreenText(ScreenOfPlayer(player));
-        }
-        // Switch to prev actor if the player wants to. Don't do it while the buy menu is open
-        else if (m_PlayerController[player].IsState(ACTOR_PREV) && m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible())
-        {
-			if (m_ControlledActor[player] && m_ControlledActor[player]->GetPieMenu()) {
-				m_ControlledActor[player]->GetPieMenu()->SetEnabled(false);
-			}
-            SwitchToPrevActor(player, team);
-            m_ViewState[player] = ViewState::Normal;
-            g_FrameMan.ClearScreenText(ScreenOfPlayer(player));
-        }
-        // Go into manual actor select mode if either actor switch buttons are held for a duration
-        else if (m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible() && !m_LuaLockActor[player] && (m_PlayerController[player].IsState(ACTOR_NEXT_PREP) || m_PlayerController[player].IsState(ACTOR_PREV_PREP)))
-        {
-            if (m_ActorSelectTimer[player].IsPastRealMS(250))
-            {
-                // Set cursor to start at the head of controlled actor
-                if (m_ControlledActor[player])
-                {
-                    // Give switched from actor an AI controller
-                    m_ControlledActor[player]->SetControllerMode(Controller::CIM_AI);
-                    m_ControlledActor[player]->GetController()->SetDisabled(false);
-                    m_ActorCursor[player] = m_ControlledActor[player]->GetCPUPos();
-                    m_CursorTimer.Reset();
+        if (m_ViewState[player] != ViewState::Observe) {
+            // Switch to brain actor directly if the player wants to
+            if (m_PlayerController[player].IsState(ACTOR_BRAIN) && m_ViewState[player] != ViewState::ActorSelect) {
+                SwitchToActor(m_Brain[player], player, team);
+                m_ViewState[player] = ViewState::Normal;
+            } else if (m_PlayerController[player].IsState(ACTOR_NEXT) && m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible() && !m_LuaLockActor[player]) {
+                // Switch to next actor if the player wants to. Don't do it while the buy menu is open
+                if (m_ControlledActor[player] && m_ControlledActor[player]->GetPieMenu()) {
+                    m_ControlledActor[player]->GetPieMenu()->SetEnabled(false);
                 }
-                m_ViewState[player] = ViewState::ActorSelect;
+
+                SwitchToNextActor(player, team);
+                m_ViewState[player] = ViewState::Normal;
                 g_FrameMan.ClearScreenText(ScreenOfPlayer(player));
-			}
+            }
+            // Switch to prev actor if the player wants to. Don't do it while the buy menu is open
+            else if (m_PlayerController[player].IsState(ACTOR_PREV) && m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible()) {
+                if (m_ControlledActor[player] && m_ControlledActor[player]->GetPieMenu()) {
+                    m_ControlledActor[player]->GetPieMenu()->SetEnabled(false);
+                }
+
+                SwitchToPrevActor(player, team);
+                m_ViewState[player] = ViewState::Normal;
+                g_FrameMan.ClearScreenText(ScreenOfPlayer(player));
+            } else if (m_ViewState[player] != ViewState::ActorSelect && !m_pBuyGUI[player]->IsVisible() && !m_LuaLockActor[player] && (m_PlayerController[player].IsState(ACTOR_NEXT_PREP) || m_PlayerController[player].IsState(ACTOR_PREV_PREP))) {
+                // Go into manual actor select mode if either actor switch buttons are held for a duration
+                if (m_ActorSelectTimer[player].IsPastRealMS(250)) {
+                    // Set cursor to start at the head of controlled actor
+                    if (m_ControlledActor[player]) {
+                        // Give switched from actor an AI controller
+                        m_ControlledActor[player]->SetControllerMode(Controller::CIM_AI);
+                        m_ControlledActor[player]->GetController()->SetDisabled(false);
+                        m_ActorCursor[player] = m_ControlledActor[player]->GetCPUPos();
+                        m_CursorTimer.Reset();
+                    }
+
+                    m_ViewState[player] = ViewState::ActorSelect;
+                    g_FrameMan.ClearScreenText(ScreenOfPlayer(player));
+                }
+            } else {
+                m_ActorSelectTimer[player].Reset();
+            }
         }
-        else
-			m_ActorSelectTimer[player].Reset();
 
         ////////////////////////////////////
         // Update sceneman scroll targets
