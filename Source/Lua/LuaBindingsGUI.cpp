@@ -9,8 +9,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, GUIBanner) {
 		auto luaType = SimpleTypeLuaClassDefinition(GUIBanner);
 
@@ -46,8 +44,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, BuyMenuGUI) {
 		auto luaType = SimpleTypeLuaClassDefinition(BuyMenuGUI);
 
@@ -82,8 +78,6 @@ namespace RTE {
 		luaType["GetTotalOrderMass"] = &BuyMenuGUI::GetTotalOrderMass;
 		luaType["GetTotalOrderPassengers"] = &BuyMenuGUI::GetTotalOrderPassengers;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, SceneEditorGUI) {
 		auto luaType = SimpleTypeLuaClassDefinition(SceneEditorGUI);

@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            GUIBanner.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     GUIBanner class
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "GUIBanner.h"
 #include "ContentFile.h"
 
@@ -17,12 +5,6 @@ namespace RTE {
 
 	std::map<std::string, GUIBanner::FontChar*> GUIBanner::m_sFontCache;
 	std::map<std::string, int> GUIBanner::m_sCharCapCache;
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Constructor:     GUIBanner
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Constructor method used to instantiate a GUIBanner object in system
-	//                  memory.
 
 	GUIBanner::GUIBanner() {
 		m_pFontImage[REGULAR] = 0;
@@ -46,11 +28,6 @@ namespace RTE {
 		m_SpacingTimer.Reset();
 		m_FrameTimer.Reset();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Create the font from an image file.
 
 	bool GUIBanner::Create(const std::string fontFilePath, const std::string fontBlurFilePath, int bitDepth) {
 		// Package the font bitmap paths o they are more easily processed below
@@ -175,21 +152,10 @@ namespace RTE {
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys the font data
-
 	void GUIBanner::Destroy() {
 		m_BannerText.clear();
 		m_BannerChars.clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SpaceBetween
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tells how much space, in pixels, currently exists between two flying
-	//                  characters.
 
 	int GUIBanner::SpaceBetween(const FlyingChar& first, FontMode firstMode, const FlyingChar& second, FontMode secondMode) const {
 		if (first.m_PosX < second.m_PosX)
@@ -197,11 +163,6 @@ namespace RTE {
 		else
 			return first.m_PosX - second.m_PosX - CalculateWidth(second.m_Character, secondMode);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ShowText
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Starts the display animation of a text string in this banner's font.
 
 	void GUIBanner::ShowText(const std::string& text, AnimMode mode, long duration, Vector targetSize, float yOnTarget, int flySpeed, int flySpacing) {
 		m_BannerText = text;
@@ -271,11 +232,6 @@ namespace RTE {
 
 	}
 	*/
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the position of the flying characters of this banner.
 
 	void GUIBanner::Update() {
 		double deltaS = m_FrameTimer.GetElapsedRealTimeS();
@@ -361,11 +317,6 @@ namespace RTE {
 		m_FrameTimer.Reset();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws text to a bitmap.
-
 	void GUIBanner::Draw(BITMAP* pTargetBitmap) {
 		// Only bother drawing if things are visible at all
 		if (m_AnimState < SHOWING || m_AnimState > HIDING)
@@ -400,11 +351,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          CalculateWidth
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates the width of a piece of text.
-
 	int GUIBanner::CalculateWidth(const std::string text, FontMode mode) const {
 		unsigned char c;
 		int Width = 0;
@@ -437,11 +383,6 @@ namespace RTE {
 
 		return Width;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          CalculateWidth
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates the width of a piece of text.
 
 	int GUIBanner::CalculateWidth(const char Character, FontMode mode) const {
 		unsigned char c = Character;

@@ -16,8 +16,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Entity) {
 		auto luaType = SimpleTypeLuaClassDefinition(Entity);
 
@@ -40,8 +38,6 @@ namespace RTE {
 		luaType["IsInGroup"] = &Entity::IsInGroup;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOPixel) {
 		auto luaType = ConcreteTypeLuaClassDefinition(MOPixel, MovableObject, SceneObject, Entity);
 
@@ -49,13 +45,9 @@ namespace RTE {
 		luaType["Staininess"] = sol::property(&MOPixel::GetStaininess, &MOPixel::SetStaininess);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSParticle) {
 		auto luaType = ConcreteTypeLuaClassDefinition(MOSParticle, MOSprite, MovableObject, SceneObject, Entity);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
 		auto luaType = ConcreteTypeLuaClassDefinition(MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -126,8 +118,6 @@ namespace RTE {
 
 		luaType["GibThis"] = &LuaAdaptersMOSRotating::GibThis;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 		auto luaType = AbstractTypeLuaClassDefinition(MovableObject, SceneObject, Entity);

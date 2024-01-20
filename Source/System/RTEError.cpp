@@ -20,8 +20,6 @@ namespace RTE {
 	std::string RTEError::s_LastIgnoredAssertDescription = "";
 	std::source_location RTEError::s_LastIgnoredAssertLocation = {};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #ifdef _WIN32
 	/// <summary>
 	/// Custom exception handler for Windows SEH.
@@ -146,8 +144,6 @@ namespace RTE {
 	}
 #endif
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void RTEError::SetExceptionHandlers() {
 		// Basic handling for C++ exceptions. Doesn't give us much meaningful information.
 		[[maybe_unused]] static const std::terminate_handler terminateHandler = []() {
@@ -179,13 +175,9 @@ namespace RTE {
 #endif
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void RTEError::ShowMessageBox(const std::string& message) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "RTE Warning! (>_<)", message.c_str(), nullptr);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool RTEError::ShowAbortMessageBox(const std::string& message) {
 		enum AbortMessageButton {
@@ -220,8 +212,6 @@ namespace RTE {
 		return pressedButton == AbortMessageButton::ButtonRestart;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool RTEError::ShowAssertMessageBox(const std::string& message) {
 		enum AssertMessageButton {
 			ButtonInvalid,
@@ -253,8 +243,6 @@ namespace RTE {
 
 		return pressedButton == AssertMessageButton::ButtonAbort;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void RTEError::UnhandledExceptionFunc(const std::string& description, const std::string& callstack) {
 		s_CurrentlyAborting = true;
@@ -307,8 +295,6 @@ namespace RTE {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RTE CATASTROPHIC ERROR!!! (X_X)", exceptionMessage.c_str(), nullptr);
 		AbortAction;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void RTEError::AbortFunc(const std::string& description, const std::source_location& srcLocation) {
 		s_CurrentlyAborting = true;
@@ -375,8 +361,6 @@ namespace RTE {
 		AbortAction;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void RTEError::AssertFunc(const std::string& description, const std::source_location& srcLocation) {
 		if (System::IsInExternalModuleValidationMode()) {
 			AbortFunc(description, srcLocation);
@@ -413,8 +397,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool RTEError::DumpAbortScreen() {
 		int success = -1;
 		if (glReadPixels != nullptr) {
@@ -443,8 +425,6 @@ namespace RTE {
 		return success == 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool RTEError::DumpAbortSave() {
 		bool success = false;
 		if (g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->CanBeUserSaved()) {
@@ -452,8 +432,6 @@ namespace RTE {
 		}
 		return success;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void RTEError::FormatFunctionSignature(std::string& symbolName) {
 		// TODO: Expand this with more dumb signatures, or make something that makes more sense.

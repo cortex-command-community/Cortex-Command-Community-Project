@@ -25,8 +25,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ActivityMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(ActivityMan, "ActivityManager");
 
@@ -46,8 +44,6 @@ namespace RTE {
 		luaType["SaveGame"] = &ActivityMan::SaveCurrentGame;
 		luaType["LoadGame"] = &ActivityMan::LoadAndLaunchGame;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(AudioMan, "AudioManager");
@@ -74,8 +70,6 @@ namespace RTE {
 		luaType["PlaySound"] = (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position, int player)) & AudioMan::PlaySound; //; //, luabind::adopt(luabind::result);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(ConsoleMan, "ConsoleManager");
 
@@ -84,8 +78,6 @@ namespace RTE {
 		luaType["SaveAllText"] = &ConsoleMan::SaveAllText;
 		luaType["Clear"] = &ConsoleMan::ClearLog;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, FrameMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(FrameMan, "FrameManager");
@@ -109,8 +101,6 @@ namespace RTE {
 		luaType["SplitStringToFitWidth"] = &FrameMan::SplitStringToFitWidth;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MetaMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(MetaMan, "MetaManager");
 
@@ -124,8 +114,6 @@ namespace RTE {
 		luaType["GetPlayer"] = &MetaMan::GetPlayer;
 		luaType["GetMetaPlayerOfInGamePlayer"] = &MetaMan::GetMetaPlayerOfInGamePlayer;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(MovableMan, "MovableManager");
@@ -195,23 +183,17 @@ namespace RTE {
 		luaType["AddParticle"] = &LuaAdaptersMovableMan::AddParticle; //, luabind::adopt(_2);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PerformanceMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(PerformanceMan, "PerformanceManager");
 
 		luaType["ShowPerformanceStats"] = sol::property(&PerformanceMan::IsShowingPerformanceStats, &PerformanceMan::ShowPerformanceStats);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PostProcessMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(PostProcessMan, "PostProcessManager");
 
 		luaType["RegisterPostEffect"] = &PostProcessMan::RegisterPostEffect;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(PresetMan, "PresetManager");
@@ -244,8 +226,6 @@ namespace RTE {
 		luaType["IsModuleUserdata"] = &PresetMan::IsModuleUserdata;
 		luaType["GetFullModulePath"] = &PresetMan::GetFullModulePath;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PrimitiveMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(PrimitiveMan, "PrimitiveManager");
@@ -303,8 +283,6 @@ namespace RTE {
 		luaType["DrawPrimitives"] = &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending;
 		luaType["DrawPrimitives"] = &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(SceneMan, "SceneManager");
@@ -373,8 +351,6 @@ namespace RTE {
 		luaType["DislodgePixel"] = &SceneMan::DislodgePixel;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, CameraMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(CameraMan, "CameraManager");
 
@@ -391,8 +367,6 @@ namespace RTE {
 		luaType["AddScreenShake"] = (void(CameraMan::*)(float, const Vector&)) & CameraMan::AddScreenShake;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SettingsMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(SettingsMan, "SettingsManager");
 
@@ -402,8 +376,6 @@ namespace RTE {
 		luaType["ShowEnemyHUD"] = sol::property(&SettingsMan::ShowEnemyHUD);
 		luaType["AutomaticGoldDeposit"] = sol::property(&SettingsMan::GetAutomaticGoldDeposit);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, TimerMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(TimerMan, "TimerManager");
@@ -421,8 +393,6 @@ namespace RTE {
 		luaType["TimeForSimUpdate"] = &TimerMan::TimeForSimUpdate;
 		luaType["DrawnSimUpdate"] = &TimerMan::DrawnSimUpdate;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, UInputMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(UInputMan, "UInputManager");

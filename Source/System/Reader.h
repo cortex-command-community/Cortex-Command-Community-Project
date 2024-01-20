@@ -5,186 +5,134 @@ namespace RTE {
 
 	using ProgressCallback = std::function<void(std::string, bool)>; //!< Convenient name definition for the progress report callback function.
 
-	/// <summary>
 	/// Reads RTE objects from std::istreams.
-	/// </summary>
 	class Reader {
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a Reader object in system memory. Create() should be called before using the object.
-		/// </summary>
 		Reader() { Clear(); }
 
-		/// <summary>
 		/// Constructor method used to instantiate a Reader object in system memory and make it ready for reading from the passed in file path.
-		/// </summary>
-		/// <param name="fileName">Path to the file to open for reading. If the file doesn't exist the stream will fail to open.</param>
-		/// <param name="overwrites">Whether object definitions read here overwrite existing ones with the same names.</param>
-		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.</param>
-		/// <param name="failOK">Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.</param>
-		/// <param name="nonModulePath">Whether this Reader is reading from path that is not a DataModule and should just read it as provided.</param>
+		/// @param fileName Path to the file to open for reading. If the file doesn't exist the stream will fail to open.
+		/// @param overwrites Whether object definitions read here overwrite existing ones with the same names.
+		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.
+		/// @param failOK Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.
+		/// @param nonModulePath Whether this Reader is reading from path that is not a DataModule and should just read it as provided.
 		Reader(const std::string& fileName, bool overwrites = false, const ProgressCallback& progressCallback = nullptr, bool failOK = false, bool nonModulePath = false);
 
-		/// <summary>
 		/// Constructor method used to instantiate a Reader object in system memory and make it ready for reading from the passed in file path.
-		/// </summary>
-		/// <param name="stream">Stream to read from.</param>
-		/// <param name="overwrites">Whether object definitions read here overwrite existing ones with the same names.</param>
-		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.</param>
-		/// <param name="failOK">Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.</param>
+		/// @param stream Stream to read from.
+		/// @param overwrites Whether object definitions read here overwrite existing ones with the same names.
+		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.
+		/// @param failOK Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.
 		Reader(std::unique_ptr<std::istream>&& stream, bool overwrites = false, const ProgressCallback& progressCallback = nullptr, bool failOK = false);
 
-		/// <summary>
 		/// Makes the Reader object ready for use.
-		/// </summary>
-		/// <param name="fileName">Path to the file to open for reading. If the file doesn't exist the stream will fail to open.</param>
-		/// <param name="overwrites"> Whether object definitions read here overwrite existing ones with the same names.</param>
-		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.</param>
-		/// <param name="failOK">Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.</param>
-		/// <returns>An error return value signaling success or any particular failure.  Anything below 0 is an error signal.</returns>
+		/// @param fileName Path to the file to open for reading. If the file doesn't exist the stream will fail to open.
+		/// @param overwrites Whether object definitions read here overwrite existing ones with the same names.
+		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.
+		/// @param failOK Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.
+		/// @return An error return value signaling success or any particular failure.  Anything below 0 is an error signal.
 		int Create(const std::string& fileName, bool overwrites = false, const ProgressCallback& progressCallback = nullptr, bool failOK = false);
 
-		/// <summary>
 		/// Makes the Reader object ready for use.
-		/// </summary>
-		/// <param name="stream">Stream to read from.</param>
-		/// <param name="overwrites"> Whether object definitions read here overwrite existing ones with the same names.</param>
-		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.</param>
-		/// <param name="failOK">Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.</param>
-		/// <returns>An error return value signaling success or any particular failure.  Anything below 0 is an error signal.</returns>
+		/// @param stream Stream to read from.
+		/// @param overwrites Whether object definitions read here overwrite existing ones with the same names.
+		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.
+		/// @param failOK Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.
+		/// @return An error return value signaling success or any particular failure.  Anything below 0 is an error signal.
 		int Create(std::unique_ptr<std::istream>&& stream, bool overwrites = false, const ProgressCallback& progressCallback = nullptr, bool failOK = false);
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Gets the name of the DataModule this Reader is reading from.
-		/// </summary>
-		/// <returns>The name of the DataModule this reader is reading from.</returns>
+		/// @return The name of the DataModule this reader is reading from.
 		const std::string& GetReadModuleName() const { return m_DataModuleName; }
 
-		/// <summary>
 		/// Gets the ID of the DataModule this Reader is reading from. If the ID is invalid, attempts to get a valid ID using the DataModule name.
-		/// </summary>
-		/// <returns>The DataModule ID that this Reader is reading from.</returns>
+		/// @return The DataModule ID that this Reader is reading from.
 		int GetReadModuleID() const;
 
-		/// <summary>
 		/// Gets a pointer to the istream of this reader.
-		/// </summary>
-		/// <returns>A pointer to the istream object for this reader.</returns>
+		/// @return A pointer to the istream object for this reader.
 		std::istream* GetStream() const { return m_Stream.get(); }
 
-		/// <summary>
 		/// Gets the path of the current file this reader is reading from.
-		/// </summary>
-		/// <returns>A string with the path, relative from the working directory.</returns>
+		/// @return A string with the path, relative from the working directory.
 		std::string GetCurrentFilePath() const { return m_FilePath; }
 
-		/// <summary>
 		/// Gets the line of the current file line this reader is reading from.
-		/// </summary>
-		/// <returns>A string with the line number that will be read from next.</returns>
+		/// @return A string with the line number that will be read from next.
 		std::string GetCurrentFileLine() const { return std::to_string(m_CurrentLine); }
 
-		/// <summary>
 		/// Shows whether objects read from this will be overwriting any existing ones with the same names.
-		/// </summary>
-		/// <returns>Whether this overwrites or not.</returns>
+		/// @return Whether this overwrites or not.
 		bool GetPresetOverwriting() const { return m_OverwriteExisting; }
 
-		/// <summary>
 		/// Sets whether objects read from this will be overwriting any existing ones with the same names.
-		/// </summary>
-		/// <param name="overwrites">Whether this should overwrite existing definitions or not.</param>
+		/// @param overwrites Whether this should overwrite existing definitions or not.
 		void SetPresetOverwriting(bool overwrites = true) { m_OverwriteExisting = overwrites; }
 
-		/// <summary>
 		/// Returns true if reader was told to skip InlcudeFile statements
-		/// </summary>
-		/// <returns>Returns whether reader was told to skip included files.</returns>
+		/// @return Returns whether reader was told to skip included files.
 		bool GetSkipIncludes() const { return m_SkipIncludes; };
 
-		/// <summary>
 		/// Set whether this reader should skip included files.
-		/// </summary>
-		/// <param name="skip">To make reader skip included files pass true, pass false otherwise.</param>
+		/// @param skip To make reader skip included files pass true, pass false otherwise.
 		void SetSkipIncludes(bool skip) { m_SkipIncludes = skip; };
 #pragma endregion
 
 #pragma region Reading Operations
-		/// <summary>
 		/// Reads a file and constructs a string from all its contents.
-		/// </summary>
-		/// <returns>A string containing the whole file contents.</returns>
+		/// @return A string containing the whole file contents.
 		std::string WholeFileAsString() const;
 
-		/// <summary>
 		/// Reads the rest of the line from the context object Reader's stream current location.
-		/// </summary>
-		/// <returns>The std::string that will hold the line's contents.</returns>
+		/// @return The std::string that will hold the line's contents.
 		std::string ReadLine();
 
-		/// <summary>
 		/// Reads the next property name from the context object Reader's stream after eating all whitespace including newlines up till the first newline char.
 		/// Basically gets anything between the last newline before text to the next "=" after that.
-		/// </summary>
-		/// <returns>The whitespace-trimmed std::string that will hold the next property's name.</returns>
+		/// @return The whitespace-trimmed std::string that will hold the next property's name.
 		std::string ReadPropName();
 
-		/// <summary>
 		/// Reads the next property value from the context object Reader's stream after eating all whitespace including newlines up till the first newline char.
 		/// Basically gets anything after the last "=" and up to the next newline after that.
-		/// </summary>
-		/// <returns>The whitespace-trimmed std::string that will hold the next property value.</returns>
+		/// @return The whitespace-trimmed std::string that will hold the next property value.
 		std::string ReadPropValue();
 
-		/// <summary>
 		/// Lines up the reader with the next property of the current object.
-		/// </summary>
-		/// <returns>Whether there are any more properties to be read by the current object.</returns>
+		/// @return Whether there are any more properties to be read by the current object.
 		bool NextProperty();
 
-		/// <summary>
 		/// Notifies the reader that we're starting reading a new object, by making it expect another level of indentation.
-		/// </summary>
 		void StartObject() { --m_ObjectEndings; }
 
-		/// <summary>
 		/// Takes out whitespace from the beginning and the end of a string.
-		/// </summary>
-		/// <param name="stringToTrim">String to remove whitespace from.</param>
-		/// <returns>The string that was passed in, sans whitespace in the front and end.</returns>
+		/// @param stringToTrim String to remove whitespace from.
+		/// @return The string that was passed in, sans whitespace in the front and end.
 		std::string TrimString(const std::string& stringToTrim) const;
 
-		/// <summary>
 		/// Discards all whitespace, newlines and comment lines (which start with '//') so that the next thing to be read will be actual data.
-		/// </summary>
-		/// <returns>Whether there is more data to read from the file streams after this eat.</returns>
+		/// @return Whether there is more data to read from the file streams after this eat.
 		bool DiscardEmptySpace();
 #pragma endregion
 
 #pragma region Reader Status
-		/// <summary>
 		/// Shows whether this is still OK to read from. If file isn't present, etc, this will return false.
-		/// </summary>
-		/// <returns>Whether this Reader's stream is OK or not.</returns>
+		/// @return Whether this Reader's stream is OK or not.
 		bool ReaderOK() const { return m_Stream.get() && m_Stream->good(); }
 
-		/// <summary>
 		/// Makes an error message box pop up for the user that tells them something went wrong with the reading, and where.
-		/// </summary>
-		/// <param name="errorDesc">The message describing what's wrong.</param>
+		/// @param errorDesc The message describing what's wrong.
 		void ReportError(const std::string& errorDesc) const;
 #pragma endregion
 
 #pragma region Operator Overloads
-		/// <summary>
 		/// Stream extraction operator overloads for all the elemental types.
-		/// </summary>
-		/// <param name="var">A reference to the variable that will be filled by the extracted data.</param>
-		/// <returns>A Reader reference for further use in an expression.</returns>
+		/// @param var A reference to the variable that will be filled by the extracted data.
+		/// @return A Reader reference for further use in an expression.
 		Reader& operator>>(bool& var) {
 			DiscardEmptySpace();
 			*m_Stream >> var;
@@ -253,13 +201,9 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-		/// <summary>
 		/// A struct containing information from the currently used stream.
-		/// </summary>
 		struct StreamInfo {
-			/// <summary>
 			/// Constructor method used to instantiate a StreamInfo object in system memory.
-			/// </summary>
 			StreamInfo(std::istream* stream, const std::string& filePath, int currentLine, int prevIndent) :
 			    Stream(stream), FilePath(filePath), CurrentLine(currentLine), PreviousIndent(prevIndent) {}
 
@@ -294,32 +238,24 @@ namespace RTE {
 
 		std::stack<int> m_BlockCommentOpenTagLines; //<! Stores lines on which block comment open tags are encountered. Used for error reporting when a file stream ends with an open block comment.
 
-		/// <summary>
 		/// When NextProperty() has returned false, indicating that there were no more properties to read on that object,
 		/// this is incremented until it matches -m_IndentDifference, and then NextProperty will start returning true again.
-		/// </summary>
 		int m_ObjectEndings;
 
 	private:
 #pragma region Reading Operations
-		/// <summary>
 		/// When ReadPropName encounters the property name "IncludeFile", it will automatically call this function to get started reading on that file.
 		/// This will create a new stream to the include file.
-		/// </summary>
-		/// <returns>Whether the include file was found and opened ok or not.</returns>
+		/// @return Whether the include file was found and opened ok or not.
 		bool StartIncludeFile();
 
-		/// <summary>
 		/// This should be called when end-of-file is detected in an included file stream.
 		/// It will destroy the current stream pop the top stream off the stream stack to resume reading from it instead.
-		/// </summary>
-		/// <returns>Whether there were any stream on the stack to resume.</returns>
+		/// @return Whether there were any stream on the stack to resume.
 		bool EndIncludeFile();
 #pragma endregion
 
-		/// <summary>
 		/// Clears all the member variables of this Reader, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

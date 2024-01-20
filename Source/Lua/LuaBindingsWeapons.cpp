@@ -66,8 +66,6 @@ namespace RTE {
 		luaType["SetNextMagazineName"] = &HDFirearm::SetNextMagazineName;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
 		auto luaType = ConcreteTypeLuaClassDefinition(HeldDevice, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
@@ -111,8 +109,6 @@ namespace RTE {
 		luaType["RemovePickupableByPresetName"] = &HeldDevice::RemovePickupableByPresetName;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Magazine) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Magazine, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
@@ -124,8 +120,6 @@ namespace RTE {
 		luaType["Capacity"] = sol::property(&Magazine::GetCapacity);
 		luaType["Discardable"] = sol::property(&Magazine::IsDiscardable);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Round) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Round, Entity);
@@ -142,15 +136,11 @@ namespace RTE {
 		luaType["IsEmpty"] = sol::property(&Round::IsEmpty);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, TDExplosive) {
 		auto luaType = ConcreteTypeLuaClassDefinition(TDExplosive, ThrownDevice, HeldDevice, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["IsAnimatedManually"] = sol::property(&TDExplosive::IsAnimatedManually, &TDExplosive::SetAnimatedManually);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ThrownDevice) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ThrownDevice, HeldDevice, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -162,8 +152,6 @@ namespace RTE {
 
 		luaType["GetCalculatedMaxThrowVelIncludingArmThrowStrength"] = &ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Turret) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Turret, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);

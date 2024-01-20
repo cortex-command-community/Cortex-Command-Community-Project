@@ -6,11 +6,9 @@
 #include "sol/sol.hpp"
 
 namespace RTE {
-	/// <summary>
 	/// Special callback function for adding file name and line number to error messages when calling functions incorrectly.
-	/// </summary>
-	/// <param name="luaState">The Lua master state.</param>
-	/// <returns>An error signal, 1, so Lua correctly reports that there's been an error.</returns>
+	/// @param luaState The Lua master state.
+	/// @return An error signal, 1, so Lua correctly reports that there's been an error.
 	static int AddFileAndLineToError(lua_State* luaState) {
 		lua_Debug luaDebug;
 		if (lua_getstack(luaState, 2, &luaDebug) > 0) {
@@ -29,12 +27,10 @@ namespace RTE {
 		return 1;
 	}
 
-	/// <summary>
 	/// Converts a Lua table to a C++ vector of the specified type. Ownership of the objects in the Lua table is transferred!
-	/// </summary>
-	/// <param name="luaTable">The Lua table object to convert to vector.</param>
-	/// <returns>A C++ vector containing all the objects from the Lua table. Ownership is transferred!</returns>
-	/// <remarks>In case of type mismatch (by specifying wrong type or a mix of types in the Lua table) object_cast will print an error to the console and throw, so no need to check what it returns before emplacing.</remarks>
+	/// @param luaTable The Lua table object to convert to vector.
+	/// @return A C++ vector containing all the objects from the Lua table. Ownership is transferred!
+	/// @remark In case of type mismatch (by specifying wrong type or a mix of types in the Lua table) object_cast will print an error to the console and throw, so no need to check what it returns before emplacing.
 	template <typename Type> static std::vector<Type> ConvertLuaTableToVectorOfType(const sol::table& luaObject) {
 		std::vector<Type> outVector = {};
 		if (luaObject.valid()) {

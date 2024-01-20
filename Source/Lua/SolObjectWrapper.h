@@ -19,21 +19,15 @@ namespace RTE {
 	}
 #pragma endregion
 
-	/// <summary>
 	/// A wrapper for luabind objects, to avoid include problems with luabind.
-	/// </summary>
 	class SolObjectWrapper {
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used for SolObjectWrapper.
-		/// </summary>
 		SolObjectWrapper() = default;
 
-		/// <summary>
 		/// Constructor method used to instantiate a SolObjectWrapper object in system memory.
-		/// </summary>
 		explicit SolObjectWrapper(sol::object* solObject, const std::string_view& filePath, bool ownsObject = true) :
 		    m_SolObject(solObject), m_FilePath(filePath), m_OwnsObject(ownsObject) {}
 #pragma endregion
@@ -41,28 +35,20 @@ namespace RTE {
 #pragma region Destruction
 		static void ApplyQueuedDeletions();
 
-		/// <summary>
 		/// Destructor method used to clean up a SolObjectWrapper object before deletion from system memory.
-		/// </summary>
 		~SolObjectWrapper();
 #pragma endregion
 
-		/// <summary>
 		/// Attempts to copy a luabind object into another state.
-		/// </summary>
 		SolObjectWrapper GetCopyForState(lua_State& newState) const;
 
 #pragma region Getters
-		/// <summary>
 		/// Gets the SolObjectWrapper's luabind object. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>The SolObjectWrapper's luabind object.</returns>
+		/// @return The SolObjectWrapper's luabind object.
 		sol::object* GetSolObject() const { return m_SolObject; }
 
-		/// <summary>
 		/// Gets the SolObjectWrapper's file path.
-		/// </summary>
-		/// <returns>The SolObjectWrapper's file path.</returns>
+		/// @return The SolObjectWrapper's file path.
 		const std::string& GetFilePath() const { return m_FilePath; }
 #pragma endregion
 

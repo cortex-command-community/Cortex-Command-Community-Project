@@ -13,8 +13,6 @@ namespace RTE {
 
 	ConcreteClassInfo(SLTerrain, SceneLayer, 0);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SLTerrain::Clear() {
 		m_Width = 0;
 		m_Height = 0;
@@ -28,8 +26,6 @@ namespace RTE {
 		m_UpdatedMaterialAreas.clear();
 		m_OrbitDirection = Directions::Up;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLTerrain::Create() {
 		SceneLayer::Create();
@@ -46,8 +42,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLTerrain::Create(const SLTerrain& reference) {
 		SceneLayer::Create(reference);
@@ -78,8 +72,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneLayer::ReadProperty(propName, reader));
@@ -126,8 +118,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLTerrain::Save(Writer& writer) const {
 		SceneLayer::Save(writer);
@@ -178,8 +168,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: Break this down and refactor.
 	void SLTerrain::TexturizeTerrain() {
@@ -263,8 +251,6 @@ namespace RTE {
 		              });
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int SLTerrain::LoadData() {
 		SceneLayer::LoadData();
 
@@ -297,8 +283,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int SLTerrain::SaveData(const std::string& pathBase, bool doAsyncSaves) {
 		if (pathBase.empty()) {
 			return -1;
@@ -309,8 +293,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int SLTerrain::ClearData() {
 		RTEAssert(SceneLayer::ClearData() == 0, "Failed to clear material bitmap data of an SLTerrain!");
 		RTEAssert(m_FGColorLayer && m_FGColorLayer->ClearData() == 0, "Failed to clear the foreground color bitmap data of an SLTerrain!");
@@ -318,14 +300,10 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool SLTerrain::IsAirPixel(const int pixelX, const int pixelY) const {
 		int checkPixel = GetPixel(pixelX, pixelY);
 		return checkPixel == MaterialColorKeys::g_MaterialAir || checkPixel == MaterialColorKeys::g_MaterialCavity;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SLTerrain::IsBoxBuried(const Box& checkBox) const {
 		bool buried = true;
@@ -335,8 +313,6 @@ namespace RTE {
 		buried = buried && !IsAirPixel(static_cast<int>(checkBox.GetCorner().GetX() + checkBox.GetWidth()), static_cast<int>(checkBox.GetCorner().GetY() + checkBox.GetHeight()));
 		return buried;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLTerrain::CleanAir() {
 		std::vector<int> rows(m_MainBitmap->h); // we loop through h first, because we want each thread to have sequential memory that they're touching
@@ -356,8 +332,6 @@ namespace RTE {
 			              }
 		              });
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLTerrain::CleanAirBox(const Box& box, bool wrapsX, bool wrapsY) {
 		int width = m_MainBitmap->w;
@@ -397,8 +371,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: OPTIMIZE THIS, IT'S A TIME HOG. MAYBE JSUT STAMP THE OUTLINE AND SAMPLE SOME RANDOM PARTICLES?
 	std::deque<MOPixel*> SLTerrain::EraseSilhouette(BITMAP* sprite, const Vector& pos, const Vector& pivot, const Matrix& rotation, float scale, bool makeMOPs, int skipMOP, int maxMOPs) {
@@ -489,16 +461,12 @@ namespace RTE {
 		return dislodgedMOPixels;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SLTerrain::Update() {
 		SceneLayer::Update();
 
 		m_FGColorLayer->SetOffset(m_Offset);
 		m_BGColorLayer->SetOffset(m_Offset);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLTerrain::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 		switch (m_LayerToDraw) {

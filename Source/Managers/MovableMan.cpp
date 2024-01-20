@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MovableMan.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the MovableMan class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MovableMan.h"
 
 #include "PrimitiveMan.h"
@@ -53,12 +41,6 @@ namespace RTE {
 		bool operator()(MovableObject* pRhs, MovableObject* pLhs) { return pRhs->GetPos().m_X < pLhs->GetPos().m_X; }
 	};
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this MovableMan, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void MovableMan::Clear() {
 		m_Actors.clear();
 		m_ContiguousActorIDs.clear();
@@ -87,25 +69,12 @@ namespace RTE {
 		m_MOSubtractionEnabled = true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MovableMan object ready for use.
-
 	int MovableMan::Initialize() {
 		// TODO: Increase this number, or maybe only for certain classes?
 		Entity::ClassInfo::FillAllPools();
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int MovableMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -118,12 +87,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this MovableMan with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int MovableMan::Save(Writer& writer) const {
 		Serializable::Save(writer);
@@ -139,11 +102,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the MovableMan object.
-
 	void MovableMan::Destroy() {
 		for (std::deque<Actor*>::iterator it1 = m_Actors.begin(); it1 != m_Actors.end(); ++it1)
 			delete (*it1);
@@ -155,20 +113,12 @@ namespace RTE {
 		Clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetMOFromID
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a MO from its MOID. Note that MOID's are only valid during the
-	//                  same frame as they were assigned to the MOs!
-
 	MovableObject* MovableMan::GetMOFromID(MOID whichID) {
 		if (whichID != g_NoMOID && whichID != 0 && whichID < m_MOIDIndex.size()) {
 			return m_MOIDIndex[whichID];
 		}
 		return nullptr;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MOID MovableMan::GetMOIDPixel(int pixelX, int pixelY, const std::vector<int>& moidList) {
 		// Note - We loop through the MOs in reverse to make sure that the topmost (last drawn) MO that overlaps the specified coordinates is the one returned.
@@ -191,15 +141,6 @@ namespace RTE {
 		return g_NoMOID;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RegisterObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Registers an object in a global Map collection so it could be found later with FindObjectByUniqueId
-	// Arguments:       MO to register.
-	// Return value:    None.
-
 	void MovableMan::RegisterObject(MovableObject* mo) {
 		if (!mo) {
 			return;
@@ -208,13 +149,6 @@ namespace RTE {
 		std::lock_guard<std::mutex> guard(m_ObjectRegisteredMutex);
 		m_KnownObjects[mo->GetUniqueID()] = mo;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          UnregisterObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes an object from the global lookup collection
-	// Arguments:       MO to remove.
-	// Return value:    None.
 
 	void MovableMan::UnregisterObject(MovableObject* mo) {
 		if (!mo) {
@@ -225,23 +159,13 @@ namespace RTE {
 		m_KnownObjects.erase(mo->GetUniqueID());
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const std::vector<MovableObject*> MovableMan::GetMOsInBox(const Box& box, int ignoreTeam, bool getsHitByMOsOnly) const {
 		return g_SceneMan.GetMOIDGrid().GetMOsInBox(box, ignoreTeam, getsHitByMOsOnly);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	const std::vector<MovableObject*> MovableMan::GetMOsInRadius(const Vector& centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const {
 		return g_SceneMan.GetMOIDGrid().GetMOsInRadius(centre, radius, ignoreTeam, getsHitByMOsOnly);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          PurgeAllMOs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears out all MovableObject:s out of this. Effectively empties the world
-	//                  of anything moving, without resetting all of this' settings.
 
 	void MovableMan::PurgeAllMOs() {
 		for (std::deque<Actor*>::iterator itr = m_Actors.begin(); itr != m_Actors.end(); ++itr) {
@@ -287,12 +211,6 @@ namespace RTE {
 		// We want to keep known objects around, 'cause these can exist even when not in the simulation (they're here from creation till deletion, regardless of whether they are in sim)
 		// m_KnownObjects.clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetNextActorInGroup
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to the first Actor in the internal Actor list that is
-	//                  of a specifc group, alternatively the first one AFTER a specific actor!
 
 	Actor* MovableMan::GetNextActorInGroup(std::string group, Actor* pAfterThis) {
 		if (group.empty())
@@ -340,12 +258,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetPrevActorInGroup
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to the last Actor in the internal Actor list that is
-	//                  of a specifc group, alternatively the last one BEFORE a specific actor!
-
 	Actor* MovableMan::GetPrevActorInGroup(std::string group, Actor* pBeforeThis) {
 		if (group.empty())
 			return 0;
@@ -391,12 +303,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetNextTeamActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to the first Actor in the internal Actor list that is
-	//                  of a specifc team, alternatively the first one AFTER a specific actor!
 
 	Actor* MovableMan::GetNextTeamActor(int team, Actor* pAfterThis) {
 		if (team < Activity::TeamOne || team >= Activity::MaxTeamCount || m_ActorRoster[team].empty())
@@ -473,12 +379,6 @@ namespace RTE {
 		return *aIt;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetPrevTeamActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to the last Actor in the internal Actor list that is
-	//                  of a specifc team, alternatively the last one BEFORE a specific actor!
-
 	Actor* MovableMan::GetPrevTeamActor(int team, Actor* pBeforeThis) {
 		if (team < Activity::TeamOne || team >= Activity::MaxTeamCount || m_Actors.empty() || m_ActorRoster[team].empty())
 			return 0;
@@ -554,12 +454,6 @@ namespace RTE {
 		return *aIt;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetClosestTeamActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to an Actor in the internal Actor list that is of a
-	//                  specifc team and closest to a specific scene point.
-
 	Actor* MovableMan::GetClosestTeamActor(int team, int player, const Vector& scenePoint, int maxRadius, Vector& getDistance, bool onlyPlayerControllableActors, const Actor* excludeThis) {
 		if (team < Activity::NoTeam || team >= Activity::MaxTeamCount || m_Actors.empty() || m_ActorRoster[team].empty())
 			return 0;
@@ -606,12 +500,6 @@ namespace RTE {
 		return pClosestActor;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetClosestEnemyActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to an Actor in the internal Actor list that is is not of
-	//                  the specified team and closest to a specific scene point.
-
 	Actor* MovableMan::GetClosestEnemyActor(int team, const Vector& scenePoint, int maxRadius, Vector& getDistance) {
 		if (team < Activity::NoTeam || team >= Activity::MaxTeamCount || m_Actors.empty())
 			return 0;
@@ -638,12 +526,6 @@ namespace RTE {
 
 		return pClosestActor;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetClosestActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to an Actor in the internal Actor list that is closest
-	//                  to a specific scene point.
 
 	Actor* MovableMan::GetClosestActor(const Vector& scenePoint, int maxRadius, Vector& getDistance, const Actor* pExcludeThis) {
 		if (m_Actors.empty())
@@ -672,12 +554,6 @@ namespace RTE {
 		return pClosestActor;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetClosestBrainActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to the brain actor of a specific team that is closest to
-	//                  a scene point.
-
 	Actor* MovableMan::GetClosestBrainActor(int team, const Vector& scenePoint) const {
 		if (team < Activity::TeamOne || team >= Activity::MaxTeamCount || m_ActorRoster[team].empty())
 			return 0;
@@ -702,12 +578,6 @@ namespace RTE {
 		return pClosestBrain;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetClosestOtherBrainActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to the brain actor NOT of a specific team that is closest
-	//                  to a scene point.
-
 	Actor* MovableMan::GetClosestOtherBrainActor(int notOfTeam, const Vector& scenePoint) const {
 		if (notOfTeam < Activity::TeamOne || notOfTeam >= Activity::MaxTeamCount || m_Actors.empty())
 			return 0;
@@ -731,12 +601,6 @@ namespace RTE {
 		return pClosestBrain;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetUnassignedBrain
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Get a pointer to the brain actor of a specific team.
-	// Arguments:       Which team to try to get the brain for. 0 means first team, 1 means 2nd.
-
 	Actor* MovableMan::GetUnassignedBrain(int team) const {
 		if (/*m_Actors.empty() || */ m_ActorRoster[team].empty())
 			return 0;
@@ -758,8 +622,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool MovableMan::AddMO(MovableObject* movableObjectToAdd) {
 		if (!movableObjectToAdd) {
 			return false;
@@ -776,8 +638,6 @@ namespace RTE {
 
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::AddActor(Actor* actorToAdd) {
 		if (actorToAdd) {
@@ -809,8 +669,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableMan::AddItem(HeldDevice* itemToAdd) {
 		if (itemToAdd) {
 			g_ActivityMan.GetActivity()->ForceSetTeamAsActive(itemToAdd->GetTeam());
@@ -833,8 +691,6 @@ namespace RTE {
 			m_ValidItems.insert(itemToAdd);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::AddParticle(MovableObject* particleToAdd) {
 		if (particleToAdd) {
@@ -863,13 +719,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RemoveActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes an Actor from the internal list of MO:s. After the Actor is
-	//                  removed, ownership is effectively released and transferred to whatever
-	//                  client called this method.
 
 	Actor* MovableMan::RemoveActor(MovableObject* pActorToRem) {
 		Actor* removed = nullptr;
@@ -902,13 +751,6 @@ namespace RTE {
 		return removed;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RemoveItem
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes a pickup-able MovableObject item from the internal list of
-	//                  MO:s. After the item is removed, ownership is effectively released and
-	//                  transferred to whatever client called this method.
-
 	MovableObject* MovableMan::RemoveItem(MovableObject* pItemToRem) {
 		MovableObject* removed = nullptr;
 
@@ -938,13 +780,6 @@ namespace RTE {
 		}
 		return removed;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RemoveParticle
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes a MovableObject from the internal list of MO:s. After the
-	//                  MO is removed, ownership is effectively released and transferred to
-	//                  whatever client called this method.
 
 	MovableObject* MovableMan::RemoveParticle(MovableObject* pMOToRem) {
 		MovableObject* removed = nullptr;
@@ -976,13 +811,6 @@ namespace RTE {
 		return removed;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AddActorToTeamRoster
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds actor to internal team roster
-	// Arguments:       Pointer to actor
-	// Return value:    None.
-
 	void MovableMan::AddActorToTeamRoster(Actor* pActorToAdd) {
 		if (!pActorToAdd) {
 			return;
@@ -1000,13 +828,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RemoveActorToTeamRoster
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes actor from internal team roster
-	// Arguments:       Pointer to actor
-	// Return value:    None.
-
 	void MovableMan::RemoveActorFromTeamRoster(Actor* pActorToRem) {
 		if (!pActorToRem) {
 			return;
@@ -1020,11 +841,6 @@ namespace RTE {
 			m_ActorRoster[team].remove(pActorToRem);
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ChangeActorTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Changes actor team and updates team rosters.
 
 	void MovableMan::ChangeActorTeam(Actor* pActor, int team) {
 		if (!pActor) {
@@ -1051,13 +867,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ValidateMOIDs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Goes through and checks that all MOID's have valid MO pointers
-	//                  associated with them. This shuold only be used for testing, as it will
-	//                  crash the app if validation fails.
-
 	bool MovableMan::ValidateMOIDs() {
 #ifdef DEBUG_BUILD
 		for (const MovableObject* mo: m_MOIDIndex) {
@@ -1067,12 +876,6 @@ namespace RTE {
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ValidMO
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the passed in MovableObject pointer points to an
-	//                  MO that's currently active in the simulation, and kept by this MovableMan.
-
 	bool MovableMan::ValidMO(const MovableObject* pMOToCheck) {
 		bool exists = m_ValidActors.find(pMOToCheck) != m_ValidActors.end() ||
 		              m_ValidItems.find(pMOToCheck) != m_ValidItems.end() ||
@@ -1081,41 +884,17 @@ namespace RTE {
 		return pMOToCheck && exists;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          IsActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the passed in MovableObject is an active Actor kept
-	//                  by this MovableMan or not.
-
 	bool MovableMan::IsActor(const MovableObject* pMOToCheck) {
 		return pMOToCheck && m_ValidActors.find(pMOToCheck) != m_ValidActors.end();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          IsDevice
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the passed in MovableObject is an active Item kept
-	//                  by this MovableMan or not.
 
 	bool MovableMan::IsDevice(const MovableObject* pMOToCheck) {
 		return pMOToCheck && m_ValidItems.find(pMOToCheck) != m_ValidItems.end();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          IsParticle
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the passed in MovableObject is an active Item kept
-	//                  by this MovableMan or not.
-
 	bool MovableMan::IsParticle(const MovableObject* pMOToCheck) {
 		return pMOToCheck && m_ValidParticles.find(pMOToCheck) != m_ValidParticles.end();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          IsOfActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the passed in MOID is that of an MO which either is
-	//                  or is parented to an active Actor by this MovableMan, or not.
 
 	bool MovableMan::IsOfActor(MOID checkMOID) {
 		if (checkMOID == g_NoMOID)
@@ -1147,8 +926,6 @@ namespace RTE {
 		return found;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	int MovableMan::GetContiguousActorID(const Actor* actor) const {
 		auto itr = m_ContiguousActorIDs.find(actor);
 		if (itr == m_ContiguousActorIDs.end()) {
@@ -1158,11 +935,6 @@ namespace RTE {
 		return itr->second;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetRootMOID
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Produces the root MOID of the MOID of a potential child MO to another MO.
-
 	MOID MovableMan::GetRootMOID(MOID checkMOID) {
 		MovableObject* pMO = GetMOFromID(checkMOID);
 		if (pMO)
@@ -1170,13 +942,6 @@ namespace RTE {
 
 		return g_NoMOID;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RemoveMO
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes a MovableObject from the any and all internal lists of MO:s.
-	//                  After the MO is removed, ownership is effectively released and
-	//                  transferred to whatever client called this method.
 
 	bool MovableMan::RemoveMO(MovableObject* pMOToRem) {
 		if (pMOToRem) {
@@ -1190,8 +955,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableMan::KillAllTeamActors(int teamToKill) const {
 		int killCount = 0;
@@ -1213,8 +976,6 @@ namespace RTE {
 		return killCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int MovableMan::KillAllEnemyActors(int teamNotToKill) const {
 		int killCount = 0;
 
@@ -1234,8 +995,6 @@ namespace RTE {
 
 		return killCount;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableMan::GetAllActors(bool transferOwnership, std::list<SceneObject*>& actorList, int onlyTeam, bool noBrains) {
 		int addedCount = 0;
@@ -1279,8 +1038,6 @@ namespace RTE {
 		return addedCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int MovableMan::GetAllItems(bool transferOwnership, std::list<SceneObject*>& itemList) {
 		int addedCount = 0;
 
@@ -1305,8 +1062,6 @@ namespace RTE {
 
 		return addedCount;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableMan::GetAllParticles(bool transferOwnership, std::list<SceneObject*>& particleList) {
 		int addedCount = 0;
@@ -1333,16 +1088,12 @@ namespace RTE {
 		return addedCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int MovableMan::GetTeamMOIDCount(int team) const {
 		if (team > Activity::NoTeam && team < Activity::MaxTeamCount)
 			return m_TeamMOIDCount[team];
 		else
 			return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::OpenAllDoors(bool open, int team) const {
 		for (std::deque<Actor*> actorDeque: {m_Actors, m_AddedActors}) {
@@ -1363,8 +1114,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	// TODO: Completely tear out and delete this.
 	// It shouldn't belong to MovableMan, instead it probably ought to be on the pathfinder. On that note, pathfinders shouldn't be part of the scene!
 	// AIMan? PathingMan? Something like that. Ideally, we completely tear out this hack, and allow for doors in a completely different way.
@@ -1378,18 +1127,10 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void MovableMan::RegisterAlarmEvent(const AlarmEvent& newEvent) {
 		std::lock_guard<std::mutex> lock(m_AddedAlarmEventsMutex);
 		m_AddedAlarmEvents.push_back(newEvent);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RedrawOverlappingMOIDs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces all objects potnetially overlapping a specific MO to re-draw
-	//                  this MOID representations onto the MOID bitmap.
 
 	void MovableMan::RedrawOverlappingMOIDs(MovableObject* pOverlapsThis) {
 		for (std::deque<Actor*>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt) {
@@ -1404,8 +1145,6 @@ namespace RTE {
 			(*parIt)->DrawMOIDIfOverlapping(pOverlapsThis);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<SolObjectWrapper*>& functionObjectArguments) {
 		if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
@@ -1428,8 +1167,6 @@ namespace RTE {
 
 		mo->RunScriptedFunctionInAppropriateScripts(functionName, false, false, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
 	};
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<SolObjectWrapper*>& functionObjectArguments) {
 		if (includeAdded) {
@@ -1459,8 +1196,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void reloadLuaFunctionsOnMORecursive(MovableObject* mo) {
 		if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
 			for (auto attachablrItr = mosr->GetAttachableList().begin(); attachablrItr != mosr->GetAttachableList().end();) {
@@ -1482,8 +1217,6 @@ namespace RTE {
 
 		mo->ReloadScripts();
 	};
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::ReloadLuaScripts() {
 		for (Actor* actor: m_AddedActors) {
@@ -1510,11 +1243,6 @@ namespace RTE {
 			reloadLuaFunctionsOnMORecursive(particle);
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this MovableMan. Supposed to be done every frame.
 
 	void MovableMan::Update() {
 		ZoneScoped;
@@ -1918,8 +1646,6 @@ if (g_TimerMan.DrawnSimUpdate())
 }
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-
 void MovableMan::Travel() {
 	ZoneScoped;
 
@@ -1977,8 +1703,6 @@ void MovableMan::Travel() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-
 void MovableMan::UpdateControllers() {
 	ZoneScoped;
 
@@ -2012,8 +1736,6 @@ void MovableMan::UpdateControllers() {
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ActorsAI);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-
 void MovableMan::PreControllerUpdate() {
 	ZoneScoped;
 
@@ -2034,12 +1756,6 @@ void MovableMan::PreControllerUpdate() {
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ParticlesUpdate);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          DrawMatter
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this MovableMan's all MO's current material representations to a
-//                  BITMAP of choice.
-
 void MovableMan::DrawMatter(BITMAP* pTargetBitmap, Vector& targetPos) {
 	// Draw objects to accumulation bitmap
 	for (std::deque<Actor*>::iterator aIt = --m_Actors.end(); aIt != --m_Actors.begin(); --aIt)
@@ -2048,13 +1764,6 @@ void MovableMan::DrawMatter(BITMAP* pTargetBitmap, Vector& targetPos) {
 	for (std::deque<MovableObject*>::iterator parIt = --m_Particles.end(); parIt != --m_Particles.begin(); --parIt)
 		(*parIt)->Draw(pTargetBitmap, targetPos, g_DrawMaterial);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          VerifyMOIDIndex
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Verifieis whether all elements of MOID index has correct ID. Should be used in Debug mode only.
-// Arguments:       None.
-// Return value:    None.
 
 void MovableMan::VerifyMOIDIndex() {
 	int count = 0;
@@ -2078,12 +1787,6 @@ void MovableMan::VerifyMOIDIndex() {
 		RTEAssert((*itr)->GetRootID() == g_NoMOID || ((*itr)->GetRootID() >= 0 && (*itr)->GetRootID() < g_MovableMan.GetMOIDCount()), "MOIDIndex broken!");
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateDrawMOIDs
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the MOIDs of all current MOs and draws their ID's to a BITMAP
-//                  of choice.
 
 void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
 	ZoneScoped;
@@ -2149,12 +1852,6 @@ void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this MovableMan's current graphical representation to a
-//                  BITMAP of choice.
-
 void MovableMan::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 	ZoneScoped;
 
@@ -2184,12 +1881,6 @@ void MovableMan::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		}
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          DrawHUD
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this MovableMan's current graphical representation to a
-//                  BITMAP of choice.
 
 void MovableMan::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int which, bool playerControlled) {
 	ZoneScoped;

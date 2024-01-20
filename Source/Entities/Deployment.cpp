@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            Deployment.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the Deployment class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "Deployment.h"
 #include "PresetMan.h"
 #include "MetaMan.h"
@@ -28,12 +16,6 @@ namespace RTE {
 	std::vector<BITMAP*> Deployment::m_apArrowLeftBitmap;
 	std::vector<BITMAP*> Deployment::m_apArrowRightBitmap;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this Deployment, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void Deployment::Clear() {
 		m_LoadoutName = "Default";
 		m_Icon.Reset();
@@ -42,11 +24,6 @@ namespace RTE {
 		m_ID = 0;
 		m_HFlipped = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Deployment object ready for use.
 
 	int Deployment::Create() {
 		if (SceneObject::Create() < 0)
@@ -61,11 +38,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Deployment object ready for use.
 
 	int Deployment::Create(std::string loadoutName, const Icon& icon, float spawnRadius) {
 		m_LoadoutName = loadoutName;
@@ -85,11 +57,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MOPixel to be identical to another, by deep copy.
-
 	int Deployment::Create(const Deployment& reference) {
 		SceneObject::Create(reference);
 
@@ -103,14 +70,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int Deployment::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneObject::ReadProperty(propName, reader));
 
@@ -123,12 +82,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this Deployment with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int Deployment::Save(Writer& writer) const {
 		SceneObject::Save(writer);
@@ -147,11 +100,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the Deployment object.
-
 	void Deployment::Destroy(bool notInherited) {
 
 		if (!notInherited)
@@ -159,26 +107,10 @@ namespace RTE {
 		Clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CreateDeployedActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates and returns the Actor that this Deployment dictates should
-	//                  spawn here. Ownership IS transferred!! All items of the Loadout of
-	//                  this Deployment will be added to the Actor's inventory as well (and
-	//                  also owned by it)
-
 	Actor* Deployment::CreateDeployedActor() {
 		float cost;
 		return CreateDeployedActor(-1, cost);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CreateDeployedActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates and returns the Actor that this Deployment dictates should
-	//                  spawn here. Ownership IS transferred!! All items of the Loadout of
-	//                  this Deployment will be added to the Actor's inventory as well (and
-	//                  also owned by it)
 
 	Actor* Deployment::CreateDeployedActor(int player, float& costTally) {
 		// The Actor instance we return and pass ownership of
@@ -238,22 +170,10 @@ namespace RTE {
 		return pReturnActor;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CreateDeployedObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates and returns the first Device that Deployment dictates should
-	//                  spawn here. Ownership IS transferred!! Only the first Device is created.
-
 	SceneObject* Deployment::CreateDeployedObject() {
 		float cost;
 		return CreateDeployedObject(-1, cost);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CreateDeployedObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates and returns the first Device that Deployment dictates should
-	//                  spawn here. Ownership IS transferred!! Only the first Device is created.
 
 	SceneObject* Deployment::CreateDeployedObject(int player, float& costTally) {
 		// The Actor instance we return and pass ownership of
@@ -309,13 +229,6 @@ namespace RTE {
 		// PASSING OWNERSHIP
 		return pReturnObject;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DeploymentBlocked
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tests whether the Object this is supposed to spawn/deploy is blocked
-	//                  by an already exiting object in the a list being positioned within the
-	//                  spawn radius of this.
 
 	bool Deployment::DeploymentBlocked(int player, const std::list<SceneObject*>& existingObjects) {
 		bool blocked = false;
@@ -426,12 +339,6 @@ namespace RTE {
 		return blocked;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetTotalValue
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the total liquidation value of a spawn of this, including
-	//                  everything carried by it.
-
 	float Deployment::GetTotalValue(int nativeModule, float foreignMult, float nativeMult) const {
 		float totalValue = 0;
 		const Actor* pFirstActor = 0;
@@ -524,12 +431,6 @@ namespace RTE {
 		return totalValue;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsOnScenePoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether this' current graphical representation overlaps
-	//                  a point in absolute scene coordinates.
-
 	bool Deployment::IsOnScenePoint(Vector& scenePoint) const {
 		if (m_Icon.GetBitmaps8().empty() || !(m_Icon.GetBitmaps8().at(0)))
 			return false;
@@ -589,12 +490,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this Deployment's current graphical representation to a
-	//                  BITMAP of choice.
 
 	void Deployment::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		if (m_Icon.GetBitmaps8().empty() || !(m_Icon.GetBitmaps8().at(0)))

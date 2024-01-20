@@ -28,8 +28,6 @@ namespace RTE {
 		luaType["CreateDeployedObject"] = (SceneObject * (Deployment::*)()) & Deployment::CreateDeployedObject; //, luabind::adopt(luabind::result);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Material) {
 		auto luaType = SimpleTypeLuaClassDefinition(Material);
 
@@ -47,8 +45,6 @@ namespace RTE {
 		luaType["TransformsInto"] = sol::property(&Material::GetSpawnMaterial);
 		luaType["IsScrap"] = sol::property(&Material::IsScrap);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Scene, Entity);
@@ -104,8 +100,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(Scene::Area, "Area");
 
@@ -134,13 +128,9 @@ namespace RTE {
 		luaType["GetRandomPoint"] = &Scene::Area::GetRandomPoint;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneLayer) {
 		auto luaType = SimpleTypeLuaClassDefinition(SceneLayer);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
 		auto luaType = AbstractTypeLuaClassDefinition(SceneObject, Entity);
@@ -172,8 +162,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SLBackground) {
 		auto luaType = SimpleTypeLuaClassDefinition(SLBackground);
 
@@ -190,8 +178,6 @@ namespace RTE {
 
 		luaType["IsAutoScrolling"] = &SLBackground::IsAutoScrolling;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, TerrainObject) {
 		auto luaType = ConcreteTypeLuaClassDefinition(TerrainObject, SceneObject, Entity);

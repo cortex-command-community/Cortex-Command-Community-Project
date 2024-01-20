@@ -7,9 +7,7 @@ namespace RTE {
 
 	class MovableObject;
 
-	/// <summary>
 	/// A round containing a number of projectile particles and one shell.
-	/// </summary>
 	class Round : public Entity {
 
 	public:
@@ -18,35 +16,25 @@ namespace RTE {
 		ClassInfoGetters;
 
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a Round object in system memory. Create() should be called before using the object.
-		/// </summary>
 		Round() { Clear(); }
 
-		/// <summary>
 		/// Makes the Round object ready for use.
-		/// </summary>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create() override;
 
-		/// <summary>
 		/// Creates a Round to be identical to another, by deep copy.
-		/// </summary>
-		/// <param name="reference">A reference to the Round to deep copy.</param>
-		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
+		/// @param reference A reference to the Round to deep copy.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const Round& reference);
 #pragma endregion
 
 #pragma region Destruction
-		/// <summary>
 		/// Destructor method used to clean up a Round object before deletion from system memory.
-		/// </summary>
 		~Round() override { Destroy(true); }
 
-		/// <summary>
 		/// Destroys and resets (through Clear()) the Round object.
-		/// </summary>
-		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override {
 			if (!notInherited) {
 				Entity::Destroy();
@@ -54,9 +42,7 @@ namespace RTE {
 			Clear();
 		}
 
-		/// <summary>
 		/// Resets the entire Round, including its inherited members, to their default settings or values.
-		/// </summary>
 		void Reset() override {
 			Clear();
 			Entity::Reset();
@@ -64,96 +50,66 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Returns how many particles are contained within this Round, not counting the shell.
-		/// </summary>
-		/// <returns>The number of particles.</returns>
+		/// @return The number of particles.
 		int ParticleCount() const { return m_ParticleCount; }
 
-		/// <summary>
 		/// Returns whether this Round is out of particles or not.
-		/// </summary>
-		/// <returns>Whether this Round is out of particles or not.</returns>
+		/// @return Whether this Round is out of particles or not.
 		bool IsEmpty() const { return m_ParticleCount <= 0; }
 
-		/// <summary>
 		/// Gets the next particle contained in this Round. Ownership is NOT transferred!
-		/// </summary>
-		/// <returns>A pointer to the next particle, or 0 if this Round is empty.</returns>
+		/// @return A pointer to the next particle, or 0 if this Round is empty.
 		const MovableObject* GetNextParticle() const { return (m_ParticleCount > 0) ? m_Particle : 0; }
 
-		/// <summary>
 		/// Gets the next particle contained in this Round, and removes it from the stack. Ownership IS transferred!
-		/// </summary>
-		/// <returns>A pointer to the next particle, or 0 if this Round is empty.</returns>
+		/// @return A pointer to the next particle, or 0 if this Round is empty.
 		MovableObject* PopNextParticle();
 
-		/// <summary>
 		/// Gets the velocity at which this round is to be fired.
-		/// </summary>
-		/// <returns>A float with the velocity in m/s.</returns>
+		/// @return A float with the velocity in m/s.
 		float GetFireVel() const { return m_FireVel; }
 
-		/// <summary>
 		/// Gets whether or not this Round should inherit velocity from its firer.
-		/// </summary>
-		/// <returns>Whether or not this Round should inherit velocity from its firer.</returns>
+		/// @return Whether or not this Round should inherit velocity from its firer.
 		bool GetInheritsFirerVelocity() const { return m_InheritsFirerVelocity; }
 
-		/// <summary>
 		/// Gets the separation of particles in this round.
-		/// </summary>
-		/// <returns>A float with the separation range in pixels.</returns>
+		/// @return A float with the separation range in pixels.
 		float GetSeparation() const { return m_Separation; }
 
-		/// <summary>
 		/// Gets the variation in lifetime of the fired particles in this Round.
-		/// </summary>
-		/// <returns>A float with the life variation scalar.</returns>
+		/// @return A float with the life variation scalar.
 		float GetLifeVariation() const { return m_LifeVariation; }
 
-		/// <summary>
 		/// Gets the shell casing preset of this Round. Ownership IS NOT transferred!
-		/// </summary>
-		/// <returns>A pointer to the shell casing preset, or 0 if this Round has no shell.</returns>
+		/// @return A pointer to the shell casing preset, or 0 if this Round has no shell.
 		const MovableObject* GetShell() const { return m_Shell; }
 
-		/// <summary>
 		/// Gets the maximum velocity at which this round's shell is to be ejected.
-		/// </summary>
-		/// <returns>A float with the maximum shell velocity in m/s.</returns>
+		/// @return A float with the maximum shell velocity in m/s.
 		float GetShellVel() const { return m_ShellVel; }
 
-		/// <summary>
 		/// Shows whether this Round has an extra sound sample to play when fired.
-		/// </summary>
-		/// <returns>Whether the firing Sound of this has been loaded, or the firing Device will make the noise alone.</returns>
+		/// @return Whether the firing Sound of this has been loaded, or the firing Device will make the noise alone.
 		bool HasFireSound() const { return m_FireSound.HasAnySounds(); }
 
-		/// <summary>
 		/// Gets the extra firing sound of this Round, which can be played in addition to the weapon's own firing sound. OWNERSHIP IS NOT TRANSFERRED!
-		/// </summary>
-		/// <returns>A sound with the firing sample of this round.</returns>
+		/// @return A sound with the firing sample of this round.
 		SoundContainer* GetFireSound() { return &m_FireSound; }
 #pragma endregion
 
 #pragma region AI Properties
-		/// <summary>
 		/// Returns the lifetime of the projectile used by the AI when executing the shooting scripts.
-		/// </summary>
-		/// <returns>The life time in MS used by the AI.</returns>
+		/// @return The life time in MS used by the AI.
 		unsigned long GetAILifeTime() const { return m_AILifeTime; }
 
-		/// <summary>
 		/// Returns the FireVelocity of the projectile used by the AI when executing the shooting scripts.
-		/// </summary>
-		/// <returns>The FireVelocity in m/s used by the AI.</returns>
+		/// @return The FireVelocity in m/s used by the AI.
 		int GetAIFireVel() const { return m_AIFireVel; }
 
-		/// <summary>
 		/// Returns the bullet's ability to penetrate material when executing the AI shooting scripts.
-		/// </summary>
-		/// <returns>A value equivalent to Mass * Sharpness * Vel.</returns>
+		/// @return A value equivalent to Mass * Sharpness * Vel.
 		int GetAIPenetration() const { return m_AIPenetration; }
 #pragma endregion
 
@@ -177,9 +133,7 @@ namespace RTE {
 		int m_AIPenetration; //!< For overriding the bullets ability to penetrate material when executing the AI shooting scripts.
 
 	private:
-		/// <summary>
 		/// Clears all the member variables of this Round, effectively resetting the members of this abstraction level only.
-		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.

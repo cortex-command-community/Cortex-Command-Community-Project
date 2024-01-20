@@ -13,8 +13,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, Activity) {
 		auto luaType = AbstractTypeLuaClassDefinition(Activity, Entity);
 
@@ -138,8 +136,6 @@ namespace RTE {
 			enumTable["UNFAIRSKILL"] = Activity::AISkillSetting::UnfairSkill;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, GameActivity) {
 		auto luaType = AbstractTypeLuaClassDefinition(GameActivity, Activity, Entity);

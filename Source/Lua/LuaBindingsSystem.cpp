@@ -12,8 +12,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Box) {
 		auto luaType = SimpleTypeLuaClassDefinition(Box);
 
@@ -43,8 +41,6 @@ namespace RTE {
 		luaType["GetWithinBox"] = &Box::GetWithinBox;
 		luaType["IntersectsBox"] = &Box::IntersectsBox;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
 		auto luaType = SimpleTypeLuaClassDefinition(Controller);
@@ -129,8 +125,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, DataModule) {
 		auto luaType = SimpleTypeLuaClassDefinition(DataModule);
 
@@ -144,8 +138,6 @@ namespace RTE {
 
 		luaType["Presets"] = &DataModule::m_EntityList;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
 		auto luaType = SimpleTypeLuaClassDefinition(Timer);
@@ -184,8 +176,6 @@ namespace RTE {
 		luaType["IsPastSimMS"] = &Timer::IsPastSimMS;
 		luaType["AlternateSim"] = &Timer::AlternateSim;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Vector) {
 		auto luaType = SimpleTypeLuaClassDefinition(Vector);
@@ -250,8 +240,6 @@ namespace RTE {
 		luaType["AbsRotateTo"] = &Vector::AbsRotateTo;
 		luaType["SetXY"] = &Vector::SetXY;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, PathRequest) {
 		auto luaType = SimpleTypeLuaClassDefinition(PathRequest);

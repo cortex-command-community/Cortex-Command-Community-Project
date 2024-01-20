@@ -12,8 +12,6 @@ namespace RTE {
 
 	ConcreteClassInfo(ADoor, Actor, 20);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ADoor::Clear() {
 		m_InitialSpriteAnimDuration = 0;
 		m_Sensors.clear();
@@ -52,8 +50,6 @@ namespace RTE {
 		// NOTE: This special override of a parent class member variable avoids needing an extra variable to avoid overwriting INI values.
 		m_CanBeSquished = false;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int ADoor::Create(const ADoor& reference) {
 		if (reference.m_Door) {
@@ -100,8 +96,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Actor::ReadProperty(propName, reader));
@@ -154,8 +148,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int ADoor::Save(Writer& writer) const {
 		Actor::Save(writer);
 
@@ -197,8 +189,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ADoor::Destroy(bool notInherited) {
 		if (m_DoorMoveStartSound) {
 			m_DoorMoveStartSound->Stop();
@@ -225,8 +215,6 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ADoor::SetDoor(Attachable* newDoor) {
 		if (m_DoorMaterialDrawn) {
 			RTEAssert(m_Door, "Door material drawn without an m_Door! This should've been cleared when the door was!");
@@ -250,8 +238,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ADoor::DrawDoorMaterial(bool disallowErasingMaterialBeforeDrawing, bool updateMaterialArea) {
 		if (!m_Door || m_DoorMaterialTempErased || !g_SceneMan.GetTerrain() || !g_SceneMan.GetTerrain()->GetMaterialBitmap()) {
 			return;
@@ -269,8 +255,6 @@ namespace RTE {
 			g_SceneMan.GetTerrain()->AddUpdatedMaterialArea(m_Door->GetBoundingBox());
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ADoor::EraseDoorMaterial(bool updateMaterialArea) {
 		if (!g_SceneMan.GetTerrain() || !g_SceneMan.GetTerrain()->GetMaterialBitmap()) {
@@ -295,8 +279,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ADoor::TempEraseOrRedrawDoorMaterial(bool erase) {
 		if (!g_SceneMan.GetTerrain() || !g_SceneMan.GetTerrain()->GetMaterialBitmap()) {
 			return;
@@ -314,8 +296,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ADoor::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		if (m_Door && m_Door->IsAttached()) {
 			EraseDoorMaterial();
@@ -325,8 +305,6 @@ namespace RTE {
 		Actor::GibThis(impactImpulse, movableObjectToIgnore);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ADoor::CorrectAttachableAndWoundPositionsAndRotations() const {
 		if (m_Door) {
 			m_Door->SetParentOffset(m_ClosedByDefault ? m_ClosedOffset : m_OpenOffset);
@@ -334,8 +312,6 @@ namespace RTE {
 		}
 		MOSRotating::CorrectAttachableAndWoundPositionsAndRotations();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ADoor::OpenDoor() {
 		if (m_DoorState == STOPPED) {
@@ -350,8 +326,6 @@ namespace RTE {
 		m_ResetToDefaultStateTimer.Reset();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ADoor::CloseDoor() {
 		if (m_DoorState == STOPPED) {
 			SharedDoorControls();
@@ -364,8 +338,6 @@ namespace RTE {
 		}
 		m_ResetToDefaultStateTimer.Reset();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ADoor::StopDoor() {
 		if (m_DoorState == OPENING || m_DoorState == CLOSING) {
@@ -383,8 +355,6 @@ namespace RTE {
 			m_DoorState = STOPPED;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ADoor::SharedDoorControls() {
 		if (m_DoorState == OPEN || m_DoorState == CLOSED) {
@@ -422,8 +392,6 @@ namespace RTE {
 			m_ResumeAfterStop = true;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ADoor::Update() {
 		ZoneScoped;
@@ -476,8 +444,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void ADoor::UpdateSensors() {
 		const Actor* foundActor = nullptr;
 		bool anySensorInput = false;
@@ -508,8 +474,6 @@ namespace RTE {
 		}
 		m_SensorTimer.Reset();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ADoor::UpdateDoorAttachableActions() {
 		Vector startOffset;
@@ -578,8 +542,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ADoor::DrawHUD(BITMAP* targetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 		m_HUDStack = -static_cast<int>(m_CharHeight) / 2;

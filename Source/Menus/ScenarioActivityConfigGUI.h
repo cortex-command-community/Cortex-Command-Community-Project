@@ -16,63 +16,47 @@ namespace RTE {
 	class GUISlider;
 	class GUIEvent;
 
-	/// <summary>
 	/// Handling for the scenario Activity configuration screen composition and interaction.
-	/// </summary>
 	class ScenarioActivityConfigGUI {
 
 	public:
 #pragma region Creation
-		/// <summary>
 		/// Constructor method used to instantiate a ScenarioActivityConfigGUI object in system memory and make it ready for use.
-		/// </summary>
-		/// <param name="parentControlManager">Pointer to the parent GUIControlManager which owns all the GUIControls of this ScenarioActivityConfigGUI. Ownership is NOT transferred!</param>
+		/// @param parentControlManager Pointer to the parent GUIControlManager which owns all the GUIControls of this ScenarioActivityConfigGUI. Ownership is NOT transferred!
 		explicit ScenarioActivityConfigGUI(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Getters and Setters
-		/// <summary>
 		/// Gets whether this ScenarioActivityConfigGUI is currently visible and enabled.
-		/// </summary>
-		/// <returns>Whether this ScenarioActivityConfigGUI is currently visible and enabled.</returns>
+		/// @return Whether this ScenarioActivityConfigGUI is currently visible and enabled.
 		bool IsEnabled() const;
 
-		/// <summary>
 		/// Enables or disables the ScenarioActivityConfigGUI.
-		/// </summary>
-		/// <param name="enable">Show and enable or hide and disable the ScenarioActivityConfigGUI.</param>
-		/// <param name="selectedActivity">Pointer to the Activity this ScenarioActivityConfigGUI will be configuring for.</param>
-		/// <param name="selectedScene">Pointer to the Scene the passed in Activity will be using.</param>
+		/// @param enable Show and enable or hide and disable the ScenarioActivityConfigGUI.
+		/// @param selectedActivity Pointer to the Activity this ScenarioActivityConfigGUI will be configuring for.
+		/// @param selectedScene Pointer to the Scene the passed in Activity will be using.
 		void SetEnabled(bool enable, const Activity* selectedActivity = nullptr, Scene* selectedScene = nullptr);
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// <summary>
 		/// Updates the ScenarioActivityConfigGUI state.
-		/// </summary>
-		/// <param name="mouseX">Mouse X position.</param>
-		/// <param name="mouseY">Mouse Y position.</param>
-		/// <returns>Whether the player started a new game through the ScenarioActivityConfigGUI.</returns>
+		/// @param mouseX Mouse X position.
+		/// @param mouseY Mouse Y position.
+		/// @return Whether the player started a new game through the ScenarioActivityConfigGUI.
 		bool Update(int mouseX, int mouseY);
 
-		/// <summary>
 		/// Draws the ScenarioActivityConfigGUI to the screen.
-		/// </summary>
 		void Draw();
 #pragma endregion
 
 	private:
-		/// <summary>
 		/// Enumeration for all the player columns in the player setup box. "Extends" the Players enumeration by adding an entry for the CPU player.
-		/// </summary>
 		enum PlayerColumns {
 			PlayerCPU = Players::MaxPlayerCount,
 			PlayerColumnCount
 		};
 
-		/// <summary>
 		/// Enumeration for all the team rows in the player setup box. "Extends" the Teams enumeration by adding an entry for unused (disabled) Team.
-		/// </summary>
 		enum TeamRows {
 			DisabledTeam = Activity::Teams::MaxTeamCount,
 			TeamRowCount
@@ -91,9 +75,7 @@ namespace RTE {
 
 		bool m_TechListFetched; //!< Whether the tech list was fetched and each team's ComboBox was populated with it, even if no valid tech modules were added.
 
-		/// <summary>
 		/// GUI elements that compose the Activity setup box.
-		/// </summary>
 		GUICollectionBox* m_ActivityConfigBox;
 		GUILabel* m_StartErrorLabel;
 		GUIButton* m_StartGameButton;
@@ -115,45 +97,31 @@ namespace RTE {
 		std::array<GUISlider*, Activity::Teams::MaxTeamCount> m_TeamAISkillSliders;
 
 #pragma region Activity Configuration Screen Handling
-		/// <summary>
 		/// Fills each team's Tech ComboBox with all valid Tech DataModules.
-		/// </summary>
 		void PopulateTechComboBoxes();
 
-		/// <summary>
 		/// Resets the configuration screen to the selected Activity's default settings and enables/disables attribute settings accordingly, making the configuration screen ready for interaction.
-		/// </summary>
 		void ResetActivityConfigBox();
 
-		/// <summary>
 		/// Sets up and starts the currently selected Activity with the configured settings.
-		/// </summary>
 		void StartGame();
 
-		/// <summary>
 		/// Updates the starting gold slider to the Activity difficulty setting (when applicable) and updates the value in the label according to the value in the slider.
-		/// </summary>
-		/// <returns></returns>
+		/// @return
 		void UpdateStartingGoldSliderAndLabel();
 
-		/// <summary>
 		/// Updates the currently hovered cell in the players and teams config box to apply the hovered visual and removes the hovered visual from any other cells. Also handles clicking on cells.
-		/// </summary>
-		/// <param name="mouseX">Mouse X position.</param>
-		/// <param name="mouseY">Mouse Y position.</param>
+		/// @param mouseX Mouse X position.
+		/// @param mouseY Mouse Y position.
 		void UpdatePlayerTeamSetupCell(int mouseX, int mouseY);
 
-		/// <summary>
 		/// Handles the player interaction with a cell in the players and teams config box.
-		/// </summary>
-		/// <param name="clickedPlayer">The player box that was clicked.</param>
-		/// <param name="clickedTeam">The team box that was clicked.</param>
+		/// @param clickedPlayer The player box that was clicked.
+		/// @param clickedTeam The team box that was clicked.
 		void HandleClickOnPlayerTeamSetupCell(int clickedPlayer, int clickedTeam);
 
-		/// <summary>
 		/// Handles the player interaction with the ScenarioActivityConfigGUI GUI elements.
-		/// </summary>
-		/// <returns>Whether the player started a new game through the ScenarioActivityConfigGUI.</returns>
+		/// @return Whether the player started a new game through the ScenarioActivityConfigGUI.
 		bool HandleInputEvents();
 #pragma endregion
 

@@ -21,8 +21,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACDropShip) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ACDropShip, ACraft, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
@@ -40,8 +38,6 @@ namespace RTE {
 		luaType["DetectObstacle"] = &ACDropShip::DetectObstacle;
 		luaType["GetAltitude"] = &ACDropShip::GetAltitude;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACrab) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ACrab, Actor, MOSRotating, MOSprite, MovableObject, SceneObject);
@@ -132,8 +128,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACraft) {
 		auto luaType = AbstractTypeLuaClassDefinition(ACraft, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
@@ -179,8 +173,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACRocket) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ACRocket, ACraft, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
@@ -202,8 +194,6 @@ namespace RTE {
 			enumTable["GearStateCount"] = ACRocket::LandingGearState::GearStateCount;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -378,8 +368,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ADoor) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ADoor, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
@@ -405,8 +393,6 @@ namespace RTE {
 			enumTable["STOPPED"] = ADoor::DoorState::STOPPED;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 		auto luaType = ConcreteTypeLuaClassDefinition(AHuman, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -548,8 +534,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Arm) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Arm, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
@@ -577,16 +561,12 @@ namespace RTE {
 		luaType["ClearHandTargets"] = &Arm::ClearHandTargets;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Leg) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Leg, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType["Foot"] = sol::property(&Leg::GetFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::LegSetFoot);
 		luaType["MoveSpeed"] = sol::property(&Leg::GetMoveSpeed, &Leg::SetMoveSpeed);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, LimbPath) {
 		auto luaType = SimpleTypeLuaClassDefinition(LimbPath);

@@ -30,8 +30,6 @@ namespace RTE {
 		luaType["ResetEmissionTimers"] = &Emission::ResetEmissionTimers;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Gib) {
 		auto luaType = SimpleTypeLuaClassDefinition(Gib);
 
@@ -54,8 +52,6 @@ namespace RTE {
 			enumTable["SpreadSpiral"] = Gib::SpreadMode::SpreadSpiral;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEmitter) {
 		auto luaType = ConcreteTypeLuaClassDefinition(AEmitter, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -97,8 +93,6 @@ namespace RTE {
 		luaType["JustStartedEmitting"] = &AEmitter::JustStartedEmitting;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEJetpack) {
 		auto luaType = ConcreteTypeLuaClassDefinition(AEJetpack, AEmitter, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
@@ -117,8 +111,6 @@ namespace RTE {
 			enumTable["JumpPack"] = AEJetpack::JumpPack;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Attachable) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -150,8 +142,6 @@ namespace RTE {
 		luaType["RemoveFromParent"] = &LuaAdaptersAttachable::RemoveFromParent2; //; //, luabind::adopt(luabind::return_value);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
 		auto luaType = ConcreteTypeLuaClassDefinition(PEmitter, MOSParticle, MOSprite, MovableObject, SceneObject, Entity);
 
@@ -177,8 +167,6 @@ namespace RTE {
 		luaType["CanTriggerBurst"] = &PEmitter::CanTriggerBurst;
 		luaType["JustStartedEmitting"] = &PEmitter::JustStartedEmitting;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSprite) {
 		auto luaType = AbstractTypeLuaClassDefinition(MOSprite, MovableObject, SceneObject, Entity);

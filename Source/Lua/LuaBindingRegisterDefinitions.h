@@ -130,15 +130,11 @@ namespace RTE {
 	PER_LUA_BINDING(DrawBlendMode)
 
 #pragma region Lua Binding Registration Macros
-/// <summary>
 /// Convenience macro for declaring a binding register function.
-/// </summary>
 #define LuaBindingRegisterFunctionDeclarationForType(TYPE) \
 	static void Register##TYPE##LuaBindings(sol::state_view& solState)
 
-/// <summary>
 /// Convenience macro for defining a binding register function.
-/// </summary>
 #define LuaBindingRegisterFunctionDefinitionForType(OWNINGSCOPE, TYPE) \
 	void OWNINGSCOPE::Register##TYPE##LuaBindings(sol::state_view& solState)
 
@@ -146,18 +142,14 @@ namespace RTE {
 	LUATYPE[sol::meta_function::index] = &Entity::DynamicGet; \
 	LUATYPE[sol::meta_function::new_index] = &Entity::DynamicSet
 
-/// <summary>
 /// Convenience macro for a LuaBind scope definition of an abstract type.
-/// </summary>
 #define AbstractTypeLuaClassDefinition(TYPE, ...) \
 	solState.new_usertype<TYPE>(#TYPE, sol::no_constructor, \
 	                            sol::base_classes, sol::bases<__VA_ARGS__>(), \
 	                            "ClassName", sol::property(&TYPE::GetClassName)); \
 	const char* _bindingClassTypeName = #TYPE
 
-/// <summary>
 /// Convenience macro for a LuaBind scope definition of a concrete type.
-/// </summary>
 #define ConcreteTypeLuaClassDefinition(TYPE, ...) \
 	solState.new_usertype<TYPE>(#TYPE, sol::no_constructor, \
 	                            sol::base_classes, sol::bases<__VA_ARGS__>(), \
@@ -165,53 +157,39 @@ namespace RTE {
 	                            "Clone", &LuaAdaptersEntityClone::Clone##TYPE); \
 	const char* _bindingClassTypeName = #TYPE
 
-	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a POD struct type.
-	/// </summary>
 #define SimpleTypeLuaClassDefinition(TYPE) \
 	solState.new_usertype<TYPE>(#TYPE, sol::no_constructor); \
 	const char* _bindingClassTypeName = #TYPE
 
-	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a POD struct type, with a different lua name to type name.
-	/// </summary>
 #define SimpleNamedTypeLuaClassDefinition(TYPE, NAME) \
 	solState.new_usertype<TYPE>(NAME, sol::no_constructor); \
 	const char* _bindingClassTypeName = #TYPE
 
-	/// <summary>
 	/// Convenience macro for legacy LuaBind scope definition of an enum type.
 	/// This is used to spit the enum members into the class directly, instead of properly scoped
 	/// Like the differerence between enum class and enum:
 	/// "Activity.Teams.NOTEAM" would just be "Activity.NOTEAM".
-	/// </summary>
 #define LegacyEnumTypeTable(NAME_UNUSED) \
 	solState[_bindingClassTypeName]
 
-	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of an enum type.
-	/// </summary>
 #define EnumTypeLuaClassDefinition(TYPE, NAME, ...) \
 	solState.new_enum<TYPE>(NAME, __VA_ARGS__)
 
-/// <summary>
 /// Convenience macro for calling a register function of a type.
-/// </summary>
 #define RegisterLuaBindingsOfType(SOLSTATE, OWNINGSCOPE, TYPE) \
 	OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 
-/// <summary>
 /// Convenience macro for calling a register function of an abstract type, along with registering global bindings for adapters relevant to the type.
-/// </summary>
 #define RegisterLuaBindingsOfAbstractType(SOLSTATE, OWNINGSCOPE, TYPE) \
 	SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE * (*)(Entity*)) & LuaAdaptersEntityCast::To##TYPE; \
 	SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE* (*)(const Entity*)) & LuaAdaptersEntityCast::ToConst##TYPE; \
 	SOLSTATE[(std::string("Is") + std::string(#TYPE)).c_str()] = (bool (*)(const Entity*)) & LuaAdaptersEntityCast::Is##TYPE, \
 	                              OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 
-/// <summary>
 /// Convenience macro for calling a register function of a concrete type, along with registering global bindings for adapters relevant to the type.
-/// </summary>
 #define RegisterLuaBindingsOfConcreteType(SOLSTATE, OWNINGSCOPE, TYPE) \
 	SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE>(*)(std::string, std::string)) & LuaAdaptersEntityCreate::Create##TYPE; \
 	SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE>(*)(std::string)) & LuaAdaptersEntityCreate::Create##TYPE; \
@@ -224,9 +202,7 @@ namespace RTE {
 	OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 #pragma endregion
 
-	/// <summary>
 	/// Struct that contains Lua binding registration functions for System classes.
-	/// </summary>
 	struct SystemLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(Box);
 		LuaBindingRegisterFunctionDeclarationForType(Controller);
@@ -236,9 +212,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(PathRequest);
 	};
 
-	/// <summary>
 	/// Struct that contains Lua binding registration functions for Manager classes.
-	/// </summary>
 	struct ManagerLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(ActivityMan);
 		LuaBindingRegisterFunctionDeclarationForType(AudioMan);
@@ -257,9 +231,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(UInputMan);
 	};
 
-	/// <summary>
 	/// Struct that contains Lua binding registration functions for Entity classes.
-	/// </summary>
 	struct EntityLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(Entity);
 		LuaBindingRegisterFunctionDeclarationForType(ACDropShip);
@@ -306,26 +278,20 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(Turret);
 	};
 
-	/// <summary>
 	/// Struct that contains Lua binding registration functions for Activity classes.
-	/// </summary>
 	struct ActivityLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(Activity);
 		LuaBindingRegisterFunctionDeclarationForType(GameActivity);
 	};
 
-	/// <summary>
 	/// Struct that contains Lua binding registration functions for GUI classes.
-	/// </summary>
 	struct GUILuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(GUIBanner);
 		LuaBindingRegisterFunctionDeclarationForType(BuyMenuGUI);
 		LuaBindingRegisterFunctionDeclarationForType(SceneEditorGUI);
 	};
 
-	/// <summary>
 	/// Struct that contains Lua binding registration functions for GraphicalPrimitive classes.
-	/// </summary>
 	struct PrimitiveLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(GraphicalPrimitive);
 		LuaBindingRegisterFunctionDeclarationForType(LinePrimitive);
@@ -345,9 +311,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(BitmapPrimitive);
 	};
 
-	/// <summary>
 	/// Struct that contains Lua binding registration functions for various input enumerations.
-	/// </summary>
 	struct InputLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(InputDevice);
 		LuaBindingRegisterFunctionDeclarationForType(InputElements);
@@ -360,9 +324,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(SDL_GameControllerAxis);
 	};
 
-	/// <summary>
 	/// Struct that contains Lua binding registration functions for types that don't really belong in any of the other binding structs.
-	/// </summary>
 	struct MiscLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(AlarmEvent);
 		LuaBindingRegisterFunctionDeclarationForType(Directions);

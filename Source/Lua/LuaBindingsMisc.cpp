@@ -15,8 +15,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, AlarmEvent) {
 		auto luaType = SimpleTypeLuaClassDefinition(AlarmEvent);
 
@@ -29,19 +27,13 @@ namespace RTE {
 		luaType["Range"] = &AlarmEvent::m_Range;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, Directions) {
 		EnumTypeLuaClassDefinition(Directions, "Directions", {{"None", Directions::None}, {"Up", Directions::Up}, {"Down", Directions::Down}, {"Left", Directions::Left}, {"Right", Directions::Right}, {"Any", Directions::Any}});
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, DrawBlendMode) {
 		EnumTypeLuaClassDefinition(DrawBlendMode, "DrawBlendMode", {{"NoBlend", DrawBlendMode::NoBlend}, {"Burn", DrawBlendMode::BlendBurn}, {"Color", DrawBlendMode::BlendColor}, {"Difference", DrawBlendMode::BlendDifference}, {"Dissolve", DrawBlendMode::BlendDissolve}, {"Dodge", DrawBlendMode::BlendDodge}, {"Invert", DrawBlendMode::BlendInvert}, {"Luminance", DrawBlendMode::BlendLuminance}, {"Multiply", DrawBlendMode::BlendMultiply}, {"Saturation", DrawBlendMode::BlendSaturation}, {"Screen", DrawBlendMode::BlendScreen}, {"Transparency", DrawBlendMode::BlendTransparency}, {"BlendModeCount", DrawBlendMode::BlendModeCount}});
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MetaPlayer) {
 		auto luaType = SimpleTypeLuaClassDefinition(MetaPlayer);
@@ -57,8 +49,6 @@ namespace RTE {
 
 		luaType["ChangeBrainPoolCount"] = &MetaPlayer::ChangeBrainPoolCount;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieSlice) {
 		auto luaType = ConcreteTypeLuaClassDefinition(PieSlice, Entity);
@@ -117,8 +107,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieMenu) {
 		auto luaType = ConcreteTypeLuaClassDefinition(PieMenu, Entity);
 
@@ -159,8 +147,6 @@ namespace RTE {
 		luaType["RemovePieSlicesByOriginalSource"] = &PieMenu::RemovePieSlicesByOriginalSource;
 		luaType["ReplacePieSlice"] = &PieMenu::ReplacePieSlice; //, luabind::adopt(luabind::result) + luabind::adopt(_3);
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 		auto luaType = ConcreteTypeLuaClassDefinition(SoundContainer, Entity);
@@ -211,8 +197,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundSet) {
 		auto luaType = SimpleTypeLuaClassDefinition(SoundSet);
 
@@ -238,8 +222,6 @@ namespace RTE {
 			enumTable["ALL"] = SoundSet::SoundSelectionCycleMode::ALL;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, GlobalScript) {
 		auto luaType = AbstractTypeLuaClassDefinition(GlobalScript, Entity);

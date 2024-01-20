@@ -17,8 +17,6 @@ namespace RTE {
 	// This is because we may assign an object to another state in a singlethreaded context, before the GC runs in the multithreaded context
 	static std::vector<sol::object*> s_QueuedDeletions;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void SolObjectWrapper::ApplyQueuedDeletions() {
 		for (sol::object* obj: s_QueuedDeletions) {
 			delete obj;
@@ -26,8 +24,6 @@ namespace RTE {
 
 		s_QueuedDeletions.clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SolObjectWrapper::~SolObjectWrapper() {
 		if (m_OwnsObject) {
@@ -37,8 +33,6 @@ namespace RTE {
 			s_QueuedDeletions.push_back(m_SolObject);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	sol::object GetCopyForStateInternal(const sol::object& obj, lua_State& targetState) {
 		// Sol TODO - make this work!
@@ -73,8 +67,6 @@ namespace RTE {
 
 		return sol::lua_nil;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SolObjectWrapper SolObjectWrapper::GetCopyForState(lua_State& targetState) const {
 		sol::object* copy = new sol::object(GetCopyForStateInternal(*m_SolObject, targetState));

@@ -66,12 +66,10 @@ namespace RTE {
 
 #pragma region Entity Lua Adapter Macros
 	struct LuaAdaptersEntityCreate {
-/// <summary>
 /// Convenience macro to generate preset clone-create adapter functions that will return the exact pre-cast types, so we don't have to do: myNewActor = ToActor(PresetMan:GetPreset("AHuman", "Soldier Light", "All")):Clone()
 /// But can instead do: myNewActor = CreateActor("Soldier Light", "All");
 /// Or even: myNewActor = CreateActor("Soldier Light");
 /// Or for a randomly selected Preset within a group: myNewActor = RandomActor("Light Troops");
-/// </summary>
 #define LuaEntityCreateFunctionsDeclarationsForType(TYPE) \
 	static std::unique_ptr<TYPE> Create##TYPE(std::string preseName, std::string moduleName); \
 	static std::unique_ptr<TYPE> Create##TYPE(std::string preset); \
@@ -110,9 +108,7 @@ namespace RTE {
 	};
 
 	struct LuaAdaptersEntityClone {
-/// <summary>
 /// Convenience macro to generate a preset clone adapter function for a type.
-/// </summary>
 #define LuaEntityCloneFunctionDeclarationForType(TYPE) \
 	static std::unique_ptr<TYPE> Clone##TYPE(const TYPE* thisEntity)
 
@@ -151,9 +147,7 @@ namespace RTE {
 	};
 
 	struct LuaAdaptersEntityCast {
-/// <summary>
 /// Convenience macro to generate type casting adapter functions for a type.
-/// </summary>
 #define LuaEntityCastFunctionsDeclarationsForType(TYPE) \
 	static TYPE* To##TYPE(Entity* entity); \
 	static const TYPE* ToConst##TYPE(const Entity* entity); \
@@ -202,10 +196,8 @@ namespace RTE {
 	};
 
 	struct LuaAdaptersPropertyOwnershipSafetyFaker {
-/// <summary>
 /// Special handling for passing ownership through properties. If you try to pass null to this normally, LuaJIT crashes.
 /// This handling avoids that, and is a bit safer since there's no actual ownership transfer from Lua to C++.
-/// </summary>
 #define LuaPropertyOwnershipSafetyFakerFunctionDeclaration(OBJECTTYPE, PROPERTYTYPE, SETTERFUNCTION) \
 	static void OBJECTTYPE##SETTERFUNCTION(OBJECTTYPE* luaSelfObject, PROPERTYTYPE* objectToSet)
 
@@ -375,32 +367,24 @@ namespace RTE {
 
 #pragma region MovableMan Lua Adapters
 	struct LuaAdaptersMovableMan {
-		/// <summary>
 		/// Adds the given MovableObject to MovableMan if it doesn't already exist in there, or prints an error if it does.
-		/// </summary>
-		/// <param name="movableMan">A reference to MovableMan, provided by Lua.</param>
-		/// <param name="movableObject">A pointer to the MovableObject to be added.</param>
+		/// @param movableMan A reference to MovableMan, provided by Lua.
+		/// @param movableObject A pointer to the MovableObject to be added.
 		static void AddMO(MovableMan& movableMan, MovableObject* movableObject);
 
-		/// <summary>
 		/// Adds the given Actor to MovableMan if it doesn't already exist in there, or prints an error if it does.
-		/// </summary>
-		/// <param name="movableMan">A reference to MovableMan, provided by Lua.</param>
-		/// <param name="actor">A pointer to the Actor to be added.</param>
+		/// @param movableMan A reference to MovableMan, provided by Lua.
+		/// @param actor A pointer to the Actor to be added.
 		static void AddActor(MovableMan& movableMan, Actor* actor);
 
-		/// <summary>
 		/// Adds the given item MovableObject (generally a HeldDevice) to MovableMan if it doesn't already exist in there, or prints an error if it does.
-		/// </summary>
-		/// <param name="movableMan">A reference to MovableMan, provided by Lua.</param>
-		/// <param name="item">A pointer to the item to be added.</param>
+		/// @param movableMan A reference to MovableMan, provided by Lua.
+		/// @param item A pointer to the item to be added.
 		static void AddItem(MovableMan& movableMan, HeldDevice* item);
 
-		/// <summary>
 		/// Adds the given particle MovableObject to MovableMan if it doesn't already exist in there, or prints an error if it does.
-		/// </summary>
-		/// <param name="movableMan">A reference to MovableMan, provided by Lua.</param>
-		/// <param name="particle">A pointer to the particle to be added.</param>
+		/// @param movableMan A reference to MovableMan, provided by Lua.
+		/// @param particle A pointer to the particle to be added.
 		static void AddParticle(MovableMan& movableMan, MovableObject* particle);
 
 		static void SendGlobalMessage1(MovableMan& movableMan, const std::string& message);
@@ -410,201 +394,155 @@ namespace RTE {
 
 #pragma region TimerMan Lua Adapters
 	struct LuaAdaptersTimerMan {
-		/// <summary>
 		/// Gets the current number of ticks that the simulation should be updating with. Lua can't handle int64 (or long long apparently) so we'll expose this specialized function.
-		/// </summary>
-		/// <returns>The current fixed delta time that the simulation should be updating with, in ticks.</returns>
+		/// @return The current fixed delta time that the simulation should be updating with, in ticks.
 		static double GetDeltaTimeTicks(const TimerMan& timerMan);
 
-		/// <summary>
 		/// Gets the number of ticks per second. Lua can't handle int64 (or long long apparently) so we'll expose this specialized function.
-		/// </summary>
-		/// <returns>The number of ticks per second.</returns>
+		/// @return The number of ticks per second.
 		static double GetTicksPerSecond(const TimerMan& timerMan);
 	};
 #pragma endregion
 
 #pragma region UInputMan Lua Adapters
 	struct LuaAdaptersUInputMan {
-		/// <summary>
 		/// Gets whether a mouse button is being held down right now.
-		/// </summary>
-		/// <param name="whichButton">Which button to check for.</param>
-		/// <returns>Whether the mouse button is held or not.</returns>
+		/// @param whichButton Which button to check for.
+		/// @return Whether the mouse button is held or not.
 		static bool MouseButtonHeld(const UInputMan& uinputMan, int whichButton);
 
-		/// <summary>
 		/// Gets whether a mouse button was pressed between the last update and the one previous to it.
-		/// </summary>
-		/// <param name="whichButton">Which button to check for.</param>
-		/// <returns>Whether the mouse button is pressed or not.</returns>
+		/// @param whichButton Which button to check for.
+		/// @return Whether the mouse button is pressed or not.
 		static bool MouseButtonPressed(const UInputMan& uinputMan, int whichButton);
 
-		/// <summary>
 		/// Gets whether a mouse button was released between the last update and the one previous to it.
-		/// </summary>
-		/// <param name="whichButton">Which button to check for.</param>
-		/// <returns>Whether the mouse button is released or not.</returns>
+		/// @param whichButton Which button to check for.
+		/// @return Whether the mouse button is released or not.
 		static bool MouseButtonReleased(const UInputMan& uinputMan, int whichButton);
 	};
 #pragma endregion
 
 #pragma region PresetMan Lua Adapters
 	struct LuaAdaptersPresetMan {
-		/// <summary>
 		/// Reloads the specified Entity preset in PresetMan.
-		/// </summary>
-		/// <param name="presetName">The preset name of the Entity to reload.</param>
-		/// <param name="className">The class name of the Entity to reload.</param>
-		/// <param name="moduleName">The module name of the Entity to reload.</param>
-		/// <returns>Whether or not the Entity was reloaded.</returns>
+		/// @param presetName The preset name of the Entity to reload.
+		/// @param className The class name of the Entity to reload.
+		/// @param moduleName The module name of the Entity to reload.
+		/// @return Whether or not the Entity was reloaded.
 		static bool ReloadEntityPreset1(PresetMan& presetMan, const std::string& presetName, const std::string& className, const std::string& moduleName);
 
-		/// <summary>
 		/// Reloads the specified Entity preset in PresetMan.
-		/// </summary>
-		/// <param name="presetName">The preset name of the Entity to reload.</param>
-		/// <param name="className">The class name of the Entity to reload.</param>
-		/// <returns>Whether or not the Entity was reloaded.</returns>
+		/// @param presetName The preset name of the Entity to reload.
+		/// @param className The class name of the Entity to reload.
+		/// @return Whether or not the Entity was reloaded.
 		static bool ReloadEntityPreset2(PresetMan& presetMan, const std::string& presetName, const std::string& className);
 
-		/// <summary>
 		/// Gets a list all previously read in (defined) Entities which are associated with a specific group.
-		/// </summary>
-		/// <param name="group">The group to look for. "All" will look in all.</param>
-		/// <param name="type">The name of the least common denominator type of the Entities you want. "All" will look at all types.</param>
-		/// <param name="whichModule">Whether to only get those of one specific DataModule (0-n), or all (-1).</param>
-		/// <returns>The list of all Entities with the given group and type in the module.</returns>
+		/// @param group The group to look for. "All" will look in all.
+		/// @param type The name of the least common denominator type of the Entities you want. "All" will look at all types.
+		/// @param whichModule Whether to only get those of one specific DataModule (0-n), or all (-1).
+		/// @return The list of all Entities with the given group and type in the module.
 		static std::list<Entity*>* GetAllEntitiesOfGroup(PresetMan& presetMan, const std::string& group, const std::string& type, int whichModule);
 		static std::list<Entity*>* GetAllEntitiesOfGroup2(PresetMan& presetMan, const std::string& group, const std::string& type) { return GetAllEntitiesOfGroup(presetMan, group, type, -1); }
 		static std::list<Entity*>* GetAllEntitiesOfGroup3(PresetMan& presetMan, const std::string& group) { return GetAllEntitiesOfGroup2(presetMan, group, "All"); }
 
-		/// <summary>
 		/// Gets a list all previously read in (defined) Entities.
-		/// </summary>
-		/// <returns>The list of all Entities.</returns>
+		/// @return The list of all Entities.
 		static std::list<Entity*>* GetAllEntities(PresetMan& presetMan) { return GetAllEntitiesOfGroup3(presetMan, "All"); }
 	};
 #pragma endregion
 
 #pragma region SceneMan Lua Adapters
 	struct LuaAdaptersSceneMan {
-		/// <summary>
 		/// Takes a Box and returns a list of Boxes that describe the Box, wrapped appropriately for the current Scene.
-		/// </summary>
-		/// <param name="boxToWrap">The Box to wrap.</param>
-		/// <returns>A list of Boxes that make up the Box to wrap, wrapped appropriately for the current Scene.</returns>
+		/// @param boxToWrap The Box to wrap.
+		/// @return A list of Boxes that make up the Box to wrap, wrapped appropriately for the current Scene.
 		static const std::list<Box>* WrapBoxes(SceneMan& sceneMan, const Box& boxToWrap);
 	};
 #pragma endregion
 
 #pragma region PrimitiveMan Lua Adapters
 	struct LuaAdaptersPrimitiveMan {
-		/// <summary>
 		/// Schedule to draw a polygon primitive.
-		/// </summary>
-		/// <param name="primitiveMan">A reference to PrimitiveMan, provided by Lua.</param>
-		/// <param name="centerPos">Position of primitive's center in Scene coordinates.</param>
-		/// <param name="color">Color to draw primitive with.</param>
-		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
+		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
+		/// @param centerPos Position of primitive's center in Scene coordinates.
+		/// @param color Color to draw primitive with.
+		/// @param verticesTable A Lua table that contains the positions of the primitive's vertices, relative to the center position.
 		static void DrawPolygonPrimitive(PrimitiveMan& primitiveMan, const Vector& centerPos, int color, const sol::object& verticesTable);
 
-		/// <summary>
 		/// Schedule to draw a polygon primitive visible only to a specified player.
-		/// </summary>
-		/// <param name="primitiveMan">A reference to PrimitiveMan, provided by Lua.</param>
-		/// <param name="player">Player screen to draw primitive on.</param>
-		/// <param name="centerPos">Position of primitive's center in Scene coordinates.</param>
-		/// <param name="color">Color to draw primitive with.</param>
-		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
+		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
+		/// @param player Player screen to draw primitive on.
+		/// @param centerPos Position of primitive's center in Scene coordinates.
+		/// @param color Color to draw primitive with.
+		/// @param verticesTable A Lua table that contains the positions of the primitive's vertices, relative to the center position.
 		static void DrawPolygonPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& centerPos, int color, const sol::object& verticesTable);
 
-		/// <summary>
 		/// Schedule to draw a filled polygon primitive.
-		/// </summary>
-		/// <param name="primitiveMan">A reference to PrimitiveMan, provided by Lua.</param>
-		/// <param name="startPos">Start position of the primitive in Scene coordinates.</param>
-		/// <param name="color">Color to draw primitive with.</param>
-		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
+		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
+		/// @param startPos Start position of the primitive in Scene coordinates.
+		/// @param color Color to draw primitive with.
+		/// @param verticesTable A Lua table that contains the positions of the primitive's vertices, relative to the center position.
 		static void DrawPolygonFillPrimitive(PrimitiveMan& primitiveMan, const Vector& startPos, int color, const sol::object& verticesTable);
 
-		/// <summary>
 		/// Schedule to draw a filled polygon primitive visible only to a specified player.
-		/// </summary>
-		/// <param name="primitiveMan">A reference to PrimitiveMan, provided by Lua.</param>
-		/// <param name="player">Player screen to draw primitive on.</param>
-		/// <param name="startPos">Start position of the primitive in Scene coordinates.</param>
-		/// <param name="color">Color to draw primitive with.</param>
-		/// <param name="verticesTable">A Lua table that contains the positions of the primitive's vertices, relative to the center position.</param>
+		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
+		/// @param player Player screen to draw primitive on.
+		/// @param startPos Start position of the primitive in Scene coordinates.
+		/// @param color Color to draw primitive with.
+		/// @param verticesTable A Lua table that contains the positions of the primitive's vertices, relative to the center position.
 		static void DrawPolygonFillPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& startPos, int color, const sol::object& verticesTable);
 
-		/// <summary>
 		/// Schedules to draw multiple primitives of varying type with transparency enabled.
-		/// </summary>
-		/// <param name="primitiveMan">A reference to PrimitiveMan, provided by Lua.</param>
-		/// <param name="transValue">The transparency value the primitives should be drawn at. From 0 (opaque) to 100 (transparent).</param>
-		/// <param name="primitivesTable">A Lua table of primitives to schedule drawing for.</param>
+		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
+		/// @param transValue The transparency value the primitives should be drawn at. From 0 (opaque) to 100 (transparent).
+		/// @param primitivesTable A Lua table of primitives to schedule drawing for.
 		static void DrawPrimitivesWithTransparency(PrimitiveMan& primitiveMan, int transValue, const sol::object& primitivesTable);
 
-		/// <summary>
 		/// Schedule to draw multiple primitives of varying type with blending enabled.
-		/// </summary>
-		/// <param name="primitiveMan">A reference to PrimitiveMan, provided by Lua.</param>
-		/// <param name="blendMode">The blending mode the primitives should be drawn with. See DrawBlendMode enumeration.</param>
-		/// <param name="blendAmount">The blending amount for all the channels. 0-100.</param>
-		/// <param name="primitivesTable">A Lua table of primitives to schedule drawing for.</param>
+		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
+		/// @param blendMode The blending mode the primitives should be drawn with. See DrawBlendMode enumeration.
+		/// @param blendAmount The blending amount for all the channels. 0-100.
+		/// @param primitivesTable A Lua table of primitives to schedule drawing for.
 		static void DrawPrimitivesWithBlending(PrimitiveMan& primitiveMan, int blendMode, int blendAmount, const sol::object& primitivesTable);
 
-		/// <summary>
 		/// Schedule to draw multiple primitives of varying type with blending enabled.
-		/// </summary>
-		/// <param name="primitiveMan">A reference to PrimitiveMan, provided by Lua.</param>
-		/// <param name="blendMode">The blending mode the primitives should be drawn with. See DrawBlendMode enumeration.</param>
-		/// <param name="blendAmountR">The blending amount for the Red channel. 0-100.</param>
-		/// <param name="blendAmountG">The blending amount for the Green channel. 0-100.</param>
-		/// <param name="blendAmountB">The blending amount for the Blue channel. 0-100.</param>
-		/// <param name="blendAmountA">The blending amount for the Alpha channel. 0-100.</param>
-		/// <param name="primitivesTable">A Lua table of primitives to schedule drawing for.</param>
+		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
+		/// @param blendMode The blending mode the primitives should be drawn with. See DrawBlendMode enumeration.
+		/// @param blendAmountR The blending amount for the Red channel. 0-100.
+		/// @param blendAmountG The blending amount for the Green channel. 0-100.
+		/// @param blendAmountB The blending amount for the Blue channel. 0-100.
+		/// @param blendAmountA The blending amount for the Alpha channel. 0-100.
+		/// @param primitivesTable A Lua table of primitives to schedule drawing for.
 		static void DrawPrimitivesWithBlendingPerChannel(PrimitiveMan& primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const sol::object& primitivesTable);
 	};
 #pragma endregion
 
 #pragma region Utility Lua Adapters
 	struct LuaAdaptersUtility {
-		/// <summary>
 		/// Gets the ratio between the physics engine's meters and on-screen pixels.
-		/// </summary>
-		/// <returns>A float describing the current MPP ratio.</returns>
+		/// @return A float describing the current MPP ratio.
 		static float GetMPP();
 
-		/// <summary>
 		/// Gets the ratio between on-screen pixels and the physics engine's meters.
-		/// </summary>
-		/// <returns>A float describing the current PPM ratio.</returns>
+		/// @return A float describing the current PPM ratio.
 		static float GetPPM();
 
-		/// <summary>
 		/// Gets the ratio between the physics engine's Liters and on-screen pixels.
-		/// </summary>
-		/// <returns>A float describing the current LPP ratio.</returns>
+		/// @return A float describing the current LPP ratio.
 		static float GetLPP();
 
-		/// <summary>
 		/// Gets the ratio between the on-screen pixels and the physics engine's Liters.
-		/// </summary>
-		/// <returns>A float describing the current PPL ratio.</returns>
+		/// @return A float describing the current PPL ratio.
 		static float GetPPL();
 
-		/// <summary>
 		/// Gets the default pathfinder penetration value that'll allow pathing through corpses, debris, and such stuff.
-		/// </summary>
-		/// <returns>A float describing the default pathfinder penetration value.</returns>
+		/// @return A float describing the default pathfinder penetration value.
 		static float GetPathFindingDefaultDigStrength();
 
-		/// <summary>
 		/// Explicit deletion of any Entity instance that Lua owns. It will probably be handled by the GC, but this makes it instantaneous.
-		/// </summary>
-		/// <param name="entityToDelete">The Entity to delete.</param>
+		/// @param entityToDelete The Entity to delete.
 		static void DeleteEntity(std::unique_ptr<Entity>& entityToDelete);
 	};
 #pragma endregion
