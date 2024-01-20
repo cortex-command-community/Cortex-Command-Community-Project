@@ -16,7 +16,7 @@ namespace RTE {
 
 	const std::string SettingsMan::c_ClassName = "SettingsMan";
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsMan::Clear() {
 		m_SettingsPath = System::GetUserdataDirectory() + "Settings.ini";
@@ -53,7 +53,7 @@ namespace RTE {
 		m_DisableFactionBuyMenuThemeCursors = false;
 		m_PathFinderGridNodeSize = c_PPM;
 		m_AIUpdateInterval = 2;
-		
+
 		m_NumberOfLuaStatesOverride = -1;
 		m_ForceImmediatePathingRequestCompletion = false;
 
@@ -72,10 +72,12 @@ namespace RTE {
 		m_EnabledGlobalScripts.clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SettingsMan::Initialize() {
-		if (const char *settingsTempPath = std::getenv("CCCP_SETTINGSPATH")) { m_SettingsPath = std::string(settingsTempPath); }
+		if (const char* settingsTempPath = std::getenv("CCCP_SETTINGSPATH")) {
+			m_SettingsPath = std::string(settingsTempPath);
+		}
 
 		Reader settingsReader(m_SettingsPath, false, nullptr, true, true);
 
@@ -103,18 +105,18 @@ namespace RTE {
 		return failureCode;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsMan::UpdateSettingsFile() const {
 		Writer settingsWriter(m_SettingsPath);
 		g_SettingsMan.Save(settingsWriter);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SettingsMan::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
-		
+
 		MatchProperty("PaletteFile", { reader >> g_FrameMan.m_PaletteFile; });
 		MatchProperty("ResolutionX", { reader >> g_WindowMan.m_ResX; });
 		MatchProperty("ResolutionY", { reader >> g_WindowMan.m_ResY; });
@@ -132,14 +134,13 @@ namespace RTE {
 		MatchProperty("SoundPanningEffectStrength", {
 			reader >> g_AudioMan.m_SoundPanningEffectStrength;
 
-		//////////////////////////////////////////////////
-		//TODO These need to be removed when our soundscape is sorted out. They're only here temporarily to allow for easier tweaking by pawnis.
+			//////////////////////////////////////////////////
+			// TODO These need to be removed when our soundscape is sorted out. They're only here temporarily to allow for easier tweaking by pawnis.
 		});
 		MatchProperty("ListenerZOffset", { reader >> g_AudioMan.m_ListenerZOffset; });
 		MatchProperty("MinimumDistanceForPanning", {
 			reader >> g_AudioMan.m_MinimumDistanceForPanning;
-		//////////////////////////////////////////////////
-
+			//////////////////////////////////////////////////
 		});
 		MatchProperty("ShowForeignItems", { reader >> m_ShowForeignItems; });
 		MatchProperty("FlashOnBrainDamage", { reader >> m_FlashOnBrainDamage; });
@@ -230,13 +231,13 @@ namespace RTE {
 				}
 			}
 		});
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SettingsMan::Save(Writer &writer) const {
+	int SettingsMan::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
 		writer.NewDivider(false);
@@ -264,7 +265,7 @@ namespace RTE {
 		writer.NewPropertyWithValue("SoundPanningEffectStrength", g_AudioMan.m_SoundPanningEffectStrength);
 
 		//////////////////////////////////////////////////
-		//TODO These need to be removed when our soundscape is sorted out. They're only here temporarily to allow for easier tweaking.
+		// TODO These need to be removed when our soundscape is sorted out. They're only here temporarily to allow for easier tweaking.
 		writer.NewPropertyWithValue("ListenerZOffset", g_AudioMan.m_ListenerZOffset);
 		writer.NewPropertyWithValue("MinimumDistanceForPanning", g_AudioMan.m_MinimumDistanceForPanning);
 		//////////////////////////////////////////////////
@@ -325,13 +326,13 @@ namespace RTE {
 		writer.NewPropertyWithValue("EnableParticleSettling", g_MovableMan.m_SettlingEnabled);
 		writer.NewPropertyWithValue("EnableMOSubtraction", g_MovableMan.m_MOSubtractionEnabled);
 		writer.NewPropertyWithValue("DeltaTime", g_TimerMan.GetDeltaTimeSecs());
-		
+
 		// No experimental settings right now :)
-		//writer.NewLine(false, 2);
-		//writer.NewDivider(false);
-		//writer.NewLineString("// Engine Settings - EXPERIMENTAL", false);
-		//writer.NewLineString("// These settings are experimental! They may break mods, crash the game, corrupt saves or worse. Use at your own risk.", false);
-		//writer.NewLine(false);
+		// writer.NewLine(false, 2);
+		// writer.NewDivider(false);
+		// writer.NewLineString("// Engine Settings - EXPERIMENTAL", false);
+		// writer.NewLineString("// These settings are experimental! They may break mods, crash the game, corrupt saves or worse. Use at your own risk.", false);
+		// writer.NewLine(false);
 
 		writer.NewLine(false, 2);
 		writer.NewDivider(false);
@@ -401,7 +402,7 @@ namespace RTE {
 			writer.NewDivider(false);
 			writer.NewLineString("// Enabled Bunker Assembly Groups", false);
 			writer.NewLine(false);
-			for (const std::string &visibleAssembly : m_VisibleAssemblyGroupsList) {
+			for (const std::string& visibleAssembly: m_VisibleAssemblyGroupsList) {
 				writer.NewPropertyWithValue("VisibleAssemblyGroup", visibleAssembly);
 			}
 		}
@@ -411,7 +412,7 @@ namespace RTE {
 			writer.NewDivider(false);
 			writer.NewLineString("// Disabled Mods", false);
 			writer.NewLine(false);
-			for (const std::string &disabledModuleName : g_ModuleMan.m_DisabledDataModuleNames) {
+			for (const std::string& disabledModuleName: g_ModuleMan.m_DisabledDataModuleNames) {
 				writer.NewPropertyWithValue("DisableMod", disabledModuleName);
 			}
 		}
@@ -421,8 +422,10 @@ namespace RTE {
 			writer.NewDivider(false);
 			writer.NewLineString("// Enabled Global Scripts", false);
 			writer.NewLine(false);
-			for (const auto &[scriptPresetName, scriptEnabled] : m_EnabledGlobalScripts) {
-				if (scriptEnabled) { writer.NewPropertyWithValue("EnableGlobalScript", scriptPresetName); }
+			for (const auto& [scriptPresetName, scriptEnabled]: m_EnabledGlobalScripts) {
+				if (scriptEnabled) {
+					writer.NewPropertyWithValue("EnableGlobalScript", scriptPresetName);
+				}
 			}
 		}
 
@@ -449,4 +452,4 @@ namespace RTE {
 
 		return 0;
 	}
-}
+} // namespace RTE

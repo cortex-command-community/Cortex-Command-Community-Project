@@ -19,54 +19,55 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	ScenarioActivityConfigGUI::ScenarioActivityConfigGUI(GUIControlManager *parentControlManager) : m_GUIControlManager(parentControlManager) {
-		m_ActivityConfigBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxActivityConfig"));
+	ScenarioActivityConfigGUI::ScenarioActivityConfigGUI(GUIControlManager* parentControlManager) :
+	    m_GUIControlManager(parentControlManager) {
+		m_ActivityConfigBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxActivityConfig"));
 		m_ActivityConfigBox->CenterInParent(true, true);
 		m_ActivityConfigBox->SetVisible(false);
 
-		m_CancelConfigButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonCancelConfig"));
+		m_CancelConfigButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonCancelConfig"));
 
-		m_ActivityDifficultyLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelActivityDifficultyValue"));
-		m_ActivityDifficultySlider = dynamic_cast<GUISlider *>(m_GUIControlManager->GetControl("SliderActivityDifficulty"));
-		m_StartingGoldLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelStartingGoldValue"));
-		m_StartingGoldSlider = dynamic_cast<GUISlider *>(m_GUIControlManager->GetControl("SliderStartingGold"));
+		m_ActivityDifficultyLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelActivityDifficultyValue"));
+		m_ActivityDifficultySlider = dynamic_cast<GUISlider*>(m_GUIControlManager->GetControl("SliderActivityDifficulty"));
+		m_StartingGoldLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelStartingGoldValue"));
+		m_StartingGoldSlider = dynamic_cast<GUISlider*>(m_GUIControlManager->GetControl("SliderStartingGold"));
 
-		m_RequireClearPathToOrbitCheckbox = dynamic_cast<GUICheckbox *>(m_GUIControlManager->GetControl("CheckboxRequireClearPathToOrbit"));
-		m_FogOfWarCheckbox = dynamic_cast<GUICheckbox *>(m_GUIControlManager->GetControl("CheckboxFogOfWar"));
-		m_DeployUnitsCheckbox = dynamic_cast<GUICheckbox *>(m_GUIControlManager->GetControl("CheckboxDeployUnits"));
+		m_RequireClearPathToOrbitCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxRequireClearPathToOrbit"));
+		m_FogOfWarCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxFogOfWar"));
+		m_DeployUnitsCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxDeployUnits"));
 
-		m_PlayersAndTeamsConfigBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPlayersAndTeamsConfig"));
-		m_TeamIconBoxes[TeamRows::DisabledTeam] = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxDisabledTeamIcon"));
-		m_TeamNameLabels[TeamRows::DisabledTeam] = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelDisabledTeam"));
+		m_PlayersAndTeamsConfigBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxPlayersAndTeamsConfig"));
+		m_TeamIconBoxes[TeamRows::DisabledTeam] = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxDisabledTeamIcon"));
+		m_TeamNameLabels[TeamRows::DisabledTeam] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelDisabledTeam"));
 
-		GUILabel *teamTechLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelTeamTech"));
+		GUILabel* teamTechLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelTeamTech"));
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 			std::string teamNumber = std::to_string(team + 1);
-			m_TeamIconBoxes[team] = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxTeam" + teamNumber + "Icon"));
-			m_TeamNameLabels[team] = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelTeam" + teamNumber));
+			m_TeamIconBoxes[team] = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxTeam" + teamNumber + "Icon"));
+			m_TeamNameLabels[team] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelTeam" + teamNumber));
 
-			m_TeamTechComboBoxes[team] = dynamic_cast<GUIComboBox *>(m_GUIControlManager->GetControl("ComboBoxTeam" + teamNumber + "Tech"));
+			m_TeamTechComboBoxes[team] = dynamic_cast<GUIComboBox*>(m_GUIControlManager->GetControl("ComboBoxTeam" + teamNumber + "Tech"));
 			m_TeamTechComboBoxes[team]->Move(teamTechLabel->GetXPos(), teamTechLabel->GetYPos() + teamTechLabel->GetHeight() + 5 + (25 * (team + 1)));
 			m_TeamTechComboBoxes[team]->SetVisible(false);
 
-			m_TeamAISkillSliders[team] = dynamic_cast<GUISlider *>(m_GUIControlManager->GetControl("SliderTeam" + teamNumber + "AISkill"));
+			m_TeamAISkillSliders[team] = dynamic_cast<GUISlider*>(m_GUIControlManager->GetControl("SliderTeam" + teamNumber + "AISkill"));
 			m_TeamAISkillSliders[team]->SetValue(Activity::AISkillSetting::DefaultSkill);
-			m_TeamAISkillLabels[team] = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelTeam" + teamNumber + "AISkill"));
+			m_TeamAISkillLabels[team] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelTeam" + teamNumber + "AISkill"));
 			m_TeamAISkillLabels[team]->SetText(Activity::GetAISkillString(m_TeamAISkillSliders[team]->GetValue()));
 		}
 		for (int player = Players::PlayerOne; player < PlayerColumns::PlayerColumnCount; ++player) {
 			for (int team = Activity::Teams::TeamOne; team < TeamRows::TeamRowCount; ++team) {
-				m_PlayerBoxes[player][team] = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("P" + std::to_string(player + 1) + "T" + std::to_string(team + 1) + "Box"));
+				m_PlayerBoxes[player][team] = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("P" + std::to_string(player + 1) + "T" + std::to_string(team + 1) + "Box"));
 			}
 		}
-		m_CPULockLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelCPUTeamLock"));
-		m_StartErrorLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelStartError"));
-		m_StartGameButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonStartGame"));
+		m_CPULockLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelCPUTeamLock"));
+		m_StartErrorLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelStartError"));
+		m_StartGameButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonStartGame"));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {
 		static constexpr int allTechIndex = -2;
@@ -81,7 +82,7 @@ namespace RTE {
 			m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-All-", "", nullptr, nullptr, allTechIndex);
 			m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, randomTechIndex);
 		}
-		for (const auto &[moduleID, dataModule] : g_ModuleMan.GetLoadedDataModules()) {
+		for (const auto& [moduleID, dataModule]: g_ModuleMan.GetLoadedDataModules()) {
 			if (dataModule->IsFaction()) {
 				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 					m_TeamTechComboBoxes[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
@@ -95,21 +96,21 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ScenarioActivityConfigGUI::IsEnabled() const {
 		return m_ActivityConfigBox->GetEnabled() && m_ActivityConfigBox->GetVisible();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ScenarioActivityConfigGUI::SetEnabled(bool enable, const Activity *selectedActivity, Scene *selectedScene) {
+	void ScenarioActivityConfigGUI::SetEnabled(bool enable, const Activity* selectedActivity, Scene* selectedScene) {
 		m_ActivityConfigBox->SetEnabled(enable);
 		m_ActivityConfigBox->SetVisible(enable);
 
 		bool selectingPreviousActivityWithManuallyAdjustedGold = m_StartingGoldAdjustedManually && m_PreviouslySelectedActivity == selectedActivity;
 		if (enable) {
-			m_SelectedActivity = dynamic_cast<const GameActivity *>(selectedActivity);
+			m_SelectedActivity = dynamic_cast<const GameActivity*>(selectedActivity);
 			m_SelectedScene = selectedScene;
 			RTEAssert(m_SelectedActivity && m_SelectedScene, "Trying to start a scenario game without an Activity or a Scene!");
 		} else {
@@ -135,7 +136,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 		m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
@@ -162,7 +163,9 @@ namespace RTE {
 				m_PlayerBoxes[player][team]->SetDrawColor(c_GUIColorBlue);
 			}
 			if (player < Players::MaxPlayerCount) {
-				if (const Icon *playerDeviceIcon = g_UInputMan.GetSchemeIcon(player)) { m_PlayerBoxes[player][TeamRows::DisabledTeam]->SetDrawImage(new AllegroBitmap(playerDeviceIcon->GetBitmaps32()[0])); }
+				if (const Icon* playerDeviceIcon = g_UInputMan.GetSchemeIcon(player)) {
+					m_PlayerBoxes[player][TeamRows::DisabledTeam]->SetDrawImage(new AllegroBitmap(playerDeviceIcon->GetBitmaps32()[0]));
+				}
 				m_PlayerBoxes[player][TeamRows::DisabledTeam]->SetDrawType(GUICollectionBox::Image);
 			} else {
 				int cpuInitialTeam = TeamRows::DisabledTeam;
@@ -175,33 +178,41 @@ namespace RTE {
 					m_CPULockLabel->SetVisible(false);
 				}
 				m_PlayerBoxes.at(player).at(cpuInitialTeam)->SetDrawType(GUICollectionBox::Image);
-				if (const Icon *cpuIcon = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "Device CPU"))) { m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(cpuInitialTeam)->SetDrawImage(new AllegroBitmap(cpuIcon->GetBitmaps32()[0])); }
+				if (const Icon* cpuIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Device CPU"))) {
+					m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(cpuInitialTeam)->SetDrawImage(new AllegroBitmap(cpuIcon->GetBitmaps32()[0]));
+				}
 			}
 		}
 
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-			const Icon *teamIcon = nullptr;
+			const Icon* teamIcon = nullptr;
 			if (m_SelectedActivity->TeamActive(team)) {
 				teamIcon = m_SelectedActivity->GetTeamIcon(team);
-				if (!teamIcon) { teamIcon = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "Team " + std::to_string(team + 1) + " Default")); }
+				if (!teamIcon) {
+					teamIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Team " + std::to_string(team + 1) + " Default"));
+				}
 				m_TeamNameLabels.at(team)->SetText(m_SelectedActivity->GetTeamName(team));
 			} else {
-				teamIcon = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "Locked Team"));
+				teamIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Locked Team"));
 				m_TeamNameLabels.at(team)->SetText("Unavailable");
 			}
-			if (teamIcon) { m_TeamIconBoxes.at(team)->SetDrawImage(new AllegroBitmap(teamIcon->GetBitmaps32()[0])); }
+			if (teamIcon) {
+				m_TeamIconBoxes.at(team)->SetDrawImage(new AllegroBitmap(teamIcon->GetBitmaps32()[0]));
+			}
 
 			m_TeamTechComboBoxes.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 			m_TeamAISkillSliders.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 			m_TeamAISkillLabels.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 		}
-		if (const Icon *disabledTeamIcon = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "Disabled Team"))) { m_TeamIconBoxes.at(TeamRows::DisabledTeam)->SetDrawImage(new AllegroBitmap(disabledTeamIcon->GetBitmaps32()[0])); }
+		if (const Icon* disabledTeamIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Disabled Team"))) {
+			m_TeamIconBoxes.at(TeamRows::DisabledTeam)->SetDrawImage(new AllegroBitmap(disabledTeamIcon->GetBitmaps32()[0]));
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ScenarioActivityConfigGUI::StartGame() {
-		GameActivity *gameActivity = dynamic_cast<GameActivity *>(m_SelectedActivity->Clone());
+		GameActivity* gameActivity = dynamic_cast<GameActivity*>(m_SelectedActivity->Clone());
 
 		gameActivity->SetDifficulty(m_ActivityDifficultySlider->GetValue());
 		gameActivity->SetStartingGold((m_StartingGoldSlider->GetValue() == m_StartingGoldSlider->GetMaximum()) ? 1000000000 : static_cast<int>(std::floor(m_StartingGoldSlider->GetValue())));
@@ -225,7 +236,7 @@ namespace RTE {
 		}
 
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-			if (const GUIListPanel::Item *techItem = m_TeamTechComboBoxes.at(team)->GetSelectedItem()) {
+			if (const GUIListPanel::Item* techItem = m_TeamTechComboBoxes.at(team)->GetSelectedItem()) {
 				if (techItem->m_ExtraIndex == -2) {
 					gameActivity->SetTeamTech(team, "-All-");
 				} else if (techItem->m_ExtraIndex == -1) {
@@ -240,7 +251,7 @@ namespace RTE {
 		g_ActivityMan.SetStartActivity(gameActivity);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ScenarioActivityConfigGUI::Update(int mouseX, int mouseY) {
 		UpdatePlayerTeamSetupCell(mouseX, mouseY);
@@ -260,7 +271,9 @@ namespace RTE {
 						}
 					}
 				}
-				if (foundPlayer) { teamsWithPlayers++; }
+				if (foundPlayer) {
+					teamsWithPlayers++;
+				}
 			}
 		}
 
@@ -279,12 +292,14 @@ namespace RTE {
 		m_StartErrorLabel->SetVisible(!errorMessage.empty());
 		m_StartGameButton->SetVisible(errorMessage.empty());
 
-		if (m_StartGameButton->GetVisible()) { m_GUIControlManager->GetManager()->SetFocus(m_StartGameButtonBlinkTimer.AlternateReal(500) ? m_StartGameButton : nullptr); }
+		if (m_StartGameButton->GetVisible()) {
+			m_GUIControlManager->GetManager()->SetFocus(m_StartGameButtonBlinkTimer.AlternateReal(500) ? m_StartGameButton : nullptr);
+		}
 
 		return HandleInputEvents();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ScenarioActivityConfigGUI::UpdateStartingGoldSliderAndLabel() {
 		if (!m_StartingGoldAdjustedManually) {
@@ -316,10 +331,10 @@ namespace RTE {
 		m_StartingGoldLabel->SetText(goldString);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ScenarioActivityConfigGUI::UpdatePlayerTeamSetupCell(int mouseX, int mouseY) {
-		if (const GUICollectionBox *hoveredCell = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControlUnderPoint(mouseX, mouseY, m_PlayersAndTeamsConfigBox, 1))) {
+		if (const GUICollectionBox* hoveredCell = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControlUnderPoint(mouseX, mouseY, m_PlayersAndTeamsConfigBox, 1))) {
 			int hoveredPlayer = PlayerColumns::PlayerColumnCount;
 			int hoveredTeam = TeamRows::TeamRowCount;
 			for (int player = Players::PlayerOne; player < PlayerColumns::PlayerColumnCount; ++player) {
@@ -343,12 +358,14 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ScenarioActivityConfigGUI::HandleClickOnPlayerTeamSetupCell(int clickedPlayer, int clickedTeam) {
 		m_PlayerBoxes.at(clickedPlayer).at(clickedTeam)->SetDrawType(GUICollectionBox::Image);
-		const Icon *playerIcon = (clickedPlayer != PlayerColumns::PlayerCPU) ? g_UInputMan.GetSchemeIcon(clickedPlayer) : dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "Device CPU"));
-		if (playerIcon) { m_PlayerBoxes.at(clickedPlayer).at(clickedTeam)->SetDrawImage(new AllegroBitmap(playerIcon->GetBitmaps32()[0])); }
+		const Icon* playerIcon = (clickedPlayer != PlayerColumns::PlayerCPU) ? g_UInputMan.GetSchemeIcon(clickedPlayer) : dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Device CPU"));
+		if (playerIcon) {
+			m_PlayerBoxes.at(clickedPlayer).at(clickedTeam)->SetDrawImage(new AllegroBitmap(playerIcon->GetBitmaps32()[0]));
+		}
 
 		if (clickedPlayer == PlayerColumns::PlayerCPU) {
 			if (clickedTeam == TeamRows::DisabledTeam) {
@@ -377,7 +394,9 @@ namespace RTE {
 					m_PlayerBoxes.at(humanPlayer).at(clickedTeam)->SetDrawColor(c_GUIColorBlue);
 					m_PlayerBoxes.at(humanPlayer).at(TeamRows::DisabledTeam)->SetDrawType(GUICollectionBox::Image);
 					playerIcon = g_UInputMan.GetSchemeIcon(humanPlayer);
-					if (playerIcon) { m_PlayerBoxes.at(humanPlayer).at(TeamRows::DisabledTeam)->SetDrawImage(new AllegroBitmap(playerIcon->GetBitmaps32()[0])); }
+					if (playerIcon) {
+						m_PlayerBoxes.at(humanPlayer).at(TeamRows::DisabledTeam)->SetDrawImage(new AllegroBitmap(playerIcon->GetBitmaps32()[0]));
+					}
 				}
 			}
 		} else if (clickedPlayer != PlayerColumns::PlayerCPU && clickedTeam != TeamRows::DisabledTeam && m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(clickedTeam)->GetDrawType() == GUICollectionBox::Image) {
@@ -386,18 +405,22 @@ namespace RTE {
 
 			int cpuTeamCount = 0;
 			for (int teamToCount = Activity::Teams::TeamOne; teamToCount < TeamRows::DisabledTeam; ++teamToCount) {
-				if (m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(teamToCount)->GetDrawType() == GUICollectionBox::Image) { cpuTeamCount++; }
+				if (m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(teamToCount)->GetDrawType() == GUICollectionBox::Image) {
+					cpuTeamCount++;
+				}
 			}
 			if (cpuTeamCount == 0) {
 				m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(TeamRows::DisabledTeam)->SetDrawType(GUICollectionBox::Image);
-				playerIcon = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "Device CPU"));
-				if (playerIcon) { m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(TeamRows::DisabledTeam)->SetDrawImage(new AllegroBitmap(playerIcon->GetBitmaps32()[0])); }
+				playerIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Device CPU"));
+				if (playerIcon) {
+					m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(TeamRows::DisabledTeam)->SetDrawImage(new AllegroBitmap(playerIcon->GetBitmaps32()[0]));
+				}
 			}
 		}
 		g_GUISound.FocusChangeSound()->Play();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ScenarioActivityConfigGUI::HandleInputEvents() {
 		GUIEvent guiEvent;
@@ -415,13 +438,19 @@ namespace RTE {
 			} else if (guiEvent.GetType() == GUIEvent::Notification) {
 				if (guiEvent.GetControl() == m_ActivityDifficultySlider) {
 					m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
-					if (!m_StartingGoldAdjustedManually) { UpdateStartingGoldSliderAndLabel(); }
+					if (!m_StartingGoldAdjustedManually) {
+						UpdateStartingGoldSliderAndLabel();
+					}
 				} else if (guiEvent.GetControl() == m_StartingGoldSlider) {
-					if (guiEvent.GetMsg() == GUISlider::Clicked) { m_StartingGoldAdjustedManually = true; }
+					if (guiEvent.GetMsg() == GUISlider::Clicked) {
+						m_StartingGoldAdjustedManually = true;
+					}
 					UpdateStartingGoldSliderAndLabel();
 				} else if (guiEvent.GetMsg() == GUISlider::Changed) {
 					for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; team++) {
-						if (guiEvent.GetControl() == m_TeamAISkillSliders.at(team)) { m_TeamAISkillLabels.at(team)->SetText(Activity::GetAISkillString(m_TeamAISkillSliders.at(team)->GetValue())); }
+						if (guiEvent.GetControl() == m_TeamAISkillSliders.at(team)) {
+							m_TeamAISkillLabels.at(team)->SetText(Activity::GetAISkillString(m_TeamAISkillSliders.at(team)->GetValue()));
+						}
 					}
 				}
 			}
@@ -429,7 +458,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ScenarioActivityConfigGUI::Draw() {
 		m_GUIControlManager->Draw();
@@ -457,7 +486,9 @@ namespace RTE {
 		for (int team = Activity::Teams::MaxTeamCount - 1; team >= Activity::Teams::TeamOne; --team) {
 			if (m_TeamTechComboBoxes.at(team)->GetVisible()) {
 				m_TeamTechComboBoxes.at(team)->Draw(m_GUIControlManager->GetScreen());
-				if (m_TeamTechComboBoxes.at(team)->IsDropped()) { m_TeamTechComboBoxes.at(team)->GetListPanel()->Draw(m_GUIControlManager->GetScreen()); }
+				if (m_TeamTechComboBoxes.at(team)->IsDropped()) {
+					m_TeamTechComboBoxes.at(team)->GetListPanel()->Draw(m_GUIControlManager->GetScreen());
+				}
 			}
 			if (m_TeamAISkillSliders.at(team)->GetVisible()) {
 				m_TeamAISkillSliders.at(team)->Draw(m_GUIControlManager->GetScreen());
@@ -465,4 +496,4 @@ namespace RTE {
 			}
 		}
 	}
-}
+} // namespace RTE

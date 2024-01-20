@@ -9,7 +9,7 @@ namespace RTE {
 
 	ConcreteClassInfo(Arm, Attachable, 50);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::Clear() {
 		m_MaxLength = 0;
@@ -35,7 +35,7 @@ namespace RTE {
 		m_HeldDeviceThisArmIsTryingToSupport = nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Arm::Create() {
 		if (Attachable::Create() < 0) {
@@ -51,9 +51,9 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Arm::Create(const Arm &reference) {
+	int Arm::Create(const Arm& reference) {
 		if (reference.m_HeldDevice) {
 			m_ReferenceHardcodedAttachableUniqueIDs.insert(reference.m_HeldDevice->GetUniqueID());
 		}
@@ -80,17 +80,17 @@ namespace RTE {
 		m_ThrowStrength = reference.m_ThrowStrength;
 
 		if (reference.m_HeldDevice) {
-			SetHeldDevice(dynamic_cast<HeldDevice *>(reference.m_HeldDevice->Clone()));
+			SetHeldDevice(dynamic_cast<HeldDevice*>(reference.m_HeldDevice->Clone()));
 		}
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Arm::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int Arm::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Attachable::ReadProperty(propName, reader));
-		
+
 		MatchProperty("MaxLength", { reader >> m_MaxLength; });
 		MatchProperty("MoveSpeed", { reader >> m_MoveSpeed; });
 		MatchForwards("HandIdleOffset") MatchProperty("IdleOffset", { reader >> m_HandIdleOffset; });
@@ -100,14 +100,14 @@ namespace RTE {
 		});
 		MatchProperty("GripStrength", { reader >> m_GripStrength; });
 		MatchProperty("ThrowStrength", { reader >> m_ThrowStrength; });
-		MatchProperty("HeldDevice", { SetHeldDevice(dynamic_cast<HeldDevice *>(g_PresetMan.ReadReflectedPreset(reader))); });
+		MatchProperty("HeldDevice", { SetHeldDevice(dynamic_cast<HeldDevice*>(g_PresetMan.ReadReflectedPreset(reader))); });
 
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Arm::Save(Writer &writer) const {
+	int Arm::Save(Writer& writer) const {
 		Attachable::Save(writer);
 
 		writer.NewPropertyWithValue("MaxLength", m_MaxLength);
@@ -121,45 +121,46 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Arm::SetHandPos(const Vector &newHandPos) {
+	void Arm::SetHandPos(const Vector& newHandPos) {
 		SetHandCurrentOffset(g_SceneMan.ShortestDistance(m_JointPos, newHandPos, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY()));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Arm::AddHandTarget(const std::string &description, const Vector &handTargetPositionToAdd, float delayAtTarget) {
+	void Arm::AddHandTarget(const std::string& description, const Vector& handTargetPositionToAdd, float delayAtTarget) {
 		Vector handTargetOffsetToAdd = g_SceneMan.ShortestDistance(m_JointPos, handTargetPositionToAdd, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY());
 		if (!handTargetOffsetToAdd.IsZero()) {
 			handTargetOffsetToAdd.ClampMagnitude(m_MaxLength / 2.0F, m_MaxLength);
 			if (m_HandTargets.empty()) {
 				m_HandHasReachedCurrentTarget = false;
 			} else if (description == m_HandTargets.back().Description) {
-				m_HandTargets.back() = { description, handTargetOffsetToAdd, std::max(m_HandTargets.back().DelayAtTarget, delayAtTarget), m_HFlipped };
+				m_HandTargets.back() = {description, handTargetOffsetToAdd, std::max(m_HandTargets.back().DelayAtTarget, delayAtTarget), m_HFlipped};
 				return;
 			}
 			m_HandTargets.emplace(description, handTargetOffsetToAdd, delayAtTarget, m_HFlipped);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Arm::SetHeldDevice(HeldDevice *newHeldDevice) {
-		if (m_HeldDevice && m_HeldDevice->IsAttached()) { RemoveAndDeleteAttachable(m_HeldDevice); }
+	void Arm::SetHeldDevice(HeldDevice* newHeldDevice) {
+		if (m_HeldDevice && m_HeldDevice->IsAttached()) {
+			RemoveAndDeleteAttachable(m_HeldDevice);
+		}
 		m_HeldDevice = newHeldDevice;
 
 		if (newHeldDevice != nullptr) {
 			AddAttachable(newHeldDevice);
 
 			m_HardcodedAttachableUniqueIDsAndSetters.try_emplace(
-				newHeldDevice->GetUniqueID(),
-				[](MOSRotating *parent, Attachable *attachable) {
-					HeldDevice *castedAttachable = dynamic_cast<HeldDevice *>(attachable);
-					RTEAssert(!attachable || castedAttachable, "Tried to pass incorrect Attachable subtype " + (attachable ? attachable->GetClassName() : "") + " to SetHeldDevice.");
-					dynamic_cast<Arm *>(parent)->SetHeldDevice(castedAttachable);
-				}
-			);
+			    newHeldDevice->GetUniqueID(),
+			    [](MOSRotating* parent, Attachable* attachable) {
+				    HeldDevice* castedAttachable = dynamic_cast<HeldDevice*>(attachable);
+				    RTEAssert(!attachable || castedAttachable, "Tried to pass incorrect Attachable subtype " + (attachable ? attachable->GetClassName() : "") + " to SetHeldDevice.");
+				    dynamic_cast<Arm*>(parent)->SetHeldDevice(castedAttachable);
+			    });
 		}
 
 		// Reset our fire state, so that our activation of a prior device does not "leak"
@@ -168,21 +169,21 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	HeldDevice * Arm::SwapHeldDevice(HeldDevice *newHeldDevice) {
-		Attachable *previousHeldDevice = RemoveAttachable(m_HeldDevice, false, false);
+	HeldDevice* Arm::SwapHeldDevice(HeldDevice* newHeldDevice) {
+		Attachable* previousHeldDevice = RemoveAttachable(m_HeldDevice, false, false);
 		SetHeldDevice(newHeldDevice);
-		return dynamic_cast<HeldDevice *>(previousHeldDevice);
+		return dynamic_cast<HeldDevice*>(previousHeldDevice);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool Arm::HandIsCloseToTargetOffset(const Vector &targetOffset) const {
+	bool Arm::HandIsCloseToTargetOffset(const Vector& targetOffset) const {
 		return (m_HandCurrentOffset - targetOffset).MagnitudeIsLessThan(m_MaxLength / 10.0F);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::Update() {
 		Attachable::PreUpdate();
@@ -198,7 +199,7 @@ namespace RTE {
 			m_HeldDeviceThisArmIsTryingToSupport = nullptr;
 		}
 
-		bool heldDeviceIsAThrownDevice = m_HeldDevice && dynamic_cast<ThrownDevice *>(m_HeldDevice);
+		bool heldDeviceIsAThrownDevice = m_HeldDevice && dynamic_cast<ThrownDevice*>(m_HeldDevice);
 
 		// If there's no HeldDevice, or it's a ThrownDevice, the Arm should rotate to match the hand's current offset for visuals/aiming (instead of using the AHuman's aim angle).
 		if (heldDeviceIsAThrownDevice || !m_HeldDevice) {
@@ -231,7 +232,7 @@ namespace RTE {
 		m_HandIdleRotation = 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::UpdateHandCurrentOffset(bool armHasParent, bool heldDeviceIsAThrownDevice) {
 		if (armHasParent) {
@@ -239,7 +240,7 @@ namespace RTE {
 			if (m_HandTargets.empty()) {
 				if (m_HeldDevice) {
 					targetOffset = m_HeldDevice->GetStanceOffset();
-					if (HDFirearm *heldFirearm = dynamic_cast<HDFirearm *>(m_HeldDevice); heldFirearm && heldFirearm->GetCurrentReloadAngle() != 0) {
+					if (HDFirearm* heldFirearm = dynamic_cast<HDFirearm*>(m_HeldDevice); heldFirearm && heldFirearm->GetCurrentReloadAngle() != 0) {
 						if (heldFirearm->IsReloading()) {
 							float reloadProgressSin = std::sin(heldFirearm->GetReloadProgress() * c_PI);
 							// TODO: There are a few values available for customization here, but they need clear property names. The following plays out well as a default.
@@ -251,13 +252,13 @@ namespace RTE {
 							float reloadAngle = (heldFirearm->GetCurrentReloadAngle() - inheritedBodyAngle * GetFlipFactor()) * reloadProgressSin;
 							heldFirearm->SetInheritedRotAngleOffset(reloadAngle);
 							targetOffset.RadRotate(reloadAngle * GetFlipFactor());
-							float retractionRate = 0.5F * noSupportFactor;	// Another value potentially open for customization.
+							float retractionRate = 0.5F * noSupportFactor; // Another value potentially open for customization.
 							targetOffset.SetMagnitude(targetOffset.GetMagnitude() * (1.0F - reloadProgressSin * retractionRate));
 						} else if (heldFirearm->DoneReloading()) {
 							heldFirearm->SetInheritedRotAngleOffset(0);
 						}
 					}
-				} else if (bool parentIsStable = dynamic_cast<Actor *>(m_Parent)->IsStatus(Actor::Status::STABLE); parentIsStable && m_HeldDeviceThisArmIsTryingToSupport) {
+				} else if (bool parentIsStable = dynamic_cast<Actor*>(m_Parent)->IsStatus(Actor::Status::STABLE); parentIsStable && m_HeldDeviceThisArmIsTryingToSupport) {
 					targetOffset = g_SceneMan.ShortestDistance(m_JointPos, m_HeldDeviceThisArmIsTryingToSupport->GetSupportPos(), g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY());
 				} else {
 					targetOffset = m_HandIdleOffset.GetXFlipped(m_Parent->IsHFlipped()).GetRadRotatedCopy(m_Parent->GetRotAngle());
@@ -266,7 +267,7 @@ namespace RTE {
 					targetOffset.RadRotate(m_HandIdleRotation);
 				}
 			} else {
-				const HandTarget &nextHandTarget = m_HandTargets.front();
+				const HandTarget& nextHandTarget = m_HandTargets.front();
 				targetOffset = nextHandTarget.TargetOffset.GetXFlipped(nextHandTarget.HFlippedWhenTargetWasCreated != m_HFlipped);
 			}
 
@@ -302,18 +303,18 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Arm::AccountForHeldDeviceRecoil(const HeldDevice *heldDevice, Vector &targetOffset) {
+	void Arm::AccountForHeldDeviceRecoil(const HeldDevice* heldDevice, Vector& targetOffset) {
 		if (!heldDevice->GetRecoilForce().IsZero()) {
 			float totalGripStrength = m_GripStrength * heldDevice->GetGripStrengthMultiplier();
-			if (totalGripStrength == 0.0F) { 
-				totalGripStrength = heldDevice->GetJointStrength(); 
+			if (totalGripStrength == 0.0F) {
+				totalGripStrength = heldDevice->GetJointStrength();
 			}
 
 			if (heldDevice->GetSupported()) {
-				const AHuman *rootParentAsAHuman = dynamic_cast<const AHuman *>(GetRootParent());
-				const Arm *supportingArm = rootParentAsAHuman ? rootParentAsAHuman->GetBGArm() : nullptr;
+				const AHuman* rootParentAsAHuman = dynamic_cast<const AHuman*>(GetRootParent());
+				const Arm* supportingArm = rootParentAsAHuman ? rootParentAsAHuman->GetBGArm() : nullptr;
 				if (supportingArm) {
 					if (supportingArm->GetGripStrength() < 0) {
 						totalGripStrength = -1.0F;
@@ -341,11 +342,11 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Arm::AccountForHeldDeviceTerrainClipping(const HeldDevice *heldDevice, Vector &targetOffset) const {
+	void Arm::AccountForHeldDeviceTerrainClipping(const HeldDevice* heldDevice, Vector& targetOffset) const {
 		Vector newMuzzlePos = (m_JointPos + targetOffset) - RotateOffset(heldDevice->GetJointOffset()) + RotateOffset(heldDevice->GetMuzzleOffset());
-		Vector midToMuzzle = RotateOffset({ heldDevice->GetIndividualRadius(), 0 });
+		Vector midToMuzzle = RotateOffset({heldDevice->GetIndividualRadius(), 0});
 		Vector midOfDevice = newMuzzlePos - midToMuzzle;
 
 		Vector terrainOrMuzzlePosition;
@@ -357,7 +358,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::UpdateArmFrame() {
 		float halfMaxLength = m_MaxLength / 2.0F;
@@ -365,20 +366,22 @@ namespace RTE {
 		m_Frame = static_cast<unsigned int>(std::clamp(newFrame, 0.0F, static_cast<float>(m_FrameCount - 1)));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Arm::Draw(BITMAP *targetBitmap, const Vector &targetPos, DrawMode mode, bool onlyPhysical) const {
+	void Arm::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		Attachable::Draw(targetBitmap, targetPos, mode, onlyPhysical);
 
 		if (!onlyPhysical && (mode == DrawMode::g_DrawColor || mode == DrawMode::g_DrawWhite || mode == DrawMode::g_DrawTrans)) {
 			DrawHand(targetBitmap, targetPos, mode);
-			if (m_HeldDevice && m_HeldDevice->IsDrawnAfterParent()) { m_HeldDevice->Draw(targetBitmap, targetPos, mode, onlyPhysical); }
+			if (m_HeldDevice && m_HeldDevice->IsDrawnAfterParent()) {
+				m_HeldDevice->Draw(targetBitmap, targetPos, mode, onlyPhysical);
+			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Arm::DrawHand(BITMAP *targetBitmap, const Vector &targetPos, DrawMode mode) const {
+	void Arm::DrawHand(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode) const {
 		Vector handPos(m_JointPos + m_HandCurrentOffset + (m_Recoiled ? m_RecoilOffset : Vector()) - targetPos);
 		handPos -= Vector(static_cast<float>(m_HandSpriteBitmap->w / 2), static_cast<float>(m_HandSpriteBitmap->h / 2));
 
@@ -389,7 +392,7 @@ namespace RTE {
 				draw_sprite(targetBitmap, m_HandSpriteBitmap, handPos.GetFloorIntX(), handPos.GetFloorIntY());
 			}
 		} else {
-			//TODO this draw_character_ex won't draw flipped. It should draw onto a temp bitmap and then draw that flipped. Maybe it can reuse a temp bitmap from MOSR, maybe not?
+			// TODO this draw_character_ex won't draw flipped. It should draw onto a temp bitmap and then draw that flipped. Maybe it can reuse a temp bitmap from MOSR, maybe not?
 			if (mode == DrawMode::g_DrawWhite) {
 				draw_character_ex(targetBitmap, m_HandSpriteBitmap, handPos.GetFloorIntX(), handPos.GetFloorIntY(), g_WhiteColor, -1);
 			} else {
@@ -397,4 +400,4 @@ namespace RTE {
 			}
 		}
 	}
-}
+} // namespace RTE

@@ -5,9 +5,9 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	GUIBitmap * AllegroScreen::CreateBitmap(const std::string &fileName) {
+	GUIBitmap* AllegroScreen::CreateBitmap(const std::string& fileName) {
 		std::unique_ptr<AllegroBitmap> newAllegroBitmap;
 		newAllegroBitmap.reset(new AllegroBitmap());
 
@@ -15,9 +15,9 @@ namespace RTE {
 		return newAllegroBitmap.release();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	GUIBitmap * AllegroScreen::CreateBitmap(int width, int height) {
+	GUIBitmap* AllegroScreen::CreateBitmap(int width, int height) {
 		std::unique_ptr<AllegroBitmap> newAllegroBitmap;
 		newAllegroBitmap.reset(new AllegroBitmap());
 
@@ -25,13 +25,13 @@ namespace RTE {
 		return newAllegroBitmap.release();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void AllegroScreen::DrawBitmap(GUIBitmap *guiBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) {
+	void AllegroScreen::DrawBitmap(GUIBitmap* guiBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) {
 		if (!guiBitmap) {
 			return;
 		}
-		if (BITMAP *sourceBitmap = dynamic_cast<AllegroBitmap *>(guiBitmap)->GetBitmap()) {
+		if (BITMAP* sourceBitmap = dynamic_cast<AllegroBitmap*>(guiBitmap)->GetBitmap()) {
 			if (srcPosAndSizeRect) {
 				blit(sourceBitmap, m_BackBufferBitmap->GetBitmap(), srcPosAndSizeRect->left, srcPosAndSizeRect->top, destX, destY, srcPosAndSizeRect->right - srcPosAndSizeRect->left, srcPosAndSizeRect->bottom - srcPosAndSizeRect->top);
 			} else {
@@ -40,13 +40,13 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void AllegroScreen::DrawBitmapTrans(GUIBitmap *guiBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) {
+	void AllegroScreen::DrawBitmapTrans(GUIBitmap* guiBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) {
 		if (!guiBitmap) {
 			return;
 		}
-		if (BITMAP *sourceBitmap = dynamic_cast<AllegroBitmap *>(guiBitmap)->GetBitmap()) {
+		if (BITMAP* sourceBitmap = dynamic_cast<AllegroBitmap*>(guiBitmap)->GetBitmap()) {
 			if (srcPosAndSizeRect) {
 				masked_blit(sourceBitmap, m_BackBufferBitmap->GetBitmap(), srcPosAndSizeRect->left, srcPosAndSizeRect->top, destX, destY, srcPosAndSizeRect->right - srcPosAndSizeRect->left, srcPosAndSizeRect->bottom - srcPosAndSizeRect->top);
 			} else {
@@ -55,14 +55,18 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	unsigned long AllegroScreen::ConvertColor(unsigned long color, int targetColorDepth) {
-		if (targetColorDepth == 0) { targetColorDepth = get_color_depth(); }
+		if (targetColorDepth == 0) {
+			targetColorDepth = get_color_depth();
+		}
 
 		if (targetColorDepth == 8) {
 			// Isn't indexed, don't convert
-			if (!(color >= 0 && color <= 255)) { color = makecol8(getr32(color), getg32(color), getb32(color)); }
+			if (!(color >= 0 && color <= 255)) {
+				color = makecol8(getr32(color), getg32(color), getb32(color));
+			}
 		} else {
 			if (color >= 0 && color <= 255) {
 				RGB rgbEntry;
@@ -73,4 +77,4 @@ namespace RTE {
 		}
 		return color;
 	}
-}
+} // namespace RTE

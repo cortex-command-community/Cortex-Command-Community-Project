@@ -16,23 +16,23 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	ModManagerGUI::ModManagerGUI(AllegroScreen *guiScreen, GUIInputWrapper *guiInput, bool createForPauseMenu) {
+	ModManagerGUI::ModManagerGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
 		RTEAssert(m_GUIControlManager->Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "MainMenuSubMenuSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/MainMenuSubMenuSkin.ini");
 		m_GUIControlManager->Load("Base.rte/GUIs/ModManagerGUI.ini");
 
 		int rootBoxMaxWidth = g_WindowMan.FullyCoversAllDisplays() ? g_WindowMan.GetPrimaryWindowDisplayWidth() / g_WindowMan.GetResMultiplier() : g_WindowMan.GetResX();
 
-		GUICollectionBox *rootBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("root"));
+		GUICollectionBox* rootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("root"));
 		rootBox->Resize(rootBoxMaxWidth, g_WindowMan.GetResY());
 
-		GUICollectionBox *modManagerMenuBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxModManager"));
+		GUICollectionBox* modManagerMenuBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxModManager"));
 		modManagerMenuBox->CenterInParent(true, true);
 		modManagerMenuBox->SetPositionAbs(modManagerMenuBox->GetXPos(), (rootBox->GetHeight() < 540) ? modManagerMenuBox->GetYPos() - 15 : 140);
 
-		m_BackToMainButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonBackToMainMenu"));
+		m_BackToMainButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonBackToMainMenu"));
 
 		if (createForPauseMenu) {
 			m_BackToMainButton->SetSize(120, 20);
@@ -40,36 +40,36 @@ namespace RTE {
 		}
 		m_BackToMainButton->SetPositionAbs((rootBox->GetWidth() - m_BackToMainButton->GetWidth()) / 2, modManagerMenuBox->GetYPos() + modManagerMenuBox->GetHeight() + 10);
 
-		m_ModsListBox = dynamic_cast<GUIListBox *>(m_GUIControlManager->GetControl("ListBoxMods"));
+		m_ModsListBox = dynamic_cast<GUIListBox*>(m_GUIControlManager->GetControl("ListBoxMods"));
 		m_ModsListBox->SetMouseScrolling(true);
 		m_ModsListBox->SetScrollBarThickness(15);
 		m_ModsListBox->SetScrollBarPadding(2);
 
-		m_ScriptsListBox = dynamic_cast<GUIListBox *>(m_GUIControlManager->GetControl("ListBoxScripts"));
+		m_ScriptsListBox = dynamic_cast<GUIListBox*>(m_GUIControlManager->GetControl("ListBoxScripts"));
 		m_ScriptsListBox->SetMouseScrolling(true);
 		m_ScriptsListBox->SetScrollBarThickness(15);
 		m_ScriptsListBox->SetScrollBarPadding(2);
 
-		m_ToggleModButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonToggleMod"));
-		m_ToggleScriptButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonToggleScript"));
-		m_ModOrScriptDescriptionLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelDescription"));
+		m_ToggleModButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonToggleMod"));
+		m_ToggleScriptButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonToggleScript"));
+		m_ModOrScriptDescriptionLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelDescription"));
 
 		m_ModsListFetched = false;
 		m_ScriptsListFetched = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModManagerGUI::PopulateKnownModsList() {
-		for (const auto &[moduleID, dataModule] : g_ModuleMan.GetLoadedDataModules()) {
+		for (const auto& [moduleID, dataModule]: g_ModuleMan.GetLoadedDataModules()) {
 			if (!dataModule->IsOfficial() && !dataModule->IsUserdata()) {
 				m_KnownMods.emplace_back(dataModule->GetFileName(), dataModule->GetFriendlyName(), dataModule->GetDescription(), g_ModuleMan.IsModuleEnabled(dataModule->GetFileName()));
 			}
 		}
 		// Add missing data from disabled mods settings
-		for (const std::string &disabledModuleName : g_ModuleMan.GetDisabledDataModuleNames()) {
+		for (const std::string& disabledModuleName: g_ModuleMan.GetDisabledDataModuleNames()) {
 			bool found = false;
-			for (const ModRecord &knowModListEntry : m_KnownMods) {
+			for (const ModRecord& knowModListEntry: m_KnownMods) {
 				if (disabledModuleName == knowModListEntry.ModulePath) {
 					found = true;
 					break;
@@ -88,15 +88,15 @@ namespace RTE {
 		m_ModsListFetched = true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModManagerGUI::PopulateKnownScriptsList() {
-		std::list<Entity *> globalScriptList;
+		std::list<Entity*> globalScriptList;
 		g_PresetMan.GetAllOfType(globalScriptList, "GlobalScript");
 
-		for (Entity *globalScriptListEntry : globalScriptList) {
-			if (const GlobalScript *globalScript = dynamic_cast<GlobalScript *>(globalScriptListEntry)) {
-				ScriptRecord scriptRecord = { globalScript->GetModuleAndPresetName(), globalScript->GetDescription(), g_SettingsMan.IsGlobalScriptEnabled(scriptRecord.PresetName) };
+		for (Entity* globalScriptListEntry: globalScriptList) {
+			if (const GlobalScript* globalScript = dynamic_cast<GlobalScript*>(globalScriptListEntry)) {
+				ScriptRecord scriptRecord = {globalScript->GetModuleAndPresetName(), globalScript->GetDescription(), g_SettingsMan.IsGlobalScriptEnabled(scriptRecord.PresetName)};
 				m_KnownScripts.emplace_back(scriptRecord);
 			}
 		}
@@ -109,14 +109,14 @@ namespace RTE {
 		m_ScriptsListFetched = true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModManagerGUI::ToggleMod() {
 		int index = m_ModsListBox->GetSelectedIndex();
 		if (index > -1) {
-			std::unordered_set<std::string> &disabledModsList = g_ModuleMan.GetDisabledDataModuleNames();
-			GUIListPanel::Item *selectedItem = m_ModsListBox->GetSelected();
-			ModRecord &modRecord = m_KnownMods.at(selectedItem->m_ExtraIndex);
+			std::unordered_set<std::string>& disabledModsList = g_ModuleMan.GetDisabledDataModuleNames();
+			GUIListPanel::Item* selectedItem = m_ModsListBox->GetSelected();
+			ModRecord& modRecord = m_KnownMods.at(selectedItem->m_ExtraIndex);
 
 			modRecord.Enabled = !modRecord.Enabled;
 			if (modRecord.Enabled) {
@@ -135,14 +135,14 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModManagerGUI::ToggleScript() {
 		int index = m_ScriptsListBox->GetSelectedIndex();
 		if (index > -1) {
-			std::unordered_map<std::string, bool> &enabledScriptList = g_SettingsMan.GetEnabledGlobalScriptMap();
-			GUIListPanel::Item *selectedItem = m_ScriptsListBox->GetSelected();
-			ScriptRecord &scriptRecord = m_KnownScripts.at(selectedItem->m_ExtraIndex);
+			std::unordered_map<std::string, bool>& enabledScriptList = g_SettingsMan.GetEnabledGlobalScriptMap();
+			GUIListPanel::Item* selectedItem = m_ScriptsListBox->GetSelected();
+			ScriptRecord& scriptRecord = m_KnownScripts.at(selectedItem->m_ExtraIndex);
 
 			scriptRecord.Enabled = !scriptRecord.Enabled;
 			if (scriptRecord.Enabled) {
@@ -163,7 +163,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ModManagerGUI::HandleInputEvents() {
 		if (!ListsFetched()) {
@@ -183,14 +183,16 @@ namespace RTE {
 					ToggleScript();
 				}
 			} else if (guiEvent.GetType() == GUIEvent::Notification) {
-				if (guiEvent.GetMsg() == GUIButton::Focused && dynamic_cast<GUIButton *>(guiEvent.GetControl())) { g_GUISound.SelectionChangeSound()->Play(); }
+				if (guiEvent.GetMsg() == GUIButton::Focused && dynamic_cast<GUIButton*>(guiEvent.GetControl())) {
+					g_GUISound.SelectionChangeSound()->Play();
+				}
 
 				if (guiEvent.GetControl() == m_ModsListBox && (guiEvent.GetMsg() == GUIListBox::Select && m_ModsListBox->GetSelectedIndex() > -1)) {
-					const ModRecord &modRecord = m_KnownMods.at(m_ModsListBox->GetSelected()->m_ExtraIndex);
+					const ModRecord& modRecord = m_KnownMods.at(m_ModsListBox->GetSelected()->m_ExtraIndex);
 					m_ModOrScriptDescriptionLabel->SetText(modRecord.Description);
 					m_ToggleModButton->SetText(modRecord.Enabled ? "Disable Mod" : "Enable Mod");
 				} else if (guiEvent.GetControl() == m_ScriptsListBox && (guiEvent.GetMsg() == GUIListBox::Select && m_ScriptsListBox->GetSelectedIndex() > -1)) {
-					const ScriptRecord &scriptRecord = m_KnownScripts.at(m_ScriptsListBox->GetSelected()->m_ExtraIndex);
+					const ScriptRecord& scriptRecord = m_KnownScripts.at(m_ScriptsListBox->GetSelected()->m_ExtraIndex);
 					m_ModOrScriptDescriptionLabel->SetText(scriptRecord.Description);
 					m_ToggleScriptButton->SetText(scriptRecord.Enabled ? "Disable Script" : "Enable Script");
 				}
@@ -199,9 +201,9 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ModManagerGUI::Draw() const {
 		m_GUIControlManager->Draw();
 	}
-}
+} // namespace RTE

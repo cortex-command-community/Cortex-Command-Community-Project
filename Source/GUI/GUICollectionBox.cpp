@@ -5,7 +5,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUICollectionBox::GUICollectionBox(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIPanel(Manager) {
+GUICollectionBox::GUICollectionBox(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "COLLECTIONBOX";
 	m_Background = nullptr;
 	m_ControlManager = ControlManager;
@@ -19,7 +20,7 @@ GUICollectionBox::GUICollectionBox(GUIManager *Manager, GUIControlManager *Contr
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICollectionBox::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUICollectionBox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -36,8 +37,12 @@ void GUICollectionBox::Create(const std::string &Name, int X, int Y, int Width, 
 	m_Width = m_DefWidth;
 	m_Height = m_DefHeight;
 
-	if (Width != -1) { m_Width = Width; }
-	if (Height != -1) { m_Height = Height; }
+	if (Width != -1) {
+		m_Width = Width;
+	}
+	if (Height != -1) {
+		m_Height = Height;
+	}
 
 	// Make sure the box isn't too small
 	m_Width = std::max(m_Width, m_MinWidth);
@@ -46,7 +51,7 @@ void GUICollectionBox::Create(const std::string &Name, int X, int Y, int Width, 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICollectionBox::Create(GUIProperties *Props) {
+void GUICollectionBox::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -87,7 +92,7 @@ void GUICollectionBox::Destroy() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICollectionBox::ChangeSkin(GUISkin *Skin) {
+void GUICollectionBox::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the panel bitmap
@@ -109,7 +114,7 @@ void GUICollectionBox::BuildBitmap() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICollectionBox::Draw(GUIScreen *Screen) {
+void GUICollectionBox::Draw(GUIScreen* Screen) {
 	if (m_DrawBackground) {
 		if (m_DrawType == Color) {
 			Screen->GetBitmap()->DrawRectangle(m_X, m_Y, m_Width, m_Height, m_Skin->ConvertColor(m_DrawColor, Screen->GetBitmap()->GetColorDepth()), true);
@@ -157,7 +162,7 @@ void GUICollectionBox::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUICollectionBox::GetPanel() {
+GUIPanel* GUICollectionBox::GetPanel() {
 	return this;
 }
 
@@ -171,9 +176,9 @@ void GUICollectionBox::Move(int X, int Y) {
 	m_Y = Y;
 
 	// Go through all my children moving them
-	std::vector<GUIControl *>::iterator it;
+	std::vector<GUIControl*>::iterator it;
 	for (it = m_ControlChildren.begin(); it != m_ControlChildren.end(); it++) {
-		GUIControl *C = *it;
+		GUIControl* C = *it;
 		int CX;
 		int CY;
 		int CW;
@@ -194,9 +199,9 @@ void GUICollectionBox::Resize(int Width, int Height) {
 	m_Height = Height;
 
 	// Go through all my children moving them
-	std::vector<GUIControl *>::iterator it;
+	std::vector<GUIControl*>::iterator it;
 	for (it = m_ControlChildren.begin(); it != m_ControlChildren.end(); it++) {
-		GUIControl *C = *it;
+		GUIControl* C = *it;
 		int CX, CY, CW, CH;
 		int Anchor = C->GetAnchor();
 
@@ -208,32 +213,44 @@ void GUICollectionBox::Resize(int Width, int Height) {
 		int H = CH;
 
 		// Attached to Right and/or Bottom edges
-		if ((Anchor & GUIControl::Anchor_Right) && !(Anchor & GUIControl::Anchor_Left)) { DX = m_Width - (OldWidth - (CX - m_X)) + m_X; }
-		if ((Anchor & GUIControl::Anchor_Bottom) && !(Anchor & GUIControl::Anchor_Top)) { DY = m_Height - (OldHeight - (CY - m_Y)) + m_Y; }
+		if ((Anchor & GUIControl::Anchor_Right) && !(Anchor & GUIControl::Anchor_Left)) {
+			DX = m_Width - (OldWidth - (CX - m_X)) + m_X;
+		}
+		if ((Anchor & GUIControl::Anchor_Bottom) && !(Anchor & GUIControl::Anchor_Top)) {
+			DY = m_Height - (OldHeight - (CY - m_Y)) + m_Y;
+		}
 
-		if (DX != CX || DY != CY) { C->Move(DX, DY); }
+		if (DX != CX || DY != CY) {
+			C->Move(DX, DY);
+		}
 
 		CX -= m_X;
 		CY -= m_Y;
 
 		// Attached to opposing edges
-		if (Anchor & GUIControl::Anchor_Left && Anchor & GUIControl::Anchor_Right) { W = (m_Width - (OldWidth - (CX + CW))) - CX; }
-		if (Anchor & GUIControl::Anchor_Top && Anchor & GUIControl::Anchor_Bottom) { H = (m_Height - (OldHeight - (CY + CH))) - CY; }
+		if (Anchor & GUIControl::Anchor_Left && Anchor & GUIControl::Anchor_Right) {
+			W = (m_Width - (OldWidth - (CX + CW))) - CX;
+		}
+		if (Anchor & GUIControl::Anchor_Top && Anchor & GUIControl::Anchor_Bottom) {
+			H = (m_Height - (OldHeight - (CY + CH))) - CY;
+		}
 
-		if (W != CW || H != CH) { C->Resize(W, H); }
+		if (W != CW || H != CH) {
+			C->Resize(W, H);
+		}
 	}
 	BuildBitmap();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICollectionBox::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUICollectionBox::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICollectionBox::SetDrawImage(GUIBitmap *Bitmap) {
+void GUICollectionBox::SetDrawImage(GUIBitmap* Bitmap) {
 	// Free any old bitmap
 	delete m_DrawBitmap;
 
@@ -268,7 +285,7 @@ void GUICollectionBox::StoreProperties() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICollectionBox::ApplyProperties(GUIProperties *Props) {
+void GUICollectionBox::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	// Get the values

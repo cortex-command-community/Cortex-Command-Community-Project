@@ -16,7 +16,6 @@ namespace RTE {
 	class TerrainDebris : public Entity {
 
 	public:
-
 		EntityAllocation(TerrainDebris);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -38,7 +37,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the TerrainDebris to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const TerrainDebris &reference);
+		int Create(const TerrainDebris& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -51,7 +50,12 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the TerrainDebris object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { Entity::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				Entity::Destroy();
+			}
+			Clear();
+		}
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -59,11 +63,10 @@ namespace RTE {
 		/// Places random pieces of this TerrainDebris's at random positions on the specified SLTerrain.
 		/// </summary>
 		/// <param name="terrain">The SLTerrain to scatter this TerrainDebris on. Ownership is NOT transferred!</param>
-		void ScatterOnTerrain(SLTerrain *terrain);
+		void ScatterOnTerrain(SLTerrain* terrain);
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different debris placement modes.
 		/// </summary>
@@ -80,7 +83,7 @@ namespace RTE {
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		ContentFile m_DebrisFile; //!< ContentFile containing the path to the debris sprites.
-		std::vector<BITMAP *> m_Bitmaps; //!< All the different bitmaps of this debris. Not owned.
+		std::vector<BITMAP*> m_Bitmaps; //!< All the different bitmaps of this debris. Not owned.
 		int m_BitmapCount; //!< How many individual pieces this debris has.
 
 		Material m_Material; //!< The Material of the debris.
@@ -108,7 +111,7 @@ namespace RTE {
 		/// <param name="terrain">Pointer to the SLTerrain to check debris placement on. Ownership is NOT transferred!</param>
 		/// <param name="possiblePiecePosition">A Box that holds the debris piece's dimensions. The center position of the Box will be modified during checking.</param>
 		/// <returns>True if a valid placement position was found, which means the passed in Box's center or corner positions are good to be used as the piece's drawing position.</returns>
-		bool GetPiecePlacementPosition(SLTerrain *terrain, Box &possiblePiecePosition) const;
+		bool GetPiecePlacementPosition(SLTerrain* terrain, Box& possiblePiecePosition) const;
 
 		/// <summary>
 		/// Checks whether the passed in pixel color value is of target Material, and if extra conditions apply for it to be valid for placement, depending on DebrisPlacementMode.
@@ -124,7 +127,7 @@ namespace RTE {
 		/// <param name="terrain">Pointer to the SLTerrain to draw the debris piece on. Ownership is NOT transferred!</param>
 		/// <param name="bitmapToDraw">The BITMAP to draw. Ownership is NOT transferred!</param>
 		/// <param name="position">The position to draw the debris piece on the terrain.</param>
-		void DrawToTerrain(SLTerrain *terrain, BITMAP *bitmapToDraw, const Vector &position) const;
+		void DrawToTerrain(SLTerrain* terrain, BITMAP* bitmapToDraw, const Vector& position) const;
 #pragma endregion
 
 		/// <summary>
@@ -133,8 +136,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		TerrainDebris(const TerrainDebris &reference) = delete;
-		void operator=(const TerrainDebris &rhs) = delete;
+		TerrainDebris(const TerrainDebris& reference) = delete;
+		void operator=(const TerrainDebris& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

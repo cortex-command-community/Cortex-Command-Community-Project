@@ -21,7 +21,6 @@ namespace RTE {
 	class SettingsGUI {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a SettingsGUI object in system memory and make it ready for use.
@@ -29,7 +28,7 @@ namespace RTE {
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this SettingsGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this SettingsGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="createForPauseMenu">Whether this SettingsGUI is part of PauseMenuGUI and should have a slightly different layout.</param>
-		SettingsGUI(AllegroScreen *guiScreen, GUIInputWrapper *guiInput, bool createForPauseMenu = false);
+		SettingsGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu = false);
 #pragma endregion
 
 #pragma region Getters
@@ -37,7 +36,7 @@ namespace RTE {
 		/// Gets the currently active GUICollectionBox of this SettingsGUI or any of its sub-menus that acts as a dialog box and requires disabling navigation and drawing an overlay.
 		/// </summary>
 		/// <returns>Pointer to the GUICollectionBox that is the currently active dialog box. Ownership is NOT transferred!</returns>
-		GUICollectionBox * GetActiveDialogBox() const;
+		GUICollectionBox* GetActiveDialogBox() const;
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -64,7 +63,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different sub-menu screens of the settings menu.
 		/// </summary>
@@ -90,9 +88,9 @@ namespace RTE {
 		/// <summary>
 		/// GUI elements that compose the settings menu screen.
 		/// </summary>
-		GUICollectionBox *m_SettingsTabberBox;
-		GUIButton *m_BackToMainButton;
-		std::array<GUITab *, SettingsMenuScreen::SettingsMenuCount> m_SettingsMenuTabs;
+		GUICollectionBox* m_SettingsTabberBox;
+		GUIButton* m_BackToMainButton;
+		std::array<GUITab*, SettingsMenuScreen::SettingsMenuCount> m_SettingsMenuTabs;
 
 #pragma region Settings Menu Handling
 		/// <summary>
@@ -109,8 +107,8 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		SettingsGUI(const SettingsGUI &reference) = delete;
-		SettingsGUI & operator=(const SettingsGUI &rhs) = delete;
+		SettingsGUI(const SettingsGUI& reference) = delete;
+		SettingsGUI& operator=(const SettingsGUI& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

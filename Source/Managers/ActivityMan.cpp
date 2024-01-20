@@ -28,10 +28,9 @@
 #include "MultiplayerServerLobby.h"
 #include "MultiplayerGame.h"
 
-
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ActivityMan::Clear() {
 		m_DefaultActivityType = "GATutorial";
@@ -50,7 +49,7 @@ namespace RTE {
 		m_LaunchIntoEditor = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ActivityMan::Initialize() {
 		if (g_NetworkServer.IsServerModeEnabled()) {
@@ -65,7 +64,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ActivityMan::ForceAbortSave() {
 		// Just a utility function we can call in the debugger quickwatch window to force an abort save to occur (great for force-saving the game when it crashes)
@@ -73,14 +72,14 @@ namespace RTE {
 		return SaveCurrentGame("AbortSave");
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool ActivityMan::SaveCurrentGame(const std::string &fileName) {
+	bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		m_SaveGameTask.wait();
 		m_SaveGameTask = BS::multi_future<void>();
 
-		Scene *scene = g_SceneMan.GetScene();
-		GAScripted *activity = dynamic_cast<GAScripted *>(GetActivity());
+		Scene* scene = g_SceneMan.GetScene();
+		GAScripted* activity = dynamic_cast<GAScripted*>(GetActivity());
 
 		if (!scene || !activity || (activity && activity->GetActivityState() == Activity::ActivityState::Over)) {
 			g_ConsoleMan.PrintString("ERROR: Cannot save when there's no game running, or the game is finished!");
@@ -118,8 +117,8 @@ namespace RTE {
 		// Pull all stuff from MovableMan into the Scene for saving, so existing Actors/ADoors are saved, without transferring ownership, so the game can continue.
 		// This is done after the activity is saved, in case the activity wants to add anything to the scene while saving.
 		modifiableScene->RetrieveSceneObjects(false);
-		for (SceneObject *objectToSave : *modifiableScene->GetPlacedObjects(Scene::PlacedObjectSets::PLACEONLOAD)) {
-			if (MovableObject *objectToSaveAsMovableObject = dynamic_cast<MovableObject *>(objectToSave)) {
+		for (SceneObject* objectToSave: *modifiableScene->GetPlacedObjects(Scene::PlacedObjectSets::PLACEONLOAD)) {
+			if (MovableObject* objectToSaveAsMovableObject = dynamic_cast<MovableObject*>(objectToSave)) {
 				objectToSaveAsMovableObject->OnSave();
 			}
 		}
@@ -135,7 +134,7 @@ namespace RTE {
 		};
 
 		// For some reason I can't std::move a unique ptr in, so just releasing and deleting manually...
-		m_SaveGameTask.push_back( g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release()) );
+		m_SaveGameTask.push_back(g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release()));
 
 		// We didn't transfer ownership, so we must be very careful that sceneAltered's deletion doesn't touch the stuff we got from MovableMan.
 		modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, false);
@@ -144,9 +143,9 @@ namespace RTE {
 		return true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool ActivityMan::LoadAndLaunchGame(const std::string &fileName) {	
+	bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		m_SaveGameTask.wait();
 
 		std::string saveFilePath = g_ModuleMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini";
@@ -193,24 +192,26 @@ namespace RTE {
 		return true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ActivityMan::SetStartActivity(Activity *newActivity) {
+	void ActivityMan::SetStartActivity(Activity* newActivity) {
 		RTEAssert(newActivity, "Trying to replace an activity with a null one!");
 		m_StartActivity.reset(newActivity);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ActivityMan::SetStartTutorialActivity() {
-		SetStartActivity(dynamic_cast<Activity *>(g_PresetMan.GetEntityPreset("GATutorial", "Tutorial Mission")->Clone()));
-		if (GameActivity * gameActivity = dynamic_cast<GameActivity *>(GetStartActivity())) { gameActivity->SetStartingGold(10000); }
+		SetStartActivity(dynamic_cast<Activity*>(g_PresetMan.GetEntityPreset("GATutorial", "Tutorial Mission")->Clone()));
+		if (GameActivity* gameActivity = dynamic_cast<GameActivity*>(GetStartActivity())) {
+			gameActivity->SetStartingGold(10000);
+		}
 		g_SceneMan.SetSceneToLoad("Tutorial Bunker");
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ActivityMan::SetStartEditorActivity(const std::string_view &editorToLaunch) {
+	void ActivityMan::SetStartEditorActivity(const std::string_view& editorToLaunch) {
 		std::unique_ptr<EditorActivity> editorActivityToStart = nullptr;
 
 		if (editorToLaunch == "ActorEditor") {
@@ -225,7 +226,9 @@ namespace RTE {
 			editorActivityToStart = std::make_unique<AssemblyEditor>();
 		}
 		if (editorActivityToStart) {
-			if (g_MetaMan.GameInProgress()) { g_MetaMan.EndGame(); }
+			if (g_MetaMan.GameInProgress()) {
+				g_MetaMan.EndGame();
+			}
 			g_SceneMan.SetSceneToLoad("Editor Scene");
 			editorActivityToStart->Create();
 			editorActivityToStart->SetEditorMode(EditorActivity::LOADDIALOG);
@@ -236,10 +239,10 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ActivityMan::SetStartEditorActivitySetToLaunchInto() {
-		std::array<std::string_view, 5> validEditorNames = { "ActorEditor", "GibEditor", "SceneEditor", "AreaEditor", "AssemblyEditor" };
+		std::array<std::string_view, 5> validEditorNames = {"ActorEditor", "GibEditor", "SceneEditor", "AreaEditor", "AssemblyEditor"};
 
 		if (std::find(validEditorNames.begin(), validEditorNames.end(), m_EditorToLaunch) != validEditorNames.end()) {
 			// Force mouse + keyboard with default mapping so we won't need to change manually if player 1 is set to keyboard only or gamepad.
@@ -255,11 +258,13 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ActivityMan::SetStartMultiplayerActivity() {
 		if (std::unique_ptr<MultiplayerGame> multiplayerGame = std::make_unique<MultiplayerGame>()) {
-			if (g_MetaMan.GameInProgress()) { g_MetaMan.EndGame(); }
+			if (g_MetaMan.GameInProgress()) {
+				g_MetaMan.EndGame();
+			}
 			g_SceneMan.SetSceneToLoad("Multiplayer Scene");
 			multiplayerGame->Create();
 			SetStartActivity(multiplayerGame.release());
@@ -269,7 +274,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ActivityMan::SetStartMultiplayerServerOverview() {
 		g_NetworkServer.Start();
@@ -293,9 +298,9 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ActivityMan::StartActivity(Activity *activity) {
+	int ActivityMan::StartActivity(Activity* activity) {
 		RTEAssert(activity, "Trying to start a null activity!");
 
 		g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
@@ -305,7 +310,7 @@ namespace RTE {
 		g_AudioMan.StopMusic();
 
 		m_StartActivity.reset(activity);
-		m_Activity.reset(dynamic_cast<Activity *>(m_StartActivity->Clone()));
+		m_Activity.reset(dynamic_cast<Activity*>(m_StartActivity->Clone()));
 
 		m_Activity->SetupPlayers();
 		int error = m_Activity->Start();
@@ -339,12 +344,12 @@ namespace RTE {
 		return error;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int ActivityMan::StartActivity(const std::string &className, const std::string &presetName) {
-		if (const Entity *entity = g_PresetMan.GetEntityPreset(className, presetName)) {
-			Activity *newActivity = dynamic_cast<Activity *>(entity->Clone());
-			if (GameActivity *newActivityAsGameActivity = dynamic_cast<GameActivity *>(newActivity)) {
+	int ActivityMan::StartActivity(const std::string& className, const std::string& presetName) {
+		if (const Entity* entity = g_PresetMan.GetEntityPreset(className, presetName)) {
+			Activity* newActivity = dynamic_cast<Activity*>(entity->Clone());
+			if (GameActivity* newActivityAsGameActivity = dynamic_cast<GameActivity*>(newActivity)) {
 				newActivityAsGameActivity->SetStartingGold(newActivityAsGameActivity->GetDefaultGoldMediumDifficulty());
 				if (newActivityAsGameActivity->GetStartingGold() <= 0) {
 					newActivityAsGameActivity->SetStartingGold(static_cast<int>(newActivityAsGameActivity->GetTeamFunds(0)));
@@ -359,7 +364,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ActivityMan::PauseActivity(bool pause, bool skipPauseMenu) {
 		if (!m_Activity) {
@@ -394,7 +399,7 @@ namespace RTE {
 		g_ConsoleMan.PrintString("SYSTEM: Activity \"" + m_Activity->GetPresetName() + "\" was " + (pause ? "paused" : "resumed"));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ActivityMan::ResumeActivity() {
 		if (GetActivity()->GetActivityState() != Activity::NotStarted) {
@@ -407,7 +412,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool ActivityMan::RestartActivity() {
 		m_ActivityNeedsRestart = false;
@@ -423,7 +428,7 @@ namespace RTE {
 		int activityStarted;
 		if (m_StartActivity) {
 			// Need to pass in a clone of the activity because the original will be deleted and re-set during StartActivity.
-			Activity *startActivityToUse = dynamic_cast<Activity *>(m_StartActivity->Clone());
+			Activity* startActivityToUse = dynamic_cast<Activity*>(m_StartActivity->Clone());
 			startActivityToUse->SetActivityState(Activity::ActivityState::NotStarted);
 			activityStarted = StartActivity(startActivityToUse);
 		} else {
@@ -441,7 +446,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ActivityMan::EndActivity() const {
 		// TODO: Set the activity pointer to nullptr so it doesn't return junk after being destructed. Do it here, or wherever works without crashing.
@@ -456,20 +461,21 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void ActivityMan::LateUpdateGlobalScripts() const {
-		if (GAScripted *scriptedActivity = dynamic_cast<GAScripted *>(m_Activity.get())) { scriptedActivity->UpdateGlobalScripts(true); }
+		if (GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(m_Activity.get())) {
+			scriptedActivity->UpdateGlobalScripts(true);
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void ActivityMan::Update()
-    {
+	void ActivityMan::Update() {
 		g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ActivityUpdate);
-		if (m_Activity) { 
-			m_Activity->Update(); 
+		if (m_Activity) {
+			m_Activity->Update();
 		}
 		g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ActivityUpdate);
-    }
-}
+	}
+} // namespace RTE

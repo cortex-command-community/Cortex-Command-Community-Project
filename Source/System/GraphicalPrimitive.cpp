@@ -27,15 +27,17 @@ namespace RTE {
 	const GraphicalPrimitive::PrimitiveType TextPrimitive::c_PrimitiveType = PrimitiveType::Text;
 	const GraphicalPrimitive::PrimitiveType BitmapPrimitive::c_PrimitiveType = PrimitiveType::Bitmap;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void GraphicalPrimitive::TranslateCoordinates(Vector targetPos, const Vector &scenePos, Vector &drawLeftPos, Vector &drawRightPos) const {
+	void GraphicalPrimitive::TranslateCoordinates(Vector targetPos, const Vector& scenePos, Vector& drawLeftPos, Vector& drawRightPos) const {
 		drawLeftPos = scenePos;
 		drawRightPos = scenePos;
 
 		if (g_SceneMan.SceneWrapsX()) {
 			float sceneWidth = static_cast<float>(g_SceneMan.GetSceneWidth());
-			if (targetPos.m_X <= sceneWidth && targetPos.m_X > sceneWidth / 2) { targetPos.m_X -= sceneWidth; }
+			if (targetPos.m_X <= sceneWidth && targetPos.m_X > sceneWidth / 2) {
+				targetPos.m_X -= sceneWidth;
+			}
 			drawLeftPos.m_X = (drawLeftPos.m_X > 0) ? (drawLeftPos.m_X -= sceneWidth) : (drawLeftPos.m_X -= sceneWidth + targetPos.m_X);
 		}
 		drawLeftPos.m_X -= targetPos.m_X;
@@ -43,16 +45,18 @@ namespace RTE {
 
 		if (g_SceneMan.SceneWrapsY()) {
 			float sceneHeight = static_cast<float>(g_SceneMan.GetSceneHeight());
-			if (targetPos.m_Y <= sceneHeight && targetPos.m_Y > sceneHeight / 2) { targetPos.m_Y -= sceneHeight; }
+			if (targetPos.m_Y <= sceneHeight && targetPos.m_Y > sceneHeight / 2) {
+				targetPos.m_Y -= sceneHeight;
+			}
 			drawLeftPos.m_Y = (drawLeftPos.m_Y > 0) ? (drawLeftPos.m_Y -= sceneHeight) : (drawLeftPos.m_Y -= sceneHeight + targetPos.m_Y);
 		}
 		drawLeftPos.m_Y -= targetPos.m_Y;
 		drawRightPos.m_Y -= targetPos.m_Y;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LinePrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void LinePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
 			Vector drawEnd = m_EndPos - targetPos;
@@ -71,9 +75,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ArcPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void ArcPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
 			if (m_Thickness > 1) {
@@ -90,7 +94,7 @@ namespace RTE {
 			TranslateCoordinates(targetPos, m_StartPos, drawStartLeft, drawStartRight);
 
 			if (m_Thickness > 1) {
-				for (int i = 0; i < m_Thickness; i++){
+				for (int i = 0; i < m_Thickness; i++) {
 					arc(drawScreen, drawStartLeft.GetFloorIntX(), drawStartLeft.GetFloorIntY(), ftofix(GetAllegroAngle(m_StartAngle)), ftofix(GetAllegroAngle(m_EndAngle)), (m_Radius - (m_Thickness / 2)) + i, m_Color);
 					arc(drawScreen, drawStartRight.GetFloorIntX(), drawStartRight.GetFloorIntY(), ftofix(GetAllegroAngle(m_StartAngle)), ftofix(GetAllegroAngle(m_EndAngle)), (m_Radius - (m_Thickness / 2)) + i, m_Color);
 				}
@@ -101,16 +105,16 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SplinePrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void SplinePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
 			Vector drawGuideA = m_GuidePointAPos - targetPos;
 			Vector drawGuideB = m_GuidePointBPos - targetPos;
 			Vector drawEnd = m_EndPos - targetPos;
 
-			std::array<int, 8> guidePoints = { drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), drawGuideA.GetFloorIntX(), drawGuideA.GetFloorIntY(), drawGuideB.GetFloorIntX(), drawGuideB.GetFloorIntY(), drawEnd.GetFloorIntX(), drawEnd.GetFloorIntY() };
+			std::array<int, 8> guidePoints = {drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), drawGuideA.GetFloorIntX(), drawGuideA.GetFloorIntY(), drawGuideB.GetFloorIntX(), drawGuideB.GetFloorIntY(), drawEnd.GetFloorIntX(), drawEnd.GetFloorIntY()};
 			spline(drawScreen, guidePoints.data(), m_Color);
 		} else {
 			Vector drawStartLeft;
@@ -127,16 +131,16 @@ namespace RTE {
 			TranslateCoordinates(targetPos, m_GuidePointBPos, drawGuideBLeft, drawGuideBRight);
 			TranslateCoordinates(targetPos, m_EndPos, drawEndLeft, drawEndRight);
 
-			std::array<int, 8> guidePointsLeft = { drawStartLeft.GetFloorIntX(), drawStartLeft.GetFloorIntY(), drawGuideALeft.GetFloorIntX(), drawGuideALeft.GetFloorIntY(), drawGuideBLeft.GetFloorIntX(), drawGuideBLeft.GetFloorIntY(), drawEndLeft.GetFloorIntX(), drawEndLeft.GetFloorIntY() };
-			std::array<int, 8> guidePointsRight = { drawStartRight.GetFloorIntX(), drawStartRight.GetFloorIntY(), drawGuideARight.GetFloorIntX(), drawGuideARight.GetFloorIntY(), drawGuideBRight.GetFloorIntX(), drawGuideBRight.GetFloorIntY(), drawEndRight.GetFloorIntX(), drawEndRight.GetFloorIntY() };
+			std::array<int, 8> guidePointsLeft = {drawStartLeft.GetFloorIntX(), drawStartLeft.GetFloorIntY(), drawGuideALeft.GetFloorIntX(), drawGuideALeft.GetFloorIntY(), drawGuideBLeft.GetFloorIntX(), drawGuideBLeft.GetFloorIntY(), drawEndLeft.GetFloorIntX(), drawEndLeft.GetFloorIntY()};
+			std::array<int, 8> guidePointsRight = {drawStartRight.GetFloorIntX(), drawStartRight.GetFloorIntY(), drawGuideARight.GetFloorIntX(), drawGuideARight.GetFloorIntY(), drawGuideBRight.GetFloorIntX(), drawGuideBRight.GetFloorIntY(), drawEndRight.GetFloorIntX(), drawEndRight.GetFloorIntY()};
 			spline(drawScreen, guidePointsLeft.data(), m_Color);
 			spline(drawScreen, guidePointsRight.data(), m_Color);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void BoxPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void BoxPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
 			Vector drawEnd = m_EndPos - targetPos;
@@ -155,9 +159,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void BoxFillPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void BoxFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
 			Vector drawEnd = m_EndPos - targetPos;
@@ -176,11 +180,15 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void RoundedBoxPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
-		if (m_StartPos.m_X > m_EndPos.m_X) { std::swap(m_StartPos.m_X, m_EndPos.m_X); }
-		if (m_StartPos.m_Y > m_EndPos.m_Y) { std::swap(m_StartPos.m_Y, m_EndPos.m_Y); }
+	void RoundedBoxPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
+		if (m_StartPos.m_X > m_EndPos.m_X) {
+			std::swap(m_StartPos.m_X, m_EndPos.m_X);
+		}
+		if (m_StartPos.m_Y > m_EndPos.m_Y) {
+			std::swap(m_StartPos.m_Y, m_EndPos.m_Y);
+		}
 
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
@@ -224,11 +232,15 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void RoundedBoxFillPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
-		if (m_StartPos.m_X > m_EndPos.m_X) { std::swap(m_StartPos.m_X, m_EndPos.m_X); }
-		if (m_StartPos.m_Y > m_EndPos.m_Y) { std::swap(m_StartPos.m_Y, m_EndPos.m_Y); }
+	void RoundedBoxFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
+		if (m_StartPos.m_X > m_EndPos.m_X) {
+			std::swap(m_StartPos.m_X, m_EndPos.m_X);
+		}
+		if (m_StartPos.m_Y > m_EndPos.m_Y) {
+			std::swap(m_StartPos.m_Y, m_EndPos.m_Y);
+		}
 
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
@@ -266,9 +278,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void CirclePrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void CirclePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
 			circle(drawScreen, drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), m_Radius, m_Color);
@@ -283,9 +295,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void CircleFillPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void CircleFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
 			circlefill(drawScreen, drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), m_Radius, m_Color);
@@ -300,9 +312,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void EllipsePrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void EllipsePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
 			ellipse(drawScreen, drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), m_HorizRadius, m_VertRadius, m_Color);
@@ -317,9 +329,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void EllipseFillPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void EllipseFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
 			ellipsefill(drawScreen, drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), m_HorizRadius, m_VertRadius, m_Color);
@@ -334,9 +346,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void TrianglePrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void TrianglePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawPointA = m_PointAPos - targetPos;
 			Vector drawPointB = m_PointBPos - targetPos;
@@ -365,9 +377,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void TriangleFillPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void TriangleFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawPointA = m_PointAPos - targetPos;
 			Vector drawPointB = m_PointBPos - targetPos;
@@ -390,9 +402,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PolygonPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void PolygonPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart;
 			Vector drawEnd;
@@ -416,9 +428,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PolygonFillPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void PolygonFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		size_t drawPointsSize = m_Vertices.size() * 2;
 
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
@@ -427,8 +439,8 @@ namespace RTE {
 			std::vector<int> drawPoints = {};
 			drawPoints.reserve(drawPointsSize);
 
-			for (const Vector *vertice : m_Vertices) {
-				drawPoints.insert(drawPoints.end(), { drawStart.GetFloorIntX() + vertice->GetFloorIntX(), drawStart.GetFloorIntY() + vertice->GetFloorIntY() });
+			for (const Vector* vertice: m_Vertices) {
+				drawPoints.insert(drawPoints.end(), {drawStart.GetFloorIntX() + vertice->GetFloorIntX(), drawStart.GetFloorIntY() + vertice->GetFloorIntY()});
 			}
 			polygon(drawScreen, m_Vertices.size(), drawPoints.data(), m_Color);
 		} else {
@@ -440,30 +452,30 @@ namespace RTE {
 
 			Vector drawPointLeft;
 			Vector drawPointRight;
-			for (const Vector *vertice : m_Vertices) {
+			for (const Vector* vertice: m_Vertices) {
 				TranslateCoordinates(targetPos, m_StartPos + (*vertice), drawPointLeft, drawPointRight);
 
-				drawPointsLeft.insert(drawPointsLeft.end(), { drawPointLeft.GetFloorIntX(), drawPointLeft.GetFloorIntY() });
-				drawPointsRight.insert(drawPointsRight.end(), { drawPointRight.GetFloorIntX(), drawPointRight.GetFloorIntY() });
+				drawPointsLeft.insert(drawPointsLeft.end(), {drawPointLeft.GetFloorIntX(), drawPointLeft.GetFloorIntY()});
+				drawPointsRight.insert(drawPointsRight.end(), {drawPointRight.GetFloorIntX(), drawPointRight.GetFloorIntY()});
 			}
 			polygon(drawScreen, m_Vertices.size(), drawPointsLeft.data(), m_Color);
 			polygon(drawScreen, m_Vertices.size(), drawPointsRight.data(), m_Color);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void TextPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void TextPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (m_Text.empty()) {
 			return;
 		}
 
 		AllegroBitmap playerGUIBitmap(drawScreen);
-		GUIFont *font = m_IsSmall ? g_FrameMan.GetSmallFont() : g_FrameMan.GetLargeFont();
+		GUIFont* font = m_IsSmall ? g_FrameMan.GetSmallFont() : g_FrameMan.GetLargeFont();
 		Matrix rotation = Matrix(m_RotAngle);
 		Vector targetPosAdjustment = Vector();
 
-		BITMAP *tempDrawBitmap = nullptr;
+		BITMAP* tempDrawBitmap = nullptr;
 		if (m_BlendMode > DrawBlendMode::NoBlend || m_RotAngle != 0) {
 			int textWidth = font->CalculateWidth(m_Text);
 			int textHeight = font->CalculateHeight(m_Text);
@@ -516,22 +528,24 @@ namespace RTE {
 				}
 			}
 		}
-		if (tempDrawBitmap) { destroy_bitmap(tempDrawBitmap); }
+		if (tempDrawBitmap) {
+			destroy_bitmap(tempDrawBitmap);
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void BitmapPrimitive::Draw(BITMAP *drawScreen, const Vector &targetPos) {
+	void BitmapPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!m_Bitmap) {
 			return;
 		}
 
-		BITMAP *bitmapToDraw = create_bitmap_ex(8, m_Bitmap->w, m_Bitmap->h);
+		BITMAP* bitmapToDraw = create_bitmap_ex(8, m_Bitmap->w, m_Bitmap->h);
 		clear_to_color(bitmapToDraw, ColorKeys::g_MaskColor);
 		draw_sprite(bitmapToDraw, m_Bitmap, 0, 0);
 
 		if (m_HFlipped || m_VFlipped) {
-			BITMAP *flipBitmap = create_bitmap_ex(8, bitmapToDraw->w, bitmapToDraw->h);
+			BITMAP* flipBitmap = create_bitmap_ex(8, bitmapToDraw->w, bitmapToDraw->h);
 			clear_to_color(flipBitmap, ColorKeys::g_MaskColor);
 
 			if (m_HFlipped && !m_VFlipped) {
@@ -572,4 +586,4 @@ namespace RTE {
 		}
 		destroy_bitmap(bitmapToDraw);
 	}
-}
+} // namespace RTE

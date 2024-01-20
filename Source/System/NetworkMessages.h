@@ -296,7 +296,6 @@ namespace RTE {
 		bool ResetActivityVote;
 		bool RestartActivityVote;
 
-
 		int MouseWheelMoved;
 
 		unsigned int padElement3;
@@ -306,5 +305,5 @@ namespace RTE {
 
 // Disables the previously set pack pragma.
 #pragma pack(pop)
-}
+} // namespace RTE
 #endif

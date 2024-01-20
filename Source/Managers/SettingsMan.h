@@ -14,7 +14,6 @@ namespace RTE {
 	class SettingsMan : public Singleton<SettingsMan>, public Serializable {
 
 	public:
-
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
@@ -299,7 +298,7 @@ namespace RTE {
 		/// Sets the player name that will be used in network multiplayer matches.
 		/// </summary>
 		/// <param name="newName">String with the new player name to use.</param>
-		void SetPlayerNetworkName(const std::string &newName) { m_PlayerNetworkName = newName.empty() ? "Dummy" : newName; }
+		void SetPlayerNetworkName(const std::string& newName) { m_PlayerNetworkName = newName.empty() ? "Dummy" : newName; }
 
 		/// <summary>
 		/// Gets the LAN server address to connect to.
@@ -311,43 +310,43 @@ namespace RTE {
 		/// Sets the LAN server address to connect to.
 		/// </summary>
 		/// <param name="newName">New LAN server address to connect to.</param>
-		void SetNetworkServerAddress(const std::string &newAddress) { m_NetworkServerAddress = newAddress.empty() ? "127.0.0.1:8000" : newAddress; }
+		void SetNetworkServerAddress(const std::string& newAddress) { m_NetworkServerAddress = newAddress.empty() ? "127.0.0.1:8000" : newAddress; }
 
 		/// <summary>
 		/// Gets the NAT punch-through server address.
 		/// </summary>
 		/// <returns>The current NAT punch-through server address to connect to.</returns>
-		std::string & GetNATServiceAddress() { return m_NATServiceAddress; }
+		std::string& GetNATServiceAddress() { return m_NATServiceAddress; }
 
 		/// <summary>
 		/// Sets the NAT punch-through server address.
 		/// </summary>
 		/// <param name="newValue">New NAT punch-through server address to connect to.</param>
-		void SetNATServiceAddress(const std::string &newAddress) { m_NATServiceAddress = newAddress.empty() ? "127.0.0.1:61111" : newAddress; }
+		void SetNATServiceAddress(const std::string& newAddress) { m_NATServiceAddress = newAddress.empty() ? "127.0.0.1:61111" : newAddress; }
 
 		/// <summary>
 		/// Gets the server name used when connecting via NAT punch-through service.
 		/// </summary>
 		/// <returns>Name of the NAT punch-through server.</returns>
-		std::string & GetNATServerName() { return m_NATServerName; }
+		std::string& GetNATServerName() { return m_NATServerName; }
 
 		/// <summary>
 		/// Sets the server name to use when connecting via NAT punch-through service.
 		/// </summary>
 		/// <param name="newValue">New NAT punch-through server name.</param>
-		void SetNATServerName(const std::string &newName) { m_NATServerName = newName.empty() ? "DefaultServerName" : newName; }
+		void SetNATServerName(const std::string& newName) { m_NATServerName = newName.empty() ? "DefaultServerName" : newName; }
 
 		/// <summary>
 		/// Gets the server password to use when connecting via NAT punch-through service.
 		/// </summary>
 		/// <returns>The server password to use when connecting via NAT punch-through service.</returns>
-		std::string & GetNATServerPassword() { return m_NATServerPassword; }
+		std::string& GetNATServerPassword() { return m_NATServerPassword; }
 
 		/// <summary>
 		/// Sets the server password to use when connecting via NAT punch-through service.
 		/// </summary>
 		/// <param name="newValue">New password to use when connecting via NAT punch-through service.</param>
-		void SetNATServerPassword(const std::string &newValue) { m_NATServerPassword = newValue.empty() ? "DefaultServerPassword" : newValue; }
+		void SetNATServerPassword(const std::string& newValue) { m_NATServerPassword = newValue.empty() ? "DefaultServerPassword" : newValue; }
 
 		/// <summary>
 		/// Gets whether or not experimental multiplayer speedboosts should be used.
@@ -387,14 +386,14 @@ namespace RTE {
 		/// Gets the map of global scripts which are enabled.
 		/// </summary>
 		/// <returns>Map of global scripts which are enabled.</returns>
-		std::unordered_map<std::string, bool> & GetEnabledGlobalScriptMap() { return m_EnabledGlobalScripts; }
+		std::unordered_map<std::string, bool>& GetEnabledGlobalScriptMap() { return m_EnabledGlobalScripts; }
 
 		/// <summary>
 		/// Gets whether the specified global script is enabled in the settings.
 		/// </summary>
 		/// <param name="scriptName">Global script to check.</param>
 		/// <returns>Whether the global script is enabled via settings.</returns>
-		bool IsGlobalScriptEnabled(const std::string &scriptName) const { return (m_EnabledGlobalScripts.find(scriptName) != m_EnabledGlobalScripts.end()) ? m_EnabledGlobalScripts.at(scriptName) : false; }
+		bool IsGlobalScriptEnabled(const std::string& scriptName) const { return (m_EnabledGlobalScripts.find(scriptName) != m_EnabledGlobalScripts.end()) ? m_EnabledGlobalScripts.at(scriptName) : false; }
 #pragma endregion
 
 #pragma region Misc Settings
@@ -514,7 +513,6 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
 		bool m_SettingsNeedOverwrite; //!< Whether the settings file was generated with minimal defaults and needs to be overwritten to be fully populated.
 
 		bool m_ShowForeignItems; //!< Do not show foreign items in buy menu.
@@ -567,7 +565,6 @@ namespace RTE {
 		std::unordered_map<std::string, bool> m_EnabledGlobalScripts; //!< Map of the global script names we enabled.
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this.
 
 		std::string m_SettingsPath; //!< String containing the Path to the Settings.ini file.
@@ -578,8 +575,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		SettingsMan(const SettingsMan &reference) = delete;
-		SettingsMan & operator=(const SettingsMan &rhs) = delete;
+		SettingsMan(const SettingsMan& reference) = delete;
+		SettingsMan& operator=(const SettingsMan& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

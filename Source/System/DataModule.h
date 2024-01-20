@@ -4,7 +4,7 @@
 #include "ContentFile.h"
 #include "Constants.h"
 
-//struct DATAFILE; // DataFile loading not implemented.
+// struct DATAFILE; // DataFile loading not implemented.
 struct BITMAP;
 
 namespace version {
@@ -23,7 +23,6 @@ namespace RTE {
 		friend struct SystemLuaBindings;
 
 	public:
-
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
@@ -59,7 +58,10 @@ namespace RTE {
 		/// </summary>
 		/// <param name="moduleName">A string defining the path to where the content file itself is located, either within the package file, or directly on the disk.</param>
 		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.</param>
-		DataModule(const std::string &moduleName, const ProgressCallback &progressCallback = nullptr) { Clear(); Create(moduleName, progressCallback); }
+		DataModule(const std::string& moduleName, const ProgressCallback& progressCallback = nullptr) {
+			Clear();
+			Create(moduleName, progressCallback);
+		}
 
 		/// <summary>
 		/// Makes the DataModule object ready for use. This needs to be called after PresetMan is created.
@@ -68,7 +70,7 @@ namespace RTE {
 		/// <param name="moduleName">A string defining the name of this DataModule, e.g. "MyModule.rte".</param>
 		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const std::string &moduleName, const ProgressCallback &progressCallback = nullptr);
+		int Create(const std::string& moduleName, const ProgressCallback& progressCallback = nullptr);
 #pragma endregion
 
 #pragma region Destruction
@@ -95,7 +97,7 @@ namespace RTE {
 		/// <param name="moduleName">A string defining the name of this DataModule, e.g. "MyModule.rte".</param>
 		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int ReadModuleProperties(const std::string &moduleName, const ProgressCallback &progressCallback = nullptr);
+		int ReadModuleProperties(const std::string& moduleName, const ProgressCallback& progressCallback = nullptr);
 
 		/// <summary>
 		/// Returns true if loader should ignore missing items in this module.
@@ -121,25 +123,25 @@ namespace RTE {
 		/// Gets the file name of this DataModule, e.g. "MyMod.rte".
 		/// </summary>
 		/// <returns>A string with the data module file name.</returns>
-		const std::string & GetFileName() const { return m_FileName; }
+		const std::string& GetFileName() const { return m_FileName; }
 
 		/// <summary>
 		/// Gets the friendly name of this DataModule, e.g. "My Great Mod".
 		/// </summary>
 		/// <returns>A string with the data module's friendly name.</returns>
-		const std::string & GetFriendlyName() const { return m_FriendlyName; }
+		const std::string& GetFriendlyName() const { return m_FriendlyName; }
 
 		/// <summary>
 		/// Gets the author name of this DataModule, e.g. "Data Realms, LLC".
 		/// </summary>
 		/// <returns>A string with the author's name.</returns>
-		const std::string & GetAuthor() const { return m_Author; }
+		const std::string& GetAuthor() const { return m_Author; }
 
 		/// <summary>
 		/// Gets the description of this DataModule's contents.
 		/// </summary>
 		/// <returns>A string with the description.</returns>
-		const std::string & GetDescription() const { return m_Description; }
+		const std::string& GetDescription() const { return m_Description; }
 
 		/// <summary>
 		/// Gets whether this DataModule is considered a faction.
@@ -163,7 +165,7 @@ namespace RTE {
 		/// Gets the BITMAP that visually represents this DataModule, for use in menus.
 		/// </summary>
 		/// <returns>BITMAP pointer that might have the icon. 0 is very possible.</returns>
-		BITMAP * GetIcon() const { return m_Icon; }
+		BITMAP* GetIcon() const { return m_Icon; }
 
 		/// <summary>
 		/// Returns crab-to-human spawn ration for this tech.
@@ -175,7 +177,7 @@ namespace RTE {
 		/// Gets the faction BuyMenu theme data of this DataModule.
 		/// </summary>
 		/// <returns>The faction BuyMenu theme information of this DataModule</returns>
-		const BuyMenuTheme & GetFactionBuyMenuTheme() const { return m_BuyMenuTheme; }
+		const BuyMenuTheme& GetFactionBuyMenuTheme() const { return m_BuyMenuTheme; }
 #pragma endregion
 
 #pragma region Entity Mapping
@@ -185,7 +187,7 @@ namespace RTE {
 		/// <param name="exactType">The type name of the derived Entity. Ownership is NOT transferred!</param>
 		/// <param name="instance">The instance name of the derived Entity instance.</param>
 		/// <returns>The file path of the data file that the specified Entity was read from. If no Entity of that description was found, "" is returned.</returns>
-		std::string GetEntityDataLocation(const std::string &exactType, const std::string &instance);
+		std::string GetEntityDataLocation(const std::string& exactType, const std::string& instance);
 
 		/// <summary>
 		/// Gets a previously read in (defined) Entity, by exact type and instance name. Ownership is NOT transferred!
@@ -193,7 +195,7 @@ namespace RTE {
 		/// <param name="exactType">The exact type name of the derived Entity instance to get.</param>
 		/// <param name="instance">The instance name of the derived Entity instance.</param>
 		/// <returns>A pointer to the requested Entity instance. 0 if no Entity with that derived type or instance name was found. Ownership is NOT transferred!</returns>
-		const Entity * GetEntityPreset(const std::string &exactType, const std::string &instance);
+		const Entity* GetEntityPreset(const std::string& exactType, const std::string& instance);
 
 		/// <summary>
 		/// Adds an Entity instance's pointer and name associations to the internal list of already read in Entities. Ownership is NOT transferred!
@@ -212,19 +214,23 @@ namespace RTE {
 		/// Whether or not a copy of the passed-in instance was successfully inserted into the module.
 		/// False will be returned if there already was an instance of that class and instance name inserted previously, unless overwritten.
 		/// </returns>
-		bool AddEntityPreset(Entity *entityToAdd, bool overwriteSame = false, const std::string &readFromFile = "Same");
+		bool AddEntityPreset(Entity* entityToAdd, bool overwriteSame = false, const std::string& readFromFile = "Same");
 
 		/// <summary>
 		/// Gets the list of all registered Entity groups of this.
 		/// </summary>
 		/// <returns>The list of all groups. Ownership is not transferred.</returns>
-		const std::list<std::string> * GetGroupRegister() const { return &m_GroupRegister; }
+		const std::list<std::string>* GetGroupRegister() const { return &m_GroupRegister; }
 
 		/// <summary>
 		/// Registers the existence of an Entity group in this module.
 		/// </summary>
 		/// <param name="newGroup">The group to register.</param>
-		void RegisterGroup(const std::string &newGroup) { m_GroupRegister.push_back(newGroup); m_GroupRegister.sort(); m_GroupRegister.unique(); }
+		void RegisterGroup(const std::string& newGroup) {
+			m_GroupRegister.push_back(newGroup);
+			m_GroupRegister.sort();
+			m_GroupRegister.unique();
+		}
 
 		/// <summary>
 		/// Fills out a list with all groups registered with this that contain any objects of a specific type and it derivatives.
@@ -232,7 +238,7 @@ namespace RTE {
 		/// <param name="groupList">The list that all found groups will be ADDED to. OWNERSHIP IS NOT TRANSFERRED!</param>
 		/// <param name="withType">The name of the type to only get groups of.</param>
 		/// <returns>Whether any groups with the specified type were found.</returns>
-		bool GetGroupsWithType(std::list<std::string> &groupList, const std::string &withType);
+		bool GetGroupsWithType(std::list<std::string>& groupList, const std::string& withType);
 
 		/// <summary>
 		/// Adds to a list all previously read in (defined) Entities which are associated with several specific groups.
@@ -241,7 +247,7 @@ namespace RTE {
 		/// <param name="groups">A list of groups to look for.</param>
 		/// <param name="type">The name of the least common denominator type of the Entities you want. "All" will look at all types.</param>
 		/// <returns>Whether any Entities were found and added to the list.</returns>
-		bool GetAllOfGroups(std::list<Entity *> &entityList, const std::vector<std::string> &groups, const std::string &type) { return GetAllOfOrNotOfGroups(entityList, type, groups, false); }
+		bool GetAllOfGroups(std::list<Entity*>& entityList, const std::vector<std::string>& groups, const std::string& type) { return GetAllOfOrNotOfGroups(entityList, type, groups, false); }
 
 		/// <summary>
 		/// Adds to a list all previously read in (defined) Entities which are not associated with several specific groups.
@@ -250,7 +256,7 @@ namespace RTE {
 		/// <param name="group">A list of groups to exclude.</param>
 		/// <param name="type">The name of the least common denominator type of the Entities you want. "All" will look at all types.</param>
 		/// <returns>Whether any Entities were found and added to the list.</returns>
-		bool GetAllNotOfGroups(std::list<Entity *> &entityList, const std::vector<std::string> &groups, const std::string &type) { return GetAllOfOrNotOfGroups(entityList, type, groups, true); }
+		bool GetAllNotOfGroups(std::list<Entity*>& entityList, const std::vector<std::string>& groups, const std::string& type) { return GetAllOfOrNotOfGroups(entityList, type, groups, true); }
 
 		/// <summary>
 		/// Adds to a list all previously read in (defined) Entities, by inexact type.
@@ -258,7 +264,7 @@ namespace RTE {
 		/// <param name="objectList">Reference to a list which will get all matching Entities added to it. Ownership of the list or the Entities placed in it are NOT transferred!</param>
 		/// <param name="type">The name of the least common denominator type of the Entities you want. "All" will look at all types.</param>
 		/// <returns>Whether any Entities were found and added to the list.</returns>
-		bool GetAllOfType(std::list<Entity *> &objectList, const std::string &type);
+		bool GetAllOfType(std::list<Entity*>& objectList, const std::string& type);
 #pragma endregion
 
 #pragma region Material Mapping
@@ -274,7 +280,7 @@ namespace RTE {
 		/// Gets the entire Material mapping array local to this DataModule.
 		/// </summary>
 		/// <returns>A const reference to the entire local mapping array, 256 unsigned chars. Ownership is NOT transferred!</returns>
-		const std::array<unsigned char, c_PaletteEntriesNumber> & GetAllMaterialMappings() const { return m_MaterialMappings; }
+		const std::array<unsigned char, c_PaletteEntriesNumber>& GetAllMaterialMappings() const { return m_MaterialMappings; }
 
 		/// <summary>
 		/// Adds a Material mapping local to a DataModule.
@@ -300,7 +306,6 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
 		/// <summary>
 		/// Holds and owns the actual object instance pointer, and the location of the data file it was read from, as well as where in that file.
 		/// </summary>
@@ -308,9 +313,10 @@ namespace RTE {
 			/// <summary>
 			/// Constructor method used to instantiate a PresetEntry object in system memory.
 			/// </summary>
-			PresetEntry(Entity *preset, const std::string &file) : m_EntityPreset(preset), m_FileReadFrom(file) {}
+			PresetEntry(Entity* preset, const std::string& file) :
+			    m_EntityPreset(preset), m_FileReadFrom(file) {}
 
-			Entity *m_EntityPreset; //!< Owned by this.
+			Entity* m_EntityPreset; //!< Owned by this.
 			std::string m_FileReadFrom; //!< Where the instance was read from.
 		};
 
@@ -325,18 +331,18 @@ namespace RTE {
 		std::string m_ScriptPath; //!< Path to script to execute when this module is loaded.
 		bool m_IsFaction; //!< Whether this data module is considered a faction.
 		bool m_IsMerchant; //!< Whether this data module is considered a merchant.
-		version::Semver200_version *m_SupportedGameVersion; //!< Game version this DataModule supports. Needs to satisfy Caret Version Range for this DataModule to be allowed. Base DataModules don't need this.
+		version::Semver200_version* m_SupportedGameVersion; //!< Game version this DataModule supports. Needs to satisfy Caret Version Range for this DataModule to be allowed. Base DataModules don't need this.
 		int m_Version; //!< Version number, starting with 1.
 		int m_ModuleID; //!< ID number assigned to this upon loading, for internal use only, don't reflect in ini's.
 
 		ContentFile m_IconFile; //!< File to the icon/symbol bitmap.
-		BITMAP *m_Icon; //!< Bitmap with the icon loaded from above file.
+		BITMAP* m_Icon; //!< Bitmap with the icon loaded from above file.
 
 		BuyMenuTheme m_BuyMenuTheme; //!< Faction BuyMenu theme data.
 
 		float m_CrabToHumanSpawnRatio; //!< Crab-to-human Spawn ratio to replace value from Constants.lua.
 
-		std::list<const Entity *> m_EntityList; //!< A list of loaded entities solely for the purpose of enumeration presets from Lua.
+		std::list<const Entity*> m_EntityList; //!< A list of loaded entities solely for the purpose of enumeration presets from Lua.
 		std::list<std::string> m_GroupRegister; //!< List of all Entity groups ever registered in this, all uniques.
 		std::array<unsigned char, c_PaletteEntriesNumber> m_MaterialMappings; //!< Material mappings local to this DataModule.
 
@@ -353,10 +359,9 @@ namespace RTE {
 		/// There can be multiple entries of the same instance name in any of the type sub-maps, but only ONE whose exact class is that of the type-list!
 		/// The Entity instances are NOT owned by this map.
 		/// </summary>
-		std::unordered_map<std::string, std::list<std::pair<std::string, Entity *>>> m_TypeMap;
+		std::unordered_map<std::string, std::list<std::pair<std::string, Entity*>>> m_TypeMap;
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
 #pragma region INI Handling
@@ -370,7 +375,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="progressCallback">A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int FindAndRead(const ProgressCallback &progressCallback = nullptr);
+		int FindAndRead(const ProgressCallback& progressCallback = nullptr);
 #pragma endregion
 
 #pragma region Entity Mapping
@@ -382,7 +387,7 @@ namespace RTE {
 		/// <param name="groups">The groups to look for.</param>
 		/// <param name="excludeGroups">Whether Entities belonging to the specified group or groups should be excluded.</param>
 		/// <returns>Whether any Entities were found and added to the list.</returns>
-		bool GetAllOfOrNotOfGroups(std::list<Entity *> &entityList, const std::string &type, const std::vector<std::string> &groups, bool excludeGroups);
+		bool GetAllOfOrNotOfGroups(std::list<Entity*>& entityList, const std::string& type, const std::vector<std::string>& groups, bool excludeGroups);
 
 		/// <summary>
 		/// Checks if the type map has an instance added of a specific name and exact type.
@@ -391,7 +396,7 @@ namespace RTE {
 		/// <param name="exactType">The exact type name to look for.</param>
 		/// <param name="presetName">The exact PresetName to look for.</param>
 		/// <returns>The found Entity Preset of the exact type and name, if found.</returns>
-		Entity * GetEntityIfExactType(const std::string &exactType, const std::string &presetName);
+		Entity* GetEntityIfExactType(const std::string& exactType, const std::string& presetName);
 
 		/// <summary>
 		/// Adds a newly added preset instance to the type map, where it will end up in every type-list of every class it derived from as well.
@@ -401,7 +406,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="entityToAdd">The new object instance to add. OWNERSHIP IS NOT TRANSFERRED!</param>
 		/// <returns>Whether the Entity was added successfully or not.</returns>
-		bool AddToTypeMap(Entity *entityToAdd);
+		bool AddToTypeMap(Entity* entityToAdd);
 #pragma endregion
 
 		/// <summary>
@@ -410,8 +415,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		DataModule(const DataModule &reference) = delete;
-		DataModule & operator=(const DataModule &rhs) = delete;
+		DataModule(const DataModule& reference) = delete;
+		DataModule& operator=(const DataModule& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

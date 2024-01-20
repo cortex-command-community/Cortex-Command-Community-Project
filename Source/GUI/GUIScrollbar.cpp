@@ -5,14 +5,15 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIScrollbar::GUIScrollbar(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIScrollPanel(Manager) {
+GUIScrollbar::GUIScrollbar(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIScrollPanel(Manager) {
 	m_ControlID = "SCROLLBAR";
 	m_ControlManager = ControlManager;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollbar::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUIScrollbar::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -27,8 +28,12 @@ void GUIScrollbar::Create(const std::string &Name, int X, int Y, int Width, int 
 	// Create the ListPanel
 	int w = m_DefWidth;
 	int h = m_DefHeight;
-	if (Width != -1) { w = Width; }
-	if (Height != -1) { h = Height; }
+	if (Width != -1) {
+		w = Width;
+	}
+	if (Height != -1) {
+		h = Height;
+	}
 
 	// Make sure the scroll panel isn't too small
 	w = std::max(w, m_MinWidth);
@@ -39,7 +44,7 @@ void GUIScrollbar::Create(const std::string &Name, int X, int Y, int Width, int 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollbar::Create(GUIProperties *Props) {
+void GUIScrollbar::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -70,19 +75,19 @@ void GUIScrollbar::Destroy() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollbar::ChangeSkin(GUISkin *Skin) {
+void GUIScrollbar::ChangeSkin(GUISkin* Skin) {
 	GUIScrollPanel::ChangeSkin(Skin);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUIScrollbar::GetPanel() {
+GUIPanel* GUIScrollbar::GetPanel() {
 	return this;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollbar::ReceiveSignal(GUIPanel *Source, int Code, int Data) {
+void GUIScrollbar::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	assert(Source);
 
 	// Should be our scroll panel
@@ -138,7 +143,7 @@ void GUIScrollbar::Resize(int Width, int Height) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollbar::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUIScrollbar::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIScrollPanel::GetRect(X, Y, Width, Height);
 }
 
@@ -150,7 +155,7 @@ void GUIScrollbar::StoreProperties() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIScrollbar::ApplyProperties(GUIProperties *Props) {
+void GUIScrollbar::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	GUIScrollPanel::LoadProps(&m_Properties);

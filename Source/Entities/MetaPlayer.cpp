@@ -6,7 +6,7 @@ namespace RTE {
 
 	ConcreteClassInfo(MetaPlayer, Entity, 0);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MetaPlayer::Clear() {
 		m_Name = "";
@@ -29,9 +29,9 @@ namespace RTE {
 		m_OffensiveTarget = "";
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int MetaPlayer::Create(const MetaPlayer &reference) {
+	int MetaPlayer::Create(const MetaPlayer& reference) {
 		Entity::Create(reference);
 
 		m_Name = reference.m_Name;
@@ -53,11 +53,11 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int MetaPlayer::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int MetaPlayer::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
-		
+
 		MatchProperty("Name", { reader >> m_Name; });
 		MatchProperty("Team", { reader >> m_Team; });
 		MatchProperty("Human", { reader >> m_Human; });
@@ -65,12 +65,14 @@ namespace RTE {
 		MatchProperty("Aggressiveness", { reader >> m_Aggressiveness; });
 		MatchProperty("GameOverRound", {
 			reader >> m_GameOverRound;
-		// Need to match the name to the index
+			// Need to match the name to the index
 		});
 		MatchProperty("NativeTechModule", {
 			m_NativeTechModule = g_ModuleMan.GetModuleID(reader.ReadPropValue());
 			// Default to no native tech if the one we're looking for couldn't be found
-			if (m_NativeTechModule < 0) { m_NativeTechModule = 0; }
+			if (m_NativeTechModule < 0) {
+				m_NativeTechModule = 0;
+			}
 		});
 		MatchProperty("NativeCostMultiplier", { reader >> m_NativeCostMult; });
 		MatchProperty("ForeignCostMultiplier", { reader >> m_ForeignCostMult; });
@@ -78,14 +80,13 @@ namespace RTE {
 		MatchProperty("Funds", { reader >> m_Funds; });
 		MatchProperty("OffensiveBudget", { reader >> m_OffensiveBudget; });
 		MatchProperty("OffensiveTarget", { reader >> m_OffensiveTarget; });
-		
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int MetaPlayer::Save(Writer &writer) const {
+	int MetaPlayer::Save(Writer& writer) const {
 		Entity::Save(writer);
 
 		writer.NewProperty("Name");
@@ -120,4 +121,4 @@ namespace RTE {
 
 		return 0;
 	}
-}
+} // namespace RTE

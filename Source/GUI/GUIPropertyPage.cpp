@@ -5,7 +5,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPropertyPage::GUIPropertyPage(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIPanel(Manager) {
+GUIPropertyPage::GUIPropertyPage(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "PROPERTYPAGE";
 	m_DrawBitmap = nullptr;
 	m_ControlManager = ControlManager;
@@ -19,7 +20,7 @@ GUIPropertyPage::GUIPropertyPage(GUIManager *Manager, GUIControlManager *Control
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIPropertyPage::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUIPropertyPage::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -36,8 +37,12 @@ void GUIPropertyPage::Create(const std::string &Name, int X, int Y, int Width, i
 	m_Width = m_DefWidth;
 	m_Height = m_DefHeight;
 
-	if (Width != -1) { m_Width = Width; }
-	if (Height != -1) { m_Height = Height; }
+	if (Width != -1) {
+		m_Width = Width;
+	}
+	if (Height != -1) {
+		m_Height = Height;
+	}
 
 	// Make sure the control isn't too small
 	m_Width = std::max(m_Width, m_MinWidth);
@@ -59,8 +64,8 @@ void GUIPropertyPage::Create(const std::string &Name, int X, int Y, int Width, i
 	int Spacer = 0;
 	int Size = m_Height / H;
 	for (int i = 0; i < Size; i++) {
-		GUITextPanel *T = new GUITextPanel(m_Manager);
-		T->Create(m_Width / 2, i*H + Spacer, m_Width / 2, H);
+		GUITextPanel* T = new GUITextPanel(m_Manager);
+		T->Create(m_Width / 2, i * H + Spacer, m_Width / 2, H);
 		T->_SetVisible(false);
 		T->SetSignalTarget(this);
 		GUIPanel::AddChild(T);
@@ -71,7 +76,7 @@ void GUIPropertyPage::Create(const std::string &Name, int X, int Y, int Width, i
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIPropertyPage::Create(GUIProperties *Props) {
+void GUIPropertyPage::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -105,8 +110,8 @@ void GUIPropertyPage::Create(GUIProperties *Props) {
 	int Spacer = 0;
 	int Size = m_Height / H;
 	for (int i = 0; i < Size; i++) {
-		GUITextPanel *T = new GUITextPanel(m_Manager);
-		T->Create(m_Width / 2, i*H + Spacer, m_Width / 2, H);
+		GUITextPanel* T = new GUITextPanel(m_Manager);
+		T->Create(m_Width / 2, i * H + Spacer, m_Width / 2, H);
 		T->_SetVisible(false);
 		T->SetSignalTarget(this);
 		GUIPanel::AddChild(T);
@@ -135,11 +140,11 @@ void GUIPropertyPage::Destroy() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIPropertyPage::ChangeSkin(GUISkin *Skin) {
+void GUIPropertyPage::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Change the skin of the text panels
-	for (GUITextPanel *textPanel : m_TextPanelList) {
+	for (GUITextPanel* textPanel: m_TextPanelList) {
 		textPanel->ChangeSkin(Skin);
 	}
 
@@ -162,8 +167,6 @@ void GUIPropertyPage::BuildBitmap() {
 
 	m_Skin->BuildStandardRect(m_DrawBitmap, "PropertyPage", 0, 0, m_Width, m_Height);
 
-
-
 	// Pre-cache the font
 	std::string Filename;
 	m_Skin->GetValue("PropertyPage", "Font", &Filename);
@@ -174,7 +177,9 @@ void GUIPropertyPage::BuildBitmap() {
 	m_FontColor = m_Skin->ConvertColor(m_FontColor, m_DrawBitmap->GetColorDepth());
 
 	m_Font = m_Skin->GetFont(Filename);
-	if (m_Font) { m_Font->CacheColor(m_FontColor); }
+	if (m_Font) {
+		m_Font->CacheColor(m_FontColor);
+	}
 
 	m_Skin->GetValue("PropertyPage", "LineColor", &m_LineColor);
 	m_LineColor = m_Skin->ConvertColor(m_LineColor, m_DrawBitmap->GetColorDepth());
@@ -182,8 +187,10 @@ void GUIPropertyPage::BuildBitmap() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIPropertyPage::Draw(GUIScreen *Screen) {
-	if (m_DrawBitmap) { m_DrawBitmap->Draw(Screen->GetBitmap(), m_X, m_Y, nullptr); }
+void GUIPropertyPage::Draw(GUIScreen* Screen) {
+	if (m_DrawBitmap) {
+		m_DrawBitmap->Draw(Screen->GetBitmap(), m_X, m_Y, nullptr);
+	}
 
 	// Check the font first
 	if (!m_Font) {
@@ -217,10 +224,10 @@ void GUIPropertyPage::Draw(GUIScreen *Screen) {
 void GUIPropertyPage::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	if (Buttons & MOUSE_LEFT) {
 		// Push the button down
-		//m_Pushed = true;
-		//CaptureMouse();
+		// m_Pushed = true;
+		// CaptureMouse();
 
-		//AddEvent(GUIEvent::Notification, Pushed, 0);
+		// AddEvent(GUIEvent::Notification, Pushed, 0);
 	}
 	SetFocus();
 }
@@ -249,13 +256,13 @@ void GUIPropertyPage::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUIPropertyPage::GetPanel() {
+GUIPanel* GUIPropertyPage::GetPanel() {
 	return this;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIPropertyPage::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUIPropertyPage::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
@@ -287,13 +294,13 @@ void GUIPropertyPage::StoreProperties() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIPropertyPage::SetPropertyValues(GUIProperties *Props) {
+void GUIPropertyPage::SetPropertyValues(GUIProperties* Props) {
 	m_PageValues.Clear();
 	m_PageValues.Update(Props, true);
 
 	// Update the text panels
 	for (int i = 0; i < m_TextPanelList.size(); i++) {
-		GUITextPanel *T = m_TextPanelList.at(i);
+		GUITextPanel* T = m_TextPanelList.at(i);
 		T->_SetVisible(false);
 		T->SetText("");
 
@@ -301,28 +308,30 @@ void GUIPropertyPage::SetPropertyValues(GUIProperties *Props) {
 			T->_SetVisible(true);
 			std::string Name;
 			std::string Value;
-			if (m_PageValues.GetVariable(i, &Name, &Value)) { T->SetText(Value); }
+			if (m_PageValues.GetVariable(i, &Name, &Value)) {
+				T->SetText(Value);
+			}
 		}
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIProperties * GUIPropertyPage::GetPropertyValues() {
+GUIProperties* GUIPropertyPage::GetPropertyValues() {
 	return &m_PageValues;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIPropertyPage::ReceiveSignal(GUIPanel *Source, int Code, int Data) {
+void GUIPropertyPage::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	assert(Source);
 
 	bool TextSignal = false;
 
 	// Is this a text panel?
-	std::vector<GUITextPanel *>::iterator it;
+	std::vector<GUITextPanel*>::iterator it;
 	for (it = m_TextPanelList.begin(); it != m_TextPanelList.end(); it++) {
-		const GUITextPanel *T = *it;
+		const GUITextPanel* T = *it;
 
 		if (Source->GetPanelID() == T->GetPanelID()) {
 			TextSignal = true;
@@ -350,13 +359,15 @@ bool GUIPropertyPage::InvokeUpdate() {
 	bool Changed = false;
 
 	for (int i = 0; i < m_TextPanelList.size(); i++) {
-		const GUITextPanel *T = m_TextPanelList.at(i);
+		const GUITextPanel* T = m_TextPanelList.at(i);
 
 		if (i < m_PageValues.GetCount()) {
 			std::string Name;
 			std::string Value;
 			if (m_PageValues.GetVariable(i, &Name, &Value)) {
-				if (T->GetText().compare(Value) != 0) { Changed = true; }
+				if (T->GetText().compare(Value) != 0) {
+					Changed = true;
+				}
 				// Set the value
 				m_PageValues.SetVariable(i, Name, T->GetText());
 			}
@@ -372,9 +383,9 @@ void GUIPropertyPage::ClearValues() {
 	m_PageValues.Clear();
 
 	// Hide the text panels
-	std::vector<GUITextPanel *>::iterator it;
+	std::vector<GUITextPanel*>::iterator it;
 	for (it = m_TextPanelList.begin(); it != m_TextPanelList.end(); it++) {
-		GUITextPanel *T = *it;
+		GUITextPanel* T = *it;
 		T->_SetVisible(false);
 	}
 }
@@ -382,9 +393,9 @@ void GUIPropertyPage::ClearValues() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool GUIPropertyPage::HasTextFocus() {
-	std::vector<GUITextPanel *>::iterator it;
+	std::vector<GUITextPanel*>::iterator it;
 	for (it = m_TextPanelList.begin(); it != m_TextPanelList.end(); it++) {
-		const GUITextPanel *T = *it;
+		const GUITextPanel* T = *it;
 
 		// Visible & has focus??
 		if (T->_GetVisible() && T->HasFocus()) {

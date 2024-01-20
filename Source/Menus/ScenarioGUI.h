@@ -23,7 +23,6 @@ namespace RTE {
 	class ScenarioGUI {
 
 	public:
-
 		/// <summary>
 		/// Enumeration for the results of the ScenarioGUI input and event update.
 		/// </summary>
@@ -40,14 +39,17 @@ namespace RTE {
 		/// </summary>
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		ScenarioGUI(AllegroScreen *guiScreen, GUIInputWrapper *guiInput) { Clear(); Create(guiScreen, guiInput); }
+		ScenarioGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
+			Clear();
+			Create(guiScreen, guiInput);
+		}
 
 		/// <summary>
 		/// Makes the ScenarioGUI object ready for use.
 		/// </summary>
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this ScenarioGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		void Create(AllegroScreen *guiScreen, GUIInputWrapper *guiInput);
+		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput);
 #pragma endregion
 
 #pragma region Setters
@@ -56,7 +58,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="center">The absolute screen coordinates of the planet's center.</param>
 		/// <param name="radius">The radius, in screen pixel units, of the planet.</param>
-		void SetEnabled(const Vector &center, float radius);
+		void SetEnabled(const Vector& center, float radius);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -73,24 +75,23 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		int m_RootBoxMaxWidth; //!< The maximum width the root CollectionBox that holds all this menu's GUI elements. This is to constrain this menu to the primary window's display (left-most) while in multi-display fullscreen, otherwise positioning can get stupid.
 
 		std::unique_ptr<GUIControlManager> m_GUIControlManager; //!< The GUIControlManager which owns all the GUIControls of the ScenarioGUI.
 		ScenarioMenuUpdateResult m_UpdateResult; //!< The result of the ScenarioGUI update. See ScenarioMenuUpdateResult enumeration.
 
-		std::map<Activity *, std::vector<Scene *>> m_ScenarioActivities; //!< The map of Activities and the Scenes compatible with each, neither of which are owned here.
-		const Activity *m_SelectedActivity; //!< The currently selected Activity. Not owned.
+		std::map<Activity*, std::vector<Scene*>> m_ScenarioActivities; //!< The map of Activities and the Scenes compatible with each, neither of which are owned here.
+		const Activity* m_SelectedActivity; //!< The currently selected Activity. Not owned.
 
-		std::vector<Scene *> *m_ActivityScenes; //!< Pointer to the current set of Scenes being displayed. Not owned, and neither are the Scenes.
-		Scene *m_SelectedScene; //!< The scene preset currently selected. Not owned.
-		Scene *m_HoveredScene; //!< The scene preset currently hovered. Not owned.
+		std::vector<Scene*>* m_ActivityScenes; //!< Pointer to the current set of Scenes being displayed. Not owned, and neither are the Scenes.
+		Scene* m_SelectedScene; //!< The scene preset currently selected. Not owned.
+		Scene* m_HoveredScene; //!< The scene preset currently hovered. Not owned.
 
 		Vector m_PlanetCenter; //!< The absolute screen position of the planet center.
 		float m_PlanetRadius; //!< The screen radius of the planet.
 		std::vector<Vector> m_LineToSitePoints; //!< Collection of points that form lines from a screen point to the selected site point.
 
-		GUICollectionBox *m_DraggedBox; //!< Currently dragged GUI box.
+		GUICollectionBox* m_DraggedBox; //!< Currently dragged GUI box.
 		Vector m_PrevMousePos; //!< Previous position of the mouse to calculate dragging.
 
 		Timer m_BlinkTimer; //!< Timer for blinking the resume and config start buttons.
@@ -104,21 +105,21 @@ namespace RTE {
 		/// <summary>
 		/// GUI elements that compose the scenario menu screen.
 		/// </summary>
-		GUICollectionBox *m_RootBox;
-		GUICollectionBox *m_ActivityConfigBoxRootBox;
-		GUIButton *m_BackToMainButton;
-		GUIButton *m_ResumeButton;
-		GUICollectionBox *m_ActivityInfoBox;
-		GUIComboBox *m_ActivitySelectComboBox;
-		GUILabel *m_ActivityDescriptionLabel;
-		GUICollectionBox *m_SceneInfoBox;
-		GUIButton *m_SceneBoxCloseButton;
-		GUILabel *m_SceneNameLabel;
-		GUILabel *m_SceneDescriptionLabel;
-		GUICollectionBox *m_ScenePreviewImageBox;
+		GUICollectionBox* m_RootBox;
+		GUICollectionBox* m_ActivityConfigBoxRootBox;
+		GUIButton* m_BackToMainButton;
+		GUIButton* m_ResumeButton;
+		GUICollectionBox* m_ActivityInfoBox;
+		GUIComboBox* m_ActivitySelectComboBox;
+		GUILabel* m_ActivityDescriptionLabel;
+		GUICollectionBox* m_SceneInfoBox;
+		GUIButton* m_SceneBoxCloseButton;
+		GUILabel* m_SceneNameLabel;
+		GUILabel* m_SceneDescriptionLabel;
+		GUICollectionBox* m_ScenePreviewImageBox;
 		std::unique_ptr<AllegroBitmap> m_ScenePreviewBitmap;
-		GUIButton *m_StartActivityConfigButton;
-		GUILabel *m_SitePointNameLabel;
+		GUIButton* m_StartActivityConfigButton;
+		GUILabel* m_SitePointNameLabel;
 
 #pragma region Create Breakdown
 		/// <summary>
@@ -144,13 +145,13 @@ namespace RTE {
 		/// Sets the selected Activity, refreshes the compatible Scenes on the planet and updates the Activity info box appropriately.
 		/// </summary>
 		/// <param name="newSelectedActivity">The new selected Activity.</param>
-		void SetSelectedActivity(const Activity *newSelectedActivity);
+		void SetSelectedActivity(const Activity* newSelectedActivity);
 
 		/// <summary>
 		/// Sets the currently selected Scene and updates the Scene info box appropriately.
 		/// </summary>
 		/// <param name="newSelectedScene">The new selected Scene.</param>
-		void SetSelectedScene(Scene *newSelectedScene);
+		void SetSelectedScene(Scene* newSelectedScene);
 
 		/// <summary>
 		/// Moves the CollectionBox that is selected as being dragged, if any.
@@ -168,7 +169,7 @@ namespace RTE {
 		/// Adjusts the positions of the site points on the planet if they don't fit the screen or overlap.
 		/// </summary>
 		/// <param name="sceneList">Vector of Scenes to adjust positions for.</param>
-		void AdjustSitePointOffsetsOnPlanet(const std::vector<Scene *> &sceneList) const;
+		void AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& sceneList) const;
 
 		/// <summary>
 		/// Calculates how to draw lines from the Scene info box to the selected site point on the planet.
@@ -197,13 +198,13 @@ namespace RTE {
 		/// Draws the site points on top of the planet.
 		/// </summary>
 		/// <param name="drawBitmap">The bitmap to draw on.</param>
-		void DrawSitePoints(BITMAP *drawBitmap) const;
+		void DrawSitePoints(BITMAP* drawBitmap) const;
 
 		/// <summary>
 		/// Draws fancy thick flickering lines from the Scene info box to the selected scene point on the planet.
 		/// </summary>
 		/// <param name="drawBitmap">The bitmap to draw to.</param>
-		void DrawLinesToSitePoint(BITMAP *drawBitmap) const;
+		void DrawLinesToSitePoint(BITMAP* drawBitmap) const;
 #pragma endregion
 
 		/// <summary>
@@ -212,8 +213,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		ScenarioGUI(const ScenarioGUI &reference) = delete;
-		ScenarioGUI & operator=(const ScenarioGUI &rhs) = delete;
+		ScenarioGUI(const ScenarioGUI& reference) = delete;
+		ScenarioGUI& operator=(const ScenarioGUI& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

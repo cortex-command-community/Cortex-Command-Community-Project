@@ -10,36 +10,37 @@
 
 namespace RTE {
 
-	std::array<InputElements, 7> SettingsInputMappingGUI::m_InputElementsUsedByMouse = { InputElements::INPUT_FIRE, InputElements::INPUT_PIEMENU_ANALOG, InputElements::INPUT_AIM, InputElements::INPUT_AIM_UP, InputElements::INPUT_AIM_DOWN, InputElements::INPUT_AIM_LEFT, InputElements::INPUT_AIM_RIGHT };
+	std::array<InputElements, 7> SettingsInputMappingGUI::m_InputElementsUsedByMouse = {InputElements::INPUT_FIRE, InputElements::INPUT_PIEMENU_ANALOG, InputElements::INPUT_AIM, InputElements::INPUT_AIM_UP, InputElements::INPUT_AIM_DOWN, InputElements::INPUT_AIM_LEFT, InputElements::INPUT_AIM_RIGHT};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	SettingsInputMappingGUI::SettingsInputMappingGUI(GUIControlManager *parentControlManager) : m_GUIControlManager(parentControlManager) {
-		m_InputMappingSettingsBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxPlayerInputMapping"));
+	SettingsInputMappingGUI::SettingsInputMappingGUI(GUIControlManager* parentControlManager) :
+	    m_GUIControlManager(parentControlManager) {
+		m_InputMappingSettingsBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxPlayerInputMapping"));
 		m_InputMappingSettingsBox->SetVisible(false);
 
-		m_InputMappingSettingsLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelPlayerInputMappingTitle"));
-		m_CloseMappingBoxButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonCloseMappingBox"));
-		m_RunConfigWizardButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonRunConfigWizard"));
+		m_InputMappingSettingsLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelPlayerInputMappingTitle"));
+		m_CloseMappingBoxButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonCloseMappingBox"));
+		m_RunConfigWizardButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonRunConfigWizard"));
 
-		m_InputMapScrollingBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxScrollingMappingBox"));
-		m_InputMapScrollingBoxScrollbar = dynamic_cast<GUIScrollbar *>(m_GUIControlManager->GetControl("ScrollbarScrollingMappingBox"));
+		m_InputMapScrollingBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxScrollingMappingBox"));
+		m_InputMapScrollingBoxScrollbar = dynamic_cast<GUIScrollbar*>(m_GUIControlManager->GetControl("ScrollbarScrollingMappingBox"));
 		m_InputMapScrollingBoxScrollbar->SetMaximum(m_InputMapScrollingBox->GetHeight());
 		m_InputMapScrollingBoxScrollbar->SetPageSize(m_InputMapScrollingBoxScrollbar->GetMaximum() / 2);
 		m_LastInputMapScrollingBoxScrollbarValue = m_InputMapScrollingBoxScrollbar->GetValue();
 
 		for (int i = 0; i < InputElements::INPUT_COUNT; ++i) {
-			m_InputMapLabel[i] = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("LabelInputName" + std::to_string(i + 1)));
+			m_InputMapLabel[i] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelInputName" + std::to_string(i + 1)));
 			m_InputMapLabel[i]->SetText(c_InputElementNames[i]);
-			m_InputMapButton[i] = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonInputKey" + std::to_string(i + 1)));
+			m_InputMapButton[i] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonInputKey" + std::to_string(i + 1)));
 		}
-		m_InputMappingCaptureBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxInputCapture"));
+		m_InputMappingCaptureBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputCapture"));
 		m_InputMappingCaptureBox->SetVisible(false);
 
-		GUICollectionBox *settingsRootBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
+		GUICollectionBox* settingsRootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
 		m_InputMappingCaptureBox->SetPositionAbs(settingsRootBox->GetXPos() + ((settingsRootBox->GetWidth() - m_InputMappingCaptureBox->GetWidth()) / 2), settingsRootBox->GetYPos() + ((settingsRootBox->GetHeight() - m_InputMappingCaptureBox->GetHeight()) / 2));
 
-		m_InputElementCapturingInputNameLabel = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonLabelInputMappingName"));
+		m_InputElementCapturingInputNameLabel = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonLabelInputMappingName"));
 
 		m_InputConfigWizardMenu = std::make_unique<SettingsInputMappingWizardGUI>(parentControlManager);
 
@@ -49,13 +50,13 @@ namespace RTE {
 		m_InputElementCapturingInput = InputElements::INPUT_COUNT;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingGUI::IsEnabled() const {
 		return m_InputMappingSettingsBox->GetVisible() && m_InputMappingSettingsBox->GetEnabled();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::SetEnabled(bool enable, int player) {
 		m_InputMappingSettingsBox->SetVisible(enable);
@@ -75,9 +76,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	GUICollectionBox * SettingsInputMappingGUI::GetActiveDialogBox() const {
+	GUICollectionBox* SettingsInputMappingGUI::GetActiveDialogBox() const {
 		if (m_InputConfigWizardMenu->IsEnabled()) {
 			return m_InputConfigWizardMenu->GetActiveDialogBox();
 		} else if (m_InputMappingCaptureBox->GetEnabled() && m_InputMappingCaptureBox->GetVisible()) {
@@ -86,7 +87,7 @@ namespace RTE {
 		return (m_InputMappingSettingsBox->GetEnabled() && m_InputMappingSettingsBox->GetVisible()) ? m_InputMappingSettingsBox : nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::CloseActiveDialogBox() {
 		if (m_InputConfigWizardMenu->IsEnabled()) {
@@ -98,13 +99,13 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingGUI::IsConfiguringManually() const {
 		return m_ConfiguringManually && m_InputMappingCaptureBox->GetVisible() && m_InputMappingCaptureBox->GetEnabled();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::ShowInputMappingCaptureBox(InputElements inputElement) {
 		m_InputMappingSettingsBox->SetEnabled(false);
@@ -117,7 +118,7 @@ namespace RTE {
 		g_UInputMan.SetSkipHandlingSpecialInput(true);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::HideInputMappingCaptureBox() {
 		m_InputMappingSettingsBox->SetEnabled(true);
@@ -128,13 +129,15 @@ namespace RTE {
 		g_UInputMan.SetSkipHandlingSpecialInput(false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::UpdateMappingButtonLabels() {
-		const std::array<InputMapping, InputElements::INPUT_COUNT> *inputMappings = m_ConfiguringPlayerInputScheme->GetInputMappings();
+		const std::array<InputMapping, InputElements::INPUT_COUNT>* inputMappings = m_ConfiguringPlayerInputScheme->GetInputMappings();
 		for (int i = 0; i < InputElements::INPUT_COUNT; ++i) {
 			std::string inputDescription = inputMappings->at(i).GetPresetDescription();
-			if (inputDescription.empty()) { inputDescription = m_ConfiguringPlayerInputScheme->GetMappingName(i); }
+			if (inputDescription.empty()) {
+				inputDescription = m_ConfiguringPlayerInputScheme->GetMappingName(i);
+			}
 			m_InputMapButton[i]->SetText(!inputDescription.empty() ? "[" + inputDescription + "]" : "[Undefined]");
 		}
 		// Adjust the scrolling box scroll range to hide mappings that are only relevant to gamepads.
@@ -142,7 +145,7 @@ namespace RTE {
 		m_InputMapScrollingBoxScrollbar->SetPageSize(m_InputMapScrollingBoxScrollbar->GetMaximum() / 2);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::UpdateScrollingInputBoxScrollPosition() {
 		int scrollbarValue = m_InputMapScrollingBoxScrollbar->GetValue();
@@ -150,11 +153,13 @@ namespace RTE {
 		m_LastInputMapScrollingBoxScrollbarValue = scrollbarValue;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SettingsInputMappingGUI::HandleInputEvents(GUIEvent &guiEvent) {
+	void SettingsInputMappingGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (m_InputConfigWizardMenu->IsEnabled()) {
-			if (m_InputConfigWizardMenu->HandleInputEvents(guiEvent)) { UpdateMappingButtonLabels(); }
+			if (m_InputConfigWizardMenu->HandleInputEvents(guiEvent)) {
+				UpdateMappingButtonLabels();
+			}
 			return;
 		}
 		if (guiEvent.GetType() == GUIEvent::Command) {
@@ -186,7 +191,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::HandleManualConfigSequence() {
 		bool inputCaptured = false;
@@ -209,4 +214,4 @@ namespace RTE {
 			HideInputMappingCaptureBox();
 		}
 	}
-}
+} // namespace RTE

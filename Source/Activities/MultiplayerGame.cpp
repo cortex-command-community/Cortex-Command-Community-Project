@@ -5,7 +5,6 @@
 // Project:         Retro Terrain Engine
 // Author(s):
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
 
@@ -50,8 +49,7 @@ namespace RTE {
 	// Description:     Clears all the member variables of this MultiplayerGame, effectively
 	//                  resetting the members of this abstraction level only.
 
-	void MultiplayerGame::Clear()
-	{
+	void MultiplayerGame::Clear() {
 		m_pGUIController = 0;
 		m_pGUIInput = 0;
 		m_pGUIScreen = 0;
@@ -80,21 +78,18 @@ namespace RTE {
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Makes the MultiplayerGame object ready for use.
 
-	int MultiplayerGame::Create()
-	{
+	int MultiplayerGame::Create() {
 		if (Activity::Create() < 0)
 			return -1;
 		return 0;
 	}
-
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Virtual method:  Create
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Creates a MultiplayerGame to be identical to another, by deep copy.
 
-	int MultiplayerGame::Create(const MultiplayerGame &reference)
-	{
+	int MultiplayerGame::Create(const MultiplayerGame& reference) {
 		if (Activity::Create(reference) < 0)
 			return -1;
 
@@ -104,7 +99,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Virtual method:  ReadProperty
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -113,11 +107,9 @@ namespace RTE {
 	//                  is called. If the property isn't recognized by any of the base classes,
 	//                  false is returned, and the reader's position is untouched.
 
-	int MultiplayerGame::ReadProperty(const std::string_view &propName, Reader &reader)
-	{
+	int MultiplayerGame::ReadProperty(const std::string_view& propName, Reader& reader) {
 		return Activity::ReadProperty(propName, reader);
 	}
-
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Virtual method:  Save
@@ -125,20 +117,17 @@ namespace RTE {
 	// Description:     Saves the complete state of this MultiplayerGame with a Writer for
 	//                  later recreation with Create(Reader &reader);
 
-	int MultiplayerGame::Save(Writer &writer) const
-	{
+	int MultiplayerGame::Save(Writer& writer) const {
 		Activity::Save(writer);
 		return 0;
 	}
-
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Method:          Destroy
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Destroys and resets (through Clear()) the MultiplayerGame object.
 
-	void MultiplayerGame::Destroy(bool notInherited)
-	{
+	void MultiplayerGame::Destroy(bool notInherited) {
 		g_FrameMan.SetDrawNetworkBackBuffer(false);
 		g_NetworkClient.Disconnect();
 
@@ -157,8 +146,7 @@ namespace RTE {
 	// Description:     Officially starts this. Creates all the data etc necessary to start
 	//                  the activity.
 
-	int MultiplayerGame::Start()
-	{
+	int MultiplayerGame::Start() {
 		int error = Activity::Start();
 
 		g_AudioMan.ClearMusicQueue();
@@ -178,22 +166,21 @@ namespace RTE {
 		m_pGUIController->EnableMouse(true);
 
 		// Resize the invisible root container so it matches the screen rez
-		GUICollectionBox *pRootBox = dynamic_cast<GUICollectionBox *>(m_pGUIController->GetControl("base"));
+		GUICollectionBox* pRootBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("base"));
 		if (pRootBox)
 			pRootBox->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
-		m_BackToMainButton = dynamic_cast<GUIButton *>(m_pGUIController->GetControl("ButtonBackToMain"));
+		m_BackToMainButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("ButtonBackToMain"));
 
-		GUICollectionBox *pDialogBox = dynamic_cast<GUICollectionBox *>(m_pGUIController->GetControl("ConnectDialogBox"));
-		if (pDialogBox)
-		{
+		GUICollectionBox* pDialogBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("ConnectDialogBox"));
+		if (pDialogBox) {
 			pDialogBox->SetPositionAbs(g_WindowMan.GetResX() / 2 - pDialogBox->GetWidth() / 2, g_WindowMan.GetResY() / 2 - pDialogBox->GetHeight() / 2);
 			m_BackToMainButton->SetPositionAbs((g_WindowMan.GetResX() - m_BackToMainButton->GetWidth()) / 2, pDialogBox->GetYPos() + pDialogBox->GetHeight() + 10);
 		}
 
-		m_pServerNameTextBox = dynamic_cast<GUITextBox *>(m_pGUIController->GetControl("ServerNameTB"));
-		m_pPlayerNameTextBox = dynamic_cast<GUITextBox *>(m_pGUIController->GetControl("PlayerNameTB"));
-		m_pConnectButton = dynamic_cast<GUIButton *>(m_pGUIController->GetControl("ConnectButton"));
+		m_pServerNameTextBox = dynamic_cast<GUITextBox*>(m_pGUIController->GetControl("ServerNameTB"));
+		m_pPlayerNameTextBox = dynamic_cast<GUITextBox*>(m_pGUIController->GetControl("PlayerNameTB"));
+		m_pConnectButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("ConnectButton"));
 
 		/*
 		m_pNATServiceServerNameTextBox = dynamic_cast<GUITextBox *>(m_pGUIController->GetControl("NATServiceNameTB"));
@@ -207,8 +194,8 @@ namespace RTE {
 		m_pConnectNATButton->SetVisible(false);
 		*/
 
-		//NOTE Instruction labels aren't dynamic so they don't really need to be gotten. Status label should be empty unless there's a status to report.
-		m_pStatusLabel = dynamic_cast<GUILabel *>(m_pGUIController->GetControl("StatusLabel"));
+		// NOTE Instruction labels aren't dynamic so they don't really need to be gotten. Status label should be empty unless there's a status to report.
+		m_pStatusLabel = dynamic_cast<GUILabel*>(m_pGUIController->GetControl("StatusLabel"));
 		m_pStatusLabel->SetText("");
 
 		m_pServerNameTextBox->SetText(g_SettingsMan.GetNetworkServerAddress());
@@ -228,30 +215,23 @@ namespace RTE {
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Pauses and unpauses the game.
 
-	void MultiplayerGame::SetPaused(bool pause)
-	{
+	void MultiplayerGame::SetPaused(bool pause) {
 		// Override the pause
-		//m_Paused = false;
+		// m_Paused = false;
 		Activity::SetPaused(pause);
 
-		if (pause)
-		{
-			if (g_AudioMan.IsMusicPlaying())
-			{
+		if (pause) {
+			if (g_AudioMan.IsMusicPlaying()) {
 				m_LastMusic = g_AudioMan.GetMusicPath();
 				m_LastMusicPos = g_AudioMan.GetMusicPosition();
 			}
-		}
-		else
-		{
-			if (m_LastMusic != "")
-			{
+		} else {
+			if (m_LastMusic != "") {
 				g_AudioMan.PlayMusic(m_LastMusic.c_str());
 				g_AudioMan.SetMusicPosition(m_LastMusicPos);
 			}
 
-			if (m_Mode == GAMEPLAY)
-			{
+			if (m_Mode == GAMEPLAY) {
 				g_UInputMan.TrapMousePos(true, 0);
 			}
 		}
@@ -262,8 +242,7 @@ namespace RTE {
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Forces the current game's end.
 
-	void MultiplayerGame::End()
-	{
+	void MultiplayerGame::End() {
 		Activity::End();
 
 		m_ActivityState = ActivityState::Over;
@@ -276,14 +255,12 @@ namespace RTE {
 	// Description:     Updates the state of this MultiplayerGame. Supposed to be done every frame
 	//                  before drawing.
 
-	void MultiplayerGame::Update()
-	{
+	void MultiplayerGame::Update() {
 		Activity::Update();
 
 		/////////////////////////////////////////////////////
 		// Update the editor interface
-		if (m_Mode == SETUP)
-		{
+		if (m_Mode == SETUP) {
 			m_pGUIController->Update();
 
 			////////////////////////////////////////////////////////
@@ -292,34 +269,28 @@ namespace RTE {
 			bool toExit = false;
 
 			GUIEvent anEvent;
-			while (m_pGUIController->GetEvent(&anEvent))
-			{
-				if (anEvent.GetType() == GUIEvent::Command)
-				{
+			while (m_pGUIController->GetEvent(&anEvent)) {
+				if (anEvent.GetType() == GUIEvent::Command) {
 					if (anEvent.GetControl() == m_BackToMainButton) {
 						g_ActivityMan.PauseActivity();
 						return;
 					}
 
-					if (anEvent.GetControl() == m_pConnectButton)
-					{
+					if (anEvent.GetControl() == m_pConnectButton) {
 						std::string serverName;
 						int port;
 
 						std::string::size_type portPos = std::string::npos;
 
 						portPos = m_pServerNameTextBox->GetText().find(":");
-						if (portPos != std::string::npos)
-						{
+						if (portPos != std::string::npos) {
 							serverName = m_pServerNameTextBox->GetText().substr(0, portPos);
 							std::string portStr = m_pServerNameTextBox->GetText().substr(portPos + 1, m_pServerNameTextBox->GetText().length() - 2);
 
 							port = atoi(portStr.c_str());
 							if (port == 0)
 								port = 8000;
-						}
-						else
-						{
+						} else {
 							serverName = m_pServerNameTextBox->GetText();
 							port = 8000;
 						}
@@ -331,14 +302,12 @@ namespace RTE {
 						g_NetworkClient.Connect(serverName, port, playerName);
 						bool saveSettings = false;
 
-						if (g_SettingsMan.GetPlayerNetworkName() != m_pPlayerNameTextBox->GetText())
-						{
+						if (g_SettingsMan.GetPlayerNetworkName() != m_pPlayerNameTextBox->GetText()) {
 							g_SettingsMan.SetPlayerNetworkName(m_pPlayerNameTextBox->GetText());
 							saveSettings = true;
 						}
 
-						if (g_SettingsMan.GetNetworkServerAddress() != m_pServerNameTextBox->GetText())
-						{
+						if (g_SettingsMan.GetNetworkServerAddress() != m_pServerNameTextBox->GetText()) {
 							g_SettingsMan.SetNetworkServerAddress(m_pServerNameTextBox->GetText());
 							saveSettings = true;
 						}
@@ -352,26 +321,21 @@ namespace RTE {
 						g_GUISound.ButtonPressSound()->Play();
 					}
 
-
-					if (anEvent.GetControl() == m_pConnectNATButton)
-					{
+					if (anEvent.GetControl() == m_pConnectNATButton) {
 						std::string serverName;
 						int port;
 
 						std::string::size_type portPos = std::string::npos;
 
 						portPos = m_pNATServiceServerNameTextBox->GetText().find(":");
-						if (portPos != std::string::npos)
-						{
+						if (portPos != std::string::npos) {
 							serverName = m_pNATServiceServerNameTextBox->GetText().substr(0, portPos);
 							std::string portStr = m_pNATServiceServerNameTextBox->GetText().substr(portPos + 1, m_pNATServiceServerNameTextBox->GetText().length() - 2);
 
 							port = atoi(portStr.c_str());
 							if (port == 0)
 								port = 61111;
-						}
-						else
-						{
+						} else {
 							serverName = m_pNATServiceServerNameTextBox->GetText();
 							port = 61111;
 						}
@@ -383,26 +347,22 @@ namespace RTE {
 						g_NetworkClient.PerformNATPunchThrough(serverName, port, playerName, m_pNATServerNameTextBox->GetText(), m_pNATServerPasswordTextBox->GetText());
 						bool saveSettings = false;
 
-						if (g_SettingsMan.GetPlayerNetworkName() != m_pPlayerNameTextBox->GetText())
-						{
+						if (g_SettingsMan.GetPlayerNetworkName() != m_pPlayerNameTextBox->GetText()) {
 							g_SettingsMan.SetPlayerNetworkName(m_pPlayerNameTextBox->GetText());
 							saveSettings = true;
 						}
 
-						if (g_SettingsMan.GetNATServiceAddress() != m_pNATServiceServerNameTextBox->GetText())
-						{
+						if (g_SettingsMan.GetNATServiceAddress() != m_pNATServiceServerNameTextBox->GetText()) {
 							g_SettingsMan.SetNATServiceAddress(m_pNATServiceServerNameTextBox->GetText());
 							saveSettings = true;
 						}
 
-						if (g_SettingsMan.GetNATServerName() != m_pNATServerNameTextBox->GetText())
-						{
+						if (g_SettingsMan.GetNATServerName() != m_pNATServerNameTextBox->GetText()) {
 							g_SettingsMan.SetNATServerName(m_pNATServerNameTextBox->GetText());
 							saveSettings = true;
 						}
 
-						if (g_SettingsMan.GetNATServerPassword() != m_pNATServerPasswordTextBox->GetText())
-						{
+						if (g_SettingsMan.GetNATServerPassword() != m_pNATServerPasswordTextBox->GetText()) {
 							g_SettingsMan.SetNATServerPassword(m_pNATServerPasswordTextBox->GetText());
 							saveSettings = true;
 						}
@@ -417,19 +377,16 @@ namespace RTE {
 					}
 				}
 				// Notifications
-				else if (anEvent.GetType() == GUIEvent::Notification)
-				{
+				else if (anEvent.GetType() == GUIEvent::Notification) {
 				}
 			}
 		}
 
-		if (m_Mode == CONNECTION)
-		{
+		if (m_Mode == CONNECTION) {
 			if (g_NetworkClient.IsConnectedAndRegistered())
 				m_Mode = GAMEPLAY;
 
-			if (m_ConnectionWaitTimer.IsPastRealMS(8000))
-			{
+			if (m_ConnectionWaitTimer.IsPastRealMS(8000)) {
 				g_NetworkClient.Disconnect();
 				m_Mode = SETUP;
 				m_pStatusLabel->SetText("Connection failed. Check console for error messages.");
@@ -437,16 +394,14 @@ namespace RTE {
 			}
 		}
 
-		if (m_Mode == GAMEPLAY)
-		{
+		if (m_Mode == GAMEPLAY) {
 			g_UInputMan.TrapMousePos(true, 0);
 			g_FrameMan.SetDrawNetworkBackBuffer(true);
 			m_pGUIController->EnableMouse(false);
 
-			if (!g_NetworkClient.IsConnectedAndRegistered())
-			{
-				//g_ActivityMan.EndActivity();
-				//g_ActivityMan.SetRestartActivity();
+			if (!g_NetworkClient.IsConnectedAndRegistered()) {
+				// g_ActivityMan.EndActivity();
+				// g_ActivityMan.SetRestartActivity();
 				m_Mode = SETUP;
 				m_pGUIController->EnableMouse(true);
 				g_UInputMan.TrapMousePos(false, 0);
@@ -455,9 +410,9 @@ namespace RTE {
 		}
 
 		/*if (g_UInputMan.ElementHeld(0, UInputMan::INPUT_FIRE))
-			g_FrameMan.SetScreenText("FIRE", 0, 0, -1, false);
+		    g_FrameMan.SetScreenText("FIRE", 0, 0, -1, false);
 		else
-			g_FrameMan.SetScreenText("-", 0, 0, -1, false);*/
+		    g_FrameMan.SetScreenText("-", 0, 0, -1, false);*/
 
 		g_NetworkClient.Update();
 	}
@@ -467,10 +422,8 @@ namespace RTE {
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
 
-	void MultiplayerGame::DrawGUI(BITMAP *pTargetBitmap, const Vector &targetPos, int which)
-	{
-		if (m_pGUIController)
-		{
+	void MultiplayerGame::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
+		if (m_pGUIController) {
 			AllegroScreen drawScreen(pTargetBitmap);
 			m_pGUIController->Draw(&drawScreen);
 			if (m_Mode == SETUP)
@@ -484,8 +437,7 @@ namespace RTE {
 	// Description:     Draws this MultiplayerGame's current graphical representation to a
 	//                  BITMAP of choice. This includes all game-related graphics.
 
-	void MultiplayerGame::Draw(BITMAP* pTargetBitmap, const Vector &targetPos)
-	{
+	void MultiplayerGame::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		Activity::Draw(pTargetBitmap, targetPos);
 	}
 

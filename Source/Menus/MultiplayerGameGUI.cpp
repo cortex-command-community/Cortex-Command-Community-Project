@@ -7,14 +7,12 @@
 //                  dtabar@datarealms.com
 //                  http://www.datarealms.com
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
 
 #include "MultiplayerGameGUI.h"
 
 #include "FrameMan.h"
-
 
 using namespace std;
 using namespace RTE;
@@ -25,37 +23,32 @@ using namespace RTE;
 // Description:     Clears all the member variables of this MultiplayerGameGUI, effectively
 //                  resetting the members of this abstraction level only.
 
-void MultiplayerGameGUI::Clear()
-{
+void MultiplayerGameGUI::Clear() {
 	m_pController = 0;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Create
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Makes the MultiplayerGameGUI object ready for use.
 
-int MultiplayerGameGUI::Create(Controller *pController)
-{
+int MultiplayerGameGUI::Create(Controller* pController) {
 	AAssert(pController, "No controller sent to MultiplayerGameGUI on creation!");
 	m_pController = pController;
 
 	// Allocate and (re)create the Editor GUIs
-	//m_pPieMenu = new PieMenuGUI();
-	//m_pPieMenu->Create(pController);
+	// m_pPieMenu = new PieMenuGUI();
+	// m_pPieMenu->Create(pController);
 
 	return 0;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          Destroy
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Destroys and resets (through Clear()) the MultiplayerGameGUI object.
 
-void MultiplayerGameGUI::Destroy()
-{
+void MultiplayerGameGUI::Destroy() {
 	Clear();
 }
 
@@ -64,18 +57,13 @@ void MultiplayerGameGUI::Destroy()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Updates the state of this Menu each frame
 
-void MultiplayerGameGUI::Update()
-{
+void MultiplayerGameGUI::Update() {
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Virtual Method:  Draw
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Draws the menu
 
-void MultiplayerGameGUI::Draw(BITMAP *pTargetBitmap, const Vector &targetPos) const
-{
+void MultiplayerGameGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
 }
-
-
