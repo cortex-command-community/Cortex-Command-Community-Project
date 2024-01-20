@@ -5,7 +5,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUILabel::GUILabel(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIPanel(Manager) {
+GUILabel::GUILabel(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "LABEL";
 	m_ControlManager = ControlManager;
 	m_Font = nullptr;
@@ -21,7 +22,7 @@ GUILabel::GUILabel(GUIManager *Manager, GUIControlManager *ControlManager) : GUI
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUILabel::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUILabel::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -38,8 +39,12 @@ void GUILabel::Create(const std::string &Name, int X, int Y, int Width, int Heig
 	m_Width = m_DefWidth;
 	m_Height = m_DefHeight;
 
-	if (Width != -1) { m_Width = Width; }
-	if (Height != -1) { m_Height = Height; }
+	if (Width != -1) {
+		m_Width = Width;
+	}
+	if (Height != -1) {
+		m_Height = Height;
+	}
 
 	// Make sure the label isn't too small
 	m_Width = std::max(m_Width, m_MinWidth);
@@ -48,7 +53,7 @@ void GUILabel::Create(const std::string &Name, int X, int Y, int Width, int Heig
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUILabel::Create(GUIProperties *Props) {
+void GUILabel::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -71,14 +76,26 @@ void GUILabel::Create(GUIProperties *Props) {
 
 	std::string alignString;
 	Props->GetValue("HAlignment", &alignString);
-	if (stricmp(alignString.c_str(), "left") == 0) { m_HAlignment = GUIFont::Left; }
-	if (stricmp(alignString.c_str(), "centre") == 0 || stricmp(alignString.c_str(), "center") == 0) { m_HAlignment = GUIFont::Centre; }
-	if (stricmp(alignString.c_str(), "right") == 0) { m_HAlignment = GUIFont::Right; }
+	if (stricmp(alignString.c_str(), "left") == 0) {
+		m_HAlignment = GUIFont::Left;
+	}
+	if (stricmp(alignString.c_str(), "centre") == 0 || stricmp(alignString.c_str(), "center") == 0) {
+		m_HAlignment = GUIFont::Centre;
+	}
+	if (stricmp(alignString.c_str(), "right") == 0) {
+		m_HAlignment = GUIFont::Right;
+	}
 
 	Props->GetValue("VAlignment", &alignString);
-	if (stricmp(alignString.c_str(), "top") == 0) { m_VAlignment = GUIFont::Top; }
-	if (stricmp(alignString.c_str(), "middle") == 0) { m_VAlignment = GUIFont::Middle; }
-	if (stricmp(alignString.c_str(), "bottom") == 0) { m_VAlignment = GUIFont::Bottom; }
+	if (stricmp(alignString.c_str(), "top") == 0) {
+		m_VAlignment = GUIFont::Top;
+	}
+	if (stricmp(alignString.c_str(), "middle") == 0) {
+		m_VAlignment = GUIFont::Middle;
+	}
+	if (stricmp(alignString.c_str(), "bottom") == 0) {
+		m_VAlignment = GUIFont::Bottom;
+	}
 
 	Props->GetValue("HorizontalOverflowScroll", &m_HorizontalOverflowScroll);
 	Props->GetValue("VerticalOverflowScroll", &m_VerticalOverflowScroll);
@@ -86,7 +103,7 @@ void GUILabel::Create(GUIProperties *Props) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUILabel::ChangeSkin(GUISkin *Skin) {
+void GUILabel::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Load the font
@@ -103,14 +120,14 @@ void GUILabel::ChangeSkin(GUISkin *Skin) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUILabel::Draw(GUIScreen *Screen) {
+void GUILabel::Draw(GUIScreen* Screen) {
 	Draw(Screen->GetBitmap());
 	GUIPanel::Draw(Screen);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUILabel::Draw(GUIBitmap *Bitmap, bool overwiteFontColorAndKerning) {
+void GUILabel::Draw(GUIBitmap* Bitmap, bool overwiteFontColorAndKerning) {
 	// Setup the clipping
 	Bitmap->AddClipRect(GetRect());
 
@@ -156,8 +173,8 @@ void GUILabel::Draw(GUIBitmap *Bitmap, bool overwiteFontColorAndKerning) {
 					break;
 				case OverflowScrollState::Scrolling:
 					if (m_OverflowScrollTimer.GetRealTimeLimitMS() == -1) {
-						//TODO Maybe time limits should account for extra size vs width, so it scrolls slower on small labels, since it can be harder to read fast text on smaller areas. I think it's fine as-is though.
-						// Note - time limits set so 5 characters of fatfont horizontal overflow or one line of fatfont vertical overflow will take 1 second.
+						// TODO Maybe time limits should account for extra size vs width, so it scrolls slower on small labels, since it can be harder to read fast text on smaller areas. I think it's fine as-is though.
+						//  Note - time limits set so 5 characters of fatfont horizontal overflow or one line of fatfont vertical overflow will take 1 second.
 						if (modifyXPos) {
 							m_OverflowScrollTimer.SetRealTimeLimitMS((1000.0 / 30.0) * static_cast<double>(textFullWidth - m_Width));
 						} else if (modifyYPos) {
@@ -208,14 +225,16 @@ void GUILabel::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 
 void GUILabel::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	// If the mouse is over the button, add the clicked notification to the event queue
-	if (PointInside(X, Y) && (Buttons & MOUSE_LEFT) && IsCaptured()) { AddEvent(GUIEvent::Notification, Clicked, Buttons); }
+	if (PointInside(X, Y) && (Buttons & MOUSE_LEFT) && IsCaptured()) {
+		AddEvent(GUIEvent::Notification, Clicked, Buttons);
+	}
 
 	ReleaseMouse();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUILabel::GetPanel() {
+GUIPanel* GUILabel::GetPanel() {
 	return this;
 }
 
@@ -246,7 +265,7 @@ int GUILabel::ResizeHeightToFit() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUILabel::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUILabel::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
@@ -312,21 +331,33 @@ void GUILabel::StoreProperties() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUILabel::ApplyProperties(GUIProperties *Props) {
+void GUILabel::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	m_Properties.GetValue("Text", &m_Text);
 
 	std::string alignString;
 	m_Properties.GetValue("HAlignment", &alignString);
-	if (stricmp(alignString.c_str(), "left") == 0) { m_HAlignment = GUIFont::Left; }
-	if (stricmp(alignString.c_str(), "centre") == 0) { m_HAlignment = GUIFont::Centre; }
-	if (stricmp(alignString.c_str(), "right") == 0) { m_HAlignment = GUIFont::Right; }
+	if (stricmp(alignString.c_str(), "left") == 0) {
+		m_HAlignment = GUIFont::Left;
+	}
+	if (stricmp(alignString.c_str(), "centre") == 0) {
+		m_HAlignment = GUIFont::Centre;
+	}
+	if (stricmp(alignString.c_str(), "right") == 0) {
+		m_HAlignment = GUIFont::Right;
+	}
 
 	m_Properties.GetValue("VAlignment", &alignString);
-	if (stricmp(alignString.c_str(), "top") == 0) { m_VAlignment = GUIFont::Top; }
-	if (stricmp(alignString.c_str(), "middle") == 0) { m_VAlignment = GUIFont::Middle; }
-	if (stricmp(alignString.c_str(), "bottom") == 0) { m_VAlignment = GUIFont::Bottom; }
+	if (stricmp(alignString.c_str(), "top") == 0) {
+		m_VAlignment = GUIFont::Top;
+	}
+	if (stricmp(alignString.c_str(), "middle") == 0) {
+		m_VAlignment = GUIFont::Middle;
+	}
+	if (stricmp(alignString.c_str(), "bottom") == 0) {
+		m_VAlignment = GUIFont::Bottom;
+	}
 
 	m_Properties.GetValue("HorizontalOverflowScroll", &m_HorizontalOverflowScroll);
 	m_Properties.GetValue("VerticalOverflowScroll", &m_VerticalOverflowScroll);

@@ -13,13 +13,12 @@ namespace RTE {
 	class GraphicalPrimitive {
 
 	public:
-
-		/// <summary>
-		/// Convenience macro to cut down on duplicate methods in classes that extend GraphicalPrimitive.
-		/// </summary>
-		#define GraphicalPrimitiveOverrideMethods \
-			const PrimitiveType GetPrimitiveType() const override { return c_PrimitiveType; } \
-			void Draw(BITMAP *drawScreen, const Vector &targetPos) override;
+/// <summary>
+/// Convenience macro to cut down on duplicate methods in classes that extend GraphicalPrimitive.
+/// </summary>
+#define GraphicalPrimitiveOverrideMethods \
+	const PrimitiveType GetPrimitiveType() const override { return c_PrimitiveType; } \
+	void Draw(BITMAP* drawScreen, const Vector& targetPos) override;
 
 		/// <summary>
 		/// Enumeration of the different primitive types derived from GraphicalPrimitive.
@@ -50,7 +49,7 @@ namespace RTE {
 		unsigned char m_Color = 0; //!< Color to draw this primitive with.
 		int m_Player = -1; //!< Player screen to draw this primitive on.
 		DrawBlendMode m_BlendMode = DrawBlendMode::NoBlend; //!< The blending mode that will be used when drawing this primitive.
-		std::array<int, 4> m_ColorChannelBlendAmounts = { BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend }; //!< The blending amount for each color channel when drawing in blended mode.
+		std::array<int, 4> m_ColorChannelBlendAmounts = {BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend}; //!< The blending amount for each color channel when drawing in blended mode.
 
 		/// <summary>
 		/// Destructor method used to clean up a GraphicalPrimitive object before deletion from system memory.
@@ -72,14 +71,14 @@ namespace RTE {
 		/// I really don't know how to make it simpler, because it has so many special cases and simply wrapping all out-of-the scene coordinates don't work because this way nothing will be ever draw across the seam.
 		/// You're welcome to rewrite this nightmare if you can, I wasted a whole week on this (I can admit that I'm just too dumb for this) )))
 		/// </remarks>
-		void TranslateCoordinates(Vector targetPos, const Vector &scenePos, Vector &drawLeftPos, Vector &drawRightPos) const;
+		void TranslateCoordinates(Vector targetPos, const Vector& scenePos, Vector& drawLeftPos, Vector& drawRightPos) const;
 
 		/// <summary>
 		/// Draws this primitive on provided bitmap.
 		/// </summary>
 		/// <param name="drawScreen">Bitmap to draw on.</param>
 		/// <param name="targetPos">Position of graphical primitive.</param>
-		virtual void Draw(BITMAP *drawScreen, const Vector &targetPos) = 0;
+		virtual void Draw(BITMAP* drawScreen, const Vector& targetPos) = 0;
 
 		/// <summary>
 		/// Gets the type identifier of this primitive.
@@ -88,7 +87,6 @@ namespace RTE {
 		virtual const PrimitiveType GetPrimitiveType() const = 0;
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -100,7 +98,6 @@ namespace RTE {
 	class LinePrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		/// <summary>
@@ -110,7 +107,7 @@ namespace RTE {
 		/// <param name="startPos">Start position of the primitive.</param>
 		/// <param name="end">End position of the primitive.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		LinePrimitive(int player, const Vector &startPos, const Vector &endPos, unsigned char color) {
+		LinePrimitive(int player, const Vector& startPos, const Vector& endPos, unsigned char color) {
 			m_StartPos = startPos;
 			m_EndPos = endPos;
 			m_Color = color;
@@ -118,7 +115,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -130,7 +126,6 @@ namespace RTE {
 	class ArcPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		float m_StartAngle = 0; //!< The angle from which the arc begins.
@@ -147,8 +142,8 @@ namespace RTE {
 		/// <param name="endAngle">The angle at which the arc drawing ends.</param>
 		/// <param name="radius">Radius of the arc primitive.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		ArcPrimitive(int player, const Vector &centerPos, float startAngle, float endAngle, int radius, int thickness, unsigned char color) :
-			m_StartAngle(startAngle), m_EndAngle(endAngle), m_Radius(radius), m_Thickness(thickness) {
+		ArcPrimitive(int player, const Vector& centerPos, float startAngle, float endAngle, int radius, int thickness, unsigned char color) :
+		    m_StartAngle(startAngle), m_EndAngle(endAngle), m_Radius(radius), m_Thickness(thickness) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
@@ -156,7 +151,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -168,7 +162,6 @@ namespace RTE {
 	class SplinePrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		Vector m_GuidePointAPos; //!< A guide point that controls the curve of the spline.
@@ -183,8 +176,8 @@ namespace RTE {
 		/// <param name="guideB">The second guide point that controls the curve of the spline. The spline won't necessarily pass through this point, but it will affect it's shape.</param>
 		/// <param name="endPos">End position of the primitive.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		SplinePrimitive(int player, const Vector &startPos, const Vector &guideA, const Vector &guideB, const Vector &endPos, unsigned char color) :
-			m_GuidePointAPos(guideA), m_GuidePointBPos(guideB) {
+		SplinePrimitive(int player, const Vector& startPos, const Vector& guideA, const Vector& guideB, const Vector& endPos, unsigned char color) :
+		    m_GuidePointAPos(guideA), m_GuidePointBPos(guideB) {
 
 			m_StartPos = startPos;
 			m_EndPos = endPos;
@@ -193,7 +186,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -205,7 +197,6 @@ namespace RTE {
 	class BoxPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		/// <summary>
@@ -215,7 +206,7 @@ namespace RTE {
 		/// <param name="topLeftPos">Start position of the primitive. Top left corner.</param>
 		/// <param name="bottomRightPos">End position of the primitive. Bottom right corner.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		BoxPrimitive(int player, const Vector &topLeftPos, const Vector &bottomRightPos, unsigned char color) {
+		BoxPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color) {
 			m_StartPos = topLeftPos;
 			m_EndPos = bottomRightPos;
 			m_Color = color;
@@ -223,7 +214,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -235,7 +225,6 @@ namespace RTE {
 	class BoxFillPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		/// <summary>
@@ -245,7 +234,7 @@ namespace RTE {
 		/// <param name="topLeftPos">Start position of the primitive. Top left corner.</param>
 		/// <param name="bottomRightPos">End position of the primitive. Bottom right corner.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		BoxFillPrimitive(int player, const Vector &topLeftPos, const Vector &bottomRightPos, unsigned char color) {
+		BoxFillPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color) {
 			m_StartPos = topLeftPos;
 			m_EndPos = bottomRightPos;
 			m_Color = color;
@@ -253,7 +242,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -265,7 +253,6 @@ namespace RTE {
 	class RoundedBoxPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		int m_CornerRadius = 0; //!< The radius of the corners of the box.
@@ -278,8 +265,8 @@ namespace RTE {
 		/// <param name="bottomRightPos">End position of the primitive. Bottom right corner.</param>
 		/// <param name="cornerRadius">The radius of the corners of the box. Smaller radius equals sharper corners.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		RoundedBoxPrimitive(int player, const Vector &topLeftPos, const Vector &bottomRightPos, int cornerRadius, unsigned char color) :
-			m_CornerRadius(cornerRadius) {
+		RoundedBoxPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color) :
+		    m_CornerRadius(cornerRadius) {
 
 			m_StartPos = topLeftPos;
 			m_EndPos = bottomRightPos;
@@ -288,7 +275,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -300,7 +286,6 @@ namespace RTE {
 	class RoundedBoxFillPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		int m_CornerRadius = 0; //!< The radius of the corners of the box.
@@ -313,8 +298,8 @@ namespace RTE {
 		/// <param name="bottomRightPos">End position of the primitive. Bottom right corner.</param>
 		/// <param name="cornerRadius">The radius of the corners of the box. Smaller radius equals sharper corners.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		RoundedBoxFillPrimitive(int player, const Vector &topLeftPos, const Vector &bottomRightPos, int cornerRadius, unsigned char color) :
-			m_CornerRadius(cornerRadius) {
+		RoundedBoxFillPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color) :
+		    m_CornerRadius(cornerRadius) {
 
 			m_StartPos = topLeftPos;
 			m_EndPos = bottomRightPos;
@@ -323,7 +308,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -335,7 +319,6 @@ namespace RTE {
 	class CirclePrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		int m_Radius = 0; //!< Radius of the circle primitive.
@@ -347,8 +330,8 @@ namespace RTE {
 		/// <param name="centerPos">Position of this primitive's center.</param>
 		/// <param name="radius">Radius of the circle primitive.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		CirclePrimitive(int player, const Vector &centerPos, int radius, unsigned char color) :
-			m_Radius(radius) {
+		CirclePrimitive(int player, const Vector& centerPos, int radius, unsigned char color) :
+		    m_Radius(radius) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
@@ -356,7 +339,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -368,7 +350,6 @@ namespace RTE {
 	class CircleFillPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		int m_Radius = 0; //!< Radius of the circle primitive.
@@ -380,8 +361,8 @@ namespace RTE {
 		/// <param name="centerPos">Position of this primitive's center.</param>
 		/// <param name="radius">Radius of the circle primitive.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		CircleFillPrimitive(int player, const Vector &centerPos, int radius, unsigned char color) :
-			m_Radius(radius) {
+		CircleFillPrimitive(int player, const Vector& centerPos, int radius, unsigned char color) :
+		    m_Radius(radius) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
@@ -389,7 +370,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -401,7 +381,6 @@ namespace RTE {
 	class EllipsePrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		int m_HorizRadius = 0; //!< The horizontal radius of the ellipse primitive.
@@ -415,8 +394,8 @@ namespace RTE {
 		/// <param name="horizRadius">Horizontal radius of the ellipse primitive.</param>
 		/// <param name="vertRadius">Vertical radius of the ellipse primitive.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		EllipsePrimitive(int player, const Vector &centerPos, int horizRadius, int vertRadius, unsigned char color) :
-			m_HorizRadius(horizRadius), m_VertRadius(vertRadius) {
+		EllipsePrimitive(int player, const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color) :
+		    m_HorizRadius(horizRadius), m_VertRadius(vertRadius) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
@@ -424,7 +403,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -436,7 +414,6 @@ namespace RTE {
 	class EllipseFillPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		int m_HorizRadius = 0; //!< The horizontal radius of the ellipse primitive.
@@ -449,8 +426,8 @@ namespace RTE {
 		/// <param name="centerPos">Position of this primitive's center.</param>
 		/// <param name="radius">Radius of the circle primitive.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		EllipseFillPrimitive(int player, const Vector &centerPos, int horizRadius, int vertRadius, unsigned char color) :
-			m_HorizRadius(horizRadius), m_VertRadius(vertRadius) {
+		EllipseFillPrimitive(int player, const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color) :
+		    m_HorizRadius(horizRadius), m_VertRadius(vertRadius) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
@@ -458,7 +435,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -470,7 +446,6 @@ namespace RTE {
 	class TrianglePrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		Vector m_PointAPos; //!< First point of the triangle.
@@ -485,15 +460,14 @@ namespace RTE {
 		/// <param name="pointB">Position of the second point of the triangle</param>
 		/// <param name="pointC">Position of the third point of the triangle</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		TrianglePrimitive(int player, const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color) :
-			m_PointAPos(pointA), m_PointBPos(pointB), m_PointCPos(pointC) {
+		TrianglePrimitive(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color) :
+		    m_PointAPos(pointA), m_PointBPos(pointB), m_PointCPos(pointC) {
 
 			m_Color = color;
 			m_Player = player;
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -505,7 +479,6 @@ namespace RTE {
 	class TriangleFillPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		Vector m_PointAPos; //!< First point of the triangle.
@@ -520,15 +493,14 @@ namespace RTE {
 		/// <param name="pointB">Position of the second point of the triangle</param>
 		/// <param name="pointC">Position of the third point of the triangle</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		TriangleFillPrimitive(int player, const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color) :
-			m_PointAPos(pointA), m_PointBPos(pointB), m_PointCPos(pointC) {
+		TriangleFillPrimitive(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color) :
+		    m_PointAPos(pointA), m_PointBPos(pointB), m_PointCPos(pointC) {
 
 			m_Color = color;
 			m_Player = player;
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -540,10 +512,9 @@ namespace RTE {
 	class PolygonPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
-		std::vector<Vector *> m_Vertices = {}; //!< Positions of the vertices of the polygon, relative to the center position.
+		std::vector<Vector*> m_Vertices = {}; //!< Positions of the vertices of the polygon, relative to the center position.
 
 		/// <summary>
 		/// Constructor method for PolygonPrimitive object.
@@ -552,8 +523,8 @@ namespace RTE {
 		/// <param name="startPos">Start position of the primitive.</param>
 		/// <param name="vertices">A vector containing the positions of the vertices of the polygon, relative to the center position.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		PolygonPrimitive(int player, const Vector &startPos, unsigned char color, const std::vector<Vector *> &vertices) :
-			m_Vertices(vertices) {
+		PolygonPrimitive(int player, const Vector& startPos, unsigned char color, const std::vector<Vector*>& vertices) :
+		    m_Vertices(vertices) {
 
 			m_StartPos = startPos;
 			m_Color = color;
@@ -561,7 +532,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -573,10 +543,9 @@ namespace RTE {
 	class PolygonFillPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
-		std::vector<Vector *> m_Vertices = {}; //!< Positions of the vertices of the polygon, relative to the center position.
+		std::vector<Vector*> m_Vertices = {}; //!< Positions of the vertices of the polygon, relative to the center position.
 
 		/// <summary>
 		/// Constructor method for PolygonFillPrimitive object.
@@ -585,8 +554,8 @@ namespace RTE {
 		/// <param name="startPos">Start position of the primitive.</param>
 		/// <param name="vertices">A vector containing the positions of the vertices of the polygon, relative to the center position.</param>
 		/// <param name="color">Color to draw this primitive with.</param>
-		PolygonFillPrimitive(int player, const Vector &startPos, unsigned char color, const std::vector<Vector *> &vertices) :
-			m_Vertices(vertices) {
+		PolygonFillPrimitive(int player, const Vector& startPos, unsigned char color, const std::vector<Vector*>& vertices) :
+		    m_Vertices(vertices) {
 
 			m_StartPos = startPos;
 			m_Color = color;
@@ -594,7 +563,6 @@ namespace RTE {
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -606,7 +574,6 @@ namespace RTE {
 	class TextPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
 		std::string m_Text = ""; //!< String containing text to draw.
@@ -623,15 +590,14 @@ namespace RTE {
 		/// <param name="isSmall">Use small or large font. True for small font.</param>
 		/// <param name="alignment">Alignment of text.</param>
 		/// <param name="rotAngle">Angle to rotate text in radians.</param>
-		TextPrimitive(int player, const Vector &pos, const std::string &text, bool isSmall, int alignment, float rotAngle) :
-			m_Text(text), m_IsSmall(isSmall), m_Alignment(alignment), m_RotAngle(rotAngle) {
+		TextPrimitive(int player, const Vector& pos, const std::string& text, bool isSmall, int alignment, float rotAngle) :
+		    m_Text(text), m_IsSmall(isSmall), m_Alignment(alignment), m_RotAngle(rotAngle) {
 
 			m_StartPos = pos;
 			m_Player = player;
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
@@ -643,10 +609,9 @@ namespace RTE {
 	class BitmapPrimitive : public GraphicalPrimitive {
 
 	public:
-
 		GraphicalPrimitiveOverrideMethods;
 
-		BITMAP *m_Bitmap = nullptr; //!< Bitmap to draw.
+		BITMAP* m_Bitmap = nullptr; //!< Bitmap to draw.
 		float m_RotAngle = 0; //!< Angle to rotate bitmap in radians.
 		bool m_HFlipped = false; //!< Whether the Bitmap to draw should be horizontally flipped.
 		bool m_VFlipped = false; //!< Whether the Bitmap to draw should be vertically flipped.
@@ -660,8 +625,8 @@ namespace RTE {
 		/// <param name="rotAngle">Angle to rotate BITMAP in radians.</param>
 		/// <param name="hFlipped">Whether the BITMAP to draw should be horizontally flipped.</param>
 		/// <param name="vFlipped">Whether the BITMAP to draw should be vertically flipped.</param>
-		BitmapPrimitive(int player, const Vector &centerPos, BITMAP *bitmap, float rotAngle, bool hFlipped, bool vFlipped) :
-			m_Bitmap(bitmap), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
+		BitmapPrimitive(int player, const Vector& centerPos, BITMAP* bitmap, float rotAngle, bool hFlipped, bool vFlipped) :
+		    m_Bitmap(bitmap), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
 
 			m_StartPos = centerPos;
 			m_Player = player;
@@ -677,8 +642,8 @@ namespace RTE {
 		/// <param name="frame">Frame number of the MOSprite that will be drawn.</param>
 		/// <param name="hFlipped">Whether the BITMAP to draw should be horizontally flipped.</param>
 		/// <param name="vFlipped">Whether the BITMAP to draw should be vertically flipped.</param>
-		BitmapPrimitive(int player, const Vector &centerPos, const MOSprite *moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped) :
-			m_Bitmap(moSprite->GetSpriteFrame(frame)), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
+		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped) :
+		    m_Bitmap(moSprite->GetSpriteFrame(frame)), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
 
 			m_StartPos = centerPos;
 			m_Player = player;
@@ -693,17 +658,16 @@ namespace RTE {
 		/// <param name="rotAngle">Angle to rotate BITMAP in radians.</param>
 		/// <param name="hFlipped">Whether the BITMAP to draw should be horizontally flipped.</param>
 		/// <param name="vFlipped">Whether the BITMAP to draw should be vertically flipped.</param>
-		BitmapPrimitive(int player, const Vector &centerPos, const std::string &filePath, float rotAngle, bool hFlipped, bool vFlipped) :
-			m_Bitmap(ContentFile(filePath.c_str()).GetAsBitmap()), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
+		BitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped) :
+		    m_Bitmap(ContentFile(filePath.c_str()).GetAsBitmap()), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
 
 			m_StartPos = centerPos;
 			m_Player = player;
 		}
 
 	private:
-
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
 	};
 #pragma endregion
-}
+} // namespace RTE
 #endif

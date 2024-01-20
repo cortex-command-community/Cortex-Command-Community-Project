@@ -12,7 +12,6 @@ namespace RTE {
 	class Matrix : public Serializable {
 
 	public:
-
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
@@ -31,13 +30,19 @@ namespace RTE {
 		/// Constructor method used to instantiate a Matrix object from an angle.
 		/// </summary>
 		/// <param name="radAng">A float of an angle in radians that this Matrix should be set to represent.</param>
-		Matrix(float radAng) { Clear(); Create(radAng); }
+		Matrix(float radAng) {
+			Clear();
+			Create(radAng);
+		}
 
 		/// <summary>
 		/// Copy constructor method used to instantiate a Matrix object identical to an already existing one.
 		/// </summary>
 		/// <param name="reference">A Matrix object which is passed in by reference.</param>
-		Matrix(const Matrix &reference) { Clear(); Create(reference); }
+		Matrix(const Matrix& reference) {
+			Clear();
+			Create(reference);
+		}
 
 		/// <summary>
 		/// Makes the Matrix object ready for use.
@@ -57,7 +62,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the Matrix to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Matrix &reference);
+		int Create(const Matrix& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -102,7 +107,10 @@ namespace RTE {
 		/// Sets the angle that this rotational Matrix should represent.
 		/// </summary>
 		/// <param name="newAngle">A float with the new angle, in radians.</param>
-		void SetRadAngle(float newAngle) { m_Rotation = newAngle; m_ElementsUpdated = false; }
+		void SetRadAngle(float newAngle) {
+			m_Rotation = newAngle;
+			m_ElementsUpdated = false;
+		}
 
 		/// <summary>
 		/// Returns the angle this rotational Matrix is currently representing.
@@ -114,7 +122,10 @@ namespace RTE {
 		/// Sets the angle that this rotational Matrix should represent.
 		/// </summary>
 		/// <param name="newAngle">A float with the new angle, in degrees.</param>
-		void SetDegAngle(float newAngle) { m_Rotation = (newAngle / 180.0F) * c_PI; m_ElementsUpdated = false; }
+		void SetDegAngle(float newAngle) {
+			m_Rotation = (newAngle / 180.0F) * c_PI;
+			m_ElementsUpdated = false;
+		}
 
 		/// <summary>
 		/// Returns the angle difference between what this is currently representing, to another angle in radians.
@@ -145,14 +156,18 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">A Matrix reference.</param>
 		/// <returns>A reference to the changed Matrix.</returns>
-		Matrix & operator=(const Matrix &rhs);
+		Matrix& operator=(const Matrix& rhs);
 
 		/// <summary>
 		/// An assignment operator for setting one Matrix to represent an angle.
 		/// </summary>
 		/// <param name="rhs">A float in radians to set this rotational Matrix to.</param>
 		/// <returns>A reference to the changed Matrix.</returns>
-		Matrix & operator=(const float &rhs) { m_Rotation = rhs; m_ElementsUpdated = false; return *this; }
+		Matrix& operator=(const float& rhs) {
+			m_Rotation = rhs;
+			m_ElementsUpdated = false;
+			return *this;
+		}
 
 		/// <summary>
 		/// Unary negation overload for single Matrices.
@@ -166,7 +181,7 @@ namespace RTE {
 		/// <param name="lhs">A Matrix reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A boolean indicating whether the two operands are equal or not.</returns>
-		friend bool operator==(const Matrix &lhs, const Matrix &rhs) { return lhs.m_Rotation == rhs.m_Rotation; }
+		friend bool operator==(const Matrix& lhs, const Matrix& rhs) { return lhs.m_Rotation == rhs.m_Rotation; }
 
 		/// <summary>
 		/// An inequality operator for testing if any two Matrices are unequal.
@@ -174,14 +189,18 @@ namespace RTE {
 		/// <param name="lhs">A Matrix reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A boolean indicating whether the two operands are unequal or not.</returns>
-		friend bool operator!=(const Matrix &lhs, const Matrix &rhs) { return !operator==(lhs, rhs); }
+		friend bool operator!=(const Matrix& lhs, const Matrix& rhs) { return !operator==(lhs, rhs); }
 
 		/// <summary>
 		/// Self-addition operator overload for a Matrix and a float.
 		/// </summary>
 		/// <param name="rhs">A float reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Matrix.</returns>
-		Matrix & operator+=(const float &rhs) { m_Rotation += rhs; m_ElementsUpdated = false; return *this; }
+		Matrix& operator+=(const float& rhs) {
+			m_Rotation += rhs;
+			m_ElementsUpdated = false;
+			return *this;
+		}
 
 		/// <summary>
 		/// Self-addition operator overload for Matrices.
@@ -189,14 +208,22 @@ namespace RTE {
 		/// <param name="lhs">A Matrix reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Matrix (the left one).</returns>
-		friend Matrix & operator+=(Matrix &lhs, const Matrix &rhs) { lhs.m_Rotation += rhs.m_Rotation; lhs.m_ElementsUpdated = false; return lhs; }
+		friend Matrix& operator+=(Matrix& lhs, const Matrix& rhs) {
+			lhs.m_Rotation += rhs.m_Rotation;
+			lhs.m_ElementsUpdated = false;
+			return lhs;
+		}
 
 		/// <summary>
 		/// Self-subtraction operator overload for a Matrix and a float.
 		/// </summary>
 		/// <param name="rhs">A float reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Matrix.</returns>
-		Matrix & operator-=(const float &rhs) { m_Rotation -= rhs; m_ElementsUpdated = false; return *this; }
+		Matrix& operator-=(const float& rhs) {
+			m_Rotation -= rhs;
+			m_ElementsUpdated = false;
+			return *this;
+		}
 
 		/// <summary>
 		/// Self-subtraction operator overload for Matrices.
@@ -204,14 +231,22 @@ namespace RTE {
 		/// <param name="lhs">A Matrix reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Matrix (the left one).</returns>
-		friend Matrix & operator-=(Matrix &lhs, const Matrix &rhs) { lhs.m_Rotation -= rhs.m_Rotation; lhs.m_ElementsUpdated = false; return lhs; }
+		friend Matrix& operator-=(Matrix& lhs, const Matrix& rhs) {
+			lhs.m_Rotation -= rhs.m_Rotation;
+			lhs.m_ElementsUpdated = false;
+			return lhs;
+		}
 
 		/// <summary>
 		/// Self-multiplication operator overload for a Matrix and a float.
 		/// </summary>
 		/// <param name="rhs">A float reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Matrix.</returns>
-		Matrix & operator*=(const float &rhs) { m_Rotation *= rhs; m_ElementsUpdated = false;	return *this; }
+		Matrix& operator*=(const float& rhs) {
+			m_Rotation *= rhs;
+			m_ElementsUpdated = false;
+			return *this;
+		}
 
 		/// <summary>
 		/// Self-multiplication operator overload for Matrices.
@@ -219,14 +254,18 @@ namespace RTE {
 		/// <param name="lhs">A Matrix reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Matrix (the left one).</returns>
-		friend Matrix & operator*=(Matrix &lhs, const Matrix &rhs) { lhs.m_Rotation *= rhs.m_Rotation; lhs.m_ElementsUpdated = false; return lhs; }
+		friend Matrix& operator*=(Matrix& lhs, const Matrix& rhs) {
+			lhs.m_Rotation *= rhs.m_Rotation;
+			lhs.m_ElementsUpdated = false;
+			return lhs;
+		}
 
 		/// <summary>
 		/// self-division operator overload for a Matrix and a float.
 		/// </summary>
 		/// <param name="rhs">A float reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Matrix.</returns>
-		Matrix & operator/=(const float &rhs) {
+		Matrix& operator/=(const float& rhs) {
 			if (rhs) {
 				m_Rotation /= rhs;
 				m_ElementsUpdated = false;
@@ -240,8 +279,11 @@ namespace RTE {
 		/// <param name="lhs">A Matrix reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Matrix (the left one).</returns>
-		friend Matrix & operator/=(Matrix &lhs, const Matrix &rhs) {
-			if (rhs.m_Rotation) { lhs.m_Rotation /= rhs.m_Rotation; lhs.m_ElementsUpdated = false; }
+		friend Matrix& operator/=(Matrix& lhs, const Matrix& rhs) {
+			if (rhs.m_Rotation) {
+				lhs.m_Rotation /= rhs.m_Rotation;
+				lhs.m_ElementsUpdated = false;
+			}
 			return lhs;
 		}
 
@@ -251,7 +293,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">A Vector reference as the right hand side operand.</param>
 		/// <returns>The resulting transformed Vector.</returns>
-		Vector operator*(const Vector &rhs);
+		Vector operator*(const Vector& rhs);
 
 		/// <summary>
 		/// Multiplication operator overload for Vectors with Matrices.
@@ -259,14 +301,17 @@ namespace RTE {
 		/// <param name="lhs">A Vector reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Vector.</returns>
-		friend Vector operator*(const Vector &lhs, const Matrix &rhs) { Matrix m(rhs); return m * lhs; }
+		friend Vector operator*(const Vector& lhs, const Matrix& rhs) {
+			Matrix m(rhs);
+			return m * lhs;
+		}
 
 		/// <summary>
 		/// Division operator overload for a Matrix and a Vector. The vector will be transformed according to the Matrix's elements.
 		/// </summary>
 		/// <param name="rhs">A Vector reference as the right hand side operand.</param>
 		/// <returns>The resulting transformed Vector.</returns>
-		Vector operator/(const Vector &rhs);
+		Vector operator/(const Vector& rhs);
 
 		/// <summary>
 		/// Division operator overload for Vector:s with Matrices.
@@ -274,7 +319,7 @@ namespace RTE {
 		/// <param name="lhs">A Vector reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Vector.</returns>
-		friend Vector operator/(const Vector &lhs, Matrix &rhs) { return rhs / lhs; }
+		friend Vector operator/(const Vector& lhs, Matrix& rhs) { return rhs / lhs; }
 
 		/// <summary>
 		/// Self-multiplication operator overload for Vector with a Matrix.
@@ -282,7 +327,7 @@ namespace RTE {
 		/// <param name="lhs">A Vector reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Vector (the left one)</returns>
-		friend Vector & operator*=(Vector &lhs, Matrix &rhs) { return lhs = rhs * lhs; }
+		friend Vector& operator*=(Vector& lhs, Matrix& rhs) { return lhs = rhs * lhs; }
 
 		/// <summary>
 		/// Self-division operator overload for Vector with a Matrix.
@@ -290,11 +335,10 @@ namespace RTE {
 		/// <param name="lhs">A Vector reference as the left hand side operand.</param>
 		/// <param name="rhs">A Matrix reference as the right hand side operand.</param>
 		/// <returns>A reference to the resulting Vector (the left one).</returns>
-		friend Vector & operator/=(Vector &lhs, Matrix &rhs) { return lhs = rhs / lhs; }
+		friend Vector& operator/=(Vector& lhs, Matrix& rhs) { return lhs = rhs / lhs; }
 #pragma endregion
 
 	private:
-
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this.
 
 		/// <summary>
@@ -307,5 +351,5 @@ namespace RTE {
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE
 #endif

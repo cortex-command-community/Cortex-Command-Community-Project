@@ -11,31 +11,42 @@ namespace RTE {
 	class Timer {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a Timer object.
 		/// </summary>
-		Timer() { Clear(); Create(); }
+		Timer() {
+			Clear();
+			Create();
+		}
 
 		/// <summary>
 		/// Constructor method used to instantiate a Timer object with a set sim time elapsed.
 		/// </summary>
 		/// <param name="simTimeLimit">A unsigned long defining this Timer's sim time limit in ms.</param>
-		Timer(double simTimeLimit) { Clear(); Create(simTimeLimit); }
+		Timer(double simTimeLimit) {
+			Clear();
+			Create(simTimeLimit);
+		}
 
 		/// <summary>
 		/// Constructor method used to instantiate a Timer object with a set sim time elapsed.
 		/// </summary>
 		/// <param name="simTimeLimit">A unsigned long defining this Timer's sim time limit in ms.</param>
 		/// <param name="elapsedSimTime">A unsigned long defining the amount of time (in ms) that this Timer should start with elapsed.</param>
-		Timer(double simTimeLimit, double elapsedSimTime) { Clear(); Create(simTimeLimit, elapsedSimTime); }
+		Timer(double simTimeLimit, double elapsedSimTime) {
+			Clear();
+			Create(simTimeLimit, elapsedSimTime);
+		}
 
 		/// <summary>
 		/// Copy constructor method used to instantiate a Timer object identical to an already existing one.
 		/// </summary>
 		/// <param name="reference">A Timer object which is passed in by reference.</param>
-		Timer(const Timer &reference) { Clear(); Create(reference); }
+		Timer(const Timer& reference) {
+			Clear();
+			Create(reference);
+		}
 
 		/// <summary>
 		/// Makes the Timer object ready for use.
@@ -63,7 +74,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the Timer to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Timer &reference);
+		int Create(const Timer& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -71,7 +82,10 @@ namespace RTE {
 		/// Resets the timer so that the elapsed time is 0 ms.
 		/// </summary>
 		// TODO: Figure out why calling Clear() here breaks time.
-		void Reset() { m_StartRealTime = g_TimerMan.GetRealTickCount(); m_StartSimTime = g_TimerMan.GetSimTickCount(); }
+		void Reset() {
+			m_StartRealTime = g_TimerMan.GetRealTickCount();
+			m_StartSimTime = g_TimerMan.GetSimTickCount();
+		}
 #pragma endregion
 
 #pragma region Real Time
@@ -301,8 +315,6 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
-
 		double m_TicksPerMS; //!< Ticks per MS.
 
 		int64_t m_StartRealTime; //!< Absolute tick count when this was started in real time.
@@ -312,11 +324,10 @@ namespace RTE {
 		int64_t m_SimTimeLimit; //!< Tick count, relative to the start time, when this should indicate end or expired in simulation time.
 
 	private:
-
 		/// <summary>
 		/// Clears all the member variables of this Timer, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE
 #endif

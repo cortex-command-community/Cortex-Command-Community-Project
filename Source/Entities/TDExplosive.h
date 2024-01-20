@@ -11,7 +11,6 @@ namespace RTE {
 	class TDExplosive : public ThrownDevice {
 
 	public:
-
 		EntityAllocation(TDExplosive);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -33,7 +32,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the TDExplosive to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const TDExplosive &reference);
+		int Create(const TDExplosive& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -46,12 +45,20 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { ThrownDevice::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				ThrownDevice::Destroy();
+			}
+			Clear();
+		}
 
 		/// <summary>
 		/// Resets the entire TDExplosive, including its inherited members, to their default settings or values.
 		/// </summary>
-		void Reset() override { Clear(); ThrownDevice::Reset(); }
+		void Reset() override {
+			Clear();
+			ThrownDevice::Reset();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -81,26 +88,24 @@ namespace RTE {
 		/// <param name="targetPos">The absolute position of the target bitmap's upper left corner in the Scene.</param>
 		/// <param name="whichScreen">Which player's screen this is being drawn to. May affect what HUD elements get drawn etc.</param>
 		/// <param name="playerControlled">Whether or not this MovableObject is currently player controlled (not applicable for TDExplosive).</param>
-		void DrawHUD(BITMAP *targetBitmap, const Vector &targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
+		void DrawHUD(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		bool m_IsAnimatedManually; //!< If true m_Frame is not changed during an update hence the animation is done by external Lua code.
 
 	private:
-
 		/// <summary>
 		/// Clears all the member variables of this TDExplosive, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		TDExplosive(const TDExplosive &reference) = delete;
-		TDExplosive & operator=(const TDExplosive &rhs) = delete;
+		TDExplosive(const TDExplosive& reference) = delete;
+		TDExplosive& operator=(const TDExplosive& rhs) = delete;
 	};
-}
+} // namespace RTE
 
 #endif

@@ -11,7 +11,7 @@
 #define g_UInputMan UInputMan::Instance()
 
 extern "C" {
-	struct SDL_Rect;
+struct SDL_Rect;
 }
 
 namespace RTE {
@@ -25,11 +25,14 @@ namespace RTE {
 		friend class SettingsMan;
 
 	public:
-
 		/// <summary>
 		/// Enumeration for the mouse cursor actions in menus.
 		/// </summary>
-		enum MenuCursorButtons { MENU_PRIMARY, MENU_SECONDARY, MENU_EITHER };
+		enum MenuCursorButtons {
+			MENU_PRIMARY,
+			MENU_SECONDARY,
+			MENU_EITHER
+		};
 
 #pragma region Creation
 		/// <summary>
@@ -66,7 +69,7 @@ namespace RTE {
 		/// Adds an (input) SDL_Event to the Event queue for processing on Update.
 		/// </summary>
 		/// <param name="inputEvent">The SDL input event to queue.</param>
-		void QueueInputEvent(const SDL_Event &inputEvent);
+		void QueueInputEvent(const SDL_Event& inputEvent);
 
 		/// <summary>
 		/// Updates the state of this UInputMan. Supposed to be done every frame.
@@ -94,21 +97,21 @@ namespace RTE {
 		/// </summary>
 		/// <param name="whichPlayer">Which player to get the scheme for.</param>
 		/// <returns>A pointer to the requested player's control scheme. Ownership is NOT transferred!</returns>
-		InputScheme * GetControlScheme(int whichPlayer) { return IsInMultiplayerMode() ? &m_ControlScheme[Players::PlayerOne] : &m_ControlScheme.at(whichPlayer); }
+		InputScheme* GetControlScheme(int whichPlayer) { return IsInMultiplayerMode() ? &m_ControlScheme[Players::PlayerOne] : &m_ControlScheme.at(whichPlayer); }
 
 		/// <summary>
 		/// Get the current device Icon of a specific player's scheme.
 		/// </summary>
 		/// <param name="whichPlayer">Which player to get the scheme device icon of.</param>
 		/// <returns>A const pointer to the requested player's control scheme icon. Ownership is NOT transferred!</returns>
-		const Icon * GetSchemeIcon(int whichPlayer) const { return (whichPlayer < Players::PlayerOne || whichPlayer >= Players::MaxPlayerCount) ? nullptr : m_DeviceIcons[m_ControlScheme.at(whichPlayer).GetDevice()]; }
+		const Icon* GetSchemeIcon(int whichPlayer) const { return (whichPlayer < Players::PlayerOne || whichPlayer >= Players::MaxPlayerCount) ? nullptr : m_DeviceIcons[m_ControlScheme.at(whichPlayer).GetDevice()]; }
 
 		/// <summary>
 		/// Get the current device Icon of a specific device.
 		/// </summary>
 		/// <param name="whichDevice">Which device to get the icon of.</param>
 		/// <returns>A const pointer to the requested device's control scheme icon. Ownership is NOT transferred!</returns>
-		const Icon * GetDeviceIcon(int whichDevice) const { return (whichDevice < InputDevice::DEVICE_KEYB_ONLY || whichDevice > InputDevice::DEVICE_GAMEPAD_4) ? nullptr : m_DeviceIcons[whichDevice]; }
+		const Icon* GetDeviceIcon(int whichDevice) const { return (whichDevice < InputDevice::DEVICE_KEYB_ONLY || whichDevice > InputDevice::DEVICE_GAMEPAD_4) ? nullptr : m_DeviceIcons[whichDevice]; }
 #pragma endregion
 
 #pragma region General Input Handling
@@ -246,7 +249,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="keycodeToTest">A keycode to test. See SDL_KeyCode enumeration.</param>
 		/// <returns>Whether the key is held or not.</returns>
-		bool KeyHeld(SDL_Keycode keycodeToTest) const { return KeyHeld(SDL_GetScancodeFromKey(keycodeToTest));}
+		bool KeyHeld(SDL_Keycode keycodeToTest) const { return KeyHeld(SDL_GetScancodeFromKey(keycodeToTest)); }
 
 		/// <summary>
 		/// Gets whether a key was pressed between the last update and the one previous to it, by scancode.
@@ -270,7 +273,7 @@ namespace RTE {
 		bool KeyReleased(SDL_Scancode scancodeToTest) const { return GetKeyboardButtonState(scancodeToTest, InputState::Released); }
 
 		/// <summary>
-		///Gets whether a key was released between the last update and the one previous to it, by keycode.
+		/// Gets whether a key was released between the last update and the one previous to it, by keycode.
 		/// </summary>
 		/// <param name="keycodeToTest">A keycode to test. See SDL_KeyCode enumeration.</param>
 		/// <returns>Whether the key is released or not.</returns>
@@ -287,7 +290,10 @@ namespace RTE {
 		/// </summary>
 		/// <param name="text">The std::string to fill.</param>
 		/// <returns>Whether there is text input.</returns>
-		bool GetTextInput(std::string &text) const { text = m_TextInput; return !m_TextInput.empty(); }
+		bool GetTextInput(std::string& text) const {
+			text = m_TextInput;
+			return !m_TextInput.empty();
+		}
 
 		/// <summary>
 		/// Returns whether text input events are available.
@@ -298,7 +304,7 @@ namespace RTE {
 		/// Returns the current text input.
 		/// </summary>
 		/// <returns>The current text input.</returns>
-		const std::string& GetTextInput() const {return m_TextInput; }
+		const std::string& GetTextInput() const { return m_TextInput; }
 #pragma endregion
 
 #pragma region Mouse Handling
@@ -325,7 +331,7 @@ namespace RTE {
 		/// Set the absolute mouse position (e.g. for player input mouse movement). Does not move the system cursor.
 		/// </summary>
 		/// <param name="pos">The new mouse position.</param>
-		void SetAbsoluteMousePosition(const Vector &pos) { m_AbsoluteMousePos = pos; }
+		void SetAbsoluteMousePosition(const Vector& pos) { m_AbsoluteMousePos = pos; }
 
 		/// <summary>
 		/// Gets the relative movement of the mouse since last update. Only returns true if the selected player is actually using the mouse.
@@ -353,7 +359,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="newPos">Where to place the mouse.</param>
 		/// <param name="whichPlayer">Which player is trying to control the mouse. Only the player with actual control over the mouse will be affected. -1 means do it regardless of player.</param>
-		void SetMousePos(const Vector &newPos, int whichPlayer = -1) const;
+		void SetMousePos(const Vector& newPos, int whichPlayer = -1) const;
 
 		/// <summary>
 		/// Gets mouse sensitivity while in Activity.
@@ -581,7 +587,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="player">The player to set for.</param>
 		/// <param name="input">The new position of the mouse.</param>
-		void SetNetworkMouseMovement(int player, const Vector &input) { m_NetworkAccumulatedRawMouseMovement[player] += input; }
+		void SetNetworkMouseMovement(int player, const Vector& input) { m_NetworkAccumulatedRawMouseMovement[player] += input; }
 
 		/// <summary>
 		/// Sets whether an input element is held by a player during network multiplayer.
@@ -620,7 +626,11 @@ namespace RTE {
 		/// </summary>
 		/// <param name="player">The player to set for.</param>
 		/// <param name="state">The new state of the mouse wheel.</param>
-		void SetNetworkMouseWheelState(int player, int state) { if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) { m_NetworkMouseWheelState[player] += state; } }
+		void SetNetworkMouseWheelState(int player, int state) {
+			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+				m_NetworkMouseWheelState[player] += state;
+			}
+		}
 
 		/// <summary>
 		/// Gets whether the specified input element is pressed during network multiplayer.
@@ -643,11 +653,15 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different states an input element or button can be in.
 		/// </summary>
-		enum InputState { Held, Pressed, Released, InputStateCount };
+		enum InputState {
+			Held,
+			Pressed,
+			Released,
+			InputStateCount
+		};
 
 		static std::array<uint8_t, SDL_NUM_SCANCODES> s_PrevKeyStates; //!< Key states as they were the previous update.
 		static std::array<uint8_t, SDL_NUM_SCANCODES> s_ChangedKeyStates; //!< Key states that have changed.
@@ -670,7 +684,7 @@ namespace RTE {
 		bool m_OverrideInput; //!< If true then this instance operates in multiplayer mode and the input is overridden by network input.
 
 		std::array<InputScheme, Players::MaxPlayerCount> m_ControlScheme; //!< Which control scheme is being used by each player.
-		const Icon *m_DeviceIcons[InputDevice::DEVICE_COUNT]; //!< The Icons representing all different devices.
+		const Icon* m_DeviceIcons[InputDevice::DEVICE_COUNT]; //!< The Icons representing all different devices.
 
 		Vector m_AbsoluteMousePos; //!< The absolute mouse position in screen coordinates.
 		Vector m_RawMouseMovement; //!< The raw absolute movement of the mouse between the last two Updates.
@@ -738,7 +752,7 @@ namespace RTE {
 		/// <param name="whichButton">Which menu button to check for. See MenuButtons enumeration.</param>
 		/// <param name="whichState">Which state to check for. See InputState enumeration.</param>
 		/// <returns>Whether the menu button is in the specified state or not.</returns>
-		bool GetMenuButtonState(int whichButton, InputState whichState) ;
+		bool GetMenuButtonState(int whichButton, InputState whichState);
 
 		/// <summary>
 		/// Gets whether a keyboard key is in the specified state.
@@ -854,8 +868,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		UInputMan(const UInputMan &reference) = delete;
-		UInputMan & operator=(const UInputMan &rhs) = delete;
+		UInputMan(const UInputMan& reference) = delete;
+		UInputMan& operator=(const UInputMan& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

@@ -19,13 +19,12 @@ namespace RTE {
 	class SettingsInputMappingGUI {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a SettingsInputMappingGUI object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="parentControlManager">Pointer to the parent GUIControlManager which owns all the GUIControls of this SettingsInputMappingGUI. Ownership is NOT transferred!</param>
-		explicit SettingsInputMappingGUI(GUIControlManager *parentControlManager);
+		explicit SettingsInputMappingGUI(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -46,7 +45,7 @@ namespace RTE {
 		/// Gets the currently active GUICollectionBox that acts as a dialog box and requires disabling navigation and drawing an overlay.
 		/// </summary>
 		/// <returns>Pointer to the GUICollectionBox that is the currently active dialog box, if any. Ownership is NOT transferred!</returns>
-		GUICollectionBox * GetActiveDialogBox() const;
+		GUICollectionBox* GetActiveDialogBox() const;
 
 		/// <summary>
 		/// Closes the currently active GUICollectionBox that acts as a dialog box by hiding it. If the active dialog box is a sub-menu, disables it.
@@ -63,7 +62,7 @@ namespace RTE {
 		/// Gets the SettingsInputMappingWizardGUI of this SettingsInputMappingGUI.
 		/// </summary>
 		/// <returns>Pointer to the SettingsInputMappingWizardGUI of this SettingsInputMappingGUI. Ownership is NOT transferred!</returns>
-		SettingsInputMappingWizardGUI * GetInputConfigWizardMenu() { return m_InputConfigWizardMenu.get(); }
+		SettingsInputMappingWizardGUI* GetInputConfigWizardMenu() { return m_InputConfigWizardMenu.get(); }
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -71,7 +70,7 @@ namespace RTE {
 		/// Handles the player interaction with the SettingsInputMappingGUI GUI elements.
 		/// </summary>
 		/// <param name="guiEvent">The GUIEvent containing information about the player interaction with an element.</param>
-		void HandleInputEvents(GUIEvent &guiEvent);
+		void HandleInputEvents(GUIEvent& guiEvent);
 
 		/// <summary>
 		/// Handles capturing input and updating the manual input configuration sequence.
@@ -80,13 +79,12 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		static std::array<InputElements, 7> m_InputElementsUsedByMouse; //!< Array containing InputElements that are hard mapped to mouse controls when using mouse + keyboard.
 
-		GUIControlManager *m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
+		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
 		Players m_ConfiguringPlayer; //!< The player this SettingsInputMappingGUI is configuring input mapping for.
-		InputScheme *m_ConfiguringPlayerInputScheme; //!< The InputScheme of the configuring player.
+		InputScheme* m_ConfiguringPlayerInputScheme; //!< The InputScheme of the configuring player.
 
 		bool m_ConfiguringManually; //!< Indicates that the SettingsInputMappingGUI needs to capture input because the player is configuring manually.
 		InputElements m_InputElementCapturingInput; //!< The InputElement in the configuring player's InputScheme that is currently being configured and is capturing input.
@@ -98,16 +96,16 @@ namespace RTE {
 		/// <summary>
 		/// GUI elements that compose the input mapping settings menu screen.
 		/// </summary>
-		GUICollectionBox *m_InputMappingSettingsBox;
-		GUILabel *m_InputMappingSettingsLabel;
-		GUIButton *m_CloseMappingBoxButton;
-		GUIButton *m_RunConfigWizardButton;
-		GUICollectionBox *m_InputMapScrollingBox;
-		GUIScrollbar *m_InputMapScrollingBoxScrollbar;
-		GUICollectionBox *m_InputMappingCaptureBox;
-		GUIButton *m_InputElementCapturingInputNameLabel;
-		std::array<GUILabel *, InputElements::INPUT_COUNT> m_InputMapLabel;
-		std::array<GUIButton *, InputElements::INPUT_COUNT> m_InputMapButton;
+		GUICollectionBox* m_InputMappingSettingsBox;
+		GUILabel* m_InputMappingSettingsLabel;
+		GUIButton* m_CloseMappingBoxButton;
+		GUIButton* m_RunConfigWizardButton;
+		GUICollectionBox* m_InputMapScrollingBox;
+		GUIScrollbar* m_InputMapScrollingBoxScrollbar;
+		GUICollectionBox* m_InputMappingCaptureBox;
+		GUIButton* m_InputElementCapturingInputNameLabel;
+		std::array<GUILabel*, InputElements::INPUT_COUNT> m_InputMapLabel;
+		std::array<GUIButton*, InputElements::INPUT_COUNT> m_InputMapButton;
 
 #pragma region Input Mapping Settings Handling
 		/// <summary>
@@ -133,8 +131,8 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		SettingsInputMappingGUI(const SettingsInputMappingGUI &reference) = delete;
-		SettingsInputMappingGUI & operator=(const SettingsInputMappingGUI &rhs) = delete;
+		SettingsInputMappingGUI(const SettingsInputMappingGUI& reference) = delete;
+		SettingsInputMappingGUI& operator=(const SettingsInputMappingGUI& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

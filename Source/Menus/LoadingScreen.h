@@ -18,7 +18,6 @@ namespace RTE {
 	class LoadingScreen : public Singleton<LoadingScreen> {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a LoadingScreen object in system memory.
@@ -31,7 +30,7 @@ namespace RTE {
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this LoadingScreen's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this LoadingScreen's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="progressReportDisabled">Whether the loading screen progress report is disabled meaning GUI elements and adjustments relevant to it can be skipped.</param>
-		void Create(AllegroScreen *guiScreen, GUIInputWrapper *guiInput, bool progressReportDisabled);
+		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool progressReportDisabled);
 
 		/// <summary>
 		/// Creates the loading splash screen and draws the composed frame to the LoadingSplashBitmap.
@@ -44,7 +43,7 @@ namespace RTE {
 		/// As it turned out, a massive amount of time is spent updating the GUI control and flipping the frame buffers.
 		/// </summary>
 		/// <param name="parentControlManager">Pointer to the parent GUIControlManager which owns all the GUIControls of this LoadingScreen. Ownership is NOT transferred!</param>
-		void CreateProgressReportListbox(GUIControlManager *parentControlManager);
+		void CreateProgressReportListbox(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Destruction
@@ -60,7 +59,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reportString">The string to print in the report and log.</param>
 		/// <param name="newItem">Whether to start a new line in the log writer and to scroll the bitmap.</param>
-		static void LoadingSplashProgressReport(const std::string &reportString, bool newItem = false);
+		static void LoadingSplashProgressReport(const std::string& reportString, bool newItem = false);
 
 		/// <summary>
 		/// Draws the loading splash to the screen.
@@ -69,11 +68,10 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		std::unique_ptr<Writer> m_LoadingLogWriter; //!< The Writer that generates the loading log.
 
-		BITMAP *m_LoadingSplashBitmap; //!< BITMAP that is used for drawing the splash screen.
-		BITMAP *m_ProgressListboxBitmap; //!< BITMAP that the progress report will be drawn into.
+		BITMAP* m_LoadingSplashBitmap; //!< BITMAP that is used for drawing the splash screen.
+		BITMAP* m_ProgressListboxBitmap; //!< BITMAP that the progress report will be drawn into.
 		int m_ProgressListboxPosX; //!< Position of the progress report box on X axis.
 		int m_ProgressListboxPosY; //!< Position of the progress report box on Y axis.
 
@@ -83,8 +81,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		LoadingScreen(const LoadingScreen &reference) = delete;
-		LoadingScreen &operator=(const LoadingScreen &rhs) = delete;
+		LoadingScreen(const LoadingScreen& reference) = delete;
+		LoadingScreen& operator=(const LoadingScreen& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

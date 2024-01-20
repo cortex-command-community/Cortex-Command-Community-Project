@@ -21,13 +21,12 @@ namespace RTE {
 	class SettingsInputMappingWizardGUI {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a SettingsInputMappingWizardGUI object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="parentControlManager">Pointer to the parent GUIControlManager which owns all the GUIControls of this SettingsInputMappingWizardGUI. Ownership is NOT transferred!</param>
-		explicit SettingsInputMappingWizardGUI(GUIControlManager *parentControlManager);
+		explicit SettingsInputMappingWizardGUI(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -42,13 +41,13 @@ namespace RTE {
 		/// </summary>
 		/// <param name="enable">Show and enable or hide and disable the SettingsInputMappingWizardGUI.</param>
 		/// <param name="player">The player this SettingsInputMappingWizardGUI is mapping inputs for.</param>
-		void SetEnabled(bool enable = true, int player = 0, InputScheme *playerScheme = nullptr);
+		void SetEnabled(bool enable = true, int player = 0, InputScheme* playerScheme = nullptr);
 
 		/// <summary>
 		/// Gets the currently active GUICollectionBox that acts as a dialog box and requires disabling navigation and drawing an overlay.
 		/// </summary>
 		/// <returns>Pointer to the GUICollectionBox that is the currently active dialog box, if any. Ownership is NOT transferred!</returns>
-		GUICollectionBox * GetActiveDialogBox() const;
+		GUICollectionBox* GetActiveDialogBox() const;
 
 		/// <summary>
 		/// Gets whether this SettingsInputMappingWizardGUI needs to capture input for manual configuration.
@@ -63,7 +62,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="guiEvent">The GUIEvent containing information about the player interaction with an element.</param>
 		/// <returns>Whether this SettingsInputMappingGUI changed the input scheme of the configuring player.</returns>
-		bool HandleInputEvents(GUIEvent &guiEvent);
+		bool HandleInputEvents(GUIEvent& guiEvent);
 
 		/// <summary>
 		/// Handles updating and progressing the manual input configuration sequence.
@@ -72,42 +71,45 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different types of gamepads that can be configured.
 		/// </summary>
-		enum GamepadType { DPad, AnalogDualShock, AnalogXbox };
+		enum GamepadType {
+			DPad,
+			AnalogDualShock,
+			AnalogXbox
+		};
 
 		/// <summary>
 		/// Struct containing GUI elements that compose the input mapping wizard manual configuration menu screen.
 		/// </summary>
 		struct WizardManualConfigScreen {
-			GUICollectionBox *ManualConfigBox;
-			GUILabel *ConfigDeviceTypeLabel;
-			GUILabel *ConfigStepDescriptionLabel;
-			GUILabel *ConfigStepRecommendedKeyLabel;
-			GUICollectionBox *GamepadConfigRecommendedBox;
-			GUILabel *GamepadConfigStepRecommendedInputLabel;
-			GUICollectionBox *GamepadConfigRecommendedDiagramBox;
-			GUILabel *ConfigStepLabel;
-			GUIButton *PrevConfigStepButton;
-			GUIButton *NextConfigStepButton;
-			GUIButton *ResetConfigButton;
-			GUIButton *DiscardOrApplyConfigButton;
+			GUICollectionBox* ManualConfigBox;
+			GUILabel* ConfigDeviceTypeLabel;
+			GUILabel* ConfigStepDescriptionLabel;
+			GUILabel* ConfigStepRecommendedKeyLabel;
+			GUICollectionBox* GamepadConfigRecommendedBox;
+			GUILabel* GamepadConfigStepRecommendedInputLabel;
+			GUICollectionBox* GamepadConfigRecommendedDiagramBox;
+			GUILabel* ConfigStepLabel;
+			GUIButton* PrevConfigStepButton;
+			GUIButton* NextConfigStepButton;
+			GUIButton* ResetConfigButton;
+			GUIButton* DiscardOrApplyConfigButton;
 		};
 
 		/// <summary>
 		/// Struct containing GUI elements that compose the input mapping wizard preset selection menu screen.
 		/// </summary>
 		struct WizardPresetSelectScreen {
-			GUICollectionBox *PresetSelectBox;
-			GUIButton *CloseWizardButton;
-			GUIButton *PresetSelectSNESButton;
-			GUIButton *PresetSelectDS4Button;
-			GUIButton *PresetSelectXB360Button;
-			GUIButton *StartConfigDPadTypeButton;
-			GUIButton *StartConfigAnalogDSTypeButton;
-			GUIButton *StartConfigAnalogXBTypeButton;
+			GUICollectionBox* PresetSelectBox;
+			GUIButton* CloseWizardButton;
+			GUIButton* PresetSelectSNESButton;
+			GUIButton* PresetSelectDS4Button;
+			GUIButton* PresetSelectXB360Button;
+			GUIButton* StartConfigDPadTypeButton;
+			GUIButton* StartConfigAnalogDSTypeButton;
+			GUIButton* StartConfigAnalogXBTypeButton;
 		};
 
 		static constexpr int m_KeyboardConfigSteps = 16; //!< The step count for keyboard only manual configuration.
@@ -115,10 +117,10 @@ namespace RTE {
 		static constexpr int m_DPadConfigSteps = 12; //!< The step count for DPad type gamepad manual configuration.
 		static constexpr int m_DualAnalogConfigSteps = 20; //!< The step count for DualAnalog type gamepad manual configuration.
 
-		GUIControlManager *m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
+		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
 		Players m_ConfiguringPlayer; //!< The player this SettingsInputMappingWizardGUI is configuring input mapping for.
-		InputScheme *m_ConfiguringPlayerScheme; //!< The InputScheme of the configuring player.
+		InputScheme* m_ConfiguringPlayerScheme; //!< The InputScheme of the configuring player.
 
 		InputDevice m_ConfiguringDevice; //!< Which type of device we are currently configuring.
 		bool m_ConfiguringDeviceIsGamepad; //!< Whether the device being configured is a gamepad of any type.
@@ -135,9 +137,9 @@ namespace RTE {
 
 		Timer m_BlinkTimer; //!< Timer for blinking the "Apply Changes" button and animating the recommended input diagram when configuring gamepads.
 
-		std::vector<BITMAP *> m_DPadDiagramBitmaps; //!< Vector containing all the D-Pad type gamepad recommended input diagram bitmaps.
-		std::vector<BITMAP *> m_DualAnalogDSDiagramBitmaps; //!< Vector containing all the DualShock type gamepad recommended input diagram bitmaps.
-		std::vector<BITMAP *> m_DualAnalogXBDiagramBitmaps; //!< Vector containing all the Xbox type gamepad recommended input diagram bitmaps.
+		std::vector<BITMAP*> m_DPadDiagramBitmaps; //!< Vector containing all the D-Pad type gamepad recommended input diagram bitmaps.
+		std::vector<BITMAP*> m_DualAnalogDSDiagramBitmaps; //!< Vector containing all the DualShock type gamepad recommended input diagram bitmaps.
+		std::vector<BITMAP*> m_DualAnalogXBDiagramBitmaps; //!< Vector containing all the Xbox type gamepad recommended input diagram bitmaps.
 
 		WizardManualConfigScreen m_WizardManualConfigScreen; //!< The manual input configuration menu screen.
 		WizardPresetSelectScreen m_WizardPresetSelectScreen; //!< The preset selection menu screen.
@@ -145,8 +147,8 @@ namespace RTE {
 		/// <summary>
 		/// GUI elements that compose the input mapping wizard menu screen.
 		/// </summary>
-		GUICollectionBox *m_InputWizardScreenBox;
-		GUILabel *m_InputWizardTitleLabel;
+		GUICollectionBox* m_InputWizardScreenBox;
+		GUILabel* m_InputWizardTitleLabel;
 
 #pragma region Create Breakdown
 		/// <summary>
@@ -192,13 +194,13 @@ namespace RTE {
 		/// Handles the player interaction with the SettingsInputMappingWizardGUI's WizardManualConfigScreen GUI elements.
 		/// </summary>
 		/// <param name="guiEvent">The GUIEvent containing information about the player interaction with an element.</param>
-		void HandleManualConfigScreenInputEvents(GUIEvent &guiEvent);
+		void HandleManualConfigScreenInputEvents(GUIEvent& guiEvent);
 
 		/// <summary>
 		/// Handles the player interaction with the SettingsInputMappingWizardGUI's WizardPresetSelectScreen GUI elements.
 		/// </summary>
 		/// <param name="guiEvent">The GUIEvent containing information about the player interaction with an element.</param>
-		void HandlePresetSelectScreenInputEvents(GUIEvent &guiEvent);
+		void HandlePresetSelectScreenInputEvents(GUIEvent& guiEvent);
 #pragma endregion
 
 #pragma region Input Configuration Sequence Handling Breakdown
@@ -238,8 +240,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		SettingsInputMappingWizardGUI(const SettingsInputMappingWizardGUI &reference) = delete;
-		SettingsInputMappingWizardGUI & operator=(const SettingsInputMappingWizardGUI &rhs) = delete;
+		SettingsInputMappingWizardGUI(const SettingsInputMappingWizardGUI& reference) = delete;
+		SettingsInputMappingWizardGUI& operator=(const SettingsInputMappingWizardGUI& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif
