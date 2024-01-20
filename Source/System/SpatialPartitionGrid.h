@@ -1,7 +1,7 @@
 #ifndef _RTESPATIALPARTITIONGRID_
 #define _RTESPATIALPARTITIONGRID_
 
-//TODO Move Team enum into Constants so we can avoid including Activity here.
+// TODO Move Team enum into Constants so we can avoid including Activity here.
 #include "Activity.h"
 
 #include "Constants.h"
@@ -20,7 +20,6 @@ namespace RTE {
 	class SpatialPartitionGrid {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a SpatialPartitionGrid object.
@@ -30,7 +29,10 @@ namespace RTE {
 		/// <summary>
 		/// Constructor method used to instantiate a SpatialPartitionGrid object.
 		/// </summary>
-		SpatialPartitionGrid(int width, int height, int cellSize) { Clear(); Create(width, height, cellSize); }
+		SpatialPartitionGrid(int width, int height, int cellSize) {
+			Clear();
+			Create(width, height, cellSize);
+		}
 
 		/// <summary>
 		/// Makes the SpatialPartitionGrid object ready for use.
@@ -43,7 +45,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the SpatialPartitionGrid to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const SpatialPartitionGrid &reference);
+		int Create(const SpatialPartitionGrid& reference);
 #pragma endregion
 
 #pragma region Grid Management
@@ -57,7 +59,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rect">A rectangle defining the space the MovableObject takes up.</param>
 		/// <param name="mo">The MovableObject to add.</param>
-		void Add(const IntRect &rect, const MovableObject &mo);
+		void Add(const IntRect& rect, const MovableObject& mo);
 
 		/// <summary>
 		/// Gets a vector of pointers to all MovableObjects within the given Box, who aren't of the ignored team.
@@ -66,7 +68,7 @@ namespace RTE {
 		/// <param name="ignoreTeam">The team to ignore when getting MovableObjects.</param>
 		/// <param name="getsHitByMOsOnly">Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.</param>
 		/// <returns>A vector of pointers to all MovableObjects within the given Box, who aren't of the ignored team.</returns>
-		std::vector<MovableObject *> GetMOsInBox(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const;
+		std::vector<MovableObject*> GetMOsInBox(const Box& box, int ignoreTeam, bool getsHitByMOsOnly) const;
 
 		/// <summary>
 		/// Get a vector of pointers to all the MovableObjects within the specified radius of the given center point, who aren't of the ignored team.
@@ -76,7 +78,7 @@ namespace RTE {
 		/// <param name="ignoreTeam">The team to ignore when getting MovableObjects.</param>
 		/// <param name="getsHitByMOsOnly">Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.</param>
 		/// <returns>A vector of pointers to all the MovableObjects within the specified radius of the given center point, who aren't of the ignored team.</returns>
-		std::vector<MovableObject *> GetMOsInRadius(const Vector &center, float radius, int ignoreTeam, bool getsHitByMOsOnly) const;
+		std::vector<MovableObject*> GetMOsInRadius(const Vector& center, float radius, int ignoreTeam, bool getsHitByMOsOnly) const;
 
 		/// <summary>
 		/// Gets the MOIDs that are potentially overlapping the given X and Y Scene coordinates.
@@ -86,11 +88,10 @@ namespace RTE {
 		/// <param name="ignoreTeam">The team to ignore when getting MOIDs.</param>
 		/// <param name="getsHitByMOsOnly">Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.</param>
 		/// <returns>A vector of MOIDs that are potentially overlapping the x and y coordinates.</returns>
-		const std::vector<int> & GetMOIDsAtPosition(int x, int y, int ignoreTeam, bool getsHitByMOsOnly) const;
+		const std::vector<int>& GetMOIDsAtPosition(int x, int y, int ignoreTeam, bool getsHitByMOsOnly) const;
 #pragma endregion
 
 	private:
-
 		int m_Width; //!< The width of the SpatialPartitionGrid, in cells.
 		int m_Height; //!< The height of the SpatialPartitionGrid, in cells.
 		int m_CellSize; //!< The size of each of the SpatialPartitionGrid's cells, in pixels.
@@ -116,7 +117,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of an implicit method.
-		SpatialPartitionGrid(const SpatialPartitionGrid &reference) = delete;
+		SpatialPartitionGrid(const SpatialPartitionGrid& reference) = delete;
 	};
-}
+} // namespace RTE
 #endif

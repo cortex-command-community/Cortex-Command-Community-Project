@@ -5,7 +5,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUICheckbox::GUICheckbox(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIPanel(Manager) {
+GUICheckbox::GUICheckbox(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "CHECKBOX";
 	m_Image = nullptr;
 	m_ControlManager = ControlManager;
@@ -15,7 +16,7 @@ GUICheckbox::GUICheckbox(GUIManager *Manager, GUIControlManager *ControlManager)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICheckbox::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUICheckbox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -32,8 +33,12 @@ void GUICheckbox::Create(const std::string &Name, int X, int Y, int Width, int H
 	m_Width = m_DefWidth;
 	m_Height = m_DefHeight;
 
-	if (Width != -1) { m_Width = Width; }
-	if (Height != -1) { m_Height = Height; }
+	if (Width != -1) {
+		m_Width = Width;
+	}
+	if (Height != -1) {
+		m_Height = Height;
+	}
 
 	// Make sure the button isn't too small
 	m_Width = std::max(m_Width, m_MinWidth);
@@ -42,7 +47,7 @@ void GUICheckbox::Create(const std::string &Name, int X, int Y, int Width, int H
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICheckbox::Create(GUIProperties *Props) {
+void GUICheckbox::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -59,7 +64,6 @@ void GUICheckbox::Create(GUIProperties *Props) {
 	// Make sure the button isn't too small
 	m_Width = std::max(m_Width, m_MinWidth);
 	m_Height = std::max(m_Height, m_MinHeight);
-
 
 	// Grab the check value
 	m_Check = Unchecked;
@@ -79,7 +83,7 @@ void GUICheckbox::Destroy() {}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICheckbox::ChangeSkin(GUISkin *Skin) {
+void GUICheckbox::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the checkbox bitmap
@@ -134,7 +138,7 @@ void GUICheckbox::BuildBitmap() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICheckbox::Draw(GUIScreen *Screen) {
+void GUICheckbox::Draw(GUIScreen* Screen) {
 	if (!m_Image) {
 		return;
 	}
@@ -224,7 +228,7 @@ void GUICheckbox::OnMouseLeave(int X, int Y, int Buttons, int Modifier) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUICheckbox::GetPanel() {
+GUIPanel* GUICheckbox::GetPanel() {
 	return this;
 }
 
@@ -248,7 +252,7 @@ void GUICheckbox::Resize(int Width, int Height) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICheckbox::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUICheckbox::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
@@ -267,7 +271,7 @@ void GUICheckbox::StoreProperties() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICheckbox::SetText(const std::string &Text) {
+void GUICheckbox::SetText(const std::string& Text) {
 	m_Text = Text;
 }
 
@@ -291,7 +295,7 @@ int GUICheckbox::GetCheck() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUICheckbox::ApplyProperties(GUIProperties *Props) {
+void GUICheckbox::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	m_Check = Unchecked;

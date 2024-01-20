@@ -5,7 +5,7 @@ namespace RTE {
 
 	const std::string InputScheme::c_ClassName = "InputScheme";
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InputScheme::Clear() {
 		m_ActiveDevice = InputDevice::DEVICE_KEYB_ONLY;
@@ -14,14 +14,14 @@ namespace RTE {
 		m_JoystickDeadzone = 0.01F;
 		m_DigitalAimSpeed = 1.0F;
 
-		for (InputMapping &inputMapping : m_InputMappings) {
+		for (InputMapping& inputMapping: m_InputMappings) {
 			inputMapping.Reset();
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int InputScheme::Create(const InputScheme &reference) {
+	int InputScheme::Create(const InputScheme& reference) {
 		m_ActiveDevice = reference.m_ActiveDevice;
 		m_SchemePreset = reference.m_SchemePreset;
 		m_JoystickDeadzoneType = reference.m_JoystickDeadzoneType;
@@ -34,11 +34,11 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int InputScheme::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int InputScheme::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
-		
+
 		MatchProperty("Device", { SetDevice(static_cast<InputDevice>(std::stoi(reader.ReadPropValue()))); });
 		MatchProperty("Preset", { SetPreset(static_cast<InputPreset>(std::stoi(reader.ReadPropValue()))); });
 		MatchProperty("LeftUp", { reader >> m_InputMappings[InputElements::INPUT_L_UP]; });
@@ -71,14 +71,13 @@ namespace RTE {
 		MatchProperty("JoystickDeadzoneType", { SetJoystickDeadzoneType(static_cast<DeadZoneType>(std::stoi(reader.ReadPropValue()))); });
 		MatchProperty("JoystickDeadzone", { reader >> m_JoystickDeadzone; });
 		MatchProperty("DigitalAimSpeed", { reader >> m_DigitalAimSpeed; });
-		
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int InputScheme::Save(Writer &writer) const {
+	int InputScheme::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
 		writer.NewPropertyWithValue("Device", m_ActiveDevice);
@@ -121,7 +120,7 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InputScheme::ResetToPlayerDefaults(Players player) {
 		switch (player) {
@@ -150,7 +149,7 @@ namespace RTE {
 		m_DigitalAimSpeed = 1.0F;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InputScheme::SetPreset(InputPreset schemePreset) {
 		m_SchemePreset = schemePreset;
@@ -158,7 +157,7 @@ namespace RTE {
 		if (schemePreset == InputPreset::NoPreset || schemePreset == InputPreset::InputPresetCount) {
 			return;
 		}
-		for (InputMapping &inputMapping : m_InputMappings) {
+		for (InputMapping& inputMapping: m_InputMappings) {
 			inputMapping.Reset();
 		}
 		switch (m_SchemePreset) {
@@ -240,11 +239,11 @@ namespace RTE {
 				m_InputMappings[InputElements::INPUT_PREV].SetJoyButton(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
 				m_InputMappings[InputElements::INPUT_START].SetJoyButton(SDL_CONTROLLER_BUTTON_START);
 				m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_CONTROLLER_BUTTON_BACK);
-				//m_InputMappings[InputElements::INPUT_WEAPON_RELOAD].SetKey();
-				//m_InputMappings[InputElements::INPUT_WEAPON_PICKUP].SetKey();
-				//m_InputMappings[InputElements::INPUT_WEAPON_DROP].SetKey();
-				//m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_PREV].SetKey();
-				//m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_NEXT].SetKey();
+				// m_InputMappings[InputElements::INPUT_WEAPON_RELOAD].SetKey();
+				// m_InputMappings[InputElements::INPUT_WEAPON_PICKUP].SetKey();
+				// m_InputMappings[InputElements::INPUT_WEAPON_DROP].SetKey();
+				// m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_PREV].SetKey();
+				// m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_NEXT].SetKey();
 				break;
 			case InputPreset::PresetGenericDualAnalog:
 				SetPreset(InputPreset::PresetGamepadXbox360);
@@ -366,10 +365,10 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string InputScheme::GetMappingName(int whichElement) const {
-		const InputMapping *inputElement = &(m_InputMappings.at(whichElement));
+		const InputMapping* inputElement = &(m_InputMappings.at(whichElement));
 		if (m_SchemePreset != InputScheme::InputPreset::NoPreset && !inputElement->GetPresetDescription().empty()) {
 			return inputElement->GetPresetDescription();
 		}
@@ -405,7 +404,7 @@ namespace RTE {
 		return "";
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool InputScheme::CaptureKeyMapping(int whichInput) {
 		for (int whichKey = SDL_SCANCODE_A; whichKey < SDL_NUM_SCANCODES; ++whichKey) {
@@ -422,7 +421,7 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool InputScheme::CaptureJoystickMapping(int whichJoy, int whichInput) {
 		if (whichJoy < 0) {
@@ -447,4 +446,4 @@ namespace RTE {
 		}
 		return false;
 	}
-}
+} // namespace RTE

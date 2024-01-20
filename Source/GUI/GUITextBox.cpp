@@ -5,7 +5,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUITextBox::GUITextBox(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUITextPanel(Manager) {
+GUITextBox::GUITextBox(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUITextPanel(Manager) {
 	m_ControlID = "TEXTBOX";
 	m_ControlManager = ControlManager;
 	m_DrawBitmap = nullptr;
@@ -15,7 +16,7 @@ GUITextBox::GUITextBox(GUIManager *Manager, GUIControlManager *ControlManager) :
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITextBox::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUITextBox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -29,15 +30,19 @@ void GUITextBox::Create(const std::string &Name, int X, int Y, int Width, int He
 	// Create the ListPanel
 	int w = m_DefWidth;
 	int h = m_DefHeight;
-	if (Width != -1) { w = Width; }
-	if (Height != -1) { h = Height; }
+	if (Width != -1) {
+		w = Width;
+	}
+	if (Height != -1) {
+		h = Height;
+	}
 
 	GUITextPanel::Create(X, Y, w, h);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITextBox::Create(GUIProperties *Props) {
+void GUITextBox::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -59,14 +64,26 @@ void GUITextBox::Create(GUIProperties *Props) {
 	// Alignment values - these don't affect anything as of yet
 	std::string alignString;
 	Props->GetValue("HAlignment", &alignString);
-	if (stricmp(alignString.c_str(), "left") == 0) { m_HAlignment = GUIFont::Left; }
-	if (stricmp(alignString.c_str(), "centre") == 0 || stricmp(alignString.c_str(), "center") == 0) { m_HAlignment = GUIFont::Centre; }
-	if (stricmp(alignString.c_str(), "right") == 0) { m_HAlignment = GUIFont::Right; }
+	if (stricmp(alignString.c_str(), "left") == 0) {
+		m_HAlignment = GUIFont::Left;
+	}
+	if (stricmp(alignString.c_str(), "centre") == 0 || stricmp(alignString.c_str(), "center") == 0) {
+		m_HAlignment = GUIFont::Centre;
+	}
+	if (stricmp(alignString.c_str(), "right") == 0) {
+		m_HAlignment = GUIFont::Right;
+	}
 
 	Props->GetValue("VAlignment", &alignString);
-	if (stricmp(alignString.c_str(), "top") == 0) { m_VAlignment = GUIFont::Top; }
-	if (stricmp(alignString.c_str(), "middle") == 0) { m_VAlignment = GUIFont::Middle; }
-	if (stricmp(alignString.c_str(), "bottom") == 0) { m_VAlignment = GUIFont::Bottom; }
+	if (stricmp(alignString.c_str(), "top") == 0) {
+		m_VAlignment = GUIFont::Top;
+	}
+	if (stricmp(alignString.c_str(), "middle") == 0) {
+		m_VAlignment = GUIFont::Middle;
+	}
+	if (stricmp(alignString.c_str(), "bottom") == 0) {
+		m_VAlignment = GUIFont::Bottom;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +99,7 @@ void GUITextBox::Destroy() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITextBox::ChangeSkin(GUISkin *Skin) {
+void GUITextBox::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Free any old bitmap
@@ -104,7 +121,7 @@ void GUITextBox::ChangeSkin(GUISkin *Skin) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITextBox::Draw(GUIScreen *Screen) {
+void GUITextBox::Draw(GUIScreen* Screen) {
 	// Draw the background
 	m_DrawBitmap->Draw(Screen->GetBitmap(), m_X, m_Y, nullptr);
 
@@ -113,7 +130,7 @@ void GUITextBox::Draw(GUIScreen *Screen) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUITextBox::GetPanel() {
+GUIPanel* GUITextBox::GetPanel() {
 	return this;
 }
 
@@ -138,26 +155,32 @@ void GUITextBox::Resize(int Width, int Height) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITextBox::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUITextBox::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUITextPanel::GetRect(X, Y, Width, Height);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITextBox::ReceiveSignal(GUIPanel *Source, int Code, int Data) {
+void GUITextBox::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	// Clicked
-	if (Code == GUITextPanel::Clicked) { AddEvent(GUIEvent::Notification, Clicked, Data); }
+	if (Code == GUITextPanel::Clicked) {
+		AddEvent(GUIEvent::Notification, Clicked, Data);
+	}
 
 	// Changed
-	if (Code == GUITextPanel::Changed) { AddEvent(GUIEvent::Notification, Changed, 0); }
+	if (Code == GUITextPanel::Changed) {
+		AddEvent(GUIEvent::Notification, Changed, 0);
+	}
 
 	// Enter
-	if (Code == GUITextPanel::Enter) { AddEvent(GUIEvent::Notification, Enter, 0); }
+	if (Code == GUITextPanel::Enter) {
+		AddEvent(GUIEvent::Notification, Enter, 0);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUITextBox::ApplyProperties(GUIProperties *Props) {
+void GUITextBox::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	// Force a rebuild of the bitmap

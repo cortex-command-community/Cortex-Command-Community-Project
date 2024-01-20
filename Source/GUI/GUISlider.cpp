@@ -5,7 +5,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUISlider::GUISlider(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIPanel(Manager) {
+GUISlider::GUISlider(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "SLIDER";
 	m_DrawBitmap = nullptr;
 	m_KnobImage = nullptr;
@@ -23,7 +24,7 @@ GUISlider::GUISlider(GUIManager *Manager, GUIControlManager *ControlManager) : G
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUISlider::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUISlider::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -40,8 +41,12 @@ void GUISlider::Create(const std::string &Name, int X, int Y, int Width, int Hei
 	m_Width = m_DefWidth;
 	m_Height = m_DefHeight;
 
-	if (Width != -1) { m_Width = Width; }
-	if (Height != -1) { m_Height = Height; }
+	if (Width != -1) {
+		m_Width = Width;
+	}
+	if (Height != -1) {
+		m_Height = Height;
+	}
 
 	// Re-Calculate the knob info
 	CalculateKnob();
@@ -49,7 +54,7 @@ void GUISlider::Create(const std::string &Name, int X, int Y, int Width, int Hei
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUISlider::Create(GUIProperties *Props) {
+void GUISlider::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -66,7 +71,6 @@ void GUISlider::Create(GUIProperties *Props) {
 	// Make sure the button isn't too small
 	m_Width = std::max(m_Width, m_MinWidth);
 	m_Height = std::max(m_Height, m_MinHeight);
-
 
 	// Get the values
 	std::string ori;
@@ -87,7 +91,9 @@ void GUISlider::Create(GUIProperties *Props) {
 	Props->GetValue("Minimum", &m_Minimum);
 	Props->GetValue("Maximum", &m_Maximum);
 	Props->GetValue("Value", &m_Value);
-	if (!Props->GetValue("ValueResolution", &m_ValueResolution)) { m_ValueResolution = std::max((m_Maximum - m_Minimum) / 100, 1); }
+	if (!Props->GetValue("ValueResolution", &m_ValueResolution)) {
+		m_ValueResolution = std::max((m_Maximum - m_Minimum) / 100, 1);
+	}
 
 	m_Value = std::clamp(m_Value, m_Minimum, m_Maximum);
 
@@ -115,7 +121,7 @@ void GUISlider::Destroy() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUISlider::ChangeSkin(GUISkin *Skin) {
+void GUISlider::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the progressbar bitmap
@@ -147,7 +153,7 @@ void GUISlider::BuildBitmap() {
 	// Load the source image
 	std::string Filename;
 	m_Skin->GetValue(Section, "Filename", &Filename);
-	GUIBitmap *SrcImage = m_Skin->CreateBitmap(Filename);
+	GUIBitmap* SrcImage = m_Skin->CreateBitmap(Filename);
 	if (!SrcImage) {
 		return;
 	}
@@ -184,7 +190,7 @@ void GUISlider::BuildBitmap() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUISlider::BuildLine(const std::string &Section, GUIBitmap *SrcImage) {
+void GUISlider::BuildLine(const std::string& Section, GUIBitmap* SrcImage) {
 	int Values[4];
 	GUIRect Rect;
 
@@ -231,7 +237,7 @@ void GUISlider::BuildLine(const std::string &Section, GUIBitmap *SrcImage) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUISlider::Draw(GUIScreen *Screen) {
+void GUISlider::Draw(GUIScreen* Screen) {
 	int X = 0;
 	int Y = 0;
 
@@ -306,7 +312,9 @@ void GUISlider::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	m_Value = std::clamp(m_Value, m_Minimum, m_Maximum);
 
 	// If the value has changed, add the "Changed" notification
-	if (m_Value != m_OldValue) { AddEvent(GUIEvent::Notification, Changed, 0); }
+	if (m_Value != m_OldValue) {
+		AddEvent(GUIEvent::Notification, Changed, 0);
+	}
 
 	AddEvent(GUIEvent::Notification, Clicked, 0);
 }
@@ -319,7 +327,9 @@ void GUISlider::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	m_KnobGrabbed = false;
 
 	// If the value has changed, add the "Changed" notification
-	if (m_Value != m_OldValue) { AddEvent(GUIEvent::Notification, Changed, 0); }
+	if (m_Value != m_OldValue) {
+		AddEvent(GUIEvent::Notification, Changed, 0);
+	}
 
 	AddEvent(GUIEvent::Notification, Clicked, 0);
 }
@@ -371,7 +381,9 @@ void GUISlider::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 		m_KnobPosition = std::min(m_KnobPosition, Size - m_KnobSize - m_EndThickness);
 
 		// If the value has changed, add the "Changed" notification
-		if (m_Value != m_OldValue) { AddEvent(GUIEvent::Notification, Changed, 0); }
+		if (m_Value != m_OldValue) {
+			AddEvent(GUIEvent::Notification, Changed, 0);
+		}
 
 		m_OldValue = m_Value;
 	}
@@ -396,7 +408,7 @@ void GUISlider::OnMouseWheelChange(int x, int y, int modifier, int mouseWheelCha
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUISlider::GetPanel() {
+GUIPanel* GUISlider::GetPanel() {
 	return this;
 }
 
@@ -437,7 +449,7 @@ void GUISlider::Resize(int Width, int Height) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUISlider::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUISlider::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
@@ -536,7 +548,7 @@ void GUISlider::StoreProperties() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUISlider::ApplyProperties(GUIProperties *Props) {
+void GUISlider::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	// Get the values
@@ -569,5 +581,7 @@ void GUISlider::ApplyProperties(GUIProperties *Props) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUISlider::SetValueResolution(int valueRes) {
-	if (valueRes >= 1 && valueRes <= m_Maximum - m_Minimum) { m_ValueResolution = valueRes; }
+	if (valueRes >= 1 && valueRes <= m_Maximum - m_Minimum) {
+		m_ValueResolution = valueRes;
+	}
 }

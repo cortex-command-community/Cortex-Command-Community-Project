@@ -13,7 +13,6 @@ namespace RTE {
 		friend class NetworkServer;
 
 	public:
-
 		EntityAllocation(SLBackground);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -35,7 +34,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the SLBackground to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const SLBackground &reference);
+		int Create(const SLBackground& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -48,7 +47,12 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the SLBackground object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { SceneLayer::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				SceneLayer::Destroy();
+			}
+			Clear();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -152,7 +156,7 @@ namespace RTE {
 		/// Sets the auto-scroll step (pixels to advance per interval) values.
 		/// </summary>
 		/// <param name="newStep">A Vector with the new auto-scroll step values.</param>
-		void SetAutoScrollStep(const Vector &newStep) { m_AutoScrollStep = newStep; }
+		void SetAutoScrollStep(const Vector& newStep) { m_AutoScrollStep = newStep; }
 
 		/// <summary>
 		/// Gets the auto-scroll step (pixels to advance per interval) value on the X axis.
@@ -199,19 +203,23 @@ namespace RTE {
 		/// <param name="targetBitmap">The bitmap to draw to.</param>
 		/// <param name="targetBox">The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.</param>
 		/// <param name="offsetNeedsScrollRatioAdjustment">Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.</param>
-		void Draw(BITMAP *targetBitmap, Box &targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;
+		void Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different modes of SLBackground auto-scaling.
 		/// </summary>
-		enum LayerAutoScaleMode { AutoScaleOff, FitScreen, AlwaysUpscaled, LayerAutoScaleModeCount };
+		enum LayerAutoScaleMode {
+			AutoScaleOff,
+			FitScreen,
+			AlwaysUpscaled,
+			LayerAutoScaleModeCount
+		};
 
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
-		std::vector<BITMAP *> m_Bitmaps; //!< Vector containing all the BITMAPs of this SLBackground. Not owned.
+		std::vector<BITMAP*> m_Bitmaps; //!< Vector containing all the BITMAPs of this SLBackground. Not owned.
 		int m_FrameCount; //!< The total number of frames in this SLBackground's animation.
 		int m_Frame; //!< The frame that is currently being shown/drawn.
 
@@ -242,8 +250,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		SLBackground(const SLBackground &reference) = delete;
-		SLBackground & operator=(const SLBackground &rhs) = delete;
+		SLBackground(const SLBackground& reference) = delete;
+		SLBackground& operator=(const SLBackground& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

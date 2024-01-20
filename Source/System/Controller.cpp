@@ -7,7 +7,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Controller::Clear() {
 		m_ControlStates.fill(false);
@@ -28,25 +28,27 @@ namespace RTE {
 		m_WeaponDropIgnore = false;
 		m_WeaponReloadIgnore = false;
 		m_MouseMovement.Reset();
-		m_AnalogCursorAngleLimits = { {0, 0}, false };
+		m_AnalogCursorAngleLimits = {{0, 0}, false};
 		m_ReleaseTimer.Reset();
 		m_JoyAccelTimer.Reset();
 		m_KeyAccelTimer.Reset();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Controller::Create(InputMode mode, Actor *controlledActor) {
+	int Controller::Create(InputMode mode, Actor* controlledActor) {
 		m_InputMode = mode;
 		m_ControlledActor = controlledActor;
-		if (m_ControlledActor) { m_Team = m_ControlledActor->GetTeam(); }
+		if (m_ControlledActor) {
+			m_Team = m_ControlledActor->GetTeam();
+		}
 
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Controller::Create(const Controller &reference) {
+	int Controller::Create(const Controller& reference) {
 		for (int i = 0; i < ControlState::CONTROLSTATECOUNT; ++i) {
 			m_ControlStates[i] = reference.m_ControlStates[i];
 		}
@@ -70,9 +72,9 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool Controller::RelativeCursorMovement(Vector &cursorPos, float moveScale) const {
+	bool Controller::RelativeCursorMovement(Vector& cursorPos, float moveScale) const {
 		bool altered = false;
 
 		// Try the mouse first for analog input
@@ -80,14 +82,14 @@ namespace RTE {
 			cursorPos += GetMouseMovement() * moveScale;
 			altered = true;
 
-		// See if there's other analog input, only if the mouse isn't active (or the cursor will float if mouse is used!)
+			// See if there's other analog input, only if the mouse isn't active (or the cursor will float if mouse is used!)
 		} else if (GetAnalogCursor().GetLargest() > 0.1F && !IsMouseControlled()) {
 			// See how much to accelerate the joystick input based on how long the stick has been pushed around
 			float acceleration = static_cast<float>(0.5 + std::min(m_JoyAccelTimer.GetElapsedRealTimeS(), 0.5) * 6);
 			cursorPos += GetAnalogCursor() * 10 * moveScale * acceleration;
 			altered = true;
 
-		// Digital movement
+			// Digital movement
 		} else {
 			// See how much to accelerate the keyboard input based on how long any key has been pressed
 			float acceleration = static_cast<float>(0.25 + std::min(m_KeyAccelTimer.GetElapsedRealTimeS(), 0.75) * 6);
@@ -112,25 +114,25 @@ namespace RTE {
 		return altered;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float Controller::GetDigitalAimSpeed() const {
 		return m_Player != Players::NoPlayer ? g_UInputMan.GetControlScheme(m_Player)->GetDigitalAimSpeed() : 1.0F;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Controller::IsMouseControlled() const {
 		return m_Player != Players::NoPlayer && g_UInputMan.GetControlScheme(m_Player)->GetDevice() == InputDevice::DEVICE_MOUSE_KEYB;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Controller::IsKeyboardOnlyControlled() const {
 		return m_Player != Players::NoPlayer && g_UInputMan.GetControlScheme(m_Player)->GetDevice() == InputDevice::DEVICE_KEYB_ONLY;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Controller::IsGamepadControlled() const {
 		bool isGamepadControlled = false;
@@ -143,27 +145,29 @@ namespace RTE {
 		return isGamepadControlled;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Controller::GetTeam() const {
 		return m_ControlledActor ? m_ControlledActor->GetTeam() : m_Team;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Controller::SetTeam(short team) {
-		if (m_ControlledActor) { m_ControlledActor->SetTeam(team); }
+		if (m_ControlledActor) {
+			m_ControlledActor->SetTeam(team);
+		}
 		m_Team = team;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Controller::Update() {
 		if (IsDisabled()) {
 			return;
 		}
 
-		if (m_ControlledActor) { 
+		if (m_ControlledActor) {
 			m_Team = m_ControlledActor->GetTeam();
 
 			if (m_ControlledActor->GetHealth() == 0.0f || m_ControlledActor->GetStatus() == Actor::DYING || m_ControlledActor->GetStatus() == Actor::DEAD) {
@@ -187,7 +191,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Controller::ResetCommandState() {
 		// Reset all command states.
@@ -198,7 +202,7 @@ namespace RTE {
 		m_MouseMovement.Reset();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Controller::GetInputFromPlayer() {
 		ResetCommandState();
@@ -210,10 +214,9 @@ namespace RTE {
 		UpdatePlayerInput();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool Controller::ShouldUpdateAIThisFrame() const
-	{
+	bool Controller::ShouldUpdateAIThisFrame() const {
 		if (IsDisabled() || m_InputMode != InputMode::CIM_AI) {
 			return false;
 		}
@@ -228,9 +231,9 @@ namespace RTE {
 		return true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Controller & Controller::operator=(const Controller &rhs) {
+	Controller& Controller::operator=(const Controller& rhs) {
 		if (this == &rhs) {
 			return *this;
 		}
@@ -239,15 +242,14 @@ namespace RTE {
 		return *this;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void Controller::Override(const Controller &otherController)
-    {
+	void Controller::Override(const Controller& otherController) {
 		RTEAssert(otherController.m_ControlledActor == m_ControlledActor, "Overriding a controller with a mismatched controlled actor!");
 		*this = otherController;
-    }
+	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Controller::UpdatePlayerInput() {
 		UpdatePlayerPieMenuInput();
@@ -255,17 +257,21 @@ namespace RTE {
 		// Only actually switch when the change button(s) are released
 		// BRAIN ACTOR
 		if ((g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_NEXT) && g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_PREV)) ||
-			(g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_NEXT) && g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PREV))) {
+		    (g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_NEXT) && g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PREV))) {
 			m_ControlStates[ControlState::ACTOR_BRAIN] = true;
 			// Ignore the next releases of next and previous buttons so that the brain isn't switched away form immediate after using the brain shortcut
 			m_NextIgnore = m_PrevIgnore = true;
-		// NEXT ACTOR
+			// NEXT ACTOR
 		} else if (g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_NEXT)) {
-			if (!m_NextIgnore) { m_ControlStates[ControlState::ACTOR_NEXT] = true; }
+			if (!m_NextIgnore) {
+				m_ControlStates[ControlState::ACTOR_NEXT] = true;
+			}
 			m_NextIgnore = false;
-		// PREV ACTOR
+			// PREV ACTOR
 		} else if (g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_PREV)) {
-			if (!m_PrevIgnore) { m_ControlStates[ControlState::ACTOR_PREV] = true; }
+			if (!m_PrevIgnore) {
+				m_ControlStates[ControlState::ACTOR_PREV] = true;
+			}
 			m_PrevIgnore = false;
 		} else if (g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_WEAPON_CHANGE_NEXT)) {
 			m_WeaponChangeNextIgnore = false;
@@ -298,9 +304,9 @@ namespace RTE {
 		UpdatePlayerAnalogInput();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Controller::UpdatePlayerPieMenuInput() {		
+	void Controller::UpdatePlayerPieMenuInput() {
 		// Holding of the switch buttons disables aiming later
 		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_NEXT)) {
 			m_ControlStates[ControlState::ACTOR_NEXT_PREP] = true;
@@ -308,7 +314,7 @@ namespace RTE {
 		} else if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PREV)) {
 			m_ControlStates[ControlState::ACTOR_PREV_PREP] = true;
 			m_ReleaseTimer.Reset();
-		// No actions can be performed while switching actors, and short time thereafter
+			// No actions can be performed while switching actors, and short time thereafter
 		} else if (m_ReleaseTimer.IsPastRealMS(m_ReleaseDelay)) {
 			m_ControlStates[ControlState::WEAPON_FIRE] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_FIRE);
 			m_ControlStates[ControlState::AIM_SHARP] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_AIM);
@@ -384,7 +390,7 @@ namespace RTE {
 			m_ControlStates[ControlState::WEAPON_FIRE] = false;
 			m_ControlStates[ControlState::AIM_UP] = false;
 			m_ControlStates[ControlState::AIM_DOWN] = false;
-			
+
 			if (m_ControlStates[ControlState::PIE_MENU_ACTIVE_DIGITAL]) {
 				m_ControlStates[ControlState::MOVE_RIGHT] = false;
 				m_ControlStates[ControlState::MOVE_LEFT] = false;
@@ -397,7 +403,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Controller::UpdatePlayerAnalogInput() {
 		// ANALOG joystick values
@@ -409,8 +415,8 @@ namespace RTE {
 		// Only change aim and move if not holding actor switch buttons - don't want to mess up AI's aim
 		if (!m_ControlStates[ControlState::ACTOR_PREV_PREP] && !m_ControlStates[ControlState::ACTOR_NEXT_PREP] && m_ReleaseTimer.IsPastRealMS(m_ReleaseDelay)) {
 			m_AnalogMove = move;
-		} 
-		
+		}
+
 		if (!pieMenuActive || m_ControlStates[ControlState::PIE_MENU_ACTIVE_DIGITAL]) {
 			m_AnalogAim = aim;
 		} else {
@@ -421,18 +427,18 @@ namespace RTE {
 		}
 
 		// If the joystick-controlled analog cursor is less than at the edge of input range, don't accelerate
-		if (GetAnalogCursor().MagnitudeIsLessThan(0.85F)) { 
-			m_JoyAccelTimer.Reset(); 
+		if (GetAnalogCursor().MagnitudeIsLessThan(0.85F)) {
+			m_JoyAccelTimer.Reset();
 		}
-		
+
 		// If the keyboard inputs for cursor movements is initially pressed, reset the acceleration timer
 		if (IsState(ControlState::ACTOR_NEXT) || IsState(ControlState::ACTOR_PREV) || (IsState(ControlState::PRESS_LEFT) || IsState(ControlState::PRESS_RIGHT) || IsState(ControlState::PRESS_UP) || IsState(ControlState::PRESS_DOWN))) {
 			m_KeyAccelTimer.Reset();
 		}
 
 		// Translate analog aim input into sharp aim control state
-		if (m_AnalogAim.MagnitudeIsGreaterThan(0.1F) && !pieMenuActive) { 
-			m_ControlStates[ControlState::AIM_SHARP] = true; 
+		if (m_AnalogAim.MagnitudeIsGreaterThan(0.1F) && !pieMenuActive) {
+			m_ControlStates[ControlState::AIM_SHARP] = true;
 		}
 
 		// Disable sharp aim while moving - this also helps with keyboard vs mouse fighting when moving and aiming in opposite directions
@@ -462,4 +468,4 @@ namespace RTE {
 			m_ControlStates[ControlState::RELEASE_SECONDARY] = g_UInputMan.MouseButtonReleased(activeSecondary, m_Player);
 		}
 	}
-}
+} // namespace RTE
