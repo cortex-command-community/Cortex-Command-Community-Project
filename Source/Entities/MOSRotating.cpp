@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MOSRotating.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the MOSRotating class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MOSRotating.h"
 
 #include "CameraMan.h"
@@ -42,12 +30,6 @@ namespace RTE {
 	BITMAP* MOSRotating::m_spTempBitmapS128 = 0;
 	BITMAP* MOSRotating::m_spTempBitmapS256 = 0;
 	BITMAP* MOSRotating::m_spTempBitmapS512 = 0;
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this MOSRotating, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void MOSRotating::Clear() {
 		m_pAtomGroup = 0;
@@ -89,11 +71,6 @@ namespace RTE {
 		m_FlashWhiteTimer.Reset();
 		m_FlashWhiteTimer.SetRealTimeLimitMS(0);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MOSParticle object ready for use.
 
 	int MOSRotating::Create() {
 		if (MOSprite::Create() < 0)
@@ -181,11 +158,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MOSParticle object ready for use.
-
 	int MOSRotating::Create(ContentFile spriteFile,
 	                        const int frameCount,
 	                        const float mass,
@@ -203,11 +175,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MOSRotating to be identical to another, by deep copy.
 
 	int MOSRotating::Create(const MOSRotating& reference) {
 		MOSprite::Create(reference);
@@ -283,14 +250,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return MOSprite::ReadProperty(propName, reader));
 
@@ -358,12 +317,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this MOSRotating with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int MOSRotating::Save(Writer& writer) const {
 		MOSprite::Save(writer);
@@ -591,11 +544,6 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the MOSRotating object.
-
 	void MOSRotating::Destroy(bool notInherited) {
 		delete m_pAtomGroup;
 		delete m_pDeepGroup;
@@ -634,11 +582,6 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetMaterial
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the main Material of this MOSRotating.
-
 	Material const* MOSRotating::GetMaterial() const {
 		//    if (m_pAtomGroup)
 		return m_pAtomGroup->GetMaterial();
@@ -659,13 +602,6 @@ namespace RTE {
 	    return false;
 	}
 	*/
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetDrawPriority
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the drawing priority of this MovableObject, if two things were
-	//                  overlap when copying to the terrain, the higher priority MO would
-	//                  end up getting drawn.
 
 	int MOSRotating::GetDrawPriority() const {
 		return INT_MAX;
@@ -699,23 +635,11 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AddRecoil
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds recoil effects to this MOSprite.
-
 	void MOSRotating::AddRecoil() {
 		m_RecoilOffset.SetXY(1, 0);
 		m_RecoilOffset.RadRotate(m_Rotation.GetRadAngle() + c_PI);
 		m_Recoiled = true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CollideAtPoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates the collision response when another MO's Atom collides with
-	//                  this MO's physical representation. The effects will be applied
-	//                  directly to this MO, and also represented in the passed in HitData.
 
 	bool MOSRotating::CollideAtPoint(HitData& hd) {
 		if (m_ToDelete) {
@@ -785,36 +709,14 @@ namespace RTE {
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          OnBounce
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Defines what should happen when this MovableObject hits and then
-	//                  bounces off of something. This is called by the owned Atom/AtomGroup
-	//                  of this MovableObject during travel.
-
 	bool MOSRotating::OnBounce(HitData& hd) {
 
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          OnSink
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Defines what should happen when this MovableObject hits and then
-	//                  sink into something. This is called by the owned Atom/AtomGroup
-	//                  of this MovableObject during travel.
-
 	bool MOSRotating::OnSink(HitData& hd) {
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ParticlePenetration
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Determines whether a particle which has hit this MO will penetrate,
-	//                  and if so, whether it gets lodged or exits on the other side of this
-	//                  MO. Appropriate effects will be determined and applied ONLY IF there
-	//                  was penetration! If not, nothing will be affected.
 
 	bool MOSRotating::ParticlePenetration(HitData& hd) {
 		// Only particles can penetrate.
@@ -1171,13 +1073,6 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  MoveOutOfTerrain
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks whether any of the Atom:s in this MovableObject are on top of
-	//                  terrain pixels, and if so, attempt to move this out so none of this'
-	//                  Atoms are on top of the terrain any more.
-
 	bool MOSRotating::MoveOutOfTerrain(unsigned char strongerThan) {
 		return m_pAtomGroup->ResolveTerrainIntersection(m_Pos, strongerThan);
 	}
@@ -1231,13 +1126,6 @@ namespace RTE {
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ResetAllTimers
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Resest all the timers used by this. Can be emitters, etc. This is to
-	//                  prevent backed up emissions to come out all at once while this has been
-	//                  held dormant in an inventory.
 
 	void MOSRotating::ResetAllTimers() {
 		MovableObject::ResetAllTimers();
@@ -1328,11 +1216,6 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  EraseFromTerrain
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Cuts this' silhouette out from the terrain's material and color layers.
-
 	void MOSRotating::EraseFromTerrain() {
 		Vector pivot = -m_SpriteOffset;
 
@@ -1351,12 +1234,6 @@ namespace RTE {
 
 		std::deque<MOPixel*> pixels = g_SceneMan.GetTerrain()->EraseSilhouette(m_HFlipped ? m_pFlipBitmap : m_aSprite[m_Frame], m_Pos, pivot, m_Rotation, m_Scale, false);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DeepCheck
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks if any of this' deep group atmos are on top of the terrain, and
-	//                  if so, erases this' silhouette from the terrain.
 
 	bool MOSRotating::DeepCheck(bool makeMOPs, int skipMOP, int maxMOPs) {
 		// Check for deep penetration of the terrain and
@@ -1417,14 +1294,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  PreTravel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Does stuff that needs to be done before Travel(). Always call before
-	//                  calling Travel.
-	// Arguments:       None.
-	// Return value:    None.
-
 	void MOSRotating::PreTravel() {
 		MOSprite::PreTravel();
 
@@ -1435,11 +1304,6 @@ namespace RTE {
 		}
 #endif
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Travel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Travels this MovableObject, using its physical representation.
 
 	void MOSRotating::Travel() {
 		MOSprite::Travel();
@@ -1473,12 +1337,6 @@ namespace RTE {
 		// Now clear out the ignore override for next frame
 		m_pAtomGroup->ClearMOIDIgnoreList();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  PostTravel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Does stuff that needs to be done after Update(). Always call after
-	//                  calling Update.
 
 	void MOSRotating::PostTravel() {
 		// Check for stupid velocities to gib instead of outright deletion that MOSprite::PostTravel() will do
@@ -1525,11 +1383,6 @@ namespace RTE {
 			attachable->PostTravel();
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this MOSRotating. Supposed to be done every frame.
 
 	void MOSRotating::Update() {
 		MOSprite::Update();
@@ -1798,12 +1651,6 @@ namespace RTE {
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this MOSRotating's current graphical representation to a
-	//                  BITMAP of choice.
 
 	void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		RTEAssert(!m_aSprite.empty(), "No sprite bitmaps loaded to draw!");

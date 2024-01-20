@@ -149,13 +149,13 @@ namespace RTE {
 		/// Adds an Entity instance's pointer and name associations to the internal list of already read in Entities. Ownership is NOT transferred!
 		/// If there already is an instance defined, nothing happens. If there is not, a clone is made of the passed-in Entity and added to the library.
 		/// @param entityToAdd A pointer to the Entity derived instance to add. It should be created from a Reader. Ownership is NOT transferred!
-		/// @param overwriteSame 
+		/// @param overwriteSame
 		/// Whether to overwrite if an instance of the EXACT same TYPE and name was found.
 		/// If one of the same name but not the exact type, false is returned regardless and nothing will have been added.
-		/// @param readFromFile 
+		/// @param readFromFile
 		/// The file the instance was read from, or where it should be written.
 		/// If "Same" is passed as the file path read from, an overwritten instance will keep the old one's file location entry.
-		/// @return 
+		/// @return
 		/// Whether or not a copy of the passed-in instance was successfully inserted into the module.
 		/// False will be returned if there already was an instance of that class and instance name inserted previously, unless overwritten.
 		bool AddEntityPreset(Entity* entityToAdd, bool overwriteSame = false, const std::string& readFromFile = "Same");

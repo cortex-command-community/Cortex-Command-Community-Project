@@ -1,18 +1,11 @@
 #ifndef _RTEHELDDEVICE_
 #define _RTEHELDDEVICE_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            HeldDevice.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the HeldDevice class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the HeldDevice class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "Attachable.h"
 #include "Actor.h"
 
@@ -25,209 +18,111 @@ namespace RTE {
 		BOMB,
 	};
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           HeldDevice
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     An articulated device that can be weilded by an Actor.
-	// Parent(s):       Attachable.
-	// Class history:   06/2/2002 HeldDevice created.
-	//                  01/31/2007 Made concrete so Shields can be jsut HeldDevice:s
-
+	/// An articulated device that can be weilded by an Actor.
+	/// 01/31/2007 Made concrete so Shields can be jsut HeldDevice:s
 	class HeldDevice : public Attachable {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(HeldDevice);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     HeldDevice
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a HeldDevice object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a HeldDevice object in system
+		/// memory. Create() should be called before using the object.
 		HeldDevice() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~HeldDevice
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a HeldDevice object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a HeldDevice object before deletion
+		/// from system memory.
 		~HeldDevice() override { Destroy(true); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the HeldDevice object ready for use.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the HeldDevice object ready for use.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a HeldDevice to be identical to another, by deep copy.
-		// Arguments:       A reference to the HeldDevice to deep copy.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Creates a HeldDevice to be identical to another, by deep copy.
+		/// @param reference A reference to the HeldDevice to deep copy.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(const HeldDevice& reference);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire HeldDevice, including its inherited members, to their
-		//                  default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire HeldDevice, including its inherited members, to their
+		/// default settings or values.
 		void Reset() override {
 			Clear();
 			Attachable::Reset();
 			m_MOType = MovableObject::TypeHeldDevice;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the SceneLayer object.
-		// Arguments:       Whether to only destroy the members defined in this derived class, or
-		//                  to destroy all inherited members also.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the SceneLayer object.
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
+		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetAboveHUDPos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the absoltue position of the top of this' HUD stack.
-		// Arguments:       None.
-		// Return value:    A Vector with the absolute position of this' HUD stack top point.
-
+		/// Gets the absoltue position of the top of this' HUD stack.
+		/// @return A Vector with the absolute position of this' HUD stack top point.
 		Vector GetAboveHUDPos() const override { return m_Pos + Vector(0, -32); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSupportPos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the absolute position of the support handhold that this HeldDevice
-		//                  offers.
-		// Arguments:       None.
-		// Return value:    A vector describing the absolute world coordinates for the support
-		//                  position of this HeldDevice.
-
+		/// Gets the absolute position of the support handhold that this HeldDevice
+		/// offers.
+		/// @return A vector describing the absolute world coordinates for the support
+		/// position of this HeldDevice.
 		Vector GetSupportPos() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetMagazinePos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the absolute position of the magazine or other equivalent point of
-		//                  this.
-		// Arguments:       None.
-		// Return value:    A vector describing the absolute world coordinates for the magazine
-		//                  attachment point of this
-
+		/// Gets the absolute position of the magazine or other equivalent point of
+		/// this.
+		/// @return A vector describing the absolute world coordinates for the magazine
+		/// attachment point of this
 		virtual Vector GetMagazinePos() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetMuzzlePos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the absolute position of the muzzle or other equivalent point of
-		//                  this.
-		// Arguments:       None.
-		// Return value:    A vector describing the absolute world coordinates for the muzzle point
-		//                  of this
-
+		/// Gets the absolute position of the muzzle or other equivalent point of
+		/// this.
+		/// @return A vector describing the absolute world coordinates for the muzzle point
+		/// of this
 		virtual Vector GetMuzzlePos() const { return m_Pos; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetMuzzleOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the unrotated relative offset from the position to the muzzle or
-		//                  other equivalent point of this.
-		// Arguments:       None.
-		// Return value:    A unrotated vector describing the relative for the muzzle point of
-		//                  this from this' position.
-
+		/// Gets the unrotated relative offset from the position to the muzzle or
+		/// other equivalent point of this.
+		/// @return A unrotated vector describing the relative for the muzzle point of
+		/// this from this' position.
 		virtual Vector GetMuzzleOffset() const { return Vector(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SetMuzzleOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the unrotated relative offset from the position to the muzzle or
-		//                  other equivalent point of this.
-		// Arguments:       Bew ofsset value.
-		// Return value:    None.
-
+		/// Sets the unrotated relative offset from the position to the muzzle or
+		/// other equivalent point of this.
+		/// @param newOffset Bew ofsset value.
 		virtual void SetMuzzleOffset(Vector newOffset) { /* Actually does something in inherited classes */
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetStanceOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the current position offset of this HeldDevice's joint relative
-		//                  from the parent Actor's position, if attached.
-		// Arguments:       None.
-		// Return value:    A const reference to the current stance parent offset.
-
+		/// Gets the current position offset of this HeldDevice's joint relative
+		/// from the parent Actor's position, if attached.
+		/// @return A const reference to the current stance parent offset.
 		virtual Vector GetStanceOffset() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SetStanceOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the current position offset of this HeldDevice's joint relative
-		//                  from the parent Actor's position, if attached.
-		// Arguments:       New value.
-		// Return value:    None.
-
+		/// Sets the current position offset of this HeldDevice's joint relative
+		/// from the parent Actor's position, if attached.
+		/// @param newValue New value.
 		void SetStanceOffset(Vector newValue) { m_StanceOffset = newValue; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SetSharpStanceOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the current position offset of this HeldDevice's joint relative
-		//                  from the parent Actor's position, if attached.
-		// Arguments:       New value.
-		// Return value:    None.
-
+		/// Sets the current position offset of this HeldDevice's joint relative
+		/// from the parent Actor's position, if attached.
+		/// @param New value.
 		Vector GetSharpStanceOffset() const { return m_SharpStanceOffset; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SetSharpStanceOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the current position offset of this HeldDevice's joint relative
-		//                  from the parent Actor's position, if attached.
-		// Arguments:       New value.
-		// Return value:    None.
-
+		/// Sets the current position offset of this HeldDevice's joint relative
+		/// from the parent Actor's position, if attached.
+		/// @param newValue New value.
 		void SetSharpStanceOffset(Vector newValue) { m_SharpStanceOffset = newValue; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetSharpLength
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets how much farther an Actor which holds this device can see when
-		//                  aiming this HeldDevice sharply.
-		// Arguments:       None.
-		// Return value:    The length in world pixel units.
-
+		/// Gets how much farther an Actor which holds this device can see when
+		/// aiming this HeldDevice sharply.
+		/// @return The length in world pixel units.
 		float GetSharpLength() const { return m_MaxSharpLength; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SetSharpLength
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets how much farther an Actor which holds this device can see when
-		//                  aiming this HeldDevice sharply.
-		// Arguments:       The length in world pixel units.
-		// Return value:    None.
-
+		/// Sets how much farther an Actor which holds this device can see when
+		/// aiming this HeldDevice sharply.
+		/// @param newLength The length in world pixel units.
 		void SetSharpLength(float newLength) { m_MaxSharpLength = newLength; }
 
 		/// Gets whether this HeldDevice can be supported when held.
@@ -262,22 +157,12 @@ namespace RTE {
 		/// @param value Whether this HeldDevice while be held at the support offset with the off-hand when reloading.
 		void SetUseSupportOffsetWhileReloading(bool value) { m_UseSupportOffsetWhileReloading = value; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetSupportOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns support offset.
-		// Arguments:       None.
-		// Return value:    Support offset value.
-
+		/// Returns support offset.
+		/// @return Support offset value.
 		Vector GetSupportOffset() const { return m_SupportOffset; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SetSupportOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets support offset.
-		// Arguments:       New support offset value.
-		// Return value:    None.
-
+		/// Sets support offset.
+		/// @param newOffset New support offset value.
 		void SetSupportOffset(Vector newOffset) { m_SupportOffset = newOffset; }
 
 		/// Gets whether this HeldDevice has any limitations on what can pick it up.
@@ -337,212 +222,109 @@ namespace RTE {
 		/// @param value The new recoil multiplier scalar.
 		void SetVisualRecoilMultiplier(float value) { m_VisualRecoilMultiplier = value; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetSharpAim
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the degree to which this is being aimed sharp. This will
-		//                  affect the accuracy and what GetParentOffset returns.
-		// Arguments:       A normalized scalar between 0 (no sharp aim) to 1.0 (best aim).
-		// Return value:    None.
-
+		/// Sets the degree to which this is being aimed sharp. This will
+		/// affect the accuracy and what GetParentOffset returns.
+		/// @param sharpAim A normalized scalar between 0 (no sharp aim) to 1.0 (best aim).
 		void SetSharpAim(float sharpAim) { m_SharpAim = sharpAim; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsWeapon
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether this is an offensive weapon or not.
-		// Arguments:       None.
-		// Return value:    Offensive weapon or not.
-
+		/// Indicates whether this is an offensive weapon or not.
+		/// @return Offensive weapon or not.
 		bool IsWeapon() { return m_HeldDeviceType == WEAPON; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsTool
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether this is a tool or not.
-		// Arguments:       None.
-		// Return value:    Tool or not.
-
+		/// Indicates whether this is a tool or not.
+		/// @return Tool or not.
 		bool IsTool() { return m_HeldDeviceType == TOOL; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsShield
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether this is a shield or not.
-		// Arguments:       None.
-		// Return value:    Shield or not.
-
+		/// Indicates whether this is a shield or not.
+		/// @return Shield or not.
 		bool IsShield() { return m_HeldDeviceType == SHIELD; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsDualWieldable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether this is a dual wieldable weapon or not.
-		// Arguments:       None.
-		// Return value:    Dual wieldable or not.
-
+		/// Indicates whether this is a dual wieldable weapon or not.
+		/// @return Dual wieldable or not.
 		bool IsDualWieldable() const { return m_DualWieldable; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDualWieldable
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether this is a dual wieldable weapon or not.
-		// Arguments:       Dual wieldable or not.
-		// Return value:    None.
-
+		/// Sets whether this is a dual wieldable weapon or not.
+		/// @param isDualWieldable Dual wieldable or not.
 		void SetDualWieldable(bool isDualWieldable) { m_DualWieldable = isDualWieldable; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsOneHanded
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether this can be held and operated effectively with one
-		//                  hand or not.
-		// Arguments:       None.
-		// Return value:    One handed device or not.
-
+		/// Indicates whether this can be held and operated effectively with one
+		/// hand or not.
+		/// @return One handed device or not.
 		bool IsOneHanded() const { return m_OneHanded; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetOneHanded
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether this can be held and operated effectively with one
-		//                  hand or not.
-		// Arguments:       New value.
-		// Return value:    None.
-
+		/// Sets whether this can be held and operated effectively with one
+		/// hand or not.
+		/// @param newValue New value.
 		void SetOneHanded(bool newValue) { m_OneHanded = newValue; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  CollideAtPoint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the collision response when another MO's Atom collides with
-		//                  this MO's physical representation. The effects will be applied
-		//                  directly to this MO, and also represented in the passed in HitData.
-		// Arguments:       Reference to the HitData struct which describes the collision. This
-		//                  will be modified to represent the results of the collision.
-		// Return value:    Whether the collision has been deemed valid. If false, then disregard
-		//                  any impulses in the Hitdata.
-
+		/// Calculates the collision response when another MO's Atom collides with
+		/// this MO's physical representation. The effects will be applied
+		/// directly to this MO, and also represented in the passed in HitData.
+		/// @param hitData Reference to the HitData struct which describes the collision. This
+		/// will be modified to represent the results of the collision.
+		/// @return Whether the collision has been deemed valid. If false, then disregard
+		/// any impulses in the Hitdata.
 		bool CollideAtPoint(HitData& hitData) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Activate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Activates one of this HDFirearm's features. Analogous to 'pulling
-		//                  the trigger'.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Activates one of this HDFirearm's features. Analogous to 'pulling
+		/// the trigger'.
 		virtual void Activate();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Deactivate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Deactivates one of this HDFirearm's features. Analogous to 'releasing
-		//                  the trigger'.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Deactivates one of this HDFirearm's features. Analogous to 'releasing
+		/// the trigger'.
 		virtual void Deactivate();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reload
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Throws out the currently used Magazine, if any, and puts in a new one
-		//                  after the reload delay is up.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Throws out the currently used Magazine, if any, and puts in a new one
+		/// after the reload delay is up.
 		virtual void Reload() {}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  IsActivated
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device is curtrently being activated.
-		// Arguments:       None.
-		// Return value:    Whether being activated.
-
+		/// Tells whether the device is curtrently being activated.
+		/// @return Whether being activated.
 		virtual bool IsActivated() const { return m_Activated; }
 
 		/// Gets the activation Timer for this HeldDevice.
 		/// @return The activation Timer for this HeldDevice.
 		const Timer& GetActivationTimer() const { return m_ActivationTimer; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  IsReloading
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device is curtrently being reloaded.
-		// Arguments:       None.
-		// Return value:    Whetehr being reloaded.
-
+		/// Tells whether the device is curtrently being reloaded.
+		/// @return Whetehr being reloaded.
 		virtual bool IsReloading() const { return false; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  DoneReloading
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device just finished reloading this frame.
-		// Arguments:       None.
-		// Return value:    Whether just done reloading this frame.
-
+		/// Tells whether the device just finished reloading this frame.
+		/// @return Whether just done reloading this frame.
 		virtual bool DoneReloading() const { return false; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  NeedsReloading
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device is curtrently in need of being reloaded.
-		// Arguments:       None.
-		// Return value:    Whetehr in need of reloading (ie not full).
-
+		/// Tells whether the device is curtrently in need of being reloaded.
+		/// @return Whetehr in need of reloading (ie not full).
 		virtual bool NeedsReloading() const { return false; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  IsFull
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether the device is curtrently full and reloading won't have
-		//                  any effect.
-		// Arguments:       None.
-		// Return value:    Whetehr magazine is full or not.
-
+		/// Tells whether the device is curtrently full and reloading won't have
+		/// any effect.
+		/// @return Whetehr magazine is full or not.
 		virtual bool IsFull() const { return true; }
 
 		/// Tells whether this HeldDevice is currently empty of ammo.
 		/// @return Whether this HeldDevice is empty.
 		virtual bool IsEmpty() const { return false; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates this MovableObject. Supposed to be done every frame.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this HeldDevice's current graphical representation to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the Scene.
-		//                  In which mode to draw in. See the DrawMode enumeration for the modes.
-		//                  Whether to not draw any extra 'ghost' items of this MovableObject,
-		//                  indicator arrows or hovering HUD text and so on.
-		// Return value:    None.
-
+		/// Draws this HeldDevice's current graphical representation to a
+		/// BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
+		/// @param mode In which mode to draw in. See the DrawMode enumeration for the modes. (default: g_DrawColor)
+		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this MovableObject, (default: false)
+		/// indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  DrawHUD
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this' current graphical HUD overlay representation to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the Scene.
-		//                  Which player's screen this is being drawn to. May affect what HUD elements
-		//                  get drawn etc.
-		// Return value:    None.
-
+		/// Draws this' current graphical HUD overlay representation to a
+		/// BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
+		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements (default: 0)
+		/// get drawn etc.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
 		/// Resest all the timers used by this. Can be emitters, etc. This is to prevent backed up emissions to come out all at once while this has been held dormant in an inventory.
@@ -563,9 +345,7 @@ namespace RTE {
 		bool TransferJointImpulses(Vector& jointImpulses, float jointStiffnessValueToUse = -1, float jointStrengthValueToUse = -1, float gibImpulseLimitValueToUse = -1) override;
 #pragma endregion
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -612,18 +392,10 @@ namespace RTE {
 		/// The multiplier for visual recoil
 		float m_VisualRecoilMultiplier;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this HeldDevice, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this HeldDevice, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            Scene.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the Scene class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "Scene.h"
 
 #include "PresetMan.h"
@@ -54,21 +42,10 @@ namespace RTE {
 	// Holds the path calculated by CalculateScenePath
 	thread_local std::list<Vector> s_ScenePath;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this Area, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void Scene::Area::Clear() {
 		m_BoxList.clear();
 		m_Name.clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a Area to be identical to another, by deep copy.
 
 	int Scene::Area::Create(const Area& reference) {
 		for (std::vector<Box>::const_iterator itr = reference.m_BoxList.begin(); itr != reference.m_BoxList.end(); ++itr)
@@ -79,25 +56,12 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Area object ready for use.
-
 	int Scene::Area::Create() {
 		if (Serializable::Create() < 0)
 			return -1;
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int Scene::Area::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -111,12 +75,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this Area with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int Scene::Area::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
@@ -129,11 +87,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  AddBox
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds a Box to this' area coverage.
 
 	bool Scene::Area::AddBox(const Box& newBox) {
 		if (newBox.IsEmpty())
@@ -156,12 +109,6 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  HasNoArea
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether this really has no Area at all, ie it doesn't have any
-	//                  Box:es with both width and height.
-
 	bool Scene::Area::HasNoArea() const {
 		// If no boxes, then yeah we don't have any area
 		if (m_BoxList.empty())
@@ -175,11 +122,6 @@ namespace RTE {
 
 		return true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsInside
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether a point is anywhere inside this Area's coverage.
 
 	bool Scene::Area::IsInside(const Vector& point) const {
 		std::list<Box> wrappedBoxes;
@@ -197,12 +139,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsInsideX
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether a coordinate is anywhere inside this Area's coverage, in the
-	//                  X-axis only.
-
 	bool Scene::Area::IsInsideX(float pointX) const {
 		std::list<Box> wrappedBoxes;
 		for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
@@ -219,12 +155,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsInsideY
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether a coordinate is anywhere inside this Area's coverage, in the
-	//                  Y-axis only.
-
 	bool Scene::Area::IsInsideY(float pointY) const {
 		std::list<Box> wrappedBoxes;
 		for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
@@ -240,12 +170,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  MovePointInsideX
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Moves a coordinate to the closest value which is within any of this
-	//                  Area's Box:es, in the X axis only.
 
 	bool Scene::Area::MovePointInsideX(float& pointX, int direction) const {
 		if (HasNoArea() || IsInsideX(pointX))
@@ -298,11 +222,6 @@ namespace RTE {
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetBoxInside
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the first Box encountered in this that contains a specific point.
-
 	Box* Scene::Area::GetBoxInside(const Vector& point) {
 		std::list<Box> wrappedBoxes;
 		for (std::vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
@@ -319,11 +238,6 @@ namespace RTE {
 		}
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  RemoveBoxInside
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes the first Box encountered in this that contains a specific point.
 
 	Box Scene::Area::RemoveBoxInside(const Vector& point) {
 		Box returnBox;
@@ -347,12 +261,6 @@ namespace RTE {
 		return returnBox;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetCenterPoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a center point for this of all the boxes waeighted by their sizes.
-	// Arguments:       None.
-
 	Vector Scene::Area::GetCenterPoint() const {
 		Vector areaCenter;
 
@@ -374,11 +282,6 @@ namespace RTE {
 		return areaCenter;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetRandomPoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a random coordinate contained within any of this' Box:es.
-
 	Vector Scene::Area::GetRandomPoint() const {
 		// If no boxes, then can't return valid point
 		if (m_BoxList.empty())
@@ -387,12 +290,6 @@ namespace RTE {
 		// Randomly choose a box, and a point within it
 		return m_BoxList[RandomNum<int>(0, m_BoxList.size() - 1)].GetRandomPoint();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this Scene, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void Scene::Clear() {
 		m_Location.Reset();
@@ -454,14 +351,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Scene object ready for use.
-	// Arguments:       The Terrain to use. Ownership IS transferred!
-	// Return value:    An error return value signaling sucess or any particular failure.
-	//                  Anything below 0 is an error signal.
-
 	int Scene::Create(SLTerrain* pNewTerrain) {
 		m_pTerrain = pNewTerrain;
 		// TODO: allow setting of other stuff too
@@ -469,11 +358,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MOPixel to be identical to another, by deep copy.
 
 	int Scene::Create(const Scene& reference) {
 		Entity::Create(reference);
@@ -537,12 +421,6 @@ namespace RTE {
 		m_IsSavedGameInternal = reference.m_IsSavedGameInternal;
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  LoadData
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Actually loads previously specified/created data into memory. Has
-	//                  to be done before using this SceneLayer.
 
 	int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 		RTEAssert(m_pTerrain, "Terrain not instantiated before trying to load its data!");
@@ -842,12 +720,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ExpandAIPlanAssemblySchemes
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:
-	//
-
 	int Scene::ExpandAIPlanAssemblySchemes() {
 		std::list<SceneObject*> newAIPlan;
 
@@ -910,11 +782,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SaveData
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves currently loaded bitmap data in memory to disk.
-
 	int Scene::SaveData(std::string pathBase, bool doAsyncSaves) {
 		const std::string fullPathBase = g_PresetMan.GetFullModulePath(pathBase);
 		if (fullPathBase.empty())
@@ -946,12 +813,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SavePreview
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves preview bitmap for this scene.
-	//
 
 	int Scene::SavePreview(const std::string& bitmapPath) {
 		// Do not save preview for MetaScenes!
@@ -1034,11 +895,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ClearData
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears out any previously loaded bitmap data from memory.
-
 	int Scene::ClearData() {
 		if (!m_pTerrain)
 			return 0;
@@ -1062,14 +918,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -1166,12 +1014,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this Scene with a Writer for
-	//                  later recreation with Create(Reader &reader);
 
 	int Scene::Save(Writer& writer) const {
 		Entity::Save(writer);
@@ -1548,11 +1390,6 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the Scene object.
-
 	void Scene::Destroy(bool notInherited) {
 		delete m_pTerrain;
 
@@ -1591,12 +1428,6 @@ namespace RTE {
 		Clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual Method:  MigrateToModule
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes this an original Preset in a different module than it was before.
-	//                  It severs ties deeply to the old module it was saved in.
-
 	bool Scene::MigrateToModule(int whichModule) {
 		if (!Entity::MigrateToModule(whichModule))
 			return false;
@@ -1605,12 +1436,6 @@ namespace RTE {
 
 		return true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          FillUnseenLayer
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a new SceneLayer for a specific team and fills it with black
-	//                  pixels that end up being a specific size on the screen.
 
 	void Scene::FillUnseenLayer(Vector pixelSize, int team, bool createNow) {
 		if (team == Activity::NoTeam || !(pixelSize.m_X >= 1.0 && pixelSize.m_Y >= 1.0))
@@ -1632,11 +1457,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetUnseenLayer
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets the unseen layer of a specific team.
-
 	void Scene::SetUnseenLayer(SceneLayer* pNewLayer, int team) {
 		if (team == Activity::NoTeam || !pNewLayer)
 			return;
@@ -1647,11 +1467,6 @@ namespace RTE {
 		// Calculate how many times smaller the unseen map is compared to the entire terrain's dimensions, and set it as the scale factor on the Unseen layer
 		m_apUnseenLayer[team]->SetScaleFactor(Vector((float)GetTerrain()->GetBitmap()->w / (float)m_apUnseenLayer[team]->GetBitmap()->w, (float)GetTerrain()->GetBitmap()->h / (float)m_apUnseenLayer[team]->GetBitmap()->h));
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ClearSeenPixels
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears the pixels that have been seen on a team's unseen layer.
 
 	void Scene::ClearSeenPixels(int team) {
 		if (team != Activity::NoTeam) {
@@ -1683,12 +1498,6 @@ namespace RTE {
 			m_CleanedPixels[team].clear();
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          CleanOrphanPixel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks a specific unseen pixel for only having two or less unseen
-	//                  neighbors, and if so, makes it seen.
 
 	bool Scene::CleanOrphanPixel(int posX, int posY, NeighborDirection checkingFrom, int team) {
 		if (team == Activity::NoTeam || !m_apUnseenLayer[team])
@@ -1799,25 +1608,9 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          WrapsX
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the scene wraps its scrolling around the X axis.
-
 	bool Scene::WrapsX() const { return m_pTerrain ? m_pTerrain->WrapsX() : false; }
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          WrapsY
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether the scene wraps its scrolling around the Y axis.
-
 	bool Scene::WrapsY() const { return m_pTerrain ? m_pTerrain->WrapsY() : false; }
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          PlaceResidentBrain
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Places the individual brain of a single player which may be stationed
-	//                  on this Scene, and registers them as such in an Activity.
 
 	bool Scene::PlaceResidentBrain(int player, Activity& newActivity) {
 		if (m_ResidentBrains[player]) {
@@ -1844,12 +1637,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          PlaceResidentBrains
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Places the individual brains of the various players which may be
-	//                  stationed on this Scene, and registers them as such in an Activity.
-
 	int Scene::PlaceResidentBrains(Activity& newActivity) {
 		int found = 0;
 
@@ -1860,13 +1647,6 @@ namespace RTE {
 
 		return found;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RetrieveResidentBrains
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Looks at the Activity and its players' registered brain Actors, and
-	//                  saves them as resident brains for this Scene. Done when a fight is over
-	//                  and the survivors remain!
 
 	int Scene::RetrieveResidentBrains(Activity& oldActivity) {
 		int found = 0;
@@ -1907,11 +1687,6 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AddPlacedObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds a SceneObject to be placed in this scene. Ownership IS transferred!
-
 	void Scene::AddPlacedObject(int whichSet, SceneObject* pObjectToAdd, int listOrder) {
 		if (!pObjectToAdd)
 			return;
@@ -1934,11 +1709,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RemovePlacedObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes a SceneObject placed in this scene.
-
 	void Scene::RemovePlacedObject(int whichSet, int whichToRemove) {
 		if (m_PlacedObjects[whichSet].empty())
 			return;
@@ -1957,12 +1727,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          PickPlacedObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns the last placed object that graphically overlaps an absolute
-	//                  point in the scene.
-
 	const SceneObject* Scene::PickPlacedObject(int whichSet, Vector& scenePoint, int* pListOrderPlace) const {
 		// REVERSE!
 		int i = m_PlacedObjects[whichSet].size() - 1;
@@ -1978,20 +1742,6 @@ namespace RTE {
 			*pListOrderPlace = -1;
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          PickPlacedActorInRange
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns the last placed actor object that is closer than range to scenePoint
-	//
-	// Arguments:       Which set of placed objects to pick from. See the PlacedObjectSets enum.
-	//                  The point in absolute scene coordinates that will be used to pick the
-	//                  closest placed SceneObject near it.
-	//                  The range to check for nearby objects.
-	//                  An int which will be filled out with the order place of any found object
-	//                  in the list. if nothing is found, it will get a value of -1.
-	//
-	// Return value:    The closest actor SceneObject, if any. Ownership is NOT transferred!
 
 	const SceneObject* Scene::PickPlacedActorInRange(int whichSet, Vector& scenePoint, int range, int* pListOrderPlace) const {
 		SceneObject* pFoundObject = 0;
@@ -2019,12 +1769,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          UpdatePlacedObjects
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updated the objects in the placed scene objects list of this. This is
-	//                  mostly for the editor to represent the items correctly.
-
 	void Scene::UpdatePlacedObjects(int whichSet) {
 		if (whichSet == PLACEONLOAD) {
 			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player)
@@ -2036,11 +1780,6 @@ namespace RTE {
 			(*itr)->FullUpdate();
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ClearPlacedObjectSet
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes all entries in a specific set of placed Objects.
 
 	int Scene::ClearPlacedObjectSet(int whichSet, bool weHaveOwnership) {
 		if (weHaveOwnership) {
@@ -2054,12 +1793,6 @@ namespace RTE {
 		return count;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetResidentBrain
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the resident brain Actor of a specific player from this scene,
-	//                  if there is any. OWNERSHIP IS NOT TRANSFERRED!
-
 	SceneObject* Scene::GetResidentBrain(int player) const {
 		//    if (m_ResidentBrains[player])
 		return m_ResidentBrains[player];
@@ -2070,12 +1803,6 @@ namespace RTE {
 		//    }
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetResidentBrain
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets the resident brain Actor of a specific player from this scene,
-	//                  if there is any. Ownership IS transferred!
-
 	void Scene::SetResidentBrain(int player, SceneObject* pNewBrain) {
 		if (MovableObject* asMo = dynamic_cast<MovableObject*>(m_ResidentBrains[player])) {
 			asMo->DestroyScriptState();
@@ -2083,11 +1810,6 @@ namespace RTE {
 		delete m_ResidentBrains[player];
 		m_ResidentBrains[player] = pNewBrain;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetResidentBrainCount
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the number of brains currently residing in this scene.
 
 	int Scene::GetResidentBrainCount() const {
 		int count = 0;
@@ -2097,11 +1819,6 @@ namespace RTE {
 		}
 		return count;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetArea
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds or modifies an existing area of this Scene.
 
 	bool Scene::SetArea(Area& newArea) {
 		for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
@@ -2119,12 +1836,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          HasArea
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks for the existence of a specific Area identified by a name.
-	//                  This won't throw any errors to the console if the Area isn't found.
-
 	bool Scene::HasArea(std::string areaName) {
 		for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
 			if ((*aItr).GetName() == areaName)
@@ -2132,11 +1843,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetArea
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a specific area box identified by a name. Ownership is NOT transferred!
 
 	Scene::Area* Scene::GetArea(const std::string_view& areaName, bool required) {
 		for (Scene::Area& area: m_AreaList) {
@@ -2152,11 +1858,6 @@ namespace RTE {
 		return nullptr;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RemoveArea
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Removes a specific Area identified by a name.
-
 	bool Scene::RemoveArea(std::string areaName) {
 		for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
 			if ((*aItr).GetName() == areaName) {
@@ -2166,13 +1867,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          WithinArea
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Checks if a point is within a specific named Area of this Scene. If
-	//                  no Area of the name is found, this just returns false without error.
-	// Arguments:       The name of the Area to try to check against.
 
 	bool Scene::WithinArea(std::string areaName, const Vector& point) const {
 		if (areaName.empty())
@@ -2186,11 +1880,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetTeamOwnership
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets the team who owns this Scene in a Metagame
-
 	void Scene::SetTeamOwnership(int newTeam) {
 		m_OwnedByTeam = newTeam;
 
@@ -2202,12 +1891,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          CalcBuildBudgetUse
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Figure out exactly how much of the build budget would be used if
-	//                  as many blueprint objects as can be afforded and exists would be built.
 
 	float Scene::CalcBuildBudgetUse(int player, int* pAffordCount, int* pAffordAIPlanCount) const {
 		if (pAffordCount)
@@ -2320,13 +2003,6 @@ namespace RTE {
 		return fundsAfforded;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ApplyAIPlan
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Puts the pre-built AI base plan into effect by transferring as many
-	//                  pieces as the current base budget allows from the AI plan to the actual
-	//                  blueprints to be built at this Scene.
-
 	float Scene::ApplyAIPlan(int player, int* pObjectsApplied) {
 		if (pObjectsApplied)
 			*pObjectsApplied = 0;
@@ -2384,13 +2060,6 @@ namespace RTE {
 
 		return valueOfApplied;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ApplyBuildBudget
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Actually builds as many objects in the specific player's Blueprint
-	//                  list as can be afforded by his build budget. The budget is deducted
-	//                  accordingly.
 
 	float Scene::ApplyBuildBudget(int player, int* pObjectsBuilt) {
 		if (pObjectsBuilt)
@@ -2599,12 +2268,6 @@ namespace RTE {
 		return fundsSpent;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RemoveAllPlacedActors
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Remove all actors that are in the placed set of objects to load for
-	//                  this scene. All except for an optionally specified team, that is.
-
 	int Scene::RemoveAllPlacedActors(int exceptTeam) {
 		int removedCount = 0;
 
@@ -2641,12 +2304,6 @@ namespace RTE {
 		return removedCount;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetOwnerOfAllDoors
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets the ownership of all doors placed in this scene to a specific team
-	// Arguments:       The team to change the ownership to
-
 	int Scene::SetOwnerOfAllDoors(int team, int player) {
 		int changedCount = 0;
 
@@ -2670,12 +2327,6 @@ namespace RTE {
 		return changedCount;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ResetPathFinding
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Recalculates all of the pathfinding data. This is very expensive, so
-	//                  do very rarely!
-
 	void Scene::ResetPathFinding() {
 		GetPathFinder(Activity::Teams::NoTeam)->RecalculateAllCosts();
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
@@ -2685,19 +2336,11 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	void Scene::BlockUntilAllPathingRequestsComplete() {
 		for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
 			while (GetPathFinder(static_cast<Activity::Teams>(team))->GetCurrentPathingRequests() != 0) {};
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          UpdatePathFinding
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Recalculates only the areas of the pathfinding data that have been
-	//                  marked as outdated.
 
 	void Scene::UpdatePathFinding() {
 		ZoneScoped;
@@ -2743,12 +2386,6 @@ namespace RTE {
 		m_PathfindingUpdated = true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          CalculatePath
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates and returns the least difficult path between two points on
-	//                  the current scene. Takes both distance and materials into account.
-
 	float Scene::CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float digStrength, Activity::Teams team) {
 		float totalCostResult = -1;
 
@@ -2786,15 +2423,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Lock
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Locks all dynamic internal scene bitmaps so that manipulaitons of the
-	//                  scene's color and matter representations can take place.
-	//                  Doing it in a separate method like this is more efficient because
-	//                  many bitmap manipulaitons can be performed between a lock and unlock.
-	//                  UnlockScene() should always be called after accesses are completed.
-
 	void Scene::Lock() {
 		//    RTEAssert(!m_Locked, "Hey, locking already locked scene!");
 		if (!m_Locked) {
@@ -2803,14 +2431,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Unlock
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Unlocks the scene's bitmaps and prevents access to display memory.
-	//                  Doing it in a separate method like this is more efficient because
-	//                  many bitmap accesses can be performed between a lock and an unlock.
-	//                  UnlockScene() should only be called after LockScene().
-
 	void Scene::Unlock() {
 		//    RTEAssert(m_Locked, "Hey, unlocking already unlocked scene!");
 		if (m_Locked) {
@@ -2818,12 +2438,6 @@ namespace RTE {
 			m_Locked = false;
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this Scene. Supposed to be done every frame
-	//                  before drawing.
 
 	void Scene::Update() {
 		ZoneScoped;

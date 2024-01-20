@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            Actor.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the Actor class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "Actor.h"
 
 #include "UInputMan.h"
@@ -49,17 +37,6 @@ namespace RTE {
 	bool Actor::m_sIconsLoaded = false;
 
 #define ARROWTIME 1000
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Constructor:     LuaBindRegister
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Registration function for exposing this' members to a LuaBind module.
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this Actor, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void Actor::Clear() {
 		m_Controller.Reset();
@@ -137,11 +114,6 @@ namespace RTE {
 		m_PieMenu.reset();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Actor object ready for use.
-
 	int Actor::Create() {
 		if (MOSRotating::Create() < 0) {
 			return -1;
@@ -178,11 +150,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a Actor to be identical to another, by deep copy.
 
 	int Actor::Create(const Actor& reference) {
 		MOSRotating::Create(reference);
@@ -306,14 +273,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return MOSRotating::ReadProperty(propName, reader));
 
@@ -403,12 +362,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this Actor with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int Actor::Save(Writer& writer) const {
 		MOSRotating::Save(writer);
 
@@ -486,11 +439,6 @@ namespace RTE {
 		MOSRotating::DestroyScriptState();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the Actor object.
-
 	void Actor::Destroy(bool notInherited) {
 		delete m_DeviceSwitchSound;
 		delete m_BodyHitSound;
@@ -535,20 +483,9 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          IsPlayerControlled
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Tells whether a player is currently controlling this.
-
 	bool Actor::IsPlayerControlled() const {
 		return m_Controller.GetInputMode() == Controller::CIM_PLAYER && m_Controller.GetPlayer() >= 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetTotalValue
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the total liquidation value of this Actor and all its carried
-	//                  gold and inventory.
 
 	float Actor::GetTotalValue(int nativeModule, float foreignMult, float nativeMult) const {
 		float totalValue = (GetGoldValue(nativeModule, foreignMult, nativeMult) / 2) + ((GetGoldValue(nativeModule, foreignMult, nativeMult) / 2) * (GetHealth() / GetMaxHealth()));
@@ -564,12 +501,6 @@ namespace RTE {
 		return totalValue;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          HasObject
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether this carries a specifically named object in its inventory.
-	//                  Also looks through the inventories of potential passengers, as applicable.
-
 	bool Actor::HasObject(std::string objectName) const {
 		if (MOSRotating::HasObject(objectName))
 			return true;
@@ -582,13 +513,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          HasObjectInGroup
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Shows whether this is or carries a specifically grouped object in its
-	//                  inventory. Also looks through the inventories of potential passengers,
-	//                  as applicable.
-
 	bool Actor::HasObjectInGroup(std::string groupName) const {
 		if (MOSRotating::HasObjectInGroup(groupName))
 			return true;
@@ -600,11 +524,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets which team this Actor belongs to.
 
 	void Actor::SetTeam(int team) {
 		MovableObject::SetTeam(team);
@@ -623,11 +542,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetControllerMode
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets this Actor's new Controller input mode.
-
 	void Actor::SetControllerMode(Controller::InputMode newMode, int newPlayer) {
 
 		Controller::InputMode previousControllerMode = m_Controller.GetInputMode();
@@ -641,21 +555,11 @@ namespace RTE {
 		m_NewControlTmr.Reset();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SwapControllerModes
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets this Actor's Controller mode and gives back what it used to be.
-
 	Controller::InputMode Actor::SwapControllerModes(Controller::InputMode newMode, int newPlayer) {
 		Controller::InputMode returnMode = m_Controller.GetInputMode();
 		SetControllerMode(newMode, newPlayer);
 		return returnMode;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Look
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Casts an unseen-revealing ray in the direction of where this is facing.
 
 	bool Actor::Look(float FOVSpread, float range) {
 		if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false)
@@ -726,21 +630,10 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  AddAIMOWaypoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds an MO in the scene as the next waypoint for this to go to, in order
-
 	void Actor::AddAIMOWaypoint(const MovableObject* pMOWaypoint) {
 		if (g_MovableMan.ValidMO(pMOWaypoint))
 			m_Waypoints.push_back(std::pair<Vector, const MovableObject*>(pMOWaypoint->GetPos(), pMOWaypoint));
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SwapNextInventory
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Swaps the next MovableObject carried by this Actor and puts one not
-	//                  currently carried into the into the back of the inventory of this.
 
 	MovableObject* Actor::SwapNextInventory(MovableObject* pSwapIn, bool muteSound) {
 		MovableObject* pRetDev = 0;
@@ -789,12 +682,6 @@ namespace RTE {
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SwapPrevInventory
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Swaps the prev MovableObject carried by this Actor and puts one not
-	//                  currently carried into the into the back of the inventory of this.
 
 	MovableObject* Actor::SwapPrevInventory(MovableObject* pSwapIn) {
 		MovableObject* pRetDev = 0;
@@ -845,12 +732,6 @@ namespace RTE {
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DropAllInventory
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Ejects all inventory items that this is carrying. It may not happen
-	//                  instantaneously, so check for ejection being complete with InventoryEmpty().
 
 	void Actor::DropAllInventory() {
 		MovableObject* pObject = 0;
@@ -921,8 +802,6 @@ namespace RTE {
 		m_Inventory.clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	void Actor::DropAllGold() {
 		const Material* goldMaterial = g_SceneMan.GetMaterialFromID(g_MaterialGold);
 		float velMin = 3.0F;
@@ -944,8 +823,6 @@ namespace RTE {
 		m_GoldCarried = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	bool Actor::AddToInventoryFront(MovableObject* itemToAdd) {
 		// This function is called often to add stuff we just removed from our hands, which may be set to delete so we need to guard against that lest we crash.
 		if (!itemToAdd || itemToAdd->IsSetToDelete()) {
@@ -956,8 +833,6 @@ namespace RTE {
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	bool Actor::AddToInventoryBack(MovableObject* itemToAdd) {
 		// This function is called often to add stuff we just removed from our hands, which may be set to delete so we need to guard against that lest we crash.
 		if (!itemToAdd || itemToAdd->IsSetToDelete()) {
@@ -967,12 +842,6 @@ namespace RTE {
 		m_Inventory.push_back(itemToAdd);
 		return true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GibThis
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gibs this, effectively destroying it and creating multiple gibs or
-	//                  pieces in its place.
 
 	void Actor::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		// Play death sound
@@ -1067,13 +936,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CollideAtPoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates the collision response when another MO's Atom collides with
-	//                  this MO's physical representation. The effects will be applied
-	//                  directly to this MO, and also represented in the passed in HitData.
-
 	bool Actor::CollideAtPoint(HitData& hd) {
 		return MOSRotating::CollideAtPoint(hd);
 
@@ -1087,14 +949,6 @@ namespace RTE {
 		*/
 		//    if (Status != ACTIVE)
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ParticlePenetration
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Determines whether a particle which has hit this MO will penetrate,
-	//                  and if so, whether it gets lodged or exits on the other side of this
-	//                  MO. Appropriate effects will be determined and applied ONLY IF there
-	//                  was penetration! If not, nothing will be affected.
 
 	bool Actor::ParticlePenetration(HitData& hd) {
 		bool penetrated = MOSRotating::ParticlePenetration(hd);
@@ -1123,21 +977,9 @@ namespace RTE {
 		return penetrated;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetAIModeIcon
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the icon bitmap associated with this' current AI mode and team.
-
 	BITMAP* Actor::GetAIModeIcon() {
 		return m_apAIIcons[m_AIMode];
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetLastMOWaypointID
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the ID of the last set AI MO waypoint of this. If none, g_NoMOID is returned.
-	// Arguments:       None.
-	// Return value:    The furthest set AI MO waypoint of this.
 
 	MOID Actor::GetAIMOWaypointID() const {
 		if (g_MovableMan.ValidMO(m_pMOMoveTarget))
@@ -1145,11 +987,6 @@ namespace RTE {
 		else
 			return g_NoMOID;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          UpdateMovePath
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the path to move along to the currently set movetarget.
 
 	void Actor::UpdateMovePath() {
 		if (g_SceneMan.GetScene() == nullptr) {
@@ -1200,11 +1037,6 @@ namespace RTE {
 		return m_AIBaseDigStrength;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          VerifyMOIDs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Verifieis whether all actor's MO has correct IDs. Should be used in Debug mode only.
-
 	void Actor::VerifyMOIDs() {
 		std::vector<MOID> MOIDs;
 		GetMOIDs(MOIDs);
@@ -1213,8 +1045,6 @@ namespace RTE {
 			RTEAssert(*it == g_NoMOID || *it < g_MovableMan.GetMOIDCount(), "Invalid MOID in actor");
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	void Actor::OnNewMovePath() {
 		if (!m_MovePath.empty()) {
@@ -1235,8 +1065,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	void Actor::PreControllerUpdate() {
 		if (m_PathRequest && m_PathRequest->complete) {
 			m_MovePath = const_cast<std::list<Vector>&>(m_PathRequest->path);
@@ -1250,8 +1078,6 @@ namespace RTE {
 			UpdateMovePath();
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	void Actor::Update() {
 		ZoneScoped;
@@ -1467,12 +1293,6 @@ namespace RTE {
 		m_Controller.Update();
 		Update();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DrawHUD
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this Actor's current graphical HUD overlay representation to a
-	//                  BITMAP of choice.
 
 	void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 		// This should indeed be a local var and not alter a member one in a draw func! Can cause nasty jittering etc if multiple sim updates are done without a drawing in between etc

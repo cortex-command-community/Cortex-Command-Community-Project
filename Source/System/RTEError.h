@@ -67,7 +67,7 @@ namespace RTE {
 		static bool ShowAssertMessageBox(const std::string& message);
 
 		/// Saves the current frame to a file.
-		/// @return Whether the file was saved successfully.@return 
+		/// @return Whether the file was saved successfully.@return
 		static bool DumpAbortScreen();
 
 		/// Attempts to save the current running Activity, so the player can hopefully resume where they were.

@@ -53,7 +53,7 @@ namespace RTE {
 		/// @param scenePos Position on scene.
 		/// @param drawLeftPos 'Left' position of bitmap on scene with negative values as if scene seam is 0,0.
 		/// @param drawRightPos 'Right' position of bitmap on scene with positive values.
-		/// @remark 
+		/// @remark
 		/// Unfortunately it's hard to explain how this works. It tries to represent scene bitmap as two parts with center in 0,0.
 		/// Right part is just plain visible part with coordinates from [0, scenewidth] and left part is imaginary bitmap as if we traversed it across the seam right-to-left with coordinates [0, -scenewidth].
 		/// So in order to be drawn each screen coordinates calculated twice for left and right 'bitmaps' and then one of them either flies away off-screen or gets drawn on the screen.

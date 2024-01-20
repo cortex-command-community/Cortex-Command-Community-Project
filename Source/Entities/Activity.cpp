@@ -806,8 +806,6 @@ namespace RTE {
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	void Activity::LoseControlOfActor(int player) {
 		if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
 			if (Actor* actor = m_ControlledActor[player]; actor && g_MovableMan.IsActor(actor)) {

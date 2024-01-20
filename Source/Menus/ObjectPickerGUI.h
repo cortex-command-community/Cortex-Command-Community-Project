@@ -39,11 +39,11 @@ namespace RTE {
 
 #pragma region Getters and Setters
 		/// Reports whether the menu is at all visible or not.
-		/// @return 
+		/// @return
 		bool IsVisible() const { return m_PickerState != PickerState::Disabled; }
 
 		/// Reports whether the menu is enabled or not.
-		/// @return 
+		/// @return
 		bool IsEnabled() const { return m_PickerState == PickerState::Enabled || m_PickerState == PickerState::Enabling; }
 
 		/// Enables or disables the menu. This will animate it in and out of view.

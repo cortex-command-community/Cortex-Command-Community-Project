@@ -107,7 +107,7 @@ namespace RTE {
 		void StartGame();
 
 		/// Updates the starting gold slider to the Activity difficulty setting (when applicable) and updates the value in the label according to the value in the slider.
-		/// @return 
+		/// @return
 		void UpdateStartingGoldSliderAndLabel();
 
 		/// Updates the currently hovered cell in the players and teams config box to apply the hovered visual and removes the hovered visual from any other cells. Also handles clicking on cells.

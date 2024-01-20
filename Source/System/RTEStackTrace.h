@@ -11,7 +11,7 @@ namespace RTE {
 
 	public:
 		/// Constructor method used to instantiate an RTEStackTrace object in system memory and make it ready for use.
-		/// @param options 
+		/// @param options
 		RTEStackTrace() :
 		    StackWalker() {}
 

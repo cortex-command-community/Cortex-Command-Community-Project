@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            GameActivity.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the GameActivity class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "GameActivity.h"
 
 #include "CameraMan.h"
@@ -48,12 +36,6 @@
 namespace RTE {
 
 	AbstractClassInfo(GameActivity, Activity);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this GameActivity, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void GameActivity::Clear() {
 		m_CPUTeam = -1;
@@ -119,11 +101,6 @@ namespace RTE {
 		m_WinnerTeam = -1;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the GameActivity object ready for use.
-
 	int GameActivity::Create() {
 		if (Activity::Create() < 0)
 			return -1;
@@ -142,11 +119,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a GameActivity to be identical to another, by deep copy.
 
 	int GameActivity::Create(const GameActivity& reference) {
 		if (Activity::Create(reference) < 0)
@@ -209,14 +181,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Activity::ReadProperty(propName, reader));
 
@@ -256,12 +220,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this GameActivity with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int GameActivity::Save(Writer& writer) const {
 		Activity::Save(writer);
 
@@ -279,11 +237,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the GameActivity object.
 
 	void GameActivity::Destroy(bool notInherited) {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -306,10 +259,6 @@ namespace RTE {
 		Clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetTeamTech
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets tech module name for specified team. Module must set must be loaded.
 	void GameActivity::SetTeamTech(int team, std::string tech) {
 		if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
 			if (tech == "-All-" || tech == "-Random-")
@@ -324,10 +273,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetCrabToHumanSpawnRatio
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns CrabToHumanSpawnRatio for specified module
 	float GameActivity::GetCrabToHumanSpawnRatio(int moduleid) {
 		if (moduleid > -1) {
 			const DataModule* pDataModule = g_PresetMan.GetDataModule(moduleid);
@@ -336,11 +281,6 @@ namespace RTE {
 		}
 		return 0.25;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetCPUTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets the current CPU-assisted team, if any (NoTeam) - LEGACY function
 
 	void GameActivity::SetCPUTeam(int team) {
 		if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
@@ -384,12 +324,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SwitchToActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the this to focus player control to a specific Actor for a
-	//                  specific team. OWNERSHIP IS NOT TRANSFERRED!
-
 	bool GameActivity::SwitchToActor(Actor* pActor, int player, int team) {
 		// Computer players don't focus on any Actor
 		if (!m_IsHuman[player])
@@ -407,12 +341,6 @@ namespace RTE {
 		return Activity::SwitchToActor(pActor, player, team);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SwitchToNextActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the this to focus player control to the next Actor of a
-	//                  specific team, other than the current one focused on.
-
 	void GameActivity::SwitchToNextActor(int player, int team, Actor* pSkip) {
 		m_InventoryMenuGUI[player]->SetEnabled(false);
 
@@ -426,12 +354,6 @@ namespace RTE {
 			m_ControlledActor[player]->GetPieMenu()->DoDisableAnimation();
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SwitchToPrevActor
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces this to focus player control to the previous Actor of a
-	//                  specific team, other than the current one focused on.
 
 	void GameActivity::SwitchToPrevActor(int player, int team, Actor* pSkip) {
 		m_InventoryMenuGUI[player]->SetEnabled(false);
@@ -447,29 +369,13 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AddObjectivePoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Created an objective point for one of the teams to show until cleared.
-
 	void GameActivity::AddObjectivePoint(std::string description, Vector objPos, int whichTeam, ObjectiveArrowDir arrowDir) {
 		m_Objectives.push_back(ObjectivePoint(description, objPos, whichTeam, arrowDir));
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          YSortObjectivePoints
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sorts all objective points according to their positions on the Y axis.
-
 	void GameActivity::YSortObjectivePoints() {
 		m_Objectives.sort(ObjPointYPosComparison());
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          AddOverridePurchase
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Adds somehting to the purchase list that will override what is set
-	//                  in the buy GUI next time CreateDelivery is called.
 
 	int GameActivity::AddOverridePurchase(const SceneObject* pPurchase, int player) {
 		if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
@@ -502,12 +408,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetOverridePurchaseList
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     First clears and then adds all the stuff in a Loadout to the override
-	//                  purchase list.
 
 	int GameActivity::SetOverridePurchaseList(const Loadout* pLoadout, int player) {
 		// First clear out the list
@@ -549,12 +449,6 @@ namespace RTE {
 		return finalListCost;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetOverridePurchaseList
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     First clears and then adds all the stuff in a Loadout to the override
-	//                  purchase list.
-
 	int GameActivity::SetOverridePurchaseList(std::string loadoutName, int player) {
 		// Find out the native module of this player
 		int nativeModule = 0;
@@ -571,12 +465,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          CreateDelivery
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Takes the current order out of a player's buy GUI, creates a Delivery
-	//                  based off it, and stuffs it into that player's delivery queue.
 
 	bool GameActivity::CreateDelivery(int player, int mode, Vector& waypoint, Actor* pTargetMO) {
 		int team = m_Team[player];
@@ -767,12 +655,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetupPlayers
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Precalculates the player-to-screen index map, counts the number of
-	//                  active players, teams etc.
-
 	void GameActivity::SetupPlayers() {
 		Activity::SetupPlayers();
 
@@ -791,12 +673,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int GameActivity::Start() {
 		// Set the split screen config before the Scene (and it SceneLayers, specifially) are loaded
@@ -1001,19 +877,9 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void GameActivity::SetPaused(bool pause) {
 		Activity::SetPaused(pause);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void GameActivity::End() {
 		Activity::End();
@@ -1072,12 +938,6 @@ namespace RTE {
 		m_ActivityState = ActivityState::Over;
 		m_GameOverTimer.Reset();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          UpdateEditing
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     This is a special update step for when any player is still editing the
-	//                  scene.
 
 	void GameActivity::UpdateEditing() {
 		// Editing the scene, just update the editor guis and see if players are ready to start or not
@@ -1208,12 +1068,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this GameActivity. Supposed to be done every frame
-	//                  before drawing.
 
 	void GameActivity::Update() {
 		Activity::Update();
@@ -2010,11 +1864,6 @@ namespace RTE {
 		*/
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void GameActivity::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		if (which < 0 || which >= c_MaxScreenCount)
 			return;
@@ -2377,12 +2226,6 @@ namespace RTE {
 		m_pBannerYellow[PoS]->Draw(pTargetBitmap);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this GameActivity's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
-
 	void GameActivity::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		GUIFont* pLargeFont = g_FrameMan.GetLargeFont();
 		GUIFont* pSmallFont = g_FrameMan.GetSmallFont();
@@ -2457,13 +2300,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetActiveCPUTeamCount
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns active CPU team count.
-	// Arguments:       None.
-	// Return value:    Returns active CPU team count.
-
 	int GameActivity::GetActiveCPUTeamCount() const {
 		int count = 0;
 
@@ -2474,13 +2310,6 @@ namespace RTE {
 		return count;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetActiveHumanTeamCount
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Returns active human team count.
-	// Arguments:       None.
-	// Return value:    Returns active human team count.
-
 	int GameActivity::GetActiveHumanTeamCount() const {
 		int count = 0;
 
@@ -2490,13 +2319,6 @@ namespace RTE {
 
 		return count;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          OtherTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the next other team number from the one passed in, if any. If there
-	//                  are more than two teams in this game, then the next one in the series
-	//                  will be returned here.
 
 	int GameActivity::OtherTeam(int team) {
 		// Only one team in this game, so can't return another one
@@ -2520,12 +2342,6 @@ namespace RTE {
 		return Teams::NoTeam;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          OneOrNoneTeamsLeft
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether there is one and only one team left this game with
-	//                  a brain in its ranks.
-
 	bool GameActivity::OneOrNoneTeamsLeft() {
 		// See if only one team remains with any brains
 		int brainTeamCount = 0;
@@ -2546,12 +2362,6 @@ namespace RTE {
 
 		return false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          WhichTeamLeft
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates which single team is left, if any.
-	// Arguments:       None.
 
 	int GameActivity::WhichTeamLeft() {
 		int whichTeam = Teams::NoTeam;
@@ -2575,11 +2385,6 @@ namespace RTE {
 		return Teams::NoTeam;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          NoTeamLeft
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether there are NO teams left with any brains at all!
-
 	bool GameActivity::NoTeamLeft() {
 		for (int t = Teams::TeamOne; t < Teams::MaxTeamCount; ++t) {
 			if (!m_TeamActive[t])
@@ -2589,13 +2394,6 @@ namespace RTE {
 		}
 		return true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  InitAIs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Goes through all Actor:s currently in the MovableMan and gives each
-	//                  one not controlled by a Controller a CAI and appropriate AIMode setting
-	//                  based on team and CPU team.
 
 	void GameActivity::InitAIs() {
 		Actor* pActor = 0;
@@ -2629,13 +2427,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DisableAIs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Goes through all Actor:s currently in the MovableMan and gives each
-	//                  one not controlled by a Controller a CAI and appropriate AIMode setting
-	//                  based on team and CPU team.
-
 	void GameActivity::DisableAIs(bool disable, int whichTeam) {
 		Actor* pActor = 0;
 		Actor* pFirstActor = 0;
@@ -2656,11 +2447,6 @@ namespace RTE {
 			} while (pActor && pActor != pFirstActor);
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Simply draws this' arrow relative to a point on a bitmap.
 
 	void GameActivity::ObjectivePoint::Draw(BITMAP* pTargetBitmap, BITMAP* pArrowBitmap, const Vector& arrowPoint, ObjectiveArrowDir arrowDir) {
 		if (!pTargetBitmap || !pArrowBitmap)

@@ -82,7 +82,7 @@ namespace RTE {
 		void EnableServerMode() { m_IsInServerMode = true; }
 
 		///
-		/// @return 
+		/// @return
 		bool ReadyForSimulation();
 
 		/// Gets the network player's name.
@@ -133,14 +133,14 @@ namespace RTE {
 
 #pragma region Network Scene Handling
 		///
-		/// @param isLocked 
+		/// @param isLocked
 		void LockScene(bool isLocked);
 
 		///
 		void ResetScene();
 
 		///
-		/// @param terrainChange 
+		/// @param terrainChange
 		void RegisterTerrainChange(NetworkTerrainChange terrainChange);
 #pragma endregion
 
@@ -291,158 +291,158 @@ namespace RTE {
 	private:
 #pragma region Thread Handling
 		///
-		/// @param server 
-		/// @param player 
+		/// @param server
+		/// @param player
 		static void BackgroundSendThreadFunction(NetworkServer* server, short player);
 
 		///
-		/// @param player 
-		/// @param reason 
+		/// @param player
+		/// @param reason
 		void SetThreadExitReason(short player, int reason) { m_ThreadExitReason[player] = reason; };
 #pragma endregion
 
 #pragma region Network Event Handling
 		///
-		/// @param packet 
-		/// @return 
+		/// @param packet
+		/// @return
 		unsigned char GetPacketIdentifier(RakNet::Packet* packet) const;
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveNewIncomingConnection(RakNet::Packet* packet);
 
 		///
-		/// @param player 
+		/// @param player
 		void SendAcceptedMsg(short player);
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveDisconnection(RakNet::Packet* packet);
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveRegisterMsg(RakNet::Packet* packet);
 
 		///
-		/// @param addr 
+		/// @param addr
 		void SendNATServerRegistrationMsg(RakNet::SystemAddress address);
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveInputMsg(RakNet::Packet* packet);
 
 		///
-		/// @param player 
-		/// @param msg 
+		/// @param player
+		/// @param msg
 		void ProcessInputMsg(short player, MsgInput msg);
 
 		///
-		/// @param player 
+		/// @param player
 		void ClearInputMessages(short player);
 
 		///
-		/// @param player 
+		/// @param player
 		void SendSoundData(short player);
 
 		///
-		/// @param player 
+		/// @param player
 		void SendMusicData(short player);
 #pragma endregion
 
 #pragma region Network Scene Handling
 		///
-		/// @param player 
-		/// @return 
+		/// @param player
+		/// @return
 		bool IsSceneAvailable(short player) const { return m_SceneAvailable[player]; }
 
 		///
-		/// @param player 
-		/// @return 
+		/// @param player
+		/// @return
 		bool NeedToSendSceneSetupData(short player) const { return m_SendSceneSetupData[player]; }
 
 		///
-		/// @param player 
+		/// @param player
 		void SendSceneSetupData(short player);
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveSceneSetupDataAccepted(RakNet::Packet* packet);
 
 		///
-		/// @param player 
-		/// @return 
+		/// @param player
+		/// @return
 		bool NeedToSendSceneData(short player) const { return m_SendSceneData[player]; }
 
 		///
-		/// @param player 
+		/// @param player
 		void SendSceneData(short player);
 
 		///
-		/// @param player 
+		/// @param player
 		void ClearTerrainChangeQueue(short player);
 
 		///
-		/// @param player 
-		/// @return 
+		/// @param player
+		/// @return
 		bool NeedToProcessTerrainChanges(short player);
 
 		///
-		/// @param player 
+		/// @param player
 		void ProcessTerrainChanges(short player);
 
 		///
-		/// @param player 
-		/// @param terrainChange 
+		/// @param player
+		/// @param terrainChange
 		void SendTerrainChangeMsg(short player, NetworkTerrainChange terrainChange);
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveSceneAcceptedMsg(RakNet::Packet* packet);
 
 		///
-		/// @param player 
+		/// @param player
 		void SendSceneEndMsg(short player);
 #pragma endregion
 
 #pragma region Network Frame Handling and Drawing
 		///
-		/// @param player 
-		/// @param w 
-		/// @param h 
+		/// @param player
+		/// @param w
+		/// @param h
 		void CreateBackBuffer(short player, int w, int h);
 
 		///
-		/// @param player 
-		/// @param w 
-		/// @param h 
+		/// @param player
+		/// @param w
+		/// @param h
 		void ClearBackBuffer(int player, int w, int h);
 
 		///
-		/// @param player 
+		/// @param player
 		void DestroyBackBuffer(short player);
 
 		///
-		/// @param player 
+		/// @param player
 		void SendFrameSetupMsg(short player);
 
 		///
-		/// @param player 
-		/// @return 
+		/// @param player
+		/// @return
 		bool SendFrameData(short player) const { return m_SendFrameData[player]; }
 
 		///
-		/// @param player 
+		/// @param player
 		void SendPostEffectData(short player);
 
 		///
-		/// @param player 
-		/// @return 
+		/// @param player
+		/// @return
 		int SendFrame(short player);
 #pragma endregion
 
 #pragma region Network Stats Handling
 		///
-		/// @param player 
+		/// @param player
 		void UpdateStats(short player);
 
 		///
@@ -459,10 +459,10 @@ namespace RTE {
 		RakNet::RakNetGUID GetServerGUID() const { return m_Server->GetGuidFromSystemAddress(RakNet::UNASSIGNED_SYSTEM_ADDRESS); }
 
 		///
-		/// @param rakPeer 
-		/// @param address 
-		/// @param port 
-		/// @return 
+		/// @param rakPeer
+		/// @param address
+		/// @param port
+		/// @return
 		RakNet::SystemAddress ConnectBlocking(RakNet::RakPeerInterface* rakPeer, const char* address, unsigned short port);
 
 		/// Clears all the member variables of this NetworkServer, effectively resetting the members of this abstraction level only.

@@ -92,7 +92,7 @@ namespace RTE {
 		static void PrintLoadingToCLI(const std::string& reportString, bool newItem = false);
 
 		/// Prints console output to command-line.
-		/// @param inputString 
+		/// @param inputString
 		static void PrintToCLI(const std::string& stringToPrint);
 #pragma endregion
 

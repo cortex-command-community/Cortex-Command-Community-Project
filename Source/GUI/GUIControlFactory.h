@@ -7,12 +7,8 @@ namespace RTE {
 	class GUIControlFactory {
 
 	public:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CreateControl
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Method used for creating controls
-		// Arguments:       Control Type Name.
-
+		/// Method used for creating controls
+		/// @param Manager Control Type Name.
 		static GUIControl* CreateControl(GUIManager* Manager, GUIControlManager* ControlManager, const std::string& ControlName);
 	};
 }; // namespace RTE

@@ -305,7 +305,7 @@ namespace RTE {
 		/// Sets the mouse to be trapped in the middle of the screen so it doesn't go out and click on other windows etc.
 		/// This is usually used when the cursor is invisible and only relative mouse movements are used.
 		/// @param trap Whether to trap the mouse or not.
-		/// @param whichPlayer 
+		/// @param whichPlayer
 		/// Which player is trying to control the mouse.
 		/// Only the player with actual control over the mouse will affect its trapping here. -1 means change mouse trapping regardless of player.
 		void TrapMousePos(bool trap = true, int whichPlayer = -1);

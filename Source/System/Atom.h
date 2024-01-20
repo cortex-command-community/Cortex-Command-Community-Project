@@ -303,7 +303,7 @@ namespace RTE {
 
 		/// Takes one step along the trajectory segment set up by SetupSeg(). The Scene MUST BE LOCKED before calling this!
 		/// @param numSteps The number of steps to take.
-		/// @return 
+		/// @return
 		/// Whether anything was hit during the steps or not. MO hits will only be reported if this Atom is set to hit them, and the MO hit is not ignored by this Atom (if the segment started on that MO).
 		/// Also if terrain hits are temporarily disabled, they will not be reported.
 		bool StepForward(int numSteps = 1);
@@ -337,12 +337,12 @@ namespace RTE {
 
 #pragma region Operator Overloads
 		/// New operator overload for the pool allocation of Atoms.
-		/// @param size 
-		/// @return 
+		/// @param size
+		/// @return
 		static void* operator new(size_t size) { return Atom::GetPoolMemory(); }
 
 		/// Delete operator overload for the pool deallocation of Atoms.
-		/// @param instance 
+		/// @param instance
 		static void operator delete(void* instance) { Atom::ReturnPoolMemory(instance); }
 
 		/// An assignment operator for setting one Atom equal to another.

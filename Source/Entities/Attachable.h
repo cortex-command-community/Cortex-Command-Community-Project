@@ -312,7 +312,7 @@ namespace RTE {
 		/// Determines whether a particle which has hit this MO will penetrate, and if so, whether it gets lodged or exits on the other side of this MO.
 		/// Appropriate effects will be determined and applied ONLY IF there was penetration! If not, nothing will be affected.
 		/// @param hitData The HitData describing the collision in detail, the impulses have to have been filled out!
-		/// @return 
+		/// @return
 		/// Whether the particle managed to penetrate into this MO or not.
 		/// If something other than an MOPixel or MOSParticle is being passed in as the hitor, false will trivially be returned here.
 		bool ParticlePenetration(HitData& hitData) override;

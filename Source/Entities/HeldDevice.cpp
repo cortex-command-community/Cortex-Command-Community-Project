@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            HeldDevice.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the HeldDevice class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "HeldDevice.h"
 
 #include "CameraMan.h"
@@ -29,12 +17,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(HeldDevice, Attachable, 50);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this HeldDevice, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void HeldDevice::Clear() {
 		m_HeldDeviceType = WEAPON;
@@ -65,11 +47,6 @@ namespace RTE {
 		// NOTE: This special override of a parent class member variable avoids needing an extra variable to avoid overwriting INI values.
 		m_CollidesWithTerrainWhileAttached = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the Round object ready for use.
 
 	int HeldDevice::Create() {
 		if (Attachable::Create() < 0)
@@ -122,11 +99,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a HeldDevice to be identical to another, by deep copy.
-
 	int HeldDevice::Create(const HeldDevice& reference) {
 		Attachable::Create(reference);
 
@@ -163,14 +135,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int HeldDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Attachable::ReadProperty(propName, reader));
@@ -219,12 +183,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this HeldDevice with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int HeldDevice::Save(Writer& writer) const {
 		Attachable::Save(writer);
 		/*
@@ -257,25 +215,12 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the HeldDevice object.
-
 	void HeldDevice::Destroy(bool notInherited) {
 
 		if (!notInherited)
 			Attachable::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetStanceOffset
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the current position offset of this HeldDevice's joint relative
-	//                  from the parent Actor's position, if attached.
-	// Arguments:       None.
-	// Return value:    A const reference to the current stance parent offset.
 
 	Vector HeldDevice::GetStanceOffset() const {
 		if (m_SharpAim > 0) {
@@ -286,12 +231,6 @@ namespace RTE {
 			return m_StanceOffset.GetXFlipped(m_HFlipped);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetSupportPos
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the absolute position of the support handhold that this HeldDevice
-	//                  offers.
-
 	Vector HeldDevice::GetSupportPos() const {
 		/*
 		    Vector rotOff(m_SupportOffset.GetYFlipped(m_HFlipped));
@@ -300,12 +239,6 @@ namespace RTE {
 		*/
 		return m_Pos + RotateOffset(m_SupportOffset);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetMagazinePos
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the absolute position of the magazine or other equivalent point of
-	//                  this.
 
 	Vector HeldDevice::GetMagazinePos() const {
 		return m_Pos;
@@ -328,13 +261,6 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  CollideAtPoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Calculates the collision response when another MO's Atom collides with
-	//                  this MO's physical representation. The effects will be applied
-	//                  directly to this MO, and also represented in the passed in HitData.
-
 	bool HeldDevice::CollideAtPoint(HitData& hd) {
 		if (!m_GetsHitByMOsWhenHeld && IsBeingHeld()) {
 			return false;
@@ -343,23 +269,12 @@ namespace RTE {
 		return Attachable::CollideAtPoint(hd);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Activate
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Activates this HDFirearm. Analogous to 'pulling the trigger'.
-
 	void HeldDevice::Activate() {
 		if (!m_Activated) {
 			m_ActivationTimer.Reset();
 		}
 		m_Activated = true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Deactivate
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Deactivates one of this HDFirearm's features. Analogous to 'releasing
-	//                  the trigger'.
 
 	void HeldDevice::Deactivate() {
 		m_Activated = false;
@@ -410,11 +325,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this HeldDevice. Supposed to be done every frame.
-
 	void HeldDevice::Update() {
 		Attachable::Update();
 
@@ -453,12 +363,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this HeldDevice's current graphical representation to a
-	//                  BITMAP of choice.
-
 	void HeldDevice::Draw(BITMAP* pTargetBitmap,
 	                      const Vector& targetPos,
 	                      DrawMode mode,
@@ -489,12 +393,6 @@ namespace RTE {
 		#endif
 		*/
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  DrawHUD
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this Actor's current graphical HUD overlay representation to a
-	//                  BITMAP of choice.
 
 	void HeldDevice::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 		if (!m_HUDVisible) {

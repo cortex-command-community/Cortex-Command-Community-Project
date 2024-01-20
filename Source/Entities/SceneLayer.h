@@ -30,7 +30,7 @@ namespace RTE {
 		/// @param offset The initial scroll offset.
 		/// @param wrapX Whether the layer should wrap around or stop when scrolling beyond its bitmap's boundaries on the X axis.
 		/// @param wrapY Whether the layer should wrap around or stop when scrolling beyond its bitmap's boundaries on the Y axis.
-		/// @param scrollInfo 
+		/// @param scrollInfo
 		/// A vector whose components define two different things, depending on wrap arguments.
 		/// If a wrap argument is set to false, the corresponding component here will be interpreted as the width (X) or height (Y) (in pixels) of the total bitmap area that this layer is allowed to scroll across before stopping at an edge.
 		/// If wrapping is set to true, the value in scrollInfo is simply the ratio of offset at which any scroll operations will be done in.
@@ -44,7 +44,7 @@ namespace RTE {
 		/// @param offset The initial scroll offset.
 		/// @param wrapX Whether the layer should wrap around or stop when scrolling beyond its bitmap's boundaries on the X axis.
 		/// @param wrapY Whether the layer should wrap around or stop when scrolling beyond its bitmap's boundaries on the Y axis.
-		/// @param scrollInfo 
+		/// @param scrollInfo
 		/// A vector whose components define two different things, depending on wrap arguments.
 		/// If a wrap argument is set to false, the corresponding component here will be interpreted as the width (X) or height (Y) (in pixels) of the total bitmap area that this layer is allowed to scroll across before stopping at an edge.
 		/// If wrapping is set to true, the value in scrollInfo is simply the ratio of offset at which any scroll operations will be done in.
@@ -135,7 +135,7 @@ namespace RTE {
 		/// Returns whether the integer coordinates passed in are within the bounds of this SceneLayer.
 		/// @param pixelX The X coordinates of the pixel.
 		/// @param pixelY The Y coordinates of the pixel.
-		/// @param margin 
+		/// @param margin
 		/// @return Whether within bounds or not.
 		bool IsWithinBounds(int pixelX, int pixelY, int margin = 0) const;
 #pragma endregion
@@ -185,7 +185,7 @@ namespace RTE {
 		/// @param left The position of the left side of the area to be drawn upon.
 		/// @param top The position of the top of the area to be drawn upon.
 		/// @param right The position of the right side of the area to be drawn upon.
-		/// @param bottom"The position of the bottom of the area to be drawn upon 
+		/// @param bottom"The position of the bottom of the area to be drawn upon
 		void RegisterDrawing(int left, int top, int right, int bottom);
 
 		/// Registers an area of the SceneLayer to be drawn upon. These areas will be cleared when ClearBitmap is called.
@@ -231,8 +231,8 @@ namespace RTE {
 		Vector m_ScaledDimensions; //!< The dimensions of this SceneLayer adjusted to the scaling factor.
 
 		/// Initialize the scroll ratios from the scroll info. Must be done after the bitmap has been created.
-		/// @param initForNetworkPlayer 
-		/// @param player 
+		/// @param initForNetworkPlayer
+		/// @param player
 		void InitScrollRatios(bool initForNetworkPlayer = false, int player = Players::NoPlayer);
 
 		/// Wraps or bounds a position coordinate if it is out of bounds of the SceneLayer, depending on the wrap settings of this SceneLayer.

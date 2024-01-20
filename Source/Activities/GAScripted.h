@@ -1,18 +1,11 @@
 #ifndef _RTEGASCRIPTED_
 #define _RTEGASCRIPTED_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            GAScripted.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the ActivityMan class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the ActivityMan class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "GameActivity.h"
 #include "GlobalScript.h"
 #include "Box.h"
@@ -23,21 +16,13 @@ namespace RTE {
 
 	class ACraft;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           GAScripted
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Scripted activity
-	// Parent(s):       GameActivity.
-	// Class history:   07/03/2008 GAScripted created.
-
+	/// Scripted activity
 	class GAScripted : public GameActivity {
 
 		friend class LuaMan;
 		friend class ActivityMan;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		ScriptFunctionNames("StartActivity", "UpdateActivity", "PauseActivity", "EndActivity", "OnSave", "CraftEnteredOrbit", "OnMessage", "OnGlobalMessage");
 
@@ -46,215 +31,116 @@ namespace RTE {
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GAScripted
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GAScripted object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a GAScripted object in system
+		/// memory. Create() should be called before using the object.
 		GAScripted() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~GAScripted
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a GAScripted object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a GAScripted object before deletion
+		/// from system memory.
 		~GAScripted() override { Destroy(true); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the GAScripted object ready for use.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the GAScripted object ready for use.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the GAScripted object ready for use.
-		// Arguments:       The filepath to the script that defines this' Lua-defined derivation
-		//                  of this class.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the GAScripted object ready for use.
+		/// @param scriptPath The filepath to the script that defines this' Lua-defined derivation
+		/// of this class.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(std::string scriptPath, std::string scriptClassName) {
 			m_ScriptPath = scriptPath;
 			m_LuaClassName = scriptClassName;
 			return Create();
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a GAScripted to be identical to another, by deep copy.
-		// Arguments:       A reference to the GAScripted to deep copy.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Creates a GAScripted to be identical to another, by deep copy.
+		/// @param reference A reference to the GAScripted to deep copy.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(const GAScripted& reference);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire GAScripted, including its inherited members, to their
-		//                  default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire GAScripted, including its inherited members, to their
+		/// default settings or values.
 		void Reset() override {
 			Clear();
 			Activity::Reset();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the GAScripted object.
-		// Arguments:       Whether to only destroy the members defined in this derived class, or
-		//                  to destroy all inherited members also.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the GAScripted object.
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
+		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  ReloadScripts
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reloads the preset scripts of this object, from the same script file
-		//                  path as was originally defined. This will also update the original
-		//                  preset in the PresetMan with the updated scripts so future objects
-		//                  spawned will use the new scripts.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Reloads the preset scripts of this object, from the same script file
+		/// path as was originally defined. This will also update the original
+		/// preset in the PresetMan with the updated scripts so future objects
+		/// spawned will use the new scripts.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int ReloadScripts() override;
 
 		/// Refreshes our activity functions to find any changes from script.
 		void RefreshActivityFunctions();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetLuaClassName
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the class name of the Lua-derived class defined in this' script.
-		// Arguments:       None.
-		// Return value:    A string with the friendly-formatted Lua type name of this object.
-
+		/// Gets the class name of the Lua-derived class defined in this' script.
+		/// @return A string with the friendly-formatted Lua type name of this object.
 		const std::string& GetLuaClassName() const { return m_LuaClassName; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SceneIsCompatible
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells if a particular Scene supports this specific Activity on it.
-		//                  Usually that means certain Area:s need to be defined in the Scene.
-		// Arguments:       The Scene to check if it supports this Activiy. Ownership IS NOT TRANSFERRED!
-		//                  How many teams we're checking for. Some scenes may support and activity
-		//                  but only for a limited number of teams. If -1, not applicable.
-		// Return value:    Whether the Scene has the right stuff.
-
+		/// Tells if a particular Scene supports this specific Activity on it.
+		/// Usually that means certain Area:s need to be defined in the Scene.
+		/// @param pScene The Scene to check if it supports this Activiy. Ownership IS NOT TRANSFERRED!
+		/// @param teams How many teams we're checking for. Some scenes may support and activity (default: -1)
+		/// but only for a limited number of teams. If -1, not applicable.
+		/// @return Whether the Scene has the right stuff.
 		bool SceneIsCompatible(Scene* pScene, int teams = -1) override;
 
 		/// Handles when an ACraft has left the game scene and entered orbit, though does not delete it. Ownership is NOT transferred, as the ACraft's inventory is just 'unloaded'.
 		/// @param orbitedCraft The ACraft instance that entered orbit. Ownership is NOT transferred!
 		void HandleCraftEnteringOrbit(ACraft* orbitedCraft) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Start
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Officially starts the game accroding to parameters previously set.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Officially starts the game accroding to parameters previously set.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Start() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Pause
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Pauses and unpauses the game.
-		// Arguments:       Whether to pause the game or not.
-		// Return value:    None.
-
+		/// Pauses and unpauses the game.
+		/// @param pause Whether to pause the game or not. (default: true)
 		void SetPaused(bool pause = true) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  End
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Forces the current game's end.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Forces the current game's end.
 		void End() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the state of this ActivityMan. Supposed to be done every frame
-		//                  before drawing.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the state of this ActivityMan. Supposed to be done every frame
+		/// before drawing.
 		void Update() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  UpdateGlobalScripts
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates globals scripts loaded with this activity.
-		// Arguments:       Whether it's an early update, during Activity update, or late update, after MovableMan
-		// Return value:    None.
-
+		/// Updates globals scripts loaded with this activity.
+		/// @param lateUpdate Whether it's an early update, during Activity update, or late update, after MovableMan
 		void UpdateGlobalScripts(bool lateUpdate);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  DrawGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-		// Arguments:       A pointer to a screen-sized BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the scene.
-		//                  Which screen's GUI to draw onto the bitmap.
-		// Return value:    None.
-
+		/// Draws the currently active GUI of a screen to a BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a screen-sized BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
+		/// @param which Which screen's GUI to draw onto the bitmap. (default: 0)
 		void DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int which = 0) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this ActivityMan's current graphical representation to a
-		//                  BITMAP of choice. This includes all game-related graphics.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the scene.
-		// Return value:    None.
-
+		/// Draws this ActivityMan's current graphical representation to a
+		/// BITMAP of choice. This includes all game-related graphics.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
 		int RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  CollectRequiredAreas
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Goes through the script file and checks for any mentions and uses of
-		//                  Area:s that are required for this Activity to run in a Scene.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Goes through the script file and checks for any mentions and uses of
+		/// Area:s that are required for this Activity to run in a Scene.
 		void CollectRequiredAreas();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  InitAIs
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Does nothing - we do this in script! Just overrides the base behaviour.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Does nothing - we do this in script! Just overrides the base behaviour.
 		void InitAIs() override{};
 
 		// Member variables
@@ -272,9 +158,7 @@ namespace RTE {
 
 		std::unordered_map<std::string, std::unique_ptr<LuabindObjectWrapper>> m_ScriptFunctions; //!< A map of LuabindObjectWrappers that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
 		/// Returns whether this GAScripted has an OnSave function, to act as a default for whether saving is allowed or not.
 		/// @return Whether this GAScripted has an OnSave function
@@ -283,14 +167,8 @@ namespace RTE {
 		/// Adds this GAScripted's PieSlices, and any active GlobalScripts' PieSlices, to any active PieMenus.
 		void AddPieSlicesToActiveActorPieMenus();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this Activity, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this Activity, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 	};
 

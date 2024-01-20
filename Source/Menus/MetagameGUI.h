@@ -1,18 +1,11 @@
 #ifndef _METAGAMEGUI_
 #define _METAGAMEGUI_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MetagameGUI.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     MetagameGUI class
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// MetagameGUI class
+/// @author Daniel Tabar
+/// dtabar@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "ActivityMan.h"
 #include "Timer.h"
 #include "GUIBanner.h"
@@ -39,18 +32,10 @@ namespace RTE {
 	class Activity;
 	class GAScripted;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           MetagameGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A full menu system that represents the metagame GUI for Cortex Command
-	// Parent(s):       Serializable.
-	// Class history:   8/22/2008 MetagameGUI Created.
-
+	/// A full menu system that represents the metagame GUI for Cortex Command
 	class MetagameGUI : public Serializable {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 		SerializableClassNameGetter
 		    SerializableOverrideMethods
 
@@ -154,677 +139,348 @@ namespace RTE {
 				m_AnimTimer.Reset();
 			}
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Method:          Draw
-			//////////////////////////////////////////////////////////////////////////////////////////
-			// Description:     Draws this SiteTarget onto a bitmap of choice.
-			// Arguments:       The bitmap to draw to.
-			// Return value:    None.
-
+			/// Draws this SiteTarget onto a bitmap of choice.
+			/// @param drawBitmap The bitmap to draw to.
 			void Draw(BITMAP* drawBitmap) const;
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     MetagameGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a MetagameGUI object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a MetagameGUI object in system
+		/// memory. Create() should be called before using the object.
 		MetagameGUI() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~MetagameGUI
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a MetagameGUI object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a MetagameGUI object before deletion
+		/// from system memory.
 		~MetagameGUI() { Destroy(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the MetagameGUI object ready for use.
-		// Arguments:       A poitner to a Controller which will control this Menu. Ownership is
-		//                  NOT TRANSFERRED!
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the MetagameGUI object ready for use.
+		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
+		/// NOT TRANSFERRED!
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(Controller* pController);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire MetagameGUI, including its inherited members, to
-		//                  their default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire MetagameGUI, including its inherited members, to
+		/// their default settings or values.
 		void Reset() override { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the MetagameGUI object.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the MetagameGUI object.
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetGUIControlManager
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the GUIControlManager owned and used by this.
-		// Arguments:       None.
-		// Return value:    The GUIControlManager. Ownership is not transferred!
-
+		/// Gets the GUIControlManager owned and used by this.
+		/// @return The GUIControlManager. Ownership is not transferred!
 		GUIControlManager* GetGUIControlManager();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Enables or disables the menu. This will animate it in and out of view.
-		// Arguments:       Whether to enable or disable the menu.
-		// Return value:    None.
-
+		/// Enables or disables the menu. This will animate it in and out of view.
+		/// @param enable Whether to enable or disable the menu. (default: true)
 		void SetEnabled(bool enable = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the menu is enabled or not.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Reports whether the menu is enabled or not.
 		bool IsEnabled() { return m_MenuEnabled == ENABLED || m_MenuEnabled == ENABLING; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SwitchToScreen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Switches to showing a specific menu screen/mode.
-		// Arguments:       The MenuScreen to switch to.
-		// Return value:    None.
-
+		/// Switches to showing a specific menu screen/mode.
+		/// @param newScreen The MenuScreen to switch to.
 		void SwitchToScreen(int newScreen);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetRoundName
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes a round number into a nice friendly text string. "ONE" for 1 etc
-		// Arguments:       The number of the round to convert to a string.
-		// Return value:    The friendly text string for that round.
-
+		/// Makes a round number into a nice friendly text string. "ONE" for 1 etc
+		/// @param roundNumber The number of the round to convert to a string.
+		/// @return The friendly text string for that round.
 		std::string GetRoundName(int roundNumber);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetPlanetInfo
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets where the planet is on the scren and its other data so the menu
-		//                  can overlay properly on it.
-		// Arguments:       The absolute screen coordinates of the planet's center.
-		//                  The radius, in screen pixel units, of the planet.
-		// Return value:    None.
-
+		/// Sets where the planet is on the scren and its other data so the menu
+		/// can overlay properly on it.
+		/// @param center The absolute screen coordinates of the planet's center.
+		/// @param radius The radius, in screen pixel units, of the planet.
 		void SetPlanetInfo(const Vector& center, float radius) {
 			m_PlanetCenter = center;
 			m_PlanetRadius = radius;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SelectScene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets a specific scene as the currently selected one. OWNERSHIP IS NOT TRANSFERRED!
-		// Arguments:       The Scene to set as selected. Ownership is NOT transferred.
-		// Return value:    None.
-
+		/// Sets a specific scene as the currently selected one. OWNERSHIP IS NOT TRANSFERRED!
+		/// @param pScene The Scene to set as selected. Ownership is NOT transferred.
 		void SelectScene(Scene* pScene);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SelectScene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tries to select a specifically named scene on the metagame field.
-		// Arguments:       The name of the Scene to try to find and select.
-		// Return value:    Whether mission was found and selected.
-
+		/// Tries to select a specifically named scene on the metagame field.
+		/// @param sceneName The name of the Scene to try to find and select.
+		/// @return Whether mission was found and selected.
 		bool SelectScene(std::string sceneName);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ContinuePhase
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the player has decided to continue to next phase of the
-		//                  round of the current game.
-		// Arguments:       None.
-		// Return value:    Whether the player just decided to continue this frame
-
+		/// Reports whether the player has decided to continue to next phase of the
+		/// round of the current game.
+		/// @return Whether the player just decided to continue this frame
 		bool ContinuePhase() { return m_ContinuePhase; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ActivityRestarted
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the player has decided to restart an activity this frame.
-		//                  All parameters for the new game has been fed into ActivityMan already.
-		// Arguments:       None.
-		// Return value:    Whether the activity should be restarted.
-
+		/// Reports whether the player has decided to restart an activity this frame.
+		/// All parameters for the new game has been fed into ActivityMan already.
+		/// @return Whether the activity should be restarted.
 		bool ActivityRestarted() { return m_ActivityRestarted; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ActivityResumed
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the player has decided to resume the current activity.
-		// Arguments:       None.
-		// Return value:    Whether the activity should be resumed.
-
+		/// Reports whether the player has decided to resume the current activity.
+		/// @return Whether the activity should be resumed.
 		bool ActivityResumed() { return m_ActivityResumed; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BackToMain
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the player has decided to go back to the main menu.
-		// Arguments:       None.
-		// Return value:    Whether we should go back to main menu.
-
+		/// Reports whether the player has decided to go back to the main menu.
+		/// @return Whether we should go back to main menu.
 		bool BackToMain() { return m_BackToMain; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          QuitProgram
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reports whether the player has decided to quit the program.
-		// Arguments:       None.
-		// Return value:    Whether the program has been commanded to shit down by the user.
-
+		/// Reports whether the player has decided to quit the program.
+		/// @return Whether the program has been commanded to shit down by the user.
 		bool QuitProgram() { return m_Quit; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          StartNewGame
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Attempts to start a new Metagame using the settings set in the
-		//                  New Game dialog box.
-		// Arguments:       None.
-		// Return value:    Whether the game was able to be set up with the current settings.
-
+		/// Attempts to start a new Metagame using the settings set in the
+		/// New Game dialog box.
+		/// @return Whether the game was able to be set up with the current settings.
 		bool StartNewGame();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          LoadGame
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Attempts to load a Metagame from disk using the settings set in the
-		//                  Load Game dialog box.
-		// Arguments:       None.
-		// Return value:    Whether the game was able to be loaded with the current settings.
-
+		/// Attempts to load a Metagame from disk using the settings set in the
+		/// Load Game dialog box.
+		/// @return Whether the game was able to be loaded with the current settings.
 		bool LoadGame();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SaveGame
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Just saves out the MetaGame and all its Scene data as-is to a specific
-		//                  location.
-		// Arguments:       The name of the save game to create or overwrite here.
-		//                  The full path of the ini that we want to save the Metagame state to.
-		//                  Whether to load all the scene data that is on disk first so it will
-		//                  be re-saved to the new location here.
-		// Return value:    Whether the game was able to be saved there.
-
+		/// Just saves out the MetaGame and all its Scene data as-is to a specific
+		/// location.
+		/// @param saveName The name of the save game to create or overwrite here.
+		/// @param savePath The full path of the ini that we want to save the Metagame state to.
+		/// @param resaveSceneData Whether to load all the scene data that is on disk first so it will (default: false)
+		/// be re-saved to the new location here.
+		/// @return Whether the game was able to be saved there.
 		bool SaveGame(std::string saveName, std::string savePath, bool resaveSceneData = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SaveGameFromDialog
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Attempts to save a Metagame to disk using the settings set in the
-		//                  Save Game dialog box.
-		// Arguments:       None.
-		// Return value:    Whether the game was able to be saved with the current settings.
-
+		/// Attempts to save a Metagame to disk using the settings set in the
+		/// Save Game dialog box.
+		/// @return Whether the game was able to be saved with the current settings.
 		bool SaveGameFromDialog();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the state of this Menu each frame
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the state of this Menu each frame
 		void Update();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the menu
-		// Arguments:       The bitmap to draw on.
-		// Return value:    None.
-
+		/// Draws the menu
+		/// @param drawBitmap The bitmap to draw on.
 		void Draw(BITMAP* drawBitmap);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:		SetToStartNewGame
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets internal state of GUI to show 'Start new campaign' screen
-		// Arguments:       None.
-		// Return value:    None.
+		/// Method:		SetToStartNewGame
+		/// Resets internal state of GUI to show 'Start new campaign' screen
 		void SetToStartNewGame();
 
 		/// Sets where the station is located on the planet orbit.
 		/// @param newStationPos The position of the station on the planet orbit.
 		void SetStationOrbitPos(const Vector& newStationPos) { m_StationPosOnOrbit = newStationPos; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the MetaMan object ready for use -> this is acutally a light
-		//                  and not complete version of the one that takes a controller.
-		//                  It is only for init after reading stuff from file as a Serializable.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the MetaMan object ready for use -> this is acutally a light
+		/// and not complete version of the one that takes a controller.
+		/// It is only for init after reading stuff from file as a Serializable.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateInput
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the user input processing.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the user input processing.
 		void UpdateInput();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          HideAllScreens
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Hides all menu screens, so one can easily be unhidden and shown only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Hides all menu screens, so one can easily be unhidden and shown only.
 		void HideAllScreens();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          KeepBoxOnScreen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes sure a specific box doesn't end up moved completely off-screen.
-		// Arguments:       The GUICollectionBox to adjust, if necessary.
-		//                  The amount of margin to allow the box to stay within. If negative,
-		//                  the width/height of the box itself are used.
-		// Return value:    None.
-
+		/// Makes sure a specific box doesn't end up moved completely off-screen.
+		/// @param pBox The GUICollectionBox to adjust, if necessary.
+		/// @param margin The amount of margin to allow the box to stay within. If negative, (default: 10)
+		/// the width/height of the box itself are used.
 		void KeepBoxOnScreen(GUICollectionBox* pBox, int margin = 10);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ChangeAnimMode
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Changes the animation mode
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Changes the animation mode
 		void ChangeAnimMode(int newMode) {
 			m_AnimMode = newMode;
 			m_AnimModeChange = true;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          NewAnimMode
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks for and switches off the new animation mode flag
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Checks for and switches off the new animation mode flag
 		bool NewAnimMode() {
 			bool changed = m_AnimModeChange;
 			m_AnimModeChange = false;
 			return changed;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CompletedActivity
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Handles what happens after an Activity within the Metagame was
-		//                  run and completed fully.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Handles what happens after an Activity within the Metagame was
+		/// run and completed fully.
 		void CompletedActivity();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AutoResolveOffensive
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Automatically resolves an offensive fight without actually launching
-		//                  and going through an Activity. Will randomly determine who won and
-		//                  what the consequences are.
-		// Arguments:       The Offsenive Activity to resolve and manipulate accordingly. OWNERSHIP IS NOT TRANSFERRED!
-		//                  The Scene this Offensive is supposed to take place on. OWNERSHIP IS NOT TRANSFERRED!
-		//                  Whether to check the validity of all players based on whether they
-		//                  have brains remaining alive. If false, all active players will be
-		//                  instead be flagged as having had brains at some point.
-		// Return value:    Whether the ownership of the relevant Scene changed due to this.
-
+		/// Automatically resolves an offensive fight without actually launching
+		/// and going through an Activity. Will randomly determine who won and
+		/// what the consequences are.
+		/// @param pOffensive The Offsenive Activity to resolve and manipulate accordingly. OWNERSHIP IS NOT TRANSFERRED!
+		/// @param pScene The Scene this Offensive is supposed to take place on. OWNERSHIP IS NOT TRANSFERRED!
+		/// @param brainCheck Whether to check the validity of all players based on whether they (default: false)
+		/// have brains remaining alive. If false, all active players will be
+		/// instead be flagged as having had brains at some point.
+		/// @return Whether the ownership of the relevant Scene changed due to this.
 		bool AutoResolveOffensive(GAScripted* pOffensive, Scene* pScene, bool brainCheck = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateSiteRevealing
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the New Site Revealing animation
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the New Site Revealing animation
 		void UpdateSiteRevealing();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateSiteChangeAnim
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates team ownership change animations, if any.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates team ownership change animations, if any.
 		void UpdateSiteChangeAnim();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateIncomeCounting
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the Count Income animation
-		// Arguments:       Whether to just set up the lines and funds as if we had a new round. Also skips changing funds to avoid an income/cost duplication glitch when saving a game at the start of a round.
-		// Return value:    None.
-
+		/// Updates the Count Income animation
+		/// @param initOverride Whether to just set up the lines and funds as if we had a new round. Also skips changing funds to avoid an income/cost duplication glitch when saving a game at the start of a round. (default: false)
 		void UpdateIncomeCounting(bool initOverride = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateHumanPlayerTurn
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates a human player's turn.
-		// Arguments:       Which metaplayer' turn it is
-		// Return value:    None.
-
+		/// Updates a human player's turn.
+		/// @param metaPlayer Which metaplayer' turn it is
 		void UpdateHumanPlayerTurn(int metaPlayer);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateBaseBuilding
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the Base Building animation
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the Base Building animation
 		void UpdateBaseBuilding();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetupOffensives
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets up the Activities that represent all the offensive actions of
-		//                  the teams this round.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Sets up the Activities that represent all the offensive actions of
+		/// the teams this round.
 		void SetupOffensives();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateOffensives
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the offensive actions animation
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the offensive actions animation
 		void UpdateOffensives();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          FinalizeOffensive
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Finishes one battle in the UpdateOffensives and moves onto the next.
-		// Arguments:       None.
-		// Return value:    If there are any more battles after the one that was just finalized.
-
+		/// Finishes one battle in the UpdateOffensives and moves onto the next.
+		/// @return If there are any more battles after the one that was just finalized.
 		bool FinalizeOffensive();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ResetBattleInfo
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Hides and resets all battle info labels and panels
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Hides and resets all battle info labels and panels
 		void ResetBattleInfo();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateBattleQuads
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates which player get placed in which quad around a fought-over
-		//                  site.
-		// Arguments:       The absolutel screen position of the target site.
-		// Return value:    None.
-
+		/// Updates which player get placed in which quad around a fought-over
+		/// site.
+		/// @param targetPos The absolutel screen position of the target site.
 		void UpdateBattleQuads(Vector targetPos);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePreBattleAttackers
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the animation and display of the info for the current
-		//                  offensive battle's attackers being next in line for this round.
-		// Arguments:       The normalized scalar which will set the desired progress of the
-		//                  total animation. 0 means nothing is shown, because it is at the start
-		//                  of the animation where brain icons start moving around.
-		// Return value:    None.
-
+		/// Updates the animation and display of the info for the current
+		/// offensive battle's attackers being next in line for this round.
+		/// @param progress The normalized scalar which will set the desired progress of the
+		/// total animation. 0 means nothing is shown, because it is at the start
+		/// of the animation where brain icons start moving around.
 		void UpdatePreBattleAttackers(float progress);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePreBattleDefenders
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the animation and display of the info for the current
-		//                  offensive battle's defenders being next in line for this round.
-		// Arguments:       The normalized scalar which will set the desired progress of the
-		//                  total animation. 0 means nothing is shown, because it is at the start
-		//                  of the animation where brain icons start moving around.
-		// Return value:    None.
-
+		/// Updates the animation and display of the info for the current
+		/// offensive battle's defenders being next in line for this round.
+		/// @param progress The normalized scalar which will set the desired progress of the
+		/// total animation. 0 means nothing is shown, because it is at the start
+		/// of the animation where brain icons start moving around.
 		void UpdatePreBattleDefenders(float progress);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePostBattleRetreaters
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the animation and display of the info for the current
-		//                  offensive battle's retreating brains going back to their pools
-		// Arguments:       The normalized scalar which will set the desired progress of the
-		//                  total animation. 0 means nothing has happened, because it is at the
-		//                  start of the animation where brain icons start moving around.
-		// Return value:    None.
-
+		/// Updates the animation and display of the info for the current
+		/// offensive battle's retreating brains going back to their pools
+		/// @param progress The normalized scalar which will set the desired progress of the
+		/// total animation. 0 means nothing has happened, because it is at the
+		/// start of the animation where brain icons start moving around.
 		void UpdatePostBattleRetreaters(float progress);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePostBattleResidents
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the animation and display of the info for the current done
-		//                  offensive battle's winning brains going back into the site.
-		// Arguments:       The normalized scalar which will set the desired progress of the
-		//                  total animation. 0 means nothing has happened, because it is at the
-		//                  start of the animation where brain icons start moving around.
-		// Return value:    None.
-
+		/// Updates the animation and display of the info for the current done
+		/// offensive battle's winning brains going back into the site.
+		/// @param progress The normalized scalar which will set the desired progress of the
+		/// total animation. 0 means nothing has happened, because it is at the
+		/// start of the animation where brain icons start moving around.
 		void UpdatePostBattleResidents(float progress);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePlayerActionLines
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the action lines as per what the player has chosen to do
-		//                  during the current turn so far.
-		// Arguments:       The metaplayer we want to update the lines for.
-		//                  Also add a line for the unallocated funds the player hasn't used for
-		//                  anyhting else yet. - NOPE, NOT IMPL YET
-		// Return value:    The meter start that remains after all the lines are added.
-
+		/// Updates the action lines as per what the player has chosen to do
+		/// during the current turn so far.
+		/// @param player The metaplayer we want to update the lines for.
+		/// Also add a line for the unallocated funds the player hasn't used for
+		/// anyhting else yet. - NOPE, NOT IMPL YET
+		/// @return The meter start that remains after all the lines are added.
 		float UpdatePlayerActionLines(int player); //, bool addUnallocated = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateScenesBox
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the contents of the scene selection box.
-		// Arguments:       Whether the selected has changed and should refresh the box completely.
-		// Return value:    None.
-
+		/// Updates the contents of the scene selection box.
+		/// @param sceneChanged Whether the selected has changed and should refresh the box completely. (default: false)
 		void UpdateScenesBox(bool sceneChanged = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateGameSizeLabels
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the game size labels of the new game dialog
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the game size labels of the new game dialog
 		void UpdateGameSizeLabels();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateAISkillSliders
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates AI skill sliders and labels for all players.
-		// Arguments:       Which player's slider was changed.
-		// Return value:    None.
-
+		/// Updates AI skill sliders and labels for all players.
+		/// @param player Which player's slider was changed.
 		void UpdateAISkillSliders(int player);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePlayerSetup
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the player setup controls of the new game dialog
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the player setup controls of the new game dialog
 		void UpdatePlayerSetup();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePlayerBars
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the floating player bars with current funds, flag, etc.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the floating player bars with current funds, flag, etc.
 		void UpdatePlayerBars();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateSiteHoverLabel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the floating label over a planet site.
-		// Arguments:       Label is visible.
-		//                  Text to show above the location.
-		//                  The location in planetary coords.
-		//                  How high above the location to show the text, adjustment from a good default.
-		// Return value:    None.
-
+		/// Updates the floating label over a planet site.
+		/// @param visible Label is visible.
+		/// @param text Text to show above the location. (default: "")
+		/// @param location The location in planetary coords. (default: Vector())
+		/// @param height How high above the location to show the text, adjustment from a good default. (default: 1.0)
 		void UpdateSiteNameLabel(bool visible, std::string text = "", const Vector& location = Vector(), float height = 1.0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          PlayerTextIndication
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Starts an animation of a label showing a text string over a player bar
-		// Arguments:       Which player the indication is relevant to
-		//                  The string to display.
-		//                  Where, in screen coords the change should be indicated. The CENTER of
-		//                  the floating label will line up with this pos.
-		//                  How long, in MS, that the animation should linger
-		// Return value:    None.
-
+		/// Starts an animation of a label showing a text string over a player bar
+		/// @param player Which player the indication is relevant to
+		/// @param text The string to display.
+		/// @param screenPos Where, in screen coords the change should be indicated. The CENTER of
+		/// the floating label will line up with this pos.
+		/// @param animLengthMS How long, in MS, that the animation should linger
 		void PlayerTextIndication(int player, std::string text, const Vector& screenPos, double animLengthMS);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          FundsChangeIndication
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Starts an animation of a label showing funds changing for a player
-		// Arguments:       Which player the change is relevant to
-		//                  The change in funds to display.
-		//                  Where, in screen coords the change should be indicated. The RIGHTMOST
-		//                  UPPER CORNER of the floating label will line up with this pos.
-		//                  How long, in MS, that the animation should linger
-		// Return value:    None.
-
+		/// Starts an animation of a label showing funds changing for a player
+		/// @param player Which player the change is relevant to
+		/// @param change The change in funds to display.
+		/// @param screenPos Where, in screen coords the change should be indicated. The RIGHTMOST
+		/// @param animLengthMS UPPER CORNER of the floating label will line up with this pos.
+		/// How long, in MS, that the animation should linger
 		void FundsChangeIndication(int player, float change, const Vector& screenPos, double animLengthMS);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BrainsChangeIndication
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Starts an animation of a label showing brains changing for a player
-		// Arguments:       Which player the change is relevant to
-		//                  The change in brains to display.
-		//                  Where, in screen coords the change should be indicated. The LEFTMOST
-		//                  UPPER CORNER of the floating label will line up with this pos.
-		//                  How long, in MS, that the animation should linger
-		//                  The horizontal font alignment of the change.
-		// Return value:    None.
-
+		/// Starts an animation of a label showing brains changing for a player
+		/// @param player Which player the change is relevant to
+		/// @param change The change in brains to display.
+		/// @param screenPos Where, in screen coords the change should be indicated. The LEFTMOST
+		/// @param fontAlignment UPPER CORNER of the floating label will line up with this pos.
+		/// @param animLengthMS How long, in MS, that the animation should linger
+		/// The horizontal font alignment of the change.
 		void BrainsChangeIndication(int player, int change, const Vector& screenPos, int fontAlignment, double animLengthMS);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsSiteLineVisible
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether a SiteLine can be considered visible.
-		// Arguments:       The SiteLine to check.
-		// Return value:    Whether visible.
-
+		/// Tells whether a SiteLine can be considered visible.
+		/// @param sl The SiteLine to check.
+		/// @return Whether visible.
 		bool IsSiteLineVisible(SiteLine& sl) { return sl.m_OnlyFirstSegments != 0 && sl.m_OnlyLastSegments != 0; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveSiteLine
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes a specific index siteline out of a vector.
-		// Arguments:       The vector of SiteLine:s to remove from.
-		//                  The index of the siteline to remove
-		// Return value:    Whether the line was removed or not.
-
+		/// Removes a specific index siteline out of a vector.
+		/// @param lineList The vector of SiteLine:s to remove from.
+		/// @param removeIndex The index of the siteline to remove
+		/// @return Whether the line was removed or not.
 		bool RemoveSiteLine(std::vector<SiteLine>& lineList, int removeIndex);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetPlayerLineFunds
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the total funds of all visible lines of a specific player.
-		// Arguments:       A vector with SiteLine:s which may contain other players' lines too.
-		//                  Which player's lines to check for.
-		//                  Only count the funds of visible lines.
-		// Return value:    The total funds, in oz.
-
+		/// Gets the total funds of all visible lines of a specific player.
+		/// @param lineList A vector with SiteLine:s which may contain other players' lines too.
+		/// @param player Which player's lines to check for.
+		/// @param onlyVisible Only count the funds of visible lines. (default: true)
+		/// @return The total funds, in oz.
 		float GetPlayerLineFunds(std::vector<SiteLine>& lineList, int player, bool onlyVisible = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdatePlayerLineRatios
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the site line meter ratios of a player based on their fund
-		//                  amounts and visibilty.
-		// Arguments:       A vector with SiteLine:s which may contain other players' lines too.
-		//                  Which player's lines to update.
-		//                  Whetehr to only care about visible lines.
-		//                  The total funds to be calculating the ratios against. If negative,
-		//                  the total line amounts is what will be used.
-		// Return value:    None.
-
+		/// Updates the site line meter ratios of a player based on their fund
+		/// amounts and visibilty.
+		/// @param lineList A vector with SiteLine:s which may contain other players' lines too.
+		/// @param player Which player's lines to update.
+		/// @param onlyVisible Whetehr to only care about visible lines. (default: true)
+		/// @param total The total funds to be calculating the ratios against. If negative, (default: -1)
+		/// the total line amounts is what will be used.
 		void UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, int player, bool onlyVisible = true, float total = -1);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DrawGlowLine
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws a fancy thick flickering line to point out scene points on the
-		//                  planet.
-		// Arguments:       The bitmap to draw to.
-		//                  The start and end Vector:s for the line, in absolute screen coordinates.
-		//                  The color to draw the line in. Use makecol(r, g, b) to create the color
-		// Return value:    None.
-
+		/// Draws a fancy thick flickering line to point out scene points on the
+		/// planet.
+		/// @param drawBitmap The bitmap to draw to.
+		/// @param start The start and end Vector:s for the line, in absolute screen coordinates.
+		/// @param end The color to draw the line in. Use makecol(r, g, b) to create the color
 		static void DrawGlowLine(BITMAP* drawBitmap, const Vector& start, const Vector& end, int color);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DrawScreenLineToSitePoint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws a fancy thick flickering lines to point out scene points on the
-		//                  planet, FROM an arbitrary screen point.
-		// Arguments:       The bitmap to draw to.
-		//                  The point on the screen to point from, in screen coordinates.
-		//                  The point on the planet to point at, in planet coordinates.
-		//                  The color of the line.
-		//                  How many of the segments from the start (the start of the line) to draw.
-		//                  How many of the segments from the end (site circle) to draw. -1 is all.
-		//                  The height of the 'channel' above and below that the lines will go around
-		//                  the player bar.
-		//                  What size factor from 'normal' should the circle's diameter be drawn.
-		// Return value:    Whether all segments of the line were drawn with the segment params.
-
+		/// Draws a fancy thick flickering lines to point out scene points on the
+		/// planet, FROM an arbitrary screen point.
+		/// @param drawBitmap The bitmap to draw to.
+		/// @param screenPoint The point on the screen to point from, in screen coordinates.
+		/// @param planetPoint The point on the planet to point at, in planet coordinates.
+		/// @param color The color of the line.
+		/// @param onlyFirstSegments How many of the segments from the start (the start of the line) to draw. (default: -1)
+		/// @param onlyLastSegments How many of the segments from the end (site circle) to draw. -1 is all. (default: -1)
+		/// @param channelHeight The height of the 'channel' above and below that the lines will go around (default: 80)
+		/// the player bar.
+		/// @param circleSize What size factor from 'normal' should the circle's diameter be drawn. (default: 1.0)
+		/// @return Whether all segments of the line were drawn with the segment params.
 		bool DrawScreenLineToSitePoint(BITMAP* drawBitmap,
 		                               const Vector& screenPoint,
 		                               const Vector& planetPoint,
@@ -835,26 +491,22 @@ namespace RTE {
 		                               float circleSize = 1.0,
 		                               bool squareSite = false) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DrawPlayerLineToSitePoint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws a fancy thick flickering lines to point out scene points on the
-		//                  planet, FROM a floating player bar, showing a certain ratio.
-		// Arguments:       The bitmap to draw to.
-		//                  The player whose floating bar we draw from.
-		//                  The start percentage of the meter to indicate, from 0 to 1.0
-		//                  The actual percentage of the meter to indicate, from 0 to 1.0
-		//                  The point on the planet to point at, in planet coordinates.
-		//                  The color of the line.
-		//                  How many of the segments from the start (the player floater) to draw.
-		//                  How many of the segments from the end (site circle) to draw. -1 is all.
-		//                  The height of the 'channel' above and below that the lines will go around
-		//                  the player bar.
-		//                  What size factor from 'normal' should the circle's diameter be drawn.
-		//                  Whether the circle should instead be a squareSite!
-		//                  Whether to draw the meter (FirstSegment == 1) no matter what
-		// Return value:    Whether all segments of the line were drawn with the segment params.
-
+		/// Draws a fancy thick flickering lines to point out scene points on the
+		/// planet, FROM a floating player bar, showing a certain ratio.
+		/// @param drawBitmap The bitmap to draw to.
+		/// @param player The player whose floating bar we draw from.
+		/// @param startMeterAt The start percentage of the meter to indicate, from 0 to 1.0
+		/// @param meterAmount The actual percentage of the meter to indicate, from 0 to 1.0
+		/// @param planetPoint The point on the planet to point at, in planet coordinates.
+		/// @param color The color of the line.
+		/// @param onlyFirstSegments How many of the segments from the start (the player floater) to draw. (default: -1)
+		/// @param onlyLastSegments How many of the segments from the end (site circle) to draw. -1 is all. (default: -1)
+		/// @param channelHeight The height of the 'channel' above and below that the lines will go around (default: 60)
+		/// the player bar.
+		/// @param circleSize What size factor from 'normal' should the circle's diameter be drawn. (default: 1.0)
+		/// @param squareSite Whether the circle should instead be a squareSite! (default: false)
+		/// @param drawMeterOverride Whether to draw the meter (FirstSegment == 1) no matter what (default: false)
+		/// @return Whether all segments of the line were drawn with the segment params.
 		bool DrawPlayerLineToSitePoint(BITMAP* drawBitmap,
 		                               int player,
 		                               float startMeterAt,
@@ -868,26 +520,18 @@ namespace RTE {
 		                               bool squareSite = false,
 		                               bool drawMeterOverride = false) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DrawPlayerLineToSitePoint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws a fancy thick flickering lines to point out scene points on the
-		//                  planet, FROM a floating player bar, showing a certain ratio.
-		// Arguments:       The bitmap to draw to.
-		//                  The SiteLine struct with all the parameters this needs.
-		//                  Whether to draw the meter (FirstSegment == 1) no matter what
-		// Return value:    Whether all segments of the line were drawn with the segment params.
-
+		/// Draws a fancy thick flickering lines to point out scene points on the
+		/// planet, FROM a floating player bar, showing a certain ratio.
+		/// @param drawBitmap The bitmap to draw to.
+		/// @param sl The SiteLine struct with all the parameters this needs.
+		/// @param drawMeterOverride Whether to draw the meter (FirstSegment == 1) no matter what (default: false) const { return DrawPlayerLineToSitePoint(drawBitmap)
+		/// @return Whether all segments of the line were drawn with the segment params.
 		bool DrawPlayerLineToSitePoint(BITMAP* drawBitmap, const SiteLine& sl, bool drawMeterOverride = false) const { return DrawPlayerLineToSitePoint(drawBitmap, sl.m_Player, sl.m_StartMeterAt, sl.m_MeterAmount, sl.m_PlanetPoint.GetFloored(), sl.m_Color, sl.m_OnlyFirstSegments, sl.m_OnlyLastSegments, sl.m_ChannelHeight, sl.m_CircleSize, sl.m_Square, drawMeterOverride); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          MoveLocationsIntoTheScreen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Moves any locations closer to the ceonter of the planet if they were left out
-		//					of the screen due to low display resolution.
-		// Arguments:		None.
-		// Return value:	None.
-
+		/// Moves any locations closer to the ceonter of the planet if they were left out
+		/// of the screen due to low display resolution.
+		/// Arguments:		None.
+		/// Return value:	None.
 		void MoveLocationsIntoTheScreen();
 
 		enum MenuEnabled {
@@ -1180,20 +824,12 @@ namespace RTE {
 
 		Vector m_StationPosOnOrbit; //!< The position of the station on the planet orbit.
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this MetagameGUI, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this MetagameGUI, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

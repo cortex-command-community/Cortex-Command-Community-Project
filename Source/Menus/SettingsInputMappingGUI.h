@@ -87,7 +87,7 @@ namespace RTE {
 
 #pragma region Input Mapping Settings Handling
 		/// Shows and enables the input mapping capture box, starting the input capture sequence.
-		/// @param inputElement 
+		/// @param inputElement
 		void ShowInputMappingCaptureBox(InputElements inputElement);
 
 		/// Hides and disables the input mapping capture box, ending the input capture sequence.

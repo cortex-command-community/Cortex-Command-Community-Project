@@ -1,153 +1,85 @@
 #ifndef _RTEACDROPSHIP_
 #define _RTEACDROPSHIP_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            ACDropShip.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the ACDropShip class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the ACDropShip class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "ACraft.h"
 
 namespace RTE {
 
 	class Attachable;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           ACDropShip
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A hovering craft, with two engines on each attached on each end which
-	//                  tilt independently of the body to achieve steering.
-	// Parent(s):       ACraft.
-	// Class history:   12/13/2006 ACDropShip created.
-
+	/// A hovering craft, with two engines on each attached on each end which
+	/// tilt independently of the body to achieve steering.
 	class ACDropShip : public ACraft {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ACDropShip);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     ACDropShip
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a ACDropShip object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a ACDropShip object in system
+		/// memory. Create() should be called before using the object.
 		ACDropShip() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~ACDropShip
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a ACDropShip object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a ACDropShip object before deletion
+		/// from system memory.
 		~ACDropShip() override { Destroy(true); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the ACDropShip object ready for use.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the ACDropShip object ready for use.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a ACDropShip to be identical to another, by deep copy.
-		// Arguments:       A reference to the ACDropShip to deep copy.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Creates a ACDropShip to be identical to another, by deep copy.
+		/// @param reference A reference to the ACDropShip to deep copy.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(const ACDropShip& reference);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire ACDropShip, including its inherited members, to their
-		//                  default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire ACDropShip, including its inherited members, to their
+		/// default settings or values.
 		void Reset() override {
 			Clear();
 			ACraft::Reset();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the SceneLayer object.
-		// Arguments:       Whether to only destroy the members defined in this derived class, or
-		//                  to destroy all inherited members also.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the SceneLayer object.
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
+		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetAltitude
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the altitide of this' pos (or appropriate low point) over the
-		//                  terrain, in pixels.
-		// Arguments:       The max altitude you care to check for. 0 Means check the whole scene's height.
-		//                  The accuracy within which measurement is acceptable. Higher number
-		//                  here means less calculation.
-		// Return value:    The rough altitude over the terrain, in pixels.
-
+		/// Gets the altitide of this' pos (or appropriate low point) over the
+		/// terrain, in pixels.
+		/// @param max The max altitude you care to check for. 0 Means check the whole scene's height. (default: 0)
+		/// @param accuracy The accuracy within which measurement is acceptable. Higher number (default: 0)
+		/// here means less calculation.
+		/// @return The rough altitude over the terrain, in pixels.
 		float GetAltitude(int max = 0, int accuracy = 0) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  DetectObstacle
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks for obstacles in the travel direction.
-		// Arguments:       How far ahead of travel direction to check for obstacles.
-		// Return value:    Which MOID was detected as obstacle. g_NoMOID means nothing was detected.
-
+		/// Checks for obstacles in the travel direction.
+		/// @param distance How far ahead of travel direction to check for obstacles.
+		/// @return Which MOID was detected as obstacle. g_NoMOID means nothing was detected.
 		MOID DetectObstacle(float distance);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AutoStabilizing
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether this has the means and will try to right itself, or if
-		//                  that's up to the Controller to do.
-		// Arguments:       None.
-		// Return value:    Wheter this will try to auto stabilize.
-
+		/// Tells whether this has the means and will try to right itself, or if
+		/// that's up to the Controller to do.
+		/// @return Wheter this will try to auto stabilize.
 		bool AutoStabilizing() override { return true; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  PreControllerUpdate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Update called prior to controller update. Ugly hack. Supposed to be done every frame.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
 		void PreControllerUpdate() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:	GetMaxPassengers
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     The recomended, not absolute, maximum number of actors that fit in the
-		//                  invetory. Used by the activity AI.
-		// Arguments:       None.
-		// Return value:    An integer with the recomended number of actors that fit in the craft.
-		//                  Default is four.
-
+		/// Virtual method:	GetMaxPassengers
+		/// The recomended, not absolute, maximum number of actors that fit in the
+		/// invetory. Used by the activity AI.
+		/// @return An integer with the recomended number of actors that fit in the craft.
+		/// Default is four.
 		int GetMaxPassengers() const override { return m_MaxPassengers > -1 ? m_MaxPassengers : 4; }
 
 		/// Gets the right side thruster of this ACDropship.
@@ -198,49 +130,24 @@ namespace RTE {
 		/// @param newHatch The new hatch to use.
 		void SetRightHatch(Attachable* newHatch);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetMaxEngineAngle
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get max engine rotation angle in degrees.
-		// Arguments:       None.
-		// Return value:    Max engine angle in degrees.
-
+		/// Get max engine rotation angle in degrees.
+		/// @return Max engine angle in degrees.
 		float GetMaxEngineAngle() const { return m_MaxEngineAngle; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SetMaxEngineAngle
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets max engine rotation angle in degrees.
-		// Arguments:       Max engine angle in degrees.
-		// Return value:    None.
-
+		/// Sets max engine rotation angle in degrees.
+		/// @param newAngle Max engine angle in degrees.
 		void SetMaxEngineAngle(float newAngle) { m_MaxEngineAngle = newAngle; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetLateralControlSpeed
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the abstract rate of LateralControl change. Default is 6
-		// Arguments:       None.
-		// Return value:    Current lateral control speed value.
-
+		/// Gets the abstract rate of LateralControl change. Default is 6
+		/// @return Current lateral control speed value.
 		float GetLateralControlSpeed() const { return m_LateralControlSpeed; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  SetLateralControlSpeed
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the abstract rate of LateralControl change. Default is 6
-		// Arguments:       New lateral control speed value.
-		// Return value:    None.
-
+		/// Sets the abstract rate of LateralControl change. Default is 6
+		/// @param newSpeed New lateral control speed value.
 		void SetLateralControlSpeed(float newSpeed) { m_LateralControl = newSpeed; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetLateralControl
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets lateral control value -1.0 to 1.0 control of sideways movement. 0 means try to stand still in X.
-		// Arguments:       None.
-		// Return value:    Current lateral control value.
-
+		/// Sets lateral control value -1.0 to 1.0 control of sideways movement. 0 means try to stand still in X.
+		/// @return Current lateral control value.
 		float GetLateralControl() const { return m_LateralControl; }
 
 		/// Gets the modifier for height at which this ACDropship should hover above terrain.
@@ -251,9 +158,7 @@ namespace RTE {
 		/// @param newHoverHeightModifier The new modifier for height at which this ACDropship should hover above terrain.
 		void SetHoverHeightModifier(float newHoverHeightModifier) { m_HoverHeightModifier = newHoverHeightModifier; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -287,18 +192,10 @@ namespace RTE {
 
 		float m_HoverHeightModifier; //!< The modifier for the height at which this ACDropShip should hover above terrain when releasing its cargo. Used in cpp and Lua AI.
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this ACDropShip, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this ACDropShip, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

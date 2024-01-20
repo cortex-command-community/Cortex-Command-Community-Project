@@ -1,18 +1,11 @@
 #ifndef _RTEACRAB_
 #define _RTEACRAB_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            ACrab.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the ACrab class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the ACrab class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "Actor.h"
 #include "LimbPath.h"
 #include "Leg.h"
@@ -24,13 +17,7 @@ namespace RTE {
 	class Turret;
 	class AEJetpack;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           ACrab
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A crab-like actor with four legs.
-	// Parent(s):       Actor.
-	// Class history:   10/24/2007 ACrab created.
-
+	/// A crab-like actor with four legs.
 	class ACrab : public Actor {
 		friend struct EntityLuaBindings;
 
@@ -46,9 +33,7 @@ namespace RTE {
 			LAYERCOUNT
 		};
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ACrab);
@@ -57,75 +42,40 @@ namespace RTE {
 		ClassInfoGetters;
 		DefaultPieMenuNameGetter(HasObjectInGroup("Turrets") ? "Default Turret Pie Menu" : "Default Crab Pie Menu");
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     ACrab
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a ACrab object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a ACrab object in system
+		/// memory. Create() should be called before using the object.
 		ACrab() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~ACrab
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a ACrab object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a ACrab object before deletion
+		/// from system memory.
 		~ACrab() override { Destroy(true); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the ACrab object ready for use.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the ACrab object ready for use.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a ACrab to be identical to another, by deep copy.
-		// Arguments:       A reference to the ACrab to deep copy.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Creates a ACrab to be identical to another, by deep copy.
+		/// @param reference A reference to the ACrab to deep copy.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(const ACrab& reference);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire ACrab, including its inherited members, to their
-		//                  default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire ACrab, including its inherited members, to their
+		/// default settings or values.
 		void Reset() override {
 			Clear();
 			Actor::Reset();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the SceneLayer object.
-		// Arguments:       Whether to only destroy the members defined in this derived class, or
-		//                  to destroy all inherited members also.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the SceneLayer object.
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
+		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetEyePos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the absoltue position of this' eye, or equivalent, where look
-		//                  vector starts from.
-		// Arguments:       None.
-		// Return value:    A Vector with the absolute position of this' eye or view point.
-
+		/// Gets the absoltue position of this' eye, or equivalent, where look
+		/// vector starts from.
+		/// @return A Vector with the absolute position of this' eye or view point.
 		Vector GetEyePos() const override;
 
 		/// Gets the Turret of this ACrab.
@@ -176,17 +126,13 @@ namespace RTE {
 		/// @param newLeg The new Leg to use.
 		void SetRightBGLeg(Leg* newLeg);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  CollideAtPoint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the collision response when another MO's Atom collides with
-		//                  this MO's physical representation. The effects will be applied
-		//                  directly to this MO, and also represented in the passed in HitData.
-		// Arguments:       Reference to the HitData struct which describes the collision. This
-		//                  will be modified to represent the results of the collision.
-		// Return value:    Whether the collision has been deemed valid. If false, then disregard
-		//                  any impulses in the Hitdata.
-
+		/// Calculates the collision response when another MO's Atom collides with
+		/// this MO's physical representation. The effects will be applied
+		/// directly to this MO, and also represented in the passed in HitData.
+		/// @param hitData Reference to the HitData struct which describes the collision. This
+		/// will be modified to represent the results of the collision.
+		/// @return Whether the collision has been deemed valid. If false, then disregard
+		/// any impulses in the Hitdata.
 		bool CollideAtPoint(HitData& hitData) override;
 
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
@@ -194,108 +140,60 @@ namespace RTE {
 		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
 		bool HandlePieCommand(PieSlice::SliceType pieSliceType) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  GetEquippedItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns whatever is equipped in the turret, if anything. OWNERSHIP IS NOT TRANSFERRED!
-		// Arguments:       None.
-		// Return value:    The currently equipped item, if any.
-
+		/// Returns whatever is equipped in the turret, if anything. OWNERSHIP IS NOT TRANSFERRED!
+		/// @return The currently equipped item, if any.
 		MovableObject* GetEquippedItem() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  FirearmIsReady
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the currently held HDFirearm's is ready for use, and has
-		//                  ammo etc.
-		// Arguments:       None.
-		// Return value:    Whether a currently HDFirearm (if any) is ready for use.
-
+		/// Indicates whether the currently held HDFirearm's is ready for use, and has
+		/// ammo etc.
+		/// @return Whether a currently HDFirearm (if any) is ready for use.
 		bool FirearmIsReady() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  FirearmIsEmpty
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the currently held HDFirearm's is out of ammo.
-		// Arguments:       None.
-		// Return value:    Whether a currently HDFirearm (if any) is out of ammo.
-
+		/// Indicates whether the currently held HDFirearm's is out of ammo.
+		/// @return Whether a currently HDFirearm (if any) is out of ammo.
 		bool FirearmIsEmpty() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  FirearmNeedsReload
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the currently held HDFirearm's is almost out of ammo.
-		// Arguments:       None.
-		// Return value:    Whether a currently HDFirearm (if any) has less than half of ammo left.
-
+		/// Indicates whether the currently held HDFirearm's is almost out of ammo.
+		/// @return Whether a currently HDFirearm (if any) has less than half of ammo left.
 		bool FirearmNeedsReload() const;
 
 		/// Gets whether or not all of this ACrab's Turret's HDFirearms are full.
 		/// @return Whether or not all of this ACrab's Turret's HDFirearms are full. Will return true if there is no Turret or no HDFirearms.
 		bool FirearmsAreFull() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  FirearmIsSemiAuto
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the currently held HDFirearm's is semi or full auto.
-		// Arguments:       None.
-		// Return value:    Whether a currently HDFirearm (if any) is a semi auto device.
-
+		/// Indicates whether the currently held HDFirearm's is semi or full auto.
+		/// @return Whether a currently HDFirearm (if any) is a semi auto device.
 		bool FirearmIsSemiAuto() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  FirearmActivationDelay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the currently held device's delay between pulling the trigger
-		//                  and activating.
-		// Arguments:       None.
-		// Return value:    Delay in ms or zero if not a HDFirearm.
-
+		/// Returns the currently held device's delay between pulling the trigger
+		/// and activating.
+		/// @return Delay in ms or zero if not a HDFirearm.
 		int FirearmActivationDelay() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  ReloadFirearms
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reloads the currently held firearms, if any.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Reloads the currently held firearms, if any.
 		void ReloadFirearms();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  IsWithinRange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether a point on the scene is within close range of the currently
-		//                  used device and aiming status, if applicable.
-		// Arguments:       A Vector witht he aboslute coordinates of a point to check.
-		// Return value:    Whether the point is within close range of this.
-
+		/// Tells whether a point on the scene is within close range of the currently
+		/// used device and aiming status, if applicable.
+		/// @param point A Vector witht he aboslute coordinates of a point to check.
+		/// @return Whether the point is within close range of this.
 		bool IsWithinRange(Vector& point) const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Look
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Casts an unseen-revealing ray in the direction of where this is facing.
-		// Arguments:       The degree angle to deviate from the current view point in the ray
-		//                  casting. A random ray will be chosen out of this +-range.
-		//                  The range, in pixels, beyond the actors sharp aim that the ray will have.
-		// Return value:    Whether any unseen pixels were revealed by this look.
-
+		/// Casts an unseen-revealing ray in the direction of where this is facing.
+		/// @param FOVSpread The degree angle to deviate from the current view point in the ray
+		/// casting. A random ray will be chosen out of this +-range.
+		/// @param range The range, in pixels, beyond the actors sharp aim that the ray will have.
+		/// @return Whether any unseen pixels were revealed by this look.
 		bool Look(float FOVSpread, float range) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  LookForMOs
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Casts an MO detecting ray in the direction of where the head is looking
-		//                  at the time. Factors including head rotation, sharp aim mode, and
-		//                  other variables determine how this ray is cast.
-		// Arguments:       The degree angle to deviate from the current view point in the ray
-		//                  casting. A random ray will be chosen out of this +-range.
-		//                  A specific material ID to ignore (see through)
-		//                  Whether to ignore all terrain or not (true means 'x-ray vision').
-		// Return value:    A pointer to the MO seen while looking.
-
+		/// Casts an MO detecting ray in the direction of where the head is looking
+		/// at the time. Factors including head rotation, sharp aim mode, and
+		/// other variables determine how this ray is cast.
+		/// @param FOVSpread The degree angle to deviate from the current view point in the ray (default: 45)
+		/// casting. A random ray will be chosen out of this +-range.
+		/// @param ignoreMaterial A specific material ID to ignore (see through) (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain or not (true means 'x-ray vision'). (default: false)
+		/// @return A pointer to the MO seen while looking.
 		MovableObject* LookForMOs(float FOVSpread = 45, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false);
 
 		/// Gets the GUI representation of this ACrab, only defaulting to its Turret or body if no GraphicalIcon has been defined.
@@ -306,49 +204,27 @@ namespace RTE {
 		/// @return Whether this ACrab has taken a stride this frame or not.
 		bool StrideFrame() const { return m_StrideFrame; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  PreControllerUpdate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Update called prior to controller update. Ugly hack. Supposed to be done every frame.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
 		void PreControllerUpdate() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates this MovableObject. Supposed to be done every frame.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this ACrab's current graphical representation to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the Scene.
-		//                  In which mode to draw in. See the DrawMode enumeration for the modes.
-		//                  Whether to not draw any extra 'ghost' items of this MovableObject,
-		//                  indicator arrows or hovering HUD text and so on.
-		// Return value:    None.
-
+		/// Draws this ACrab's current graphical representation to a
+		/// BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
+		/// @param mode In which mode to draw in. See the DrawMode enumeration for the modes. (default: g_DrawColor)
+		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this MovableObject, (default: false)
+		/// indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  DrawHUD
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this Actor's current graphical HUD overlay representation to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the Scene.
-		//                  Which player's screen this is being drawn to. May affect what HUD elements
-		//                  get drawn etc.
-		// Return value:    None.
-
+		/// Draws this Actor's current graphical HUD overlay representation to a
+		/// BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
+		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements (default: 0)
+		/// get drawn etc.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
 		/// Gets the LimbPath corresponding to the passed in Side, Layer and MovementState values.
@@ -358,42 +234,23 @@ namespace RTE {
 		/// @return The LimbPath corresponding to the passed in Layer and MovementState values.
 		LimbPath* GetLimbPath(Side side, Layer layer, MovementState movementState) { return &m_Paths[side][layer][movementState]; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  GetLimbPathSpeed
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get walking limb path speed for the specified preset.
-		// Arguments:       Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST
-		// Return value:    Limb path speed for the specified preset in m/s.
-
+		/// Get walking limb path speed for the specified preset.
+		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST
+		/// @return Limb path speed for the specified preset in m/s.
 		float GetLimbPathSpeed(int speedPreset) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetLimbPathSpeed
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Set walking limb path speed for the specified preset.
-		// Arguments:       Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST. New speed value in m/s.
-		// Return value:    None.
-
+		/// Set walking limb path speed for the specified preset.
+		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST. New speed value in m/s.
 		void SetLimbPathSpeed(int speedPreset, float speed);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  GetLimbPathPushForce
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the default force that a limb traveling walking LimbPath can push against
-		//                  stuff in the scene with.
-		// Arguments:       None.
-		// Return value:    The default set force maximum, in kg * m/s^2.
-
+		/// Gets the default force that a limb traveling walking LimbPath can push against
+		/// stuff in the scene with.
+		/// @return The default set force maximum, in kg * m/s^2.
 		float GetLimbPathPushForce() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetLimbPathPushForce
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the default force that a limb traveling walking LimbPath can push against
-		//                  stuff in the scene with.
-		// Arguments:       The default set force maximum, in kg * m/s^2.
-		// Return value:    None
-
+		/// Sets the default force that a limb traveling walking LimbPath can push against
+		/// stuff in the scene with.
+		/// @param force The default set force maximum, in kg * m/s^2.
 		void SetLimbPathPushForce(float force);
 
 		/// Gets this ACrab's stride sound. Ownership is NOT transferred!
@@ -420,9 +277,7 @@ namespace RTE {
 		/// @param aimRangeLowerLimit The new lower limit of this ACrab's aim range.
 		void SetAimRangeLowerLimit(float aimRangeLowerLimit) { m_AimRangeLowerLimit = aimRangeLowerLimit; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
@@ -550,18 +405,10 @@ namespace RTE {
 		int WhilePieMenuOpenListener(const PieMenu* pieMenu) override;
 #pragma endregion
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this ACrab, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this ACrab, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

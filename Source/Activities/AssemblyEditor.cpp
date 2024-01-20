@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            AssemblyEditor.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the AssemblyEditor class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "AssemblyEditor.h"
 
 #include "WindowMan.h"
@@ -42,21 +30,10 @@ namespace RTE {
 
 	ConcreteClassInfo(AssemblyEditor, EditorActivity, 0);
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this AssemblyEditor, effectively
-	//                  resetting the members of this abstraction level only.
-
 	void AssemblyEditor::Clear() {
 		m_pEditorGUI = 0;
 		m_pModuleCombo = 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the AssemblyEditor object ready for use.
 
 	int AssemblyEditor::Create() {
 		if (EditorActivity::Create() < 0)
@@ -64,11 +41,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a AssemblyEditor to be identical to another, by deep copy.
 
 	int AssemblyEditor::Create(const AssemblyEditor& reference) {
 		if (EditorActivity::Create(reference) < 0)
@@ -80,14 +52,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
-
 	int AssemblyEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 		/*
@@ -98,21 +62,10 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this AssemblyEditor with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int AssemblyEditor::Save(Writer& writer) const {
 		EditorActivity::Save(writer);
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the AssemblyEditor object.
 
 	void AssemblyEditor::Destroy(bool notInherited) {
 		delete m_pEditorGUI;
@@ -121,12 +74,6 @@ namespace RTE {
 			EditorActivity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Start
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Officially starts this. Creates all the data etc necessary to start
-	//                  the activity.
 
 	int AssemblyEditor::Start() {
 		int error = EditorActivity::Start();
@@ -198,32 +145,16 @@ namespace RTE {
 		return error;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Pause
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Pauses and unpauses the game.
-
 	void AssemblyEditor::SetPaused(bool pause) {
 		// Override the pause
 		m_Paused = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          End
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Forces the current game's end.
 
 	void AssemblyEditor::End() {
 		EditorActivity::End();
 
 		m_ActivityState = ActivityState::Over;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Update
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the state of this AssemblyEditor. Supposed to be done every frame
-	//                  before drawing.
 
 	void AssemblyEditor::Update() {
 		EditorActivity::Update();
@@ -427,32 +358,15 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          DrawGUI
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 	void AssemblyEditor::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 		m_pEditorGUI->Draw(pTargetBitmap, targetPos);
 
 		EditorActivity::DrawGUI(pTargetBitmap, targetPos, which);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this AssemblyEditor's current graphical representation to a
-	//                  BITMAP of choice. This includes all game-related graphics.
-
 	void AssemblyEditor::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		EditorActivity::Draw(pTargetBitmap, targetPos);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          BuildAssembly
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates and builds assembly which fits currently selected scheme and returns
-	//					it's pointer. Owhership IS transfered.
 
 	BunkerAssembly* AssemblyEditor::BuildAssembly(std::string saveAsName) {
 		// Create new bunker assembly to save
@@ -601,20 +515,8 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virutal method:  UpdateNewDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the New dialog box, populates its lists etc.
-	// Arguments:       None.
-	// Return value:    None.
-
 	void AssemblyEditor::UpdateNewDialog() {
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateLoadDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Load dialog box, populates its lists etc.
 
 	void AssemblyEditor::UpdateLoadDialog() {
 		int scenesIndex = 0;
@@ -676,11 +578,6 @@ namespace RTE {
 		m_pLoadNameCombo->SetSelectedIndex(0);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateSaveDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Save dialog box, populates its lists etc.
-
 	void AssemblyEditor::UpdateSaveDialog() {
 		std::string defaultName = "";
 
@@ -692,11 +589,6 @@ namespace RTE {
 		m_pSaveModuleLabel->SetText("Will save in " + g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName());
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateChangesDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Save Changes dialog box, populates its lists etc.
-
 	void AssemblyEditor::UpdateChangesDialog() {
 		if (m_HasEverBeenSaved) {
 			dynamic_cast<GUILabel*>(m_pGUIController->GetControl("ChangesExpLabel"))->SetText("Do you want to save your changes to:");
@@ -706,11 +598,6 @@ namespace RTE {
 			m_pChangesNameLabel->SetText(m_pEditorGUI->GetCurrentAssemblyName());
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateOverwriteDialog
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates the Overwrite dialog box, populates its lists etc.
 
 	void AssemblyEditor::UpdateOverwriteDialog() {
 		m_pOverwriteNameLabel->SetText(m_pEditorGUI->GetCurrentAssemblyName());

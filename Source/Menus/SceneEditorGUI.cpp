@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            SceneEditorGUI.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Implementation file for the SceneEditorGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "SceneEditorGUI.h"
 
 #include "CameraMan.h"
@@ -45,12 +33,6 @@ using namespace RTE;
 BITMAP* SceneEditorGUI::s_pValidPathDot = 0;
 BITMAP* SceneEditorGUI::s_pInvalidPathDot = 0;
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Clear
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all the member variables of this SceneEditorGUI, effectively
-//                  resetting the members of this abstraction level only.
-
 void SceneEditorGUI::Clear() {
 	m_pController = 0;
 	m_FeatureSet = INGAMEEDIT;
@@ -83,11 +65,6 @@ void SceneEditorGUI::Clear() {
 	m_RequireClearPathToOrbit = false;
 	m_PathRequest.reset();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the SceneEditorGUI object ready for use.
 
 int SceneEditorGUI::Create(Controller* pController, FeatureSets featureSet, int whichModuleSpace, int nativeTechModule, float foreignCostMult) {
 	RTEAssert(pController, "No controller sent to SceneEditorGUI on creation!");
@@ -149,11 +126,6 @@ int SceneEditorGUI::Create(Controller* pController, FeatureSets featureSet, int 
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Destroy
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Destroys and resets (through Clear()) the SceneEditorGUI object.
-
 void SceneEditorGUI::Destroy() {
 	delete m_pPicker;
 
@@ -161,12 +133,6 @@ void SceneEditorGUI::Destroy() {
 
 	Clear();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetController
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the controller used by this. The ownership of the controller is
-//                  NOT transferred!
 
 void SceneEditorGUI::SetController(Controller* pController) {
 	m_pController = pController;
@@ -205,22 +171,9 @@ void SceneEditorGUI::SetFeatureSet(SceneEditorGUI::FeatureSets newFeatureSet) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetPosOnScreen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-//                  etc.
-
 void SceneEditorGUI::SetPosOnScreen(int newPosX, int newPosY) {
 	m_pPicker->SetPosOnScreen(newPosX, newPosY);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetCurrentObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the new Object to be held at the cursor of this Editor. Ownership
-//                  IS transferred!
 
 bool SceneEditorGUI::SetCurrentObject(SceneObject* pNewObject) {
 	if (m_pCurrentObject == pNewObject)
@@ -245,30 +198,13 @@ bool SceneEditorGUI::SetCurrentObject(SceneObject* pNewObject) {
 	return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetActivatedPieSlice
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets any Pie menu slice command activated last update.
-
 PieSlice::SliceType SceneEditorGUI::GetActivatedPieSlice() const {
 	return m_PieMenu->GetPieCommand();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetModuleSpace
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets which DataModule space to be picking objects from. If -1, then
-//                  let the player pick from all loaded modules.
-
 void SceneEditorGUI::SetModuleSpace(int moduleSpaceID) {
 	m_pPicker->SetModuleSpace(moduleSpaceID);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetNativeTechModule
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets which DataModule ID should be treated as the native tech of the
-//                  user of this menu.
 
 void SceneEditorGUI::SetNativeTechModule(int whichModule) {
 	if (whichModule >= 0 && whichModule < g_PresetMan.GetTotalModuleCount()) {
@@ -277,24 +213,10 @@ void SceneEditorGUI::SetNativeTechModule(int whichModule) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetForeignCostMultiplier
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the multiplier of the cost of any foreign Tech items.
-
 void SceneEditorGUI::SetForeignCostMultiplier(float newMultiplier) {
 	m_ForeignCostMult = newMultiplier;
 	m_pPicker->SetForeignCostMultiplier(m_ForeignCostMult);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          TestBrainResidence
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Checks whether the resident brain is currently placed into a valid
-//                  location in this scene, based on whether there is a clear path to the
-//                  sky above it. This forces the editor into place brain mode with the
-//                  current resident brain if the current placement is no bueno. It also
-//                  removes the faulty brain from residence in the scene!
 
 bool SceneEditorGUI::TestBrainResidence(bool noBrainIsOK) {
 	// Do we have a resident at all?
@@ -348,11 +270,6 @@ bool SceneEditorGUI::TestBrainResidence(bool noBrainIsOK) {
 	// Brain is fine, leave it be
 	return true;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the state of this Menu each frame
 
 void SceneEditorGUI::Update() {
 	// Update the user controller
@@ -1258,11 +1175,6 @@ void SceneEditorGUI::Update() {
 		m_RevealTimer.Reset();
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the menu
 
 void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
 	// Done, so don't draw the UI

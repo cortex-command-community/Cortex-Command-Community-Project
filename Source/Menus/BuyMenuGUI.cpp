@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            BuyMenuGUI.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Implementation file for the BuyMenuGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "BuyMenuGUI.h"
 
 #include "CameraMan.h"
@@ -49,12 +37,6 @@ BITMAP* RTE::BuyMenuGUI::s_pCursor = 0;
 
 const std::string BuyMenuGUI::c_DefaultBannerImagePath = "Base.rte/GUIs/BuyMenu/BuyMenuBanner.png";
 const std::string BuyMenuGUI::c_DefaultLogoImagePath = "Base.rte/GUIs/BuyMenu/BuyMenuLogo.png";
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Clear
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all the member variables of this BuyMenuGUI, effectively
-//                  resetting the members of this abstraction level only.
 
 void BuyMenuGUI::Clear() {
 	m_pController = 0;
@@ -131,11 +113,6 @@ void BuyMenuGUI::Clear() {
 	m_FirstEquipmentTab = TOOLS;
 	m_LastEquipmentTab = SHIELDS;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the BuyMenuGUI object ready for use.
 
 int BuyMenuGUI::Create(Controller* pController) {
 	RTEAssert(pController, "No controller sent to BuyMenyGUI on creation!");
@@ -289,11 +266,6 @@ int BuyMenuGUI::Create(Controller* pController) {
 
 	return 0;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Destroy
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Destroys and resets (through Clear()) the BuyMenuGUI object.
 
 void BuyMenuGUI::Destroy() {
 	delete m_pGUIController;
@@ -474,13 +446,6 @@ bool BuyMenuGUI::LoadAllLoadoutsFromFile() {
 	return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  SaveAllLoadoutsToFile
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Saves all the loadouts to appropriate file on disk. Does NOT save
-//                  any named presets which will be loaded from the standard preset
-//                  loadouts first anyway.
-
 bool BuyMenuGUI::SaveAllLoadoutsToFile() {
 	// Nothing to save
 	if (m_Loadouts.empty())
@@ -512,11 +477,6 @@ bool BuyMenuGUI::SaveAllLoadoutsToFile() {
 
 	return true;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetEnabled
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Enables or disables the menu. This will animate it in and out of view.
 
 void BuyMenuGUI::SetEnabled(bool enable) {
 	if (enable && m_MenuEnabled != ENABLED && m_MenuEnabled != ENABLING) {
@@ -584,21 +544,9 @@ void BuyMenuGUI::SetEnabled(bool enable) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetPosOnScreen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-//                  etc.
-
 void BuyMenuGUI::SetPosOnScreen(int newPosX, int newPosY) {
 	m_pGUIController->SetPosOnScreen(newPosX, newPosY);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetMetaPlayer
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets which MetaPlayer uses this menu, if any.
 
 void BuyMenuGUI::SetMetaPlayer(int metaPlayer) {
 	if (metaPlayer >= Players::PlayerOne && metaPlayer < g_MetaMan.GetPlayerCount()) {
@@ -639,12 +587,6 @@ void BuyMenuGUI::SetNativeTechModule(int whichModule) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetModuleExpanded
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets whether a data module shown in the item menu should be expanded
-//                  or not.
-
 void BuyMenuGUI::SetModuleExpanded(int whichModule, bool expanded) {
 	int moduleCount = g_PresetMan.GetTotalModuleCount();
 	if (whichModule > 0 && whichModule < moduleCount) {
@@ -658,11 +600,6 @@ void BuyMenuGUI::SetModuleExpanded(int whichModule, bool expanded) {
 			m_aExpandedModules[m] = expanded;
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetOrderList
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Return the list of things currently in the purchase order list box.
 
 bool BuyMenuGUI::GetOrderList(std::list<const SceneObject*>& listToFill) const {
 	if (m_pCartList->GetItemList()->empty())
@@ -771,13 +708,6 @@ float BuyMenuGUI::GetCraftMass() {
 	return totalMass;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetTotalOrderPassengers
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Return the total number of passengers in the order box.
-// Arguments:       None.
-// Return value:    The total number of passengers.
-
 int BuyMenuGUI::GetTotalOrderPassengers() const {
 	int passengers = 0;
 	for (std::vector<GUIListPanel::Item*>::iterator itr = m_pCartList->GetItemList()->begin(); itr != m_pCartList->GetItemList()->end(); ++itr) {
@@ -850,11 +780,6 @@ void BuyMenuGUI::RefreshTabDisabledStates() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the state of this Menu each frame
 
 void BuyMenuGUI::Update() {
 	// Enable mouse input if the controller allows it
@@ -1964,11 +1889,6 @@ void BuyMenuGUI::FocusChange()
 }
 */
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  CategoryChange
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes sure all things that to happen when category is changed, happens.
-
 void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 	// Re-set the GUI manager's focus on the tabs if we're supposed to
 	// We don't want to do that if we're just refreshing the same category, like in the case of of expanding a module group item
@@ -2081,11 +2001,6 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 		m_pShopList->ScrollToSelected();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  SaveCurrentLoadout
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Saves the current loadout into a Set.
-
 void BuyMenuGUI::SaveCurrentLoadout() {
 	Loadout newSet;
 
@@ -2108,11 +2023,6 @@ void BuyMenuGUI::SaveCurrentLoadout() {
 	// Set focus back on the save button (CatChange changed it)
 	m_pSaveButton->SetFocus();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  DeployLoadout
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Loads the loadout set into the cart, replacing whatever's there now.
 
 bool BuyMenuGUI::DeployLoadout(int index) {
 	if (index < 0 || index >= m_Loadouts.size())
@@ -2290,11 +2200,6 @@ void BuyMenuGUI::AddObjectsToItemList(std::vector<std::list<Entity*>>& moduleLis
 		}
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddPresetsToItemList
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds all loadout presets' representations to the item GUI list.
 
 void BuyMenuGUI::AddPresetsToItemList() {
 	GUIBitmap* pItemBitmap = 0;

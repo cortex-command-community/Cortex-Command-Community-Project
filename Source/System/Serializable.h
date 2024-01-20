@@ -103,7 +103,7 @@ namespace RTE {
 		/// If the property isn't recognized by any of the base classes, false is returned, and the Reader's position is untouched.
 		/// @param propName The name of the property to be read.
 		/// @param reader A Reader lined up to the value of the property to be read.
-		/// @return 
+		/// @return
 		/// An error return value signaling whether the property was successfully read or not.
 		/// 0 means it was read successfully, and any nonzero indicates that a property of that name could not be found in this or base classes.
 		virtual int ReadProperty(const std::string_view& propName, Reader& reader);

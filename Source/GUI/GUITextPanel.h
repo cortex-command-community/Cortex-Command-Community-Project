@@ -15,186 +15,89 @@ namespace RTE {
 			Enter
 		} Signals;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUITextPanel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUITextPanel object in
-		//                  system memory.
-		// Arguments:       GUIManager.
-
+		/// Constructor method used to instantiate a GUITextPanel object in
+		/// system memory.
+		/// @param Manager GUIManager.
 		explicit GUITextPanel(GUIManager* Manager);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUITextPanel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUITextPanel object in
-		//                  system memory.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a GUITextPanel object in
+		/// system memory.
 		GUITextPanel();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Create the panel.
-		// Arguments:       Position, Size.
-
+		/// Create the panel.
+		/// @param X Position, Size.
 		void Create(int X, int Y, int Width, int Height);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ChangeSkin
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the skin has been changed.
-		// Arguments:       New skin pointer.
-
+		/// Called when the skin has been changed.
+		/// @param Skin New skin pointer.
 		void ChangeSkin(GUISkin* Skin);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the panel
-		// Arguments:       Screen class
-
+		/// Draws the panel
+		/// @param Screen Screen class
 		void Draw(GUIScreen* Screen) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseDown
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes down on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes down on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseDown(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  OnMouseUp
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes up on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes up on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseUp(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseMove
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse moves (over the panel, or when captured).
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse moves (over the panel, or when captured).
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseMove(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnKeyPress
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when a key is pressed (OnDown & repeating).
-		// Arguments:       KeyCode, Modifier.
-
+		/// Called when a key is pressed (OnDown & repeating).
+		/// @param KeyCode KeyCode, Modifier.
 		void OnKeyPress(int KeyCode, int Modifier) override;
 
 		void OnTextInput(std::string_view inputText) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the text in the textpanel.
-		// Arguments:       Text.
-
+		/// Sets the text in the textpanel.
+		/// @param Text Text.
 		void SetText(const std::string& Text);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetRightText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the extra text which appears right-justified in the textpanel.
-		// Arguments:       Text.
-
+		/// Sets the extra text which appears right-justified in the textpanel.
+		/// @param rightText Text.
 		void SetRightText(const std::string& rightText);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the text in the textpanel.
-		// Arguments:       None.
-
+		/// Gets the text in the textpanel.
 		std::string GetText() const { return m_Text; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetRightText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the extra text which appears right-justified in the textpanel.
-		// Arguments:       None.
-
+		/// Gets the extra text which appears right-justified in the textpanel.
 		std::string GetRightText() const { return m_RightText; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetSelection
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the start and end indexes of the selection text.
-		// Arguments:       Start, End.
-
+		/// Sets the start and end indexes of the selection text.
+		/// @param Start Start, End.
 		void SetSelection(int Start, int End);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSelectionStart
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the start index of the selection.
-		// Arguments:       None.
-		// Returns:         Index of the start of the selection. -1 if no selection
-
+		/// Gets the start index of the selection.
+		/// @return Index of the start of the selection. -1 if no selection
 		int GetSelectionStart() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSelectionEnd
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the end index of the selection.
-		// Arguments:       None.
-		// Returns:         Index of the end of the selection. -1 if no selection
-
+		/// Gets the end index of the selection.
+		/// @return Index of the end of the selection. -1 if no selection
 		int GetSelectionEnd() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ClearSelection
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the selection. Does NOT remove the selection text though.
-		// Arguments:       None.
-
+		/// Clears the selection. Does NOT remove the selection text though.
 		void ClearSelection();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSelectionText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the selection text.
-		// Arguments:       None.
-
+		/// Gets the selection text.
 		std::string GetSelectionText() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveSelectionText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes the characters in the selection.
-		// Arguments:       None.
-
+		/// Removes the characters in the selection.
 		void RemoveSelectionText();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetCursorPos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets where the cursor should be. This will clear any selection.
-		// Arguments:       The index of the new cursor position.
-
+		/// Sets where the cursor should be. This will clear any selection.
+		/// @param cursorPos The index of the new cursor position.
 		void SetCursorPos(int cursorPos);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetLocked
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the locked state on the textbox.
-		// Arguments:       Locked.
-
+		/// Sets the locked state on the textbox.
+		/// @param Locked Locked.
 		void SetLocked(bool Locked);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetLocked
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the locked state on the textbox.
-		// Arguments:       None.
-
+		/// Gets the locked state on the textbox.
 		bool GetLocked() const;
 
 		/// Sets this text panel to accept numeric symbols only.
@@ -242,20 +145,12 @@ namespace RTE {
 		bool m_NumericOnly; //!< Whether this text panel only accepts numeric symbols.
 		int m_MaxNumericValue; //!< The maximum numeric value when in numeric only mode. 0 means no maximum value.
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateText
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the cursor and start positions.
-		// Arguments:       Typing, Increment.
-
+		/// Updates the cursor and start positions.
+		/// @param Typing Typing, Increment. (default: false)
 		void UpdateText(bool Typing = false, bool DoIncrement = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DoSelection
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Update the selection.
-		// Arguments:       Start, End.
-
+		/// Update the selection.
+		/// @param Start Start, End.
 		void DoSelection(int Start, int End);
 
 		/// Gets the index of the start of the next contiguous group of letters or special characters in the given string, or the end of the string if there is none.

@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MovableObject.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the MovableObject class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "MovableObject.h"
 
 #include "ActivityMan.h"
@@ -31,12 +19,6 @@ namespace RTE {
 
 	std::atomic<unsigned long int> MovableObject::m_UniqueIDCounter = 1;
 	std::string MovableObject::ms_EmptyString = "";
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this MovableObject, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void MovableObject::Clear() {
 		m_MOType = TypeGeneric;
@@ -140,11 +122,6 @@ namespace RTE {
 		return *m_ThreadedLuaState;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MovableObject object ready for use.
-
 	int MovableObject::Create() {
 		if (SceneObject::Create() < 0)
 			return -1;
@@ -166,11 +143,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the MovableObject object ready for use.
 
 	int MovableObject::Create(const float mass,
 	                          const Vector& position,
@@ -200,11 +172,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MovableObject to be identical to another, by deep copy.
 
 	int MovableObject::Create(const MovableObject& reference) {
 		SceneObject::Create(reference);
@@ -288,14 +255,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneObject::ReadProperty(propName, reader));
@@ -418,12 +377,6 @@ namespace RTE {
 		// Artificially end reading this property since we got all we needed
 		reader.NextProperty();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this MovableObject to an output stream for
-	//                  later recreation with Create(istream &stream);
 
 	int MovableObject::Save(Writer& writer) const {
 		SceneObject::Save(writer);
@@ -768,12 +721,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetAltitude
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the altitide of this' pos (or appropriate low point) over the
-	//                  terrain, in pixels.
-
 	float MovableObject::GetAltitude(int max, int accuracy) {
 		return g_SceneMan.FindAltitude(m_Pos, max, accuracy);
 	}
@@ -821,13 +768,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  OnMOHit
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Defines what should happen when this MovableObject hits another MO.
-	//                  This is called by the owned Atom/AtomGroup of this MovableObject during
-	//                  travel.
-
 	bool MovableObject::OnMOHit(HitData& hd) {
 		if (hd.RootBody[HITOR] != hd.RootBody[HITEE] && (hd.Body[HITOR] == this || hd.Body[HITEE] == this)) {
 			RunScriptedFunctionInAppropriateScripts("OnCollideWithMO", false, false, {hd.Body[hd.Body[HITOR] == this ? HITEE : HITOR], hd.RootBody[hd.Body[HITOR] == this ? HITEE : HITOR]});
@@ -854,13 +794,6 @@ namespace RTE {
 		}
 		return totalForceVector;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ApplyForces
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gathers and applies the global and accumulated forces. Then it clears
-	//                  out the force list.Note that this does NOT apply the accumulated
-	//                  impulses (impulse forces)!
 
 	void MovableObject::ApplyForces() {
 		// Don't apply forces to pinned objects
@@ -890,13 +823,6 @@ namespace RTE {
 		m_Forces.clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ApplyImpulses
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gathers and applies the accumulated impulse forces. Then it clears
-	//                  out the impulse list.Note that this does NOT apply the accumulated
-	//                  regular forces (non-impulse forces)!
-
 	void MovableObject::ApplyImpulses() {
 		// Don't apply forces to pinned objects
 		if (m_PinStrength > 0) {
@@ -916,12 +842,6 @@ namespace RTE {
 		// Clear out the impulses list
 		m_ImpulseForces.clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  PreTravel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Does stuff that needs to be done before Travel(). Always call before
-	//                  calling Travel.
 
 	void MovableObject::PreTravel() {
 		// Temporarily remove the representation of this from the scene MO sampler
@@ -943,19 +863,8 @@ namespace RTE {
 		m_ParticleUniqueIDHit = 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Travel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Travels this MovableObject, using its physical representation.
-
 	void MovableObject::Travel() {
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  PostTravel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Does stuff that needs to be done after Travel(). Always call after
-	//                  calling Travel.
 
 	void MovableObject::PostTravel() {
 		// Toggle whether this gets hit by other AtomGroup MOs depending on whether it's going slower than a set threshold
@@ -1155,11 +1064,6 @@ namespace RTE {
 		return RunScriptedFunctionInAppropriateScripts("WhilePieMenuOpen", false, false, {pieMenu});
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  UpdateMOID
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Updates this' and its childrens MOID status. Supposed to be done every frame.
-
 	void MovableObject::UpdateMOID(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID, bool makeNewMOID) {
 		// Register the own MOID
 		RegMOID(MOIDIndex, rootMOID, makeNewMOID);
@@ -1170,11 +1074,6 @@ namespace RTE {
 		// Figure out the total MOID footstep of this and all its children combined
 		m_MOIDFootprint = MOIDIndex.size() - m_MOID;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  GetMOIDs
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Puts all MOIDs associated with this MO and all it's descendants into MOIDs vector
 
 	void MovableObject::GetMOIDs(std::vector<MOID>& MOIDs) const {
 		if (m_MOID != g_NoMOID) {
@@ -1199,13 +1098,6 @@ namespace RTE {
 		m_ParticleUniqueIDHit = id;
 		m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  RegMOID
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes this MO register itself in the MOID register and get ID:s for
-	//                  itself and its children for this frame.
-	//                  BITMAP of choice.
 
 	void MovableObject::RegMOID(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID, bool makeNewMOID) {
 		if (!makeNewMOID && GetParent()) {

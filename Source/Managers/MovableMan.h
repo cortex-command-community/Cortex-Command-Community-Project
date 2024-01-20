@@ -1,18 +1,11 @@
 #ifndef _RTEMOVABLEMAN_
 #define _RTEMOVABLEMAN_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MovableMan.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the MovableMan class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the MovableMan class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "Serializable.h"
 #include "Singleton.h"
 #include "Activity.h"
@@ -32,13 +25,7 @@ namespace RTE {
 	class Box;
 	class LuabindObjectWrapper;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Struct:          AlarmEvent
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A struct to keep all data about a an alarming event for the AI Actors.
-	// Parent(s):       None.
-	// Class history:   10/3/2008  AlarmEvent created.
-
+	/// A struct to keep all data about a an alarming event for the AI Actors.
 	struct AlarmEvent {
 		AlarmEvent() {
 			m_ScenePos.Reset();
@@ -56,90 +43,46 @@ namespace RTE {
 		float m_Range;
 	};
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           MovableMan
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     The singleton manager of all movable objects in the RTE.
-	// Parent(s):       Singleton, Serializable.
-	// Class history:   12/25/2001 MovableMan created.
-
+	/// The singleton manager of all movable objects in the RTE.
 	class MovableMan : public Singleton<MovableMan>, public Serializable {
 		friend class SettingsMan;
 		friend struct ManagerLuaBindings;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     MovableMan
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a MovableMan object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a MovableMan object in system
+		/// memory. Create() should be called before using the object.
 		MovableMan() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~MovableMan
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a MovableMan object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a MovableMan object before deletion
+		/// from system memory.
 		~MovableMan() { Destroy(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the MovableMan object ready for use.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the MovableMan object ready for use.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Initialize();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire MovableMan, including its inherited members, to
-		//                  their default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire MovableMan, including its inherited members, to
+		/// their default settings or values.
 		void Reset() override { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the MovableMan object.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the MovableMan object.
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMOFromID
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a MO from its MOID. Note that MOID's are only valid during the
-		//                  same frame as they were assigned to the MOs!
-		// Arguments:       The MOID to get the matching MO from.
-		// Return value:    A pointer to the requested MovableObject instance. 0 if no MO with that
-		//                  MOID was found. 0 if 0 was passed in as MOID (no MOID). Ownership is
-		//                  *NOT* transferred!!
-
+		/// Gets a MO from its MOID. Note that MOID's are only valid during the
+		/// same frame as they were assigned to the MOs!
+		/// @param whichID The MOID to get the matching MO from.
+		/// @return A pointer to the requested MovableObject instance. 0 if no MO with that
+		/// MOID was found. 0 if 0 was passed in as MOID (no MOID). Ownership is
+		/// *NOT* transferred!!
 		MovableObject* GetMOFromID(MOID whichID);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMOIDCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the number of MOID's currently in use this frame.
-		// Arguments:       None.
-		// Return value:    The count of MOIDs in use this frame.
-
+		/// Gets the number of MOID's currently in use this frame.
+		/// @return The count of MOIDs in use this frame.
 		int GetMOIDCount() { return m_MOIDIndex.size(); }
 
 		/// Gets a MOID from pixel coordinates in the Scene.
@@ -149,86 +92,56 @@ namespace RTE {
 		/// @return The topmost MOID currently at the specified pixel coordinates.
 		MOID GetMOIDPixel(int pixelX, int pixelY, const std::vector<int>& moidList);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTeamMOIDCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns MO count for specified team
-		// Arguments:       Team to count MO's
-		// Return value:    MO's count owned by this team
-
+		/// Returns MO count for specified team
+		/// @param team Team to count MO's
+		/// @return MO's count owned by this team
 		int GetTeamMOIDCount(int team) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          PurgeAllMOs
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears out all MovableObject:s out of this. Effectively empties the world
-		//                  of anything moving, without resetting all of this' settings.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears out all MovableObject:s out of this. Effectively empties the world
+		/// of anything moving, without resetting all of this' settings.
 		void PurgeAllMOs();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetNextActorInGroup
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to the first Actor in the internal Actor list that is
-		//                  of a specifc group, alternatively the first one AFTER a specific actor!
-		// Arguments:       Which group to try to get an Actor for.
-		//                  A pointer to an Actor to use as starting point in the forward search.
-		//                  Ownership NOT xferred!
-		// Return value:    An Actor pointer to the requested team's first Actor encountered
-		//                  in the list. 0 if there are no Actors of that team.
-
+		/// Get a pointer to the first Actor in the internal Actor list that is
+		/// of a specifc group, alternatively the first one AFTER a specific actor!
+		/// @param group Which group to try to get an Actor for.
+		/// @param pAfterThis A pointer to an Actor to use as starting point in the forward search. (default: 0)
+		/// Ownership NOT xferred!
+		/// @return An Actor pointer to the requested team's first Actor encountered
+		/// in the list. 0 if there are no Actors of that team.
 		Actor* GetNextActorInGroup(std::string group, Actor* pAfterThis = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetPrevActorInGroup
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to the last Actor in the internal Actor list that is
-		//                  of a specifc group, alternatively the last one BEFORE a specific actor!
-		// Arguments:       Which group to try to get an Actor for.
-		//                  A pointer to an Actor to use as starting point in the backward search.
-		//                  Ownership NOT xferred!
-		// Return value:    An Actor pointer to the requested team's last Actor encountered
-		//                  in the list. 0 if there are no Actors of that team.
-
+		/// Get a pointer to the last Actor in the internal Actor list that is
+		/// of a specifc group, alternatively the last one BEFORE a specific actor!
+		/// @param group Which group to try to get an Actor for.
+		/// @param pBeforeThis A pointer to an Actor to use as starting point in the backward search. (default: 0)
+		/// Ownership NOT xferred!
+		/// @return An Actor pointer to the requested team's last Actor encountered
+		/// in the list. 0 if there are no Actors of that team.
 		Actor* GetPrevActorInGroup(std::string group, Actor* pBeforeThis = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTeamRoster
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the list of all actors on one team, ordered by their X positions.
-		// Arguments:       Which team to try to get the roster for.
-		// Return value:    A pointer to the list of all the actors on the specified team, sorted
-		//                  ascending by their X posistions. Ownership of the list or contained
-		//                  actors is NOT transferred!
-
+		/// Gets the list of all actors on one team, ordered by their X positions.
+		/// @param team Which team to try to get the roster for. (default: 0) { return &(m_ActorRoster[team])
+		/// @return A pointer to the list of all the actors on the specified team, sorted
+		/// ascending by their X posistions. Ownership of the list or contained
+		/// actors is NOT transferred!
 		std::list<Actor*>* GetTeamRoster(int team = 0) { return &(m_ActorRoster[team]); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetNextTeamActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to the first Actor in the internal Actor list that is
-		//                  of a specifc team, alternatively the first one AFTER a specific actor!
-		// Arguments:       Which team to try to get an Actor for. 0 means first team, 1 means 2nd.
-		//                  A pointer to an Actor to use as starting point in the forward search.
-		//                  Ownership NOT xferred!
-		// Return value:    An Actor pointer to the requested team's first Actor encountered
-		//                  in the list. 0 if there are no Actors of that team.
-
+		/// Get a pointer to the first Actor in the internal Actor list that is
+		/// of a specifc team, alternatively the first one AFTER a specific actor!
+		/// @param team Which team to try to get an Actor for. 0 means first team, 1 means 2nd. (default: 0)
+		/// @param pAfterThis A pointer to an Actor to use as starting point in the forward search. (default: 0)
+		/// Ownership NOT xferred!
+		/// @return An Actor pointer to the requested team's first Actor encountered
+		/// in the list. 0 if there are no Actors of that team.
 		Actor* GetNextTeamActor(int team = 0, Actor* pAfterThis = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetPrevTeamActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to the last Actor in the internal Actor list that is
-		//                  of a specifc team, alternatively the last one BEFORE a specific actor!
-		// Arguments:       Which team to try to get an Actor for. 0 means first team, 1 means 2nd.
-		//                  A pointer to an Actor to use as starting point in the backward search.
-		//                  Ownership NOT xferred!
-		// Return value:    An Actor pointer to the requested team's last Actor encountered
-		//                  in the list. 0 if there are no Actors of that team.
-
+		/// Get a pointer to the last Actor in the internal Actor list that is
+		/// of a specifc team, alternatively the last one BEFORE a specific actor!
+		/// @param team Which team to try to get an Actor for. 0 means first team, 1 means 2nd. (default: 0)
+		/// @param pBeforeThis A pointer to an Actor to use as starting point in the backward search. (default: 0)
+		/// Ownership NOT xferred!
+		/// @return An Actor pointer to the requested team's last Actor encountered
+		/// in the list. 0 if there are no Actors of that team.
 		Actor* GetPrevTeamActor(int team = 0, Actor* pBeforeThis = 0);
 
 		/// Get a pointer to an Actor in the internal Actor list that is of a specifc team and closest to a specific scene point.
@@ -252,167 +165,105 @@ namespace RTE {
 		/// @return An Actor pointer to the requested team's Actor closest to the Scene point, but not outside the max radius. If no Actor other than the excluded one was found within the radius of the point, nullptr is returned.
 		Actor* GetClosestTeamActor(int team, int player, const Vector& scenePoint, int maxRadius, Vector& getDistance, bool onlyPlayerControllableActors, const Actor* excludeThis = nullptr);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetClosestEnemyActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to an Actor in the internal Actor list that is is not of
-		//                  the specified team and closest to a specific scene point.
-		// Arguments:       Which team to try to get an enemy Actor for. NoTeam means all teams.
-		//                  The Scene point to search for the closest to.
-		//                  The maximum radius around that scene point to search.
-		//                  A Vector to be filled out with the distance of the returned closest to
-		//                  the search point. Will be unaltered if no object was found within radius.
-		// Return value:    An Actor pointer to the enemy closest to the Scene
-		//                  point, but not outside the max radius. If no Actor
-		//                  was found within the radius of the point, 0 is returned.
-
+		/// Get a pointer to an Actor in the internal Actor list that is is not of
+		/// the specified team and closest to a specific scene point.
+		/// @param team Which team to try to get an enemy Actor for. NoTeam means all teams.
+		/// @param scenePoint The Scene point to search for the closest to.
+		/// @param maxRadius The maximum radius around that scene point to search.
+		/// @param getDistance A Vector to be filled out with the distance of the returned closest to
+		/// the search point. Will be unaltered if no object was found within radius.
+		/// @return An Actor pointer to the enemy closest to the Scene
+		/// point, but not outside the max radius. If no Actor
+		/// was found within the radius of the point, 0 is returned.
 		Actor* GetClosestEnemyActor(int team, const Vector& scenePoint, int maxRadius, Vector& getDistance);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetFirstTeamActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to first best Actor in the internal Actor list that is
-		//                  of a specifc team.
-		// Arguments:       Which team to try to get an Actor for. 0 means first team, 1 means 2nd.
-		//                  The player to get the Actor for. This affects which brain can be marked.
-		// Return value:    An Actor pointer to the first one of the requested team. If no Actor
-		//                  is in that team, 0 is returned.
-
+		/// Get a pointer to first best Actor in the internal Actor list that is
+		/// of a specifc team.
+		/// @param team Which team to try to get an Actor for. 0 means first team, 1 means 2nd.
+		/// @param player The player to get the Actor for. This affects which brain can be marked.
+		/// @return An Actor pointer to the first one of the requested team. If no Actor
+		/// is in that team, 0 is returned.
 		Actor* GetFirstTeamActor(int team, int player) {
 			Vector temp;
 			return GetClosestTeamActor(team, player, Vector(), 10000000, temp);
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetClosestActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to an Actor in the internal Actor list that is closest
-		//                  to a specific scene point.
-		// Arguments:       Which team to try to get an Actor for. 0 means first team, 1 means 2nd.
-		//                  The Scene point to search for the closest to.
-		//                  The maximum radius around that scene point to search.
-		//                  A Vector to be filled out with the distance of the returned closest to
-		//                  the search point. Will be unaltered if no object was found within radius.
-		//                  An Actor to exclude from the search. OWNERSHIP IS NOT TRANSFERRED!
-		// Return value:    An Actor pointer to the requested Actor closest to the Scene
-		//                  point, but not outside the max radius. If no Actor other than the
-		//                  excluded one was found within the radius of the point, 0 is returned.
-
+		/// Get a pointer to an Actor in the internal Actor list that is closest
+		/// to a specific scene point.
+		/// @param scenePoint Which team to try to get an Actor for. 0 means first team, 1 means 2nd.
+		/// @param maxRadius The Scene point to search for the closest to.
+		/// @param getDistance The maximum radius around that scene point to search.
+		/// @param pExcludeThis A Vector to be filled out with the distance of the returned closest to (default: 0)
+		/// the search point. Will be unaltered if no object was found within radius.
+		/// An Actor to exclude from the search. OWNERSHIP IS NOT TRANSFERRED!
+		/// @return An Actor pointer to the requested Actor closest to the Scene
+		/// point, but not outside the max radius. If no Actor other than the
+		/// excluded one was found within the radius of the point, 0 is returned.
 		Actor* GetClosestActor(const Vector& scenePoint, int maxRadius, Vector& getDistance, const Actor* pExcludeThis = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetClosestBrainActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to the brain actor of a specific team that is closest to
-		//                  a scene point. OWNERSHIP IS NOT TRANSFERRED!
-		// Arguments:       Which team to try to get the brain for. 0 means first team, 1 means 2nd.
-		//                  The point in the scene where to look for the closest opposite team brain.
-		// Return value:    An Actor pointer to the requested team's brain closest to the point.
-		//                  0 if there are no brains of that team. OWNERSHIP IS NOT TRANSFERRED!
-
+		/// Get a pointer to the brain actor of a specific team that is closest to
+		/// a scene point. OWNERSHIP IS NOT TRANSFERRED!
+		/// @param team Which team to try to get the brain for. 0 means first team, 1 means 2nd.
+		/// @param scenePoint The point in the scene where to look for the closest opposite team brain.
+		/// @return An Actor pointer to the requested team's brain closest to the point.
+		/// 0 if there are no brains of that team. OWNERSHIP IS NOT TRANSFERRED!
 		Actor* GetClosestBrainActor(int team, const Vector& scenePoint) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetFirstBrainActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to the brain actor of a specific team that is closest to
-		//                  a scene point. OWNERSHIP IS NOT TRANSFERRED!
-		// Arguments:       Which team to try to get the brain for. 0 means first team, 1 means 2nd.
-		//                  The point in the scene where to look for the closest opposite team brain.
-		// Return value:    An Actor pointer to the requested team's brain closest to the point.
-		//                  0 if there are no brains of that team. OWNERSHIP IS NOT TRANSFERRED!
-
+		/// Get a pointer to the brain actor of a specific team that is closest to
+		/// a scene point. OWNERSHIP IS NOT TRANSFERRED!
+		/// @param GetClosestBrainActor(team Which team to try to get the brain for. 0 means first team, 1 means 2nd.
+		/// @param Vector() The point in the scene where to look for the closest opposite team brain.
+		/// @return An Actor pointer to the requested team's brain closest to the point.
+		/// 0 if there are no brains of that team. OWNERSHIP IS NOT TRANSFERRED!
 		Actor* GetFirstBrainActor(int team) const { return GetClosestBrainActor(team, Vector()); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetClosestOtherBrainActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to the brain actor NOT of a specific team that is closest
-		//                  to a scene point. OWNERSHIP IS NOT TRANSFERRED!
-		// Arguments:       Which team to NOT get the brain for. 0 means first team, 1 means 2nd.
-		//                  The point where to look for the closest brain not of this team.
-		// Return value:    An Actor pointer to the requested brain closest to the point.
-		//                  0 if there are no brains not on that team. OWNERSHIP IS NOT TRANSFERRED!
-
+		/// Get a pointer to the brain actor NOT of a specific team that is closest
+		/// to a scene point. OWNERSHIP IS NOT TRANSFERRED!
+		/// @param notOfTeam Which team to NOT get the brain for. 0 means first team, 1 means 2nd.
+		/// @param scenePoint The point where to look for the closest brain not of this team.
+		/// @return An Actor pointer to the requested brain closest to the point.
+		/// 0 if there are no brains not on that team. OWNERSHIP IS NOT TRANSFERRED!
 		Actor* GetClosestOtherBrainActor(int notOfTeam, const Vector& scenePoint) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetFirstOtherBrainActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to the brain actor NOT of a specific team. OWNERSHIP IS NOT TRANSFERRED!
-		// Arguments:       Which team to NOT get the brain for. 0 means first team, 1 means 2nd.
-		// Return value:    An Actor pointer to the requested brain of that team.
-		//                  0 if there are no brains not on that team. OWNERSHIP IS NOT TRANSFERRED!
-
+		/// Get a pointer to the brain actor NOT of a specific team. OWNERSHIP IS NOT TRANSFERRED!
+		/// @param GetClosestOtherBrainActor(notOfTeam Which team to NOT get the brain for. 0 means first team, 1 means 2nd.
+		/// @return An Actor pointer to the requested brain of that team.
+		/// 0 if there are no brains not on that team. OWNERSHIP IS NOT TRANSFERRED!
 		Actor* GetFirstOtherBrainActor(int notOfTeam) const { return GetClosestOtherBrainActor(notOfTeam, Vector()); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetUnassignedBrain
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Get a pointer to the first brain actor of a specific team which hasn't
-		//                  been assigned to a player yet.
-		// Arguments:       Which team to try to get the brain for. 0 means first team, 1 means 2nd.
-		// Return value:    An Actor pointer to the requested team's first brain encountered
-		//                  in the list that hasn't been assigned to a player. 0 if there are no
-		//                  unassigned brains of that team.
-
+		/// Get a pointer to the first brain actor of a specific team which hasn't
+		/// been assigned to a player yet.
+		/// @param team Which team to try to get the brain for. 0 means first team, 1 means 2nd. (default: 0)
+		/// @return An Actor pointer to the requested team's first brain encountered
+		/// in the list that hasn't been assigned to a player. 0 if there are no
+		/// unassigned brains of that team.
 		Actor* GetUnassignedBrain(int team = 0) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetActorCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the number of actors currently held.
-		// Arguments:       None.
-		// Return value:    The number of actors.
-
+		/// Gets the number of actors currently held.
+		/// @return The number of actors.
 		long GetActorCount() const { return m_Actors.size(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetParticleCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the number of particles (MOPixel:s) currently held.
-		// Arguments:       None.
-		// Return value:    The number of particles.
-
+		/// Gets the number of particles (MOPixel:s) currently held.
+		/// @return The number of particles.
 		long GetParticleCount() const { return m_Particles.size(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSplashRatio
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the global setting for how much splash MOPixels should be created
-		//                  an MO penetrates the terrain deeply.
-		// Arguments:       None.
-		// Return value:    A float with the global splash amount setting, form 1.0 to 0.0.
-
+		/// Gets the global setting for how much splash MOPixels should be created
+		/// an MO penetrates the terrain deeply.
+		/// @return A float with the global splash amount setting, form 1.0 to 0.0.
 		float GetSplashRatio() const { return m_SplashRatio; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetMaxDroppedItems
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the max number of dropped items that will be reached before the
-		//                  first dropped with be copied to the terrain.
-		// Arguments:       An int spefifying the limit.
-		// Return value:    None.
-
+		/// Sets the max number of dropped items that will be reached before the
+		/// first dropped with be copied to the terrain.
+		/// @param newLimit An int spefifying the limit.
 		void SetMaxDroppedItems(int newLimit) { m_MaxDroppedItems = newLimit; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMaxDroppedItems
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the max number of dropped items that will be reached before the
-		//                  first dropped with be copied to the terrain.
-		// Arguments:       None.
-		// Return value:    An int spefifying the limit.
-
+		/// Gets the max number of dropped items that will be reached before the
+		/// first dropped with be copied to the terrain.
+		/// @return An int spefifying the limit.
 		int GetMaxDroppedItems() const { return m_MaxDroppedItems; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SortTeamRoster
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets this to draw HUD lines for a specific team's roster this frame.
-		// Arguments:       Which team to have lines drawn of.
-		// Return value:    None.
-
+		/// Sets this to draw HUD lines for a specific team's roster this frame.
+		/// @param team Which team to have lines drawn of.
 		void SortTeamRoster(int team) { m_SortTeamRoster[team] = true; }
 
 		/// Adds a MovableObject to this, after it is determined what it is and the best way to add it is. E.g. if it's an Actor, it will be added as such. Ownership IS transferred!
@@ -432,131 +283,79 @@ namespace RTE {
 		/// @param particleToAdd A pointer to the MovableObject to add. Ownership is transferred!
 		void AddParticle(MovableObject* particleToAdd);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes an Actor from the internal list of MO:s. After the Actor is
-		//                  removed, ownership is effectively released and transferred to whatever
-		//                  client called this method.
-		// Arguments:       A pointer to the MovableObject to remove.
-		// Return value:    Whether the object was found in the particle list, and consequently
-		//                  removed. If the particle entry wasn't found, false is returned.
-
+		/// Removes an Actor from the internal list of MO:s. After the Actor is
+		/// removed, ownership is effectively released and transferred to whatever
+		/// client called this method.
+		/// @param pActorToRem A pointer to the MovableObject to remove.
+		/// @return Whether the object was found in the particle list, and consequently
+		/// removed. If the particle entry wasn't found, false is returned.
 		Actor* RemoveActor(MovableObject* pActorToRem);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveItem
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes a pickup-able MovableObject item from the internal list of
-		//                  MO:s. After the item is removed, ownership is effectively released and
-		//                  transferred to whatever client called this method.
-		// Arguments:       A pointer to the MovableObject to remove.
-		// Return value:    Whether the object was found in the particle list, and consequently
-		//                  removed. If the particle entry wasn't found, false is returned.
-
+		/// Removes a pickup-able MovableObject item from the internal list of
+		/// MO:s. After the item is removed, ownership is effectively released and
+		/// transferred to whatever client called this method.
+		/// @param pItemToRem A pointer to the MovableObject to remove.
+		/// @return Whether the object was found in the particle list, and consequently
+		/// removed. If the particle entry wasn't found, false is returned.
 		MovableObject* RemoveItem(MovableObject* pItemToRem);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveParticle
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes a MovableObject from the internal list of MO:s. After the
-		//                  MO is removed, ownership is effectively released and transferred to
-		//                  whatever client called this method.
-		// Arguments:       A pointer to the MovableObject to remove.
-		// Return value:    Whether the object was found in the particle list, and consequently
-		//                  removed. If the particle entry wasn't found, false is returned.
-
+		/// Removes a MovableObject from the internal list of MO:s. After the
+		/// MO is removed, ownership is effectively released and transferred to
+		/// whatever client called this method.
+		/// @param pMOToRem A pointer to the MovableObject to remove.
+		/// @return Whether the object was found in the particle list, and consequently
+		/// removed. If the particle entry wasn't found, false is returned.
 		MovableObject* RemoveParticle(MovableObject* pMOToRem);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ChangeActorTeam
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Changes actor team and updates team rosters.
-		// Arguments:       Pointer to actor, new team value
-		// Return value:    None.
-
+		/// Changes actor team and updates team rosters.
+		/// @param pActor Pointer to actor, new team value
 		void ChangeActorTeam(Actor* pActor, int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddActorToTeamRoster
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds actor to internal team roster
-		// Arguments:       Pointer to actor
-		// Return value:    None.
-
+		/// Adds actor to internal team roster
+		/// @param pActorToAdd Pointer to actor
 		void AddActorToTeamRoster(Actor* pActorToAdd);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveActorToTeamRoster
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes actor from internal team roster
-		// Arguments:       Pointer to actor
-		// Return value:    None.
-
+		/// Removes actor from internal team roster
+		/// @param pActorToRem Pointer to actor
 		void RemoveActorFromTeamRoster(Actor* pActorToRem);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ValidateMOIDs
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Goes through and checks that all MOID's have valid MO pointers
-		//                  associated with them. This shuold only be used for testing, as it will
-		//                  crash the app if validation fails.
-		// Arguments:       None.
-		// Return value:    All MOIDs valid.
-
+		/// Goes through and checks that all MOID's have valid MO pointers
+		/// associated with them. This shuold only be used for testing, as it will
+		/// crash the app if validation fails.
+		/// @return All MOIDs valid.
 		bool ValidateMOIDs();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ValidMO
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the passed in MovableObject pointer points to an
-		//                  MO that's currently active in the simulation, and kept by this
-		//                  MovableMan. Internal optimization is made so that the same MO can
-		//                  efficiently be checked many times during the same frame.
-		// Arguments:       A pointer to the MovableObject to check for being actively kept by
-		//                  this MovableMan.
-		// Return value:    Whether the MO instance was found in the active list or not.
-
+		/// Indicates whether the passed in MovableObject pointer points to an
+		/// MO that's currently active in the simulation, and kept by this
+		/// MovableMan. Internal optimization is made so that the same MO can
+		/// efficiently be checked many times during the same frame.
+		/// @param pMOToCheck A pointer to the MovableObject to check for being actively kept by
+		/// this MovableMan.
+		/// @return Whether the MO instance was found in the active list or not.
 		bool ValidMO(const MovableObject* pMOToCheck);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the passed in MovableObject is an active Actor kept
-		//                  by this MovableMan or not.
-		// Arguments:       A pointer to the MovableObject to check for Actorness.
-		// Return value:    Whether the object was found in the Actor list or not.
-
+		/// Indicates whether the passed in MovableObject is an active Actor kept
+		/// by this MovableMan or not.
+		/// @param pMOToCheck A pointer to the MovableObject to check for Actorness.
+		/// @return Whether the object was found in the Actor list or not.
 		bool IsActor(const MovableObject* pMOToCheck);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsDevice
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the passed in MovableObject is an active Item kept
-		//                  by this MovableMan or not.
-		// Arguments:       A pointer to the MovableObject to check for Itemness.
-		// Return value:    Whether the object was found in the Item list or not.
-
+		/// Indicates whether the passed in MovableObject is an active Item kept
+		/// by this MovableMan or not.
+		/// @param pMOToCheck A pointer to the MovableObject to check for Itemness.
+		/// @return Whether the object was found in the Item list or not.
 		bool IsDevice(const MovableObject* pMOToCheck);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsParticle
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the passed in MovableObject is an active Item kept
-		//                  by this MovableMan or not.
-		// Arguments:       A pointer to the MovableObject to check for Itemness.
-		// Return value:    Whether the object was found in the Particle list or not.
-
+		/// Indicates whether the passed in MovableObject is an active Item kept
+		/// by this MovableMan or not.
+		/// @param pMOToCheck A pointer to the MovableObject to check for Itemness.
+		/// @return Whether the object was found in the Particle list or not.
 		bool IsParticle(const MovableObject* pMOToCheck);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsOfActor
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the passed in MOID is that of an MO which either is
-		//                  or is parented to an active Actor by this MovableMan, or not.
-		// Arguments:       An MOID to check for Actorness.
-		// Return value:    Whether the object was found or owned by an MO in the Actor list or not.
-
+		/// Indicates whether the passed in MOID is that of an MO which either is
+		/// or is parented to an active Actor by this MovableMan, or not.
+		/// @param checkMOID An MOID to check for Actorness.
+		/// @return Whether the object was found or owned by an MO in the Actor list or not.
 		bool IsOfActor(MOID checkMOID);
 
 		/// Gives a unique, contiguous id per-actor. This is regenerated every frame.
@@ -565,27 +364,19 @@ namespace RTE {
 		/// @remark This function is used for AI throttling.
 		int GetContiguousActorID(const Actor* actor) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetRootMOID
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Produces the root MOID of the MOID of a potential child MO to another MO.
-		// Arguments:       An MOID to get the root MOID of.
-		// Return value:    The MOID of the root MO of the MO the passed-in MOID represents. This
-		//                  will be the same as the MOID passed in if the MO is a root itself. It will
-		//                  be equal to g_NoMOID if the MOID isn't allocated to an MO.
-
+		/// Produces the root MOID of the MOID of a potential child MO to another MO.
+		/// @param checkMOID An MOID to get the root MOID of.
+		/// @return The MOID of the root MO of the MO the passed-in MOID represents. This
+		/// will be the same as the MOID passed in if the MO is a root itself. It will
+		/// be equal to g_NoMOID if the MOID isn't allocated to an MO.
 		MOID GetRootMOID(MOID checkMOID);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveMO
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes a MovableObject from the any and all internal lists of MO:s.
-		//                  After the MO is removed, ownership is effectively released and
-		//                  transferred to whatever client called this method.
-		// Arguments:       A pointer to the MovableObject to remove.
-		// Return value:    Whether the object was found in MovableMan's custody, and consequently
-		//                  removed. If the MO entry wasn't found, false is returned.
-
+		/// Removes a MovableObject from the any and all internal lists of MO:s.
+		/// After the MO is removed, ownership is effectively released and
+		/// transferred to whatever client called this method.
+		/// @param pMOToRem A pointer to the MovableObject to remove.
+		/// @return Whether the object was found in MovableMan's custody, and consequently
+		/// removed. If the MO entry wasn't found, false is returned.
 		bool RemoveMO(MovableObject* pMOToRem);
 
 		/// Kills and destroys all Actors of a specific Team.
@@ -628,153 +419,77 @@ namespace RTE {
 		/// @param team Which team to do this for, NoTeam means all teams.
 		void OverrideMaterialDoors(bool eraseDoorMaterial, int team = Activity::NoTeam) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RegisterAlarmEvent
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Registers an AlarmEvent to notify things around that somehting alarming
-		//                  like a gunshot or explosion just happened.
-		// Arguments:       The AlarmEvent to register.
-		// Return value:    None.
-
+		/// Registers an AlarmEvent to notify things around that somehting alarming
+		/// like a gunshot or explosion just happened.
+		/// @param newEvent The AlarmEvent to register.
 		void RegisterAlarmEvent(const AlarmEvent& newEvent);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetAlarmEvents
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the list of AlarmEvent:s from last frame's update.
-		// Arguments:       None.
-		// Return value:    The const list of AlarmEvent:s.
-
+		/// Gets the list of AlarmEvent:s from last frame's update.
+		/// @return The const list of AlarmEvent:s.
 		const std::vector<AlarmEvent>& GetAlarmEvents() const { return m_AlarmEvents; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsParticleSettlingEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows whetehr particles are set to get copied to the terrain upon
-		//                  settling
-		// Arguments:       None.
-		// Return value:    Whether enabled or not.
-
+		/// Shows whetehr particles are set to get copied to the terrain upon
+		/// settling
+		/// @return Whether enabled or not.
 		bool IsParticleSettlingEnabled() { return m_SettlingEnabled; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          EnableParticleSettling
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether particles will get copied into the terrain upon them
-		//                  settling down.
-		// Arguments:       Whether to enable or not.
-		// Return value:    None.
-
+		/// Sets whether particles will get copied into the terrain upon them
+		/// settling down.
+		/// @param enable Whether to enable or not. (default: true)
 		void EnableParticleSettling(bool enable = true) { m_SettlingEnabled = enable; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsMOSubtractionEnabled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows whether MO's sihouettes can get subtracted from the terrain at all.
-		// Arguments:       None.
-		// Return value:    Whether enabled or not.
-
+		/// Shows whether MO's sihouettes can get subtracted from the terrain at all.
+		/// @return Whether enabled or not.
 		bool IsMOSubtractionEnabled() { return m_MOSubtractionEnabled; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RedrawOverlappingMOIDs
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Forces all objects potnetially overlapping a specific MO to re-draw
-		//                  this MOID representations onto the MOID bitmap.
-		// Arguments:       A pointer to the MO to check for overlaps against. Ownerhip is NOT
-		//                  transferred.
-		// Return value:    None.
-
+		/// Forces all objects potnetially overlapping a specific MO to re-draw
+		/// this MOID representations onto the MOID bitmap.
+		/// @param pOverlapsThis A pointer to the MO to check for overlaps against. Ownerhip is NOT
+		/// transferred.
 		void RedrawOverlappingMOIDs(MovableObject* pOverlapsThis);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the state of this MovableMan. Supposed to be done every frame.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates the state of this MovableMan. Supposed to be done every frame.
 		void Update();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DrawMatter
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this MovableMan's all MO's current material representations to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the scene.
-		// Return value:    None.
-
+		/// Draws this MovableMan's all MO's current material representations to a
+		/// BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene.
 		void DrawMatter(BITMAP* pTargetBitmap, Vector& targetPos);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UpdateDrawMOIDs
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the MOIDs of all current MOs and draws their ID's to a BITMAP
-		//                  of choice. If there are more than 255 MO's to draw, some will not be.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		// Return value:    None.
-
+		/// Updates the MOIDs of all current MOs and draws their ID's to a BITMAP
+		/// of choice. If there are more than 255 MO's to draw, some will not be.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		void UpdateDrawMOIDs(BITMAP* pTargetBitmap);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this MovableMan's current graphical representation to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the scene.
-		// Return value:    None.
-
+		/// Draws this MovableMan's current graphical representation to a
+		/// BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector());
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          DrawHUD
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the HUDs of all MovableObject:s of this MovableMan to a BITMAP
-		//                  of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the scene.
-		//                  Which player's screen is being drawn. Tis affects which actor's HUDs
-		//                  get drawn.
-		// Return value:    None.
-
+		/// Draws the HUDs of all MovableObject:s of this MovableMan to a BITMAP
+		/// of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
+		/// @param which Which player's screen is being drawn. Tis affects which actor's HUDs (default: 0)
+		/// get drawn.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int which = 0, bool playerControlled = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          VerifyMOIDIndex
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Verifieis whether all elements of MOID index has correct ID. Should be used in Debug mode only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Verifieis whether all elements of MOID index has correct ID. Should be used in Debug mode only.
 		void VerifyMOIDIndex();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RegisterObject
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Registers an object in a global Map collection so it could be found later with FindObjectByUniqueId
-		// Arguments:       MO to register.
-		// Return value:    None.
-
+		/// Registers an object in a global Map collection so it could be found later with FindObjectByUniqueId
+		/// @param mo MO to register.
 		void RegisterObject(MovableObject* mo);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UnregisterObject
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Removes an object from the global lookup collection
-		// Arguments:       MO to remove.
-		// Return value:    None.
-
+		/// Removes an object from the global lookup collection
+		/// @param mo MO to remove.
 		void UnregisterObject(MovableObject* mo);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          FindObjectByUniqueId
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Uses a global lookup map to find an object by it's unique id.
-		// Arguments:       Unique Id to look for.
-		// Return value:    Object found or 0 if not found any.
-
+		/// Uses a global lookup map to find an object by it's unique id.
+		/// @param id Unique Id to look for.
+		/// @return Object found or 0 if not found any.
 		MovableObject* FindObjectByUniqueID(long int id) {
 			if (m_KnownObjects.count(id) > 0)
 				return m_KnownObjects[id];
@@ -782,22 +497,12 @@ namespace RTE {
 				return 0;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetKnownObjectsCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the size of the object registry collection
-		// Arguments:       None.
-		// Return value:    Size of the objects registry.
-
+		/// Returns the size of the object registry collection
+		/// @return Size of the objects registry.
 		unsigned int GetKnownObjectsCount() { return m_KnownObjects.size(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSimUpdateFrameNumber
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the current sim update frame number
-		// Arguments:       None.
-		// Return value:    Current sim update frame number.
-
+		/// Returns the current sim update frame number
+		/// @return Current sim update frame number.
 		unsigned int GetSimUpdateFrameNumber() const { return m_SimUpdateFrameNumber; }
 
 		/// Gets pointers to the MOs that are within the given Box, and whose team is not ignored.
@@ -845,9 +550,7 @@ namespace RTE {
 		/// Clears all cached lua functions on all MOs, including owned child MOs.
 		void ReloadLuaScripts();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		// All actors in the scene
 		std::deque<Actor*> m_Actors;
@@ -926,20 +629,12 @@ namespace RTE {
 		// Global map which stores all objects so they could be foud by their unique ID
 		std::map<long int, MovableObject*> m_KnownObjects;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this MovableMan, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this MovableMan, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		/// Travels all of our MOs, updating their location/velocity/physical characteristics.

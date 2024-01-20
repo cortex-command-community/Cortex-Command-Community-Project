@@ -83,7 +83,7 @@ namespace RTE {
 		bool IsEnabledAndNotCarousel() const { return IsEnabled() && m_MenuMode != MenuMode::Carousel; }
 
 		/// Gets whether the menu is in the process of enabling or disabling.
-		/// @return 
+		/// @return
 		bool IsEnablingOrDisabling() const { return m_EnabledState == EnabledState::Enabling || m_EnabledState == EnabledState::Disabling; }
 
 		/// Gets whether the menu is at all visible or not.

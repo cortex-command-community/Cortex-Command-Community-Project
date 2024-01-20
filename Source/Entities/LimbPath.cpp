@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            LimbPath.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the LimbPath class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "LimbPath.h"
 
 #include "PresetMan.h"
@@ -20,12 +8,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(LimbPath, Entity, 20);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this LimbPath, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void LimbPath::Clear() {
 		m_Start.Reset();
@@ -54,11 +36,6 @@ namespace RTE {
 		m_Ended = true;
 		m_HFlipped = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the LimbPath object ready for use.
 
 	int LimbPath::Create() {
 		// Read all the properties
@@ -102,11 +79,6 @@ namespace RTE {
 	}
 	*/
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a LimbPath to be identical to another, by deep copy.
-
 	int LimbPath::Create(const LimbPath& reference) {
 		Entity::Create(reference);
 
@@ -140,14 +112,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(Entity::ReadProperty(propName, reader));
@@ -192,12 +156,6 @@ namespace RTE {
 		return (((point - offset) * m_Rotation) + offset) + m_PositionOffset;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this LimbPath with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int LimbPath::Save(Writer& writer) const {
 		Entity::Save(writer);
 
@@ -223,23 +181,12 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the LimbPath object.
-
 	void LimbPath::Destroy(bool notInherited) {
 
 		if (!notInherited)
 			Entity::Destroy();
 		Clear();
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetProgressPos
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the APPROXIMATE scene position that the limb was reported to be
-	//                  last frame.
 
 	Vector LimbPath::GetProgressPos() {
 		Vector returnVec(m_Start);
@@ -261,11 +208,6 @@ namespace RTE {
 		return m_JointPos + RotatePoint(returnVec);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetCurrentSegTarget
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the scene/world position target that the current segment represents.
-
 	Vector LimbPath::GetCurrentSegTarget() {
 		Vector returnVec(m_Start);
 		if (IsStaticPoint()) {
@@ -284,15 +226,6 @@ namespace RTE {
 
 		return m_JointPos + RotatePoint(returnVec);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetCurrentVel
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the velocity of the current position on the path.
-	//                  Note that this should be called BEFORE GetNextVec() if the
-	//                  appropriate matching velocity is to be returned here. If the limb
-	//                  doesn't hit the end of a segment before the time chunk runs out,
-	//                  the returned move vector is limited by the time chunk.
 
 	Vector LimbPath::GetCurrentVel(const Vector& limbPos) {
 		Vector returnVel;
@@ -317,15 +250,6 @@ namespace RTE {
 
 		return returnVel;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetNextTimeChunk
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets the time needed to get to the target waypoint of the current
-	//                  segment at the current speed, if there are no obstacles. The chunk
-	//                  will not exceed the remaining time left on the frame, and will deduct
-	//                  itself from the remaining frame time tally (originally set by
-	//                  SetFrameTime()).
 
 	float LimbPath::GetNextTimeChunk(const Vector& limbPos) {
 		float timeChunk;
@@ -352,12 +276,6 @@ namespace RTE {
 
 		return timeChunk;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          ReportProgress
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Used to report how much progress was made to getting the limb close to
-	//                  the target (the next segment start).
 
 	void LimbPath::ReportProgress(const Vector& limbPos) {
 		if (IsStaticPoint()) {
@@ -391,12 +309,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetTotalProgress
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a value representing the total progress that has been made on
-	//                  this entire path. If the path has ended, 0.0 is returned.
-
 	float LimbPath::GetTotalProgress() const {
 		if (m_Ended || IsStaticPoint())
 			return 0.0;
@@ -408,14 +320,6 @@ namespace RTE {
 		prog += (*(m_CurrentSegment)).GetMagnitude() * m_SegProgress;
 		return prog / m_TotalLength;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetRegularProgress
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a value representing the progress that has been made on the
-	//                  regular part of this path, ie everything except the starting segments.
-	//                  If progress has not been made past the starting segments, < 0 will
-	//                  be returned. If the path has ended, 0.0 is returned.
 
 	float LimbPath::GetRegularProgress() const {
 		if (m_Ended || IsStaticPoint())
@@ -443,12 +347,6 @@ namespace RTE {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          SetSpeed
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets the speed that a limb traveling this LimbPath should have to one
-	//                  of the three predefined speed settings.
-
 	void LimbPath::SetSpeed(int newSpeed) {
 		if (newSpeed <= SLOW)
 			m_WhichSpeed = SLOW;
@@ -458,21 +356,11 @@ namespace RTE {
 			m_WhichSpeed = NORMAL;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          OverrideSpeed
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets the speed that a limb traveling this LimbPath with the specified preset should have.
-
 	void LimbPath::OverrideSpeed(int speedPreset, float newSpeed) {
 		if (speedPreset == SLOW || speedPreset == FAST || speedPreset == NORMAL) {
 			m_TravelSpeed[m_WhichSpeed] = newSpeed;
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Terminate
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets this LimbPath's progress to its end.
 
 	void LimbPath::Terminate() {
 		if (IsStaticPoint()) {
@@ -484,12 +372,6 @@ namespace RTE {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Restart
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Restarts the position tracking of the limb that travels along this
-	//                  LimbPath.
-
 	void LimbPath::Restart() {
 		m_CurrentSegment = m_Segments.begin();
 		m_PathTimer.Reset();
@@ -497,18 +379,6 @@ namespace RTE {
 		m_SegProgress = 0;
 		m_Ended = false;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          RestartFree
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Restarts the position tracking of the limb that travels along this
-	//                  LimbPath at a point which does not contain terrain. In doing this,
-	//                  a list of potential starting segments are checked and the first to
-	//                  yield a starting position that is not in terrain will be picked.
-	//                  If none of the candidate starting segments are free of terrain,
-	//                  the last one in the list will be picked and false will be returned
-	//                  here. The passed in limbPos Vector will be set to the new position of
-	//                  the restarted path, if a free spot is found.
 
 	bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 		std::deque<Vector>::iterator prevSeg = m_CurrentSegment;
@@ -616,12 +486,6 @@ namespace RTE {
 		float result = (lowestX + highestX) * 0.5F;
 		return m_HFlipped ? -result : result;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this LimbPath's current graphical debug representation to a
-	//                  BITMAP of choice.
 
 	void LimbPath::Draw(BITMAP* pTargetBitmap,
 	                    const Vector& targetPos,

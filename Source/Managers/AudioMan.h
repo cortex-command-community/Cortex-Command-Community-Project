@@ -441,7 +441,7 @@ namespace RTE {
 		/// Stops playing a SoundContainer's playing sounds for a certain player.
 		/// @param soundContainer A pointer to a SoundContainer object6. Ownership is NOT transferred!
 		/// @param player Which player to stop playing the SoundContainer for.
-		/// @return 
+		/// @return
 		bool StopSoundContainerPlayingChannels(SoundContainer* soundContainer, int player);
 
 		/// Fades out playback a SoundContainer.

@@ -204,7 +204,7 @@ namespace RTE {
 		/// @param callOnSink Whether to call the parent MOSR's OnSink function upon sinking into anything or not.
 		/// @param scenePreLocked Whether the Scene has been pre-locked or not.
 		/// @return The amount of time remaining of the travelTime passed in, in seconds. This may only possibly be a non-zero if callOnBounce or callOnSink are true.
-		/// @remark 
+		/// @remark
 		/// Pseudocode explaining how this works can be found at: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/Notes-on-AtomGroup::Travel.
 		float Travel(Vector& position, Vector& velocity, Matrix& rotation, float& angularVel, bool& didWrap, Vector& totalImpulse, float mass, float travelTime, bool callOnBounce = false, bool callOnSink = false, bool scenePreLocked = false);
 

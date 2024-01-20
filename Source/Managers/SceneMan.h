@@ -1,18 +1,11 @@
 #ifndef _RTESCENEMAN_
 #define _RTESCENEMAN_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            SceneMan.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the SceneMan class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the SceneMan class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "Serializable.h"
 #include "Timer.h"
 #include "Box.h"
@@ -50,125 +43,75 @@ namespace RTE {
 #define SCENESNAPSIZE 12
 #define MAXORPHANRADIUS 11
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           SceneMan
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     The singleton manager of all terrain and backgrounds in the RTE.
-	// Parent(s):       Singleton, Serializable.
-	// Class history:   12/25/2001 SceneMan created.
-
+	/// The singleton manager of all terrain and backgrounds in the RTE.
 	class SceneMan : public Singleton<SceneMan>, public Serializable {
 		friend class SettingsMan;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     SceneMan
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a SceneMan object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a SceneMan object in system
+		/// memory. Create() should be called before using the object.
 		SceneMan() {
 			m_pOrphanSearchBitmap = 0;
 			Clear();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~SceneMan
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a SceneMan object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a SceneMan object before deletion
+		/// from system memory.
 		~SceneMan() { Destroy(); }
 
 		/// Makes the SceneMan object ready for use.
 		void Initialize() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the SceneMan object ready for use.
-		// Arguments:       A string with the filepath to a Reader file from screen this SceneMan's
-		//                  data should be created.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the SceneMan object ready for use.
+		/// @param readerFile A string with the filepath to a Reader file from screen this SceneMan's
+		/// data should be created.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(std::string readerFile);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDefaultSceneName
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the instance name of the default Scene to be loaded if nothing
-		//                  else is available.
-		// Arguments:       The default scene instance name.
-		// Return value:    None.
-
+		/// Sets the instance name of the default Scene to be loaded if nothing
+		/// else is available.
+		/// @param defaultSceneName The default scene instance name.
 		void SetDefaultSceneName(std::string defaultSceneName) { m_DefaultSceneName = defaultSceneName; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDefaultSceneName
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the name of the default A to be loaded if nothing
-		//                  else is available.
-		// Arguments:       None.
-		// Return value:    The default Scene instance name.
-
+		/// Gets the name of the default A to be loaded if nothing
+		/// else is available.
+		/// @return The default Scene instance name.
 		std::string GetDefaultSceneName() const { return m_DefaultSceneName; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  LoadScene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Actually loads a new Scene into memory. has to be done before using
-		//                  this object.
-		// Arguments:       The instance of the Scene, ownership IS transferred!
-		//                  Whether the scene should actually apply all its SceneObject:s placed
-		//                  in its definition.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Actually loads a new Scene into memory. has to be done before using
+		/// this object.
+		/// @param pNewScene The instance of the Scene, ownership IS transferred!
+		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
+		/// in its definition.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int LoadScene(Scene* pNewScene, bool placeObjects = true, bool placeUnits = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetSceneToLoad
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Stores a Scene reference to be loaded later into the SceneMan.
-		// Arguments:       The instance reference of the Scene, ownership IS NOT (!!) transferred!
-		//                  Whether the scene should actually apply all its SceneObject:s placed
-		//                  in its definition.
-		// Return value:    None.
-
+		/// Stores a Scene reference to be loaded later into the SceneMan.
+		/// @param pLoadScene The instance reference of the Scene, ownership IS NOT (!!) transferred!
+		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
+		/// in its definition.
 		void SetSceneToLoad(const Scene* pLoadScene, bool placeObjects = true, bool placeUnits = true) {
 			m_pSceneToLoad = pLoadScene;
 			m_PlaceObjects = placeObjects;
 			m_PlaceUnits = placeUnits;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  SetSceneToLoad
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets a scene to load later, by preset name.
-		// Arguments:       The name of the Scene preset instance to load.
-		//                  Whether the scene should actually apply all its SceneObject:s placed
-		//                  in its definition.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Sets a scene to load later, by preset name.
+		/// @param sceneName The name of the Scene preset instance to load.
+		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
+		/// in its definition.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int SetSceneToLoad(std::string sceneName, bool placeObjects = true, bool placeUnits = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  GetSceneToLoad
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the stored Scene reference to be loaded later into the SceneMan.
-		// Arguments:       None.
-		// Return value:    The instance reference of the Scene, ownership IS NOT (!!) transferred!
-
+		/// Gets the stored Scene reference to be loaded later into the SceneMan.
+		/// @return The instance reference of the Scene, ownership IS NOT (!!) transferred!
 		const Scene* GetSceneToLoad() { return m_pSceneToLoad; }
 
 		/// Gets whether objects are placed when the Scene is initially started. Used for saving/loading games.
@@ -179,217 +122,115 @@ namespace RTE {
 		/// @return Whether units are placed when the Scene is initially started.
 		bool GetPlaceUnitsOnLoad() const { return m_PlaceUnits; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  LoadScene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Actually loads the Scene set to be loaded in SetSceneToLoad.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Actually loads the Scene set to be loaded in SetSceneToLoad.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int LoadScene();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  LoadScene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Loads a Scene right now, by preset name.
-		// Arguments:       The name of the Scene preset instance to load.
-		//                  Whether the scene should actually apply all its SceneObject:s placed
-		//                  in its definition.
-		//                  Whether the scene should actually deploy all units placed in its definition.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Loads a Scene right now, by preset name.
+		/// @param sceneName The name of the Scene preset instance to load.
+		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
+		/// in its definition.
+		/// @param placeUnits Whether the scene should actually deploy all units placed in its definition. (default: true)
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int LoadScene(std::string sceneName, bool placeObjects = true, bool placeUnits = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  LoadScene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Loads a Scene right now, by preset name.
-		// Arguments:       The name of the Scene preset instance to load.
-		//                  Whether the scene should actually apply all its SceneObject:s placed
-		//                  in its definition.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Loads a Scene right now, by preset name.
+		/// @param sceneName The name of the Scene preset instance to load.
+		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true) { return LoadScene(sceneName)
+		/// in its definition.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int LoadScene(std::string sceneName, bool placeObjects = true) { return LoadScene(sceneName, placeObjects, true); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire SceneMan, including its inherited members, to
-		//                  their default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire SceneMan, including its inherited members, to
+		/// their default settings or values.
 		void Reset() override { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the SceneMan object.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the SceneMan object.
 		void Destroy();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetScene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the currently loaded scene, if any.
-		// Arguments:       None.
-		// Return value:    The scene, ownership IS NOT TRANSFERRED!
-
+		/// Gets the currently loaded scene, if any.
+		/// @return The scene, ownership IS NOT TRANSFERRED!
 		Scene* GetScene() const { return m_pCurrentScene; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSceneDim
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the total dimensions (width and height) of the scene, in pixels.
-		// Arguments:       None.
-		// Return value:    A Vector describing the scene dimensions.
-
+		/// Gets the total dimensions (width and height) of the scene, in pixels.
+		/// @return A Vector describing the scene dimensions.
 		Vector GetSceneDim() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSceneWidth
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the total width of the scene, in pixels.
-		// Arguments:       None.
-		// Return value:    An int describing the scene width.
-
+		/// Gets the total width of the scene, in pixels.
+		/// @return An int describing the scene width.
 		int GetSceneWidth() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetSceneHeight
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the total height of the scene, in pixels.
-		// Arguments:       None.
-		// Return value:    An int describing the scene width.
-
+		/// Gets the total height of the scene, in pixels.
+		/// @return An int describing the scene width.
 		int GetSceneHeight() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMaterialPalette
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets access to the whole material palette array of 256 entries.
-		// Arguments:       None.
-		// Return value:    A const reference to the material palette array.
-
+		/// Gets access to the whole material palette array of 256 entries.
+		/// @return A const reference to the material palette array.
 		const std::array<Material*, c_PaletteEntriesNumber>& GetMaterialPalette() const { return m_apMatPalette; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMaterial
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a specific material by name. Ownership is NOT transferred!
-		// Arguments:       The string name of the Material to get.
-		// Return value:    A pointer to the requested material, or 0 if no material with that
-		//                  name was found.
-
+		/// Gets a specific material by name. Ownership is NOT transferred!
+		/// @param matName The string name of the Material to get.
+		/// @return A pointer to the requested material, or 0 if no material with that
+		/// name was found.
 		Material const* GetMaterial(const std::string& matName);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMaterialFromID
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a specific material from the material palette. Ownership is NOT
-		//                  transferred!
-		// Arguments:       The unsigned char index specifying screen material to get (0-255).
-		// Return value:    A reference to the requested material. OWNERSHIP IS NOT TRANSFERRED!
-
+		/// Gets a specific material from the material palette. Ownership is NOT
+		/// transferred!
+		/// @param screen The unsigned char index specifying screen material to get (0-255).
+		/// @return A reference to the requested material. OWNERSHIP IS NOT TRANSFERRED!
 		Material const* GetMaterialFromID(unsigned char screen) { return screen >= 0 && screen < c_PaletteEntriesNumber && m_apMatPalette[screen] ? m_apMatPalette[screen] : m_apMatPalette[g_MaterialAir]; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SceneWrapsX
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the scene wraps its scrolling around the X axis.
-		// Arguments:       None.
-		// Return value:    Whether the scene wraps around the X axis or not.
-
+		/// Indicates whether the scene wraps its scrolling around the X axis.
+		/// @return Whether the scene wraps around the X axis or not.
 		bool SceneWrapsX() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SceneWrapsY
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the scene wraps its scrolling around the Y axis.
-		// Arguments:       None.
-		// Return value:    Whether the scene wraps around the Y axis or not.
-
+		/// Indicates whether the scene wraps its scrolling around the Y axis.
+		/// @return Whether the scene wraps around the Y axis or not.
 		bool SceneWrapsY() const;
 
 		/// Gets the orbit direction for the current scene.
 		/// @return The orbit direction for the current scene.
 		Directions GetSceneOrbitDirection() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTerrain
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the SLTerrain, or 0 if no scene is loaded.
-		// Arguments:       None.
-		// Return value:    A pointer to the SLTerrain. Ownership is NOT transferred!
-
+		/// Gets the SLTerrain, or 0 if no scene is loaded.
+		/// @return A pointer to the SLTerrain. Ownership is NOT transferred!
 		SLTerrain* GetTerrain();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMOColorBitmap
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the bitmap of the intermediary collection SceneLayer that all
-		//                  MovableObject:s draw themselves onto before it itself gets drawn onto
-		//                  the screen back buffer.
-		// Arguments:       None.
-		// Return value:    A BITMAP pointer to the MO bitmap. Ownership is NOT transferred!
-
+		/// Gets the bitmap of the intermediary collection SceneLayer that all
+		/// MovableObject:s draw themselves onto before it itself gets drawn onto
+		/// the screen back buffer.
+		/// @return A BITMAP pointer to the MO bitmap. Ownership is NOT transferred!
 		BITMAP* GetMOColorBitmap() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDebugBitmap
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the bitmap of the SceneLayer that debug graphics is drawn onto.
-		//                  Will only return valid BITMAP if building with DEBUG_BUILD.
-		// Arguments:       None.
-		// Return value:    A BITMAP pointer to the debug bitmap. Ownership is NOT transferred!
-
+		/// Gets the bitmap of the SceneLayer that debug graphics is drawn onto.
+		/// Will only return valid BITMAP if building with DEBUG_BUILD.
+		/// @return A BITMAP pointer to the debug bitmap. Ownership is NOT transferred!
 		BITMAP* GetDebugBitmap() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMOIDBitmap
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the bitmap of the SceneLayer that all MovableObject:s draw thir
-		//                  current (for the frame only!) MOID's onto.
-		// Arguments:       None.
-		// Return value:    A BITMAP pointer to the MO bitmap. Ownership is NOT transferred!
-
+		/// Gets the bitmap of the SceneLayer that all MovableObject:s draw thir
+		/// current (for the frame only!) MOID's onto.
+		/// @return A BITMAP pointer to the MO bitmap. Ownership is NOT transferred!
 		BITMAP* GetMOIDBitmap() const;
 
 		// TEMP!
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          MOIDClearCheck
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes sure the MOID bitmap layer is completely of NoMOID color.
-		//                  If found to be not, dumps MOID layer and the FG actor color layer for
-		//                  debugging.
-		// Arguments:       None.
-		// Return value:    Was it clear?
-
+		/// Makes sure the MOID bitmap layer is completely of NoMOID color.
+		/// If found to be not, dumps MOID layer and the FG actor color layer for
+		/// debugging.
+		/// @return Was it clear?
 		bool MOIDClearCheck();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetLayerDrawMode
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the current drawing mode of the SceneMan.
-		// Arguments:       None.
-		// Return value:    The current layer draw mode, see the LayerDrawMode enumeration for the
-		//                  different possible mode settings.
-
+		/// Gets the current drawing mode of the SceneMan.
+		/// @return The current layer draw mode, see the LayerDrawMode enumeration for the
+		/// different possible mode settings.
 		int GetLayerDrawMode() const { return m_LayerDrawMode; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTerrMatter
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets a specific pixel from the total material representation of
-		//                  this Scene. LockScene() must be called before using this method.
-		// Arguments:       The X and Y coordinates of screen material pixel to get.
-		// Return value:    An unsigned char specifying the requested pixel's material index.
-
+		/// Gets a specific pixel from the total material representation of
+		/// this Scene. LockScene() must be called before using this method.
+		/// @param pixelX The X and Y coordinates of screen material pixel to get.
+		/// @return An unsigned char specifying the requested pixel's material index.
 		unsigned char GetTerrMatter(int pixelX, int pixelY);
 
 		/// Gets a MOID from pixel coordinates in the Scene. LockScene() must be called before using this method.
@@ -409,77 +250,40 @@ namespace RTE {
 		/// @return This Scene's MOID SpatialPartitionGrid.
 		const SpatialPartitionGrid& GetMOIDGrid() const { return m_MOIDsGrid; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetGlobalAcc
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the global acceleration (in m/s^2) that is applied to all movable
-		//                  objects' velocities during every frame. Typically models gravity.
-		// Arguments:       None.
-		// Return value:    A Vector describing the global acceleration.
-
+		/// Gets the global acceleration (in m/s^2) that is applied to all movable
+		/// objects' velocities during every frame. Typically models gravity.
+		/// @return A Vector describing the global acceleration.
 		Vector GetGlobalAcc() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetOzPerKg
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets how many Ounces there are in a metric Kilogram
-		// Arguments:       None.
-		// Return value:    A float describing the Oz/Kg ratio.
-
+		/// Gets how many Ounces there are in a metric Kilogram
+		/// @return A float describing the Oz/Kg ratio.
 		float GetOzPerKg() const { return 35.27396; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetKgPerOz
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets how many metric Kilograms there are in an Ounce.
-		// Arguments:       None.
-		// Return value:    A float describing the Kg/Oz ratio.
-
+		/// Gets how many metric Kilograms there are in an Ounce.
+		/// @return A float describing the Kg/Oz ratio.
 		float GetKgPerOz() const { return 0.02834952; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetLayerDrawMode
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the drawing mode of the SceneMan, to easily view what's going on
-		//                  in the different internal SceneLayer:s.
-		// Arguments:       The layer mode to draw in, see the LayerDrawMode enumeration for the
-		//                  different possible settings.
-		// Return value:    None.
-
+		/// Sets the drawing mode of the SceneMan, to easily view what's going on
+		/// in the different internal SceneLayer:s.
+		/// @param mode The layer mode to draw in, see the LayerDrawMode enumeration for the
+		/// different possible settings.
 		void SetLayerDrawMode(int mode) { m_LayerDrawMode = mode; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          LockScene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Locks all dynamic internal scene bitmaps so that manipulaitons of the
-		//                  scene's color and matter representations can take place.
-		//                  Doing it in a separate method like this is more efficient because
-		//                  many bitmap manipulaitons can be performed between a lock and unlock.
-		//                  UnlockScene() should always be called after accesses are completed.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Locks all dynamic internal scene bitmaps so that manipulaitons of the
+		/// scene's color and matter representations can take place.
+		/// Doing it in a separate method like this is more efficient because
+		/// many bitmap manipulaitons can be performed between a lock and unlock.
+		/// UnlockScene() should always be called after accesses are completed.
 		void LockScene();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          UnlockScene
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Unlocks the scene's bitmaps and prevents access to display memory.
-		//                  Doing it in a separate method like this is more efficient because
-		//                  many bitmap accesses can be performed between a lock and an unlock.
-		//                  UnlockScene() should only be called after LockScene().
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Unlocks the scene's bitmaps and prevents access to display memory.
+		/// Doing it in a separate method like this is more efficient because
+		/// many bitmap accesses can be performed between a lock and an unlock.
+		/// UnlockScene() should only be called after LockScene().
 		void UnlockScene();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SceneIsLocked
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Indicates whether the entire scene is currently locked or not.
-		// Arguments:       None.
-		// Return value:    Whether the entire scene is currently locked or not.
-
+		/// Indicates whether the entire scene is currently locked or not.
+		/// @return Whether the entire scene is currently locked or not.
 		bool SceneIsLocked() const;
 
 		/// Registers an area to be drawn upon, so it can be tracked and cleared later.
@@ -498,77 +302,59 @@ namespace RTE {
 		/// @param radius The radius of the drawn area.
 		void RegisterDrawing(const BITMAP* bitmap, int moid, const Vector& center, float radius);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ClearAllMOIDDrawings
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all registered drawn areas of the MOID layer to the g_NoMOID
-		//                  color and clears the registrations too. Should be done each sim update.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all registered drawn areas of the MOID layer to the g_NoMOID
+		/// color and clears the registrations too. Should be done each sim update.
 		void ClearAllMOIDDrawings();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          WillPenetrate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Test whether a pixel of the scene would be knocked loose and
-		//                  turned into a MO by another particle of a certain material going at a
-		//                  certain velocity. Scene needs to be locked to do this!
-		// Arguments:       The X and Y coords of the scene pixel that is collided with.
-		//                  The velocity of the incoming particle.
-		//                  The mass of the incoming particle.
-		// Return value:    A bool indicating wether the scene pixel would be knocked loose or
-		//                  not. If the pixel location specified happens to be of the air
-		//                  material (0) false will be returned here.
-
+		/// Test whether a pixel of the scene would be knocked loose and
+		/// turned into a MO by another particle of a certain material going at a
+		/// certain velocity. Scene needs to be locked to do this!
+		/// @param posX The X and Y coords of the scene pixel that is collided with.
+		/// @param posY The velocity of the incoming particle.
+		/// @param velocity The mass of the incoming particle.
+		/// @return A bool indicating wether the scene pixel would be knocked loose or
+		/// not. If the pixel location specified happens to be of the air
+		/// material (0) false will be returned here.
 		bool WillPenetrate(const int posX,
 		                   const int posY,
 		                   const Vector& velocity,
 		                   const float mass) { return WillPenetrate(posX, posY, velocity * mass); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          WillPenetrate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Test whether a pixel of the scene would be knocked loose and
-		//                  turned into a MO by a certian impulse force. Scene needs to be locked
-		//                  to do this!
-		// Arguments:       The X and Y coords of the scene pixel that is collided with.
-		//                  The impulse force vector, in Kg * m/s.
-		// Return value:    A bool indicating wether the scene pixel would be knocked loose or
-		//                  not. If the pixel location specified happens to be of the air
-		//                  material (0) false will be returned here.
-
+		/// Test whether a pixel of the scene would be knocked loose and
+		/// turned into a MO by a certian impulse force. Scene needs to be locked
+		/// to do this!
+		/// @param posX The X and Y coords of the scene pixel that is collided with.
+		/// @param posY The impulse force vector, in Kg * m/s.
+		/// @return A bool indicating wether the scene pixel would be knocked loose or
+		/// not. If the pixel location specified happens to be of the air
+		/// material (0) false will be returned here.
 		bool WillPenetrate(const int posX,
 		                   const int posY,
 		                   const Vector& impulse);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          TryPenetrate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculate whether a pixel of the scene would be knocked loose and
-		//                  turned into a MO by another particle of a certain material going at a
-		//                  certain velocity. If so, the incoming particle will knock loose the
-		//                  specified pixel in the scene and momentarily take its place.
-		//                  Scene needs to be locked to do this!
-		// Arguments:       The X and Y coord of the scene pixel that is to be collided with.
-		//                  The impulse force exerted on the terrain pixel. If this magnitude
-		//                  exceeds the strength threshold of the material of the terrain pixel
-		//                  hit, the terrain pixel will be knocked loose an turned into an MO.
-		//                  The velocity of the the point hitting the terrain here.
-		//                  A float reference screen will be set to the factor with screen to
-		//                  multiply the collision velocity to get the resulting retardation
-		//                  (negative acceleration) that occurs when a penetration happens.
-		//                  The normalized probability ratio between 0.0 and 1.0 that determines
-		//                  the chance of a penetration to remove a pixel from the scene and
-		//                  thus replace it with and air pixel. 1.0 = always, 0.0 = never.
-		//                  How many consecutive penetrations in a row immediately before this try.
-		//					The size of the area to look for orphaned terrain elements.
-		//					Max area or orphaned area to remove.
-		//					Orphan area removal trigger rate.
-		// Return value:    A bool indicating wether the scene pixel was knocked loose or not.
-		//                  If the pixel location specified happens to be of the air material (0)
-		//                  false will be returned here.
-
+		/// Calculate whether a pixel of the scene would be knocked loose and
+		/// turned into a MO by another particle of a certain material going at a
+		/// certain velocity. If so, the incoming particle will knock loose the
+		/// specified pixel in the scene and momentarily take its place.
+		/// Scene needs to be locked to do this!
+		/// @param posX The X and Y coord of the scene pixel that is to be collided with.
+		/// @param posY The impulse force exerted on the terrain pixel. If this magnitude
+		/// exceeds the strength threshold of the material of the terrain pixel
+		/// hit, the terrain pixel will be knocked loose an turned into an MO.
+		/// @param impulse The velocity of the the point hitting the terrain here.
+		/// @param velocity A float reference screen will be set to the factor with screen to
+		/// multiply the collision velocity to get the resulting retardation
+		/// (negative acceleration) that occurs when a penetration happens.
+		/// @param retardation The normalized probability ratio between 0.0 and 1.0 that determines
+		/// the chance of a penetration to remove a pixel from the scene and
+		/// thus replace it with and air pixel. 1.0 = always, 0.0 = never.
+		/// @param airRatio How many consecutive penetrations in a row immediately before this try.
+		/// @param numPenetrations The size of the area to look for orphaned terrain elements. (default: 0)
+		/// @param removeOrphansRadius Max area or orphaned area to remove. (default: 0)
+		/// @param removeOrphansMaxArea Orphan area removal trigger rate. (default: 0)
+		/// @return A bool indicating wether the scene pixel was knocked loose or not.
+		/// If the pixel location specified happens to be of the air material (0)
+		/// false will be returned here.
 		bool TryPenetrate(int posX,
 		                  int posY,
 		                  const Vector& impulse,
@@ -580,33 +366,25 @@ namespace RTE {
 		                  const int removeOrphansMaxArea = 0,
 		                  const float removeOrphansRate = 0.0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveOrphans
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the area of an orphaned region at specified coordinates.
-		// Arguments:       Coordinates to check for region, whether the orphaned region should be converted into MOPixels and region removed.
-		//					Area of orphaned object calculated during recursve function call to check if we're out of limits
-		//					Size of the are to look for orphaned objects
-		//					Max area of orphaned object to remove
-		//					Whether to actually remove orphaned pixels or not
-		//					Whether to clear internal terrain tracking bitmap or not
-		// Return value:    The area of orphaned region at posX,posY
-
+		/// Returns the area of an orphaned region at specified coordinates.
+		/// @param posX Coordinates to check for region, whether the orphaned region should be converted into MOPixels and region removed.
+		/// @param posY Area of orphaned object calculated during recursve function call to check if we're out of limits
+		/// @param radius Size of the are to look for orphaned objects
+		/// @param maxArea Max area of orphaned object to remove
+		/// @param remove Whether to actually remove orphaned pixels or not (default: false)
+		/// Whether to clear internal terrain tracking bitmap or not
+		/// @return The area of orphaned region at posX,posY
 		int RemoveOrphans(int posX, int posY, int radius, int maxArea, bool remove = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RemoveOrphans
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the area of an orphaned region at specified coordinates.
-		// Arguments:       Coordinates to check for region, whether the orphaned region should be converted into MOPixels and region removed.
-		//					Coordinates of initial terrain penetration to check, which serves as a center of orphaned object detection.
-		//					Area of orphaned object calculated during recursve function call to check if we're out of limits
-		//					Size of the are to look for orphaned objects
-		//					Max area of orphaned object to remove
-		//					Whether to actually remove orphaned pixels or not
-		//					Whether to clear internal terrain tracking bitmap or not
-		// Return value:    The area of orphaned region at posX,posY
-
+		/// Returns the area of an orphaned region at specified coordinates.
+		/// @param posX Coordinates to check for region, whether the orphaned region should be converted into MOPixels and region removed.
+		/// @param posY Coordinates of initial terrain penetration to check, which serves as a center of orphaned object detection.
+		/// @param centerPosX Area of orphaned object calculated during recursve function call to check if we're out of limits
+		/// @param centerPosY Size of the are to look for orphaned objects
+		/// @param accumulatedArea Max area of orphaned object to remove
+		/// @param radius Whether to actually remove orphaned pixels or not
+		/// @param maxArea Whether to clear internal terrain tracking bitmap or not
+		/// @return The area of orphaned region at posX,posY
 		int RemoveOrphans(int posX,
 		                  int posY,
 		                  int centerPosX,
@@ -622,560 +400,396 @@ namespace RTE {
 		/// @return The newly dislodged pixel, if one was found.
 		MovableObject* DislodgePixel(int posX, int posY);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          MakeAllUnseen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets one team's view of the scene to be unseen, using a generated map
-		//                  of a specific resolution chunkiness.
-		// Arguments:       The dimensions of the pixels that should make up the unseen layer.
-		//                  The team we're talking about.
-		// Return value:    None.
-
+		/// Sets one team's view of the scene to be unseen, using a generated map
+		/// of a specific resolution chunkiness.
+		/// @param pixelSize The dimensions of the pixels that should make up the unseen layer.
+		/// @param team The team we're talking about.
 		void MakeAllUnseen(Vector pixelSize, const int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          MakeAllSeen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets one team's view of the scene to be all seen.
-		// Arguments:       The team we're talking about.
-		// Return value:    None.
-
+		/// Sets one team's view of the scene to be all seen.
+		/// @param team The team we're talking about.
 		void MakeAllSeen(const int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          LoadUnseenLayer
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Loads a bitmap from file and use it as the unseen layer for a team.
-		// Arguments:       The path to the bitmap to use as the unseen layer.
-		//                  Which team we're talking about.
-		// Return value:    Whether the loading was successful or not.
-
+		/// Loads a bitmap from file and use it as the unseen layer for a team.
+		/// @param bitmapPath The path to the bitmap to use as the unseen layer.
+		/// @param team Which team we're talking about.
+		/// @return Whether the loading was successful or not.
 		bool LoadUnseenLayer(std::string bitmapPath, const int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AnythingUnseen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether a team has anything still unseen on the scene.
-		// Arguments:       The team we're talking about.
-		// Return value:    A bool indicating whether that team has anyhting yet unseen.
-
+		/// Tells whether a team has anything still unseen on the scene.
+		/// @param team The team we're talking about.
+		/// @return A bool indicating whether that team has anyhting yet unseen.
 		bool AnythingUnseen(const int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetUnseenResolution
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Shows what the resolution factor of the unseen map to the entire Scene
-		//                  is, in both axes.
-		// Arguments:       The team we're talking about.
-		// Return value:    A vector witht he factors in each element representing the factors.
-
+		/// Shows what the resolution factor of the unseen map to the entire Scene
+		/// is, in both axes.
+		/// @param team The team we're talking about.
+		/// @return A vector witht he factors in each element representing the factors.
 		Vector GetUnseenResolution(const int team) const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsUnseen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks whether a pixel is in an unseen area on of a specific team.
-		// Arguments:       The X and Y coords of the scene pixel that is to be checked.
-		//                  The team we're talking about.
-		// Return value:    A bool indicating whether that point is yet unseen.
-
+		/// Checks whether a pixel is in an unseen area on of a specific team.
+		/// @param posX The X and Y coords of the scene pixel that is to be checked.
+		/// @param posY The team we're talking about.
+		/// @return A bool indicating whether that point is yet unseen.
 		bool IsUnseen(const int posX, const int posY, const int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RevealUnseen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reveals a pixel on the unseen map for a specific team, if there is any.
-		// Arguments:       The X and Y coord of the scene pixel that is to be revealed.
-		//                  The team to reveal for.
-		// Return value:    A bool indicating whether there was an unseen pixel revealed there.
-
+		/// Reveals a pixel on the unseen map for a specific team, if there is any.
+		/// @param posX The X and Y coord of the scene pixel that is to be revealed.
+		/// @param posY The team to reveal for.
+		/// @return A bool indicating whether there was an unseen pixel revealed there.
 		bool RevealUnseen(const int posX, const int posY, const int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RestoreUnseen
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Hides a pixel on the unseen map for a specific team, if there is any.
-		// Arguments:       The X and Y coord of the scene pixel that is to be revealed.
-		//                  The team to hide for.
-		// Return value:    A bool indicating whether there was a seen pixel hidden there.
-
+		/// Hides a pixel on the unseen map for a specific team, if there is any.
+		/// @param posX The X and Y coord of the scene pixel that is to be revealed.
+		/// @param posY The team to hide for.
+		/// @return A bool indicating whether there was a seen pixel hidden there.
 		bool RestoreUnseen(const int posX, const int posY, const int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RevealUnseenBox
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Reveals a box on the unseen map for a specific team, if there is any.
-		// Arguments:       The X and Y coords of the upper left corner of the box to be revealed.
-		//                  The width and height of the box to be revealed, in scene units (pixels)
-		//                  The team to reveal for.
-		// Return value:    None.
-
+		/// Reveals a box on the unseen map for a specific team, if there is any.
+		/// @param posX The X and Y coords of the upper left corner of the box to be revealed.
+		/// @param posY The width and height of the box to be revealed, in scene units (pixels)
+		/// @param width The team to reveal for.
 		void RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RestoreUnseenBox
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Restores a box on the unseen map for a specific team, if there is any.
-		// Arguments:       The X and Y coords of the upper left corner of the box to be revealed.
-		//                  The width and height of the box to be restored, in scene units (pixels)
-		//                  The team to restore for.
-		// Return value:    None.
-
+		/// Restores a box on the unseen map for a specific team, if there is any.
+		/// @param posX The X and Y coords of the upper left corner of the box to be revealed.
+		/// @param posY The width and height of the box to be restored, in scene units (pixels)
+		/// @param width The team to restore for.
 		void RestoreUnseenBox(const int posX, const int posY, const int width, const int height, const int team);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastUnseenRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and reveals or hides pixels on the unseen layer of a team
-		//                  as long as the accumulated material strengths traced through the terrain
-		//                  don't exceed a specific value.
-		// Arguments:       The team to see for.
-		//                  The starting position.
-		//                  The vector to trace along.
-		//                  A Vector that will be set to the position of where the sight ray was
-		//                  terminated. If it reached the end, it will be set to the end of the ray.
-		//                  The material strength limit where
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		//					Whether the ray should reveal or restore unseen layer
-		// Return value:    Whether any unseen pixels were revealed as a result of this seeing.
-
+		/// Traces along a vector and reveals or hides pixels on the unseen layer of a team
+		/// as long as the accumulated material strengths traced through the terrain
+		/// don't exceed a specific value.
+		/// @param team The team to see for.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param endPos A Vector that will be set to the position of where the sight ray was
+		/// terminated. If it reached the end, it will be set to the end of the ray.
+		/// @param strengthLimit The material strength limit where
+		/// @param skip For every pixel checked along the line, how many to skip between them
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param reveal Whether the ray should reveal or restore unseen layer
+		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastSeeRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and reveals pixels on the unseen layer of a team
-		//                  as long as the accumulated material strengths traced through the terrain
-		//                  don't exceed a specific value.
-		// Arguments:       The team to see for.
-		//                  The starting position.
-		//                  The vector to trace along.
-		//                  A Vector that will be set to the position of where the sight ray was
-		//                  terminated. If it reached the end, it will be set to the end of the ray.
-		//                  The material strength limit where
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		// Return value:    Whether any unseen pixels were revealed as a result of this seeing.
-
+		/// Traces along a vector and reveals pixels on the unseen layer of a team
+		/// as long as the accumulated material strengths traced through the terrain
+		/// don't exceed a specific value.
+		/// @param team The team to see for.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param endPos A Vector that will be set to the position of where the sight ray was
+		/// terminated. If it reached the end, it will be set to the end of the ray.
+		/// @param strengthLimit The material strength limit where
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastUnseeRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and hides pixels on the unseen layer of a team
-		//                  as long as the accumulated material strengths traced through the terrain
-		//                  don't exceed a specific value.
-		// Arguments:       The team to see for.
-		//                  The starting position.
-		//                  The vector to trace along.
-		//                  A Vector that will be set to the position of where the sight ray was
-		//                  terminated. If it reached the end, it will be set to the end of the ray.
-		//                  The material strength limit where
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		// Return value:    Whether any unseen pixels were revealed as a result of this seeing.
-
+		/// Traces along a vector and hides pixels on the unseen layer of a team
+		/// as long as the accumulated material strengths traced through the terrain
+		/// don't exceed a specific value.
+		/// @param team The team to see for.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param endPos A Vector that will be set to the position of where the sight ray was
+		/// terminated. If it reached the end, it will be set to the end of the ray.
+		/// @param strengthLimit The material strength limit where
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastMaterialRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and gets the location of the first encountered
-		//                  pixel of a specific material in the terrain.
-		// Arguments:       The starting position.
-		//                  The vector to trace along.
-		//                  The material ID to look for.
-		//                  A reference to the vector screen will be filled out with the absolute
-		//                  location of the found terrain pixel of the above material.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		//                  Whetehr the ray should wrap around the scene if it crosses a seam.
-		// Return value:    Whether the material was found along the ray. If not, the fourth
-		//                  parameter will not have been altered (and may still not be 0!)
-
+		/// Traces along a vector and gets the location of the first encountered
+		/// pixel of a specific material in the terrain.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param material The material ID to look for.
+		/// @param result A reference to the vector screen will be filled out with the absolute
+		/// location of the found terrain pixel of the above material.
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param wrap Whetehr the ray should wrap around the scene if it crosses a seam. (default: true)
+		/// @return Whether the material was found along the ray. If not, the fourth
+		/// parameter will not have been altered (and may still not be 0!)
 		bool CastMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip = 0, bool wrap = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastMaterialRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and returns how far along that ray there is an
-		//                  encounter with a pixel of a specific material in the terrain.
-		// Arguments:       The starting position.
-		//                  The vector to trace along.
-		//                  The material ID to look for.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		// Return value:    How far along, in pixel units, the ray the material pixel was encountered.
-		//                  If no pixel of the right material was found, < 0 is returned.
-
+		/// Traces along a vector and returns how far along that ray there is an
+		/// encounter with a pixel of a specific material in the terrain.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param material The material ID to look for.
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return How far along, in pixel units, the ray the material pixel was encountered.
+		/// If no pixel of the right material was found, < 0 is returned.
 		float CastMaterialRay(const Vector& start, const Vector& ray, unsigned char material, int skip = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastNotMaterialRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and gets the location of the first encountered
-		//                  pixel that is NOT of a specific material in the scene's terrain.
-		// Arguments:       The starting position.
-		//                  The vector to trace along.
-		//                  The material ID to find something OTHER than.
-		//                  A reference to the vector screen will be filled out with the absolute
-		//                  location of the found terrain pixel of the above material.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		//                  Whether to check for MO layer collisions as well, not just terrain.
-		// Return value:    Whether the a pixel other than the material was found along the ray.
-		//                  If not, the fourth parameter will not have been altered (and may still not be 0!)
-
+		/// Traces along a vector and gets the location of the first encountered
+		/// pixel that is NOT of a specific material in the scene's terrain.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param material The material ID to find something OTHER than.
+		/// @param result A reference to the vector screen will be filled out with the absolute
+		/// location of the found terrain pixel of the above material.
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param checkMOs Whether to check for MO layer collisions as well, not just terrain. (default: false)
+		/// @return Whether the a pixel other than the material was found along the ray.
+		/// If not, the fourth parameter will not have been altered (and may still not be 0!)
 		bool CastNotMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip = 0, bool checkMOs = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastNotMaterialRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and returns how far along that ray there is an
-		//                  encounter with a pixel of OTHER than a specific material in the terrain.
-		// Arguments:       The starting position.
-		//                  The vector to trace along.
-		//                  The material ID to find something OTHER than.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		//                  Whether to check for MO layer collisions as well, not just terrain.
-		// Return value:    How far along, in pixel units, the ray the pixel of any other material
-		//                  was encountered. If no pixel of the right material was found, < 0 is returned.
-
+		/// Traces along a vector and returns how far along that ray there is an
+		/// encounter with a pixel of OTHER than a specific material in the terrain.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param material The material ID to find something OTHER than.
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param checkMOs Whether to check for MO layer collisions as well, not just terrain. (default: false)
+		/// @return How far along, in pixel units, the ray the pixel of any other material
+		/// was encountered. If no pixel of the right material was found, < 0 is returned.
 		float CastNotMaterialRay(const Vector& start, const Vector& ray, unsigned char material, int skip = 0, bool checkMOs = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastStrengthSumRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and returns how the sum of all encountered pixels'
-		//                  material strength values. This will take wrapping into account.
-		// Arguments:       The starting position.
-		//                  The ending position.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		//                  A material ID to ignore, IN ADDITION to Air.
-		// Return value:    The sum of all encountered pixels' material strength vales. So if it was
-		//                  all Air, then 0 is returned (Air's strength value is 0).
-
+		/// Traces along a vector and returns how the sum of all encountered pixels'
+		/// material strength values. This will take wrapping into account.
+		/// @param start The starting position.
+		/// @param end The ending position.
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param ignoreMaterial A material ID to ignore, IN ADDITION to Air. (default: g_MaterialAir)
+		/// @return The sum of all encountered pixels' material strength vales. So if it was
+		/// all Air, then 0 is returned (Air's strength value is 0).
 		float CastStrengthSumRay(const Vector& start, const Vector& end, int skip = 0, unsigned char ignoreMaterial = g_MaterialAir);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastMaxStrengthRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and returns the strongest of all encountered pixels'
-		//                  material strength values.
-		//                  This will take wrapping into account.
-		// Arguments:       The starting position.
-		//                  The ending position.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		//                  A material ID to ignore, IN ADDITION to Air. This defaults to doors, for legacy script purposes
-		// Return value:    The max of all encountered pixels' material strength vales. So if it was
-		//                  all Air, then 0 is returned (Air's strength value is 0).
-
+		/// Traces along a vector and returns the strongest of all encountered pixels'
+		/// material strength values.
+		/// This will take wrapping into account.
+		/// @param start The starting position.
+		/// @param end The ending position.
+		/// @param skip For every pixel checked along the line, how many to skip between them
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param ignoreMaterial A material ID to ignore, IN ADDITION to Air. This defaults to doors, for legacy script purposes
+		/// @return The max of all encountered pixels' material strength vales. So if it was
+		/// all Air, then 0 is returned (Air's strength value is 0).
 		// We use two accessors instead of default parameters, for lua compat
 		float CastMaxStrengthRay(const Vector& start, const Vector& end, int skip, unsigned char ignoreMaterial);
 		float CastMaxStrengthRay(const Vector& start, const Vector& end, int skip) { return CastMaxStrengthRay(start, end, skip, g_MaterialDoor); };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastMaxStrengthRayMaterial
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and returns the strongest of all encountered pixels' materials
-		//                  This will take wrapping into account.
-		// Arguments:       The starting position.
-		//                  The ending position.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		//                  A material ID to ignore, IN ADDITION to Air.
-		// Return value:    The strongest material encountered
+		/// Traces along a vector and returns the strongest of all encountered pixels' materials
+		/// This will take wrapping into account.
+		/// @param start The starting position.
+		/// @param end The ending position.
+		/// @param skip For every pixel checked along the line, how many to skip between them
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param ignoreMaterial A material ID to ignore, IN ADDITION to Air.
+		/// @return The strongest material encountered
 		const Material* CastMaxStrengthRayMaterial(const Vector& start, const Vector& end, int skip, unsigned char ignoreMaterial);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastStrengthRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and shows where along that ray there is an
-		//                  encounter with a pixel of a material with strength more than or equal
-		//                  to a specific value.
-		// Arguments:       The starting position.
-		//                  The vector to trace along.
-		//                  The strength value of screen any found to be equal or more than will
-		//                  terminate the ray.
-		//                  A reference to the vector screen will be filled out with the absolute
-		//                  location of the found terrain pixel of less than or equal to above strength.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		//                  A material ID to ignore, IN ADDITION to Air.
-		//                  Whetehr the ray should wrap around the scene if it crosses a seam.
-		// Return value:    Whether a material of equal or more strength was found along the ray.
-		//                  If not, the fourth parameter have been set to last position of the ray.
-
+		/// Traces along a vector and shows where along that ray there is an
+		/// encounter with a pixel of a material with strength more than or equal
+		/// to a specific value.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param strength The strength value of screen any found to be equal or more than will
+		/// terminate the ray.
+		/// @param result A reference to the vector screen will be filled out with the absolute
+		/// location of the found terrain pixel of less than or equal to above strength.
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param ignoreMaterial A material ID to ignore, IN ADDITION to Air. (default: g_MaterialAir)
+		/// @param wrap Whetehr the ray should wrap around the scene if it crosses a seam. (default: true)
+		/// @return Whether a material of equal or more strength was found along the ray.
+		/// If not, the fourth parameter have been set to last position of the ray.
 		bool CastStrengthRay(const Vector& start, const Vector& ray, float strength, Vector& result, int skip = 0, unsigned char ignoreMaterial = g_MaterialAir, bool wrap = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastWeaknessRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and shows where along that ray there is an
-		//                  encounter with a pixel of a material with strength less than or equal
-		//                  to a specific value.
-		// Arguments:       The starting position.
-		//                  The vector to trace along.
-		//                  The strength value of screen any found to be equal or less than will
-		//                  terminate the ray.
-		//                  A reference to the vector screen will be filled out with the absolute
-		//                  location of the found terrain pixel of less than or equal to above strength.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		//                  Whetehr the ray should wrap around the scene if it crosses a seam.
-		// Return value:    Whether a material of equal or less strength was found along the ray.
-		//                  If not, the fourth parameter have been set to last position of the ray.
-
+		/// Traces along a vector and shows where along that ray there is an
+		/// encounter with a pixel of a material with strength less than or equal
+		/// to a specific value.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param strength The strength value of screen any found to be equal or less than will
+		/// terminate the ray.
+		/// @param result A reference to the vector screen will be filled out with the absolute
+		/// location of the found terrain pixel of less than or equal to above strength.
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param wrap Whetehr the ray should wrap around the scene if it crosses a seam. (default: true)
+		/// @return Whether a material of equal or less strength was found along the ray.
+		/// If not, the fourth parameter have been set to last position of the ray.
 		bool CastWeaknessRay(const Vector& start, const Vector& ray, float strength, Vector& result, int skip = 0, bool wrap = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastMORay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and returns MOID of the first non-ignored
-		//                  non-NoMOID MO encountered. If a non-air terrain pixel is encountered
-		//                  first, g_NoMOID will be returned.
-		// Arguments:       The starting position.
-		//                  The vector to trace along.
-		//                  An MOID to ignore. Any child MO's of this MOID will also be ignored.
-		//                  To enable ignoring of all MOIDs associated with an object of a specific
-		//                  team which also has team ignoring enabled itself.
-		//                  A specific material ID to ignore hits with.
-		//                  Whether to ignore all terrain hits or not.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		// Return value:    The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
-
+		/// Traces along a vector and returns MOID of the first non-ignored
+		/// non-NoMOID MO encountered. If a non-air terrain pixel is encountered
+		/// first, g_NoMOID will be returned.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOID An MOID to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
 		MOID CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastFindMORay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and shows where a specific MOID has been found.
-		// Arguments:       The starting position.
-		//                  The vector to trace along.
-		//                  An MOID to find. Any child MO's of this MOID will also be found. ------------ ???
-		//                  A reference to the vector screen will be filled out with the absolute
-		//                  location of the found MO pixel of the above MOID.
-		//                  A specific material ID to ignore hits with.
-		//                  Whether to ignore all terrain hits or not.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		// Return value:    Whether the target MOID was found along the ray or not.
-
+		/// Traces along a vector and shows where a specific MOID has been found.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param targetMOID An MOID to find. Any child MO's of this MOID will also be found. ------------ ???
+		/// @param resultPos A reference to the vector screen will be filled out with the absolute
+		/// location of the found MO pixel of the above MOID.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return Whether the target MOID was found along the ray or not.
 		bool CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CastObstacleRay
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Traces along a vector and returns the length of how far the trace went
-		//                  without hitting any non-ignored terrain material or MOID at all.
-		// Arguments:       The starting position.
-		//                  The vector to trace along.
-		//                  A reference to the vector screen will be filled out with the absolute
-		//                  location of the first obstacle, or the end of the ray if none was hit.
-		//                  A reference to the vector screen will be filled out with the absolute
-		//                  location of the last free position before hitting an obstacle, or the
-		//                  end of the ray if none was hit. This is only altered if thre are any
-		//                  free pixels encountered.
-		//                  An MOID to ignore. Any child MO's of this MOID will also be ignored.
-		//                  To enable ignoring of all MOIDs associated with an object of a specific
-		//                  team which also has team ignoring enabled itself.
-		//                  A specific material ID to ignore hits with.
-		//                  For every pixel checked along the line, how many to skip between them
-		//                  for optimization reasons. 0 = every pixel is checked.
-		// Return value:    How far along, in pixel units, the ray the pixel of any obstacle was
-		//                  encountered. If no pixel of the right material was found, < 0 is returned.
-		//                  If an obstacle on the starting position was encountered, 0 is returned.
-
+		/// Traces along a vector and returns the length of how far the trace went
+		/// without hitting any non-ignored terrain material or MOID at all.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param obstaclePos A reference to the vector screen will be filled out with the absolute
+		/// location of the first obstacle, or the end of the ray if none was hit.
+		/// @param freePos A reference to the vector screen will be filled out with the absolute
+		/// location of the last free position before hitting an obstacle, or the
+		/// end of the ray if none was hit. This is only altered if thre are any
+		/// free pixels encountered.
+		/// @param ignoreMOID An MOID to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return How far along, in pixel units, the ray the pixel of any obstacle was
+		/// encountered. If no pixel of the right material was found, < 0 is returned.
+		/// If an obstacle on the starting position was encountered, 0 is returned.
 		float CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetLastRayHitPos
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the abosulte pos of where the last cast ray hit somehting.
-		// Arguments:       None.
-		// Return value:    A vector with the absolute pos of where the last ray cast hit somehting.
-
+		/// Gets the abosulte pos of where the last cast ray hit somehting.
+		/// @return A vector with the absolute pos of where the last ray cast hit somehting.
 		const Vector& GetLastRayHitPos();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          FindAltitude
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the altitide of a certain point above the terrain, measured
-		//                  in pixels.
-		// Arguments:       The max altitude you care to check for. 0 Means check the whole scene's height.
-		//                  The accuracy within screen measurement is acceptable. Higher number
-		//                  here means less calculation.
-		// Return value:    The altitude over the terrain, in pixels.
-
+		/// Calculates the altitide of a certain point above the terrain, measured
+		/// in pixels.
+		/// @param from The max altitude you care to check for. 0 Means check the whole scene's height.
+		/// @param max The accuracy within screen measurement is acceptable. Higher number
+		/// here means less calculation.
+		/// @return The altitude over the terrain, in pixels.
 		float FindAltitude(const Vector& from, int max, int accuracy, bool fromSceneOrbitDirection);
 		float FindAltitude(const Vector& from, int max, int accuracy) { return FindAltitude(from, max, accuracy, false); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OverAltitude
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the altitide of a certain point above the terrain, measured
-		//                  in pixels, and then tells if that point is over a certain value.
-		// Arguments:       The altitude threshold you want to check for.
-		//                  The accuracy within screen measurement is acceptable. Higher number
-		//                  here means less costly.
-		// Return value:    Whether the point is over the threshold altitude or not.
-
+		/// Calculates the altitide of a certain point above the terrain, measured
+		/// in pixels, and then tells if that point is over a certain value.
+		/// @param point The altitude threshold you want to check for.
+		/// @param threshold The accuracy within screen measurement is acceptable. Higher number
+		/// here means less costly.
+		/// @return Whether the point is over the threshold altitude or not.
 		bool OverAltitude(const Vector& point, int threshold, int accuracy = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          MovePointToGround
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Takes an arbitrary point in the air and calculates it to be straight
-		//                  down at a certain maximum distance from the ground.
-		// Arguments:       The point to start from. Should be in the air, or the same point will
-		//                  be returned (null operation)
-		//                  The max altitude in px you want the point to be above the ground.
-		//                  The accuracy within screen measurement is acceptable. Higher number
-		//                  here means less calculation.
-		// Return value:    The new point screen is no higher than accuracy + max altitude over
-		//                  the terrain.
-
+		/// Takes an arbitrary point in the air and calculates it to be straight
+		/// down at a certain maximum distance from the ground.
+		/// @param from The point to start from. Should be in the air, or the same point will
+		/// be returned (null operation)
+		/// @param maxAltitude The max altitude in px you want the point to be above the ground. (default: 0)
+		/// @param accuracy The accuracy within screen measurement is acceptable. Higher number (default: 0)
+		/// here means less calculation.
+		/// @return The new point screen is no higher than accuracy + max altitude over
+		/// the terrain.
 		Vector MovePointToGround(const Vector& from, int maxAltitude = 0, int accuracy = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsWithinBounds
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns whether the integer coordinates passed in are within the
-		//                  bounds of the current Scene, considering its wrapping.
-		// Arguments:       Int coordinates.
-		//                  A margin
-		// Return value:    Whether within bounds or not, considering wrapping.
-
+		/// Returns whether the integer coordinates passed in are within the
+		/// bounds of the current Scene, considering its wrapping.
+		/// @param pixelX Int coordinates.
+		/// @param pixelY A margin
+		/// @return Whether within bounds or not, considering wrapping.
 		bool IsWithinBounds(const int pixelX, const int pixelY, const int margin = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ForceBounds
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Wraps or bounds a position coordinate if it is off bounds of the
-		//                  Scene, depending on the wrap settings of this Scene.
-		// Arguments:       The X and Y coordinates of the position to wrap, if needed.
-		// Return value:    Whether wrapping was performed or not. (Does not report on bounding)
-
+		/// Wraps or bounds a position coordinate if it is off bounds of the
+		/// Scene, depending on the wrap settings of this Scene.
+		/// @param posX The X and Y coordinates of the position to wrap, if needed.
+		/// @return Whether wrapping was performed or not. (Does not report on bounding)
 		bool ForceBounds(int& posX, int& posY);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ForceBounds
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Wraps or bounds a position coordinate if it is off bounds of the
-		//                  Scene, depending on the wrap settings of this Scene.
-		// Arguments:       The vector coordinates of the position to wrap, if needed.
-		// Return value:    Whether wrapping was performed or not. (Does not report on bounding)
-
+		/// Wraps or bounds a position coordinate if it is off bounds of the
+		/// Scene, depending on the wrap settings of this Scene.
+		/// @param pos The vector coordinates of the position to wrap, if needed.
+		/// @return Whether wrapping was performed or not. (Does not report on bounding)
 		bool ForceBounds(Vector& pos);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          WrapPosition
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Only wraps a position coordinate if it is off bounds of the Scene
-		//                  and wrapping in the corresponding axes are turned on.
-		// Arguments:       The X and Y coordinates of the position to wrap, if needed.
-		// Return value:    Whether wrapping was performed or not.
-
+		/// Only wraps a position coordinate if it is off bounds of the Scene
+		/// and wrapping in the corresponding axes are turned on.
+		/// @param posX The X and Y coordinates of the position to wrap, if needed.
+		/// @return Whether wrapping was performed or not.
 		bool WrapPosition(int& posX, int& posY);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          WrapPosition
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Only wraps a position coordinate if it is off bounds of the Scene
-		//                  and wrapping in the corresponding axes are turned on.
-		// Arguments:       The vector coordinates of the position to wrap, if needed.
-		// Return value:    Whether wrapping was performed or not.
-
+		/// Only wraps a position coordinate if it is off bounds of the Scene
+		/// and wrapping in the corresponding axes are turned on.
+		/// @param pos The vector coordinates of the position to wrap, if needed.
+		/// @return Whether wrapping was performed or not.
 		bool WrapPosition(Vector& pos);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SnapPosition
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns a position snapped to the current scene grid.
-		// Arguments:       The vector coordinates of the position to snap.
-		//                  Whether to actually snap or not. This is useful for cleaner toggle code.
-		// Return value:    The new snapped position.
-
+		/// Returns a position snapped to the current scene grid.
+		/// @param pos The vector coordinates of the position to snap.
+		/// @param snap Whether to actually snap or not. This is useful for cleaner toggle code. (default: true)
+		/// @return The new snapped position.
 		Vector SnapPosition(const Vector& pos, bool snap = true);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ShortestDistance
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the shortest distance between two points in scene
-		//                  coordinates, taking into account all wrapping and out of bounds of the
-		//                  two points.
-		// Arguments:       The two Vector coordinates of the two positions to find the shortest
-		//                  distance between.
-		//                  Whether to check if the passed in points are outside the scene, and to
-		//                  wrap them if they are.
-		// Return value:    The resulting vector screen shows the shortest distance, spanning over
-		//                  wrapping borders etc. Basically the ideal pos2 - pos1.
-
+		/// Calculates the shortest distance between two points in scene
+		/// coordinates, taking into account all wrapping and out of bounds of the
+		/// two points.
+		/// @param pos1 The two Vector coordinates of the two positions to find the shortest
+		/// distance between.
+		/// @param pos2 Whether to check if the passed in points are outside the scene, and to
+		/// wrap them if they are.
+		/// @return The resulting vector screen shows the shortest distance, spanning over
+		/// wrapping borders etc. Basically the ideal pos2 - pos1.
 		Vector ShortestDistance(Vector pos1, Vector pos2, bool checkBounds = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ShortestDistanceX
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the shortest distance between two x values in scene
-		//                  coordinates, taking into account all wrapping and out of bounds of the
-		//                  two values.
-		// Arguments:       The X coordinates of the two values to find the shortest distance between.
-		//                  Whether to check if the passed in points are outside the scene, and to
-		//                  wrap them if they are.
-		//                  Whether to constrain the distance to only be in a certain direction:
-		//                  0 means no constraint, < 0 means only look in the negative dir, etc.
-		//                  If the scene doesn't wrap in the constraint's direction, the constraint
-		//                  will be ignored.
-		// Return value:    The resulting X value screen shows the shortest distance, spanning over
-		//                  wrapping borders etc. Basically the ideal val2 - val1.
-
+		/// Calculates the shortest distance between two x values in scene
+		/// coordinates, taking into account all wrapping and out of bounds of the
+		/// two values.
+		/// @param val1 The X coordinates of the two values to find the shortest distance between.
+		/// @param val2 Whether to check if the passed in points are outside the scene, and to
+		/// wrap them if they are.
+		/// @param checkBounds Whether to constrain the distance to only be in a certain direction: (default: false)
+		/// 0 means no constraint, < 0 means only look in the negative dir, etc.
+		/// @param direction If the scene doesn't wrap in the constraint's direction, the constraint (default: 0)
+		/// will be ignored.
+		/// @return The resulting X value screen shows the shortest distance, spanning over
+		/// wrapping borders etc. Basically the ideal val2 - val1.
 		float ShortestDistanceX(float val1, float val2, bool checkBounds = false, int direction = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ShortestDistanceY
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the shortest distance between two Y values in scene
-		//                  coordinates, taking into account all wrapping and out of bounds of the
-		//                  two values.
-		// Arguments:       The Y coordinates of the two values to find the shortest distance between.
-		//                  Whether to check if the passed in points are outside the scene, and to
-		//                  wrap them if they are.
-		//                  Whether to constrain the distance to only be in a certain direction:
-		//                  0 means no constraint, < 0 means only look in the negative dir, etc.
-		//                  If the scene doesn't wrap in the constraint's direction, the constraint
-		//                  will be ignored.
-		// Return value:    The resulting Y value screen shows the shortest distance, spanning over
-		//                  wrapping borders etc. Basically the ideal val2 - val1.
-
+		/// Calculates the shortest distance between two Y values in scene
+		/// coordinates, taking into account all wrapping and out of bounds of the
+		/// two values.
+		/// @param val1 The Y coordinates of the two values to find the shortest distance between.
+		/// @param val2 Whether to check if the passed in points are outside the scene, and to
+		/// wrap them if they are.
+		/// @param checkBounds Whether to constrain the distance to only be in a certain direction: (default: false)
+		/// 0 means no constraint, < 0 means only look in the negative dir, etc.
+		/// @param direction If the scene doesn't wrap in the constraint's direction, the constraint (default: 0)
+		/// will be ignored.
+		/// @return The resulting Y value screen shows the shortest distance, spanning over
+		/// wrapping borders etc. Basically the ideal val2 - val1.
 		float ShortestDistanceY(float val1, float val2, bool checkBounds = false, int direction = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ObscuredPoint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether a point on the scene is obscured by MOID or Terrain
-		//                  non-air material.
-		// Arguments:       The point on the scene to check.
-		//                  Wheter to also check for unseen areas of a specific team. -1 means
-		//                  don't check this.
-		// Return value:    Whether that point is obscured/obstructed or not.
-
+		/// Tells whether a point on the scene is obscured by MOID or Terrain
+		/// non-air material.
+		/// @param point The point on the scene to check.
+		/// @param team Wheter to also check for unseen areas of a specific team. -1 means (default: -1) { return ObscuredPoint(point.GetFloorIntX())
+		/// don't check this.
+		/// @return Whether that point is obscured/obstructed or not.
 		bool ObscuredPoint(Vector& point, int team = -1) { return ObscuredPoint(point.GetFloorIntX(), point.GetFloorIntY()); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ObscuredPoint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether a point on the scene is obscured by MOID or Terrain
-		//                  non-air material.
-		// Arguments:       The point on the scene to check.
-		//                  Wheter to also check for unseen areas of a specific team. -1 means
-		//                  don't check this.
-		// Return value:    Whether that point is obscured/obstructed or not.
-
+		/// Tells whether a point on the scene is obscured by MOID or Terrain
+		/// non-air material.
+		/// @param x The point on the scene to check.
+		/// @param y Wheter to also check for unseen areas of a specific team. -1 means
+		/// don't check this.
+		/// @return Whether that point is obscured/obstructed or not.
 		bool ObscuredPoint(int x, int y, int team = -1);
 
 		/*
@@ -1190,108 +804,65 @@ namespace RTE {
 		    bool SceneRectsIntersect(int x, int y);
 		*/
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          WrapRect
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Takes a rect and adds all possible wrapped appearances of that rect
-		//                  to a passed-in list. IF if a passed in rect straddles the seam of a
-		//                  wrapped scene axis, it will be added twice to the output list. If it
-		//                  doesn't straddle any seam, it will be only added once.
-		// Arguments:       The IntRect to check for wrapping of and add to the output list below.
-		//                  A reference to a list of IntRect:s that will only be added to, never
-		//                  cleared.
-		// Return value:    How many additions of the passed in rect was added to the list. 1 if
-		//                  no wrapping need was detected, up to 4 possible (if straddling both seams)
-
+		/// Takes a rect and adds all possible wrapped appearances of that rect
+		/// to a passed-in list. IF if a passed in rect straddles the seam of a
+		/// wrapped scene axis, it will be added twice to the output list. If it
+		/// doesn't straddle any seam, it will be only added once.
+		/// @param wrapRect The IntRect to check for wrapping of and add to the output list below.
+		/// @param outputList A reference to a list of IntRect:s that will only be added to, never
+		/// cleared.
+		/// @return How many additions of the passed in rect was added to the list. 1 if
+		/// no wrapping need was detected, up to 4 possible (if straddling both seams)
 		int WrapRect(const IntRect& wrapRect, std::list<IntRect>& outputList);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          WrapBox
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Takes a Box and adds all possible scenewrapped appearances of that Box
-		//                  to a passed-in list. IF if a passed in rect straddles the seam of a
-		//                  wrapped scene axis, it will be added twice to the output list. If it
-		//                  doesn't straddle any seam, it will be only added once.
-		// Arguments:       The IntRect to check for wrapping of and add to the output list below.
-		//                  A reference to a list of IntRect:s that will only be added to, never
-		//                  cleared.
-		// Return value:    How many additions of the passed in Box was added to the list. 1 if
-		//                  no wrapping need was detected, up to 4 possible (if straddling both seams)
-
+		/// Takes a Box and adds all possible scenewrapped appearances of that Box
+		/// to a passed-in list. IF if a passed in rect straddles the seam of a
+		/// wrapped scene axis, it will be added twice to the output list. If it
+		/// doesn't straddle any seam, it will be only added once.
+		/// @param wrapBox The IntRect to check for wrapping of and add to the output list below.
+		/// @param outputList A reference to a list of IntRect:s that will only be added to, never
+		/// cleared.
+		/// @return How many additions of the passed in Box was added to the list. 1 if
+		/// no wrapping need was detected, up to 4 possible (if straddling both seams)
 		int WrapBox(const Box& wrapBox, std::list<Box>& outputList);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddSceneObject
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Takes any scene object and adds it to the scene in the appropriate way.
-		//                  If it's a TerrainObject, then it gets applied to the terrain, if it's
-		//                  an MO, it gets added to the correct type group in MovableMan.
-		// Arguments:       The SceneObject to add. Ownership IS transferred!
-		// Return value:    Whether the SceneObject was successfully added or not. Either way,
-		//                  ownership was transferred. If no success, the object was deleted.
-
+		/// Takes any scene object and adds it to the scene in the appropriate way.
+		/// If it's a TerrainObject, then it gets applied to the terrain, if it's
+		/// an MO, it gets added to the correct type group in MovableMan.
+		/// @param pObject The SceneObject to add. Ownership IS transferred!
+		/// @return Whether the SceneObject was successfully added or not. Either way,
+		/// ownership was transferred. If no success, the object was deleted.
 		bool AddSceneObject(SceneObject* pObject);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates the state of this SceneMan. Supposed to be done every frame
-		//                  before drawing.
-		// Arguments:       Which screen to update for.
-		// Return value:    None.
-
+		/// Updates the state of this SceneMan. Supposed to be done every frame
+		/// before drawing.
+		/// @param screenId Which screen to update for. (default: 0)
 		void Update(int screenId = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this SceneMan's current graphical representation to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on, appropriately sized for the split
-		//                  screen segment.
-		//                  The offset into the scene where the target bitmap's upper left corner
-		//                  is located.
-		// Return value:    None.
-
+		/// Draws this SceneMan's current graphical representation to a
+		/// BITMAP of choice.
+		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split
+		/// screen segment.
+		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner
+		/// is located.
 		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ClearMOColorLayer
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the color MO layer. Should be done every frame.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears the color MO layer. Should be done every frame.
 		void ClearMOColorLayer();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ClearSeenPixels
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears the list of pixels on the unseen map that have been revealed.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears the list of pixels on the unseen map that have been revealed.
 		void ClearSeenPixels();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddMaterialCopy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a copy of passed material and stores it into internal vector
-		//					to make sure there's only one material owner
-		// Arguments:       Material to add.
-		// Return value:    Pointer to stored material.
-
+		/// Creates a copy of passed material and stores it into internal vector
+		/// to make sure there's only one material owner
+		/// @param mat Material to add.
+		/// @return Pointer to stored material.
 		Material* AddMaterialCopy(Material* mat);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          RegisterTerrainChange
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Registers terrain change event for the network server to be then sent to clients.
-		// Arguments:       x,y - scene coordinates of change, w,h - size of the changed region,
-		//					color - changed color for one-pixel events,
-		//					back - if true, then background bitmap was changed if false then foreground.
-		// Return value:    None.
-
+		/// Registers terrain change event for the network server to be then sent to clients.
+		/// @param x,y - scene coordinates of change, w,h - size of the changed region,
+		/// color - changed color for one-pixel events,
+		/// back - if true, then background bitmap was changed if false then foreground.
 		void RegisterTerrainChange(int x, int y, int w, int h, unsigned char color, bool back);
 
 		/// Gets an intermediate bitmap that is used for drawing a settled MovableObject into the terrain.
@@ -1310,9 +881,7 @@ namespace RTE {
 		/// @param newHeight The new compacting height, in pixels.
 		void SetScrapCompactingHeight(int newHeight) { m_ScrapCompactingHeight = newHeight; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		static std::vector<std::pair<int, BITMAP*>> m_IntermediateSettlingBitmaps; //!< Intermediate bitmaps of different sizes that are used to draw settled MovableObjects into the terrain.
 
@@ -1374,20 +943,12 @@ namespace RTE {
 
 		int m_ScrapCompactingHeight; //!< The maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this SceneMan, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this SceneMan, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

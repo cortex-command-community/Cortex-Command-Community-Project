@@ -99,10 +99,10 @@ namespace RTE {
 		void PerformNATPunchThrough(std::string serviceServerName, unsigned short serviceServerPort, std::string playerName, std::string serverName, std::string serverPassword);
 
 		///
-		/// @param rakPeer 
-		/// @param address 
-		/// @param port 
-		/// @return 
+		/// @param rakPeer
+		/// @param address
+		/// @param port
+		/// @return
 		RakNet::SystemAddress ConnectBlocking(RakNet::RakPeerInterface* rakPeer, const char* address, unsigned short port);
 #pragma endregion
 
@@ -172,8 +172,8 @@ namespace RTE {
 
 #pragma region Network Event Handling
 		///
-		/// @param packet 
-		/// @return 
+		/// @param packet
+		/// @return
 		unsigned char GetPacketIdentifier(RakNet::Packet* packet) const;
 
 		///
@@ -186,42 +186,42 @@ namespace RTE {
 		void SendDisconnectMsg();
 
 		///
-		/// @param address 
-		/// @param serverName 
-		/// @param serverPassword 
+		/// @param address
+		/// @param serverName
+		/// @param serverPassword
 		void SendServerGUIDRequest(RakNet::SystemAddress address, std::string serverName, std::string serverPassword);
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveServerGUIDAnswer(RakNet::Packet* packet);
 
 		///
 		void SendInputMsg();
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveFrameSetupMsg(RakNet::Packet* packet);
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveFrameLineMsg(RakNet::Packet* packet);
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveFrameBoxMsg(RakNet::Packet* packet);
 
 		///
 		void SendSceneAcceptedMsg();
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveSceneMsg(RakNet::Packet* packet);
 
 		///
 		void ReceiveSceneEndMsg();
 
 		///
-		/// @param packet 
+		/// @param packet
 		void ReceiveSceneSetupMsg(RakNet::Packet* packet);
 
 		///
@@ -246,17 +246,17 @@ namespace RTE {
 
 #pragma region Drawing
 		///
-		/// @param targetBitmap 
+		/// @param targetBitmap
 		void DrawBackgrounds(BITMAP* targetBitmap);
 
 		///
-		/// @param frame 
+		/// @param frame
 		void DrawPostEffects(int frame);
 
 		///
-		/// @param frameNumber 
-		/// @param useInterlacing 
-		/// @param clearFramebuffer 
+		/// @param frameNumber
+		/// @param useInterlacing
+		/// @param clearFramebuffer
 		void DrawFrame(int frameNumber, bool useInterlacing, bool clearFramebuffer);
 #pragma endregion
 

@@ -1,18 +1,11 @@
 #ifndef _RTEMOSROTATING_
 #define _RTEMOSROTATING_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            MOSRotating.h
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Header file for the MOSRotating class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
+/// Header file for the MOSRotating class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "MOSprite.h"
 #include "Gib.h"
 #include "PostProcessMan.h"
@@ -25,18 +18,10 @@ namespace RTE {
 	class AEmitter;
 	class Attachable;
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Class:           MOSRotating
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     A sprite movable object that can rotate.
-	// Parent(s):       MOSprite.
-	// Class history:   05/30/2002 MOSRotating created.
-
+	/// A sprite movable object that can rotate.
 	class MOSRotating : public MOSprite {
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Public member variable, method and friend function declarations
-
+		/// Public member variable, method and friend function declarations
 	public:
 		friend class AtomGroup;
 		friend class SLTerrain;
@@ -47,85 +32,51 @@ namespace RTE {
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     MOSRotating
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a MOSRotating object in system
-		//                  memory. Create() should be called before using the object.
-		// Arguments:       None.
-
+		/// Constructor method used to instantiate a MOSRotating object in system
+		/// memory. Create() should be called before using the object.
 		MOSRotating() { Clear(); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Destructor:      ~MOSRotating
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destructor method used to clean up a MOSRotating object before deletion
-		//                  from system memory.
-		// Arguments:       None.
-
+		/// Destructor method used to clean up a MOSRotating object before deletion
+		/// from system memory.
 		~MOSRotating() override { Destroy(true); }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the MOSRotating object ready for use.
-		// Arguments:       None.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the MOSRotating object ready for use.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the MOSRotating object ready for use.
-		// Arguments:       A pointer to ContentFile that represents the bitmap file that will be
-		//                  used to create the Sprite.
-		//                  The number of frames in the Sprite's animation.
-		//                  A float specifying the object's mass in Kilograms (kg).
-		//                  A Vector specifying the initial position.
-		//                  A Vector specifying the initial velocity.
-		//                  The amount of time in ms this MovableObject will exist. 0 means unlim.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the MOSRotating object ready for use.
+		/// @param spriteFile A pointer to ContentFile that represents the bitmap file that will be
+		/// used to create the Sprite.
+		/// @param frameCount The number of frames in the Sprite's animation. (default: 1)
+		/// @param mass A float specifying the object's mass in Kilograms (kg). (default: 1)
+		/// @param position A Vector specifying the initial position. (default: Vector(0)
+		/// @param 0) A Vector specifying the initial velocity.
+		/// @param velocity The amount of time in ms this MovableObject will exist. 0 means unlim. (default: Vector(0)
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(ContentFile spriteFile, const int frameCount = 1, const float mass = 1, const Vector& position = Vector(0, 0), const Vector& velocity = Vector(0, 0), const unsigned long lifetime = 0);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Creates a MOSRotating to be identical to another, by deep copy.
-		// Arguments:       A reference to the MOSRotating to deep copy.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Creates a MOSRotating to be identical to another, by deep copy.
+		/// @param reference A reference to the MOSRotating to deep copy.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		int Create(const MOSRotating& reference);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Reset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resets the entire MOSRotating, including its inherited members, to their
-		//                  default settings or values.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resets the entire MOSRotating, including its inherited members, to their
+		/// default settings or values.
 		void Reset() override {
 			Clear();
 			MOSprite::Reset();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Destroys and resets (through Clear()) the SceneLayer object.
-		// Arguments:       Whether to only destroy the members defined in this derived class, or
-		//                  to destroy all inherited members also.
-		// Return value:    None.
-
+		/// Destroys and resets (through Clear()) the SceneLayer object.
+		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
+		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
 		/// Gets the radius of this MOSRotating, not including any Attachables.
-		/// @return 
+		/// @return
 		float GetIndividualRadius() const { return m_SpriteRadius; }
 
 		/// Gets the radius of this MOSRotating, including any Attachables.
@@ -133,7 +84,7 @@ namespace RTE {
 		float GetRadius() const override { return std::max(m_SpriteRadius, m_FarthestAttachableDistanceAndRadius); }
 
 		/// Gets the diameter of this MOSRotating, not including any Attachables.
-		/// @return 
+		/// @return
 		float GetIndividualDiameter() const { return m_SpriteDiameter; }
 
 		/// Gets the diameter of this MOSRotating, including any Attachables.
@@ -170,129 +121,68 @@ namespace RTE {
 		/// @param forHowLong How long, in seconds, to ignore the specified MO. A negative number means forever.
 		void SetWhichMOToNotHit(MovableObject* moToNotHit = nullptr, float forHowLong = -1) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetAtomGroup
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the current AtomGroup of this MOSRotating.
-		// Arguments:       None.
-		// Return value:    A const reference to the current AtomGroup.
-
+		/// Gets the current AtomGroup of this MOSRotating.
+		/// @return A const reference to the current AtomGroup.
 		AtomGroup* GetAtomGroup() { return m_pAtomGroup; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetMaterial
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the main Material  of this MOSRotating.
-		// Arguments:       None.
-		// Return value:    The the Material of this MOSRotating.
-
+		/// Gets the main Material  of this MOSRotating.
+		/// @return The the Material of this MOSRotating.
 		Material const* GetMaterial() const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  GetDrawPriority
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the drawing priority of this MovableObject, if two things were
-		//                  overlap when copying to the terrain, the higher priority MO would
-		//                  end up getting drawn.
-		// Arguments:       None.
-		// Return value:    The the priority  of this MovableObject. Higher number, the higher
-		//                  priority.
-
+		/// Gets the drawing priority of this MovableObject, if two things were
+		/// overlap when copying to the terrain, the higher priority MO would
+		/// end up getting drawn.
+		/// @return The the priority  of this MovableObject. Higher number, the higher
+		/// priority.
 		int GetDrawPriority() const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetRecoilForce
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the current recoil impulse force Vector of this MOSprite.
-		// Arguments:       None.
-		// Return value:    A const reference to the current recoil impulse force in kg * m/s.
-
+		/// Gets the current recoil impulse force Vector of this MOSprite.
+		/// @return A const reference to the current recoil impulse force in kg * m/s.
 		const Vector& GetRecoilForce() const { return m_RecoilForce; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetRecoilOffset
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the current recoil offset Vector of this MOSprite.
-		// Arguments:       None.
-		// Return value:    A const reference to the current recoil offset.
-
+		/// Gets the current recoil offset Vector of this MOSprite.
+		/// @return A const reference to the current recoil offset.
 		const Vector& GetRecoilOffset() const { return m_RecoilOffset; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetGibList
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets direct access to the list of object this is to generate upon gibbing.
-		// Arguments:       None.
-		// Return value:    A pointer to the list of gibs. Ownership is NOT transferred!
-
+		/// Gets direct access to the list of object this is to generate upon gibbing.
+		/// @return A pointer to the list of gibs. Ownership is NOT transferred!
 		std::list<Gib>* GetGibList() { return &m_Gibs; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          AddRecoil
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds graphical recoil offset to this MOSprite according to its angle.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Adds graphical recoil offset to this MOSprite according to its angle.
 		void AddRecoil();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetRecoil
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Adds recoil offset to this MOSprite.
-		// Arguments:       A vector with the recoil impulse force in kg * m/s.
-		//                  A vector with the recoil offset in pixels.
-		//                  Whether recoil should be activated or not for the next Draw().
-		// Return value:    None.
-
+		/// Adds recoil offset to this MOSprite.
+		/// @param force A vector with the recoil impulse force in kg * m/s.
+		/// @param offset A vector with the recoil offset in pixels.
+		/// @param recoil Whether recoil should be activated or not for the next Draw(). (default: true)
 		void SetRecoil(const Vector& force, const Vector& offset, bool recoil = true) {
 			m_RecoilForce = force;
 			m_RecoilOffset = offset;
 			m_Recoiled = recoil;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          IsRecoiled
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns whether this MOSprite is currently under the effects of
-		//                  recoil.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Returns whether this MOSprite is currently under the effects of
+		/// recoil.
 		bool IsRecoiled() { return m_Recoiled; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          EnableDeepCheck
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets whether or not this MOSRotating should check for deep penetrations
-		//                  the terrain or not.
-		// Arguments:       Whether to enable deep penetration checking or not.
-		// Return value:    None.
-
+		/// Sets whether or not this MOSRotating should check for deep penetrations
+		/// the terrain or not.
+		/// @param enable Whether to enable deep penetration checking or not. (default: true)
 		void EnableDeepCheck(const bool enable = true) { m_DeepCheck = enable; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ForceDeepCheck
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets to force a deep checking of this' silhouette against the terrain
-		//                  and create an outline hole in the terrain, generating particles of the
-		//                  intersecting pixels in the terrain.
-		// Arguments:       Whether to force a deep penetration check for this sim frame or not..
-		// Return value:    None.
-
+		/// Sets to force a deep checking of this' silhouette against the terrain
+		/// and create an outline hole in the terrain, generating particles of the
+		/// intersecting pixels in the terrain.
+		/// @param enable Whether to force a deep penetration check for this sim frame or not.. (default: true)
 		void ForceDeepCheck(const bool enable = true) { m_ForceDeepCheck = enable; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  CollideAtPoint
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the collision response when another MO's Atom collides with
-		//                  this MO's physical representation. The effects will be applied
-		//                  directly to this MO, and also represented in the passed in HitData.
-		// Arguments:       Reference to the HitData struct which describes the collision. This
-		//                  will be modified to represent the results of the collision.
-		// Return value:    Whether the collision has been deemed valid. If false, then disregard
-		//                  any impulses in the Hitdata.
-
+		/// Calculates the collision response when another MO's Atom collides with
+		/// this MO's physical representation. The effects will be applied
+		/// directly to this MO, and also represented in the passed in HitData.
+		/// @param hitData Reference to the HitData struct which describes the collision. This
+		/// will be modified to represent the results of the collision.
+		/// @return Whether the collision has been deemed valid. If false, then disregard
+		/// any impulses in the Hitdata.
 		bool CollideAtPoint(HitData& hitData) override;
 
 		/// Defines what should happen when this MovableObject hits and then bounces off of something.
@@ -301,31 +191,23 @@ namespace RTE {
 		/// @return Whether the MovableObject should immediately halt any travel going on after this bounce.
 		bool OnBounce(HitData& hd) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  OnSink
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Defines what should happen when this MovableObject hits and then
-		//                  sink into something. This is called by the owned Atom/AtomGroup
-		//                  of this MovableObject during travel.
-		// Arguments:       The HitData describing the collision in detail.
-		// Return value:    Wheter the MovableObject should immediately halt any travel going on
-		//                  after this sinkage.
-
+		/// Defines what should happen when this MovableObject hits and then
+		/// sink into something. This is called by the owned Atom/AtomGroup
+		/// of this MovableObject during travel.
+		/// @param hd The HitData describing the collision in detail.
+		/// @return Wheter the MovableObject should immediately halt any travel going on
+		/// after this sinkage.
 		bool OnSink(HitData& hd) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  ParticlePenetration
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Determines whether a particle which has hit this MO will penetrate,
-		//                  and if so, whether it gets lodged or exits on the other side of this
-		//                  MO. Appropriate effects will be determined and applied ONLY IF there
-		//                  was penetration! If not, nothing will be affected.
-		// Arguments:       The HitData describing the collision in detail, the impulses have to
-		//                  have been filled out!
-		// Return value:    Whether the particle managed to penetrate into this MO or not. If
-		//                  somehting but a MOPixel or MOSParticle is being passed in as hitor,
-		//                  false will trivially be returned here.
-
+		/// Determines whether a particle which has hit this MO will penetrate,
+		/// and if so, whether it gets lodged or exits on the other side of this
+		/// MO. Appropriate effects will be determined and applied ONLY IF there
+		/// was penetration! If not, nothing will be affected.
+		/// @param hd The HitData describing the collision in detail, the impulses have to
+		/// have been filled out!
+		/// @return Whether the particle managed to penetrate into this MO or not. If
+		/// somehting but a MOPixel or MOSParticle is being passed in as hitor,
+		/// false will trivially be returned here.
 		virtual bool ParticlePenetration(HitData& hd);
 
 		/// Destroys this MOSRotating and creates its specified Gibs in its place with appropriate velocities. Any Attachables are removed and also given appropriate velocities.
@@ -333,17 +215,13 @@ namespace RTE {
 		/// @param movableObjectToIgnore A pointer to an MO which the Gibs and Attachables should not be colliding with.
 		virtual void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  MoveOutOfTerrain
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks whether any of the Atom:s in this MovableObject are on top of
-		//                  terrain pixels, and if so, attempt to move this out so none of this'
-		//                  Atoms are on top of the terrain any more.
-		// Arguments:       Only consider materials stronger than this in the terrain for
-		//                  intersections.
-		// Return value:    Whether any intersection was successfully resolved. Will return true
-		//                  even if there wasn't any intersections to begin with.
-
+		/// Checks whether any of the Atom:s in this MovableObject are on top of
+		/// terrain pixels, and if so, attempt to move this out so none of this'
+		/// Atoms are on top of the terrain any more.
+		/// @param strongerThan Only consider materials stronger than this in the terrain for (default: g_MaterialAir)
+		/// intersections.
+		/// @return Whether any intersection was successfully resolved. Will return true
+		/// even if there wasn't any intersections to begin with.
 		bool MoveOutOfTerrain(unsigned char strongerThan = g_MaterialAir) override;
 
 		/// Gathers, clears and applies this MOSRotating's accumulated forces.
@@ -413,15 +291,9 @@ namespace RTE {
 		/// @param impulseVector The impulse vector which determines the Attachables to gib or detach. Will be filled out with the remainder of impulses.
 		void DetachAttachablesFromImpulse(Vector& impulseVector);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  ResetAllTimers
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Resest all the timers used by this. Can be emitters, etc. This is to
-		//                  prevent backed up emissions to come out all at once while this has been
-		//                  held dormant in an inventory.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Resest all the timers used by this. Can be emitters, etc. This is to
+		/// prevent backed up emissions to come out all at once while this has been
+		/// held dormant in an inventory.
 		void ResetAllTimers() override;
 
 		/// Does the calculations necessary to detect whether this MOSRotating is at rest or not. IsAtRest() retrieves the answer.
@@ -435,89 +307,46 @@ namespace RTE {
 		/// @return Whether or not this MOSRotating's graphical representation overlaps the given scene point.
 		bool IsOnScenePoint(Vector& scenePoint) const override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  EraseFromTerrain
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Cuts this' silhouette out from the terrain's material and color layers.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Cuts this' silhouette out from the terrain's material and color layers.
 		void EraseFromTerrain();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  DeepCheck
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Checks if any of this' deep group atmos are on top of the terrain, and
-		//                  if so, erases this' silhouette from the terrain.
-		// Arguments:       Whether to make any MOPixels from erased terrain pixels at all.
-		//                  The size of the gaps between MOPixels knocked loose by the terrain erasure.
-		//                  The max number of MOPixel:s to generate as dislodged particles from the
-		//                  erased terrain.
-		// Return value:    Whether deep penetration was detected and erasure was done.
-
+		/// Checks if any of this' deep group atmos are on top of the terrain, and
+		/// if so, erases this' silhouette from the terrain.
+		/// @param makeMOPs Whether to make any MOPixels from erased terrain pixels at all. (default: true)
+		/// @param skipMOP The size of the gaps between MOPixels knocked loose by the terrain erasure. (default: 2)
+		/// @param maxMOP The max number of MOPixel:s to generate as dislodged particles from the (default: 100)
+		/// erased terrain.
+		/// @return Whether deep penetration was detected and erasure was done.
 		bool DeepCheck(bool makeMOPs = true, int skipMOP = 2, int maxMOP = 100);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  PreTravel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Does stuff that needs to be done before Travel(). Always call before
-		//                  calling Travel.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Does stuff that needs to be done before Travel(). Always call before
+		/// calling Travel.
 		void PreTravel() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Travel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Travels this MOSRotatin, using its physical representation.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Travels this MOSRotatin, using its physical representation.
 		void Travel() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  PostTravel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Does stuff that needs to be done after Update(). Always call after
-		//                  calling Update.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Does stuff that needs to be done after Update(). Always call after
+		/// calling Update.
 		void PostTravel() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Update
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Updates this MovableObject. Supposed to be done every frame.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
 		void PostUpdate() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  DrawMOIDIfOverlapping
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the MOID representation of this to the SceneMan's MOID layer if
-		//                  this is found to potentially overlap another MovableObject.
-		// Arguments:       The MovableObject to check this for overlap against.
-		// Return value:    Whether it was drawn or not.
-
+		/// Draws the MOID representation of this to the SceneMan's MOID layer if
+		/// this is found to potentially overlap another MovableObject.
+		/// @param pOverlapMO The MovableObject to check this for overlap against.
+		/// @return Whether it was drawn or not.
 		bool DrawMOIDIfOverlapping(MovableObject* pOverlapMO) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws this MOSRotating's current graphical representation to a
-		//                  BITMAP of choice.
-		// Arguments:       A pointer to a BITMAP to draw on.
-		//                  The absolute position of the target bitmap's upper left corner in the Scene.
-		//                  In which mode to draw in. See the DrawMode enumeration for the modes.
-		//                  Whether to not draw any extra 'ghost' items of this MovableObject,
-		//                  indicator arrows or hovering HUD text and so on.
-		// Return value:    None.
-
+		/// Draws this MOSRotating's current graphical representation to a
+		/// BITMAP of choice.
+		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
+		/// @param mode In which mode to draw in. See the DrawMode enumeration for the modes. (default: g_DrawColor)
+		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this MovableObject, (default: false)
+		/// indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
 		/// Gets the gib impulse limit for this MOSRotating, i.e. the amount of impulse force required in a frame to gib this MOSRotating.
@@ -529,7 +358,7 @@ namespace RTE {
 		void SetGibImpulseLimit(float newGibImpulseLimit) { m_GibImpulseLimit = newGibImpulseLimit; }
 
 		/// Gets the gib wound limit for this MOSRotating, i.e. the total number of wounds required to gib this MOSRotating. Does not include any Attachables.
-		/// @return 
+		/// @return
 		int GetGibWoundLimit() const { return GetGibWoundLimit(false, false, false); }
 
 		/// Gets the gib wound limit for this MOSRotating, i.e. the total number of wounds required to gib this MOSRotating.
@@ -614,25 +443,15 @@ namespace RTE {
 		/// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
 		void DestroyScriptState();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetDamageMultiplier
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets damage multiplier of this attachable.
-		// Arguments:       New multiplier value.
-		// Return value:    None.
-
+		/// Sets damage multiplier of this attachable.
+		/// @param newValue New multiplier value.
 		void SetDamageMultiplier(float newValue) {
 			m_DamageMultiplier = newValue;
 			m_NoSetDamageMultiplier = false;
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetDamageMultiplier
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns damage multiplier of this attachable.
-		// Arguments:       None.
-		// Return value:    Current multiplier value.
-
+		/// Returns damage multiplier of this attachable.
+		/// @return Current multiplier value.
 		float GetDamageMultiplier() const { return m_DamageMultiplier; }
 
 		/// Gets whether the damage multiplier for this MOSRotating has been directly set, or is at its default value.
@@ -654,22 +473,12 @@ namespace RTE {
 			m_FlashWhiteTimer.Reset();
 		}
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTravelImpulse
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Retrurns the amount of impulse force exerted on this during the last frame.
-		// Arguments:       None.
-		// Return value:    The amount of impulse force exerted on this during the last frame.
-
+		/// Retrurns the amount of impulse force exerted on this during the last frame.
+		/// @return The amount of impulse force exerted on this during the last frame.
 		Vector GetTravelImpulse() const { return m_TravelImpulse; }
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetTravelImpulse
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the amount of impulse force exerted on this during the last frame.
-		// Arguments:       New impulse value
-		// Return value:    None.
-
+		/// Sets the amount of impulse force exerted on this during the last frame.
+		/// @param impulse New impulse value
 		void SetTravelImpulse(Vector impulse) { m_TravelImpulse = impulse; }
 
 		/// Gets this MOSRotating's gib sound. Ownership is NOT transferred!
@@ -686,27 +495,20 @@ namespace RTE {
 		/// Method to be run when the game is saved via ActivityMan::SaveCurrentGame. Not currently used in metagame or editor saving.
 		void OnSave() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Protected member variable and method declarations
-
+		/// Protected member variable and method declarations
 	protected:
 		/// Transfers forces and impulse forces from the given Attachable to this MOSRotating, gibbing and/or removing the Attachable if needed.
 		/// @param attachable A pointer to the Attachable to apply forces from. Ownership is NOT transferred!
 		/// @return Whether or not the Attachable has been removed, in which case it'll usually be passed to MovableMan.
 		bool TransferForcesFromAttachable(Attachable* attachable);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  UpdateChildMOIDs
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes this MO register itself and all its attached children in the
-		//                  MOID register and get ID:s for itself and its children for this frame.
-		// Arguments:       The MOID index to register itself and its children in.
-		//                  The MOID of the root MO of this MO, ie the highest parent of this MO.
-		//                  0 means that this MO is the root, ie it is owned by MovableMan.
-		//                  Whether this MO should make a new MOID to use for itself, or to use
-		//                  the same as the last one in the index (presumably its parent),
-		// Return value:    None.
-
+		/// Makes this MO register itself and all its attached children in the
+		/// MOID register and get ID:s for itself and its children for this frame.
+		/// @param MOIDIndex The MOID index to register itself and its children in.
+		/// @param rootMOID The MOID of the root MO of this MO, ie the highest parent of this MO. (default: g_NoMOID)
+		/// 0 means that this MO is the root, ie it is owned by MovableMan.
+		/// @param makeNewMOID Whether this MO should make a new MOID to use for itself, or to use (default: true)
+		/// the same as the last one in the index (presumably its parent),
 		void UpdateChildMOIDs(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID = g_NoMOID, bool makeNewMOID = true) override;
 
 		/// Creates the particles specified by this MOSRotating's list of Gibs and adds them to MovableMan with appropriately randomized velocities, based on this MOSRotating's gib blast strength.
@@ -800,18 +602,10 @@ namespace RTE {
 		static BITMAP* m_spTempBitmapS256;
 		static BITMAP* m_spTempBitmapS512;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Private member variable and method declarations
-
+		/// Private member variable and method declarations
 	private:
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this MOSRotating, effectively
-		//                  resetting the members of this abstraction level only.
-		// Arguments:       None.
-		// Return value:    None.
-
+		/// Clears all the member variables of this MOSRotating, effectively
+		/// resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.

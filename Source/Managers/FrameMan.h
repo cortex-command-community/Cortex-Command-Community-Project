@@ -289,8 +289,8 @@ namespace RTE {
 
 		// TODO: Figure out.
 		///
-		/// @param screen 
-		/// @return 
+		/// @param screen
+		/// @return
 		Vector GetTargetPos(int screen) const { return m_TargetPos[m_NetworkFrameReady][screen]; }
 
 		/// Gets whether we are drawing the contents of the network backbuffers on top of m_BackBuffer8 every frame.
@@ -467,7 +467,7 @@ namespace RTE {
 
 		/// Shared method for saving screenshots or individual bitmaps.
 		/// @param modeToSave What is being saved. See SaveBitmapMode enumeration for a list of modes.
-		/// @param nameBase 
+		/// @param nameBase
 		/// The name of the file that is being saved, WITHOUT EXTENSION.
 		/// Eg, If "Test" is passed in, this function will save to Test000.bmp, if that file does not already exist. If it does exist, it will attempt 001, and so on.
 		/// @param bitmapToSave The individual bitmap that will be dumped. 0 or nullptr if not in SingleBitmap mode.
@@ -481,7 +481,7 @@ namespace RTE {
 		/// @param fileName The full name of the file that is being saved. Path and everything included.
 		/// @param bitmapToSave The BITMAP that is being saved into a file.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		/// @remark 
+		/// @remark
 		/// This method is a workaround to Allegro being unable to set a color conversion mode when saving files.
 		/// It works by first saving the 32bpp bitmap as is, then loading it back under the REDUCE_TO_256 color conversion mode, blitting it to a fresh bitmap and saving it again with the passed in palette.
 		/// The re-blitted bitmap is properly 8bpp and will be indexed correctly. The old saved file is deleted in the process before the new one is saved.

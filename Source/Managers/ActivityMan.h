@@ -107,7 +107,7 @@ namespace RTE {
 		bool IsSetToLaunchIntoEditor() const { return m_LaunchIntoEditor; }
 
 		/// Sets the name of the editor to launch directly into.
-		/// @param editorName 
+		/// @param editorName
 		void SetEditorToLaunch(const std::string_view& editorName) {
 			if (!editorName.empty()) {
 				m_EditorToLaunch = editorName;
@@ -166,7 +166,7 @@ namespace RTE {
 #pragma region Concrete Methods
 		/// Officially starts the Activity passed in. Ownership IS transferred!
 		/// @param activity The new activity to start.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.@return 
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.@return
 		int StartActivity(Activity* activity);
 
 		/// Officially gets and starts the Activity described.

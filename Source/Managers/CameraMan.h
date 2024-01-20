@@ -95,7 +95,7 @@ namespace RTE {
 
 		/// Calculates a scalar of how distant a certain point in the world is from the currently closest scroll target of all active screens.
 		/// @param point The world coordinate point to check distance to/from.
-		/// @return 
+		/// @return
 		/// A normalized scalar representing the distance between the closest scroll target of all active screens, to the passed in point.
 		/// 0 means it's the point is within half a screen's width of the target, and 1.0 means it's on the clear opposite side of the scene.
 		float TargetDistanceScalar(const Vector& point) const;
