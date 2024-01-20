@@ -9,7 +9,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, GUIBanner) {
 		auto luaType = SimpleTypeLuaClassDefinition(GUIBanner);
@@ -46,7 +46,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, BuyMenuGUI) {
 		auto luaType = SimpleTypeLuaClassDefinition(BuyMenuGUI);
@@ -83,7 +83,7 @@ namespace RTE {
 		luaType["GetTotalOrderPassengers"] = &BuyMenuGUI::GetTotalOrderPassengers;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, SceneEditorGUI) {
 		auto luaType = SimpleTypeLuaClassDefinition(SceneEditorGUI);
@@ -97,7 +97,7 @@ namespace RTE {
 		luaType["SetNativeTechModule"] = &SceneEditorGUI::SetNativeTechModule;
 		luaType["SetForeignCostMultiplier"] = &SceneEditorGUI::SetForeignCostMultiplier;
 		luaType["TestBrainResidence"] = &SceneEditorGUI::TestBrainResidence;
-		luaType["Update"] = &SceneEditorGUI::Update; //Gacyr Note: I hate this being here but it's necessary for some metagame bullshit.
+		luaType["Update"] = &SceneEditorGUI::Update; // Gacyr Note: I hate this being here but it's necessary for some metagame bullshit.
 
 		{
 			sol::table enumTable = LegacyEnumTypeTable("EditorGUIMode");
@@ -114,4 +114,4 @@ namespace RTE {
 			enumTable["EDITORGUIMODECOUNT"] = SceneEditorGUI::EditorGUIMode::EDITORGUIMODECOUNT;
 		}
 	}
-}
+} // namespace RTE

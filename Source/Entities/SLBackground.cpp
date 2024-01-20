@@ -7,7 +7,7 @@ namespace RTE {
 
 	ConcreteClassInfo(SLBackground, SceneLayer, 0);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLBackground::Clear() {
 		m_Bitmaps.clear();
@@ -32,7 +32,7 @@ namespace RTE {
 		m_IgnoreAutoScale = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SLBackground::Create() {
 		SceneLayer::Create();
@@ -58,9 +58,9 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SLBackground::Create(const SLBackground &reference) {
+	int SLBackground::Create(const SLBackground& reference) {
 		SceneLayer::Create(reference);
 
 		// The main bitmap is created and owned by SceneLayer because it can be modified. We need to destroy it to avoid a leak because the bitmaps we'll be using here are owned by ContentFile static maps and are unmodifiable.
@@ -90,15 +90,17 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SLBackground::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneLayer::ReadProperty(propName, reader));
-		
+
 		MatchProperty("FrameCount", { reader >> m_FrameCount; });
 		MatchProperty("SpriteAnimMode", {
 			m_SpriteAnimMode = static_cast<SpriteAnimMode>(std::stoi(reader.ReadPropValue()));
-			if (m_SpriteAnimMode < SpriteAnimMode::NOANIM || m_SpriteAnimMode > SpriteAnimMode::ALWAYSPINGPONG) { reader.ReportError("Invalid SLBackground sprite animation mode!"); }
+			if (m_SpriteAnimMode < SpriteAnimMode::NOANIM || m_SpriteAnimMode > SpriteAnimMode::ALWAYSPINGPONG) {
+				reader.ReportError("Invalid SLBackground sprite animation mode!");
+			}
 		});
 		MatchProperty("SpriteAnimDuration", { reader >> m_SpriteAnimDuration; });
 		MatchProperty("IsAnimatedManually", { reader >> m_IsAnimatedManually; });
@@ -117,14 +119,13 @@ namespace RTE {
 		MatchProperty("CanAutoScrollY", { reader >> m_CanAutoScrollY; });
 		MatchProperty("AutoScrollStepInterval", { reader >> m_AutoScrollStepInterval; });
 		MatchProperty("AutoScrollStep", { reader >> m_AutoScrollStep; });
-		
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SLBackground::Save(Writer &writer) const {
+	int SLBackground::Save(Writer& writer) const {
 		SceneLayer::Save(writer);
 
 		writer.NewPropertyWithValue("FrameCount", m_FrameCount);
@@ -144,7 +145,7 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLBackground::InitScaleFactors() {
 		if (!m_IgnoreAutoScale) {
@@ -166,7 +167,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SLBackground::Update() {
 		if (!m_IsAnimatedManually && m_SpriteAnimMode != SpriteAnimMode::NOANIM) {
@@ -200,8 +201,12 @@ namespace RTE {
 
 		if (IsAutoScrolling()) {
 			if (m_AutoScrollStepTimer.GetElapsedSimTimeMS() > m_AutoScrollStepInterval) {
-				if (m_WrapX && m_CanAutoScrollX) { m_AutoScrollOffset.SetX(m_AutoScrollOffset.GetX() + m_AutoScrollStep.GetX()); }
-				if (m_WrapY && m_CanAutoScrollY) { m_AutoScrollOffset.SetY(m_AutoScrollOffset.GetY() + m_AutoScrollStep.GetY()); }
+				if (m_WrapX && m_CanAutoScrollX) {
+					m_AutoScrollOffset.SetX(m_AutoScrollOffset.GetX() + m_AutoScrollStep.GetX());
+				}
+				if (m_WrapY && m_CanAutoScrollY) {
+					m_AutoScrollOffset.SetY(m_AutoScrollOffset.GetY() + m_AutoScrollStep.GetY());
+				}
 				WrapPosition(m_AutoScrollOffset);
 				m_AutoScrollStepTimer.Reset();
 			}
@@ -209,9 +214,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SLBackground::Draw(BITMAP *targetBitmap, Box &targetBox, bool offsetNeedsScrollRatioAdjustment) {
+	void SLBackground::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 		SceneLayer::Draw(targetBitmap, targetBox, !IsAutoScrolling());
 
 		int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
@@ -225,13 +230,21 @@ namespace RTE {
 
 		// Detect if non-wrapping layer dimensions can't cover the whole target area with its main bitmap. If so, fill in the gap with appropriate solid color sampled from the hanging edge.
 		if (!m_WrapX && bitmapWidth <= targetBoxWidth) {
-			if (m_FillColorLeft != ColorKeys::g_MaskColor && m_Offset.GetFloorIntX() != 0) { rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX - m_Offset.GetFloorIntX(), targetBoxCornerY + targetBoxHeight, m_FillColorLeft); }
-			if (m_FillColorRight != ColorKeys::g_MaskColor) { rectfill(targetBitmap, targetBoxCornerX + bitmapWidth - m_Offset.GetFloorIntX(), targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorRight); }
+			if (m_FillColorLeft != ColorKeys::g_MaskColor && m_Offset.GetFloorIntX() != 0) {
+				rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX - m_Offset.GetFloorIntX(), targetBoxCornerY + targetBoxHeight, m_FillColorLeft);
+			}
+			if (m_FillColorRight != ColorKeys::g_MaskColor) {
+				rectfill(targetBitmap, targetBoxCornerX + bitmapWidth - m_Offset.GetFloorIntX(), targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorRight);
+			}
 		}
 		if (!m_WrapY && bitmapHeight <= targetBoxHeight) {
-			if (m_FillColorUp != ColorKeys::g_MaskColor && m_Offset.GetFloorIntY() != 0) { rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY - m_Offset.GetFloorIntY(), m_FillColorUp); }
-			if (m_FillColorDown != ColorKeys::g_MaskColor) { rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.GetFloorIntY(), targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorDown); }
+			if (m_FillColorUp != ColorKeys::g_MaskColor && m_Offset.GetFloorIntY() != 0) {
+				rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY - m_Offset.GetFloorIntY(), m_FillColorUp);
+			}
+			if (m_FillColorDown != ColorKeys::g_MaskColor) {
+				rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.GetFloorIntY(), targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorDown);
+			}
 		}
 		set_clip_rect(targetBitmap, 0, 0, targetBitmap->w - 1, targetBitmap->h - 1);
 	}
-}
+} // namespace RTE

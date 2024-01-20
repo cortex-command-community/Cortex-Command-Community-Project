@@ -25,9 +25,9 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void NetworkServer::BackgroundSendThreadFunction(NetworkServer *server, short player) {
+	void NetworkServer::BackgroundSendThreadFunction(NetworkServer* server, short player) {
 		const int sleepTime = 1000000 / server->m_EncodingFps;
 		while (server->IsServerModeEnabled() && server->IsPlayerConnected(player)) {
 			if (server->NeedToSendSceneSetupData(player) && server->IsSceneAvailable(player)) {
@@ -44,10 +44,9 @@ namespace RTE {
 			server->UpdateStats(player);
 		}
 		server->SetThreadExitReason(player, NetworkServer::THREAD_FINISH);
-
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::Clear() {
 		m_SleepWhenIdle = false;
@@ -148,7 +147,7 @@ namespace RTE {
 		m_LastPackedReceived = nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int NetworkServer::Initialize() {
 		m_IsInServerMode = false;
@@ -157,7 +156,7 @@ namespace RTE {
 
 		m_LastPackedReceived = std::make_unique<Timer>();
 
-		for (std::unique_ptr<Timer> &pingTimer : m_PingTimer) {
+		for (std::unique_ptr<Timer>& pingTimer: m_PingTimer) {
 			pingTimer = std::make_unique<Timer>();
 		}
 
@@ -174,7 +173,9 @@ namespace RTE {
 		if (m_BoxHeight % 2 != 0) {
 			g_ConsoleMan.PrintString("SERVER: Box height must be divisible by 2! Box height will be adjusted!");
 			m_BoxHeight -= 1;
-			if (m_BoxHeight == 0) { m_BoxHeight = 2; }
+			if (m_BoxHeight == 0) {
+				m_BoxHeight = 2;
+			}
 		}
 
 		for (int i = 0; i < c_MaxClients; i++) {
@@ -190,10 +191,10 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::Destroy() {
-		//Send a signal that server is going to shutdown
+		// Send a signal that server is going to shutdown
 		m_IsInServerMode = false;
 		// Wait for thread to shut down
 		RakSleep(250);
@@ -204,34 +205,42 @@ namespace RTE {
 		for (short i = 0; i < c_MaxClients; i++) {
 			DestroyBackBuffer(i);
 
-			if (m_LZ4CompressionState[i]) { free(m_LZ4CompressionState[i]); }
+			if (m_LZ4CompressionState[i]) {
+				free(m_LZ4CompressionState[i]);
+			}
 			m_LZ4CompressionState[i] = 0;
 
-			if (m_LZ4FastCompressionState[i]) { free(m_LZ4FastCompressionState[i]); }
+			if (m_LZ4FastCompressionState[i]) {
+				free(m_LZ4FastCompressionState[i]);
+			}
 			m_LZ4FastCompressionState[i] = 0;
 		}
 		Clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool NetworkServer::ReadyForSimulation() {
 		short playersReady = 0;
 		short playersTotal = 0;
 
 		for (short player = 0; player < c_MaxClients; player++) {
-			if (IsPlayerConnected(player)) { playersTotal++; }
-			if (SendFrameData(player)) { playersReady++; }
+			if (IsPlayerConnected(player)) {
+				playersTotal++;
+			}
+			if (SendFrameData(player)) {
+				playersReady++;
+			}
 		}
 
 		return playersReady >= playersTotal;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void NetworkServer::SetServerPort(const std::string &newPort) {
+	void NetworkServer::SetServerPort(const std::string& newPort) {
 		bool useDefault = false;
-		for (const char &stringChar : newPort) {
+		for (const char& stringChar: newPort) {
 			if (!std::isdigit(stringChar)) {
 				g_ConsoleMan.PrintString("ERROR: Invalid port passed into \"-server\" argument, using default (8000) instead!");
 				useDefault = true;
@@ -241,7 +250,7 @@ namespace RTE {
 		m_ServerPort = useDefault ? "8000" : newPort;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::Start() {
 		RakNet::SocketDescriptor socketDescriptors[1];
@@ -271,7 +280,9 @@ namespace RTE {
 				serverName = g_SettingsMan.GetNATServiceAddress().substr(0, portPos);
 				std::string portStr = g_SettingsMan.GetNATServiceAddress().substr(portPos + 1, g_SettingsMan.GetNATServiceAddress().length() - 2);
 				port = atoi(portStr.c_str());
-				if (port == 0) { port = 61111; }
+				if (port == 0) {
+					port = 61111;
+				}
 			} else {
 				serverName = g_SettingsMan.GetNATServiceAddress();
 				port = 61111;
@@ -288,7 +299,7 @@ namespace RTE {
 		m_Server->SetUnreliableTimeout(50);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::LockScene(bool isLocked) {
 		for (int i = 0; i < c_MaxClients; i++) {
@@ -300,7 +311,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ResetScene() {
 		m_SceneID++;
@@ -312,7 +323,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::RegisterTerrainChange(NetworkTerrainChange terrainChange) {
 		if (m_IsInServerMode) {
@@ -326,9 +337,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	unsigned char NetworkServer::GetPacketIdentifier(RakNet::Packet *packet) const {
+	unsigned char NetworkServer::GetPacketIdentifier(RakNet::Packet* packet) const {
 		if (packet == 0) {
 			return 255;
 		}
@@ -340,9 +351,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void NetworkServer::ReceiveNewIncomingConnection(RakNet::Packet *packet) {
+	void NetworkServer::ReceiveNewIncomingConnection(RakNet::Packet* packet) {
 		std::string msg;
 		RakNet::SystemAddress clientID;
 		char buf[256];
@@ -357,11 +368,11 @@ namespace RTE {
 
 		RakNet::SystemAddress internalId = RakNet::UNASSIGNED_SYSTEM_ADDRESS;
 
-		//g_ConsoleMan.PrintString("SERVER: Remote internal IDs:\n");
+		// g_ConsoleMan.PrintString("SERVER: Remote internal IDs:\n");
 		for (int index = 0; index < MAXIMUM_NUMBER_OF_INTERNAL_IDS; index++) {
 			internalId = m_Server->GetInternalID(packet->systemAddress, index);
 			if (internalId != RakNet::UNASSIGNED_SYSTEM_ADDRESS) {
-				//g_ConsoleMan.PrintString(internalId.ToString(true));
+				// g_ConsoleMan.PrintString(internalId.ToString(true));
 			}
 		}
 
@@ -383,20 +394,22 @@ namespace RTE {
 				break;
 			}
 		}
-		if (!connected) { g_ConsoleMan.PrintString("SERVER: Could not accept connection"); }
+		if (!connected) {
+			g_ConsoleMan.PrintString("SERVER: Could not accept connection");
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendAcceptedMsg(short player) {
 		MsgAccepted msg;
 		msg.Id = ID_SRV_ACCEPTED;
-		m_Server->Send((const char *)&msg, sizeof(MsgAccepted), HIGH_PRIORITY, RELIABLE_SEQUENCED, 0, m_ClientConnections[player].ClientId, false);
+		m_Server->Send((const char*)&msg, sizeof(MsgAccepted), HIGH_PRIORITY, RELIABLE_SEQUENCED, 0, m_ClientConnections[player].ClientId, false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void NetworkServer::ReceiveDisconnection(RakNet::Packet *packet) {
+	void NetworkServer::ReceiveDisconnection(RakNet::Packet* packet) {
 		std::string msg = "ID_CONNECTION_LOST from";
 		msg += packet->systemAddress.ToString(true);
 		g_ConsoleMan.PrintString(msg);
@@ -407,7 +420,7 @@ namespace RTE {
 				m_ClientConnections[index].ClientId = RakNet::UNASSIGNED_SYSTEM_ADDRESS;
 				m_ClientConnections[index].InternalId = RakNet::UNASSIGNED_SYSTEM_ADDRESS;
 
-				//delete m_ClientConnections[index].SendThread;
+				// delete m_ClientConnections[index].SendThread;
 				m_ClientConnections[index].SendThread = 0;
 
 				m_SendSceneSetupData[index] = true;
@@ -417,11 +430,11 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void NetworkServer::ReceiveRegisterMsg(RakNet::Packet *packet) {
+	void NetworkServer::ReceiveRegisterMsg(RakNet::Packet* packet) {
 		std::string msg;
-		const MsgRegister *msgReg = (MsgRegister *)packet->data;
+		const MsgRegister* msgReg = (MsgRegister*)packet->data;
 		char buf[32];
 
 		msg = "SERVER: CLIENT REGISTRATION: RES ";
@@ -448,8 +461,8 @@ namespace RTE {
 				m_SendFrameData[index] = false;
 
 				// Get backbuffer bitmap for this player
-				BITMAP *frameManBmp = g_FrameMan.GetNetworkBackBuffer8Ready(index);
-				BITMAP *frameManGUIBmp = g_FrameMan.GetNetworkBackBufferGUI8Ready(index);
+				BITMAP* frameManBmp = g_FrameMan.GetNetworkBackBuffer8Ready(index);
+				BITMAP* frameManGUIBmp = g_FrameMan.GetNetworkBackBufferGUI8Ready(index);
 
 				if (!m_BackBuffer8[index]) {
 					CreateBackBuffer(index, frameManBmp->w, frameManBmp->h);
@@ -465,7 +478,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendNATServerRegistrationMsg(RakNet::SystemAddress address) {
 		MsgRegisterServer msg = {};
@@ -478,18 +491,20 @@ namespace RTE {
 
 		int payloadSize = sizeof(MsgSceneSetup);
 
-		m_Server->Send((const char *)&msg, payloadSize, IMMEDIATE_PRIORITY, RELIABLE, 0, address, false);
+		m_Server->Send((const char*)&msg, payloadSize, IMMEDIATE_PRIORITY, RELIABLE, 0, address, false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void NetworkServer::ReceiveInputMsg(RakNet::Packet *packet) {
-		const MsgInput *m = (MsgInput *)packet->data;
+	void NetworkServer::ReceiveInputMsg(RakNet::Packet* packet) {
+		const MsgInput* m = (MsgInput*)packet->data;
 
 		int player = -1;
 
 		for (int index = 0; index < c_MaxClients; index++) {
-			if (m_ClientConnections[index].ClientId == packet->systemAddress) { player = index; }
+			if (m_ClientConnections[index].ClientId == packet->systemAddress) {
+				player = index;
+			}
 		}
 
 		if (player >= 0 && player < c_MaxClients) {
@@ -515,27 +530,43 @@ namespace RTE {
 			if (!m_InputMessages[player].empty()) {
 				MsgInput lastmsg = m_InputMessages[player].back();
 
-				if (msg.MouseX != lastmsg.MouseX) { skip = false; }
-				if (msg.MouseY != lastmsg.MouseY) { skip = false; }
+				if (msg.MouseX != lastmsg.MouseX) {
+					skip = false;
+				}
+				if (msg.MouseY != lastmsg.MouseY) {
+					skip = false;
+				}
 
 				for (int i = 0; i < MAX_MOUSE_BUTTONS; i++) {
-					if (msg.MouseButtonState[i] != lastmsg.MouseButtonState[i]) { skip = false; }
+					if (msg.MouseButtonState[i] != lastmsg.MouseButtonState[i]) {
+						skip = false;
+					}
 				}
-				if (msg.ResetActivityVote != lastmsg.ResetActivityVote) { skip = false; }
-				if (msg.RestartActivityVote != lastmsg.RestartActivityVote) { skip = false; }
+				if (msg.ResetActivityVote != lastmsg.ResetActivityVote) {
+					skip = false;
+				}
+				if (msg.RestartActivityVote != lastmsg.RestartActivityVote) {
+					skip = false;
+				}
 
-				if (msg.MouseWheelMoved != lastmsg.MouseWheelMoved) { skip = false; }
+				if (msg.MouseWheelMoved != lastmsg.MouseWheelMoved) {
+					skip = false;
+				}
 
-				if (msg.InputElementState != lastmsg.InputElementState) { skip = false; }
+				if (msg.InputElementState != lastmsg.InputElementState) {
+					skip = false;
+				}
 			} else {
 				skip = false;
 			}
 
-			if (!skip) { m_InputMessages[player].push_back(msg); }
+			if (!skip) {
+				m_InputMessages[player].push_back(msg);
+			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ProcessInputMsg(short player, MsgInput msg) {
 		if (player >= 0 && player < c_MaxClients) {
@@ -573,11 +604,11 @@ namespace RTE {
 			// We need to replace mouse input obtained from the allegro with mouse input obtained from network clients
 			GUIInput::SetNetworkMouseMovement(player, msg.MouseX, msg.MouseY);
 		} else {
-			//g_ConsoleMan.PrintString("SERVER: Input for unknown client. Ignored.");
+			// g_ConsoleMan.PrintString("SERVER: Input for unknown client. Ignored.");
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ClearInputMessages(short player) {
 		if (player >= 0 && player < c_MaxClients) {
@@ -585,7 +616,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendSoundData(short player) {
 		std::list<AudioMan::NetworkSoundData> events;
@@ -595,13 +626,13 @@ namespace RTE {
 			return;
 		}
 
-		MsgSoundEvents *msg = (MsgSoundEvents *)m_CompressedLineBuffer[player];
-		AudioMan::NetworkSoundData *soundDataPointer = (AudioMan::NetworkSoundData *)((char *)msg + sizeof(MsgSoundEvents));
+		MsgSoundEvents* msg = (MsgSoundEvents*)m_CompressedLineBuffer[player];
+		AudioMan::NetworkSoundData* soundDataPointer = (AudioMan::NetworkSoundData*)((char*)msg + sizeof(MsgSoundEvents));
 		msg->Id = ID_SRV_SOUND_EVENTS;
 		msg->FrameNumber = m_FrameNumbers[player];
 		msg->SoundEventsCount = 0;
 
-		for (const AudioMan::NetworkSoundData &soundEvent : events) {
+		for (const AudioMan::NetworkSoundData& soundEvent: events) {
 			if (sizeof(MsgSoundEvents) + (msg->SoundEventsCount * sizeof(AudioMan::NetworkSoundData)) <= c_MaxPixelLineBufferSize) {
 				soundDataPointer->State = soundEvent.State;
 				soundDataPointer->SoundFileHash = soundEvent.SoundFileHash;
@@ -621,20 +652,20 @@ namespace RTE {
 				soundDataPointer++;
 			} else {
 				int payloadSize = sizeof(MsgSoundEvents) + (msg->SoundEventsCount * sizeof(AudioMan::NetworkSoundData));
-				m_Server->Send((const char *)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
+				m_Server->Send((const char*)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
 
 				m_SoundDataSentCurrent[player][STAT_CURRENT] += payloadSize;
 				m_SoundDataSentTotal[player] += payloadSize;
 				m_DataSentTotal[player] += payloadSize;
 
-				soundDataPointer = (AudioMan::NetworkSoundData *)((char *)msg + sizeof(MsgSoundEvents));
+				soundDataPointer = (AudioMan::NetworkSoundData*)((char*)msg + sizeof(MsgSoundEvents));
 				msg->SoundEventsCount = 0;
 			}
 		}
 
 		if (msg->SoundEventsCount > 0) {
 			int payloadSize = sizeof(MsgSoundEvents) + (msg->SoundEventsCount * sizeof(AudioMan::NetworkSoundData));
-			m_Server->Send((const char *)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
+			m_Server->Send((const char*)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
 
 			m_SoundDataSentCurrent[player][STAT_CURRENT] += payloadSize;
 			m_SoundDataSentTotal[player] += payloadSize;
@@ -642,7 +673,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendMusicData(short player) {
 		std::list<AudioMan::NetworkMusicData> events;
@@ -652,14 +683,14 @@ namespace RTE {
 			return;
 		}
 
-		MsgMusicEvents *msg = (MsgMusicEvents *)m_CompressedLineBuffer[player];
-		AudioMan::NetworkMusicData *musicDataPointer = (AudioMan::NetworkMusicData *)((char *)msg + sizeof(MsgMusicEvents));
+		MsgMusicEvents* msg = (MsgMusicEvents*)m_CompressedLineBuffer[player];
+		AudioMan::NetworkMusicData* musicDataPointer = (AudioMan::NetworkMusicData*)((char*)msg + sizeof(MsgMusicEvents));
 
 		msg->Id = ID_SRV_MUSIC_EVENTS;
 		msg->FrameNumber = m_FrameNumbers[player];
 		msg->MusicEventsCount = 0;
 
-		for (const AudioMan::NetworkMusicData &musicEvent : events) {
+		for (const AudioMan::NetworkMusicData& musicEvent: events) {
 			musicDataPointer->State = musicEvent.State;
 			musicDataPointer->LoopsOrSilence = musicEvent.LoopsOrSilence;
 			musicDataPointer->Pitch = musicEvent.Pitch;
@@ -671,21 +702,20 @@ namespace RTE {
 
 			if (msg->MusicEventsCount >= 4) {
 				int payloadSize = sizeof(MsgMusicEvents) + sizeof(AudioMan::NetworkMusicData) * msg->MusicEventsCount;
-				m_Server->Send((const char *)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
+				m_Server->Send((const char*)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
 				msg->MusicEventsCount = 0;
-				musicDataPointer = (AudioMan::NetworkMusicData *)((char *)msg + sizeof(MsgMusicEvents));
+				musicDataPointer = (AudioMan::NetworkMusicData*)((char*)msg + sizeof(MsgMusicEvents));
 
 				m_SoundDataSentCurrent[player][STAT_CURRENT] += payloadSize;
 				m_SoundDataSentTotal[player] += payloadSize;
 
 				m_DataSentTotal[player] += payloadSize;
-
 			}
 		}
 
 		if (msg->MusicEventsCount > 0) {
 			int payloadSize = sizeof(MsgMusicEvents) + sizeof(AudioMan::NetworkMusicData) * msg->MusicEventsCount;
-			m_Server->Send((const char *)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
+			m_Server->Send((const char*)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
 
 			m_SoundDataSentCurrent[player][STAT_CURRENT] += payloadSize;
 			m_SoundDataSentTotal[player] += payloadSize;
@@ -694,7 +724,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendSceneSetupData(short player) {
 		MsgSceneSetup msgSceneSetup = {};
@@ -704,12 +734,12 @@ namespace RTE {
 		msgSceneSetup.Height = static_cast<short>(g_SceneMan.GetSceneHeight());
 		msgSceneSetup.SceneWrapsX = g_SceneMan.SceneWrapsX();
 
-		Scene *scene = g_SceneMan.GetScene();
+		Scene* scene = g_SceneMan.GetScene();
 
-		std::list<SLBackground *> sceneLayers = scene->GetBackLayers();
+		std::list<SLBackground*> sceneLayers = scene->GetBackLayers();
 		short index = 0;
 
-		for (SLBackground * &layer : sceneLayers) {
+		for (SLBackground*& layer: sceneLayers) {
 			// Recalculate layers internal values for this player
 			layer->InitScrollRatios(true, player);
 			msgSceneSetup.BackgroundLayers[index].BitmapHash = layer->m_BitmapFile.GetHash();
@@ -743,7 +773,7 @@ namespace RTE {
 
 		int payloadSize = sizeof(MsgSceneSetup);
 
-		m_Server->Send((const char *)&msgSceneSetup, payloadSize, HIGH_PRIORITY, RELIABLE_SEQUENCED, 0, m_ClientConnections[player].ClientId, false);
+		m_Server->Send((const char*)&msgSceneSetup, payloadSize, HIGH_PRIORITY, RELIABLE_SEQUENCED, 0, m_ClientConnections[player].ClientId, false);
 
 		m_DataSentCurrent[player][STAT_CURRENT] += payloadSize;
 		m_DataSentTotal[player] += payloadSize;
@@ -761,17 +791,21 @@ namespace RTE {
 		// While we're on the same thread with freshly connected player, send current music being played
 		if (g_AudioMan.IsMusicPlaying()) {
 			std::string currentMusic = g_AudioMan.GetMusicPath();
-			if (!currentMusic.empty()) { g_AudioMan.RegisterMusicEvent(player, AudioMan::MUSIC_PLAY, currentMusic.c_str(), -1, g_AudioMan.GetMusicPosition(), 1.0F); }
+			if (!currentMusic.empty()) {
+				g_AudioMan.RegisterMusicEvent(player, AudioMan::MUSIC_PLAY, currentMusic.c_str(), -1, g_AudioMan.GetMusicPosition(), 1.0F);
+			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void NetworkServer::ReceiveSceneSetupDataAccepted(RakNet::Packet *packet) {
+	void NetworkServer::ReceiveSceneSetupDataAccepted(RakNet::Packet* packet) {
 		short player = -1;
 
 		for (short index = 0; index < c_MaxClients; index++) {
-			if (m_ClientConnections[index].ClientId == packet->systemAddress) { player = index; }
+			if (m_ClientConnections[index].ClientId == packet->systemAddress) {
+				player = index;
+			}
 		}
 
 		if (player > -1) {
@@ -781,13 +815,13 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendSceneData(short player) {
 		// Check for congestion
 		RakNet::RakNetStatistics rns;
 
-		MsgSceneLine *sceneData = (MsgSceneLine *)m_CompressedLineBuffer[player];
+		MsgSceneLine* sceneData = (MsgSceneLine*)m_CompressedLineBuffer[player];
 
 		// Save message ID
 		sceneData->Id = ID_SRV_SCENE;
@@ -796,8 +830,8 @@ namespace RTE {
 		int lineY = 0;
 		int lineWidth = 1280;
 
-		Scene *scene = g_SceneMan.GetScene();
-		SLTerrain *terrain = 0;
+		Scene* scene = g_SceneMan.GetScene();
+		SLTerrain* terrain = 0;
 
 		if (scene) {
 			terrain = scene->GetTerrain();
@@ -812,7 +846,7 @@ namespace RTE {
 		m_SceneLock[player].lock();
 
 		for (int layer = 0; layer < 2; layer++) {
-			BITMAP *bmp = 0;
+			BITMAP* bmp = 0;
 			if (layer == 0) {
 				bmp = terrain->GetBGColorBitmap();
 			} else if (layer == 1) {
@@ -821,9 +855,11 @@ namespace RTE {
 
 			lock_bitmap(bmp);
 
-			for (lineX = 0; ; lineX += lineWidth) {
+			for (lineX = 0;; lineX += lineWidth) {
 				int width = lineWidth;
-				if (lineX + width >= g_SceneMan.GetSceneWidth()) { width = g_SceneMan.GetSceneWidth() - lineX; }
+				if (lineX + width >= g_SceneMan.GetSceneWidth()) {
+					width = g_SceneMan.GetSceneWidth() - lineX;
+				}
 
 				for (lineY = 0; lineY < g_SceneMan.GetSceneHeight(); lineY++) {
 					// Save scene fragment data
@@ -836,9 +872,9 @@ namespace RTE {
 
 					// Compression section
 					int result = 0;
-					//bool lineIsEmpty = false;
+					// bool lineIsEmpty = false;
 
-					result = LZ4_compress_HC_extStateHC(m_LZ4CompressionState[player], (char *)bmp->line[lineY] + lineX, (char *)(m_CompressedLineBuffer[player] + sizeof(MsgSceneLine)), width, width, LZ4HC_CLEVEL_MAX);
+					result = LZ4_compress_HC_extStateHC(m_LZ4CompressionState[player], (char*)bmp->line[lineY] + lineX, (char*)(m_CompressedLineBuffer[player] + sizeof(MsgSceneLine)), width, width, LZ4HC_CLEVEL_MAX);
 
 					// Compression failed or ineffective, send as is
 					if (result == 0 || result == width) {
@@ -853,7 +889,7 @@ namespace RTE {
 
 					int payloadSize = sceneData->DataSize + sizeof(MsgSceneLine);
 
-					m_Server->Send((const char *)sceneData, payloadSize, HIGH_PRIORITY, RELIABLE, 0, m_ClientConnections[player].ClientId, false);
+					m_Server->Send((const char*)sceneData, payloadSize, HIGH_PRIORITY, RELIABLE, 0, m_ClientConnections[player].ClientId, false);
 
 					m_DataSentCurrent[player][STAT_CURRENT] += payloadSize;
 					m_DataSentTotal[player] += payloadSize;
@@ -896,7 +932,7 @@ namespace RTE {
 		SendSceneEndMsg(player);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ClearTerrainChangeQueue(short player) {
 		m_Mutex[player].lock();
@@ -909,7 +945,7 @@ namespace RTE {
 		m_Mutex[player].unlock();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool NetworkServer::NeedToProcessTerrainChanges(short player) {
 		bool result;
@@ -921,7 +957,7 @@ namespace RTE {
 		return result;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ProcessTerrainChanges(short player) {
 		m_Mutex[player].lock();
@@ -970,7 +1006,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendTerrainChangeMsg(short player, NetworkTerrainChange terrainChange) {
 		if (terrainChange.w == 1 && terrainChange.h == 1) {
@@ -988,7 +1024,7 @@ namespace RTE {
 
 			int payloadSize = sizeof(MsgTerrainChange);
 
-			m_Server->Send((const char *)&msg, payloadSize, MEDIUM_PRIORITY, RELIABLE, 0, m_ClientConnections[player].ClientId, false);
+			m_Server->Send((const char*)&msg, payloadSize, MEDIUM_PRIORITY, RELIABLE, 0, m_ClientConnections[player].ClientId, false);
 
 			m_DataSentCurrent[player][STAT_CURRENT] += payloadSize;
 			m_DataSentTotal[player] += payloadSize;
@@ -999,7 +1035,7 @@ namespace RTE {
 			m_DataUncompressedCurrent[player][STAT_CURRENT] += payloadSize;
 			m_DataUncompressedTotal[player] += payloadSize;
 		} else {
-			MsgTerrainChange *msg = (MsgTerrainChange *)m_CompressedLineBuffer[player];
+			MsgTerrainChange* msg = (MsgTerrainChange*)m_CompressedLineBuffer[player];
 			msg->Id = ID_SRV_TERRAIN;
 			msg->X = terrainChange.x;
 			msg->Y = terrainChange.y;
@@ -1012,13 +1048,13 @@ namespace RTE {
 			msg->Color = terrainChange.color;
 			msg->Back = terrainChange.back;
 
-			Scene * scene = g_SceneMan.GetScene();
-			SLTerrain * terrain = scene->GetTerrain();
+			Scene* scene = g_SceneMan.GetScene();
+			SLTerrain* terrain = scene->GetTerrain();
 
-			const BITMAP *bmp = 0;
+			const BITMAP* bmp = 0;
 			bmp = msg->Back ? terrain->GetBGColorBitmap() : terrain->GetFGColorBitmap();
 
-			unsigned char *dest = (unsigned char *)(m_PixelLineBuffer[player]);
+			unsigned char* dest = (unsigned char*)(m_PixelLineBuffer[player]);
 
 			// Copy bitmap data
 			for (int y = 0; y < msg->H && msg->Y + y < bmp->h; y++) {
@@ -1028,7 +1064,7 @@ namespace RTE {
 
 			int result = 0;
 
-			result = LZ4_compress_HC_extStateHC(m_LZ4CompressionState[player], (char *)m_PixelLineBuffer[player], (char *)(m_CompressedLineBuffer[player] + sizeof(MsgTerrainChange)), size, size, LZ4HC_CLEVEL_OPT_MIN);
+			result = LZ4_compress_HC_extStateHC(m_LZ4CompressionState[player], (char*)m_PixelLineBuffer[player], (char*)(m_CompressedLineBuffer[player] + sizeof(MsgTerrainChange)), size, size, LZ4HC_CLEVEL_OPT_MIN);
 
 			// Compression failed or ineffective, send as is
 			if (result == 0 || result == size) {
@@ -1043,7 +1079,7 @@ namespace RTE {
 
 			int payloadSize = sizeof(MsgTerrainChange) + msg->DataSize;
 
-			m_Server->Send((const char *)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE, 0, m_ClientConnections[player].ClientId, false);
+			m_Server->Send((const char*)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE, 0, m_ClientConnections[player].ClientId, false);
 
 			m_DataSentCurrent[player][STAT_CURRENT] += payloadSize;
 			m_DataSentTotal[player] += payloadSize;
@@ -1056,23 +1092,25 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void NetworkServer::ReceiveSceneAcceptedMsg(RakNet::Packet *packet) {
+	void NetworkServer::ReceiveSceneAcceptedMsg(RakNet::Packet* packet) {
 		for (short player = 0; player < c_MaxClients; player++) {
-			if (m_ClientConnections[player].ClientId == packet->systemAddress) { m_SendFrameData[player] = true; }
+			if (m_ClientConnections[player].ClientId == packet->systemAddress) {
+				m_SendFrameData[player] = true;
+			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendSceneEndMsg(short player) {
 		MsgSceneEnd msg = {};
 		msg.Id = ID_SRV_SCENE_END;
-		m_Server->Send((const char *)&msg, sizeof(MsgSceneSetup), HIGH_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
+		m_Server->Send((const char*)&msg, sizeof(MsgSceneSetup), HIGH_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::CreateBackBuffer(short player, int w, int h) {
 		m_BackBuffer8[player] = create_bitmap_ex(8, w, h);
@@ -1090,7 +1128,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::ClearBackBuffer(int player, int w, int h) {
 		clear_to_color(m_BackBuffer8[player], ColorKeys::g_MaskColor);
@@ -1105,7 +1143,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::DestroyBackBuffer(short player) {
 		if (m_BackBuffer8) {
@@ -1127,7 +1165,7 @@ namespace RTE {
 		m_PixelLineBuffersGUIPrev[player] = nullptr;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendFrameSetupMsg(short player) {
 		MsgFrameSetup msgFrameSetup;
@@ -1147,7 +1185,7 @@ namespace RTE {
 
 		int payloadSize = sizeof(MsgFrameSetup);
 
-		m_Server->Send((const char *)&msgFrameSetup, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
+		m_Server->Send((const char*)&msgFrameSetup, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
 
 		m_DataSentCurrent[player][STAT_CURRENT] += payloadSize;
 		m_DataSentTotal[player] += payloadSize;
@@ -1161,7 +1199,7 @@ namespace RTE {
 		m_SendSceneData[player] = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::SendPostEffectData(short player) {
 		std::list<PostEffect> effects;
@@ -1171,14 +1209,14 @@ namespace RTE {
 			return;
 		}
 
-		MsgPostEffects *msg = (MsgPostEffects *)m_CompressedLineBuffer[player];
-		PostEffectNetworkData *effDataPtr = (PostEffectNetworkData *)((char *)msg + sizeof(MsgPostEffects));
+		MsgPostEffects* msg = (MsgPostEffects*)m_CompressedLineBuffer[player];
+		PostEffectNetworkData* effDataPtr = (PostEffectNetworkData*)((char*)msg + sizeof(MsgPostEffects));
 
 		msg->Id = ID_SRV_POST_EFFECTS;
 		msg->FrameNumber = m_FrameNumbers[player];
 		msg->PostEffectsCount = 0;
 
-		for (const PostEffect postEffectEvent : effects) {
+		for (const PostEffect postEffectEvent: effects) {
 			effDataPtr->X = postEffectEvent.m_Pos.GetX();
 			effDataPtr->Y = postEffectEvent.m_Pos.GetY();
 			effDataPtr->BitmapHash = postEffectEvent.m_BitmapHash;
@@ -1190,9 +1228,9 @@ namespace RTE {
 
 			if (msg->PostEffectsCount >= 75) {
 				int payloadSize = sizeof(MsgPostEffects) + sizeof(PostEffectNetworkData) * msg->PostEffectsCount;
-				m_Server->Send((const char *)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
+				m_Server->Send((const char*)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
 				msg->PostEffectsCount = 0;
-				effDataPtr = (PostEffectNetworkData *)((char *)msg + sizeof(MsgPostEffects));
+				effDataPtr = (PostEffectNetworkData*)((char*)msg + sizeof(MsgPostEffects));
 
 				m_PostEffectDataSentCurrent[player][STAT_CURRENT] += payloadSize;
 				m_PostEffectDataSentTotal[player] += payloadSize;
@@ -1202,13 +1240,13 @@ namespace RTE {
 		}
 
 		if (msg->PostEffectsCount > 0) {
-			//int header = sizeof(MsgPostEffects);
-			//int data = sizeof(PostEffectNetworkData);
-			//int total = header + data * msg->PostEffectsCount;
-			//int sz = sizeof(size_t);
+			// int header = sizeof(MsgPostEffects);
+			// int data = sizeof(PostEffectNetworkData);
+			// int total = header + data * msg->PostEffectsCount;
+			// int sz = sizeof(size_t);
 
 			int payloadSize = sizeof(MsgPostEffects) + sizeof(PostEffectNetworkData) * msg->PostEffectsCount;
-			m_Server->Send((const char *)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
+			m_Server->Send((const char*)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
 
 			m_PostEffectDataSentCurrent[player][STAT_CURRENT] += payloadSize;
 			m_PostEffectDataSentTotal[player] += payloadSize;
@@ -1217,7 +1255,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int NetworkServer::SendFrame(short player) {
 		long long currentTicks = g_TimerMan.GetRealTickCount();
@@ -1229,7 +1267,9 @@ namespace RTE {
 			double secsSinceLastFrame = static_cast<double>(currentTicks - m_LastFrameSentTime[player]) / static_cast<double>(g_TimerMan.GetTicksPerSecond());
 
 			// Fix for an overflow which may happen if server lags for a few seconds when loading activities
-			if (secsSinceLastFrame < 0) { secsSinceLastFrame = secsPerFrame; }
+			if (secsSinceLastFrame < 0) {
+				secsSinceLastFrame = secsPerFrame;
+			}
 
 			m_MsecPerFrame[player] = static_cast<int>(secsSinceLastFrame * 1000.0);
 
@@ -1241,8 +1281,8 @@ namespace RTE {
 		SetThreadExitReason(player, NetworkServer::NORMAL);
 
 		// Get backbuffer bitmap for this player
-		BITMAP *frameManBmp = g_FrameMan.GetNetworkBackBuffer8Ready(player);
-		BITMAP *frameManGUIBmp = g_FrameMan.GetNetworkBackBufferGUI8Ready(player);
+		BITMAP* frameManBmp = g_FrameMan.GetNetworkBackBuffer8Ready(player);
+		BITMAP* frameManGUIBmp = g_FrameMan.GetNetworkBackBufferGUI8Ready(player);
 
 		if (!m_BackBuffer8[player]) {
 			CreateBackBuffer(player, frameManBmp->w, frameManBmp->h);
@@ -1251,12 +1291,14 @@ namespace RTE {
 			if (m_BackBuffer8[player]->w != frameManBmp->w || m_BackBuffer8[player]->h != frameManBmp->h) {
 				DestroyBackBuffer(player);
 				CreateBackBuffer(player, frameManBmp->w, frameManBmp->h);
-				//g_ConsoleMan.PrintString("SERVER: Backbuffer recreated");
+				// g_ConsoleMan.PrintString("SERVER: Backbuffer recreated");
 			}
 		}
 
 		m_FrameNumbers[player]++;
-		if (m_FrameNumbers[player] >= c_FramesToRemember) { m_FrameNumbers[player] = 0; }
+		if (m_FrameNumbers[player] >= c_FramesToRemember) {
+			m_FrameNumbers[player] = 0;
+		}
 
 		// Save a copy of buffer to avoid tearing when the original is updated by frame man
 		blit(frameManBmp, m_BackBuffer8[player], 0, 0, 0, 0, frameManBmp->w, frameManBmp->h);
@@ -1276,17 +1318,19 @@ namespace RTE {
 		m_SendEven[player] = !m_SendEven[player];
 
 		if (m_TransmitAsBoxes) {
-			MsgFrameBox *frameData = (MsgFrameBox *)m_CompressedLineBuffer[player];
+			MsgFrameBox* frameData = (MsgFrameBox*)m_CompressedLineBuffer[player];
 
 			int boxedWidth = m_BackBuffer8[player]->w / m_BoxWidth;
 			int boxedHeight = m_BackBuffer8[player]->h / m_BoxHeight;
 			int boxMaxSize = m_BoxWidth * m_BoxHeight;
 
-			if (m_BackBuffer8[player]->w % m_BoxWidth != 0) { boxedWidth += 1; }
+			if (m_BackBuffer8[player]->w % m_BoxWidth != 0) {
+				boxedWidth += 1;
+			}
 
 			for (unsigned char layer = 0; layer < 2; layer++) {
-				const BITMAP *backBuffer = nullptr;
-				unsigned char *prevLineBuffers = 0;
+				const BITMAP* backBuffer = nullptr;
+				unsigned char* prevLineBuffers = 0;
 
 				if (layer == 0) {
 					backBuffer = m_BackBuffer8[player];
@@ -1309,10 +1353,14 @@ namespace RTE {
 						frameData->BoxY = by;
 
 						int maxWidth = m_BoxWidth;
-						if (bpx + m_BoxWidth >= m_BackBuffer8[player]->w) { maxWidth = m_BackBuffer8[player]->w - bpx; }
+						if (bpx + m_BoxWidth >= m_BackBuffer8[player]->w) {
+							maxWidth = m_BackBuffer8[player]->w - bpx;
+						}
 
 						int maxHeight = m_BoxHeight;
-						if (bpy + m_BoxHeight >= m_BackBuffer8[player]->h) { maxHeight = m_BackBuffer8[player]->h - bpy; }
+						if (bpy + m_BoxHeight >= m_BackBuffer8[player]->h) {
+							maxHeight = m_BackBuffer8[player]->h - bpy;
+						}
 
 						int lineStart = 0;
 						int lineStep = 1;
@@ -1320,7 +1368,9 @@ namespace RTE {
 
 						if (m_UseInterlacing) {
 							lineStep = 2;
-							if (m_SendEven[player]) { lineStart = 1; }
+							if (m_SendEven[player]) {
+								lineStart = 1;
+							}
 							maxHeight /= 2;
 						}
 						int thisBoxSize = maxWidth * maxHeight;
@@ -1329,7 +1379,7 @@ namespace RTE {
 						bool boxIsDelta = false;
 						bool sendEmptyBox = false;
 
-						unsigned char *dest = (unsigned char *)(m_PixelLineBuffer[player]);
+						unsigned char* dest = (unsigned char*)(m_PixelLineBuffer[player]);
 
 						// Copy block line by line to linear buffer
 						for (int line = lineStart; line < lineCount; line += lineStep) {
@@ -1348,21 +1398,29 @@ namespace RTE {
 
 							// Previous line to delta against
 							int interlacedOffset = 0;
-							if (m_UseInterlacing) { interlacedOffset = m_SendEven[player] ? thisBoxSize : 0; }
+							if (m_UseInterlacing) {
+								interlacedOffset = m_SendEven[player] ? thisBoxSize : 0;
+							}
 
-							unsigned char *prevLineBufferStart = prevLineBuffers + by * boxedWidth * boxMaxSize + bx * boxMaxSize;
-							unsigned char *prevLineBufferWithOffset = prevLineBufferStart + interlacedOffset;
+							unsigned char* prevLineBufferStart = prevLineBuffers + by * boxedWidth * boxMaxSize + bx * boxMaxSize;
+							unsigned char* prevLineBufferWithOffset = prevLineBufferStart + interlacedOffset;
 							// Currently processed box line buffer and delta storage
-							unsigned char *currLineBuffer = (unsigned char*)(m_PixelLineBufferDelta[player]);
+							unsigned char* currLineBuffer = (unsigned char*)(m_PixelLineBufferDelta[player]);
 
 							// Calculate delta and decide whether we use it
 							for (int i = 0; i < thisBoxSize; i++) {
-								if (currLineBuffer[i] > 0) { bytesNeededPlain++; }
-								if (prevLineBufferWithOffset[i] > 0) { bytesNeededPrev++; }
+								if (currLineBuffer[i] > 0) {
+									bytesNeededPlain++;
+								}
+								if (prevLineBufferWithOffset[i] > 0) {
+									bytesNeededPrev++;
+								}
 
 								currLineBuffer[i] = currLineBuffer[i] - prevLineBufferWithOffset[i];
 
-								if (currLineBuffer[i] > 0) { bytesNeededDelta++; }
+								if (currLineBuffer[i] > 0) {
+									bytesNeededDelta++;
+								}
 							}
 
 							// Store current line for delta check in the next frame
@@ -1384,11 +1442,13 @@ namespace RTE {
 								}
 							} else {
 								// Previous non empty block is now empty, clear it
-								if (bytesNeededPrev > 0 && bytesNeededPlain == 0) { sendEmptyBox = true; }
+								if (bytesNeededPrev > 0 && bytesNeededPlain == 0) {
+									sendEmptyBox = true;
+								}
 							}
 						} else {
 							// Check if block is empty by evaluating by 64-bit ints
-							unsigned long *pixelInt = (unsigned long *)m_PixelLineBuffer[player];
+							unsigned long* pixelInt = (unsigned long*)m_PixelLineBuffer[player];
 							int counter = 0;
 
 							for (counter = 0; counter < thisBoxSize; counter += sizeof(unsigned long)) {
@@ -1403,7 +1463,7 @@ namespace RTE {
 								pixelInt--;
 								counter -= sizeof(unsigned long);
 
-								const unsigned char *pixelChr = (unsigned char*)pixelInt;
+								const unsigned char* pixelChr = (unsigned char*)pixelInt;
 								for (; counter < thisBoxSize; counter++) {
 									if (*pixelChr > 0) {
 										boxIsEmpty = false;
@@ -1424,14 +1484,16 @@ namespace RTE {
 
 						if (boxIsEmpty) {
 							frameData->DataSize = 0;
-							if (!sendEmptyBox) { m_EmptyBlocks[player]++; }
+							if (!sendEmptyBox) {
+								m_EmptyBlocks[player]++;
+							}
 						} else {
 							int result = 0;
 
 							if (m_UseHighCompression) {
-								result = LZ4_compress_HC_extStateHC(m_LZ4CompressionState[player], (char *)m_PixelLineBuffer[player], (char *)(m_CompressedLineBuffer[player] + sizeof(MsgFrameBox)), thisBoxSize, thisBoxSize, compressionMethod);
+								result = LZ4_compress_HC_extStateHC(m_LZ4CompressionState[player], (char*)m_PixelLineBuffer[player], (char*)(m_CompressedLineBuffer[player] + sizeof(MsgFrameBox)), thisBoxSize, thisBoxSize, compressionMethod);
 							} else if (m_UseFastCompression) {
-								result = LZ4_compress_fast_extState(m_LZ4FastCompressionState[player], (char *)m_PixelLineBuffer[player], (char *)(m_CompressedLineBuffer[player] + sizeof(MsgFrameBox)), thisBoxSize, thisBoxSize, accelerationFactor);
+								result = LZ4_compress_fast_extState(m_LZ4FastCompressionState[player], (char*)m_PixelLineBuffer[player], (char*)(m_CompressedLineBuffer[player] + sizeof(MsgFrameBox)), thisBoxSize, thisBoxSize, accelerationFactor);
 							}
 
 							// Compression failed or ineffective, send as is
@@ -1451,7 +1513,7 @@ namespace RTE {
 						int payloadSize = frameData->DataSize + sizeof(MsgFrameBox);
 
 						if (!boxIsEmpty || sendEmptyBox) {
-							m_Server->Send((const char *)frameData, payloadSize, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, m_ClientConnections[player].ClientId, false);
+							m_Server->Send((const char*)frameData, payloadSize, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, m_ClientConnections[player].ClientId, false);
 						} else {
 							payloadSize = 0;
 						}
@@ -1476,7 +1538,7 @@ namespace RTE {
 				}
 			}
 		} else {
-			MsgFrameLine *frameData = (MsgFrameLine *)m_CompressedLineBuffer[player];
+			MsgFrameLine* frameData = (MsgFrameLine*)m_CompressedLineBuffer[player];
 			frameData->FrameNumber = m_FrameNumbers[player];
 
 			// Save message ID
@@ -1493,7 +1555,7 @@ namespace RTE {
 
 			for (int m_CurrentFrameLine = startLine; m_CurrentFrameLine < m_BackBuffer8[player]->h; m_CurrentFrameLine += step) {
 				for (int layer = 0; layer < 2; layer++) {
-					const BITMAP *backBuffer = 0;
+					const BITMAP* backBuffer = 0;
 
 					if (layer == 0) {
 						backBuffer = m_BackBuffer8[player];
@@ -1515,7 +1577,7 @@ namespace RTE {
 
 					// Check if line is empty
 					{
-						unsigned long *pixelInt = (unsigned long *)backBuffer->line[m_CurrentFrameLine];
+						unsigned long* pixelInt = (unsigned long*)backBuffer->line[m_CurrentFrameLine];
 						int counter = 0;
 						for (counter = 0; counter < backBuffer->w; counter += sizeof(unsigned long)) {
 							if (*pixelInt > 0) {
@@ -1528,7 +1590,7 @@ namespace RTE {
 							pixelInt--;
 							counter -= sizeof(unsigned long);
 
-							const unsigned char *pixelChr = (unsigned char *)pixelInt;
+							const unsigned char* pixelChr = (unsigned char*)pixelInt;
 							for (; counter < backBuffer->w; counter++) {
 								if (*pixelChr > 0) {
 									lineIsEmpty = false;
@@ -1541,9 +1603,9 @@ namespace RTE {
 
 					if (!lineIsEmpty) {
 						if (m_UseHighCompression) {
-							result = LZ4_compress_HC_extStateHC(m_LZ4CompressionState[player], (char *)backBuffer->line[m_CurrentFrameLine], (char *)(m_CompressedLineBuffer[player] + sizeof(MsgFrameLine)), backBuffer->w, backBuffer->w, compressionMethod);
+							result = LZ4_compress_HC_extStateHC(m_LZ4CompressionState[player], (char*)backBuffer->line[m_CurrentFrameLine], (char*)(m_CompressedLineBuffer[player] + sizeof(MsgFrameLine)), backBuffer->w, backBuffer->w, compressionMethod);
 						} else if (m_UseFastCompression) {
-							result = LZ4_compress_fast_extState(m_LZ4FastCompressionState[player], (char *)backBuffer->line[m_CurrentFrameLine], (char *)(m_CompressedLineBuffer[player] + sizeof(MsgFrameLine)), backBuffer->w, backBuffer->w, accelerationFactor);
+							result = LZ4_compress_fast_extState(m_LZ4FastCompressionState[player], (char*)backBuffer->line[m_CurrentFrameLine], (char*)(m_CompressedLineBuffer[player] + sizeof(MsgFrameLine)), backBuffer->w, backBuffer->w, accelerationFactor);
 						}
 
 						// Compression failed or ineffective, send as is
@@ -1565,7 +1627,7 @@ namespace RTE {
 
 					int payloadSize = frameData->DataSize + sizeof(MsgFrameLine);
 
-					m_Server->Send((const char *)frameData, payloadSize, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, m_ClientConnections[player].ClientId, false);
+					m_Server->Send((const char*)frameData, payloadSize, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, m_ClientConnections[player].ClientId, false);
 
 					m_DataSentCurrent[player][STAT_CURRENT] += payloadSize;
 					m_DataSentTotal[player] += payloadSize;
@@ -1589,7 +1651,7 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::UpdateStats(short player) {
 		long long currentTicks = g_TimerMan.GetRealTickCount();
@@ -1628,12 +1690,12 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::DrawStatisticsData() {
 		int midX = g_WindowMan.GetResX() / 2;
 
-		BITMAP *bmp = g_FrameMan.GetBackBuffer8();
+		BITMAP* bmp = g_FrameMan.GetBackBuffer8();
 		AllegroBitmap guiBMP(bmp);
 		clear_to_color(bmp, g_BlackColor);
 
@@ -1652,7 +1714,7 @@ namespace RTE {
 		}
 
 		if (g_ActivityMan.IsInActivity()) {
-			const GameActivity *gameActivity = dynamic_cast<GameActivity *>(g_ActivityMan.GetActivity());
+			const GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity());
 			if (gameActivity) {
 				std::snprintf(buf, sizeof(buf), "Activity: %s   Players: %d", gameActivity->GetPresetName().c_str(), gameActivity->GetPlayerCount());
 				g_FrameMan.GetLargeFont()->DrawAligned(&guiBMP, midX, 50, buf, GUIFont::Centre);
@@ -1686,7 +1748,6 @@ namespace RTE {
 
 		m_FullBlocks[c_MaxClients] = 0;
 		m_EmptyBlocks[c_MaxClients] = 0;
-
 
 		for (short i = 0; i < MAX_STAT_RECORDS; i++) {
 			// Update sum
@@ -1729,47 +1790,46 @@ namespace RTE {
 
 			// Jesus christ
 			std::snprintf(buf, sizeof(buf),
-				"%s\nPing %u\n"
-				"Cmp Mbit : % .1f\n"
-				"Unc Mbit : % .1f\n"
-				"R : % .2f\n"
-				"Full Blck %lu (%.1f Kb)\n"
-				"Empty Blck %lu (%.1f Kb)\n"
-				"Frame Kb : %lu\n"
-				"Glow Kb : %lu\n"
-				"Sound Kb : %lu\n"
-				"Scene Kb : %lu\n"
-				"Frames sent : %uK\n"
-				"Frame skipped : %uK\n"
-				"Blocks full : %uK\n"
-				"Blocks empty : %uK\n"
-				"Blk Ratio : % .2f\n"
-				"Frames ms : % d\n"
-				"Send ms % d\n"
-				"Total Data %lu MB",
+			              "%s\nPing %u\n"
+			              "Cmp Mbit : % .1f\n"
+			              "Unc Mbit : % .1f\n"
+			              "R : % .2f\n"
+			              "Full Blck %lu (%.1f Kb)\n"
+			              "Empty Blck %lu (%.1f Kb)\n"
+			              "Frame Kb : %lu\n"
+			              "Glow Kb : %lu\n"
+			              "Sound Kb : %lu\n"
+			              "Scene Kb : %lu\n"
+			              "Frames sent : %uK\n"
+			              "Frame skipped : %uK\n"
+			              "Blocks full : %uK\n"
+			              "Blocks empty : %uK\n"
+			              "Blk Ratio : % .2f\n"
+			              "Frames ms : % d\n"
+			              "Send ms % d\n"
+			              "Total Data %lu MB",
 
-				(i == c_MaxClients) ? "- TOTALS - " : playerName.c_str(),
-				(i < c_MaxClients) ? m_Ping[i] : 0,
-				static_cast<double>(m_DataSentCurrent[i][STAT_SHOWN]) / 125000,
-				static_cast<double>(m_DataUncompressedCurrent[i][STAT_SHOWN]) / 125000,
-				compressionRatio,
-				m_FullBlocksSentCurrent[i][STAT_SHOWN],
-				static_cast<double>(m_FullBlocksDataSentCurrent[i][STAT_SHOWN]) / (125),
-				m_EmptyBlocksSentCurrent[i][STAT_SHOWN],
-				static_cast<double>(m_EmptyBlocksDataSentCurrent[i][STAT_SHOWN]) / (125),
-				m_FrameDataSentCurrent[i][STAT_SHOWN] / 125,
-				m_PostEffectDataSentCurrent[i][STAT_SHOWN] / 125,
-				m_SoundDataSentCurrent[i][STAT_SHOWN] / 125,
-				m_TerrainDataSentCurrent[i][STAT_SHOWN] / 125,
-				m_FramesSent[i] / 1000,
-				m_FramesSkipped[i],
-				m_FullBlocks[i] / 1000,
-				m_EmptyBlocks[i] / 1000,
-				emptyRatio,
-				(i < c_MaxClients) ? m_MsecPerFrame[i] : 0,
-				(i < c_MaxClients) ? m_MsecPerSendCall[i] : 0,
-				m_DataSentTotal[i] / (1024 * 1024)
-			);
+			              (i == c_MaxClients) ? "- TOTALS - " : playerName.c_str(),
+			              (i < c_MaxClients) ? m_Ping[i] : 0,
+			              static_cast<double>(m_DataSentCurrent[i][STAT_SHOWN]) / 125000,
+			              static_cast<double>(m_DataUncompressedCurrent[i][STAT_SHOWN]) / 125000,
+			              compressionRatio,
+			              m_FullBlocksSentCurrent[i][STAT_SHOWN],
+			              static_cast<double>(m_FullBlocksDataSentCurrent[i][STAT_SHOWN]) / (125),
+			              m_EmptyBlocksSentCurrent[i][STAT_SHOWN],
+			              static_cast<double>(m_EmptyBlocksDataSentCurrent[i][STAT_SHOWN]) / (125),
+			              m_FrameDataSentCurrent[i][STAT_SHOWN] / 125,
+			              m_PostEffectDataSentCurrent[i][STAT_SHOWN] / 125,
+			              m_SoundDataSentCurrent[i][STAT_SHOWN] / 125,
+			              m_TerrainDataSentCurrent[i][STAT_SHOWN] / 125,
+			              m_FramesSent[i] / 1000,
+			              m_FramesSkipped[i],
+			              m_FullBlocks[i] / 1000,
+			              m_EmptyBlocks[i] / 1000,
+			              emptyRatio,
+			              (i < c_MaxClients) ? m_MsecPerFrame[i] : 0,
+			              (i < c_MaxClients) ? m_MsecPerSendCall[i] : 0,
+			              m_DataSentTotal[i] / (1024 * 1024));
 
 			g_FrameMan.GetLargeFont()->DrawAligned(&guiBMP, 10 + i * g_WindowMan.GetResX() / 5, 75, buf, GUIFont::Left);
 
@@ -1781,14 +1841,14 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	RakNet::SystemAddress NetworkServer::ConnectBlocking(RakNet::RakPeerInterface *rakPeer, const char *address, unsigned short port) {
+	RakNet::SystemAddress NetworkServer::ConnectBlocking(RakNet::RakPeerInterface* rakPeer, const char* address, unsigned short port) {
 		if (rakPeer->Connect(address, port, 0, 0) != RakNet::CONNECTION_ATTEMPT_STARTED) {
 			return RakNet::UNASSIGNED_SYSTEM_ADDRESS;
 		}
 
-		RakNet::Packet *packet;
+		RakNet::Packet* packet;
 		while (true) {
 			for (packet = rakPeer->Receive(); packet; rakPeer->DeallocatePacket(packet), packet = rakPeer->Receive()) {
 				if (packet->data[0] == ID_CONNECTION_REQUEST_ACCEPTED) {
@@ -1803,7 +1863,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::Update(bool processInput) {
 		HandleNetworkPackets();
@@ -1811,7 +1871,7 @@ namespace RTE {
 		if (processInput) {
 			for (short player = 0; player < c_MaxClients; player++) {
 				if (!m_InputMessages[player].empty()) {
-					for (const MsgInput &msg: m_InputMessages[player]) {
+					for (const MsgInput& msg: m_InputMessages[player]) {
 						ProcessInputMsg(player, msg);
 					}
 					m_InputMessages[player].clear();
@@ -1846,7 +1906,9 @@ namespace RTE {
 					displayMsg = "Voting to end activity: " + std::to_string(endActivityVotes) + " of " + std::to_string(votesNeeded);
 				}
 				if (restartVotes > 0) {
-					if (!displayMsg.empty()) { displayMsg += "\n"; }
+					if (!displayMsg.empty()) {
+						displayMsg += "\n";
+					}
 					displayMsg += "Voting to restart activity: " + std::to_string(restartVotes) + " of " + std::to_string(votesNeeded);
 				}
 
@@ -1866,11 +1928,15 @@ namespace RTE {
 							g_ActivityMan.EndActivity();
 							g_ActivityMan.SetRestartActivity();
 							g_ActivityMan.SetInActivity(false);
-							for (short player = 0; player < c_MaxClients; player++) { ClearInputMessages(player); }
+							for (short player = 0; player < c_MaxClients; player++) {
+								ClearInputMessages(player);
+							}
 						} else if (restartVotes >= votesNeeded) {
 							m_LatestRestartTime = currentTicks;
 							g_ActivityMan.RestartActivity();
-							for (short player = 0; player < c_MaxClients; player++) { ClearInputMessages(player); }
+							for (short player = 0; player < c_MaxClients; player++) {
+								ClearInputMessages(player);
+							}
 						}
 					}
 				}
@@ -1895,14 +1961,16 @@ namespace RTE {
 					break;
 				}
 
-			if (playersConnected == 0) { RakSleep(250); }
+			if (playersConnected == 0) {
+				RakSleep(250);
+			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void NetworkServer::HandleNetworkPackets() {
-		for (RakNet::Packet *packet = m_Server->Receive(); packet; m_Server->DeallocatePacket(packet), packet = m_Server->Receive()) {
+		for (RakNet::Packet* packet = m_Server->Receive(); packet; m_Server->DeallocatePacket(packet), packet = m_Server->Receive()) {
 			m_LastPackedReceived->Reset();
 
 			// We got a packet, get the identifier with our handy function
@@ -1972,4 +2040,4 @@ namespace RTE {
 			}
 		}
 	}
-}
+} // namespace RTE

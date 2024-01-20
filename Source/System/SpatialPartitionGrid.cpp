@@ -6,7 +6,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SpatialPartitionGrid::Clear() {
 		m_Width = 0;
@@ -19,7 +19,7 @@ namespace RTE {
 		m_UsedCellIds.clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SpatialPartitionGrid::Create(int width, int height, int cellSize) {
 		m_Width = width / cellSize;
@@ -32,9 +32,9 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int SpatialPartitionGrid::Create(const SpatialPartitionGrid &reference) {
+	int SpatialPartitionGrid::Create(const SpatialPartitionGrid& reference) {
 		m_Width = reference.m_Width;
 		m_Height = reference.m_Height;
 		m_CellSize = reference.m_CellSize;
@@ -44,15 +44,15 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SpatialPartitionGrid::Reset() {
-		const Activity *activity = g_ActivityMan.GetActivity();
+		const Activity* activity = g_ActivityMan.GetActivity();
 		RTEAssert(activity, "Tried to reset spatial partition grid with no running Activity!");
 
 		for (int team = Activity::NoTeam; team < Activity::MaxTeamCount; ++team) {
 			if (team == Activity::NoTeam || activity->TeamActive(team)) {
-				for (int usedCellId : m_UsedCellIds) {
+				for (int usedCellId: m_UsedCellIds) {
 					m_Cells[team + 1][usedCellId].clear();
 					m_PhysicsCells[team + 1][usedCellId].clear();
 				}
@@ -62,13 +62,13 @@ namespace RTE {
 		m_UsedCellIds.clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SpatialPartitionGrid::Add(const IntRect &rect, const MovableObject &mo) {
-		const Activity *activity = g_ActivityMan.GetActivity();
+	void SpatialPartitionGrid::Add(const IntRect& rect, const MovableObject& mo) {
+		const Activity* activity = g_ActivityMan.GetActivity();
 		RTEAssert(activity, "Tried to add to spatial partition grid with no running Activity!");
 
-		const MovableObject &rootParentMo = *mo.GetRootParent();
+		const MovableObject& rootParentMo = *mo.GetRootParent();
 		int topLeftCellX = rect.m_Left / m_CellSize;
 		int topLeftCellY = rect.m_Top / m_CellSize;
 		int bottomRightCellX = rect.m_Right / m_CellSize;
@@ -104,7 +104,7 @@ namespace RTE {
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::vector<MovableObject *> SpatialPartitionGrid::GetMOsInBox(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const {
+	std::vector<MovableObject*> SpatialPartitionGrid::GetMOsInBox(const Box& box, int ignoreTeam, bool getsHitByMOsOnly) const {
 		RTEAssert(ignoreTeam >= Activity::NoTeam && ignoreTeam < Activity::MaxTeamCount, "Invalid ignoreTeam given to SpatialPartitioningGrid::GetMOsInBox()!");
 
 		std::unordered_set<MOID> potentialMOIDs;
@@ -118,11 +118,11 @@ namespace RTE {
 		int bottomRightCellY = static_cast<int>(std::floor(bottomRight.m_Y / static_cast<float>(m_CellSize)));
 
 		// Note - GetCellIdForCellCoords accounts for wrapping automatically, so we don't have to deal with it here.
-		auto &cells = getsHitByMOsOnly ? m_PhysicsCells : m_Cells;
+		auto& cells = getsHitByMOsOnly ? m_PhysicsCells : m_Cells;
 		for (int x = topLeftCellX; x <= bottomRightCellX; x++) {
 			for (int y = topLeftCellY; y <= bottomRightCellY; y++) {
-				const std::vector<MOID> &moidsInCell = cells[ignoreTeam + 1][GetCellIdForCellCoords(x, y)];
-				for (MOID moid : moidsInCell) {
+				const std::vector<MOID>& moidsInCell = cells[ignoreTeam + 1][GetCellIdForCellCoords(x, y)];
+				for (MOID moid: moidsInCell) {
 					potentialMOIDs.insert(moid);
 				}
 			}
@@ -131,10 +131,10 @@ namespace RTE {
 		std::list<Box> wrappedBoxes;
 		g_SceneMan.WrapBox(box, wrappedBoxes);
 
-		std::vector<MovableObject *> MOList;
-		for (MOID moid : potentialMOIDs) {
-			MovableObject *mo = g_MovableMan.GetMOFromID(moid);
-			if (mo && std::any_of(wrappedBoxes.begin(), wrappedBoxes.end(), [&mo](const Box &wrappedBox) { return wrappedBox.IsWithinBox(mo->GetPos()); })) {
+		std::vector<MovableObject*> MOList;
+		for (MOID moid: potentialMOIDs) {
+			MovableObject* mo = g_MovableMan.GetMOFromID(moid);
+			if (mo && std::any_of(wrappedBoxes.begin(), wrappedBoxes.end(), [&mo](const Box& wrappedBox) { return wrappedBox.IsWithinBox(mo->GetPos()); })) {
 				MOList.push_back(mo);
 			}
 		}
@@ -142,9 +142,9 @@ namespace RTE {
 		return MOList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::vector<MovableObject *> SpatialPartitionGrid::GetMOsInRadius(const Vector &center, float radius, int ignoreTeam, bool getsHitByMOsOnly) const {
+	std::vector<MovableObject*> SpatialPartitionGrid::GetMOsInRadius(const Vector& center, float radius, int ignoreTeam, bool getsHitByMOsOnly) const {
 		RTEAssert(ignoreTeam >= Activity::NoTeam && ignoreTeam < Activity::MaxTeamCount, "Invalid ignoreTeam given to SpatialPartitioningGrid::GetMOsInRadius()!");
 
 		std::unordered_set<MOID> potentialMOIDs;
@@ -155,19 +155,19 @@ namespace RTE {
 		int bottomRightCellY = static_cast<int>(std::floor((center.m_Y + radius) / static_cast<float>(m_CellSize)));
 
 		// Note - GetCellIdForCellCoords accounts for wrapping automatically, so we don't have to deal with it here.
-		auto &cells = getsHitByMOsOnly ? m_PhysicsCells : m_Cells;
+		auto& cells = getsHitByMOsOnly ? m_PhysicsCells : m_Cells;
 		for (int x = topLeftCellX; x <= bottomRightCellX; x++) {
 			for (int y = topLeftCellY; y <= bottomRightCellY; y++) {
-				const std::vector<MOID> &moidsInCell = cells[ignoreTeam + 1][GetCellIdForCellCoords(x, y)];
-				for (MOID moid : moidsInCell) {
+				const std::vector<MOID>& moidsInCell = cells[ignoreTeam + 1][GetCellIdForCellCoords(x, y)];
+				for (MOID moid: moidsInCell) {
 					potentialMOIDs.insert(moid);
 				}
 			}
 		}
 
-		std::vector<MovableObject *> MOList;
-		for (MOID moid : potentialMOIDs) {
-			MovableObject *mo = g_MovableMan.GetMOFromID(moid);
+		std::vector<MovableObject*> MOList;
+		for (MOID moid: potentialMOIDs) {
+			MovableObject* mo = g_MovableMan.GetMOFromID(moid);
 			if (mo && !g_SceneMan.ShortestDistance(center, mo->GetPos()).MagnitudeIsGreaterThan(radius)) {
 				MOList.push_back(mo);
 			}
@@ -176,9 +176,9 @@ namespace RTE {
 		return MOList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	const std::vector<MOID> & SpatialPartitionGrid::GetMOIDsAtPosition(int x, int y, int ignoreTeam, bool getsHitByMOsOnly) const {
+	const std::vector<MOID>& SpatialPartitionGrid::GetMOIDsAtPosition(int x, int y, int ignoreTeam, bool getsHitByMOsOnly) const {
 		int cellX = x / m_CellSize;
 		int cellY = y / m_CellSize;
 
@@ -187,11 +187,11 @@ namespace RTE {
 		// So let's sanity check this shit.
 		ignoreTeam = ignoreTeam < Activity::NoTeam || ignoreTeam >= Activity::MaxTeamCount ? Activity::NoTeam : ignoreTeam;
 
-		auto &cells = getsHitByMOsOnly ? m_PhysicsCells : m_Cells;
+		auto& cells = getsHitByMOsOnly ? m_PhysicsCells : m_Cells;
 		return cells[ignoreTeam + 1][GetCellIdForCellCoords(cellX, cellY)];
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SpatialPartitionGrid::GetCellIdForCellCoords(int cellX, int cellY) const {
 		// We act like we wrap, even if the Scene doesn't. The only cost is some duplicate collision checks, but that's a minor cost to pay :)
@@ -205,4 +205,4 @@ namespace RTE {
 		}
 		return (wrappedY * m_Width) + wrappedX;
 	}
-}
+} // namespace RTE

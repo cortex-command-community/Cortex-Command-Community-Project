@@ -16,7 +16,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Entity) {
 		auto luaType = SimpleTypeLuaClassDefinition(Entity);
@@ -40,7 +40,7 @@ namespace RTE {
 		luaType["IsInGroup"] = &Entity::IsInGroup;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOPixel) {
 		auto luaType = ConcreteTypeLuaClassDefinition(MOPixel, MovableObject, SceneObject, Entity);
@@ -49,31 +49,31 @@ namespace RTE {
 		luaType["Staininess"] = sol::property(&MOPixel::GetStaininess, &MOPixel::SetStaininess);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSParticle) {
 		auto luaType = ConcreteTypeLuaClassDefinition(MOSParticle, MOSprite, MovableObject, SceneObject, Entity);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
 		auto luaType = ConcreteTypeLuaClassDefinition(MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
-		//luaType["Material"] = sol::property(&MOSRotating::GetMaterial);
+		// luaType["Material"] = sol::property(&MOSRotating::GetMaterial);
 		luaType["IndividualRadius"] = sol::property(&MOSRotating::GetIndividualRadius);
 		luaType["IndividualDiameter"] = sol::property(&MOSRotating::GetIndividualDiameter);
 		luaType["IndividualMass"] = sol::property(&MOSRotating::GetIndividualMass);
 		luaType["RecoilForce"] = sol::property(&MOSRotating::GetRecoilForce);
 		luaType["RecoilOffset"] = sol::property(&MOSRotating::GetRecoilOffset);
 		luaType["TravelImpulse"] = sol::property(&MOSRotating::GetTravelImpulse, &MOSRotating::SetTravelImpulse);
-		luaType["GibWoundLimit"] = sol::property((int (MOSRotating:: *)() const) &MOSRotating::GetGibWoundLimit, &MOSRotating::SetGibWoundLimit);
+		luaType["GibWoundLimit"] = sol::property((int(MOSRotating::*)() const) & MOSRotating::GetGibWoundLimit, &MOSRotating::SetGibWoundLimit);
 		luaType["GibSound"] = sol::property(&MOSRotating::GetGibSound, &LuaAdaptersPropertyOwnershipSafetyFaker::MOSRotatingSetGibSound);
 		luaType["GibImpulseLimit"] = sol::property(&MOSRotating::GetGibImpulseLimit, &MOSRotating::SetGibImpulseLimit);
 		luaType["WoundCountAffectsImpulseLimitRatio"] = sol::property(&MOSRotating::GetWoundCountAffectsImpulseLimitRatio);
 		luaType["GibAtEndOfLifetime"] = sol::property(&MOSRotating::GetGibAtEndOfLifetime, &MOSRotating::SetGibAtEndOfLifetime);
 		luaType["DamageMultiplier"] = sol::property(&MOSRotating::GetDamageMultiplier, &MOSRotating::SetDamageMultiplier);
-		luaType["WoundCount"] = sol::property((int (MOSRotating:: *)() const) &MOSRotating::GetWoundCount);
+		luaType["WoundCount"] = sol::property((int(MOSRotating::*)() const) & MOSRotating::GetWoundCount);
 		luaType["OrientToVel"] = sol::property(&MOSRotating::GetOrientToVel, &MOSRotating::SetOrientToVel);
 
 		luaType["Attachables"] = sol::readonly(&MOSRotating::m_Attachables);
@@ -88,15 +88,15 @@ namespace RTE {
 		luaType["GibThis"] = &MOSRotating::GibThis;
 		luaType["MoveOutOfTerrain"] = &MOSRotating::MoveOutOfTerrain;
 		luaType["FlashWhite"] = &MOSRotating::FlashWhite;
-		luaType["GetGibWoundLimit"] = (int (MOSRotating:: *)() const) &MOSRotating::GetGibWoundLimit;
-		luaType["GetGibWoundLimit"] = (int (MOSRotating:: *)(bool positiveDamage, bool negativeDamage, bool noDamage) const) &MOSRotating::GetGibWoundLimit;
-		luaType["GetWoundCount"] = (int (MOSRotating:: *)() const) &MOSRotating::GetWoundCount;
-		luaType["GetWoundCount"] = (int (MOSRotating:: *)(bool positiveDamage, bool negativeDamage, bool noDamage) const) &MOSRotating::GetWoundCount;
+		luaType["GetGibWoundLimit"] = (int(MOSRotating::*)() const) & MOSRotating::GetGibWoundLimit;
+		luaType["GetGibWoundLimit"] = (int(MOSRotating::*)(bool positiveDamage, bool negativeDamage, bool noDamage) const) & MOSRotating::GetGibWoundLimit;
+		luaType["GetWoundCount"] = (int(MOSRotating::*)() const) & MOSRotating::GetWoundCount;
+		luaType["GetWoundCount"] = (int(MOSRotating::*)(bool positiveDamage, bool negativeDamage, bool noDamage) const) & MOSRotating::GetWoundCount;
 		luaType["GetWounds"] = &LuaAdaptersMOSRotating::GetWounds1;
 		luaType["GetWounds"] = &LuaAdaptersMOSRotating::GetWounds2;
 		luaType["AddWound"] = &MOSRotating::AddWound; //, luabind::adopt(_2);
-		luaType["RemoveWounds"] = (float (MOSRotating:: *)(int numberOfWoundsToRemove)) &MOSRotating::RemoveWounds;
-		luaType["RemoveWounds"] = (float (MOSRotating:: *)(int numberOfWoundsToRemove, bool positiveDamage, bool negativeDamage, bool noDamage)) &MOSRotating::RemoveWounds;
+		luaType["RemoveWounds"] = (float(MOSRotating::*)(int numberOfWoundsToRemove)) & MOSRotating::RemoveWounds;
+		luaType["RemoveWounds"] = (float(MOSRotating::*)(int numberOfWoundsToRemove, bool positiveDamage, bool negativeDamage, bool noDamage)) & MOSRotating::RemoveWounds;
 		luaType["IsOnScenePoint"] = &MOSRotating::IsOnScenePoint;
 		luaType["EraseFromTerrain"] = &MOSRotating::EraseFromTerrain;
 		luaType["GetStringValue"] = &MOSRotating::GetStringValue;
@@ -111,23 +111,23 @@ namespace RTE {
 		luaType["StringValueExists"] = &MOSRotating::StringValueExists;
 		luaType["NumberValueExists"] = &MOSRotating::NumberValueExists;
 		luaType["ObjectValueExists"] = &MOSRotating::ObjectValueExists;
-		luaType["AddAttachable"] = (void (MOSRotating::*)(Attachable *attachableToAdd))&MOSRotating::AddAttachable; //, luabind::adopt(_2);
-		luaType["AddAttachable"] = (void (MOSRotating::*)(Attachable *attachableToAdd, const Vector &parentOffset))&MOSRotating::AddAttachable; //, luabind::adopt(_2);
-		luaType["RemoveAttachable"] = (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove)) &MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
-		luaType["RemoveAttachable"] = (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
-		luaType["RemoveAttachable"] = (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove))&MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
-		luaType["RemoveAttachable"] = (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable;
-		luaType["AddEmitter"] = (void (MOSRotating::*)(Attachable *attachableToAdd))&MOSRotating::AddAttachable; //, luabind::adopt(_2);
-		luaType["AddEmitter"] = (void (MOSRotating::*)(Attachable *attachableToAdd, const Vector &parentOffset))&MOSRotating::AddAttachable; //, luabind::adopt(_2);
-		luaType["RemoveEmitter"] = (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove)) &MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
-		luaType["RemoveEmitter"] = (Attachable *(MOSRotating:: *)(long uniqueIDOfAttachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
-		luaType["RemoveEmitter"] = (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove)) &MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
-		luaType["RemoveEmitter"] = (Attachable *(MOSRotating:: *)(Attachable *attachableToRemove, bool addToMovableMan, bool addBreakWounds)) &MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
+		luaType["AddAttachable"] = (void(MOSRotating::*)(Attachable * attachableToAdd)) & MOSRotating::AddAttachable; //, luabind::adopt(_2);
+		luaType["AddAttachable"] = (void(MOSRotating::*)(Attachable * attachableToAdd, const Vector& parentOffset)) & MOSRotating::AddAttachable; //, luabind::adopt(_2);
+		luaType["RemoveAttachable"] = (Attachable * (MOSRotating::*)(long uniqueIDOfAttachableToRemove)) & MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
+		luaType["RemoveAttachable"] = (Attachable * (MOSRotating::*)(long uniqueIDOfAttachableToRemove, bool addToMovableMan, bool addBreakWounds)) & MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
+		luaType["RemoveAttachable"] = (Attachable * (MOSRotating::*)(Attachable * attachableToRemove)) & MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
+		luaType["RemoveAttachable"] = (Attachable * (MOSRotating::*)(Attachable * attachableToRemove, bool addToMovableMan, bool addBreakWounds)) & MOSRotating::RemoveAttachable;
+		luaType["AddEmitter"] = (void(MOSRotating::*)(Attachable * attachableToAdd)) & MOSRotating::AddAttachable; //, luabind::adopt(_2);
+		luaType["AddEmitter"] = (void(MOSRotating::*)(Attachable * attachableToAdd, const Vector& parentOffset)) & MOSRotating::AddAttachable; //, luabind::adopt(_2);
+		luaType["RemoveEmitter"] = (Attachable * (MOSRotating::*)(long uniqueIDOfAttachableToRemove)) & MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
+		luaType["RemoveEmitter"] = (Attachable * (MOSRotating::*)(long uniqueIDOfAttachableToRemove, bool addToMovableMan, bool addBreakWounds)) & MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
+		luaType["RemoveEmitter"] = (Attachable * (MOSRotating::*)(Attachable * attachableToRemove)) & MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
+		luaType["RemoveEmitter"] = (Attachable * (MOSRotating::*)(Attachable * attachableToRemove, bool addToMovableMan, bool addBreakWounds)) & MOSRotating::RemoveAttachable; //, luabind::adopt(luabind::return_value);
 
 		luaType["GibThis"] = &LuaAdaptersMOSRotating::GibThis;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 		auto luaType = AbstractTypeLuaClassDefinition(MovableObject, SceneObject, Entity);
@@ -178,10 +178,10 @@ namespace RTE {
 		luaType["ApplyWoundBurstDamageOnCollision"] = sol::property(&MovableObject::GetApplyWoundBurstDamageOnCollision, &MovableObject::SetApplyWoundBurstDamageOnCollision);
 		luaType["SimUpdatesBetweenScriptedUpdates"] = sol::property(&MovableObject::GetSimUpdatesBetweenScriptedUpdates, &MovableObject::SetSimUpdatesBetweenScriptedUpdates);
 
-		luaType["GetParent"] = (MOSRotating * (MovableObject::*)())&MovableObject::GetParent;
-		luaType["GetParent"] = (const MOSRotating * (MovableObject::*)() const)&MovableObject::GetParent;
-		luaType["GetRootParent"] = (MovableObject * (MovableObject::*)())&MovableObject::GetRootParent;
-		luaType["GetRootParent"] = (const MovableObject * (MovableObject::*)() const)&MovableObject::GetRootParent;
+		luaType["GetParent"] = (MOSRotating * (MovableObject::*)()) & MovableObject::GetParent;
+		luaType["GetParent"] = (const MOSRotating* (MovableObject::*)() const) & MovableObject::GetParent;
+		luaType["GetRootParent"] = (MovableObject * (MovableObject::*)()) & MovableObject::GetRootParent;
+		luaType["GetRootParent"] = (const MovableObject* (MovableObject::*)() const) & MovableObject::GetRootParent;
 		luaType["ReloadScripts"] = &MovableObject::ReloadScripts;
 		luaType["HasScript"] = &LuaAdaptersMovableObject::HasScript;
 		luaType["AddScript"] = &LuaAdaptersMovableObject::AddScript;
@@ -243,4 +243,4 @@ namespace RTE {
 		luaType["SendMessage"] = &LuaAdaptersMovableObject::SendMessage2;
 		luaType["RequestSyncedUpdate"] = &MovableObject::RequestSyncedUpdate;
 	}
-}
+} // namespace RTE

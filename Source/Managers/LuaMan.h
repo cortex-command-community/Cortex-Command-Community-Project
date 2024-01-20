@@ -51,31 +51,31 @@ namespace RTE {
 		/// Gets a temporary Entity that can be accessed in the Lua state.
 		/// </summary>
 		/// <returns>The temporary entity. Ownership is NOT transferred!</returns>
-		Entity * GetTempEntity() const;
+		Entity* GetTempEntity() const;
 
 		/// <summary>
 		/// Sets a temporary Entity that can be accessed in the Lua state.
 		/// </summary>
 		/// <param name="entity">The temporary entity. Ownership is NOT transferred!</param>
-		void SetTempEntity(Entity *entity);
+		void SetTempEntity(Entity* entity);
 
 		/// <summary>
 		/// Gets the temporary vector of Entities that can be accessed in the Lua state.
 		/// </summary>
 		/// <returns>The temporary vector of entities. Ownership is NOT transferred!</returns>
-		const std::vector<Entity *> & GetTempEntityVector() const;
+		const std::vector<Entity*>& GetTempEntityVector() const;
 
 		/// <summary>
 		/// Sets a temporary vector of Entities that can be accessed in the Lua state. These Entities are const_cast so they're non-const, for ease-of-use in Lua.
 		/// </summary>
 		/// <param name="entityVector">The temporary vector of entities. Ownership is NOT transferred!</param>
-		void SetTempEntityVector(const std::vector<const Entity *> &entityVector);
+		void SetTempEntityVector(const std::vector<const Entity*>& entityVector);
 
 		/// <summary>
 		/// Sets the proper package.path for the script to run.
 		/// </summary>
 		/// <param name="filePath">The path to the file to load and run.</param>
-		void SetLuaPath(const std::string &filePath);
+		void SetLuaPath(const std::string& filePath);
 
 		/// <summary>
 		/// Gets this LuaStateWrapper's internal lua state.
@@ -87,7 +87,7 @@ namespace RTE {
 		/// Gets m_ScriptTimings.
 		/// </summary>
 		/// <returns>m_ScriptTimings.</returns>
-		const std::unordered_map<std::string, PerformanceMan::ScriptTiming> & GetScriptTimings() const;
+		const std::unordered_map<std::string, PerformanceMan::ScriptTiming>& GetScriptTimings() const;
 
 		/// <summary>
 		/// Gets the currently running script filepath, if applicable.
@@ -107,13 +107,16 @@ namespace RTE {
 		/// Unregisters an MO as using us.
 		/// </summary>
 		/// <param name="moToUnregister">The MO to unregister as using us. Ownership is NOT transferred!</param>
-		void UnregisterMO(MovableObject *moToUnregister) { m_RegisteredMOs.erase(moToUnregister); m_AddedRegisteredMOs.erase(moToUnregister); }
+		void UnregisterMO(MovableObject* moToUnregister) {
+			m_RegisteredMOs.erase(moToUnregister);
+			m_AddedRegisteredMOs.erase(moToUnregister);
+		}
 
 		/// <summary>
 		/// Gets a list of the MOs registed as using us.
 		/// </summary>
 		/// <returns>The MOs registed as using us.</returns>
-		const std::unordered_set<MovableObject *> & GetRegisteredMOs() const { return m_RegisteredMOs; }
+		const std::unordered_set<MovableObject*>& GetRegisteredMOs() const { return m_RegisteredMOs; }
 #pragma endregion
 
 #pragma region Script Execution Handling
@@ -127,7 +130,7 @@ namespace RTE {
 		/// <param name="functionEntityArguments">Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.</param>
 		/// <param name="functionLiteralArguments">Optional vector of strings that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc. Defaults to empty.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int RunScriptFunctionString(const std::string &functionName, const std::string &selfObjectName, const std::vector<std::string_view> &variablesToSafetyCheck = std::vector<std::string_view>(), const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>());
+		int RunScriptFunctionString(const std::string& functionName, const std::string& selfObjectName, const std::vector<std::string_view>& variablesToSafetyCheck = std::vector<std::string_view>(), const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>());
 
 		/// <summary>
 		/// Takes a string containing a script snippet and runs it on the state.
@@ -135,7 +138,7 @@ namespace RTE {
 		/// <param name="scriptString">The string with the script snippet.</param>
 		/// <param name="consoleErrors">Whether to report any errors to the console immediately.</param>
 		/// <returns>Returns less than zero if any errors encountered when running this script. To get the actual error string, call GetLastError.</returns>
-		int RunScriptString(const std::string &scriptString, bool consoleErrors = true);
+		int RunScriptString(const std::string& scriptString, bool consoleErrors = true);
 
 		/// <summary>
 		/// Runs the given Lua function object. The first argument to the function will always be the self object.
@@ -147,7 +150,7 @@ namespace RTE {
 		/// <param name="functionEntityArguments">Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.</param>
 		/// <param name="functionLiteralArguments">Optional vector of strings that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int RunScriptFunctionObject(const SolObjectWrapper *functionObjectWrapper, const std::string &selfGlobalTableName, const std::string &selfGlobalTableKey, const std::vector<const Entity *> &functionEntityArguments = std::vector<const Entity *>(), const std::vector<std::string_view> &functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*> &functionObjectArguments = std::vector<SolObjectWrapper*>());
+		int RunScriptFunctionObject(const SolObjectWrapper* functionObjectWrapper, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<SolObjectWrapper*>& functionObjectArguments = std::vector<SolObjectWrapper*>());
 
 		/// <summary>
 		/// Opens and loads a file containing a script and runs it on the state.
@@ -156,7 +159,7 @@ namespace RTE {
 		/// <param name="consoleErrors">Whether to report any errors to the console immediately.</param>
 		/// <param name="doInSandboxedEnvironment">Whether to do it in a sandboxed environment, or the global environment.</param>
 		/// <returns>Returns less than zero if any errors encountered when running this script. To get the actual error string, call GetLastError.</returns>
-		int RunScriptFile(const std::string &filePath, bool consoleErrors = true, bool doInSandboxedEnvironment = true);
+		int RunScriptFile(const std::string& filePath, bool consoleErrors = true, bool doInSandboxedEnvironment = true);
 
 		/// <summary>
 		/// Retrieves all of the specified functions that exist into the output map, and refreshes the cache.
@@ -175,7 +178,7 @@ namespace RTE {
 		/// <param name="outFunctionNamesAndObjects">The map of function names to SolObjectWrappers to be retrieved from the script that was run.</param>
 		/// <param name="noCaching">Whether caching shouldn't be used.</param>
 		/// <returns>Returns less than zero if any errors encountered when running this script. To get the actual error string, call GetLastError.</returns>
-		int RunScriptFileAndRetrieveFunctions(const std::string &filePath, const std::vector<std::string> &functionNamesToLookFor, std::unordered_map<std::string, SolObjectWrapper *> &outFunctionNamesAndObjects, bool forceReload = false);
+		int RunScriptFileAndRetrieveFunctions(const std::string& filePath, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, SolObjectWrapper*>& outFunctionNamesAndObjects, bool forceReload = false);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -204,21 +207,21 @@ namespace RTE {
 		/// <param name="expression">The string with the expression to evaluate.</param>
 		/// <param name="consoleErrors">Whether to report any errors to the console immediately.</param>
 		/// <returns>Whether the expression was true.</returns>
-		bool ExpressionIsTrue(const std::string &expression, bool consoleErrors);
+		bool ExpressionIsTrue(const std::string& expression, bool consoleErrors);
 
 		/// <summary>
 		/// Takes a pointer to an object and saves it in the Lua state as a global of a specified variable name.
 		/// </summary>
 		/// <param name="objectToSave">The pointer to the object to save. Ownership is NOT transferred!</param>
 		/// <param name="globalName">The name of the global var in the Lua state to save the pointer to.</param>
-		void SavePointerAsGlobal(void *objectToSave, const std::string &globalName);
+		void SavePointerAsGlobal(void* objectToSave, const std::string& globalName);
 
 		/// <summary>
 		/// Checks if there is anything defined on a specific global var in Lua.
 		/// </summary>
 		/// <param name="globalName">The name of the global var in the Lua state to check.</param>
 		/// <returns>Whether that global var has been defined yet in the Lua state.</returns>
-		bool GlobalIsDefined(const std::string &globalName);
+		bool GlobalIsDefined(const std::string& globalName);
 
 		/// <summary>
 		/// Checks if there is anything defined in a specific index of a table.
@@ -226,7 +229,7 @@ namespace RTE {
 		/// <param name="tableName">The name of the table to look inside.</param>
 		/// <param name="indexName">The name of the index to check inside that table.</param>
 		/// <returns>Whether that table var has been defined yet in the Lua state.</returns>
-		bool TableEntryIsDefined(const std::string &tableName, const std::string &indexName);
+		bool TableEntryIsDefined(const std::string& tableName, const std::string& indexName);
 
 		/// <summary>
 		/// Clears internal Lua package tables from all user-defined modules. Those must be reloaded with ReloadAllScripts().
@@ -286,9 +289,9 @@ namespace RTE {
 #pragma region Passthrough LuaMan Functions
 		const std::vector<std::string>* DirectoryList(const std::string& path);
 		const std::vector<std::string>* FileList(const std::string& path);
-		bool FileExists(const std::string &path);
-		bool DirectoryExists(const std::string &path);
-		bool IsValidModulePath(const std::string &path);
+		bool FileExists(const std::string& path);
+		bool DirectoryExists(const std::string& path);
+		bool IsValidModulePath(const std::string& path);
 		int FileOpen(const std::string& path, const std::string& accessMode);
 		void FileClose(int fileIndex);
 		void FileCloseAll();
@@ -315,12 +318,12 @@ namespace RTE {
 		/// </summary>
 		void Clear();
 
-		std::unordered_set<MovableObject *> m_RegisteredMOs; //!< The objects using our lua state.
-		std::unordered_set<MovableObject *> m_AddedRegisteredMOs; //!< The objects using our lua state that were recently added.
+		std::unordered_set<MovableObject*> m_RegisteredMOs; //!< The objects using our lua state.
+		std::unordered_set<MovableObject*> m_AddedRegisteredMOs; //!< The objects using our lua state that were recently added.
 
-		lua_State *m_State;
-		Entity *m_TempEntity; //!< Temporary holder for an Entity object that we want to pass into the Lua state without fuss. Lets you export objects to lua easily.
-		std::vector<Entity *> m_TempEntityVector; //!< Temporary holder for a vector of Entities that we want to pass into the Lua state without a fuss. Usually used to pass arguments to special Lua functions.
+		lua_State* m_State;
+		Entity* m_TempEntity; //!< Temporary holder for an Entity object that we want to pass into the Lua state without fuss. Lets you export objects to lua easily.
+		std::vector<Entity*> m_TempEntityVector; //!< Temporary holder for a vector of Entities that we want to pass into the Lua state without a fuss. Usually used to pass arguments to special Lua functions.
 		std::string m_LastError; //!< Description of the last error that occurred in the script execution.
 		std::string_view m_CurrentlyRunningScriptPath; //!< The currently running script filepath.
 
@@ -348,7 +351,6 @@ namespace RTE {
 		friend class LuaStateWrapper;
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a LuaMan object in system memory. Initialize() should be called before using the object.
@@ -378,19 +380,19 @@ namespace RTE {
 		/// Returns our master script state (where activies, global scripts etc run).
 		/// </summary>
 		/// <returns>The master script state.</returns>
-		LuaStateWrapper & GetMasterScriptState();
+		LuaStateWrapper& GetMasterScriptState();
 
 		/// <summary>
 		/// Returns our threaded script states which movable objects use.
 		/// </summary>
 		/// <returns>A list of threaded script states.</returns>
-		LuaStatesArray & GetThreadedScriptStates();
+		LuaStatesArray& GetThreadedScriptStates();
 
 		/// <summary>
 		/// Gets the current thread lua state override that new objects created will be assigned to.
 		/// </summary>
 		/// <returns>The current lua state to force objects to be assigned to.</returns>
-		LuaStateWrapper * GetThreadLuaStateOverride() const;
+		LuaStateWrapper* GetThreadLuaStateOverride() const;
 
 		/// <summary>
 		/// Forces all new MOs created in this thread to be assigned to a particular lua state.
@@ -410,7 +412,7 @@ namespace RTE {
 		/// This will be locked to our thread and safe to use - ensure that it'll be unlocked after use!
 		/// </summary>
 		/// <returns>A script state.</returns>
-		LuaStateWrapper * GetAndLockFreeScriptState();
+		LuaStateWrapper* GetAndLockFreeScriptState();
 
 		/// <summary>
 		/// Clears internal Lua package tables from all user-defined modules. Those must be reloaded with ReloadAllScripts().
@@ -421,7 +423,7 @@ namespace RTE {
 		/// Adds a function to be called prior to executing lua scripts. This is used to callback into lua from other threads safely.
 		/// </summary>
 		/// <param name="callback">The callback function that will be executed.</returns>
-		void AddLuaScriptCallback(const std::function<void()> &callback);
+		void AddLuaScriptCallback(const std::function<void()>& callback);
 
 		/// <summary>
 		/// Executes and clears all pending script callbacks.
@@ -441,35 +443,35 @@ namespace RTE {
 		/// </summary>
 		/// <param name="path">Directory path relative to the working directory.</param>
 		/// <returns>A vector of the directories in path.</returns>
-		const std::vector<std::string> * DirectoryList(const std::string &path);
+		const std::vector<std::string>* DirectoryList(const std::string& path);
 
 		/// <summary>
 		/// Returns a vector of all the files in path, which is relative to the working directory.
 		/// </summary>
 		/// <param name="path">Directory path relative to the working directory.</param>
 		/// <returns>A vector of the files in path.</returns>
-		const std::vector<std::string> * FileList(const std::string &path);
+		const std::vector<std::string>* FileList(const std::string& path);
 
 		/// <summary>
 		/// Returns whether or not the specified file exists. You can only check for files inside .rte folders in the working directory.
 		/// </summary>
 		/// <param name="path">Path to the file. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <returns>Whether or not the specified file exists.</returns>
-		bool FileExists(const std::string &path);
+		bool FileExists(const std::string& path);
 
 		/// <summary>
 		/// Returns whether or not the specified directory exists. You can only check for directories inside .rte folders in the working directory.
 		/// </summary>
 		/// <param name="path">Path to the directory. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <returns>Whether or not the specified file exists.</returns>
-		bool DirectoryExists(const std::string &path);
+		bool DirectoryExists(const std::string& path);
 
 		/// <summary>
 		/// Returns whether or not the path refers to an accessible file or directory. You can only check for files or directories inside .rte directories in the working directory.
 		/// </summary>
 		/// <param name="path">Path to the file or directory. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <returns>Whether or not the specified file exists.</returns>
-		bool IsValidModulePath(const std::string &path);
+		bool IsValidModulePath(const std::string& path);
 
 		/// <summary>
 		/// Opens a file or creates one if it does not exist, depending on access mode. You can open files only inside .rte folders in the working directory. You can't open more that c_MaxOpenFiles file simultaneously.
@@ -478,7 +480,7 @@ namespace RTE {
 		/// <param name="path">Path to the file. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <param name="mode">File access mode. See 'fopen' for list of modes.</param>
 		/// <returns>File index in the opened files array.</returns>
-		int FileOpen(const std::string &path, const std::string &accessMode);
+		int FileOpen(const std::string& path, const std::string& accessMode);
 
 		/// <summary>
 		/// Closes a previously opened file.
@@ -496,7 +498,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="path">Path to the file. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <returns>Whether or not the file was removed.</returns>
-		bool FileRemove(const std::string &path);
+		bool FileRemove(const std::string& path);
 
 		/// <summary>
 		/// Creates a directory, optionally recursively.
@@ -504,7 +506,7 @@ namespace RTE {
 		/// <param name="path">Path to the directory to be created. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <param name="recursive">Whether to recursively create parent directories.</param>
 		/// <returns>Whether or not the directory was removed.</returns>
-		bool DirectoryCreate(const std::string &path, bool recursive);
+		bool DirectoryCreate(const std::string& path, bool recursive);
 
 		/// <summary>
 		/// Removes a directory, optionally recursively.
@@ -512,7 +514,7 @@ namespace RTE {
 		/// <param name="path">Path to the directory to be removed. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <param name="recursive">Whether to recursively remove files and directories.</param>
 		/// <returns>Whether or not the directory was removed.</returns>
-		bool DirectoryRemove(const std::string &path, bool recursive);
+		bool DirectoryRemove(const std::string& path, bool recursive);
 
 		/// <summary>
 		/// Moves or renames the file oldPath to newPath.
@@ -522,7 +524,7 @@ namespace RTE {
 		/// <param name="oldPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <param name="newPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <returns>Whether or not renaming succeeded.</returns>
-		bool FileRename(const std::string &oldPath, const std::string &newPath);
+		bool FileRename(const std::string& oldPath, const std::string& newPath);
 
 		/// <summary>
 		/// Moves or renames the directory oldPath to newPath.
@@ -532,7 +534,7 @@ namespace RTE {
 		/// <param name="oldPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <param name="newPath">Path to the filesystem object. All paths are made absolute by adding current working directory to the specified path.</param>
 		/// <returns>Whether or not renaming succeeded.</returns>
-		bool DirectoryRename(const std::string &oldPath, const std::string &newPath);
+		bool DirectoryRename(const std::string& oldPath, const std::string& newPath);
 
 		/// <summary>
 		/// Reads a line from a file.
@@ -546,7 +548,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="fileIndex">File index in the opened files array.</param>
 		/// <param name="line">String to write.</param>
-		void FileWriteLine(int fileIndex, const std::string &line);
+		void FileWriteLine(int fileIndex, const std::string& line);
 
 		/// <summary>
 		/// Returns true if end of file was reached.
@@ -574,11 +576,10 @@ namespace RTE {
 		void ClearScriptTimings();
 
 	private:
-
 		static constexpr int c_MaxOpenFiles = 10; //!< The maximum number of files that can be opened with FileOpen at runtime.
 		static const std::unordered_set<std::string> c_FileAccessModes; //!< Valid file access modes when opening files with FileOpen.
 
-		std::array<FILE *, c_MaxOpenFiles> m_OpenedFiles; //!< Internal list of opened files used by File functions.
+		std::array<FILE*, c_MaxOpenFiles> m_OpenedFiles; //!< Internal list of opened files used by File functions.
 
 		LuaStateWrapper m_MasterScriptState;
 		LuaStatesArray m_ScriptStates;
@@ -596,8 +597,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		LuaMan(const LuaMan &reference) = delete;
-		LuaMan & operator=(const LuaMan &rhs) = delete;
+		LuaMan(const LuaMan& reference) = delete;
+		LuaMan& operator=(const LuaMan& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

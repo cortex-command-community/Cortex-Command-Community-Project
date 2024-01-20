@@ -6,178 +6,178 @@
 namespace RTE {
 
 // Should be ordered with most-derived classes first
-#define LIST_OF_LUABOUND_OBJECTS 					\
-	/* SystemLuaBindings */							\
-		PER_LUA_BINDING(Box)						\
-		PER_LUA_BINDING(Controller)					\
-		PER_LUA_BINDING(DataModule)					\
-		PER_LUA_BINDING(Timer)						\
-		PER_LUA_BINDING(Vector)						\
-		PER_LUA_BINDING(PathRequest)				\
-	/* ManagerLuaBindings */						\
-		PER_LUA_BINDING(ActivityMan)				\
-		PER_LUA_BINDING(AudioMan)					\
-		PER_LUA_BINDING(CameraMan)					\
-		PER_LUA_BINDING(ConsoleMan)					\
-		PER_LUA_BINDING(FrameMan)					\
-		PER_LUA_BINDING(MetaMan)					\
-		PER_LUA_BINDING(MovableMan)					\
-		PER_LUA_BINDING(PerformanceMan)				\
-		PER_LUA_BINDING(PostProcessMan)				\
-		PER_LUA_BINDING(PresetMan)					\
-		PER_LUA_BINDING(PrimitiveMan)				\
-		PER_LUA_BINDING(SceneMan)					\
-		PER_LUA_BINDING(SettingsMan)				\
-		PER_LUA_BINDING(TimerMan)					\
-		PER_LUA_BINDING(UInputMan)					\
-	/* EntityLuaBindings */							\
-		/* ThrownDevice-Derived */					\
-		PER_LUA_BINDING(TDExplosive)				\
-		/* HeldDevice-Derived */					\
-		PER_LUA_BINDING(HDFirearm)					\
-		PER_LUA_BINDING(ThrownDevice)				\
-		/* AEmitter-Derived */						\
-		PER_LUA_BINDING(AEJetpack)					\
-		/* ACraft-Derived */						\
-		PER_LUA_BINDING(ACDropShip)					\
-		PER_LUA_BINDING(ACRocket)					\
-		/* Attachable-Derived */					\
-		PER_LUA_BINDING(Arm)						\
-		PER_LUA_BINDING(Leg)						\
-		PER_LUA_BINDING(AEmitter)					\
-		PER_LUA_BINDING(HeldDevice)					\
-		PER_LUA_BINDING(Magazine)					\
-		PER_LUA_BINDING(Turret)						\
-		/* Actor-Derived */							\
-		PER_LUA_BINDING(ACrab)						\
-		PER_LUA_BINDING(ACraft)						\
-		PER_LUA_BINDING(AHuman)						\
-		PER_LUA_BINDING(ADoor)						\
-		/* MOSRotating-Derived */					\
-		PER_LUA_BINDING(Actor)						\
-		PER_LUA_BINDING(Attachable)					\
-		/* MOSParticle-Derived */					\
-		PER_LUA_BINDING(PEmitter)					\
-		/* MOSprite-Derived */						\
-		PER_LUA_BINDING(MOSRotating)				\
-		PER_LUA_BINDING(MOSParticle)				\
-		/* MovableObject-Derived */					\
-		PER_LUA_BINDING(MOPixel)					\
-		PER_LUA_BINDING(MOSprite)					\
-		/* SceneObject-Derived */					\
-		PER_LUA_BINDING(TerrainObject)				\
-		PER_LUA_BINDING(Deployment)					\
-		PER_LUA_BINDING(MovableObject)				\
-		/* Entity-Derived */						\
-		PER_LUA_BINDING(SoundContainer)				\
-		PER_LUA_BINDING(PieSlice)					\
-		PER_LUA_BINDING(GlobalScript)				\
-		PER_LUA_BINDING(Emission)					\
-		PER_LUA_BINDING(LimbPath)					\
-		PER_LUA_BINDING(PieMenu)					\
-		PER_LUA_BINDING(Round)						\
-		PER_LUA_BINDING(Scene)						\
-		PER_LUA_BINDING(Scene::Area)				\
-		PER_LUA_BINDING(Material)					\
-		PER_LUA_BINDING(MetaPlayer)					\
-		PER_LUA_BINDING(SceneObject)				\
-		/* SceneLayer-Derived */					\
-		PER_LUA_BINDING(SLBackground)				\
-		/* Base Classes */							\
-		PER_LUA_BINDING(SoundSet)					\
-		PER_LUA_BINDING(Gib)						\
-		PER_LUA_BINDING(SceneLayer)					\
-		PER_LUA_BINDING(Entity)						\
-	/* ActivityLuaBindings */						\
-		PER_LUA_BINDING(GameActivity)				\
-		PER_LUA_BINDING(Activity)					\
-	/* GUILuaBindings */							\
-		PER_LUA_BINDING(BuyMenuGUI)					\
-		PER_LUA_BINDING(SceneEditorGUI)				\
-		PER_LUA_BINDING(GUIBanner)					\
-	/* PrimitiveLuaBindings */						\
-		/* GraphicalPrimitive-Derived */			\
-		PER_LUA_BINDING(LinePrimitive)				\
-		PER_LUA_BINDING(ArcPrimitive)				\
-		PER_LUA_BINDING(SplinePrimitive)			\
-		PER_LUA_BINDING(BoxPrimitive)				\
-		PER_LUA_BINDING(BoxFillPrimitive)			\
-		PER_LUA_BINDING(RoundedBoxPrimitive)		\
-		PER_LUA_BINDING(RoundedBoxFillPrimitive)	\
-		PER_LUA_BINDING(CirclePrimitive)			\
-		PER_LUA_BINDING(CircleFillPrimitive)		\
-		PER_LUA_BINDING(EllipsePrimitive)			\
-		PER_LUA_BINDING(EllipseFillPrimitive)		\
-		PER_LUA_BINDING(TrianglePrimitive)			\
-		PER_LUA_BINDING(TriangleFillPrimitive)		\
-		PER_LUA_BINDING(TextPrimitive)				\
-		PER_LUA_BINDING(BitmapPrimitive)			\
-		/* Base Classes */							\
-		PER_LUA_BINDING(GraphicalPrimitive)			\
-	/* InputLuaBindings */							\
-		PER_LUA_BINDING(InputDevice)				\
-		PER_LUA_BINDING(InputElements)				\
-		PER_LUA_BINDING(MouseButtons)				\
-		PER_LUA_BINDING(JoyButtons)					\
-		PER_LUA_BINDING(JoyDirections)				\
-		PER_LUA_BINDING(SDL_Scancode)				\
-		PER_LUA_BINDING(SDL_Keycode)				\
-		PER_LUA_BINDING(SDL_GameControllerButton)	\
-		PER_LUA_BINDING(SDL_GameControllerAxis)		\
-	/* MiscLuaBindings */							\
-		PER_LUA_BINDING(AlarmEvent)					\
-		PER_LUA_BINDING(Directions)					\
-		PER_LUA_BINDING(DrawBlendMode)
-	
+#define LIST_OF_LUABOUND_OBJECTS \
+	/* SystemLuaBindings */ \
+	PER_LUA_BINDING(Box) \
+	PER_LUA_BINDING(Controller) \
+	PER_LUA_BINDING(DataModule) \
+	PER_LUA_BINDING(Timer) \
+	PER_LUA_BINDING(Vector) \
+	PER_LUA_BINDING(PathRequest) \
+	/* ManagerLuaBindings */ \
+	PER_LUA_BINDING(ActivityMan) \
+	PER_LUA_BINDING(AudioMan) \
+	PER_LUA_BINDING(CameraMan) \
+	PER_LUA_BINDING(ConsoleMan) \
+	PER_LUA_BINDING(FrameMan) \
+	PER_LUA_BINDING(MetaMan) \
+	PER_LUA_BINDING(MovableMan) \
+	PER_LUA_BINDING(PerformanceMan) \
+	PER_LUA_BINDING(PostProcessMan) \
+	PER_LUA_BINDING(PresetMan) \
+	PER_LUA_BINDING(PrimitiveMan) \
+	PER_LUA_BINDING(SceneMan) \
+	PER_LUA_BINDING(SettingsMan) \
+	PER_LUA_BINDING(TimerMan) \
+	PER_LUA_BINDING(UInputMan) \
+	/* EntityLuaBindings */ \
+	/* ThrownDevice-Derived */ \
+	PER_LUA_BINDING(TDExplosive) \
+	/* HeldDevice-Derived */ \
+	PER_LUA_BINDING(HDFirearm) \
+	PER_LUA_BINDING(ThrownDevice) \
+	/* AEmitter-Derived */ \
+	PER_LUA_BINDING(AEJetpack) \
+	/* ACraft-Derived */ \
+	PER_LUA_BINDING(ACDropShip) \
+	PER_LUA_BINDING(ACRocket) \
+	/* Attachable-Derived */ \
+	PER_LUA_BINDING(Arm) \
+	PER_LUA_BINDING(Leg) \
+	PER_LUA_BINDING(AEmitter) \
+	PER_LUA_BINDING(HeldDevice) \
+	PER_LUA_BINDING(Magazine) \
+	PER_LUA_BINDING(Turret) \
+	/* Actor-Derived */ \
+	PER_LUA_BINDING(ACrab) \
+	PER_LUA_BINDING(ACraft) \
+	PER_LUA_BINDING(AHuman) \
+	PER_LUA_BINDING(ADoor) \
+	/* MOSRotating-Derived */ \
+	PER_LUA_BINDING(Actor) \
+	PER_LUA_BINDING(Attachable) \
+	/* MOSParticle-Derived */ \
+	PER_LUA_BINDING(PEmitter) \
+	/* MOSprite-Derived */ \
+	PER_LUA_BINDING(MOSRotating) \
+	PER_LUA_BINDING(MOSParticle) \
+	/* MovableObject-Derived */ \
+	PER_LUA_BINDING(MOPixel) \
+	PER_LUA_BINDING(MOSprite) \
+	/* SceneObject-Derived */ \
+	PER_LUA_BINDING(TerrainObject) \
+	PER_LUA_BINDING(Deployment) \
+	PER_LUA_BINDING(MovableObject) \
+	/* Entity-Derived */ \
+	PER_LUA_BINDING(SoundContainer) \
+	PER_LUA_BINDING(PieSlice) \
+	PER_LUA_BINDING(GlobalScript) \
+	PER_LUA_BINDING(Emission) \
+	PER_LUA_BINDING(LimbPath) \
+	PER_LUA_BINDING(PieMenu) \
+	PER_LUA_BINDING(Round) \
+	PER_LUA_BINDING(Scene) \
+	PER_LUA_BINDING(Scene::Area) \
+	PER_LUA_BINDING(Material) \
+	PER_LUA_BINDING(MetaPlayer) \
+	PER_LUA_BINDING(SceneObject) \
+	/* SceneLayer-Derived */ \
+	PER_LUA_BINDING(SLBackground) \
+	/* Base Classes */ \
+	PER_LUA_BINDING(SoundSet) \
+	PER_LUA_BINDING(Gib) \
+	PER_LUA_BINDING(SceneLayer) \
+	PER_LUA_BINDING(Entity) \
+	/* ActivityLuaBindings */ \
+	PER_LUA_BINDING(GameActivity) \
+	PER_LUA_BINDING(Activity) \
+	/* GUILuaBindings */ \
+	PER_LUA_BINDING(BuyMenuGUI) \
+	PER_LUA_BINDING(SceneEditorGUI) \
+	PER_LUA_BINDING(GUIBanner) \
+	/* PrimitiveLuaBindings */ \
+	/* GraphicalPrimitive-Derived */ \
+	PER_LUA_BINDING(LinePrimitive) \
+	PER_LUA_BINDING(ArcPrimitive) \
+	PER_LUA_BINDING(SplinePrimitive) \
+	PER_LUA_BINDING(BoxPrimitive) \
+	PER_LUA_BINDING(BoxFillPrimitive) \
+	PER_LUA_BINDING(RoundedBoxPrimitive) \
+	PER_LUA_BINDING(RoundedBoxFillPrimitive) \
+	PER_LUA_BINDING(CirclePrimitive) \
+	PER_LUA_BINDING(CircleFillPrimitive) \
+	PER_LUA_BINDING(EllipsePrimitive) \
+	PER_LUA_BINDING(EllipseFillPrimitive) \
+	PER_LUA_BINDING(TrianglePrimitive) \
+	PER_LUA_BINDING(TriangleFillPrimitive) \
+	PER_LUA_BINDING(TextPrimitive) \
+	PER_LUA_BINDING(BitmapPrimitive) \
+	/* Base Classes */ \
+	PER_LUA_BINDING(GraphicalPrimitive) \
+	/* InputLuaBindings */ \
+	PER_LUA_BINDING(InputDevice) \
+	PER_LUA_BINDING(InputElements) \
+	PER_LUA_BINDING(MouseButtons) \
+	PER_LUA_BINDING(JoyButtons) \
+	PER_LUA_BINDING(JoyDirections) \
+	PER_LUA_BINDING(SDL_Scancode) \
+	PER_LUA_BINDING(SDL_Keycode) \
+	PER_LUA_BINDING(SDL_GameControllerButton) \
+	PER_LUA_BINDING(SDL_GameControllerAxis) \
+	/* MiscLuaBindings */ \
+	PER_LUA_BINDING(AlarmEvent) \
+	PER_LUA_BINDING(Directions) \
+	PER_LUA_BINDING(DrawBlendMode)
+
 #pragma region Lua Binding Registration Macros
-	/// <summary>
-	/// Convenience macro for declaring a binding register function.
-	/// </summary>
-	#define LuaBindingRegisterFunctionDeclarationForType(TYPE) \
-		static void Register##TYPE##LuaBindings(sol::state_view& solState)
+/// <summary>
+/// Convenience macro for declaring a binding register function.
+/// </summary>
+#define LuaBindingRegisterFunctionDeclarationForType(TYPE) \
+	static void Register##TYPE##LuaBindings(sol::state_view& solState)
 
-	/// <summary>
-	/// Convenience macro for defining a binding register function.
-	/// </summary>
-	#define LuaBindingRegisterFunctionDefinitionForType(OWNINGSCOPE, TYPE) \
-		void OWNINGSCOPE::Register##TYPE##LuaBindings(sol::state_view& solState)
+/// <summary>
+/// Convenience macro for defining a binding register function.
+/// </summary>
+#define LuaBindingRegisterFunctionDefinitionForType(OWNINGSCOPE, TYPE) \
+	void OWNINGSCOPE::Register##TYPE##LuaBindings(sol::state_view& solState)
 
-	#define MarkLuaDynamicObject(LUATYPE) 								\
-		LUATYPE[sol::meta_function::index] 		= &Entity::DynamicGet;	\
-	    LUATYPE[sol::meta_function::new_index] 	= &Entity::DynamicSet	\
+#define MarkLuaDynamicObject(LUATYPE) \
+	LUATYPE[sol::meta_function::index] = &Entity::DynamicGet; \
+	LUATYPE[sol::meta_function::new_index] = &Entity::DynamicSet
 
-	/// <summary>
-	/// Convenience macro for a LuaBind scope definition of an abstract type.
-	/// </summary>
-	#define AbstractTypeLuaClassDefinition(TYPE, ...)		\
-		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,		\
-			sol::base_classes, sol::bases<__VA_ARGS__>(),			\
-			"ClassName", sol::property(&TYPE::GetClassName));		\
-		const char* _bindingClassTypeName = #TYPE	
+/// <summary>
+/// Convenience macro for a LuaBind scope definition of an abstract type.
+/// </summary>
+#define AbstractTypeLuaClassDefinition(TYPE, ...) \
+	solState.new_usertype<TYPE>(#TYPE, sol::no_constructor, \
+	                            sol::base_classes, sol::bases<__VA_ARGS__>(), \
+	                            "ClassName", sol::property(&TYPE::GetClassName)); \
+	const char* _bindingClassTypeName = #TYPE
 
-	/// <summary>
-	/// Convenience macro for a LuaBind scope definition of a concrete type.
-	/// </summary>
-	#define ConcreteTypeLuaClassDefinition(TYPE, ...)		\
-		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor,		\
-			sol::base_classes, sol::bases<__VA_ARGS__>(),			\
-			"ClassName", sol::property(&TYPE::GetClassName),		\
-			"Clone",	 &LuaAdaptersEntityClone::Clone##TYPE);		\
-		const char* _bindingClassTypeName = #TYPE
+/// <summary>
+/// Convenience macro for a LuaBind scope definition of a concrete type.
+/// </summary>
+#define ConcreteTypeLuaClassDefinition(TYPE, ...) \
+	solState.new_usertype<TYPE>(#TYPE, sol::no_constructor, \
+	                            sol::base_classes, sol::bases<__VA_ARGS__>(), \
+	                            "ClassName", sol::property(&TYPE::GetClassName), \
+	                            "Clone", &LuaAdaptersEntityClone::Clone##TYPE); \
+	const char* _bindingClassTypeName = #TYPE
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a POD struct type.
 	/// </summary>
-#define SimpleTypeLuaClassDefinition(TYPE)							\
-		solState.new_usertype<TYPE>(#TYPE, sol::no_constructor);	\
-		const char* _bindingClassTypeName = #TYPE
+#define SimpleTypeLuaClassDefinition(TYPE) \
+	solState.new_usertype<TYPE>(#TYPE, sol::no_constructor); \
+	const char* _bindingClassTypeName = #TYPE
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of a POD struct type, with a different lua name to type name.
 	/// </summary>
-#define SimpleNamedTypeLuaClassDefinition(TYPE, NAME)				\
-		solState.new_usertype<TYPE>(NAME, sol::no_constructor);		\
-		const char* _bindingClassTypeName = #TYPE
+#define SimpleNamedTypeLuaClassDefinition(TYPE, NAME) \
+	solState.new_usertype<TYPE>(NAME, sol::no_constructor); \
+	const char* _bindingClassTypeName = #TYPE
 
 	/// <summary>
 	/// Convenience macro for legacy LuaBind scope definition of an enum type.
@@ -186,42 +186,42 @@ namespace RTE {
 	/// "Activity.Teams.NOTEAM" would just be "Activity.NOTEAM".
 	/// </summary>
 #define LegacyEnumTypeTable(NAME_UNUSED) \
-		solState[_bindingClassTypeName]
+	solState[_bindingClassTypeName]
 
 	/// <summary>
 	/// Convenience macro for a LuaBind scope definition of an enum type.
 	/// </summary>
 #define EnumTypeLuaClassDefinition(TYPE, NAME, ...) \
-		solState.new_enum<TYPE>(NAME, __VA_ARGS__)
+	solState.new_enum<TYPE>(NAME, __VA_ARGS__)
 
-	/// <summary>
-	/// Convenience macro for calling a register function of a type.
-	/// </summary>
-	#define RegisterLuaBindingsOfType(SOLSTATE, OWNINGSCOPE, TYPE) \
-		OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
+/// <summary>
+/// Convenience macro for calling a register function of a type.
+/// </summary>
+#define RegisterLuaBindingsOfType(SOLSTATE, OWNINGSCOPE, TYPE) \
+	OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 
-	/// <summary>
-	/// Convenience macro for calling a register function of an abstract type, along with registering global bindings for adapters relevant to the type.
-	/// </summary>
-	#define RegisterLuaBindingsOfAbstractType(SOLSTATE, OWNINGSCOPE, TYPE) \
-		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE;						\
-		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE;	\
-		SOLSTATE[(std::string("Is") + std::string(#TYPE)).c_str()] = (bool(*)(const Entity *))&LuaAdaptersEntityCast::Is##TYPE,					\
-		OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
+/// <summary>
+/// Convenience macro for calling a register function of an abstract type, along with registering global bindings for adapters relevant to the type.
+/// </summary>
+#define RegisterLuaBindingsOfAbstractType(SOLSTATE, OWNINGSCOPE, TYPE) \
+	SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE * (*)(Entity*)) & LuaAdaptersEntityCast::To##TYPE; \
+	SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE* (*)(const Entity*)) & LuaAdaptersEntityCast::ToConst##TYPE; \
+	SOLSTATE[(std::string("Is") + std::string(#TYPE)).c_str()] = (bool (*)(const Entity*)) & LuaAdaptersEntityCast::Is##TYPE, \
+	                              OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 
-	/// <summary>
-	/// Convenience macro for calling a register function of a concrete type, along with registering global bindings for adapters relevant to the type.
-	/// </summary>
-	#define RegisterLuaBindingsOfConcreteType(SOLSTATE, OWNINGSCOPE, TYPE) \
-		SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string, std::string))&LuaAdaptersEntityCreate::Create##TYPE;	\
-		SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string))&LuaAdaptersEntityCreate::Create##TYPE;				\
-		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string, int))&LuaAdaptersEntityCreate::Random##TYPE;			\
-		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string, std::string))&LuaAdaptersEntityCreate::Random##TYPE;	\
-		SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE> (*)(std::string))&LuaAdaptersEntityCreate::Random##TYPE;				\
-		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE *(*)(Entity *))&LuaAdaptersEntityCast::To##TYPE;												\
-		SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE *(*)(const Entity *))&LuaAdaptersEntityCast::ToConst##TYPE;							\
-		SOLSTATE[(std::string("Is") + std::string(#TYPE)).c_str()] = (bool(*)(const Entity *))&LuaAdaptersEntityCast::Is##TYPE;											\
-		OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
+/// <summary>
+/// Convenience macro for calling a register function of a concrete type, along with registering global bindings for adapters relevant to the type.
+/// </summary>
+#define RegisterLuaBindingsOfConcreteType(SOLSTATE, OWNINGSCOPE, TYPE) \
+	SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE>(*)(std::string, std::string)) & LuaAdaptersEntityCreate::Create##TYPE; \
+	SOLSTATE[(std::string("Create") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE>(*)(std::string)) & LuaAdaptersEntityCreate::Create##TYPE; \
+	SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE>(*)(std::string, int)) & LuaAdaptersEntityCreate::Random##TYPE; \
+	SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE>(*)(std::string, std::string)) & LuaAdaptersEntityCreate::Random##TYPE; \
+	SOLSTATE[(std::string("Random") + std::string(#TYPE)).c_str()] = (std::unique_ptr<TYPE>(*)(std::string)) & LuaAdaptersEntityCreate::Random##TYPE; \
+	SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (TYPE * (*)(Entity*)) & LuaAdaptersEntityCast::To##TYPE; \
+	SOLSTATE[(std::string("To") + std::string(#TYPE)).c_str()] = (const TYPE* (*)(const Entity*)) & LuaAdaptersEntityCast::ToConst##TYPE; \
+	SOLSTATE[(std::string("Is") + std::string(#TYPE)).c_str()] = (bool (*)(const Entity*)) & LuaAdaptersEntityCast::Is##TYPE; \
+	OWNINGSCOPE::Register##TYPE##LuaBindings(SOLSTATE)
 #pragma endregion
 
 	/// <summary>
@@ -368,5 +368,5 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(Directions);
 		LuaBindingRegisterFunctionDeclarationForType(DrawBlendMode);
 	};
-}
+} // namespace RTE
 #endif

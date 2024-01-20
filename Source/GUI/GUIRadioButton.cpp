@@ -5,7 +5,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIRadioButton::GUIRadioButton(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIPanel(Manager) {
+GUIRadioButton::GUIRadioButton(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "RADIOBUTTON";
 	m_Image = nullptr;
 	m_ControlManager = ControlManager;
@@ -18,7 +19,7 @@ GUIRadioButton::GUIRadioButton(GUIManager *Manager, GUIControlManager *ControlMa
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIRadioButton::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUIRadioButton::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -35,8 +36,12 @@ void GUIRadioButton::Create(const std::string &Name, int X, int Y, int Width, in
 	m_Width = m_DefWidth;
 	m_Height = m_DefHeight;
 
-	if (Width != -1) { m_Width = Width; }
-	if (Height != -1) { m_Height = Height; }
+	if (Width != -1) {
+		m_Width = Width;
+	}
+	if (Height != -1) {
+		m_Height = Height;
+	}
 
 	// Make sure the button isn't too small
 	m_Width = std::max(m_Width, m_MinWidth);
@@ -45,7 +50,7 @@ void GUIRadioButton::Create(const std::string &Name, int X, int Y, int Width, in
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIRadioButton::Create(GUIProperties *Props) {
+void GUIRadioButton::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -70,7 +75,7 @@ void GUIRadioButton::Create(GUIProperties *Props) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIRadioButton::ChangeSkin(GUISkin *Skin) {
+void GUIRadioButton::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the checkbox bitmap
@@ -126,7 +131,7 @@ void GUIRadioButton::BuildBitmap() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIRadioButton::Draw(GUIScreen *Screen) {
+void GUIRadioButton::Draw(GUIScreen* Screen) {
 	if (!m_Image) {
 		return;
 	}
@@ -147,13 +152,15 @@ void GUIRadioButton::Draw(GUIScreen *Screen) {
 	if (m_Checked) {
 		if (m_Enabled) {
 			m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[2]);
-		} //else {
-			//m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[3]);
+		} // else {
+		  // m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[3]);
 		//}
 	}
 
 	// Should show as grayed out and disabled when it is, regardless of checked or not
-	if (!m_Enabled) { m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[3]); }
+	if (!m_Enabled) {
+		m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[3]);
+	}
 
 	// Draw the text
 
@@ -190,7 +197,9 @@ void GUIRadioButton::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
 
 	// If the mouse is over the button, add the command to the event queue
-	if (PointInside(X, Y) && Buttons & MOUSE_LEFT) { SetCheck(true); }
+	if (PointInside(X, Y) && Buttons & MOUSE_LEFT) {
+		SetCheck(true);
+	}
 
 	AddEvent(GUIEvent::Notification, UnPushed, 0);
 }
@@ -209,7 +218,7 @@ void GUIRadioButton::OnMouseLeave(int X, int Y, int Buttons, int Modifier) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUIRadioButton::GetPanel() {
+GUIPanel* GUIRadioButton::GetPanel() {
 	return this;
 }
 
@@ -234,7 +243,7 @@ void GUIRadioButton::Resize(int Width, int Height) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIRadioButton::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUIRadioButton::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
@@ -264,11 +273,11 @@ void GUIRadioButton::SetCheck(bool Check) {
 
 	// Go through all my RadioButton siblings and un-check them
 	if (m_ControlParent) {
-		std::vector<GUIControl *>::iterator it;
-		std::vector<GUIControl *> *Children = m_ControlParent->GetChildren();
+		std::vector<GUIControl*>::iterator it;
+		std::vector<GUIControl*>* Children = m_ControlParent->GetChildren();
 
 		for (it = Children->begin(); it != Children->end(); it++) {
-			GUIControl *C = *it;
+			GUIControl* C = *it;
 			if (C) {
 				// Make sure this is not me
 				if (C->GetPanel() && GetPanel() && C->GetPanel()->GetPanelID() == GetPanel()->GetPanelID()) {
@@ -277,7 +286,7 @@ void GUIRadioButton::SetCheck(bool Check) {
 
 				// Make sure the control is a radio button
 				if (C->GetID().compare(GetID()) == 0) {
-					GUIRadioButton *R = (GUIRadioButton *)C;
+					GUIRadioButton* R = (GUIRadioButton*)C;
 					R->SetCheck(false);
 				}
 			}
@@ -293,7 +302,7 @@ bool GUIRadioButton::GetCheck() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIRadioButton::SetText(const std::string &Text) {
+void GUIRadioButton::SetText(const std::string& Text) {
 	m_Text = Text;
 }
 
@@ -305,7 +314,7 @@ std::string GUIRadioButton::GetText() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIRadioButton::ApplyProperties(GUIProperties *Props) {
+void GUIRadioButton::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	m_Properties.GetValue("Text", &m_Text);

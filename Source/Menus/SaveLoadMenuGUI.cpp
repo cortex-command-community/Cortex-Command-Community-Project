@@ -21,19 +21,19 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen *guiScreen, GUIInputWrapper *guiInput, bool createForPauseMenu) {
+	SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
 		RTEAssert(m_GUIControlManager->Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "MainMenuSubMenuSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/MainMenuSubMenuSkin.ini");
 		m_GUIControlManager->Load("Base.rte/GUIs/SaveLoadMenuGUI.ini");
 
 		int rootBoxMaxWidth = g_WindowMan.FullyCoversAllDisplays() ? g_WindowMan.GetPrimaryWindowDisplayWidth() / g_WindowMan.GetResMultiplier() : g_WindowMan.GetResX();
 
-		GUICollectionBox *rootBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("root"));
+		GUICollectionBox* rootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("root"));
 		rootBox->Resize(rootBoxMaxWidth, g_WindowMan.GetResY());
 
-		m_SaveGameMenuBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxSaveGameMenu"));
+		m_SaveGameMenuBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSaveGameMenu"));
 		m_SaveGameMenuBox->CenterInParent(true, true);
 		m_SaveGameMenuBox->SetPositionAbs(m_SaveGameMenuBox->GetXPos(), (rootBox->GetHeight() < 540) ? m_SaveGameMenuBox->GetYPos() - 15 : 140);
 
@@ -41,9 +41,9 @@ namespace RTE {
 		m_OrderByComboBox->AddItem("Name");
 		m_OrderByComboBox->AddItem("Date");
 		m_OrderByComboBox->AddItem("Activity");
-		m_OrderByComboBox->SetSelectedIndex(1); //order by Date by default
+		m_OrderByComboBox->SetSelectedIndex(1); // order by Date by default
 
-		m_BackToMainButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonBackToMainMenu"));
+		m_BackToMainButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonBackToMainMenu"));
 
 		if (createForPauseMenu) {
 			m_BackToMainButton->SetSize(120, 20);
@@ -51,39 +51,39 @@ namespace RTE {
 		}
 		m_BackToMainButton->SetPositionAbs((rootBox->GetWidth() - m_BackToMainButton->GetWidth()) / 2, m_SaveGameMenuBox->GetYPos() + m_SaveGameMenuBox->GetHeight() + 10);
 
-		m_SaveGamesListBox = dynamic_cast<GUIListBox *>(m_GUIControlManager->GetControl("ListBoxSaveGames"));
+		m_SaveGamesListBox = dynamic_cast<GUIListBox*>(m_GUIControlManager->GetControl("ListBoxSaveGames"));
 		m_SaveGamesListBox->SetFont(m_GUIControlManager->GetSkin()->GetFont("FontConsoleMonospace.png"));
 		m_SaveGamesListBox->SetMouseScrolling(true);
 		m_SaveGamesListBox->SetScrollBarThickness(15);
 		m_SaveGamesListBox->SetScrollBarPadding(2);
 
-		m_SaveGameName = dynamic_cast<GUITextBox *>(m_GUIControlManager->GetControl("SaveGameName"));
-		m_LoadButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonLoad"));
-		m_CreateButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonCreate"));
-		m_OverwriteButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonOverwrite"));
-		m_DeleteButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonDelete"));
-		m_ActivityCannotBeSavedLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("ActivityCannotBeSavedWarning"));
+		m_SaveGameName = dynamic_cast<GUITextBox*>(m_GUIControlManager->GetControl("SaveGameName"));
+		m_LoadButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonLoad"));
+		m_CreateButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonCreate"));
+		m_OverwriteButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonOverwrite"));
+		m_DeleteButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonDelete"));
+		m_ActivityCannotBeSavedLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("ActivityCannotBeSavedWarning"));
 
-		m_ConfirmationBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("ConfirmDialog"));
+		m_ConfirmationBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("ConfirmDialog"));
 		m_ConfirmationBox->CenterInParent(true, true);
 
-		m_ConfirmationLabel = dynamic_cast<GUILabel *>(m_GUIControlManager->GetControl("ConfirmLabel"));
-		m_ConfirmationButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ConfirmButton"));
-		m_CancelButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("CancelButton"));
+		m_ConfirmationLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("ConfirmLabel"));
+		m_ConfirmationButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ConfirmButton"));
+		m_CancelButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("CancelButton"));
 
 		SwitchToConfirmDialogMode(ConfirmDialogMode::None);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::PopulateSaveGamesList() {
 		m_SaveGames.clear();
 		m_SaveGameName->SetText("");
-		
+
 		m_GUIControlManager->GetManager()->SetFocus(nullptr);
 
 		std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/";
-		for (const auto &entry : std::filesystem::directory_iterator(saveFilePath)) {
+		for (const auto& entry: std::filesystem::directory_iterator(saveFilePath)) {
 			if (entry.is_directory()) {
 				SaveRecord record;
 				record.SavePath = entry.path();
@@ -93,42 +93,41 @@ namespace RTE {
 		}
 
 		std::for_each(std::execution::par_unseq,
-			m_SaveGames.begin(), m_SaveGames.end(),
-			[](SaveRecord &record) {
-				Reader reader(record.SavePath.string() + "/Save.ini", true, nullptr, true);
+		              m_SaveGames.begin(), m_SaveGames.end(),
+		              [](SaveRecord& record) {
+			              Reader reader(record.SavePath.string() + "/Save.ini", true, nullptr, true);
 
-				bool readActivity = false;
-				bool readSceneName = false;
+			              bool readActivity = false;
+			              bool readSceneName = false;
 
-				GAScripted activity;
+			              GAScripted activity;
 
-				std::string originalScenePresetName;
-				while (reader.NextProperty()) {
-					std::string propName = reader.ReadPropName();
-					if (propName == "Activity") {
-						reader >> activity;
-						readActivity = true;
-					} else if (propName == "OriginalScenePresetName") {
-						reader >> originalScenePresetName;
-						readSceneName = true;
-					}
+			              std::string originalScenePresetName;
+			              while (reader.NextProperty()) {
+				              std::string propName = reader.ReadPropName();
+				              if (propName == "Activity") {
+					              reader >> activity;
+					              readActivity = true;
+				              } else if (propName == "OriginalScenePresetName") {
+					              reader >> originalScenePresetName;
+					              readSceneName = true;
+				              }
 
-					if (readActivity && readSceneName) {
-						break;
-					}
-				}
+				              if (readActivity && readSceneName) {
+					              break;
+				              }
+			              }
 
-				record.Activity = activity.GetPresetName();
-				record.Scene = originalScenePresetName;
-			});
+			              record.Activity = activity.GetPresetName();
+			              record.Scene = originalScenePresetName;
+		              });
 
 		UpdateSaveGamesGUIList();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void SaveLoadMenuGUI::UpdateSaveGamesGUIList()
-	{
+	void SaveLoadMenuGUI::UpdateSaveGamesGUIList() {
 		const std::string& currentOrder = m_OrderByComboBox->GetSelectedItem()->m_Name;
 		if (currentOrder == "Name") {
 			std::stable_sort(m_SaveGames.begin(), m_SaveGames.end(), [](const SaveRecord& lhs, const SaveRecord& rhs) { return lhs.SavePath.stem().string() < rhs.SavePath.stem().string(); });
@@ -140,7 +139,7 @@ namespace RTE {
 
 		m_SaveGamesListBox->ClearList();
 		for (int i = 0; i < m_SaveGames.size(); i++) {
-			const SaveRecord &save = m_SaveGames[i];
+			const SaveRecord& save = m_SaveGames[i];
 
 			std::stringstream saveNameText;
 			saveNameText << std::left << std::setfill(' ') << std::setw(32) << save.SavePath.stem().string();
@@ -149,16 +148,16 @@ namespace RTE {
 #if defined(_MSC_VER) || __GNUC__ > 12
 			const auto saveFsTime = std::chrono::clock_cast<std::chrono::system_clock>(save.SaveDate);
 			const auto saveTime = std::chrono::system_clock::to_time_t(saveFsTime);
-#else	
+#else
 			// TODO - kill this monstrosity when we move to GCC13
 			auto saveFsTime = std::chrono::system_clock::time_point(save.SaveDate.time_since_epoch());
-	#ifdef _WIN32
+#ifdef _WIN32
 			// Windows epoch time are the number of seconds since... 1601-01-01 00:00:00. Seriously.
 			saveFsTime -= std::chrono::seconds(11644473600LL);
-	#elif defined(__GLIBCXX__)
+#elif defined(__GLIBCXX__)
 			// libstdc++ file_clock epoch is 2174-01-01 00:00:00 for reasons
 			saveFsTime += std::chrono::seconds(6437664000LL);
-	#endif
+#endif
 			const auto saveTime = std::chrono::system_clock::to_time_t(saveFsTime);
 #endif
 			const auto saveTimeLocal = std::localtime(&saveTime);
@@ -172,7 +171,7 @@ namespace RTE {
 		m_SaveGamesListBox->ScrollToTop();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SaveLoadMenuGUI::LoadSave() {
 		bool success = g_ActivityMan.LoadAndLaunchGame(m_SaveGameName->GetText());
@@ -186,7 +185,7 @@ namespace RTE {
 		return success;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::CreateSave() {
 		bool success = g_ActivityMan.SaveCurrentGame(m_SaveGameName->GetText());
@@ -199,7 +198,7 @@ namespace RTE {
 		PopulateSaveGamesList();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::DeleteSave() {
 		std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText();
@@ -210,7 +209,7 @@ namespace RTE {
 		PopulateSaveGamesList();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::UpdateButtonEnabledStates() {
 		bool allowSave = g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->GetAllowsUserSaving() && m_SaveGameName->GetText() != "";
@@ -243,7 +242,7 @@ namespace RTE {
 		m_ActivityCannotBeSavedLabel->SetVisible(g_ActivityMan.GetActivity() && !g_ActivityMan.GetActivity()->GetAllowsUserSaving());
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::SwitchToConfirmDialogMode(ConfirmDialogMode mode) {
 		m_ConfirmDialogMode = mode;
@@ -254,18 +253,18 @@ namespace RTE {
 		m_ConfirmationBox->SetVisible(dialogOpen);
 
 		switch (m_ConfirmDialogMode) {
-		case ConfirmDialogMode::ConfirmOverwrite:
-			m_ConfirmationLabel->SetText("Are you sure you want to overwrite this savegame?");
-			break;
-		case ConfirmDialogMode::ConfirmDelete:
-			m_ConfirmationLabel->SetText("Are you sure you want to delete this savegame?");
-			break;
+			case ConfirmDialogMode::ConfirmOverwrite:
+				m_ConfirmationLabel->SetText("Are you sure you want to overwrite this savegame?");
+				break;
+			case ConfirmDialogMode::ConfirmDelete:
+				m_ConfirmationLabel->SetText("Are you sure you want to delete this savegame?");
+				break;
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool SaveLoadMenuGUI::HandleInputEvents(PauseMenuGUI *pauseMenu) {
+	bool SaveLoadMenuGUI::HandleInputEvents(PauseMenuGUI* pauseMenu) {
 		m_GUIControlManager->Update();
 
 		GUIEvent guiEvent;
@@ -286,24 +285,24 @@ namespace RTE {
 					SwitchToConfirmDialogMode(ConfirmDialogMode::ConfirmDelete);
 				} else if (guiEvent.GetControl() == m_ConfirmationButton) {
 					switch (m_ConfirmDialogMode) {
-					case ConfirmDialogMode::ConfirmOverwrite:
-						CreateSave();
-						break;
-					case ConfirmDialogMode::ConfirmDelete:
-						DeleteSave();
-						break;
+						case ConfirmDialogMode::ConfirmOverwrite:
+							CreateSave();
+							break;
+						case ConfirmDialogMode::ConfirmDelete:
+							DeleteSave();
+							break;
 					}
 					SwitchToConfirmDialogMode(ConfirmDialogMode::None);
 				} else if (guiEvent.GetControl() == m_CancelButton) {
 					SwitchToConfirmDialogMode(ConfirmDialogMode::None);
 				}
 			} else if (guiEvent.GetType() == GUIEvent::Notification) {
-				if (guiEvent.GetMsg() == GUIButton::Focused && dynamic_cast<GUIButton *>(guiEvent.GetControl())) { 
-					g_GUISound.SelectionChangeSound()->Play(); 
+				if (guiEvent.GetMsg() == GUIButton::Focused && dynamic_cast<GUIButton*>(guiEvent.GetControl())) {
+					g_GUISound.SelectionChangeSound()->Play();
 				}
 
 				if (guiEvent.GetControl() == m_SaveGamesListBox && (guiEvent.GetMsg() == GUIListBox::Select && m_SaveGamesListBox->GetSelectedIndex() > -1)) {
-					const SaveRecord &record = m_SaveGames[m_SaveGamesListBox->GetSelected()->m_ExtraIndex];
+					const SaveRecord& record = m_SaveGames[m_SaveGamesListBox->GetSelected()->m_ExtraIndex];
 					m_SaveGameName->SetText(record.SavePath.stem().string());
 				}
 
@@ -318,16 +317,16 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::Refresh() {
 		PopulateSaveGamesList();
 		UpdateButtonEnabledStates();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::Draw() const {
 		m_GUIControlManager->Draw();
 	}
-}
+} // namespace RTE

@@ -15,7 +15,6 @@ namespace RTE {
 	class PieSlice : public Entity {
 
 	public:
-
 		EntityAllocation(PieSlice);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -85,7 +84,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the PieSlice to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const PieSlice &reference);
+		int Create(const PieSlice& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -123,7 +122,11 @@ namespace RTE {
 		/// Sets the Direction of this PieSlice.
 		/// </summary>
 		/// <param name="newDirection">The new Direction of this PieSlice.</param>
-		void SetDirection(Directions newDirection) { if (newDirection != Directions::None) { m_Direction = newDirection; } }
+		void SetDirection(Directions newDirection) {
+			if (newDirection != Directions::None) {
+				m_Direction = newDirection;
+			}
+		}
 
 		/// <summary>
 		/// Gets whether or not this PieSlice can be the middle PieSlice of a PieQuadrant.
@@ -141,13 +144,13 @@ namespace RTE {
 		/// Gets the original Entity source of this PieSlice, if there is one.
 		/// </summary>
 		/// <returns>A pointer to the original Entity source of this PieSlice, if there is one.</returns>
-		const Entity * GetOriginalSource() const { return m_OriginalSource; }
+		const Entity* GetOriginalSource() const { return m_OriginalSource; }
 
 		/// <summary>
 		/// Sets the original Entity source of this PieSlice.
 		/// </summary>
 		/// <param name="originalSource">A pointer to the original Entity source of this PieSlice.</param>
-		void SetOriginalSource(const Entity *originalSource) { m_OriginalSource = originalSource; }
+		void SetOriginalSource(const Entity* originalSource) { m_OriginalSource = originalSource; }
 
 		/// <summary>
 		/// Gets whether or not this PieSlice is enabled.
@@ -172,19 +175,19 @@ namespace RTE {
 		/// </summary>
 		/// <param name="sliceIsSelected">Whether or not this PieSlice is selected, which may affect which icon is appropriate.</param>
 		/// <returns>The icon for this PieSlice.</returns>
-		BITMAP * GetAppropriateIcon(bool sliceIsSelected = false) const;
+		BITMAP* GetAppropriateIcon(bool sliceIsSelected = false) const;
 
 		/// <summary>
 		/// Sets the new Icon for this PieSlice. Ownership IS transferred.
 		/// </summary>
 		/// <param name="newIcon">The new Icon for this PieSlice.</param>
-		void SetIcon(Icon *newIcon) { m_Icon = std::unique_ptr<Icon>(newIcon); }
+		void SetIcon(Icon* newIcon) { m_Icon = std::unique_ptr<Icon>(newIcon); }
 
 		/// <summary>
 		/// Gets the SolObjectWrapper for the function this PieSlice should run when activated.
 		/// </summary>
 		/// <returns>The SolObjectWrapper this PieSlice should run when activated.</returns>
-		const SolObjectWrapper * GetLuabindFunctionObjectWrapper() const { return m_LuabindFunctionObject.get(); }
+		const SolObjectWrapper* GetLuabindFunctionObjectWrapper() const { return m_LuabindFunctionObject.get(); }
 
 		/// <summary>
 		/// Gets the file path of the Lua file this PieSlice should run when activated, if any.
@@ -196,32 +199,38 @@ namespace RTE {
 		/// Sets the file path of the scripted file this PieSlice should run when activated.
 		/// </summary>
 		/// <param name="newScriptPath">The file path of the Lua file this PieSlice should run when activated.</param>
-		void SetScriptPath(const std::string &newScriptPath) { m_LuabindFunctionObject = std::make_unique<SolObjectWrapper>(nullptr, newScriptPath); ReloadScripts(); }
+		void SetScriptPath(const std::string& newScriptPath) {
+			m_LuabindFunctionObject = std::make_unique<SolObjectWrapper>(nullptr, newScriptPath);
+			ReloadScripts();
+		}
 
 		/// <summary>
 		/// Gets the name of the Lua function to run when this PieSlice is activated.
 		/// </summary>
 		/// <returns>The name of the Lua function this PieSlice should execute when activated.</returns>
-		const std::string & GetFunctionName() const { return m_FunctionName; }
+		const std::string& GetFunctionName() const { return m_FunctionName; }
 
 		/// <summary>
 		/// Sets the name of the Lua function to run when this PieSlice is activated as a scripted pie menu option.
 		/// </summary>
 		/// <param name="newFunctionName">The name of the Lua function to run when this PieSlice is activated.</param>
-		void SetFunctionName(const std::string &newFunctionName) { m_FunctionName = newFunctionName; ReloadScripts(); }
+		void SetFunctionName(const std::string& newFunctionName) {
+			m_FunctionName = newFunctionName;
+			ReloadScripts();
+		}
 
-		//TODO Ideally this would be done with a weak_ptr but I'm not sure how it'll go with LuaMan. Try it out and see
+		// TODO Ideally this would be done with a weak_ptr but I'm not sure how it'll go with LuaMan. Try it out and see
 		/// <summary>
 		/// Gets the sub-PieMenu for this PieSlice if there is one. Ownership is NOT transferred.
 		/// </summary>
 		/// <returns>The sub-PieMenu for this PieSlice if there is one. Ownership is NOT transferred.</returns>
-		PieMenu * GetSubPieMenu() const;
+		PieMenu* GetSubPieMenu() const;
 
 		/// <summary>
 		/// Sets the sub-PieMenu for this PieSlice. Ownership IS transferred.
 		/// </summary>
 		/// <param name="newSubPieMenu">The new sub-PieMenu for this PieSlice. Ownership IS transferred.</param>
-		void SetSubPieMenu(PieMenu *newSubPieMenu);
+		void SetSubPieMenu(PieMenu* newSubPieMenu);
 #pragma endregion
 
 #pragma region Angle Getter and Setters
@@ -235,7 +244,10 @@ namespace RTE {
 		/// Sets the start angle this PieSlice's area should be at in its pie menu.
 		/// </summary>
 		/// <param name="startAngle">The start angle to set for the PieSlice's area.</param>
-		void SetStartAngle(float startAngle) { m_StartAngle = startAngle; RecalculateMidAngle(); }
+		void SetStartAngle(float startAngle) {
+			m_StartAngle = startAngle;
+			RecalculateMidAngle();
+		}
 
 		/// <summary>
 		/// Gets the number of slots this PieSlice takes up.
@@ -247,7 +259,10 @@ namespace RTE {
 		/// Sets the number of slots this PieSlice takes up.
 		/// </summary>
 		/// <param name="slotCount">The number of slots this PieSlice should take up.</param>
-		void SetSlotCount(int slotCount) { m_SlotCount = std::max(1, slotCount); RecalculateMidAngle(); }
+		void SetSlotCount(int slotCount) {
+			m_SlotCount = std::max(1, slotCount);
+			RecalculateMidAngle();
+		}
 
 		/// <summary>
 		/// Gets the mid angle this PieSlice's area is set to be at in its pie menu.
@@ -281,12 +296,11 @@ namespace RTE {
 		int ReloadScripts() final;
 
 	private:
-
 		/// <summary>
 		/// Custom deleter for PieMenu to avoid include problems with unique_ptr.
 		/// </summary>
 		struct PieMenuCustomDeleter {
-			void operator()(PieMenu *pieMenu) const;
+			void operator()(PieMenu* pieMenu) const;
 		};
 
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
@@ -294,7 +308,7 @@ namespace RTE {
 		SliceType m_Type; //!< The slice type, also used to determine the icon.
 		Directions m_Direction; //!< The desired direction/location of this on the PieMenu.
 		bool m_CanBeMiddleSlice; //!< Whether or not this PieSlice is allowed to be the middle slice. Defaults to true and should usually stay that way.
-		const Entity *m_OriginalSource; //!< A pointer to the original source of this PieSlice, normally filled in when PieSlices are added to PieMenus by objects other than the PieMenu's owner, and nullptr otherwise.
+		const Entity* m_OriginalSource; //!< A pointer to the original source of this PieSlice, normally filled in when PieSlices are added to PieMenus by objects other than the PieMenu's owner, and nullptr otherwise.
 
 		bool m_Enabled; //!< Whether this PieSlice is enabled or disabled and grayed out.
 		std::unique_ptr<Icon> m_Icon; //!< The icon of this PieSlice.
@@ -321,8 +335,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		PieSlice(const PieSlice &reference) = delete;
-		PieSlice &operator=(const PieSlice &rhs) = delete;
+		PieSlice(const PieSlice& reference) = delete;
+		PieSlice& operator=(const PieSlice& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

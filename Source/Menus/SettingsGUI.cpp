@@ -10,30 +10,32 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	SettingsGUI::SettingsGUI(AllegroScreen *guiScreen, GUIInputWrapper *guiInput, bool createForPauseMenu) {
+	SettingsGUI::SettingsGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
 		RTEAssert(m_GUIControlManager->Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "MainMenuSubMenuSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/MainMenuSubMenuSkin.ini");
 		m_GUIControlManager->Load(createForPauseMenu ? "Base.rte/GUIs/SettingsPauseGUI.ini" : "Base.rte/GUIs/SettingsGUI.ini");
 
 		int rootBoxMaxWidth = g_WindowMan.FullyCoversAllDisplays() ? g_WindowMan.GetPrimaryWindowDisplayWidth() / g_WindowMan.GetResMultiplier() : g_WindowMan.GetResX();
 
-		GUICollectionBox *rootBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("root"));
+		GUICollectionBox* rootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("root"));
 		rootBox->Resize(rootBoxMaxWidth, g_WindowMan.GetResY());
 
-		m_SettingsTabberBox = dynamic_cast<GUICollectionBox *>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
+		m_SettingsTabberBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
 		m_SettingsTabberBox->SetPositionAbs((rootBox->GetWidth() - m_SettingsTabberBox->GetWidth()) / 2, 140);
-		if (rootBox->GetHeight() < 540) { m_SettingsTabberBox->CenterInParent(true, true); }
+		if (rootBox->GetHeight() < 540) {
+			m_SettingsTabberBox->CenterInParent(true, true);
+		}
 
-		m_BackToMainButton = dynamic_cast<GUIButton *>(m_GUIControlManager->GetControl("ButtonBackToMainMenu"));
+		m_BackToMainButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonBackToMainMenu"));
 		m_BackToMainButton->SetPositionAbs((rootBox->GetWidth() - m_BackToMainButton->GetWidth()) / 2, m_SettingsTabberBox->GetYPos() + m_SettingsTabberBox->GetHeight() + 10);
 
-		m_SettingsMenuTabs[SettingsMenuScreen::VideoSettingsMenu] = dynamic_cast<GUITab *>(m_GUIControlManager->GetControl("TabVideoSettings"));
-		m_SettingsMenuTabs[SettingsMenuScreen::AudioSettingsMenu] = dynamic_cast<GUITab *>(m_GUIControlManager->GetControl("TabAudioSettings"));
-		m_SettingsMenuTabs[SettingsMenuScreen::InputSettingsMenu] = dynamic_cast<GUITab *>(m_GUIControlManager->GetControl("TabInputSettings"));
-		m_SettingsMenuTabs[SettingsMenuScreen::GameplaySettingsMenu] = dynamic_cast<GUITab *>(m_GUIControlManager->GetControl("TabGameplaySettings"));
-		m_SettingsMenuTabs[SettingsMenuScreen::MiscSettingsMenu] = dynamic_cast<GUITab *>(m_GUIControlManager->GetControl("TabMiscSettings"));
+		m_SettingsMenuTabs[SettingsMenuScreen::VideoSettingsMenu] = dynamic_cast<GUITab*>(m_GUIControlManager->GetControl("TabVideoSettings"));
+		m_SettingsMenuTabs[SettingsMenuScreen::AudioSettingsMenu] = dynamic_cast<GUITab*>(m_GUIControlManager->GetControl("TabAudioSettings"));
+		m_SettingsMenuTabs[SettingsMenuScreen::InputSettingsMenu] = dynamic_cast<GUITab*>(m_GUIControlManager->GetControl("TabInputSettings"));
+		m_SettingsMenuTabs[SettingsMenuScreen::GameplaySettingsMenu] = dynamic_cast<GUITab*>(m_GUIControlManager->GetControl("TabGameplaySettings"));
+		m_SettingsMenuTabs[SettingsMenuScreen::MiscSettingsMenu] = dynamic_cast<GUITab*>(m_GUIControlManager->GetControl("TabMiscSettings"));
 
 		m_VideoSettingsMenu = std::make_unique<SettingsVideoGUI>(m_GUIControlManager.get());
 		m_AudioSettingsMenu = std::make_unique<SettingsAudioGUI>(m_GUIControlManager.get());
@@ -52,10 +54,10 @@ namespace RTE {
 		m_SettingsMenuTabs[m_ActiveSettingsMenuScreen]->SetCheck(true);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	GUICollectionBox * SettingsGUI::GetActiveDialogBox() const {
-		GUICollectionBox *activeDialogBox = nullptr;
+	GUICollectionBox* SettingsGUI::GetActiveDialogBox() const {
+		GUICollectionBox* activeDialogBox = nullptr;
 		switch (m_ActiveSettingsMenuScreen) {
 			case SettingsMenuScreen::VideoSettingsMenu:
 				activeDialogBox = m_VideoSettingsMenu->GetActiveDialogBox();
@@ -71,7 +73,7 @@ namespace RTE {
 		return activeDialogBox;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGUI::CloseActiveDialogBox() const {
 		switch (m_ActiveSettingsMenuScreen) {
@@ -88,16 +90,16 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGUI::DisableSettingsMenuNavigation(bool disable) const {
 		m_BackToMainButton->SetEnabled(!disable);
-		for (GUITab *settingsTabberTab : m_SettingsMenuTabs) {
+		for (GUITab* settingsTabberTab: m_SettingsMenuTabs) {
 			settingsTabberTab->SetEnabled(!disable);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGUI::SetActiveSettingsMenuScreen(SettingsMenuScreen activeMenu, bool playButtonPressSound) {
 		m_VideoSettingsMenu->SetEnabled(false);
@@ -130,10 +132,12 @@ namespace RTE {
 		// Remove focus so the tab hovered graphic is removed after being pressed, otherwise it remains stuck on the active tab.
 		m_GUIControlManager->GetManager()->SetFocus(nullptr);
 
-		if (playButtonPressSound) { g_GUISound.BackButtonPressSound()->Play(); }
+		if (playButtonPressSound) {
+			g_GUISound.BackButtonPressSound()->Play();
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsGUI::HandleInputEvents() {
 		m_GUIControlManager->Update();
@@ -146,7 +150,9 @@ namespace RTE {
 					return true;
 				}
 			} else if (guiEvent.GetType() == GUIEvent::Notification) {
-				if ((guiEvent.GetMsg() == GUIButton::Focused) && dynamic_cast<GUIButton *>(guiEvent.GetControl()) || (guiEvent.GetMsg() == GUITab::Hovered && dynamic_cast<GUITab *>(guiEvent.GetControl()))) { g_GUISound.SelectionChangeSound()->Play(); }
+				if ((guiEvent.GetMsg() == GUIButton::Focused) && dynamic_cast<GUIButton*>(guiEvent.GetControl()) || (guiEvent.GetMsg() == GUITab::Hovered && dynamic_cast<GUITab*>(guiEvent.GetControl()))) {
+					g_GUISound.SelectionChangeSound()->Play();
+				}
 
 				if (guiEvent.GetMsg() == GUITab::UnPushed) {
 					if (guiEvent.GetControl() == m_SettingsMenuTabs[SettingsMenuScreen::VideoSettingsMenu]) {
@@ -194,10 +200,10 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGUI::Draw() const {
 		m_GUIControlManager->Draw();
 		m_GUIControlManager->DrawMouse();
 	}
-}
+} // namespace RTE

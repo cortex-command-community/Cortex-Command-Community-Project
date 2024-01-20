@@ -11,20 +11,19 @@ namespace RTE {
 	class AllegroScreen : public GUIScreen {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate an AllegroScreen object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="backBuffer">A bitmap that represents the back buffer. Ownership is NOT transferred!</param>
-		explicit AllegroScreen(BITMAP *backBuffer) { m_BackBufferBitmap = std::make_unique<AllegroBitmap>(backBuffer); }
+		explicit AllegroScreen(BITMAP* backBuffer) { m_BackBufferBitmap = std::make_unique<AllegroBitmap>(backBuffer); }
 
 		/// <summary>
 		/// Creates a bitmap from a file.
 		/// </summary>
 		/// <param name="fileName">File name to create bitmap from.</param>
 		/// <returns>Pointer to the created bitmap. Ownership IS transferred!</returns>
-		GUIBitmap * CreateBitmap(const std::string &fileName) override;
+		GUIBitmap* CreateBitmap(const std::string& fileName) override;
 
 		/// <summary>
 		/// Creates an empty bitmap.
@@ -32,7 +31,7 @@ namespace RTE {
 		/// <param name="width">Bitmap width.</param>
 		/// <param name="height">Bitmap height.</param>
 		/// <returns>Pointer to the created bitmap. Ownership IS transferred!</returns>
-		GUIBitmap * CreateBitmap(int width, int height) override;
+		GUIBitmap* CreateBitmap(int width, int height) override;
 #pragma endregion
 
 #pragma region Destruction
@@ -52,7 +51,7 @@ namespace RTE {
 		/// Gets the bitmap representing the screen.
 		/// </summary>
 		/// <returns>Pointer to the bitmap representing the screen. Ownership is NOT transferred!</returns>
-		GUIBitmap * GetBitmap() const override { return m_BackBufferBitmap.get(); }
+		GUIBitmap* GetBitmap() const override { return m_BackBufferBitmap.get(); }
 #pragma endregion
 
 #pragma region Drawing
@@ -63,7 +62,7 @@ namespace RTE {
 		/// <param name="destX">Destination X position</param>
 		/// <param name="destY">Destination Y position</param>
 		/// <param name="srcPosAndSizeRect">Source bitmap position and size rectangle.</param>
-		void DrawBitmap(GUIBitmap *guiBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) override;
+		void DrawBitmap(GUIBitmap* guiBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) override;
 
 		/// <summary>
 		/// Draws a bitmap onto the back buffer ignoring color-keyed pixels.
@@ -72,7 +71,7 @@ namespace RTE {
 		/// <param name="destX">Destination X position</param>
 		/// <param name="destY">Destination Y position</param>
 		/// <param name="srcPosAndSizeRect">Source bitmap position and size rectangle.</param>
-		void DrawBitmapTrans(GUIBitmap *guiBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) override;
+		void DrawBitmapTrans(GUIBitmap* guiBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) override;
 #pragma endregion
 
 #pragma region Virtual Override Methods
@@ -86,11 +85,10 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		std::unique_ptr<AllegroBitmap> m_BackBufferBitmap; //!< The AllegroBitmap that makes this AllegroScreen.
 
 		// Disallow the use of some implicit methods.
-		AllegroScreen & operator=(const AllegroScreen &rhs) = delete;
+		AllegroScreen& operator=(const AllegroScreen& rhs) = delete;
 	};
-};
+}; // namespace RTE
 #endif

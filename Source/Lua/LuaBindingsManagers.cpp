@@ -25,7 +25,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ActivityMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(ActivityMan, "ActivityManager");
@@ -33,11 +33,11 @@ namespace RTE {
 		luaType["DefaultActivityType"] = sol::property(&ActivityMan::GetDefaultActivityType, &ActivityMan::SetDefaultActivityType);
 		luaType["DefaultActivityName"] = sol::property(&ActivityMan::GetDefaultActivityName, &ActivityMan::SetDefaultActivityName);
 
-		luaType["SetStartActivity"] = &ActivityMan::SetStartActivity;//; //, luabind::adopt(_2);
+		luaType["SetStartActivity"] = &ActivityMan::SetStartActivity; //; //, luabind::adopt(_2);
 		luaType["GetStartActivity"] = &ActivityMan::GetStartActivity;
 		luaType["GetActivity"] = &ActivityMan::GetActivity;
-		luaType["StartActivity"] = (int (ActivityMan::*)(Activity*)) &ActivityMan::StartActivity;//; //, luabind::adopt(_2);
-		luaType["StartActivity"] = (int (ActivityMan::*)(const std::string &, const std::string &))&ActivityMan::StartActivity;
+		luaType["StartActivity"] = (int(ActivityMan::*)(Activity*)) & ActivityMan::StartActivity; //; //, luabind::adopt(_2);
+		luaType["StartActivity"] = (int(ActivityMan::*)(const std::string&, const std::string&)) & ActivityMan::StartActivity;
 		luaType["RestartActivity"] = &ActivityMan::RestartActivity;
 		luaType["PauseActivity"] = &ActivityMan::PauseActivity;
 		luaType["EndActivity"] = &ActivityMan::EndActivity;
@@ -47,7 +47,7 @@ namespace RTE {
 		luaType["LoadGame"] = &ActivityMan::LoadAndLaunchGame;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(AudioMan, "AudioManager");
@@ -69,12 +69,12 @@ namespace RTE {
 		luaType["QueueMusicStream"] = &AudioMan::QueueMusicStream;
 		luaType["QueueSilence"] = &AudioMan::QueueSilence;
 		luaType["ClearMusicQueue"] = &AudioMan::ClearMusicQueue;
-		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath)) &AudioMan::PlaySound;//; //, luabind::adopt(luabind::result);
-		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position)) &AudioMan::PlaySound;//; //, luabind::adopt(luabind::result);
-		luaType["PlaySound"] = (SoundContainer *(AudioMan:: *)(const std::string &filePath, const Vector &position, int player)) &AudioMan::PlaySound;//; //, luabind::adopt(luabind::result);
+		luaType["PlaySound"] = (SoundContainer * (AudioMan::*)(const std::string& filePath)) & AudioMan::PlaySound; //; //, luabind::adopt(luabind::result);
+		luaType["PlaySound"] = (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position)) & AudioMan::PlaySound; //; //, luabind::adopt(luabind::result);
+		luaType["PlaySound"] = (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position, int player)) & AudioMan::PlaySound; //; //, luabind::adopt(luabind::result);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(ConsoleMan, "ConsoleManager");
@@ -85,7 +85,7 @@ namespace RTE {
 		luaType["Clear"] = &ConsoleMan::ClearLog;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, FrameMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(FrameMan, "FrameManager");
@@ -109,7 +109,7 @@ namespace RTE {
 		luaType["SplitStringToFitWidth"] = &FrameMan::SplitStringToFitWidth;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MetaMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(MetaMan, "MetaManager");
@@ -125,7 +125,7 @@ namespace RTE {
 		luaType["GetMetaPlayerOfInGamePlayer"] = &MetaMan::GetMetaPlayerOfInGamePlayer;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(MovableMan, "MovableManager");
@@ -150,8 +150,8 @@ namespace RTE {
 		luaType["GetPrevActorInGroup"] = &MovableMan::GetPrevActorInGroup;
 		luaType["GetNextTeamActor"] = &MovableMan::GetNextTeamActor;
 		luaType["GetPrevTeamActor"] = &MovableMan::GetPrevTeamActor;
-		luaType["GetClosestTeamActor"] = (Actor * (MovableMan::*)(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, const Actor *excludeThis))&MovableMan::GetClosestTeamActor;
-		luaType["GetClosestTeamActor"] = (Actor * (MovableMan::*)(int team, int player, const Vector &scenePoint, int maxRadius, Vector &getDistance, bool onlyPlayerControllableActors, const Actor *excludeThis))&MovableMan::GetClosestTeamActor;
+		luaType["GetClosestTeamActor"] = (Actor * (MovableMan::*)(int team, int player, const Vector& scenePoint, int maxRadius, Vector& getDistance, const Actor* excludeThis)) & MovableMan::GetClosestTeamActor;
+		luaType["GetClosestTeamActor"] = (Actor * (MovableMan::*)(int team, int player, const Vector& scenePoint, int maxRadius, Vector& getDistance, bool onlyPlayerControllableActors, const Actor* excludeThis)) & MovableMan::GetClosestTeamActor;
 		luaType["GetClosestEnemyActor"] = &MovableMan::GetClosestEnemyActor;
 		luaType["GetFirstTeamActor"] = &MovableMan::GetFirstTeamActor;
 		luaType["GetClosestActor"] = &MovableMan::GetClosestActor;
@@ -180,12 +180,12 @@ namespace RTE {
 		luaType["IsParticleSettlingEnabled"] = &MovableMan::IsParticleSettlingEnabled;
 		luaType["EnableParticleSettling"] = &MovableMan::EnableParticleSettling;
 		luaType["IsMOSubtractionEnabled"] = &MovableMan::IsMOSubtractionEnabled;
-		luaType["GetMOsInBox"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Box &box) const)&MovableMan::GetMOsInBox;
-		luaType["GetMOsInBox"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Box &box, int ignoreTeam) const)&MovableMan::GetMOsInBox;
-		luaType["GetMOsInBox"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Box &box, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInBox;
-		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius) const)&MovableMan::GetMOsInRadius;
-		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam) const)&MovableMan::GetMOsInRadius;
-		luaType["GetMOsInRadius"] = (const std::vector<MovableObject *>  (MovableMan::*)(const Vector &centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const)&MovableMan::GetMOsInRadius;
+		luaType["GetMOsInBox"] = (const std::vector<MovableObject*> (MovableMan::*)(const Box& box) const) & MovableMan::GetMOsInBox;
+		luaType["GetMOsInBox"] = (const std::vector<MovableObject*> (MovableMan::*)(const Box& box, int ignoreTeam) const) & MovableMan::GetMOsInBox;
+		luaType["GetMOsInBox"] = (const std::vector<MovableObject*> (MovableMan::*)(const Box& box, int ignoreTeam, bool getsHitByMOsOnly) const) & MovableMan::GetMOsInBox;
+		luaType["GetMOsInRadius"] = (const std::vector<MovableObject*> (MovableMan::*)(const Vector& centre, float radius) const) & MovableMan::GetMOsInRadius;
+		luaType["GetMOsInRadius"] = (const std::vector<MovableObject*> (MovableMan::*)(const Vector& centre, float radius, int ignoreTeam) const) & MovableMan::GetMOsInRadius;
+		luaType["GetMOsInRadius"] = (const std::vector<MovableObject*> (MovableMan::*)(const Vector& centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const) & MovableMan::GetMOsInRadius;
 
 		luaType["SendGlobalMessage"] = &LuaAdaptersMovableMan::SendGlobalMessage1;
 		luaType["SendGlobalMessage"] = &LuaAdaptersMovableMan::SendGlobalMessage2;
@@ -195,7 +195,7 @@ namespace RTE {
 		luaType["AddParticle"] = &LuaAdaptersMovableMan::AddParticle; //, luabind::adopt(_2);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PerformanceMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(PerformanceMan, "PerformanceManager");
@@ -203,7 +203,7 @@ namespace RTE {
 		luaType["ShowPerformanceStats"] = sol::property(&PerformanceMan::IsShowingPerformanceStats, &PerformanceMan::ShowPerformanceStats);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PostProcessMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(PostProcessMan, "PostProcessManager");
@@ -211,24 +211,24 @@ namespace RTE {
 		luaType["RegisterPostEffect"] = &PostProcessMan::RegisterPostEffect;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(PresetMan, "PresetManager");
 
 		luaType["Modules"] = &PresetMan::m_pDataModules;
 
-		luaType["LoadDataModule"] = (bool (PresetMan::*)(const std::string &))&PresetMan::LoadDataModule;
+		luaType["LoadDataModule"] = (bool(PresetMan::*)(const std::string&)) & PresetMan::LoadDataModule;
 		luaType["GetDataModule"] = &PresetMan::GetDataModule;
 		luaType["GetModuleID"] = &PresetMan::GetModuleID;
 		luaType["GetModuleIDFromPath"] = &PresetMan::GetModuleIDFromPath;
 		luaType["GetTotalModuleCount"] = &PresetMan::GetTotalModuleCount;
 		luaType["GetOfficialModuleCount"] = &PresetMan::GetOfficialModuleCount;
 		luaType["AddPreset"] = &PresetMan::AddEntityPreset;
-		luaType["GetPreset"] = (const Entity *(PresetMan::*)(std::string, std::string, int))&PresetMan::GetEntityPreset;
-		luaType["GetPreset"] = (const Entity *(PresetMan::*)(std::string, std::string, std::string))&PresetMan::GetEntityPreset;
-		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, std::string, bool))&PresetMan::GetLoadout; //, luabind::adopt(luabind::result);
-		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, int, bool))&PresetMan::GetLoadout; //, luabind::adopt(luabind::result);
+		luaType["GetPreset"] = (const Entity* (PresetMan::*)(std::string, std::string, int)) & PresetMan::GetEntityPreset;
+		luaType["GetPreset"] = (const Entity* (PresetMan::*)(std::string, std::string, std::string)) & PresetMan::GetEntityPreset;
+		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, std::string, bool)) & PresetMan::GetLoadout; //, luabind::adopt(luabind::result);
+		luaType["GetLoadout"] = (Actor * (PresetMan::*)(std::string, int, bool)) & PresetMan::GetLoadout; //, luabind::adopt(luabind::result);
 		luaType["GetRandomOfGroup"] = &PresetMan::GetRandomOfGroup;
 		luaType["GetRandomOfGroupInModuleSpace"] = &PresetMan::GetRandomOfGroupInModuleSpace;
 		luaType["GetEntityDataLocation"] = &PresetMan::GetEntityDataLocation;
@@ -245,55 +245,55 @@ namespace RTE {
 		luaType["GetFullModulePath"] = &PresetMan::GetFullModulePath;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PrimitiveMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(PrimitiveMan, "PrimitiveManager");
 
-		luaType["DrawLinePrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawLinePrimitive;
-		luaType["DrawLinePrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color, int thickness))&PrimitiveMan::DrawLinePrimitive;
-		luaType["DrawLinePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawLinePrimitive;
-		luaType["DrawLinePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color, int thickness))&PrimitiveMan::DrawLinePrimitive;
-		luaType["DrawArcPrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color))&PrimitiveMan::DrawArcPrimitive;
-		luaType["DrawArcPrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color, int thickness))&PrimitiveMan::DrawArcPrimitive;
-		luaType["DrawArcPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color))&PrimitiveMan::DrawArcPrimitive;
-		luaType["DrawArcPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, float startAngle, float endAngle, int radius, unsigned char color, int thickness))&PrimitiveMan::DrawArcPrimitive;
-		luaType["DrawSplinePrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &guideA, const Vector &guideB, const Vector &end, unsigned char color))&PrimitiveMan::DrawSplinePrimitive;
-		luaType["DrawSplinePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &guideA, const Vector &guideB, const Vector &end, unsigned char color))&PrimitiveMan::DrawSplinePrimitive;
-		luaType["DrawBoxPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxPrimitive;
-		luaType["DrawBoxPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxPrimitive;
-		luaType["DrawBoxFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxFillPrimitive;
-		luaType["DrawBoxFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, unsigned char color))&PrimitiveMan::DrawBoxFillPrimitive;
-		luaType["DrawRoundedBoxPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxPrimitive;
-		luaType["DrawRoundedBoxPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxPrimitive;
-		luaType["DrawRoundedBoxFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxFillPrimitive;
-		luaType["DrawRoundedBoxFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const Vector &end, int cornerRadius, unsigned char color))&PrimitiveMan::DrawRoundedBoxFillPrimitive;
-		luaType["DrawCirclePrimitive"] = (void (PrimitiveMan::*)(const Vector & pos, int radius, unsigned char color))&PrimitiveMan::DrawCirclePrimitive;
-		luaType["DrawCirclePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, int radius, unsigned char color))&PrimitiveMan::DrawCirclePrimitive;
-		luaType["DrawCircleFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, int radius, unsigned char color))&PrimitiveMan::DrawCircleFillPrimitive;
-		luaType["DrawCircleFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, int radius, unsigned char color))&PrimitiveMan::DrawCircleFillPrimitive;
-		luaType["DrawEllipsePrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipsePrimitive;
-		luaType["DrawEllipsePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipsePrimitive;
-		luaType["DrawEllipseFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipseFillPrimitive;
-		luaType["DrawEllipseFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pos, int horizRadius, int vertRadius, unsigned char color))&PrimitiveMan::DrawEllipseFillPrimitive;
-		luaType["DrawTrianglePrimitive"] = (void (PrimitiveMan::*)(const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTrianglePrimitive;
-		luaType["DrawTrianglePrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTrianglePrimitive;
-		luaType["DrawTriangleFillPrimitive"] = (void (PrimitiveMan::*)(const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTriangleFillPrimitive;
-		luaType["DrawTriangleFillPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &pointA, const Vector &pointB, const Vector &pointC, unsigned char color))&PrimitiveMan::DrawTriangleFillPrimitive;
-		luaType["DrawTextPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const std::string &text, bool isSmall, int alignment))&PrimitiveMan::DrawTextPrimitive;
-		luaType["DrawTextPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const std::string &text, bool isSmall, int alignment, float rotAngle))&PrimitiveMan::DrawTextPrimitive;
-		luaType["DrawTextPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &text, bool isSmall, int alignment))&PrimitiveMan::DrawTextPrimitive;
-		luaType["DrawTextPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &text, bool isSmall, int alignment, float rotAngle))&PrimitiveMan::DrawTextPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const MOSprite *moSprite, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const MOSprite *moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const MOSprite *moSprite, float rotAngle, int frame))&PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const MOSprite *moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const std::string &filePath, float rotAngle))&PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, const std::string &filePath, float rotAngle, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &filePath, float rotAngle))&PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, const std::string &filePath, float rotAngle, bool hFlipped, bool vFlipped))&PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawIconPrimitive"] = (void (PrimitiveMan::*)(const Vector &start, Entity *entity))&PrimitiveMan::DrawIconPrimitive;
-		luaType["DrawIconPrimitive"] = (void (PrimitiveMan::*)(int player, const Vector &start, Entity *entity))&PrimitiveMan::DrawIconPrimitive;
+		luaType["DrawLinePrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const Vector& end, unsigned char color)) & PrimitiveMan::DrawLinePrimitive;
+		luaType["DrawLinePrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const Vector& end, unsigned char color, int thickness)) & PrimitiveMan::DrawLinePrimitive;
+		luaType["DrawLinePrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const Vector& end, unsigned char color)) & PrimitiveMan::DrawLinePrimitive;
+		luaType["DrawLinePrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const Vector& end, unsigned char color, int thickness)) & PrimitiveMan::DrawLinePrimitive;
+		luaType["DrawArcPrimitive"] = (void(PrimitiveMan::*)(const Vector& pos, float startAngle, float endAngle, int radius, unsigned char color)) & PrimitiveMan::DrawArcPrimitive;
+		luaType["DrawArcPrimitive"] = (void(PrimitiveMan::*)(const Vector& pos, float startAngle, float endAngle, int radius, unsigned char color, int thickness)) & PrimitiveMan::DrawArcPrimitive;
+		luaType["DrawArcPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& pos, float startAngle, float endAngle, int radius, unsigned char color)) & PrimitiveMan::DrawArcPrimitive;
+		luaType["DrawArcPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& pos, float startAngle, float endAngle, int radius, unsigned char color, int thickness)) & PrimitiveMan::DrawArcPrimitive;
+		luaType["DrawSplinePrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const Vector& guideA, const Vector& guideB, const Vector& end, unsigned char color)) & PrimitiveMan::DrawSplinePrimitive;
+		luaType["DrawSplinePrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const Vector& guideA, const Vector& guideB, const Vector& end, unsigned char color)) & PrimitiveMan::DrawSplinePrimitive;
+		luaType["DrawBoxPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const Vector& end, unsigned char color)) & PrimitiveMan::DrawBoxPrimitive;
+		luaType["DrawBoxPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const Vector& end, unsigned char color)) & PrimitiveMan::DrawBoxPrimitive;
+		luaType["DrawBoxFillPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const Vector& end, unsigned char color)) & PrimitiveMan::DrawBoxFillPrimitive;
+		luaType["DrawBoxFillPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const Vector& end, unsigned char color)) & PrimitiveMan::DrawBoxFillPrimitive;
+		luaType["DrawRoundedBoxPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const Vector& end, int cornerRadius, unsigned char color)) & PrimitiveMan::DrawRoundedBoxPrimitive;
+		luaType["DrawRoundedBoxPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const Vector& end, int cornerRadius, unsigned char color)) & PrimitiveMan::DrawRoundedBoxPrimitive;
+		luaType["DrawRoundedBoxFillPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const Vector& end, int cornerRadius, unsigned char color)) & PrimitiveMan::DrawRoundedBoxFillPrimitive;
+		luaType["DrawRoundedBoxFillPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const Vector& end, int cornerRadius, unsigned char color)) & PrimitiveMan::DrawRoundedBoxFillPrimitive;
+		luaType["DrawCirclePrimitive"] = (void(PrimitiveMan::*)(const Vector& pos, int radius, unsigned char color)) & PrimitiveMan::DrawCirclePrimitive;
+		luaType["DrawCirclePrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& pos, int radius, unsigned char color)) & PrimitiveMan::DrawCirclePrimitive;
+		luaType["DrawCircleFillPrimitive"] = (void(PrimitiveMan::*)(const Vector& pos, int radius, unsigned char color)) & PrimitiveMan::DrawCircleFillPrimitive;
+		luaType["DrawCircleFillPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& pos, int radius, unsigned char color)) & PrimitiveMan::DrawCircleFillPrimitive;
+		luaType["DrawEllipsePrimitive"] = (void(PrimitiveMan::*)(const Vector& pos, int horizRadius, int vertRadius, unsigned char color)) & PrimitiveMan::DrawEllipsePrimitive;
+		luaType["DrawEllipsePrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& pos, int horizRadius, int vertRadius, unsigned char color)) & PrimitiveMan::DrawEllipsePrimitive;
+		luaType["DrawEllipseFillPrimitive"] = (void(PrimitiveMan::*)(const Vector& pos, int horizRadius, int vertRadius, unsigned char color)) & PrimitiveMan::DrawEllipseFillPrimitive;
+		luaType["DrawEllipseFillPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& pos, int horizRadius, int vertRadius, unsigned char color)) & PrimitiveMan::DrawEllipseFillPrimitive;
+		luaType["DrawTrianglePrimitive"] = (void(PrimitiveMan::*)(const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color)) & PrimitiveMan::DrawTrianglePrimitive;
+		luaType["DrawTrianglePrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color)) & PrimitiveMan::DrawTrianglePrimitive;
+		luaType["DrawTriangleFillPrimitive"] = (void(PrimitiveMan::*)(const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color)) & PrimitiveMan::DrawTriangleFillPrimitive;
+		luaType["DrawTriangleFillPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color)) & PrimitiveMan::DrawTriangleFillPrimitive;
+		luaType["DrawTextPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const std::string& text, bool isSmall, int alignment)) & PrimitiveMan::DrawTextPrimitive;
+		luaType["DrawTextPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const std::string& text, bool isSmall, int alignment, float rotAngle)) & PrimitiveMan::DrawTextPrimitive;
+		luaType["DrawTextPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const std::string& text, bool isSmall, int alignment)) & PrimitiveMan::DrawTextPrimitive;
+		luaType["DrawTextPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const std::string& text, bool isSmall, int alignment, float rotAngle)) & PrimitiveMan::DrawTextPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const MOSprite* moSprite, float rotAngle, int frame)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const MOSprite* moSprite, float rotAngle, int frame)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const std::string& filePath, float rotAngle)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const std::string& filePath, float rotAngle)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawIconPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, Entity* entity)) & PrimitiveMan::DrawIconPrimitive;
+		luaType["DrawIconPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, Entity* entity)) & PrimitiveMan::DrawIconPrimitive;
 
 		luaType["DrawPolygonPrimitive"] = &LuaAdaptersPrimitiveMan::DrawPolygonPrimitive;
 		luaType["DrawPolygonPrimitive"] = &LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer;
@@ -304,7 +304,7 @@ namespace RTE {
 		luaType["DrawPrimitives"] = &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(SceneMan, "SceneManager");
@@ -322,15 +322,15 @@ namespace RTE {
 		luaType["KgPerOz"] = sol::property(&SceneMan::GetKgPerOz);
 		luaType["ScrapCompactingHeight"] = sol::property(&SceneMan::GetScrapCompactingHeight, &SceneMan::SetScrapCompactingHeight);
 
-		luaType["LoadScene"] = (int (SceneMan::*)(std::string, bool, bool))&SceneMan::LoadScene;
-		luaType["LoadScene"] = (int (SceneMan::*)(std::string, bool))&SceneMan::LoadScene;
+		luaType["LoadScene"] = (int(SceneMan::*)(std::string, bool, bool)) & SceneMan::LoadScene;
+		luaType["LoadScene"] = (int(SceneMan::*)(std::string, bool)) & SceneMan::LoadScene;
 
 		luaType["GetTerrain"] = &SceneMan::GetTerrain;
 		luaType["GetMaterial"] = &SceneMan::GetMaterial;
 		luaType["GetMaterialFromID"] = &SceneMan::GetMaterialFromID;
 		luaType["GetTerrMatter"] = &SceneMan::GetTerrMatter;
-		luaType["GetMOIDPixel"] = (MOID (SceneMan::*)(int, int))&SceneMan::GetMOIDPixel;
-		luaType["GetMOIDPixel"] = (MOID (SceneMan::*)(int, int, int))&SceneMan::GetMOIDPixel;
+		luaType["GetMOIDPixel"] = (MOID(SceneMan::*)(int, int)) & SceneMan::GetMOIDPixel;
+		luaType["GetMOIDPixel"] = (MOID(SceneMan::*)(int, int, int)) & SceneMan::GetMOIDPixel;
 		luaType["SetLayerDrawMode"] = &SceneMan::SetLayerDrawMode;
 		luaType["LoadUnseenLayer"] = &SceneMan::LoadUnseenLayer;
 		luaType["MakeAllUnseen"] = &SceneMan::MakeAllUnseen;
@@ -344,36 +344,36 @@ namespace RTE {
 		luaType["CastSeeRay"] = &SceneMan::CastSeeRay;
 		luaType["CastUnseeRay"] = &SceneMan::CastUnseeRay;
 		luaType["CastUnseenRay"] = &SceneMan::CastUnseenRay;
-		luaType["CastMaterialRay"] = (bool (SceneMan::*)(const Vector &, const Vector &, unsigned char, Vector &, int, bool))&SceneMan::CastMaterialRay;
-		luaType["CastMaterialRay"] = (float (SceneMan::*)(const Vector &, const Vector &, unsigned char, int))&SceneMan::CastMaterialRay;
-		luaType["CastNotMaterialRay"] = (bool (SceneMan::*)(const Vector &, const Vector &, unsigned char, Vector &, int, bool))&SceneMan::CastNotMaterialRay;
-		luaType["CastNotMaterialRay"] = (float (SceneMan::*)(const Vector &, const Vector &, unsigned char, int, bool))&SceneMan::CastNotMaterialRay;
+		luaType["CastMaterialRay"] = (bool(SceneMan::*)(const Vector&, const Vector&, unsigned char, Vector&, int, bool)) & SceneMan::CastMaterialRay;
+		luaType["CastMaterialRay"] = (float(SceneMan::*)(const Vector&, const Vector&, unsigned char, int)) & SceneMan::CastMaterialRay;
+		luaType["CastNotMaterialRay"] = (bool(SceneMan::*)(const Vector&, const Vector&, unsigned char, Vector&, int, bool)) & SceneMan::CastNotMaterialRay;
+		luaType["CastNotMaterialRay"] = (float(SceneMan::*)(const Vector&, const Vector&, unsigned char, int, bool)) & SceneMan::CastNotMaterialRay;
 		luaType["CastStrengthSumRay"] = &SceneMan::CastStrengthSumRay;
-		luaType["CastMaxStrengthRay"] = (float (SceneMan::*) (const Vector &, const Vector &, int, unsigned char))&SceneMan::CastMaxStrengthRay;
-		luaType["CastMaxStrengthRay"] = (float (SceneMan::*) (const Vector &, const Vector &, int))&SceneMan::CastMaxStrengthRay;
+		luaType["CastMaxStrengthRay"] = (float(SceneMan::*)(const Vector&, const Vector&, int, unsigned char)) & SceneMan::CastMaxStrengthRay;
+		luaType["CastMaxStrengthRay"] = (float(SceneMan::*)(const Vector&, const Vector&, int)) & SceneMan::CastMaxStrengthRay;
 		luaType["CastStrengthRay"] = &SceneMan::CastStrengthRay;
 		luaType["CastWeaknessRay"] = &SceneMan::CastWeaknessRay;
 		luaType["CastMORay"] = &SceneMan::CastMORay;
 		luaType["CastFindMORay"] = &SceneMan::CastFindMORay;
 		luaType["CastObstacleRay"] = &SceneMan::CastObstacleRay;
 		luaType["GetLastRayHitPos"] = &SceneMan::GetLastRayHitPos;
-		luaType["FindAltitude"] = (float (SceneMan::*) (const Vector&, int, int))&SceneMan::FindAltitude;
-		luaType["FindAltitude"] = (float (SceneMan::*) (const Vector&, int, int, bool))&SceneMan::FindAltitude;
+		luaType["FindAltitude"] = (float(SceneMan::*)(const Vector&, int, int)) & SceneMan::FindAltitude;
+		luaType["FindAltitude"] = (float(SceneMan::*)(const Vector&, int, int, bool)) & SceneMan::FindAltitude;
 		luaType["MovePointToGround"] = &SceneMan::MovePointToGround;
 		luaType["IsWithinBounds"] = &SceneMan::IsWithinBounds;
-		luaType["ForceBounds"] = (bool (SceneMan::*)(Vector &))&SceneMan::ForceBounds;
-		luaType["WrapPosition"] = (bool (SceneMan::*)(Vector &))&SceneMan::WrapPosition;
+		luaType["ForceBounds"] = (bool(SceneMan::*)(Vector&)) & SceneMan::ForceBounds;
+		luaType["WrapPosition"] = (bool(SceneMan::*)(Vector&)) & SceneMan::WrapPosition;
 		luaType["SnapPosition"] = &SceneMan::SnapPosition;
 		luaType["ShortestDistance"] = &SceneMan::ShortestDistance;
 		luaType["WrapBox"] = &LuaAdaptersSceneMan::WrapBoxes;
-		luaType["ObscuredPoint"] = (bool (SceneMan::*)(Vector &, int))&SceneMan::ObscuredPoint;
-		luaType["ObscuredPoint"] = (bool (SceneMan::*)(int, int, int))&SceneMan::ObscuredPoint;
+		luaType["ObscuredPoint"] = (bool(SceneMan::*)(Vector&, int)) & SceneMan::ObscuredPoint;
+		luaType["ObscuredPoint"] = (bool(SceneMan::*)(int, int, int)) & SceneMan::ObscuredPoint;
 		luaType["AddSceneObject"] = &SceneMan::AddSceneObject; //, luabind::adopt(_2);
-		luaType["CheckAndRemoveOrphans"] = (int (SceneMan::*)(int, int, int, int, bool))&SceneMan::RemoveOrphans;
+		luaType["CheckAndRemoveOrphans"] = (int(SceneMan::*)(int, int, int, int, bool)) & SceneMan::RemoveOrphans;
 		luaType["DislodgePixel"] = &SceneMan::DislodgePixel;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, CameraMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(CameraMan, "CameraManager");
@@ -387,8 +387,8 @@ namespace RTE {
 		luaType["TargetDistanceScalar"] = &CameraMan::TargetDistanceScalar;
 		luaType["CheckOffset"] = &CameraMan::CheckOffset;
 		luaType["SetScroll"] = &CameraMan::SetScroll;
-		luaType["AddScreenShake"] = (void (CameraMan::*)(float, int))&CameraMan::AddScreenShake;
-		luaType["AddScreenShake"] = (void (CameraMan::*)(float, const Vector &))&CameraMan::AddScreenShake;
+		luaType["AddScreenShake"] = (void(CameraMan::*)(float, int)) & CameraMan::AddScreenShake;
+		luaType["AddScreenShake"] = (void(CameraMan::*)(float, const Vector&)) & CameraMan::AddScreenShake;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -403,7 +403,7 @@ namespace RTE {
 		luaType["AutomaticGoldDeposit"] = sol::property(&SettingsMan::GetAutomaticGoldDeposit);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, TimerMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(TimerMan, "TimerManager");
@@ -422,7 +422,7 @@ namespace RTE {
 		luaType["DrawnSimUpdate"] = &TimerMan::DrawnSimUpdate;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, UInputMan) {
 		auto luaType = SimpleNamedTypeLuaClassDefinition(UInputMan, "UInputManager");
@@ -435,12 +435,12 @@ namespace RTE {
 		luaType["ElementPressed"] = &UInputMan::ElementPressed;
 		luaType["ElementReleased"] = &UInputMan::ElementReleased;
 		luaType["ElementHeld"] = &UInputMan::ElementHeld;
-		luaType["KeyPressed"] = (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyPressed;
-		luaType["KeyReleased"] = (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyReleased;
-		luaType["KeyHeld"] = (bool(UInputMan::*)(SDL_Keycode) const) &UInputMan::KeyHeld;
-		luaType["ScancodePressed"] = (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyPressed;
-		luaType["ScancodeReleased"] = (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyReleased;
-		luaType["ScancodeHeld"] = (bool(UInputMan::*)(SDL_Scancode) const) &UInputMan::KeyHeld;
+		luaType["KeyPressed"] = (bool(UInputMan::*)(SDL_Keycode) const) & UInputMan::KeyPressed;
+		luaType["KeyReleased"] = (bool(UInputMan::*)(SDL_Keycode) const) & UInputMan::KeyReleased;
+		luaType["KeyHeld"] = (bool(UInputMan::*)(SDL_Keycode) const) & UInputMan::KeyHeld;
+		luaType["ScancodePressed"] = (bool(UInputMan::*)(SDL_Scancode) const) & UInputMan::KeyPressed;
+		luaType["ScancodeReleased"] = (bool(UInputMan::*)(SDL_Scancode) const) & UInputMan::KeyReleased;
+		luaType["ScancodeHeld"] = (bool(UInputMan::*)(SDL_Scancode) const) & UInputMan::KeyHeld;
 		luaType["MouseButtonPressed"] = &UInputMan::MouseButtonPressed;
 		luaType["MouseButtonReleased"] = &UInputMan::MouseButtonReleased;
 		luaType["MouseButtonHeld"] = &UInputMan::MouseButtonHeld;
@@ -471,10 +471,10 @@ namespace RTE {
 		luaType["AnyPress"] = &UInputMan::AnyPress;
 		luaType["AnyStartPress"] = &UInputMan::AnyStartPress;
 		luaType["HasTextInput"] = &UInputMan::HasTextInput;
-		luaType["GetTextInput"] = (const std::string& (UInputMan::*)() const) &UInputMan::GetTextInput;
+		luaType["GetTextInput"] = (const std::string& (UInputMan::*)() const) & UInputMan::GetTextInput;
 
 		luaType["MouseButtonPressed"] = &LuaAdaptersUInputMan::MouseButtonPressed;
 		luaType["MouseButtonReleased"] = &LuaAdaptersUInputMan::MouseButtonReleased;
 		luaType["MouseButtonHeld"] = &LuaAdaptersUInputMan::MouseButtonHeld;
 	}
-}
+} // namespace RTE

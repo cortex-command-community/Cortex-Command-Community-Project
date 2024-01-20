@@ -13,14 +13,13 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, Activity) {
 		auto luaType = AbstractTypeLuaClassDefinition(Activity, Entity);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			Activity()
-		>());
+		                                       Activity()>());
 
 		luaType["Description"] = sol::property(&Activity::GetDescription);
 		luaType["InCampaignStage"] = sol::property(&Activity::GetInCampaignStage, &Activity::SetInCampaignStage);
@@ -140,15 +139,14 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, GameActivity) {
 		auto luaType = AbstractTypeLuaClassDefinition(GameActivity, Activity, Entity);
 		MarkLuaDynamicObject(luaType);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			GameActivity()
-		>());
+		                                       GameActivity()>());
 
 		luaType["WinnerTeam"] = sol::property(&GameActivity::GetWinnerTeam, &GameActivity::SetWinnerTeam);
 		luaType["CPUTeam"] = sol::property(&GameActivity::GetCPUTeam, &GameActivity::SetCPUTeam);
@@ -156,7 +154,7 @@ namespace RTE {
 		luaType["BuyMenuEnabled"] = sol::property(&GameActivity::GetBuyMenuEnabled, &GameActivity::SetBuyMenuEnabled);
 		luaType["CraftsOrbitAtTheEdge"] = sol::property(&GameActivity::GetCraftOrbitAtTheEdge, &GameActivity::SetCraftOrbitAtTheEdge);
 
-		//luaType["ActorCursor"] = &GameActivity::m_ActorCursor;
+		// luaType["ActorCursor"] = &GameActivity::m_ActorCursor;
 		luaType["CursorTimer"] = &GameActivity::m_CursorTimer;
 		luaType["GameTimer"] = &GameActivity::m_GameTimer;
 		luaType["GameOverTimer"] = &GameActivity::m_GameOverTimer;
@@ -186,13 +184,13 @@ namespace RTE {
 		luaType["YSortObjectivePoints"] = &GameActivity::YSortObjectivePoints;
 		luaType["ClearObjectivePoints"] = &GameActivity::ClearObjectivePoints;
 		luaType["AddOverridePurchase"] = &GameActivity::AddOverridePurchase;
-		luaType["SetOverridePurchaseList"] = (int (GameActivity::*)(const Loadout *, int))&GameActivity::SetOverridePurchaseList;
-		luaType["SetOverridePurchaseList"] = (int (GameActivity::*)(std::string, int))&GameActivity::SetOverridePurchaseList;
+		luaType["SetOverridePurchaseList"] = (int(GameActivity::*)(const Loadout*, int)) & GameActivity::SetOverridePurchaseList;
+		luaType["SetOverridePurchaseList"] = (int(GameActivity::*)(std::string, int)) & GameActivity::SetOverridePurchaseList;
 		luaType["ClearOverridePurchase"] = &GameActivity::ClearOverridePurchase;
-		luaType["CreateDelivery"] = (bool (GameActivity::*)(int))&GameActivity::CreateDelivery;
-		luaType["CreateDelivery"] = (bool (GameActivity::*)(int, int))&GameActivity::CreateDelivery;
-		luaType["CreateDelivery"] = (bool (GameActivity::*)(int, int, Vector&))&GameActivity::CreateDelivery;
-		luaType["CreateDelivery"] = (bool (GameActivity::*)(int, int, Actor*))&GameActivity::CreateDelivery;
+		luaType["CreateDelivery"] = (bool(GameActivity::*)(int)) & GameActivity::CreateDelivery;
+		luaType["CreateDelivery"] = (bool(GameActivity::*)(int, int)) & GameActivity::CreateDelivery;
+		luaType["CreateDelivery"] = (bool(GameActivity::*)(int, int, Vector&)) & GameActivity::CreateDelivery;
+		luaType["CreateDelivery"] = (bool(GameActivity::*)(int, int, Actor*)) & GameActivity::CreateDelivery;
 		luaType["GetDeliveryCount"] = &GameActivity::GetDeliveryCount;
 		luaType["GetTeamTech"] = &GameActivity::GetTeamTech;
 		luaType["SetTeamTech"] = &GameActivity::SetTeamTech;
@@ -224,4 +222,4 @@ namespace RTE {
 			enumTable["MAXDIFFICULTY"] = Activity::DifficultySetting::MaxDifficulty;
 		}
 	}
-}
+} // namespace RTE

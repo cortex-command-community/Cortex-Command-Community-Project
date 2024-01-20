@@ -21,7 +21,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACDropShip) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ACDropShip, ACraft, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -41,14 +41,13 @@ namespace RTE {
 		luaType["GetAltitude"] = &ACDropShip::GetAltitude;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACrab) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ACrab, Actor, MOSRotating, MOSprite, MovableObject, SceneObject);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			ACrab()
-		>());
+		                                       ACrab()>());
 
 		luaType["Turret"] = sol::property(&ACrab::GetTurret, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetTurret);
 		luaType["Jetpack"] = sol::property(&ACrab::GetJetpack, &LuaAdaptersPropertyOwnershipSafetyFaker::ACrabSetJetpack);
@@ -133,7 +132,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACraft) {
 		auto luaType = AbstractTypeLuaClassDefinition(ACraft, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -180,7 +179,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACRocket) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ACRocket, ACraft, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -204,14 +203,13 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			Actor()
-		>());
+		                                       Actor()>());
 
 		luaType["PlayerControllable"] = sol::property(&Actor::IsPlayerControllable, &Actor::SetPlayerControllable);
 		luaType["BodyHitSound"] = sol::property(&Actor::GetBodyHitSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetBodyHitSound);
@@ -266,8 +264,8 @@ namespace RTE {
 		luaType["SetControllerMode"] = &Actor::SetControllerMode;
 		luaType["SwapControllerModes"] = &Actor::SwapControllerModes;
 		luaType["GetStableVelocityThreshold"] = &Actor::GetStableVel;
-		luaType["SetStableVelocityThreshold"] = (void (Actor::*)(float, float))&Actor::SetStableVel;
-		luaType["SetStableVelocityThreshold"] = (void (Actor::*)(Vector))&Actor::SetStableVel;
+		luaType["SetStableVelocityThreshold"] = (void(Actor::*)(float, float)) & Actor::SetStableVel;
+		luaType["SetStableVelocityThreshold"] = (void(Actor::*)(Vector)) & Actor::SetStableVel;
 		luaType["GetAimAngle"] = &Actor::GetAimAngle;
 		luaType["SetAimAngle"] = &Actor::SetAimAngle;
 		luaType["HasObject"] = &Actor::HasObject;
@@ -288,9 +286,9 @@ namespace RTE {
 		luaType["AddToMovePathEnd"] = &Actor::AddToMovePathEnd;
 		luaType["RemoveMovePathBeginning"] = &Actor::RemoveMovePathBeginning;
 		luaType["RemoveMovePathEnd"] = &Actor::RemoveMovePathEnd;
-		luaType["AddInventoryItem"] = &Actor::AddInventoryItem;//; //, luabind::adopt(_2);
-		luaType["RemoveInventoryItem"] = (void (Actor::*)(const std::string &))&Actor::RemoveInventoryItem;
-		luaType["RemoveInventoryItem"] = (void (Actor::*)(const std::string &, const std::string &))&Actor::RemoveInventoryItem;
+		luaType["AddInventoryItem"] = &Actor::AddInventoryItem; //; //, luabind::adopt(_2);
+		luaType["RemoveInventoryItem"] = (void(Actor::*)(const std::string&)) & Actor::RemoveInventoryItem;
+		luaType["RemoveInventoryItem"] = (void(Actor::*)(const std::string&, const std::string&)) & Actor::RemoveInventoryItem;
 		luaType["RemoveInventoryItemAtIndex"] = &Actor::RemoveInventoryItemAtIndex; //, luabind::adopt(luabind::return_value))
 		luaType["SwapNextInventory"] = &Actor::SwapNextInventory;
 		luaType["SwapPrevInventory"] = &Actor::SwapPrevInventory;
@@ -380,7 +378,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ADoor) {
 		auto luaType = ConcreteTypeLuaClassDefinition(ADoor, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -408,14 +406,13 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 		auto luaType = ConcreteTypeLuaClassDefinition(AHuman, Actor, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			AHuman()
-		>());
+		                                       AHuman()>());
 
 		luaType["Head"] = sol::property(&AHuman::GetHead, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetHead);
 		luaType["Jetpack"] = sol::property(&AHuman::GetJetpack, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetJetpack);
@@ -456,8 +453,8 @@ namespace RTE {
 		luaType["EquipShield"] = &AHuman::EquipShield;
 		luaType["EquipShieldInBGArm"] = &AHuman::EquipShieldInBGArm;
 		luaType["EquipDeviceInGroup"] = &AHuman::EquipDeviceInGroup;
-		luaType["EquipNamedDevice"] = (bool (AHuman::*)(const std::string &, bool))&AHuman::EquipNamedDevice;
-		luaType["EquipNamedDevice"] = (bool (AHuman::*)(const std::string &, const std::string &, bool))&AHuman::EquipNamedDevice;
+		luaType["EquipNamedDevice"] = (bool(AHuman::*)(const std::string&, bool)) & AHuman::EquipNamedDevice;
+		luaType["EquipNamedDevice"] = (bool(AHuman::*)(const std::string&, const std::string&, bool)) & AHuman::EquipNamedDevice;
 		luaType["EquipLoadedFirearmInGroup"] = &AHuman::EquipLoadedFirearmInGroup;
 		luaType["UnequipFGArm"] = &AHuman::UnequipFGArm;
 		luaType["UnequipBGArm"] = &AHuman::UnequipBGArm;
@@ -551,7 +548,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Arm) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Arm, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -574,13 +571,13 @@ namespace RTE {
 		luaType["HeldDevice"] = sol::property(&Arm::GetHeldDevice, &LuaAdaptersPropertyOwnershipSafetyFaker::ArmSetHeldDevice);
 		luaType["SupportedHeldDevice"] = sol::property(&Arm::GetHeldDeviceThisArmIsTryingToSupport);
 
-		luaType["AddHandTarget"] = (void (Arm::*)(const std::string &description, const Vector &handTargetPositionToAdd))&Arm::AddHandTarget;
-		luaType["AddHandTarget"] = (void (Arm::*)(const std::string &description, const Vector &handTargetPositionToAdd, float delayAtTarget))&Arm::AddHandTarget;
+		luaType["AddHandTarget"] = (void(Arm::*)(const std::string& description, const Vector& handTargetPositionToAdd)) & Arm::AddHandTarget;
+		luaType["AddHandTarget"] = (void(Arm::*)(const std::string& description, const Vector& handTargetPositionToAdd, float delayAtTarget)) & Arm::AddHandTarget;
 		luaType["RemoveNextHandTarget"] = &Arm::RemoveNextHandTarget;
 		luaType["ClearHandTargets"] = &Arm::ClearHandTargets;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Leg) {
 		auto luaType = ConcreteTypeLuaClassDefinition(Leg, Attachable, MOSRotating, MOSprite, MovableObject, SceneObject, Entity);
@@ -589,7 +586,7 @@ namespace RTE {
 		luaType["MoveSpeed"] = sol::property(&Leg::GetMoveSpeed, &Leg::SetMoveSpeed);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, LimbPath) {
 		auto luaType = SimpleTypeLuaClassDefinition(LimbPath);
@@ -600,4 +597,4 @@ namespace RTE {
 
 		luaType["GetSegment"] = &LimbPath::GetSegment;
 	}
-}
+} // namespace RTE

@@ -5,7 +5,7 @@ namespace RTE {
 
 	const std::string TerrainFrosting::c_ClassName = "TerrainFrosting";
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TerrainFrosting::Clear() {
 		m_FrostingMaterial.Reset();
@@ -15,24 +15,23 @@ namespace RTE {
 		m_InAirOnly = true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int TerrainFrosting::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
-		
+
 		MatchProperty("FrostingMaterial", { reader >> m_FrostingMaterial; });
 		MatchProperty("TargetMaterial", { reader >> m_TargetMaterial; });
 		MatchProperty("MinThickness", { reader >> m_MinThickness; });
 		MatchProperty("MaxThickness", { reader >> m_MaxThickness; });
 		MatchProperty("InAirOnly", { reader >> m_InAirOnly; });
-		
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int TerrainFrosting::Save(Writer &writer) const {
+	int TerrainFrosting::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
 		writer.NewPropertyWithValue("FrostingMaterial", m_FrostingMaterial);
@@ -44,21 +43,21 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void TerrainFrosting::FrostTerrain(SLTerrain *terrain) const {
-		BITMAP *frostingTexture = m_FrostingMaterial.GetFGTexture();
-		BITMAP *fgColorBitmap = terrain->GetFGColorBitmap();
-		BITMAP *matBitmap = terrain->GetBitmap();
+	void TerrainFrosting::FrostTerrain(SLTerrain* terrain) const {
+		BITMAP* frostingTexture = m_FrostingMaterial.GetFGTexture();
+		BITMAP* fgColorBitmap = terrain->GetFGColorBitmap();
+		BITMAP* matBitmap = terrain->GetBitmap();
 
 		bool targetMatFound = false;
 		bool applyingFrosting = false;
 		int appliedThickness = 0;
 
 		// Reference. Do not remove.
-		//acquire_bitmap(matBitmap);
-		//acquire_bitmap(fgColorBitmap);
-		//if (frostingTexture) { acquire_bitmap(frostingTexture); }
+		// acquire_bitmap(matBitmap);
+		// acquire_bitmap(fgColorBitmap);
+		// if (frostingTexture) { acquire_bitmap(frostingTexture); }
 
 		for (int xPos = 0; xPos < matBitmap->w; ++xPos) {
 			int thicknessGoal = RandomNum(m_MinThickness, m_MaxThickness);
@@ -83,8 +82,8 @@ namespace RTE {
 			}
 		}
 		// Reference. Do not remove.
-		//if (frostingTexture) { release_bitmap(frostingTexture); }
-		//release_bitmap(fgColorBitmap);
-		//release_bitmap(matBitmap);
+		// if (frostingTexture) { release_bitmap(frostingTexture); }
+		// release_bitmap(fgColorBitmap);
+		// release_bitmap(matBitmap);
 	}
-}
+} // namespace RTE

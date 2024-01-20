@@ -57,42 +57,50 @@
 
 namespace RTE {
 
-	std::unordered_map<std::string, std::function<SolObjectWrapper * (Entity *, lua_State *)>> LuaAdaptersEntityCast::s_EntityToSolObjectCastFunctions = {};
+	std::unordered_map<std::string, std::function<SolObjectWrapper*(Entity*, lua_State*)>> LuaAdaptersEntityCast::s_EntityToSolObjectCastFunctions = {};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define LuaEntityCreateFunctionsDefinitionsForType(TYPE) \
 	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Create##TYPE(std::string presetName, std::string moduleName) { \
-		const Entity *entityPreset = g_PresetMan.GetEntityPreset(#TYPE, presetName, moduleName); \
+		const Entity* entityPreset = g_PresetMan.GetEntityPreset(#TYPE, presetName, moduleName); \
 		if (!entityPreset) { \
 			g_ConsoleMan.PrintString(std::string("ERROR: There is no ") + std::string(#TYPE) + std::string(" of the Preset name \"") + presetName + std::string("\" defined in the \"") + moduleName + std::string("\" Data Module!")); \
 			return std::unique_ptr<TYPE>(nullptr); \
 		} \
-		return std::unique_ptr<TYPE>(dynamic_cast<TYPE *>(entityPreset->Clone())); \
+		return std::unique_ptr<TYPE>(dynamic_cast<TYPE*>(entityPreset->Clone())); \
 	} \
 	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Create##TYPE(std::string preset) { \
 		return Create##TYPE(preset, "All"); \
 	} \
 	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, int moduleSpaceID) { \
-		const Entity *entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
-		if (!entityPreset) { entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); } \
-		if (!entityPreset) { entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); } \
+		const Entity* entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
 		if (!entityPreset) { \
-			g_ConsoleMan.PrintString(std::string("WARNING: Could not find any ") + std::string(#TYPE) + std::string(" defined in a Group called \"") + groupName + std::string("\" in module ") + g_PresetMan.GetDataModuleName(moduleSpaceID) + "!");	\
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); \
+		} \
+		if (!entityPreset) { \
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); \
+		} \
+		if (!entityPreset) { \
+			g_ConsoleMan.PrintString(std::string("WARNING: Could not find any ") + std::string(#TYPE) + std::string(" defined in a Group called \"") + groupName + std::string("\" in module ") + g_PresetMan.GetDataModuleName(moduleSpaceID) + "!"); \
 			return std::unique_ptr<TYPE>(nullptr); \
 		} \
-		return std::unique_ptr<TYPE>(dynamic_cast<TYPE *>(entityPreset->Clone())); \
+		return std::unique_ptr<TYPE>(dynamic_cast<TYPE*>(entityPreset->Clone())); \
 	} \
 	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, std::string dataModuleName) { \
 		int moduleSpaceID = g_PresetMan.GetModuleID(dataModuleName); \
-		const Entity *entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
-		if (!entityPreset) { entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); } \
-		if (!entityPreset) { entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); } \
+		const Entity* entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
+		if (!entityPreset) { \
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); \
+		} \
+		if (!entityPreset) { \
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); \
+		} \
 		if (!entityPreset) { \
 			g_ConsoleMan.PrintString(std::string("WARNING: Could not find any ") + std::string(#TYPE) + std::string(" defined in a Group called \"") + groupName + std::string("\" in module ") + dataModuleName + "!"); \
 			return std::unique_ptr<TYPE>(nullptr); \
 		} \
-		return std::unique_ptr<TYPE>(dynamic_cast<TYPE *>(entityPreset->Clone())); \
+		return std::unique_ptr<TYPE>(dynamic_cast<TYPE*>(entityPreset->Clone())); \
 	} \
 	std::unique_ptr<TYPE> LuaAdaptersEntityCreate::Random##TYPE(std::string groupName) { \
 		return Random##TYPE(groupName, "All"); \
@@ -127,12 +135,12 @@ namespace RTE {
 	LuaEntityCreateFunctionsDefinitionsForType(PieSlice);
 	LuaEntityCreateFunctionsDefinitionsForType(PieMenu);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define LuaEntityCloneFunctionDefinitionForType(TYPE) \
-	std::unique_ptr<TYPE> LuaAdaptersEntityClone::Clone##TYPE(const TYPE *thisEntity) { \
+	std::unique_ptr<TYPE> LuaAdaptersEntityClone::Clone##TYPE(const TYPE* thisEntity) { \
 		if (thisEntity) { \
-			return std::unique_ptr<TYPE>(dynamic_cast<TYPE *>(thisEntity->Clone())); \
+			return std::unique_ptr<TYPE>(dynamic_cast<TYPE*>(thisEntity->Clone())); \
 		} \
 		g_ConsoleMan.PrintString(std::string("ERROR: Tried to clone a ") + std::string(#TYPE) + std::string(" reference that is nil!")); \
 		return std::unique_ptr<TYPE>(nullptr); \
@@ -171,24 +179,28 @@ namespace RTE {
 	LuaEntityCloneFunctionDefinitionForType(PieSlice);
 	LuaEntityCloneFunctionDefinitionForType(PieMenu);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define LuaEntityCastFunctionsDefinitionsForType(TYPE) \
-	TYPE * LuaAdaptersEntityCast::To##TYPE(Entity *entity) { \
-		TYPE *targetType = dynamic_cast<TYPE *>(entity); \
-		if (!targetType) { g_ConsoleMan.PrintString(std::string("ERROR: Tried to convert a non-") + std::string(#TYPE) + std::string(" Entity reference to an ") + std::string(#TYPE) + std::string(" reference! Entity was ") + (entity ? entity->GetPresetName() : "nil")); } \
+	TYPE* LuaAdaptersEntityCast::To##TYPE(Entity* entity) { \
+		TYPE* targetType = dynamic_cast<TYPE*>(entity); \
+		if (!targetType) { \
+			g_ConsoleMan.PrintString(std::string("ERROR: Tried to convert a non-") + std::string(#TYPE) + std::string(" Entity reference to an ") + std::string(#TYPE) + std::string(" reference! Entity was ") + (entity ? entity->GetPresetName() : "nil")); \
+		} \
 		return targetType; \
 	} \
-	const TYPE * LuaAdaptersEntityCast::ToConst##TYPE(const Entity *entity) { \
-		const TYPE *targetType = dynamic_cast<const TYPE *>(entity); \
-		if (!targetType) { g_ConsoleMan.PrintString(std::string("ERROR: Tried to convert a non-") + std::string(#TYPE) + std::string(" Entity reference to an ") + std::string(#TYPE) + std::string(" reference! Entity was ") + (entity ? entity->GetPresetName() : "nil")); } \
+	const TYPE* LuaAdaptersEntityCast::ToConst##TYPE(const Entity* entity) { \
+		const TYPE* targetType = dynamic_cast<const TYPE*>(entity); \
+		if (!targetType) { \
+			g_ConsoleMan.PrintString(std::string("ERROR: Tried to convert a non-") + std::string(#TYPE) + std::string(" Entity reference to an ") + std::string(#TYPE) + std::string(" reference! Entity was ") + (entity ? entity->GetPresetName() : "nil")); \
+		} \
 		return targetType; \
 	} \
-	bool LuaAdaptersEntityCast::Is##TYPE(Entity *entity) { \
-		return dynamic_cast<TYPE *>(entity) ? true : false; \
+	bool LuaAdaptersEntityCast::Is##TYPE(Entity* entity) { \
+		return dynamic_cast<TYPE*>(entity) ? true : false; \
 	} \
-	SolObjectWrapper * LuaAdaptersEntityCast::ToSolObject##TYPE (Entity *entity, lua_State *luaState) { \
-		return new SolObjectWrapper(new sol::object(sol::make_object(luaState, dynamic_cast<TYPE *>(entity))), ""); \
+	SolObjectWrapper* LuaAdaptersEntityCast::ToSolObject##TYPE(Entity* entity, lua_State* luaState) { \
+		return new SolObjectWrapper(new sol::object(sol::make_object(luaState, dynamic_cast<TYPE*>(entity))), ""); \
 	} \
 	/* Bullshit semi-hack to automatically populate the Sol Object cast function map that is used in LuaMan::RunScriptFunctionObject */ \
 	static const bool EntityToSolObjectCastMapAutoInserterForType##TYPE = []() { \
@@ -234,11 +246,11 @@ namespace RTE {
 	LuaEntityCastFunctionsDefinitionsForType(PieSlice);
 	LuaEntityCastFunctionsDefinitionsForType(PieMenu);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define LuaPropertyOwnershipSafetyFakerFunctionDefinition(OBJECTTYPE, PROPERTYTYPE, SETTERFUNCTION) \
-	void LuaAdaptersPropertyOwnershipSafetyFaker::OBJECTTYPE##SETTERFUNCTION(OBJECTTYPE *luaSelfObject, PROPERTYTYPE *objectToSet) { \
-		luaSelfObject->SETTERFUNCTION(objectToSet ? dynamic_cast<PROPERTYTYPE *>(objectToSet->Clone()) : nullptr); \
+	void LuaAdaptersPropertyOwnershipSafetyFaker::OBJECTTYPE##SETTERFUNCTION(OBJECTTYPE* luaSelfObject, PROPERTYTYPE* objectToSet) { \
+		luaSelfObject->SETTERFUNCTION(objectToSet ? dynamic_cast<PROPERTYTYPE*>(objectToSet->Clone()) : nullptr); \
 	}
 
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(MOSRotating, SoundContainer, SetGibSound);
@@ -305,18 +317,18 @@ namespace RTE {
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetReloadStartSound);
 	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetReloadEndSound);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersEntity::SetPresetName(Entity *luaSelfObject, const std::string &presetName) {
+	void LuaAdaptersEntity::SetPresetName(Entity* luaSelfObject, const std::string& presetName) {
 		luaSelfObject->SetPresetName(presetName, true);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::vector<Vector> LuaAdaptersActor::GetSceneWaypoints(Actor *luaSelfObject) {
+	std::vector<Vector> LuaAdaptersActor::GetSceneWaypoints(Actor* luaSelfObject) {
 		std::vector<Vector> sceneWaypoints = std::vector<Vector>();
 		sceneWaypoints.reserve(luaSelfObject->GetWaypointsSize());
-		for (auto &[sceneWaypoint, movableObjectWaypoint] : luaSelfObject->GetWaypointList()) {
+		for (auto& [sceneWaypoint, movableObjectWaypoint]: luaSelfObject->GetWaypointList()) {
 			if (movableObjectWaypoint == nullptr) {
 				sceneWaypoints.emplace_back(sceneWaypoint);
 			}
@@ -324,15 +336,15 @@ namespace RTE {
 		return sceneWaypoints;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaAdaptersScene::CalculatePath2(Scene *luaSelfObject, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team) {
+	int LuaAdaptersScene::CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
 		std::list<Vector>& threadScenePath = luaSelfObject->GetScenePath();
 		team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
 		luaSelfObject->CalculatePath(start, end, threadScenePath, digStrength, team);
 		if (!threadScenePath.empty()) {
 			if (movePathToGround) {
-				for (Vector &scenePathPoint : threadScenePath) {
+				for (Vector& scenePathPoint: threadScenePath) {
 					scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
 				}
 			}
@@ -342,11 +354,11 @@ namespace RTE {
 		return -1;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersScene::CalculatePathAsync2(Scene *luaSelfObject, const sol::function &callbackParam, const Vector &start, const Vector &end, bool movePathToGround, float digStrength, Activity::Teams team) {
+	void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const sol::function& callbackParam, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
 		team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
-		
+
 		// So, luabind::object is a weak reference, holding just a stack and a position in the stack
 		// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
 		// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
@@ -362,19 +374,19 @@ namespace RTE {
 			sol::state_view solState(luaState->GetLuaState());
 			sol::function addAsyncCallbackLuaFunc = solState["_AddAsyncPathCallback"];
 			addAsyncCallbackLuaFunc.call(thisCallbackId, callbackParam);
-			//luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
+			// luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
 		}
 
 		auto callLuaCallback = [luaState, thisCallbackId, movePathToGround](std::shared_ptr<volatile PathRequest> pathRequestVol) {
 			// This callback is called from the async pathing thread, so we need to further delay this logic into the main thread (via AddLuaScriptCallback)
 			g_LuaMan.AddLuaScriptCallback([luaState, thisCallbackId, movePathToGround, pathRequestVol]() {
-				PathRequest pathRequest = const_cast<PathRequest &>(*pathRequestVol); // erh, to work with luabind etc
+				PathRequest pathRequest = const_cast<PathRequest&>(*pathRequestVol); // erh, to work with luabind etc
 				if (movePathToGround) {
-					for (Vector &scenePathPoint : pathRequest.path) {
+					for (Vector& scenePathPoint: pathRequest.path) {
 						scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
 					}
 				}
-			
+
 				sol::state_view solState(luaState->GetLuaState());
 				sol::function triggerAsyncCallbackLuaFunc = solState["_TriggerAsyncPathCallback"];
 				triggerAsyncCallbackLuaFunc.call(thisCallbackId, pathRequest);
@@ -384,49 +396,49 @@ namespace RTE {
 		luaSelfObject->CalculatePathAsync(start, end, digStrength, team, callLuaCallback);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersAHuman::ReloadFirearms(AHuman *luaSelfObject) {
+	void LuaAdaptersAHuman::ReloadFirearms(AHuman* luaSelfObject) {
 		luaSelfObject->ReloadFirearms(false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	float LuaAdaptersSceneObject::GetTotalValue(const SceneObject *luaSelfObject, int nativeModule, float foreignMult) {
+	float LuaAdaptersSceneObject::GetTotalValue(const SceneObject* luaSelfObject, int nativeModule, float foreignMult) {
 		return luaSelfObject->GetTotalValue(nativeModule, foreignMult, 1.0F);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaAdaptersSceneObject::GetBuyableMode(const SceneObject *luaSelfObject) {
+	int LuaAdaptersSceneObject::GetBuyableMode(const SceneObject* luaSelfObject) {
 		return static_cast<int>(luaSelfObject->GetBuyableMode());
 	}
-	
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersActivity::SendMessage1(Activity *luaSelfObject, const std::string &message) {
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void LuaAdaptersActivity::SendMessage1(Activity* luaSelfObject, const std::string& message) {
 		SendMessage2(luaSelfObject, message, sol::lua_nil);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersActivity::SendMessage2(Activity *luaSelfObject, const std::string &message, sol::object context) {
+	void LuaAdaptersActivity::SendMessage2(Activity* luaSelfObject, const std::string& message, sol::object context) {
 		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(luaSelfObject);
 		if (scriptedActivity) {
 			SolObjectWrapper wrapper(&context, "", false);
-			scriptedActivity->RunLuaFunction("OnMessage", {}, { message }, { &wrapper });
+			scriptedActivity->RunLuaFunction("OnMessage", {}, {message}, {&wrapper});
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersMovableObject::HasScript(MovableObject *luaSelfObject, const std::string &scriptPath) {
+	bool LuaAdaptersMovableObject::HasScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
 		return luaSelfObject->HasScript(g_PresetMan.GetFullModulePath(scriptPath));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersMovableObject::AddScript(MovableObject *luaSelfObject, const std::string &scriptPath) {
+	bool LuaAdaptersMovableObject::AddScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
 		switch (std::string correctedScriptPath = g_PresetMan.GetFullModulePath(scriptPath); luaSelfObject->LoadScript(correctedScriptPath)) {
 			case 0:
 				return true;
@@ -452,66 +464,65 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersMovableObject::EnableScript(MovableObject *luaSelfObject, const std::string &scriptPath) {
+	bool LuaAdaptersMovableObject::EnableScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
 		return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), true);
 	}
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool LuaAdaptersMovableObject::DisableScript1(MovableObject* luaSelfObject) {
 		std::string currentScriptFilePath(g_LuaMan.GetThreadCurrentLuaState()->GetCurrentlyRunningScriptFilePath());
 		return luaSelfObject->EnableOrDisableScript(currentScriptFilePath, false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersMovableObject::DisableScript2(MovableObject *luaSelfObject, const std::string &scriptPath) {
+	bool LuaAdaptersMovableObject::DisableScript2(MovableObject* luaSelfObject, const std::string& scriptPath) {
 		return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMovableObject::SendMessage1(MovableObject *luaSelfObject, const std::string &message) {
-		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, { message });
+	void LuaAdaptersMovableObject::SendMessage1(MovableObject* luaSelfObject, const std::string& message) {
+		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, {message});
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMovableObject::SendMessage2(MovableObject *luaSelfObject, const std::string &message, sol::object context) {
+	void LuaAdaptersMovableObject::SendMessage2(MovableObject* luaSelfObject, const std::string& message, sol::object context) {
 		SolObjectWrapper wrapper(&context, "", false);
-		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, { message }, { &wrapper });
+		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, {message}, {&wrapper});
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMOSRotating::GibThis(MOSRotating *luaSelfObject) {
+	void LuaAdaptersMOSRotating::GibThis(MOSRotating* luaSelfObject) {
 		luaSelfObject->GibThis();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::vector<AEmitter *> LuaAdaptersMOSRotating::GetWounds1(const MOSRotating *luaSelfObject) {
+	std::vector<AEmitter*> LuaAdaptersMOSRotating::GetWounds1(const MOSRotating* luaSelfObject) {
 		return GetWounds2(luaSelfObject, true, false, false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::vector<AEmitter *> LuaAdaptersMOSRotating::GetWounds2(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) {
-		auto wounds = std::vector<AEmitter *>();
+	std::vector<AEmitter*> LuaAdaptersMOSRotating::GetWounds2(const MOSRotating* luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) {
+		auto wounds = std::vector<AEmitter*>();
 		GetWoundsImpl(luaSelfObject, includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables, wounds);
 		return wounds;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMOSRotating::GetWoundsImpl(const MOSRotating *luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables, std::vector<AEmitter *> &wounds) {
+	void LuaAdaptersMOSRotating::GetWoundsImpl(const MOSRotating* luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables, std::vector<AEmitter*>& wounds) {
 		wounds.insert(wounds.end(), luaSelfObject->GetWoundList().begin(), luaSelfObject->GetWoundList().end());
 
 		if (includePositiveDamageAttachables || includeNegativeDamageAttachables || includeNoDamageAttachables) {
-			for (const Attachable *attachable : luaSelfObject->GetAttachables()) {
+			for (const Attachable* attachable: luaSelfObject->GetAttachables()) {
 				bool attachableSatisfiesConditions = (includePositiveDamageAttachables && attachable->GetDamageMultiplier() > 0) ||
 				                                     (includeNegativeDamageAttachables && attachable->GetDamageMultiplier() < 0) ||
 				                                     (includeNoDamageAttachables && attachable->GetDamageMultiplier() == 0);
@@ -523,10 +534,10 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::list<SceneObject*> * LuaAdaptersBuyMenuGUI::GetOrderList(const BuyMenuGUI *luaSelfObject) {
-		std::list<const SceneObject *> constOrderList;
+	std::list<SceneObject*>* LuaAdaptersBuyMenuGUI::GetOrderList(const BuyMenuGUI* luaSelfObject) {
+		std::list<const SceneObject*> constOrderList;
 		luaSelfObject->GetOrderList(constOrderList);
 
 		// Previously I tried to push back a cloned object for const-correctness (and giving unique ptr so luabind would clean it up after)
@@ -534,64 +545,64 @@ namespace RTE {
 		// But it didn't like that. So eh
 		// Todo, maybe retry this with Sol?
 		auto* orderList = new std::list<SceneObject*>();
-		for (const SceneObject *constObjectInOrderList : constOrderList) {
-			orderList->push_back( const_cast<SceneObject *>(constObjectInOrderList) );
+		for (const SceneObject* constObjectInOrderList: constOrderList) {
+			orderList->push_back(const_cast<SceneObject*>(constObjectInOrderList));
 		}
 
 		return orderList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Attachable * LuaAdaptersAttachable::RemoveFromParent1(Attachable *luaSelfObject) {
+	Attachable* LuaAdaptersAttachable::RemoveFromParent1(Attachable* luaSelfObject) {
 		if (luaSelfObject->IsAttached()) {
 			return luaSelfObject->GetParent()->RemoveAttachable(luaSelfObject);
 		}
 		return luaSelfObject;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Attachable * LuaAdaptersAttachable::RemoveFromParent2(Attachable *luaSelfObject, bool addToMovableMan, bool addBreakWounds) {
+	Attachable* LuaAdaptersAttachable::RemoveFromParent2(Attachable* luaSelfObject, bool addToMovableMan, bool addBreakWounds) {
 		if (luaSelfObject->IsAttached()) {
 			return luaSelfObject->GetParent()->RemoveAttachable(luaSelfObject, addToMovableMan, addBreakWounds);
 		}
 		return luaSelfObject;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersTurret::AddMountedFirearm(Turret *luaSelfObject, HDFirearm *newMountedDevice) {
+	void LuaAdaptersTurret::AddMountedFirearm(Turret* luaSelfObject, HDFirearm* newMountedDevice) {
 		luaSelfObject->AddMountedDevice(newMountedDevice);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersGlobalScript::Deactivate(GlobalScript *luaSelfObject) {
+	void LuaAdaptersGlobalScript::Deactivate(GlobalScript* luaSelfObject) {
 		luaSelfObject->SetActive(false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersPieMenu::AddPieSlice(PieMenu *luaSelfObject, PieSlice *pieSliceToAdd, const Entity *pieSliceOriginalSource) {
+	bool LuaAdaptersPieMenu::AddPieSlice(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource) {
 		return luaSelfObject->AddPieSlice(pieSliceToAdd, pieSliceOriginalSource, false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1(PieMenu *luaSelfObject, PieSlice *pieSliceToAdd, const Entity *pieSliceOriginalSource) {
+	bool LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource) {
 		return luaSelfObject->AddPieSliceIfPresetNameIsUnique(pieSliceToAdd, pieSliceOriginalSource, false, false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2(PieMenu *luaSelfObject, PieSlice *pieSliceToAdd, const Entity *pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource) {
+	bool LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource) {
 		return luaSelfObject->AddPieSliceIfPresetNameIsUnique(pieSliceToAdd, pieSliceOriginalSource, onlyCheckPieSlicesWithSameOriginalSource, false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMovableMan::AddMO(MovableMan &movableMan, MovableObject *movableObject) {
+	void LuaAdaptersMovableMan::AddMO(MovableMan& movableMan, MovableObject* movableObject) {
 		if (movableMan.ValidMO(movableObject)) {
 			g_ConsoleMan.PrintString("ERROR: Tried to add a MovableObject that already exists in the simulation! " + movableObject->GetPresetName());
 		} else {
@@ -599,9 +610,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMovableMan::AddActor(MovableMan &movableMan, Actor *actor) {
+	void LuaAdaptersMovableMan::AddActor(MovableMan& movableMan, Actor* actor) {
 		if (movableMan.IsActor(actor)) {
 			g_ConsoleMan.PrintString("ERROR: Tried to add an Actor that already exists in the simulation!" + actor->GetPresetName());
 		} else {
@@ -609,19 +620,19 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMovableMan::AddItem(MovableMan &movableMan, HeldDevice *item) {
-		if (movableMan.ValidMO(dynamic_cast<MovableObject *>(item))) {
+	void LuaAdaptersMovableMan::AddItem(MovableMan& movableMan, HeldDevice* item) {
+		if (movableMan.ValidMO(dynamic_cast<MovableObject*>(item))) {
 			g_ConsoleMan.PrintString("ERROR: Tried to add an Item that already exists in the simulation!" + item->GetPresetName());
 		} else {
 			movableMan.AddItem(item);
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMovableMan::AddParticle(MovableMan &movableMan, MovableObject *particle) {
+	void LuaAdaptersMovableMan::AddParticle(MovableMan& movableMan, MovableObject* particle) {
 		if (movableMan.ValidMO(particle)) {
 			g_ConsoleMan.PrintString("ERROR: Tried to add a Particle that already exists in the simulation!" + particle->GetPresetName());
 		} else {
@@ -629,165 +640,165 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMovableMan::SendGlobalMessage1(MovableMan &movableMan, const std::string &message) {
+	void LuaAdaptersMovableMan::SendGlobalMessage1(MovableMan& movableMan, const std::string& message) {
 		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
 		if (scriptedActivity) {
-			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, { message });
+			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, {message});
 		}
 
-		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, { message });
+		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message});
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan &movableMan, const std::string &message, sol::object context) {
+	void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan& movableMan, const std::string& message, sol::object context) {
 		SolObjectWrapper wrapper(&context, "", false);
 
 		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
 		if (scriptedActivity) {
-			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, { message }, { &wrapper });
+			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, {message}, {&wrapper});
 		}
 
-		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, { message }, { &wrapper });
+		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message}, {&wrapper});
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan &timerMan) {
+	double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan& timerMan) {
 		return static_cast<double>(timerMan.GetDeltaTimeTicks());
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	double LuaAdaptersTimerMan::GetTicksPerSecond(const TimerMan &timerMan) {
+	double LuaAdaptersTimerMan::GetTicksPerSecond(const TimerMan& timerMan) {
 		return static_cast<double>(timerMan.GetTicksPerSecond());
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersUInputMan::MouseButtonHeld(const UInputMan &uinputMan, int whichButton) {
+	bool LuaAdaptersUInputMan::MouseButtonHeld(const UInputMan& uinputMan, int whichButton) {
 		return uinputMan.MouseButtonHeld(whichButton, Players::PlayerOne);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersUInputMan::MouseButtonPressed(const UInputMan &uinputMan, int whichButton) {
+	bool LuaAdaptersUInputMan::MouseButtonPressed(const UInputMan& uinputMan, int whichButton) {
 		return uinputMan.MouseButtonPressed(whichButton, Players::PlayerOne);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersUInputMan::MouseButtonReleased(const UInputMan &uinputMan, int whichButton) {
+	bool LuaAdaptersUInputMan::MouseButtonReleased(const UInputMan& uinputMan, int whichButton) {
 		return uinputMan.MouseButtonReleased(whichButton, Players::PlayerOne);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersPresetMan::ReloadEntityPreset1(PresetMan &presetMan, const std::string &presetName, const std::string &className, const std::string &moduleName) {
+	bool LuaAdaptersPresetMan::ReloadEntityPreset1(PresetMan& presetMan, const std::string& presetName, const std::string& className, const std::string& moduleName) {
 		return presetMan.ReloadEntityPreset(presetName, className, moduleName);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaAdaptersPresetMan::ReloadEntityPreset2(PresetMan &presetMan, const std::string &presetName, const std::string &className) {
+	bool LuaAdaptersPresetMan::ReloadEntityPreset2(PresetMan& presetMan, const std::string& presetName, const std::string& className) {
 		return ReloadEntityPreset1(presetMan, presetName, className, "");
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::list<Entity *> * LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan &presetMan, const std::string &group, const std::string &type, int whichModule) {
-		std::list<Entity *> *entityList = new std::list<Entity *>();
+	std::list<Entity*>* LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan& presetMan, const std::string& group, const std::string& type, int whichModule) {
+		std::list<Entity*>* entityList = new std::list<Entity*>();
 		presetMan.GetAllOfGroup(*entityList, group, type, whichModule);
 		return entityList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	const std::list<Box> * LuaAdaptersSceneMan::WrapBoxes(SceneMan &sceneMan, const Box &boxToWrap) {
-		std::list<Box> *wrappedBoxes = new std::list<Box>();
+	const std::list<Box>* LuaAdaptersSceneMan::WrapBoxes(SceneMan& sceneMan, const Box& boxToWrap) {
+		std::list<Box>* wrappedBoxes = new std::list<Box>();
 		sceneMan.WrapBox(boxToWrap, *wrappedBoxes);
 		return wrappedBoxes;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitive(PrimitiveMan &primitiveMan, const Vector &centerPos, int color, const sol::object &verticesTable) {
-		primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, centerPos, color, ConvertLuaTableToVectorOfType<Vector *>(verticesTable), false);
+	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitive(PrimitiveMan& primitiveMan, const Vector& centerPos, int color, const sol::object& verticesTable) {
+		primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, centerPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &centerPos, int color, const sol::object &verticesTable) {
-		primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, centerPos, color, ConvertLuaTableToVectorOfType<Vector *>(verticesTable), false);
+	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& centerPos, int color, const sol::object& verticesTable) {
+		primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, centerPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), false);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive(PrimitiveMan &primitiveMan, const Vector &startPos, int color, const sol::object &verticesTable) {
-		primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, startPos, color, ConvertLuaTableToVectorOfType<Vector *>(verticesTable), true);
+	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive(PrimitiveMan& primitiveMan, const Vector& startPos, int color, const sol::object& verticesTable) {
+		primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, startPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), true);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer(PrimitiveMan &primitiveMan, int player, const Vector &startPos, int color, const sol::object &verticesTable) {
-		primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, startPos, color, ConvertLuaTableToVectorOfType<Vector *>(verticesTable), true);
+	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& startPos, int color, const sol::object& verticesTable) {
+		primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, startPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), true);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency(PrimitiveMan &primitiveMan, int transValue, const sol::object &primitivesTable) {
-		primitiveMan.SchedulePrimitivesForBlendedDrawing(DrawBlendMode::BlendTransparency, transValue, transValue, transValue, BlendAmountLimits::MinBlend, ConvertLuaTableToVectorOfType<GraphicalPrimitive *>(primitivesTable));
+	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency(PrimitiveMan& primitiveMan, int transValue, const sol::object& primitivesTable) {
+		primitiveMan.SchedulePrimitivesForBlendedDrawing(DrawBlendMode::BlendTransparency, transValue, transValue, transValue, BlendAmountLimits::MinBlend, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending(PrimitiveMan &primitiveMan, int blendMode, int blendAmount, const sol::object &primitivesTable) {
-		primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmount, blendAmount, blendAmount, blendAmount, ConvertLuaTableToVectorOfType<GraphicalPrimitive *>(primitivesTable));
+	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending(PrimitiveMan& primitiveMan, int blendMode, int blendAmount, const sol::object& primitivesTable) {
+		primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmount, blendAmount, blendAmount, blendAmount, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel(PrimitiveMan &primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const sol::object &primitivesTable) {
-		primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmountR, blendAmountG, blendAmountB, blendAmountA, ConvertLuaTableToVectorOfType<GraphicalPrimitive *>(primitivesTable));
+	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel(PrimitiveMan& primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const sol::object& primitivesTable) {
+		primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmountR, blendAmountG, blendAmountB, blendAmountA, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float LuaAdaptersUtility::GetMPP() {
 		return c_MPP;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float LuaAdaptersUtility::GetPPM() {
 		return c_PPM;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float LuaAdaptersUtility::GetLPP() {
 		return c_LPP;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float LuaAdaptersUtility::GetPPL() {
 		return c_PPL;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float LuaAdaptersUtility::GetPathFindingDefaultDigStrength() {
 		return c_PathFindingDefaultDigStrength;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void LuaAdaptersUtility::DeleteEntity(std::unique_ptr<Entity> &entityToDelete) {
+	void LuaAdaptersUtility::DeleteEntity(std::unique_ptr<Entity>& entityToDelete) {
 		delete entityToDelete.release();
 	}
 
 #pragma endregion
-}
+} // namespace RTE

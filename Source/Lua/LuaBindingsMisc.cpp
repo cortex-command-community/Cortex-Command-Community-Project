@@ -15,62 +15,39 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, AlarmEvent) {
 		auto luaType = SimpleTypeLuaClassDefinition(AlarmEvent);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			AlarmEvent(), 
-			AlarmEvent(const Vector&, int, float)
-		>());
+		                                       AlarmEvent(),
+		                                       AlarmEvent(const Vector&, int, float)>());
 
 		luaType["ScenePos"] = &AlarmEvent::m_ScenePos;
 		luaType["Team"] = &AlarmEvent::m_Team;
 		luaType["Range"] = &AlarmEvent::m_Range;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, Directions) {
-		EnumTypeLuaClassDefinition(Directions, "Directions", {
-			{ "None", Directions::None },
-			{ "Up", Directions::Up },
-			{ "Down", Directions::Down },
-			{ "Left", Directions::Left },
-			{ "Right", Directions::Right },
-			{ "Any", Directions::Any }
-		});
+		EnumTypeLuaClassDefinition(Directions, "Directions", {{"None", Directions::None}, {"Up", Directions::Up}, {"Down", Directions::Down}, {"Left", Directions::Left}, {"Right", Directions::Right}, {"Any", Directions::Any}});
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, DrawBlendMode) {
-		EnumTypeLuaClassDefinition(DrawBlendMode, "DrawBlendMode", {
-			{ "NoBlend", DrawBlendMode::NoBlend },
-			{ "Burn", DrawBlendMode::BlendBurn },
-			{ "Color", DrawBlendMode::BlendColor },
-			{ "Difference", DrawBlendMode::BlendDifference },
-			{ "Dissolve", DrawBlendMode::BlendDissolve },
-			{ "Dodge", DrawBlendMode::BlendDodge },
-			{ "Invert", DrawBlendMode::BlendInvert },
-			{ "Luminance", DrawBlendMode::BlendLuminance },
-			{ "Multiply", DrawBlendMode::BlendMultiply },
-			{ "Saturation", DrawBlendMode::BlendSaturation },
-			{ "Screen", DrawBlendMode::BlendScreen },
-			{ "Transparency", DrawBlendMode::BlendTransparency },
-			{ "BlendModeCount", DrawBlendMode::BlendModeCount }
-		});
+		EnumTypeLuaClassDefinition(DrawBlendMode, "DrawBlendMode", {{"NoBlend", DrawBlendMode::NoBlend}, {"Burn", DrawBlendMode::BlendBurn}, {"Color", DrawBlendMode::BlendColor}, {"Difference", DrawBlendMode::BlendDifference}, {"Dissolve", DrawBlendMode::BlendDissolve}, {"Dodge", DrawBlendMode::BlendDodge}, {"Invert", DrawBlendMode::BlendInvert}, {"Luminance", DrawBlendMode::BlendLuminance}, {"Multiply", DrawBlendMode::BlendMultiply}, {"Saturation", DrawBlendMode::BlendSaturation}, {"Screen", DrawBlendMode::BlendScreen}, {"Transparency", DrawBlendMode::BlendTransparency}, {"BlendModeCount", DrawBlendMode::BlendModeCount}});
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MetaPlayer) {
 		auto luaType = SimpleTypeLuaClassDefinition(MetaPlayer);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			MetaPlayer()
-		>());
+		                                       MetaPlayer()>());
 
 		luaType["NativeTechModule"] = sol::property(&MetaPlayer::GetNativeTechModule);
 		luaType["ForeignCostMultiplier"] = sol::property(&MetaPlayer::GetForeignCostMultiplier);
@@ -81,8 +58,7 @@ namespace RTE {
 		luaType["ChangeBrainPoolCount"] = &MetaPlayer::ChangeBrainPoolCount;
 	}
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieSlice) {
 		auto luaType = ConcreteTypeLuaClassDefinition(PieSlice, Entity);
@@ -141,7 +117,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieMenu) {
 		auto luaType = ConcreteTypeLuaClassDefinition(PieMenu, Entity);
@@ -184,14 +160,13 @@ namespace RTE {
 		luaType["ReplacePieSlice"] = &PieMenu::ReplacePieSlice; //, luabind::adopt(luabind::result) + luabind::adopt(_3);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 		auto luaType = ConcreteTypeLuaClassDefinition(SoundContainer, Entity);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			SoundContainer()
-		>());
+		                                       SoundContainer()>());
 
 		luaType["SoundOverlapMode"] = sol::property(&SoundContainer::GetSoundOverlapMode, &SoundContainer::SetSoundOverlapMode);
 		luaType["BusRouting"] = sol::property(&SoundContainer::GetBusRouting, &SoundContainer::SetBusRouting);
@@ -211,14 +186,14 @@ namespace RTE {
 		luaType["GetTopLevelSoundSet"] = &SoundContainer::GetTopLevelSoundSet;
 		luaType["SetTopLevelSoundSet"] = &SoundContainer::SetTopLevelSoundSet;
 		luaType["IsBeingPlayed"] = &SoundContainer::IsBeingPlayed;
-		luaType["Play"] = (bool (SoundContainer::*)()) & SoundContainer::Play;
-		luaType["Play"] = (bool (SoundContainer::*)(const int player)) & SoundContainer::Play;
-		luaType["Play"] = (bool (SoundContainer::*)(const Vector & position)) & SoundContainer::Play;
-		luaType["Play"] = (bool (SoundContainer::*)(const Vector & position, int player)) & SoundContainer::Play;
-		luaType["Stop"] = (bool (SoundContainer::*)()) & SoundContainer::Stop;
-		luaType["Stop"] = (bool (SoundContainer::*)(int player)) & SoundContainer::Stop;
-		luaType["Restart"] = (bool (SoundContainer::*)()) & SoundContainer::Restart;
-		luaType["Restart"] = (bool (SoundContainer::*)(int player)) & SoundContainer::Restart;
+		luaType["Play"] = (bool(SoundContainer::*)()) & SoundContainer::Play;
+		luaType["Play"] = (bool(SoundContainer::*)(const int player)) & SoundContainer::Play;
+		luaType["Play"] = (bool(SoundContainer::*)(const Vector& position)) & SoundContainer::Play;
+		luaType["Play"] = (bool(SoundContainer::*)(const Vector& position, int player)) & SoundContainer::Play;
+		luaType["Stop"] = (bool(SoundContainer::*)()) & SoundContainer::Stop;
+		luaType["Stop"] = (bool(SoundContainer::*)(int player)) & SoundContainer::Stop;
+		luaType["Restart"] = (bool(SoundContainer::*)()) & SoundContainer::Restart;
+		luaType["Restart"] = (bool(SoundContainer::*)(int player)) & SoundContainer::Restart;
 		luaType["FadeOut"] = &SoundContainer::FadeOut;
 
 		{
@@ -236,14 +211,13 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundSet) {
 		auto luaType = SimpleTypeLuaClassDefinition(SoundSet);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			SoundSet()
-		>());
+		                                       SoundSet()>());
 
 		luaType["SoundSelectionCycleMode"] = sol::property(&SoundSet::GetSoundSelectionCycleMode, &SoundSet::SetSoundSelectionCycleMode);
 
@@ -251,10 +225,10 @@ namespace RTE {
 
 		luaType["HasAnySounds"] = &SoundSet::HasAnySounds;
 		luaType["SelectNextSounds"] = &SoundSet::SelectNextSounds;
-		luaType["AddSound"] = (void (SoundSet::*)(const std::string & soundFilePath)) & SoundSet::AddSound;
-		luaType["AddSound"] = (void (SoundSet::*)(const std::string & soundFilePath, const Vector & offset, float minimumAudibleDistance, float attenuationStartDistance)) & SoundSet::AddSound;
-		luaType["RemoveSound"] = (bool (SoundSet::*)(const std::string & soundFilePath)) & SoundSet::RemoveSound;
-		luaType["RemoveSound"] = (bool (SoundSet::*)(const std::string & soundFilePath, bool removeFromSubSoundSets)) & SoundSet::RemoveSound;
+		luaType["AddSound"] = (void(SoundSet::*)(const std::string& soundFilePath)) & SoundSet::AddSound;
+		luaType["AddSound"] = (void(SoundSet::*)(const std::string& soundFilePath, const Vector& offset, float minimumAudibleDistance, float attenuationStartDistance)) & SoundSet::AddSound;
+		luaType["RemoveSound"] = (bool(SoundSet::*)(const std::string& soundFilePath)) & SoundSet::RemoveSound;
+		luaType["RemoveSound"] = (bool(SoundSet::*)(const std::string& soundFilePath, bool removeFromSubSoundSets)) & SoundSet::RemoveSound;
 		luaType["AddSoundSet"] = &SoundSet::AddSoundSet;
 
 		{
@@ -265,11 +239,11 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, GlobalScript) {
 		auto luaType = AbstractTypeLuaClassDefinition(GlobalScript, Entity);
 
 		luaType["Deactivate"] = &LuaAdaptersGlobalScript::Deactivate;
 	}
-}
+} // namespace RTE

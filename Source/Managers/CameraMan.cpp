@@ -10,7 +10,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::Clear() {
 		m_ScreenShakeStrength = 1.0F;
@@ -20,7 +20,7 @@ namespace RTE {
 		m_DefaultShakePerUnitOfRecoilEnergy = 0.5F;
 		m_DefaultShakeFromRecoilMaximum = 0.0F;
 
-		for (Screen &screen : m_Screens) {
+		for (Screen& screen: m_Screens) {
 			screen.Offset.Reset();
 			screen.DeltaOffset.Reset();
 			screen.ScrollTarget.Reset();
@@ -36,25 +36,25 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void CameraMan::SetOffset(const Vector &offset, int screenId) {
+	void CameraMan::SetOffset(const Vector& offset, int screenId) {
 		m_Screens[screenId].Offset = offset.GetFloored();
 		CheckOffset(screenId);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector CameraMan::GetUnwrappedOffset(int screenId) const {
-		const Screen &screen = m_Screens[screenId];
-		const SLTerrain *terrain = g_SceneMan.GetScene()->GetTerrain();
+		const Screen& screen = m_Screens[screenId];
+		const SLTerrain* terrain = g_SceneMan.GetScene()->GetTerrain();
 		return Vector(screen.Offset.GetX() + static_cast<float>(terrain->GetBitmap()->w * screen.SeamCrossCount[Axes::X]), screen.Offset.GetY() + static_cast<float>(terrain->GetBitmap()->h * screen.SeamCrossCount[Axes::Y]));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void CameraMan::SetScroll(const Vector &center, int screenId) {
-		Screen &screen = m_Screens[screenId];
+	void CameraMan::SetScroll(const Vector& center, int screenId) {
+		Screen& screen = m_Screens[screenId];
 		if (g_FrameMan.IsInMultiplayerMode()) {
 			screen.Offset.SetXY(static_cast<float>(center.GetFloorIntX() - (g_FrameMan.GetPlayerFrameBufferWidth(screenId) / 2)), static_cast<float>(center.GetFloorIntY() - (g_FrameMan.GetPlayerFrameBufferHeight(screenId) / 2)));
 		} else {
@@ -63,19 +63,19 @@ namespace RTE {
 		CheckOffset(screenId);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector CameraMan::GetScrollTarget(int screenId) const {
 		return g_NetworkClient.IsConnectedAndRegistered() ? g_NetworkClient.GetFrameTarget() : m_Screens[screenId].ScrollTarget;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void CameraMan::SetScrollTarget(const Vector &targetCenter, float speed, int screenId) {
-		Screen &screen = m_Screens[screenId];
+	void CameraMan::SetScrollTarget(const Vector& targetCenter, float speed, int screenId) {
+		Screen& screen = m_Screens[screenId];
 
 		// See if it would make sense to automatically wrap.
-		const SLTerrain *terrain = g_SceneMan.GetScene()->GetTerrain();
+		const SLTerrain* terrain = g_SceneMan.GetScene()->GetTerrain();
 		float targetXWrapped = terrain->WrapsX() && (std::fabs(targetCenter.GetX() - screen.ScrollTarget.GetX()) > static_cast<float>(terrain->GetBitmap()->w / 2));
 		float targetYWrapped = terrain->WrapsY() && (std::fabs(targetCenter.GetY() - screen.ScrollTarget.GetY()) > static_cast<float>(terrain->GetBitmap()->h / 2));
 
@@ -87,9 +87,9 @@ namespace RTE {
 		screen.TargetYWrapped = screen.TargetYWrapped || targetYWrapped;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	float CameraMan::TargetDistanceScalar(const Vector &point) const {
+	float CameraMan::TargetDistanceScalar(const Vector& point) const {
 		if (!g_SceneMan.GetScene()) {
 			return 0.0F;
 		}
@@ -103,7 +103,7 @@ namespace RTE {
 		}
 		float closestScalar = 1.0F;
 
-		for (const Screen &screen : m_Screens) {
+		for (const Screen& screen: m_Screens) {
 			float distance = g_SceneMan.ShortestDistance(point, screen.ScrollTarget).GetMagnitude();
 			float scalar = 0.0F;
 
@@ -123,15 +123,15 @@ namespace RTE {
 		return closestScalar;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::CheckOffset(int screenId) {
 		RTEAssert(g_SceneMan.GetScene(), "Trying to check offset before there is a scene or terrain!");
 
-		const SLTerrain *terrain = g_SceneMan.GetScene()->GetTerrain();
+		const SLTerrain* terrain = g_SceneMan.GetScene()->GetTerrain();
 		RTEAssert(terrain, "Trying to get terrain matter before there is a scene or terrain!");
 
-		Screen &screen = m_Screens[screenId];
+		Screen& screen = m_Screens[screenId];
 
 		if (!terrain->WrapsX() && screen.Offset.GetX() < 0) {
 			screen.Offset.SetX(0.0F);
@@ -153,7 +153,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector CameraMan::GetFrameSize(int screenId) {
 		int frameWidth = g_WindowMan.GetResX();
@@ -170,21 +170,21 @@ namespace RTE {
 		return Vector(static_cast<float>(frameWidth), static_cast<float>(frameHeight));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::ResetAllScreenShake() {
 		for (int screenId = 0; screenId < g_FrameMan.GetScreenCount(); ++screenId) {
-			Screen &screen = m_Screens[screenId];
+			Screen& screen = m_Screens[screenId];
 			screen.ScreenShakeMagnitude = 0;
 			screen.ScrollTimer.Reset();
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void CameraMan::AddScreenShake(float magnitude, const Vector &position) {
+	void CameraMan::AddScreenShake(float magnitude, const Vector& position) {
 		for (int screenId = 0; screenId < g_FrameMan.GetScreenCount(); ++screenId) {
-			Screen &screen = m_Screens[screenId];
+			Screen& screen = m_Screens[screenId];
 
 			Vector frameSize = GetFrameSize(screenId);
 
@@ -193,7 +193,7 @@ namespace RTE {
 			g_SceneMan.WrapBox(screenBox, wrappedBoxes);
 
 			float closestDistanceFromScreen = std::numeric_limits<float>::max();
-			for (const Box &box : wrappedBoxes) {
+			for (const Box& box: wrappedBoxes) {
 				// Determine how far the position is from the box.
 				Vector closestPointOnBox = box.GetWithinBox(position);
 				Vector distanceFromBoxToPosition = closestPointOnBox - position;
@@ -209,11 +209,11 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::Update(int screenId) {
-		Screen &screen = m_Screens[screenId];
-		const SLTerrain *terrain = g_SceneMan.GetScene()->GetTerrain();
+		Screen& screen = m_Screens[screenId];
+		const SLTerrain* terrain = g_SceneMan.GetScene()->GetTerrain();
 
 		if (g_TimerMan.DrawnSimUpdate()) {
 			// Adjust for wrapping if the scroll target jumped a seam this frame, as reported by whatever screen set it (the scroll target) this frame. This is to avoid big, scene-wide jumps in scrolling when traversing the seam.
@@ -283,4 +283,4 @@ namespace RTE {
 		screen.DeltaOffset = screen.Offset - oldOffset;
 		screen.ScrollTimer.Reset();
 	}
-}
+} // namespace RTE

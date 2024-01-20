@@ -12,18 +12,17 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Box) {
 		auto luaType = SimpleTypeLuaClassDefinition(Box);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			Box(),
-			Box(const Vector&, const Vector&),
-			Box(float, float, float, float&),
-			Box(const Vector&, float, float),
-			Box(const Box&)
-		>());
+		                                       Box(),
+		                                       Box(const Vector&, const Vector&),
+		                                       Box(float, float, float, float&),
+		                                       Box(const Vector&, float, float),
+		                                       Box(const Box&)>());
 
 		luaType[sol::meta_function::equal_to] = [](const Box& lhs, const Box& rhs) { return lhs == rhs; };
 
@@ -45,14 +44,13 @@ namespace RTE {
 		luaType["IntersectsBox"] = &Box::IntersectsBox;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
 		auto luaType = SimpleTypeLuaClassDefinition(Controller);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			Controller()
-		>());
+		                                       Controller()>());
 
 		luaType["InputMode"] = sol::property(&Controller::GetInputMode, &Controller::SetInputMode);
 		luaType["ControlledActor"] = sol::property(&Controller::GetControlledActor, &Controller::SetControlledActor);
@@ -131,7 +129,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, DataModule) {
 		auto luaType = SimpleTypeLuaClassDefinition(DataModule);
@@ -147,16 +145,15 @@ namespace RTE {
 		luaType["Presets"] = &DataModule::m_EntityList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
 		auto luaType = SimpleTypeLuaClassDefinition(Timer);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			Timer(),
-			Timer(double),
-			Timer(double, double)
-		>());
+		                                       Timer(),
+		                                       Timer(double),
+		                                       Timer(double, double)>());
 
 		luaType["StartRealTimeMS"] = sol::property(&Timer::GetStartRealTimeMS, &Timer::SetStartRealTimeMS);
 		luaType["ElapsedRealTimeS"] = sol::property(&Timer::GetElapsedRealTimeS, &Timer::SetElapsedRealTimeS);
@@ -188,15 +185,14 @@ namespace RTE {
 		luaType["AlternateSim"] = &Timer::AlternateSim;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Vector) {
 		auto luaType = SimpleTypeLuaClassDefinition(Vector);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-			Vector(),
-			Vector(float, float)
-		>());
+		                                       Vector(),
+		                                       Vector(float, float)>());
 
 		luaType[sol::meta_function::equal_to] = [](const Vector& lhs, const Vector& rhs) { return lhs == rhs; };
 		luaType[sol::meta_function::addition] = [](const Vector& lhs, const Vector& rhs) { return lhs + rhs; };
@@ -255,7 +251,7 @@ namespace RTE {
 		luaType["SetXY"] = &Vector::SetXY;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, PathRequest) {
 		auto luaType = SimpleTypeLuaClassDefinition(PathRequest);
@@ -265,10 +261,8 @@ namespace RTE {
 		luaType["Status"] = sol::readonly(&PathRequest::status);
 		luaType["TotalCost"] = sol::readonly(&PathRequest::totalCost);
 
-		luaType.new_enum<micropather::MicroPather::Status>("Status", {
-			{ "Solved", micropather::MicroPather::Status::SOLVED },
-			{ "NoSolution", micropather::MicroPather::Status::NO_SOLUTION },
-			{ "StartEndSame", micropather::MicroPather::Status::START_END_SAME }
-		});
+		luaType.new_enum<micropather::MicroPather::Status>("Status", {{"Solved", micropather::MicroPather::Status::SOLVED},
+		                                                              {"NoSolution", micropather::MicroPather::Status::NO_SOLUTION},
+		                                                              {"StartEndSame", micropather::MicroPather::Status::START_END_SAME}});
 	}
-}
+} // namespace RTE
