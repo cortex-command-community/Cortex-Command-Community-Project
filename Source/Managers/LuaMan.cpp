@@ -129,6 +129,8 @@ namespace RTE {
 		usertype["GetDirectoryList"] = &LuaStateWrapper::DirectoryList;
 		usertype["GetFileList"] = &LuaStateWrapper::FileList;
 		usertype["FileExists"] = &LuaStateWrapper::FileExists;
+		usertype["DirectoryExists"] = &LuaStateWrapper::DirectoryExists;
+		usertype["IsValidModulePath"] = &LuaStateWrapper::IsValidModulePath;
 		usertype["FileOpen"] = &LuaStateWrapper::FileOpen;
 		usertype["FileClose"] = &LuaStateWrapper::FileClose;
 		usertype["FileReadLine"] = &LuaStateWrapper::FileReadLine;
@@ -331,12 +333,21 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Passthrough LuaMan Functions
-	const std::vector<std::string>* LuaStateWrapper::DirectoryList(const std::string& relativeDirectory) { return g_LuaMan.DirectoryList(relativeDirectory); }
-	const std::vector<std::string>* LuaStateWrapper::FileList(const std::string& relativeDirectory) { return g_LuaMan.FileList(relativeDirectory); }
-	bool LuaStateWrapper::FileExists(const std::string &fileName) { return g_LuaMan.FileExists(fileName); }
-	int LuaStateWrapper::FileOpen(const std::string& fileName, const std::string& accessMode) { return g_LuaMan.FileOpen(fileName, accessMode); }
+	const std::vector<std::string>* LuaStateWrapper::DirectoryList(const std::string& path) { return g_LuaMan.DirectoryList(path); }
+	const std::vector<std::string>* LuaStateWrapper::FileList(const std::string& path) { return g_LuaMan.FileList(path); }
+	bool LuaStateWrapper::FileExists(const std::string &path) { return g_LuaMan.FileExists(path); }
+	bool LuaStateWrapper::DirectoryExists(const std::string &path) { return g_LuaMan.DirectoryExists(path); }
+	bool LuaStateWrapper::IsValidModulePath(const std::string &path) { return g_LuaMan.IsValidModulePath(path); }
+	int LuaStateWrapper::FileOpen(const std::string& path, const std::string& accessMode) { return g_LuaMan.FileOpen(path, accessMode); }
 	void LuaStateWrapper::FileClose(int fileIndex) { return g_LuaMan.FileClose(fileIndex); }
 	void LuaStateWrapper::FileCloseAll() { return g_LuaMan.FileCloseAll(); }
+	bool LuaStateWrapper::FileRemove(const std::string& path) { return g_LuaMan.FileRemove(path); }
+	bool LuaStateWrapper::DirectoryCreate1(const std::string& path) { return g_LuaMan.DirectoryCreate(path, false); }
+	bool LuaStateWrapper::DirectoryCreate2(const std::string& path, bool recursive) { return g_LuaMan.DirectoryCreate(path, recursive); }
+	bool LuaStateWrapper::DirectoryRemove1(const std::string& path) { return g_LuaMan.DirectoryRemove(path, false); }
+	bool LuaStateWrapper::DirectoryRemove2(const std::string& path, bool recursive) { return g_LuaMan.DirectoryRemove(path, recursive); }
+	bool LuaStateWrapper::FileRename(const std::string& oldPath, const std::string& newPath) { return g_LuaMan.FileRename(oldPath, newPath); }
+	bool LuaStateWrapper::DirectoryRename(const std::string& oldPath, const std::string& newPath) { return g_LuaMan.DirectoryRename(oldPath, newPath); }
 	std::string LuaStateWrapper::FileReadLine(int fileIndex) { return g_LuaMan.FileReadLine(fileIndex); }
 	void LuaStateWrapper::FileWriteLine(int fileIndex, const std::string& line) { return g_LuaMan.FileWriteLine(fileIndex, line); }
 	bool LuaStateWrapper::FileEOF(int fileIndex) { return g_LuaMan.FileEOF(fileIndex); }
@@ -352,7 +363,12 @@ namespace RTE {
 	void LuaMan::Initialize() {
 		m_MasterScriptState.Initialize();
 
-		m_ScriptStates = std::vector<LuaStateWrapper>(std::thread::hardware_concurrency());
+		int luaStateCount = std::thread::hardware_concurrency();
+		if (g_SettingsMan.GetNumberOfLuaStatesOverride() != -1) {
+			luaStateCount = g_SettingsMan.GetNumberOfLuaStatesOverride();
+		}
+
+		m_ScriptStates = std::vector<LuaStateWrapper>(luaStateCount);
 		for (LuaStateWrapper &luaState : m_ScriptStates) {
 			luaState.Initialize();
 		}
@@ -402,7 +418,7 @@ namespace RTE {
 
 		// TODO
 		// It would be nice to assign to least-saturated state, but that's a bit tricky with MO registering...
-		/*auto itr = std::min_element(m_ScriptStates.begin(), m_ScriptStates.end(), 
+		/*auto itr = std::min_element(m_ScriptStates.begin(), m_ScriptStates.end(),
 			[](const LuaStateWrapper& lhs, const LuaStateWrapper& rhs) { return lhs.GetRegisteredMOs().size() < rhs.GetRegisteredMOs().size(); }
 		);
 
@@ -417,7 +433,7 @@ namespace RTE {
 		bool success = m_ScriptStates[ourState].GetMutex().try_lock();
 		RTEAssert(success, "Script mutex was already locked while in a non-multithreaded environment!");
 
-		return &m_ScriptStates[ourState];	
+		return &m_ScriptStates[ourState];
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -447,13 +463,13 @@ namespace RTE {
 
     void LuaMan::ExecuteLuaScriptCallbacks() {
 		std::vector<std::function<void()>> callbacks;
-		
+
 		// Move our functions into the local buffer to clear the existing callbacks and to lock for as little time as possible
 		{
 			std::scoped_lock lock(m_ScriptCallbacksMutex);
 			callbacks.swap(m_ScriptCallbacks);
 		}
-		
+
 		for (const std::function<void()> &callback : callbacks) {
 			callback();
 		}
@@ -914,7 +930,7 @@ namespace RTE {
 
 	bool LuaStateWrapper::TableEntryIsDefined(const std::string &tableName, const std::string &indexName) {
 		std::lock_guard<std::recursive_mutex> lock(m_Mutex);
-		
+
 		// Push the table onto the stack, checking if it even exists.
 		lua_getglobal(m_State, tableName.c_str());
 		if (!lua_istable(m_State, -1)) {
@@ -982,40 +998,80 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	const std::vector<std::string> * LuaMan::DirectoryList(const std::string &filePath) {
+	const std::vector<std::string> * LuaMan::DirectoryList(const std::string &path) {
+		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		auto *directoryPaths = new std::vector<std::string>();
 
-		for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(System::GetWorkingDirectory() + filePath)) {
-			if (directoryEntry.is_directory()) { directoryPaths->emplace_back(directoryEntry.path().filename().generic_string()); }
+		if (IsValidModulePath(fullPath)) {
+#ifndef _WIN32
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
+#endif
+			if (std::filesystem::exists(fullPath))
+			{
+				for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(fullPath)) {
+					if (directoryEntry.is_directory()) { directoryPaths->emplace_back(directoryEntry.path().filename().generic_string()); }
+				}
+			}
 		}
 		return directoryPaths;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	const std::vector<std::string> * LuaMan::FileList(const std::string &filePath) {
+	const std::vector<std::string> * LuaMan::FileList(const std::string &path) {
+		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
 		auto *filePaths = new std::vector<std::string>();
 
-		for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(System::GetWorkingDirectory() + filePath)) {
-			if (directoryEntry.is_regular_file()) { filePaths->emplace_back(directoryEntry.path().filename().generic_string()); }
+		if (IsValidModulePath(fullPath)) {
+#ifndef _WIN32
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
+#endif
+			if (std::filesystem::exists(fullPath))
+			{
+				for (const std::filesystem::directory_entry &directoryEntry : std::filesystem::directory_iterator(fullPath)) {
+					if (directoryEntry.is_regular_file()) { filePaths->emplace_back(directoryEntry.path().filename().generic_string()); }
+				}
+			}
 		}
 		return filePaths;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool LuaMan::FileExists(const std::string &fileName) {
-		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(fileName);
-		if ((fullPath.find("..") == std::string::npos) && (fullPath.find(System::GetModulePackageExtension()) != std::string::npos)) {
-			return std::filesystem::exists(fullPath);
+	bool LuaMan::FileExists(const std::string &path) {
+		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+		if (IsValidModulePath(fullPath)) {
+#ifndef _WIN32
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
+#endif
+			return std::filesystem::is_regular_file(fullPath);
 		}
-
 		return false;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int LuaMan::FileOpen(const std::string &fileName, const std::string &accessMode) {
+	bool LuaMan::DirectoryExists(const std::string &path) {
+		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+		if (IsValidModulePath(fullPath)) {
+#ifndef _WIN32
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
+#endif
+			return std::filesystem::is_directory(fullPath);
+		}
+		return false;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// TODO: Move to ModuleMan, once the ModuleMan PR has been merged
+	bool LuaMan::IsValidModulePath(const std::string &path) {
+		return (path.find("..") == std::string::npos) && (path.find(System::GetModulePackageExtension()) != std::string::npos);
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	int LuaMan::FileOpen(const std::string &path, const std::string &accessMode) {
 		if (c_FileAccessModes.find(accessMode) == c_FileAccessModes.end()) {
 			g_ConsoleMan.PrintString("ERROR: Cannot open file, invalid file access mode specified.");
 			return -1;
@@ -1033,37 +1089,47 @@ namespace RTE {
 			return -1;
 		}
 
-		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(fileName);
-		if ((fullPath.find("..") == std::string::npos) && (fullPath.find(System::GetModulePackageExtension()) != std::string::npos)) {
-
+		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+		if (IsValidModulePath(fullPath)) {
 #ifdef _WIN32
 			FILE *file = fopen(fullPath.c_str(), accessMode.c_str());
 #else
 			FILE *file = [&fullPath, &accessMode]() -> FILE* {
+				if (std::filesystem::exists(fullPath)) {
+					return fopen(fullPath.c_str(), accessMode.c_str());
+				}
+
 				std::filesystem::path inspectedPath = System::GetWorkingDirectory();
 				const std::filesystem::path relativeFilePath = std::filesystem::path(fullPath).lexically_relative(inspectedPath);
 
+				// Iterate over all path parts
 				for (std::filesystem::path::const_iterator relativeFilePathIterator = relativeFilePath.begin(); relativeFilePathIterator != relativeFilePath.end(); ++relativeFilePathIterator) {
 					bool pathPartExists = false;
 
-					// Check if a path part (directory or file) exists in the filesystem.
+					// Iterate over all entries in the path part's directory,
+					// to check if the path part is in there case insensitively
 					for (const std::filesystem::path &filesystemEntryPath : std::filesystem::directory_iterator(inspectedPath)) {
-						if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), (*relativeFilePathIterator).generic_string())) {
+						if (StringsEqualCaseInsensitive(filesystemEntryPath.filename().generic_string(), relativeFilePathIterator->generic_string())) {
 							inspectedPath = filesystemEntryPath;
+
+							// If the path part is found, stop looking for it
 							pathPartExists = true;
 							break;
 						}
 					}
+
 					if (!pathPartExists) {
-						// If this is the last part, then all directories in relativeFilePath exist, but the file doesn't.
+						// If this is the last part, then all directories in relativeFilePath exist, but the file doesn't
 						if (std::next(relativeFilePathIterator) == relativeFilePath.end()) {
 							return fopen((inspectedPath / relativeFilePath.filename()).generic_string().c_str(), accessMode.c_str());
 						}
-						// Some directory in relativeFilePath doesn't exist, so the file can't be created.
+
+						// Some directory in relativeFilePath doesn't exist, so the file can't be created
 						return nullptr;
 					}
 				}
-				// If the file exists, open it.
+
+				// If the file exists, open it
 				return fopen(inspectedPath.generic_string().c_str(), accessMode.c_str());
 			}();
 #endif
@@ -1072,7 +1138,7 @@ namespace RTE {
 				return fileIndex;
 			}
 		}
-		g_ConsoleMan.PrintString("ERROR: Failed to open file " + fileName);
+		g_ConsoleMan.PrintString("ERROR: Failed to open file " + path);
 		return -1;
 	}
 
@@ -1091,6 +1157,112 @@ namespace RTE {
 		for (int file = 0; file < c_MaxOpenFiles; ++file) {
 			FileClose(file);
 		}
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaMan::FileRemove(const std::string& path) {
+		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+		if (IsValidModulePath(fullPath)) {
+#ifndef _WIN32
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
+#endif
+			if (std::filesystem::is_regular_file(fullPath)) {
+				return std::filesystem::remove(fullPath);
+			}
+		}
+		g_ConsoleMan.PrintString("ERROR: Failed to remove file " + path);
+		return false;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaMan::DirectoryCreate(const std::string& path, bool recursive) {
+		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+		if (IsValidModulePath(fullPath)) {
+#ifndef _WIN32
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
+#endif
+			try {
+				if (recursive) {
+					return std::filesystem::create_directories(fullPath);
+				} else {
+					return std::filesystem::create_directory(fullPath);
+				}
+			} catch (const std::filesystem::filesystem_error &e) {}
+		}
+		g_ConsoleMan.PrintString("ERROR: Failed to remove directory " + path);
+		return false;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaMan::DirectoryRemove(const std::string& path, bool recursive) {
+		std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+		if (IsValidModulePath(fullPath)) {
+#ifndef _WIN32
+			fullPath = GetCaseInsensitiveFullPath(fullPath);
+#endif
+			if (std::filesystem::is_directory(fullPath)) {
+				try {
+					if (recursive) {
+						return std::filesystem::remove_all(fullPath) > 0;
+					} else {
+						return std::filesystem::remove(fullPath);
+					}
+				} catch (const std::filesystem::filesystem_error &e) {}
+			}
+		}
+		g_ConsoleMan.PrintString("ERROR: Failed to remove directory " + path);
+		return false;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaMan::FileRename(const std::string& oldPath, const std::string& newPath) {
+		std::string fullOldPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(oldPath);
+		std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
+		if (IsValidModulePath(fullOldPath) && IsValidModulePath(fullNewPath)) {
+#ifndef _WIN32
+			fullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
+			fullNewPath = GetCaseInsensitiveFullPath(fullNewPath);
+#endif
+			// Ensures parity between Linux which can overwrite an empty directory, while Windows can't
+			// Ensures parity between Linux which can't rename a directory to a newPath that is a file in order to overwrite it, while Windows can
+			if (std::filesystem::is_regular_file(fullOldPath) && !std::filesystem::exists(fullNewPath))
+			{
+				try {
+					std::filesystem::rename(fullOldPath, fullNewPath);
+					return true;
+				} catch (const std::filesystem::filesystem_error &e) {}
+			}
+		}
+		g_ConsoleMan.PrintString("ERROR: Failed to rename oldPath " + oldPath + " to newPath " + newPath);
+		return false;
+	}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool LuaMan::DirectoryRename(const std::string& oldPath, const std::string& newPath) {
+		std::string fullOldPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(oldPath);
+		std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
+		if (IsValidModulePath(fullOldPath) && IsValidModulePath(fullNewPath)) {
+#ifndef _WIN32
+			fullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
+			fullNewPath = GetCaseInsensitiveFullPath(fullNewPath);
+#endif
+			// Ensures parity between Linux which can overwrite an empty directory, while Windows can't
+			// Ensures parity between Linux which can't rename a directory to a newPath that is a file in order to overwrite it, while Windows can
+			if (std::filesystem::is_directory(fullOldPath) && !std::filesystem::exists(fullNewPath))
+			{
+				try {
+					std::filesystem::rename(fullOldPath, fullNewPath);
+					return true;
+				} catch (const std::filesystem::filesystem_error &e) {}
+			}
+		}
+		g_ConsoleMan.PrintString("ERROR: Failed to rename oldPath " + oldPath + " to newPath " + newPath);
+		return false;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1150,7 +1322,7 @@ namespace RTE {
 
 	void LuaMan::StartAsyncGarbageCollection() {
 		ZoneScoped;
-		
+
 		std::vector<LuaStateWrapper*> allStates;
 		allStates.reserve(m_ScriptStates.size() + 1);
 
@@ -1158,14 +1330,14 @@ namespace RTE {
 		for (LuaStateWrapper& wrapper : m_ScriptStates) {
 			allStates.push_back(&wrapper);
 		}
-		
+
 		m_GarbageCollectionTask = BS::multi_future<void>();
 		for (LuaStateWrapper* luaState : allStates) {
 			m_GarbageCollectionTask.push_back(
 				g_ThreadMan.GetPriorityThreadPool().submit([luaState]() {
 					ZoneScopedN("Lua Garbage Collection");
 					std::lock_guard<std::recursive_mutex> lock(luaState->GetMutex());
-					lua_gc(luaState->GetLuaState(), LUA_GCSTEP, 30);
+					lua_gc(luaState->GetLuaState(), LUA_GCCOLLECT, 0); // we'd use GCSTEP but fuck lua it's trash
 					lua_gc(luaState->GetLuaState(), LUA_GCSTOP, 0);
 				})
 			);

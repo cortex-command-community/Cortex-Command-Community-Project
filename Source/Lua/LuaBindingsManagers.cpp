@@ -92,7 +92,10 @@ namespace RTE {
 
 		luaType["PlayerScreenWidth"] = sol::property(&FrameMan::GetPlayerScreenWidth);
 		luaType["PlayerScreenHeight"] = sol::property(&FrameMan::GetPlayerScreenHeight);
+		luaType["ScreenCount"] = sol::property(&FrameMan::GetScreenCount);
 
+		luaType["IsHudDisabled"] = &FrameMan::IsHudDisabled;
+		luaType["SetHudDisabled"] = &FrameMan::SetHudDisabled;
 		luaType["LoadPalette"] = &FrameMan::LoadPalette;
 		luaType["SetScreenText"] = &FrameMan::SetScreenText;
 		luaType["ClearScreenText"] = &FrameMan::ClearScreenText;

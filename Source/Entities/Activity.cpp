@@ -16,6 +16,8 @@
 #include "GUIFont.h"
 #include "AllegroBitmap.h"
 
+#include "RTETools.h"
+
 namespace RTE {
 
 	AbstractClassInfo(Activity, Entity);
@@ -284,6 +286,9 @@ void Activity::Clear() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::Start() {
+		// Reseed the RNG for determinism
+		SeedRNG();
+
 		if (m_ActivityState != ActivityState::Editing) {
 			m_ActivityState = ActivityState::Running;
 		}

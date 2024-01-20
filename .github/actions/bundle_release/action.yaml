@@ -1,0 +1,43 @@
+name: 'Bundle Release Assets'
+description: 'Downloads build assets and packages them into a zip file along with game data and libraries'
+runs:
+  using: "composite"
+  steps:
+    - run: mkdir release
+      shell: bash
+
+    - name: Download build artefacts
+      uses: actions/download-artifact@v3
+      with:
+        path: release
+
+    - run: ls -R release
+      shell: bash
+
+    - name: Compress Windows Release
+      shell: bash
+      run: |
+        zip --must-match -j CortexCommand.windows.zip \
+          release/Cortex\ Command*.exe/Cortex\ Command*.exe \
+          external/lib/win/{fmod,SDL2}.dll
+
+    - name: Compress Linux Release
+      shell: bash
+      run: |
+        zip --must-match -j CortexCommand.linux.zip \
+          "release/CortexCommand (Linux)/CortexCommand.AppImage" \
+          external/lib/linux/x86_64/libfmod.so*
+
+    - name: Compress OSX Release
+      shell: bash
+      run: |
+        zip --must-match -j CortexCommand.macos.zip \
+          "release/CortexCommand (macOS)/CortexCommand.tar" \
+          external/lib/macos/libfmod.dylib
+
+    - name: Package Data files
+      shell: bash
+      run: |
+        zip --must-match -r -u CortexCommand.windows.zip Data
+        zip --must-match -r -u CortexCommand.linux.zip Data
+        zip --must-match -r -u CortexCommand.macos.zip Data
