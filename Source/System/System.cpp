@@ -1,4 +1,4 @@
-﻿#include "System.h"
+#include "System.h"
 
 #include "RTETools.h"
 #include "unzip.h"
