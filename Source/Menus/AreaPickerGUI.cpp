@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            AreaPickerGUI.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Implementation file for the AreaPickerGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "AreaPickerGUI.h"
 
 #include "CameraMan.h"
@@ -38,12 +26,6 @@ using namespace RTE;
 
 BITMAP* RTE::AreaPickerGUI::s_pCursor = 0;
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Clear
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all the member variables of this AreaPickerGUI, effectively
-//                  resetting the members of this abstraction level only.
-
 void AreaPickerGUI::Clear() {
 	m_pController = 0;
 	m_pGUIScreen = 0;
@@ -62,11 +44,6 @@ void AreaPickerGUI::Clear() {
 	m_pPickedArea = 0;
 	m_CursorPos.Reset();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the AreaPickerGUI area ready for use.
 
 int AreaPickerGUI::Create(Controller* pController, std::string onlyOfType) {
 	RTEAssert(pController, "No controller sent to AreaPickerGUI on creation!");
@@ -131,11 +108,6 @@ int AreaPickerGUI::Create(Controller* pController, std::string onlyOfType) {
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Destroy
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Destroys and resets (through Clear()) the AreaPickerGUI area.
-
 void AreaPickerGUI::Destroy() {
 	delete m_pGUIController;
 	delete m_pGUIInput;
@@ -143,11 +115,6 @@ void AreaPickerGUI::Destroy() {
 
 	Clear();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetEnabled
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Enables or disables the menu. This will animate it in and out of view.
 
 void AreaPickerGUI::SetEnabled(bool enable) {
 	if (enable && m_PickerEnabled != ENABLED && m_PickerEnabled != ENABLING) {
@@ -183,21 +150,9 @@ void AreaPickerGUI::SetEnabled(bool enable) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetPosOnScreen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-//                  etc.
-
 void AreaPickerGUI::SetPosOnScreen(int newPosX, int newPosY) {
 	m_pGUIController->SetPosOnScreen(newPosX, newPosY);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetNextArea
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the next area in the areas list, even if the picker is disabled.
 
 Scene::Area* AreaPickerGUI::GetNextArea() {
 	m_SelectedAreaIndex++;
@@ -215,11 +170,6 @@ Scene::Area* AreaPickerGUI::GetNextArea() {
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetPrevArea
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the prev area in the areas list, even if the picker is disabled.
-
 Scene::Area* AreaPickerGUI::GetPrevArea() {
 	m_SelectedAreaIndex--;
 	// Loop around
@@ -235,12 +185,6 @@ Scene::Area* AreaPickerGUI::GetPrevArea() {
 	}
 	return 0;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateAreasList
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds all areas of a specific type already defined in PresetMan
-//                  to the current Areas list
 
 void AreaPickerGUI::UpdateAreasList(std::string selectAreaName) {
 	m_pAreasList->ClearList();
@@ -266,11 +210,6 @@ void AreaPickerGUI::UpdateAreasList(std::string selectAreaName) {
 			m_pPickedArea = pScene->GetArea(pItem->m_Name);
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the state of this Menu each frame
 
 void AreaPickerGUI::Update() {
 	// Enable mouse input if the controller allows it
@@ -490,11 +429,6 @@ void AreaPickerGUI::Update() {
 		}
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the menu
 
 void AreaPickerGUI::Draw(BITMAP* drawBitmap) const {
 	AllegroScreen drawScreen(drawBitmap);

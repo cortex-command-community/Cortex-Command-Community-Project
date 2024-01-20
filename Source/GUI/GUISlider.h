@@ -3,9 +3,7 @@
 
 namespace RTE {
 
-	/// <summary>
 	/// A slider control class.
-	/// </summary>
 	class GUISlider : public GUIControl, public GUIPanel {
 
 	public:
@@ -27,229 +25,112 @@ namespace RTE {
 			Clicked
 		} Notification;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Constructor:     GUISlider
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Constructor method used to instantiate a GUISlider object in
-		//                  system memory.
-		// Arguments:       GUIManager, GUIControlManager.
-
+		/// Constructor method used to instantiate a GUISlider object in
+		/// system memory.
+		/// @param Manager GUIManager, GUIControlManager.
 		GUISlider(GUIManager* Manager, GUIControlManager* ControlManager);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control has been created.
-		// Arguments:       Name, Position.
-
+		/// Called when the control has been created.
+		/// @param Name Name, Position.
 		void Create(const std::string& Name, int X, int Y, int Width = -1, int Height = -1) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control has been created.
-		// Arguments:       Properties.
-
+		/// Called when the control has been created.
+		/// @param Props Properties.
 		void Create(GUIProperties* Props) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Destroy
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control has been destroyed.
-		// Arguments:       None.
-
+		/// Called when the control has been destroyed.
 		void Destroy() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ChangeSkin
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the skin has been changed.
-		// Arguments:       New skin pointer.
-
+		/// Called when the skin has been changed.
+		/// @param Skin New skin pointer.
 		void ChangeSkin(GUISkin* Skin) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Draw
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Draws the panel
-		// Arguments:       Screen class
-
+		/// Draws the panel
+		/// @param Screen Screen class
 		void Draw(GUIScreen* Screen) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  OnMouseDown
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes down on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes down on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseDown(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:  OnMouseUp
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse goes up on the panel
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse goes up on the panel
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseUp(int X, int Y, int Buttons, int Modifier) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          OnMouseMove
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the mouse moves (over the panel, or when captured).
-		// Arguments:       Mouse Position, Mouse Buttons, Modifier.
-
+		/// Called when the mouse moves (over the panel, or when captured).
+		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseMove(int X, int Y, int Buttons, int Modifier) override;
 
-		/// <summary>
 		/// Called when the mouse scroll wheel is moved.
-		/// </summary>
-		/// <param name="x">Mouse X position.</param>
-		/// <param name="y">Mouse Y position.</param>
-		/// <param name="modifier">Activated modifier buttons.</param>
-		/// <param name="mouseWheelChange">The amount of wheel movement. Positive is scroll up, negative is scroll down.</param>
+		/// @param x Mouse X position.
+		/// @param y Mouse Y position.
+		/// @param modifier Activated modifier buttons.
+		/// @param mouseWheelChange The amount of wheel movement. Positive is scroll up, negative is scroll down.
 		void OnMouseWheelChange(int x, int y, int modifier, int mouseWheelChange) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetPanel
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns the panel of the control.
-		// Arguments:       None.
-		// Returns:         0 if the control does not have a panel, otherwise the topmost panel.
-
+		/// Returns the panel of the control.
+		/// @return 0 if the control does not have a panel, otherwise the topmost panel.
 		GUIPanel* GetPanel() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetControlID
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Returns a string representing the control's ID
-		// Arguments:       None.
-
+		/// Returns a string representing the control's ID
 		static std::string GetControlID() { return "SLIDER"; };
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Move
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control needs to be moved.
-		// Arguments:       New position.
-
+		/// Called when the control needs to be moved.
+		/// @param X New position.
 		void Move(int X, int Y) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Resize
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Called when the control needs to be resized.
-		// Arguments:       New size.
-
+		/// Called when the control needs to be resized.
+		/// @param Width New size.
 		void Resize(int Width, int Height) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetControlRect
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the rectangle of the control.
-		// Arguments:       Position, Size.
-
+		/// Gets the rectangle of the control.
+		/// @param X Position, Size.
 		void GetControlRect(int* X, int* Y, int* Width, int* Height) override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetOrientation
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the orientation of the slider.
-		// Arguments:       Orientation.
-
+		/// Sets the orientation of the slider.
+		/// @param Orientation Orientation.
 		void SetOrientation(int Orientation);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetOrientation
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the orientation of the slider.
-		// Arguments:       None.
-
+		/// Gets the orientation of the slider.
 		int GetOrientation() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetTickDirection
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the direction of the ticks.
-		// Arguments:       TickDir.
-
+		/// Sets the direction of the ticks.
+		/// @param TickDir TickDir.
 		void SetTickDirection(int TickDir);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetTickDirection
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the direction of the ticks.
-		// Arguments:       None.
-
+		/// Gets the direction of the ticks.
 		int GetTickDirection() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetMinimum
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the minimum value.
-		// Arguments:       Minimum.
-
+		/// Sets the minimum value.
+		/// @param Minimum Minimum.
 		void SetMinimum(int Minimum);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMinimum
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the minimum value.
-		// Arguments:       None.
-
+		/// Gets the minimum value.
 		int GetMinimum() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetMaximum
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the maximum value.
-		// Arguments:       Maximum.
-
+		/// Sets the maximum value.
+		/// @param Maximum Maximum.
 		void SetMaximum(int Maximum);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetMaximum
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the maximum value.
-		// Arguments:       None.
-
+		/// Gets the maximum value.
 		int GetMaximum() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the value.
-		// Arguments:       Value.
-
+		/// Sets the value.
+		/// @param Value Value.
 		void SetValue(int Value);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetValue
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the value.
-		// Arguments:       None.
-
+		/// Gets the value.
 		int GetValue() const;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          StoreProperties
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the control to store the values into properties.
-		// Arguments:       None.
-
+		/// Gets the control to store the values into properties.
 		void StoreProperties() override;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          ApplyProperties
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Applies new properties to the control.
-		// Arguments:       GUIProperties.
-
+		/// Applies new properties to the control.
+		/// @param Props GUIProperties.
 		void ApplyProperties(GUIProperties* Props) override;
 
-		/// <summary>
 		/// Sets the value resolution for this slider.
-		/// </summary>
-		/// <param name="valueRes">The new value resolution</param>
+		/// @param valueRes The new value resolution
 		void SetValueResolution(int valueRes);
 
 	private:
@@ -272,28 +153,14 @@ namespace RTE {
 		int m_EndThickness;
 		int m_OldValue;
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BuildBitmap
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Create the slider bitmap to draw.
-		// Arguments:       None.
-
+		/// Create the slider bitmap to draw.
 		void BuildBitmap();
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          BuildLine
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Builds the background line for the slider
-		// Arguments:       Section, SrcImage.
-
+		/// Builds the background line for the slider
+		/// @param Section Section, SrcImage.
 		void BuildLine(const std::string& Section, GUIBitmap* SrcImage);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          CalculateKnob
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Calculates the knob position and size.
-		// Arguments:       None.
-
+		/// Calculates the knob position and size.
 		void CalculateKnob();
 	};
 }; // namespace RTE

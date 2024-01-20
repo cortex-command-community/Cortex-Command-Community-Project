@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            BunkerAssemblyScheme.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Source file for the BunkerAssemblyScheme class.
-// Project:         Retro Terrain Engine
-// Author(s):       Daniel Tabar
-//                  data@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "BunkerAssemblyScheme.h"
 #include "PresetMan.h"
 #include "FrameMan.h"
@@ -20,12 +8,6 @@
 namespace RTE {
 
 	ConcreteClassInfo(BunkerAssemblyScheme, SceneObject, 0);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Clear
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Clears all the member variables of this BunkerAssemblyScheme, effectively
-	//                  resetting the members of this abstraction level only.
 
 	void BunkerAssemblyScheme::Clear() {
 		m_pPresentationBitmap = 0;
@@ -38,22 +20,12 @@ namespace RTE {
 		m_AssemblyGroup.clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Makes the BunkerAssemblyScheme object ready for use.
-
 	int BunkerAssemblyScheme::Create() {
 		if (SceneObject::Create() < 0)
 			return -1;
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Create
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Creates a MOPixel to be identical to another, by deep copy.
 
 	int BunkerAssemblyScheme::Create(const BunkerAssemblyScheme& reference) {
 		SceneObject::Create(reference);
@@ -75,14 +47,6 @@ namespace RTE {
 
 		return 0;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  ReadProperty
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reads a property value from a reader stream. If the name isn't
-	//                  recognized by this class, then ReadProperty of the parent class
-	//                  is called. If the property isn't recognized by any of the base classes,
-	//                  false is returned, and the reader's position is untouched.
 
 	int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneObject::ReadProperty(propName, reader));
@@ -223,12 +187,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Save
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Saves the complete state of this BunkerAssemblyScheme with a Writer for
-	//                  later recreation with Create(Reader &reader);
-
 	int BunkerAssemblyScheme::Save(Writer& writer) const {
 		SceneObject::Save(writer);
 
@@ -242,11 +200,6 @@ namespace RTE {
 		return 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          Destroy
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Destroys and resets (through Clear()) the BunkerAssemblyScheme object.
-
 	void BunkerAssemblyScheme::Destroy(bool notInherited) {
 		// Probably no need to delete those, as bitmaps are only created when preset is read from file
 		// and then they just copy pointers in via Clone()
@@ -258,21 +211,9 @@ namespace RTE {
 		Clear();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Method:          GetGraphicalIcon
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Gets a bitmap showing a good identifyable icon of this, for use in
-	//                  GUI lists etc.
-
 	BITMAP* BunkerAssemblyScheme::GetGraphicalIcon() const {
 		return m_pIconBitmap;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  IsOnScenePoint
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Indicates whether this' current graphical representation overlaps
-	//                  a point in absolute scene coordinates.
 
 	bool BunkerAssemblyScheme::IsOnScenePoint(Vector& scenePoint) const {
 		if (!m_pBitmap)
@@ -293,11 +234,6 @@ namespace RTE {
 		return false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  SetTeam
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Sets which team this Actor belongs to.
-
 	void BunkerAssemblyScheme::SetTeam(int team) {
 		SceneObject::SetTeam(team);
 
@@ -305,12 +241,6 @@ namespace RTE {
 		for (std::list<SOPlacer>::iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr)
 			(*itr).SetTeam(team);
 	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Virtual method:  Draw
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Draws this BunkerAssemblyScheme's current graphical representation to a
-	//                  BITMAP of choice.
 
 	void BunkerAssemblyScheme::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		if (!m_pPresentationBitmap)

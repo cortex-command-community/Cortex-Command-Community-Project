@@ -1,15 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
-// File:            GibEditorGUI.cpp
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Implementation file for the GibEditorGUI class
-// Project:         GUI Library
-// Author(s):       Daniel Tabar
-//                  dtabar@datarealms.com
-//                  http://www.datarealms.com
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inclusions of header files
-
 #include "GibEditorGUI.h"
 
 #include "CameraMan.h"
@@ -31,12 +19,6 @@ using namespace RTE;
 
 #define MAXZOOMFACTOR 5
 #define MINZOOMFACTOR 1
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Clear
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Clears all the member variables of this GibEditorGUI, effectively
-//                  resetting the members of this abstraction level only.
 
 void GibEditorGUI::Clear() {
 	m_pController = 0;
@@ -63,11 +45,6 @@ void GibEditorGUI::Clear() {
 	m_DrawCurrentGib = true;
 	m_pObjectToBlink = 0;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the GibEditorGUI object ready for use.
 
 int GibEditorGUI::Create(Controller* pController, int whichModuleSpace) {
 	RTEAssert(pController, "No controller sent to GibEditorGUI on creation!");
@@ -104,11 +81,6 @@ int GibEditorGUI::Create(Controller* pController, int whichModuleSpace) {
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Destroy
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Destroys and resets (through Clear()) the GibEditorGUI object.
-
 void GibEditorGUI::Destroy() {
 	delete m_pPicker;
 
@@ -122,52 +94,23 @@ void GibEditorGUI::Destroy() {
 	Clear();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetController
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the controller used by this. The ownership of the controller is
-//                  NOT transferred!
-
 void GibEditorGUI::SetController(Controller* pController) {
 	m_pController = pController;
 	m_PieMenu->SetMenuController(pController);
 	m_pPicker->SetController(pController);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetPosOnScreen
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets where on the screen that this GUI is being drawn to. If upper
-//                  left corner, then 0, 0. This will affect the way the mouse is positioned
-//                  etc.
-
 void GibEditorGUI::SetPosOnScreen(int newPosX, int newPosY) {
 	m_pPicker->SetPosOnScreen(newPosX, newPosY);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetActivatedPieSlice
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets any Pie menu slice command activated last update.
 
 PieSlice::SliceType GibEditorGUI::GetActivatedPieSlice() const {
 	return m_PieMenu->GetPieCommand();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetModuleSpace
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets which DataModule space to be picking objects from. If -1, then
-//                  let the player pick from all loaded modules.
-
 void GibEditorGUI::SetModuleSpace(int moduleSpaceID) {
 	m_pPicker->SetModuleSpace(moduleSpaceID);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the state of this Menu each frame
 
 void GibEditorGUI::Update() {
 	// Update the user controller
@@ -632,11 +575,6 @@ void GibEditorGUI::Update() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the menu
-
 void GibEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
 	// Done, so don't draw the UI
 	if (m_EditorGUIMode == DONEEDITING)
@@ -729,11 +667,6 @@ void GibEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
 	m_PieMenu->Draw(pTargetBitmap, targetPos);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          AddPlacedObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Adds a MovableObject to be placed in this scene. Ownership IS transferred!
-
 void GibEditorGUI::AddPlacedObject(MovableObject* pObjectToAdd, int listOrder) {
 	if (!pObjectToAdd)
 		return;
@@ -750,11 +683,6 @@ void GibEditorGUI::AddPlacedObject(MovableObject* pObjectToAdd, int listOrder) {
 		m_PlacedGibs.insert(itr, pObjectToAdd);
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          RemovePlacedObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Removes a MovableObject placed in this scene.
 
 void GibEditorGUI::RemovePlacedObject(int whichToRemove) {
 	if (m_PlacedGibs.empty())
@@ -774,12 +702,6 @@ void GibEditorGUI::RemovePlacedObject(int whichToRemove) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          PickPlacedObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Returns the last placed object that graphically overlaps an absolute
-//                  point in the scene.
-
 const MovableObject* GibEditorGUI::PickPlacedObject(Vector& scenePoint, int* pListOrderPlace) const {
 	// REVERSE!
 	int i = m_PlacedGibs.size() - 1;
@@ -795,12 +717,6 @@ const MovableObject* GibEditorGUI::PickPlacedObject(Vector& scenePoint, int* pLi
 		*pListOrderPlace = -1;
 	return 0;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePlacedObjects
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updated the objects in the placed scene objects list of this. This is
-//                  mostly for the editor to represent the items correctly.
 
 void GibEditorGUI::UpdatePlacedObjects() {
 	for (std::list<MovableObject*>::iterator itr = m_PlacedGibs.begin(); itr != m_PlacedGibs.end(); ++itr) {

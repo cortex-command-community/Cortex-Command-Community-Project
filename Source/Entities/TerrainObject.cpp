@@ -6,8 +6,6 @@ namespace RTE {
 
 	ConcreteClassInfo(TerrainObject, SceneObject, 0);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void TerrainObject::Clear() {
 		m_FGColorFile.Reset();
 		m_FGColorBitmap = nullptr;
@@ -19,8 +17,6 @@ namespace RTE {
 		m_OffsetDefined = false;
 		m_ChildObjects.clear();
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int TerrainObject::Create() {
 		SceneObject::Create();
@@ -39,8 +35,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int TerrainObject::Create(const TerrainObject& reference) {
 		SceneObject::Create(reference);
 
@@ -58,8 +52,6 @@ namespace RTE {
 		}
 		return 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int TerrainObject::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return SceneObject::ReadProperty(propName, reader));
@@ -97,8 +89,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	int TerrainObject::Save(Writer& writer) const {
 		SceneObject::Save(writer);
 
@@ -122,8 +112,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	BITMAP* TerrainObject::GetGraphicalIcon() const {
 		if (m_FGColorBitmap) {
 			// Check several spots on the FG bitmap, to be sure it has parts that aren't transparent. If not, show the background layer instead.
@@ -135,16 +123,12 @@ namespace RTE {
 		return m_BGColorBitmap;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	void TerrainObject::SetTeam(int team) {
 		SceneObject::SetTeam(team);
 		for (SceneObject::SOPlacer& childObject: m_ChildObjects) {
 			childObject.SetTeam(team);
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool TerrainObject::IsOnScenePoint(Vector& scenePoint) const {
 		// TODO: TAKE CARE OF WRAPPING
@@ -164,8 +148,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	bool TerrainObject::PlaceOnTerrain(SLTerrain* terrain) {
 		if (!terrain) {
 			return false;
@@ -181,8 +163,6 @@ namespace RTE {
 		}
 		return true;
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TerrainObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode drawMode, bool onlyPhysical) const {
 		std::array<Vector, 4> drawPos = {m_Pos + m_BitmapOffset - targetPos};
@@ -243,8 +223,6 @@ namespace RTE {
 			}
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TerrainObject::DrawToTerrain(SLTerrain* terrain) {
 		BITMAP* terrainMatBitmap = terrain->GetMaterialBitmap();
