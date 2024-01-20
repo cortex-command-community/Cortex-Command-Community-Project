@@ -9,7 +9,7 @@ namespace RTE {
 
 		virtual void Enable() = 0;
 
-		virtual bool operator==(const BlendMode &rhs) const = 0;
+		virtual bool operator==(const BlendMode& rhs) const = 0;
 	};
 } // namespace RTE
 

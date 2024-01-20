@@ -6,8 +6,6 @@ namespace RTE {
 	public:
 		Shape();
 		virtual ~Shape() = default;
-
-		
 	};
 } // namespace RTE
 
