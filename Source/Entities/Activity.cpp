@@ -22,7 +22,6 @@ namespace RTE {
 
 	AbstractClassInfo(Activity, Entity);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::Clear() {
 		m_ActivityState = ActivityState::NotStarted;
@@ -70,7 +69,6 @@ namespace RTE {
 		m_SavedValues.Reset();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::Create() {
 		if (Entity::Create() < 0) {
@@ -83,7 +81,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::Create(const Activity& reference) {
 		Entity::Create(reference);
@@ -132,7 +129,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -229,7 +225,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::Save(Writer& writer) const {
 		Entity::Save(writer);
@@ -288,7 +283,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::Start() {
 		// Reseed the RNG for determinism
@@ -346,7 +340,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::End() {
 		g_AudioMan.FinishIngameLoopingSounds();
@@ -357,7 +350,6 @@ namespace RTE {
 		m_ActivityState = ActivityState::Over;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::SetupPlayers() {
 		m_TeamCount = 0;
@@ -389,7 +381,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Activity::DeactivatePlayer(int playerToDeactivate) {
 		if (playerToDeactivate < Players::PlayerOne || playerToDeactivate >= Players::MaxPlayerCount || !m_IsActive[playerToDeactivate] || !m_TeamActive[m_Team[playerToDeactivate]]) {
@@ -415,7 +406,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::AddPlayer(int playerToAdd, bool isHuman, int team, float funds, const Icon* teamIcon) {
 		if (playerToAdd < Players::PlayerOne || playerToAdd >= Players::MaxPlayerCount || team < Teams::TeamOne || team >= Teams::MaxTeamCount) {
@@ -455,7 +445,6 @@ namespace RTE {
 		return m_PlayerCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::ClearPlayers(bool resetFunds) {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -478,7 +467,6 @@ namespace RTE {
 		m_PlayerCount = m_TeamCount = 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::GetHumanCount() const {
 		int humans = 0;
@@ -490,7 +478,6 @@ namespace RTE {
 		return humans;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::SetTeamOfPlayer(int player, int team) {
 		if (team < Teams::TeamOne || team >= Teams::MaxTeamCount || player < Players::PlayerOne || player >= Players::MaxPlayerCount) {
@@ -502,7 +489,6 @@ namespace RTE {
 		m_IsActive[player] = true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::PlayerOfScreen(int screen) const {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -513,7 +499,6 @@ namespace RTE {
 		return Players::NoPlayer;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Activity::GetTeamName(int whichTeam) const {
 		if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
@@ -522,7 +507,6 @@ namespace RTE {
 		return "";
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Activity::IsHumanTeam(int whichTeam) const {
 		if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
@@ -535,7 +519,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::PlayersInTeamCount(int team) const {
 		int count = 0;
@@ -547,7 +530,6 @@ namespace RTE {
 		return count;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::ChangeTeamFunds(float howMuch, int whichTeam) {
 		if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
@@ -563,7 +545,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Activity::TeamFundsChanged(int whichTeam) {
 		if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
@@ -574,7 +555,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Activity::UpdatePlayerFundsContribution(int player, float newFunds) {
 		if (player < Players::PlayerOne || player >= Players::MaxPlayerCount || !m_IsActive[player] || !m_TeamActive[m_Team[player]]) {
@@ -604,7 +584,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float Activity::GetPlayerFundsShare(int player) const {
 		if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
@@ -613,7 +592,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::SetPlayerBrain(Actor* newBrain, int player) {
 		if ((player >= Players::PlayerOne || player < Players::MaxPlayerCount) && newBrain) {
@@ -625,7 +603,6 @@ namespace RTE {
 		m_Brain[player] = newBrain;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Activity::AnyBrainWasEvacuated() const {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -636,7 +613,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Activity::IsAssignedBrain(Actor* actor) const {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -647,7 +623,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::IsBrainOfWhichPlayer(Actor* actor) const {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -658,7 +633,6 @@ namespace RTE {
 		return Players::NoPlayer;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Activity::IsOtherPlayerBrain(Actor* actor, int player) const {
 		for (int playerToCheck = Players::PlayerOne; playerToCheck < Players::MaxPlayerCount; ++playerToCheck) {
@@ -669,7 +643,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Activity::GetDifficultyString(int difficulty) {
 		if (difficulty <= DifficultySetting::CakeDifficulty) {
@@ -687,7 +660,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Activity::GetAISkillString(int skill) {
 		if (skill < AISkillSetting::InferiorSkill) {
@@ -701,7 +673,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::GetTeamAISkill(int team) const {
 		if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
@@ -720,7 +691,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::ReassignSquadLeader(const int player, const int team) {
 		if (m_ControlledActor[player]->GetAIMode() == Actor::AIMODE_SQUAD) {
@@ -764,7 +734,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Activity::SwitchToActor(Actor* actor, int player, int team) {
 		if (team < Teams::TeamOne || team >= Teams::MaxTeamCount || player < Players::PlayerOne || player >= Players::MaxPlayerCount || !m_IsHuman[player]) {
@@ -818,7 +787,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::HandleCraftEnteringOrbit(ACraft* orbitedCraft) {
 		if (!orbitedCraft) {
@@ -874,7 +842,6 @@ namespace RTE {
 		m_TeamDeaths[orbitedCraftTeam]--;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Activity::GetBrainCount(bool getForHuman) const {
 		int brainCount = 0;
@@ -893,7 +860,6 @@ namespace RTE {
 		return brainCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::SwitchToPrevOrNextActor(bool nextActor, int player, int team, const Actor* actorToSkip) {
 		if (team < Teams::TeamOne || team >= Teams::MaxTeamCount || player < Players::PlayerOne || player >= Players::MaxPlayerCount || !m_IsHuman[player]) {
@@ -926,7 +892,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Activity::Update() {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -939,7 +904,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Activity::CanBeUserSaved() const {
 		if (const Scene* scene = g_SceneMan.GetScene(); (scene && scene->IsMetagameInternal()) || g_MetaMan.GameInProgress()) {

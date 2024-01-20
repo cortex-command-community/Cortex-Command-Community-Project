@@ -16,7 +16,6 @@
 
 using namespace RTE;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GUIControl* GUIControlFactory::CreateControl(GUIManager* Manager, GUIControlManager* ControlManager, const std::string& ControlName) {
 	// Button

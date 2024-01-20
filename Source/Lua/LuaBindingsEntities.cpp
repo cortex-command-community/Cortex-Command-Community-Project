@@ -4,7 +4,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Entity) {
 		return luabind::class_<Entity>("Entity")
@@ -28,7 +27,6 @@ namespace RTE {
 		    .def("IsInGroup", &Entity::IsInGroup);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACDropShip) {
 		return ConcreteTypeLuaClassDefinition(ACDropShip, ACraft)
@@ -48,7 +46,6 @@ namespace RTE {
 		    .def("GetAltitude", &ACDropShip::GetAltitude);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACrab) {
 		return ConcreteTypeLuaClassDefinition(ACrab, Actor)
@@ -112,7 +109,6 @@ namespace RTE {
 		                        luabind::value("LANDJUMP", ACrab::JumpState::LANDJUMP)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACraft) {
 		return AbstractTypeLuaClassDefinition(ACraft, Actor)
@@ -148,7 +144,6 @@ namespace RTE {
 		                                luabind::value("ASCEND", ACraft::AltitudeMoveState::ASCEND)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACRocket) {
 		return ConcreteTypeLuaClassDefinition(ACRocket, ACraft)
@@ -169,7 +164,6 @@ namespace RTE {
 		                               luabind::value("GearStateCount", ACRocket::LandingGearState::GearStateCount)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 		return ConcreteTypeLuaClassDefinition(Actor, MOSRotating)
@@ -318,7 +312,6 @@ namespace RTE {
 		                             luabind::value("FOLLOWWAIT", Actor::TeamBlockState::FOLLOWWAIT)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ADoor) {
 		return ConcreteTypeLuaClassDefinition(ADoor, Actor)
@@ -343,7 +336,6 @@ namespace RTE {
 		                        luabind::value("STOPPED", ADoor::DoorState::STOPPED)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEmitter) {
 		return ConcreteTypeLuaClassDefinition(AEmitter, Attachable)
@@ -385,7 +377,6 @@ namespace RTE {
 		    .def("JustStartedEmitting", &AEmitter::JustStartedEmitting);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEJetpack) {
 		return ConcreteTypeLuaClassDefinition(AEJetpack, AEmitter)
@@ -403,7 +394,6 @@ namespace RTE {
 		                          luabind::value("JumpPack", AEJetpack::JumpPack)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 		return ConcreteTypeLuaClassDefinition(AHuman, Actor)
@@ -510,7 +500,6 @@ namespace RTE {
 		                        luabind::value("LANDJUMP", AHuman::JumpState::LANDJUMP)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Arm) {
 		return ConcreteTypeLuaClassDefinition(Arm, Attachable)
@@ -539,7 +528,6 @@ namespace RTE {
 		    .def("ClearHandTargets", &Arm::ClearHandTargets);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Attachable) {
 		return ConcreteTypeLuaClassDefinition(Attachable, MOSRotating)
@@ -571,7 +559,6 @@ namespace RTE {
 		    .def("RemoveFromParent", &LuaAdaptersAttachable::RemoveFromParent2, luabind::adopt(luabind::return_value));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Deployment) {
 		return AbstractTypeLuaClassDefinition(Deployment, SceneObject)
@@ -585,7 +572,6 @@ namespace RTE {
 		    .def("CreateDeployedObject", (SceneObject * (Deployment::*)()) & Deployment::CreateDeployedObject, luabind::adopt(luabind::result));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Emission) {
 		return AbstractTypeLuaClassDefinition(Emission, Entity)
@@ -602,7 +588,6 @@ namespace RTE {
 		    .def("ResetEmissionTimers", &Emission::ResetEmissionTimers);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Gib) {
 		return luabind::class_<Gib>("Gib")
@@ -624,7 +609,6 @@ namespace RTE {
 		                         luabind::value("SpreadSpiral", Gib::SpreadMode::SpreadSpiral)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, GlobalScript) {
 		return AbstractTypeLuaClassDefinition(GlobalScript, Entity)
@@ -632,7 +616,6 @@ namespace RTE {
 		    .def("Deactivate", &LuaAdaptersGlobalScript::Deactivate);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HDFirearm) {
 		return ConcreteTypeLuaClassDefinition(HDFirearm, HeldDevice)
@@ -686,7 +669,6 @@ namespace RTE {
 		    .def("SetNextMagazineName", &HDFirearm::SetNextMagazineName);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
 		return ConcreteTypeLuaClassDefinition(HeldDevice, Attachable)
@@ -731,7 +713,6 @@ namespace RTE {
 		    .def("RemovePickupableByPresetName", &HeldDevice::RemovePickupableByPresetName);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Leg) {
 		return ConcreteTypeLuaClassDefinition(Leg, Attachable)
@@ -740,7 +721,6 @@ namespace RTE {
 		    .property("MoveSpeed", &Leg::GetMoveSpeed, &Leg::SetMoveSpeed);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, LimbPath) {
 		return luabind::class_<LimbPath>("LimbPath")
@@ -752,7 +732,6 @@ namespace RTE {
 		    .def("GetSegment", &LimbPath::GetSegment);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Magazine) {
 		return ConcreteTypeLuaClassDefinition(Magazine, Attachable)
@@ -766,7 +745,6 @@ namespace RTE {
 		    .property("Discardable", &Magazine::IsDiscardable);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Material) {
 		return luabind::class_<Material, Entity>("Material")
@@ -786,7 +764,6 @@ namespace RTE {
 		    .property("IsScrap", &Material::IsScrap);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MetaPlayer) {
 		return luabind::class_<MetaPlayer>("MetaPlayer")
@@ -802,7 +779,6 @@ namespace RTE {
 		    .def("ChangeBrainPoolCount", &MetaPlayer::ChangeBrainPoolCount);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOPixel) {
 		return ConcreteTypeLuaClassDefinition(MOPixel, MovableObject)
@@ -811,13 +787,11 @@ namespace RTE {
 		    .property("Staininess", &MOPixel::GetStaininess, &MOPixel::SetStaininess);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSParticle) {
 		return ConcreteTypeLuaClassDefinition(MOSParticle, MOSprite);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSprite) {
 		return AbstractTypeLuaClassDefinition(MOSprite, MovableObject)
@@ -861,7 +835,6 @@ namespace RTE {
 		                             luabind::value("ONCOLLIDE", SpriteAnimMode::ONCOLLIDE)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
 		return ConcreteTypeLuaClassDefinition(MOSRotating, MOSprite)
@@ -921,7 +894,6 @@ namespace RTE {
 		    .def("GibThis", &LuaAdaptersMOSRotating::GibThis);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 		return AbstractTypeLuaClassDefinition(MovableObject, SceneObject)
@@ -1038,7 +1010,6 @@ namespace RTE {
 		    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
 		return ConcreteTypeLuaClassDefinition(PEmitter, MOSParticle)
@@ -1066,7 +1037,6 @@ namespace RTE {
 		    .def("JustStartedEmitting", &PEmitter::JustStartedEmitting);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieSlice) {
 		return ConcreteTypeLuaClassDefinition(PieSlice, Entity)
@@ -1122,7 +1092,6 @@ namespace RTE {
 		                        luabind::value("Team4", PieSlice::SliceType::EditorTeam4)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieMenu) {
 		return ConcreteTypeLuaClassDefinition(PieMenu, Entity)
@@ -1165,7 +1134,6 @@ namespace RTE {
 		    .def("ReplacePieSlice", &PieMenu::ReplacePieSlice, luabind::adopt(luabind::result) + luabind::adopt(_3));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Round) {
 		return ConcreteTypeLuaClassDefinition(Round, Entity)
@@ -1182,7 +1150,6 @@ namespace RTE {
 		    .property("IsEmpty", &Round::IsEmpty);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 		return ConcreteTypeLuaClassDefinition(Scene, Entity)
@@ -1235,7 +1202,6 @@ namespace RTE {
 		                               luabind::value("PLACEDSETSCOUNT", Scene::PlacedObjectSets::PLACEDSETSCOUNT)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
 		return luabind::class_<Scene::Area>("Area")
@@ -1264,13 +1230,11 @@ namespace RTE {
 		    .def("GetRandomPoint", &Scene::Area::GetRandomPoint);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneLayer) {
 		return luabind::class_<SceneLayer, Entity>("SceneLayer");
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
 		return AbstractTypeLuaClassDefinition(SceneObject, Entity)
@@ -1299,7 +1263,6 @@ namespace RTE {
 		                          luabind::value("SCRIPTONLY", static_cast<int>(SceneObject::BuyableMode::ScriptOnly))];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SLBackground) {
 		return luabind::class_<SLBackground, SceneLayer>("SLBackground")
@@ -1318,7 +1281,6 @@ namespace RTE {
 		    .def("IsAutoScrolling", &SLBackground::IsAutoScrolling);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 		return ConcreteTypeLuaClassDefinition(SoundContainer, Entity)
@@ -1362,7 +1324,6 @@ namespace RTE {
 		                               luabind::value("IGNORE_PLAY", SoundContainer::SoundOverlapMode::IGNORE_PLAY)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundSet) {
 		return luabind::class_<SoundSet>("SoundSet")
@@ -1386,7 +1347,6 @@ namespace RTE {
 		                                      luabind::value("ALL", SoundSet::SoundSelectionCycleMode::ALL)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, TDExplosive) {
 		return ConcreteTypeLuaClassDefinition(TDExplosive, ThrownDevice)
@@ -1394,7 +1354,6 @@ namespace RTE {
 		    .property("IsAnimatedManually", &TDExplosive::IsAnimatedManually, &TDExplosive::SetAnimatedManually);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, TerrainObject) {
 		return ConcreteTypeLuaClassDefinition(TerrainObject, SceneObject)
@@ -1404,7 +1363,6 @@ namespace RTE {
 		    .def("GetBitmapHeight", &TerrainObject::GetBitmapHeight);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ThrownDevice) {
 		return ConcreteTypeLuaClassDefinition(ThrownDevice, HeldDevice)
@@ -1417,7 +1375,6 @@ namespace RTE {
 		    .def("GetCalculatedMaxThrowVelIncludingArmThrowStrength", &ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Turret) {
 		return ConcreteTypeLuaClassDefinition(Turret, Attachable)

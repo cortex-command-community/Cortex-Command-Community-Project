@@ -16,7 +16,6 @@ namespace RTE {
 	// This is because we may assign an object to another state in a singlethreaded context, before the GC runs in the multithreaded context
 	static std::vector<luabind::adl::object*> s_QueuedDeletions;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void LuabindObjectWrapper::ApplyQueuedDeletions() {
 		for (luabind::adl::object* obj: s_QueuedDeletions) {
@@ -26,7 +25,6 @@ namespace RTE {
 		s_QueuedDeletions.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuabindObjectWrapper::~LuabindObjectWrapper() {
 		if (m_OwnsObject) {
@@ -36,7 +34,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	luabind::adl::object GetCopyForStateInternal(const luabind::adl::object& obj, lua_State& targetState) {
 		if (obj.is_valid()) {
@@ -68,7 +65,6 @@ namespace RTE {
 		return luabind::adl::object();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuabindObjectWrapper LuabindObjectWrapper::GetCopyForState(lua_State& targetState) const {
 		luabind::adl::object* copy = new luabind::adl::object(GetCopyForStateInternal(*m_LuabindObject, targetState));

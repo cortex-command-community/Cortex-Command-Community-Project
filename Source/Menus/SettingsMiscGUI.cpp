@@ -11,7 +11,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SettingsMiscGUI::SettingsMiscGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
@@ -48,14 +47,12 @@ namespace RTE {
 		m_SceneBackgroundAutoScaleSlider->SetValue(g_SettingsMan.GetSceneBackgroundAutoScaleMode());
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsMiscGUI::SetEnabled(bool enable) const {
 		m_MiscSettingsBox->SetVisible(enable);
 		m_MiscSettingsBox->SetEnabled(enable);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsMiscGUI::UpdateSceneBackgroundAutoScaleLabel() {
 		switch (g_SettingsMan.GetSceneBackgroundAutoScaleMode()) {
@@ -71,7 +68,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsMiscGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Notification) {

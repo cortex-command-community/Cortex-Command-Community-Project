@@ -21,7 +21,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::Clear() {
 		m_GUIControlManager = nullptr;
@@ -49,7 +48,6 @@ namespace RTE {
 		m_PauseMenuButtons.fill(nullptr);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
@@ -94,7 +92,6 @@ namespace RTE {
 		m_ModManagerMenu = std::make_unique<ModManagerGUI>(guiScreen, guiInput, true);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::SetBackButtonTargetName(const std::string& menuName) {
 		std::string newButtonText = "Back to " + menuName + " Menu";
@@ -111,7 +108,6 @@ namespace RTE {
 		m_PauseMenuButtons[PauseMenuButton::BackToMainButton]->CenterInParent(true, false);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::EnableOrDisablePauseMenuFeatures() {
 		bool disableModManager = true;
@@ -135,7 +131,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::SetActiveMenuScreen(PauseMenuScreen screenToShow, bool playButtonPressSound) {
 		if (screenToShow != m_ActiveMenuScreen) {
@@ -149,7 +144,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	PauseMenuGUI::PauseMenuUpdateResult PauseMenuGUI::Update() {
 		m_UpdateResult = PauseMenuUpdateResult::NoEvent;
@@ -183,7 +177,6 @@ namespace RTE {
 		return m_UpdateResult;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::HandleBackNavigation(bool backButtonPressed) {
 		if (!m_ActiveDialogBox && (backButtonPressed || g_UInputMan.KeyPressed(SDLK_ESCAPE))) {
@@ -205,7 +198,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PauseMenuGUI::HandleInputEvents() {
 		if (m_ActiveMenuScreen == PauseMenuScreen::MainScreen) {
@@ -239,7 +231,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::UpdateHoveredButton(const GUIButton* hoveredButton) {
 		int hoveredButtonIndex = -1;
@@ -261,7 +252,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::BlinkResumeButton() {
 		if (m_HoveredButton && m_HoveredButton == m_PauseMenuButtons[PauseMenuButton::ResumeButton]) {
@@ -271,7 +261,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PauseMenuGUI::Draw() {
 		g_WindowMan.DrawPostProcessBuffer();

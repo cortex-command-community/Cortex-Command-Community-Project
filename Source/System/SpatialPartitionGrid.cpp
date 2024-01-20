@@ -6,7 +6,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SpatialPartitionGrid::Clear() {
 		m_Width = 0;
@@ -19,7 +18,6 @@ namespace RTE {
 		m_UsedCellIds.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SpatialPartitionGrid::Create(int width, int height, int cellSize) {
 		m_Width = width / cellSize;
@@ -32,7 +30,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SpatialPartitionGrid::Create(const SpatialPartitionGrid& reference) {
 		m_Width = reference.m_Width;
@@ -44,7 +41,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SpatialPartitionGrid::Reset() {
 		const Activity* activity = g_ActivityMan.GetActivity();
@@ -62,7 +58,6 @@ namespace RTE {
 		m_UsedCellIds.clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SpatialPartitionGrid::Add(const IntRect& rect, const MovableObject& mo) {
 		const Activity* activity = g_ActivityMan.GetActivity();
@@ -102,7 +97,6 @@ namespace RTE {
 			}
 		}
 	}
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::vector<MovableObject*> SpatialPartitionGrid::GetMOsInBox(const Box& box, int ignoreTeam, bool getsHitByMOsOnly) const {
 		RTEAssert(ignoreTeam >= Activity::NoTeam && ignoreTeam < Activity::MaxTeamCount, "Invalid ignoreTeam given to SpatialPartitioningGrid::GetMOsInBox()!");
@@ -142,7 +136,6 @@ namespace RTE {
 		return MOList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::vector<MovableObject*> SpatialPartitionGrid::GetMOsInRadius(const Vector& center, float radius, int ignoreTeam, bool getsHitByMOsOnly) const {
 		RTEAssert(ignoreTeam >= Activity::NoTeam && ignoreTeam < Activity::MaxTeamCount, "Invalid ignoreTeam given to SpatialPartitioningGrid::GetMOsInRadius()!");
@@ -176,7 +169,6 @@ namespace RTE {
 		return MOList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const std::vector<MOID>& SpatialPartitionGrid::GetMOIDsAtPosition(int x, int y, int ignoreTeam, bool getsHitByMOsOnly) const {
 		int cellX = x / m_CellSize;
@@ -191,7 +183,6 @@ namespace RTE {
 		return cells[ignoreTeam + 1][GetCellIdForCellCoords(cellX, cellY)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SpatialPartitionGrid::GetCellIdForCellCoords(int cellX, int cellY) const {
 		// We act like we wrap, even if the Scene doesn't. The only cost is some duplicate collision checks, but that's a minor cost to pay :)

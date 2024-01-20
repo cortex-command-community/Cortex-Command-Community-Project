@@ -12,7 +12,6 @@ namespace RTE {
 
 	std::array<InputElements, 7> SettingsInputMappingGUI::m_InputElementsUsedByMouse = {InputElements::INPUT_FIRE, InputElements::INPUT_PIEMENU_ANALOG, InputElements::INPUT_AIM, InputElements::INPUT_AIM_UP, InputElements::INPUT_AIM_DOWN, InputElements::INPUT_AIM_LEFT, InputElements::INPUT_AIM_RIGHT};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SettingsInputMappingGUI::SettingsInputMappingGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
@@ -50,13 +49,11 @@ namespace RTE {
 		m_InputElementCapturingInput = InputElements::INPUT_COUNT;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingGUI::IsEnabled() const {
 		return m_InputMappingSettingsBox->GetVisible() && m_InputMappingSettingsBox->GetEnabled();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::SetEnabled(bool enable, int player) {
 		m_InputMappingSettingsBox->SetVisible(enable);
@@ -76,7 +73,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	GUICollectionBox* SettingsInputMappingGUI::GetActiveDialogBox() const {
 		if (m_InputConfigWizardMenu->IsEnabled()) {
@@ -87,7 +83,6 @@ namespace RTE {
 		return (m_InputMappingSettingsBox->GetEnabled() && m_InputMappingSettingsBox->GetVisible()) ? m_InputMappingSettingsBox : nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::CloseActiveDialogBox() {
 		if (m_InputConfigWizardMenu->IsEnabled()) {
@@ -99,13 +94,11 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsInputMappingGUI::IsConfiguringManually() const {
 		return m_ConfiguringManually && m_InputMappingCaptureBox->GetVisible() && m_InputMappingCaptureBox->GetEnabled();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::ShowInputMappingCaptureBox(InputElements inputElement) {
 		m_InputMappingSettingsBox->SetEnabled(false);
@@ -118,7 +111,6 @@ namespace RTE {
 		g_UInputMan.SetSkipHandlingSpecialInput(true);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::HideInputMappingCaptureBox() {
 		m_InputMappingSettingsBox->SetEnabled(true);
@@ -129,7 +121,6 @@ namespace RTE {
 		g_UInputMan.SetSkipHandlingSpecialInput(false);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::UpdateMappingButtonLabels() {
 		const std::array<InputMapping, InputElements::INPUT_COUNT>* inputMappings = m_ConfiguringPlayerInputScheme->GetInputMappings();
@@ -145,7 +136,6 @@ namespace RTE {
 		m_InputMapScrollingBoxScrollbar->SetPageSize(m_InputMapScrollingBoxScrollbar->GetMaximum() / 2);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::UpdateScrollingInputBoxScrollPosition() {
 		int scrollbarValue = m_InputMapScrollingBoxScrollbar->GetValue();
@@ -153,7 +143,6 @@ namespace RTE {
 		m_LastInputMapScrollingBoxScrollbarValue = scrollbarValue;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (m_InputConfigWizardMenu->IsEnabled()) {
@@ -191,7 +180,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsInputMappingGUI::HandleManualConfigSequence() {
 		bool inputCaptured = false;

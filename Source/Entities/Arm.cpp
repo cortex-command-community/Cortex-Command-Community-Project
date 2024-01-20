@@ -9,7 +9,6 @@ namespace RTE {
 
 	ConcreteClassInfo(Arm, Attachable, 50);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::Clear() {
 		m_MaxLength = 0;
@@ -35,7 +34,6 @@ namespace RTE {
 		m_HeldDeviceThisArmIsTryingToSupport = nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Arm::Create() {
 		if (Attachable::Create() < 0) {
@@ -51,7 +49,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Arm::Create(const Arm& reference) {
 		if (reference.m_HeldDevice) {
@@ -86,7 +83,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Arm::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Attachable::ReadProperty(propName, reader));
@@ -105,7 +101,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Arm::Save(Writer& writer) const {
 		Attachable::Save(writer);
@@ -121,13 +116,11 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::SetHandPos(const Vector& newHandPos) {
 		SetHandCurrentOffset(g_SceneMan.ShortestDistance(m_JointPos, newHandPos, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY()));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::AddHandTarget(const std::string& description, const Vector& handTargetPositionToAdd, float delayAtTarget) {
 		Vector handTargetOffsetToAdd = g_SceneMan.ShortestDistance(m_JointPos, handTargetPositionToAdd, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY());
@@ -143,7 +136,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::SetHeldDevice(HeldDevice* newHeldDevice) {
 		if (m_HeldDevice && m_HeldDevice->IsAttached()) {
@@ -169,7 +161,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	HeldDevice* Arm::SwapHeldDevice(HeldDevice* newHeldDevice) {
 		Attachable* previousHeldDevice = RemoveAttachable(m_HeldDevice, false, false);
@@ -177,13 +168,11 @@ namespace RTE {
 		return dynamic_cast<HeldDevice*>(previousHeldDevice);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Arm::HandIsCloseToTargetOffset(const Vector& targetOffset) const {
 		return (m_HandCurrentOffset - targetOffset).MagnitudeIsLessThan(m_MaxLength / 10.0F);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::Update() {
 		Attachable::PreUpdate();
@@ -232,7 +221,6 @@ namespace RTE {
 		m_HandIdleRotation = 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::UpdateHandCurrentOffset(bool armHasParent, bool heldDeviceIsAThrownDevice) {
 		if (armHasParent) {
@@ -303,7 +291,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::AccountForHeldDeviceRecoil(const HeldDevice* heldDevice, Vector& targetOffset) {
 		if (!heldDevice->GetRecoilForce().IsZero()) {
@@ -342,7 +329,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::AccountForHeldDeviceTerrainClipping(const HeldDevice* heldDevice, Vector& targetOffset) const {
 		Vector newMuzzlePos = (m_JointPos + targetOffset) - RotateOffset(heldDevice->GetJointOffset()) + RotateOffset(heldDevice->GetMuzzleOffset());
@@ -358,7 +344,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::UpdateArmFrame() {
 		float halfMaxLength = m_MaxLength / 2.0F;
@@ -366,7 +351,6 @@ namespace RTE {
 		m_Frame = static_cast<unsigned int>(std::clamp(newFrame, 0.0F, static_cast<float>(m_FrameCount - 1)));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		Attachable::Draw(targetBitmap, targetPos, mode, onlyPhysical);
@@ -379,7 +363,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Arm::DrawHand(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode) const {
 		Vector handPos(m_JointPos + m_HandCurrentOffset + (m_Recoiled ? m_RecoilOffset : Vector()) - targetPos);

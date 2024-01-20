@@ -9,7 +9,6 @@ namespace RTE {
 	const std::string GenericSavedData::GenericSavedStrings::c_ClassName = "GenericSavedStrings";
 	const std::string GenericSavedData::GenericSavedNumbers::c_ClassName = "GenericSavedNumbers";
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GenericSavedData::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -21,7 +20,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GenericSavedData::Save(Writer& writer) const {
 		Serializable::Save(writer);
@@ -33,7 +31,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GenericSavedData::SaveString(const std::string& key, const std::string& value) {
 		if (value.length() == 0) {
@@ -69,7 +66,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const std::string& GenericSavedData::LoadString(const std::string& key) {
 		const std::string* loadString = &m_SavedStrings.m_Data[key];
@@ -79,7 +75,6 @@ namespace RTE {
 		return *loadString;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GenericSavedData::GenericSavedEncodedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
 		std::string value = reader.ReadPropValue();
@@ -87,7 +82,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GenericSavedData::GenericSavedEncodedStrings::Save(Writer& writer) const {
 		Serializable::Save(writer);
@@ -101,14 +95,12 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GenericSavedData::GenericSavedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_Data[std::string(propName)] = reader.ReadPropValue(); // until we get P0919R2.
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GenericSavedData::GenericSavedStrings::Save(Writer& writer) const {
 		Serializable::Save(writer);
@@ -121,7 +113,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GenericSavedData::GenericSavedNumbers::ReadProperty(const std::string_view& propName, Reader& reader) {
 		float value;
@@ -130,7 +121,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int GenericSavedData::GenericSavedNumbers::Save(Writer& writer) const {
 		Serializable::Save(writer);

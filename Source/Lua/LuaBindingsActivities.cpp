@@ -4,7 +4,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, Activity) {
 		return AbstractTypeLuaClassDefinition(Activity, Entity)
@@ -111,7 +110,6 @@ namespace RTE {
 		                             luabind::value("UNFAIRSKILL", Activity::AISkillSetting::UnfairSkill)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, GameActivity) {
 		return luabind::class_<GameActivity, Activity>("GameActivity")

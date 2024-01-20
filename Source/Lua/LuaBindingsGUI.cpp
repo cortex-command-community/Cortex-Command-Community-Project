@@ -4,7 +4,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, GUIBanner) {
 		return luabind::class_<GUIBanner>("GUIBanner")
@@ -32,7 +31,6 @@ namespace RTE {
 		                          luabind::value("YELLOW", GameActivity::BannerColor::YELLOW)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, BuyMenuGUI) {
 		return luabind::class_<BuyMenuGUI>("BuyMenuGUI")
@@ -69,7 +67,6 @@ namespace RTE {
 		    .def("GetTotalOrderPassengers", &BuyMenuGUI::GetTotalOrderPassengers);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, SceneEditorGUI) {
 		return luabind::class_<SceneEditorGUI>("SceneEditorGUI")

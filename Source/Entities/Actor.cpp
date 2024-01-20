@@ -457,7 +457,6 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float Actor::GetInventoryMass() const {
 		float inventoryMass = 0.0F;
@@ -467,7 +466,6 @@ namespace RTE {
 		return inventoryMass;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float Actor::GetBaseMass() {
 		if (m_BaseMass == std::numeric_limits<float>::infinity()) {
@@ -481,7 +479,6 @@ namespace RTE {
 		return m_BaseMass;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Actor::IsPlayerControlled() const {
 		return m_Controller.GetInputMode() == Controller::CIM_PLAYER && m_Controller.GetPlayer() >= 0;
@@ -597,7 +594,6 @@ namespace RTE {
 		return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Actor::AddGold(float goldOz) {
 		bool isHumanTeam = g_ActivityMan.GetActivity()->IsHumanTeam(m_Team);
@@ -617,7 +613,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Actor::RestDetection() {
 		MOSRotating::RestDetection();
@@ -657,7 +652,6 @@ namespace RTE {
 		return pRetDev;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Actor::RemoveInventoryItem(const std::string& moduleName, const std::string& presetName) {
 		for (std::deque<MovableObject*>::iterator inventoryIterator = m_Inventory.begin(); inventoryIterator != m_Inventory.end(); ++inventoryIterator) {
@@ -670,7 +664,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MovableObject* Actor::RemoveInventoryItemAtIndex(int inventoryIndex) {
 		if (inventoryIndex >= 0 && inventoryIndex < m_Inventory.size()) {
@@ -681,7 +674,6 @@ namespace RTE {
 		return nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MovableObject* Actor::SwapPrevInventory(MovableObject* pSwapIn) {
 		MovableObject* pRetDev = 0;
@@ -703,7 +695,6 @@ namespace RTE {
 		return pRetDev;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Actor::SwapInventoryItemsByIndex(int inventoryIndex1, int inventoryIndex2) {
 		if (inventoryIndex1 < 0 || inventoryIndex2 < 0 || inventoryIndex1 >= m_Inventory.size() || inventoryIndex2 >= m_Inventory.size()) {
@@ -714,7 +705,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MovableObject* Actor::SetInventoryItemAtIndex(MovableObject* newInventoryItem, int inventoryIndex) {
 		if (!newInventoryItem) {
@@ -731,7 +721,6 @@ namespace RTE {
 		return currentInventoryItemAtIndex;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Actor::DropAllInventory() {
 		MovableObject* pObject = 0;
@@ -1031,7 +1020,6 @@ namespace RTE {
 		m_UpdateMovePath = false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float Actor::EstimateDigStrength() const {
 		return m_AIBaseDigStrength;

@@ -12,7 +12,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::Clear() {
 		m_AudioEnabled = false;
@@ -47,7 +46,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AudioMan::Initialize() {
 		FMOD_RESULT audioSystemSetupResult = FMOD::System_Create(&m_AudioSystem);
@@ -113,7 +111,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::Destroy() {
 		if (m_AudioEnabled) {
@@ -123,7 +120,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::Update() {
 		if (m_AudioEnabled) {
@@ -191,7 +187,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::SetGlobalPitch(float pitch, bool includeImmobileSounds, bool includeMusic) {
 		if (!m_AudioEnabled) {
@@ -209,7 +204,6 @@ namespace RTE {
 		m_SFXChannelGroup->setPitch(m_GlobalPitch);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::SetTempMusicVolume(float volume) {
 		if (m_AudioEnabled && IsMusicPlaying()) {
@@ -223,7 +217,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AudioMan::SetMusicPitch(float pitch) {
 		if (!m_AudioEnabled) {
@@ -244,7 +237,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float AudioMan::GetMusicPosition() const {
 		if (m_AudioEnabled && IsMusicPlaying()) {
@@ -263,7 +255,6 @@ namespace RTE {
 		return 0.0F;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::SetMusicPosition(float position) {
 		if (m_AudioEnabled && IsMusicPlaying()) {
@@ -284,7 +275,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::FinishIngameLoopingSounds() {
 		if (m_AudioEnabled) {
@@ -308,7 +298,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::PlayMusic(const char* filePath, int loops, float volumeOverrideIfNotMuted) {
 		if (m_AudioEnabled) {
@@ -380,7 +369,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::PlayNextStream() {
 		if (m_AudioEnabled && !m_MusicPlayList.empty()) {
@@ -413,7 +401,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::StopMusic() {
 		if (m_AudioEnabled) {
@@ -429,7 +416,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::QueueMusicStream(const char* filepath) {
 		if (m_AudioEnabled) {
@@ -446,7 +432,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SoundContainer* AudioMan::PlaySound(const std::string& filePath, const Vector& position, int player) {
 		if (m_IsInMultiplayerMode) {
@@ -462,7 +447,6 @@ namespace RTE {
 		return newSoundContainer;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::GetMusicEvents(int player, std::list<NetworkMusicData>& list) {
 		if (player < 0 || player >= c_MaxClients) {
@@ -478,7 +462,6 @@ namespace RTE {
 		g_SoundEventsListMutex[player].unlock();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::RegisterMusicEvent(int player, NetworkMusicState state, const char* filepath, int loopsOrSilence, float position, float pitch) {
 		if (player == -1) {
@@ -502,7 +485,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::ClearMusicEvents(int player) {
 		if (player == -1 || player >= c_MaxClients) {
@@ -516,7 +498,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::GetSoundEvents(int player, std::list<NetworkSoundData>& list) {
 		if (player < 0 || player >= c_MaxClients) {
@@ -540,7 +521,6 @@ namespace RTE {
 		g_SoundEventsListMutex[player].unlock();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::RegisterSoundEvent(int player, NetworkSoundState state, const SoundContainer* soundContainer, int fadeoutTime) {
 		if (player == -1) {
@@ -590,7 +570,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::ClearSoundEvents(int player) {
 		if (player == -1 || player >= c_MaxClients) {
@@ -604,7 +583,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
 		if (!m_AudioEnabled || !soundContainer || soundContainer->GetPlayingChannels()->size() >= c_MaxPlayingSoundsPerContainer) {
@@ -699,7 +677,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AudioMan::ChangeSoundContainerPlayingChannelsPosition(const SoundContainer* soundContainer) {
 		if (!m_AudioEnabled || !soundContainer) {
@@ -728,7 +705,6 @@ namespace RTE {
 		return result == FMOD_OK;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AudioMan::ChangeSoundContainerPlayingChannelsVolume(const SoundContainer* soundContainer, float newVolume) {
 		if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
@@ -762,7 +738,6 @@ namespace RTE {
 		return result == FMOD_OK;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AudioMan::ChangeSoundContainerPlayingChannelsPitch(const SoundContainer* soundContainer) {
 		if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
@@ -786,7 +761,6 @@ namespace RTE {
 		return result == FMOD_OK;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AudioMan::ChangeSoundContainerPlayingChannelsCustomPanValue(const SoundContainer* soundContainer) {
 		if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
@@ -810,7 +784,6 @@ namespace RTE {
 		return result == FMOD_OK;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool AudioMan::StopSoundContainerPlayingChannels(SoundContainer* soundContainer, int player) {
 		if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
@@ -835,7 +808,6 @@ namespace RTE {
 		return result == FMOD_OK;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::FadeOutSoundContainerPlayingChannels(SoundContainer* soundContainer, int fadeOutTime) {
 		if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
@@ -868,7 +840,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AudioMan::Update3DEffectsForSFXChannels() {
 		int numberOfPlayingChannels;
@@ -914,7 +885,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soundChannel, const FMOD_VECTOR* positionOverride) const {
 		FMOD_RESULT result = FMOD_OK;
@@ -1004,7 +974,6 @@ namespace RTE {
 		return result;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FMOD_RESULT F_CALLBACK AudioMan::MusicChannelEndedCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE channelControlType, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void* unusedCommandData1, void* unusedCommandData2) {
 		if (channelControlType == FMOD_CHANNELCONTROL_CHANNEL && callbackType == FMOD_CHANNELCONTROL_CALLBACK_END) {
@@ -1017,7 +986,6 @@ namespace RTE {
 		return FMOD_OK;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE channelControlType, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void* unusedCommandData1, void* unusedCommandData2) {
 		if (channelControlType == FMOD_CHANNELCONTROL_CHANNEL && callbackType == FMOD_CHANNELCONTROL_CALLBACK_END) {
@@ -1050,14 +1018,12 @@ namespace RTE {
 		return FMOD_OK;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FMOD_VECTOR AudioMan::GetAsFMODVector(const Vector& vector, float zValue) const {
 		Vector sceneDimensions = g_SceneMan.GetScene() ? g_SceneMan.GetSceneDim() : Vector();
 		return sceneDimensions.IsZero() ? FMOD_VECTOR{0, 0, zValue} : FMOD_VECTOR{vector.m_X, sceneDimensions.m_Y - vector.m_Y, zValue};
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector AudioMan::GetAsVector(FMOD_VECTOR fmodVector) const {
 		Vector sceneDimensions = g_SceneMan.GetScene() ? g_SceneMan.GetSceneDim() : Vector();

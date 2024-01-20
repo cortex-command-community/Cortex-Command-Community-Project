@@ -29,7 +29,6 @@ namespace RTE {
 	// TODO: Enhance MicroPather to add that capability (or write our own pather)!
 	thread_local float s_DigStrength = 0.0F;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	PathNode::PathNode(const Vector& pos) :
 	    Pos(pos) {
@@ -40,14 +39,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::Clear() {
 		m_NodeGrid.clear();
 		m_NodeDimension = SCENEGRIDSIZE;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int PathFinder::Create(int nodeDimension) {
 		RTEAssert(g_SceneMan.GetScene(), "Scene doesn't exist or isn't loaded when creating PathFinder!");
@@ -112,13 +109,11 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::Destroy() {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MicroPather* PathFinder::GetPather() {
 		// TODO: cache a collection of pathers. For async pathfinding right now we create a new pather for every thread!
@@ -136,7 +131,6 @@ namespace RTE {
 		return s_Pather.m_Instance;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float digStrength) {
 		ZoneScoped;
@@ -205,7 +199,6 @@ namespace RTE {
 		return result;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector start, Vector end, float digStrength, PathCompleteCallback callback) {
 		std::shared_ptr<volatile PathRequest> pathRequest = std::make_shared<PathRequest>();
@@ -235,7 +228,6 @@ namespace RTE {
 		return pathRequest;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::RecalculateAllCosts() {
 		RTEAssert(g_SceneMan.GetScene(), "Scene doesn't exist or isn't loaded when recalculating PathFinder!");
@@ -253,7 +245,6 @@ namespace RTE {
 		UpdateNodeList(pathNodesIdsVec);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, int nodeUpdateLimit) {
 		ZoneScoped;
@@ -285,13 +276,11 @@ namespace RTE {
 		return nodeVec;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float PathFinder::LeastCostEstimate(void* startState, void* endState) {
 		return g_SceneMan.ShortestDistance((static_cast<PathNode*>(startState))->Pos, (static_cast<PathNode*>(endState))->Pos).GetMagnitude() / m_NodeDimension;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* adjacentList) {
 		const PathNode* node = static_cast<PathNode*>(state);
@@ -350,7 +339,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PathFinder::PositionsAreTheSamePathNode(const Vector& pos1, const Vector& pos2) const {
 		int startNodeX = std::floor(pos1.m_X / static_cast<float>(m_NodeDimension));
@@ -360,7 +348,6 @@ namespace RTE {
 		return startNodeX == endNodeX && startNodeY == endNodeY;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float PathFinder::GetMaterialTransitionCost(const Material& material) const {
 		float strength = material.GetIntegrity();
@@ -371,13 +358,11 @@ namespace RTE {
 		return strength;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const Material* PathFinder::StrongestMaterialAlongLine(const Vector& start, const Vector& end) const {
 		return g_SceneMan.CastMaxStrengthRayMaterial(start, end, 0, MaterialColorKeys::g_MaterialAir);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PathFinder::UpdateNodeCosts(PathNode* node) const {
 		if (!node) {
@@ -426,7 +411,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::vector<int> PathFinder::GetNodeIdsInBox(Box box) {
 		std::vector<int> result;
@@ -452,7 +436,6 @@ namespace RTE {
 		return result;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float PathFinder::GetNodeAverageTransitionCost(const PathNode& node) const {
 		float totalCostOfAdjacentNodes = 0.0F;
@@ -468,7 +451,6 @@ namespace RTE {
 		return totalCostOfAdjacentNodes / std::max(static_cast<float>(count), 1.0F);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool PathFinder::UpdateNodeList(const std::vector<int>& nodeVec) {
 		ZoneScoped;
@@ -513,7 +495,6 @@ namespace RTE {
 		return anyChange;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::MarkBoxNavigatable(Box box, bool navigatable) {
 		std::vector<int> pathNodesInBox = GetNodeIdsInBox(box);
@@ -527,7 +508,6 @@ namespace RTE {
 		    });
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PathFinder::MarkAllNodesNavigatable(bool navigatable) {
 		std::vector<int> pathNodesIdsVec;
@@ -546,14 +526,12 @@ namespace RTE {
 		    });
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	PathNode* PathFinder::GetPathNodeAtGridCoords(int x, int y) {
 		int nodeId = ConvertCoordsToNodeId(x, y);
 		return nodeId != -1 ? &m_NodeGrid[nodeId] : nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int PathFinder::ConvertCoordsToNodeId(int x, int y) {
 		if (m_WrapsX) {

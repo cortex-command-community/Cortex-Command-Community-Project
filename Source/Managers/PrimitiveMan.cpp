@@ -9,7 +9,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::unique_ptr<GraphicalPrimitive> PrimitiveMan::MakeUniqueOfAppropriateTypeFromPrimitiveRawPtr(GraphicalPrimitive* primitive) {
 		switch (primitive->GetPrimitiveType()) {
@@ -48,14 +47,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::SchedulePrimitive(std::unique_ptr<GraphicalPrimitive>&& primitive) {
 		std::lock_guard<std::mutex> lock(m_Mutex);
 		m_ScheduledPrimitives.emplace_back(std::move(primitive));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::SchedulePrimitivesForBlendedDrawing(DrawBlendMode blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const std::vector<GraphicalPrimitive*>& primitives) {
 		if (blendMode < DrawBlendMode::NoBlend || blendMode >= DrawBlendMode::BlendModeCount) {
@@ -74,7 +71,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawLinePrimitive(int player, const Vector& startPos, const Vector& endPos, unsigned char color, int thickness) {
 		if (thickness > 1) {
@@ -91,163 +87,136 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawArcPrimitive(const Vector& centerPos, float startAngle, float endAngle, int radius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<ArcPrimitive>(-1, centerPos, startAngle, endAngle, radius, 1, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawArcPrimitive(const Vector& centerPos, float startAngle, float endAngle, int radius, unsigned char color, int thickness) {
 		SchedulePrimitive(std::make_unique<ArcPrimitive>(-1, centerPos, startAngle, endAngle, radius, thickness, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawArcPrimitive(int player, const Vector& centerPos, float startAngle, float endAngle, int radius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<ArcPrimitive>(player, centerPos, startAngle, endAngle, radius, 1, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawArcPrimitive(int player, const Vector& centerPos, float startAngle, float endAngle, int radius, unsigned char color, int thickness) {
 		SchedulePrimitive(std::make_unique<ArcPrimitive>(player, centerPos, startAngle, endAngle, radius, thickness, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawSplinePrimitive(const Vector& startPos, const Vector& guideA, const Vector& guideB, const Vector& endPos, unsigned char color) {
 		SchedulePrimitive(std::make_unique<SplinePrimitive>(-1, startPos, guideA, guideB, endPos, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawSplinePrimitive(int player, const Vector& startPos, const Vector& guideA, const Vector& guideB, const Vector& endPos, unsigned char color) {
 		SchedulePrimitive(std::make_unique<SplinePrimitive>(player, startPos, guideA, guideB, endPos, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawBoxPrimitive(const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color) {
 		SchedulePrimitive(std::make_unique<BoxPrimitive>(-1, topLeftPos, bottomRightPos, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawBoxPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color) {
 		SchedulePrimitive(std::make_unique<BoxPrimitive>(player, topLeftPos, bottomRightPos, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawBoxFillPrimitive(const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color) {
 		SchedulePrimitive(std::make_unique<BoxFillPrimitive>(-1, topLeftPos, bottomRightPos, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawBoxFillPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color) {
 		SchedulePrimitive(std::make_unique<BoxFillPrimitive>(player, topLeftPos, bottomRightPos, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawRoundedBoxPrimitive(const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<RoundedBoxPrimitive>(-1, topLeftPos, bottomRightPos, cornerRadius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawRoundedBoxPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<RoundedBoxPrimitive>(player, topLeftPos, bottomRightPos, cornerRadius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawRoundedBoxFillPrimitive(const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<RoundedBoxFillPrimitive>(-1, topLeftPos, bottomRightPos, cornerRadius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawRoundedBoxFillPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<RoundedBoxFillPrimitive>(player, topLeftPos, bottomRightPos, cornerRadius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawCirclePrimitive(const Vector& centerPos, int radius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<CirclePrimitive>(-1, centerPos, radius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawCirclePrimitive(int player, const Vector& centerPos, int radius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<CirclePrimitive>(player, centerPos, radius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawCircleFillPrimitive(const Vector& centerPos, int radius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<CircleFillPrimitive>(-1, centerPos, radius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawCircleFillPrimitive(int player, const Vector& centerPos, int radius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<CircleFillPrimitive>(player, centerPos, radius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawEllipsePrimitive(const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<EllipsePrimitive>(-1, centerPos, horizRadius, vertRadius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawEllipsePrimitive(int player, const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<EllipsePrimitive>(player, centerPos, horizRadius, vertRadius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawEllipseFillPrimitive(const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<EllipseFillPrimitive>(-1, centerPos, horizRadius, vertRadius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawEllipseFillPrimitive(int player, const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color) {
 		SchedulePrimitive(std::make_unique<EllipseFillPrimitive>(player, centerPos, horizRadius, vertRadius, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawTrianglePrimitive(const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color) {
 		SchedulePrimitive(std::make_unique<TrianglePrimitive>(-1, pointA, pointB, pointC, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawTrianglePrimitive(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color) {
 		SchedulePrimitive(std::make_unique<TrianglePrimitive>(player, pointA, pointB, pointC, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawTriangleFillPrimitive(const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color) {
 		SchedulePrimitive(std::make_unique<TriangleFillPrimitive>(-1, pointA, pointB, pointC, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawTriangleFillPrimitive(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color) {
 		SchedulePrimitive(std::make_unique<TriangleFillPrimitive>(player, pointA, pointB, pointC, color));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawPolygonOrPolygonFillPrimitive(int player, const Vector& startPos, unsigned char color, const std::vector<Vector*>& vertices, bool filled) {
 		if (vertices.size() < 2) {
@@ -261,43 +230,36 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawTextPrimitive(const Vector& start, const std::string& text, bool isSmall, int alignment) {
 		SchedulePrimitive(std::make_unique<TextPrimitive>(-1, start, text, isSmall, alignment, 0));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawTextPrimitive(const Vector& start, const std::string& text, bool isSmall, int alignment, float rotAngle) {
 		SchedulePrimitive(std::make_unique<TextPrimitive>(-1, start, text, isSmall, alignment, rotAngle));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawTextPrimitive(int player, const Vector& start, const std::string& text, bool isSmall, int alignment) {
 		SchedulePrimitive(std::make_unique<TextPrimitive>(player, start, text, isSmall, alignment, 0));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawTextPrimitive(int player, const Vector& start, const std::string& text, bool isSmall, int alignment, float rotAngle) {
 		SchedulePrimitive(std::make_unique<TextPrimitive>(player, start, text, isSmall, alignment, rotAngle));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped) {
 		SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, moSprite, rotAngle, frame, hFlipped, vFlipped));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped) {
 		SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, filePath, rotAngle, hFlipped, vFlipped));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawIconPrimitive(int player, const Vector& centerPos, Entity* entity) {
 		if (const MOSprite* moSprite = dynamic_cast<MOSprite*>(entity)) {
@@ -305,7 +267,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector& targetPos) const {
 		ZoneScoped;

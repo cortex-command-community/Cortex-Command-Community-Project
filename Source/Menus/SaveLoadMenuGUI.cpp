@@ -21,7 +21,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
@@ -74,7 +73,6 @@ namespace RTE {
 		SwitchToConfirmDialogMode(ConfirmDialogMode::None);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::PopulateSaveGamesList() {
 		m_SaveGames.clear();
@@ -125,7 +123,6 @@ namespace RTE {
 		UpdateSaveGamesGUIList();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::UpdateSaveGamesGUIList() {
 		const std::string& currentOrder = m_OrderByComboBox->GetSelectedItem()->m_Name;
@@ -171,7 +168,6 @@ namespace RTE {
 		m_SaveGamesListBox->ScrollToTop();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SaveLoadMenuGUI::LoadSave() {
 		bool success = g_ActivityMan.LoadAndLaunchGame(m_SaveGameName->GetText());
@@ -185,7 +181,6 @@ namespace RTE {
 		return success;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::CreateSave() {
 		bool success = g_ActivityMan.SaveCurrentGame(m_SaveGameName->GetText());
@@ -198,7 +193,6 @@ namespace RTE {
 		PopulateSaveGamesList();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::DeleteSave() {
 		std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText();
@@ -209,7 +203,6 @@ namespace RTE {
 		PopulateSaveGamesList();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::UpdateButtonEnabledStates() {
 		bool allowSave = g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->GetAllowsUserSaving() && m_SaveGameName->GetText() != "";
@@ -242,7 +235,6 @@ namespace RTE {
 		m_ActivityCannotBeSavedLabel->SetVisible(g_ActivityMan.GetActivity() && !g_ActivityMan.GetActivity()->GetAllowsUserSaving());
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::SwitchToConfirmDialogMode(ConfirmDialogMode mode) {
 		m_ConfirmDialogMode = mode;
@@ -262,7 +254,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SaveLoadMenuGUI::HandleInputEvents(PauseMenuGUI* pauseMenu) {
 		m_GUIControlManager->Update();
@@ -317,14 +308,12 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::Refresh() {
 		PopulateSaveGamesList();
 		UpdateButtonEnabledStates();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SaveLoadMenuGUI::Draw() const {
 		m_GUIControlManager->Draw();

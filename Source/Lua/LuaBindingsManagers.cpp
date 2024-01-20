@@ -4,7 +4,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ActivityMan) {
 		return luabind::class_<ActivityMan>("ActivityManager")
@@ -26,7 +25,6 @@ namespace RTE {
 		    .def("LoadGame", &ActivityMan::LoadAndLaunchGame);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 		return luabind::class_<AudioMan>("AudioManager")
@@ -53,7 +51,6 @@ namespace RTE {
 		    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position, int player)) & AudioMan::PlaySound, luabind::adopt(luabind::result));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {
 		return luabind::class_<ConsoleMan>("ConsoleManager")
@@ -64,7 +61,6 @@ namespace RTE {
 		    .def("Clear", &ConsoleMan::ClearLog);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, FrameMan) {
 		return luabind::class_<FrameMan>("FrameManager")
@@ -88,7 +84,6 @@ namespace RTE {
 		    .def("SplitStringToFitWidth", &FrameMan::SplitStringToFitWidth);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MetaMan) {
 		return luabind::class_<MetaMan>("MetaManager")
@@ -104,7 +99,6 @@ namespace RTE {
 		    .def("GetMetaPlayerOfInGamePlayer", &MetaMan::GetMetaPlayerOfInGamePlayer);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
 		return luabind::class_<MovableMan>("MovableManager")
@@ -174,7 +168,6 @@ namespace RTE {
 		    .def("AddParticle", &LuaAdaptersMovableMan::AddParticle, luabind::adopt(_2));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PerformanceMan) {
 		return luabind::class_<PerformanceMan>("PerformanceManager")
@@ -182,7 +175,6 @@ namespace RTE {
 		    .property("ShowPerformanceStats", &PerformanceMan::IsShowingPerformanceStats, &PerformanceMan::ShowPerformanceStats);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PostProcessMan) {
 		return luabind::class_<PostProcessMan>("PostProcessManager")
@@ -190,7 +182,6 @@ namespace RTE {
 		    .def("RegisterPostEffect", &PostProcessMan::RegisterPostEffect);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 		return luabind::class_<PresetMan>("PresetManager")
@@ -224,7 +215,6 @@ namespace RTE {
 		    .def("GetFullModulePath", &PresetMan::GetFullModulePath);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PrimitiveMan) {
 		return luabind::class_<PrimitiveMan>("PrimitiveManager")
@@ -283,7 +273,6 @@ namespace RTE {
 		    .def("DrawPrimitives", &LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 		return luabind::class_<SceneMan>("SceneManager")
@@ -354,7 +343,6 @@ namespace RTE {
 		    .def("DislodgePixel", &SceneMan::DislodgePixel);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, CameraMan) {
 		return luabind::class_<CameraMan>("CameraManager")
@@ -372,7 +360,6 @@ namespace RTE {
 		    .def("AddScreenShake", (void(CameraMan::*)(float, const Vector&)) & CameraMan::AddScreenShake);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SettingsMan) {
 		return luabind::class_<SettingsMan>("SettingsManager")
@@ -384,7 +371,6 @@ namespace RTE {
 		    .property("AutomaticGoldDeposit", &SettingsMan::GetAutomaticGoldDeposit);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, TimerMan) {
 		return luabind::class_<TimerMan>("TimerManager")
@@ -403,7 +389,6 @@ namespace RTE {
 		    .def("DrawnSimUpdate", &TimerMan::DrawnSimUpdate);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, UInputMan) {
 		return luabind::class_<UInputMan>("UInputManager")

@@ -10,7 +10,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::Clear() {
 		m_ScreenShakeStrength = 1.0F;
@@ -36,14 +35,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::SetOffset(const Vector& offset, int screenId) {
 		m_Screens[screenId].Offset = offset.GetFloored();
 		CheckOffset(screenId);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector CameraMan::GetUnwrappedOffset(int screenId) const {
 		const Screen& screen = m_Screens[screenId];
@@ -51,7 +48,6 @@ namespace RTE {
 		return Vector(screen.Offset.GetX() + static_cast<float>(terrain->GetBitmap()->w * screen.SeamCrossCount[Axes::X]), screen.Offset.GetY() + static_cast<float>(terrain->GetBitmap()->h * screen.SeamCrossCount[Axes::Y]));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::SetScroll(const Vector& center, int screenId) {
 		Screen& screen = m_Screens[screenId];
@@ -63,13 +59,11 @@ namespace RTE {
 		CheckOffset(screenId);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector CameraMan::GetScrollTarget(int screenId) const {
 		return g_NetworkClient.IsConnectedAndRegistered() ? g_NetworkClient.GetFrameTarget() : m_Screens[screenId].ScrollTarget;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::SetScrollTarget(const Vector& targetCenter, float speed, int screenId) {
 		Screen& screen = m_Screens[screenId];
@@ -87,7 +81,6 @@ namespace RTE {
 		screen.TargetYWrapped = screen.TargetYWrapped || targetYWrapped;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float CameraMan::TargetDistanceScalar(const Vector& point) const {
 		if (!g_SceneMan.GetScene()) {
@@ -123,7 +116,6 @@ namespace RTE {
 		return closestScalar;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::CheckOffset(int screenId) {
 		RTEAssert(g_SceneMan.GetScene(), "Trying to check offset before there is a scene or terrain!");
@@ -153,7 +145,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector CameraMan::GetFrameSize(int screenId) {
 		int frameWidth = g_WindowMan.GetResX();
@@ -170,7 +161,6 @@ namespace RTE {
 		return Vector(static_cast<float>(frameWidth), static_cast<float>(frameHeight));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::ResetAllScreenShake() {
 		for (int screenId = 0; screenId < g_FrameMan.GetScreenCount(); ++screenId) {
@@ -180,7 +170,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::AddScreenShake(float magnitude, const Vector& position) {
 		for (int screenId = 0; screenId < g_FrameMan.GetScreenCount(); ++screenId) {
@@ -209,7 +198,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void CameraMan::Update(int screenId) {
 		Screen& screen = m_Screens[screenId];

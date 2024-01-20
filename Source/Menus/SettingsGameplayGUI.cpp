@@ -12,7 +12,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SettingsGameplayGUI::SettingsGameplayGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
@@ -77,7 +76,6 @@ namespace RTE {
 		UpdateScreenShakeStrength();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGameplayGUI::SetEnabled(bool enable) {
 		m_GameplaySettingsBox->SetVisible(enable);
@@ -89,7 +87,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGameplayGUI::UpdateMaxUnheldItemsTextbox() {
 		if (m_MaxUnheldItemsTextbox->GetText().empty()) {
@@ -99,7 +96,6 @@ namespace RTE {
 		m_GameplaySettingsBox->SetFocus();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGameplayGUI::UpdateCrabBombThresholdTextbox() {
 		if (m_CrabBombThresholdTextbox->GetText().empty()) {
@@ -112,7 +108,6 @@ namespace RTE {
 		m_GameplaySettingsBox->SetFocus();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGameplayGUI::UpdateUnheldItemsHUDDisplayRange() {
 		int newValue = m_UnheldItemsHUDDisplayRangeSlider->GetValue();
@@ -128,7 +123,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGameplayGUI::UpdateScreenShakeStrength() {
 		int newValue = m_ScreenShakeStrengthSlider->GetValue();
@@ -136,7 +130,6 @@ namespace RTE {
 		g_CameraMan.SetScreenShakeStrength(static_cast<float>(newValue) / 100.0F);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsGameplayGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Notification) {

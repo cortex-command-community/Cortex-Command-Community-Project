@@ -5,7 +5,6 @@ namespace RTE {
 
 	const std::string TerrainFrosting::c_ClassName = "TerrainFrosting";
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TerrainFrosting::Clear() {
 		m_FrostingMaterial.Reset();
@@ -15,7 +14,6 @@ namespace RTE {
 		m_InAirOnly = true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -29,7 +27,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int TerrainFrosting::Save(Writer& writer) const {
 		Serializable::Save(writer);
@@ -43,7 +40,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TerrainFrosting::FrostTerrain(SLTerrain* terrain) const {
 		BITMAP* frostingTexture = m_FrostingMaterial.GetFGTexture();

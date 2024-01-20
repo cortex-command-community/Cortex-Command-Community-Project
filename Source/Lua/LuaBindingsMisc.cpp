@@ -4,7 +4,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, AlarmEvent) {
 		return luabind::class_<AlarmEvent>("AlarmEvent")
@@ -17,7 +16,6 @@ namespace RTE {
 		    .def_readwrite("Range", &AlarmEvent::m_Range);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, Directions) {
 		return luabind::class_<directions>("Directions")
@@ -30,7 +28,6 @@ namespace RTE {
 		                         luabind::value("Any", Directions::Any)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, DrawBlendMode) {
 		return luabind::class_<blend_modes>("DrawBlendMode")

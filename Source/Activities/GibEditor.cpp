@@ -549,7 +549,6 @@ namespace RTE {
 		EditorActivity::Draw(pTargetBitmap, targetPos);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool GibEditor::SaveObject(const std::string& saveAsName, bool forceOverwrite) {
 		if (!m_pEditedObject) {
@@ -725,7 +724,6 @@ namespace RTE {
 			m_pOverwriteNameLabel->SetText(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/" + m_pEditedObject->GetPresetName() + ".ini");
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void GibEditor::ClearTestArea() const {
 		clear_bitmap(g_SceneMan.GetTerrain()->GetFGColorBitmap());

@@ -9,7 +9,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SettingsAudioGUI::SettingsAudioGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
@@ -35,14 +34,12 @@ namespace RTE {
 		UpdateSoundVolumeControls();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsAudioGUI::SetEnabled(bool enable) const {
 		m_AudioSettingsBox->SetVisible(enable);
 		m_AudioSettingsBox->SetEnabled(enable);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsAudioGUI::UpdateMasterVolumeControls() {
 		int masterVolume = static_cast<int>(std::round(g_AudioMan.GetMasterVolume() * 100));
@@ -50,7 +47,6 @@ namespace RTE {
 		m_MasterVolumeSlider->SetValue(masterVolume);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsAudioGUI::UpdateMusicVolumeControls() {
 		int musicVolume = static_cast<int>(std::round(g_AudioMan.GetMusicVolume() * 100));
@@ -58,7 +54,6 @@ namespace RTE {
 		m_MusicVolumeSlider->SetValue(musicVolume);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsAudioGUI::UpdateSoundVolumeControls() {
 		int soundVolume = static_cast<int>(std::round(g_AudioMan.GetSoundsVolume() * 100));
@@ -66,7 +61,6 @@ namespace RTE {
 		m_SoundVolumeSlider->SetValue(soundVolume);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsAudioGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Notification) {

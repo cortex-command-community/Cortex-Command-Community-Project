@@ -8,7 +8,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, InputDevice) {
 		return luabind::class_<input_device>("InputDevice")
@@ -22,7 +21,6 @@ namespace RTE {
 		                          luabind::value("DEVICE_COUNT", InputDevice::DEVICE_COUNT)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, InputElements) {
 		return luabind::class_<input_elements>("InputElements")
@@ -52,7 +50,6 @@ namespace RTE {
 		                            luabind::value("INPUT_COUNT", InputElements::INPUT_COUNT)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, MouseButtons) {
 		return luabind::class_<mouse_buttons>("MouseButtons")
@@ -64,7 +61,6 @@ namespace RTE {
 		                           luabind::value("MAX_MOUSE_BUTTONS", MouseButtons::MAX_MOUSE_BUTTONS)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, JoyButtons) {
 		return luabind::class_<joy_buttons>("JoyButtons")
@@ -85,7 +81,6 @@ namespace RTE {
 		                         luabind::value("MAX_JOY_BUTTONS", JoyButtons::MAX_JOY_BUTTONS)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, JoyDirections) {
 		return luabind::class_<joy_directions>("JoyDirections")
@@ -94,7 +89,6 @@ namespace RTE {
 		                            luabind::value("JOYDIR_TWO", JoyDirections::JOYDIR_TWO)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, SDL_Keycode) {
 		return luabind::class_<key_codes>("Key")
@@ -338,7 +332,6 @@ namespace RTE {
 		                  luabind::value("SLEEP", SDLK_SLEEP)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, SDL_Scancode) {
 		return luabind::class_<scan_codes>("Scancode")
@@ -590,7 +583,6 @@ namespace RTE {
 		                       luabind::value("NUM_SCANCODES", SDL_NUM_SCANCODES)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, SDL_GameControllerButton) {
 		return luabind::class_<gamepad_buttons>("GamepadButton")
@@ -614,7 +606,6 @@ namespace RTE {
 		                            luabind::value("MAX", SDL_CONTROLLER_BUTTON_MAX)];
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, SDL_GameControllerAxis) {
 		return luabind::class_<gamepad_axis>("GamepadAxis")

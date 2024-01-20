@@ -5,7 +5,6 @@
 
 namespace RTE {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	GUIBitmap* AllegroScreen::CreateBitmap(const std::string& fileName) {
 		std::unique_ptr<AllegroBitmap> newAllegroBitmap;
@@ -15,7 +14,6 @@ namespace RTE {
 		return newAllegroBitmap.release();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	GUIBitmap* AllegroScreen::CreateBitmap(int width, int height) {
 		std::unique_ptr<AllegroBitmap> newAllegroBitmap;
@@ -25,7 +23,6 @@ namespace RTE {
 		return newAllegroBitmap.release();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AllegroScreen::DrawBitmap(GUIBitmap* guiBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) {
 		if (!guiBitmap) {
@@ -40,7 +37,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AllegroScreen::DrawBitmapTrans(GUIBitmap* guiBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) {
 		if (!guiBitmap) {
@@ -55,7 +51,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	unsigned long AllegroScreen::ConvertColor(unsigned long color, int targetColorDepth) {
 		if (targetColorDepth == 0) {

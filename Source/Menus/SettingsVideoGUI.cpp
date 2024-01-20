@@ -30,7 +30,6 @@ namespace RTE {
 #endif
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SettingsVideoGUI::SettingsVideoGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
@@ -83,7 +82,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::CreatePresetResolutionBox() {
 		m_PresetResolutionBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionPresetResolution"));
@@ -95,7 +93,6 @@ namespace RTE {
 		PopulateResolutionsComboBox();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::CreateCustomResolutionBox() {
 		m_CustomResolutionBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionCustomResolution"));
@@ -126,7 +123,6 @@ namespace RTE {
 		m_CustomResolutionMessageLabel->SetVisible(false);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::SetEnabled(bool enable) const {
 		m_VideoSettingsBox->SetVisible(enable);
@@ -147,13 +143,11 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	GUICollectionBox* SettingsVideoGUI::GetActiveDialogBox() const {
 		return (m_ResolutionChangeDialogBox->GetEnabled() && m_ResolutionChangeDialogBox->GetVisible()) ? m_ResolutionChangeDialogBox : nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::CloseActiveDialogBox() const {
 		if (m_ResolutionChangeDialogBox->GetEnabled() && m_ResolutionChangeDialogBox->GetVisible()) {
@@ -162,7 +156,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SettingsVideoGUI::IsSupportedResolution(int width, int height) const {
 		if ((width >= c_MinResX && height >= c_MinResY) && (width <= g_WindowMan.GetMaxResX() && height <= g_WindowMan.GetMaxResY())) {
@@ -171,7 +164,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::PopulateResolutionsComboBox() {
 		m_PresetResolutions.clear();
@@ -221,7 +213,6 @@ namespace RTE {
 		m_CustomResolutionMultiplierComboBox->SetSelectedIndex(0);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::UpdateCustomResolutionLimits() {
 		g_WindowMan.MapDisplays();
@@ -239,7 +230,6 @@ namespace RTE {
 			m_CustomResolutionHeightTextBox->SetText(std::to_string(newMaxResY));
 		}
 	}
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::ApplyNewResolution(bool displaysWereMapped) {
 		bool needWarning = (g_WindowMan.GetResX() != m_NewResX) && (g_WindowMan.GetResY() != m_NewResY);
@@ -258,7 +248,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::ApplyQuickChangeResolution(ResolutionQuickChangeType resolutionChangeType) {
 		g_WindowMan.MapDisplays();
@@ -298,7 +287,6 @@ namespace RTE {
 		ApplyNewResolution(true);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::ApplyPresetResolution() {
 		int presetResListEntryID = m_PresetResolutionComboBox->GetSelectedIndex();
@@ -318,7 +306,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::ApplyCustomResolution() {
 		m_CustomResolutionMessageLabel->SetVisible(false);
@@ -366,7 +353,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SettingsVideoGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Command) {

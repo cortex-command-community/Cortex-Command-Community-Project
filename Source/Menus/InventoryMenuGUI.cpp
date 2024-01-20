@@ -30,7 +30,6 @@ namespace RTE {
 
 	BITMAP* InventoryMenuGUI::s_CursorBitmap = nullptr;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::CarouselItemBox::GetIconsAndMass(std::vector<BITMAP*>& itemIcons, float& totalItemMass, const std::vector<std::pair<MovableObject*, MovableObject*>>* equippedItems) const {
 		if (IsForEquippedItems) {
@@ -51,7 +50,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::Clear() {
 		m_SmallFont = nullptr;
@@ -123,7 +121,6 @@ namespace RTE {
 		m_GUIInventoryItemsScrollbar = nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int InventoryMenuGUI::Create(Controller* activityPlayerController, Actor* inventoryActor, MenuMode menuMode) {
 		RTEAssert(activityPlayerController, "No controller sent to InventoryMenuGUI on creation!");
@@ -148,7 +145,6 @@ namespace RTE {
 
 		return 0;
 	}
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::Destroy() {
 		destroy_bitmap(m_CarouselBitmap.release());
@@ -157,7 +153,6 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int InventoryMenuGUI::SetupCarouselMode() {
 		for (std::unique_ptr<CarouselItemBox>& carouselItemBox: m_CarouselItemBoxes) {
@@ -192,7 +187,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int InventoryMenuGUI::SetupFullOrTransferMode() {
 		if (!m_GUIControlManager) {
@@ -275,7 +269,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::SetInventoryActor(Actor* newInventoryActor) {
 		m_InventoryActor = newInventoryActor;
@@ -288,7 +281,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::SetEnabled(bool enable) {
 		if (!m_MenuController || !m_InventoryActor) {
@@ -317,7 +309,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool InventoryMenuGUI::EnableIfNotEmpty() {
 		bool shouldEnable = !m_InventoryActorEquippedItems.empty() || (m_InventoryActor && !m_InventoryActor->IsInventoryEmpty());
@@ -325,7 +316,6 @@ namespace RTE {
 		return shouldEnable;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::ClearSelectedItem() {
 		if (m_GUISelectedItem) {
@@ -334,7 +324,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::SetSelectedItem(GUIButton* selectedItemButton, MovableObject* selectedItemObject, int inventoryIndex, int equippedItemIndex, bool isBeingDragged) {
 		if (!selectedItemButton || !selectedItemObject || (inventoryIndex < 0 && equippedItemIndex < 0)) {
@@ -352,7 +341,6 @@ namespace RTE {
 		m_GUISelectedItem->DragHoldCount = 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::Update() {
 		if (IsEnabled() && (!m_MenuController || !m_InventoryActor || !g_MovableMan.ValidMO(m_InventoryActor))) {
@@ -402,7 +390,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 		Vector drawPos = m_CenterPos - targetPos;
@@ -429,7 +416,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::UpdateCarouselMode() {
 		if (!CarouselModeReadyForUse()) {
@@ -488,7 +474,6 @@ namespace RTE {
 		UpdateCarouselItemBoxSizesAndPositions();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::UpdateCarouselItemBoxSizesAndPositions() {
 		float halfMassFontHeight = static_cast<float>(m_SmallFont->GetFontHeight() / 2);
@@ -546,7 +531,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::UpdateFullMode() {
 		if (!FullOrTransferModeReadyForUse()) {
@@ -619,7 +603,6 @@ namespace RTE {
 		UpdateFullModeNonItemButtonIconsAndHighlightWidths();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::UpdateFullModeEquippedItemButtons() {
 		const MovableObject* equippedItem = m_GUIInventoryActorCurrentEquipmentSetIndex < m_InventoryActorEquippedItems.size() ? m_InventoryActorEquippedItems.at(m_GUIInventoryActorCurrentEquipmentSetIndex).first : nullptr;
@@ -655,7 +638,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::UpdateFullModeScrollbar(const std::deque<MovableObject*>* inventory) {
 		if (inventory->size() > c_FullViewPageItemLimit) {
@@ -684,7 +666,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::UpdateFullModeInventoryItemButtons(const std::deque<MovableObject*>* inventory) {
 		int startIndex = m_GUIInventoryItemsScrollbar->GetValue() * c_ItemsPerRow;
@@ -715,7 +696,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::UpdateFullModeInformationText(const std::deque<MovableObject*>* inventory) {
 		if (!m_GUIShowInformationText && m_GUIInformationText->GetVisible()) {
@@ -750,7 +730,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::UpdateFullModeNonItemButtonIconsAndHighlightWidths() {
 		std::vector<std::pair<GUIButton*, const Icon*>> buttonsToCheckIconsFor = {
@@ -777,13 +756,11 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::UpdateTransferMode() {
 		// TODO Make Transfer mode
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::HandleInput() {
 		if (m_MenuController->IsState(ControlState::PRESS_SECONDARY)) {
@@ -842,7 +819,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool InventoryMenuGUI::HandleMouseInput() {
 		int mouseX;
@@ -968,7 +944,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::HandleNonMouseInput() {
 		if (!m_NonMouseHighlightedButton || !m_NonMouseHighlightedButton->GetVisible() || (!m_GUIShowEmptyRows && m_NonMouseHighlightedButton->GetParent() == m_GUIInventoryItemsBox && m_InventoryActor->IsInventoryEmpty())) {
@@ -1022,7 +997,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Directions InventoryMenuGUI::GetNonMouseButtonControllerMovement() {
 		bool pressUp = m_MenuController->IsState(ControlState::PRESS_UP) || m_MenuController->IsState(ControlState::SCROLL_UP);
@@ -1057,7 +1031,6 @@ namespace RTE {
 		return Directions::None;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	GUIButton* InventoryMenuGUI::HandleNonMouseUpInput() {
 		GUIButton* nextButtonToHighlight = nullptr;
@@ -1092,7 +1065,6 @@ namespace RTE {
 		return nextButtonToHighlight;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	GUIButton* InventoryMenuGUI::HandleNonMouseDownInput() {
 		GUIButton* nextButtonToHighlight = nullptr;
@@ -1131,7 +1103,6 @@ namespace RTE {
 		return nextButtonToHighlight;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	GUIButton* InventoryMenuGUI::HandleNonMouseLeftInput() {
 		GUIButton* nextButtonToHighlight = nullptr;
@@ -1164,7 +1135,6 @@ namespace RTE {
 		return nextButtonToHighlight;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	GUIButton* InventoryMenuGUI::HandleNonMouseRightInput() {
 		GUIButton* nextButtonToHighlight = nullptr;
@@ -1204,7 +1174,6 @@ namespace RTE {
 		return nextButtonToHighlight;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::HandleItemButtonPressOrHold(GUIButton* pressedButton, MovableObject* buttonObject, int buttonEquippedItemIndex, bool buttonHeld) {
 		if (buttonHeld && m_GUISelectedItem) {
@@ -1274,7 +1243,6 @@ namespace RTE {
 		pressedButton->OnLoseFocus();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool InventoryMenuGUI::SwapEquippedItemAndInventoryItem(int equippedItemIndex, int inventoryItemIndex) {
 		if (!m_InventoryActorIsHuman) {
@@ -1312,7 +1280,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::ReloadSelectedItem() { // for a in MovableMan.Actors do print(ToAHuman(a).EquippedBGItem:SetOneHanded(true)) end
 		if (!m_InventoryActorIsHuman) {
@@ -1337,7 +1304,6 @@ namespace RTE {
 		m_GUIReloadButton->OnLoseFocus();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::DropSelectedItem(const Vector* dropDirection) {
 		auto LaunchInventoryItem = [this, &dropDirection](MovableObject* itemToLaunch) {
@@ -1374,7 +1340,6 @@ namespace RTE {
 		m_GUIDropButton->OnLoseFocus();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::DrawCarouselMode(BITMAP* targetBitmap, const Vector& drawPos) const {
 		clear_to_color(m_CarouselBitmap.get(), g_MaskColor);
@@ -1428,7 +1393,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::DrawCarouselItemBoxBackground(const CarouselItemBox& itemBoxToDraw) const {
 		auto DrawBox = [](BITMAP* targetBitmap, const Vector& boxTopLeftCorner, const Vector& boxBottomRightCorner, int color, bool roundedLeftSide, bool roundedRightSide) {
@@ -1452,7 +1416,6 @@ namespace RTE {
 		DrawBox(m_CarouselBGBitmap.get(), itemBoxToDraw.Pos + (itemBoxToDraw.RoundedAndBorderedSides.first ? m_CarouselBackgroundBoxBorderSize : Vector(0, m_CarouselBackgroundBoxBorderSize.GetY())), itemBoxToDraw.Pos + itemBoxToDraw.CurrentSize - spriteZeroIndexSizeOffset - (itemBoxToDraw.RoundedAndBorderedSides.second ? m_CarouselBackgroundBoxBorderSize : Vector(0, m_CarouselBackgroundBoxBorderSize.GetY())), m_CarouselBackgroundBoxColor, itemBoxToDraw.RoundedAndBorderedSides.first, itemBoxToDraw.RoundedAndBorderedSides.second);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::DrawCarouselItemBoxForeground(const CarouselItemBox& itemBoxToDraw, AllegroBitmap* carouselAllegroBitmap) const {
 		std::vector<BITMAP*> itemIcons;
@@ -1489,7 +1452,6 @@ namespace RTE {
 		m_SmallFont->DrawAligned(carouselAllegroBitmap, itemBoxToDraw.IconCenterPosition.GetFloorIntX(), itemBoxToDraw.IconCenterPosition.GetFloorIntY() - ((itemBoxToDraw.CurrentSize.GetFloorIntY() + m_SmallFont->GetFontHeight()) / 2) + 1, massString.c_str(), GUIFont::Centre);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void InventoryMenuGUI::DrawFullMode(BITMAP* targetBitmap, const Vector& drawPos) const {
 		m_GUITopLevelBox->SetPositionAbs(drawPos.GetFloorIntX(), drawPos.GetFloorIntY());

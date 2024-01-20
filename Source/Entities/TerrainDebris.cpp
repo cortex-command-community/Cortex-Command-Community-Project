@@ -5,7 +5,6 @@ namespace RTE {
 
 	ConcreteClassInfo(TerrainDebris, Entity, 0);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TerrainDebris::Clear() {
 		m_DebrisFile.Reset();
@@ -25,7 +24,6 @@ namespace RTE {
 		m_Density = 0.01F;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int TerrainDebris::Create() {
 		Entity::Create();
@@ -34,7 +32,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int TerrainDebris::Create(const TerrainDebris& reference) {
 		Entity::Create(reference);
@@ -59,7 +56,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int TerrainDebris::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -90,7 +86,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int TerrainDebris::Save(Writer& writer) const {
 		Entity::Save(writer);
@@ -113,7 +108,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool TerrainDebris::GetPiecePlacementPosition(SLTerrain* terrain, Box& possiblePiecePosition) const {
 		BITMAP* matBitmap = terrain->GetMaterialBitmap();
@@ -149,7 +143,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool TerrainDebris::MaterialPixelIsValidTarget(int materialCheckPixel, int prevMaterialCheckPixel) const {
 		bool checkResult = true;
@@ -185,7 +178,6 @@ namespace RTE {
 		return checkResult;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TerrainDebris::DrawToTerrain(SLTerrain* terrain, BITMAP* bitmapToDraw, const Vector& position) const {
 		// Create a square temp bitmap that is larger than the original to avoid clipping if rotating.
@@ -227,7 +219,6 @@ namespace RTE {
 		destroy_bitmap(tempDrawBitmap);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TerrainDebris::ScatterOnTerrain(SLTerrain* terrain) {
 		RTEAssert(!m_Bitmaps.empty() && m_BitmapCount > 0, "No bitmaps loaded for terrain debris during TerrainDebris::ScatterOnTerrain!");

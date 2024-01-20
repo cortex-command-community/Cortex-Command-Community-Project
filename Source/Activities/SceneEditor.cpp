@@ -491,7 +491,6 @@ namespace RTE {
 		EditorActivity::Draw(pTargetBitmap, targetPos);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneEditor::SaveScene(const std::string& saveAsName, bool forceOverwrite) {
 		Scene* editedScene = g_SceneMan.GetScene();

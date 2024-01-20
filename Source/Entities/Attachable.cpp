@@ -11,7 +11,6 @@ namespace RTE {
 
 	ConcreteClassInfo(Attachable, MOSRotating, 0);
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::Clear() {
 		m_Parent = nullptr;
@@ -53,7 +52,6 @@ namespace RTE {
 		m_PreUpdateHasRunThisFrame = false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Attachable::Create() {
 		MOSRotating::Create();
@@ -63,7 +61,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Attachable::Create(const Attachable& reference) {
 		MOSRotating::Create(reference);
@@ -107,7 +104,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return MOSRotating::ReadProperty(propName, reader));
@@ -150,7 +146,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Attachable::Save(Writer& writer) const {
 		MOSRotating::Save(writer);
@@ -182,7 +177,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Attachable::TransferJointForces(Vector& jointForces) {
 		if (!m_Parent) {
@@ -197,7 +191,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Attachable::TransferJointImpulses(Vector& jointImpulses, float jointStiffnessValueToUse, float jointStrengthValueToUse, float gibImpulseLimitValueToUse) {
 		if (!m_Parent) {
@@ -250,7 +243,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float Attachable::CollectDamage() {
 		if (m_DamageMultiplier != 0) {
@@ -268,7 +260,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::SetCollidesWithTerrainWhileAttached(bool collidesWithTerrainWhileAttached) {
 		if (m_CollidesWithTerrainWhileAttached != collidesWithTerrainWhileAttached) {
@@ -281,7 +272,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Attachable::CanCollideWithTerrain() const {
 		if (m_CollidesWithTerrainWhileAttached && IsAttached() && GetParent() != GetRootParent()) {
@@ -292,7 +282,6 @@ namespace RTE {
 		return m_CollidesWithTerrainWhileAttached;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Attachable::CollideAtPoint(HitData& hd) {
 		if (m_IgnoresParticlesWhileAttached && m_Parent && !m_Parent->ToDelete() && !dynamic_cast<MOSRotating*>(hd.Body[HITOR])) {
@@ -301,7 +290,6 @@ namespace RTE {
 		return MOSRotating::CollideAtPoint(hd);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Attachable::ParticlePenetration(HitData& hd) {
 		bool penetrated = MOSRotating::ParticlePenetration(hd);
@@ -334,7 +322,6 @@ namespace RTE {
 		return penetrated;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		if (m_Parent) {
@@ -343,7 +330,6 @@ namespace RTE {
 		MOSRotating::GibThis(impactImpulse, movableObjectToIgnore);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Attachable::HandlePotentialRadiusAffectingAttachable(const Attachable* attachable) {
 		if (MOSRotating::HandlePotentialRadiusAffectingAttachable(attachable)) {
@@ -355,7 +341,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Attachable::UpdateScripts() {
 		if (m_Parent && !m_AllLoadedScripts.empty() && !ObjectScriptsInitialized()) {
@@ -365,7 +350,6 @@ namespace RTE {
 		return MOSRotating::UpdateScripts();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::Update() {
 		if (!m_PreUpdateHasRunThisFrame) {
@@ -425,7 +409,6 @@ namespace RTE {
 		m_PreUpdateHasRunThisFrame = false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::PreUpdate() {
 		if (!m_PreUpdateHasRunThisFrame) {
@@ -442,7 +425,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::SetMass(const float newMass) {
 		float currentMass = GetMass();
@@ -455,7 +437,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::UpdateAttachableAndWoundMass(float oldAttachableOrWoundMass, float newAttachableOrWoundMass) {
 		float previousMassForUpdatingParent = m_Parent ? GetMass() : 0.0F;
@@ -465,7 +446,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::AddAttachable(Attachable* attachable, const Vector& parentOffsetToSet) {
 		float previousMassForUpdatingParent = m_Parent ? GetMass() : 0.0F;
@@ -475,7 +455,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Attachable* Attachable::RemoveAttachable(Attachable* attachable, bool addToMovableMan, bool addBreakWounds) {
 		float previousMassForUpdatingParent = m_Parent ? GetMass() : 0.0F;
@@ -486,7 +465,6 @@ namespace RTE {
 		return removedAttachable;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit) {
 		float previousMassForUpdatingParent = m_Parent ? GetMass() : 0.0F;
@@ -496,7 +474,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float Attachable::RemoveWounds(int numberOfWoundsToRemove, bool includeAttachablesWithAPositiveDamageMultiplier, bool includeAttachablesWithANegativeDamageMultiplier, bool includeAttachablesWithNoDamageMultiplier) {
 		float previousMassForUpdatingParent = m_Parent ? GetMass() : 0.0F;
@@ -507,7 +484,6 @@ namespace RTE {
 		return result;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::SetParent(MOSRotating* newParent) {
 		if (newParent == m_Parent) {
@@ -580,7 +556,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::UpdatePositionAndJointPositionBasedOnOffsets() {
 		if (m_Parent) {
@@ -592,7 +567,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::AddOrRemoveAtomsFromRootParentAtomGroup(bool addAtoms, bool propagateToChildAttachables) {
 		if (IsAttached()) {
@@ -619,7 +593,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Attachable::AddOrRemovePieSlicesAndListenersFromPieMenu(PieMenu* pieMenuToModify, bool addToPieMenu) {
 		RTEAssert(pieMenuToModify, "Cannot add or remove Attachable PieSlices and listeners from a non-existant PieMenu.");

@@ -120,7 +120,6 @@ namespace RTE {
 		return nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MOID MovableMan::GetMOIDPixel(int pixelX, int pixelY, const std::vector<int>& moidList) {
 		// Note - We loop through the MOs in reverse to make sure that the topmost (last drawn) MO that overlaps the specified coordinates is the one returned.
@@ -143,7 +142,6 @@ namespace RTE {
 		return g_NoMOID;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::RegisterObject(MovableObject* mo) {
 		if (!mo) {
@@ -163,7 +161,6 @@ namespace RTE {
 		m_KnownObjects.erase(mo->GetUniqueID());
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const std::vector<MovableObject*>* MovableMan::GetMOsInBox(const Box& box, int ignoreTeam, bool getsHitByMOsOnly) const {
 		std::vector<MovableObject*>* vectorForLua = new std::vector<MovableObject*>();
@@ -171,7 +168,6 @@ namespace RTE {
 		return vectorForLua;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const std::vector<MovableObject*>* MovableMan::GetMOsInRadius(const Vector& centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const {
 		std::vector<MovableObject*>* vectorForLua = new std::vector<MovableObject*>();
@@ -634,7 +630,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool MovableMan::AddMO(MovableObject* movableObjectToAdd) {
 		if (!movableObjectToAdd) {
@@ -653,7 +648,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::AddActor(Actor* actorToAdd) {
 		if (actorToAdd) {
@@ -685,7 +679,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::AddItem(HeldDevice* itemToAdd) {
 		if (itemToAdd) {
@@ -710,7 +703,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::AddParticle(MovableObject* particleToAdd) {
 		if (particleToAdd) {
@@ -976,7 +968,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableMan::KillAllTeamActors(int teamToKill) const {
 		int killCount = 0;
@@ -998,7 +989,6 @@ namespace RTE {
 		return killCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableMan::KillAllEnemyActors(int teamNotToKill) const {
 		int killCount = 0;
@@ -1020,7 +1010,6 @@ namespace RTE {
 		return killCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableMan::GetAllActors(bool transferOwnership, std::list<SceneObject*>& actorList, int onlyTeam, bool noBrains) {
 		int addedCount = 0;
@@ -1064,7 +1053,6 @@ namespace RTE {
 		return addedCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableMan::GetAllItems(bool transferOwnership, std::list<SceneObject*>& itemList) {
 		int addedCount = 0;
@@ -1091,7 +1079,6 @@ namespace RTE {
 		return addedCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableMan::GetAllParticles(bool transferOwnership, std::list<SceneObject*>& particleList) {
 		int addedCount = 0;
@@ -1118,7 +1105,6 @@ namespace RTE {
 		return addedCount;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MovableMan::GetTeamMOIDCount(int team) const {
 		if (team > Activity::NoTeam && team < Activity::MaxTeamCount)
@@ -1127,7 +1113,6 @@ namespace RTE {
 			return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::OpenAllDoors(bool open, int team) const {
 		for (std::deque<Actor*> actorDeque: {m_Actors, m_AddedActors}) {
@@ -1148,7 +1133,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO: Completely tear out and delete this.
 	// It shouldn't belong to MovableMan, instead it probably ought to be on the pathfinder. On that note, pathfinders shouldn't be part of the scene!
@@ -1163,7 +1147,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::RegisterAlarmEvent(const AlarmEvent& newEvent) {
 		std::lock_guard<std::mutex> lock(m_AddedAlarmEventsMutex);
@@ -1184,7 +1167,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
 		if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
@@ -1208,7 +1190,6 @@ namespace RTE {
 		mo->RunScriptedFunctionInAppropriateScripts(functionName, false, false, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
 	};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
 		if (includeAdded) {
@@ -1238,7 +1219,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void reloadLuaFunctionsOnMORecursive(MovableObject* mo) {
 		if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
@@ -1262,7 +1242,6 @@ namespace RTE {
 		mo->ReloadScripts();
 	};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MovableMan::ReloadLuaScripts() {
 		for (Actor* actor: m_AddedActors) {

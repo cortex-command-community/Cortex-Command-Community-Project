@@ -36,7 +36,6 @@ namespace RTE {
 	// Stored as a thread-local instead of in the class, because multithreaded Lua scripts will interfere otherwise
 	thread_local Vector s_LastRayHitPos;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::Clear() {
 		m_DefaultSceneName = "Tutorial Bunker";
@@ -71,7 +70,6 @@ namespace RTE {
 		m_ScrapCompactingHeight = 25;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::Initialize() const {
 		// Can't create these earlier in the static declaration because allegro_init needs to be called before create_bitmap
@@ -88,7 +86,6 @@ namespace RTE {
 		    {512, create_bitmap_ex(8, 512, 512)}};
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::Create(std::string readerFile) {
 		Reader* reader = new Reader();
@@ -101,7 +98,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Material* SceneMan::AddMaterialCopy(Material* mat) {
 		Material* matCopy = dynamic_cast<Material*>(mat->Clone());
@@ -111,7 +107,6 @@ namespace RTE {
 		return matCopy;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 		if (!pNewScene) {
@@ -194,7 +189,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::SetSceneToLoad(std::string sceneName, bool placeObjects, bool placeUnits) {
 		// Use the name passed in to load the preset requested
@@ -211,7 +205,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::LoadScene() {
 		// In case we have no set Scene reference to load from, do something graceful about it
@@ -230,7 +223,6 @@ namespace RTE {
 		return LoadScene(dynamic_cast<Scene*>(m_pSceneToLoad->Clone()), m_PlaceObjects, m_PlaceUnits);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::LoadScene(std::string sceneName, bool placeObjects, bool placeUnits) {
 		// First retrieve and set up the preset reference
@@ -242,7 +234,6 @@ namespace RTE {
 		return error;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -296,7 +287,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::Save(Writer& writer) const {
 		g_ConsoleMan.PrintString("ERROR: Tried to save SceneMan, screen does not make sense");
@@ -310,7 +300,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::Destroy() {
 		for (int i = 0; i < c_PaletteEntriesNumber; ++i)
@@ -332,7 +321,6 @@ namespace RTE {
 		Clear();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector SceneMan::GetSceneDim() const {
 		if (m_pCurrentScene) {
@@ -342,7 +330,6 @@ namespace RTE {
 		return Vector();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::GetSceneWidth() const {
 		if (g_NetworkClient.IsConnectedAndRegistered()) {
@@ -354,7 +341,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::GetSceneHeight() const {
 		//    RTEAssert(m_pCurrentScene, "Trying to get terrain info before there is a scene or terrain!");
@@ -363,7 +349,6 @@ namespace RTE {
 		return 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::SceneWrapsX() const {
 		if (g_NetworkClient.IsConnectedAndRegistered()) {
@@ -375,7 +360,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::SceneWrapsY() const {
 		if (m_pCurrentScene)
@@ -383,7 +367,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Directions SceneMan::GetSceneOrbitDirection() const {
 		if (m_pCurrentScene) {
@@ -396,7 +379,6 @@ namespace RTE {
 		return Directions::Up;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	SLTerrain* SceneMan::GetTerrain() {
 		//    RTEAssert(m_pCurrentScene, "Trying to get terrain matter before there is a scene or terrain!");
@@ -407,26 +389,22 @@ namespace RTE {
 		return nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	BITMAP* SceneMan::GetMOColorBitmap() const {
 		return m_pMOColorLayer->GetBitmap();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	BITMAP* SceneMan::GetDebugBitmap() const {
 		RTEAssert(m_pDebugLayer, "Tried to get debug bitmap but debug layer doesn't exist. Note that the debug layer is only created under certain circumstances.");
 		return m_pDebugLayer->GetBitmap();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	BITMAP* SceneMan::GetMOIDBitmap() const {
 		return m_pMOIDLayer->GetBitmap();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TEMP!
 	bool SceneMan::MOIDClearCheck() {
@@ -445,7 +423,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	unsigned char SceneMan::GetTerrMatter(int pixelX, int pixelY) {
 		RTEAssert(m_pCurrentScene, "Trying to get terrain matter before there is a scene or terrain!");
@@ -473,7 +450,6 @@ namespace RTE {
 		return getpixel(pTMatBitmap, pixelX, pixelY);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MOID SceneMan::GetMOIDPixel(int pixelX, int pixelY, int ignoreTeam) {
 		WrapPosition(pixelX, pixelY);
@@ -505,7 +481,6 @@ namespace RTE {
 		return moid;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Material const* SceneMan::GetMaterial(const std::string& matName) {
 		std::map<std::string, unsigned char>::iterator itr = m_MatNameMap.find(matName);
@@ -516,14 +491,12 @@ namespace RTE {
 			return m_apMatPalette.at((*itr).second);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector SceneMan::GetGlobalAcc() const {
 		RTEAssert(m_pCurrentScene, "Trying to get terrain matter before there is a scene or terrain!");
 		return m_pCurrentScene->GetGlobalAcc();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::LockScene() {
 		//    RTEAssert(!m_pCurrentScene->IsLocked(), "Hey, locking already locked scene!");
@@ -534,7 +507,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::UnlockScene() {
 		//    RTEAssert(m_pCurrentScene->IsLocked(), "Hey, unlocking already unlocked scene!");
@@ -545,14 +517,12 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::SceneIsLocked() const {
 		RTEAssert(m_pCurrentScene, "Trying to check if scene is locked before there is a scene or terrain!");
 		return m_pCurrentScene->IsLocked();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::RegisterDrawing(const BITMAP* bitmap, int moid, int left, int top, int right, int bottom) {
 		if (m_pMOColorLayer && m_pMOColorLayer->GetBitmap() == bitmap) {
@@ -570,7 +540,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::RegisterDrawing(const BITMAP* bitmap, int moid, const Vector& center, float radius) {
 		if (radius != 0.0F) {
@@ -578,7 +547,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::ClearAllMOIDDrawings() {
 #ifdef DRAW_MOID_LAYER
@@ -588,7 +556,6 @@ namespace RTE {
 #endif
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::WillPenetrate(const int posX,
 	                             const int posY,
@@ -603,7 +570,6 @@ namespace RTE {
 		return impulse.MagnitudeIsGreaterThan(integrity);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::RemoveOrphans(int posX, int posY, int radius, int maxArea, bool remove) {
 		if (radius > MAXORPHANRADIUS)
@@ -619,7 +585,6 @@ namespace RTE {
 		return area;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::RemoveOrphans(int posX, int posY,
 	                            int centerPosX, int centerPosY,
@@ -706,7 +671,6 @@ namespace RTE {
 		return area;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::RegisterTerrainChange(int x, int y, int w, int h, unsigned char color, bool back) {
 		if (!g_NetworkServer.IsServerModeEnabled())
@@ -804,7 +768,6 @@ namespace RTE {
 		g_NetworkServer.RegisterTerrainChange(tc);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::TryPenetrate(int posX,
 	                            int posY,
@@ -956,7 +919,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MovableObject* SceneMan::DislodgePixel(int posX, int posY) {
 		int materialID = getpixel(m_pCurrentScene->GetTerrain()->GetMaterialBitmap(), posX, posY);
@@ -988,7 +950,6 @@ namespace RTE {
 		return pixelMO;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 		RTEAssert(m_pCurrentScene, "Messing with scene before the scene exists!");
@@ -998,7 +959,6 @@ namespace RTE {
 		m_pCurrentScene->FillUnseenLayer(pixelSize, team);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::LoadUnseenLayer(std::string bitmapPath, int team) {
 		ContentFile bitmapFile(bitmapPath.c_str());
@@ -1013,7 +973,6 @@ namespace RTE {
 		return true;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::AnythingUnseen(const int team) {
 		RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when checking if anything is unseen!");
@@ -1022,7 +981,6 @@ namespace RTE {
 		// TODO: Actually check all pixels on the map too?
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector SceneMan::GetUnseenResolution(const int team) const {
 		RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when getting unseen resolution!");
@@ -1036,7 +994,6 @@ namespace RTE {
 		return Vector(1, 1);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::IsUnseen(const int posX, const int posY, const int team) {
 		RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when checking if a position is unseen!");
@@ -1055,7 +1012,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::RevealUnseen(const int posX, const int posY, const int team) {
 		RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when revealing an unseen position!");
@@ -1087,7 +1043,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 		RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when making a position unseen!");
@@ -1119,7 +1074,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team) {
 		RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when revealing an unseen area!");
@@ -1140,7 +1094,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width, const int height, const int team) {
 		RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when making an area unseen!");
@@ -1161,7 +1114,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TODO Every raycast should use some shared line drawing method (or maybe something more efficient if it exists, that needs looking into) instead of having a ton of duplicated code.
 	bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal) {
@@ -1259,19 +1211,16 @@ namespace RTE {
 		return affectedAny;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip) {
 		return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, true);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip) {
 		return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, false);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::CastMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip, bool wrap) {
 
@@ -1355,7 +1304,6 @@ namespace RTE {
 		return foundPixel;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SceneMan::CastMaterialRay(const Vector& start, const Vector& ray, unsigned char material, int skip) {
 		Vector result;
@@ -1369,7 +1317,6 @@ namespace RTE {
 		return -1;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::CastNotMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip, bool checkMOs) {
 		int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
@@ -1452,7 +1399,6 @@ namespace RTE {
 		return foundPixel;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SceneMan::CastNotMaterialRay(const Vector& start, const Vector& ray, unsigned char material, int skip, bool checkMOs) {
 		Vector result;
@@ -1466,7 +1412,6 @@ namespace RTE {
 		return -1;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SceneMan::CastStrengthSumRay(const Vector& start, const Vector& end, int skip, unsigned char ignoreMaterial) {
 		Vector ray = g_SceneMan.ShortestDistance(start, end);
@@ -1549,13 +1494,11 @@ namespace RTE {
 		return strengthSum;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SceneMan::CastMaxStrengthRay(const Vector& start, const Vector& end, int skip, unsigned char ignoreMaterial) {
 		return CastMaxStrengthRayMaterial(start, end, skip, ignoreMaterial)->GetIntegrity();
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const Material* SceneMan::CastMaxStrengthRayMaterial(const Vector& start, const Vector& end, int skip, unsigned char ignoreMaterial) {
 		Vector ray = g_SceneMan.ShortestDistance(start, end);
@@ -1640,7 +1583,6 @@ namespace RTE {
 		return strongestMaterial;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::CastStrengthRay(const Vector& start, const Vector& ray, float strength, Vector& result, int skip, unsigned char ignoreMaterial, bool wrap) {
 		int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
@@ -1735,7 +1677,6 @@ namespace RTE {
 		return foundPixel;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::CastWeaknessRay(const Vector& start, const Vector& ray, float strength, Vector& result, int skip, bool wrap) {
 		int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
@@ -1827,7 +1768,6 @@ namespace RTE {
 		return foundPixel;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
 		int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
@@ -1939,7 +1879,6 @@ namespace RTE {
 		return g_NoMOID;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
 		int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
@@ -2033,7 +1972,6 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
 		int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
@@ -2163,14 +2101,12 @@ namespace RTE {
 		return -1.0F;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const Vector& SceneMan::GetLastRayHitPos() {
 		// The absolute end position of the last ray cast
 		return s_LastRayHitPos;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SceneMan::FindAltitude(const Vector& from, int max, int accuracy, bool fromSceneOrbitDirection) {
 		// TODO: Also make this avoid doors
@@ -2195,7 +2131,6 @@ namespace RTE {
 		return orbitDirection == Directions::Up ? result : g_SceneMan.GetSceneHeight() - result;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::OverAltitude(const Vector& point, int threshold, int accuracy) {
 		Vector temp(point);
@@ -2203,7 +2138,6 @@ namespace RTE {
 		return g_SceneMan.CastNotMaterialRay(temp, Vector(0, threshold), g_MaterialAir, accuracy) < 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
 		// Todo, instead of a nograv area maybe best to tag certain areas as NoGrav. As otherwise it's tricky to keep track of when things are removed
@@ -2229,7 +2163,6 @@ namespace RTE {
 		return groundPoint;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::IsWithinBounds(const int pixelX, const int pixelY, const int margin) {
 		if (m_pCurrentScene)
@@ -2238,14 +2171,12 @@ namespace RTE {
 		return false;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::ForceBounds(int& posX, int& posY) {
 		RTEAssert(m_pCurrentScene, "Trying to access scene before there is one!");
 		return m_pCurrentScene->GetTerrain()->ForceBounds(posX, posY);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::ForceBounds(Vector& pos) {
 		RTEAssert(m_pCurrentScene, "Trying to access scene before there is one!");
@@ -2261,14 +2192,12 @@ namespace RTE {
 		return wrapped;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::WrapPosition(int& posX, int& posY) {
 		RTEAssert(m_pCurrentScene, "Trying to access scene before there is one!");
 		return m_pCurrentScene->GetTerrain()->WrapPosition(posX, posY);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::WrapPosition(Vector& pos) {
 		RTEAssert(m_pCurrentScene, "Trying to access scene before there is one!");
@@ -2284,7 +2213,6 @@ namespace RTE {
 		return wrapped;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector SceneMan::SnapPosition(const Vector& pos, bool snap) {
 		Vector snappedPos = pos;
@@ -2297,7 +2225,6 @@ namespace RTE {
 		return snappedPos;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector SceneMan::ShortestDistance(Vector pos1, Vector pos2, bool checkBounds) {
 		if (!m_pCurrentScene)
@@ -2335,7 +2262,6 @@ namespace RTE {
 		return distance;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SceneMan::ShortestDistanceX(float val1, float val2, bool checkBounds, int direction) {
 		if (!m_pCurrentScene)
@@ -2373,7 +2299,6 @@ namespace RTE {
 		return distance;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	float SceneMan::ShortestDistanceY(float val1, float val2, bool checkBounds, int direction) {
 		if (!m_pCurrentScene)
@@ -2411,7 +2336,6 @@ namespace RTE {
 		return distance;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::ObscuredPoint(int x, int y, int team) {
 		bool obscured = m_pCurrentScene->GetTerrain()->GetPixel(x, y) != g_MaterialAir || GetMOIDPixel(x, y, Activity::NoTeam) != g_NoMOID;
@@ -2422,7 +2346,6 @@ namespace RTE {
 		return obscured;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::WrapRect(const IntRect& wrapRect, std::list<IntRect>& outputList) {
 		// Always add at least one copy of the unwrapped rect
@@ -2468,7 +2391,6 @@ namespace RTE {
 		return addedTimes;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int SceneMan::WrapBox(const Box& wrapBox, std::list<Box>& outputList) {
 		// Unflip the input box, or checking will be tedious
@@ -2514,7 +2436,6 @@ namespace RTE {
 		return addedTimes;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SceneMan::AddSceneObject(SceneObject* sceneObject) {
 		bool result = false;
@@ -2533,7 +2454,6 @@ namespace RTE {
 		return result;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::Update(int screenId) {
 		ZoneScoped;
@@ -2574,7 +2494,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
 		ZoneScoped;
@@ -2666,7 +2585,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::ClearMOColorLayer() {
 		m_pMOColorLayer->ClearBitmap(g_MaskColor);
@@ -2675,7 +2593,6 @@ namespace RTE {
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::ClearSeenPixels() {
 		if (!m_pCurrentScene)
@@ -2685,13 +2602,11 @@ namespace RTE {
 			m_pCurrentScene->ClearSeenPixels(team);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SceneMan::ClearCurrentScene() {
 		m_pCurrentScene = nullptr;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	BITMAP* SceneMan::GetIntermediateBitmapForSettlingIntoTerrain(int moDiameter) const {
 		int bitmapSizeNeeded = static_cast<int>(std::ceil(static_cast<float>(moDiameter) / 16.0F)) * 16;
