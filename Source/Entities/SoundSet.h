@@ -7,6 +7,17 @@
 namespace RTE {
 
 	/// <summary>
+	/// Self-contained struct defining an individual sound in a SoundSet.
+	/// </summary>
+	struct SoundData {
+		ContentFile SoundFile;
+		FMOD::Sound *SoundObject;
+		Vector Offset = Vector();
+		float MinimumAudibleDistance = 0.0F;
+		float AttenuationStartDistance = -1.0F;
+	};
+
+	/// <summary>
 	/// A set of sounds, and their selection data.
 	/// </summary>
 	class SoundSet : public Serializable {
@@ -23,17 +34,6 @@ namespace RTE {
 			RANDOM = 0,
 			FORWARDS,
 			ALL
-		};
-
-		/// <summary>
-		/// Self-contained struct defining an individual sound in a SoundSet.
-		/// </summary>
-		struct SoundData {
-			ContentFile SoundFile;
-			FMOD::Sound *SoundObject;
-			Vector Offset = Vector();
-			float MinimumAudibleDistance = 0.0F;
-			float AttenuationStartDistance = -1.0F;
 		};
 
 #pragma region Creation

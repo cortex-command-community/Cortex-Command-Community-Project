@@ -58,8 +58,8 @@ namespace RTE {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	SoundSet::SoundData SoundSet::ReadAndGetSoundData(Reader &reader) {
-		SoundSet::SoundData soundData;
+	SoundData SoundSet::ReadAndGetSoundData(Reader &reader) {
+		SoundData soundData;
 
 		/// <summary>
 		/// Internal lambda function to load an audio file by path in as a ContentFile, which in turn loads it into FMOD, then returns SoundData for it in the outParam outSoundData.
@@ -182,7 +182,7 @@ namespace RTE {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool SoundSet::RemoveSound(const std::string &soundFilePath, bool removeFromSubSoundSets) {
-		auto soundsToRemove = std::remove_if(m_SoundData.begin(), m_SoundData.end(), [&soundFilePath](const SoundSet::SoundData &soundData) { return soundData.SoundFile.GetDataPath() == soundFilePath; });
+		auto soundsToRemove = std::remove_if(m_SoundData.begin(), m_SoundData.end(), [&soundFilePath](const SoundData &soundData) { return soundData.SoundFile.GetDataPath() == soundFilePath; });
 		bool anySoundsToRemove = soundsToRemove != m_SoundData.end();
 		if (anySoundsToRemove) { m_SoundData.erase(soundsToRemove, m_SoundData.end()); }
 		if (removeFromSubSoundSets) {

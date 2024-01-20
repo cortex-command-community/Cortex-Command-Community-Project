@@ -26,6 +26,7 @@
 #include "DataModule.h"
 #include "MetaMan.h"
 #include "AudioMan.h"
+#include "LuaMan.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"

@@ -28,6 +28,7 @@
 #include "Scene.h"
 #include "Actor.h"
 #include "PieMenu.h"
+#include "LuaMan.h"
 
 #include "GUI.h"
 #include "GUIFont.h"

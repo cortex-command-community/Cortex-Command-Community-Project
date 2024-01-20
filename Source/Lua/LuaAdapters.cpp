@@ -2,6 +2,7 @@
 
 #include "LuaAdapterDefinitions.h"
 #include "LuabindObjectWrapper.h"
+#include "LuaMan.h"
 
 namespace RTE {
 

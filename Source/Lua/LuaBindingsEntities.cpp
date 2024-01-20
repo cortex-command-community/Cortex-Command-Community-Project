@@ -3,6 +3,7 @@
 #include "LuaBindingRegisterDefinitions.h"
 
 #include "PieSlice.h"
+#include "SoundSet.h"
 
 namespace RTE {
 

@@ -4,6 +4,7 @@
 #include "UInputMan.h"
 #include "FrameMan.h"
 #include "SceneMan.h"
+#include "LuaMan.h"
 
 #include "DataModule.h"
 #include "GameActivity.h"

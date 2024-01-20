@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Entity.h"
-#include "SoundSet.h"
 #include "AudioMan.h"
 
 namespace RTE {
 	class Vector;
+	struct SoundData;
+	class SoundSet;
 
 	/// <summary>
 	/// A container for sounds that represent a specific sound effect.
@@ -40,13 +41,13 @@ namespace RTE {
 		/// <summary>
 		/// Constructor method used to instantiate a SoundContainer object in system memory. Create() should be called before using the object.
 		/// </summary>
-		SoundContainer() { Clear(); }
+		SoundContainer();
 
 		/// <summary>
 		/// Copy constructor method used to instantiate a SoundContainer object identical to an already existing one.
 		/// </summary>
 		/// <param name="reference">A reference to the SoundContainer to deep copy.</param>
-		SoundContainer(const SoundContainer &reference) { Clear(); Create(reference); }
+		SoundContainer(const SoundContainer &reference);
 
 		/// <summary>
 		/// Creates a SoundContainer to be identical to another, by deep copy.
@@ -63,14 +64,14 @@ namespace RTE {
 		/// <param name="affectedByGlobalPitch">Whether this SoundContainer's sounds' frequency will be affected by the global pitch.</param>
 		/// <param name="busRouting">Bus to route this sound to.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const std::string &soundFilePath, bool immobile = false, bool affectedByGlobalPitch = true, BusRouting busRouting = BusRouting::SFX) { m_TopLevelSoundSet.AddSound(soundFilePath, true); SetImmobile(immobile); SetAffectedByGlobalPitch(affectedByGlobalPitch); SetBusRouting(busRouting); return 0; }
+		int Create(const std::string &soundFilePath, bool immobile = false, bool affectedByGlobalPitch = true, BusRouting busRouting = BusRouting::SFX);
 #pragma endregion
 
 #pragma region Destruction
 		/// <summary>
 		/// Destructor method used to clean up a SoundContainer object before deletion from system memory.
 		/// </summary>
-		~SoundContainer() override { Destroy(true); }
+		~SoundContainer() override;
 
 		/// <summary>
 		/// Destroys and resets (through Clear()) the SoundContainer object. It doesn't delete the Sound files, since they're owned by ContentFile static maps.
@@ -89,7 +90,7 @@ namespace RTE {
 		/// Shows whether this SoundContainer's top level SoundSet has any SoundData or SoundSets.
 		/// </summary>
 		/// <returns>Whether this SoundContainer has any sounds.</returns>
-		bool HasAnySounds() const { return m_TopLevelSoundSet.HasAnySounds(); }
+		bool HasAnySounds() const;
 
 		enum class LengthOfSoundType {
 			Any,
@@ -107,13 +108,13 @@ namespace RTE {
 		/// Gets a reference to the top level SoundSet of this SoundContainer, to which all SoundData and sub SoundSets belong.
 		/// </summary>
 		/// <returns>A reference to the top level SoundSet of this SoundContainer.</returns>
-		SoundSet & GetTopLevelSoundSet() { return m_TopLevelSoundSet; }
+		SoundSet & GetTopLevelSoundSet() { return *m_TopLevelSoundSet; }
 
 		/// <summary>
 		/// Copies the passed in SoundSet reference into the top level SoundSet of this SoundContainer, effectively making that the new top level SoundSet.
 		/// </summary>
 		/// <param name="newTopLevelSoundSet">A reference to the new top level SoundSet for this SoundContainer.</param>
-		void SetTopLevelSoundSet(const SoundSet &newTopLevelSoundSet) { m_TopLevelSoundSet = newTopLevelSoundSet; m_SoundPropertiesUpToDate = false; }
+		void SetTopLevelSoundSet(const SoundSet &newTopLevelSoundSet);
 
 		/// <summary>
 		/// Gets a vector of hashes of the sounds selected to be played next in this SoundContainer.
@@ -126,7 +127,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="sound">The FMOD::Sound to search for.</param>
 		/// <returns>A pointer to the corresponding SoundData or a null pointer.</returns>
-		const SoundSet::SoundData * GetSoundDataForSound(const FMOD::Sound *sound) const;
+		const SoundData * GetSoundDataForSound(const FMOD::Sound *sound) const;
 
 		/// <summary>
 		/// Gets the channels playing sounds from this SoundContainer.
@@ -397,7 +398,7 @@ namespace RTE {
 		static const std::unordered_map<std::string, SoundOverlapMode> c_SoundOverlapModeMap; //!< A map of strings to SoundOverlapModes to support string parsing for the SoundOverlapMode enum. Populated in the implementing cpp file.
 		static const std::unordered_map<std::string, BusRouting> c_BusRoutingMap; //!< A map of strings to BusRoutings to support string parsing for the BusRouting enum. Populated in the implementing cpp file.
 		
-		SoundSet m_TopLevelSoundSet; //The top level SoundSet that handles all SoundData and sub SoundSets in this SoundContainer.
+		std::shared_ptr<SoundSet> m_TopLevelSoundSet; //The top level SoundSet that handles all SoundData and sub SoundSets in this SoundContainer.
 
 		std::unordered_set<int> m_PlayingChannels; //!< The channels this SoundContainer is currently using.
 		SoundOverlapMode m_SoundOverlapMode; //!< The SoundOverlapMode for this SoundContainer, used to determine how it should handle overlapping play calls.

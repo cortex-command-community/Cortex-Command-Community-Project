@@ -47,6 +47,7 @@
 #include "ActivityMan.h"
 #include "PrimitiveMan.h"
 #include "ThreadMan.h"
+#include "LuaMan.h"
 
 #include "tracy/Tracy.hpp"
 
