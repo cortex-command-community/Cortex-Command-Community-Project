@@ -100,8 +100,8 @@ namespace RTE {
 		/// Gets a pointer to the segment at the given index. Ownership is NOT transferred.
 		/// @param segmentIndex The index of the segment to get.
 		/// @return A pointer to the segment at the given index. Ownership is NOT transferred.
-		Vector* GetSegment(int segmentIndex) {
-			if (segmentIndex >= 0 && segmentIndex < m_Segments.size()) {
+		Vector* GetSegment(unsigned int segmentIndex) {
+			if (segmentIndex < m_Segments.size()) {
 				return &m_Segments.at(segmentIndex);
 			}
 			return nullptr;
