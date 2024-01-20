@@ -15,7 +15,6 @@ namespace RTE {
 		friend class NetworkServer;
 
 	public:
-
 		EntityAllocation(SceneLayerImpl);
 		SerializableOverrideMethods;
 
@@ -46,7 +45,7 @@ namespace RTE {
 		/// A special command is if wrap is false and the corresponding component is -1.0, that signals that the own width or height should be used as scrollInfo input.
 		/// </param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const ContentFile &bitmapFile, bool drawMasked, const Vector &offset, bool wrapX, bool wrapY, const Vector &scrollInfo);
+		int Create(const ContentFile& bitmapFile, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo);
 
 		/// <summary>
 		/// Makes the SceneLayer object ready for use.
@@ -63,14 +62,14 @@ namespace RTE {
 		/// A special command is if wrap is false and the corresponding component is -1.0, that signals that the own width or height should be used as scrollInfo input.
 		/// </param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(BITMAP *bitmap, bool drawMasked, const Vector &offset, bool wrapX, bool wrapY, const Vector &scrollInfo);
+		int Create(BITMAP* bitmap, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo);
 
 		/// <summary>
 		/// Creates a SceneLayer to be identical to another, by deep copy.
 		/// </summary>
 		/// <param name="reference">A reference to the SceneLayer to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const SceneLayerImpl &reference);
+		int Create(const SceneLayerImpl& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -105,7 +104,7 @@ namespace RTE {
 		/// <param name="bitmapPath">The filepath to the where to save the bitmap data.</param>
 		/// <param name="doAsyncSaves">Whether or not to save asynchronously.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		virtual int SaveData(const std::string &bitmapPath, bool doAsyncSaves = true);
+		virtual int SaveData(const std::string& bitmapPath, bool doAsyncSaves = true);
 
 		/// <summary>
 		/// Clears out any previously loaded bitmap data from memory.
@@ -125,7 +124,7 @@ namespace RTE {
 		/// Sets the scroll offset of this SceneLayer. Observe that this offset will be modified by the scroll ratio before applied.
 		/// </summary>
 		/// <param name="newOffset">The new offset Vector.</param>
-		void SetOffset(const Vector &newOffset) { m_Offset = newOffset; }
+		void SetOffset(const Vector& newOffset) { m_Offset = newOffset; }
 
 		/// <summary>
 		/// Gets the scroll ratio that modifies the offset.
@@ -137,7 +136,7 @@ namespace RTE {
 		/// Sets the scroll ratio of this SceneLayer. This modifies the offset before any actual scrolling occurs.
 		/// </summary>
 		/// <param name="newRatio">The new scroll ratio vector.</param>
-		void SetScrollRatio(const Vector &newRatio) { m_ScrollRatio = newRatio; }
+		void SetScrollRatio(const Vector& newRatio) { m_ScrollRatio = newRatio; }
 
 		/// <summary>
 		/// Gets the scale factor that this is drawn in.
@@ -149,7 +148,7 @@ namespace RTE {
 		/// Sets the scale that this should be drawn at when using DrawScaled.
 		/// </summary>
 		/// <param name="newScale">The new scale factor vector.</param>
-		void SetScaleFactor(const Vector &newScale);
+		void SetScaleFactor(const Vector& newScale);
 
 		/// <summary>
 		/// Indicates whether the layer is set to wrap around the X axis when scrolled out of bounds.
@@ -194,13 +193,15 @@ namespace RTE {
 		/// Lock the internal bitmap so it can be accessed by GetPixel() etc. UnlockBitmaps() should always be called after accesses are completed.
 		/// Doing it in a separate method like this is more efficient because many bitmap accesses can be performed between a lock and unlock.
 		/// </summary>
-		void LockBitmaps() { /*acquire_bitmap(m_MainBitmap);*/ }
+		void LockBitmaps() { /*acquire_bitmap(m_MainBitmap);*/
+		}
 
 		/// <summary>
 		/// Unlocks the internal bitmaps and prevents access to display memory. UnlockBitmaps() should only be called after LockBitmaps().
 		/// Doing it in a separate method like this is more efficient because many bitmap accesses can be performed between a lock and an unlock.
 		/// </summary>
-		void UnlockBitmaps() { /*release_bitmap(m_MainBitmap);*/ }
+		void UnlockBitmaps() { /*release_bitmap(m_MainBitmap);*/
+		}
 
 		/// <summary>
 		/// Clears our BITMAP.
@@ -215,7 +216,7 @@ namespace RTE {
 		/// <param name="posX">The X coordinates of the position to wrap.</param>
 		/// <param name="posY">The Y coordinates of the position to wrap.</param>
 		/// <returns>Whether wrapping was performed or not.</returns>
-		bool WrapPosition(int &posX, int &posY) const;
+		bool WrapPosition(int& posX, int& posY) const;
 
 		/// <summary>
 		/// Wraps the given position Vector if it is out of bounds of this SceneLayer and wrapping is enabled on the appropriate axes.
@@ -223,7 +224,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="pos">The vector coordinates of the position to wrap.</param>
 		/// <returns>Whether wrapping was performed or not.</returns>
-		bool WrapPosition(Vector &pos) const { return ForceBoundsOrWrapPosition(pos, false); }
+		bool WrapPosition(Vector& pos) const { return ForceBoundsOrWrapPosition(pos, false); }
 
 		/// <summary>
 		/// Wraps or bounds a position coordinate if it is out of bounds of the SceneLayer, depending on the wrap settings of this SceneLayer.
@@ -231,14 +232,14 @@ namespace RTE {
 		/// <param name="posX">The X coordinates of the position to wrap.</param>
 		/// <param name="posY">The Y coordinates of the position to wrap.</param>
 		/// <returns>Whether wrapping was performed or not. Does not report on bounding.</returns>
-		bool ForceBounds(int &posX, int &posY) const;
+		bool ForceBounds(int& posX, int& posY) const;
 
 		/// <summary>
 		/// Wraps or bounds a position coordinate if it is out of bounds of the SceneLayer, depending on the wrap settings of this SceneLayer.
 		/// </summary>
 		/// <param name="pos">The Vector coordinates of the position to wrap.</param>
 		/// <returns>Whether wrapping was performed or not. Does not report on bounding.</returns>
-		bool ForceBounds(Vector &pos) const { return ForceBoundsOrWrapPosition(pos, true); }
+		bool ForceBounds(Vector& pos) const { return ForceBoundsOrWrapPosition(pos, true); }
 #pragma endregion
 
 #pragma region Drawing Tracking
@@ -256,7 +257,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="center">The position of the center of the area to be drawn upon.</param>
 		/// <param name="radius">The radius of the area to be drawn upon.</param>
-		void RegisterDrawing(const Vector &center, float radius);
+		void RegisterDrawing(const Vector& center, float radius);
 #pragma endregion
 
 #pragma region Virtual Methods
@@ -271,15 +272,14 @@ namespace RTE {
 		/// <param name="targetBitmap">The bitmap to draw to.</param>
 		/// <param name="targetBox">The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.</param>
 		/// <param name="offsetNeedsScrollRatioAdjustment">Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.</param>
-		virtual void Draw(BITMAP *targetBitmap, Box &targetBox, bool offsetNeedsScrollRatioAdjustment = false);
+		virtual void Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
 #pragma endregion
 
 	protected:
-
 		ContentFile m_BitmapFile; //!< ContentFile containing the path to this SceneLayer's sprite file.
 
-		BITMAP *m_MainBitmap; //!< The main BITMAP of this SceneLayer.
-		BITMAP *m_BackBitmap; //!< The backbuffer BITMAP of this SceneLayer.
+		BITMAP* m_MainBitmap; //!< The main BITMAP of this SceneLayer.
+		BITMAP* m_BackBitmap; //!< The backbuffer BITMAP of this SceneLayer.
 
 		// We use two bitmaps, as a backbuffer. While the main bitmap is being used, the secondary bitmap will be cleared on a separate thread. This is because we tend to want to clear some scene layers every frame and that is costly.
 		std::future<void> m_BitmapClearTask; //!< Task for clearing BITMAP async in background.
@@ -313,7 +313,7 @@ namespace RTE {
 		/// <param name="pos">The Vector coordinates of the position to wrap.</param>
 		/// <param name="forceBounds">Whether to attempt bounding or wrapping, or just wrapping.</param>
 		/// <returns>Whether wrapping was performed or not. Does not report on bounding.</returns>
-		bool ForceBoundsOrWrapPosition(Vector &pos, bool forceBounds) const;
+		bool ForceBoundsOrWrapPosition(Vector& pos, bool forceBounds) const;
 
 #pragma region Draw Breakdown
 		/// <summary>
@@ -322,7 +322,7 @@ namespace RTE {
 		/// <param name="targetBitmap">The bitmap to draw to.</param>
 		/// <param name="targetBox">The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.</param>
 		/// <param name="drawScaled">Whether to use scaled drawing routines or not.</param>
-		void DrawWrapped(BITMAP *targetBitmap, const Box &targetBox, bool drawScaled) const;
+		void DrawWrapped(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const;
 
 		/// <summary>
 		/// Performs tiled drawing of this SceneLayer's bitmap to the screen in cases where the target bitmap is larger in some dimension.
@@ -330,16 +330,15 @@ namespace RTE {
 		/// <param name="targetBitmap">The bitmap to draw to.</param>
 		/// <param name="targetBox">The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.</param>
 		/// <param name="drawScaled">Whether to use scaled drawing routines or not.</param>
-		void DrawTiled(BITMAP *targetBitmap, const Box &targetBox, bool drawScaled) const;
+		void DrawTiled(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const;
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Clears any tracked and drawn-to areas.
 		/// </summary>
 		/// <param name="clearTo">Color to clear to.</param>
-		void ClearDrawings(BITMAP *bitmap, const std::vector<IntRect> &drawings, ColorKeys clearTo) const;
+		void ClearDrawings(BITMAP* bitmap, const std::vector<IntRect>& drawings, ColorKeys clearTo) const;
 
 		/// <summary>
 		/// Clears all the member variables of this SceneLayer, effectively resetting the members of this abstraction level only.
@@ -347,8 +346,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		SceneLayerImpl(const SceneLayerImpl &reference) = delete;
-		void operator=(const SceneLayerImpl &rhs) = delete;
+		SceneLayerImpl(const SceneLayerImpl& reference) = delete;
+		void operator=(const SceneLayerImpl& rhs) = delete;
 	};
 
 	/// <summary>
@@ -357,14 +356,14 @@ namespace RTE {
 	class SceneLayerTracked : public SceneLayerImpl<true> {
 
 	public:
-
 		EntityAllocation(SceneLayerTracked);
 		ClassInfoGetters;
 
 		/// <summary>
 		/// Constructor method used to instantiate a SceneLayerTracked object in system memory. Create() should be called before using the object.
 		/// </summary>
-		SceneLayerTracked() : SceneLayerImpl<true>() {}
+		SceneLayerTracked() :
+		    SceneLayerImpl<true>() {}
 
 		// TODO: We shouldn't let external users access a non-const version of our bitmap. We should do all drawing to it internally, and track registering our MOID drawings internally too.
 		// However, in the interest of time (and my own sanity), given that the old code already does this, we're not doing that yet.
@@ -372,34 +371,32 @@ namespace RTE {
 		/// Gets the BITMAP that this SceneLayer uses.
 		/// </summary>
 		/// <returns>A pointer to the BITMAP of this SceneLayer. Ownership is NOT transferred!</returns>
-		BITMAP * GetBitmap() const { return m_MainBitmap; }
+		BITMAP* GetBitmap() const { return m_MainBitmap; }
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 	};
 
 	class SceneLayer : public SceneLayerImpl<false> {
 
 	public:
-
 		EntityAllocation(SceneLayer);
 		ClassInfoGetters;
 
 		/// <summary>
 		/// Constructor method used to instantiate a SceneLayer object in system memory. Create() should be called before using the object.
 		/// </summary>
-		SceneLayer() : SceneLayerImpl<false>() {}
+		SceneLayer() :
+		    SceneLayerImpl<false>() {}
 
 		/// <summary>
 		/// Gets the BITMAP that this SceneLayer uses.
 		/// </summary>
 		/// <returns>A pointer to the BITMAP of this SceneLayer. Ownership is NOT transferred!</returns>
-		BITMAP * GetBitmap() const { return m_MainBitmap; }
+		BITMAP* GetBitmap() const { return m_MainBitmap; }
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 	};
-}
+} // namespace RTE
 #endif

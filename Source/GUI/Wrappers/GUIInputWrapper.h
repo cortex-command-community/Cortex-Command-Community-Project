@@ -14,7 +14,6 @@ namespace RTE {
 	class GUIInputWrapper : public GUIInput {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a GUIInputWrapper object in system memory.
@@ -39,7 +38,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		const float m_KeyRepeatDelay = 0.10F; //!< The delay a key needs to be held to be considered a repeating input. TODO: Make this use proper OS repeating instead of this shit...
 		std::array<float, GUIInput::Constants::KEYBOARD_BUFFER_SIZE> m_KeyHoldDuration; //!< How long each key has been held in order to set repeating inputs.
 
@@ -72,8 +70,8 @@ namespace RTE {
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
-		GUIInputWrapper(const GUIInputWrapper &reference) = delete;
-		GUIInputWrapper & operator=(const GUIInputWrapper &rhs) = delete;
+		GUIInputWrapper(const GUIInputWrapper& reference) = delete;
+		GUIInputWrapper& operator=(const GUIInputWrapper& rhs) = delete;
 	};
-};
+}; // namespace RTE
 #endif

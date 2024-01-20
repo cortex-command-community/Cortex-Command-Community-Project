@@ -22,7 +22,6 @@ namespace RTE {
 	class PauseMenuGUI {
 
 	public:
-
 		/// <summary>
 		/// Enumeration for the results of the PauseMenuGUI input and event update.
 		/// </summary>
@@ -38,14 +37,17 @@ namespace RTE {
 		/// </summary>
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		PauseMenuGUI(AllegroScreen *guiScreen, GUIInputWrapper *guiInput) { Clear(); Create(guiScreen, guiInput); }
+		PauseMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
+			Clear();
+			Create(guiScreen, guiInput);
+		}
 
 		/// <summary>
 		/// Makes the PauseMenuGUI object ready for use.
 		/// </summary>
 		/// <param name="guiScreen">Pointer to a GUIScreen interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
 		/// <param name="guiInput">Pointer to a GUIInput interface that will be used by this PauseMenuGUI's GUIControlManager. Ownership is NOT transferred!</param>
-		void Create(AllegroScreen *guiScreen, GUIInputWrapper *guiInput);
+		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput);
 #pragma endregion
 
 #pragma region Setters
@@ -53,7 +55,7 @@ namespace RTE {
 		/// Sets the "Back to Main Menu" button text to the menu we will be going back to.
 		/// </summary>
 		/// <param name="menuName">The target menu name, e.g. "Conquest" will result in "Back to Conquest Menu".</param>
-		void SetBackButtonTargetName(const std::string &menuName);
+		void SetBackButtonTargetName(const std::string& menuName);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -75,7 +77,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		/// <summary>
 		/// Enumeration for the different sub-menu screens of the pause menu.
 		/// </summary>
@@ -100,9 +101,9 @@ namespace RTE {
 		};
 
 		std::unique_ptr<GUIControlManager> m_GUIControlManager; //!< The GUIControlManager which owns all the GUIControls of the PauseMenuGUI.
-		GUICollectionBox *m_ActiveDialogBox; // The currently active GUICollectionBox in any of the pause menu screens that acts as a dialog box and requires drawing an overlay.
+		GUICollectionBox* m_ActiveDialogBox; // The currently active GUICollectionBox in any of the pause menu screens that acts as a dialog box and requires drawing an overlay.
 
-		BITMAP *m_BackdropBitmap; ///!< Bitmap to store half transparent black overlay.
+		BITMAP* m_BackdropBitmap; ///!< Bitmap to store half transparent black overlay.
 
 		PauseMenuScreen m_ActiveMenuScreen; //!< The currently active pause menu screen that is being updated and drawn to the screen. See PauseMenuScreen enumeration.
 		PauseMenuUpdateResult m_UpdateResult; //!< The result of the PauseMenuGUI update. See PauseMenuUpdateResult enumeration.
@@ -117,7 +118,7 @@ namespace RTE {
 		// Right now the way this works is the font graphic has different character visuals for uppercase and lowercase and the visual change happens by applying the appropriate case string when hovering/unhovering.
 		std::array<std::string, PauseMenuButton::ButtonCount> m_ButtonHoveredText; //!< Array containing uppercase strings of the pause menu buttons text that are used to display the larger font when a button is hovered over.
 		std::array<std::string, PauseMenuButton::ButtonCount> m_ButtonUnhoveredText; //!< Array containing lowercase strings of the pause menu buttons text that are used to display the smaller font when a button is not hovered over.
-		GUIButton *m_HoveredButton; //!< The currently hovered pause menu button.
+		GUIButton* m_HoveredButton; //!< The currently hovered pause menu button.
 		int m_PrevHoveredButtonIndex; //!< The index of the previously hovered pause menu button in the main menu button array.
 
 		bool m_SavingButtonsDisabled; //!< Whether the save and load buttons are disabled and hidden.
@@ -126,8 +127,8 @@ namespace RTE {
 		/// <summary>
 		/// GUI elements that compose the pause menu screen.
 		/// </summary>
-		GUICollectionBox *m_PauseMenuBox;
-		std::array<GUIButton *, PauseMenuButton::ButtonCount> m_PauseMenuButtons;
+		GUICollectionBox* m_PauseMenuBox;
+		std::array<GUIButton*, PauseMenuButton::ButtonCount> m_PauseMenuButtons;
 
 #pragma region Menu Screen Handling
 		/// <summary>
@@ -155,7 +156,7 @@ namespace RTE {
 		/// Updates the currently hovered button text to give the hovered visual and updates the previously hovered button to remove the hovered visual.
 		/// </summary>
 		/// <param name="hoveredButton">Pointer to the currently hovered button, if any. Acquired by GUIControlManager::GetControlUnderPoint.</param>
-		void UpdateHoveredButton(const GUIButton *hoveredButton);
+		void UpdateHoveredButton(const GUIButton* hoveredButton);
 
 		/// <summary>
 		/// Animates (blinking) the resume game button.
@@ -169,8 +170,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		PauseMenuGUI(const PauseMenuGUI &reference) = delete;
-		PauseMenuGUI & operator=(const PauseMenuGUI &rhs) = delete;
+		PauseMenuGUI(const PauseMenuGUI& reference) = delete;
+		PauseMenuGUI& operator=(const PauseMenuGUI& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

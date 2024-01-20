@@ -7,7 +7,6 @@
 //                  data@datarealms.com
 //                  http://www.datarealms.com
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inclusions of header files
 
@@ -21,14 +20,13 @@ namespace RTE {
 
 	ConcreteClassInfo(PEmitter, MOSParticle, 100);
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          Clear
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Clears all the member variables of this PEmitter, effectively
-		//                  resetting the members of this abstraction level only.
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Method:          Clear
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Description:     Clears all the member variables of this PEmitter, effectively
+	//                  resetting the members of this abstraction level only.
 
-		void PEmitter::Clear()
-	{
+	void PEmitter::Clear() {
 		m_EmissionList.clear();
 		m_EmissionSound.Reset();
 		m_BurstSound.Reset();
@@ -59,28 +57,24 @@ namespace RTE {
 		m_LoudnessOnEmit = 1.0f;
 	}
 
-
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Virtual method:  Create
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Makes the Emission object ready for use.
 
-	int PEmitter::Create()
-	{
+	int PEmitter::Create() {
 		if (MOSParticle::Create() < 0)
 			return -1;
 
 		return 0;
 	}
 
-
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Method:          Create
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Creates a PEmitter to be identical to another, by deep copy.
 
-	int PEmitter::Create(const PEmitter &reference)
-	{
+	int PEmitter::Create(const PEmitter& reference) {
 		MOSParticle::Create(reference);
 
 		for (auto itr = reference.m_EmissionList.begin(); itr != reference.m_EmissionList.end(); ++itr) {
@@ -110,7 +104,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Virtual method:  ReadProperty
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -119,16 +112,15 @@ namespace RTE {
 	//                  is called. If the property isn't recognized by any of the base classes,
 	//                  false is returned, and the reader's position is untouched.
 
-	int PEmitter::ReadProperty(const std::string_view &propName, Reader &reader)
-	{
+	int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return MOSParticle::ReadProperty(propName, reader));
-		
+
 		MatchProperty("AddEmission",
-		{
-			Emission emission;
-			reader >> emission;
-			m_EmissionList.push_back(emission);
-		});
+		              {
+			              Emission emission;
+			              reader >> emission;
+			              m_EmissionList.push_back(emission);
+		              });
 		MatchProperty("EmissionSound", { reader >> m_EmissionSound; });
 		MatchProperty("BurstSound", { reader >> m_BurstSound; });
 		MatchProperty("EndSound", { reader >> m_EndSound; });
@@ -136,25 +128,25 @@ namespace RTE {
 		MatchProperty("EmissionCount", { reader >> m_EmitCount; });
 		MatchProperty("EmissionCountLimit", { reader >> m_EmitCountLimit; });
 		MatchProperty("ParticlesPerMinute",
-		{
-			float ppm;
-			reader >> ppm;
-			// Go through all emissions and set the rate so that it emulates the way it used to work, for mod backwards compatibility
-			for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
-				(*eItr).m_PPM = ppm / m_EmissionList.size();
-		});
+		              {
+			              float ppm;
+			              reader >> ppm;
+			              // Go through all emissions and set the rate so that it emulates the way it used to work, for mod backwards compatibility
+			              for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
+				              (*eItr).m_PPM = ppm / m_EmissionList.size();
+		              });
 		MatchProperty("NegativeThrottleMultiplier", { reader >> m_NegativeThrottleMultiplier; });
 		MatchProperty("PositiveThrottleMultiplier", { reader >> m_PositiveThrottleMultiplier; });
 		MatchProperty("Throttle", { reader >> m_Throttle; });
 		MatchProperty("EmissionsIgnoreThis", { reader >> m_EmissionsIgnoreThis; });
 		MatchProperty("BurstSize",
-		{
-			int burstSize;
-			reader >> burstSize;
-			// Go through all emissions and set the rate so that it emulates the way it used to work, for mod backwards compatibility
-			for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
-				(*eItr).m_BurstSize = std::ceil((float)burstSize / (float)m_EmissionList.size());
-		});
+		              {
+			              int burstSize;
+			              reader >> burstSize;
+			              // Go through all emissions and set the rate so that it emulates the way it used to work, for mod backwards compatibility
+			              for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
+				              (*eItr).m_BurstSize = std::ceil((float)burstSize / (float)m_EmissionList.size());
+		              });
 		MatchProperty("BurstScale", { reader >> m_BurstScale; });
 		MatchProperty("BurstSpacing", { reader >> m_BurstSpacing; });
 		MatchProperty("BurstTriggered", { reader >> m_BurstTriggered; });
@@ -165,10 +157,9 @@ namespace RTE {
 		MatchProperty("SustainBurstSound", { reader >> m_SustainBurstSound; });
 		MatchProperty("BurstSoundFollowsEmitter", { reader >> m_BurstSoundFollowsEmitter; });
 		MatchProperty("LoudnessOnEmit", { reader >> m_LoudnessOnEmit; });
-		
+
 		EndPropertyList;
 	}
-
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Virtual method:  Save
@@ -176,12 +167,10 @@ namespace RTE {
 	// Description:     Saves the complete state of this PEmitter with a Writer for
 	//                  later recreation with Create(Reader &reader);
 
-	int PEmitter::Save(Writer &writer) const
-	{
+	int PEmitter::Save(Writer& writer) const {
 		MOSParticle::Save(writer);
 
-		for (auto itr = m_EmissionList.begin(); itr != m_EmissionList.end(); ++itr)
-		{
+		for (auto itr = m_EmissionList.begin(); itr != m_EmissionList.end(); ++itr) {
 			writer.NewProperty("AddEmission");
 			writer << *itr;
 		}
@@ -229,14 +218,12 @@ namespace RTE {
 		return 0;
 	}
 
-
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Method:          Destroy
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Destroys and resets (through Clear()) the PEmitter object.
 
-	void PEmitter::Destroy(bool notInherited)
-	{
+	void PEmitter::Destroy(bool notInherited) {
 		// Stop playback of sounds gracefully
 		if (m_EmissionSound.IsBeingPlayed())
 			m_EndSound.Play(m_Pos);
@@ -254,55 +241,46 @@ namespace RTE {
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Method:          ResetEmissionTimers
 	//////////////////////////////////////////////////////////////////////////////////////////
-	// Description:     Reset the timers of all emissions so they will start/stop at the 
+	// Description:     Reset the timers of all emissions so they will start/stop at the
 	//                  correct relative offsets from now.
 
-	void PEmitter::ResetEmissionTimers()
-	{
+	void PEmitter::ResetEmissionTimers() {
 		m_LastEmitTmr.Reset();
 		for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
 			(*eItr).ResetEmissionTimers();
 	}
-
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Method:          EnableEmission
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Sets this PEmitter to start emitting at the set rate, or to stop.
 
-	void PEmitter::EnableEmission(bool enable)
-	{
-		if (!m_EmitEnabled && enable)
-		{
+	void PEmitter::EnableEmission(bool enable) {
+		if (!m_EmitEnabled && enable) {
 			m_LastEmitTmr.Reset();
 			// Reset counter
 			m_EmitCount = 0;
 			// Reset animation
-			//m_Frame = 0;
+			// m_Frame = 0;
 		}
 		m_EmitEnabled = enable;
 	}
-
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Method:          EstimateImpulse
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Calculates the forces this emitter applies on any parent.
 
-	float PEmitter::EstimateImpulse(bool burst)
-	{
+	float PEmitter::EstimateImpulse(bool burst) {
 		// Calculate the impulse generated by the emissions, once and store the result
-		if ((!burst && m_AvgImpulse < 0) || (burst && m_AvgBurstImpulse < 0))
-		{
+		if ((!burst && m_AvgImpulse < 0) || (burst && m_AvgBurstImpulse < 0)) {
 			float impulse = 0;
 			float velMin, velMax, velRange, spread;
 
 			// Go through all emissions and emit them according to their respective rates
-			for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
-			{
+			for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr) {
 				// Only check emissions that push the emitter
-				if (eItr->PushesEmitter())
-				{
+				if (eItr->PushesEmitter()) {
 					double emissions = eItr->GetRate() * g_TimerMan.GetDeltaTimeSecs() / 60.0f;
 					if (burst)
 						emissions *= eItr->GetBurstSize();
@@ -310,7 +288,7 @@ namespace RTE {
 					velMin = std::min(eItr->GetMinVelocity(), eItr->GetMaxVelocity());
 					velMax = std::max(eItr->GetMinVelocity(), eItr->GetMaxVelocity());
 					velRange = (velMax - velMin) * 0.5;
-					spread = std::max(static_cast<float>(c_PI)-eItr->GetSpread(), .0f) / c_PI;     // A large spread will cause the forces to cancel eachother out
+					spread = std::max(static_cast<float>(c_PI) - eItr->GetSpread(), .0f) / c_PI; // A large spread will cause the forces to cancel eachother out
 
 					// Add to accumulative recoil impulse generated, F = m * a.
 					impulse += (velMin + velRange) * spread * eItr->m_pEmission->GetMass() * emissions;
@@ -321,7 +299,6 @@ namespace RTE {
 				m_AvgBurstImpulse = impulse;
 			else
 				m_AvgImpulse = impulse;
-
 		}
 
 		// Scale the emission rate up or down according to the appropriate throttle multiplier.
@@ -332,7 +309,6 @@ namespace RTE {
 
 		return m_AvgImpulse * throttleFactor;
 	}
-
 
 	/*
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -354,23 +330,20 @@ namespace RTE {
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Description:     Updates this PEmitter. Supposed to be done every frame.
 
-	void PEmitter::Update()
-	{
+	void PEmitter::Update() {
 		MOSParticle::Update();
 
 		if (m_BurstSoundFollowsEmitter) {
 			m_BurstSound.SetPosition(m_Pos);
 		}
 
-		if (m_EmitEnabled)
-		{
-			if (!m_WasEmitting)
-			{
+		if (m_EmitEnabled) {
+			if (!m_WasEmitting) {
 				// Start playing the sound
 				m_EmissionSound.Play(m_Pos);
 
 				// Reset the timers of all emissions so they will start/stop at the correct relative offsets from now
-				for (Emission& emission : m_EmissionList) {
+				for (Emission& emission: m_EmissionList) {
 					emission.ResetEmissionTimers();
 				}
 			}
@@ -380,14 +353,13 @@ namespace RTE {
 
 			// Get the parent root of this PEmitter
 			// TODO: Potentially get this once outside instead, like in attach/detach")
-			MovableObject *pRootParent = GetRootParent();
+			MovableObject* pRootParent = GetRootParent();
 
 			// Scale the emission rate up or down according to the appropriate throttle multiplier.
 			float throttleFactor = GetThrottleFactor();
 			m_FlashScale = throttleFactor;
 			// Check burst triggering against whether the spacing is fulfilled
-			if (m_BurstTriggered && (m_BurstSpacing <= 0 || m_BurstTimer.IsPastSimMS(m_BurstSpacing)))
-			{
+			if (m_BurstTriggered && (m_BurstSpacing <= 0 || m_BurstTimer.IsPastSimMS(m_BurstSpacing))) {
 				// Play burst sound
 				m_BurstSound.Play(m_Pos);
 				// Start timing until next burst
@@ -400,21 +372,18 @@ namespace RTE {
 			int emissions = 0;
 			float velMin, velRange, spread;
 			double currentPPM, SPE;
-			MovableObject *pParticle = 0;
+			MovableObject* pParticle = 0;
 			Vector parentVel, emitVel, pushImpulses;
 			// Go through all emissions and emit them according to their respective rates
-			for (Emission &emission : m_EmissionList)
-			{
+			for (Emission& emission: m_EmissionList) {
 				// Make sure the emissions only happen between the start time and end time
-				if (emission.IsEmissionTime())
-				{
+				if (emission.IsEmissionTime()) {
 					// Apply the throttle factor to the emission rate
 					currentPPM = emission.GetRate() * throttleFactor;
 					emissions = 0;
 
 					// Only do all this if the PPM is acutally above zero
-					if (currentPPM > 0)
-					{
+					if (currentPPM > 0) {
 						// Calculate secs per emission
 						SPE = 60.0 / currentPPM;
 
@@ -437,17 +406,16 @@ namespace RTE {
 					emitVel.Reset();
 					parentVel = pRootParent->GetVel() * emission.InheritsVelocity();
 
-					for (int i = 0; i < emissions; ++i)
-					{
+					for (int i = 0; i < emissions; ++i) {
 						velMin = emission.GetMinVelocity() * (m_BurstTriggered ? m_BurstScale : 1.0);
 						velRange = emission.GetMaxVelocity() - emission.GetMinVelocity() * (m_BurstTriggered ? m_BurstScale : 1.0);
 						spread = emission.GetSpread() * (m_BurstTriggered ? m_BurstScale : 1.0);
 						// Make a copy after the reference particle
-						pParticle = dynamic_cast<MovableObject *>(emission.GetEmissionParticlePreset()->Clone());
+						pParticle = dynamic_cast<MovableObject*>(emission.GetEmissionParticlePreset()->Clone());
 						// Set up its position and velocity according to the parameters of this.
 						// Emission point offset not set
 						if (m_EmissionOffset.IsZero())
-							pParticle->SetPos(m_Pos/*Vector(m_Pos.m_X + 5 * NormalRand(), m_Pos.m_Y + 5 * NormalRand())*/);
+							pParticle->SetPos(m_Pos /*Vector(m_Pos.m_X + 5 * NormalRand(), m_Pos.m_Y + 5 * NormalRand())*/);
 						else
 							pParticle->SetPos(m_Pos + RotateOffset(m_EmissionOffset));
 						// TODO: Optimize making the random angles!")
@@ -456,7 +424,9 @@ namespace RTE {
 						emitVel = RotateOffset(emitVel);
 						pParticle->SetVel(parentVel + emitVel);
 
-						if (pParticle->GetLifetime() != 0) { pParticle->SetLifetime(std::max(static_cast<int>(pParticle->GetLifetime() * (1.0F + (emission.GetLifeVariation() * RandomNormalNum()))), 1)); }
+						if (pParticle->GetLifetime() != 0) {
+							pParticle->SetLifetime(std::max(static_cast<int>(pParticle->GetLifetime() * (1.0F + (emission.GetLifeVariation() * RandomNormalNum()))), 1));
+						}
 						pParticle->SetTeam(m_Team);
 						pParticle->SetIgnoresTeamHits(true);
 
@@ -494,15 +464,15 @@ namespace RTE {
 			m_WasEmitting = true;
 		}
 		// Do stuff to stop emission
-		else if (m_WasEmitting)
-		{
+		else if (m_WasEmitting) {
 			m_EmissionSound.Stop();
-			if (!m_SustainBurstSound) { m_BurstSound.Stop(); }
+			if (!m_SustainBurstSound) {
+				m_BurstSound.Stop();
+			}
 			m_EndSound.Play(m_Pos);
 			m_WasEmitting = false;
 		}
 	}
-
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// Virtual method:  Draw
@@ -510,11 +480,10 @@ namespace RTE {
 	// Description:     Draws this PEmitter's current graphical representation to a
 	//                  BITMAP of choice.
 
-	void PEmitter::Draw(BITMAP *pTargetBitmap,
-		const Vector &targetPos,
-		DrawMode mode,
-		bool onlyPhysical) const
-	{
+	void PEmitter::Draw(BITMAP* pTargetBitmap,
+	                    const Vector& targetPos,
+	                    DrawMode mode,
+	                    bool onlyPhysical) const {
 		MOSParticle::Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
 	}
 

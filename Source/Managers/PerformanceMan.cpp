@@ -8,12 +8,12 @@
 
 namespace RTE {
 
-	const std::array<std::string, PerformanceMan::PerformanceCounters::PerfCounterCount> PerformanceMan::m_PerfCounterNames = { "Total", "Act AI", "Act Travel", "Act Update", "Prt Travel", "Prt Update", "Activity", "Scripts"};
+	const std::array<std::string, PerformanceMan::PerformanceCounters::PerfCounterCount> PerformanceMan::m_PerfCounterNames = {"Total", "Act AI", "Act Travel", "Act Update", "Prt Travel", "Prt Update", "Activity", "Scripts"};
 
 	thread_local std::array<uint64_t, PerformanceMan::PerformanceCounters::PerfCounterCount> s_PerfMeasureStart; //!< Current measurement start time in microseconds.
 	thread_local std::array<uint64_t, PerformanceMan::PerformanceCounters::PerfCounterCount> s_PerfMeasureStop; //!< Current measurement stop time in microseconds.
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::Clear() {
 		m_ShowPerfStats = false;
@@ -29,7 +29,7 @@ namespace RTE {
 		m_CurrentPing = 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::Initialize() {
 		m_SimUpdateTimer = std::make_unique<Timer>();
@@ -42,24 +42,26 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::StartPerformanceMeasurement(PerformanceCounters counter) {
 		s_PerfMeasureStart[counter] = g_TimerMan.GetAbsoluteTime();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::StopPerformanceMeasurement(PerformanceCounters counter) {
 		s_PerfMeasureStop[counter] = g_TimerMan.GetAbsoluteTime();
 		AddPerformanceSample(counter, s_PerfMeasureStop[counter] - s_PerfMeasureStart[counter]);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::NewPerformanceSample() {
 		m_Sample++;
-		if (m_Sample >= c_MaxSamples) { m_Sample = 0; }
+		if (m_Sample >= c_MaxSamples) {
+			m_Sample = 0;
+		}
 
 		for (int counter = 0; counter < PerformanceCounters::PerfCounterCount; ++counter) {
 			m_PerfData[counter][m_Sample] = 0;
@@ -67,7 +69,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::CalculateSamplePercentages() {
 		for (int counter = 0; counter < PerformanceCounters::PerfCounterCount; ++counter) {
@@ -76,7 +78,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	uint64_t PerformanceMan::GetPerformanceCounterAverage(PerformanceCounters counter) const {
 		uint64_t totalPerformanceMeasurement = 0;
@@ -84,14 +86,16 @@ namespace RTE {
 		for (int i = 0; i < c_Average; ++i) {
 			totalPerformanceMeasurement += m_PerfData[counter][sample];
 			sample--;
-			if (sample < 0) { sample = c_MaxSamples - 1; }
+			if (sample < 0) {
+				sample = c_MaxSamples - 1;
+			}
 		}
 		return totalPerformanceMeasurement / c_Average;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PerformanceMan::CalculateTimeAverage(std::deque<float> &timeMeasurements, std::atomic<float> &avgResult, float newTimeMeasurement) const {
+	void PerformanceMan::CalculateTimeAverage(std::deque<float>& timeMeasurements, std::atomic<float>& avgResult, float newTimeMeasurement) const {
 		static std::mutex mut;
 		std::lock_guard<std::mutex> lock(mut);
 
@@ -100,7 +104,7 @@ namespace RTE {
 			timeMeasurements.pop_front();
 		}
 		float averageTime = 0;
-		for (const float &timeMeasurement : timeMeasurements) {
+		for (const float& timeMeasurement: timeMeasurements) {
 			averageTime += timeMeasurement;
 		}
 		averageTime /= static_cast<float>(timeMeasurements.size());
@@ -108,31 +112,31 @@ namespace RTE {
 		avgResult = averageTime;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::UpdateMSPU(long long measuredUpdateTime) {
 		CalculateTimeAverage(m_MSPUs, m_MSPUAverage, static_cast<float>(measuredUpdateTime / 1000));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::UpdateMSPD(long long measuredDrawTime) {
 		CalculateTimeAverage(m_MSPDs, m_MSPDAverage, static_cast<float>(measuredDrawTime / 1000));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::UpdateMSPF(long long measuredFrameTime) {
 		CalculateTimeAverage(m_MSPFs, m_MSPFAverage, static_cast<float>(measuredFrameTime / 1000));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PerformanceMan::Draw(BITMAP *bitmapToDrawTo) {
+	void PerformanceMan::Draw(BITMAP* bitmapToDrawTo) {
 		if (m_ShowPerfStats) {
 			AllegroBitmap drawBitmap(bitmapToDrawTo);
 
-			GUIFont *guiFont = g_FrameMan.GetLargeFont(true);
+			GUIFont* guiFont = g_FrameMan.GetLargeFont(true);
 			char str[128];
 
 			float fps = 1.0F / (m_MSPFAverage / 1000.0F);
@@ -174,8 +178,7 @@ namespace RTE {
 				std::snprintf(str, sizeof(str), "Lua scripts taking the most time to call Update() this frame:");
 				guiFont->DrawAligned(&drawBitmap, c_StatsOffsetX, c_StatsHeight + 100, str, GUIFont::Left);
 
-				for (int i = 0; i < std::min((size_t)3, m_SortedScriptTimings.size()); i++)
-				{
+				for (int i = 0; i < std::min((size_t)3, m_SortedScriptTimings.size()); i++) {
 					std::pair<std::string, ScriptTiming> scriptTiming = m_SortedScriptTimings.at(i);
 
 					std::snprintf(str, sizeof(str), "%.1fms total with %i calls in %s", scriptTiming.second.m_Time / 1000.0, scriptTiming.second.m_CallCount, scriptTiming.first.c_str());
@@ -183,18 +186,18 @@ namespace RTE {
 				}
 			}
 
-			if (m_AdvancedPerfStats) { 
-				DrawPeformanceGraphs(drawBitmap); 
+			if (m_AdvancedPerfStats) {
+				DrawPeformanceGraphs(drawBitmap);
 			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PerformanceMan::DrawPeformanceGraphs(AllegroBitmap &bitmapToDrawTo) {
+	void PerformanceMan::DrawPeformanceGraphs(AllegroBitmap& bitmapToDrawTo) {
 		CalculateSamplePercentages();
 
-		GUIFont *guiFont = g_FrameMan.GetLargeFont(true);
+		GUIFont* guiFont = g_FrameMan.GetLargeFont(true);
 		char str[128];
 
 		for (int pc = 0; pc < PerformanceCounters::PerfCounterCount; ++pc) {
@@ -226,9 +229,13 @@ namespace RTE {
 
 				bitmapToDrawTo.SetPixel(c_StatsOffsetX - 1 + c_MaxSamples - i, graphStart + c_GraphHeight - dotHeight, makecol32(234, 21, 7)); // Palette index 13.
 
-				if (peak < m_PerfData[pc][sample]) { peak = static_cast<int>(m_PerfData[pc][sample]); }
+				if (peak < m_PerfData[pc][sample]) {
+					peak = static_cast<int>(m_PerfData[pc][sample]);
+				}
 
-				if (sample == 0) { sample = c_MaxSamples; }
+				if (sample == 0) {
+					sample = c_MaxSamples;
+				}
 				sample--;
 			}
 
@@ -237,16 +244,16 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void PerformanceMan::DrawCurrentPing() const {
 		AllegroBitmap allegroBitmap(g_FrameMan.GetBackBuffer8());
 		g_FrameMan.GetLargeFont()->DrawAligned(&allegroBitmap, g_FrameMan.GetBackBuffer8()->w - 25, g_FrameMan.GetBackBuffer8()->h - 14, "PING: " + std::to_string(m_CurrentPing), GUIFont::Right);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void PerformanceMan::UpdateSortedScriptTimings(const std::unordered_map<std::string, ScriptTiming> &scriptTimings) {
+	void PerformanceMan::UpdateSortedScriptTimings(const std::unordered_map<std::string, ScriptTiming>& scriptTimings) {
 		std::vector<std::pair<std::string, ScriptTiming>> sortedScriptTimings;
 		for (auto it = scriptTimings.begin(); it != scriptTimings.end(); it++) {
 			sortedScriptTimings.push_back(*it);
@@ -256,4 +263,4 @@ namespace RTE {
 
 		g_PerformanceMan.m_SortedScriptTimings = sortedScriptTimings;
 	}
-}
+} // namespace RTE

@@ -8,26 +8,28 @@ namespace RTE {
 
 	ConcreteClassInfo(MOSParticle, MovableObject, 1000);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSParticle::Clear() {
 		m_Atom = nullptr;
 		m_SpriteAnimMode = OVERLIFETIME;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MOSParticle::Create() {
 		if (MOSprite::Create() < 0) {
 			return -1;
 		}
-		if (!m_Atom) { m_Atom = new Atom(); }
+		if (!m_Atom) {
+			m_Atom = new Atom();
+		}
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int MOSParticle::Create(const MOSParticle &reference) {
+	int MOSParticle::Create(const MOSParticle& reference) {
 		MOSprite::Create(reference);
 
 		m_Atom = new Atom(*(reference.m_Atom));
@@ -36,23 +38,25 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int MOSParticle::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int MOSParticle::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return MOSprite::ReadProperty(propName, reader));
-		
+
 		MatchProperty("Atom", {
-			if (!m_Atom) { m_Atom = new Atom; }
+			if (!m_Atom) {
+				m_Atom = new Atom;
+			}
 			reader >> *m_Atom;
 			m_Atom->SetOwner(this);
-		}); 
-		
+		});
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int MOSParticle::Save(Writer &writer) const {
+	int MOSParticle::Save(Writer& writer) const {
 		MOSprite::Save(writer);
 
 		// TODO: Make proper save system that knows not to save redundant data!
@@ -64,32 +68,34 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSParticle::Destroy(bool notInherited) {
 		delete m_Atom;
 
-		if (!notInherited) { MOSprite::Destroy(); }
+		if (!notInherited) {
+			MOSprite::Destroy();
+		}
 		Clear();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int MOSParticle::GetDrawPriority() const { return m_Atom->GetMaterial()->GetPriority(); }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	const Material * MOSParticle::GetMaterial() const { return m_Atom->GetMaterial(); }
+	const Material* MOSParticle::GetMaterial() const { return m_Atom->GetMaterial(); }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void MOSParticle::SetAtom(Atom *newAtom) {
+	void MOSParticle::SetAtom(Atom* newAtom) {
 		delete m_Atom;
 		m_Atom = newAtom;
 		m_Atom->SetOwner(this);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSParticle::RestDetection() {
 		MOSprite::RestDetection();
@@ -102,7 +108,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSParticle::Travel() {
 		MOSprite::Travel();
@@ -118,14 +124,14 @@ namespace RTE {
 		if (m_HitsMOs && m_pMOToNotHit && g_MovableMan.ValidMO(m_pMOToNotHit) && !m_MOIgnoreTimer.IsPastSimTimeLimit()) {
 			std::vector<MOID> MOIDsNotToHit;
 			m_pMOToNotHit->GetMOIDs(MOIDsNotToHit);
-			for (const MOID &MOIDNotToHit : MOIDsNotToHit) {
+			for (const MOID& MOIDNotToHit: MOIDsNotToHit) {
 				m_Atom->AddMOIDToIgnore(MOIDNotToHit);
 			}
 		}
 		// Do static particle bounce calculations.
 		int hitCount = 0;
-		if (!IsTooFast()) { 
-			m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true, g_SceneMan.SceneIsLocked()); 
+		if (!IsTooFast()) {
+			m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true, g_SceneMan.SceneIsLocked());
 		}
 
 		m_Atom->ClearMOIDIgnoreList();
@@ -146,41 +152,44 @@ namespace RTE {
 			m_Frame = std::floor(newFrame);
 			m_Rotation += m_AngularVel * deltaTime;
 
-			if (m_Frame >= m_FrameCount) { m_Frame = m_FrameCount - 1; }
+			if (m_Frame >= m_FrameCount) {
+				m_Frame = m_FrameCount - 1;
+			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSParticle::Update() {
 		MOSprite::Update();
 
-		if (m_pScreenEffect) { SetPostScreenEffectToDraw(); }
+		if (m_pScreenEffect) {
+			SetPostScreenEffectToDraw();
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void MOSParticle::Draw(BITMAP *targetBitmap, const Vector &targetPos, DrawMode mode, bool onlyPhysical) const {
+	void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		RTEAssert(!m_aSprite.empty(), "No sprite bitmaps loaded to draw " + GetPresetName());
 		RTEAssert(m_Frame >= 0 && m_Frame < m_FrameCount, "Frame is out of bounds for " + GetPresetName());
-		
-		BITMAP *currentFrame = m_aSprite[m_Frame];
+
+		BITMAP* currentFrame = m_aSprite[m_Frame];
 		if (!currentFrame) {
 			RTEAbort("Sprite frame pointer is null when drawing MOSprite!");
 		}
 
 		Vector prevSpritePos(m_PrevPos + m_SpriteOffset - targetPos);
 		Vector spritePos(m_Pos + m_SpriteOffset - targetPos);
-	
+
 		if (mode == g_DrawMOID) {
 			g_SceneMan.RegisterMOIDDrawing(m_MOID, spritePos.GetX(), spritePos.GetY(), spritePos.GetX() + currentFrame->w, spritePos.GetY() + currentFrame->h);
 			return;
 		}
 
-        bool wrapDoubleDraw = m_WrapDoubleDraw;
-		char settleMaterial = mode != g_DrawMaterial   ? 0                         :
-		                      m_SettleMaterialDisabled ? GetMaterial()->GetIndex() : 
-							                             GetMaterial()->GetSettleMaterial();
+		bool wrapDoubleDraw = m_WrapDoubleDraw;
+		char settleMaterial = mode != g_DrawMaterial ? 0 : m_SettleMaterialDisabled ? GetMaterial()->GetIndex()
+		                                                                            : GetMaterial()->GetSettleMaterial();
 
 		auto renderFunc = [=](float interpolationAmount) {
 			BITMAP* pTargetBitmap = targetBitmap;
@@ -190,8 +199,8 @@ namespace RTE {
 				renderPos -= g_ThreadMan.GetRenderOffset();
 			}
 
-        	// Take care of wrapping situations
-			std::array<Vector, 4> drawPositions = { renderPos };
+			// Take care of wrapping situations
+			std::array<Vector, 4> drawPositions = {renderPos};
 			int drawPasses = 1;
 			if (g_SceneMan.SceneWrapsX()) {
 				if (renderPos.IsZero() && wrapDoubleDraw) {
@@ -273,7 +282,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MOSParticle::SetPostScreenEffectToDraw() const {
 		if (m_AgeTimer.GetElapsedSimTimeMS() >= m_EffectStartTime && (m_EffectStopTime == 0 || !m_AgeTimer.IsPastSimMS(m_EffectStopTime))) {
@@ -282,4 +291,4 @@ namespace RTE {
 			}
 		}
 	}
-}
+} // namespace RTE

@@ -12,7 +12,6 @@ namespace RTE {
 	class AllegroBitmap : public GUIBitmap {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate an AllegroBitmap object in system memory.
@@ -23,13 +22,16 @@ namespace RTE {
 		/// Constructor method used to instantiate an AllegroBitmap object in system memory and make it ready for use.
 		/// </summary>
 		/// <param name="bitmap">The underlaying BITMAP of this AllegroBitmap. Ownership is NOT transferred!</param>
-		explicit AllegroBitmap(BITMAP *bitmap) { Clear(); m_Bitmap = bitmap; }
+		explicit AllegroBitmap(BITMAP* bitmap) {
+			Clear();
+			m_Bitmap = bitmap;
+		}
 
 		/// <summary>
 		/// Creates an AllegroBitmap from a file.
 		/// </summary>
 		/// <param name="fileName">File name to get the underlaying BITMAP from. Ownership is NOT transferred!</param>
-		void Create(const std::string &fileName);
+		void Create(const std::string& fileName);
 
 		/// <summary>
 		/// Creates an empty BITMAP that is owned by this AllegroBitmap.
@@ -63,13 +65,16 @@ namespace RTE {
 		/// Gets the underlying BITMAP of this AllegroBitmap.
 		/// </summary>
 		/// <returns>The underlying BITMAP of this AllegroBitmap.</returns>
-		BITMAP * GetBitmap() const override { return m_Bitmap; }
+		BITMAP* GetBitmap() const override { return m_Bitmap; }
 
 		/// <summary>
 		/// Sets the underlying BITMAP for this AllegroBitmap. Ownership is NOT transferred.
 		/// </summary>
 		/// <param name="newBitmap">A pointer to the new BITMAP for this AllegroBitmap.</param>
-		void SetBitmap(BITMAP *newBitmap) override { Destroy(); m_Bitmap = newBitmap; }
+		void SetBitmap(BITMAP* newBitmap) override {
+			Destroy();
+			m_Bitmap = newBitmap;
+		}
 
 		/// <summary>
 		/// Gets the width of the bitmap.
@@ -111,19 +116,19 @@ namespace RTE {
 		/// Gets the clipping rectangle of the bitmap.
 		/// </summary>
 		/// <param name="clippingRect">Pointer to a GUIRect to fill out.</param>
-		void GetClipRect(GUIRect *clippingRect) const override;
+		void GetClipRect(GUIRect* clippingRect) const override;
 
 		/// <summary>
 		/// Sets the clipping rectangle of the bitmap.
 		/// </summary>
 		/// <param name="clippingRect">Pointer to a GUIRect to use as the clipping rectangle, or nullptr for no clipping.</param>
-		void SetClipRect(GUIRect *clippingRect) override;
+		void SetClipRect(GUIRect* clippingRect) override;
 
 		/// <summary>
 		/// Sets the clipping rectangle of the bitmap as the intersection of its current clipping rectangle and the passed-in rectangle.
 		/// </summary>
 		/// <param name="clippingRect">Pointer to a GUIRect to add to the existing clipping rectangle.</param>
-		void AddClipRect(GUIRect *clippingRect) override;
+		void AddClipRect(GUIRect* clippingRect) override;
 #pragma endregion
 
 #pragma region Drawing
@@ -134,7 +139,7 @@ namespace RTE {
 		/// <param name="destX">Destination X position.</param>
 		/// <param name="destY">Destination Y position.</param>
 		/// <param name="srcPosAndSizeRect">Source bitmap position and size rectangle.</param>
-		void Draw(GUIBitmap *destBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) override;
+		void Draw(GUIBitmap* destBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) override;
 
 		/// <summary>
 		/// Draw a section of this bitmap onto another bitmap ignoring color-keyed pixels.
@@ -143,7 +148,7 @@ namespace RTE {
 		/// <param name="destX">Destination X position.</param>
 		/// <param name="destY">Destination Y position.</param>
 		/// <param name="srcPosAndSizeRect">Source bitmap position and size rectangle.</param>
-		void DrawTrans(GUIBitmap *destBitmap, int destX, int destY, GUIRect *srcPosAndSizeRect) override;
+		void DrawTrans(GUIBitmap* destBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) override;
 
 		/// <summary>
 		/// Draw this bitmap scaled onto another bitmap ignoring color-keyed pixels.
@@ -153,7 +158,7 @@ namespace RTE {
 		/// <param name="destY">Destination Y position.</param>
 		/// <param name="width">Target width of the bitmap.</param>
 		/// <param name="height">Target height of the bitmap.</param>
-		void DrawTransScaled(GUIBitmap *destBitmap, int destX, int destY, int width, int height) override;
+		void DrawTransScaled(GUIBitmap* destBitmap, int destX, int destY, int width, int height) override;
 #pragma endregion
 
 #pragma region Primitive Drawing
@@ -180,8 +185,7 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
-		BITMAP *m_Bitmap; //!< The underlaying BITMAP.
+		BITMAP* m_Bitmap; //!< The underlaying BITMAP.
 		ContentFile m_BitmapFile; //!< The ContentFile the underlaying BITMAP was created from, if created from a file.
 		bool m_SelfCreated; //!< Whether the underlaying BITMAP was created by this and is owned.
 
@@ -191,7 +195,7 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		AllegroBitmap & operator=(const AllegroBitmap &rhs) = delete;
+		AllegroBitmap& operator=(const AllegroBitmap& rhs) = delete;
 	};
-};
+}; // namespace RTE
 #endif

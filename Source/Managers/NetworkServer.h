@@ -28,7 +28,6 @@ namespace RTE {
 		friend class SettingsMan;
 
 	public:
-
 		/// <summary>
 		///
 		/// </summary>
@@ -66,7 +65,10 @@ namespace RTE {
 		/// <summary>
 		/// Constructor method used to instantiate a NetworkServer object in system memory. This will call Create() so it shouldn't be called after.
 		/// </summary>
-		NetworkServer() { Clear(); Initialize(); }
+		NetworkServer() {
+			Clear();
+			Initialize();
+		}
 
 		/// <summary>
 		/// Makes the NetworkServer object ready for use.
@@ -110,7 +112,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="player">The player to check for.</param>
 		/// <returns>A string with the network player's name.</returns>
-		std::string & GetPlayerName(short player) { return m_ClientConnections[player].PlayerName; }
+		std::string& GetPlayerName(short player) { return m_ClientConnections[player].PlayerName; }
 
 		/// <summary>
 		/// Gets whether the specified player is connected to the server or not.
@@ -123,7 +125,7 @@ namespace RTE {
 		/// Sets the port this server will be using.
 		/// </summary>
 		/// <param name="newPort">The new port to set.</param>
-		void SetServerPort(const std::string &newPort);
+		void SetServerPort(const std::string& newPort);
 
 		/// <summary>
 		/// Sets whether interlacing is used to reduce bandwidth usage or not.
@@ -191,7 +193,6 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
 		/// <summary>
 		///
 		/// </summary>
@@ -201,7 +202,7 @@ namespace RTE {
 			RakNet::SystemAddress InternalId; //!<
 			int ResX; //!<
 			int ResY; //!<
-			std::thread *SendThread; //!<
+			std::thread* SendThread; //!<
 			std::string PlayerName; //!<
 		};
 
@@ -215,7 +216,7 @@ namespace RTE {
 		long m_MSecsSinceLastUpdate[c_MaxClients]; //!<
 		long m_MSecsToSleep[c_MaxClients]; //!<
 
-		RakNet::RakPeerInterface *m_Server; //!<
+		RakNet::RakPeerInterface* m_Server; //!<
 
 		std::string m_ServerPort; //!<
 
@@ -226,11 +227,11 @@ namespace RTE {
 		RakNet::SystemAddress m_NATServiceServerID; //!<
 		bool m_NatServerConnected; //!<
 
-		BITMAP *m_BackBuffer8[c_MaxClients]; //!< Buffers to store client screens before compression.
-		BITMAP *m_BackBufferGUI8[c_MaxClients]; //!< Buffers to store client GUI screens before compression.
+		BITMAP* m_BackBuffer8[c_MaxClients]; //!< Buffers to store client screens before compression.
+		BITMAP* m_BackBufferGUI8[c_MaxClients]; //!< Buffers to store client GUI screens before compression.
 
-		void *m_LZ4CompressionState[c_MaxClients]; //!<
-		void *m_LZ4FastCompressionState[c_MaxClients]; //!<
+		void* m_LZ4CompressionState[c_MaxClients]; //!<
+		void* m_LZ4FastCompressionState[c_MaxClients]; //!<
 
 		int m_MouseState1[c_MaxClients]; //!<
 		int m_MouseState2[c_MaxClients]; //!<
@@ -268,8 +269,8 @@ namespace RTE {
 		unsigned char m_PixelLineBufferDelta[c_MaxClients][c_MaxPixelLineBufferSize]; //!< Buffer to store currently transferred pixel data line.
 		unsigned char m_CompressedLineBuffer[c_MaxClients][c_MaxPixelLineBufferSize]; //!< Buffer to store compressed pixel data line.
 
-		unsigned char *m_PixelLineBuffersPrev[c_MaxClients]; //!<
-		unsigned char *m_PixelLineBuffersGUIPrev[c_MaxClients]; //!<
+		unsigned char* m_PixelLineBuffersPrev[c_MaxClients]; //!<
+		unsigned char* m_PixelLineBuffersGUIPrev[c_MaxClients]; //!<
 
 		std::queue<NetworkTerrainChange> m_PendingTerrainChanges[c_MaxClients]; //!<
 		std::queue<NetworkTerrainChange> m_CurrentTerrainChanges[c_MaxClients]; //!<
@@ -329,27 +330,26 @@ namespace RTE {
 		unsigned long m_FrameDataSentCurrent[MAX_STAT_RECORDS][2]; //!<
 		unsigned long m_FrameDataSentTotal[MAX_STAT_RECORDS]; //!<
 
-		unsigned long  m_PostEffectDataSentCurrent[MAX_STAT_RECORDS][2]; //!<
-		unsigned long  m_PostEffectDataSentTotal[MAX_STAT_RECORDS]; //!<
+		unsigned long m_PostEffectDataSentCurrent[MAX_STAT_RECORDS][2]; //!<
+		unsigned long m_PostEffectDataSentTotal[MAX_STAT_RECORDS]; //!<
 
-		unsigned long  m_SoundDataSentCurrent[MAX_STAT_RECORDS][2]; //!<
-		unsigned long  m_SoundDataSentTotal[MAX_STAT_RECORDS]; //!<
+		unsigned long m_SoundDataSentCurrent[MAX_STAT_RECORDS][2]; //!<
+		unsigned long m_SoundDataSentTotal[MAX_STAT_RECORDS]; //!<
 
-		unsigned long  m_TerrainDataSentCurrent[MAX_STAT_RECORDS][2]; //!<
-		unsigned long  m_TerrainDataSentTotal[MAX_STAT_RECORDS]; //!<
+		unsigned long m_TerrainDataSentCurrent[MAX_STAT_RECORDS][2]; //!<
+		unsigned long m_TerrainDataSentTotal[MAX_STAT_RECORDS]; //!<
 
 		unsigned long m_OtherDataSentCurrent[MAX_STAT_RECORDS][2]; //!<
 		unsigned long m_OtherDataSentTotal[MAX_STAT_RECORDS]; //!<
 
 	private:
-
 #pragma region Thread Handling
 		/// <summary>
 		///
 		/// </summary>
 		/// <param name="server"></param>
 		/// <param name="player"></param>
-		static void BackgroundSendThreadFunction(NetworkServer *server, short player);
+		static void BackgroundSendThreadFunction(NetworkServer* server, short player);
 
 		/// <summary>
 		///
@@ -365,13 +365,13 @@ namespace RTE {
 		/// </summary>
 		/// <param name="packet"></param>
 		/// <returns></returns>
-		unsigned char GetPacketIdentifier(RakNet::Packet *packet) const;
+		unsigned char GetPacketIdentifier(RakNet::Packet* packet) const;
 
 		/// <summary>
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveNewIncomingConnection(RakNet::Packet *packet);
+		void ReceiveNewIncomingConnection(RakNet::Packet* packet);
 
 		/// <summary>
 		///
@@ -383,13 +383,13 @@ namespace RTE {
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveDisconnection(RakNet::Packet *packet);
+		void ReceiveDisconnection(RakNet::Packet* packet);
 
 		/// <summary>
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveRegisterMsg(RakNet::Packet *packet);
+		void ReceiveRegisterMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		///
@@ -401,7 +401,7 @@ namespace RTE {
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveInputMsg(RakNet::Packet *packet);
+		void ReceiveInputMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		///
@@ -454,7 +454,7 @@ namespace RTE {
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveSceneSetupDataAccepted(RakNet::Packet *packet);
+		void ReceiveSceneSetupDataAccepted(RakNet::Packet* packet);
 
 		/// <summary>
 		///
@@ -499,7 +499,7 @@ namespace RTE {
 		///
 		/// </summary>
 		/// <param name="packet"></param>
-		void ReceiveSceneAcceptedMsg(RakNet::Packet *packet);
+		void ReceiveSceneAcceptedMsg(RakNet::Packet* packet);
 
 		/// <summary>
 		///
@@ -591,7 +591,7 @@ namespace RTE {
 		/// <param name="address"></param>
 		/// <param name="port"></param>
 		/// <returns></returns>
-		RakNet::SystemAddress ConnectBlocking(RakNet::RakPeerInterface *rakPeer, const char *address, unsigned short port);
+		RakNet::SystemAddress ConnectBlocking(RakNet::RakPeerInterface* rakPeer, const char* address, unsigned short port);
 
 		/// <summary>
 		/// Clears all the member variables of this NetworkServer, effectively resetting the members of this abstraction level only.
@@ -599,8 +599,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		NetworkServer(const NetworkServer &reference) = delete;
-		NetworkServer & operator=(const NetworkServer &rhs) = delete;
+		NetworkServer(const NetworkServer& reference) = delete;
+		NetworkServer& operator=(const NetworkServer& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

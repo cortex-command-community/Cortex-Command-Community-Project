@@ -12,7 +12,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::Clear() {
 		m_FadeAmount = 0;
@@ -68,9 +68,9 @@ namespace RTE {
 		m_IntroSlides.fill(nullptr);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void TitleScreen::Create(AllegroScreen *guiScreen) {
+	void TitleScreen::Create(AllegroScreen* guiScreen) {
 		m_TitleScreenMaxWidth = g_WindowMan.FullyCoversAllDisplays() ? g_WindowMan.GetPrimaryWindowDisplayWidth() / g_WindowMan.GetResMultiplier() : g_WindowMan.GetResX();
 
 		CreateTitleElements();
@@ -94,7 +94,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::CreateTitleElements() {
 		m_DataRealmsLogo = ContentFile("Base.rte/GUIs/Title/Intro/DRLogo5x.png").GetAsBitmap();
@@ -115,13 +115,13 @@ namespace RTE {
 		m_Nebula.SetScrollRatio(Vector(-1.0F, 1.0F / 3.0F));
 
 		int starSmallBitmapCount = 4;
-		std::vector<BITMAP *> starSmallBitmaps = ContentFile("Base.rte/GUIs/Title/Stars/StarSmall.png").GetAsAnimation(starSmallBitmapCount);
+		std::vector<BITMAP*> starSmallBitmaps = ContentFile("Base.rte/GUIs/Title/Stars/StarSmall.png").GetAsAnimation(starSmallBitmapCount);
 
 		int starLargeBitmapCount = 1;
-		std::vector<BITMAP *> starLargeBitmaps = ContentFile("Base.rte/GUIs/Title/Stars/StarLarge.png").GetAsAnimation(starLargeBitmapCount);
+		std::vector<BITMAP*> starLargeBitmaps = ContentFile("Base.rte/GUIs/Title/Stars/StarLarge.png").GetAsAnimation(starLargeBitmapCount);
 
 		int starHugeBitmapCount = 2;
-		std::vector<BITMAP *> starHugeBitmaps = ContentFile("Base.rte/GUIs/Title/Stars/StarHuge.png").GetAsAnimation(starHugeBitmapCount);
+		std::vector<BITMAP*> starHugeBitmaps = ContentFile("Base.rte/GUIs/Title/Stars/StarHuge.png").GetAsAnimation(starHugeBitmapCount);
 
 		int starCount = (g_WindowMan.GetResX() * m_Nebula.GetBitmap()->h) / 1000;
 		for (int i = 0; i < starCount; ++i) {
@@ -145,7 +145,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::CreateIntroSequenceSlides() {
 		std::string highRes = (g_WindowMan.GetResY() >= 680) ? "HD" : "";
@@ -154,15 +154,19 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::Update() {
-		if (m_SectionSwitch) { m_SectionTimer.Reset(); }
+		if (m_SectionSwitch) {
+			m_SectionTimer.Reset();
+		}
 		m_SectionElapsedTime = static_cast<float>(m_SectionTimer.GetElapsedRealTimeS());
 		m_SectionProgress = std::min((m_SectionDuration > 0) ? m_SectionElapsedTime / m_SectionDuration : 0, 0.9999F);
 
 		// Checking for 0.999 instead of 0.9999 or 1.0 here otherwise there is a hiccup between ending and starting a new orbit cycle.
-		if (m_StationOrbitProgress >= 0.999F) { m_StationOrbitTimer.Reset(); }
+		if (m_StationOrbitProgress >= 0.999F) {
+			m_StationOrbitTimer.Reset();
+		}
 		m_StationOrbitProgress = std::clamp(static_cast<float>(m_StationOrbitTimer.GetElapsedRealTimeS()) / 60.0F, 0.0F, 0.9999F);
 		m_StationOrbitRotation = Lerp(0, 1.0F, c_PI, -c_PI, m_StationOrbitProgress);
 
@@ -181,7 +185,9 @@ namespace RTE {
 					m_ScrollOffset.SetY(Lerp(0, 1.0F, m_IntroScrollStartOffsetY, m_GameLogoAppearScrollOffsetY, introScrollProgress));
 					UpdateIntroSlideshowSequence(g_UInputMan.AnyStartPress());
 				} else if (m_IntroSequenceState >= IntroSequence::GameLogoAppear && m_IntroSequenceState <= IntroSequence::MainMenuAppear) {
-					if (m_IntroSequenceState < IntroSequence::PreMainMenu) { m_ScrollOffset.SetY(EaseOut(m_GameLogoAppearScrollOffsetY, m_PreMainMenuScrollOffsetY, introScrollProgress)); }
+					if (m_IntroSequenceState < IntroSequence::PreMainMenu) {
+						m_ScrollOffset.SetY(EaseOut(m_GameLogoAppearScrollOffsetY, m_PreMainMenuScrollOffsetY, introScrollProgress));
+					}
 					UpdateIntroPreMainMenuSequence();
 				}
 				if (m_SectionElapsedTime >= m_SectionDuration) {
@@ -194,7 +200,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::UpdateIntroLogoSequence(bool skipSection) {
 		if (skipSection && m_IntroSequenceState != IntroSequence::FmodLogoFadeOut) {
@@ -218,21 +224,31 @@ namespace RTE {
 				m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 255.0F, 0, m_SectionProgress));
 				break;
 			case IntroSequence::DataRealmsLogoDisplay:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(2.0F); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(2.0F);
+				}
 				break;
 			case IntroSequence::DataRealmsLogoFadeOut:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(0.25F); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(0.25F);
+				}
 				m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 0, 255.0F, m_SectionProgress));
 				break;
 			case IntroSequence::FmodLogoFadeIn:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(0.25F); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(0.25F);
+				}
 				m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 255.0F, 0, m_SectionProgress));
 				break;
 			case IntroSequence::FmodLogoDisplay:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(2.0F); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(2.0F);
+				}
 				break;
 			case IntroSequence::FmodLogoFadeOut:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(0.5F); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(0.5F);
+				}
 				m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 0, 255.0F, m_SectionProgress));
 				break;
 			default:
@@ -240,7 +256,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::UpdateIntroSlideshowSequence(bool skipSlideshow) {
 		if (skipSlideshow && (m_IntroSequenceState > IntroSequence::SlideshowFadeIn && m_IntroSequenceState != IntroSequence::MainMenuAppear)) {
@@ -267,7 +283,9 @@ namespace RTE {
 				m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 255.0F, 0, m_SectionProgress));
 				break;
 			case IntroSequence::PreSlideshowPause:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(3.2F - static_cast<float>(m_IntroSongTimer.GetElapsedRealTimeS())); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(3.2F - static_cast<float>(m_IntroSongTimer.GetElapsedRealTimeS()));
+				}
 				break;
 			case IntroSequence::ShowSlide1:
 				if (m_SectionSwitch) {
@@ -275,7 +293,9 @@ namespace RTE {
 					m_SlideFadeInDuration = 2.0F;
 					m_SlideFadeOutDuration = 0.5F;
 				}
-				if (m_SectionElapsedTime > 1.25F) { m_SlideshowSlideText = "At the end of humanity's darkest century..."; }
+				if (m_SectionElapsedTime > 1.25F) {
+					m_SlideshowSlideText = "At the end of humanity's darkest century...";
+				}
 				break;
 			case IntroSequence::ShowSlide2:
 				if (m_SectionSwitch) {
@@ -283,7 +303,9 @@ namespace RTE {
 					m_SlideFadeInDuration = 0.5F;
 					m_SlideFadeOutDuration = 2.5F;
 				}
-				if (m_SectionElapsedTime < m_SectionDuration - 1.75F) { m_SlideshowSlideText = "...a curious symbiosis between man and machine emerged."; }
+				if (m_SectionElapsedTime < m_SectionDuration - 1.75F) {
+					m_SlideshowSlideText = "...a curious symbiosis between man and machine emerged.";
+				}
 				break;
 			case IntroSequence::ShowSlide3:
 				if (m_SectionSwitch) {
@@ -354,7 +376,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::UpdateIntroPreMainMenuSequence() {
 		switch (m_IntroSequenceState) {
@@ -373,7 +395,9 @@ namespace RTE {
 					SetSectionDurationAndResetSwitch(92.4F - static_cast<float>(m_IntroSongTimer.GetElapsedRealTimeS()));
 					clear_to_color(g_FrameMan.GetOverlayBitmap32(), 0);
 				}
-				if (m_SectionProgress > 0.5F) { m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseIn((static_cast<float>(g_WindowMan.GetResY() / 2)) - 20, 120, (m_SectionProgress - 0.5F) / 0.5F))); }
+				if (m_SectionProgress > 0.5F) {
+					m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseIn((static_cast<float>(g_WindowMan.GetResY() / 2)) - 20, 120, (m_SectionProgress - 0.5F) / 0.5F)));
+				}
 				break;
 			case IntroSequence::PreMainMenu:
 				if (m_SectionSwitch) {
@@ -399,7 +423,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::UpdateTitleTransitions() {
 		static const float endDelay = 0.2F * g_SettingsMan.GetMenuTransitionDurationMultiplier();
@@ -428,7 +452,9 @@ namespace RTE {
 				}
 				m_ScrollOffset.SetY(EaseOut(0, m_PlanetViewScrollOffsetY, m_SectionProgress));
 				m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseOut(m_GameLogoMainMenuOffsetY, m_GameLogoPlanetViewOffsetY, m_SectionProgress)));
-				if (m_SectionElapsedTime >= m_SectionDuration) { SetTitleTransitionState((m_TitleTransitionState == TitleTransition::MainMenuToScenario) ? TitleTransition::ScenarioMenu : TitleTransition::MetaGameMenu); }
+				if (m_SectionElapsedTime >= m_SectionDuration) {
+					SetTitleTransitionState((m_TitleTransitionState == TitleTransition::MainMenuToScenario) ? TitleTransition::ScenarioMenu : TitleTransition::MetaGameMenu);
+				}
 				break;
 			case TitleTransition::PlanetToMainMenu:
 				if (m_SectionSwitch) {
@@ -437,18 +463,26 @@ namespace RTE {
 				}
 				m_ScrollOffset.SetY(EaseOut(m_PlanetViewScrollOffsetY, 0, m_SectionProgress));
 				m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseOut(m_GameLogoPlanetViewOffsetY, m_GameLogoMainMenuOffsetY, m_SectionProgress)));
-				if (m_SectionElapsedTime >= m_SectionDuration) { SetTitleTransitionState(TitleTransition::MainMenu); }
+				if (m_SectionElapsedTime >= m_SectionDuration) {
+					SetTitleTransitionState(TitleTransition::MainMenu);
+				}
 				break;
 			case TitleTransition::MainMenuToCredits:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(1.0F * g_SettingsMan.GetMenuTransitionDurationMultiplier()); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(1.0F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
+				}
 				m_ScrollOffset.SetY(EaseOut(0, m_PlanetViewScrollOffsetY, m_SectionProgress));
 				m_FadeAmount = static_cast<int>(EaseOut(0, 128.0F, m_SectionProgress));
 				break;
 			case TitleTransition::CreditsToMainMenu:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(1.0F * g_SettingsMan.GetMenuTransitionDurationMultiplier()); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(1.0F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
+				}
 				m_ScrollOffset.SetY(EaseOut(m_PlanetViewScrollOffsetY, 0, m_SectionProgress));
 				m_FadeAmount = static_cast<int>(EaseOut(128.0F, 0, m_SectionProgress));
-				if (m_SectionElapsedTime >= m_SectionDuration) { SetTitleTransitionState(TitleTransition::MainMenu); }
+				if (m_SectionElapsedTime >= m_SectionDuration) {
+					SetTitleTransitionState(TitleTransition::MainMenu);
+				}
 				break;
 			case TitleTransition::ScenarioFadeIn:
 			case TitleTransition::MetaGameFadeIn:
@@ -461,13 +495,19 @@ namespace RTE {
 				}
 				g_AudioMan.SetTempMusicVolume(EaseOut(0, 1.0F, m_SectionProgress));
 				m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 255.0F, 0, m_SectionProgress));
-				if (m_SectionElapsedTime >= m_SectionDuration) { SetTitleTransitionState((m_TitleTransitionState == TitleTransition::ScenarioFadeIn) ? TitleTransition::ScenarioMenu : TitleTransition::MetaGameMenu); }
+				if (m_SectionElapsedTime >= m_SectionDuration) {
+					SetTitleTransitionState((m_TitleTransitionState == TitleTransition::ScenarioFadeIn) ? TitleTransition::ScenarioMenu : TitleTransition::MetaGameMenu);
+				}
 				break;
 			case TitleTransition::FadeOut:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(0.75F * g_SettingsMan.GetMenuTransitionDurationMultiplier()); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(0.75F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
+				}
 				g_AudioMan.SetTempMusicVolume(EaseIn(1.0F, 0, m_SectionProgress));
 				m_FadeAmount = static_cast<int>(EaseIn(0, 255, m_SectionProgress));
-				if (m_SectionElapsedTime >= (m_SectionDuration + endDelay)) { SetTitleTransitionState(TitleTransition::TransitionEnd); }
+				if (m_SectionElapsedTime >= (m_SectionDuration + endDelay)) {
+					SetTitleTransitionState(TitleTransition::TransitionEnd);
+				}
 				break;
 			case TitleTransition::ScrollingFadeIn:
 				if (m_SectionSwitch) {
@@ -479,16 +519,22 @@ namespace RTE {
 				m_ScrollOffset.SetY(EaseOut(250, 0, m_SectionProgress));
 				m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseOut(m_GameLogoPlanetViewOffsetY, m_GameLogoMainMenuOffsetY, m_SectionProgress)));
 				m_FadeAmount = static_cast<int>(EaseOut(255, 0, m_SectionProgress));
-				if (m_SectionElapsedTime >= m_SectionDuration) { SetTitleTransitionState(TitleTransition::MainMenu); }
+				if (m_SectionElapsedTime >= m_SectionDuration) {
+					SetTitleTransitionState(TitleTransition::MainMenu);
+				}
 				break;
 			case TitleTransition::ScrollingFadeOut:
 			case TitleTransition::ScrollingFadeOutQuit:
-				if (m_SectionSwitch) { SetSectionDurationAndResetSwitch(0.75F * g_SettingsMan.GetMenuTransitionDurationMultiplier()); }
+				if (m_SectionSwitch) {
+					SetSectionDurationAndResetSwitch(0.75F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
+				}
 				g_AudioMan.SetTempMusicVolume(EaseIn(1.0F, 0, m_SectionProgress));
 				m_ScrollOffset.SetY(EaseIn(0, 250, m_SectionProgress));
 				m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseIn(m_GameLogoMainMenuOffsetY, m_GameLogoPlanetViewOffsetY, m_SectionProgress)));
 				m_FadeAmount = static_cast<int>(EaseIn(0, 255, m_SectionProgress));
-				if (m_SectionElapsedTime >= (m_SectionDuration + endDelay)) { SetTitleTransitionState((m_TitleTransitionState == TitleTransition::ScrollingFadeOutQuit) ? TitleTransition::TransitionEndQuit : TitleTransition::TransitionEnd); }
+				if (m_SectionElapsedTime >= (m_SectionDuration + endDelay)) {
+					SetTitleTransitionState((m_TitleTransitionState == TitleTransition::ScrollingFadeOutQuit) ? TitleTransition::TransitionEndQuit : TitleTransition::TransitionEnd);
+				}
 				break;
 			case TitleTransition::TransitionEnd:
 				if (m_SectionSwitch) {
@@ -501,12 +547,16 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::Draw() {
 		if (!m_FinishedPlayingIntro) {
-			if (m_IntroSequenceState >= IntroSequence::SlideshowFadeIn) { DrawTitleScreenScene(); }
-			if (m_IntroSequenceState >= IntroSequence::GameLogoAppear) { DrawGameLogo(); }
+			if (m_IntroSequenceState >= IntroSequence::SlideshowFadeIn) {
+				DrawTitleScreenScene();
+			}
+			if (m_IntroSequenceState >= IntroSequence::GameLogoAppear) {
+				DrawGameLogo();
+			}
 
 			if (m_IntroSequenceState >= IntroSequence::DataRealmsLogoFadeIn && m_IntroSequenceState <= IntroSequence::DataRealmsLogoFadeOut) {
 				draw_sprite(g_FrameMan.GetBackBuffer32(), m_DataRealmsLogo, (m_TitleScreenMaxWidth - m_DataRealmsLogo->w) / 2, (g_WindowMan.GetResY() - m_DataRealmsLogo->h) / 2);
@@ -531,28 +581,32 @@ namespace RTE {
 
 			// In credits have to draw the overlay before the game logo otherwise drawing the game logo again on top of an existing one causes the glow effect to look wonky.
 			if (m_TitleTransitionState == TitleTransition::MainMenuToCredits || m_TitleTransitionState == TitleTransition::CreditsToMainMenu) {
-				if (m_FadeAmount > 0) { DrawOverlayEffectBitmap(); }
+				if (m_FadeAmount > 0) {
+					DrawOverlayEffectBitmap();
+				}
 				DrawGameLogo();
 				return;
 			}
 			DrawGameLogo();
 		}
-		if (m_FadeAmount > 0) { DrawOverlayEffectBitmap(); }
+		if (m_FadeAmount > 0) {
+			DrawOverlayEffectBitmap();
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::DrawTitleScreenScene() {
 		// This only needs to be done once, but bitmaps can be reloaded which effectively undoes this, so just do it all the time to not deal with flags and checks.
 		set_write_alpha_blender();
 		draw_trans_sprite(m_Planet.GetSpriteFrame(0), ContentFile("Base.rte/GUIs/Title/PlanetAlpha.png").GetAsBitmap(), 0, 0);
 		draw_trans_sprite(m_Moon.GetSpriteFrame(0), ContentFile("Base.rte/GUIs/Title/MoonAlpha.png").GetAsBitmap(), 0, 0);
-		
+
 		Box nebulaTargetBox;
 		m_Nebula.SetOffset(Vector(static_cast<float>((m_TitleScreenMaxWidth - m_Nebula.GetBitmap()->w) / 2), m_ScrollOffset.GetY()));
 		m_Nebula.Draw(g_FrameMan.GetBackBuffer32(), nebulaTargetBox, true);
 
-		for (const Star &star : m_BackdropStars) {
+		for (const Star& star: m_BackdropStars) {
 			int intensity = star.Intensity + RandomNum(0, (star.Size == Star::StarSize::StarSmall) ? 35 : 70);
 			set_screen_blender(intensity, intensity, intensity, intensity);
 			int starPosY = static_cast<int>(star.Position.GetY() - (m_ScrollOffset.GetY() * (m_Nebula.GetScrollRatio().GetY() * ((star.Size == Star::StarSize::StarSmall) ? 0.8F : 1.0F))));
@@ -572,7 +626,7 @@ namespace RTE {
 		m_Station.Draw(g_FrameMan.GetBackBuffer32());
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::DrawGameLogo() {
 		m_GameLogo.Draw(g_FrameMan.GetBackBuffer32());
@@ -582,7 +636,7 @@ namespace RTE {
 		m_GameLogoGlow.Draw(g_FrameMan.GetBackBuffer32(), Vector(), DrawMode::g_DrawTrans);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::DrawSlideshowSlide() {
 		int slide = static_cast<int>(m_IntroSequenceState) - static_cast<int>(IntroSequence::ShowSlide1);
@@ -614,10 +668,10 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void TitleScreen::DrawOverlayEffectBitmap() const {
 		set_trans_blender(m_FadeAmount, m_FadeAmount, m_FadeAmount, m_FadeAmount);
 		draw_trans_sprite(g_FrameMan.GetBackBuffer32(), g_FrameMan.GetOverlayBitmap32(), 0, 0);
 	}
-}
+} // namespace RTE

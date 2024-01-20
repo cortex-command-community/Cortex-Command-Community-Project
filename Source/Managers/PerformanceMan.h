@@ -19,7 +19,6 @@ namespace RTE {
 		friend class SettingsMan;
 
 	public:
-
 		/// <summary>
 		/// Enumeration of all available performance counters.
 		/// </summary>
@@ -159,7 +158,7 @@ namespace RTE {
 		/// Draws the performance stats to the screen.
 		/// </summary>
 		/// <param name="bitmapToDrawTo">The BITMAP to draw the performance stats to.</param>
-		void Draw(BITMAP *bitmapToDrawTo);
+		void Draw(BITMAP* bitmapToDrawTo);
 
 		/// <summary>
 		/// Draws the current ping value to the screen.
@@ -170,10 +169,9 @@ namespace RTE {
 		/// <summary>
 		/// Updates m_SortedScriptTimings so PerformanceMan::Draw() can list how long scripts took.
 		/// </summary>
-		void UpdateSortedScriptTimings(const std::unordered_map<std::string, ScriptTiming> &scriptTimings);
+		void UpdateSortedScriptTimings(const std::unordered_map<std::string, ScriptTiming>& scriptTimings);
 
 	protected:
-
 		static constexpr int c_MSPAverageSampleSize = 10; //!< How many samples to use to calculate average milliseconds-per-something value.
 		static constexpr int c_MaxSamples = 120; //!< How many performance samples to store, directly affects graph size.
 		static constexpr int c_Average = 10; //!< How many samples to use to calculate average value displayed on screen.
@@ -209,7 +207,6 @@ namespace RTE {
 		std::vector<std::pair<std::string, ScriptTiming>> m_SortedScriptTimings; //!< Sorted vector storing how long scripts took to execute.
 
 	private:
-
 #pragma region Performance Counter Handling
 		/// <summary>
 		/// Adds provided value to current sample of specified performance counter.
@@ -237,12 +234,12 @@ namespace RTE {
 		/// <param name="timeMeasurements">The deque of time measurements to store the new measurement in and to recalculate the average with.</param>
 		/// <param name="avgResult">The variable the recalculated average should be stored in.</param>
 		/// <param name="newTimeMeasurement">The new time measurement to store.</param>
-		void CalculateTimeAverage(std::deque<float> &timeMeasurements, std::atomic<float> &avgResult, float newTimeMeasurement) const;
+		void CalculateTimeAverage(std::deque<float>& timeMeasurements, std::atomic<float>& avgResult, float newTimeMeasurement) const;
 
 		/// <summary>
 		/// Draws the performance graphs to the screen. This will be called by Draw() if advanced performance stats are enabled.
 		/// </summary>
-		void DrawPeformanceGraphs(AllegroBitmap &bitmapToDrawTo);
+		void DrawPeformanceGraphs(AllegroBitmap& bitmapToDrawTo);
 
 		/// <summary>
 		/// Clears all the member variables of this PerformanceMan, effectively resetting the members of this abstraction level only.
@@ -250,8 +247,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		PerformanceMan(const PerformanceMan &reference) = delete;
-		PerformanceMan & operator=(const PerformanceMan &rhs) = delete;
+		PerformanceMan(const PerformanceMan& reference) = delete;
+		PerformanceMan& operator=(const PerformanceMan& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

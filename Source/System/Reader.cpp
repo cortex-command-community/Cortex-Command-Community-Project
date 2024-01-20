@@ -5,7 +5,7 @@
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Reader::Clear() {
 		m_Stream = nullptr;
@@ -26,24 +26,24 @@ namespace RTE {
 		m_NonModulePath = false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Reader::Reader(const std::string &fileName, bool overwrites, const ProgressCallback &progressCallback, bool failOK, bool nonModulePath) {
+	Reader::Reader(const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK, bool nonModulePath) {
 		Clear();
 		m_NonModulePath = nonModulePath;
 		Create(fileName, overwrites, progressCallback, failOK);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Reader::Reader(std::unique_ptr<std::istream> &&stream, bool overwrites, const ProgressCallback &progressCallback, bool failOK) {
+	Reader::Reader(std::unique_ptr<std::istream>&& stream, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
 		Clear();
 		Create(std::move(stream), overwrites, progressCallback, failOK);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Reader::Create(const std::string &fileName, bool overwrites, const ProgressCallback &progressCallback, bool failOK) {
+	int Reader::Create(const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
 		if (fileName.empty()) {
 			return -1;
 		}
@@ -65,15 +65,15 @@ namespace RTE {
 		return Create(std::make_unique<std::ifstream>(m_FilePath), overwrites, progressCallback, failOK);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Reader::Create(std::unique_ptr<std::istream> &&stream, bool overwrites, const ProgressCallback &progressCallback, bool failOK) {
+	int Reader::Create(std::unique_ptr<std::istream>&& stream, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
 		m_CanFail = failOK;
 
 		m_Stream = std::move(stream);
 
-		if (!m_CanFail) { 
-			RTEAssert(System::PathExistsCaseSensitive(m_FilePath) && m_Stream->good(), "Failed to open data file \"" + m_FilePath + "\"!"); 
+		if (!m_CanFail) {
+			RTEAssert(System::PathExistsCaseSensitive(m_FilePath) && m_Stream->good(), "Failed to open data file \"" + m_FilePath + "\"!");
 		}
 
 		m_OverwriteExisting = overwrites;
@@ -81,19 +81,19 @@ namespace RTE {
 		// Report that we're starting a new file
 		m_ReportProgress = progressCallback;
 		if (m_ReportProgress && m_Stream->good()) {
-			m_ReportProgress("\t" + m_FileName + " on line " + std::to_string(m_CurrentLine), true); 
+			m_ReportProgress("\t" + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
 		}
 
 		return m_Stream->good() ? 0 : -1;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Reader::GetReadModuleID() const {
 		return (m_DataModuleID < 0) ? g_PresetMan.GetModuleID(m_DataModuleName) : m_DataModuleID;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Reader::WholeFileAsString() const {
 		std::stringstream stringStream;
@@ -101,7 +101,7 @@ namespace RTE {
 		return stringStream.str();
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Reader::ReadLine() {
 		DiscardEmptySpace();
@@ -119,8 +119,12 @@ namespace RTE {
 				break;
 			}
 
-			if (m_Stream->eof()) { break; }
-			if (!m_Stream->good()) { ReportError("Stream failed for some reason"); }
+			if (m_Stream->eof()) {
+				break;
+			}
+			if (!m_Stream->good()) {
+				ReportError("Stream failed for some reason");
+			}
 
 			retString.append(1, temp);
 			peek = static_cast<char>(m_Stream->peek());
@@ -128,7 +132,7 @@ namespace RTE {
 		return TrimString(retString);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Reader::ReadPropName() {
 		DiscardEmptySpace();
@@ -152,10 +156,10 @@ namespace RTE {
 				EndIncludeFile();
 				break;
 			}
-			if (!m_Stream->good() || temp == -1) { 
+			if (!m_Stream->good() || temp == -1) {
 				ReportError("Stream failed for some reason");
-				EndIncludeFile(); 
-				break; 
+				EndIncludeFile();
+				break;
 			}
 			retString.append(1, temp);
 		}
@@ -179,7 +183,7 @@ namespace RTE {
 		return retString;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	std::string Reader::ReadPropValue() {
 		std::string fullLine = ReadLine();
@@ -188,7 +192,7 @@ namespace RTE {
 		return TrimString(propValue);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Reader::NextProperty() {
 		if (!DiscardEmptySpace() || m_EndOfStreams) {
@@ -203,9 +207,9 @@ namespace RTE {
 		return true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	std::string Reader::TrimString(const std::string &stringToTrim) const {
+	std::string Reader::TrimString(const std::string& stringToTrim) const {
 		if (stringToTrim.empty()) {
 			return "";
 		}
@@ -215,7 +219,7 @@ namespace RTE {
 		return stringToTrim.substr(start, (end - start + 1));
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Reader::DiscardEmptySpace() {
 		char peek;
@@ -231,17 +235,19 @@ namespace RTE {
 				return EndIncludeFile();
 			}
 			// Not end-of-file but still got junk back... something went to shit
-			if (peek == -1) { ReportError("Something went wrong reading the line; make sure it is providing the expected type"); }
+			if (peek == -1) {
+				ReportError("Something went wrong reading the line; make sure it is providing the expected type");
+			}
 
 			// Discard spaces
 			if (peek == ' ') {
 				leadingSpaceCount++;
 				m_Stream->ignore(1);
-			// Discard tabs, and count them
+				// Discard tabs, and count them
 			} else if (peek == '\t') {
 				indent++;
 				m_Stream->ignore(1);
-			// Discard newlines and reset the tab count for the new line, also count the lines
+				// Discard newlines and reset the tab count for the new line, also count the lines
 			} else if (peek == '\n' || peek == '\r') {
 				// So we don't count lines twice when there are both newline and carriage return at the end of lines
 				if (peek == '\n') {
@@ -256,14 +262,16 @@ namespace RTE {
 				discardedLine = true;
 				m_Stream->ignore(1);
 
-			// Comment line?
+				// Comment line?
 			} else if (m_Stream->peek() == '/') {
 				char temp = static_cast<char>(m_Stream->get());
 
 				// Confirm that it's a comment line, if so discard it and continue
 				if (m_Stream->peek() == '/') {
-					while (m_Stream->peek() != '\n' && m_Stream->peek() != '\r' && !m_Stream->eof()) { m_Stream->ignore(1); }
-				// Block comment
+					while (m_Stream->peek() != '\n' && m_Stream->peek() != '\r' && !m_Stream->eof()) {
+						m_Stream->ignore(1);
+					}
+					// Block comment
 				} else if (m_Stream->peek() == '*') {
 					int openBlockComments = 1;
 					m_BlockCommentOpenTagLines.emplace(m_CurrentLine);
@@ -271,7 +279,9 @@ namespace RTE {
 					char temp2 = 0;
 					while (openBlockComments > 0 && !m_Stream->eof()) {
 						temp2 = static_cast<char>(m_Stream->get());
-						if (temp2 == '\n') { ++m_CurrentLine; }
+						if (temp2 == '\n') {
+							++m_CurrentLine;
+						}
 
 						// Find the matching close tag.
 						if (!(temp2 == '*' && m_Stream->peek() == '/')) {
@@ -292,7 +302,7 @@ namespace RTE {
 						ReportError("File stream ended with an open block comment!\nCouldn't find closing tag for block comment opened on line " + std::to_string(m_BlockCommentOpenTagLines.top()) + ".\n");
 					}
 
-				// Not a comment, so it's data, so quit.
+					// Not a comment, so it's data, so quit.
 				} else {
 					m_Stream->putback(temp);
 					break;
@@ -304,31 +314,39 @@ namespace RTE {
 
 		// This precaution enables us to use DiscardEmptySpace repeatedly without messing up the indentation tracking logic
 		if (discardedLine) {
-			if (leadingSpaceCount > 0) { ReportError("Encountered space characters used for indentation where a tab character was expected!\nPlease make sure the preset definition structure is correct.\n"); }
+			if (leadingSpaceCount > 0) {
+				ReportError("Encountered space characters used for indentation where a tab character was expected!\nPlease make sure the preset definition structure is correct.\n");
+			}
 			// Get indentation difference from the last line of the last call to DiscardEmptySpace(), and the last line of this call to DiscardEmptySpace().
 			m_IndentDifference = indent - m_PreviousIndent;
-			if (m_IndentDifference > 1) { ReportError("Over indentation detected!\nPlease make sure the preset definition structure is correct.\n"); }
+			if (m_IndentDifference > 1) {
+				ReportError("Over indentation detected!\nPlease make sure the preset definition structure is correct.\n");
+			}
 			// Save the last tab count
 			m_PreviousIndent = indent;
 		}
 		return true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void Reader::ReportError(const std::string &errorDesc) const {
+	void Reader::ReportError(const std::string& errorDesc) const {
 		if (!m_CanFail) {
 			RTEAbort(errorDesc + "\nError happened in " + m_FilePath + " at line " + std::to_string(m_CurrentLine) + "!");
 		} else {
-			if (m_ReportProgress) { m_ReportProgress(errorDesc + ", skipping!", true); }
+			if (m_ReportProgress) {
+				m_ReportProgress(errorDesc + ", skipping!", true);
+			}
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Reader::StartIncludeFile() {
 		// Report that we're including a file
-		if (m_ReportProgress) { m_ReportProgress(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine) + " includes:", false); }
+		if (m_ReportProgress) {
+			m_ReportProgress(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine) + " includes:", false);
+		}
 
 		// Get the file path from the current stream before pushing it into the StreamStack, otherwise we can't open a new stream after releasing it because we can't read.
 		std::string includeFilePath = g_PresetMan.GetFullModulePath(ReadPropValue());
@@ -372,10 +390,12 @@ namespace RTE {
 		return true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Reader::EndIncludeFile() {
-		if (m_ReportProgress) { m_ReportProgress(m_ReportTabs + m_FileName + " - done! " + static_cast<char>(-42), false); }
+		if (m_ReportProgress) {
+			m_ReportProgress(m_ReportTabs + m_FileName + " - done! " + static_cast<char>(-42), false);
+		}
 
 		if (m_StreamStack.empty()) {
 			m_EndOfStreams = true;
@@ -405,4 +425,4 @@ namespace RTE {
 		DiscardEmptySpace();
 		return true;
 	}
-}
+} // namespace RTE

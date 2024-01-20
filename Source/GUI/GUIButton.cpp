@@ -7,7 +7,8 @@ using namespace RTE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIButton::GUIButton(GUIManager *Manager, GUIControlManager *ControlManager) : GUIControl(), GUIPanel(Manager) {
+GUIButton::GUIButton(GUIManager* Manager, GUIControlManager* ControlManager) :
+    GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "BUTTON";
 	m_DrawBitmap = nullptr;
 	m_ControlManager = ControlManager;
@@ -20,7 +21,7 @@ GUIButton::GUIButton(GUIManager *Manager, GUIControlManager *ControlManager) : G
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIButton::Create(const std::string &Name, int X, int Y, int Width, int Height) {
+void GUIButton::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 
 	// Minimum size of the control
@@ -37,8 +38,12 @@ void GUIButton::Create(const std::string &Name, int X, int Y, int Width, int Hei
 	m_Width = m_DefWidth;
 	m_Height = m_DefHeight;
 
-	if (Width != -1) { m_Width = Width; }
-	if (Height != -1) { m_Height = Height; }
+	if (Width != -1) {
+		m_Width = Width;
+	}
+	if (Height != -1) {
+		m_Height = Height;
+	}
 
 	// Make sure the button isn't too small
 	m_Width = std::max(m_Width, m_MinWidth);
@@ -53,13 +58,17 @@ void GUIButton::Create(const std::string &Name, int X, int Y, int Width, int Hei
 		m_Text->SetEnabled(false);
 		GUIPanel::AddChild(m_Text.get());
 	}
-	if (!m_Icon) { m_Icon = std::make_unique<AllegroBitmap>(); }
-	if (!m_BorderSizes) { m_BorderSizes = std::make_unique<GUIRect>(); }
+	if (!m_Icon) {
+		m_Icon = std::make_unique<AllegroBitmap>();
+	}
+	if (!m_BorderSizes) {
+		m_BorderSizes = std::make_unique<GUIRect>();
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIButton::Create(GUIProperties *Props) {
+void GUIButton::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
 	// Minimum size of the control
@@ -86,8 +95,12 @@ void GUIButton::Create(GUIProperties *Props) {
 		m_Text->SetEnabled(false);
 		GUIPanel::AddChild(m_Text.get());
 	}
-	if (!m_Icon) { m_Icon = std::make_unique<AllegroBitmap>(); }
-	if (!m_BorderSizes) { m_BorderSizes = std::make_unique<GUIRect>(); }
+	if (!m_Icon) {
+		m_Icon = std::make_unique<AllegroBitmap>();
+	}
+	if (!m_BorderSizes) {
+		m_BorderSizes = std::make_unique<GUIRect>();
+	}
 
 	// Load the values
 	std::string text;
@@ -114,7 +127,7 @@ void GUIButton::Destroy() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIButton::ChangeSkin(GUISkin *Skin) {
+void GUIButton::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the button bitmap
@@ -144,10 +157,12 @@ void GUIButton::BuildBitmap() {
 
 	m_FontColor = m_Skin->ConvertColor(m_FontColor, m_DrawBitmap->GetColorDepth());
 
-	//TODO consider getting rid of this line. Because of it GuiButton::SetFont does nothing, which is weird, but maybe there's a good reason for it. Test and investigate.
-	// Also, with the change of m_Text from a std::string to a GUILabel this seems maybe even sillier. SetFont should probably set the label's font
+	// TODO consider getting rid of this line. Because of it GuiButton::SetFont does nothing, which is weird, but maybe there's a good reason for it. Test and investigate.
+	//  Also, with the change of m_Text from a std::string to a GUILabel this seems maybe even sillier. SetFont should probably set the label's font
 	m_Font = m_Skin->GetFont(Filename);
-	if (m_Font) { m_Font->CacheColor(m_FontColor); }
+	if (m_Font) {
+		m_Font->CacheColor(m_FontColor);
+	}
 
 	// Create the button image
 	GUIRect buttonBorders;
@@ -156,7 +171,7 @@ void GUIButton::BuildBitmap() {
 	m_Skin->BuildStandardRect(m_DrawBitmap, "Button_Over", 0, m_Height, m_Width, m_Height);
 	m_Skin->BuildStandardRect(m_DrawBitmap, "Button_Down", 0, m_Height * 2, m_Width, m_Height);
 
-	//TODO this should be 1 pixel ideally, to give space between content and the border. However, the green skin, which this is primarly used for, has padding built-in and doesn't work properly without it.
+	// TODO this should be 1 pixel ideally, to give space between content and the border. However, the green skin, which this is primarly used for, has padding built-in and doesn't work properly without it.
 	const int buttonContentPadding = 0;
 	const int contentMaxWidth = m_Width - m_BorderSizes->left - m_BorderSizes->right - (buttonContentPadding * 2) - 1;
 	const int contentMaxHeight = m_Height - m_BorderSizes->top - m_BorderSizes->bottom - (buttonContentPadding * 2) - 1;
@@ -172,7 +187,7 @@ void GUIButton::BuildBitmap() {
 	if (hasIcon && !hasText) {
 		iconYPos = centerY - (m_Icon->GetHeight() / 2);
 	} else if (!hasIcon && hasText) {
-		//int y = m_Height/2-m_Font->CalculateHeight(m_Text)+2; //Note this commented line was here from CCOSS, it was here so that the idea of using the full height of the text stays around.
+		// int y = m_Height/2-m_Font->CalculateHeight(m_Text)+2; //Note this commented line was here from CCOSS, it was here so that the idea of using the full height of the text stays around.
 		textYPos = centerY - (m_Font->GetFontHeight() / 2) - 1;
 	} else if (hasIcon && hasText) {
 		int iconAndTextHeight = m_Text->GetHorizontalOverflowScroll() ? m_Font->GetFontHeight() : m_Font->CalculateHeight(m_Text->GetText(), contentMaxWidth);
@@ -221,7 +236,7 @@ void GUIButton::BuildBitmap() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIButton::Draw(GUIScreen *Screen) {
+void GUIButton::Draw(GUIScreen* Screen) {
 	GUIRect Rect;
 	int y = 0;
 	if (m_Pushed) {
@@ -231,7 +246,9 @@ void GUIButton::Draw(GUIScreen *Screen) {
 	}
 	SetRect(&Rect, 0, y, m_Width, y + m_Height);
 
-	if (m_Text->OverflowScrollIsActivated() && m_Font->CalculateWidth(m_Text->GetText()) > m_Width - m_BorderSizes->left - m_BorderSizes->right) { BuildBitmap(); }
+	if (m_Text->OverflowScrollIsActivated() && m_Font->CalculateWidth(m_Text->GetText()) > m_Width - m_BorderSizes->left - m_BorderSizes->right) {
+		BuildBitmap();
+	}
 
 	m_DrawBitmap->DrawTrans(Screen->GetBitmap(), m_X, m_Y, &Rect);
 
@@ -253,7 +270,9 @@ void GUIButton::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUIButton::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
-	if (PointInside(X, Y)) { AddEvent(GUIEvent::Notification, Clicked, Buttons); }
+	if (PointInside(X, Y)) {
+		AddEvent(GUIEvent::Notification, Clicked, Buttons);
+	}
 
 	if (!IsCaptured()) {
 		return;
@@ -263,7 +282,9 @@ void GUIButton::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
 
 	// If the mouse is over the button, add the command to the event queue
-	if (PointInside(X, Y)) { AddEvent(GUIEvent::Command, 0, 0); }
+	if (PointInside(X, Y)) {
+		AddEvent(GUIEvent::Command, 0, 0);
+	}
 
 	AddEvent(GUIEvent::Notification, UnPushed, 0);
 }
@@ -328,18 +349,17 @@ void GUIButton::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUIButton::OnKeyDown(int KeyCode, int Modifier) {
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GUIPanel * GUIButton::GetPanel() {
+GUIPanel* GUIButton::GetPanel() {
 	return this;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIButton::GetControlRect(int *X, int *Y, int *Width, int *Height) {
+void GUIButton::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
@@ -383,16 +403,18 @@ void GUIButton::SetPushed(bool pushed) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIButton::SetText(const std::string_view &newText, bool noBitmapRebuild) {
+void GUIButton::SetText(const std::string_view& newText, bool noBitmapRebuild) {
 	if (GetText() != newText) {
 		m_Text->SetText(newText);
-		if (!noBitmapRebuild) { BuildBitmap(); }
+		if (!noBitmapRebuild) {
+			BuildBitmap();
+		}
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string & GUIButton::GetText() const {
+const std::string& GUIButton::GetText() const {
 	return m_Text->GetText();
 }
 
@@ -400,37 +422,45 @@ const std::string & GUIButton::GetText() const {
 
 void GUIButton::SetHorizontalOverflowScroll(bool newOverflowScroll) {
 	m_Text->SetHorizontalOverflowScroll(newOverflowScroll);
-	if (m_Text->GetHorizontalOverflowScroll()) { BuildBitmap(); }
+	if (m_Text->GetHorizontalOverflowScroll()) {
+		BuildBitmap();
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GUIButton::SetVerticalOverflowScroll(bool newOverflowScroll) {
 	m_Text->SetVerticalOverflowScroll(newOverflowScroll);
-	if (m_Text->GetVerticalOverflowScroll()) { BuildBitmap(); }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GUIButton::SetIcon(BITMAP *newIcon, bool noBitmapRebuild) {
-	if (m_Icon && m_Icon->GetBitmap() != newIcon) {
-		m_Icon->SetBitmap(newIcon);
-		if (!noBitmapRebuild) { BuildBitmap(); }
+	if (m_Text->GetVerticalOverflowScroll()) {
+		BuildBitmap();
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIButton::SetIconAndText(BITMAP *newIcon, const std::string_view &newText) {
-	bool bitmapNeedsRebuild = (m_Icon && m_Icon->GetBitmap() != newIcon) || (m_Text && m_Text->GetText() != newText);
-	SetIcon(newIcon, true);
-	SetText(newText, true);
-	if (bitmapNeedsRebuild) { BuildBitmap(); }
+void GUIButton::SetIcon(BITMAP* newIcon, bool noBitmapRebuild) {
+	if (m_Icon && m_Icon->GetBitmap() != newIcon) {
+		m_Icon->SetBitmap(newIcon);
+		if (!noBitmapRebuild) {
+			BuildBitmap();
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GUIButton::ApplyProperties(GUIProperties *Props) {
+void GUIButton::SetIconAndText(BITMAP* newIcon, const std::string_view& newText) {
+	bool bitmapNeedsRebuild = (m_Icon && m_Icon->GetBitmap() != newIcon) || (m_Text && m_Text->GetText() != newText);
+	SetIcon(newIcon, true);
+	SetText(newText, true);
+	if (bitmapNeedsRebuild) {
+		BuildBitmap();
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GUIButton::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
 
 	std::string text;

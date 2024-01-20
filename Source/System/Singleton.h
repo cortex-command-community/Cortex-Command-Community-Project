@@ -17,7 +17,6 @@ namespace RTE {
 	class Singleton {
 
 	public:
-
 		/// <summary>
 		/// Destructor method used to clean up a Singleton object before deletion.
 		/// </summary>
@@ -27,7 +26,7 @@ namespace RTE {
 		/// Returns the sole instance of this Singleton.
 		/// </summary>
 		/// <returns>A reference to the sole instance of this Singleton.</returns>
-		inline static Type & Instance() { return *s_Instance; }
+		inline static Type& Instance() { return *s_Instance; }
 
 		/// <summary>
 		/// Constructs this Singleton.
@@ -35,21 +34,19 @@ namespace RTE {
 		inline static void Construct() { s_Instance = new Type(); }
 
 	protected:
-
 		/// <summary>
 		/// Constructor method used to instantiate a Singleton object.
 		/// </summary>
 		Singleton() { RTEAssert(!s_Instance, "Trying to create a second instance of a Singleton!"); }
 
 	private:
-
-		static Type *s_Instance; //!< Pointer to instance of this singleton.
+		static Type* s_Instance; //!< Pointer to instance of this singleton.
 
 		// Disallow the use of some implicit methods.
-		Singleton(const Singleton &reference) = delete;
-		Singleton & operator=(const Singleton &rhs) = delete;
+		Singleton(const Singleton& reference) = delete;
+		Singleton& operator=(const Singleton& rhs) = delete;
 	};
 
-	template <typename Type> Type * Singleton<Type>::s_Instance = nullptr;
-}
+	template <typename Type> Type* Singleton<Type>::s_Instance = nullptr;
+} // namespace RTE
 #endif

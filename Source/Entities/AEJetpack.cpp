@@ -5,58 +5,58 @@
 
 namespace RTE {
 
-    ConcreteClassInfo(AEJetpack, AEmitter, 20);
+	ConcreteClassInfo(AEJetpack, AEmitter, 20);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AEJetpack::Clear() {
 		m_JetpackType = JetpackType::Standard;
 		m_JetTimeTotal = 0.0F;
-        m_JetTimeLeft = 0.0F;
+		m_JetTimeLeft = 0.0F;
 		m_JetThrustBonusMultiplier = 1.0F;
-        m_JetReplenishRate = 1.0F;
+		m_JetReplenishRate = 1.0F;
 		m_MinimumFuelRatio = 0.0F;
-        m_JetAngleRange = 0.25F;
+		m_JetAngleRange = 0.25F;
 		m_CanAdjustAngleWhileFiring = true;
 		m_AdjustsThrottleForWeight = true;
-    }
+	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    int AEJetpack::Create() {
-        if (Attachable::Create() < 0) {
-		    return -1;
-	    }
+	int AEJetpack::Create() {
+		if (Attachable::Create() < 0) {
+			return -1;
+		}
 
-        // Initalize the jump time left
-        m_JetTimeLeft = m_JetTimeTotal;
+		// Initalize the jump time left
+		m_JetTimeLeft = m_JetTimeTotal;
 		EnableEmission(false);
 
 		return 0;
-    }
+	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    int AEJetpack::Create(const AEJetpack &reference) {
-        AEmitter::Create(reference);
+	int AEJetpack::Create(const AEJetpack& reference) {
+		AEmitter::Create(reference);
 
 		m_JetpackType = reference.m_JetpackType;
-        m_JetTimeTotal = reference.m_JetTimeTotal;
-        m_JetTimeLeft = reference.m_JetTimeLeft;
-        m_JetReplenishRate = reference.m_JetReplenishRate;
+		m_JetTimeTotal = reference.m_JetTimeTotal;
+		m_JetTimeLeft = reference.m_JetTimeLeft;
+		m_JetReplenishRate = reference.m_JetReplenishRate;
 		m_MinimumFuelRatio = reference.m_MinimumFuelRatio;
-        m_JetAngleRange = reference.m_JetAngleRange;
+		m_JetAngleRange = reference.m_JetAngleRange;
 		m_CanAdjustAngleWhileFiring = reference.m_CanAdjustAngleWhileFiring;
 		m_AdjustsThrottleForWeight = reference.m_AdjustsThrottleForWeight;
 
 		return 0;
-    }
+	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int AEJetpack::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return AEmitter::ReadProperty(propName, reader));
-		
+
 		MatchProperty("JetpackType", {
 			std::string jetpackType;
 			reader >> jetpackType;
@@ -70,14 +70,14 @@ namespace RTE {
 			}
 		});
 		MatchForwards("JumpTime") MatchProperty("JetTime", {
-            reader >> m_JetTimeTotal;
-            m_JetTimeTotal *= 1000.0f; // Convert to ms
-	    });
+			reader >> m_JetTimeTotal;
+			m_JetTimeTotal *= 1000.0f; // Convert to ms
+		});
 		MatchForwards("JumpReplenishRate") MatchProperty("JetReplenishRate", { reader >> m_JetReplenishRate; });
 		MatchProperty("MinimumFuelRatio", {
 			reader >> m_MinimumFuelRatio;
 			m_MinimumFuelRatio = std::clamp(m_MinimumFuelRatio, 0.0F, 1.0F);
-		});		
+		});
 		MatchForwards("JumpAngleRange") MatchProperty("JetAngleRange", { reader >> m_JetAngleRange; });
 		MatchProperty("CanAdjustAngleWhileFiring", { reader >> m_CanAdjustAngleWhileFiring; });
 		MatchProperty("AdjustsThrottleForWeight", { reader >> m_AdjustsThrottleForWeight; });
@@ -85,20 +85,20 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int AEJetpack::Save(Writer& writer) const {
 		AEmitter::Save(writer);
 
 		writer.NewProperty("JetpackType");
 		switch (m_JetpackType) {
-		default:
-		case JetpackType::Standard:
-			writer << "Standard";
-			break;
-		case JetpackType::JumpPack:
-			writer << "JumpPack";
-			break;
+			default:
+			case JetpackType::Standard:
+				writer << "Standard";
+				break;
+			case JetpackType::JumpPack:
+				writer << "JumpPack";
+				break;
 		}
 
 		writer.NewPropertyWithValue("JumpTime", m_JetTimeTotal / 1000.0f); // Convert to seconds
@@ -111,10 +111,10 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void AEJetpack::UpdateBurstState(Actor &parentActor) {
-        const Controller &controller = *parentActor.GetController();
+	void AEJetpack::UpdateBurstState(Actor& parentActor) {
+		const Controller& controller = *parentActor.GetController();
 
 		if (parentActor.GetStatus() == Actor::INACTIVE) {
 			Recharge(parentActor);
@@ -140,27 +140,26 @@ namespace RTE {
 		// So enforce a minimum time we must be able to thrust for (in ms)
 		const float minimumTimeToBeginThrusting = 250.0f * fuelUseMultiplier;
 		if (m_JetTimeLeft > minimumTimeToBeginThrusting || wasEmittingLastFrame || IsFullyFueled()) {
-			switch (m_JetpackType)
-			{
-			case JetpackType::Standard:
-				if (controller.IsState(BODY_JUMPSTART) && !IsOutOfFuel()) {
-					Burst(parentActor, fuelUseMultiplier);
-				} else if (controller.IsState(BODY_JUMP) && !IsOutOfFuel() && (GetJetTimeRatio() >= m_MinimumFuelRatio || wasEmittingLastFrame)) {
-					Thrust(parentActor, fuelUseMultiplier);
-				} else {
-					Recharge(parentActor);
-				}
-				break;
+			switch (m_JetpackType) {
+				case JetpackType::Standard:
+					if (controller.IsState(BODY_JUMPSTART) && !IsOutOfFuel()) {
+						Burst(parentActor, fuelUseMultiplier);
+					} else if (controller.IsState(BODY_JUMP) && !IsOutOfFuel() && (GetJetTimeRatio() >= m_MinimumFuelRatio || wasEmittingLastFrame)) {
+						Thrust(parentActor, fuelUseMultiplier);
+					} else {
+						Recharge(parentActor);
+					}
+					break;
 
-			case JetpackType::JumpPack:
-				if (wasEmittingLastFrame && !IsOutOfFuel()) {
-					Thrust(parentActor, fuelUseMultiplier);
-				} else if (controller.IsState(BODY_JUMPSTART) && GetJetTimeRatio() >= m_MinimumFuelRatio) {
-					Burst(parentActor, fuelUseMultiplier);
-				} else {
-					Recharge(parentActor);
-				}
-				break;
+				case JetpackType::JumpPack:
+					if (wasEmittingLastFrame && !IsOutOfFuel()) {
+						Thrust(parentActor, fuelUseMultiplier);
+					} else if (controller.IsState(BODY_JUMPSTART) && GetJetTimeRatio() >= m_MinimumFuelRatio) {
+						Burst(parentActor, fuelUseMultiplier);
+					} else {
+						Recharge(parentActor);
+					}
+					break;
 			}
 		} else {
 			Recharge(parentActor);
@@ -173,7 +172,7 @@ namespace RTE {
 		if (canAdjustAngle) {
 			// Direct the jetpack nozzle according to either analog stick input or aim angle.
 			float maxAngle = c_HalfPI * m_JetAngleRange;
-            const float analogDeadzone = 0.1F;
+			const float analogDeadzone = 0.1F;
 			if (controller.GetAnalogMove().MagnitudeIsGreaterThan(analogDeadzone)) {
 				float jetAngle = std::clamp(controller.GetAnalogMove().GetAbsRadAngle() - c_HalfPI, -maxAngle, maxAngle);
 				SetEmitAngle(parentActor.FacingAngle(jetAngle - c_HalfPI));
@@ -181,20 +180,20 @@ namespace RTE {
 				// Thrust in the opposite direction when strafing.
 				float flip = ((parentActor.IsHFlipped() && controller.IsState(MOVE_RIGHT)) || (!parentActor.IsHFlipped() && controller.IsState(MOVE_LEFT))) ? -1.0F : 1.0F;
 				// Halve the jet angle when looking downwards so the actor isn't forced to go sideways
-                // TODO: don't hardcode this ratio?
-                float aimAngle = parentActor.GetAimAngle(false);
+				// TODO: don't hardcode this ratio?
+				float aimAngle = parentActor.GetAimAngle(false);
 				float jetAngle = (aimAngle > 0 ? aimAngle * m_JetAngleRange : -aimAngle * m_JetAngleRange * 0.5F) - maxAngle;
 				// FacingAngle isn't needed because it's already been applied to AimAngle since last update.
 				SetEmitAngle(jetAngle * flip - c_HalfPI);
 			}
 		}
-    }
+	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AEJetpack::Burst(Actor& parentActor, float fuelUseMultiplier) {
 		parentActor.SetMovementState(Actor::JUMP);
-		
+
 		// TODO - find a better solution! This stops the actor getting stuck, but it's awful...
 		parentActor.ForceDeepCheck();
 
@@ -207,7 +206,7 @@ namespace RTE {
 		m_JetTimeLeft -= fuelUsage;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AEJetpack::Thrust(Actor& parentActor, float fuelUseMultiplier) {
 		parentActor.SetMovementState(Actor::JUMP);
@@ -219,7 +218,7 @@ namespace RTE {
 		m_JetTimeLeft -= fuelUsage;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void AEJetpack::Recharge(Actor& parentActor) {
 		EnableEmission(false);
@@ -229,4 +228,4 @@ namespace RTE {
 		m_JetTimeLeft += g_TimerMan.GetDeltaTimeMS() * m_JetReplenishRate;
 	}
 
-}
+} // namespace RTE

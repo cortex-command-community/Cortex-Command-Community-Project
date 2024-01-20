@@ -2,7 +2,7 @@
            /\  ___\ /\  __ \ /\  == \/\__  _\/\  ___\/\_\_\_\     /\  ___\ /\  __ \ /\ "-./  \ /\ "-./  \ /\  __ \ /\ "-.\ \ /\  __-.
            \ \ \____\ \ \/\ \\ \  __<\/_/\ \/\ \  __\\/_/\_\/_    \ \ \____\ \ \/\ \\ \ \-./\ \\ \ \-./\ \\ \  __ \\ \ \-.  \\ \ \/\ \
             \ \_____\\ \_____\\ \_\ \_\ \ \_\ \ \_____\/\_\/\_\    \ \_____\\ \_____\\ \_\ \ \_\\ \_\ \ \_\\ \_\ \_\\ \_\\"\_\\ \____-
-  	         \/_____/ \/_____/ \/_/ /_/  \/_/  \/_____/\/_/\/_/     \/_____/ \/_____/ \/_/  \/_/ \/_/  \/_/ \/_/\/_/ \/_/ \/_/ \/____/
+             \/_____/ \/_____/ \/_/ /_/  \/_/  \/_____/\/_/\/_/     \/_____/ \/_____/ \/_/  \/_/ \/_/  \/_/ \/_/\/_/ \/_/ \/_/ \/____/
    ______   ______   __    __   __    __   __  __   __   __   __   ______  __  __       ______  ______   ______      __   ______   ______   ______
   /\  ___\ /\  __ \ /\ "-./  \ /\ "-./  \ /\ \/\ \ /\ "-.\ \ /\ \ /\__  _\/\ \_\ \     /\  == \/\  == \ /\  __ \    /\ \ /\  ___\ /\  ___\ /\__  _\
   \ \ \____\ \ \/\ \\ \ \-./\ \\ \ \-./\ \\ \ \_\ \\ \ \-.  \\ \ \\/_/\ \/\ \____ \    \ \  _-/\ \  __< \ \ \/\ \  _\_\ \\ \  __\ \ \ \____\/_/\ \/
@@ -51,13 +51,15 @@
 
 #include "tracy/Tracy.hpp"
 
-extern "C" { FILE __iob_func[3] = { *stdin,*stdout,*stderr }; }
+extern "C" {
+FILE __iob_func[3] = {*stdin, *stdout, *stderr};
+}
 
 using namespace RTE;
 
 namespace RTE {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/// <summary>
 	/// Initializes all the essential managers.
@@ -99,7 +101,9 @@ namespace RTE {
 		g_PostProcessMan.Initialize();
 		g_PerformanceMan.Initialize();
 
-		if (g_AudioMan.Initialize()) { g_GUISound.Initialize(); }
+		if (g_AudioMan.Initialize()) {
+			g_GUISound.Initialize();
+		}
 
 		g_UInputMan.Initialize();
 		g_ConsoleMan.Initialize();
@@ -110,10 +114,12 @@ namespace RTE {
 
 		// Overwrite Settings.ini after all the managers are created to fully populate the file. Up until this moment Settings.ini is populated only with minimal required properties to run.
 		// If Settings.ini already exists and is fully populated, this will deal with overwriting it to apply any overrides performed by the managers at boot (e.g resolution validation).
-		if (g_SettingsMan.SettingsNeedOverwrite()) { g_SettingsMan.UpdateSettingsFile(); }
+		if (g_SettingsMan.SettingsNeedOverwrite()) {
+			g_SettingsMan.UpdateSettingsFile();
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/// <summary>
 	/// Destroys all the managers and frees all loaded data before termination.
@@ -144,14 +150,14 @@ namespace RTE {
 #endif
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/// <summary>
 	/// Command-line argument handling.
 	/// </summary>
 	/// <param name="argCount">Argument count.</param>
 	/// <param name="argValue">Argument values.</param>
-	void HandleMainArgs(int argCount, char **argValue) {
+	void HandleMainArgs(int argCount, char** argValue) {
 		// Discard the first argument because it's always the executable path/name
 		argCount--;
 		argValue++;
@@ -165,9 +171,13 @@ namespace RTE {
 			std::string currentArg = argValue[i];
 			bool lastArg = i + 1 == argCount;
 
-			if (currentArg == "-cout") { System::EnableLoggingToCLI(); }
+			if (currentArg == "-cout") {
+				System::EnableLoggingToCLI();
+			}
 
-			if (currentArg == "-ext-validate") { System::EnableExternalModuleValidationMode(); }
+			if (currentArg == "-ext-validate") {
+				System::EnableExternalModuleValidationMode();
+			}
 
 			if (!lastArg && !singleModuleSet && currentArg == "-module") {
 				std::string moduleToLoad = argValue[++i];
@@ -188,10 +198,12 @@ namespace RTE {
 			}
 			++i;
 		}
-		if (launchModeSet) { g_SettingsMan.SetSkipIntro(true); }
+		if (launchModeSet) {
+			g_SettingsMan.SetSkipIntro(true);
+		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/// <summary>
 	/// Polls the SDL event queue and passes events to be handled by the relevant managers.
@@ -233,7 +245,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/// <summary>
 	/// Game menus loop.
@@ -248,12 +260,12 @@ namespace RTE {
 		// The next philosophical question is how to handle the quadrillion-and-one edge cases where things update in different places, that all have dependencies.
 		// GUI for example, that needs to interact with sim but also draw to screen. HUD is another example. Various editors, pie menus, all that jazz
 		// These are single-threaded fundamentally. I thought about doing this properly (like with the MO drawing), and that's possible...
-		// but it's really tough because there's a billion edge cases and it's tough to solve all of them. 
-		// As such, the current plan I have is that we'll still do some limited drawing on the sim thread to handle these situations. 
+		// but it's really tough because there's a billion edge cases and it's tough to solve all of them.
+		// As such, the current plan I have is that we'll still do some limited drawing on the sim thread to handle these situations.
 		// It's definitely not ideal, but following in line with the pareto principle we've already achieved the bulk of the advantage with what we've properly split.
 		// (that is to say, the main game world drawing)
 		// So, that being said... next steps:
-		// Store a Allegro bitmap (per screen) on the RenderableGameState.
+		//  Store a Allegro bitmap (per screen) on the RenderableGameState.
 		// Sim thread can safely draw to that without a worry in the world, and it'll be swapped over to render to simply blit after our other redrawing is done.
 		// Need to think about how to properly allow the player to pan the camera without stuff "sticking" at a low update simrate...
 		// I could just pan around the bitmap, but then the edges would be cut off. Alternatively we draw to a scene-wide bitmap... but that's expensive to clear.
@@ -290,7 +302,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/// <summary>
 	/// Game simulation loop.
@@ -393,7 +405,7 @@ namespace RTE {
 			}
 			if (g_ActivityMan.ActivitySetToResume()) {
 				g_ActivityMan.ResumeActivity();
-				
+
 				// TODO_MULTITHEAD is this okay?
 				g_PerformanceMan.ResetSimUpdateTimer();
 			}
@@ -405,7 +417,7 @@ namespace RTE {
 			g_WindowMan.Update();
 			g_WindowMan.ClearRenderer();
 
-			while(g_TimerMan.TimeForSimUpdate()) {
+			while (g_TimerMan.TimeForSimUpdate()) {
 				simFunction();
 			}
 
@@ -415,8 +427,8 @@ namespace RTE {
 				// Pause sim while we're waiting for scene transmission or scene will start changing before clients receive them and those changes will be lost.
 				g_TimerMan.PauseSim(!(g_NetworkServer.ReadyForSimulation() && g_ActivityMan.IsInActivity()));
 
-				if (!serverUpdated) { 
-					g_NetworkServer.Update(); 
+				if (!serverUpdated) {
+					g_NetworkServer.Update();
 				}
 
 				if (g_NetworkServer.GetServerSimSleepWhenIdle()) {
@@ -445,7 +457,7 @@ namespace RTE {
 			g_PerformanceMan.UpdateMSPF(frameEndTime - frameStartTime);
 		}
 	}
-}
+} // namespace RTE
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -462,7 +474,7 @@ static const bool RTESetExceptionHandlers = []() {
 /// <summary>
 /// Implementation of the main function.
 /// </summary>
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 	install_allegro(SYSTEM_NONE, &errno, std::atexit);
 	loadpng_init();
 
@@ -484,7 +496,7 @@ int main(int argc, char **argv) {
 	// TODO: use a better thread system that'll do what we want ASAP instead of letting the OS schedule all over us
 	// Disabled for now because windows is great and this means when the game lags out it freezes the entire computer. Which we wouldn't expect with anything but REALTIME priority.
 	// Because apparently high priority class is preferred over "processing mouse input"?!
-	//SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+	// SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 #endif // WIN32
 
 	// argv[0] actually unreliable for exe path and name, because of course, why would it be, why would anything be simple and make sense.
@@ -513,7 +525,9 @@ int main(int argc, char **argv) {
 			g_ConsoleMan.SetEnabled(true);
 		} else {
 			// Delete an existing log if there are no warnings so there's less junk in the root folder.
-			if (std::filesystem::exists(System::GetWorkingDirectory() + "LogLoadingWarning.txt")) { std::remove("LogLoadingWarning.txt"); }
+			if (std::filesystem::exists(System::GetWorkingDirectory() + "LogLoadingWarning.txt")) {
+				std::remove("LogLoadingWarning.txt");
+			}
 		}
 
 		if (!g_ActivityMan.Initialize()) {

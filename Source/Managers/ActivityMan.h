@@ -17,7 +17,6 @@ namespace RTE {
 		friend class SettingsMan;
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate an ActivityMan object in system memory. Create() should be called before using the object.
@@ -48,7 +47,7 @@ namespace RTE {
 		/// Gets the currently active Activity. Won't be what has been set by SetStartActivity unless RestartActivity has been called since.
 		/// </summary>
 		/// <returns>The currently active Activity. Will be nullptr if no Activity is going.</returns>
-		Activity * GetActivity() const { return m_Activity.get(); }
+		Activity* GetActivity() const { return m_Activity.get(); }
 
 		/// <summary>
 		/// Gets the async save game task.
@@ -102,7 +101,10 @@ namespace RTE {
 		/// Sets the game simulation to be started back up after the current Activity was unpaused.
 		/// </summary>
 		/// <param name="resumingFromPauseMenu">Whether the game simulation is being resumed from the pause menu.</param>
-		void SetResumeActivity(bool resumingFromPauseMenu = false) { m_ActivityNeedsResume = true; m_ResumingActivityFromPauseMenu = resumingFromPauseMenu; }
+		void SetResumeActivity(bool resumingFromPauseMenu = false) {
+			m_ActivityNeedsResume = true;
+			m_ResumingActivityFromPauseMenu = resumingFromPauseMenu;
+		}
 
 		/// <summary>
 		/// Gets whether the pause menu should be skipped when the game simulation is paused.
@@ -122,7 +124,7 @@ namespace RTE {
 		/// Sets the type name of the default Activity to be loaded if nothing else is available.
 		/// </summary>
 		/// <param name="defaultActivityType">The default Activity type name.</param>
-		void SetDefaultActivityType(const std::string_view &defaultActivityType) { m_DefaultActivityType = defaultActivityType; }
+		void SetDefaultActivityType(const std::string_view& defaultActivityType) { m_DefaultActivityType = defaultActivityType; }
 
 		/// <summary>
 		/// Gets the name of the default Activity to be loaded if nothing else is available.
@@ -134,7 +136,7 @@ namespace RTE {
 		/// Sets the preset name of the default Activity to be loaded if nothing else is available.
 		/// </summary>
 		/// <param name="defaultActivityName">The default Activity preset name.</param>
-		void SetDefaultActivityName(const std::string_view &defaultActivityName) { m_DefaultActivityName = defaultActivityName; }
+		void SetDefaultActivityName(const std::string_view& defaultActivityName) { m_DefaultActivityName = defaultActivityName; }
 
 		/// <summary>
 		/// Gets whether the intro and main menu should be skipped on game start and launch directly into the set default Activity instead.
@@ -152,7 +154,12 @@ namespace RTE {
 		/// Sets the name of the editor to launch directly into.
 		/// </summary>
 		/// <param name="editorName"></param>
-		void SetEditorToLaunch(const std::string_view &editorName) { if (!editorName.empty()) { m_EditorToLaunch = editorName; m_LaunchIntoEditor = true; } }
+		void SetEditorToLaunch(const std::string_view& editorName) {
+			if (!editorName.empty()) {
+				m_EditorToLaunch = editorName;
+				m_LaunchIntoEditor = true;
+			}
+		}
 #pragma endregion
 
 #pragma region Saving and Loading
@@ -167,14 +174,14 @@ namespace RTE {
 		/// </summary>
 		/// <param name="fileName">Path to the file.</param>
 		/// <returns>Whether the game was successfully saved.</returns>
-		bool SaveCurrentGame(const std::string &fileName);
+		bool SaveCurrentGame(const std::string& fileName);
 
 		/// <summary>
 		/// Loads a saved game, and launches its Scene and Activity.
 		/// </summary>
 		/// <param name="fileName">Path to the file.</param>
 		/// <returns>Whether or not the saved game was successfully loaded.</returns>
-		bool LoadAndLaunchGame(const std::string &fileName);
+		bool LoadAndLaunchGame(const std::string& fileName);
 #pragma endregion
 
 #pragma region Activity Start Handling
@@ -184,13 +191,13 @@ namespace RTE {
 		/// Gets the Activity that will be used in the next restart. Ownership is NOT transferred!
 		/// </summary>
 		/// <returns>The Activity to put into effect next time ResetActivity is called.</returns>
-		Activity * GetStartActivity() const { return m_StartActivity.get(); }
+		Activity* GetStartActivity() const { return m_StartActivity.get(); }
 
 		/// <summary>
 		/// Sets a new Activity to copy for next restart. You have to use RestartActivity to get it going. Ownership IS transferred!
 		/// </summary>
 		/// <param name="newActivity">The new Activity to put into effect next time ResetActivity is called.</param>
-		void SetStartActivity(Activity *newActivity);
+		void SetStartActivity(Activity* newActivity);
 
 		/// <summary>
 		/// Loads the "Tutorial Mission" Scene and starts the Tutorial Activity.
@@ -201,7 +208,7 @@ namespace RTE {
 		/// Loads "Editor Scene" and starts the given editor Activity.
 		/// </summary>
 		/// <param name="editorToLaunch">The editor name to put into effect next time ResetActivity is called.</param>
-		void SetStartEditorActivity(const std::string_view &editorToLaunch);
+		void SetStartEditorActivity(const std::string_view& editorToLaunch);
 
 		/// <summary>
 		/// Launch editor Activity specified in command-line argument.
@@ -228,7 +235,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="activity">The new activity to start.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.<returns>
-		int StartActivity(Activity *activity);
+		int StartActivity(Activity* activity);
 
 		/// <summary>
 		/// Officially gets and starts the Activity described.
@@ -236,7 +243,7 @@ namespace RTE {
 		/// <param name="className">The class name of the Activity to start.</param>
 		/// <param name="presetName">The PresetName of the Activity to start.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int StartActivity(const std::string &className, const std::string &presetName);
+		int StartActivity(const std::string& className, const std::string& presetName);
 
 		/// <summary>
 		/// Pauses/unpauses the game and saving/resuming in-game music if possible, or queuing default music if not.
@@ -273,7 +280,6 @@ namespace RTE {
 #pragma endregion
 
 	private:
-
 		std::string m_DefaultActivityType; //!< The type name of the default Activity to be loaded if nothing else is available.
 		std::string m_DefaultActivityName; //!< The preset name of the default Activity to be loaded if nothing else is available.
 
@@ -301,8 +307,8 @@ namespace RTE {
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		ActivityMan(const ActivityMan &reference) = delete;
-		ActivityMan & operator=(const ActivityMan &rhs) = delete;
+		ActivityMan(const ActivityMan& reference) = delete;
+		ActivityMan& operator=(const ActivityMan& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

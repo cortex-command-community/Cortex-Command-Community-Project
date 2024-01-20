@@ -12,7 +12,9 @@ namespace RTE {
 
 		n = geta32(x);
 
-		if (n){ n++; }
+		if (n) {
+			n++;
+		}
 
 		res = ((x & 0xFF00FF) - (y & 0xFF00FF)) * n / 256 + y;
 		y &= 0xFF00;

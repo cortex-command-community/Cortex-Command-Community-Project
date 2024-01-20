@@ -3,9 +3,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Description:     Source file for the ThreadMan class.
 // Project:         Retro Terrain Engine
-// Author(s):       
-//                  
-//                  
+// Author(s):
+//
+//
 
 #include "ThreadMan.h"
 
@@ -22,97 +22,95 @@
 
 using namespace std;
 
-namespace RTE
-{
+namespace RTE {
 
-RenderableGameState::RenderableGameState() {
-    
-}
+	RenderableGameState::RenderableGameState() {
+	}
 
-RenderableGameState::~RenderableGameState() {}
+	RenderableGameState::~RenderableGameState() {}
 
-const std::string ThreadMan::m_ClassName = "ThreadMan";
+	const std::string ThreadMan::m_ClassName = "ThreadMan";
 
-void ThreadMan::Clear() {
-	m_GameStateModifiable.reset();
-	m_GameStateDrawable.reset();
-	m_NewSimFrame = false;
-    m_SimFunctions.clear();
-    m_RenderTarget = nullptr;
-    m_RenderOffset.Reset();
-    m_PriorityThreadPool.reset();
-	m_BackgroundThreadPool.reset(std::thread::hardware_concurrency() / 2);
-}
+	void ThreadMan::Clear() {
+		m_GameStateModifiable.reset();
+		m_GameStateDrawable.reset();
+		m_NewSimFrame = false;
+		m_SimFunctions.clear();
+		m_RenderTarget = nullptr;
+		m_RenderOffset.Reset();
+		m_PriorityThreadPool.reset();
+		m_BackgroundThreadPool.reset(std::thread::hardware_concurrency() / 2);
+	}
 
-int ThreadMan::Initialize() {
-    Clear();
-    m_GameStateModifiable.reset(new RenderableGameState());
-	m_GameStateDrawable.reset(new RenderableGameState());
-    
-	return 0;
-}
+	int ThreadMan::Initialize() {
+		Clear();
+		m_GameStateModifiable.reset(new RenderableGameState());
+		m_GameStateDrawable.reset(new RenderableGameState());
 
-void ThreadMan::Update() {
-    if (m_NewSimFrame) {
-        std::lock_guard<std::mutex> lock(m_GameStateCopyMutex);
+		return 0;
+	}
 
-        std::swap(m_GameStateDrawable, m_GameStateModifiable);
-        m_NewSimFrame = false;
-    }
-}
+	void ThreadMan::Update() {
+		if (m_NewSimFrame) {
+			std::lock_guard<std::mutex> lock(m_GameStateCopyMutex);
 
-void ThreadMan::TransferSimStateToRenderer() {
-    ZoneScoped;
+			std::swap(m_GameStateDrawable, m_GameStateModifiable);
+			m_NewSimFrame = false;
+		}
+	}
 
-    std::lock_guard<std::mutex> lock(m_GameStateCopyMutex);
+	void ThreadMan::TransferSimStateToRenderer() {
+		ZoneScoped;
 
-    // Copy game state into our current buffer
-    // TODO_MULTITHREAD: Remove as much of this as possible...
-    if (g_ActivityMan.IsInActivity()) {
-        m_GameStateModifiable->m_Activity = g_ActivityMan.GetActivity();
-        m_GameStateModifiable->m_Terrain = g_SceneMan.GetScene()->GetTerrain();
-        //m_GameStateModifiable->m_Activity.reset(dynamic_cast<Activity*>(g_ActivityMan.GetActivity()->Clone()));
-        //m_GameStateModifiable->m_Terrain.reset(dynamic_cast<SLTerrain*>(g_SceneMan.GetScene()->GetTerrain()->Clone()));
-    }
+		std::lock_guard<std::mutex> lock(m_GameStateCopyMutex);
 
-    std::swap(m_GameStateModifiable->m_RenderQueue, m_SimRenderQueue);
-    m_SimRenderQueue.clear();
+		// Copy game state into our current buffer
+		// TODO_MULTITHREAD: Remove as much of this as possible...
+		if (g_ActivityMan.IsInActivity()) {
+			m_GameStateModifiable->m_Activity = g_ActivityMan.GetActivity();
+			m_GameStateModifiable->m_Terrain = g_SceneMan.GetScene()->GetTerrain();
+			// m_GameStateModifiable->m_Activity.reset(dynamic_cast<Activity*>(g_ActivityMan.GetActivity()->Clone()));
+			// m_GameStateModifiable->m_Terrain.reset(dynamic_cast<SLTerrain*>(g_SceneMan.GetScene()->GetTerrain()->Clone()));
+		}
 
-    // TODO_MULTITHREAD: add post processing effects to RenderableGameState
-    // Clear the effects list for this frame
-    //m_PostScreenEffects.clear();
+		std::swap(m_GameStateModifiable->m_RenderQueue, m_SimRenderQueue);
+		m_SimRenderQueue.clear();
 
-    // Mark that we have a new sim frame, so we can swap rendered game state at the start of the new render
-    g_TimerMan.MarkNewSimUpdateComplete();
-    m_NewSimFrame = true;
-}
+		// TODO_MULTITHREAD: add post processing effects to RenderableGameState
+		// Clear the effects list for this frame
+		// m_PostScreenEffects.clear();
 
-void ThreadMan::QueueInSimulationThread(std::function<void(void)> funcToRun) {
-    std::lock_guard<std::mutex> lock(m_SimFunctionMutex);
+		// Mark that we have a new sim frame, so we can swap rendered game state at the start of the new render
+		g_TimerMan.MarkNewSimUpdateComplete();
+		m_NewSimFrame = true;
+	}
 
-    // If we're already queued, don't bother
-    auto itr = std::find_if(m_SimFunctions.begin(), m_SimFunctions.end(),
-        [&funcToRun](std::function<void(void)> &func) {
-            return funcToRun.target<void(*)(void)>() == func.target<void(*)(void)>();
-        });
+	void ThreadMan::QueueInSimulationThread(std::function<void(void)> funcToRun) {
+		std::lock_guard<std::mutex> lock(m_SimFunctionMutex);
 
-    if (itr != m_SimFunctions.end()) {
-        return;
-    }
+		// If we're already queued, don't bother
+		auto itr = std::find_if(m_SimFunctions.begin(), m_SimFunctions.end(),
+		                        [&funcToRun](std::function<void(void)>& func) {
+			                        return funcToRun.target<void (*)(void)>() == func.target<void (*)(void)>();
+		                        });
 
-    m_SimFunctions.push_back(funcToRun);
-}
+		if (itr != m_SimFunctions.end()) {
+			return;
+		}
 
-void ThreadMan::RunSimulationThreadFunctions() {
-    std::lock_guard<std::mutex> lock(m_SimFunctionMutex);
-    for (auto& func : m_SimFunctions) {
-        func();
-    }
-    m_SimFunctions.clear();
-}
+		m_SimFunctions.push_back(funcToRun);
+	}
 
-void ThreadMan::Destroy() {
-    Clear();
-}
+	void ThreadMan::RunSimulationThreadFunctions() {
+		std::lock_guard<std::mutex> lock(m_SimFunctionMutex);
+		for (auto& func: m_SimFunctions) {
+			func();
+		}
+		m_SimFunctions.clear();
+	}
+
+	void ThreadMan::Destroy() {
+		Clear();
+	}
 
 } // namespace RTE

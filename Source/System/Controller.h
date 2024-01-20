@@ -71,7 +71,6 @@ namespace RTE {
 	class Controller {
 
 	public:
-
 		Vector m_AnalogMove; //!< Analog values for movement.
 		Vector m_AnalogAim; //!< Analog values for aiming.
 		Vector m_AnalogCursor; //!< Analog values for Pie Menu operation.
@@ -96,20 +95,30 @@ namespace RTE {
 		/// </summary>
 		/// <param name="mode">The controller input mode, like AI, player etc.</param>
 		/// <param name="controlledActor">The Actor this is supposed to control. Ownership is NOT transferred!</param>
-		Controller(InputMode mode, Actor *controlledActor) { Clear(); Create(mode, controlledActor); }
+		Controller(InputMode mode, Actor* controlledActor) {
+			Clear();
+			Create(mode, controlledActor);
+		}
 
 		/// <summary>
 		/// Constructor method used to instantiate a Controller object in system memory. Create() should be called before using the object.
 		/// </summary>
 		/// <param name="mode">The controller input mode, like AI, player etc.</param>
 		/// <param name="player">Which human player is controlling this.</param>
-		Controller(InputMode mode, int player = Players::PlayerOne) { Clear(); Create(mode, player); }
+		Controller(InputMode mode, int player = Players::PlayerOne) {
+			Clear();
+			Create(mode, player);
+		}
 
 		/// <summary>
 		/// Copy constructor method used to instantiate a Controller object identical to an already existing one.
 		/// </summary>
 		/// <param name="reference">A Controller object which is passed in by reference.</param>
-		Controller(const Controller &reference) { if (this != &reference) { Create(reference); } }
+		Controller(const Controller& reference) {
+			if (this != &reference) {
+				Create(reference);
+			}
+		}
 
 		/// <summary>
 		/// Makes the Controller object ready for use.
@@ -117,7 +126,7 @@ namespace RTE {
 		/// <param name="mode">The controller input mode, like AI, player etc.</param>
 		/// <param name="controlledActor">The Actor this is supposed to control. Ownership is NOT transferred!</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(InputMode mode, Actor *controlledActor);
+		int Create(InputMode mode, Actor* controlledActor);
 
 		/// <summary>
 		/// Makes the Controller object ready for use.
@@ -125,14 +134,18 @@ namespace RTE {
 		/// <param name="mode">The controller input mode, like AI, player etc.</param>
 		/// <param name="player">Which player is controlling this.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(InputMode mode, int player) { m_InputMode = mode; m_Player = player; return 0; }
+		int Create(InputMode mode, int player) {
+			m_InputMode = mode;
+			m_Player = player;
+			return 0;
+		}
 
 		/// <summary>
 		/// Creates a Controller to be identical to another, by deep copy.
 		/// </summary>
 		/// <param name="reference">A reference to the Controller to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Controller &reference);
+		int Create(const Controller& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -160,7 +173,13 @@ namespace RTE {
 		/// Sets whether this is a disabled controller that doesn't give any new output.
 		/// </summary>
 		/// <param name="disabled">Disabled or not.</param>
-		void SetDisabled(bool disabled = true) { if (m_Disabled != disabled) { m_ReleaseTimer.Reset(); ResetCommandState(); } m_Disabled = disabled; }
+		void SetDisabled(bool disabled = true) {
+			if (m_Disabled != disabled) {
+				m_ReleaseTimer.Reset();
+				ResetCommandState();
+			}
+			m_Disabled = disabled;
+		}
 
 		/// <summary>
 		/// Shows whether the current controller is in a specific state.
@@ -174,7 +193,10 @@ namespace RTE {
 		/// </summary>
 		/// <param name="controlState>Which state to set.</param>
 		/// <param name="setting">Value of the state being set.</param>
-		void SetState(ControlState controlState, bool setting = true) { RTEAssert(controlState >= 0 && controlState < ControlState::CONTROLSTATECOUNT, "Control state out of whack"); m_ControlStates[controlState] = setting; };
+		void SetState(ControlState controlState, bool setting = true) {
+			RTEAssert(controlState >= 0 && controlState < ControlState::CONTROLSTATECOUNT, "Control state out of whack");
+			m_ControlStates[controlState] = setting;
+		};
 
 		/// <summary>
 		/// Gets the current mode of input for this Controller.
@@ -186,7 +208,12 @@ namespace RTE {
 		/// Sets the mode of input for this Controller.
 		/// </summary>
 		/// <param name="newMode">The new InputMode for this controller to use.</param>
-		void SetInputMode(InputMode newMode) { if (m_InputMode != newMode) { m_ReleaseTimer.Reset(); } m_InputMode = newMode; }
+		void SetInputMode(InputMode newMode) {
+			if (m_InputMode != newMode) {
+				m_ReleaseTimer.Reset();
+			}
+			m_InputMode = newMode;
+		}
 
 		/// <summary>
 		/// Gets the analog movement input data.
@@ -198,7 +225,7 @@ namespace RTE {
 		/// Sets the analog movement vector state of this.
 		/// </summary>
 		/// <param name="newMove">The new analog movement vector.</param>
-		void SetAnalogMove(const Vector &newMove) { m_AnalogMove = newMove; }
+		void SetAnalogMove(const Vector& newMove) { m_AnalogMove = newMove; }
 
 		/// <summary>
 		/// Gets the analog aiming input data.
@@ -210,7 +237,7 @@ namespace RTE {
 		/// Sets the analog aiming vector state of this.
 		/// </summary>
 		/// <param name="newAim">The new analog aiming vector.</param>
-		void SetAnalogAim(const Vector &newAim) { m_AnalogAim = newAim; }
+		void SetAnalogAim(const Vector& newAim) { m_AnalogAim = newAim; }
 
 		/// <summary>
 		/// Gets the analog menu input data.
@@ -222,14 +249,14 @@ namespace RTE {
 		/// Sets the analog cursor to the specified position.
 		/// </summary>
 		/// <param name="newAnalogCursor">The position the analog cursor should be set to.</param>
-		void SetAnalogCursor(const Vector &newAnalogCursor) { m_AnalogCursor = newAnalogCursor; }
+		void SetAnalogCursor(const Vector& newAnalogCursor) { m_AnalogCursor = newAnalogCursor; }
 
 		/// <summary>
 		/// Sets the analog cursor angle limits for the given player (does nothing for player -1). The limit end is always CCW from the limit start.
 		/// </summary>
 		/// <param name="angleLimitStart">The starting angle limit for the analog cursor.</param>
 		/// <param name="angleLimitEnd">The ending angle limit for the analog cursor.</param>
-		void SetAnalogCursorAngleLimits(float angleLimitStart, float angleLimitEnd) { m_AnalogCursorAngleLimits = { {angleLimitStart, angleLimitEnd}, true }; }
+		void SetAnalogCursorAngleLimits(float angleLimitStart, float angleLimitEnd) { m_AnalogCursorAngleLimits = {{angleLimitStart, angleLimitEnd}, true}; }
 
 		/// <summary>
 		/// Clears the analog cursor aim limits for the given player (does nothing for player -1).
@@ -242,7 +269,7 @@ namespace RTE {
 		/// <param name="cursorPos"> The vector to alter.</param>
 		/// <param name="moveScale">The scale of the input. 1.0 is 'normal'.</param>
 		/// <returns>Whether the vector was altered or not.</returns>
-		bool RelativeCursorMovement(Vector &cursorPos, float moveScale = 1.0F) const;
+		bool RelativeCursorMovement(Vector& cursorPos, float moveScale = 1.0F) const;
 
 		/// <summary>
 		/// Indicates whether this is listening to mouse input at all.
@@ -266,7 +293,7 @@ namespace RTE {
 		/// Gets the relative movement of the mouse since last update.
 		/// </summary>
 		/// <returns>The relative mouse movements, in both axes.</returns>
-		const Vector & GetMouseMovement() const { return m_MouseMovement; }
+		const Vector& GetMouseMovement() const { return m_MouseMovement; }
 
 		/// <summary>
 		/// Get the digital aim speed multiplier of the scheme associated with this Controller.
@@ -290,7 +317,12 @@ namespace RTE {
 		/// Sets which player's input this is listening to, and will enable player input mode.
 		/// </summary>
 		/// <param name="player">The player number.</param>
-		void SetPlayer(int player) { m_Player = player; if (m_Player >= Players::PlayerOne) { m_InputMode = InputMode::CIM_PLAYER; } }
+		void SetPlayer(int player) {
+			m_Player = player;
+			if (m_Player >= Players::PlayerOne) {
+				m_InputMode = InputMode::CIM_PLAYER;
+			}
+		}
 
 		/// <summary>
 		/// Gets the Team number using this controller.
@@ -308,13 +340,13 @@ namespace RTE {
 		/// Gets which Actor is being controlled by this. 0 if none.
 		/// </summary>
 		/// <returns>A pointer to the Actor which is being controlled by this. Ownership is NOT transferred!</returns>
-		Actor * GetControlledActor() const { return m_ControlledActor; }
+		Actor* GetControlledActor() const { return m_ControlledActor; }
 
 		/// <summary>
 		/// Sets which Actor is supposed to be controlled by this.
 		/// </summary>
 		/// <param name="controlledActor">A pointer to a an Actor which is being controlled by this. Ownership is NOT transferred!</param>
-		void SetControlledActor(Actor *controlledActor = nullptr) { m_ControlledActor = controlledActor; }
+		void SetControlledActor(Actor* controlledActor = nullptr) { m_ControlledActor = controlledActor; }
 
 		/// <summary>
 		/// Returns whether the AI should be updated this frame.
@@ -336,7 +368,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">A Controller reference.</param>
 		/// <returns>A reference to the changed Controller.</returns>
-		Controller & operator=(const Controller &rhs);
+		Controller& operator=(const Controller& rhs);
 #pragma endregion
 
 #pragma region Misc
@@ -349,7 +381,6 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
 		static constexpr int m_ReleaseDelay = 250; //!< The delay between releasing a menu button and activating the regular controls, to avoid accidental input.
 
 		std::array<bool, ControlState::CONTROLSTATECOUNT> m_ControlStates; //!< Control states.
@@ -357,7 +388,7 @@ namespace RTE {
 
 		InputMode m_InputMode; //!< The current controller input mode, like AI, player etc.
 
-		Actor *m_ControlledActor; //!< The actor controlled by this.
+		Actor* m_ControlledActor; //!< The actor controlled by this.
 
 		/// <summary>
 		/// The last player this controlled. This is necessary so we still have some control after controlled's death.
@@ -390,7 +421,6 @@ namespace RTE {
 		std::pair<std::pair<float, float>, bool> m_AnalogCursorAngleLimits; //!< Analog aim value limits, as well as whether or not the limit is actually enabled.
 
 	private:
-
 #pragma region Update Breakdown
 		/// <summary>
 		/// Updates the player's inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
@@ -424,5 +454,5 @@ namespace RTE {
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE
 #endif

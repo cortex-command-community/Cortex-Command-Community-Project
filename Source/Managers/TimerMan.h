@@ -16,12 +16,14 @@ namespace RTE {
 	class TimerMan : public Singleton<TimerMan> {
 
 	public:
-
 #pragma region Creation
 		/// <summary>
 		/// Constructor method used to instantiate a TimerMan object in system memory. Initialize() should be called before using this object.
 		/// </summary>
-		TimerMan() { Clear(); Initialize(); };
+		TimerMan() {
+			Clear();
+			Initialize();
+		};
 
 		/// <summary>
 		/// Makes the TimerMan object ready for use.
@@ -48,7 +50,11 @@ namespace RTE {
 		/// This also clears the accumulator, to avoid the case where the sim may update while paused when behind schedule.
 		/// </summary>
 		/// <param name="pause">Whether the sim should be paused or not.</param>
-		void PauseSim(bool pause = false) { m_SimPaused = pause; if(pause) m_SimAccumulator = 0.0F; }
+		void PauseSim(bool pause = false) {
+			m_SimPaused = pause;
+			if (pause)
+				m_SimAccumulator = 0.0F;
+		}
 
 		/// <summary>
 		/// Tells whether there is enough sim time accumulated to do at least one physics update.
@@ -120,7 +126,10 @@ namespace RTE {
 		/// Sets the number of ticks that a simulation update delta time should take.
 		/// </summary>
 		/// <param name="newDelta">The new delta time in ticks.</param>
-		void SetDeltaTimeTicks(int newDelta) { m_DeltaTime = newDelta; m_DeltaTimeS = static_cast<float>(m_DeltaTime) / static_cast<float>(m_TicksPerSecond); }
+		void SetDeltaTimeTicks(int newDelta) {
+			m_DeltaTime = newDelta;
+			m_DeltaTimeS = static_cast<float>(m_DeltaTime) / static_cast<float>(m_TicksPerSecond);
+		}
 
 		/// <summary>
 		/// Gets how long the last draw took, in seconds
@@ -162,7 +171,10 @@ namespace RTE {
 		/// Sets the number of seconds that a simulation update delta time should take.
 		/// </summary>
 		/// <param name="newDelta">The new delta time in seconds.</param>
-		void SetDeltaTimeSecs(float newDelta) { m_DeltaTimeS = newDelta; m_DeltaTime = static_cast<long long>(m_DeltaTimeS * static_cast<float>(m_TicksPerSecond)); }
+		void SetDeltaTimeSecs(float newDelta) {
+			m_DeltaTimeS = newDelta;
+			m_DeltaTime = static_cast<long long>(m_DeltaTimeS * static_cast<float>(m_TicksPerSecond));
+		}
 
 		/// <summary>
 		/// Returns the true update delta time, or how long has actually passed since the last update, in real time.
@@ -209,7 +221,6 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
 		std::chrono::steady_clock::time_point m_StartTime; //!< The point in real time when the simulation (re)started.
 		long long m_TicksPerSecond; //!< The frequency of ticks each second, ie the resolution of the timer.
 		volatile long long m_RealTimeTicks; //!< The number of actual microseconds counted so far.
@@ -232,15 +243,14 @@ namespace RTE {
 		std::atomic<bool> m_SimPaused; //!< Simulation paused; no real time ticks will go to the sim accumulator.
 
 	private:
-
 		/// <summary>
 		/// Clears all the member variables of this TimerMan, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		TimerMan(const TimerMan &reference) = delete;
-		TimerMan & operator=(const TimerMan &rhs) = delete;
+		TimerMan(const TimerMan& reference) = delete;
+		TimerMan& operator=(const TimerMan& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

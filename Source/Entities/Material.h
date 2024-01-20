@@ -13,7 +13,6 @@ namespace RTE {
 	class Material : public Entity {
 
 	public:
-
 		EntityAllocation(Material);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -28,21 +27,29 @@ namespace RTE {
 		/// Copy constructor method used to instantiate a Material object identical to an already existing one.
 		/// </summary>
 		/// <param name="reference">A Material object which is passed in by reference.</param>
-		Material(const Material &reference) { if (this != &reference) { Clear(); Create(reference); } }
+		Material(const Material& reference) {
+			if (this != &reference) {
+				Clear();
+				Create(reference);
+			}
+		}
 
 		/// <summary>
 		/// Creates a Material to be identical to another, by deep copy.
 		/// </summary>
 		/// <param name="reference">A reference to the Material to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const Material &reference);
+		int Create(const Material& reference);
 #pragma endregion
 
 #pragma region Destruction
 		/// <summary>
 		/// Resets the entire Material, including its inherited members, to it's default settings or values.
 		/// </summary>
-		void Reset() override { Clear(); Entity::Reset(); }
+		void Reset() override {
+			Clear();
+			Entity::Reset();
+		}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -50,13 +57,13 @@ namespace RTE {
 		/// Gets the foreground texture bitmap of this Material, if any is associated with it.
 		/// </summary>
 		/// <returns>Pointer to the foreground texture bitmap of this Material.</returns>
-		BITMAP * GetFGTexture() const { return m_TerrainFGTexture; }
+		BITMAP* GetFGTexture() const { return m_TerrainFGTexture; }
 
 		/// <summary>
 		/// Gets the background texture bitmap of this Material, if any is associated with it.
 		/// </summary>
 		/// <returns>Pointer to the background texture bitmap of this Material.</returns>
-		BITMAP * GetBGTexture() const { return m_TerrainBGTexture; }
+		BITMAP* GetBGTexture() const { return m_TerrainBGTexture; }
 
 		/// <summary>
 		/// Gets the index of this Material in the material palette.
@@ -155,11 +162,16 @@ namespace RTE {
 		/// </summary>
 		/// <param name="rhs">A Material reference.</param>
 		/// <returns>A reference to the changed Material.</returns>
-		Material & operator=(const Material &rhs) { if (this != &rhs) { Destroy(); Create(rhs); } return *this; }
+		Material& operator=(const Material& rhs) {
+			if (this != &rhs) {
+				Destroy();
+				Create(rhs);
+			}
+			return *this;
+		}
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		unsigned char m_Index; //!< Index of this in the material palette. 0 - 255.
@@ -187,15 +199,14 @@ namespace RTE {
 
 		ContentFile m_FGTextureFile; //!< The file pointing to the terrain foreground texture of this Material.
 		ContentFile m_BGTextureFile; //!< The file pointing to the terrain background texture of this Material.
-		BITMAP *m_TerrainFGTexture; //!< The foreground texture of this Material, used when building an SLTerrain. Not owned.
-		BITMAP *m_TerrainBGTexture; //!< The background texture of this Material, used when building an SLTerrain. Not owned.
+		BITMAP* m_TerrainFGTexture; //!< The foreground texture of this Material, used when building an SLTerrain. Not owned.
+		BITMAP* m_TerrainBGTexture; //!< The background texture of this Material, used when building an SLTerrain. Not owned.
 
 	private:
-
 		/// <summary>
 		/// Clears all the member variables of this Material, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
 	};
-}
+} // namespace RTE
 #endif

@@ -11,7 +11,6 @@ namespace RTE {
 	class MetaSave : public Entity {
 
 	public:
-
 		EntityAllocation(MetaSave);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -34,7 +33,7 @@ namespace RTE {
 		/// </summary>
 		/// <param name="reference">A reference to the MetaSave to deep copy.</param>
 		/// <returns>An error return value signaling success or any particular failure. Anything below 0 is an error signal.</returns>
-		int Create(const MetaSave &reference);
+		int Create(const MetaSave& reference);
 #pragma endregion
 
 #pragma region Destruction
@@ -47,7 +46,12 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the MetaSave object.
 		/// </summary>
 		/// <param name="notInherited">Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.</param>
-		void Destroy(bool notInherited = false) override { if (!notInherited) { Entity::Destroy(); } Clear(); }
+		void Destroy(bool notInherited = false) override {
+			if (!notInherited) {
+				Entity::Destroy();
+			}
+			Clear();
+		}
 #pragma endregion
 
 #pragma region Getters
@@ -83,9 +87,8 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
-	
+
 		std::string m_SavePath; //!< The full path to the ini file which stores the stat of MetaMan this is associated with.
 		int m_PlayerCount; //!< The number of players in this saved game.
 		int m_Difficulty; //!< Game difficulty.
@@ -93,15 +96,14 @@ namespace RTE {
 		int m_SiteCount; //!< The site count of this game.
 
 	private:
-
 		/// <summary>
 		/// Clears all the member variables of this MetaSave, effectively resetting the members of this abstraction level only.
 		/// </summary>
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		MetaSave(const MetaSave &reference) = delete;
-		MetaSave & operator=(const MetaSave &rhs) = delete;
+		MetaSave(const MetaSave& reference) = delete;
+		MetaSave& operator=(const MetaSave& rhs) = delete;
 	};
-}
+} // namespace RTE
 #endif

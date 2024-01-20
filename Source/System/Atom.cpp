@@ -16,14 +16,14 @@ namespace RTE {
 
 	const std::string Atom::c_ClassName = "Atom";
 	std::mutex Atom::s_MemoryPoolMutex;
-	std::vector<void *> Atom::s_AllocatedPool;
+	std::vector<void*> Atom::s_AllocatedPool;
 	int Atom::s_PoolAllocBlockCount = 200;
 	int Atom::s_InstancesInUse = 0;
 
 	// This forms a circle around the Atom's offset center, to check for mask color pixels in order to determine the normal at the Atom's position.
-	const int Atom::s_NormalChecks[c_NormalCheckCount][2] = { {0, -3}, {1, -3}, {2, -2}, {3, -1}, {3, 0}, {3, 1}, {2, 2}, {1, 3}, {0, 3}, {-1, 3}, {-2, 2}, {-3, 1}, {-3, 0}, {-3, -1}, {-2, -2}, {-1, -3} };
+	const int Atom::s_NormalChecks[c_NormalCheckCount][2] = {{0, -3}, {1, -3}, {2, -2}, {3, -1}, {3, 0}, {3, 1}, {2, 2}, {1, 3}, {0, 3}, {-1, 3}, {-2, 2}, {-3, 1}, {-3, 0}, {-3, -1}, {-2, -2}, {-1, -3}};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Atom::Clear() {
 		m_Offset.Reset();
@@ -61,13 +61,13 @@ namespace RTE {
 		// While an AtomGroup is travelling, the OnCollideWithTerrain Lua function can run, which will in turn force Create to run if it hasn't already.
 		// If this Create function adds to an AtomGroup (e.g. adds an Attachable to it), there will be problems.
 		// Setting these values in Clear doesn't help if Atoms are removed at this point, but helps if Atoms are added, since these values mean the added Atoms won't try to step forwards.
-		//m_Dom = 0;
-		//m_Delta[m_Dom] = 0;
+		// m_Dom = 0;
+		// m_Delta[m_Dom] = 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Atom::Create(const Vector &offset, Material const *material, MovableObject *owner, Color trailColor, int trailLength) {
+	int Atom::Create(const Vector& offset, Material const* material, MovableObject* owner, Color trailColor, int trailLength) {
 		m_Offset = m_OriginalOffset = offset;
 		// Use the offset as normal for now
 		m_Normal = m_Offset;
@@ -80,9 +80,9 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Atom::Create(const Atom &reference) {
+	int Atom::Create(const Atom& reference) {
 		m_Offset = reference.m_Offset;
 		m_OriginalOffset = reference.m_OriginalOffset;
 		m_Normal = reference.m_Normal;
@@ -99,11 +99,11 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Atom::ReadProperty(const std::string_view &propName, Reader &reader) {
+	int Atom::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
-		
+
 		MatchProperty("Offset", { reader >> m_Offset; });
 		MatchProperty("OriginalOffset", { reader >> m_OriginalOffset; });
 		MatchProperty("Material", {
@@ -111,19 +111,20 @@ namespace RTE {
 			mat.Reset();
 			reader >> mat;
 			m_Material = g_SceneMan.AddMaterialCopy(&mat);
-			if (!m_Material) { RTEAbort("Failed to store material \"" + mat.GetPresetName() + "\". Aborting!"); }
+			if (!m_Material) {
+				RTEAbort("Failed to store material \"" + mat.GetPresetName() + "\". Aborting!");
+			}
 		});
 		MatchProperty("TrailColor", { reader >> m_TrailColor; });
 		MatchProperty("TrailLength", { reader >> m_TrailLength; });
 		MatchProperty("TrailLengthVariation", { reader >> m_TrailLengthVariation; });
-		
-		
+
 		EndPropertyList;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Atom::Save(Writer &writer) const {
+	int Atom::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
 		writer.NewPropertyWithValue("Offset", m_Offset);
@@ -136,16 +137,18 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void * Atom::GetPoolMemory() {
+	void* Atom::GetPoolMemory() {
 		std::lock_guard<std::mutex> guard(s_MemoryPoolMutex);
 
 		// If the pool is empty, then fill it up again with as many instances as we are set to
-		if (s_AllocatedPool.empty()) { FillPool((s_PoolAllocBlockCount > 0) ? s_PoolAllocBlockCount : 10); }
+		if (s_AllocatedPool.empty()) {
+			FillPool((s_PoolAllocBlockCount > 0) ? s_PoolAllocBlockCount : 10);
+		}
 
 		// Get the instance in the top of the pool and pop it off
-		void *foundMemory = s_AllocatedPool.back();
+		void* foundMemory = s_AllocatedPool.back();
 		s_AllocatedPool.pop_back();
 
 		RTEAssert(foundMemory, "Could not find an available instance in the pool, even after increasing its size!");
@@ -156,11 +159,13 @@ namespace RTE {
 		return foundMemory;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Atom::FillPool(int fillAmount) {
 		// Default to the set block allocation size if fillAmount is 0
-		if (fillAmount <= 0) { fillAmount = s_PoolAllocBlockCount; }
+		if (fillAmount <= 0) {
+			fillAmount = s_PoolAllocBlockCount;
+		}
 
 		// If concrete class, fill up the pool with pre-allocated memory blocks the size of the type
 		if (fillAmount > 0) {
@@ -171,9 +176,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	int Atom::ReturnPoolMemory(void *returnedMemory) {
+	int Atom::ReturnPoolMemory(void* returnedMemory) {
 		if (!returnedMemory) {
 			return false;
 		}
@@ -187,9 +192,9 @@ namespace RTE {
 		return s_InstancesInUse;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool Atom::CalculateNormal(BITMAP *sprite, Vector spriteCenter) {
+	bool Atom::CalculateNormal(BITMAP* sprite, Vector spriteCenter) {
 		RTEAssert(sprite, "Trying to set up Atom normal without passing in bitmap");
 
 		// Can't set up a normal on an atom that doesn't have an offset from its parent's center
@@ -220,22 +225,22 @@ namespace RTE {
 		// Check whether the normal vector makes sense at all. It can't point against the offset, for example
 		if (m_Normal.Dot(m_Offset) < 0)
 		{
-			// Abort and revert to offset-based normal
-			m_Normal = m_Offset;
-			m_Normal.Normalize();
-			return false;
+		    // Abort and revert to offset-based normal
+		    m_Normal = m_Offset;
+		    m_Normal.Normalize();
+		    return false;
 		}
 		*/
 		return true;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Atom::IsIgnoringMOID(MOID whichMOID) {
 		if (whichMOID == m_IgnoreMOID) {
 			return true;
 		}
-		const MovableObject *hitMO = g_MovableMan.GetMOFromID(whichMOID);
+		const MovableObject* hitMO = g_MovableMan.GetMOFromID(whichMOID);
 		hitMO = hitMO ? hitMO->GetRootParent() : 0;
 
 		// First check if we are ignoring the team of the MO we hit, or if it's an AtomGroup and we're ignoring all those
@@ -243,7 +248,7 @@ namespace RTE {
 			if (m_OwnerMO->IgnoresTeamHits() && hitMO->IgnoresTeamHits() && m_OwnerMO->GetTeam() == hitMO->GetTeam()) {
 				return true;
 			}
-			if ((m_OwnerMO->IgnoresAtomGroupHits() && dynamic_cast<const MOSRotating *>(hitMO)) || (hitMO->IgnoresAtomGroupHits() && dynamic_cast<const MOSRotating *>(m_OwnerMO))) {
+			if ((m_OwnerMO->IgnoresAtomGroupHits() && dynamic_cast<const MOSRotating*>(hitMO)) || (hitMO->IgnoresAtomGroupHits() && dynamic_cast<const MOSRotating*>(m_OwnerMO))) {
 				return true;
 			}
 			if ((m_OwnerMO->GetIgnoresActorHits() && dynamic_cast<const Actor*>(hitMO)) || (hitMO->GetIgnoresActorHits() && dynamic_cast<const Actor*>(m_OwnerMO))) {
@@ -252,7 +257,7 @@ namespace RTE {
 		}
 		// Now check for explicit ignore
 		bool ignored = false;
-		for (const MOID &moid : m_IgnoreMOIDs) {
+		for (const MOID& moid: m_IgnoreMOIDs) {
 			if (moid == whichMOID) {
 				ignored = true;
 				break;
@@ -260,7 +265,7 @@ namespace RTE {
 		}
 		// Check in AtomGroup-owned list if it's assigned to this atom
 		if (!ignored && m_IgnoreMOIDsByGroup) {
-			for (const MOID &moid : *m_IgnoreMOIDsByGroup) {
+			for (const MOID& moid: *m_IgnoreMOIDsByGroup) {
 				if (moid == whichMOID) {
 					ignored = true;
 					break;
@@ -270,7 +275,7 @@ namespace RTE {
 		return ignored;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Atom::MOHitResponse() {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
@@ -309,7 +314,9 @@ namespace RTE {
 			}
 			m_LastHit.BitmapNormal.Normalize();
 
-			if (!m_Normal.IsZero()) { m_LastHit.BitmapNormal = -m_OwnerMO->RotateOffset(m_Normal); }
+			if (!m_Normal.IsZero()) {
+				m_LastHit.BitmapNormal = -m_OwnerMO->RotateOffset(m_Normal);
+			}
 
 			// Cancel collision response for this if it appears the collision is happening in the 'wrong' direction, meaning away from the center.
 			// This happens when things are sunk into each other, and thus getting 'hooked' on each other
@@ -327,8 +334,12 @@ namespace RTE {
 #endif
 
 			// Get the roots for both bodies
-			if (m_LastHit.Body[HITOR]) { m_LastHit.RootBody[HITOR] = m_LastHit.Body[HITOR]->GetRootParent(); }
-			if (m_LastHit.Body[HITEE]) { m_LastHit.RootBody[HITEE] = m_LastHit.Body[HITEE]->GetRootParent(); }
+			if (m_LastHit.Body[HITOR]) {
+				m_LastHit.RootBody[HITOR] = m_LastHit.Body[HITOR]->GetRootParent();
+			}
+			if (m_LastHit.Body[HITEE]) {
+				m_LastHit.RootBody[HITEE] = m_LastHit.Body[HITEE]->GetRootParent();
+			}
 
 			validHit = validHit && m_LastHit.Body[HITEE]->CollideAtPoint(m_LastHit);
 
@@ -338,9 +349,9 @@ namespace RTE {
 		return false;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	HitData & Atom::TerrHitResponse() {
+	HitData& Atom::TerrHitResponse() {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
 
 		if (m_TerrainMatHit) {
@@ -348,9 +359,9 @@ namespace RTE {
 			MID domMaterialID = g_MaterialAir;
 			MID subMaterialID = g_MaterialAir;
 			m_LastHit.HitMaterial[HITOR] = m_Material;
-			Material const *hitMaterial = m_LastHit.HitMaterial[HITEE] = g_SceneMan.GetMaterialFromID(hitMaterialID);
-			Material const *domMaterial = g_SceneMan.GetMaterialFromID(g_MaterialAir);
-			Material const *subMaterial = g_SceneMan.GetMaterialFromID(g_MaterialAir);
+			Material const* hitMaterial = m_LastHit.HitMaterial[HITEE] = g_SceneMan.GetMaterialFromID(hitMaterialID);
+			Material const* domMaterial = g_SceneMan.GetMaterialFromID(g_MaterialAir);
+			Material const* subMaterial = g_SceneMan.GetMaterialFromID(g_MaterialAir);
 			bool hit[2];
 			hit[X] = hit[Y] = false;
 			m_LastHit.BitmapNormal.Reset();
@@ -414,7 +425,7 @@ namespace RTE {
 		return m_LastHit;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Atom::SetupPos(Vector startPos) {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
@@ -432,7 +443,9 @@ namespace RTE {
 
 		if ((m_TerrainMatHit = g_SceneMan.GetTerrMatter(m_IntPos[X], m_IntPos[Y])) != g_MaterialAir) {
 			m_OwnerMO->SetHitWhatTerrMaterial(m_TerrainMatHit);
-			if (m_OwnerMO->IntersectionWarning()) { m_TerrainHitsDisabled = true; }
+			if (m_OwnerMO->IntersectionWarning()) {
+				m_TerrainHitsDisabled = true;
+			}
 		} else {
 			m_TerrainHitsDisabled = false;
 		}
@@ -440,7 +453,7 @@ namespace RTE {
 		return m_MOIDHit != g_NoMOID || m_TerrainMatHit != g_MaterialAir;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Atom::SetupSeg(Vector startPos, Vector trajectory, float stepRatio) {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
@@ -495,7 +508,7 @@ namespace RTE {
 		return m_Delta[m_Dom] - m_DomSteps;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool Atom::StepForward(int numSteps) {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
@@ -510,7 +523,9 @@ namespace RTE {
 
 			if (m_DomSteps < m_Delta[m_Dom]) {
 				++m_DomSteps;
-				if (m_SubStepped) { ++m_SubSteps; }
+				if (m_SubStepped) {
+					++m_SubSteps;
+				}
 				m_SubStepped = false;
 
 				m_IntPos[m_Dom] += m_Increment[m_Dom];
@@ -519,13 +534,13 @@ namespace RTE {
 					m_SubStepped = true;
 					m_Error -= m_Delta2[m_Dom];
 				}
-				//if (m_ChangedDir){
-					m_Error += m_Delta2[m_Sub];
+				// if (m_ChangedDir){
+				m_Error += m_Delta2[m_Sub];
 				//} else {
-					//m_Error = m_PrevError;
+				// m_Error = m_PrevError;
 				//}
 
-	// Scene wrapping, if necessary
+				// Scene wrapping, if necessary
 				g_SceneMan.WrapPosition(m_IntPos[X], m_IntPos[Y]);
 
 				// Detect terrain hits, if not disabled.
@@ -547,7 +562,9 @@ namespace RTE {
 				// Detect hits with non-ignored MO's, if enabled.
 				if (m_OwnerMO->m_HitsMOs) {
 					m_MOIDHit = g_SceneMan.GetMOIDPixel(m_IntPos[X], m_IntPos[Y], m_OwnerMO->GetTeam());
-					if (IsIgnoringMOID(m_MOIDHit)) { m_MOIDHit = g_NoMOID; }
+					if (IsIgnoringMOID(m_MOIDHit)) {
+						m_MOIDHit = g_NoMOID;
+					}
 
 					if (m_MOIDHit != g_NoMOID) {
 						if (!m_MOHitsDisabled) {
@@ -567,7 +584,7 @@ namespace RTE {
 			if (m_OwnerMO) {
 				abortString += "\nRoot owner is " + m_OwnerMO->GetPresetName() + ".";
 				if (m_SubgroupID != 0) {
-					const MovableObject *realOwner = g_MovableMan.FindObjectByUniqueID(m_SubgroupID);
+					const MovableObject* realOwner = g_MovableMan.FindObjectByUniqueID(m_SubgroupID);
 					abortString += " Owner is " + realOwner->GetPresetName() + ".";
 				}
 			}
@@ -579,7 +596,7 @@ namespace RTE {
 		return 0;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void Atom::StepBack() {
 		RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
@@ -604,7 +621,7 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
 		ZoneScoped;
@@ -613,11 +630,11 @@ namespace RTE {
 			RTEAbort("Traveling an Atom without a parent MO!");
 			return travelTime;
 		}
-		Vector &position = m_OwnerMO->m_Pos;
-		Vector &velocity = m_OwnerMO->m_Vel;
+		Vector& position = m_OwnerMO->m_Pos;
+		Vector& velocity = m_OwnerMO->m_Vel;
 		float mass = m_OwnerMO->GetMass();
 		float sharpness = m_OwnerMO->GetSharpness();
-		bool &didWrap = m_OwnerMO->m_DidWrap;
+		bool& didWrap = m_OwnerMO->m_DidWrap;
 		m_LastHit.Reset();
 
 		int hitCount = 0;
@@ -640,15 +657,15 @@ namespace RTE {
 		bool hit[2];
 		bool sinkHit;
 		bool subStepped;
-		//bool endOfTraj = false;
+		// bool endOfTraj = false;
 
-		const Material *hitMaterial = 0; //g_SceneMan.GetMaterialFromID(g_MaterialAir);
+		const Material* hitMaterial = 0; // g_SceneMan.GetMaterialFromID(g_MaterialAir);
 		unsigned char hitMaterialID = 0;
 
-		const Material *domMaterial = 0; //g_SceneMan.GetMaterialFromID(g_MaterialAir);
+		const Material* domMaterial = 0; // g_SceneMan.GetMaterialFromID(g_MaterialAir);
 		unsigned char domMaterialID = 0;
 
-		const Material *subMaterial = 0; //g_SceneMan.GetMaterialFromID(g_MaterialAir);
+		const Material* subMaterial = 0; // g_SceneMan.GetMaterialFromID(g_MaterialAir);
 		unsigned char subMaterialID = 0;
 
 		Vector segTraj;
@@ -666,7 +683,9 @@ namespace RTE {
 		position += m_Offset;
 
 		// Lock all bitmaps involved outside the loop.
-		if (!scenePreLocked) { g_SceneMan.LockScene(); }
+		if (!scenePreLocked) {
+			g_SceneMan.LockScene();
+		}
 
 		// Loop for all the different straight segments (between bounces etc) that have to be traveled during the timeLeft.
 		do {
@@ -675,7 +694,7 @@ namespace RTE {
 
 			// Get trail bitmap and put first pixel.
 			if (m_TrailLength) {
-				trailPoints.push_back({ intPos[X], intPos[Y] });
+				trailPoints.push_back({intPos[X], intPos[Y]});
 			}
 			// Compute and scale the actual on-screen travel trajectory for this segment, based on the velocity, the travel time and the pixels-per-meter constant.
 			segTraj = velocity * timeLeft * c_PPM;
@@ -684,14 +703,14 @@ namespace RTE {
 			delta[Y] = std::floor(position.m_Y + segTraj.m_Y) - intPos[Y];
 			RTEAssert(std::abs(delta[X]) < 2500 && std::abs(delta[Y] < 2500), "Extremely long difference trajectory found during Atom::Travel. Owner is " + m_OwnerMO->GetPresetName() + ", with Vel (" + std::to_string(velocity.GetX()) + ", " + std::to_string(velocity.GetY()) + ").");
 
-			//segProgress = 0.0F;
-			//delta2[X] = 0;
-			//delta2[Y] = 0;
-			//increment[X] = 0;
-			//increment[Y] = 0;
+			// segProgress = 0.0F;
+			// delta2[X] = 0;
+			// delta2[Y] = 0;
+			// increment[X] = 0;
+			// increment[Y] = 0;
 			hit[X] = false;
 			hit[Y] = false;
-			//domSteps = 0;
+			// domSteps = 0;
 			subSteps = 0;
 			subStepped = false;
 			sinkHit = false;
@@ -701,9 +720,9 @@ namespace RTE {
 				break;
 			}
 
-			//HitMaterial->Reset();
-			//domMaterial->Reset();
-			//subMaterial->Reset();
+			// HitMaterial->Reset();
+			// domMaterial->Reset();
+			// subMaterial->Reset();
 
 			// Bresenham's line drawing algorithm preparation
 			if (delta[X] < 0) {
@@ -740,18 +759,20 @@ namespace RTE {
 					++hitCount;
 					hit[X] = hit[Y] = true;
 					if (g_SceneMan.TryPenetrate(intPos[X], intPos[Y], velocity * mass * sharpness, velocity, retardation, 0.5F, m_NumPenetrations, removeOrphansRadius, removeOrphansMaxArea, removeOrphansRate)) {
-						//segProgress = 0.0F;
+						// segProgress = 0.0F;
 						velocity += velocity * retardation;
 						continue;
 					} else {
-						//segProgress = 1.0F;
+						// segProgress = 1.0F;
 						velocity.SetXY(0, 0);
 						timeLeft = 0.0F;
 						break;
 					}
 				}
 
-				if (subStepped) { ++subSteps; }
+				if (subStepped) {
+					++subSteps;
+				}
 				subStepped = false;
 
 				intPos[dom] += increment[dom];
@@ -778,7 +799,9 @@ namespace RTE {
 
 					// Back up so the Atom is not inside the MO.
 					intPos[dom] -= increment[dom];
-					if (subStepped) { intPos[sub] -= increment[sub]; }
+					if (subStepped) {
+						intPos[sub] -= increment[sub];
+					}
 
 					m_LastHit.Reset();
 					m_LastHit.TotalMass[HITOR] = mass;
@@ -786,12 +809,14 @@ namespace RTE {
 					m_LastHit.MomInertia[HITOR] = 1.0F;
 					m_LastHit.ImpulseFactor[HITOR] = 1.0F;
 					m_LastHit.ImpulseFactor[HITEE] = 1.0F;
-					//m_LastHit.HitPoint = Vector(hitPos[X], hitPos[Y]);
+					// m_LastHit.HitPoint = Vector(hitPos[X], hitPos[Y]);
 					m_LastHit.HitVel[HITOR] = velocity;
 
-					MovableObject *MO = g_MovableMan.GetMOFromID(m_MOIDHit);
+					MovableObject* MO = g_MovableMan.GetMOFromID(m_MOIDHit);
 
-					if (MO) { MO->SetHitWhatParticleUniqueID(m_OwnerMO->GetUniqueID()); }
+					if (MO) {
+						MO->SetHitWhatParticleUniqueID(m_OwnerMO->GetUniqueID());
+					}
 
 					m_LastHit.Body[HITOR] = m_OwnerMO;
 					m_LastHit.Body[HITEE] = MO;
@@ -803,13 +828,13 @@ namespace RTE {
 
 					// Don't do this normal approximation based on object centers, it causes particles to 'slide into' sprite objects when they should be resting on them.
 					// Orthogonal normals only, as the pixel boundaries themselves! See further down for the setting of this.
-					//m_LastHit.BitmapNormal = m_LastHit.Body[HITOR]->GetPos() - m_LastHit.Body[HITEE]->GetPos();
-					//m_LastHit.BitmapNormal.Normalize();
+					// m_LastHit.BitmapNormal = m_LastHit.Body[HITOR]->GetPos() - m_LastHit.Body[HITEE]->GetPos();
+					// m_LastHit.BitmapNormal.Normalize();
 
 					// Gold special collection case!
 					// TODO: Make material IDs more robust!")
 					if (m_Material->GetIndex() == c_GoldMaterialID && g_MovableMan.IsOfActor(m_MOIDHit)) {
-						if (Actor *actor = dynamic_cast<Actor *>(g_MovableMan.GetMOFromID(m_LastHit.Body[HITEE]->GetRootID())); actor && !actor->IsDead()) {
+						if (Actor* actor = dynamic_cast<Actor*>(g_MovableMan.GetMOFromID(m_LastHit.Body[HITEE]->GetRootID())); actor && !actor->IsDead()) {
 							actor->AddGold(m_OwnerMO->GetMass() * g_SceneMan.GetOzPerKg() * removeOrphansRadius ? 1.25F : 1.0F);
 							m_OwnerMO->SetToDelete(true);
 							// This is to break out of the do-while and the function properly.
@@ -867,7 +892,9 @@ namespace RTE {
 
 				// If there was no MO collision detected, then check for terrain hits.
 				else if ((hitMaterialID = g_SceneMan.GetTerrMatter(intPos[X], intPos[Y])) && !m_OwnerMO->m_IgnoreTerrain) {
-					if (hitMaterialID != g_MaterialAir) { m_OwnerMO->SetHitWhatTerrMaterial(hitMaterialID); }
+					if (hitMaterialID != g_MaterialAir) {
+						m_OwnerMO->SetHitWhatTerrMaterial(hitMaterialID);
+					}
 
 					hitMaterial = g_SceneMan.GetMaterialFromID(hitMaterialID);
 					hitPos[X] = intPos[X];
@@ -891,14 +918,16 @@ namespace RTE {
 
 						// Back up so the Atom is not inside the terrain.
 						intPos[dom] -= increment[dom];
-						if (subStepped) { intPos[sub] -= increment[sub]; }
+						if (subStepped) {
+							intPos[sub] -= increment[sub];
+						}
 
 						// Undo scene wrapping, if necessary
 						g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
 
 						// Check if particle is sticky and should adhere to where it collided
 						if (!m_OwnerMO->IsMissionCritical() && velocity.MagnitudeIsGreaterThan(1.0F)) {
-							MOPixel *ownerMOAsPixel = dynamic_cast<MOPixel *>(m_OwnerMO);
+							MOPixel* ownerMOAsPixel = dynamic_cast<MOPixel*>(m_OwnerMO);
 							if (RandomNum() < std::max(m_Material->GetStickiness(), ownerMOAsPixel ? ownerMOAsPixel->GetStaininess() : 0.0f)) {
 								// Weighted random select between stickiness or staininess
 								const float randomChoice = RandomNum(0.0f, m_Material->GetStickiness() + (ownerMOAsPixel ? ownerMOAsPixel->GetStaininess() : 0.0f));
@@ -908,7 +937,7 @@ namespace RTE {
 									m_OwnerMO->SetToDelete(true);
 									m_LastHit.Terminate[HITOR] = hit[dom] = hit[sub] = true;
 									break;
-								} else if (MOPixel *ownerMOAsPixel = dynamic_cast<MOPixel *>(m_OwnerMO); ownerMOAsPixel && randomChoice <= m_Material->GetStickiness() + ownerMOAsPixel->GetStaininess()) {
+								} else if (MOPixel* ownerMOAsPixel = dynamic_cast<MOPixel*>(m_OwnerMO); ownerMOAsPixel && randomChoice <= m_Material->GetStickiness() + ownerMOAsPixel->GetStaininess()) {
 									Vector stickPos(intPos[X], intPos[Y]);
 									stickPos += velocity * (c_PPM * g_TimerMan.GetDeltaTimeSecs()) * RandomNum();
 									int terrainMaterialID = g_SceneMan.GetTerrain()->GetMaterialPixel(stickPos.GetFloorIntX(), stickPos.GetFloorIntY());
@@ -948,7 +977,7 @@ namespace RTE {
 						// If hit right on the corner of a pixel, bounce straight back with no friction.
 						if (!hit[dom] && !hit[sub]) {
 							hit[dom] = true;
-							hitAccel[dom] = -velocity[dom] - velocity[dom] * m_Material->GetRestitution() *  hitMaterial->GetRestitution();
+							hitAccel[dom] = -velocity[dom] - velocity[dom] * m_Material->GetRestitution() * hitMaterial->GetRestitution();
 							hit[sub] = true;
 							hitAccel[sub] = -velocity[sub] - velocity[sub] * m_Material->GetRestitution() * hitMaterial->GetRestitution();
 						} else if (hit[dom] && !hit[sub]) {
@@ -959,7 +988,7 @@ namespace RTE {
 						}
 					}
 				} else if (m_TrailLength) {
-					trailPoints.push_back({ intPos[X], intPos[Y] });
+					trailPoints.push_back({intPos[X], intPos[Y]});
 				}
 
 				///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -969,14 +998,14 @@ namespace RTE {
 				if ((hit[X] || hit[Y]) && !m_LastHit.Terminate[HITOR]) {
 					// Calculate the progress made on this segment before hitting something.
 					// We count the hitting step made if it resulted in a terrain sink, because the Atoms weren't stepped back out of intersection.
-					//segProgress = static_cast<float>(domSteps + sinkHit) / static_cast<float>(delta[dom]);
+					// segProgress = static_cast<float>(domSteps + sinkHit) / static_cast<float>(delta[dom]);
 					segProgress = (static_cast<float>(domSteps + static_cast<int>(sinkHit)) < delta[dom]) ? (static_cast<float>(domSteps + static_cast<int>(sinkHit)) / std::fabs(static_cast<float>(segTraj[dom]))) : 1.0F;
 
 					// Now calculate the total time left to travel, according to the progress made.
 					timeLeft -= timeLeft * segProgress;
 
 					// Move position forward to the hit position.
-					//position += segTraj * segProgress;
+					// position += segTraj * segProgress;
 					// Only move the dom forward by int domSteps, so we don't cross into a pixel too far
 					position[dom] += (domSteps + static_cast<int>(sinkHit)) * increment[dom];
 
@@ -997,7 +1026,7 @@ namespace RTE {
 			}
 		} while ((hit[X] || hit[Y]) && /* !segTraj.GetFloored().IsZero() && */ hitCount < 100 && !m_LastHit.Terminate[HITOR]);
 
-		//RTEAssert(hitCount < 100, "Atom travel resulted in more than 100 segments!!");
+		// RTEAssert(hitCount < 100, "Atom travel resulted in more than 100 segments!!");
 
 		// Draw the trail
 		int trailColorIndex = m_TrailColor.GetIndex();
@@ -1012,7 +1041,7 @@ namespace RTE {
 
 				int endPoint = lastTrailPoints.size() + (trailPoints.size() * interpolationAmount);
 				std::vector<std::pair<int, int>> allTrailPoints = lastTrailPoints;
-				allTrailPoints.insert(allTrailPoints.end(), trailPoints.begin(), trailPoints.end() );
+				allTrailPoints.insert(allTrailPoints.end(), trailPoints.begin(), trailPoints.end());
 				for (int i = endPoint - std::min(length, static_cast<int>(endPoint)); i < endPoint; ++i) {
 					Vector spritePos(allTrailPoints[i].first, allTrailPoints[i].second);
 					Vector renderPos = spritePos - g_ThreadMan.GetRenderOffset();
@@ -1025,13 +1054,17 @@ namespace RTE {
 		}
 
 		// Unlock all bitmaps involved.
-		if (!scenePreLocked) { g_SceneMan.UnlockScene(); }
+		if (!scenePreLocked) {
+			g_SceneMan.UnlockScene();
+		}
 
 		// Extract Atom offset.
 		position -= m_Offset;
 
 		// Travel along the remaining segTraj.
-		if (!(hit[X] || hit[Y]) && autoTravel) { position += segTraj; }
+		if (!(hit[X] || hit[Y]) && autoTravel) {
+			position += segTraj;
+		}
 
 		didWrap = g_SceneMan.WrapPosition(position) || didWrap;
 
@@ -1040,7 +1073,7 @@ namespace RTE {
 		return hitCount;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void HitData::Clear() {
 		HitPoint.Reset();
@@ -1064,9 +1097,9 @@ namespace RTE {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	HitData & HitData::operator=(const HitData &rhs) {
+	HitData& HitData::operator=(const HitData& rhs) {
 		if (this == &rhs) {
 			return *this;
 		}
@@ -1093,4 +1126,4 @@ namespace RTE {
 		}
 		return *this;
 	}
-}
+} // namespace RTE
