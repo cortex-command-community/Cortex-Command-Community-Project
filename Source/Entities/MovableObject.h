@@ -765,7 +765,7 @@ namespace RTE {
 		/// Returns Impulse vector in newtons of the specified Impulse record.
 		/// @param n Impulse record index to get data from.
 		/// @return Impulse vector in newtons of the specified Impulse record.
-		Vector GetImpulseVector(int n) {
+		Vector GetImpulseVector(unsigned int n) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				return m_ImpulseForces[n].first;
 			else
@@ -785,7 +785,7 @@ namespace RTE {
 		/// Returns offset vector in METERS (not pixels) of the specified Impulse record.
 		/// @param n Impulse record index to get data from.
 		/// @return Offset vector in meters of the specified Impulse record.
-		void SetImpulseVector(int n, Vector v) {
+		void SetImpulseVector(unsigned int n, Vector v) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				m_ImpulseForces[n].first = v;
 		}
