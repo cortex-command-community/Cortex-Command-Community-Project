@@ -2,7 +2,6 @@
 
 using namespace RTE;
 
-
 GUIFont::GUIFont(const std::string& Name) {
 	m_Screen = nullptr;
 	m_Font = nullptr;
@@ -18,7 +17,6 @@ GUIFont::GUIFont(const std::string& Name) {
 
 	m_CharIndexCap = 256;
 }
-
 
 bool GUIFont::Load(GUIScreen* Screen, const std::string& Filename) {
 	assert(Screen);
@@ -105,7 +103,6 @@ bool GUIFont::Load(GUIScreen* Screen, const std::string& Filename) {
 	return true;
 }
 
-
 void GUIFont::Draw(GUIBitmap* Bitmap, int X, int Y, const std::string& Text, unsigned long Shadow) {
 	unsigned char c;
 	GUIRect Rect;
@@ -159,7 +156,6 @@ void GUIFont::Draw(GUIBitmap* Bitmap, int X, int Y, const std::string& Text, uns
 		X += CharWidth + m_Kerning;
 	}
 }
-
 
 void GUIFont::DrawAligned(GUIBitmap* Bitmap, int X, int Y, const std::string& Text, int HAlign, int VAlign, int MaxWidth, unsigned long Shadow) {
 	std::string TextLine = Text;
@@ -241,7 +237,6 @@ void GUIFont::DrawAligned(GUIBitmap* Bitmap, int X, int Y, const std::string& Te
 	}
 }
 
-
 void GUIFont::SetColor(unsigned long Color) {
 	// Only check the change if the color is different
 	if (Color != m_CurrentColor) {
@@ -256,7 +251,6 @@ void GUIFont::SetColor(unsigned long Color) {
 		}
 	}
 }
-
 
 int GUIFont::CalculateWidth(const std::string& Text) {
 	unsigned char c;
@@ -294,14 +288,12 @@ int GUIFont::CalculateWidth(const std::string& Text) {
 	return WidestLine;
 }
 
-
 int GUIFont::CalculateWidth(const char Character) {
 	if (Character >= 32 && Character < m_CharIndexCap) {
 		return m_Characters[Character].m_Width + m_Kerning;
 	}
 	return 0;
 }
-
 
 int GUIFont::CalculateHeight(const std::string& Text, int MaxWidth) {
 	if (Text.empty()) {
@@ -345,7 +337,6 @@ int GUIFont::CalculateHeight(const std::string& Text, int MaxWidth) {
 	return Height;
 }
 
-
 void GUIFont::CacheColor(unsigned long Color) {
 	// Make sure we haven't already cached this color and it isn't a 0 color
 	if (GetFontColor(Color) != nullptr || !Color) {
@@ -382,7 +373,6 @@ void GUIFont::CacheColor(unsigned long Color) {
 	m_ColorCache.push_back(FC);
 }
 
-
 GUIFont::FontColor* GUIFont::GetFontColor(unsigned long Color) {
 	std::vector<FontColor>::iterator it;
 	FontColor* F = nullptr;
@@ -398,21 +388,17 @@ GUIFont::FontColor* GUIFont::GetFontColor(unsigned long Color) {
 	return nullptr;
 }
 
-
 int GUIFont::GetFontHeight() const {
 	return m_FontHeight;
 }
-
 
 std::string GUIFont::GetName() const {
 	return m_Name;
 }
 
-
 int GUIFont::GetKerning() const {
 	return m_Kerning;
 }
-
 
 void GUIFont::Destroy() {
 	if (m_Font) {

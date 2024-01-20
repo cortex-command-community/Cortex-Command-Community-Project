@@ -287,7 +287,6 @@ namespace RTE {
 		return m_AvgImpulse * throttleFactor;
 	}
 
-
 	float AEmitter::GetTotalParticlesPerMinute() const {
 		float totalPPM = 0;
 		for (const Emission& emission: m_EmissionList) {
@@ -295,7 +294,6 @@ namespace RTE {
 		}
 		return totalPPM;
 	}
-
 
 	int AEmitter::GetTotalBurstSize() const {
 		int totalBurstSize = 0;
@@ -305,12 +303,10 @@ namespace RTE {
 		return totalBurstSize;
 	}
 
-
 	float AEmitter::GetScaledThrottle(float throttle, float multiplier) const {
 		float throttleFactor = LERP(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, throttle);
 		return LERP(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor * multiplier);
 	}
-
 
 	void AEmitter::SetFlash(Attachable* newFlash) {
 		if (m_pFlash && m_pFlash->IsAttached()) {
@@ -335,7 +331,6 @@ namespace RTE {
 			m_pFlash->SetCollidesWithTerrainWhileAttached(false);
 		}
 	}
-
 
 	void AEmitter::Update() {
 		Attachable::PreUpdate();

@@ -6,11 +6,11 @@
 #include "SceneObject.h"
 #include "Loadout.h"
 #include "ACraft.h"
-//#include "AHuman.h"
-//#include "MOPixel.h"
-//#include "SLTerrain.h"
-//#include "AtomGroup.h"
-//#include "Atom.h"
+// #include "AHuman.h"
+// #include "MOPixel.h"
+// #include "SLTerrain.h"
+// #include "AtomGroup.h"
+// #include "Atom.h"
 
 #include "ConsoleMan.h"
 #include "LoadingScreen.h"
@@ -61,7 +61,6 @@ namespace RTE {
 		Clear();
 	}
 
-
 	bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, bool userdata, const ProgressCallback& progressCallback) {
 		if (moduleName.empty()) {
 			return false;
@@ -110,7 +109,6 @@ namespace RTE {
 		newModule = nullptr;
 		return true;
 	}
-
 
 	bool PresetMan::LoadAllDataModules() {
 		auto moduleLoadTimerStart = std::chrono::steady_clock::now();
@@ -232,7 +230,6 @@ namespace RTE {
 		return -1;
 	}
 
-
 	std::string PresetMan::GetModuleNameFromPath(const std::string& dataPath) const {
 		if (dataPath.empty()) {
 			return "";
@@ -255,7 +252,6 @@ namespace RTE {
 		return moduleName;
 	}
 
-
 	int PresetMan::GetModuleIDFromPath(const std::string& dataPath) {
 		if (dataPath.empty()) {
 			return -1;
@@ -263,11 +259,9 @@ namespace RTE {
 		return GetModuleID(GetModuleNameFromPath(dataPath));
 	}
 
-
 	bool PresetMan::IsModuleOfficial(const std::string& moduleName) const {
 		return std::find(c_OfficialModules.begin(), c_OfficialModules.end(), moduleName) != c_OfficialModules.end();
 	}
-
 
 	bool PresetMan::IsModuleUserdata(const std::string& moduleName) const {
 		auto userdataModuleItr = std::find_if(c_UserdataModules.begin(), c_UserdataModules.end(),
@@ -276,7 +270,6 @@ namespace RTE {
 		                                      });
 		return userdataModuleItr != c_UserdataModules.end();
 	}
-
 
 	std::string PresetMan::GetFullModulePath(const std::string& modulePath) const {
 		// Note: Mods may use mixed path separators, which aren't supported on non Windows systems.
@@ -463,7 +456,6 @@ namespace RTE {
 		return foundAny;
 	}
 
-
 	bool PresetMan::GetAllOfGroups(std::list<Entity*>& entityList, const std::vector<std::string>& groups, const std::string& type, int whichModule) {
 		RTEAssert(!groups.empty(), "Looking for empty groups in PresetMan::GetAllOfGroups!");
 		bool foundAny = false;
@@ -478,7 +470,6 @@ namespace RTE {
 		}
 		return foundAny;
 	}
-
 
 	bool PresetMan::GetAllNotOfGroups(std::list<Entity*>& entityList, const std::vector<std::string>& groups, const std::string& type, int whichModule) {
 		if (groups.empty()) {
@@ -716,7 +707,6 @@ namespace RTE {
 		return pRetPath;
 	}
 
-
 	void PresetMan::ReloadAllScripts() const {
 		g_LuaMan.ClearUserModuleCache();
 		for (const DataModule* dataModule: m_pDataModules) {
@@ -725,7 +715,6 @@ namespace RTE {
 		g_MovableMan.ReloadLuaScripts();
 		g_ConsoleMan.PrintString("SYSTEM: Scripts reloaded!");
 	}
-
 
 	bool PresetMan::ReloadEntityPreset(const std::string& presetName, const std::string& className, const std::string& moduleName, bool storeReloadedPresetDataForQuickReloading) {
 		if (className.empty() || presetName.empty()) {
@@ -773,7 +762,6 @@ namespace RTE {
 		}
 		return true;
 	}
-
 
 	bool PresetMan::QuickReloadEntityPreset() {
 		for (const std::string& entityPresetInfoEntry: m_LastReloadedEntityPresetInfo) {
@@ -915,7 +903,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	void PresetMan::FindAndExtractZippedModules() const {
 		for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(System::GetWorkingDirectory() + System::GetModDirectory())) {

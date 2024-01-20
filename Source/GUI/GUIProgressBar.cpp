@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUIProgressBar::GUIProgressBar(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "PROGRESSBAR";
@@ -15,7 +14,6 @@ GUIProgressBar::GUIProgressBar(GUIManager* Manager, GUIControlManager* ControlMa
 	m_Minimum = 0;
 	m_Maximum = 100;
 }
-
 
 void GUIProgressBar::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -46,7 +44,6 @@ void GUIProgressBar::Create(const std::string& Name, int X, int Y, int Width, in
 	m_Height = std::max(m_Height, m_MinHeight);
 }
 
-
 void GUIProgressBar::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
@@ -74,7 +71,6 @@ void GUIProgressBar::Create(GUIProperties* Props) {
 	m_Value = std::min(m_Value, m_Maximum);
 }
 
-
 void GUIProgressBar::Destroy() {
 	// Destroy the drawing bitmap
 	if (m_DrawBitmap) {
@@ -91,14 +87,12 @@ void GUIProgressBar::Destroy() {
 	}
 }
 
-
 void GUIProgressBar::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the progressbar bitmap
 	BuildBitmap();
 }
-
 
 void GUIProgressBar::BuildBitmap() {
 	// Free any old bitmaps
@@ -157,7 +151,6 @@ void GUIProgressBar::BuildBitmap() {
 	m_Skin->GetValue("ProgressBar_Indicator", "Spacing", &m_Spacing);
 }
 
-
 void GUIProgressBar::Draw(GUIScreen* Screen) {
 	// Draw the base
 	Screen->DrawBitmap(m_DrawBitmap, m_X, m_Y, nullptr);
@@ -194,11 +187,9 @@ void GUIProgressBar::Draw(GUIScreen* Screen) {
 	GUIPanel::Draw(Screen);
 }
 
-
 void GUIProgressBar::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	CaptureMouse();
 }
-
 
 void GUIProgressBar::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
@@ -207,19 +198,15 @@ void GUIProgressBar::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	}
 }
 
-
 void GUIProgressBar::OnMouseMove(int X, int Y, int Buttons, int Modifier) {}
-
 
 GUIPanel* GUIProgressBar::GetPanel() {
 	return this;
 }
 
-
 void GUIProgressBar::Move(int X, int Y) {
 	GUIPanel::SetPositionAbs(X, Y);
 }
-
 
 void GUIProgressBar::Resize(int Width, int Height) {
 	// Make sure the control isn't too small
@@ -232,18 +219,15 @@ void GUIProgressBar::Resize(int Width, int Height) {
 	BuildBitmap();
 }
 
-
 void GUIProgressBar::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
-
 
 void GUIProgressBar::StoreProperties() {
 	m_Properties.AddVariable("Minimum", m_Minimum);
 	m_Properties.AddVariable("Maximum", m_Maximum);
 	m_Properties.AddVariable("Value", m_Value);
 }
-
 
 void GUIProgressBar::SetValue(int Value) {
 	int OldValue = m_Value;
@@ -259,31 +243,25 @@ void GUIProgressBar::SetValue(int Value) {
 	}
 }
 
-
 int GUIProgressBar::GetValue() const {
 	return m_Value;
 }
-
 
 void GUIProgressBar::SetMinimum(int Minimum) {
 	m_Minimum = Minimum;
 }
 
-
 int GUIProgressBar::GetMinimum() const {
 	return m_Minimum;
 }
-
 
 void GUIProgressBar::SetMaximum(int Maximum) {
 	m_Maximum = Maximum;
 }
 
-
 int GUIProgressBar::GetMaximum() const {
 	return m_Maximum;
 }
-
 
 void GUIProgressBar::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);

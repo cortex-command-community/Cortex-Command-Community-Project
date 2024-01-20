@@ -333,7 +333,6 @@ namespace RTE {
 		return prog / m_RegularLength;
 	}
 
-
 	int LimbPath::GetCurrentSegmentNumber() const {
 		int progress = 0;
 		if (!m_Ended && !IsStaticPoint()) {
@@ -343,7 +342,6 @@ namespace RTE {
 		}
 		return progress;
 	}
-
 
 	void LimbPath::SetSpeed(int newSpeed) {
 		if (newSpeed <= SLOW)

@@ -16,7 +16,6 @@
 
 namespace RTE {
 
-
 	void ConsoleMan::Clear() {
 		m_ConsoleState = ConsoleState::Disabled;
 		m_ReadOnly = false;
@@ -36,7 +35,6 @@ namespace RTE {
 
 		m_ConsoleUseMonospaceFont = false;
 	}
-
 
 	int ConsoleMan::Initialize() {
 		if (!m_GUIScreen) {
@@ -79,7 +77,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	void ConsoleMan::Destroy() {
 		if (!g_WindowMan.ResolutionChanged()) {
 			SaveAllText("LogConsole.txt");
@@ -99,7 +96,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ConsoleMan::SetEnabled(bool enable) {
 		if (enable && m_ConsoleState != ConsoleState::Enabled && m_ConsoleState != ConsoleState::Enabling) {
 			m_ConsoleState = ConsoleState::Enabling;
@@ -110,7 +106,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ConsoleMan::SetReadOnly() {
 		if (!m_ReadOnly) {
 			// Save the current input string before changing to the read-only notice so we can restore it when switching back
@@ -120,7 +115,6 @@ namespace RTE {
 			SetEnabled(true);
 		}
 	}
-
 
 	void ConsoleMan::SetConsoleScreenSize(float screenRatio) {
 		m_ConsoleScreenRatio = Limit(screenRatio, 1.0F, 0.1F);
@@ -136,14 +130,12 @@ namespace RTE {
 		m_InputTextBox->Resize(m_ParentBox->GetWidth() - 3, m_InputTextBox->GetHeight());
 	}
 
-
 	void ConsoleMan::SetConsoleUseMonospaceFont(bool useFont) {
 		m_ConsoleUseMonospaceFont = useFont;
 		if (m_GUIControlManager) {
 			m_GUIControlManager->ChangeSkin("Base.rte/GUIs/Skins/Menus", m_ConsoleUseMonospaceFont ? "ConsoleMonospaceSkin.ini" : "ConsoleSkin.ini");
 		}
 	}
-
 
 	void ConsoleMan::AddLoadWarningLogExtensionMismatchEntry(const std::string& pathToLog, const std::string& readerPosition, const std::string& altFileExtension) {
 		const std::string pathAndAccessLocation = "\"" + pathToLog + "\" referenced " + readerPosition + ". ";
@@ -158,7 +150,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ConsoleMan::SaveLoadWarningLog(const std::string& filePath) {
 		Writer logWriter(filePath.c_str());
 		if (logWriter.WriterOK()) {
@@ -170,7 +161,6 @@ namespace RTE {
 			PrintString("SYSTEM: Loading warning log saved to " + filePath);
 		}
 	}
-
 
 	void ConsoleMan::SaveInputLog(const std::string& filePath) {
 		Writer logWriter(filePath.c_str());
@@ -187,7 +177,6 @@ namespace RTE {
 		}
 	}
 
-
 	bool ConsoleMan::SaveAllText(const std::string& filePath) {
 		Writer logWriter(filePath.c_str());
 		if (logWriter.WriterOK()) {
@@ -201,13 +190,11 @@ namespace RTE {
 		return false;
 	}
 
-
 	void ConsoleMan::ClearLog() {
 		m_InputLog.clear();
 		m_InputLogPosition = m_InputLog.begin();
 		m_OutputLog.clear();
 	}
-
 
 	void ConsoleMan::PrintString(const std::string& stringToPrint) {
 		static std::mutex printStringMutex;
@@ -218,7 +205,6 @@ namespace RTE {
 			System::PrintToCLI(stringToPrint);
 		}
 	}
-
 
 	void ConsoleMan::ShowShortcuts() {
 		if (!IsEnabled()) {
@@ -250,7 +236,6 @@ namespace RTE {
 		    "F10 - Clear Console log\n"
 		    "F12 - Make a single screenshot");
 	}
-
 
 	void ConsoleMan::Update() {
 		if (g_UInputMan.FlagCtrlState() && g_UInputMan.KeyPressed(SDL_SCANCODE_GRAVE)) {
@@ -324,7 +309,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ConsoleMan::ConsoleOpenClose() {
 		float travelCompletionDistance;
 
@@ -359,7 +343,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ConsoleMan::FeedString(bool feedEmptyString) {
 		char strLine[1024];
 		std::stringstream inputStream(m_InputTextBox->GetText());
@@ -391,7 +374,6 @@ namespace RTE {
 		}
 		m_InputTextBox->SetText("");
 	}
-
 
 	void ConsoleMan::LoadLoggedInput(bool nextEntry) {
 		if (nextEntry) {
@@ -428,7 +410,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ConsoleMan::RemoveGraveAccents() const {
 		std::string textBoxString = m_InputTextBox->GetText();
 		if (std::find(textBoxString.begin(), textBoxString.end(), '`') != textBoxString.end()) {
@@ -437,7 +418,6 @@ namespace RTE {
 			m_InputTextBox->SetCursorPos(textBoxString.length());
 		}
 	}
-
 
 	void ConsoleMan::Draw(BITMAP* targetBitmap) const {
 		if (m_ConsoleState != ConsoleState::Disabled) {

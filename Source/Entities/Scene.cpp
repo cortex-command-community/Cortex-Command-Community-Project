@@ -96,7 +96,6 @@ namespace RTE {
 		return true;
 	}
 
-
 	bool Scene::Area::RemoveBox(const Box& boxToRemove) {
 		std::vector<Box>::iterator boxToRemoveIterator = std::find(m_BoxList.begin(), m_BoxList.end(), boxToRemove);
 		if (boxToRemoveIterator != m_BoxList.end()) {
@@ -105,7 +104,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
 
 	bool Scene::Area::HasNoArea() const {
 		// If no boxes, then yeah we don't have any area
@@ -1134,7 +1132,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	void Scene::SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave, bool isChildAttachable, bool saveFullData) const {
 		auto WriteHardcodedAttachableOrNone = [this, &writer, &saveFullData](const std::string& propertyName, const Attachable* harcodedAttachable) {
 			if (harcodedAttachable) {
@@ -1385,7 +1382,6 @@ namespace RTE {
 		writer.ObjectEnd();
 	}
 
-
 	void Scene::Destroy(bool notInherited) {
 		delete m_pTerrain;
 
@@ -1568,7 +1564,6 @@ namespace RTE {
 		return false;
 	}
 
-
 	Vector Scene::GetDimensions() const {
 		if (m_pTerrain) {
 			if (const BITMAP* terrainBitmap = m_pTerrain->GetBitmap()) {
@@ -1579,7 +1574,6 @@ namespace RTE {
 		return Vector();
 	}
 
-
 	int Scene::GetWidth() const {
 		if (m_pTerrain) {
 			if (const BITMAP* terrainBitmap = m_pTerrain->GetBitmap()) {
@@ -1589,7 +1583,6 @@ namespace RTE {
 		}
 		return 0;
 	}
-
 
 	int Scene::GetHeight() const {
 		if (m_pTerrain) {
@@ -1666,7 +1659,6 @@ namespace RTE {
 		return found;
 	}
 
-
 	int Scene::RetrieveSceneObjects(bool transferOwnership, int onlyTeam, bool noBrains) {
 		int found = 0;
 
@@ -1676,7 +1668,6 @@ namespace RTE {
 
 		return found;
 	}
-
 
 	void Scene::AddPlacedObject(int whichSet, SceneObject* pObjectToAdd, int listOrder) {
 		if (!pObjectToAdd)
@@ -2472,7 +2463,6 @@ namespace RTE {
 			UpdatePathFinding();
 		}
 	}
-
 
 	std::unique_ptr<PathFinder>& Scene::GetPathFinder(Activity::Teams team) {
 		// Note - we use + 1 when getting pathfinders by index, because our shared NoTeam pathfinder occupies index 0, and the rest come after that.

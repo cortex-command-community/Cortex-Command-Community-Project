@@ -58,7 +58,6 @@ using namespace RTE;
 
 namespace RTE {
 
-
 	/// <summary>
 	/// Initializes all the essential managers.
 	/// </summary>
@@ -117,7 +116,6 @@ namespace RTE {
 		}
 	}
 
-
 	/// <summary>
 	/// Destroys all the managers and frees all loaded data before termination.
 	/// </summary>
@@ -145,7 +143,6 @@ namespace RTE {
 		Entity::ClassInfo::DumpPoolMemoryInfo(Writer("MemCleanupInfo.txt"));
 #endif
 	}
-
 
 	/// <summary>
 	/// Command-line argument handling.
@@ -198,7 +195,6 @@ namespace RTE {
 		}
 	}
 
-
 	/// <summary>
 	/// Polls the SDL event queue and passes events to be handled by the relevant managers.
 	/// </summary>
@@ -239,7 +235,6 @@ namespace RTE {
 		}
 	}
 
-
 	/// <summary>
 	/// Game menus loop.
 	/// </summary>
@@ -276,7 +271,6 @@ namespace RTE {
 			g_WindowMan.UploadFrame();
 		}
 	}
-
 
 	/// <summary>
 	/// Game simulation loop.
@@ -410,7 +404,6 @@ namespace RTE {
 	}
 } // namespace RTE
 
-
 /// <summary>
 /// Self-invoking lambda that installs exception handlers before Main is executed.
 /// </summary>
@@ -418,7 +411,6 @@ static const bool RTESetExceptionHandlers = []() {
 	RTEError::SetExceptionHandlers();
 	return true;
 }();
-
 
 /// <summary>
 /// Implementation of the main function.

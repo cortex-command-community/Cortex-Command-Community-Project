@@ -2,7 +2,6 @@
 
 using namespace RTE;
 
-
 GUIPanel::GUIPanel(GUIManager* Manager) {
 	Clear();
 	m_Manager = Manager;
@@ -12,11 +11,9 @@ GUIPanel::GUIPanel(GUIManager* Manager) {
 	m_FontKerning = 1;
 }
 
-
 GUIPanel::GUIPanel() {
 	Clear();
 }
-
 
 void GUIPanel::Clear() {
 	m_X = 0;
@@ -43,7 +40,6 @@ void GUIPanel::Clear() {
 	m_FontKerning = 1;
 }
 
-
 void GUIPanel::Setup(GUIManager* manager, int ZPos) {
 	m_Manager = manager;
 	m_ZPos = ZPos;
@@ -62,7 +58,6 @@ void GUIPanel::Setup(GUIManager* manager, int ZPos) {
 		}
 	}
 }
-
 
 void GUIPanel::AddChild(GUIPanel* child, bool convertToAbsolutePos) {
 	if (child) {
@@ -96,7 +91,6 @@ void GUIPanel::AddChild(GUIPanel* child, bool convertToAbsolutePos) {
 	}
 }
 
-
 void GUIPanel::RemoveChild(const GUIPanel* pChild) {
 	// Note: We do NOT free the children because they are still linked in through their controls. This merely removes the panel from the list.
 	// This will cause a small memory leak, but this is only designed for the GUI Editor and is a bit of a hack
@@ -110,7 +104,6 @@ void GUIPanel::RemoveChild(const GUIPanel* pChild) {
 	}
 }
 
-
 void GUIPanel::LoadProperties(GUIProperties* Props) {
 	assert(Props);
 
@@ -123,16 +116,13 @@ void GUIPanel::LoadProperties(GUIProperties* Props) {
 	Props->GetValue("Enabled", &m_Enabled);
 }
 
-
 void GUIPanel::Invalidate() {
 	m_ValidRegion = false;
 }
 
-
 bool GUIPanel::IsValid() const {
 	return m_ValidRegion;
 }
-
 
 void GUIPanel::Draw(GUIScreen* Screen) {
 	// Validate this panel
@@ -161,59 +151,43 @@ void GUIPanel::Draw(GUIScreen* Screen) {
 	Screen->GetBitmap()->SetClipRect(nullptr);
 }
 
-
 void GUIPanel::OnMouseDown(int X, int Y, int Buttons, int Modifier) {}
-
 
 void GUIPanel::OnMouseUp(int X, int Y, int Buttons, int Modifier) {}
 
-
 void GUIPanel::OnDoubleClick(int X, int Y, int Buttons, int Modifier) {}
-
 
 void GUIPanel::OnMouseMove(int X, int Y, int Buttons, int Modifier) {}
 
-
 void GUIPanel::OnMouseEnter(int X, int Y, int Buttons, int Modifier) {}
-
 
 void GUIPanel::OnMouseLeave(int X, int Y, int Buttons, int Modifier) {}
 
-
 void GUIPanel::OnMouseHover(int X, int Y, int Buttons, int Modifier) {}
-
 
 void GUIPanel::OnKeyDown(int KeyCode, int Modifier) {}
 
-
 void GUIPanel::OnKeyUp(int KeyCode, int Modifier) {}
-
 
 void GUIPanel::OnKeyPress(int KeyCode, int Modifier) {}
 
-
 void GUIPanel::OnTextInput(std::string_view inputText) {}
-
 
 void GUIPanel::OnGainFocus() {
 	m_GotFocus = true;
 }
 
-
 void GUIPanel::OnLoseFocus() {
 	m_GotFocus = false;
 }
-
 
 void GUIPanel::CaptureMouse() {
 	m_Manager->CaptureMouse(this);
 }
 
-
 void GUIPanel::ReleaseMouse() {
 	m_Manager->ReleaseMouse();
 }
-
 
 GUIPanel* GUIPanel::BottomPanelUnderPoint(int x, int y) {
 	if (!PointInside(x, y)) {
@@ -239,7 +213,6 @@ GUIPanel* GUIPanel::BottomPanelUnderPoint(int x, int y) {
 	// Return this panel
 	return this;
 }
-
 
 GUIPanel* GUIPanel::TopPanelUnderPoint(int x, int y) {
 	if (!PointInside(x, y)) {
@@ -267,7 +240,6 @@ GUIPanel* GUIPanel::TopPanelUnderPoint(int x, int y) {
 	return this;
 }
 
-
 bool GUIPanel::PointInside(int X, int Y) {
 	// Can't be inside an invisible panel
 	if (!m_Visible) {
@@ -283,12 +255,10 @@ bool GUIPanel::PointInside(int X, int Y) {
 	return true;
 }
 
-
 void GUIPanel::SetSize(int Width, int Height) {
 	m_Width = Width;
 	m_Height = Height;
 }
-
 
 void GUIPanel::SetPositionAbs(int X, int Y, bool moveChildren) {
 	int DX = X - m_X;
@@ -306,7 +276,6 @@ void GUIPanel::SetPositionAbs(int X, int Y, bool moveChildren) {
 		}
 	}
 }
-
 
 void GUIPanel::SetPositionRel(int X, int Y) {
 	X += m_Parent->GetXPos();
@@ -326,7 +295,6 @@ void GUIPanel::SetPositionRel(int X, int Y) {
 	}
 }
 
-
 void GUIPanel::MoveRelative(int dX, int dY) {
 	m_X += dX;
 	m_Y += dY;
@@ -338,7 +306,6 @@ void GUIPanel::MoveRelative(int dX, int dY) {
 		P->SetPositionAbs(P->m_X + dX, P->m_Y + dY);
 	}
 }
-
 
 void GUIPanel::CenterInParent(bool centerX, bool centerY) {
 	int newRelX = m_X - m_Parent->GetXPos();
@@ -354,43 +321,35 @@ void GUIPanel::CenterInParent(bool centerX, bool centerY) {
 	SetPositionRel(newRelX, newRelY);
 }
 
-
 void GUIPanel::_SetVisible(bool Visible) {
 	m_Visible = Visible;
 }
-
 
 bool GUIPanel::_GetVisible() const {
 	return m_Visible;
 }
 
-
 void GUIPanel::_SetEnabled(bool Enabled) {
 	m_Enabled = Enabled;
 }
-
 
 bool GUIPanel::_GetEnabled() const {
 	return m_Enabled;
 }
 
-
 int GUIPanel::GetWidth() const {
 	return m_Width;
 }
 
-
 int GUIPanel::GetHeight() const {
 	return m_Height;
 }
-
 
 GUIRect* GUIPanel::GetRect() {
 	SetRect(&m_Rect, m_X, m_Y, m_X + m_Width, m_Y + m_Height);
 
 	return &m_Rect;
 }
-
 
 void GUIPanel::GetRect(int* X, int* Y, int* Width, int* Height) const {
 	if (X) {
@@ -407,41 +366,33 @@ void GUIPanel::GetRect(int* X, int* Y, int* Width, int* Height) const {
 	}
 }
 
-
 int GUIPanel::GetPanelID() const {
 	return m_ID;
 }
-
 
 void GUIPanel::TrackMouseHover(bool Enabled, int Delay) {
 	m_Manager->TrackMouseHover(this, Enabled, Delay);
 }
 
-
 void GUIPanel::SetFocus() {
 	m_Manager->SetFocus(this);
 }
-
 
 bool GUIPanel::HasFocus() const {
 	return m_GotFocus;
 }
 
-
 void GUIPanel::SetCaptureState(bool Captured) {
 	m_Captured = Captured;
 }
-
 
 bool GUIPanel::IsCaptured() const {
 	return m_Captured;
 }
 
-
 bool GUIPanel::IsEnabled() const {
 	return m_Enabled;
 }
-
 
 void GUIPanel::SendSignal(int Code, int Data) {
 	if (m_SignalTarget) {
@@ -449,9 +400,7 @@ void GUIPanel::SendSignal(int Code, int Data) {
 	}
 }
 
-
 void GUIPanel::ReceiveSignal(GUIPanel* Source, int Code, int Data) {}
-
 
 void GUIPanel::SetSignalTarget(GUIPanel* Target) {
 	if (Target) {
@@ -459,21 +408,17 @@ void GUIPanel::SetSignalTarget(GUIPanel* Target) {
 	}
 }
 
-
 GUIPanel* GUIPanel::GetParentPanel() {
 	return m_Parent;
 }
-
 
 void GUIPanel::SetZPos(int Z) {
 	m_ZPos = Z;
 }
 
-
 int GUIPanel::GetZPos() const {
 	return m_ZPos;
 }
-
 
 void GUIPanel::ChangeZPosition(int Type) {
 	// If we don't have a parent, get the manager to alter the Z Position
@@ -485,7 +430,6 @@ void GUIPanel::ChangeZPosition(int Type) {
 	// Get the parent to change the position
 	m_Parent->_ChangeZ(this, Type);
 }
-
 
 void GUIPanel::_ChangeZ(GUIPanel* Child, int Type) {
 	assert(Child);
@@ -534,7 +478,6 @@ void GUIPanel::_ChangeZ(GUIPanel* Child, int Type) {
 	}
 }
 
-
 std::string GUIPanel::ToString() {
 	std::string OutString = "";
 
@@ -557,7 +500,6 @@ std::string GUIPanel::ToString() {
 	return OutString;
 }
 
-
 void GUIPanel::BuildProperties(GUIProperties* Prop) {
 	assert(Prop);
 
@@ -578,7 +520,6 @@ void GUIPanel::BuildProperties(GUIProperties* Prop) {
 	Prop->AddVariable("Enabled", m_Enabled);
 }
 
-
 std::string GUIPanel::WriteValue(const std::string& Name, int Value) {
 	char buf[32];
 
@@ -592,7 +533,6 @@ std::string GUIPanel::WriteValue(const std::string& Name, int Value) {
 	return OutString;
 }
 
-
 std::string GUIPanel::WriteValue(const std::string& Name, bool Value) {
 	std::string OutString = Name;
 	OutString += " = ";
@@ -601,7 +541,6 @@ std::string GUIPanel::WriteValue(const std::string& Name, bool Value) {
 
 	return OutString;
 }
-
 
 void GUIPanel::_ApplyProperties(GUIProperties* Props) {
 	assert(Props);

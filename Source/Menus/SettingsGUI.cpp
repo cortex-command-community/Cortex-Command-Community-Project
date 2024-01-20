@@ -10,7 +10,6 @@
 
 namespace RTE {
 
-
 	SettingsGUI::SettingsGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
 		RTEAssert(m_GUIControlManager->Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "MainMenuSubMenuSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/MainMenuSubMenuSkin.ini");
@@ -53,7 +52,6 @@ namespace RTE {
 		m_SettingsMenuTabs[m_ActiveSettingsMenuScreen]->SetCheck(true);
 	}
 
-
 	GUICollectionBox* SettingsGUI::GetActiveDialogBox() const {
 		GUICollectionBox* activeDialogBox = nullptr;
 		switch (m_ActiveSettingsMenuScreen) {
@@ -71,7 +69,6 @@ namespace RTE {
 		return activeDialogBox;
 	}
 
-
 	void SettingsGUI::CloseActiveDialogBox() const {
 		switch (m_ActiveSettingsMenuScreen) {
 			case SettingsMenuScreen::VideoSettingsMenu:
@@ -87,14 +84,12 @@ namespace RTE {
 		}
 	}
 
-
 	void SettingsGUI::DisableSettingsMenuNavigation(bool disable) const {
 		m_BackToMainButton->SetEnabled(!disable);
 		for (GUITab* settingsTabberTab: m_SettingsMenuTabs) {
 			settingsTabberTab->SetEnabled(!disable);
 		}
 	}
-
 
 	void SettingsGUI::SetActiveSettingsMenuScreen(SettingsMenuScreen activeMenu, bool playButtonPressSound) {
 		m_VideoSettingsMenu->SetEnabled(false);
@@ -131,7 +126,6 @@ namespace RTE {
 			g_GUISound.BackButtonPressSound()->Play();
 		}
 	}
-
 
 	bool SettingsGUI::HandleInputEvents() {
 		m_GUIControlManager->Update();
@@ -193,7 +187,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
 
 	void SettingsGUI::Draw() const {
 		m_GUIControlManager->Draw();

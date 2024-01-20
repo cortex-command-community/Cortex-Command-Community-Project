@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUIManager::GUIManager(GUIInput* input) {
 	m_Input = input;
 	m_MouseEnabled = true;
@@ -22,12 +21,10 @@ GUIManager::GUIManager(GUIInput* input) {
 	m_pTimer = new Timer();
 }
 
-
 GUIManager::~GUIManager() {
 	delete m_pTimer;
 	m_pTimer = nullptr;
 }
-
 
 void GUIManager::Clear() {
 	m_PanelList.clear();
@@ -47,7 +44,6 @@ void GUIManager::Clear() {
 	m_LastMouseDown[2] = -99999.0F;
 }
 
-
 void GUIManager::AddPanel(GUIPanel* panel) {
 	if (panel) {
 		int Z = 0;
@@ -65,7 +61,6 @@ void GUIManager::AddPanel(GUIPanel* panel) {
 		m_PanelList.push_back(panel);
 	}
 }
-
 
 void GUIManager::Update(bool ignoreKeyboardEvents) {
 	m_Input->Update();
@@ -267,7 +262,6 @@ void GUIManager::Update(bool ignoreKeyboardEvents) {
 	}
 }
 
-
 void GUIManager::Draw(GUIScreen* Screen) {
 	// Go through drawing panels that are invalid
 	std::vector<GUIPanel*>::iterator it;
@@ -282,7 +276,6 @@ void GUIManager::Draw(GUIScreen* Screen) {
 	}
 }
 
-
 void GUIManager::CaptureMouse(GUIPanel* Panel) {
 	assert(Panel);
 
@@ -294,7 +287,6 @@ void GUIManager::CaptureMouse(GUIPanel* Panel) {
 	m_CapturedPanel->SetCaptureState(true);
 }
 
-
 void GUIManager::ReleaseMouse() {
 	if (m_CapturedPanel) {
 		m_CapturedPanel->SetCaptureState(false);
@@ -302,7 +294,6 @@ void GUIManager::ReleaseMouse() {
 
 	m_CapturedPanel = nullptr;
 }
-
 
 GUIPanel* GUIManager::FindBottomPanel(int X, int Y) {
 	std::vector<GUIPanel*>::iterator it;
@@ -320,7 +311,6 @@ GUIPanel* GUIManager::FindBottomPanel(int X, int Y) {
 	return nullptr;
 }
 
-
 GUIPanel* GUIManager::FindTopPanel(int X, int Y) {
 	std::vector<GUIPanel*>::reverse_iterator it;
 
@@ -337,11 +327,9 @@ GUIPanel* GUIManager::FindTopPanel(int X, int Y) {
 	return nullptr;
 }
 
-
 int GUIManager::GetPanelID() {
 	return m_UniqueIDCount++;
 }
-
 
 bool GUIManager::MouseInRect(const GUIRect* Rect, int X, int Y) {
 	if (!Rect) {
@@ -353,7 +341,6 @@ bool GUIManager::MouseInRect(const GUIRect* Rect, int X, int Y) {
 	return false;
 }
 
-
 void GUIManager::TrackMouseHover(GUIPanel* Pan, bool Enabled, int Delay) {
 	assert(Pan);
 	m_HoverTrack = Enabled;
@@ -362,7 +349,6 @@ void GUIManager::TrackMouseHover(GUIPanel* Pan, bool Enabled, int Delay) {
 		m_HoverTime = m_pTimer->GetElapsedRealTimeMS() + ((float)Delay / 1000.0F);
 	}
 }
-
 
 void GUIManager::SetFocus(GUIPanel* Pan) {
 	// Send the LoseFocus event to the old panel (if there is one)

@@ -7,7 +7,6 @@
 
 namespace RTE {
 
-
 	void Controller::Clear() {
 		m_ControlStates.fill(false);
 		m_AnalogMove.Reset();
@@ -33,7 +32,6 @@ namespace RTE {
 		m_KeyAccelTimer.Reset();
 	}
 
-
 	int Controller::Create(InputMode mode, Actor* controlledActor) {
 		m_InputMode = mode;
 		m_ControlledActor = controlledActor;
@@ -43,7 +41,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int Controller::Create(const Controller& reference) {
 		for (int i = 0; i < ControlState::CONTROLSTATECOUNT; ++i) {
@@ -68,7 +65,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	bool Controller::RelativeCursorMovement(Vector& cursorPos, float moveScale) const {
 		bool altered = false;
@@ -110,21 +106,17 @@ namespace RTE {
 		return altered;
 	}
 
-
 	float Controller::GetDigitalAimSpeed() const {
 		return m_Player != Players::NoPlayer ? g_UInputMan.GetControlScheme(m_Player)->GetDigitalAimSpeed() : 1.0F;
 	}
-
 
 	bool Controller::IsMouseControlled() const {
 		return m_Player != Players::NoPlayer && g_UInputMan.GetControlScheme(m_Player)->GetDevice() == InputDevice::DEVICE_MOUSE_KEYB;
 	}
 
-
 	bool Controller::IsKeyboardOnlyControlled() const {
 		return m_Player != Players::NoPlayer && g_UInputMan.GetControlScheme(m_Player)->GetDevice() == InputDevice::DEVICE_KEYB_ONLY;
 	}
-
 
 	bool Controller::IsGamepadControlled() const {
 		bool isGamepadControlled = false;
@@ -137,11 +129,9 @@ namespace RTE {
 		return isGamepadControlled;
 	}
 
-
 	int Controller::GetTeam() const {
 		return m_ControlledActor ? m_ControlledActor->GetTeam() : m_Team;
 	}
-
 
 	void Controller::SetTeam(short team) {
 		if (m_ControlledActor) {
@@ -149,7 +139,6 @@ namespace RTE {
 		}
 		m_Team = team;
 	}
-
 
 	void Controller::Update() {
 		if (IsDisabled()) {
@@ -180,7 +169,6 @@ namespace RTE {
 		}
 	}
 
-
 	void Controller::ResetCommandState() {
 		// Reset all command states.
 		m_ControlStates.fill(false);
@@ -189,7 +177,6 @@ namespace RTE {
 		m_AnalogCursor.Reset();
 		m_MouseMovement.Reset();
 	}
-
 
 	void Controller::GetInputFromPlayer() {
 		ResetCommandState();
@@ -200,7 +187,6 @@ namespace RTE {
 
 		UpdatePlayerInput();
 	}
-
 
 	bool Controller::ShouldUpdateAIThisFrame() const {
 		if (IsDisabled() || m_InputMode != InputMode::CIM_AI) {
@@ -217,7 +203,6 @@ namespace RTE {
 		return true;
 	}
 
-
 	Controller& Controller::operator=(const Controller& rhs) {
 		if (this == &rhs) {
 			return *this;
@@ -227,12 +212,10 @@ namespace RTE {
 		return *this;
 	}
 
-
 	void Controller::Override(const Controller& otherController) {
 		RTEAssert(otherController.m_ControlledActor == m_ControlledActor, "Overriding a controller with a mismatched controlled actor!");
 		*this = otherController;
 	}
-
 
 	void Controller::UpdatePlayerInput() {
 		UpdatePlayerPieMenuInput();
@@ -286,7 +269,6 @@ namespace RTE {
 
 		UpdatePlayerAnalogInput();
 	}
-
 
 	void Controller::UpdatePlayerPieMenuInput() {
 		// Holding of the switch buttons disables aiming later
@@ -384,7 +366,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void Controller::UpdatePlayerAnalogInput() {
 		// ANALOG joystick values

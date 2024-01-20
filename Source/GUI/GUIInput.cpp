@@ -2,7 +2,6 @@
 
 using namespace RTE;
 
-
 bool GUIInput::m_OverrideInput = false;
 
 int GUIInput::m_NetworkMouseButtonsEvents[4][3] = {{-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}};
@@ -11,7 +10,6 @@ int GUIInput::m_PrevNetworkMouseButtonsStates[4][3] = {{-1, -1, -1}, {-1, -1, -1
 
 int GUIInput::m_NetworkMouseX[4] = {0, 0, 0, 0};
 int GUIInput::m_NetworkMouseY[4] = {0, 0, 0, 0};
-
 
 GUIInput::GUIInput(int whichPlayer, bool keyJoyMouseCursor) {
 	// Clear all the states
@@ -42,9 +40,7 @@ GUIInput::GUIInput(int whichPlayer, bool keyJoyMouseCursor) {
 	m_MouseWheelChange = 0;
 }
 
-
 void GUIInput::Destroy() {}
-
 
 void GUIInput::GetKeyboard(unsigned char* Buffer) const {
 	if (Buffer) {
@@ -52,16 +48,13 @@ void GUIInput::GetKeyboard(unsigned char* Buffer) const {
 	}
 }
 
-
 unsigned char GUIInput::GetAsciiState(unsigned char ascii) const {
 	return m_KeyboardBuffer[ascii];
 }
 
-
 unsigned char GUIInput::GetScanCodeState(unsigned char scancode) const {
 	return m_ScanCodeState[scancode];
 }
-
 
 void GUIInput::GetMouseButtons(int* Buttons, int* States) const {
 	if (!m_OverrideInput) {
@@ -90,7 +83,6 @@ void GUIInput::GetMouseButtons(int* Buttons, int* States) const {
 	}
 }
 
-
 void GUIInput::SetNetworkMouseButton(int whichPlayer, int state1, int state2, int state3) {
 	if (whichPlayer >= 0 && whichPlayer < 4) {
 		m_OverrideInput = true;
@@ -104,7 +96,6 @@ void GUIInput::SetNetworkMouseButton(int whichPlayer, int state1, int state2, in
 		m_NetworkMouseButtonsStates[whichPlayer][2] = state3;
 	}
 }
-
 
 void GUIInput::GetMousePosition(int* X, int* Y) const {
 	if (m_OverrideInput) {
@@ -133,7 +124,6 @@ void GUIInput::GetMousePosition(int* X, int* Y) const {
 	}
 }
 
-
 void GUIInput::SetNetworkMouseMovement(int whichPlayer, int x, int y) {
 	if (whichPlayer >= 0 && whichPlayer < 4) {
 		m_OverrideInput = true;
@@ -142,11 +132,9 @@ void GUIInput::SetNetworkMouseMovement(int whichPlayer, int x, int y) {
 	}
 }
 
-
 void GUIInput::Update() {
 	// Do nothing
 }
-
 
 int GUIInput::GetModifier() const {
 	return m_Modifier;

@@ -21,7 +21,6 @@
 
 namespace RTE {
 
-
 	void MenuMan::Initialize(bool firstTimeInit) {
 		m_ActiveMenu = ActiveMenu::MenusDisabled;
 
@@ -42,7 +41,6 @@ namespace RTE {
 		g_MetaMan.GetGUI()->Create(m_MenuController.get());
 	}
 
-
 	void MenuMan::Reinitialize() {
 		g_MetaMan.GetGUI()->Destroy();
 
@@ -54,7 +52,6 @@ namespace RTE {
 
 		Initialize(false);
 	}
-
 
 	void MenuMan::SetActiveMenu() {
 		ActiveMenu newActiveMenu = ActiveMenu::MenusDisabled;
@@ -105,7 +102,6 @@ namespace RTE {
 		}
 	}
 
-
 	void MenuMan::HandleTransitionIntoMenuLoop() {
 		if (g_MetaMan.GameInProgress()) {
 			if (g_ActivityMan.SkipPauseMenuWhenPausingActivity()) {
@@ -130,7 +126,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	bool MenuMan::Update() {
 		m_TitleScreen->Update();
@@ -168,7 +163,6 @@ namespace RTE {
 		return false;
 	}
 
-
 	bool MenuMan::UpdateMainMenu() const {
 		switch (m_MainMenu->Update()) {
 			case MainMenuGUI::MainMenuUpdateResult::MetaGameStarted:
@@ -199,7 +193,6 @@ namespace RTE {
 		return false;
 	}
 
-
 	void MenuMan::UpdateScenarioMenu() const {
 		switch (m_ScenarioMenu->Update()) {
 			case ScenarioGUI::ScenarioMenuUpdateResult::BackToMain:
@@ -221,7 +214,6 @@ namespace RTE {
 		}
 	}
 
-
 	bool MenuMan::UpdateMetaGameMenu() const {
 		g_MetaMan.GetGUI()->SetStationOrbitPos(m_TitleScreen->GetStationPos());
 		g_MetaMan.Update();
@@ -239,7 +231,6 @@ namespace RTE {
 		return g_MetaMan.GetGUI()->QuitProgram();
 	}
 
-
 	void MenuMan::UpdatePauseMenu() const {
 		switch (m_PauseMenu->Update()) {
 			case PauseMenuGUI::PauseMenuUpdateResult::ActivityResumed:
@@ -253,7 +244,6 @@ namespace RTE {
 				break;
 		}
 	}
-
 
 	void MenuMan::Draw() const {
 		g_FrameMan.ClearBackBuffer32();

@@ -7,7 +7,6 @@ namespace RTE {
 
 	ConcreteClassInfo(ThrownDevice, HeldDevice, 50);
 
-
 	void ThrownDevice::Clear() {
 		m_ActivationSound.Reset();
 		m_StartThrowOffset.Reset();
@@ -19,7 +18,6 @@ namespace RTE {
 		m_StrikerLever = nullptr;
 	}
 
-
 	int ThrownDevice::Create() {
 		if (HeldDevice::Create() < 0) {
 			return -1;
@@ -28,7 +26,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int ThrownDevice::Create(const ThrownDevice& reference) {
 		HeldDevice::Create(reference);
@@ -48,7 +45,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return HeldDevice::ReadProperty(propName, reader));
 
@@ -63,7 +59,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
 
 	int ThrownDevice::Save(Writer& writer) const {
 		HeldDevice::Save(writer);
@@ -88,7 +83,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	float ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength() {
 		if (m_MaxThrowVel > 0) {
 			return m_MaxThrowVel;
@@ -98,7 +92,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	void ThrownDevice::ResetAllTimers() {
 		double elapsedTime = m_Activated ? m_ActivationTimer.GetElapsedSimTimeMS() : 0;
 		HeldDevice::ResetAllTimers();
@@ -106,7 +99,6 @@ namespace RTE {
 			m_ActivationTimer.SetElapsedSimTimeMS(elapsedTime);
 		}
 	}
-
 
 	void ThrownDevice::Activate() {
 		if (!m_Activated) {

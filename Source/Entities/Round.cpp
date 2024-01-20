@@ -6,7 +6,6 @@ namespace RTE {
 
 	ConcreteClassInfo(Round, Entity, 500);
 
-
 	void Round::Clear() {
 		m_Particle = 0;
 		m_ParticleCount = 0;
@@ -21,7 +20,6 @@ namespace RTE {
 		m_AIFireVel = -1;
 		m_AIPenetration = -1;
 	}
-
 
 	int Round::Create() {
 		if (Entity::Create() < 0) {
@@ -46,7 +44,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int Round::Create(const Round& reference) {
 		Entity::Create(reference);
 
@@ -65,7 +62,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int Round::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -88,7 +84,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
 
 	int Round::Save(Writer& writer) const {
 		Entity::Save(writer);
@@ -119,7 +114,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	MovableObject* Round::PopNextParticle() {
 		MovableObject* tempParticle = (m_ParticleCount > 0) ? dynamic_cast<MovableObject*>(m_Particle->Clone()) : 0;

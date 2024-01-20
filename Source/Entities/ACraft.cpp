@@ -375,7 +375,6 @@ namespace RTE {
 		}
 	}
 
-
 	bool ACraft::HandlePieCommand(PieSlice::SliceType pieSliceIndex) {
 		if (pieSliceIndex != PieSlice::SliceType::NoType) {
 			if (pieSliceIndex == PieSlice::SliceType::Deliver) {
@@ -407,7 +406,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
 
 	void ACraft::OpenHatch() {
 		if (m_HatchState == CLOSED || m_HatchState == CLOSING) {
@@ -584,7 +582,6 @@ namespace RTE {
 		}
 	}
 
-
 	float ACraft::GetCollectedInventoryMass() const {
 		float inventoryMass = 0.0F;
 		for (const MovableObject* inventoryItem: m_CollectedInventory) {
@@ -592,7 +589,6 @@ namespace RTE {
 		}
 		return inventoryMass;
 	}
-
 
 	void ACraft::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		if (g_SettingsMan.CrabBombsEnabled() && !s_CrabBombInEffect) {
@@ -615,7 +611,6 @@ namespace RTE {
 		}
 		Actor::GibThis(impactImpulse, movableObjectToIgnore);
 	}
-
 
 	void ACraft::ResetAllTimers() {
 		MOSRotating::ResetAllTimers();

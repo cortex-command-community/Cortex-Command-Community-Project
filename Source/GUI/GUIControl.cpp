@@ -2,7 +2,6 @@
 
 using namespace RTE;
 
-
 GUIControl::GUIControl() {
 	m_Skin = nullptr;
 	m_SkinPreset = 1;
@@ -12,14 +11,12 @@ GUIControl::GUIControl() {
 	m_IsContainer = false;
 }
 
-
 void GUIControl::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	m_Properties.Clear();
 	m_Properties.AddVariable("Name", Name);
 	m_Properties.AddVariable("Anchor", "Left, Top");
 	m_Properties.AddVariable("ToolTip", "");
 }
-
 
 void GUIControl::Create(GUIProperties* Props) {
 	assert(Props);
@@ -32,22 +29,17 @@ void GUIControl::Create(GUIProperties* Props) {
 	m_Properties.Update(Props);
 }
 
-
 void GUIControl::Destroy() {}
 
-
 void GUIControl::Activate() {}
-
 
 void GUIControl::ChangeSkin(GUISkin* Skin) {
 	m_Skin = Skin;
 }
 
-
 void GUIControl::AddEvent(int Type, int Msg, int Data) {
 	m_ControlManager->AddEvent(new GUIEvent(this, Type, Msg, Data));
 }
-
 
 std::string GUIControl::GetName() {
 	std::string Name;
@@ -56,7 +48,6 @@ std::string GUIControl::GetName() {
 	return Name;
 }
 
-
 std::string GUIControl::GetToolTip() {
 	std::string tip;
 	m_Properties.GetValue("ToolTip", &tip);
@@ -64,16 +55,13 @@ std::string GUIControl::GetToolTip() {
 	return tip;
 }
 
-
 std::string GUIControl::GetID() const {
 	return m_ControlID;
 }
 
-
 GUIPanel* GUIControl::GetPanel() {
 	return nullptr;
 }
-
 
 void GUIControl::AddChild(GUIControl* Control) {
 	assert(Control);
@@ -87,11 +75,9 @@ void GUIControl::AddChild(GUIControl* Control) {
 	m_ControlChildren.push_back(Control);
 }
 
-
 std::vector<GUIControl*>* GUIControl::GetChildren() {
 	return &m_ControlChildren;
 }
-
 
 bool GUIControl::Save(GUIWriter* W) {
 	std::string OutString = "";
@@ -136,12 +122,9 @@ bool GUIControl::Save(GUIWriter* W) {
 	return true;
 }
 
-
 void GUIControl::Move(int X, int Y) {}
 
-
 void GUIControl::Resize(int Width, int Height) {}
-
 
 void GUIControl::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	// Zero the values for controls that don't override this
@@ -158,7 +141,6 @@ void GUIControl::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 		*Height = 0;
 	}
 }
-
 
 int GUIControl::GetAnchor() {
 	int Anchor = 0;
@@ -192,9 +174,7 @@ int GUIControl::GetAnchor() {
 	return Anchor;
 }
 
-
 void GUIControl::StoreProperties() {}
-
 
 void GUIControl::SetVisible(bool Visible) {
 	// Default method is the grab the main panel and directly set its state. Controls that use multiple panels on the same layer will need to override this function
@@ -203,7 +183,6 @@ void GUIControl::SetVisible(bool Visible) {
 		Panel->_SetVisible(Visible);
 	}
 }
-
 
 bool GUIControl::GetVisible() {
 	// See SetVisible() comment
@@ -214,7 +193,6 @@ bool GUIControl::GetVisible() {
 	return false;
 }
 
-
 void GUIControl::SetEnabled(bool Enabled) {
 	// See SetVisible() comment
 	GUIPanel* Panel = GetPanel();
@@ -222,7 +200,6 @@ void GUIControl::SetEnabled(bool Enabled) {
 		Panel->_SetEnabled(Enabled);
 	}
 }
-
 
 bool GUIControl::GetEnabled() {
 	// See SetVisible() comment
@@ -234,16 +211,13 @@ bool GUIControl::GetEnabled() {
 	return false;
 }
 
-
 GUIControl* GUIControl::GetParent() {
 	return m_ControlParent;
 }
 
-
 GUIProperties* GUIControl::GetProperties() {
 	return &m_Properties;
 }
-
 
 void GUIControl::ApplyProperties(GUIProperties* Props) {
 	assert(Props);
@@ -279,11 +253,9 @@ void GUIControl::ApplyProperties(GUIProperties* Props) {
 	Resize(Width, Height);
 }
 
-
 bool GUIControl::IsContainer() {
 	return m_IsContainer;
 }
-
 
 void GUIControl::RemoveChild(const std::string Name) {
 	// Note: We do NOT free the children because they are still linked in through their panels. This merely removes the control from the list.
@@ -298,7 +270,6 @@ void GUIControl::RemoveChild(const std::string Name) {
 		}
 	}
 }
-
 
 void GUIControl::RemoveChildren() {
 	// Note: We do NOT free the children because they are still linked in through their panels. This merely removes the control from the list.

@@ -3,13 +3,11 @@
 
 using namespace RTE;
 
-
 GUIScrollbar::GUIScrollbar(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIScrollPanel(Manager) {
 	m_ControlID = "SCROLLBAR";
 	m_ControlManager = ControlManager;
 }
-
 
 void GUIScrollbar::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -40,7 +38,6 @@ void GUIScrollbar::Create(const std::string& Name, int X, int Y, int Width, int 
 	GUIScrollPanel::Create(X, Y, w, h);
 }
 
-
 void GUIScrollbar::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
@@ -64,21 +61,17 @@ void GUIScrollbar::Create(GUIProperties* Props) {
 	GUIScrollPanel::LoadProps(Props);
 }
 
-
 void GUIScrollbar::Destroy() {
 	GUIScrollPanel::Destroy();
 }
-
 
 void GUIScrollbar::ChangeSkin(GUISkin* Skin) {
 	GUIScrollPanel::ChangeSkin(Skin);
 }
 
-
 GUIPanel* GUIScrollbar::GetPanel() {
 	return this;
 }
-
 
 void GUIScrollbar::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	assert(Source);
@@ -89,7 +82,6 @@ void GUIScrollbar::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	}
 }
 
-
 void GUIScrollbar::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	// Capture the mouse
 	CaptureMouse();
@@ -97,14 +89,12 @@ void GUIScrollbar::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	GUIScrollPanel::OnMouseDown(X, Y, Buttons, Modifier);
 }
 
-
 void GUIScrollbar::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	// Release the mouse
 	ReleaseMouse();
 
 	GUIScrollPanel::OnMouseUp(X, Y, Buttons, Modifier);
 }
-
 
 void GUIScrollbar::OnMouseWheelChange(int x, int y, int modifier, int mouseWheelChange) {
 	int oldValue = GetValue();
@@ -115,11 +105,9 @@ void GUIScrollbar::OnMouseWheelChange(int x, int y, int modifier, int mouseWheel
 	}
 }
 
-
 void GUIScrollbar::Move(int X, int Y) {
 	GUIScrollPanel::SetPositionAbs(X, Y);
 }
-
 
 void GUIScrollbar::Resize(int Width, int Height) {
 	// Make sure the control isn't too small
@@ -129,16 +117,13 @@ void GUIScrollbar::Resize(int Width, int Height) {
 	GUIScrollPanel::SetSize(Width, Height);
 }
 
-
 void GUIScrollbar::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIScrollPanel::GetRect(X, Y, Width, Height);
 }
 
-
 void GUIScrollbar::StoreProperties() {
 	GUIScrollPanel::SaveProps(&m_Properties);
 }
-
 
 void GUIScrollbar::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);

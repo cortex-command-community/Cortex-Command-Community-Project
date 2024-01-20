@@ -5,11 +5,11 @@
 #include "MovableMan.h"
 #include "FrameMan.h"
 #include "UInputMan.h"
-//#include "AHuman.h"
-//#include "MOPixel.h"
+// #include "AHuman.h"
+// #include "MOPixel.h"
 #include "SLTerrain.h"
 #include "Controller.h"
-//#include "AtomGroup.h"
+// #include "AtomGroup.h"
 #include "Actor.h"
 #include "AHuman.h"
 #include "ACRocket.h"
@@ -549,7 +549,6 @@ namespace RTE {
 		EditorActivity::Draw(pTargetBitmap, targetPos);
 	}
 
-
 	bool GibEditor::SaveObject(const std::string& saveAsName, bool forceOverwrite) {
 		if (!m_pEditedObject) {
 			return false;
@@ -723,7 +722,6 @@ namespace RTE {
 		if (m_pEditedObject)
 			m_pOverwriteNameLabel->SetText(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/NewData/" + m_pEditedObject->GetPresetName() + ".ini");
 	}
-
 
 	void GibEditor::ClearTestArea() const {
 		clear_bitmap(g_SceneMan.GetTerrain()->GetFGColorBitmap());

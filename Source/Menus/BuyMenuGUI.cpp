@@ -277,13 +277,11 @@ void BuyMenuGUI::Destroy() {
 	Clear();
 }
 
-
 void BuyMenuGUI::SetBannerImage(const std::string& imagePath) {
 	ContentFile bannerFile((imagePath.empty() ? c_DefaultBannerImagePath : imagePath).c_str());
 	m_Banner->SetDrawImage(new AllegroBitmap(bannerFile.GetAsBitmap()));
 	m_Banner->SetDrawType(GUICollectionBox::Image);
 }
-
 
 void BuyMenuGUI::SetLogoImage(const std::string& imagePath) {
 	ContentFile logoFile((imagePath.empty() ? c_DefaultLogoImagePath : imagePath).c_str());
@@ -291,18 +289,15 @@ void BuyMenuGUI::SetLogoImage(const std::string& imagePath) {
 	m_Logo->SetDrawType(GUICollectionBox::Image);
 }
 
-
 void BuyMenuGUI::ClearCartList() {
 	m_pCartList->ClearList();
 	m_ListItemIndex = 0;
 }
 
-
 void BuyMenuGUI::AddCartItem(const std::string& name, const std::string& rightText, GUIBitmap* pBitmap, const Entity* pEntity, const int extraIndex) {
 	m_pCartList->AddItem(name, rightText, pBitmap, pEntity, extraIndex);
 	UpdateItemNestingLevels();
 }
-
 
 void BuyMenuGUI::DuplicateCartItem(const int itemIndex) {
 	if (m_pCartList->GetItemList()->empty()) {
@@ -344,7 +339,6 @@ void BuyMenuGUI::DuplicateCartItem(const int itemIndex) {
 	// Reselect the item, so our selection doesn't move.
 	m_pCartList->SetSelectedIndex(itemIndex);
 }
-
 
 bool BuyMenuGUI::LoadAllLoadoutsFromFile() {
 	// First clear out all loadouts
@@ -550,7 +544,6 @@ void BuyMenuGUI::SetMetaPlayer(int metaPlayer) {
 	}
 }
 
-
 void BuyMenuGUI::SetNativeTechModule(int whichModule) {
 	if (whichModule >= 0 && whichModule < g_PresetMan.GetTotalModuleCount()) {
 		m_NativeTechModule = whichModule;
@@ -672,7 +665,6 @@ float BuyMenuGUI::GetTotalCost(bool includeDelivery) const {
 	return totalCost;
 }
 
-
 float BuyMenuGUI::GetTotalOrderMass() const {
 	float totalMass = 0.0F;
 
@@ -687,7 +679,6 @@ float BuyMenuGUI::GetTotalOrderMass() const {
 
 	return totalMass;
 }
-
 
 float BuyMenuGUI::GetCraftMass() {
 	float totalMass = 0;
@@ -710,7 +701,6 @@ int BuyMenuGUI::GetTotalOrderPassengers() const {
 
 	return passengers;
 }
-
 
 void BuyMenuGUI::EnableEquipmentSelection(bool enabled) {
 	if (enabled != m_SelectingEquipment && g_SettingsMan.SmartBuyMenuNavigationEnabled()) {
@@ -736,7 +726,6 @@ void BuyMenuGUI::EnableEquipmentSelection(bool enabled) {
 	}
 }
 
-
 void BuyMenuGUI::UpdateItemNestingLevels() {
 	const int ownedDeviceOffsetX = 8;
 
@@ -754,7 +743,6 @@ void BuyMenuGUI::UpdateItemNestingLevels() {
 	m_pCartList->BuildBitmap(false, true);
 }
 
-
 void BuyMenuGUI::RefreshTabDisabledStates() {
 	bool smartBuyMenuNavigationDisabled = !g_SettingsMan.SmartBuyMenuNavigationEnabled();
 	m_pCategoryTabs[CRAFT]->SetEnabled(smartBuyMenuNavigationDisabled || !m_SelectingEquipment);
@@ -766,7 +754,6 @@ void BuyMenuGUI::RefreshTabDisabledStates() {
 	m_pCategoryTabs[SHIELDS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
 	m_pCategoryTabs[SETS]->SetEnabled(smartBuyMenuNavigationDisabled || !m_SelectingEquipment);
 }
-
 
 void BuyMenuGUI::Update() {
 	// Enable mouse input if the controller allows it
@@ -1812,7 +1799,6 @@ void BuyMenuGUI::Update() {
 	}
 }
 
-
 void BuyMenuGUI::Draw(BITMAP* drawBitmap) const {
 	AllegroScreen drawScreen(drawBitmap);
 	m_pGUIController->Draw(&drawScreen);
@@ -2092,7 +2078,6 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 	return true;
 }
 
-
 void BuyMenuGUI::AddObjectsToItemList(std::vector<std::list<Entity*>>& moduleList, const std::string& type, const std::vector<std::string>& groups, bool excludeGroups) {
 	while (moduleList.size() < g_PresetMan.GetTotalModuleCount()) {
 		moduleList.emplace_back();
@@ -2234,12 +2219,10 @@ void BuyMenuGUI::AddPresetsToItemList() {
 	}
 }
 
-
 void BuyMenuGUI::UpdateTotalCostLabel(int whichTeam) {
 	std::string display = "Cost: " + RoundFloatToPrecision(GetTotalOrderCost(), 0, 2) + "/" + RoundFloatToPrecision(g_ActivityMan.GetActivity()->GetTeamFunds(whichTeam), 0);
 	m_pCostLabel->SetText(display);
 }
-
 
 void BuyMenuGUI::UpdateTotalMassLabel(const ACraft* pCraft, GUILabel* pLabel) const {
 	if (!pLabel) {
@@ -2259,7 +2242,6 @@ void BuyMenuGUI::UpdateTotalMassLabel(const ACraft* pCraft, GUILabel* pLabel) co
 	pLabel->SetText(display);
 }
 
-
 void BuyMenuGUI::UpdateTotalPassengersLabel(const ACraft* pCraft, GUILabel* pLabel) const {
 	if (!pLabel) {
 		return;
@@ -2277,7 +2259,6 @@ void BuyMenuGUI::UpdateTotalPassengersLabel(const ACraft* pCraft, GUILabel* pLab
 
 	pLabel->SetText(display);
 }
-
 
 void BuyMenuGUI::TryPurchase() {
 	int player = m_pController->GetPlayer();

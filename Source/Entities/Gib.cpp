@@ -6,7 +6,6 @@ namespace RTE {
 
 	const std::string Gib::c_ClassName = "Gib";
 
-
 	void Gib::Clear() {
 		m_GibParticle = nullptr;
 		m_Offset.Reset();
@@ -19,7 +18,6 @@ namespace RTE {
 		m_IgnoresTeamHits = false;
 		m_SpreadMode = SpreadMode::SpreadRandom;
 	}
-
 
 	int Gib::Create(const Gib& reference) {
 		m_GibParticle = reference.m_GibParticle;
@@ -35,7 +33,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -56,7 +53,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
 
 	int Gib::Save(Writer& writer) const {
 		Serializable::Save(writer);

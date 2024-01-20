@@ -27,7 +27,6 @@ namespace RTE {
 	const GraphicalPrimitive::PrimitiveType TextPrimitive::c_PrimitiveType = PrimitiveType::Text;
 	const GraphicalPrimitive::PrimitiveType BitmapPrimitive::c_PrimitiveType = PrimitiveType::Bitmap;
 
-
 	void GraphicalPrimitive::TranslateCoordinates(Vector targetPos, const Vector& scenePos, Vector& drawLeftPos, Vector& drawRightPos) const {
 		drawLeftPos = scenePos;
 		drawRightPos = scenePos;
@@ -53,7 +52,6 @@ namespace RTE {
 		drawRightPos.m_Y -= targetPos.m_Y;
 	}
 
-
 	void LinePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
@@ -72,7 +70,6 @@ namespace RTE {
 			line(drawScreen, drawStartRight.GetFloorIntX(), drawStartRight.GetFloorIntY(), drawEndRight.GetFloorIntX(), drawEndRight.GetFloorIntY(), m_Color);
 		}
 	}
-
 
 	void ArcPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
@@ -101,7 +98,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void SplinePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
@@ -134,7 +130,6 @@ namespace RTE {
 		}
 	}
 
-
 	void BoxPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
@@ -154,7 +149,6 @@ namespace RTE {
 		}
 	}
 
-
 	void BoxFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
@@ -173,7 +167,6 @@ namespace RTE {
 			rectfill(drawScreen, drawStartRight.GetFloorIntX(), drawStartRight.GetFloorIntY(), drawEndRight.GetFloorIntX(), drawEndRight.GetFloorIntY(), m_Color);
 		}
 	}
-
 
 	void RoundedBoxPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (m_StartPos.m_X > m_EndPos.m_X) {
@@ -225,7 +218,6 @@ namespace RTE {
 		}
 	}
 
-
 	void RoundedBoxFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (m_StartPos.m_X > m_EndPos.m_X) {
 			std::swap(m_StartPos.m_X, m_EndPos.m_X);
@@ -270,7 +262,6 @@ namespace RTE {
 		}
 	}
 
-
 	void CirclePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
@@ -285,7 +276,6 @@ namespace RTE {
 			circle(drawScreen, drawStartRight.GetFloorIntX(), drawStartRight.GetFloorIntY(), m_Radius, m_Color);
 		}
 	}
-
 
 	void CircleFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
@@ -302,7 +292,6 @@ namespace RTE {
 		}
 	}
 
-
 	void EllipsePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
@@ -318,7 +307,6 @@ namespace RTE {
 		}
 	}
 
-
 	void EllipseFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawStart = m_StartPos - targetPos;
@@ -333,7 +321,6 @@ namespace RTE {
 			ellipsefill(drawScreen, drawStartRight.GetFloorIntX(), drawStartRight.GetFloorIntY(), m_HorizRadius, m_VertRadius, m_Color);
 		}
 	}
-
 
 	void TrianglePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
@@ -364,7 +351,6 @@ namespace RTE {
 		}
 	}
 
-
 	void TriangleFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
 			Vector drawPointA = m_PointAPos - targetPos;
@@ -387,7 +373,6 @@ namespace RTE {
 			triangle(drawScreen, drawPointARight.GetFloorIntX(), drawPointARight.GetFloorIntY(), drawPointBRight.GetFloorIntX(), drawPointBRight.GetFloorIntY(), drawPointCRight.GetFloorIntX(), drawPointCRight.GetFloorIntY(), m_Color);
 		}
 	}
-
 
 	void PolygonPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!g_SceneMan.SceneWrapsX() && !g_SceneMan.SceneWrapsY()) {
@@ -412,7 +397,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void PolygonFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		size_t drawPointsSize = m_Vertices.size() * 2;
@@ -446,7 +430,6 @@ namespace RTE {
 			polygon(drawScreen, m_Vertices.size(), drawPointsRight.data(), m_Color);
 		}
 	}
-
 
 	void TextPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (m_Text.empty()) {
@@ -515,7 +498,6 @@ namespace RTE {
 			destroy_bitmap(tempDrawBitmap);
 		}
 	}
-
 
 	void BitmapPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		if (!m_Bitmap) {

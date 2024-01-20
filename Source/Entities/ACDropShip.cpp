@@ -431,7 +431,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ACDropShip::SetRightThruster(AEmitter* newThruster) {
 		if (m_pRThruster && m_pRThruster->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pRThruster);
@@ -454,7 +453,6 @@ namespace RTE {
 			m_pRThruster->SetInheritsRotAngle(false);
 		}
 	}
-
 
 	void ACDropShip::SetLeftThruster(AEmitter* newThruster) {
 		if (m_pLThruster && m_pLThruster->IsAttached()) {
@@ -479,7 +477,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ACDropShip::SetURightThruster(AEmitter* newThruster) {
 		if (m_pURThruster && m_pURThruster->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pURThruster);
@@ -501,7 +498,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void ACDropShip::SetULeftThruster(AEmitter* newThruster) {
 		if (m_pULThruster && m_pULThruster->IsAttached()) {
@@ -525,7 +521,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ACDropShip::SetRightHatch(Attachable* newHatch) {
 		if (m_pRHatch && m_pRHatch->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pRHatch);
@@ -546,7 +541,6 @@ namespace RTE {
 			m_pRHatch->SetInheritsRotAngle(false);
 		}
 	}
-
 
 	void ACDropShip::SetLeftHatch(Attachable* newHatch) {
 		if (m_pLHatch && m_pLHatch->IsAttached()) {

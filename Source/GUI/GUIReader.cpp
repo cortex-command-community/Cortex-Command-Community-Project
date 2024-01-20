@@ -3,10 +3,8 @@
 
 namespace RTE {
 
-
 	GUIReader::StreamInfo::StreamInfo(std::ifstream* stream, const std::string& filePath, int currentLine, int prevIndent) :
 	    Stream(stream), FilePath(filePath), CurrentLine(currentLine), PreviousIndent(prevIndent) {}
-
 
 	void GUIReader::Clear() {
 		m_Stream = nullptr;
@@ -21,11 +19,9 @@ namespace RTE {
 		m_SkipIncludes = false;
 	}
 
-
 	GUIReader::GUIReader() {
 		Clear();
 	}
-
 
 	int GUIReader::Create(const std::string& fileName) {
 		m_FilePath = std::filesystem::path(fileName).generic_string();
@@ -40,31 +36,25 @@ namespace RTE {
 		return m_Stream->good() ? 0 : -1;
 	}
 
-
 	std::istream* GUIReader::GetStream() const {
 		return m_Stream.get();
 	}
-
 
 	std::string GUIReader::GetCurrentFilePath() const {
 		return m_FilePath;
 	}
 
-
 	std::string GUIReader::GetCurrentFileLine() const {
 		return std::to_string(m_CurrentLine);
 	}
-
 
 	bool GUIReader::GetSkipIncludes() const {
 		return m_SkipIncludes;
 	}
 
-
 	void GUIReader::SetSkipIncludes(bool skip) {
 		m_SkipIncludes = skip;
 	}
-
 
 	std::string GUIReader::ReadLine() {
 		DiscardEmptySpace();
@@ -94,7 +84,6 @@ namespace RTE {
 		}
 		return TrimString(retString);
 	}
-
 
 	std::string GUIReader::ReadPropName() {
 		DiscardEmptySpace();
@@ -142,14 +131,12 @@ namespace RTE {
 		return retString;
 	}
 
-
 	std::string GUIReader::ReadPropValue() {
 		std::string fullLine = ReadLine();
 		size_t valuePos = fullLine.find_first_of('=');
 		std::string propValue = (valuePos == std::string::npos) ? fullLine : fullLine.substr(valuePos + 1);
 		return TrimString(propValue);
 	}
-
 
 	bool GUIReader::NextProperty() {
 		if (!DiscardEmptySpace() || m_EndOfStreams) {
@@ -164,7 +151,6 @@ namespace RTE {
 		return true;
 	}
 
-
 	std::string GUIReader::TrimString(const std::string& stringToTrim) const {
 		if (stringToTrim.empty()) {
 			return "";
@@ -174,7 +160,6 @@ namespace RTE {
 
 		return stringToTrim.substr(start, (end - start + 1));
 	}
-
 
 	bool GUIReader::DiscardEmptySpace() {
 		char peek;
@@ -254,16 +239,13 @@ namespace RTE {
 		return true;
 	}
 
-
 	bool GUIReader::ReaderOK() const {
 		return m_Stream.get() && !m_Stream->fail() && m_Stream->is_open();
 	}
 
-
 	void GUIReader::ReportError(const std::string& errorDesc) const {
 		GUIAbort(errorDesc + "\nError happened in " + m_FilePath + " at line " + std::to_string(m_CurrentLine) + "!");
 	}
-
 
 	bool GUIReader::StartIncludeFile() {
 		// Get the file path from the current stream before pushing it into the StreamStack, otherwise we can't open a new stream after releasing it because we can't read.
@@ -297,7 +279,6 @@ namespace RTE {
 		return true;
 	}
 
-
 	bool GUIReader::EndIncludeFile() {
 		if (m_StreamStack.empty()) {
 			m_EndOfStreams = true;
@@ -320,20 +301,17 @@ namespace RTE {
 		return true;
 	}
 
-
 	GUIReader& GUIReader::operator>>(bool& var) {
 		DiscardEmptySpace();
 		*m_Stream >> var;
 		return *this;
 	}
 
-
 	GUIReader& GUIReader::operator>>(char& var) {
 		DiscardEmptySpace();
 		*m_Stream >> var;
 		return *this;
 	}
-
 
 	GUIReader& GUIReader::operator>>(unsigned char& var) {
 		DiscardEmptySpace();
@@ -343,13 +321,11 @@ namespace RTE {
 		return *this;
 	}
 
-
 	GUIReader& GUIReader::operator>>(short& var) {
 		DiscardEmptySpace();
 		*m_Stream >> var;
 		return *this;
 	}
-
 
 	GUIReader& GUIReader::operator>>(unsigned short& var) {
 		DiscardEmptySpace();
@@ -357,13 +333,11 @@ namespace RTE {
 		return *this;
 	}
 
-
 	GUIReader& GUIReader::operator>>(int& var) {
 		DiscardEmptySpace();
 		*m_Stream >> var;
 		return *this;
 	}
-
 
 	GUIReader& GUIReader::operator>>(unsigned int& var) {
 		DiscardEmptySpace();
@@ -371,20 +345,17 @@ namespace RTE {
 		return *this;
 	}
 
-
 	GUIReader& GUIReader::operator>>(long& var) {
 		DiscardEmptySpace();
 		*m_Stream >> var;
 		return *this;
 	}
 
-
 	GUIReader& GUIReader::operator>>(unsigned long& var) {
 		DiscardEmptySpace();
 		*m_Stream >> var;
 		return *this;
 	}
-
 
 	// Yeah, this is dumb - read as double and cast.
 	// This is because, for whatever fucking reason, iostream can save out floats at a precision that it's then unable to read...
@@ -396,13 +367,11 @@ namespace RTE {
 		return *this;
 	}
 
-
 	GUIReader& GUIReader::operator>>(double& var) {
 		DiscardEmptySpace();
 		*m_Stream >> var;
 		return *this;
 	}
-
 
 	GUIReader& GUIReader::operator>>(std::string& var) {
 		var.assign(ReadLine());

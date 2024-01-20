@@ -5,7 +5,6 @@ namespace RTE {
 
 	ConcreteClassInfo(Material, Entity, 0);
 
-
 	void Material::Clear() {
 		m_Index = 0;
 		m_Priority = -1;
@@ -28,7 +27,6 @@ namespace RTE {
 		m_TerrainFGTexture = nullptr;
 		m_TerrainBGTexture = nullptr;
 	}
-
 
 	int Material::Create(const Material& reference) {
 		Entity::Create(reference);
@@ -56,7 +54,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int Material::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -102,7 +99,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
 
 	int Material::Save(Writer& writer) const {
 		Entity::Save(writer);

@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUIPropertyPage::GUIPropertyPage(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "PROPERTYPAGE";
@@ -16,7 +15,6 @@ GUIPropertyPage::GUIPropertyPage(GUIManager* Manager, GUIControlManager* Control
 	m_PageValues.Clear();
 	m_TextPanelList.clear();
 }
-
 
 void GUIPropertyPage::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -72,7 +70,6 @@ void GUIPropertyPage::Create(const std::string& Name, int X, int Y, int Width, i
 	}
 }
 
-
 void GUIPropertyPage::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
@@ -117,7 +114,6 @@ void GUIPropertyPage::Create(GUIProperties* Props) {
 	}
 }
 
-
 void GUIPropertyPage::Destroy() {
 	// Free the drawing bitmap
 	if (m_DrawBitmap) {
@@ -134,7 +130,6 @@ void GUIPropertyPage::Destroy() {
 	}
 }
 
-
 void GUIPropertyPage::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
@@ -146,7 +141,6 @@ void GUIPropertyPage::ChangeSkin(GUISkin* Skin) {
 	// Build the control bitmap
 	BuildBitmap();
 }
-
 
 void GUIPropertyPage::BuildBitmap() {
 	// Free any old bitmap
@@ -178,7 +172,6 @@ void GUIPropertyPage::BuildBitmap() {
 	m_Skin->GetValue("PropertyPage", "LineColor", &m_LineColor);
 	m_LineColor = m_Skin->ConvertColor(m_LineColor, m_DrawBitmap->GetColorDepth());
 }
-
 
 void GUIPropertyPage::Draw(GUIScreen* Screen) {
 	if (m_DrawBitmap) {
@@ -212,7 +205,6 @@ void GUIPropertyPage::Draw(GUIScreen* Screen) {
 	GUIPanel::Draw(Screen);
 }
 
-
 void GUIPropertyPage::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	if (Buttons & MOUSE_LEFT) {
 		// Push the button down
@@ -224,17 +216,13 @@ void GUIPropertyPage::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	SetFocus();
 }
 
-
 void GUIPropertyPage::OnMouseUp(int X, int Y, int Buttons, int Modifier) {}
-
 
 void GUIPropertyPage::OnMouseEnter(int X, int Y, int Buttons, int Modifier) {
 }
 
-
 void GUIPropertyPage::OnMouseLeave(int X, int Y, int Buttons, int Modifier) {
 }
-
 
 void GUIPropertyPage::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	if (!(Buttons & MOUSE_LEFT) || !IsCaptured()) {
@@ -242,21 +230,17 @@ void GUIPropertyPage::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	}
 }
 
-
 GUIPanel* GUIPropertyPage::GetPanel() {
 	return this;
 }
-
 
 void GUIPropertyPage::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
 
-
 void GUIPropertyPage::Move(int X, int Y) {
 	GUIPanel::SetPositionAbs(X, Y);
 }
-
 
 void GUIPropertyPage::Resize(int Width, int Height) {
 	// Make sure the control isn't too small
@@ -270,11 +254,9 @@ void GUIPropertyPage::Resize(int Width, int Height) {
 	BuildBitmap();
 }
 
-
 void GUIPropertyPage::StoreProperties() {
 	// Note: This is for saving the control, not related directly to our control type
 }
-
 
 void GUIPropertyPage::SetPropertyValues(GUIProperties* Props) {
 	m_PageValues.Clear();
@@ -297,11 +279,9 @@ void GUIPropertyPage::SetPropertyValues(GUIProperties* Props) {
 	}
 }
 
-
 GUIProperties* GUIPropertyPage::GetPropertyValues() {
 	return &m_PageValues;
 }
-
 
 void GUIPropertyPage::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	assert(Source);
@@ -333,7 +313,6 @@ void GUIPropertyPage::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	}
 }
 
-
 bool GUIPropertyPage::InvokeUpdate() {
 	bool Changed = false;
 
@@ -356,7 +335,6 @@ bool GUIPropertyPage::InvokeUpdate() {
 	return Changed;
 }
 
-
 void GUIPropertyPage::ClearValues() {
 	m_PageValues.Clear();
 
@@ -367,7 +345,6 @@ void GUIPropertyPage::ClearValues() {
 		T->_SetVisible(false);
 	}
 }
-
 
 bool GUIPropertyPage::HasTextFocus() {
 	std::vector<GUITextPanel*>::iterator it;

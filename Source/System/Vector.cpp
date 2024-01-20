@@ -6,7 +6,6 @@ namespace RTE {
 
 	const std::string Vector::c_ClassName = "Vector";
 
-
 	int Vector::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
@@ -15,7 +14,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
 
 	int Vector::Save(Writer& writer) const {
 		Serializable::Save(writer);

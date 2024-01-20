@@ -7,7 +7,6 @@ namespace RTE {
 
 	ConcreteClassInfo(MetaSave, Entity, 0);
 
-
 	void MetaSave::Clear() {
 		m_SavePath.clear();
 		m_PlayerCount = 0;
@@ -15,7 +14,6 @@ namespace RTE {
 		m_RoundCount = 0;
 		m_SiteCount = 0;
 	}
-
 
 	int MetaSave::Create(std::string savePath) {
 		if (Entity::Create() < 0) {
@@ -35,7 +33,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int MetaSave::Create(const MetaSave& reference) {
 		Entity::Create(reference);
 
@@ -48,7 +45,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int MetaSave::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
 
@@ -60,7 +56,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
 
 	int MetaSave::Save(Writer& writer) const {
 		Entity::Save(writer);

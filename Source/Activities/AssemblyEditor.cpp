@@ -445,7 +445,6 @@ namespace RTE {
 		return pBA;
 	}
 
-
 	bool AssemblyEditor::SaveAssembly(const std::string& saveAsName, bool forceOverwrite) {
 		std::unique_ptr<BunkerAssembly> editedAssembly(BuildAssembly(saveAsName));
 

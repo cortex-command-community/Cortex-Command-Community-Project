@@ -14,7 +14,6 @@
 
 namespace RTE {
 
-
 	void LoadingScreen::Clear() {
 		m_LoadingLogWriter = nullptr;
 		m_LoadingSplashBitmap = nullptr;
@@ -22,7 +21,6 @@ namespace RTE {
 		m_ProgressListboxPosX = 0;
 		m_ProgressListboxPosY = 0;
 	}
-
 
 	void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool progressReportDisabled) {
 		GUIControlManager loadingScreenManager;
@@ -57,7 +55,6 @@ namespace RTE {
 		}
 	}
 
-
 	void LoadingScreen::CreateLoadingSplash(int xOffset) {
 		if (m_LoadingSplashBitmap) {
 			destroy_bitmap(m_LoadingSplashBitmap);
@@ -75,7 +72,6 @@ namespace RTE {
 		Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - loadingSplash.GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(loadingSplash.GetBitmap()->h));
 		loadingSplash.Draw(m_LoadingSplashBitmap, loadingSplashTargetBox);
 	}
-
 
 	void LoadingScreen::CreateProgressReportListbox(GUIControlManager* parentControlManager) {
 		dynamic_cast<GUICollectionBox*>(parentControlManager->GetControl("root"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
@@ -100,7 +96,6 @@ namespace RTE {
 		}
 	}
 
-
 	void LoadingScreen::Destroy() {
 		destroy_bitmap(m_LoadingSplashBitmap);
 		if (m_ProgressListboxBitmap) {
@@ -108,7 +103,6 @@ namespace RTE {
 		}
 		Clear();
 	}
-
 
 	void LoadingScreen::LoadingSplashProgressReport(const std::string& reportString, bool newItem) {
 		if (System::IsLoggingToCLI()) {
@@ -142,7 +136,6 @@ namespace RTE {
 			g_WindowMan.UploadFrame();
 		}
 	}
-
 
 	void LoadingScreen::DrawLoadingSplash() {
 		draw_sprite(g_FrameMan.GetBackBuffer32(), m_LoadingSplashBitmap, 0, 0);

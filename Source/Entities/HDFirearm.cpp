@@ -355,7 +355,6 @@ namespace RTE {
 		Clear();
 	}
 
-
 	void HDFirearm::SetMagazine(Magazine* newMagazine) {
 		if (m_pMagazine && m_pMagazine->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pMagazine);
@@ -378,7 +377,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void HDFirearm::SetFlash(Attachable* newFlash) {
 		if (m_pFlash && m_pFlash->IsAttached()) {
@@ -403,11 +401,9 @@ namespace RTE {
 		}
 	}
 
-
 	std::string HDFirearm::GetNextMagazineName() const {
 		return m_pMagazineReference->GetPresetName();
 	}
-
 
 	bool HDFirearm::SetNextMagazineName(std::string magName) {
 		const Magazine* pNewMag = dynamic_cast<const Magazine*>(g_PresetMan.GetEntityPreset("Magazine", magName));
@@ -425,7 +421,6 @@ namespace RTE {
 	int HDFirearm::GetRoundInMagCount() const {
 		return m_pMagazine ? m_pMagazine->GetRoundCount() : 0;
 	}
-
 
 	int HDFirearm::GetRoundInMagCapacity() const {
 		if (m_pMagazine) {
@@ -527,7 +522,6 @@ namespace RTE {
 		return m_Pos + RotateOffset(m_MuzzleOff);
 	}
 
-
 	void HDFirearm::RestDetection() {
 		HeldDevice::RestDetection();
 
@@ -580,7 +574,6 @@ namespace RTE {
 		// m_LastFireTmr.SetElapsedSimTimeMS(m_DeactivationDelay + 1);
 	}
 
-
 	void HDFirearm::Reload() {
 		if (!m_Reloading && m_Reloadable) {
 			bool hadMagazineBeforeReloading = m_pMagazine != nullptr;
@@ -611,7 +604,6 @@ namespace RTE {
 		}
 	}
 
-
 	bool HDFirearm::NeedsReloading() const {
 		if (!m_Reloading && m_Reloadable) {
 			if (m_pMagazine) {
@@ -636,14 +628,12 @@ namespace RTE {
 		return true;
 	}
 
-
 	bool HDFirearm::IsEmpty() const {
 		if (m_pMagazine) {
 			return m_pMagazine->IsEmpty();
 		}
 		return true;
 	}
-
 
 	void HDFirearm::Update() {
 		HeldDevice::Update();

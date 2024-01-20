@@ -6,7 +6,6 @@ namespace RTE {
 
 	ConcreteClassInfo(Leg, Attachable, 50);
 
-
 	void Leg::Clear() {
 		m_Foot = nullptr;
 
@@ -25,7 +24,6 @@ namespace RTE {
 		m_WillIdle = false;
 		m_MoveSpeed = 0;
 	}
-
 
 	int Leg::Create() {
 		if (Attachable::Create() < 0) {
@@ -47,7 +45,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int Leg::Create(const Leg& reference) {
 		if (reference.m_Foot) {
@@ -74,7 +71,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int Leg::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
@@ -94,7 +90,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-
 	int Leg::Save(Writer& writer) const {
 		Attachable::Save(writer);
 
@@ -113,7 +108,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	void Leg::SetFoot(Attachable* newFoot) {
 		if (m_Foot && m_Foot->IsAttached()) {
@@ -137,7 +131,6 @@ namespace RTE {
 			m_Foot->SetCollidesWithTerrainWhileAttached(false);
 		}
 	}
-
 
 	AtomGroup* Leg::GetFootGroupFromFootAtomGroup() {
 		if (!m_Foot) {
@@ -191,7 +184,6 @@ namespace RTE {
 		return footGroup;
 	}
 
-
 	void Leg::Update() {
 		Attachable::PreUpdate();
 
@@ -217,7 +209,6 @@ namespace RTE {
 		UpdateFootFrameAndRotation();
 	}
 
-
 	void Leg::UpdateCurrentAnkleOffset() {
 		if (IsAttached()) {
 			Vector targetOffset = g_SceneMan.ShortestDistance(m_JointPos, m_TargetPosition, g_SceneMan.SceneWrapsX());
@@ -234,7 +225,6 @@ namespace RTE {
 			m_AnkleOffset.RadRotate((m_HFlipped ? c_PI : 0) + m_Rotation.GetRadAngle());
 		}
 	}
-
 
 	void Leg::UpdateLegRotation() {
 		if (IsAttached()) {
@@ -254,7 +244,6 @@ namespace RTE {
 			m_AngularVel = 0.0F;
 		}
 	}
-
 
 	void Leg::UpdateFootFrameAndRotation() {
 		if (m_Foot) {

@@ -5,11 +5,11 @@
 #include "FrameMan.h"
 #include "CameraMan.h"
 #include "UInputMan.h"
-//#include "AHuman.h"
-//#include "MOPixel.h"
+// #include "AHuman.h"
+// #include "MOPixel.h"
 #include "SLTerrain.h"
 #include "Controller.h"
-//#include "AtomGroup.h"
+// #include "AtomGroup.h"
 #include "Actor.h"
 #include "AHuman.h"
 #include "ACRocket.h"
@@ -226,7 +226,6 @@ namespace RTE {
 
 		return true;
 	}
-
 
 	bool ActorEditor::ReloadActorData() {
 		if (m_pEditedActor) {

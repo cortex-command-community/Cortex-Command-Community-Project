@@ -5,7 +5,6 @@ using namespace RTE;
 
 #define RIGHTTEXTWIDTH 36
 
-
 GUIListPanel::GUIListPanel(GUIManager* Manager) :
     GUIPanel(Manager) {
 	m_BaseBitmap = nullptr;
@@ -34,7 +33,6 @@ GUIListPanel::GUIListPanel(GUIManager* Manager) :
 	m_LoopSelectionScroll = false;
 	m_MouseScroll = false;
 }
-
 
 GUIListPanel::GUIListPanel() :
     GUIPanel() {
@@ -65,7 +63,6 @@ GUIListPanel::GUIListPanel() :
 	m_MouseScroll = false;
 }
 
-
 void GUIListPanel::Create(int X, int Y, int Width, int Height) {
 	m_X = X;
 	m_Y = Y;
@@ -94,7 +91,6 @@ void GUIListPanel::Create(int X, int Y, int Width, int Height) {
 	AddChild(m_HorzScroll);
 	AddChild(m_VertScroll);
 }
-
 
 void GUIListPanel::Destroy() {
 	// Destroy the items
@@ -144,7 +140,6 @@ void GUIListPanel::Destroy() {
 	}
 }
 
-
 void GUIListPanel::ClearList() {
 	// Destroy the items
 	std::vector<Item*>::iterator it;
@@ -166,7 +161,6 @@ void GUIListPanel::ClearList() {
 
 	BuildBitmap(false, true);
 }
-
 
 void GUIListPanel::AddItem(const std::string& Name, const std::string& rightText, GUIBitmap* pBitmap, const Entity* pEntity, const int extraIndex, const int offsetX) {
 	Item* I = new Item;
@@ -195,7 +189,6 @@ void GUIListPanel::AddItem(const std::string& Name, const std::string& rightText
 	BuildBitmap(false, true);
 }
 
-
 void GUIListPanel::ChangeSkin(GUISkin* Skin) {
 	assert(Skin);
 
@@ -211,7 +204,6 @@ void GUIListPanel::ChangeSkin(GUISkin* Skin) {
 	// Build the bitmap
 	BuildBitmap(true, true);
 }
-
 
 void GUIListPanel::BuildBitmap(bool UpdateBase, bool UpdateText) {
 	// Gotta update the text if updating the base
@@ -282,7 +274,6 @@ void GUIListPanel::BuildBitmap(bool UpdateBase, bool UpdateText) {
 		m_FrameBitmap->DrawTrans(m_DrawBitmap, 0, 0, nullptr);
 	}
 }
-
 
 void GUIListPanel::BuildDrawBitmap() {
 	// Draw the items
@@ -401,7 +392,6 @@ void GUIListPanel::BuildDrawBitmap() {
 	}
 }
 
-
 void GUIListPanel::Draw(GUIScreen* Screen) {
 	// Draw the base
 	m_DrawBitmap->Draw(Screen->GetBitmap(), m_X, m_Y, nullptr);
@@ -409,7 +399,6 @@ void GUIListPanel::Draw(GUIScreen* Screen) {
 	// Draw any children
 	GUIPanel::Draw(Screen);
 }
-
 
 void GUIListPanel::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	m_ExternalCapture = IsCaptured();
@@ -436,7 +425,6 @@ void GUIListPanel::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	}
 }
 
-
 void GUIListPanel::OnMouseWheelChange(int x, int y, int modifier, int mouseWheelChange) {
 	if (!m_MouseScroll) {
 		return;
@@ -448,7 +436,6 @@ void GUIListPanel::OnMouseWheelChange(int x, int y, int modifier, int mouseWheel
 		SelectItem(x, y, modifier);
 	}
 }
-
 
 void GUIListPanel::SelectItem(int X, int Y, int Modifier) {
 	std::vector<Item*>::iterator it;
@@ -569,7 +556,6 @@ void GUIListPanel::SelectItem(int X, int Y, int Modifier) {
 	BuildBitmap(false, true);
 }
 
-
 void GUIListPanel::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	if (m_CapturedVert) {
 		m_VertScroll->OnMouseUp(X, Y, Buttons, Modifier);
@@ -583,7 +569,6 @@ void GUIListPanel::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 		}
 	}
 }
-
 
 void GUIListPanel::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	if (m_CapturedVert) {
@@ -599,16 +584,13 @@ void GUIListPanel::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	}
 }
 
-
 void GUIListPanel::OnMouseEnter(int X, int Y, int Buttons, int Modifier) {
 	SendSignal(MouseEnter, Buttons);
 }
 
-
 void GUIListPanel::OnMouseLeave(int X, int Y, int Buttons, int Modifier) {
 	SendSignal(MouseLeave, Buttons);
 }
-
 
 void GUIListPanel::OnDoubleClick(int X, int Y, int Buttons, int Modifier) {
 	if (PointInside(X, Y)) {
@@ -616,11 +598,9 @@ void GUIListPanel::OnDoubleClick(int X, int Y, int Buttons, int Modifier) {
 	}
 }
 
-
 void GUIListPanel::BeginUpdate() {
 	m_UpdateLocked = true;
 }
-
 
 void GUIListPanel::EndUpdate() {
 	m_UpdateLocked = false;
@@ -628,7 +608,6 @@ void GUIListPanel::EndUpdate() {
 	// Invoke an update by called the ChangeSkin function
 	ChangeSkin(m_Skin);
 }
-
 
 void GUIListPanel::ScrollToItem(Item* pItem) {
 	if (pItem && m_VertScroll->_GetVisible()) {
@@ -645,7 +624,6 @@ void GUIListPanel::ScrollToItem(Item* pItem) {
 	BuildBitmap(false, true);
 }
 
-
 void GUIListPanel::ScrollUp() {
 	const int sensitivity = 80;
 	if (m_VertScroll->_GetVisible()) {
@@ -653,7 +631,6 @@ void GUIListPanel::ScrollUp() {
 	}
 	BuildBitmap(false, true);
 }
-
 
 void GUIListPanel::ScrollDown() {
 	const int sensitivity = 80;
@@ -668,7 +645,6 @@ void GUIListPanel::ScrollDown() {
 	}
 	BuildBitmap(false, true);
 }
-
 
 void GUIListPanel::ScrollTo(int position) {
 	if (m_VertScroll->_GetVisible()) {
@@ -686,7 +662,6 @@ void GUIListPanel::ScrollTo(int position) {
 	BuildBitmap(false, true);
 }
 
-
 void GUIListPanel::ScrollToSelected() {
 	if (!m_SelectedList.empty()) {
 		ScrollToItem(*(m_SelectedList.begin()));
@@ -694,12 +669,10 @@ void GUIListPanel::ScrollToSelected() {
 	}
 }
 
-
 void GUIListPanel::ScrollToTop() {
 	m_VertScroll->SetValue(0);
 	BuildBitmap(false, true);
 }
-
 
 void GUIListPanel::ScrollToBottom() {
 	if (m_Items.empty()) {
@@ -710,16 +683,13 @@ void GUIListPanel::ScrollToBottom() {
 	BuildBitmap(false, true);
 }
 
-
 void GUIListPanel::SetSelectionScrollingLoop(bool scrollLoop) {
 	m_LoopSelectionScroll = scrollLoop;
 }
 
-
 void GUIListPanel::SetMouseScrolling(bool mouseScroll) {
 	m_MouseScroll = mouseScroll;
 }
-
 
 void GUIListPanel::ScrollBarScrolling(int mouseWheelChange) {
 	int newValue = 0;
@@ -740,7 +710,6 @@ void GUIListPanel::ScrollBarScrolling(int mouseWheelChange) {
 	m_VertScroll->SetValue(newValue);
 	BuildBitmap(false, true);
 }
-
 
 void GUIListPanel::SelectionListScrolling(int scrollDir) {
 	std::size_t itemListSize = GetItemList()->size();
@@ -763,7 +732,6 @@ void GUIListPanel::SelectionListScrolling(int scrollDir) {
 	}
 	SetSelectedIndex(newItemIndex);
 }
-
 
 void GUIListPanel::AdjustScrollbars() {
 	// If the update is locked, don't update the scrollbars
@@ -856,7 +824,6 @@ void GUIListPanel::AdjustScrollbars() {
 	}
 }
 
-
 void GUIListPanel::OnKeyPress(int KeyCode, int Modifier) {
 	if (m_LastSelected < 0) {
 		return;
@@ -927,11 +894,9 @@ void GUIListPanel::OnKeyPress(int KeyCode, int Modifier) {
 	BuildBitmap(false, true);
 }
 
-
 void GUIListPanel::OnKeyDown(int KeyCode, int Modifier) {
 	SendSignal(KeyDown, KeyCode);
 }
-
 
 bool GUIListPanel::PointInsideList(int X, int Y) {
 	bool inside = PointInside(X, Y);
@@ -942,20 +907,17 @@ bool GUIListPanel::PointInsideList(int X, int Y) {
 	return inside;
 }
 
-
 void GUIListPanel::OnGainFocus() {
 	GUIPanel::OnGainFocus();
 
 	BuildBitmap(false, true);
 }
 
-
 void GUIListPanel::OnLoseFocus() {
 	GUIPanel::OnLoseFocus();
 
 	BuildBitmap(false, true);
 }
-
 
 void GUIListPanel::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	// ChangeValue signal from scrollpanels?
@@ -982,7 +944,6 @@ void GUIListPanel::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	}
 }
 
-
 void GUIListPanel::SetMultiSelect(bool MultiSelect) {
 	m_MultiSelect = MultiSelect;
 
@@ -992,11 +953,9 @@ void GUIListPanel::SetMultiSelect(bool MultiSelect) {
 	}
 }
 
-
 bool GUIListPanel::GetMultiSelect() const {
 	return m_MultiSelect;
 }
-
 
 void GUIListPanel::SetHotTracking(bool HotTrack) {
 	m_HotTracking = HotTrack;
@@ -1007,7 +966,6 @@ void GUIListPanel::SetHotTracking(bool HotTrack) {
 	}
 }
 
-
 GUIListPanel::Item* GUIListPanel::GetSelected() {
 	// Nothing in the list
 	if (m_SelectedList.empty()) {
@@ -1017,16 +975,13 @@ GUIListPanel::Item* GUIListPanel::GetSelected() {
 	return m_SelectedList.at(0);
 }
 
-
 std::vector<GUIListPanel::Item*>* GUIListPanel::GetSelectionList() {
 	return &m_SelectedList;
 }
 
-
 std::vector<GUIListPanel::Item*>* GUIListPanel::GetItemList() {
 	return &m_Items;
 }
-
 
 GUIListPanel::Item* GUIListPanel::GetItem(int Index) {
 	if (Index >= 0 && Index < m_Items.size()) {
@@ -1034,7 +989,6 @@ GUIListPanel::Item* GUIListPanel::GetItem(int Index) {
 	}
 	return 0;
 }
-
 
 GUIListPanel::Item* GUIListPanel::GetItem(int X, int Y) {
 	int Height = m_Height;
@@ -1064,7 +1018,6 @@ GUIListPanel::Item* GUIListPanel::GetItem(int X, int Y) {
 	return 0;
 }
 
-
 int GUIListPanel::GetItemHeight(Item* pItem) {
 	int height = 0;
 
@@ -1093,7 +1046,6 @@ int GUIListPanel::GetItemHeight(Item* pItem) {
 	return height;
 }
 
-
 int GUIListPanel::GetStackHeight(Item* pItem) {
 	int height = 0;
 
@@ -1106,14 +1058,12 @@ int GUIListPanel::GetStackHeight(Item* pItem) {
 	return height;
 }
 
-
 void GUIListPanel::SetItemValues(int Index, Item& item) {
 	if (Index >= 0 && Index < m_Items.size()) {
 		*(m_Items.at(Index)) = item;
 	}
 	BuildBitmap(false, true);
 }
-
 
 int GUIListPanel::GetSelectedIndex() {
 	// Nothing in the list
@@ -1125,7 +1075,6 @@ int GUIListPanel::GetSelectedIndex() {
 
 	return I->m_ID;
 }
-
 
 void GUIListPanel::SetSelectedIndex(int Index) {
 	// Clear the old selection
@@ -1151,7 +1100,6 @@ void GUIListPanel::SetSelectedIndex(int Index) {
 	}
 	BuildBitmap(false, true);
 }
-
 
 void GUIListPanel::DeleteItem(int Index) {
 	if (Index >= 0 && Index < m_Items.size()) {
@@ -1189,7 +1137,6 @@ void GUIListPanel::DeleteItem(int Index) {
 	}
 }
 
-
 void GUIListPanel::SetSize(int Width, int Height) {
 	GUIPanel::SetSize(Width, Height);
 
@@ -1206,7 +1153,6 @@ void GUIListPanel::SetSize(int Width, int Height) {
 	BuildBitmap(true, true);
 }
 
-
 void GUIListPanel::SetPositionAbs(int X, int Y) {
 	GUIPanel::SetPositionAbs(X, Y);
 
@@ -1217,7 +1163,6 @@ void GUIListPanel::SetPositionAbs(int X, int Y) {
 	// Adjust the scrollbar values
 	AdjustScrollbars();
 }
-
 
 void GUIListPanel::EnableScrollbars(bool Horizontal, bool Vertical) {
 	m_HorzScrollEnabled = Horizontal;

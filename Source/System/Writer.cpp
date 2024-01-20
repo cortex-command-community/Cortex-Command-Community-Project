@@ -5,7 +5,6 @@
 
 namespace RTE {
 
-
 	void Writer::Clear() {
 		m_Stream = nullptr;
 		m_FilePath.clear();
@@ -14,18 +13,15 @@ namespace RTE {
 		m_IndentCount = 0;
 	}
 
-
 	Writer::Writer(const std::string& fileName, bool append, bool createDir) {
 		Clear();
 		Create(fileName, append, createDir);
 	}
 
-
 	Writer::Writer(std::unique_ptr<std::ostream>&& stream) {
 		Clear();
 		Create(std::move(stream));
 	}
-
 
 	int Writer::Create(const std::string& fileName, bool append, bool createDir) {
 		m_FilePath = fileName;
@@ -44,7 +40,6 @@ namespace RTE {
 		return Create(std::move(ofStream));
 	}
 
-
 	int Writer::Create(std::unique_ptr<std::ostream>&& stream) {
 		m_Stream = std::move(stream);
 		if (!m_Stream->good()) {
@@ -53,7 +48,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	void Writer::NewLine(bool toIndent, int lineCount) const {
 		for (int lines = 0; lines < lineCount; ++lines) {

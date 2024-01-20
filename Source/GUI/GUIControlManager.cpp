@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUIControlManager::GUIControlManager() {
 	m_Screen = nullptr;
 	m_Input = nullptr;
@@ -14,7 +13,6 @@ GUIControlManager::GUIControlManager() {
 
 	m_CursorType = Pointer;
 }
-
 
 bool GUIControlManager::Create(GUIScreen* Screen, GUIInput* Input, const std::string& SkinDir, const std::string& SkinFilename) {
 	assert(Screen && Input);
@@ -43,7 +41,6 @@ bool GUIControlManager::Create(GUIScreen* Screen, GUIInput* Input, const std::st
 	return true;
 }
 
-
 void GUIControlManager::Destroy() {
 	// Free the skin
 	if (m_Skin) {
@@ -61,7 +58,6 @@ void GUIControlManager::Destroy() {
 		m_GUIManager = nullptr;
 	}
 }
-
 
 void GUIControlManager::Clear() {
 	std::vector<GUIControl*>::iterator it;
@@ -89,7 +85,6 @@ void GUIControlManager::Clear() {
 	m_EventQueue.clear();
 }
 
-
 void GUIControlManager::ChangeSkin(const std::string& SkinDir, const std::string& SkinFilename) {
 	std::vector<GUIControl*>::iterator it;
 
@@ -103,7 +98,6 @@ void GUIControlManager::ChangeSkin(const std::string& SkinDir, const std::string
 		C->ChangeSkin(m_Skin);
 	}
 }
-
 
 GUIControl* GUIControlManager::AddControl(const std::string& Name, const std::string& Type, GUIControl* Parent, int X, int Y, int Width, int Height) {
 	// Skip if we already have a control of this name
@@ -138,7 +132,6 @@ GUIControl* GUIControlManager::AddControl(const std::string& Name, const std::st
 
 	return Control;
 }
-
 
 GUIControl* GUIControlManager::AddControl(GUIProperties* Property) {
 	assert(Property);
@@ -188,7 +181,6 @@ GUIControl* GUIControlManager::AddControl(GUIProperties* Property) {
 	return Control;
 }
 
-
 GUIControl* GUIControlManager::GetControl(const std::string& Name) {
 	std::vector<GUIControl*>::iterator it;
 
@@ -203,11 +195,9 @@ GUIControl* GUIControlManager::GetControl(const std::string& Name) {
 	return nullptr;
 }
 
-
 std::vector<GUIControl*>* GUIControlManager::GetControlList() {
 	return &m_ControlList;
 }
-
 
 GUIControl* GUIControlManager::GetControlUnderPoint(int pointX, int pointY, GUIControl* pParent, int depth) {
 	// Default to the root object if no parent specified
@@ -256,7 +246,6 @@ GUIControl* GUIControlManager::GetControlUnderPoint(int pointX, int pointY, GUIC
 	return pParent == m_ControlList.front() ? nullptr : pParent;
 }
 
-
 void GUIControlManager::RemoveControl(const std::string& Name, bool RemoveFromParent) {
 	// NOTE: We can't simply remove it because some controls need to remove extra panels and it's silly to add 'remove' to every control to remove their extra panels (ie. Combobox).
 	// Signals and stuff are also linked in so we just remove the controls from the list and not from memory.
@@ -283,7 +272,6 @@ void GUIControlManager::RemoveControl(const std::string& Name, bool RemoveFromPa
 	}
 }
 
-
 void GUIControlManager::Update(bool ignoreKeyboardEvents) {
 	// Clear the event queue
 	m_EventQueue.clear();
@@ -292,16 +280,13 @@ void GUIControlManager::Update(bool ignoreKeyboardEvents) {
 	m_GUIManager->Update(ignoreKeyboardEvents);
 }
 
-
 void GUIControlManager::Draw() {
 	m_GUIManager->Draw(m_Screen);
 }
 
-
 void GUIControlManager::Draw(GUIScreen* pScreen) {
 	m_GUIManager->Draw(pScreen);
 }
-
 
 void GUIControlManager::DrawMouse(GUIScreen* guiScreen) {
 	int MouseX;
@@ -328,7 +313,6 @@ void GUIControlManager::DrawMouse(GUIScreen* guiScreen) {
 	}
 }
 
-
 bool GUIControlManager::GetEvent(GUIEvent* Event) {
 	if (Event && !m_EventQueue.empty()) {
 
@@ -347,7 +331,6 @@ bool GUIControlManager::GetEvent(GUIEvent* Event) {
 	return false;
 }
 
-
 void GUIControlManager::AddEvent(GUIEvent* Event) {
 	// Add the event to the queue
 	if (Event) {
@@ -355,11 +338,9 @@ void GUIControlManager::AddEvent(GUIEvent* Event) {
 	}
 }
 
-
 void GUIControlManager::SetCursor(int CursorType) {
 	m_CursorType = CursorType;
 }
-
 
 bool GUIControlManager::Save(const std::string& Filename) {
 	GUIWriter W;
@@ -372,7 +353,6 @@ bool GUIControlManager::Save(const std::string& Filename) {
 
 	return Result;
 }
-
 
 bool GUIControlManager::Save(GUIWriter* W) {
 	assert(W);
@@ -389,7 +369,6 @@ bool GUIControlManager::Save(GUIWriter* W) {
 
 	return true;
 }
-
 
 bool GUIControlManager::Load(const std::string& Filename, bool keepOld) {
 	GUIReader reader;

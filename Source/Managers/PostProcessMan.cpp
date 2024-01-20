@@ -16,7 +16,6 @@
 
 namespace RTE {
 
-
 	void PostProcessMan::Clear() {
 		m_PostScreenEffects.clear();
 		m_PostSceneEffects.clear();
@@ -39,7 +38,6 @@ namespace RTE {
 			m_ScreenRelativeEffects[i].clear();
 		}
 	}
-
 
 	int PostProcessMan::Initialize() {
 		InitializeGLPointers();
@@ -70,7 +68,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	void PostProcessMan::InitializeGLPointers() {
 		glGenTextures(1, &m_BackBuffer8);
 		glGenTextures(1, &m_BackBuffer32);
@@ -91,7 +88,6 @@ namespace RTE {
 		glBindVertexArray(0);
 	}
 
-
 	void PostProcessMan::DestroyGLPointers() {
 		glDeleteTextures(1, &m_BackBuffer8);
 		glDeleteTextures(1, &m_BackBuffer32);
@@ -105,7 +101,6 @@ namespace RTE {
 		glDeleteVertexArrays(1, &m_VertexArray);
 		glDeleteBuffers(1, &m_VertexBuffer);
 	}
-
 
 	void PostProcessMan::CreateGLBackBuffers() {
 		glBindTexture(GL_TEXTURE_2D, m_BackBuffer8);
@@ -126,7 +121,6 @@ namespace RTE {
 		m_ProjectionMatrix = glm::ortho(0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->w), 0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->h), -1.0F, 1.0F);
 	}
 
-
 	void PostProcessMan::UpdatePalette() {
 		glBindTexture(GL_TEXTURE_1D, m_Palette8Texture);
 		std::array<unsigned int, c_PaletteEntriesNumber> palette;
@@ -142,7 +136,6 @@ namespace RTE {
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 
-
 	void PostProcessMan::LazyInitBitmap(BITMAP* bitmap) {
 		m_BitmapTextures.emplace_back(new GLBitmapInfo);
 		glGenTextures(1, &m_BitmapTextures.back()->m_Texture);
@@ -156,7 +149,6 @@ namespace RTE {
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
-
 	void PostProcessMan::Destroy() {
 		for (std::pair<int, BITMAP*> tempBitmapEntry: m_TempEffectBitmaps) {
 			destroy_bitmap(tempBitmapEntry.second);
@@ -166,7 +158,6 @@ namespace RTE {
 		ClearScenePostEffects();
 		Clear();
 	}
-
 
 	void PostProcessMan::AdjustEffectsPosToPlayerScreen(int playerScreen, BITMAP* targetBitmap, const Vector& targetBitmapOffset, std::list<PostEffect>& screenRelativeEffectsList, std::list<Box>& screenRelativeGlowBoxesList) {
 		int screenOcclusionOffsetX = g_CameraMan.GetScreenOcclusion(playerScreen).GetFloorIntX();
@@ -194,7 +185,6 @@ namespace RTE {
 		}
 	}
 
-
 	void PostProcessMan::RegisterPostEffect(const Vector& effectPos, BITMAP* effect, size_t hash, int strength, float angle) {
 		// These effects get applied when there's a drawn frame that followed one or more sim updates.
 		// They are not only registered on drawn sim updates; flashes and stuff could be missed otherwise if they occur on undrawn sim updates.
@@ -203,7 +193,6 @@ namespace RTE {
 			m_PostSceneEffects.push_back(PostEffect(effectPos, effect, hash, strength, angle));
 		}
 	}
-
 
 	bool PostProcessMan::GetPostScreenEffectsWrapped(const Vector& boxPos, int boxWidth, int boxHeight, std::list<PostEffect>& effectsList, int team) {
 		bool found = false;
@@ -237,7 +226,6 @@ namespace RTE {
 		return found;
 	}
 
-
 	BITMAP* PostProcessMan::GetTempEffectBitmap(BITMAP* bitmap) const {
 		// Get the largest dimension of the bitmap and convert it to a multiple of 16, i.e. 16, 32, etc
 		int bitmapSizeNeeded = static_cast<int>(std::ceil(static_cast<float>(std::max(bitmap->w, bitmap->h)) / 16.0F)) * 16;
@@ -251,14 +239,12 @@ namespace RTE {
 		return correspondingBitmapSizeEntry->second;
 	}
 
-
 	void PostProcessMan::RegisterGlowDotEffect(const Vector& effectPos, DotGlowColor color, int strength) {
 		// These effects only apply only once per drawn sim update, and only on the first frame drawn after one or more sim updates
 		if (color != NoDot && g_TimerMan.DrawnSimUpdate() && g_TimerMan.SimUpdatesSinceDrawn() >= 0) {
 			RegisterPostEffect(effectPos, GetDotGlowEffect(color), GetDotGlowEffectHash(color), strength);
 		}
 	}
-
 
 	bool PostProcessMan::GetGlowAreasWrapped(const Vector& boxPos, int boxWidth, int boxHeight, std::list<Box>& areaList) const {
 		bool foundAny = false;
@@ -288,7 +274,6 @@ namespace RTE {
 		return foundAny;
 	}
 
-
 	void PostProcessMan::GetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& outputList) {
 		ScreenRelativeEffectsMutex.at(whichScreen).lock();
 		outputList.clear();
@@ -298,7 +283,6 @@ namespace RTE {
 		ScreenRelativeEffectsMutex.at(whichScreen).unlock();
 	}
 
-
 	void PostProcessMan::SetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& inputList) {
 		ScreenRelativeEffectsMutex.at(whichScreen).lock();
 		m_ScreenRelativeEffects.at(whichScreen).clear();
@@ -307,7 +291,6 @@ namespace RTE {
 		}
 		ScreenRelativeEffectsMutex.at(whichScreen).unlock();
 	}
-
 
 	bool PostProcessMan::GetPostScreenEffects(Vector boxPos, int boxWidth, int boxHeight, std::list<PostEffect>& effectsList, int team) {
 		bool found = false;
@@ -330,7 +313,6 @@ namespace RTE {
 		return found;
 	}
 
-
 	bool PostProcessMan::GetPostScreenEffects(int left, int top, int right, int bottom, std::list<PostEffect>& effectsList, int team) {
 		bool found = false;
 		bool unseen = false;
@@ -350,7 +332,6 @@ namespace RTE {
 		return found;
 	}
 
-
 	BITMAP* PostProcessMan::GetDotGlowEffect(DotGlowColor whichColor) const {
 		switch (whichColor) {
 			case NoDot:
@@ -367,7 +348,6 @@ namespace RTE {
 		}
 	}
 
-
 	size_t PostProcessMan::GetDotGlowEffectHash(DotGlowColor whichColor) const {
 		switch (whichColor) {
 			case NoDot:
@@ -383,7 +363,6 @@ namespace RTE {
 				return 0;
 		}
 	}
-
 
 	void PostProcessMan::PostProcess() {
 		UpdatePalette();
@@ -427,7 +406,6 @@ namespace RTE {
 		// Clear the effects list for this frame
 		m_PostScreenEffects.clear();
 	}
-
 
 	void PostProcessMan::DrawDotGlowEffects() {
 		int startX = 0;
@@ -490,7 +468,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void PostProcessMan::DrawPostScreenEffects() {
 		BITMAP* effectBitmap = nullptr;

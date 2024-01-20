@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUICheckbox::GUICheckbox(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "CHECKBOX";
@@ -12,7 +11,6 @@ GUICheckbox::GUICheckbox(GUIManager* Manager, GUIControlManager* ControlManager)
 	m_Check = Unchecked;
 	m_Mouseover = false;
 }
-
 
 void GUICheckbox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -42,7 +40,6 @@ void GUICheckbox::Create(const std::string& Name, int X, int Y, int Width, int H
 	m_Width = std::max(m_Width, m_MinWidth);
 	m_Height = std::max(m_Height, m_MinHeight);
 }
-
 
 void GUICheckbox::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
@@ -74,9 +71,7 @@ void GUICheckbox::Create(GUIProperties* Props) {
 	Props->GetValue("Text", &m_Text);
 }
 
-
 void GUICheckbox::Destroy() {}
-
 
 void GUICheckbox::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
@@ -84,7 +79,6 @@ void GUICheckbox::ChangeSkin(GUISkin* Skin) {
 	// Build the checkbox bitmap
 	BuildBitmap();
 }
-
 
 void GUICheckbox::BuildBitmap() {
 	std::string Filename;
@@ -129,7 +123,6 @@ void GUICheckbox::BuildBitmap() {
 	m_Skin->GetValue("Checkbox", "GreyCheck", Values, 4);
 	SetRect(&m_ImageRects[3], Values[0], Values[1], Values[0] + Values[2], Values[1] + Values[3]);
 }
-
 
 void GUICheckbox::Draw(GUIScreen* Screen) {
 	if (!m_Image) {
@@ -177,7 +170,6 @@ void GUICheckbox::Draw(GUIScreen* Screen) {
 	GUIPanel::Draw(Screen);
 }
 
-
 void GUICheckbox::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	if (Buttons & MOUSE_LEFT) {
 		// Push the checkbox down
@@ -187,7 +179,6 @@ void GUICheckbox::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 		AddEvent(GUIEvent::Notification, Pushed, 0);
 	}
 }
-
 
 void GUICheckbox::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
@@ -205,26 +196,21 @@ void GUICheckbox::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	AddEvent(GUIEvent::Notification, UnPushed, 0);
 }
 
-
 void GUICheckbox::OnMouseEnter(int X, int Y, int Buttons, int Modifier) {
 	m_Mouseover = true;
 }
-
 
 void GUICheckbox::OnMouseLeave(int X, int Y, int Buttons, int Modifier) {
 	m_Mouseover = false;
 }
 
-
 GUIPanel* GUICheckbox::GetPanel() {
 	return this;
 }
 
-
 void GUICheckbox::Move(int X, int Y) {
 	SetPositionAbs(X, Y);
 }
-
 
 void GUICheckbox::Resize(int Width, int Height) {
 	// Make sure the control isn't too small
@@ -236,11 +222,9 @@ void GUICheckbox::Resize(int Width, int Height) {
 	BuildBitmap();
 }
 
-
 void GUICheckbox::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
-
 
 void GUICheckbox::StoreProperties() {
 	if (m_Check == Unchecked) {
@@ -253,26 +237,21 @@ void GUICheckbox::StoreProperties() {
 	m_Properties.AddVariable("Text", m_Text);
 }
 
-
 void GUICheckbox::SetText(const std::string& Text) {
 	m_Text = Text;
 }
-
 
 std::string GUICheckbox::GetText() const {
 	return m_Text;
 }
 
-
 void GUICheckbox::SetCheck(int Check) {
 	m_Check = Check;
 }
 
-
 int GUICheckbox::GetCheck() const {
 	return m_Check;
 }
-
 
 void GUICheckbox::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);

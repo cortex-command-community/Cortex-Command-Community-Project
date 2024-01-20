@@ -298,7 +298,6 @@ namespace RTE {
 		*/
 	}
 
-
 	bool GameActivity::IsBuyGUIVisible(int which) const {
 		if (which == -1) {
 			for (short player = Players::PlayerOne; player < this->GetPlayerCount(); player++) {
@@ -310,7 +309,6 @@ namespace RTE {
 		}
 		return this->GetBuyGUI(which)->IsVisible();
 	}
-
 
 	bool GameActivity::LockControlledActor(Players player, bool lock, Controller::InputMode lockToMode) {
 		if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {

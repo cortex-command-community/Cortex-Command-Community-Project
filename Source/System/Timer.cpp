@@ -2,7 +2,6 @@
 
 namespace RTE {
 
-
 	void Timer::Clear() {
 		m_StartRealTime = g_TimerMan.GetRealTickCount();
 		m_StartSimTime = g_TimerMan.GetSimTickCount();
@@ -10,12 +9,10 @@ namespace RTE {
 		m_SimTimeLimit = -1;
 	}
 
-
 	int Timer::Create() {
 		m_TicksPerMS = static_cast<double>(g_TimerMan.GetTicksPerSecond()) * 0.001;
 		return 0;
 	}
-
 
 	int Timer::Create(double simTimeLimit, double elapsedSimTime) {
 		m_TicksPerMS = static_cast<double>(g_TimerMan.GetTicksPerSecond()) * 0.001;
@@ -25,7 +22,6 @@ namespace RTE {
 		}
 		return 0;
 	}
-
 
 	int Timer::Create(const Timer& reference) {
 		m_StartRealTime = reference.m_StartRealTime;

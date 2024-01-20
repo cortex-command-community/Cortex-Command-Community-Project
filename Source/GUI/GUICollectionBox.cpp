@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUICollectionBox::GUICollectionBox(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "COLLECTIONBOX";
@@ -16,7 +15,6 @@ GUICollectionBox::GUICollectionBox(GUIManager* Manager, GUIControlManager* Contr
 
 	m_IsContainer = true; // We are a container
 }
-
 
 void GUICollectionBox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -46,7 +44,6 @@ void GUICollectionBox::Create(const std::string& Name, int X, int Y, int Width, 
 	m_Width = std::max(m_Width, m_MinWidth);
 	m_Height = std::max(m_Height, m_MinHeight);
 }
-
 
 void GUICollectionBox::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
@@ -80,12 +77,10 @@ void GUICollectionBox::Create(GUIProperties* Props) {
 	Props->GetValue("DrawColor", &m_DrawColor);
 }
 
-
 void GUICollectionBox::Destroy() {
 	delete m_Background;
 	delete m_DrawBitmap;
 }
-
 
 void GUICollectionBox::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
@@ -93,7 +88,6 @@ void GUICollectionBox::ChangeSkin(GUISkin* Skin) {
 	// Build the panel bitmap
 	BuildBitmap();
 }
-
 
 void GUICollectionBox::BuildBitmap() {
 	// Free any old bitmap
@@ -105,7 +99,6 @@ void GUICollectionBox::BuildBitmap() {
 	// Create the button image
 	m_Skin->BuildStandardRect(m_DrawBitmap, "CollectionBox_Panel", 0, 0, m_Width, m_Height);
 }
-
 
 void GUICollectionBox::Draw(GUIScreen* Screen) {
 	if (m_DrawBackground) {
@@ -133,11 +126,9 @@ void GUICollectionBox::Draw(GUIScreen* Screen) {
 	GUIPanel::Draw(Screen);
 }
 
-
 void GUICollectionBox::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	CaptureMouse();
 }
-
 
 void GUICollectionBox::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
@@ -145,16 +136,13 @@ void GUICollectionBox::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	AddEvent(GUIEvent::Notification, Clicked, Buttons);
 }
 
-
 void GUICollectionBox::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	AddEvent(GUIEvent::Notification, MouseMove, Buttons);
 }
 
-
 GUIPanel* GUICollectionBox::GetPanel() {
 	return this;
 }
-
 
 void GUICollectionBox::Move(int X, int Y) {
 	int DX = X - m_X;
@@ -176,7 +164,6 @@ void GUICollectionBox::Move(int X, int Y) {
 		C->Move(CX + DX, CY + DY);
 	}
 }
-
 
 void GUICollectionBox::Resize(int Width, int Height) {
 	int OldWidth = m_Width;
@@ -229,11 +216,9 @@ void GUICollectionBox::Resize(int Width, int Height) {
 	BuildBitmap();
 }
 
-
 void GUICollectionBox::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
-
 
 void GUICollectionBox::SetDrawImage(GUIBitmap* Bitmap) {
 	// Free any old bitmap
@@ -242,28 +227,23 @@ void GUICollectionBox::SetDrawImage(GUIBitmap* Bitmap) {
 	m_DrawBitmap = Bitmap;
 }
 
-
 void GUICollectionBox::SetDrawBackground(bool DrawBack) {
 	m_DrawBackground = DrawBack;
 }
-
 
 void GUICollectionBox::SetDrawType(int Type) {
 	m_DrawType = Type;
 }
 
-
 void GUICollectionBox::SetDrawColor(unsigned long Color) {
 	m_DrawColor = Color;
 }
-
 
 void GUICollectionBox::StoreProperties() {
 	m_Properties.AddVariable("DrawBackground", m_DrawBackground);
 	m_Properties.AddVariable("DrawType", m_DrawType == Color ? "Color" : "Image");
 	m_Properties.AddVariable("DrawColor", (int)m_DrawColor);
 }
-
 
 void GUICollectionBox::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);

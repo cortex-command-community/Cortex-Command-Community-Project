@@ -2,7 +2,6 @@
 
 namespace RTE {
 
-
 	int Serializable::CreateSerializable(Reader& reader, bool checkType, bool doCreate, bool skipStartingObject) {
 		if (checkType && reader.ReadPropValue() != GetClassName()) {
 			reader.ReportError("Wrong type in Reader when passed to Serializable::Create()");
@@ -25,19 +24,16 @@ namespace RTE {
 		return doCreate ? Create() : 0;
 	}
 
-
 	int Serializable::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader.ReadPropValue();
 		reader.ReportError("Could not match property '" + std::string(propName) + "'!");
 		return -1;
 	}
 
-
 	Reader& operator>>(Reader& reader, Serializable& operand) {
 		operand.Create(reader);
 		return reader;
 	}
-
 
 	Reader& operator>>(Reader& reader, Serializable* operand) {
 		if (operand) {
@@ -46,13 +42,11 @@ namespace RTE {
 		return reader;
 	}
 
-
 	Writer& operator<<(Writer& writer, const Serializable& operand) {
 		operand.Save(writer);
 		writer.ObjectEnd();
 		return writer;
 	}
-
 
 	Writer& operator<<(Writer& writer, const Serializable* operand) {
 		if (operand) {

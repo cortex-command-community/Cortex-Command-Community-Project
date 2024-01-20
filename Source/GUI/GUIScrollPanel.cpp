@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUIScrollPanel::GUIScrollPanel(GUIManager* Manager) :
     GUIPanel(Manager) {
 	m_Skin = nullptr;
@@ -19,7 +18,6 @@ GUIScrollPanel::GUIScrollPanel(GUIManager* Manager) :
 	m_ValueResolution = 1;
 }
 
-
 GUIScrollPanel::GUIScrollPanel() :
     GUIPanel() {
 	m_Skin = nullptr;
@@ -34,7 +32,6 @@ GUIScrollPanel::GUIScrollPanel() :
 	m_RebuildKnob = true;
 	m_ValueResolution = 1;
 }
-
 
 void GUIScrollPanel::Create(int X, int Y, int Width, int Height) {
 	m_X = X;
@@ -53,7 +50,6 @@ void GUIScrollPanel::Create(int X, int Y, int Width, int Height) {
 	m_ValueResolution = 1;
 }
 
-
 void GUIScrollPanel::Destroy() {
 	// Destroy the three bitmaps
 	for (int i = 0; i < 3; i++) {
@@ -64,7 +60,6 @@ void GUIScrollPanel::Destroy() {
 		}
 	}
 }
-
 
 void GUIScrollPanel::LoadProps(GUIProperties* Props) {
 	assert(Props);
@@ -87,7 +82,6 @@ void GUIScrollPanel::LoadProps(GUIProperties* Props) {
 	}
 }
 
-
 void GUIScrollPanel::ChangeSkin(GUISkin* Skin) {
 	assert(Skin);
 
@@ -96,7 +90,6 @@ void GUIScrollPanel::ChangeSkin(GUISkin* Skin) {
 	// Build the bitmap
 	BuildBitmap(true, true);
 }
-
 
 void GUIScrollPanel::BuildBitmap(bool UpdateSize, bool UpdateKnob) {
 	// It is normal if this function is called but the skin has not been set so we just ignore the call if the skin has not been set
@@ -187,7 +180,6 @@ void GUIScrollPanel::BuildBitmap(bool UpdateSize, bool UpdateKnob) {
 	m_RebuildKnob = false;
 }
 
-
 void GUIScrollPanel::BuildButton(const std::string& ArrowName, int Y, int Width, int Height) {
 	// Create the buttons
 	m_Skin->BuildStandardRect(m_DrawBitmap[ButtonStates], "ScrollButton_Up", 0, Y, Width, Height);
@@ -220,7 +212,6 @@ void GUIScrollPanel::BuildButton(const std::string& ArrowName, int Y, int Width,
 	Arrow->DrawTrans(m_DrawBitmap[ButtonStates], Width + (Width / 2) - (Values[2] / 2) + 1, Y + (Height / 2) - (Values[3] / 2) + 1, &Rect);
 }
 
-
 void GUIScrollPanel::BuildBackground() {
 	std::string Filename;
 	m_Skin->GetValue("ScrollBackground", "Filename", &Filename);
@@ -243,13 +234,11 @@ void GUIScrollPanel::BuildBackground() {
 	}
 }
 
-
 void GUIScrollPanel::BuildKnob(const std::string& Section, int X, int Y, int Width, int Height) {
 	if (m_DrawBitmap[KnobStates]) {
 		m_Skin->BuildStandardRect(m_DrawBitmap[KnobStates], Section, X, Y, Width, Height);
 	}
 }
-
 
 void GUIScrollPanel::SetMinimum(int Min) {
 	m_Minimum = Min;
@@ -259,7 +248,6 @@ void GUIScrollPanel::SetMinimum(int Min) {
 	m_RebuildKnob = true;
 }
 
-
 void GUIScrollPanel::SetMaximum(int Max) {
 	m_Maximum = Max;
 	m_Maximum = std::max(m_Maximum, m_Minimum);
@@ -268,12 +256,10 @@ void GUIScrollPanel::SetMaximum(int Max) {
 	m_RebuildKnob = true;
 }
 
-
 void GUIScrollPanel::SetValue(int Value) {
 	m_Value = std::clamp(Value, m_Minimum, m_Maximum);
 	CalculateKnob();
 }
-
 
 void GUIScrollPanel::SetPageSize(int PageSize) {
 	m_PageSize = PageSize;
@@ -283,7 +269,6 @@ void GUIScrollPanel::SetPageSize(int PageSize) {
 	m_RebuildKnob = true;
 }
 
-
 void GUIScrollPanel::SetOrientation(int Orientation) {
 	m_Orientation = Orientation;
 
@@ -292,22 +277,18 @@ void GUIScrollPanel::SetOrientation(int Orientation) {
 	m_RebuildSize = true;
 }
 
-
 int GUIScrollPanel::GetValue() const {
 	return m_Value;
 }
-
 
 int GUIScrollPanel::GetPageSize() const {
 	return m_PageSize;
 }
 
-
 void GUIScrollPanel::SetSmallChange(int SmallChange) {
 	m_SmallChange = SmallChange;
 	m_SmallChange = std::max(m_SmallChange, 0);
 }
-
 
 void GUIScrollPanel::Draw(GUIScreen* Screen) {
 	GUIRect Rect;
@@ -360,7 +341,6 @@ void GUIScrollPanel::Draw(GUIScreen* Screen) {
 		}
 	}
 }
-
 
 void GUIScrollPanel::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	m_ButtonPushed[0] = m_ButtonPushed[1] = false;
@@ -470,7 +450,6 @@ void GUIScrollPanel::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	}
 }
 
-
 void GUIScrollPanel::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	// No more grabs
 	m_ButtonPushed[0] = m_ButtonPushed[1] = false;
@@ -479,7 +458,6 @@ void GUIScrollPanel::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 
 	SendSignal(Release, Buttons);
 }
-
 
 void GUIScrollPanel::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	int KnobTop = 0;
@@ -526,7 +504,6 @@ void GUIScrollPanel::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 		}
 	}
 }
-
 
 void GUIScrollPanel::OnMouseHover(int X, int Y, int Buttons, int Modifier) {
 	// Ignore if the left mouse button is not down
@@ -611,7 +588,6 @@ void GUIScrollPanel::OnMouseHover(int X, int Y, int Buttons, int Modifier) {
 	TrackMouseHover(true, 50);
 }
 
-
 void GUIScrollPanel::SetSize(int Width, int Height) {
 	// If there is no change in size, ignore the call
 	if (m_Width == Width && m_Height == Height) {
@@ -623,7 +599,6 @@ void GUIScrollPanel::SetSize(int Width, int Height) {
 	// Rebuild the bitmaps
 	m_RebuildSize = true;
 }
-
 
 void GUIScrollPanel::CalculateKnob() {
 	int MoveLength = 1;
@@ -666,7 +641,6 @@ void GUIScrollPanel::CalculateKnob() {
 	m_KnobPosition = std::min(m_KnobPosition, MoveLength - m_KnobLength);
 }
 
-
 void GUIScrollPanel::AdjustValue(int Delta) {
 	int OldValue = m_Value;
 
@@ -684,7 +658,6 @@ void GUIScrollPanel::AdjustValue(int Delta) {
 	}
 }
 
-
 void GUIScrollPanel::SaveProps(GUIProperties* Props) const {
 	assert(Props);
 
@@ -696,26 +669,21 @@ void GUIScrollPanel::SaveProps(GUIProperties* Props) const {
 	Props->AddVariable("SmallChange", m_SmallChange);
 }
 
-
 int GUIScrollPanel::GetMinimum() const {
 	return m_Minimum;
 }
-
 
 int GUIScrollPanel::GetMaximum() const {
 	return m_Maximum;
 }
 
-
 int GUIScrollPanel::GetOrientation() const {
 	return m_Orientation;
 }
 
-
 int GUIScrollPanel::GetSmallChange() const {
 	return m_SmallChange;
 }
-
 
 int GUIScrollPanel::GetValueResolution() const {
 	return m_ValueResolution;

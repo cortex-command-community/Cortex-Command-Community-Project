@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUITextBox::GUITextBox(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUITextPanel(Manager) {
 	m_ControlID = "TEXTBOX";
@@ -12,7 +11,6 @@ GUITextBox::GUITextBox(GUIManager* Manager, GUIControlManager* ControlManager) :
 	m_HAlignment = GUIFont::Left;
 	m_VAlignment = GUIFont::Top;
 }
-
 
 void GUITextBox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -37,7 +35,6 @@ void GUITextBox::Create(const std::string& Name, int X, int Y, int Width, int He
 
 	GUITextPanel::Create(X, Y, w, h);
 }
-
 
 void GUITextBox::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
@@ -83,7 +80,6 @@ void GUITextBox::Create(GUIProperties* Props) {
 	}
 }
 
-
 void GUITextBox::Destroy() {
 	// Destroy the draw bitmap
 	if (m_DrawBitmap) {
@@ -92,7 +88,6 @@ void GUITextBox::Destroy() {
 		m_DrawBitmap = nullptr;
 	}
 }
-
 
 void GUITextBox::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
@@ -114,7 +109,6 @@ void GUITextBox::ChangeSkin(GUISkin* Skin) {
 	GUITextPanel::ChangeSkin(Skin);
 }
 
-
 void GUITextBox::Draw(GUIScreen* Screen) {
 	// Draw the background
 	m_DrawBitmap->Draw(Screen->GetBitmap(), m_X, m_Y, nullptr);
@@ -122,16 +116,13 @@ void GUITextBox::Draw(GUIScreen* Screen) {
 	GUITextPanel::Draw(Screen);
 }
 
-
 GUIPanel* GUITextBox::GetPanel() {
 	return this;
 }
 
-
 void GUITextBox::Move(int X, int Y) {
 	GUITextPanel::SetPositionAbs(X, Y);
 }
-
 
 void GUITextBox::Resize(int Width, int Height) {
 	// Make sure the control isn't too small
@@ -144,11 +135,9 @@ void GUITextBox::Resize(int Width, int Height) {
 	ChangeSkin(m_Skin);
 }
 
-
 void GUITextBox::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUITextPanel::GetRect(X, Y, Width, Height);
 }
-
 
 void GUITextBox::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	// Clicked
@@ -166,7 +155,6 @@ void GUITextBox::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 		AddEvent(GUIEvent::Notification, Enter, 0);
 	}
 }
-
 
 void GUITextBox::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);

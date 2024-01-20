@@ -140,7 +140,6 @@ void SceneEditorGUI::SetController(Controller* pController) {
 	m_pPicker->SetController(pController);
 }
 
-
 void SceneEditorGUI::SetFeatureSet(SceneEditorGUI::FeatureSets newFeatureSet) {
 	m_FeatureSet = newFeatureSet;
 	if (m_PieMenu) {
@@ -167,7 +166,6 @@ void SceneEditorGUI::SetFeatureSet(SceneEditorGUI::FeatureSets newFeatureSet) {
 	// m_PieMenu->Create();
 	m_PieMenu->SetMenuController(m_pController);
 }
-
 
 void SceneEditorGUI::SetPosOnScreen(int newPosX, int newPosY) {
 	m_pPicker->SetPosOnScreen(newPosX, newPosY);
@@ -1322,7 +1320,6 @@ void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const 
 	m_PieMenu->Draw(pTargetBitmap, targetPos);
 }
 
-
 void SceneEditorGUI::UpdateBrainSkyPathAndCost(Vector brainPos) {
 	if (!m_RequireClearPathToOrbit) {
 		m_PathRequest.reset();
@@ -1412,7 +1409,6 @@ void SceneEditorGUI::UpdateBrainSkyPathAndCost(Vector brainPos) {
 		                                                          m_BrainSkyPathCost = pathRequest->totalCost;
 	                                                          });
 }
-
 
 bool SceneEditorGUI::UpdateBrainPath() {
 	if (m_pCurrentObject && m_pCurrentObject->IsInGroup("Brains")) {

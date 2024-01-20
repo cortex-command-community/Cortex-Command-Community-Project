@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUISlider::GUISlider(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "SLIDER";
@@ -20,7 +19,6 @@ GUISlider::GUISlider(GUIManager* Manager, GUIControlManager* ControlManager) :
 	m_Maximum = 100;
 	m_ValueResolution = 1;
 }
-
 
 void GUISlider::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -49,7 +47,6 @@ void GUISlider::Create(const std::string& Name, int X, int Y, int Width, int Hei
 	// Re-Calculate the knob info
 	CalculateKnob();
 }
-
 
 void GUISlider::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
@@ -98,7 +95,6 @@ void GUISlider::Create(GUIProperties* Props) {
 	CalculateKnob();
 }
 
-
 void GUISlider::Destroy() {
 	// Destroy the draw bitmap
 	if (m_DrawBitmap) {
@@ -115,14 +111,12 @@ void GUISlider::Destroy() {
 	}
 }
 
-
 void GUISlider::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the progressbar bitmap
 	BuildBitmap();
 }
-
 
 void GUISlider::BuildBitmap() {
 	// Free any old bitmaps
@@ -182,7 +176,6 @@ void GUISlider::BuildBitmap() {
 	CalculateKnob();
 }
 
-
 void GUISlider::BuildLine(const std::string& Section, GUIBitmap* SrcImage) {
 	int Values[4];
 	GUIRect Rect;
@@ -228,7 +221,6 @@ void GUISlider::BuildLine(const std::string& Section, GUIBitmap* SrcImage) {
 	SrcImage->Draw(m_DrawBitmap, X, Y, &Rect);
 }
 
-
 void GUISlider::Draw(GUIScreen* Screen) {
 	int X = 0;
 	int Y = 0;
@@ -260,7 +252,6 @@ void GUISlider::Draw(GUIScreen* Screen) {
 	}
 	GUIPanel::Draw(Screen);
 }
-
 
 void GUISlider::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	CaptureMouse();
@@ -310,7 +301,6 @@ void GUISlider::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	AddEvent(GUIEvent::Notification, Clicked, 0);
 }
 
-
 void GUISlider::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
 
@@ -323,7 +313,6 @@ void GUISlider::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 
 	AddEvent(GUIEvent::Notification, Clicked, 0);
 }
-
 
 void GUISlider::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	int MousePos = X;
@@ -378,7 +367,6 @@ void GUISlider::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	}
 }
 
-
 void GUISlider::OnMouseWheelChange(int x, int y, int modifier, int mouseWheelChange) {
 	m_OldValue = m_Value;
 
@@ -394,11 +382,9 @@ void GUISlider::OnMouseWheelChange(int x, int y, int modifier, int mouseWheelCha
 	}
 }
 
-
 GUIPanel* GUISlider::GetPanel() {
 	return this;
 }
-
 
 void GUISlider::CalculateKnob() {
 	if (!m_KnobImage) {
@@ -414,11 +400,9 @@ void GUISlider::CalculateKnob() {
 	}
 }
 
-
 void GUISlider::Move(int X, int Y) {
 	GUIPanel::SetPositionAbs(X, Y);
 }
-
 
 void GUISlider::Resize(int Width, int Height) {
 	// Make sure the control isn't too small
@@ -431,11 +415,9 @@ void GUISlider::Resize(int Width, int Height) {
 	BuildBitmap();
 }
 
-
 void GUISlider::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
-
 
 void GUISlider::SetOrientation(int Orientation) {
 	m_Orientation = Orientation;
@@ -443,11 +425,9 @@ void GUISlider::SetOrientation(int Orientation) {
 	BuildBitmap();
 }
 
-
 int GUISlider::GetOrientation() const {
 	return m_Orientation;
 }
-
 
 void GUISlider::SetTickDirection(int TickDir) {
 	m_TickDirection = TickDir;
@@ -455,11 +435,9 @@ void GUISlider::SetTickDirection(int TickDir) {
 	BuildBitmap();
 }
 
-
 int GUISlider::GetTickDirection() const {
 	return m_TickDirection;
 }
-
 
 void GUISlider::SetMinimum(int Minimum) {
 	if (Minimum != m_Minimum) {
@@ -471,11 +449,9 @@ void GUISlider::SetMinimum(int Minimum) {
 	}
 }
 
-
 int GUISlider::GetMinimum() const {
 	return m_Minimum;
 }
-
 
 void GUISlider::SetMaximum(int Maximum) {
 	if (Maximum != m_Maximum) {
@@ -487,11 +463,9 @@ void GUISlider::SetMaximum(int Maximum) {
 	}
 }
 
-
 int GUISlider::GetMaximum() const {
 	return m_Maximum;
 }
-
 
 void GUISlider::SetValue(int Value) {
 	int OldValue = m_Value;
@@ -504,11 +478,9 @@ void GUISlider::SetValue(int Value) {
 	}
 }
 
-
 int GUISlider::GetValue() const {
 	return m_Value;
 }
-
 
 void GUISlider::StoreProperties() {
 	m_Properties.AddVariable("Value", m_Value);
@@ -517,7 +489,6 @@ void GUISlider::StoreProperties() {
 	m_Properties.AddVariable("Orientation", m_Orientation == Horizontal ? "Horizontal" : "Vertical");
 	m_Properties.AddVariable("TickDirection", m_TickDirection == TopLeft ? "TopLeft" : "BottomRight");
 }
-
 
 void GUISlider::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
@@ -548,7 +519,6 @@ void GUISlider::ApplyProperties(GUIProperties* Props) {
 
 	BuildBitmap();
 }
-
 
 void GUISlider::SetValueResolution(int valueRes) {
 	if (valueRes >= 1 && valueRes <= m_Maximum - m_Minimum) {

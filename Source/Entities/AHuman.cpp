@@ -422,7 +422,6 @@ namespace RTE {
 		return m_Pos;
 	}
 
-
 	void AHuman::SetHead(Attachable* newHead) {
 		if (m_pHead && m_pHead->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pHead);
@@ -447,7 +446,6 @@ namespace RTE {
 		}
 	}
 
-
 	void AHuman::SetJetpack(AEJetpack* newJetpack) {
 		if (m_pJetpack && m_pJetpack->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pJetpack);
@@ -470,7 +468,6 @@ namespace RTE {
 			m_pJetpack->SetApplyTransferredForcesAtOffset(false);
 		}
 	}
-
 
 	void AHuman::SetFGArm(Arm* newArm) {
 		if (m_pFGArm && m_pFGArm->IsAttached()) {
@@ -496,7 +493,6 @@ namespace RTE {
 		}
 	}
 
-
 	void AHuman::SetBGArm(Arm* newArm) {
 		if (m_pBGArm && m_pBGArm->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pBGArm);
@@ -520,7 +516,6 @@ namespace RTE {
 		}
 	}
 
-
 	void AHuman::SetFGLeg(Leg* newLeg) {
 		if (m_pFGLeg && m_pFGLeg->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pFGLeg);
@@ -542,7 +537,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void AHuman::SetBGLeg(Leg* newLeg) {
 		if (m_pBGLeg && m_pBGLeg->IsAttached()) {
@@ -567,11 +561,9 @@ namespace RTE {
 		}
 	}
 
-
 	BITMAP* AHuman::GetGraphicalIcon() const {
 		return m_GraphicalIcon ? m_GraphicalIcon : (m_pHead ? m_pHead->GetSpriteFrame(0) : GetSpriteFrame(0));
 	}
-
 
 	bool AHuman::CollideAtPoint(HitData& hd) {
 		return Actor::CollideAtPoint(hd);
@@ -637,7 +629,6 @@ namespace RTE {
 	}
 	*/
 
-
 	bool AHuman::HandlePieCommand(PieSlice::SliceType pieSliceIndex) {
 		if (pieSliceIndex != PieSlice::SliceType::NoType) {
 			if (pieSliceIndex == PieSlice::SliceType::Pickup) {
@@ -670,7 +661,6 @@ namespace RTE {
 		return false;
 	}
 
-
 	void AHuman::AddInventoryItem(MovableObject* pItemToAdd) {
 		// If we have nothing in inventory, and nothing in our hands, just grab this first thing added to us.
 		if (HeldDevice* itemToAddAsHeldDevice = dynamic_cast<HeldDevice*>(pItemToAdd); itemToAddAsHeldDevice && m_Inventory.empty() && m_pFGArm && m_pFGArm->IsAttached() && !m_pFGArm->GetHeldDevice()) {
@@ -683,7 +673,6 @@ namespace RTE {
 		EquipShieldInBGArm();
 	}
 
-
 	MovableObject* AHuman::SwapNextInventory(MovableObject* inventoryItemToSwapIn, bool muteSound) {
 		MovableObject* swappedInventoryItem = Actor::SwapNextInventory(inventoryItemToSwapIn, muteSound);
 		while (!dynamic_cast<HeldDevice*>(swappedInventoryItem) && !m_Inventory.empty()) {
@@ -694,7 +683,6 @@ namespace RTE {
 		return swappedInventoryItem;
 	}
 
-
 	MovableObject* AHuman::SwapPrevInventory(MovableObject* inventoryItemToSwapIn) {
 		MovableObject* swappedInventoryItem = Actor::SwapPrevInventory(inventoryItemToSwapIn);
 		while (!dynamic_cast<HeldDevice*>(swappedInventoryItem) && !m_Inventory.empty()) {
@@ -704,7 +692,6 @@ namespace RTE {
 
 		return swappedInventoryItem;
 	}
-
 
 	bool AHuman::EquipFirearm(bool doEquip) {
 		if (!(m_pFGArm && m_pFGArm->IsAttached())) {
@@ -1176,7 +1163,6 @@ namespace RTE {
 		return false;
 	}
 
-
 	bool AHuman::FirearmsAreReloading(bool onlyIfAllFirearmsAreReloading) const {
 		int reloadingFirearmCount = 0;
 		int totalFirearmCount = 0;
@@ -1200,7 +1186,6 @@ namespace RTE {
 
 		return onlyIfAllFirearmsAreReloading ? reloadingFirearmCount == totalFirearmCount : reloadingFirearmCount > 0;
 	}
-
 
 	bool AHuman::FirearmIsSemiAuto() const {
 		if (m_pFGArm && m_pFGArm->IsAttached()) {
@@ -2874,7 +2859,6 @@ namespace RTE {
 		m_Paths[FGROUND][WALK].OverridePushForce(force);
 		m_Paths[BGROUND][WALK].OverridePushForce(force);
 	}
-
 
 	int AHuman::WhilePieMenuOpenListener(const PieMenu* pieMenu) {
 		int result = Actor::WhilePieMenuOpenListener(pieMenu);

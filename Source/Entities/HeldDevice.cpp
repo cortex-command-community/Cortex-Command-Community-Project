@@ -244,11 +244,9 @@ namespace RTE {
 		return m_Pos;
 	}
 
-
 	bool HeldDevice::IsBeingHeld() const {
 		return dynamic_cast<const Arm*>(m_Parent);
 	}
-
 
 	void HeldDevice::RemovePickupableByPresetName(const std::string& actorPresetName) {
 		std::unordered_set<std::string>::iterator pickupableByPresetNameEntry = m_PickupableByPresetNames.find(actorPresetName);
@@ -256,7 +254,6 @@ namespace RTE {
 			m_PickupableByPresetNames.erase(pickupableByPresetNameEntry);
 		}
 	}
-
 
 	bool HeldDevice::CollideAtPoint(HitData& hd) {
 		if (!m_GetsHitByMOsWhenHeld && IsBeingHeld()) {
@@ -276,7 +273,6 @@ namespace RTE {
 	void HeldDevice::Deactivate() {
 		m_Activated = false;
 	}
-
 
 	bool HeldDevice::TransferJointImpulses(Vector& jointImpulses, float jointStiffnessValueToUse, float jointStrengthValueToUse, float gibImpulseLimitValueToUse) {
 		MovableObject* parent = m_Parent;
@@ -304,7 +300,6 @@ namespace RTE {
 		}
 		return intact;
 	}
-
 
 	/*
 	//////////////////////////////////////////////////////////////////////////////////////////

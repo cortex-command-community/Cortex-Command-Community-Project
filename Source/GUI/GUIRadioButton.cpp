@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUIRadioButton::GUIRadioButton(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "RADIOBUTTON";
@@ -15,7 +14,6 @@ GUIRadioButton::GUIRadioButton(GUIManager* Manager, GUIControlManager* ControlMa
 	m_FontColor = 0;
 	m_Text = "";
 }
-
 
 void GUIRadioButton::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -46,7 +44,6 @@ void GUIRadioButton::Create(const std::string& Name, int X, int Y, int Width, in
 	m_Height = std::max(m_Height, m_MinHeight);
 }
 
-
 void GUIRadioButton::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
@@ -70,14 +67,12 @@ void GUIRadioButton::Create(GUIProperties* Props) {
 	Props->GetValue("Checked", &m_Checked);
 }
 
-
 void GUIRadioButton::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the checkbox bitmap
 	BuildBitmap();
 }
-
 
 void GUIRadioButton::BuildBitmap() {
 	std::string Filename;
@@ -123,7 +118,6 @@ void GUIRadioButton::BuildBitmap() {
 	m_Skin->GetValue("RadioButton", "GreyCheck", Values, 4);
 	SetRect(&m_ImageRects[3], Values[0], Values[1], Values[0] + Values[2], Values[1] + Values[3]);
 }
-
 
 void GUIRadioButton::Draw(GUIScreen* Screen) {
 	if (!m_Image) {
@@ -173,7 +167,6 @@ void GUIRadioButton::Draw(GUIScreen* Screen) {
 	GUIPanel::Draw(Screen);
 }
 
-
 void GUIRadioButton::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	if (Buttons & MOUSE_LEFT) {
 		// Push the checkbox down
@@ -183,7 +176,6 @@ void GUIRadioButton::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 		AddEvent(GUIEvent::Notification, Pushed, 0);
 	}
 }
-
 
 void GUIRadioButton::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
@@ -196,26 +188,21 @@ void GUIRadioButton::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	AddEvent(GUIEvent::Notification, UnPushed, 0);
 }
 
-
 void GUIRadioButton::OnMouseEnter(int X, int Y, int Buttons, int Modifier) {
 	m_Mouseover = true;
 }
-
 
 void GUIRadioButton::OnMouseLeave(int X, int Y, int Buttons, int Modifier) {
 	m_Mouseover = false;
 }
 
-
 GUIPanel* GUIRadioButton::GetPanel() {
 	return this;
 }
 
-
 void GUIRadioButton::Move(int X, int Y) {
 	GUIPanel::SetPositionAbs(X, Y);
 }
-
 
 void GUIRadioButton::Resize(int Width, int Height) {
 	// Make sure the control isn't too small
@@ -228,17 +215,14 @@ void GUIRadioButton::Resize(int Width, int Height) {
 	BuildBitmap();
 }
 
-
 void GUIRadioButton::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
-
 
 void GUIRadioButton::StoreProperties() {
 	m_Properties.AddVariable("Text", m_Text);
 	m_Properties.AddVariable("Checked", m_Checked);
 }
-
 
 void GUIRadioButton::SetCheck(bool Check) {
 	// Nothing to do if already in the same state
@@ -278,21 +262,17 @@ void GUIRadioButton::SetCheck(bool Check) {
 	}
 }
 
-
 bool GUIRadioButton::GetCheck() const {
 	return m_Checked;
 }
-
 
 void GUIRadioButton::SetText(const std::string& Text) {
 	m_Text = Text;
 }
 
-
 std::string GUIRadioButton::GetText() const {
 	return m_Text;
 }
-
 
 void GUIRadioButton::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);

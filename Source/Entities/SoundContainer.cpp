@@ -15,7 +15,6 @@ namespace RTE {
 	    {"UI", SoundContainer::BusRouting::UI},
 	    {"Music", SoundContainer::BusRouting::MUSIC}};
 
-
 	void SoundContainer::Clear() {
 		m_TopLevelSoundSet.Destroy();
 
@@ -38,7 +37,6 @@ namespace RTE {
 		m_Pitch = 1.0F;
 		m_PitchVariation = 0;
 	}
-
 
 	int SoundContainer::Create(const SoundContainer& reference) {
 		Entity::Create(reference);
@@ -65,7 +63,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -127,7 +124,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-
 	int SoundContainer::Save(Writer& writer) const {
 		Entity::Save(writer);
 
@@ -174,7 +170,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	float SoundContainer::GetLength(LengthOfSoundType type) const {
 		if (!m_SoundPropertiesUpToDate) {
 			// Todo - use a post-load fixup stage instead of lazily initializing shit everywhere... Eugh.
@@ -195,7 +190,6 @@ namespace RTE {
 		return lengthMilliseconds;
 	}
 
-
 	std::vector<std::size_t> SoundContainer::GetSelectedSoundHashes() const {
 		std::vector<size_t> soundHashes;
 		std::vector<const SoundSet::SoundData*> flattenedSoundData;
@@ -205,7 +199,6 @@ namespace RTE {
 		}
 		return soundHashes;
 	}
-
 
 	const SoundSet::SoundData* SoundContainer::GetSoundDataForSound(const FMOD::Sound* sound) const {
 		std::vector<const SoundSet::SoundData*> flattenedSoundData;
@@ -217,7 +210,6 @@ namespace RTE {
 		}
 		return nullptr;
 	}
-
 
 	bool SoundContainer::Play(int player) {
 		if (HasAnySounds()) {
@@ -232,7 +224,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
 
 	FMOD_RESULT SoundContainer::UpdateSoundProperties() {
 		FMOD_RESULT result = FMOD_OK;

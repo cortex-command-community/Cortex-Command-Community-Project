@@ -12,7 +12,6 @@
 
 namespace RTE {
 
-
 	SettingsGameplayGUI::SettingsGameplayGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
 		m_GameplaySettingsBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxGameplaySettings"));
@@ -76,7 +75,6 @@ namespace RTE {
 		UpdateScreenShakeStrength();
 	}
 
-
 	void SettingsGameplayGUI::SetEnabled(bool enable) {
 		m_GameplaySettingsBox->SetVisible(enable);
 		m_GameplaySettingsBox->SetEnabled(enable);
@@ -87,7 +85,6 @@ namespace RTE {
 		}
 	}
 
-
 	void SettingsGameplayGUI::UpdateMaxUnheldItemsTextbox() {
 		if (m_MaxUnheldItemsTextbox->GetText().empty()) {
 			m_MaxUnheldItemsTextbox->SetText(std::to_string(g_MovableMan.GetMaxDroppedItems()));
@@ -95,7 +92,6 @@ namespace RTE {
 		g_MovableMan.SetMaxDroppedItems(std::stoi(m_MaxUnheldItemsTextbox->GetText()));
 		m_GameplaySettingsBox->SetFocus();
 	}
-
 
 	void SettingsGameplayGUI::UpdateCrabBombThresholdTextbox() {
 		if (m_CrabBombThresholdTextbox->GetText().empty()) {
@@ -107,7 +103,6 @@ namespace RTE {
 		g_SettingsMan.SetCrabBombThreshold(std::stoi(m_CrabBombThresholdTextbox->GetText()));
 		m_GameplaySettingsBox->SetFocus();
 	}
-
 
 	void SettingsGameplayGUI::UpdateUnheldItemsHUDDisplayRange() {
 		int newValue = m_UnheldItemsHUDDisplayRangeSlider->GetValue();
@@ -123,13 +118,11 @@ namespace RTE {
 		}
 	}
 
-
 	void SettingsGameplayGUI::UpdateScreenShakeStrength() {
 		int newValue = m_ScreenShakeStrengthSlider->GetValue();
 		m_ScreenShakeStrengthLabel->SetText(std::to_string(newValue) + "%");
 		g_CameraMan.SetScreenShakeStrength(static_cast<float>(newValue) / 100.0F);
 	}
-
 
 	void SettingsGameplayGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Notification) {

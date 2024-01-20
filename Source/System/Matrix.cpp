@@ -4,7 +4,6 @@ namespace RTE {
 
 	const std::string Matrix::c_ClassName = "Matrix";
 
-
 	void Matrix::Clear() {
 		m_Rotation = 0;
 		m_Flipped[X] = false;
@@ -16,7 +15,6 @@ namespace RTE {
 		m_Elements[1][1] = 1.0;
 	}
 
-
 	int Matrix::Create() {
 		// Read all the properties
 		if (Serializable::Create() < 0) {
@@ -26,7 +24,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int Matrix::Create(float angle) {
 		m_Rotation = angle;
@@ -43,7 +40,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int Matrix::Create(const Matrix& reference) {
 		m_Rotation = reference.m_Rotation;
 		m_Flipped[X] = reference.m_Flipped[X];
@@ -52,7 +48,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int Matrix::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -67,7 +62,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-
 	int Matrix::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
@@ -75,7 +69,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	float Matrix::GetRadAngleTo(float otherAngle) const {
 		// Rotate this' angle with the other angle so that the sought after difference angle is between the resulting angle and the x-axis
@@ -93,7 +86,6 @@ namespace RTE {
 		return difference;
 	}
 
-
 	float Matrix::GetDegAngleTo(float otherAngle) const {
 		// Rotate this' angle with the other angle so that the sought after difference angle is between the resulting angle and the x-axis
 		float difference = otherAngle - GetDegAngle();
@@ -110,7 +102,6 @@ namespace RTE {
 		return difference;
 	}
 
-
 	Matrix& Matrix::operator=(const Matrix& rhs) {
 		if (*this == rhs) {
 			return *this;
@@ -122,7 +113,6 @@ namespace RTE {
 
 		return *this;
 	}
-
 
 	Vector Matrix::operator*(const Vector& rhs) {
 		if (!m_ElementsUpdated) {
@@ -140,7 +130,6 @@ namespace RTE {
 		return retVec;
 	}
 
-
 	Vector Matrix::operator/(const Vector& rhs) {
 		if (!m_ElementsUpdated) {
 			UpdateElements();
@@ -157,7 +146,6 @@ namespace RTE {
 		return retVec;
 	}
 
-
 	Matrix Matrix::operator-() {
 		m_Rotation = -m_Rotation;
 
@@ -169,7 +157,6 @@ namespace RTE {
 		}
 		return *this;
 	}
-
 
 	void Matrix::UpdateElements() {
 		// Negative angle to Account for upside-down coordinate system.

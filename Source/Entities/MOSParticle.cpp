@@ -7,12 +7,10 @@ namespace RTE {
 
 	ConcreteClassInfo(MOSParticle, MovableObject, 1000);
 
-
 	void MOSParticle::Clear() {
 		m_Atom = nullptr;
 		m_SpriteAnimMode = OVERLIFETIME;
 	}
-
 
 	int MOSParticle::Create() {
 		if (MOSprite::Create() < 0) {
@@ -24,7 +22,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int MOSParticle::Create(const MOSParticle& reference) {
 		MOSprite::Create(reference);
 
@@ -33,7 +30,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int MOSParticle::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return MOSprite::ReadProperty(propName, reader));
@@ -49,7 +45,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-
 	int MOSParticle::Save(Writer& writer) const {
 		MOSprite::Save(writer);
 
@@ -62,7 +57,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	void MOSParticle::Destroy(bool notInherited) {
 		delete m_Atom;
 
@@ -72,19 +66,15 @@ namespace RTE {
 		Clear();
 	}
 
-
 	int MOSParticle::GetDrawPriority() const { return m_Atom->GetMaterial()->GetPriority(); }
 
-
 	const Material* MOSParticle::GetMaterial() const { return m_Atom->GetMaterial(); }
-
 
 	void MOSParticle::SetAtom(Atom* newAtom) {
 		delete m_Atom;
 		m_Atom = newAtom;
 		m_Atom->SetOwner(this);
 	}
-
 
 	void MOSParticle::RestDetection() {
 		MOSprite::RestDetection();
@@ -96,7 +86,6 @@ namespace RTE {
 			m_ToSettle = false;
 		}
 	}
-
 
 	void MOSParticle::Travel() {
 		MOSprite::Travel();
@@ -146,7 +135,6 @@ namespace RTE {
 		}
 	}
 
-
 	void MOSParticle::Update() {
 		MOSprite::Update();
 
@@ -154,7 +142,6 @@ namespace RTE {
 			SetPostScreenEffectToDraw();
 		}
 	}
-
 
 	void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		RTEAssert(!m_aSprite.empty(), "No sprite bitmaps loaded to draw " + GetPresetName());
@@ -227,7 +214,6 @@ namespace RTE {
 			g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, spriteX, spriteY, spriteX + m_aSprite[m_Frame]->w, spriteY + m_aSprite[m_Frame]->h);
 		}
 	}
-
 
 	void MOSParticle::SetPostScreenEffectToDraw() const {
 		if (m_AgeTimer.GetElapsedSimTimeMS() >= m_EffectStartTime && (m_EffectStopTime == 0 || !m_AgeTimer.IsPastSimMS(m_EffectStopTime))) {

@@ -8,7 +8,6 @@
 
 namespace RTE {
 
-
 	GUIInputWrapper::GUIInputWrapper(int whichPlayer, bool keyJoyMouseCursor) :
 	    GUIInput(whichPlayer, keyJoyMouseCursor) {
 		m_KeyTimer = std::make_unique<Timer>();
@@ -19,7 +18,6 @@ namespace RTE {
 
 		m_KeyHoldDuration.fill(-1);
 	}
-
 
 	void GUIInputWrapper::ConvertKeyEvent(SDL_Scancode sdlKey, int guilibKey, float elapsedS) {
 		int nKeys;
@@ -45,7 +43,6 @@ namespace RTE {
 		}
 	}
 
-
 	void GUIInputWrapper::Update() {
 		float keyElapsedTime = static_cast<float>(m_KeyTimer->GetElapsedRealTimeS());
 		m_KeyTimer->Reset();
@@ -63,7 +60,6 @@ namespace RTE {
 		m_MouseX = static_cast<int>(mousePos.GetX() / static_cast<float>(g_WindowMan.GetResMultiplier()));
 		m_MouseY = static_cast<int>(mousePos.GetY() / static_cast<float>(g_WindowMan.GetResMultiplier()));
 	}
-
 
 	void GUIInputWrapper::UpdateKeyboardInput(float keyElapsedTime) {
 		// Clear the keyboard buffer, we need it to check for changes.
@@ -112,7 +108,6 @@ namespace RTE {
 			m_Modifier |= GUIInput::ModCommand;
 		}
 	}
-
 
 	void GUIInputWrapper::UpdateMouseInput() {
 		int discard;
@@ -214,7 +209,6 @@ namespace RTE {
 			m_PrevNetworkMouseButtonsStates[player][2] = m_NetworkMouseButtonsEvents[player][2];
 		}
 	}
-
 
 	void GUIInputWrapper::UpdateKeyJoyMouseInput(float keyElapsedTime) {
 		// TODO Try to not use magic numbers throughout this method.

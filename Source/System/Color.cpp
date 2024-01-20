@@ -5,7 +5,6 @@ namespace RTE {
 
 	const std::string Color::c_ClassName = "Color";
 
-
 	int Color::Create() {
 		if (Serializable::Create()) {
 			return -1;
@@ -14,7 +13,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int Color::Create(int inputR, int inputG, int inputB) {
 		SetR(inputR);
 		SetG(inputG);
@@ -22,7 +20,6 @@ namespace RTE {
 		RecalculateIndex();
 		return 0;
 	}
-
 
 	int Color::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -35,7 +32,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-
 	int Color::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
@@ -45,7 +41,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	void Color::SetRGBWithIndex(int index) {
 		m_Index = std::clamp(index, 0, 255);
@@ -58,7 +53,6 @@ namespace RTE {
 		m_G = rgbColor.g * 4;
 		m_B = rgbColor.b * 4;
 	}
-
 
 	int Color::RecalculateIndex() {
 		return m_Index = makecol8(m_R, m_G, m_B);

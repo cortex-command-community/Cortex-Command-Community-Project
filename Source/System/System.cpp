@@ -33,7 +33,6 @@ namespace RTE {
 	const std::string System::s_ZippedModulePackageExtension = ".zip";
 	const std::unordered_set<std::string> System::s_SupportedExtensions = {".ini", ".txt", ".lua", ".cfg", ".bmp", ".png", ".jpg", ".jpeg", ".wav", ".ogg", ".mp3", ".flac"};
 
-
 	void System::Initialize(const char* thisExePathAndName) {
 		s_ThisExePathAndName = std::filesystem::path(thisExePathAndName).generic_string();
 
@@ -113,7 +112,6 @@ namespace RTE {
 #endif
 	}
 
-
 	bool System::MakeDirectory(const std::string& pathToMake) {
 		bool createResult = std::filesystem::create_directory(pathToMake);
 		if (createResult) {
@@ -121,7 +119,6 @@ namespace RTE {
 		}
 		return createResult;
 	}
-
 
 	bool System::PathExistsCaseSensitive(const std::string& pathToCheck) {
 		// Use Hash for compiler independent hashing.
@@ -142,7 +139,6 @@ namespace RTE {
 		return std::filesystem::exists(pathToCheck);
 	}
 
-
 	void System::EnableLoggingToCLI() {
 #ifdef _WIN32
 		// Create a console instance for the current process
@@ -162,7 +158,6 @@ namespace RTE {
 #endif
 		s_LogToCLI = true;
 	}
-
 
 	void System::PrintLoadingToCLI(const std::string& reportString, bool newItem) {
 		if (newItem) {
@@ -204,7 +199,6 @@ namespace RTE {
 		std::cout << unicodedOutput << std::flush;
 	}
 
-
 	void System::PrintToCLI(const std::string& stringToPrint) {
 #if _LINUX_OR_MACOSX_
 		std::string outputString = stringToPrint;
@@ -226,7 +220,6 @@ namespace RTE {
 		std::cout << "\r" << stringToPrint << std::endl;
 #endif
 	}
-
 
 	std::string System::ExtractZippedDataModule(const std::string& zippedModulePath) {
 		std::string zippedModuleName = System::GetModDirectory() + std::filesystem::path(zippedModulePath).filename().generic_string();
@@ -361,7 +354,6 @@ namespace RTE {
 
 		return extractionProgressReport.str();
 	}
-
 
 	int System::ASCIIFileContainsString(const std::string& filePath, const std::string_view& findString) {
 		std::ifstream inputStream(filePath, std::ios::binary);

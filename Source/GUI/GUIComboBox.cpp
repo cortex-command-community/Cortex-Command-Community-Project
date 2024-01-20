@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUIComboBox::GUIComboBox(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "COMBOBOX";
@@ -23,7 +22,6 @@ GUIComboBox::GUIComboBox(GUIManager* Manager, GUIControlManager* ControlManager)
 	// Create the button
 	m_Button = new GUIComboBoxButton(Manager);
 }
-
 
 void GUIComboBox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -71,7 +69,6 @@ void GUIComboBox::Create(const std::string& Name, int X, int Y, int Width, int H
 	m_Button->SetSignalTarget(this);
 	GUIPanel::AddChild(m_Button);
 }
-
 
 void GUIComboBox::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
@@ -122,7 +119,6 @@ void GUIComboBox::Create(GUIProperties* Props) {
 	m_TextPanel->SetLocked((m_DropDownStyle == DropDownList));
 }
 
-
 void GUIComboBox::Destroy() {
 	// Free the panels
 	if (m_ListPanel) {
@@ -146,7 +142,6 @@ void GUIComboBox::Destroy() {
 	}
 }
 
-
 void GUIComboBox::Activate() {
 	m_TextPanel->SetPositionAbs(m_X, m_Y);
 
@@ -159,7 +154,6 @@ void GUIComboBox::Activate() {
 		m_Button->Create(m_X + m_Width - 17, m_Y, 17, m_Height);
 	}
 }
-
 
 void GUIComboBox::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
@@ -187,7 +181,6 @@ void GUIComboBox::ChangeSkin(GUISkin* Skin) {
 	m_Button->ChangeSkin(Skin);
 }
 
-
 void GUIComboBox::Draw(GUIScreen* Screen) {
 	// Draw the background
 	m_DrawBitmap->Draw(Screen->GetBitmap(), m_X, m_Y, nullptr);
@@ -200,11 +193,9 @@ void GUIComboBox::Draw(GUIScreen* Screen) {
 	GUIPanel::Draw(Screen);
 }
 
-
 GUIPanel* GUIComboBox::GetPanel() {
 	return this;
 }
-
 
 void GUIComboBox::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	assert(Source);
@@ -307,34 +298,28 @@ void GUIComboBox::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	}
 }
 
-
 void GUIComboBox::BeginUpdate() {
 	m_ListPanel->BeginUpdate();
 }
-
 
 void GUIComboBox::EndUpdate() {
 	m_ListPanel->EndUpdate();
 }
 
-
 void GUIComboBox::AddItem(const std::string& Name, const std::string& ExtraText, GUIBitmap* pBitmap, const Entity* pEntity) {
 	m_ListPanel->AddItem(Name, ExtraText, pBitmap, pEntity);
 }
-
 
 void GUIComboBox::ClearList() {
 	m_TextPanel->SetText("");
 	m_ListPanel->ClearList();
 }
 
-
 void GUIComboBox::Move(int X, int Y) {
 	GUIPanel::SetPositionAbs(X, Y);
 
 	m_ListPanel->SetPositionAbs(m_X, m_Y + m_Height);
 }
-
 
 void GUIComboBox::Resize(int Width, int Height) {
 	// Make sure the textbox isn't too small
@@ -356,11 +341,9 @@ void GUIComboBox::Resize(int Width, int Height) {
 	ChangeSkin(m_Skin);
 }
 
-
 void GUIComboBox::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
-
 
 void GUIComboBox::DeleteItem(int Index) {
 	m_ListPanel->DeleteItem(Index);
@@ -379,16 +362,13 @@ void GUIComboBox::DeleteItem(int Index) {
 	}
 }
 
-
 int GUIComboBox::GetCount() {
 	return m_ListPanel->GetItemList()->size();
 }
 
-
 int GUIComboBox::GetSelectedIndex() {
 	return m_ListPanel->GetSelectedIndex();
 }
-
 
 void GUIComboBox::SetSelectedIndex(int Index) {
 	m_ListPanel->SetSelectedIndex(Index);
@@ -399,7 +379,6 @@ void GUIComboBox::SetSelectedIndex(int Index) {
 		m_TextPanel->SetText(Item->m_Name);
 	}
 }
-
 
 bool GUIComboBox::RollbackSelection() {
 	// Restore the previous selection
@@ -415,11 +394,9 @@ bool GUIComboBox::RollbackSelection() {
 	return false;
 }
 
-
 GUIListPanel::Item* GUIComboBox::GetItem(int Index) {
 	return m_ListPanel->GetItem(Index);
 }
-
 
 void GUIComboBox::SetDropHeight(int Drop) {
 	m_DropHeight = Drop;
@@ -428,7 +405,6 @@ void GUIComboBox::SetDropHeight(int Drop) {
 	// Change the list panel
 	m_ListPanel->SetSize(m_Width, m_DropHeight);
 }
-
 
 void GUIComboBox::StoreProperties() {
 	m_Properties.AddVariable("DropHeight", m_DropHeight);
@@ -439,7 +415,6 @@ void GUIComboBox::StoreProperties() {
 	}
 }
 
-
 void GUIComboBox::SetDropDownStyle(int Style) {
 	if (Style == DropDown || Style == DropDownList) {
 		m_DropDownStyle = Style;
@@ -448,11 +423,9 @@ void GUIComboBox::SetDropDownStyle(int Style) {
 	m_TextPanel->SetLocked(m_DropDownStyle == DropDownList);
 }
 
-
 int GUIComboBox::GetDropDownStyle() const {
 	return m_DropDownStyle;
 }
-
 
 void GUIComboBox::SetVisible(bool Visible) {
 	_SetVisible(Visible);
@@ -461,11 +434,9 @@ void GUIComboBox::SetVisible(bool Visible) {
 	}
 }
 
-
 bool GUIComboBox::GetVisible() {
 	return _GetVisible();
 }
-
 
 void GUIComboBox::SetEnabled(bool Enabled) {
 	_SetEnabled(Enabled);
@@ -474,11 +445,9 @@ void GUIComboBox::SetEnabled(bool Enabled) {
 	}
 }
 
-
 bool GUIComboBox::GetEnabled() {
 	return _GetEnabled();
 }
-
 
 std::string GUIComboBox::GetText() {
 	if (m_DropDownStyle != DropDown) {
@@ -490,13 +459,11 @@ std::string GUIComboBox::GetText() {
 	return "";
 }
 
-
 void GUIComboBox::SetText(const std::string& Text) {
 	if (m_DropDownStyle == DropDown && m_TextPanel) {
 		m_TextPanel->SetText(Text);
 	}
 }
-
 
 void GUIComboBox::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);
@@ -517,13 +484,11 @@ void GUIComboBox::ApplyProperties(GUIProperties* Props) {
 	ChangeSkin(m_Skin);
 }
 
-
 GUIComboBoxButton::GUIComboBoxButton(GUIManager* Manager) :
     GUIPanel(Manager) {
 	m_DrawBitmap = nullptr;
 	m_Pushed = false;
 }
-
 
 void GUIComboBoxButton::ChangeSkin(GUISkin* Skin) {
 	// Free any old bitmap
@@ -564,14 +529,12 @@ void GUIComboBoxButton::ChangeSkin(GUISkin* Skin) {
 	Arrow->DrawTrans(m_DrawBitmap, (m_Width / 2) - (Values[2] / 2) + 1, m_Height + (m_Height / 2) - (Values[3] / 2) + 1, &Rect);
 }
 
-
 void GUIComboBoxButton::Draw(GUIScreen* Screen) {
 	GUIRect Rect;
 	SetRect(&Rect, 0, m_Pushed ? m_Height : 0, m_Width, m_Pushed ? m_Height * 2 : m_Height);
 
 	m_DrawBitmap->Draw(Screen->GetBitmap(), m_X, m_Y, &Rect);
 }
-
 
 void GUIComboBoxButton::Create(int X, int Y, int Width, int Height) {
 	m_X = X;
@@ -580,7 +543,6 @@ void GUIComboBoxButton::Create(int X, int Y, int Width, int Height) {
 	m_Height = Height;
 }
 
-
 void GUIComboBoxButton::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	if (Buttons & MOUSE_LEFT) {
 		m_Pushed = true;
@@ -588,16 +550,13 @@ void GUIComboBoxButton::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	}
 }
 
-
 void GUIComboBoxButton::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	m_Pushed = false;
 }
 
-
 void GUIComboBoxButton::SetPushed(bool Pushed) {
 	m_Pushed = Pushed;
 }
-
 
 void GUIComboBoxButton::Destroy() {
 	// Free the drawing bitmap

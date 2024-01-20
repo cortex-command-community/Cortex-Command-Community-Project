@@ -2,7 +2,6 @@
 
 namespace RTE {
 
-
 	std::string RTEStackTrace::GetCallStackAsString(const HANDLE& handle, const CONTEXT* context) {
 		m_CallstackStream.clear();
 
@@ -15,7 +14,6 @@ namespace RTE {
 		}
 		return m_CallstackStream.str();
 	}
-
 
 	void RTEStackTrace::OnOutput(LPCSTR text) {
 		this->StackWalker::OnOutput(text);

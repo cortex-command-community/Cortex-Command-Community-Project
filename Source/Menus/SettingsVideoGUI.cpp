@@ -30,7 +30,6 @@ namespace RTE {
 #endif
 	}
 
-
 	SettingsVideoGUI::SettingsVideoGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
 		m_NewResX = g_WindowMan.GetResX();
@@ -82,7 +81,6 @@ namespace RTE {
 		}
 	}
 
-
 	void SettingsVideoGUI::CreatePresetResolutionBox() {
 		m_PresetResolutionBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionPresetResolution"));
 		m_PresetResolutionComboBox = dynamic_cast<GUIComboBox*>(m_GUIControlManager->GetControl("ComboPresetResolution"));
@@ -92,7 +90,6 @@ namespace RTE {
 
 		PopulateResolutionsComboBox();
 	}
-
 
 	void SettingsVideoGUI::CreateCustomResolutionBox() {
 		m_CustomResolutionBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionCustomResolution"));
@@ -123,7 +120,6 @@ namespace RTE {
 		m_CustomResolutionMessageLabel->SetVisible(false);
 	}
 
-
 	void SettingsVideoGUI::SetEnabled(bool enable) const {
 		m_VideoSettingsBox->SetVisible(enable);
 		m_VideoSettingsBox->SetEnabled(enable);
@@ -143,11 +139,9 @@ namespace RTE {
 		}
 	}
 
-
 	GUICollectionBox* SettingsVideoGUI::GetActiveDialogBox() const {
 		return (m_ResolutionChangeDialogBox->GetEnabled() && m_ResolutionChangeDialogBox->GetVisible()) ? m_ResolutionChangeDialogBox : nullptr;
 	}
-
 
 	void SettingsVideoGUI::CloseActiveDialogBox() const {
 		if (m_ResolutionChangeDialogBox->GetEnabled() && m_ResolutionChangeDialogBox->GetVisible()) {
@@ -156,14 +150,12 @@ namespace RTE {
 		}
 	}
 
-
 	bool SettingsVideoGUI::IsSupportedResolution(int width, int height) const {
 		if ((width >= c_MinResX && height >= c_MinResY) && (width <= g_WindowMan.GetMaxResX() && height <= g_WindowMan.GetMaxResY())) {
 			return true;
 		}
 		return false;
 	}
-
 
 	void SettingsVideoGUI::PopulateResolutionsComboBox() {
 		m_PresetResolutions.clear();
@@ -213,7 +205,6 @@ namespace RTE {
 		m_CustomResolutionMultiplierComboBox->SetSelectedIndex(0);
 	}
 
-
 	void SettingsVideoGUI::UpdateCustomResolutionLimits() {
 		g_WindowMan.MapDisplays();
 
@@ -247,7 +238,6 @@ namespace RTE {
 			m_ResolutionQuickToggleButtons[ResolutionQuickChangeType::Fullscreen]->SetText(fullscreenText);
 		}
 	}
-
 
 	void SettingsVideoGUI::ApplyQuickChangeResolution(ResolutionQuickChangeType resolutionChangeType) {
 		g_WindowMan.MapDisplays();
@@ -287,7 +277,6 @@ namespace RTE {
 		ApplyNewResolution(true);
 	}
 
-
 	void SettingsVideoGUI::ApplyPresetResolution() {
 		int presetResListEntryID = m_PresetResolutionComboBox->GetSelectedIndex();
 		if (presetResListEntryID >= 0) {
@@ -305,7 +294,6 @@ namespace RTE {
 			ApplyNewResolution();
 		}
 	}
-
 
 	void SettingsVideoGUI::ApplyCustomResolution() {
 		m_CustomResolutionMessageLabel->SetVisible(false);
@@ -352,7 +340,6 @@ namespace RTE {
 			ApplyNewResolution();
 		}
 	}
-
 
 	void SettingsVideoGUI::HandleInputEvents(GUIEvent& guiEvent) {
 		if (guiEvent.GetType() == GUIEvent::Command) {

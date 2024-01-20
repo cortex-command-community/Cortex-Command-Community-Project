@@ -4,13 +4,11 @@
 
 namespace RTE {
 
-
 	void AllegroBitmap::Clear() {
 		m_Bitmap = nullptr;
 		m_BitmapFile.Reset();
 		m_SelfCreated = false;
 	}
-
 
 	void AllegroBitmap::Create(const std::string& fileName) {
 		m_BitmapFile.Create(fileName.c_str());
@@ -20,7 +18,6 @@ namespace RTE {
 
 		m_SelfCreated = false;
 	}
-
 
 	void AllegroBitmap::Create(int width, int height, int colorDepth) {
 		m_BitmapFile.Reset();
@@ -32,7 +29,6 @@ namespace RTE {
 		m_SelfCreated = true;
 	}
 
-
 	void AllegroBitmap::Destroy() {
 		if (m_SelfCreated && m_Bitmap) {
 			destroy_bitmap(m_Bitmap);
@@ -40,32 +36,26 @@ namespace RTE {
 		Clear();
 	}
 
-
 	int AllegroBitmap::GetWidth() const {
 		return m_Bitmap ? m_Bitmap->w : 0;
 	}
-
 
 	int AllegroBitmap::GetHeight() const {
 		return m_Bitmap ? m_Bitmap->h : 0;
 	}
 
-
 	int AllegroBitmap::GetColorDepth() const {
 		return m_Bitmap ? bitmap_color_depth(m_Bitmap) : 8;
 	}
-
 
 	unsigned long AllegroBitmap::GetPixel(int posX, int posY) const {
 		return m_Bitmap ? getpixel(m_Bitmap, posX, posY) : 0;
 	}
 
-
 	void AllegroBitmap::SetPixel(int posX, int posY, unsigned long pixelColor) {
 		RTEAssert(m_Bitmap, "Trying to set a pixel on a null bitmap!");
 		putpixel(m_Bitmap, posX, posY, pixelColor);
 	}
-
 
 	void AllegroBitmap::GetClipRect(GUIRect* clippingRect) const {
 		if (m_Bitmap && clippingRect) {
@@ -81,7 +71,6 @@ namespace RTE {
 		}
 	}
 
-
 	void AllegroBitmap::SetClipRect(GUIRect* clippingRect) {
 		if (!m_Bitmap) {
 			return;
@@ -94,7 +83,6 @@ namespace RTE {
 			set_clip_rect(m_Bitmap, clippingRect->left, clippingRect->top, clippingRect->right, clippingRect->bottom);
 		}
 	}
-
 
 	void AllegroBitmap::AddClipRect(GUIRect* clippingRect) {
 		if (!m_Bitmap) {
@@ -109,7 +97,6 @@ namespace RTE {
 		}
 	}
 
-
 	void AllegroBitmap::Draw(GUIBitmap* destBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) {
 		if (!m_Bitmap) {
 			return;
@@ -122,7 +109,6 @@ namespace RTE {
 			blit(m_Bitmap, dynamic_cast<AllegroBitmap*>(destBitmap)->GetBitmap(), 0, 0, destX, destY, destBitmap->GetWidth(), destBitmap->GetHeight());
 		}
 	}
-
 
 	void AllegroBitmap::DrawTrans(GUIBitmap* destBitmap, int destX, int destY, GUIRect* srcPosAndSizeRect) {
 		if (!m_Bitmap) {
@@ -137,7 +123,6 @@ namespace RTE {
 		}
 	}
 
-
 	void AllegroBitmap::DrawTransScaled(GUIBitmap* destBitmap, int destX, int destY, int width, int height) {
 		if (!m_Bitmap) {
 			return;
@@ -147,14 +132,12 @@ namespace RTE {
 		stretch_sprite(dynamic_cast<AllegroBitmap*>(destBitmap)->GetBitmap(), m_Bitmap, destX, destY, width, height);
 	}
 
-
 	void AllegroBitmap::DrawLine(int x1, int y1, int x2, int y2, unsigned long color) {
 		if (!m_Bitmap) {
 			return;
 		}
 		line(m_Bitmap, x1, y1, x2, y2, color);
 	}
-
 
 	void AllegroBitmap::DrawRectangle(int posX, int posY, int width, int height, unsigned long color, bool filled) {
 		if (!m_Bitmap) {

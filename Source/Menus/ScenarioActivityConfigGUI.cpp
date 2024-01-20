@@ -19,7 +19,6 @@
 
 namespace RTE {
 
-
 	ScenarioActivityConfigGUI::ScenarioActivityConfigGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
 		m_ActivityConfigBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxActivityConfig"));
@@ -68,7 +67,6 @@ namespace RTE {
 		m_TechListFetched = false;
 	}
 
-
 	void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 			m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-All-", "", nullptr, nullptr, -2);
@@ -88,11 +86,9 @@ namespace RTE {
 		m_TechListFetched = true;
 	}
 
-
 	bool ScenarioActivityConfigGUI::IsEnabled() const {
 		return m_ActivityConfigBox->GetEnabled() && m_ActivityConfigBox->GetVisible();
 	}
-
 
 	void ScenarioActivityConfigGUI::SetEnabled(bool enable, const Activity* selectedActivity, Scene* selectedScene) {
 		m_ActivityConfigBox->SetEnabled(enable);
@@ -127,7 +123,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 		m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
@@ -200,7 +195,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ScenarioActivityConfigGUI::StartGame() {
 		GameActivity* gameActivity = dynamic_cast<GameActivity*>(m_SelectedActivity->Clone());
 
@@ -240,7 +234,6 @@ namespace RTE {
 		g_LuaMan.FileCloseAll();
 		g_ActivityMan.SetStartActivity(gameActivity);
 	}
-
 
 	bool ScenarioActivityConfigGUI::Update(int mouseX, int mouseY) {
 		UpdatePlayerTeamSetupCell(mouseX, mouseY);
@@ -288,7 +281,6 @@ namespace RTE {
 		return HandleInputEvents();
 	}
 
-
 	void ScenarioActivityConfigGUI::UpdateStartingGoldSliderAndLabel() {
 		if (!m_StartingGoldAdjustedManually) {
 			if (m_ActivityDifficultySlider->GetValue() <= Activity::DifficultySetting::CakeDifficulty && m_SelectedActivity->GetDefaultGoldCakeDifficulty() > -1) {
@@ -319,7 +311,6 @@ namespace RTE {
 		m_StartingGoldLabel->SetText(goldString);
 	}
 
-
 	void ScenarioActivityConfigGUI::UpdatePlayerTeamSetupCell(int mouseX, int mouseY) {
 		if (const GUICollectionBox* hoveredCell = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControlUnderPoint(mouseX, mouseY, m_PlayersAndTeamsConfigBox, 1))) {
 			int hoveredPlayer = PlayerColumns::PlayerColumnCount;
@@ -344,7 +335,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void ScenarioActivityConfigGUI::HandleClickOnPlayerTeamSetupCell(int clickedPlayer, int clickedTeam) {
 		m_PlayerBoxes.at(clickedPlayer).at(clickedTeam)->SetDrawType(GUICollectionBox::Image);
@@ -406,7 +396,6 @@ namespace RTE {
 		g_GUISound.FocusChangeSound()->Play();
 	}
 
-
 	bool ScenarioActivityConfigGUI::HandleInputEvents() {
 		GUIEvent guiEvent;
 		while (m_GUIControlManager->GetEvent(&guiEvent)) {
@@ -442,7 +431,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
 
 	void ScenarioActivityConfigGUI::Draw() {
 		m_GUIControlManager->Draw();

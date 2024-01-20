@@ -434,7 +434,6 @@ namespace RTE {
 		return m_Pos;
 	}
 
-
 	void ACrab::SetTurret(Turret* newTurret) {
 		if (m_pTurret && m_pTurret->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pTurret);
@@ -456,7 +455,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void ACrab::SetJetpack(AEJetpack* newJetpack) {
 		if (m_pJetpack && m_pJetpack->IsAttached()) {
@@ -482,7 +480,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ACrab::SetLeftFGLeg(Leg* newLeg) {
 		if (m_pLFGLeg && m_pLFGLeg->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pLFGLeg);
@@ -505,7 +502,6 @@ namespace RTE {
 			m_pLFGLeg->SetInheritsHFlipped(-1);
 		}
 	}
-
 
 	void ACrab::SetLeftBGLeg(Leg* newLeg) {
 		if (m_pLBGLeg && m_pLBGLeg->IsAttached()) {
@@ -530,7 +526,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ACrab::SetRightFGLeg(Leg* newLeg) {
 		if (m_pRFGLeg && m_pRFGLeg->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pRFGLeg);
@@ -553,7 +548,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ACrab::SetRightBGLeg(Leg* newLeg) {
 		if (m_pRBGLeg && m_pRBGLeg->IsAttached()) {
 			RemoveAndDeleteAttachable(m_pRBGLeg);
@@ -575,7 +569,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	BITMAP* ACrab::GetGraphicalIcon() const {
 		return m_GraphicalIcon ? m_GraphicalIcon : (m_pTurret ? m_pTurret->GetSpriteFrame(0) : GetSpriteFrame(0));
@@ -645,7 +638,6 @@ namespace RTE {
 	}
 	*/
 
-
 	bool ACrab::HandlePieCommand(PieSlice::SliceType pieSliceIndex) {
 		if (pieSliceIndex != PieSlice::SliceType::NoType) {
 			if (pieSliceIndex == PieSlice::SliceType::Reload) {
@@ -667,7 +659,6 @@ namespace RTE {
 		}
 		return false;
 	}
-
 
 	MovableObject* ACrab::GetEquippedItem() const {
 		if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->HasMountedDevice()) {
@@ -1417,7 +1408,6 @@ namespace RTE {
 		//    m_DeepCheck = true/*m_Status == DEAD*/;
 	}
 
-
 	void ACrab::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		Actor::Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
 
@@ -1668,7 +1658,6 @@ namespace RTE {
 		m_Paths[LEFTSIDE][BGROUND][WALK].OverridePushForce(force);
 		m_Paths[RIGHTSIDE][BGROUND][WALK].OverridePushForce(force);
 	}
-
 
 	int ACrab::WhilePieMenuOpenListener(const PieMenu* pieMenu) {
 		int result = Actor::WhilePieMenuOpenListener(pieMenu);

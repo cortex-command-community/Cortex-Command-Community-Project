@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUITab::GUITab(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIPanel(Manager) {
 	m_ControlID = "TAB";
@@ -15,7 +14,6 @@ GUITab::GUITab(GUIManager* Manager, GUIControlManager* ControlManager) :
 	m_FontColor = 0;
 	m_Text = "";
 }
-
 
 void GUITab::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -46,7 +44,6 @@ void GUITab::Create(const std::string& Name, int X, int Y, int Width, int Height
 	m_Height = std::max(m_Height, m_MinHeight);
 }
 
-
 void GUITab::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
@@ -70,14 +67,12 @@ void GUITab::Create(GUIProperties* Props) {
 	Props->GetValue("Checked", &m_Selected);
 }
 
-
 void GUITab::ChangeSkin(GUISkin* Skin) {
 	GUIControl::ChangeSkin(Skin);
 
 	// Build the checkbox bitmap
 	BuildBitmap();
 }
-
 
 void GUITab::BuildBitmap() {
 	std::string Filename;
@@ -124,7 +119,6 @@ void GUITab::BuildBitmap() {
 	m_Skin->GetValue("Tab", "Disabled", Values, 4);
 	SetRect(&m_ImageRects[3], Values[0], Values[1], Values[0] + Values[2], Values[1] + Values[3]);
 }
-
 
 void GUITab::Draw(GUIScreen* Screen) {
 	if (!m_Image) {
@@ -176,7 +170,6 @@ void GUITab::Draw(GUIScreen* Screen) {
 	GUIPanel::Draw(Screen);
 }
 
-
 void GUITab::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	if (Buttons & MOUSE_LEFT) {
 		// Push the checkbox down
@@ -186,7 +179,6 @@ void GUITab::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 		AddEvent(GUIEvent::Notification, Pushed, 0);
 	}
 }
-
 
 void GUITab::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
@@ -199,27 +191,22 @@ void GUITab::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	AddEvent(GUIEvent::Notification, UnPushed, 0);
 }
 
-
 void GUITab::OnMouseEnter(int X, int Y, int Buttons, int Modifier) {
 	m_Mouseover = true;
 	AddEvent(GUIEvent::Notification, Hovered, 0);
 }
 
-
 void GUITab::OnMouseLeave(int X, int Y, int Buttons, int Modifier) {
 	m_Mouseover = false;
 }
-
 
 GUIPanel* GUITab::GetPanel() {
 	return this;
 }
 
-
 void GUITab::Move(int X, int Y) {
 	GUIPanel::SetPositionAbs(X, Y);
 }
-
 
 void GUITab::Resize(int Width, int Height) {
 	// Make sure the control isn't too small
@@ -232,17 +219,14 @@ void GUITab::Resize(int Width, int Height) {
 	BuildBitmap();
 }
 
-
 void GUITab::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIPanel::GetRect(X, Y, Width, Height);
 }
-
 
 void GUITab::StoreProperties() {
 	m_Properties.AddVariable("Text", m_Text);
 	m_Properties.AddVariable("Selected", m_Selected);
 }
-
 
 void GUITab::SetCheck(bool Check) {
 	// Nothing to do if already in the same state
@@ -280,21 +264,17 @@ void GUITab::SetCheck(bool Check) {
 	}
 }
 
-
 bool GUITab::GetCheck() const {
 	return m_Selected;
 }
-
 
 void GUITab::SetText(const std::string& Text) {
 	m_Text = Text;
 }
 
-
 std::string GUITab::GetText() const {
 	return m_Text;
 }
-
 
 void GUITab::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);

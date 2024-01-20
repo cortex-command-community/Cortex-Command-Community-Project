@@ -7,7 +7,6 @@ namespace RTE {
 
 	ConcreteClassInfo(AEJetpack, AEmitter, 20);
 
-
 	void AEJetpack::Clear() {
 		m_JetpackType = JetpackType::Standard;
 		m_JetTimeTotal = 0.0F;
@@ -20,7 +19,6 @@ namespace RTE {
 		m_AdjustsThrottleForWeight = true;
 	}
 
-
 	int AEJetpack::Create() {
 		if (Attachable::Create() < 0) {
 			return -1;
@@ -32,7 +30,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int AEJetpack::Create(const AEJetpack& reference) {
 		AEmitter::Create(reference);
@@ -48,7 +45,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int AEJetpack::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return AEmitter::ReadProperty(propName, reader));
@@ -81,7 +77,6 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-
 	int AEJetpack::Save(Writer& writer) const {
 		AEmitter::Save(writer);
 
@@ -105,7 +100,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	void AEJetpack::UpdateBurstState(Actor& parentActor) {
 		const Controller& controller = *parentActor.GetController();
@@ -183,7 +177,6 @@ namespace RTE {
 		}
 	}
 
-
 	void AEJetpack::Burst(Actor& parentActor, float fuelUseMultiplier) {
 		parentActor.SetMovementState(Actor::JUMP);
 
@@ -199,7 +192,6 @@ namespace RTE {
 		m_JetTimeLeft -= fuelUsage;
 	}
 
-
 	void AEJetpack::Thrust(Actor& parentActor, float fuelUseMultiplier) {
 		parentActor.SetMovementState(Actor::JUMP);
 
@@ -209,7 +201,6 @@ namespace RTE {
 		float fuelUsage = g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
 		m_JetTimeLeft -= fuelUsage;
 	}
-
 
 	void AEJetpack::Recharge(Actor& parentActor) {
 		EnableEmission(false);

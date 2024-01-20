@@ -4,11 +4,9 @@ namespace RTE {
 
 	ConcreteClassInfo(TDExplosive, ThrownDevice, 50);
 
-
 	void TDExplosive::Clear() {
 		m_IsAnimatedManually = false;
 	}
-
 
 	int TDExplosive::Create() {
 		if (ThrownDevice::Create() < 0) {
@@ -22,7 +20,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int TDExplosive::Create(const TDExplosive& reference) {
 		if (ThrownDevice::Create(reference) < 0) {
 			return -1;
@@ -31,7 +28,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int TDExplosive::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return ThrownDevice::ReadProperty(propName, reader));
@@ -48,14 +44,12 @@ namespace RTE {
 		EndPropertyList;
 	}
 
-
 	int TDExplosive::Save(Writer& writer) const {
 		ThrownDevice::Save(writer);
 		writer.NewProperty("IsAnimatedManually");
 		writer << m_IsAnimatedManually;
 		return 0;
 	}
-
 
 	void TDExplosive::Update() {
 		ThrownDevice::Update();
@@ -72,7 +66,6 @@ namespace RTE {
 			GibThis();
 		}
 	}
-
 
 	void TDExplosive::DrawHUD(BITMAP* targetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 		if (m_HUDVisible && !m_Activated) {

@@ -3,7 +3,6 @@
 
 using namespace RTE;
 
-
 GUITextPanel::GUITextPanel(GUIManager* Manager) :
     GUIPanel(Manager) {
 	m_Font = nullptr;
@@ -28,7 +27,6 @@ GUITextPanel::GUITextPanel(GUIManager* Manager) :
 
 // TODO: Both constructors use a common clear function?? Same with other panels
 
-
 GUITextPanel::GUITextPanel() :
     GUIPanel() {
 	m_Font = nullptr;
@@ -52,7 +50,6 @@ GUITextPanel::GUITextPanel() :
 	m_MaxNumericValue = 0;
 }
 
-
 void GUITextPanel::Create(int X, int Y, int Width, int Height) {
 	m_X = X;
 	m_Y = Y;
@@ -61,7 +58,6 @@ void GUITextPanel::Create(int X, int Y, int Width, int Height) {
 
 	assert(m_Manager);
 }
-
 
 void GUITextPanel::ChangeSkin(GUISkin* Skin) {
 	// Load the font
@@ -90,7 +86,6 @@ void GUITextPanel::ChangeSkin(GUISkin* Skin) {
 	Skin->GetValue("TextBox", "CursorColorIndex", &m_CursorColor);
 	m_CursorColor = Skin->ConvertColor(m_CursorColor);
 }
-
 
 void GUITextPanel::Draw(GUIScreen* Screen) {
 	if (!m_Font)
@@ -142,7 +137,6 @@ void GUITextPanel::Draw(GUIScreen* Screen) {
 	// Restore normal clipping
 	Screen->GetBitmap()->SetClipRect(nullptr);
 }
-
 
 void GUITextPanel::OnKeyPress(int KeyCode, int Modifier) {
 	// TODO: Figure out what the "performance bitching" is.
@@ -283,7 +277,6 @@ void GUITextPanel::OnKeyPress(int KeyCode, int Modifier) {
 	}
 }
 
-
 void GUITextPanel::OnTextInput(std::string_view inputText) {
 	int minValidKeyCode = 32;
 	int maxValidKeyCode = 126;
@@ -311,7 +304,6 @@ void GUITextPanel::OnTextInput(std::string_view inputText) {
 		}
 	}
 }
-
 
 void GUITextPanel::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	SendSignal(MouseDown, Buttons);
@@ -356,7 +348,6 @@ void GUITextPanel::OnMouseDown(int X, int Y, int Buttons, int Modifier) {
 	UpdateText(false, false);
 }
 
-
 void GUITextPanel::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	if (!(Buttons & MOUSE_LEFT) || !IsCaptured()) {
 		return;
@@ -383,12 +374,10 @@ void GUITextPanel::OnMouseMove(int X, int Y, int Buttons, int Modifier) {
 	}
 }
 
-
 void GUITextPanel::OnMouseUp(int X, int Y, int Buttons, int Modifier) {
 	ReleaseMouse();
 	SendSignal(Clicked, Buttons);
 }
-
 
 void GUITextPanel::UpdateText(bool Typing, bool DoIncrement) {
 	if (!m_Font) {
@@ -432,7 +421,6 @@ void GUITextPanel::UpdateText(bool Typing, bool DoIncrement) {
 	}
 }
 
-
 void GUITextPanel::DoSelection(int Start, int End) {
 	// Start a selection
 	if (!m_GotSelection) {
@@ -467,7 +455,6 @@ void GUITextPanel::DoSelection(int Start, int End) {
 	m_SelectionWidth = std::min(m_SelectionWidth, m_Width);
 }
 
-
 int RTE::GUITextPanel::GetStartOfNextCharacterGroup(const std::string_view& stringToCheck, int currentIndex) const {
 	auto isNormalCharacter = [](char charToCheck) {
 		return (std::isalnum(charToCheck) || charToCheck == '_');
@@ -487,7 +474,6 @@ int RTE::GUITextPanel::GetStartOfNextCharacterGroup(const std::string_view& stri
 	}
 	return std::distance(stringToCheck.cbegin(), currentIterator);
 }
-
 
 int RTE::GUITextPanel::GetStartOfPreviousCharacterGroup(const std::string_view& stringToCheck, int currentIndex) const {
 	auto isNormalCharacter = [](char charToCheck) {
@@ -511,7 +497,6 @@ int RTE::GUITextPanel::GetStartOfPreviousCharacterGroup(const std::string_view& 
 	return std::distance(stringToCheck.cbegin(), currentIterator.base());
 }
 
-
 void GUITextPanel::RemoveSelectionText() {
 	if (!m_GotSelection) {
 		return;
@@ -532,7 +517,6 @@ void GUITextPanel::RemoveSelectionText() {
 	m_GotSelection = false;
 }
 
-
 void GUITextPanel::SetCursorPos(int cursorPos) {
 	m_GotSelection = false;
 
@@ -548,7 +532,6 @@ void GUITextPanel::SetCursorPos(int cursorPos) {
 	UpdateText();
 }
 
-
 std::string GUITextPanel::GetSelectionText() const {
 	if (!m_GotSelection) {
 		return "";
@@ -561,7 +544,6 @@ std::string GUITextPanel::GetSelectionText() const {
 	}
 	return m_Text.substr(Start, End - Start);
 }
-
 
 void GUITextPanel::SetText(const std::string& Text) {
 	m_Text = Text;
@@ -579,12 +561,10 @@ void GUITextPanel::SetText(const std::string& Text) {
 	SendSignal(Changed, 0);
 }
 
-
 void GUITextPanel::SetRightText(const std::string& rightText) {
 	m_RightText = rightText;
 	SendSignal(Changed, 0);
 }
-
 
 void GUITextPanel::SetSelection(int Start, int End) {
 	if (m_Locked) {
@@ -598,7 +578,6 @@ void GUITextPanel::SetSelection(int Start, int End) {
 	UpdateText(false, false);
 }
 
-
 int GUITextPanel::GetSelectionStart() const {
 	// No selection?
 	if (!m_GotSelection) {
@@ -608,7 +587,6 @@ int GUITextPanel::GetSelectionStart() const {
 	return m_StartSelection;
 }
 
-
 int GUITextPanel::GetSelectionEnd() const {
 	if (!m_GotSelection) {
 		return -1;
@@ -616,11 +594,9 @@ int GUITextPanel::GetSelectionEnd() const {
 	return m_EndSelection;
 }
 
-
 void GUITextPanel::ClearSelection() {
 	m_GotSelection = false;
 }
-
 
 void GUITextPanel::SetLocked(bool Locked) {
 	m_Locked = Locked;
@@ -630,7 +606,6 @@ void GUITextPanel::SetLocked(bool Locked) {
 		ClearSelection();
 	}
 }
-
 
 bool GUITextPanel::GetLocked() const {
 	return m_Locked;

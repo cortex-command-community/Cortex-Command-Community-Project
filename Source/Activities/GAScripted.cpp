@@ -151,7 +151,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	void GAScripted::RefreshActivityFunctions() {
 		m_ScriptFunctions.clear();
 		if (m_ScriptPath.empty()) {
@@ -167,11 +166,9 @@ namespace RTE {
 		}
 	}
 
-
 	bool GAScripted::HasSaveFunction() const {
 		return m_ScriptFunctions.find("OnSave") != m_ScriptFunctions.end();
 	}
-
 
 	bool GAScripted::SceneIsCompatible(Scene* pScene, int teams) {
 		if (!GameActivity::SceneIsCompatible(pScene, teams)) {
@@ -215,7 +212,6 @@ namespace RTE {
 		return g_LuaMan.GetMasterScriptState().GlobalIsDefined("TestScene");
 	}
 
-
 	void GAScripted::HandleCraftEnteringOrbit(ACraft* orbitedCraft) {
 		GameActivity::HandleCraftEnteringOrbit(orbitedCraft);
 
@@ -226,7 +222,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	int GAScripted::Start() {
 		ActivityState initialActivityState = m_ActivityState;
@@ -433,7 +428,6 @@ namespace RTE {
 		}
 	}
 
-
 	void GAScripted::AddPieSlicesToActiveActorPieMenus() {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 			if (m_IsActive[player] && m_IsHuman[player] && m_ControlledActor[player] && m_ViewState[player] != ViewState::DeathWatch && m_ViewState[player] != ViewState::ActorSelect && m_ViewState[player] != ViewState::AIGoToPoint && m_ViewState[player] != ViewState::UnitSelectCircle) {
@@ -451,6 +445,5 @@ namespace RTE {
 			}
 		}
 	}
-
 
 } // namespace RTE

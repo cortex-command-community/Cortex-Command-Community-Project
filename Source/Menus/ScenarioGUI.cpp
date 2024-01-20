@@ -23,7 +23,6 @@
 
 namespace RTE {
 
-
 	void ScenarioGUI::Clear() {
 		m_RootBoxMaxWidth = 0;
 
@@ -50,7 +49,6 @@ namespace RTE {
 		m_DrawDefaultScenePreview = true;
 	}
 
-
 	void ScenarioGUI::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
 		RTEAssert(m_GUIControlManager->Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "MainMenuSubMenuSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/MainMenuSubMenuSkin.ini");
@@ -75,7 +73,6 @@ namespace RTE {
 		m_ActivityConfigBox = std::make_unique<ScenarioActivityConfigGUI>(m_GUIControlManager.get());
 	}
 
-
 	void ScenarioGUI::CreateActivityInfoBox() {
 		m_ActivityInfoBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxActivityInfo"));
 		m_ActivityInfoBox->SetPositionRel(16, 16);
@@ -84,7 +81,6 @@ namespace RTE {
 		m_ActivityDescriptionLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelActivityDescription"));
 		m_ActivityDescriptionLabel->SetFont(m_GUIControlManager->GetSkin()->GetFont("FontSmall.png"));
 	}
-
 
 	void ScenarioGUI::CreateSceneInfoBox() {
 		m_SceneInfoBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSceneInfo"));
@@ -105,7 +101,6 @@ namespace RTE {
 		m_ScenePreviewBitmap->Create(c_ScenePreviewWidth, c_ScenePreviewHeight, 32);
 	}
 
-
 	void ScenarioGUI::SetEnabled(const Vector& center, float radius) {
 		bool centerChanged = (center != m_PlanetCenter);
 		m_PlanetCenter = center;
@@ -125,7 +120,6 @@ namespace RTE {
 		m_ScenePreviewAnimTimer.Reset();
 	}
 
-
 	void ScenarioGUI::SetDraggedBox(int mouseX, int mouseY) {
 		GUICollectionBox* hoveredBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControlUnderPoint(mouseX, mouseY, m_RootBox, 1));
 		const GUIControl* hoveredControl = m_GUIControlManager->GetControlUnderPoint(mouseX, mouseY, hoveredBox, 1);
@@ -134,7 +128,6 @@ namespace RTE {
 			m_DraggedBox = hoveredBox;
 		}
 	}
-
 
 	void ScenarioGUI::SetSelectedActivity(const Activity* newSelectedActivity) {
 		m_SelectedActivity = newSelectedActivity;
@@ -160,7 +153,6 @@ namespace RTE {
 		}
 		m_ActivityInfoBox->Resize(m_ActivityInfoBox->GetWidth(), m_ActivityDescriptionLabel->ResizeHeightToFit() + 60);
 	}
-
 
 	void ScenarioGUI::SetSelectedScene(Scene* newSelectedScene) {
 		m_SelectedScene = newSelectedScene;
@@ -194,7 +186,6 @@ namespace RTE {
 		}
 	}
 
-
 	void ScenarioGUI::DragBox(int mouseX, int mouseY) {
 		if (m_DraggedBox) {
 			m_DraggedBox->MoveRelative(mouseX - m_PrevMousePos.GetFloorIntX(), mouseY - m_PrevMousePos.GetFloorIntY());
@@ -209,7 +200,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void ScenarioGUI::FetchActivitiesAndScenesLists() {
 		int prevSelectedActivityIndex = m_ActivitySelectComboBox->GetSelectedIndex();
@@ -260,7 +250,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void ScenarioGUI::AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& sceneList) const {
 		for (Scene* sceneListEntry: sceneList) {
@@ -315,7 +304,6 @@ namespace RTE {
 			}
 		}
 	}
-
 
 	void ScenarioGUI::CalculateLinesToSitePoint() {
 		m_LineToSitePoints.clear();
@@ -388,7 +376,6 @@ namespace RTE {
 		}
 	}
 
-
 	ScenarioGUI::ScenarioMenuUpdateResult ScenarioGUI::Update() {
 		m_UpdateResult = ScenarioMenuUpdateResult::NoEvent;
 
@@ -442,7 +429,6 @@ namespace RTE {
 		return m_UpdateResult;
 	}
 
-
 	void ScenarioGUI::UpdateHoveredSitePointLabel(int mouseX, int mouseY) {
 		bool foundAnyHover = false;
 		if (m_ActivityScenes && !m_DraggedBox && !m_ActivityInfoBox->PointInside(mouseX, mouseY) && !m_SceneInfoBox->PointInside(mouseX, mouseY)) {
@@ -474,7 +460,6 @@ namespace RTE {
 			m_SitePointNameLabel->SetVisible(false);
 		}
 	}
-
 
 	void ScenarioGUI::HandleInputEvents(int mouseX, int mouseY) {
 		GUIEvent guiEvent;
@@ -520,7 +505,6 @@ namespace RTE {
 		m_PrevMousePos.SetXY(static_cast<float>(mouseX), static_cast<float>(mouseY));
 	}
 
-
 	void ScenarioGUI::Draw() const {
 		// Early return to avoid single frame flicker before title screen goes into fadeout.
 		if (m_UpdateResult == ScenarioMenuUpdateResult::ActivityStarted) {
@@ -544,7 +528,6 @@ namespace RTE {
 		}
 		m_GUIControlManager->DrawMouse();
 	}
-
 
 	void ScenarioGUI::DrawSitePoints(BITMAP* drawBitmap) const {
 		int blendAmount = 0;
@@ -571,7 +554,6 @@ namespace RTE {
 			circlefill(drawBitmap, sitePosX, sitePosY, 1, drawColor);
 		}
 	}
-
 
 	void ScenarioGUI::DrawLinesToSitePoint(BITMAP* drawBitmap) const {
 		int blendAmount = 0;

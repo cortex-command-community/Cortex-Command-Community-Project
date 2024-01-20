@@ -6,7 +6,7 @@
 /// dtabar@datarealms.com
 /// http://www.datarealms.com
 /// Inclusions of header files
-//#include "FrameMan.h"
+// #include "FrameMan.h"
 #include "Scene.h"
 #include "Timer.h"
 #include "Vector.h"

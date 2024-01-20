@@ -361,7 +361,6 @@ namespace RTE {
 		return 0;
 	}
 
-
 	int MOSRotating::GetGibWoundLimit(bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) const {
 		int gibWoundLimit = m_GibWoundLimit;
 		if (includePositiveDamageAttachables || includeNegativeDamageAttachables || includeNoDamageAttachables) {
@@ -377,7 +376,6 @@ namespace RTE {
 		}
 		return gibWoundLimit;
 	}
-
 
 	int MOSRotating::GetWoundCount(bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) const {
 		int woundCount = m_Wounds.size();
@@ -395,7 +393,6 @@ namespace RTE {
 		return woundCount;
 	}
 
-
 	Attachable* MOSRotating::GetNearestDetachableAttachableToOffset(const Vector& offset) const {
 		Attachable* nearestAttachable = nullptr;
 		float closestRadius = m_SpriteRadius;
@@ -410,7 +407,6 @@ namespace RTE {
 		}
 		return nearestAttachable;
 	}
-
 
 	void MOSRotating::DetachAttachablesFromImpulse(Vector& impulseVector) {
 		float impulseRemainder = impulseVector.GetMagnitude();
@@ -433,7 +429,6 @@ namespace RTE {
 		}
 		impulseVector.SetMagnitude(impulseRemainder);
 	}
-
 
 	void MOSRotating::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit) {
 		if (woundToAdd && !m_ToDelete) {
@@ -460,7 +455,6 @@ namespace RTE {
 			m_Wounds.push_back(woundToAdd);
 		}
 	}
-
 
 	float MOSRotating::RemoveWounds(int numberOfWoundsToRemove, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) {
 		float damage = 0;
@@ -536,7 +530,6 @@ namespace RTE {
 		MovableObject::DestroyScriptState();
 	}
 
-
 	void MOSRotating::Destroy(bool notInherited) {
 		delete m_pAtomGroup;
 		delete m_pDeepGroup;
@@ -564,14 +557,12 @@ namespace RTE {
 		Clear();
 	}
 
-
 	void MOSRotating::SetAsNoID() {
 		MovableObject::SetAsNoID();
 		for (Attachable* attachable: m_Attachables) {
 			attachable->SetAsNoID();
 		}
 	}
-
 
 	Material const* MOSRotating::GetMaterial() const {
 		//    if (m_pAtomGroup)
@@ -875,7 +866,6 @@ namespace RTE {
 		return false;
 	}
 
-
 	void MOSRotating::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		if (m_MissionCritical || m_ToDelete) {
 			return;
@@ -907,7 +897,6 @@ namespace RTE {
 
 		m_ToDelete = true;
 	}
-
 
 	void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		if (m_GibScreenShakeAmount != -1.0F) {
@@ -1032,7 +1021,6 @@ namespace RTE {
 		}
 	}
 
-
 	void MOSRotating::RemoveAttachablesWhenGibbing(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 		const std::vector<Attachable*> nonVolatileAttachablesVectorForLuaSafety{m_Attachables.begin(), m_Attachables.end()};
 		for (Attachable* attachable: nonVolatileAttachablesVectorForLuaSafety) {
@@ -1059,11 +1047,9 @@ namespace RTE {
 		m_Attachables.clear();
 	}
 
-
 	bool MOSRotating::MoveOutOfTerrain(unsigned char strongerThan) {
 		return m_pAtomGroup->ResolveTerrainIntersection(m_Pos, strongerThan);
 	}
-
 
 	void MOSRotating::ApplyForces() {
 		float deltaTime = g_TimerMan.GetDeltaTimeSecs();
@@ -1076,7 +1062,6 @@ namespace RTE {
 
 		MOSprite::ApplyForces();
 	}
-
 
 	void MOSRotating::ApplyImpulses() {
 		for (const auto& [impulseForceVector, impulseForceOffset]: m_ImpulseForces) {
@@ -1110,7 +1095,6 @@ namespace RTE {
 		MOSprite::ApplyImpulses();
 	}
 
-
 	void MOSRotating::ResetAllTimers() {
 		MovableObject::ResetAllTimers();
 
@@ -1120,7 +1104,6 @@ namespace RTE {
 		for (auto attachable = m_Attachables.begin(); attachable != m_Attachables.end(); ++attachable)
 			(*attachable)->ResetAllTimers();
 	}
-
 
 	void MOSRotating::RestDetection() {
 		MOSprite::RestDetection();
@@ -1160,7 +1143,6 @@ namespace RTE {
 		m_PrevAngVel = m_AngularVel;
 	}
 
-
 	bool MOSRotating::IsAtRest() {
 		if (m_RestThreshold < 0 || m_PinStrength != 0) {
 			return false;
@@ -1169,7 +1151,6 @@ namespace RTE {
 		}
 		return m_RestTimer.IsPastSimMS(m_RestThreshold);
 	}
-
 
 	bool MOSRotating::IsOnScenePoint(Vector& scenePoint) const {
 		if (!m_aSprite[m_Frame]) {
@@ -1194,7 +1175,6 @@ namespace RTE {
 
 		return false;
 	}
-
 
 	void MOSRotating::EraseFromTerrain() {
 		Vector pivot = -m_SpriteOffset;
@@ -1421,7 +1401,6 @@ namespace RTE {
 		}
 	}
 
-
 	void MOSRotating::PostUpdate() {
 		for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
 			(*itr)->PostUpdate();
@@ -1433,7 +1412,6 @@ namespace RTE {
 
 		MovableObject::PostUpdate();
 	}
-
 
 	bool MOSRotating::DrawMOIDIfOverlapping(MovableObject* pOverlapMO) {
 		if (pOverlapMO == this || !m_GetsHitByMOs || !pOverlapMO->GetsHitByMOs()) {
@@ -1452,7 +1430,6 @@ namespace RTE {
 		return false;
 	}
 
-
 	// TODO This should just be defined in MOSR instead of having an empty definition in MO. MOSR would need to override UpdateMOID accordingly, but this would clean things up a little.
 	void MOSRotating::UpdateChildMOIDs(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID, bool makeNewMOID) {
 		MOSprite::UpdateChildMOIDs(MOIDIndex, m_RootMOID, makeNewMOID);
@@ -1465,7 +1442,6 @@ namespace RTE {
 		}
 	}
 
-
 	bool MOSRotating::AttachableIsHardcoded(const Attachable* attachableToCheck) const {
 		if (attachableToCheck->GetParent() != this) {
 			return false;
@@ -1475,13 +1451,11 @@ namespace RTE {
 		return m_HardcodedAttachableUniqueIDsAndRemovers.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndRemovers.end() || m_HardcodedAttachableUniqueIDsAndSetters.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndSetters.end();
 	}
 
-
 	void MOSRotating::AddAttachable(Attachable* attachable) {
 		if (attachable) {
 			AddAttachable(attachable, attachable->GetParentOffset());
 		}
 	}
-
 
 	void MOSRotating::AddAttachable(Attachable* attachable, const Vector& parentOffsetToSet) {
 		if (attachable) {
@@ -1497,14 +1471,12 @@ namespace RTE {
 		}
 	}
 
-
 	Attachable* MOSRotating::RemoveAttachable(long attachableUniqueID, bool addToMovableMan, bool addBreakWounds) {
 		if (MovableObject* attachableAsMovableObject = g_MovableMan.FindObjectByUniqueID(attachableUniqueID)) {
 			return RemoveAttachable(dynamic_cast<Attachable*>(attachableAsMovableObject), addToMovableMan, addBreakWounds);
 		}
 		return nullptr;
 	}
-
 
 	Attachable* MOSRotating::RemoveAttachable(Attachable* attachable, bool addToMovableMan, bool addBreakWounds) {
 		if (!attachable || !attachable->IsAttached()) {
@@ -1576,12 +1548,10 @@ namespace RTE {
 		return attachable;
 	}
 
-
 	void MOSRotating::RemoveAndDeleteAttachable(Attachable* attachable) {
 		attachable->SetToDelete();
 		RemoveAttachable(attachable);
 	}
-
 
 	void MOSRotating::RemoveOrDestroyAllAttachables(bool destroy) {
 		Attachable* attachable;
@@ -1599,7 +1569,6 @@ namespace RTE {
 		m_Attachables.clear();
 	}
 
-
 	void MOSRotating::GetMOIDs(std::vector<MOID>& MOIDs) const {
 		MOIDs.reserve(GetMOIDFootprint());
 		MOSprite::GetMOIDs(MOIDs);
@@ -1610,14 +1579,12 @@ namespace RTE {
 		}
 	}
 
-
 	void MOSRotating::SetWhichMOToNotHit(MovableObject* moToNotHit, float forHowLong) {
 		MOSprite::SetWhichMOToNotHit(moToNotHit, forHowLong);
 		for (Attachable* attachable: m_Attachables) {
 			attachable->SetWhichMOToNotHit(moToNotHit, forHowLong);
 		}
 	}
-
 
 	void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 		RTEAssert(!m_aSprite.empty(), "No sprite bitmaps loaded to draw!");
@@ -1862,7 +1829,6 @@ namespace RTE {
 		return false;
 	}
 
-
 	void MOSRotating::CorrectAttachableAndWoundPositionsAndRotations() const {
 		for (Attachable* attachable: m_Attachables) {
 			attachable->PreUpdate();
@@ -1878,7 +1844,6 @@ namespace RTE {
 		}
 	}
 
-
 	void MOSRotating::OnSave() {
 		for (AEmitter* wound: m_Wounds) {
 			wound->OnSave();
@@ -1888,7 +1853,6 @@ namespace RTE {
 		}
 		MovableObject::OnSave();
 	}
-
 
 	bool MOSRotating::TransferForcesFromAttachable(Attachable* attachable) {
 		bool intact = false;

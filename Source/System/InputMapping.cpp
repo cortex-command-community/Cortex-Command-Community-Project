@@ -4,7 +4,6 @@ namespace RTE {
 
 	const std::string InputMapping::c_ClassName = "InputMapping";
 
-
 	void InputMapping::Clear() {
 		m_PresetDescription.clear();
 		m_KeyMap = 0;
@@ -14,7 +13,6 @@ namespace RTE {
 		m_AxisMap = 0;
 		m_DirectionMap = 0;
 	}
-
 
 	int InputMapping::Create(const InputMapping& reference) {
 		m_KeyMap = reference.m_KeyMap;
@@ -26,7 +24,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int InputMapping::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Serializable::ReadProperty(propName, reader));
@@ -45,7 +42,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
 
 	int InputMapping::Save(Writer& writer) const {
 		Serializable::Save(writer);

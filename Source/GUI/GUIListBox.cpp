@@ -3,13 +3,11 @@
 
 using namespace RTE;
 
-
 GUIListBox::GUIListBox(GUIManager* Manager, GUIControlManager* ControlManager) :
     GUIControl(), GUIListPanel(Manager) {
 	m_ControlID = "LISTBOX";
 	m_ControlManager = ControlManager;
 }
-
 
 void GUIListBox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
@@ -39,7 +37,6 @@ void GUIListBox::Create(const std::string& Name, int X, int Y, int Width, int He
 	GUIListPanel::Create(X, Y, w, h);
 }
 
-
 void GUIListBox::Create(GUIProperties* Props) {
 	GUIControl::Create(Props);
 
@@ -66,21 +63,17 @@ void GUIListBox::Create(GUIProperties* Props) {
 	SetMultiSelect(Multi);
 }
 
-
 void GUIListBox::Destroy() {
 	GUIListPanel::Destroy();
 }
-
 
 void GUIListBox::ChangeSkin(GUISkin* Skin) {
 	GUIListPanel::ChangeSkin(Skin);
 }
 
-
 void GUIListBox::Move(int X, int Y) {
 	SetPositionAbs(X, Y);
 }
-
 
 void GUIListBox::Resize(int Width, int Height) {
 	// Make sure the listbox isn't too small
@@ -90,21 +83,17 @@ void GUIListBox::Resize(int Width, int Height) {
 	SetSize(Width, Height);
 }
 
-
 GUIPanel* GUIListBox::GetPanel() {
 	return this;
 }
-
 
 void GUIListBox::GetControlRect(int* X, int* Y, int* Width, int* Height) {
 	GUIListPanel::GetRect(X, Y, Width, Height);
 }
 
-
 void GUIListBox::StoreProperties() {
 	m_Properties.AddVariable("MultiSelect", GetMultiSelect());
 }
-
 
 void GUIListBox::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 	if (Source->GetPanelID() == GetPanelID()) {
@@ -131,7 +120,6 @@ void GUIListBox::ReceiveSignal(GUIPanel* Source, int Code, int Data) {
 
 	GUIListPanel::ReceiveSignal(Source, Code, Data);
 }
-
 
 void GUIListBox::ApplyProperties(GUIProperties* Props) {
 	GUIControl::ApplyProperties(Props);

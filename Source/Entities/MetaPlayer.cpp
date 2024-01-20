@@ -7,7 +7,6 @@ namespace RTE {
 
 	ConcreteClassInfo(MetaPlayer, Entity, 0);
 
-
 	void MetaPlayer::Clear() {
 		m_Name = "";
 		m_Team = Activity::NoTeam;
@@ -28,7 +27,6 @@ namespace RTE {
 		m_OffensiveBudget = 0;
 		m_OffensiveTarget = "";
 	}
-
 
 	int MetaPlayer::Create(const MetaPlayer& reference) {
 		Entity::Create(reference);
@@ -51,7 +49,6 @@ namespace RTE {
 
 		return 0;
 	}
-
 
 	int MetaPlayer::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -81,7 +78,6 @@ namespace RTE {
 
 		EndPropertyList;
 	}
-
 
 	int MetaPlayer::Save(Writer& writer) const {
 		Entity::Save(writer);
