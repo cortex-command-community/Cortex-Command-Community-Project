@@ -842,7 +842,7 @@ namespace RTE {
 				set_clip_rect(targetBitmap, targetBox.GetCorner().m_X, targetBox.GetCorner().m_Y, targetBox.GetCorner().m_X + targetBox.GetWidth() - 1, targetBox.GetCorner().m_Y + targetBox.GetHeight() - 1);
 
 				// Choose the correct blitting function based on transparency setting
-				void (*pfBlit)(BITMAP* source, BITMAP* dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height) = m_BackgroundLayers[frame][i].DrawTrans ? &masked_blit : &blit;
+				void (*pfBlit)(BITMAP * source, BITMAP * dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height) = m_BackgroundLayers[frame][i].DrawTrans ? &masked_blit : &blit;
 
 				// See if this SceneLayer is wider AND higher than the target bitmap; then use simple wrapping logic - otherwise need to tile
 				if (m_BackgroundBitmaps[i]->w >= targetBitmap->w && m_BackgroundBitmaps[i]->h >= targetBitmap->h) {
