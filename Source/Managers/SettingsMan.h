@@ -128,6 +128,18 @@ namespace RTE {
 		/// </summary>
 		/// <param name="newAIUpdateInterval">How often Actor's AI will now be updated, in simulation updates.</param>
 		void SetAIUpdateInterval(int newAIUpdateInterval) { m_AIUpdateInterval = newAIUpdateInterval; }
+
+		/// <summary>
+		/// Gets how many threaded Lua states we'll use. -1 represents no override, which defaults to the maximum number of concurrent hardware threads.
+		/// </summary>
+		/// <returns>How many threaded Lua states we'll use.</returns>
+		int GetNumberOfLuaStatesOverride() const { return m_NumberOfLuaStatesOverride; }
+
+		/// <summary>
+		/// Gets whether pathing requests will be forced to immediately complete for the next frame, or if they can take multiple frames to calculate.
+		/// </summary>
+		/// <returns>Whether pathing requests will be forced to immediately complete for the next frame</returns>
+		bool GetForceImmediatePathingRequestCompletion() const { return m_ForceImmediatePathingRequestCompletion; }
 #pragma endregion
 
 #pragma region Gameplay Settings
@@ -542,6 +554,8 @@ namespace RTE {
 		bool m_DisableFactionBuyMenuThemeCursors; //!< Whether custom cursor support in faction BuyMenu themes is disabled.
 		int m_PathFinderGridNodeSize; //!< The grid size used by the PathFinder, in pixels.
 		int m_AIUpdateInterval; //!< How often actor's AI should be updated, i.e. every n simulation updates.
+		int m_NumberOfLuaStatesOverride; //!< Overrides how many threaded Lua states we'll use. -1 for no override, which defaults to the maximum number of concurrent hardware threads.
+		bool m_ForceImmediatePathingRequestCompletion; //!< Whether pathing requests will be forced to immediately complete for the next frame, or if they can take multiple frames to calculate.
 
 		bool m_SkipIntro; //!< Whether to play the intro of the game or skip directly to the main menu.
 		bool m_ShowToolTips; //!< Whether ToolTips are enabled or not.

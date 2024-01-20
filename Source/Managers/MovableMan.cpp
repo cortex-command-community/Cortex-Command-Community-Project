@@ -1654,6 +1654,11 @@ void MovableMan::Update()
     // Travel MOs
     Travel();
 
+    // If our debug settings switch is forcing all pathing requests to immediately complete, make sure they're done here
+    if (g_SettingsMan.GetForceImmediatePathingRequestCompletion() && g_SceneMan.GetScene()) {
+        g_SceneMan.GetScene()->BlockUntilAllPathingRequestsComplete();
+    }
+
     // Prior to controller/AI update, execute lua callbacks
     g_LuaMan.ExecuteLuaScriptCallbacks();
 

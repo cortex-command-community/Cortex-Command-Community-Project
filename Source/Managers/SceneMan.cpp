@@ -2755,12 +2755,19 @@ void SceneMan::Draw(BITMAP *targetBitmap, BITMAP *targetGUIBitmap, const Vector 
                 }
 			}
 
+            bool shouldDrawHUD = !g_FrameMan.IsHudDisabled(m_LastUpdatedScreen);
+
             // TODO_MULTITHREAD
 #ifndef MULTITHREAD_SIM_AND_RENDER
-            g_MovableMan.DrawHUD(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+            if (shouldDrawHUD) {
+                g_MovableMan.DrawHUD(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+            }
             g_PrimitiveMan.DrawPrimitives(m_LastUpdatedScreen, targetGUIBitmap, targetPos);
 #endif
-			g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+
+            if (shouldDrawHUD) {
+			    g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+            }
 
 #ifdef DRAW_NOGRAV_BOXES
             if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {

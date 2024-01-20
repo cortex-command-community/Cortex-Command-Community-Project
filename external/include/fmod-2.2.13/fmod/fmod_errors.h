@@ -49,7 +49,7 @@ static const char *FMOD_ErrorString(FMOD_RESULT errcode)
         case FMOD_ERR_HTTP_TIMEOUT:              return "The HTTP request timed out.";
         case FMOD_ERR_INITIALIZATION:            return "FMOD was not initialized correctly to support this function.";
         case FMOD_ERR_INITIALIZED:               return "Cannot call this command after System::init.";
-        case FMOD_ERR_INTERNAL:                  return "An error occurred that wasn't supposed to.  Contact support.";
+        case FMOD_ERR_INTERNAL:                  return "An error occured in the FMOD system. Use the logging version of FMOD for more information.";
         case FMOD_ERR_INVALID_FLOAT:             return "Value passed in was a NaN, Inf or denormalized float.";
         case FMOD_ERR_INVALID_HANDLE:            return "An invalid object handle was used.";
         case FMOD_ERR_INVALID_PARAM:             return "An invalid parameter was passed to this function.";
@@ -87,7 +87,7 @@ static const char *FMOD_ErrorString(FMOD_RESULT errcode)
         case FMOD_ERR_TAGNOTFOUND:               return "The specified tag could not be found or there are no tags.";
         case FMOD_ERR_TOOMANYCHANNELS:           return "The sound created exceeds the allowable input channel count.  This can be increased using the 'maxinputchannels' parameter in System::setSoftwareFormat.";
         case FMOD_ERR_TRUNCATED:                 return "The retrieved string is too long to fit in the supplied buffer and has been truncated.";
-        case FMOD_ERR_UNIMPLEMENTED:             return "Something in FMOD hasn't been implemented when it should be! contact support!";
+        case FMOD_ERR_UNIMPLEMENTED:             return "Something in FMOD hasn't been implemented when it should be. Contact support.";
         case FMOD_ERR_UNINITIALIZED:             return "This command failed because System::init or System::setDriver was not called.";
         case FMOD_ERR_UNSUPPORTED:               return "A command issued was not supported by this object.  Possibly a plugin without certain callbacks specified.";
         case FMOD_ERR_VERSION:                   return "The version number of this file format is not supported.";

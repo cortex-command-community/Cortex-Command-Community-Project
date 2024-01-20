@@ -1277,14 +1277,16 @@ void Actor::OnNewMovePath() {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void Actor::PreControllerUpdate() {
-    if (m_UpdateMovePath) {
-        UpdateMovePath();
-    }
-
     if (m_PathRequest && m_PathRequest->complete) {
         m_MovePath = const_cast<std::list<Vector> &>(m_PathRequest->path);
         m_PathRequest.reset();
         OnNewMovePath();
+    }
+
+    // We update this after, because pathing requests are forced to take at least 1 frame for the sake of determinism for now.
+    // In future maybe we can move this back, but it doesn't make much difference (the threadpool submission overhead makes it extremely unlikely that it would complete in less time anyways)
+    if (m_UpdateMovePath) {
+        UpdateMovePath();
     }
 }
 

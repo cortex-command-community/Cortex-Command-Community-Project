@@ -51,6 +51,9 @@ namespace RTE {
 		m_DisableFactionBuyMenuThemeCursors = false;
 		m_PathFinderGridNodeSize = c_PPM;
 		m_AIUpdateInterval = 2;
+		
+		m_NumberOfLuaStatesOverride = -1;
+		m_ForceImmediatePathingRequestCompletion = false;
 
 		m_SkipIntro = false;
 		m_ShowToolTips = true;
@@ -168,6 +171,8 @@ namespace RTE {
 		MatchProperty("DisableFactionBuyMenuThemeCursors", { reader >> m_DisableFactionBuyMenuThemeCursors; });
 		MatchProperty("PathFinderGridNodeSize", { reader >> m_PathFinderGridNodeSize; });
 		MatchProperty("AIUpdateInterval", { reader >> m_AIUpdateInterval; });
+		MatchProperty("NumberOfLuaStatesOverride", { reader >> m_NumberOfLuaStatesOverride; });
+		MatchProperty("ForceImmediatePathingRequestCompletion", { reader >> m_ForceImmediatePathingRequestCompletion; });
 		MatchProperty("EnableParticleSettling", { reader >> g_MovableMan.m_SettlingEnabled; });
 		MatchProperty("EnableMOSubtraction", { reader >> g_MovableMan.m_MOSubtractionEnabled; });
 		MatchProperty("DeltaTime", { g_TimerMan.SetDeltaTimeSecs(std::stof(reader.ReadPropValue())); });
@@ -312,6 +317,8 @@ namespace RTE {
 		writer.NewPropertyWithValue("DisableFactionBuyMenuThemeCursors", m_DisableFactionBuyMenuThemeCursors);
 		writer.NewPropertyWithValue("PathFinderGridNodeSize", m_PathFinderGridNodeSize);
 		writer.NewPropertyWithValue("AIUpdateInterval", m_AIUpdateInterval);
+		writer.NewPropertyWithValue("NumberOfLuaStatesOverride", m_NumberOfLuaStatesOverride);
+		writer.NewPropertyWithValue("ForceImmediatePathingRequestCompletion", m_ForceImmediatePathingRequestCompletion);
 		writer.NewPropertyWithValue("EnableParticleSettling", g_MovableMan.m_SettlingEnabled);
 		writer.NewPropertyWithValue("EnableMOSubtraction", g_MovableMan.m_MOSubtractionEnabled);
 		writer.NewPropertyWithValue("DeltaTime", g_TimerMan.GetDeltaTimeSecs());

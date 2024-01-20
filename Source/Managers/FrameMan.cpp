@@ -80,6 +80,7 @@ namespace RTE {
 			m_TextDurationTimer[screenCount].Reset();
 			m_TextBlinking[screenCount] = 0;
 			m_TextCentered[screenCount] = false;
+			m_HUDDisabled[screenCount] = false;
 			m_FlashScreenColor[screenCount] = -1;
 			m_FlashedLastFrame[screenCount] = false;
 			m_FlashTimer[screenCount].Reset();

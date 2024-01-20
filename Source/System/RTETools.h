@@ -317,6 +317,15 @@ namespace RTE {
 		inline bool StringsEqualCaseInsensitive(const std::string_view &strA, const std::string_view &strB) { return std::equal(strA.begin(), strA.end(), strB.begin(), strB.end(), [](char strAChar, char strBChar) { return std::tolower(strAChar) == std::tolower(strBChar); }); }
 
 		/// <summary>
+		/// If a file "foo/Bar.txt" exists, and this method is passed "FOO/BAR.TXT", then this method will return "foo/Bar.txt".
+		/// This method's purpose is to enable Linux to get the real path using a case-insensitive search.
+		/// The real path is used by the Lua file I/O handling methods to ensure full Windows compatibility.
+		/// </summary>
+		/// <param name="fullPath">Path to case-insensitively translate to a real path.</param>
+		/// <returns>The real path. If the path doesn't exist, it returns the fullPath argument with all the existing parent directories correctly capitalized.</returns>
+		std::string GetCaseInsensitiveFullPath(const std::string &fullPath);
+
+		/// <summary>
 		/// Hashes a string in a cross-compiler/platform safe way (std::hash gives different results on different compilers).
 		/// </summary>
 		/// <param name="text">Text string to hash.</param>
