@@ -9,6 +9,7 @@ deps = []
 
 if cxx.get_argument_syntax() == 'gcc'
   cpp_args = ['-w', '-fpermissive']
+  cpp_options = ['cpp_std=gnu++11']
   if host_machine.system() == 'windows' 
     cpp_args += ['-D_ITERATOR_DEBUG_LEVEL=0','-DWIN32','-D_RAKNET_LIB','-D_CRT_NONSTDC_NO_DEPRECATE','-D_CRT_SECURE_NO_DEPRECATE']
     if get_option('debug')
