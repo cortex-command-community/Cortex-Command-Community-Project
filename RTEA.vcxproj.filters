@@ -674,7 +674,7 @@
     <ClCompile Include="Source\Managers\ConsoleMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="managers\FrameMan.cpp">
+    <ClCompile Include="Source\Managers\FrameMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
     <ClCompile Include="Source\Managers\LuaMan.cpp">
