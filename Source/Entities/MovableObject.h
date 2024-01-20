@@ -719,7 +719,7 @@ namespace RTE {
 		/// Returns force vector in newtons of the specified Force record.
 		/// @param n Force record index to get data from.
 		/// @return Force vector in newtons of the specified Force record.
-		Vector GetForceVector(int n) {
+		Vector GetForceVector(unsigned int n) {
 			if (n > 0 && n < m_Forces.size())
 				return m_Forces[n].first;
 			else
@@ -733,7 +733,7 @@ namespace RTE {
 		/// Returns offset vector in METERS (not pixels) of the specified Force record.
 		/// @param n Force record index to get data from.
 		/// @return Offset vector in meters of the specified Force record.
-		Vector GetForceOffset(int n) {
+		Vector GetForceOffset(unsigned int n) {
 			if (n > 0 && n < m_Forces.size())
 				return m_Forces[n].second;
 			else
@@ -742,14 +742,14 @@ namespace RTE {
 
 		/// Sets force vector in newtons of the specified Force record.
 		/// @param n Force record index to get data from. New Vector force value in newtons.
-		void SetForceVector(int n, Vector v) {
+		void SetForceVector(unsigned int n, Vector v) {
 			if (n > 0 && n < m_Forces.size())
 				m_Forces[n].first = v;
 		}
 
 		/// Sets offset vector in METERS (not pixels) of the specified Force record.
 		/// @param n Force record index to get data from. New Vector offset value in meters.
-		void SetForceOffset(int n, Vector v) {
+		void SetForceOffset(unsigned int n, Vector v) {
 			if (n > 0 && n < m_Forces.size())
 				m_Forces[n].second = v;
 		}

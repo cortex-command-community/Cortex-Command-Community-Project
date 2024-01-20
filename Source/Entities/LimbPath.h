@@ -375,7 +375,7 @@ namespace RTE {
 		// The iterator to the segment of the path that the limb ended up on the end of
 		std::deque<Vector>::iterator m_CurrentSegment;
 
-		int m_FootCollisionsDisabledSegment; //!< The segment after which foot collisions will be disabled for this limbpath, if it's for legs.
+		unsigned int m_FootCollisionsDisabledSegment; //!< The segment after which foot collisions will be disabled for this limbpath, if it's for legs.
 
 		// Normalized measure of how far the limb has progressed toward the
 		// current segment's target. 0.0 means its farther away than the
