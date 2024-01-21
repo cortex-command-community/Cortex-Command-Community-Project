@@ -143,7 +143,7 @@ void LuaStateWrapper::Initialize() {
 	usertype["FileWriteLine"] = &LuaStateWrapper::FileWriteLine;
 	usertype["FileEOF"] = &LuaStateWrapper::FileEOF;
 
-		// Register all relevant bindings to the state. Note that the order of registration is important, as bindings can't derive from an unregistered type (inheritance and all that).
+	// Register all relevant bindings to the state. Note that the order of registration is important, as bindings can't derive from an unregistered type (inheritance and all that).
 	RegisterLuaBindingsOfType(solState, SystemLuaBindings, Vector);
 	RegisterLuaBindingsOfType(solState, SystemLuaBindings, Box);
 	RegisterLuaBindingsOfType(solState, EntityLuaBindings, Entity);
@@ -242,7 +242,7 @@ void LuaStateWrapper::Initialize() {
 	RegisterLuaBindingsOfType(solState, MiscLuaBindings, Directions);
 	RegisterLuaBindingsOfType(solState, MiscLuaBindings, DrawBlendMode);
 
-		// Assign the manager instances to globals in the lua master state
+	// Assign the manager instances to globals in the lua master state
 	solState["LuaMan"] = this;
 	solState["TimerMan"] = &g_TimerMan;
 	solState["FrameMan"] = &g_FrameMan;

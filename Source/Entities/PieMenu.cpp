@@ -365,7 +365,7 @@ bool PieMenu::AddPieSliceIfPresetNameIsUnique(PieSlice* pieSliceToAdd, const Ent
 
 	if (pieSlicePresetName == "None") {
 		return AddPieSlice(dynamic_cast<PieSlice*>(pieSliceToAdd->Clone()), pieSliceOriginalSource, allowQuadrantOverflow);
-}
+	}
 
 	bool pieSliceAlreadyExists = onlyCheckPieSlicesWithSameOriginalSource ? false : GetFirstPieSliceByPresetName(pieSlicePresetName) != nullptr;
 	if (!pieSliceAlreadyExists) {
@@ -623,7 +623,7 @@ void PieMenu::Update() {
 		if (!IsSubPieMenu()) {
 			SetEnabled(controller->IsState(ControlState::PIE_MENU_ACTIVE));
 		}
-}
+	}
 
 	if (m_BGBitmapNeedsRedrawing && m_EnabledState != EnabledState::Disabled) {
 		UpdatePredrawnMenuBackgroundBitmap();
@@ -641,14 +641,14 @@ void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 		} else {
 			draw_sprite(targetBitmap, m_BGBitmap, drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2);
 		}
-}
+	}
 
 	if (m_EnabledState == EnabledState::Enabled) {
 		DrawPieIcons(targetBitmap, drawPos);
 		if (m_CursorInVisiblePosition) {
 			DrawPieCursorAndPieSliceDescriptions(targetBitmap, drawPos);
 		}
-}
+	}
 
 	if (m_ActiveSubPieMenu) {
 		m_ActiveSubPieMenu->Draw(targetBitmap, targetPos);
@@ -722,7 +722,7 @@ bool PieMenu::HandleDigitalInput() {
 	const Controller* controller = GetController();
 	if (!controller) {
 		return false;
-}
+	}
 
 	// Don't allow our analog move to interfere with us - joystick-to-digital input is really awkward and doesn't feel nice
 	if (controller->GetAnalogMove().MagnitudeIsGreaterThan(0.1F)) {
@@ -1193,7 +1193,7 @@ void PieMenu::DrawBackgroundPieSliceSeparator(BITMAP* backgroundBitmapToDrawTo, 
 bool PieMenu::SetHoveredPieSlice(const PieSlice* pieSliceToSelect, bool moveCursorIconToSlice) {
 	if (pieSliceToSelect == m_HoveredPieSlice) {
 		return false;
-}
+	}
 
 	m_HoveredPieSlice = pieSliceToSelect;
 	m_SubPieMenuHoverOpenTimer.Reset();
@@ -1224,7 +1224,7 @@ bool PieMenu::PreparePieSliceSubPieMenuForUse(const PieSlice* pieSliceWithSubPie
 			subPieMenu->m_DirectionIfSubPieMenu = pieQuadrant.m_Direction;
 			break;
 		}
-}
+	}
 
 	float subPieMenuRotAngle = NormalizeAngleBetween0And2PI(pieSliceWithSubPieMenu->GetMidAngle() - c_DirectionsToRadiansMap.at(subPieMenu->m_DirectionIfSubPieMenu) + GetRotAngle());
 	if (subPieMenuRotAngle < 0.0001F) {

@@ -17,7 +17,7 @@ LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, Activity) {
 	auto luaType = AbstractTypeLuaClassDefinition(Activity, Entity);
 
 	luaType.set(sol::call_constructor, sol::constructors<
-											Activity()>());
+	                                       Activity()>());
 
 	luaType["Description"] = sol::property(&Activity::GetDescription);
 	luaType["InCampaignStage"] = sol::property(&Activity::GetInCampaignStage, &Activity::SetInCampaignStage);
@@ -142,7 +142,7 @@ LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, GameActivity) {
 	MarkLuaDynamicObject(luaType);
 
 	luaType.set(sol::call_constructor, sol::constructors<
-											GameActivity()>());
+	                                       GameActivity()>());
 
 	luaType["WinnerTeam"] = sol::property(&GameActivity::GetWinnerTeam, &GameActivity::SetWinnerTeam);
 	luaType["CPUTeam"] = sol::property(&GameActivity::GetCPUTeam, &GameActivity::SetCPUTeam);

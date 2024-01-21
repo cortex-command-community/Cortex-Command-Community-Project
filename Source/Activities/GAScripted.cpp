@@ -167,7 +167,7 @@ void GAScripted::RefreshActivityFunctions() {
 		return;
 	}
 
-		// We use m_LuaClassName here, because we ran the script file in the global state instead of in an environment
+	// We use m_LuaClassName here, because we ran the script file in the global state instead of in an environment
 	std::unordered_map<std::string, SolObjectWrapper*> scriptFileFunctions;
 	g_LuaMan.GetMasterScriptState().RetrieveFunctions(m_LuaClassName, GetSupportedScriptFunctionNames(), scriptFileFunctions);
 

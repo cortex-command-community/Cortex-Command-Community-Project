@@ -20,8 +20,8 @@ LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, AlarmEvent) {
 	auto luaType = SimpleTypeLuaClassDefinition(AlarmEvent);
 
 	luaType.set(sol::call_constructor, sol::constructors<
-											AlarmEvent(),
-											AlarmEvent(const Vector&, int, float)>());
+	                                       AlarmEvent(),
+	                                       AlarmEvent(const Vector&, int, float)>());
 
 	luaType["ScenePos"] = &AlarmEvent::m_ScenePos;
 	luaType["Team"] = &AlarmEvent::m_Team;
@@ -40,7 +40,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MetaPlayer) {
 	auto luaType = SimpleTypeLuaClassDefinition(MetaPlayer);
 
 	luaType.set(sol::call_constructor, sol::constructors<
-											MetaPlayer()>());
+	                                       MetaPlayer()>());
 
 	luaType["NativeTechModule"] = sol::property(&MetaPlayer::GetNativeTechModule);
 	luaType["ForeignCostMultiplier"] = sol::property(&MetaPlayer::GetForeignCostMultiplier);
@@ -153,7 +153,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 	auto luaType = ConcreteTypeLuaClassDefinition(SoundContainer, Entity);
 
 	luaType.set(sol::call_constructor, sol::constructors<
-											SoundContainer()>());
+	                                       SoundContainer()>());
 
 	luaType["SoundOverlapMode"] = sol::property(&SoundContainer::GetSoundOverlapMode, &SoundContainer::SetSoundOverlapMode);
 	luaType["BusRouting"] = sol::property(&SoundContainer::GetBusRouting, &SoundContainer::SetBusRouting);
@@ -202,7 +202,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundSet) {
 	auto luaType = SimpleTypeLuaClassDefinition(SoundSet);
 
 	luaType.set(sol::call_constructor, sol::constructors<
-											SoundSet()>());
+	                                       SoundSet()>());
 
 	luaType["SoundSelectionCycleMode"] = sol::property(&SoundSet::GetSoundSelectionCycleMode, &SoundSet::SetSoundSelectionCycleMode);
 
