@@ -86,6 +86,36 @@
 #include <regex>
 #include <future>
 
+// Include our chunkiest files.
+// "chunkiest" is a term from MyNameIsTrez's repository
+// that is calculated to be the number of times a header is included,
+// times the number of headers it itself (indirectly) includes.
+// On MyNameIsTrez's computer, it brought total recompilation time down from 2m53s to 2m37s.
+// https://github.com/MyNameIsTrez/includes_tabulator
+#include "GUI.h"
+#include "MOSprite.h"
+#include "MovableObject.h"
+#include "SceneMan.h"
+#include "MOSRotating.h"
+#include "Actor.h"
+#include "Activity.h"
+#include "SoundContainer.h"
+#include "ActivityMan.h"
+#include "AudioMan.h"
+#include "GUISound.h"
+#include "SpatialPartitionGrid.h"
+#include "MovableMan.h"
+#include "Vector.h"
+#include "Attachable.h"
+#include "Atom.h"
+#include "GameActivity.h"
+#include "Controller.h"
+#include "AHuman.h"
+#include "Scene.h"
+#include "Entity.h"
+#include "LimbPath.h"
+#include "Leg.h"
+
 namespace std {
 
 	/// Custom std::hash specialization to allow using std::array as key in hash table based containers.
