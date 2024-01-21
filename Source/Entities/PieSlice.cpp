@@ -146,7 +146,7 @@ int PieSlice::Save(Writer& writer) const {
 	return 0;
 }
 
-BITMAP* RTE::PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {
+BITMAP* PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {
 	if (int iconFrameCount = m_Icon->GetFrameCount(); iconFrameCount > 0) {
 		if (!IsEnabled() && iconFrameCount > 2) {
 			return m_Icon->GetBitmaps8()[2];

@@ -156,7 +156,7 @@ void AudioMan::Update() {
 					if (IsInMultiplayerMode()) {
 						humanPlayerPosition += (Vector(static_cast<float>(g_FrameMan.GetPlayerFrameBufferWidth(screen)), static_cast<float>(g_FrameMan.GetPlayerFrameBufferHeight(screen))) / 2);
 					}
-					m_CurrentActivityHumanPlayerPositions.push_back(std::make_unique<const RTE::Vector>(humanPlayerPosition));
+					m_CurrentActivityHumanPlayerPositions.push_back(std::make_unique<const Vector>(humanPlayerPosition));
 				}
 			}
 

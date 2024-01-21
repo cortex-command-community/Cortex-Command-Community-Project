@@ -192,7 +192,7 @@ void NetworkClient::SendServerGUIDRequest(RakNet::SystemAddress address, std::st
 	msg.Id = ID_NAT_SERVER_GET_SERVER_GUID;
 	strncpy(msg.ServerName, serverName.c_str(), 62);
 	strncpy(msg.ServerPassword, serverPassword.c_str(), 62);
-	m_Client->Send((const char*)&msg, sizeof(RTE::MsgGetServerRequest), IMMEDIATE_PRIORITY, RELIABLE, 0, address, false);
+	m_Client->Send((const char*)&msg, sizeof(MsgGetServerRequest), IMMEDIATE_PRIORITY, RELIABLE, 0, address, false);
 }
 
 void NetworkClient::ReceiveServerGUIDAnswer(RakNet::Packet* packet) {
