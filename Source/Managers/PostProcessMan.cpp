@@ -16,6 +16,14 @@
 
 namespace RTE {
 
+	PostProcessMan::PostProcessMan() {
+		Clear();
+	}
+
+	PostProcessMan::~PostProcessMan() {
+		Destroy();
+	}
+
 	void PostProcessMan::Clear() {
 		m_PostScreenEffects.clear();
 		m_PostSceneEffects.clear();
@@ -457,11 +465,11 @@ namespace RTE {
 					// RED
 					/*
 					if (testpixel == 13) {
-					  draw_trans_sprite(m_BackBuffer32, m_RedGlow, x - 2, y - 2);
+					    draw_trans_sprite(m_BackBuffer32, m_RedGlow, x - 2, y - 2);
 					}
 					// BLUE
 					if (testpixel == 166) {
-					  draw_trans_sprite(g_FrameMan.GetBackBuffer32(), m_BlueGlow, x - 2, y - 2);
+					    draw_trans_sprite(g_FrameMan.GetBackBuffer32(), m_BlueGlow, x - 2, y - 2);
 					}
 					*/
 				}

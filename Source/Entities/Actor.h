@@ -1,5 +1,4 @@
-#ifndef _RTEACTOR_
-#define _RTEACTOR_
+#pragma once
 
 /// Header file for the Actor class.
 /// @author Daniel Tabar
@@ -7,8 +6,6 @@
 /// http://www.datarealms.com
 /// Inclusions of header files
 #include "MOSRotating.h"
-#include "PieMenu.h"
-#include "PathFinder.h"
 
 namespace RTE {
 
@@ -19,6 +16,8 @@ namespace RTE {
 
 	class AtomGroup;
 	class HeldDevice;
+	struct PathRequest;
+	enum class PieSliceType : int;
 
 #define AILINEDOTSPACING 16
 
@@ -75,11 +74,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a Actor object in system
 		/// memory. Create() should be called before using the object.
-		Actor() { Clear(); }
+		Actor();
 
 		/// Destructor method used to clean up a Actor object before deletion
 		/// from system memory.
-		~Actor() override { Destroy(true); }
+		~Actor() override;
 
 		/// Makes the Actor object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -114,7 +113,7 @@ namespace RTE {
 
 		/// Gets the mass of this Actor, including the mass of its Attachables, wounds and inventory.
 		/// @return The mass of this Actor, its inventory and all its Attachables and wounds in Kilograms (kg).
-		float GetMass() const override { return MOSRotating::GetMass() + GetInventoryMass() + (m_GoldCarried * g_SceneMan.GetKgPerOz()); }
+		float GetMass() const override;
 
 		/// Gets the mass that this actor had upon spawning, i.e with ini-defined inventory, gold and holding no items
 		/// @return The base mass of this Actor, in Kilograms (kg).
@@ -357,7 +356,7 @@ namespace RTE {
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
 		/// @param pieSliceType The SliceType of the PieSlice being handled.
 		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
-		virtual bool HandlePieCommand(PieSlice::SliceType pieSliceType) { return false; }
+		virtual bool HandlePieCommand(PieSliceType pieSliceType) { return false; }
 
 		/// Gets this' AI mode.
 		/// @return The current AI mode.
@@ -500,15 +499,7 @@ namespace RTE {
 		/// the current AI mode until a certain time has passed.
 		/// @param alarmPoint The new scene point this should look at and see if anything dangerous
 		/// is there.
-		void AlarmPoint(const Vector& alarmPoint) {
-			if (m_AlarmSound && m_AlarmTimer.IsPastSimTimeLimit()) {
-				m_AlarmSound->Play(alarmPoint);
-			}
-			if (m_AlarmTimer.GetElapsedSimTimeMS() > 50) {
-				m_AlarmTimer.Reset();
-				m_LastAlarmPos = m_PointingTarget = alarmPoint;
-			}
-		}
+		void AlarmPoint(const Vector& alarmPoint);
 
 		/// Gets any point on the scene this actor should be alarmed about this frame.
 		/// @return The new scene point this should look at and see if anything dangerous
@@ -815,11 +806,7 @@ namespace RTE {
 
 		/// Sets the PieMenu for this Actor. Ownership IS transferred.
 		/// @param newPieMenu The new PieMenu for this Actor.
-		void SetPieMenu(PieMenu* newPieMenu) {
-			m_PieMenu = std::unique_ptr<PieMenu>(newPieMenu);
-			m_PieMenu->Create(this);
-			m_PieMenu->AddWhilePieMenuOpenListener(this, std::bind(&Actor::WhilePieMenuOpenListener, this, m_PieMenu.get()));
-		}
+		void SetPieMenu(PieMenu* newPieMenu);
 
 		/// Protected member variable and method declarations
 	protected:
@@ -1029,5 +1016,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

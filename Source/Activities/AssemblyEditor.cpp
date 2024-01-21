@@ -30,6 +30,14 @@ namespace RTE {
 
 	ConcreteClassInfo(AssemblyEditor, EditorActivity, 0);
 
+	AssemblyEditor::AssemblyEditor() {
+		Clear();
+	}
+
+	AssemblyEditor::~AssemblyEditor() {
+		Destroy(true);
+	}
+
 	void AssemblyEditor::Clear() {
 		m_pEditorGUI = 0;
 		m_pModuleCombo = 0;
@@ -189,15 +197,15 @@ namespace RTE {
 		m_NeedSave = m_pEditorGUI->EditMade() || m_NeedSave;
 
 		// Get any mode change commands that the user gave the Editor GUI
-		if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorNew && m_EditorMode != NEWDIALOG) {
+		if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorNew && m_EditorMode != NEWDIALOG) {
 			m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
 			m_EditorMode = EditorActivity::NEWDIALOG;
 			m_ModeChange = true;
-		} else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorLoad && m_EditorMode != LOADDIALOG) {
+		} else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorLoad && m_EditorMode != LOADDIALOG) {
 			m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
 			m_EditorMode = EditorActivity::LOADDIALOG;
 			m_ModeChange = true;
-		} else if (m_pEditorGUI->GetActivatedPieSlice() == PieSlice::SliceType::EditorSave && m_EditorMode != SAVEDIALOG) {
+		} else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorSave && m_EditorMode != SAVEDIALOG) {
 			m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
 			m_EditorMode = EditorActivity::SAVEDIALOG;
 			m_ModeChange = true;

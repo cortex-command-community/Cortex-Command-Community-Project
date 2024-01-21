@@ -140,7 +140,7 @@ void GUITab::Draw(GUIScreen* Screen) {
 		if (m_Enabled) {
 			m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[2]);
 		} // else
-		// m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[3]);
+		  // m_Image->DrawTrans(Screen->GetBitmap(), m_X, YPos, &m_ImageRects[3]);
 		//}
 	}
 

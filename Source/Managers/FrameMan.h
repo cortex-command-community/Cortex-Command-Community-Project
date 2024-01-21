@@ -1,5 +1,4 @@
-#ifndef _RTEFRAMEMAN_
-#define _RTEFRAMEMAN_
+#pragma once
 
 #include "ContentFile.h"
 #include "Timer.h"
@@ -30,7 +29,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a FrameMan object in system memory. Initialize() should be called before using the object.
-		FrameMan() { Clear(); }
+		FrameMan();
 
 		/// Makes the FrameMan object ready for use, which is to be used with SettingsMan first.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -39,7 +38,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a FrameMan object before deletion from system memory.
-		~FrameMan() { Destroy(); }
+		~FrameMan();
 
 		/// Destroys and resets (through Clear()) the FrameMan object.
 		void Destroy();
@@ -516,4 +515,3 @@ namespace RTE {
 		FrameMan& operator=(const FrameMan& rhs) = delete;
 	};
 } // namespace RTE
-#endif

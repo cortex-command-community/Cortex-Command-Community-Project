@@ -10,6 +10,8 @@
 #include "AEmitter.h"
 #include "Attachable.h"
 #include "HDFirearm.h"
+#include "SoundContainer.h"
+#include "PostProcessMan.h"
 
 #include "RTEError.h"
 
@@ -30,6 +32,14 @@ namespace RTE {
 	BITMAP* MOSRotating::m_spTempBitmapS128 = 0;
 	BITMAP* MOSRotating::m_spTempBitmapS256 = 0;
 	BITMAP* MOSRotating::m_spTempBitmapS512 = 0;
+
+	MOSRotating::MOSRotating() {
+		Clear();
+	}
+
+	MOSRotating::~MOSRotating() {
+		Destroy(true);
+	}
 
 	void MOSRotating::Clear() {
 		m_pAtomGroup = 0;
@@ -352,7 +362,7 @@ namespace RTE {
 		    writer << m_GibImpulseLimit;
 		    writer.NewProperty("GibWoundLimit");
 		    writer << m_GibWoundLimit;
-		  writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
+		    writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
 		    writer.NewProperty("GibSound");
 		    writer << m_GibSound;
 		    writer.NewProperty("EffectOnGib");

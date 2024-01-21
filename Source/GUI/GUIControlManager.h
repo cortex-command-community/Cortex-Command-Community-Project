@@ -1,5 +1,4 @@
-#ifndef _GUICONTROLMANAGER_
-#define _GUICONTROLMANAGER_
+#pragma once
 
 #include "GUIWriter.h"
 #include "GUIReader.h"
@@ -24,7 +23,7 @@ namespace RTE {
 
 		/// Destructor method used to clean up a GUIControlManager object in
 		/// system memory.
-		~GUIControlManager() { Destroy(); }
+		~GUIControlManager();
 
 		/// Creates the data for the control manager
 		/// @param Screen Screen and Input Interfaces, Skin directory
@@ -153,5 +152,4 @@ namespace RTE {
 		/// @param Event Event point.
 		void AddEvent(GUIEvent* Event);
 	};
-}; // namespace RTE
-#endif //  _GUICONTROLMANAGER_
+} // namespace RTE

@@ -6,6 +6,14 @@ namespace RTE {
 
 	ConcreteClassInfo(Leg, Attachable, 50);
 
+	Leg::Leg() {
+		Clear();
+	}
+
+	Leg::~Leg() {
+		Destroy(true);
+	}
+
 	void Leg::Clear() {
 		m_Foot = nullptr;
 

@@ -29,6 +29,14 @@
 
 namespace RTE {
 
+	ActivityMan::ActivityMan() {
+		Clear();
+	}
+
+	ActivityMan::~ActivityMan() {
+		Destroy();
+	}
+
 	void ActivityMan::Clear() {
 		m_DefaultActivityType = "GATutorial";
 		m_DefaultActivityName = "Tutorial Mission";

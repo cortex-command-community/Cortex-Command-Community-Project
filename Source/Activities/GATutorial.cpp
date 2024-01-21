@@ -26,6 +26,14 @@ namespace RTE {
 
 	ConcreteClassInfo(GATutorial, GameActivity, 0);
 
+	GATutorial::GATutorial() {
+		Clear();
+	}
+
+	GATutorial::~GATutorial() {
+		Destroy(true);
+	}
+
 	GATutorial::TutStep::TutStep(std::string text, int stepDuration, std::string screensPath, int frameCount, int frameDuration) {
 		m_Text = text;
 		m_Duration = stepDuration;

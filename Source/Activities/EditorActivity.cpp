@@ -24,6 +24,14 @@ namespace RTE {
 
 	AbstractClassInfo(EditorActivity, Activity);
 
+	EditorActivity::EditorActivity() {
+		Clear();
+	}
+
+	EditorActivity::~EditorActivity() {
+		Destroy(true);
+	}
+
 	void EditorActivity::Clear() {
 		// Most editors are single player affairs
 		m_MaxPlayerSupport = 1;
@@ -275,20 +283,20 @@ namespace RTE {
 		    ////////////////////////////////////////////////////////
 		    // Handle events for mouse input on the controls
 
-		  GUIEvent anEvent;
-		  while(m_pGUIController->GetEvent(&anEvent))
+		    GUIEvent anEvent;
+		    while(m_pGUIController->GetEvent(&anEvent))
 		    {
 		        // If we're not supposed to have mouse control, then ignore these messages
 		// Uh this is not right, editor always has mouse control so far
 		//        if (!m_PlayerController[0].IsMouseControlled())
 		//            break;
 
-		    if (anEvent.GetType() == GUIEvent::Command)
+		        if (anEvent.GetType() == GUIEvent::Command)
 		        {
 		            //////////////////////////////////////////////////////////
-		      // NEW button pressed; create a new scene
+		            // NEW button pressed; create a new scene
 
-		      if (anEvent.GetControl() == m_pNewButton)
+		            if (anEvent.GetControl() == m_pNewButton)
 		            {
 		                // Get the selected Module
 		                GUIListPanel::Item *pItem = m_pNewModuleCombo->GetItem(m_pNewModuleCombo->GetSelectedIndex());
@@ -345,9 +353,9 @@ namespace RTE {
 		            }
 
 		            //////////////////////////////////////////////////////////
-		      // LOAD button pressed; load the selected Scene
+		            // LOAD button pressed; load the selected Scene
 
-		      if (anEvent.GetControl() == m_pLoadButton)
+		            if (anEvent.GetControl() == m_pLoadButton)
 		            {
 		                GUIListPanel::Item *pItem = m_pLoadNameCombo->GetItem(m_pLoadNameCombo->GetSelectedIndex());
 		                if (pItem && !pItem->m_Name.empty())
@@ -371,9 +379,9 @@ namespace RTE {
 		            }
 
 		            //////////////////////////////////////////////////////////
-		      // SAVE button pressed; save the selected Scene
+		            // SAVE button pressed; save the selected Scene
 
-		      if (anEvent.GetControl() == m_pSaveButton)
+		            if (anEvent.GetControl() == m_pSaveButton)
 		            {
 		                if (!m_pSaveNameBox->GetText().empty())
 		                {
@@ -396,9 +404,9 @@ namespace RTE {
 		            }
 
 		            ///////////////////////////////////////////////////////////////
-		      // Save Changes YES pressed
+		            // Save Changes YES pressed
 
-		      if (anEvent.GetControl() == m_pChangesYesButton)
+		            if (anEvent.GetControl() == m_pChangesYesButton)
 		            {
 		                if (m_HasEverBeenSaved)
 		                {
@@ -422,9 +430,9 @@ namespace RTE {
 		            }
 
 		            ///////////////////////////////////////////////////////////////
-		      // Save Changes NO pressed
+		            // Save Changes NO pressed
 
-		      if (anEvent.GetControl() == m_pChangesNoButton)
+		            if (anEvent.GetControl() == m_pChangesNoButton)
 		            {
 		                // Just go back to previous mode
 		                m_EditorMode = m_PreviousMode;
@@ -433,9 +441,9 @@ namespace RTE {
 		            }
 
 		            ///////////////////////////////////////////////////////////////
-		      // Overwrite Scene YES pressed
+		            // Overwrite Scene YES pressed
 
-		      if (anEvent.GetControl() == m_pOverwriteYesButton)
+		            if (anEvent.GetControl() == m_pOverwriteYesButton)
 		            {
 		                // Force overwrite
 		                if (SaveScene(g_SceneMan.GetScene()->GetPresetName(), true))
@@ -451,9 +459,9 @@ namespace RTE {
 		            }
 
 		            ///////////////////////////////////////////////////////////////
-		      // Overwrite Scene NO pressed
+		            // Overwrite Scene NO pressed
 
-		      if (anEvent.GetControl() == m_pOverwriteNoButton)
+		            if (anEvent.GetControl() == m_pOverwriteNoButton)
 		            {
 		                // Just go back to previous mode
 		                m_EditorMode = m_PreviousMode;
@@ -461,9 +469,9 @@ namespace RTE {
 		            }
 
 		            ///////////////////////////////////////////////////////////////
-		      // CANCEL button pressed; exit any active dialog box
+		            // CANCEL button pressed; exit any active dialog box
 
-		      if (anEvent.GetControl() == m_pNewCancel || anEvent.GetControl() == m_pLoadCancel || anEvent.GetControl() == m_pSaveCancel)
+		            if (anEvent.GetControl() == m_pNewCancel || anEvent.GetControl() == m_pLoadCancel || anEvent.GetControl() == m_pSaveCancel)
 		            {
 		                m_EditorMode = m_PreviousMode = EDITINGOBJECT;
 		                m_ModeChange = true;
@@ -476,7 +484,7 @@ namespace RTE {
 		            ///////////////////////////////////////
 		            // Clicks on the New Scene Module combo
 
-		        if (anEvent.GetControl() == m_pNewModuleCombo)
+		            if (anEvent.GetControl() == m_pNewModuleCombo)
 		            {
 		                // Closed it, IE selected somehting
 		                if(anEvent.GetMsg() == GUIComboBox::Closed)

@@ -1,5 +1,4 @@
-#ifndef _MULTIPLAYERGAMEGUI_
-#define _MULTIPLAYERGAMEGUI_
+#pragma once
 
 /// Description:
 /// Author(s):
@@ -30,11 +29,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a MultiplayerGameGUI object in system
 		/// memory. Create() should be called before using the object.
-		MultiplayerGameGUI() { Clear(); }
+		MultiplayerGameGUI();
 
 		/// Destructor method used to clean up a MultiplayerGameGUI object before deletion
 		/// from system memory.
-		~MultiplayerGameGUI() { Destroy(); }
+		~MultiplayerGameGUI();
 
 		/// Makes the MultiplayerGameGUI object ready for use.
 		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
@@ -81,5 +80,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

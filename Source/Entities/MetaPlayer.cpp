@@ -7,25 +7,19 @@ namespace RTE {
 
 	ConcreteClassInfo(MetaPlayer, Entity, 0);
 
-	void MetaPlayer::Clear() {
-		m_Name = "";
-		m_Team = Activity::NoTeam;
-		m_Human = true;
-		m_InGamePlayer = Players::PlayerOne;
-		m_Aggressiveness = 0.5F;
-		m_GameOverRound = -1;
+	MetaPlayer::MetaPlayer() {
+		Clear();
+	}
 
-		// Everything is natively priced
-		m_NativeTechModule = 0;
-		m_NativeCostMult = 1.0F;
-		m_ForeignCostMult = 4.0F;
+	MetaPlayer::MetaPlayer(const MetaPlayer& reference) {
+		if (this != &reference) {
+			Clear();
+			Create(reference);
+		}
+	}
 
-		m_BrainPool = 0;
-		m_BrainsInTransit = 0;
-		m_Funds = 0;
-		m_PhaseStartFunds = 0;
-		m_OffensiveBudget = 0;
-		m_OffensiveTarget = "";
+	int MetaPlayer::Create() {
+		return Entity::Create();
 	}
 
 	int MetaPlayer::Create(const MetaPlayer& reference) {
@@ -48,6 +42,31 @@ namespace RTE {
 		m_OffensiveTarget = reference.m_OffensiveTarget;
 
 		return 0;
+	}
+
+	MetaPlayer::~MetaPlayer() {
+		Destroy(true);
+	}
+
+	void MetaPlayer::Clear() {
+		m_Name = "";
+		m_Team = Activity::NoTeam;
+		m_Human = true;
+		m_InGamePlayer = Players::PlayerOne;
+		m_Aggressiveness = 0.5F;
+		m_GameOverRound = -1;
+
+		// Everything is natively priced
+		m_NativeTechModule = 0;
+		m_NativeCostMult = 1.0F;
+		m_ForeignCostMult = 4.0F;
+
+		m_BrainPool = 0;
+		m_BrainsInTransit = 0;
+		m_Funds = 0;
+		m_PhaseStartFunds = 0;
+		m_OffensiveBudget = 0;
+		m_OffensiveTarget = "";
 	}
 
 	int MetaPlayer::ReadProperty(const std::string_view& propName, Reader& reader) {

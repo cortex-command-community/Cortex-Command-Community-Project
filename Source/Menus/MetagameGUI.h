@@ -1,5 +1,4 @@
-#ifndef _METAGAMEGUI_
-#define _METAGAMEGUI_
+#pragma once
 
 /// MetagameGUI class
 /// @author Daniel Tabar
@@ -146,11 +145,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a MetagameGUI object in system
 		/// memory. Create() should be called before using the object.
-		MetagameGUI() { Clear(); }
+		MetagameGUI();
 
 		/// Destructor method used to clean up a MetagameGUI object before deletion
 		/// from system memory.
-		~MetagameGUI() { Destroy(); }
+		~MetagameGUI();
 
 		/// Makes the MetagameGUI object ready for use.
 		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
@@ -838,5 +837,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

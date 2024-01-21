@@ -1,5 +1,4 @@
-#ifndef _GUIBANNER_
-#define _GUIBANNER_
+#pragma once
 
 /// GUIBanner class
 /// @author Daniel Tabar
@@ -210,5 +209,3 @@ namespace RTE {
 	};
 
 }; // namespace RTE
-
-#endif //  _GUIBanner_

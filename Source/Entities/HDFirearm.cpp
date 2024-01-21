@@ -4,6 +4,7 @@
 #include "CameraMan.h"
 #include "FrameMan.h"
 #include "PresetMan.h"
+#include "PostProcessMan.h"
 
 #include "Magazine.h"
 #include "ThrownDevice.h"
@@ -14,6 +15,14 @@
 namespace RTE {
 
 	ConcreteClassInfo(HDFirearm, HeldDevice, 50);
+
+	HDFirearm::HDFirearm() {
+		Clear();
+	}
+
+	HDFirearm::~HDFirearm() {
+		Destroy(true);
+	}
 
 	void HDFirearm::Clear() {
 		m_pMagazineReference = 0;

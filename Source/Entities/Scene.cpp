@@ -42,6 +42,14 @@ namespace RTE {
 	// Holds the path calculated by CalculateScenePath
 	thread_local std::list<Vector> s_ScenePath;
 
+	Scene::Scene() {
+		Clear();
+	}
+
+	Scene::~Scene() {
+		Destroy(true);
+	}
+
 	void Scene::Area::Clear() {
 		m_BoxList.clear();
 		m_Name.clear();
@@ -868,15 +876,15 @@ namespace RTE {
 			// TODO: Figure out how to draw the actual modules that compose an assembly that is part of the scheme. For now just disable.
 			/*
 			else if (const BunkerAssemblyScheme *assemblyScheme = dynamic_cast<BunkerAssemblyScheme *>(sceneObject)) {
-			  Vector pos = assemblyScheme->GetPos() + assemblyScheme->GetBitmapOffset();
+			    Vector pos = assemblyScheme->GetPos() + assemblyScheme->GetBitmapOffset();
 
-			  // Wrapped drawing
-			  if (pos.GetFloorIntX() < 0) {
-			    rect(previewBuffer, pos.GetFloorIntX() + sceneWidth, pos.GetFloorIntY(), pos.GetFloorIntX() + sceneWidth + assemblyScheme->GetBitmapWidth(), pos.GetFloorIntY() + assemblyScheme->GetBitmapHeight(), 5);
-			  } else if (pos.GetFloorIntX() + assemblyScheme->GetBitmapWidth() >= sceneWidth) {
-			    rect(previewBuffer, pos.GetFloorIntX() - sceneWidth, pos.GetFloorIntY(), pos.GetFloorIntX() - sceneWidth + assemblyScheme->GetBitmapWidth(), pos.GetFloorIntY() + assemblyScheme->GetBitmapHeight(), 5);
-			  }
-			  rect(previewBuffer, pos.GetFloorIntX(), pos.GetFloorIntY(), pos.GetFloorIntX() + ((float)assemblyScheme->GetBitmapWidth()), pos.GetFloorIntY() + ((float)assemblyScheme->GetBitmapHeight()), 5);
+			    // Wrapped drawing
+			    if (pos.GetFloorIntX() < 0) {
+			        rect(previewBuffer, pos.GetFloorIntX() + sceneWidth, pos.GetFloorIntY(), pos.GetFloorIntX() + sceneWidth + assemblyScheme->GetBitmapWidth(), pos.GetFloorIntY() + assemblyScheme->GetBitmapHeight(), 5);
+			    } else if (pos.GetFloorIntX() + assemblyScheme->GetBitmapWidth() >= sceneWidth) {
+			        rect(previewBuffer, pos.GetFloorIntX() - sceneWidth, pos.GetFloorIntY(), pos.GetFloorIntX() - sceneWidth + assemblyScheme->GetBitmapWidth(), pos.GetFloorIntY() + assemblyScheme->GetBitmapHeight(), 5);
+			    }
+			    rect(previewBuffer, pos.GetFloorIntX(), pos.GetFloorIntY(), pos.GetFloorIntX() + ((float)assemblyScheme->GetBitmapWidth()), pos.GetFloorIntY() + ((float)assemblyScheme->GetBitmapHeight()), 5);
 			}
 			*/
 		}

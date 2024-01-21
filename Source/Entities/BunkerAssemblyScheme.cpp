@@ -9,6 +9,14 @@ namespace RTE {
 
 	ConcreteClassInfo(BunkerAssemblyScheme, SceneObject, 0);
 
+	BunkerAssemblyScheme::BunkerAssemblyScheme() {
+		Clear();
+	}
+
+	BunkerAssemblyScheme::~BunkerAssemblyScheme() {
+		Destroy(true);
+	}
+
 	void BunkerAssemblyScheme::Clear() {
 		m_pPresentationBitmap = 0;
 		m_ChildObjects.clear();

@@ -476,8 +476,8 @@ void GUIListPanel::SelectItem(int X, int Y, int Modifier) {
 		stackHeight += GetItemHeight(*it);
 		// Only check the items after the scroll value
 		if (m_VertScroll->_GetVisible() && m_VertScroll->GetValue() > y) {
-		  y += GetItemHeight(*it);
-		  continue;
+		    y += GetItemHeight(*it);
+		    continue;
 		}
 		if (Count < m_VertScroll->GetValue()) {continue;}
 		*/

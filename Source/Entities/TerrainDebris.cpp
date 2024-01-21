@@ -5,6 +5,14 @@ namespace RTE {
 
 	ConcreteClassInfo(TerrainDebris, Entity, 0);
 
+	TerrainDebris::TerrainDebris() {
+		Clear();
+	}
+
+	TerrainDebris::~TerrainDebris() {
+		Destroy(true);
+	}
+
 	void TerrainDebris::Clear() {
 		m_DebrisFile.Reset();
 		m_Bitmaps.clear();

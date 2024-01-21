@@ -1,5 +1,4 @@
-#ifndef _RTEACTOREDITOR_
-#define _RTEACTOREDITOR_
+#pragma once
 
 /// Header file for the ActorEditor class.
 /// @author Daniel Tabar
@@ -37,11 +36,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a ActorEditor object in system
 		/// memory. Create() should be called before using the object.
-		ActorEditor() { Clear(); }
+		ActorEditor();
 
 		/// Destructor method used to clean up a ActorEditor object before deletion
 		/// from system memory.
-		~ActorEditor() override { Destroy(true); }
+		~ActorEditor() override;
 
 		/// Makes the ActorEditor object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -129,5 +128,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

@@ -1,5 +1,4 @@
-#ifndef _RTEEDITORACTIVITY_
-#define _RTEEDITORACTIVITY_
+#pragma once
 
 /// Header file for the EditorActivity class.
 /// @author Daniel Tabar
@@ -48,11 +47,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a EditorActivity object in system
 		/// memory. Create() should be called before using the object.
-		EditorActivity() { Clear(); }
+		EditorActivity();
 
 		/// Destructor method used to clean up a EditorActivity object before deletion
 		/// from system memory.
-		~EditorActivity() override { Destroy(true); }
+		~EditorActivity() override;
 
 		/// Makes the EditorActivity object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -211,5 +210,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

@@ -1,5 +1,4 @@
-#ifndef _LOADOUT_
-#define _LOADOUT_
+#pragma once
 
 /// Loadout class
 /// @author Daniel Tabar
@@ -129,5 +128,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File
