@@ -28,583 +28,583 @@
 
 using namespace RTE;
 
-	ConcreteClassInfo(AssemblyEditor, EditorActivity, 0);
+ConcreteClassInfo(AssemblyEditor, EditorActivity, 0);
 
-	AssemblyEditor::AssemblyEditor() {
-		Clear();
+AssemblyEditor::AssemblyEditor() {
+	Clear();
+}
+
+AssemblyEditor::~AssemblyEditor() {
+	Destroy(true);
+}
+
+void AssemblyEditor::Clear() {
+	m_pEditorGUI = 0;
+	m_pModuleCombo = 0;
+}
+
+int AssemblyEditor::Create() {
+	if (EditorActivity::Create() < 0)
+		return -1;
+
+	return 0;
+}
+
+int AssemblyEditor::Create(const AssemblyEditor& reference) {
+	if (EditorActivity::Create(reference) < 0)
+		return -1;
+
+	if (m_Description.empty())
+		m_Description = "Edit this Scene, including placement of all terrain objects and movable objects, AI blueprints, etc.";
+
+	return 0;
+}
+
+int AssemblyEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
+	StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
+	/*
+	    MatchProperty("CPUTeam", { reader >> m_CPUTeam; });
+	    MatchProperty("Difficulty", { reader >> m_Difficulty; });
+	    MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
+	*/
+	EndPropertyList;
+}
+
+int AssemblyEditor::Save(Writer& writer) const {
+	EditorActivity::Save(writer);
+	return 0;
+}
+
+void AssemblyEditor::Destroy(bool notInherited) {
+	delete m_pEditorGUI;
+
+	if (!notInherited)
+		EditorActivity::Destroy();
+	Clear();
+}
+
+int AssemblyEditor::Start() {
+	int error = EditorActivity::Start();
+
+	//////////////////////////////////////////////
+	// Allocate and (re)create the Editor GUI
+
+	if (m_pEditorGUI)
+		m_pEditorGUI->Destroy();
+	else
+		m_pEditorGUI = new AssemblyEditorGUI;
+	m_pEditorGUI->Create(&(m_PlayerController[0]), AssemblyEditorGUI::ONLOADEDIT);
+
+	//////////////////////////////////////////////////////////////
+	// Hooking up directly to the controls defined in the GUI ini
+
+	m_pGUIController->Load("Base.rte/GUIs/AssemblyEditorGUI.ini");
+
+	// Resize the invisible root container so it matches the screen rez
+	GUICollectionBox* pRootBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("base"));
+	if (pRootBox)
+		pRootBox->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
+
+	// Make sure we have convenient points to the containing GUI dialog boxes that we will manipulate the positions of
+	if (!m_pLoadDialogBox) {
+		m_pLoadDialogBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("LoadDialogBox"));
+		//        m_pLoadDialogBox->SetDrawType(GUICollectionBox::Color);
+		m_pLoadDialogBox->SetPositionAbs((g_FrameMan.GetPlayerScreenWidth() / 2) - (m_pLoadDialogBox->GetWidth() / 2), (g_FrameMan.GetPlayerScreenHeight() / 2) - (m_pLoadDialogBox->GetHeight() / 2));
+		m_pLoadDialogBox->SetVisible(false);
 	}
+	m_pLoadNameCombo = dynamic_cast<GUIComboBox*>(m_pGUIController->GetControl("LoadSceneCB"));
+	m_pLoadNameCombo->SetDropHeight(std::min(m_pLoadNameCombo->GetDropHeight(), g_WindowMan.GetResY() / 2));
+	m_pModuleCombo = dynamic_cast<GUIComboBox*>(m_pGUIController->GetControl("ModuleCB"));
+	m_pModuleCombo->SetDropHeight(std::min(m_pModuleCombo->GetDropHeight(), g_WindowMan.GetResY() / 2));
+	m_pLoadDialogBox->SetSize(m_pLoadDialogBox->GetWidth(), m_pLoadDialogBox->GetHeight() + (std::max(m_pLoadNameCombo->GetDropHeight(), m_pModuleCombo->GetDropHeight()))); // Make sure the dropdowns can fit, no matter how tall they are.
+	m_pLoadButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("LoadSceneButton"));
+	m_pLoadCancel = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("LoadCancelButton"));
 
-	AssemblyEditor::~AssemblyEditor() {
-		Destroy(true);
+	if (!m_pSaveDialogBox) {
+		m_pSaveDialogBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("SaveDialogBox"));
+
+		// Set the background image of the parent collection box
+		m_pSaveDialogBox->SetPositionAbs((g_FrameMan.GetPlayerScreenWidth() / 2) - (m_pSaveDialogBox->GetWidth() / 2), (g_FrameMan.GetPlayerScreenHeight() / 2) - (m_pSaveDialogBox->GetHeight() / 2));
+		m_pSaveDialogBox->SetVisible(false);
 	}
+	m_pSaveNameBox = dynamic_cast<GUITextBox*>(m_pGUIController->GetControl("SaveSceneNameTB"));
+	m_pSaveModuleLabel = dynamic_cast<GUILabel*>(m_pGUIController->GetControl("SaveModuleLabel"));
+	m_pSaveButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("SaveSceneButton"));
+	m_pSaveCancel = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("SaveCancelButton"));
 
-	void AssemblyEditor::Clear() {
-		m_pEditorGUI = 0;
-		m_pModuleCombo = 0;
+	if (!m_pChangesDialogBox) {
+		m_pChangesDialogBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("ChangesDialogBox"));
+		m_pChangesDialogBox->SetPositionAbs((g_FrameMan.GetPlayerScreenWidth() / 2) - (m_pChangesDialogBox->GetWidth() / 2), (g_FrameMan.GetPlayerScreenHeight() / 2) - (m_pChangesDialogBox->GetHeight() / 2));
+		m_pChangesDialogBox->SetVisible(false);
 	}
+	m_pChangesNameLabel = dynamic_cast<GUILabel*>(m_pGUIController->GetControl("ChangesNameLabel"));
+	m_pChangesYesButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("ChangesYesButton"));
+	m_pChangesNoButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("ChangesNoButton"));
 
-	int AssemblyEditor::Create() {
-		if (EditorActivity::Create() < 0)
-			return -1;
-
-		return 0;
+	if (!m_pOverwriteDialogBox) {
+		m_pOverwriteDialogBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("OverwriteDialogBox"));
+		m_pOverwriteDialogBox->SetPositionAbs((g_FrameMan.GetPlayerScreenWidth() / 2) - (m_pOverwriteDialogBox->GetWidth() / 2), (g_FrameMan.GetPlayerScreenHeight() / 2) - (m_pOverwriteDialogBox->GetHeight() / 2));
+		m_pOverwriteDialogBox->SetVisible(false);
 	}
+	m_pOverwriteNameLabel = dynamic_cast<GUILabel*>(m_pGUIController->GetControl("OverwriteNameLabel"));
+	m_pOverwriteYesButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("OverwriteYesButton"));
+	m_pOverwriteNoButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("OverwriteNoButton"));
 
-	int AssemblyEditor::Create(const AssemblyEditor& reference) {
-		if (EditorActivity::Create(reference) < 0)
-			return -1;
+	return error;
+}
 
-		if (m_Description.empty())
-			m_Description = "Edit this Scene, including placement of all terrain objects and movable objects, AI blueprints, etc.";
+void AssemblyEditor::SetPaused(bool pause) {
+	// Override the pause
+	m_Paused = false;
+}
 
-		return 0;
-	}
+void AssemblyEditor::End() {
+	EditorActivity::End();
 
-	int AssemblyEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
-		StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
-		/*
-		    MatchProperty("CPUTeam", { reader >> m_CPUTeam; });
-		    MatchProperty("Difficulty", { reader >> m_Difficulty; });
-		    MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
-		*/
-		EndPropertyList;
-	}
+	m_ActivityState = ActivityState::Over;
+}
 
-	int AssemblyEditor::Save(Writer& writer) const {
-		EditorActivity::Save(writer);
-		return 0;
-	}
+void AssemblyEditor::Update() {
+	EditorActivity::Update();
 
-	void AssemblyEditor::Destroy(bool notInherited) {
-		delete m_pEditorGUI;
+	if (!g_SceneMan.GetScene())
+		return;
 
-		if (!notInherited)
-			EditorActivity::Destroy();
-		Clear();
-	}
+	// Update the loaded objects of the loaded scene so they look right
+	g_SceneMan.GetScene()->UpdatePlacedObjects(Scene::PLACEONLOAD);
 
-	int AssemblyEditor::Start() {
-		int error = EditorActivity::Start();
-
-		//////////////////////////////////////////////
-		// Allocate and (re)create the Editor GUI
-
-		if (m_pEditorGUI)
-			m_pEditorGUI->Destroy();
-		else
-			m_pEditorGUI = new AssemblyEditorGUI;
-		m_pEditorGUI->Create(&(m_PlayerController[0]), AssemblyEditorGUI::ONLOADEDIT);
-
-		//////////////////////////////////////////////////////////////
-		// Hooking up directly to the controls defined in the GUI ini
-
-		m_pGUIController->Load("Base.rte/GUIs/AssemblyEditorGUI.ini");
-
-		// Resize the invisible root container so it matches the screen rez
-		GUICollectionBox* pRootBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("base"));
-		if (pRootBox)
-			pRootBox->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
-
-		// Make sure we have convenient points to the containing GUI dialog boxes that we will manipulate the positions of
-		if (!m_pLoadDialogBox) {
-			m_pLoadDialogBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("LoadDialogBox"));
-			//        m_pLoadDialogBox->SetDrawType(GUICollectionBox::Color);
-			m_pLoadDialogBox->SetPositionAbs((g_FrameMan.GetPlayerScreenWidth() / 2) - (m_pLoadDialogBox->GetWidth() / 2), (g_FrameMan.GetPlayerScreenHeight() / 2) - (m_pLoadDialogBox->GetHeight() / 2));
-			m_pLoadDialogBox->SetVisible(false);
+	// All dialog boxes are gone and we're editing the scene
+	if (m_EditorMode == EditorActivity::EDITINGOBJECT) {
+		if (m_ModeChange) {
+			// Open the picker depending on whetehr there's somehting in the cursor hand or not
+			m_pEditorGUI->SetEditorGUIMode(m_pEditorGUI->GetCurrentObject() ? AssemblyEditorGUI::ADDINGOBJECT : AssemblyEditorGUI::PICKINGOBJECT);
+			// Hide the cursor for this layer of interface
+			m_pGUIController->EnableMouse(false);
+			m_ModeChange = false;
 		}
-		m_pLoadNameCombo = dynamic_cast<GUIComboBox*>(m_pGUIController->GetControl("LoadSceneCB"));
-		m_pLoadNameCombo->SetDropHeight(std::min(m_pLoadNameCombo->GetDropHeight(), g_WindowMan.GetResY() / 2));
-		m_pModuleCombo = dynamic_cast<GUIComboBox*>(m_pGUIController->GetControl("ModuleCB"));
-		m_pModuleCombo->SetDropHeight(std::min(m_pModuleCombo->GetDropHeight(), g_WindowMan.GetResY() / 2));
-		m_pLoadDialogBox->SetSize(m_pLoadDialogBox->GetWidth(), m_pLoadDialogBox->GetHeight() + (std::max(m_pLoadNameCombo->GetDropHeight(), m_pModuleCombo->GetDropHeight()))); // Make sure the dropdowns can fit, no matter how tall they are.
-		m_pLoadButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("LoadSceneButton"));
-		m_pLoadCancel = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("LoadCancelButton"));
+		g_UInputMan.DisableKeys(false);
+	}
+	// We are doing something int he dialog boxes, so don't do anything in the editor interface
+	else
+		m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
 
-		if (!m_pSaveDialogBox) {
-			m_pSaveDialogBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("SaveDialogBox"));
+	/////////////////////////////////////////////////////
+	// Update the editor interface
 
-			// Set the background image of the parent collection box
-			m_pSaveDialogBox->SetPositionAbs((g_FrameMan.GetPlayerScreenWidth() / 2) - (m_pSaveDialogBox->GetWidth() / 2), (g_FrameMan.GetPlayerScreenHeight() / 2) - (m_pSaveDialogBox->GetHeight() / 2));
-			m_pSaveDialogBox->SetVisible(false);
-		}
-		m_pSaveNameBox = dynamic_cast<GUITextBox*>(m_pGUIController->GetControl("SaveSceneNameTB"));
-		m_pSaveModuleLabel = dynamic_cast<GUILabel*>(m_pGUIController->GetControl("SaveModuleLabel"));
-		m_pSaveButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("SaveSceneButton"));
-		m_pSaveCancel = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("SaveCancelButton"));
+	m_pEditorGUI->Update();
 
-		if (!m_pChangesDialogBox) {
-			m_pChangesDialogBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("ChangesDialogBox"));
-			m_pChangesDialogBox->SetPositionAbs((g_FrameMan.GetPlayerScreenWidth() / 2) - (m_pChangesDialogBox->GetWidth() / 2), (g_FrameMan.GetPlayerScreenHeight() / 2) - (m_pChangesDialogBox->GetHeight() / 2));
-			m_pChangesDialogBox->SetVisible(false);
-		}
-		m_pChangesNameLabel = dynamic_cast<GUILabel*>(m_pGUIController->GetControl("ChangesNameLabel"));
-		m_pChangesYesButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("ChangesYesButton"));
-		m_pChangesNoButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("ChangesNoButton"));
+	// Any edits made, dirtying the scene?
+	m_NeedSave = m_pEditorGUI->EditMade() || m_NeedSave;
 
-		if (!m_pOverwriteDialogBox) {
-			m_pOverwriteDialogBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("OverwriteDialogBox"));
-			m_pOverwriteDialogBox->SetPositionAbs((g_FrameMan.GetPlayerScreenWidth() / 2) - (m_pOverwriteDialogBox->GetWidth() / 2), (g_FrameMan.GetPlayerScreenHeight() / 2) - (m_pOverwriteDialogBox->GetHeight() / 2));
-			m_pOverwriteDialogBox->SetVisible(false);
-		}
-		m_pOverwriteNameLabel = dynamic_cast<GUILabel*>(m_pGUIController->GetControl("OverwriteNameLabel"));
-		m_pOverwriteYesButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("OverwriteYesButton"));
-		m_pOverwriteNoButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("OverwriteNoButton"));
-
-		return error;
+	// Get any mode change commands that the user gave the Editor GUI
+	if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorNew && m_EditorMode != NEWDIALOG) {
+		m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
+		m_EditorMode = EditorActivity::NEWDIALOG;
+		m_ModeChange = true;
+	} else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorLoad && m_EditorMode != LOADDIALOG) {
+		m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
+		m_EditorMode = EditorActivity::LOADDIALOG;
+		m_ModeChange = true;
+	} else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorSave && m_EditorMode != SAVEDIALOG) {
+		m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
+		m_EditorMode = EditorActivity::SAVEDIALOG;
+		m_ModeChange = true;
 	}
 
-	void AssemblyEditor::SetPaused(bool pause) {
-		// Override the pause
-		m_Paused = false;
-	}
+	////////////////////////////////////////////////////////
+	// Handle events for mouse input on the controls
 
-	void AssemblyEditor::End() {
-		EditorActivity::End();
+	GUIEvent anEvent;
+	while (m_pGUIController->GetEvent(&anEvent)) {
+		// If we're not supposed to have mouse control, then ignore these messages
+		// Uh this is not right, editor always has mouse control so far
+		//        if (!m_PlayerController[0].IsMouseControlled())
+		//            break;
 
-		m_ActivityState = ActivityState::Over;
-	}
+		if (anEvent.GetType() == GUIEvent::Command) {
+			//////////////////////////////////////////////////////////
+			// LOAD TO NEW button pressed; go from the load to the new dialog
 
-	void AssemblyEditor::Update() {
-		EditorActivity::Update();
-
-		if (!g_SceneMan.GetScene())
-			return;
-
-		// Update the loaded objects of the loaded scene so they look right
-		g_SceneMan.GetScene()->UpdatePlacedObjects(Scene::PLACEONLOAD);
-
-		// All dialog boxes are gone and we're editing the scene
-		if (m_EditorMode == EditorActivity::EDITINGOBJECT) {
-			if (m_ModeChange) {
-				// Open the picker depending on whetehr there's somehting in the cursor hand or not
-				m_pEditorGUI->SetEditorGUIMode(m_pEditorGUI->GetCurrentObject() ? AssemblyEditorGUI::ADDINGOBJECT : AssemblyEditorGUI::PICKINGOBJECT);
-				// Hide the cursor for this layer of interface
-				m_pGUIController->EnableMouse(false);
-				m_ModeChange = false;
+			if (anEvent.GetControl() == m_pLoadToNewButton) {
+				m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
+				m_EditorMode = EditorActivity::NEWDIALOG;
+				m_ModeChange = true;
 			}
-			g_UInputMan.DisableKeys(false);
-		}
-		// We are doing something int he dialog boxes, so don't do anything in the editor interface
-		else
-			m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
 
-		/////////////////////////////////////////////////////
-		// Update the editor interface
+			//////////////////////////////////////////////////////////
+			// LOAD button pressed; load the selected Scene
 
-		m_pEditorGUI->Update();
-
-		// Any edits made, dirtying the scene?
-		m_NeedSave = m_pEditorGUI->EditMade() || m_NeedSave;
-
-		// Get any mode change commands that the user gave the Editor GUI
-		if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorNew && m_EditorMode != NEWDIALOG) {
-			m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
-			m_EditorMode = EditorActivity::NEWDIALOG;
-			m_ModeChange = true;
-		} else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorLoad && m_EditorMode != LOADDIALOG) {
-			m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
-			m_EditorMode = EditorActivity::LOADDIALOG;
-			m_ModeChange = true;
-		} else if (m_pEditorGUI->GetActivatedPieSlice() == PieSliceType::EditorSave && m_EditorMode != SAVEDIALOG) {
-			m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
-			m_EditorMode = EditorActivity::SAVEDIALOG;
-			m_ModeChange = true;
-		}
-
-		////////////////////////////////////////////////////////
-		// Handle events for mouse input on the controls
-
-		GUIEvent anEvent;
-		while (m_pGUIController->GetEvent(&anEvent)) {
-			// If we're not supposed to have mouse control, then ignore these messages
-			// Uh this is not right, editor always has mouse control so far
-			//        if (!m_PlayerController[0].IsMouseControlled())
-			//            break;
-
-			if (anEvent.GetType() == GUIEvent::Command) {
-				//////////////////////////////////////////////////////////
-				// LOAD TO NEW button pressed; go from the load to the new dialog
-
-				if (anEvent.GetControl() == m_pLoadToNewButton) {
-					m_pEditorGUI->SetEditorGUIMode(AssemblyEditorGUI::INACTIVE);
-					m_EditorMode = EditorActivity::NEWDIALOG;
-					m_ModeChange = true;
-				}
-
-				//////////////////////////////////////////////////////////
-				// LOAD button pressed; load the selected Scene
-
-				if (anEvent.GetControl() == m_pLoadButton) {
-					GUIListPanel::Item* pItem = m_pLoadNameCombo->GetItem(m_pLoadNameCombo->GetSelectedIndex());
-					if (pItem && !pItem->m_Name.empty()) {
-						// Attempt to load the scene, without applying its placed objects
-						g_SceneMan.SetSceneToLoad(pItem->m_Name, false);
-						g_SceneMan.LoadScene();
-						// Get the Module ID that the scene exists in, so we can limit the picker to only show objects from that DataModule space
-						if (g_SceneMan.GetScene()) {
-							// m_ModuleSpaceID = g_SceneMan.GetScene()->GetModuleID();
-							m_ModuleSpaceID = g_ModuleMan.GetModuleID(m_pModuleCombo->GetSelectedItem()->m_Name);
-							RTEAssert(m_ModuleSpaceID >= 0, "Loaded Scene's DataModule ID is negative? Should always be a specific one..");
-							m_pEditorGUI->Destroy();
-							if (m_ModuleSpaceID == g_ModuleMan.GetModuleID(c_UserScenesModuleName))
-								m_pEditorGUI->Create(&(m_PlayerController[0]), AssemblyEditorGUI::ONLOADEDIT, -1);
-							else
-								m_pEditorGUI->Create(&(m_PlayerController[0]), AssemblyEditorGUI::ONLOADEDIT, m_ModuleSpaceID);
-							// TODO: Should read in all the already placed objects in the loaded scene and have them appear int he editor instead
-						}
-					}
-					m_NeedSave = false;
-					m_HasEverBeenSaved = true;
-					m_EditorMode = m_PreviousMode = EditorActivity::EDITINGOBJECT;
-					m_ModeChange = true;
-				}
-
-				//////////////////////////////////////////////////////////
-				// SAVE button pressed; save the selected Scene
-				if (anEvent.GetControl() == m_pSaveButton) {
-					if (!m_pSaveNameBox->GetText().empty()) {
-						// Save the scene to the name specified in the text box
-						if (SaveAssembly(m_pSaveNameBox->GetText())) {
-							// Close the dialog box on success
-							m_NeedSave = false;
-							m_HasEverBeenSaved = true;
-							// Go back to previous mode after save dialog is done, may have been on the way to test the scene
-							m_EditorMode = EditorActivity::EDITINGOBJECT;
-							m_ModeChange = true;
-						}
-						// Should really leave dialog box open?
-						else {
-							;
-						}
+			if (anEvent.GetControl() == m_pLoadButton) {
+				GUIListPanel::Item* pItem = m_pLoadNameCombo->GetItem(m_pLoadNameCombo->GetSelectedIndex());
+				if (pItem && !pItem->m_Name.empty()) {
+					// Attempt to load the scene, without applying its placed objects
+					g_SceneMan.SetSceneToLoad(pItem->m_Name, false);
+					g_SceneMan.LoadScene();
+					// Get the Module ID that the scene exists in, so we can limit the picker to only show objects from that DataModule space
+					if (g_SceneMan.GetScene()) {
+						// m_ModuleSpaceID = g_SceneMan.GetScene()->GetModuleID();
+						m_ModuleSpaceID = g_ModuleMan.GetModuleID(m_pModuleCombo->GetSelectedItem()->m_Name);
+						RTEAssert(m_ModuleSpaceID >= 0, "Loaded Scene's DataModule ID is negative? Should always be a specific one..");
+						m_pEditorGUI->Destroy();
+						if (m_ModuleSpaceID == g_ModuleMan.GetModuleID(c_UserScenesModuleName))
+							m_pEditorGUI->Create(&(m_PlayerController[0]), AssemblyEditorGUI::ONLOADEDIT, -1);
+						else
+							m_pEditorGUI->Create(&(m_PlayerController[0]), AssemblyEditorGUI::ONLOADEDIT, m_ModuleSpaceID);
+						// TODO: Should read in all the already placed objects in the loaded scene and have them appear int he editor instead
 					}
 				}
+				m_NeedSave = false;
+				m_HasEverBeenSaved = true;
+				m_EditorMode = m_PreviousMode = EditorActivity::EDITINGOBJECT;
+				m_ModeChange = true;
+			}
 
-				///////////////////////////////////////////////////////////////
-				// Save Changes YES pressed
-
-				if (anEvent.GetControl() == m_pChangesYesButton) {
-					if (m_HasEverBeenSaved) {
-						if (SaveAssembly(m_pEditorGUI->GetCurrentAssemblyName(), true)) {
-							// Close the dialog box on success
-							m_NeedSave = false;
-							m_HasEverBeenSaved = true;
-							// Go back to previous mode after save dialog is done, may have been on the way to test the scene
-							m_EditorMode = EditorActivity::EDITINGOBJECT;
-							m_ModeChange = true;
-						}
-					}
-					// Open the save scene dialog to ask user where to save it then
-					else {
-						m_PreviousMode = m_PreviousMode;
-						m_EditorMode = EditorActivity::SAVEDIALOG;
+			//////////////////////////////////////////////////////////
+			// SAVE button pressed; save the selected Scene
+			if (anEvent.GetControl() == m_pSaveButton) {
+				if (!m_pSaveNameBox->GetText().empty()) {
+					// Save the scene to the name specified in the text box
+					if (SaveAssembly(m_pSaveNameBox->GetText())) {
+						// Close the dialog box on success
+						m_NeedSave = false;
+						m_HasEverBeenSaved = true;
+						// Go back to previous mode after save dialog is done, may have been on the way to test the scene
+						m_EditorMode = EditorActivity::EDITINGOBJECT;
 						m_ModeChange = true;
 					}
+					// Should really leave dialog box open?
+					else {
+						;
+					}
 				}
+			}
 
-				///////////////////////////////////////////////////////////////
-				// Save Changes NO pressed
+			///////////////////////////////////////////////////////////////
+			// Save Changes YES pressed
 
-				if (anEvent.GetControl() == m_pChangesNoButton) {
-					// Just go back to previous mode
-					m_EditorMode = m_PreviousMode;
-					m_ModeChange = true;
-					m_NeedSave = false;
-				}
-
-				///////////////////////////////////////////////////////////////
-				// Overwrite Scene YES pressed
-
-				if (anEvent.GetControl() == m_pOverwriteYesButton) {
-					// Force overwrite
+			if (anEvent.GetControl() == m_pChangesYesButton) {
+				if (m_HasEverBeenSaved) {
 					if (SaveAssembly(m_pEditorGUI->GetCurrentAssemblyName(), true)) {
 						// Close the dialog box on success
 						m_NeedSave = false;
 						m_HasEverBeenSaved = true;
-						// Go back to previous mode after overwrite dialog is done, may have been on the way to test the scene
+						// Go back to previous mode after save dialog is done, may have been on the way to test the scene
 						m_EditorMode = EditorActivity::EDITINGOBJECT;
 						m_ModeChange = true;
 					}
 				}
-
-				///////////////////////////////////////////////////////////////
-				// Overwrite Scene NO pressed
-
-				if (anEvent.GetControl() == m_pOverwriteNoButton) {
-					// Just go back to previous mode
-					m_EditorMode = m_PreviousMode;
-					m_ModeChange = true;
-				}
-
-				///////////////////////////////////////////////////////////////
-				// CANCEL button pressed; exit any active dialog box
-
-				if (anEvent.GetControl() == m_pNewCancel || anEvent.GetControl() == m_pLoadCancel || anEvent.GetControl() == m_pSaveCancel) {
-					// Don't allow canceling out of diags if we're still in the special "Editor Scene", don't allow users to edit it!
-					// Just exit the whole editor into the main menu
-					if (g_SceneMan.GetScene()->GetPresetName() == "Editor Scene") {
-						g_ActivityMan.PauseActivity();
-					}
-					// Just do normal cancel of the dialog and go back to editing
-					else
-						m_EditorMode = m_PreviousMode = EditorActivity::EDITINGOBJECT;
-
+				// Open the save scene dialog to ask user where to save it then
+				else {
+					m_PreviousMode = m_PreviousMode;
+					m_EditorMode = EditorActivity::SAVEDIALOG;
 					m_ModeChange = true;
 				}
 			}
 
-			// Notifications
-			else if (anEvent.GetType() == GUIEvent::Notification) {
-				///////////////////////////////////////
-				// Clicks on the New Scene Module combo
+			///////////////////////////////////////////////////////////////
+			// Save Changes NO pressed
 
-				if (anEvent.GetControl() == m_pNewModuleCombo) {
-					// Closed it, IE selected somehting
-					if (anEvent.GetMsg() == GUIComboBox::Closed)
-						UpdateNewDialog();
+			if (anEvent.GetControl() == m_pChangesNoButton) {
+				// Just go back to previous mode
+				m_EditorMode = m_PreviousMode;
+				m_ModeChange = true;
+				m_NeedSave = false;
+			}
+
+			///////////////////////////////////////////////////////////////
+			// Overwrite Scene YES pressed
+
+			if (anEvent.GetControl() == m_pOverwriteYesButton) {
+				// Force overwrite
+				if (SaveAssembly(m_pEditorGUI->GetCurrentAssemblyName(), true)) {
+					// Close the dialog box on success
+					m_NeedSave = false;
+					m_HasEverBeenSaved = true;
+					// Go back to previous mode after overwrite dialog is done, may have been on the way to test the scene
+					m_EditorMode = EditorActivity::EDITINGOBJECT;
+					m_ModeChange = true;
 				}
+			}
+
+			///////////////////////////////////////////////////////////////
+			// Overwrite Scene NO pressed
+
+			if (anEvent.GetControl() == m_pOverwriteNoButton) {
+				// Just go back to previous mode
+				m_EditorMode = m_PreviousMode;
+				m_ModeChange = true;
+			}
+
+			///////////////////////////////////////////////////////////////
+			// CANCEL button pressed; exit any active dialog box
+
+			if (anEvent.GetControl() == m_pNewCancel || anEvent.GetControl() == m_pLoadCancel || anEvent.GetControl() == m_pSaveCancel) {
+				// Don't allow canceling out of diags if we're still in the special "Editor Scene", don't allow users to edit it!
+				// Just exit the whole editor into the main menu
+				if (g_SceneMan.GetScene()->GetPresetName() == "Editor Scene") {
+					g_ActivityMan.PauseActivity();
+				}
+				// Just do normal cancel of the dialog and go back to editing
+				else
+					m_EditorMode = m_PreviousMode = EditorActivity::EDITINGOBJECT;
+
+				m_ModeChange = true;
+			}
+		}
+
+		// Notifications
+		else if (anEvent.GetType() == GUIEvent::Notification) {
+			///////////////////////////////////////
+			// Clicks on the New Scene Module combo
+
+			if (anEvent.GetControl() == m_pNewModuleCombo) {
+				// Closed it, IE selected somehting
+				if (anEvent.GetMsg() == GUIComboBox::Closed)
+					UpdateNewDialog();
 			}
 		}
 	}
+}
 
-	void AssemblyEditor::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
-		m_pEditorGUI->Draw(pTargetBitmap, targetPos);
+void AssemblyEditor::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
+	m_pEditorGUI->Draw(pTargetBitmap, targetPos);
 
-		EditorActivity::DrawGUI(pTargetBitmap, targetPos, which);
+	EditorActivity::DrawGUI(pTargetBitmap, targetPos, which);
+}
+
+void AssemblyEditor::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
+	EditorActivity::Draw(pTargetBitmap, targetPos);
+}
+
+BunkerAssembly* AssemblyEditor::BuildAssembly(std::string saveAsName) {
+	// Create new bunker assembly to save
+	BunkerAssembly* pBA = new BunkerAssembly();
+	pBA->Create(m_pEditorGUI->GetCurrentAssemblyScheme());
+
+	// Retreive some properties if we're overwriting existing bunker assembly
+	const BunkerAssembly* pExistingBA = dynamic_cast<const BunkerAssembly*>(g_PresetMan.GetEntityPreset("BunkerAssembly", saveAsName, m_ModuleSpaceID));
+	if (pExistingBA) {
+		pBA->SetSymmetricAssemblyName(pExistingBA->GetSymmetricAssemblyName());
 	}
 
-	void AssemblyEditor::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
-		EditorActivity::Draw(pTargetBitmap, targetPos);
-	}
+	pBA->SetPresetName(saveAsName);
+	m_pEditorGUI->SetCurrentAssemblyName(saveAsName);
 
-	BunkerAssembly* AssemblyEditor::BuildAssembly(std::string saveAsName) {
-		// Create new bunker assembly to save
-		BunkerAssembly* pBA = new BunkerAssembly();
-		pBA->Create(m_pEditorGUI->GetCurrentAssemblyScheme());
+	const std::list<SceneObject*>* pSceneObjectList = 0;
+	pSceneObjectList = g_SceneMan.GetScene()->GetPlacedObjects(Scene::PLACEONLOAD);
+	for (std::list<SceneObject*>::const_iterator itr = pSceneObjectList->begin(); itr != pSceneObjectList->end(); ++itr) {
+		// Check if object fits the assembly box
+		bool skip = true;
 
-		// Retreive some properties if we're overwriting existing bunker assembly
-		const BunkerAssembly* pExistingBA = dynamic_cast<const BunkerAssembly*>(g_PresetMan.GetEntityPreset("BunkerAssembly", saveAsName, m_ModuleSpaceID));
-		if (pExistingBA) {
-			pBA->SetSymmetricAssemblyName(pExistingBA->GetSymmetricAssemblyName());
-		}
+		Vector pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset();
+		Vector finalPos = pos;
 
-		pBA->SetPresetName(saveAsName);
-		m_pEditorGUI->SetCurrentAssemblyName(saveAsName);
+		if ((pos.m_X >= 0) && (pos.m_X < pBA->GetBitmapWidth()) &&
+		    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight()))
+			skip = false;
 
-		const std::list<SceneObject*>* pSceneObjectList = 0;
-		pSceneObjectList = g_SceneMan.GetScene()->GetPlacedObjects(Scene::PLACEONLOAD);
-		for (std::list<SceneObject*>::const_iterator itr = pSceneObjectList->begin(); itr != pSceneObjectList->end(); ++itr) {
-			// Check if object fits the assembly box
-			bool skip = true;
-
-			Vector pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset();
-			Vector finalPos = pos;
+		// Try to move scene object across seams and see if it fits into assembly box
+		if (g_SceneMan.GetScene()->WrapsX()) {
+			pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset() + Vector(g_SceneMan.GetScene()->GetWidth(), 0);
 
 			if ((pos.m_X >= 0) && (pos.m_X < pBA->GetBitmapWidth()) &&
-			    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight()))
+			    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight())) {
 				skip = false;
-
-			// Try to move scene object across seams and see if it fits into assembly box
-			if (g_SceneMan.GetScene()->WrapsX()) {
-				pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset() + Vector(g_SceneMan.GetScene()->GetWidth(), 0);
-
-				if ((pos.m_X >= 0) && (pos.m_X < pBA->GetBitmapWidth()) &&
-				    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight())) {
-					skip = false;
-					finalPos = pos;
-				}
-
-				pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset() - Vector(g_SceneMan.GetScene()->GetWidth(), 0);
-
-				if ((pos.m_X >= 0) && (pos.m_X < pBA->GetBitmapWidth()) &&
-				    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight())) {
-					skip = false;
-					finalPos = pos;
-				}
+				finalPos = pos;
 			}
 
-			if (g_SceneMan.GetScene()->WrapsY()) {
-				pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset() + Vector(0, g_SceneMan.GetScene()->GetHeight());
+			pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset() - Vector(g_SceneMan.GetScene()->GetWidth(), 0);
 
-				if ((pos.m_X >= 0) && (pos.m_X < pBA->GetBitmapWidth()) &&
-				    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight())) {
-					skip = false;
-					finalPos = pos;
-				}
-
-				pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset() - Vector(0, g_SceneMan.GetScene()->GetHeight());
-
-				if ((pos.m_X >= 0) && (pos.m_X < pBA->GetBitmapWidth()) &&
-				    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight())) {
-					skip = false;
-					finalPos = pos;
-				}
-			}
-
-			if (!skip) {
-				SceneObject* pNewSO = dynamic_cast<SceneObject*>((*itr)->Clone());
-
-				// Set position relative to this Bunker Assembly
-				// pNewSO->SetPos(pNewSO->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset());
-				pNewSO->SetPos(finalPos);
-				pBA->AddPlacedObject(pNewSO);
+			if ((pos.m_X >= 0) && (pos.m_X < pBA->GetBitmapWidth()) &&
+			    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight())) {
+				skip = false;
+				finalPos = pos;
 			}
 		}
 
-		return pBA;
+		if (g_SceneMan.GetScene()->WrapsY()) {
+			pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset() + Vector(0, g_SceneMan.GetScene()->GetHeight());
+
+			if ((pos.m_X >= 0) && (pos.m_X < pBA->GetBitmapWidth()) &&
+			    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight())) {
+				skip = false;
+				finalPos = pos;
+			}
+
+			pos = (*itr)->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset() - Vector(0, g_SceneMan.GetScene()->GetHeight());
+
+			if ((pos.m_X >= 0) && (pos.m_X < pBA->GetBitmapWidth()) &&
+			    (pos.m_Y >= 0) && (pos.m_Y < pBA->GetBitmapHeight())) {
+				skip = false;
+				finalPos = pos;
+			}
+		}
+
+		if (!skip) {
+			SceneObject* pNewSO = dynamic_cast<SceneObject*>((*itr)->Clone());
+
+			// Set position relative to this Bunker Assembly
+			// pNewSO->SetPos(pNewSO->GetPos() - pBA->GetPos() - pBA->GetBitmapOffset());
+			pNewSO->SetPos(finalPos);
+			pBA->AddPlacedObject(pNewSO);
+		}
 	}
 
-	bool AssemblyEditor::SaveAssembly(const std::string& saveAsName, bool forceOverwrite) {
-		std::unique_ptr<BunkerAssembly> editedAssembly(BuildAssembly(saveAsName));
+	return pBA;
+}
 
-		std::string dataModuleName = g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName();
-		bool savingToUserScenesModule = (dataModuleName == c_UserScenesModuleName);
+bool AssemblyEditor::SaveAssembly(const std::string& saveAsName, bool forceOverwrite) {
+	std::unique_ptr<BunkerAssembly> editedAssembly(BuildAssembly(saveAsName));
 
-		std::string dataModuleFullPath = g_ModuleMan.GetFullModulePath(dataModuleName);
-		std::string assemblySavePath;
+	std::string dataModuleName = g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName();
+	bool savingToUserScenesModule = (dataModuleName == c_UserScenesModuleName);
 
-		if (savingToUserScenesModule) {
-			assemblySavePath = dataModuleFullPath + "/" + saveAsName + ".ini";
+	std::string dataModuleFullPath = g_ModuleMan.GetFullModulePath(dataModuleName);
+	std::string assemblySavePath;
+
+	if (savingToUserScenesModule) {
+		assemblySavePath = dataModuleFullPath + "/" + saveAsName + ".ini";
+	} else {
+		if (dataModuleName == "Base.rte") {
+			assemblySavePath = dataModuleFullPath + "/Scenes/Objects/Bunkers/BunkerAssemblies/" + saveAsName + ".ini";
 		} else {
-			if (dataModuleName == "Base.rte") {
-				assemblySavePath = dataModuleFullPath + "/Scenes/Objects/Bunkers/BunkerAssemblies/" + saveAsName + ".ini";
-			} else {
-				System::MakeDirectory((dataModuleFullPath + "/BunkerAssemblies").c_str());
-				assemblySavePath = dataModuleFullPath + "/BunkerAssemblies/" + saveAsName + ".ini";
-			}
+			System::MakeDirectory((dataModuleFullPath + "/BunkerAssemblies").c_str());
+			assemblySavePath = dataModuleFullPath + "/BunkerAssemblies/" + saveAsName + ".ini";
 		}
+	}
 
-		if (g_PresetMan.AddEntityPreset(editedAssembly.get(), m_ModuleSpaceID, forceOverwrite, assemblySavePath)) {
-			if (Writer assemblyWriter(assemblySavePath, false); !assemblyWriter.WriterOK()) {
-				RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + assemblySavePath + "\n\nTHE EDITED BUNKER ASSEMBLY PRESET WAS NOT SAVED!!!");
-			} else {
-				// TODO: Check if the ini file already exists, and then ask if overwrite.
-				assemblyWriter.NewPropertyWithValue("AddBunkerAssembly", editedAssembly.get());
-				assemblyWriter.EndWrite();
+	if (g_PresetMan.AddEntityPreset(editedAssembly.get(), m_ModuleSpaceID, forceOverwrite, assemblySavePath)) {
+		if (Writer assemblyWriter(assemblySavePath, false); !assemblyWriter.WriterOK()) {
+			RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + assemblySavePath + "\n\nTHE EDITED BUNKER ASSEMBLY PRESET WAS NOT SAVED!!!");
+		} else {
+			// TODO: Check if the ini file already exists, and then ask if overwrite.
+			assemblyWriter.NewPropertyWithValue("AddBunkerAssembly", editedAssembly.get());
+			assemblyWriter.EndWrite();
 
-				m_HasEverBeenSaved = true;
+			m_HasEverBeenSaved = true;
 
-				if (!savingToUserScenesModule) {
-					// First find/create a BunkerAssemblies.ini file to include the new .ini into.
-					std::string assembliesFilePath = dataModuleFullPath + ((dataModuleName == "Base.rte") ? "/Scenes/Objects/Bunkers/BunkerAssemblies/BunkerAssemblies.ini" : "/BunkerAssemblies/BunkerAssemblies.ini");
-					bool assembliesFileExists = System::PathExistsCaseSensitive(assembliesFilePath);
+			if (!savingToUserScenesModule) {
+				// First find/create a BunkerAssemblies.ini file to include the new .ini into.
+				std::string assembliesFilePath = dataModuleFullPath + ((dataModuleName == "Base.rte") ? "/Scenes/Objects/Bunkers/BunkerAssemblies/BunkerAssemblies.ini" : "/BunkerAssemblies/BunkerAssemblies.ini");
+				bool assembliesFileExists = System::PathExistsCaseSensitive(assembliesFilePath);
 
-					if (Writer assembliesFileWriter(assembliesFilePath, true); !assembliesFileWriter.WriterOK()) {
-						RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + assembliesFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
-					} else {
-						assembliesFileWriter.NewPropertyWithValue("IncludeFile", assemblySavePath);
-						assembliesFileWriter.EndWrite();
+				if (Writer assembliesFileWriter(assembliesFilePath, true); !assembliesFileWriter.WriterOK()) {
+					RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + assembliesFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
+				} else {
+					assembliesFileWriter.NewPropertyWithValue("IncludeFile", assemblySavePath);
+					assembliesFileWriter.EndWrite();
 
-						// Append to the end of the modules' Index.ini to include the newly created Scenes.ini next startup.
-						// If it's somehow already included without actually existing, it doesn't matter, the definitions will just bounce the second time.
-						if (!assembliesFileExists) {
-							std::string indexFilePath = dataModuleFullPath + "/Index.ini";
+					// Append to the end of the modules' Index.ini to include the newly created Scenes.ini next startup.
+					// If it's somehow already included without actually existing, it doesn't matter, the definitions will just bounce the second time.
+					if (!assembliesFileExists) {
+						std::string indexFilePath = dataModuleFullPath + "/Index.ini";
 
-							if (Writer indexWriter(indexFilePath, true); !indexWriter.WriterOK()) {
-								RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + indexFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
-							} else {
-								// Add extra tab since the DataModule has everything indented.
-								indexWriter.NewProperty("\tIncludeFile");
-								indexWriter << assembliesFilePath;
-								indexWriter.EndWrite();
-							}
+						if (Writer indexWriter(indexFilePath, true); !indexWriter.WriterOK()) {
+							RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + indexFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
+						} else {
+							// Add extra tab since the DataModule has everything indented.
+							indexWriter.NewProperty("\tIncludeFile");
+							indexWriter << assembliesFilePath;
+							indexWriter.EndWrite();
 						}
 					}
 				}
-				return true;
 			}
-		} else {
-			// Got to ask if we can overwrite the existing preset.
-			m_PreviousMode = EditorMode::SAVEDIALOG;
-			m_EditorMode = EditorMode::OVERWRITEDIALOG;
-			m_ModeChange = true;
+			return true;
 		}
-		return false;
+	} else {
+		// Got to ask if we can overwrite the existing preset.
+		m_PreviousMode = EditorMode::SAVEDIALOG;
+		m_EditorMode = EditorMode::OVERWRITEDIALOG;
+		m_ModeChange = true;
 	}
+	return false;
+}
 
-	void AssemblyEditor::UpdateNewDialog() {
-	}
+void AssemblyEditor::UpdateNewDialog() {
+}
 
-	void AssemblyEditor::UpdateLoadDialog() {
-		int scenesIndex = 0;
+void AssemblyEditor::UpdateLoadDialog() {
+	int scenesIndex = 0;
 
-		if (m_pModuleCombo->GetCount() <= 0) {
-			for (int module = 0; module < g_ModuleMan.GetTotalModuleCount(); ++module) {
-				// Cut-off vanilla modules except Base.rte
-				bool isValid = false;
+	if (m_pModuleCombo->GetCount() <= 0) {
+		for (int module = 0; module < g_ModuleMan.GetTotalModuleCount(); ++module) {
+			// Cut-off vanilla modules except Base.rte
+			bool isValid = false;
 
-				// If metascenes are visible then allow to save assemblies to Base.rte
-				if (g_SettingsMan.ShowMetascenes()) {
-					if ((module == 0 || module > 8) && g_ModuleMan.GetDataModule(module)->GetFileName() != c_UserConquestSavesModuleName && g_ModuleMan.GetDataModule(module)->GetFileName() != "Missions.rte")
-						isValid = true;
-				} else {
-					if (module > 8 && g_ModuleMan.GetDataModule(module)->GetFileName() != c_UserConquestSavesModuleName && g_ModuleMan.GetDataModule(module)->GetFileName() != "Missions.rte" && g_ModuleMan.GetDataModule(module)->GetFileName() != c_UserScriptedSavesModuleName)
-						isValid = true;
-				}
-
-				// If Saving to Base.rte is enabled, every module is valid for saving
-				if (g_SettingsMan.AllowSavingToBase())
+			// If metascenes are visible then allow to save assemblies to Base.rte
+			if (g_SettingsMan.ShowMetascenes()) {
+				if ((module == 0 || module > 8) && g_ModuleMan.GetDataModule(module)->GetFileName() != c_UserConquestSavesModuleName && g_ModuleMan.GetDataModule(module)->GetFileName() != "Missions.rte")
 					isValid = true;
-
-				if (isValid) {
-					m_pModuleCombo->AddItem(g_ModuleMan.GetDataModule(module)->GetFileName());
-
-					if (g_SettingsMan.AllowSavingToBase()) {
-						// If editors are in dev-mode then select Base.rte as default module to save stuff
-						if (g_ModuleMan.GetDataModule(module)->GetFileName() == "Base.rte")
-							scenesIndex = m_pModuleCombo->GetCount() - 1;
-					} else {
-						if (g_ModuleMan.GetDataModule(module)->GetFileName() == c_UserScenesModuleName)
-							scenesIndex = m_pModuleCombo->GetCount() - 1;
-					}
-				}
+			} else {
+				if (module > 8 && g_ModuleMan.GetDataModule(module)->GetFileName() != c_UserConquestSavesModuleName && g_ModuleMan.GetDataModule(module)->GetFileName() != "Missions.rte" && g_ModuleMan.GetDataModule(module)->GetFileName() != c_UserScriptedSavesModuleName)
+					isValid = true;
 			}
 
-			m_pModuleCombo->SetDropHeight(std::min({m_pModuleCombo->GetListPanel()->GetStackHeight() + 4, m_pModuleCombo->GetDropHeight(), g_WindowMan.GetResY() / 2}));
-			// Select the user scenes module
-			m_pModuleCombo->SetSelectedIndex(scenesIndex);
+			// If Saving to Base.rte is enabled, every module is valid for saving
+			if (g_SettingsMan.AllowSavingToBase())
+				isValid = true;
+
+			if (isValid) {
+				m_pModuleCombo->AddItem(g_ModuleMan.GetDataModule(module)->GetFileName());
+
+				if (g_SettingsMan.AllowSavingToBase()) {
+					// If editors are in dev-mode then select Base.rte as default module to save stuff
+					if (g_ModuleMan.GetDataModule(module)->GetFileName() == "Base.rte")
+						scenesIndex = m_pModuleCombo->GetCount() - 1;
+				} else {
+					if (g_ModuleMan.GetDataModule(module)->GetFileName() == c_UserScenesModuleName)
+						scenesIndex = m_pModuleCombo->GetCount() - 1;
+				}
+			}
 		}
 
-		// Clear out the control
-		m_pLoadNameCombo->ClearList();
-
-		// Get the list of all read in scenes
-		std::list<Entity*> sceneList;
-		g_PresetMan.GetAllOfType(sceneList, "Scene");
-
-		// Go through the list and add their names to the combo box
-		for (std::list<Entity*>::iterator itr = sceneList.begin(); itr != sceneList.end(); ++itr) {
-			Scene* pScene = dynamic_cast<Scene*>(*itr);
-			if (pScene)
-				// Don't add the special "Editor Scene" or metascenes, users shouldn't be messing with them
-				if (pScene->GetPresetName() != "Editor Scene" && !pScene->IsMetagameInternal() && !pScene->IsSavedGameInternal() && (pScene->GetMetasceneParent() == "" || g_SettingsMan.ShowMetascenes()))
-					m_pLoadNameCombo->AddItem(pScene->GetPresetName());
-		}
-
-		// Select the first one
-		m_pLoadNameCombo->SetSelectedIndex(0);
+		m_pModuleCombo->SetDropHeight(std::min({m_pModuleCombo->GetListPanel()->GetStackHeight() + 4, m_pModuleCombo->GetDropHeight(), g_WindowMan.GetResY() / 2}));
+		// Select the user scenes module
+		m_pModuleCombo->SetSelectedIndex(scenesIndex);
 	}
 
-	void AssemblyEditor::UpdateSaveDialog() {
-		std::string defaultName = "";
+	// Clear out the control
+	m_pLoadNameCombo->ClearList();
 
-		BunkerAssemblyScheme* pScheme = m_pEditorGUI->GetCurrentAssemblyScheme();
-		if (pScheme)
-			defaultName = pScheme->GetPresetName() + " - ";
+	// Get the list of all read in scenes
+	std::list<Entity*> sceneList;
+	g_PresetMan.GetAllOfType(sceneList, "Scene");
 
-		m_pSaveNameBox->SetText(m_pEditorGUI->GetCurrentAssemblyName() == "" ? defaultName : m_pEditorGUI->GetCurrentAssemblyName());
-		m_pSaveModuleLabel->SetText("Will save in " + g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName());
+	// Go through the list and add their names to the combo box
+	for (std::list<Entity*>::iterator itr = sceneList.begin(); itr != sceneList.end(); ++itr) {
+		Scene* pScene = dynamic_cast<Scene*>(*itr);
+		if (pScene)
+			// Don't add the special "Editor Scene" or metascenes, users shouldn't be messing with them
+			if (pScene->GetPresetName() != "Editor Scene" && !pScene->IsMetagameInternal() && !pScene->IsSavedGameInternal() && (pScene->GetMetasceneParent() == "" || g_SettingsMan.ShowMetascenes()))
+				m_pLoadNameCombo->AddItem(pScene->GetPresetName());
 	}
 
-	void AssemblyEditor::UpdateChangesDialog() {
-		if (m_HasEverBeenSaved) {
-			dynamic_cast<GUILabel*>(m_pGUIController->GetControl("ChangesExpLabel"))->SetText("Do you want to save your changes to:");
-			m_pChangesNameLabel->SetText(m_pEditorGUI->GetCurrentAssemblyName());
-		} else {
-			dynamic_cast<GUILabel*>(m_pGUIController->GetControl("ChangesExpLabel"))->SetText("Save your new Assembly first?");
-			m_pChangesNameLabel->SetText(m_pEditorGUI->GetCurrentAssemblyName());
-		}
-	}
+	// Select the first one
+	m_pLoadNameCombo->SetSelectedIndex(0);
+}
 
-	void AssemblyEditor::UpdateOverwriteDialog() {
-		m_pOverwriteNameLabel->SetText(m_pEditorGUI->GetCurrentAssemblyName());
+void AssemblyEditor::UpdateSaveDialog() {
+	std::string defaultName = "";
+
+	BunkerAssemblyScheme* pScheme = m_pEditorGUI->GetCurrentAssemblyScheme();
+	if (pScheme)
+		defaultName = pScheme->GetPresetName() + " - ";
+
+	m_pSaveNameBox->SetText(m_pEditorGUI->GetCurrentAssemblyName() == "" ? defaultName : m_pEditorGUI->GetCurrentAssemblyName());
+	m_pSaveModuleLabel->SetText("Will save in " + g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName());
+}
+
+void AssemblyEditor::UpdateChangesDialog() {
+	if (m_HasEverBeenSaved) {
+		dynamic_cast<GUILabel*>(m_pGUIController->GetControl("ChangesExpLabel"))->SetText("Do you want to save your changes to:");
+		m_pChangesNameLabel->SetText(m_pEditorGUI->GetCurrentAssemblyName());
+	} else {
+		dynamic_cast<GUILabel*>(m_pGUIController->GetControl("ChangesExpLabel"))->SetText("Save your new Assembly first?");
+		m_pChangesNameLabel->SetText(m_pEditorGUI->GetCurrentAssemblyName());
 	}
+}
+
+void AssemblyEditor::UpdateOverwriteDialog() {
+	m_pOverwriteNameLabel->SetText(m_pEditorGUI->GetCurrentAssemblyName());
+}

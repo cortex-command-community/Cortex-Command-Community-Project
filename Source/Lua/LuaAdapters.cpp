@@ -6,7 +6,7 @@
 
 using namespace RTE;
 
-	std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions = {};
+std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions = {};
 
 #define LuaEntityCreateFunctionsDefinitionsForType(TYPE) \
 	TYPE* LuaAdaptersEntityCreate::Create##TYPE(std::string preseName, std::string moduleName) { \
@@ -53,34 +53,34 @@ using namespace RTE;
 		return Random##TYPE(groupName, "All"); \
 	}
 
-	LuaEntityCreateFunctionsDefinitionsForType(SoundContainer);
-	LuaEntityCreateFunctionsDefinitionsForType(Attachable);
-	LuaEntityCreateFunctionsDefinitionsForType(Arm);
-	LuaEntityCreateFunctionsDefinitionsForType(Leg);
-	LuaEntityCreateFunctionsDefinitionsForType(AEmitter);
-	LuaEntityCreateFunctionsDefinitionsForType(AEJetpack);
-	LuaEntityCreateFunctionsDefinitionsForType(Turret);
-	LuaEntityCreateFunctionsDefinitionsForType(Actor);
-	LuaEntityCreateFunctionsDefinitionsForType(ADoor);
-	LuaEntityCreateFunctionsDefinitionsForType(AHuman);
-	LuaEntityCreateFunctionsDefinitionsForType(ACrab);
-	LuaEntityCreateFunctionsDefinitionsForType(ACraft);
-	LuaEntityCreateFunctionsDefinitionsForType(ACDropShip);
-	LuaEntityCreateFunctionsDefinitionsForType(ACRocket);
-	LuaEntityCreateFunctionsDefinitionsForType(MOSParticle);
-	LuaEntityCreateFunctionsDefinitionsForType(MOSRotating);
-	LuaEntityCreateFunctionsDefinitionsForType(MOPixel);
-	LuaEntityCreateFunctionsDefinitionsForType(Scene);
-	LuaEntityCreateFunctionsDefinitionsForType(HeldDevice);
-	LuaEntityCreateFunctionsDefinitionsForType(Round);
-	LuaEntityCreateFunctionsDefinitionsForType(Magazine);
-	LuaEntityCreateFunctionsDefinitionsForType(HDFirearm);
-	LuaEntityCreateFunctionsDefinitionsForType(ThrownDevice);
-	LuaEntityCreateFunctionsDefinitionsForType(TDExplosive);
-	LuaEntityCreateFunctionsDefinitionsForType(TerrainObject);
-	LuaEntityCreateFunctionsDefinitionsForType(PEmitter);
-	LuaEntityCreateFunctionsDefinitionsForType(PieSlice);
-	LuaEntityCreateFunctionsDefinitionsForType(PieMenu);
+LuaEntityCreateFunctionsDefinitionsForType(SoundContainer);
+LuaEntityCreateFunctionsDefinitionsForType(Attachable);
+LuaEntityCreateFunctionsDefinitionsForType(Arm);
+LuaEntityCreateFunctionsDefinitionsForType(Leg);
+LuaEntityCreateFunctionsDefinitionsForType(AEmitter);
+LuaEntityCreateFunctionsDefinitionsForType(AEJetpack);
+LuaEntityCreateFunctionsDefinitionsForType(Turret);
+LuaEntityCreateFunctionsDefinitionsForType(Actor);
+LuaEntityCreateFunctionsDefinitionsForType(ADoor);
+LuaEntityCreateFunctionsDefinitionsForType(AHuman);
+LuaEntityCreateFunctionsDefinitionsForType(ACrab);
+LuaEntityCreateFunctionsDefinitionsForType(ACraft);
+LuaEntityCreateFunctionsDefinitionsForType(ACDropShip);
+LuaEntityCreateFunctionsDefinitionsForType(ACRocket);
+LuaEntityCreateFunctionsDefinitionsForType(MOSParticle);
+LuaEntityCreateFunctionsDefinitionsForType(MOSRotating);
+LuaEntityCreateFunctionsDefinitionsForType(MOPixel);
+LuaEntityCreateFunctionsDefinitionsForType(Scene);
+LuaEntityCreateFunctionsDefinitionsForType(HeldDevice);
+LuaEntityCreateFunctionsDefinitionsForType(Round);
+LuaEntityCreateFunctionsDefinitionsForType(Magazine);
+LuaEntityCreateFunctionsDefinitionsForType(HDFirearm);
+LuaEntityCreateFunctionsDefinitionsForType(ThrownDevice);
+LuaEntityCreateFunctionsDefinitionsForType(TDExplosive);
+LuaEntityCreateFunctionsDefinitionsForType(TerrainObject);
+LuaEntityCreateFunctionsDefinitionsForType(PEmitter);
+LuaEntityCreateFunctionsDefinitionsForType(PieSlice);
+LuaEntityCreateFunctionsDefinitionsForType(PieMenu);
 
 #define LuaEntityCloneFunctionDefinitionForType(TYPE) \
 	TYPE* LuaAdaptersEntityClone::Clone##TYPE(const TYPE* thisEntity) { \
@@ -91,38 +91,38 @@ using namespace RTE;
 		return nullptr; \
 	}
 
-	LuaEntityCloneFunctionDefinitionForType(Entity);
-	LuaEntityCloneFunctionDefinitionForType(SoundContainer);
-	LuaEntityCloneFunctionDefinitionForType(SceneObject);
-	LuaEntityCloneFunctionDefinitionForType(MovableObject);
-	LuaEntityCloneFunctionDefinitionForType(Attachable);
-	LuaEntityCloneFunctionDefinitionForType(Arm);
-	LuaEntityCloneFunctionDefinitionForType(Leg);
-	LuaEntityCloneFunctionDefinitionForType(Emission);
-	LuaEntityCloneFunctionDefinitionForType(AEmitter);
-	LuaEntityCloneFunctionDefinitionForType(AEJetpack);
-	LuaEntityCloneFunctionDefinitionForType(Turret);
-	LuaEntityCloneFunctionDefinitionForType(Actor);
-	LuaEntityCloneFunctionDefinitionForType(ADoor);
-	LuaEntityCloneFunctionDefinitionForType(AHuman);
-	LuaEntityCloneFunctionDefinitionForType(ACrab);
-	LuaEntityCloneFunctionDefinitionForType(ACraft);
-	LuaEntityCloneFunctionDefinitionForType(ACDropShip);
-	LuaEntityCloneFunctionDefinitionForType(ACRocket);
-	LuaEntityCloneFunctionDefinitionForType(MOSParticle);
-	LuaEntityCloneFunctionDefinitionForType(MOSRotating);
-	LuaEntityCloneFunctionDefinitionForType(MOPixel);
-	LuaEntityCloneFunctionDefinitionForType(Scene);
-	LuaEntityCloneFunctionDefinitionForType(HeldDevice);
-	LuaEntityCloneFunctionDefinitionForType(Round);
-	LuaEntityCloneFunctionDefinitionForType(Magazine);
-	LuaEntityCloneFunctionDefinitionForType(HDFirearm);
-	LuaEntityCloneFunctionDefinitionForType(ThrownDevice);
-	LuaEntityCloneFunctionDefinitionForType(TDExplosive);
-	LuaEntityCloneFunctionDefinitionForType(TerrainObject);
-	LuaEntityCloneFunctionDefinitionForType(PEmitter);
-	LuaEntityCloneFunctionDefinitionForType(PieSlice);
-	LuaEntityCloneFunctionDefinitionForType(PieMenu);
+LuaEntityCloneFunctionDefinitionForType(Entity);
+LuaEntityCloneFunctionDefinitionForType(SoundContainer);
+LuaEntityCloneFunctionDefinitionForType(SceneObject);
+LuaEntityCloneFunctionDefinitionForType(MovableObject);
+LuaEntityCloneFunctionDefinitionForType(Attachable);
+LuaEntityCloneFunctionDefinitionForType(Arm);
+LuaEntityCloneFunctionDefinitionForType(Leg);
+LuaEntityCloneFunctionDefinitionForType(Emission);
+LuaEntityCloneFunctionDefinitionForType(AEmitter);
+LuaEntityCloneFunctionDefinitionForType(AEJetpack);
+LuaEntityCloneFunctionDefinitionForType(Turret);
+LuaEntityCloneFunctionDefinitionForType(Actor);
+LuaEntityCloneFunctionDefinitionForType(ADoor);
+LuaEntityCloneFunctionDefinitionForType(AHuman);
+LuaEntityCloneFunctionDefinitionForType(ACrab);
+LuaEntityCloneFunctionDefinitionForType(ACraft);
+LuaEntityCloneFunctionDefinitionForType(ACDropShip);
+LuaEntityCloneFunctionDefinitionForType(ACRocket);
+LuaEntityCloneFunctionDefinitionForType(MOSParticle);
+LuaEntityCloneFunctionDefinitionForType(MOSRotating);
+LuaEntityCloneFunctionDefinitionForType(MOPixel);
+LuaEntityCloneFunctionDefinitionForType(Scene);
+LuaEntityCloneFunctionDefinitionForType(HeldDevice);
+LuaEntityCloneFunctionDefinitionForType(Round);
+LuaEntityCloneFunctionDefinitionForType(Magazine);
+LuaEntityCloneFunctionDefinitionForType(HDFirearm);
+LuaEntityCloneFunctionDefinitionForType(ThrownDevice);
+LuaEntityCloneFunctionDefinitionForType(TDExplosive);
+LuaEntityCloneFunctionDefinitionForType(TerrainObject);
+LuaEntityCloneFunctionDefinitionForType(PEmitter);
+LuaEntityCloneFunctionDefinitionForType(PieSlice);
+LuaEntityCloneFunctionDefinitionForType(PieMenu);
 
 #define LuaEntityCastFunctionsDefinitionsForType(TYPE) \
 	TYPE* LuaAdaptersEntityCast::To##TYPE(Entity* entity) { \
@@ -151,483 +151,483 @@ using namespace RTE;
 		return true; \
 	}()
 
-	LuaEntityCastFunctionsDefinitionsForType(Entity);
-	LuaEntityCastFunctionsDefinitionsForType(SoundContainer);
-	LuaEntityCastFunctionsDefinitionsForType(SceneObject);
-	LuaEntityCastFunctionsDefinitionsForType(MovableObject);
-	LuaEntityCastFunctionsDefinitionsForType(Attachable);
-	LuaEntityCastFunctionsDefinitionsForType(Arm);
-	LuaEntityCastFunctionsDefinitionsForType(Leg);
-	LuaEntityCastFunctionsDefinitionsForType(Emission);
-	LuaEntityCastFunctionsDefinitionsForType(AEmitter);
-	LuaEntityCastFunctionsDefinitionsForType(AEJetpack);
-	LuaEntityCastFunctionsDefinitionsForType(Turret);
-	LuaEntityCastFunctionsDefinitionsForType(Actor);
-	LuaEntityCastFunctionsDefinitionsForType(ADoor);
-	LuaEntityCastFunctionsDefinitionsForType(AHuman);
-	LuaEntityCastFunctionsDefinitionsForType(ACrab);
-	LuaEntityCastFunctionsDefinitionsForType(ACraft);
-	LuaEntityCastFunctionsDefinitionsForType(ACDropShip);
-	LuaEntityCastFunctionsDefinitionsForType(ACRocket);
-	LuaEntityCastFunctionsDefinitionsForType(MOSParticle);
-	LuaEntityCastFunctionsDefinitionsForType(MOSRotating);
-	LuaEntityCastFunctionsDefinitionsForType(MOPixel);
-	LuaEntityCastFunctionsDefinitionsForType(MOSprite);
-	LuaEntityCastFunctionsDefinitionsForType(Scene);
-	LuaEntityCastFunctionsDefinitionsForType(Deployment);
-	LuaEntityCastFunctionsDefinitionsForType(GameActivity);
-	LuaEntityCastFunctionsDefinitionsForType(GlobalScript);
-	LuaEntityCastFunctionsDefinitionsForType(GAScripted);
-	LuaEntityCastFunctionsDefinitionsForType(HeldDevice);
-	LuaEntityCastFunctionsDefinitionsForType(Round);
-	LuaEntityCastFunctionsDefinitionsForType(Magazine);
-	LuaEntityCastFunctionsDefinitionsForType(HDFirearm);
-	LuaEntityCastFunctionsDefinitionsForType(ThrownDevice);
-	LuaEntityCastFunctionsDefinitionsForType(TDExplosive);
-	LuaEntityCastFunctionsDefinitionsForType(TerrainObject);
-	LuaEntityCastFunctionsDefinitionsForType(PEmitter);
-	LuaEntityCastFunctionsDefinitionsForType(PieSlice);
-	LuaEntityCastFunctionsDefinitionsForType(PieMenu);
+LuaEntityCastFunctionsDefinitionsForType(Entity);
+LuaEntityCastFunctionsDefinitionsForType(SoundContainer);
+LuaEntityCastFunctionsDefinitionsForType(SceneObject);
+LuaEntityCastFunctionsDefinitionsForType(MovableObject);
+LuaEntityCastFunctionsDefinitionsForType(Attachable);
+LuaEntityCastFunctionsDefinitionsForType(Arm);
+LuaEntityCastFunctionsDefinitionsForType(Leg);
+LuaEntityCastFunctionsDefinitionsForType(Emission);
+LuaEntityCastFunctionsDefinitionsForType(AEmitter);
+LuaEntityCastFunctionsDefinitionsForType(AEJetpack);
+LuaEntityCastFunctionsDefinitionsForType(Turret);
+LuaEntityCastFunctionsDefinitionsForType(Actor);
+LuaEntityCastFunctionsDefinitionsForType(ADoor);
+LuaEntityCastFunctionsDefinitionsForType(AHuman);
+LuaEntityCastFunctionsDefinitionsForType(ACrab);
+LuaEntityCastFunctionsDefinitionsForType(ACraft);
+LuaEntityCastFunctionsDefinitionsForType(ACDropShip);
+LuaEntityCastFunctionsDefinitionsForType(ACRocket);
+LuaEntityCastFunctionsDefinitionsForType(MOSParticle);
+LuaEntityCastFunctionsDefinitionsForType(MOSRotating);
+LuaEntityCastFunctionsDefinitionsForType(MOPixel);
+LuaEntityCastFunctionsDefinitionsForType(MOSprite);
+LuaEntityCastFunctionsDefinitionsForType(Scene);
+LuaEntityCastFunctionsDefinitionsForType(Deployment);
+LuaEntityCastFunctionsDefinitionsForType(GameActivity);
+LuaEntityCastFunctionsDefinitionsForType(GlobalScript);
+LuaEntityCastFunctionsDefinitionsForType(GAScripted);
+LuaEntityCastFunctionsDefinitionsForType(HeldDevice);
+LuaEntityCastFunctionsDefinitionsForType(Round);
+LuaEntityCastFunctionsDefinitionsForType(Magazine);
+LuaEntityCastFunctionsDefinitionsForType(HDFirearm);
+LuaEntityCastFunctionsDefinitionsForType(ThrownDevice);
+LuaEntityCastFunctionsDefinitionsForType(TDExplosive);
+LuaEntityCastFunctionsDefinitionsForType(TerrainObject);
+LuaEntityCastFunctionsDefinitionsForType(PEmitter);
+LuaEntityCastFunctionsDefinitionsForType(PieSlice);
+LuaEntityCastFunctionsDefinitionsForType(PieMenu);
 
 #define LuaPropertyOwnershipSafetyFakerFunctionDefinition(OBJECTTYPE, PROPERTYTYPE, SETTERFUNCTION) \
 	void LuaAdaptersPropertyOwnershipSafetyFaker::OBJECTTYPE##SETTERFUNCTION(OBJECTTYPE* luaSelfObject, PROPERTYTYPE* objectToSet) { \
 		luaSelfObject->SETTERFUNCTION(objectToSet ? dynamic_cast<PROPERTYTYPE*>(objectToSet->Clone()) : nullptr); \
 	}
 
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(MOSRotating, SoundContainer, SetGibSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Attachable, AEmitter, SetBreakWound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Attachable, AEmitter, SetParentBreakWound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, Attachable, SetFlash);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, SoundContainer, SetEmissionSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, SoundContainer, SetBurstSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, SoundContainer, SetEndSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, Attachable, SetDoor);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Arm, HeldDevice, SetHeldDevice);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Leg, Attachable, SetFoot);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, PieMenu, SetPieMenu);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetBodyHitSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetAlarmSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetPainSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetDeathSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetDeviceSwitchSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveStartSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorDirectionChangeSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveEndSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetHead);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, AEJetpack, SetJetpack);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Arm, SetFGArm);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Arm, SetBGArm);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Leg, SetFGLeg);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Leg, SetBGLeg);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetFGFoot);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetBGFoot);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, SoundContainer, SetStrideSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Turret, SetTurret);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, AEJetpack, SetJetpack);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftFGLeg);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftBGLeg);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetRightFGLeg);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetRightBGLeg);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, SoundContainer, SetStrideSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(Turret, HeldDevice, SetFirstMountedDevice);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACraft, SoundContainer, SetHatchOpenSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACraft, SoundContainer, SetHatchCloseSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACraft, SoundContainer, SetCrashSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetRightThruster);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetLeftThruster);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetURightThruster);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetULeftThruster);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, Attachable, SetRightHatch);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, Attachable, SetLeftHatch);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, Leg, SetRightLeg);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, Leg, SetLeftLeg);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetMainThruster);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetLeftThruster);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetRightThruster);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetULeftThruster);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetURightThruster);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, Magazine, SetMagazine);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, Attachable, SetFlash);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetPreFireSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetFireSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetFireEchoSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetActiveSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetDeactivationSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetEmptySound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetReloadStartSound);
-	LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetReloadEndSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(MOSRotating, SoundContainer, SetGibSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Attachable, AEmitter, SetBreakWound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Attachable, AEmitter, SetParentBreakWound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, Attachable, SetFlash);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, SoundContainer, SetEmissionSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, SoundContainer, SetBurstSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, SoundContainer, SetEndSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, Attachable, SetDoor);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Arm, HeldDevice, SetHeldDevice);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Leg, Attachable, SetFoot);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, PieMenu, SetPieMenu);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetBodyHitSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetAlarmSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetPainSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetDeathSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetDeviceSwitchSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveStartSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorDirectionChangeSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveEndSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetHead);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, AEJetpack, SetJetpack);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Arm, SetFGArm);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Arm, SetBGArm);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Leg, SetFGLeg);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Leg, SetBGLeg);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetFGFoot);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetBGFoot);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, SoundContainer, SetStrideSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Turret, SetTurret);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, AEJetpack, SetJetpack);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftFGLeg);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftBGLeg);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetRightFGLeg);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetRightBGLeg);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, SoundContainer, SetStrideSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(Turret, HeldDevice, SetFirstMountedDevice);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACraft, SoundContainer, SetHatchOpenSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACraft, SoundContainer, SetHatchCloseSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACraft, SoundContainer, SetCrashSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetRightThruster);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetLeftThruster);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetURightThruster);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetULeftThruster);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, Attachable, SetRightHatch);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, Attachable, SetLeftHatch);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, Leg, SetRightLeg);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, Leg, SetLeftLeg);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetMainThruster);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetLeftThruster);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetRightThruster);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetULeftThruster);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetURightThruster);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, Magazine, SetMagazine);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, Attachable, SetFlash);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetPreFireSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetFireSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetFireEchoSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetActiveSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetDeactivationSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetEmptySound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetReloadStartSound);
+LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetReloadEndSound);
 
-	void LuaAdaptersEntity::SetPresetName(Entity* luaSelfObject, const std::string& presetName) {
-		luaSelfObject->SetPresetName(presetName, true);
+void LuaAdaptersEntity::SetPresetName(Entity* luaSelfObject, const std::string& presetName) {
+	luaSelfObject->SetPresetName(presetName, true);
+}
+
+std::vector<Vector>* LuaAdaptersActor::GetSceneWaypoints(Actor* luaSelfObject) {
+	std::vector<Vector>* sceneWaypoints = new std::vector<Vector>();
+	sceneWaypoints->reserve(luaSelfObject->GetWaypointsSize());
+	for (auto& [sceneWaypoint, movableObjectWaypoint]: luaSelfObject->GetWaypointList()) {
+		if (movableObjectWaypoint == nullptr) {
+			sceneWaypoints->emplace_back(sceneWaypoint);
+		}
 	}
+	return sceneWaypoints;
+}
 
-	std::vector<Vector>* LuaAdaptersActor::GetSceneWaypoints(Actor* luaSelfObject) {
-		std::vector<Vector>* sceneWaypoints = new std::vector<Vector>();
-		sceneWaypoints->reserve(luaSelfObject->GetWaypointsSize());
-		for (auto& [sceneWaypoint, movableObjectWaypoint]: luaSelfObject->GetWaypointList()) {
-			if (movableObjectWaypoint == nullptr) {
-				sceneWaypoints->emplace_back(sceneWaypoint);
+int LuaAdaptersScene::CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
+	std::list<Vector>& threadScenePath = luaSelfObject->GetScenePath();
+	team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
+	luaSelfObject->CalculatePath(start, end, threadScenePath, digStrength, team);
+	if (!threadScenePath.empty()) {
+		if (movePathToGround) {
+			for (Vector& scenePathPoint: threadScenePath) {
+				scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
 			}
 		}
-		return sceneWaypoints;
+
+		return static_cast<int>(threadScenePath.size());
+	}
+	return -1;
+}
+
+void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::object& callbackParam, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
+	team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
+
+	// So, luabind::object is a weak reference, holding just a stack and a position in the stack
+	// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
+	// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
+	// Note that also, the callbackParam's interpreter is actually different from our Lua state.
+	// It looks like Luabind constructs temporary interpreters and really doesn't like if you destroy these luabind objects
+	// In any case, it's extremely unsafe to use! For example capturing the callback by value into the lambdas causes random crashes
+	// Even if we did literally nothing with it except capture it into a no-op lambda
+	LuaStateWrapper* luaState = g_LuaMan.GetThreadCurrentLuaState();
+	static int currentCallbackId = 0;
+	int thisCallbackId = currentCallbackId++;
+	if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
+		luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
 	}
 
-	int LuaAdaptersScene::CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
-		std::list<Vector>& threadScenePath = luaSelfObject->GetScenePath();
-		team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
-		luaSelfObject->CalculatePath(start, end, threadScenePath, digStrength, team);
-		if (!threadScenePath.empty()) {
+	auto callLuaCallback = [luaState, thisCallbackId, movePathToGround](std::shared_ptr<volatile PathRequest> pathRequestVol) {
+		// This callback is called from the async pathing thread, so we need to further delay this logic into the main thread (via AddLuaScriptCallback)
+		g_LuaMan.AddLuaScriptCallback([luaState, thisCallbackId, movePathToGround, pathRequestVol]() {
+			PathRequest pathRequest = const_cast<PathRequest&>(*pathRequestVol); // erh, to work with luabind etc
 			if (movePathToGround) {
-				for (Vector& scenePathPoint: threadScenePath) {
+				for (Vector& scenePathPoint: pathRequest.path) {
 					scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
 				}
 			}
 
-			return static_cast<int>(threadScenePath.size());
-		}
-		return -1;
-	}
+			luabind::call_function<void>(luaState->GetLuaState(), "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
+		});
+	};
 
-	void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::object& callbackParam, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
-		team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
+	luaSelfObject->CalculatePathAsync(start, end, digStrength, team, callLuaCallback);
+}
 
-		// So, luabind::object is a weak reference, holding just a stack and a position in the stack
-		// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
-		// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
-		// Note that also, the callbackParam's interpreter is actually different from our Lua state.
-		// It looks like Luabind constructs temporary interpreters and really doesn't like if you destroy these luabind objects
-		// In any case, it's extremely unsafe to use! For example capturing the callback by value into the lambdas causes random crashes
-		// Even if we did literally nothing with it except capture it into a no-op lambda
-		LuaStateWrapper* luaState = g_LuaMan.GetThreadCurrentLuaState();
-		static int currentCallbackId = 0;
-		int thisCallbackId = currentCallbackId++;
-		if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
-			luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
-		}
+void LuaAdaptersAHuman::ReloadFirearms(AHuman* luaSelfObject) {
+	luaSelfObject->ReloadFirearms(false);
+}
 
-		auto callLuaCallback = [luaState, thisCallbackId, movePathToGround](std::shared_ptr<volatile PathRequest> pathRequestVol) {
-			// This callback is called from the async pathing thread, so we need to further delay this logic into the main thread (via AddLuaScriptCallback)
-			g_LuaMan.AddLuaScriptCallback([luaState, thisCallbackId, movePathToGround, pathRequestVol]() {
-				PathRequest pathRequest = const_cast<PathRequest&>(*pathRequestVol); // erh, to work with luabind etc
-				if (movePathToGround) {
-					for (Vector& scenePathPoint: pathRequest.path) {
-						scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
-					}
-				}
+float LuaAdaptersSceneObject::GetTotalValue(const SceneObject* luaSelfObject, int nativeModule, float foreignMult) {
+	return luaSelfObject->GetTotalValue(nativeModule, foreignMult, 1.0F);
+}
 
-				luabind::call_function<void>(luaState->GetLuaState(), "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
-			});
-		};
+int LuaAdaptersSceneObject::GetBuyableMode(const SceneObject* luaSelfObject) {
+	return static_cast<int>(luaSelfObject->GetBuyableMode());
+}
 
-		luaSelfObject->CalculatePathAsync(start, end, digStrength, team, callLuaCallback);
-	}
+void LuaAdaptersActivity::SendMessage1(Activity* luaSelfObject, const std::string& message) {
+	luabind::object context;
+	SendMessage2(luaSelfObject, message, context);
+}
 
-	void LuaAdaptersAHuman::ReloadFirearms(AHuman* luaSelfObject) {
-		luaSelfObject->ReloadFirearms(false);
-	}
-
-	float LuaAdaptersSceneObject::GetTotalValue(const SceneObject* luaSelfObject, int nativeModule, float foreignMult) {
-		return luaSelfObject->GetTotalValue(nativeModule, foreignMult, 1.0F);
-	}
-
-	int LuaAdaptersSceneObject::GetBuyableMode(const SceneObject* luaSelfObject) {
-		return static_cast<int>(luaSelfObject->GetBuyableMode());
-	}
-
-	void LuaAdaptersActivity::SendMessage1(Activity* luaSelfObject, const std::string& message) {
-		luabind::object context;
-		SendMessage2(luaSelfObject, message, context);
-	}
-
-	void LuaAdaptersActivity::SendMessage2(Activity* luaSelfObject, const std::string& message, luabind::object context) {
-		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(luaSelfObject);
-		if (scriptedActivity) {
-			LuabindObjectWrapper wrapper(&context, "", false);
-			scriptedActivity->RunLuaFunction("OnMessage", {}, {message}, {&wrapper});
-		}
-	}
-
-	bool LuaAdaptersMovableObject::HasScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
-		return luaSelfObject->HasScript(g_ModuleMan.GetFullModulePath(scriptPath));
-	}
-
-	bool LuaAdaptersMovableObject::AddScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
-		switch (std::string correctedScriptPath = g_ModuleMan.GetFullModulePath(scriptPath); luaSelfObject->LoadScript(correctedScriptPath)) {
-			case 0:
-				return true;
-			case -1:
-				g_ConsoleMan.PrintString("ERROR: The script path " + correctedScriptPath + " was empty.");
-				break;
-			case -2:
-				g_ConsoleMan.PrintString("ERROR: The script path " + correctedScriptPath + "  did not point to a valid file.");
-				break;
-			case -3:
-				// Already have this script. Not an issue, just ignore it.
-				break;
-			case -4:
-				g_ConsoleMan.PrintString("ERROR: Failed to do necessary setup to add scripts while attempting to add the script with path " + correctedScriptPath + ". This has nothing to do with your script, please report it to a developer.");
-				break;
-			case -5:
-				g_ConsoleMan.PrintString("ERROR: The file with script path " + correctedScriptPath + " could not be run. Please check that this is a valid Lua file.");
-				break;
-			default:
-				RTEAbort("Reached default case while adding script. This should never happen!");
-				break;
-		}
-		return false;
-	}
-
-	bool LuaAdaptersMovableObject::EnableScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
-		return luaSelfObject->EnableOrDisableScript(g_ModuleMan.GetFullModulePath(scriptPath), true);
-	}
-
-	bool LuaAdaptersMovableObject::DisableScript1(MovableObject* luaSelfObject) {
-		std::string currentScriptFilePath(g_LuaMan.GetThreadCurrentLuaState()->GetCurrentlyRunningScriptFilePath());
-		return luaSelfObject->EnableOrDisableScript(currentScriptFilePath, false);
-	}
-
-	bool LuaAdaptersMovableObject::DisableScript2(MovableObject* luaSelfObject, const std::string& scriptPath) {
-		return luaSelfObject->EnableOrDisableScript(g_ModuleMan.GetFullModulePath(scriptPath), false);
-	}
-
-	void LuaAdaptersMovableObject::SendMessage1(MovableObject* luaSelfObject, const std::string& message) {
-		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, {message});
-	}
-
-	void LuaAdaptersMovableObject::SendMessage2(MovableObject* luaSelfObject, const std::string& message, luabind::object context) {
+void LuaAdaptersActivity::SendMessage2(Activity* luaSelfObject, const std::string& message, luabind::object context) {
+	GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(luaSelfObject);
+	if (scriptedActivity) {
 		LuabindObjectWrapper wrapper(&context, "", false);
-		luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, {message}, {&wrapper});
+		scriptedActivity->RunLuaFunction("OnMessage", {}, {message}, {&wrapper});
 	}
+}
 
-	void LuaAdaptersMOSRotating::GibThis(MOSRotating* luaSelfObject) {
-		luaSelfObject->GibThis();
+bool LuaAdaptersMovableObject::HasScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
+	return luaSelfObject->HasScript(g_ModuleMan.GetFullModulePath(scriptPath));
+}
+
+bool LuaAdaptersMovableObject::AddScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
+	switch (std::string correctedScriptPath = g_ModuleMan.GetFullModulePath(scriptPath); luaSelfObject->LoadScript(correctedScriptPath)) {
+		case 0:
+			return true;
+		case -1:
+			g_ConsoleMan.PrintString("ERROR: The script path " + correctedScriptPath + " was empty.");
+			break;
+		case -2:
+			g_ConsoleMan.PrintString("ERROR: The script path " + correctedScriptPath + "  did not point to a valid file.");
+			break;
+		case -3:
+			// Already have this script. Not an issue, just ignore it.
+			break;
+		case -4:
+			g_ConsoleMan.PrintString("ERROR: Failed to do necessary setup to add scripts while attempting to add the script with path " + correctedScriptPath + ". This has nothing to do with your script, please report it to a developer.");
+			break;
+		case -5:
+			g_ConsoleMan.PrintString("ERROR: The file with script path " + correctedScriptPath + " could not be run. Please check that this is a valid Lua file.");
+			break;
+		default:
+			RTEAbort("Reached default case while adding script. This should never happen!");
+			break;
 	}
+	return false;
+}
 
-	std::vector<AEmitter*>* LuaAdaptersMOSRotating::GetWounds1(const MOSRotating* luaSelfObject) {
-		return GetWounds2(luaSelfObject, true, false, false);
-	}
+bool LuaAdaptersMovableObject::EnableScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
+	return luaSelfObject->EnableOrDisableScript(g_ModuleMan.GetFullModulePath(scriptPath), true);
+}
 
-	std::vector<AEmitter*>* LuaAdaptersMOSRotating::GetWounds2(const MOSRotating* luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) {
-		auto* wounds = new std::vector<AEmitter*>();
-		GetWoundsImpl(luaSelfObject, includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables, *wounds);
-		return wounds;
-	}
+bool LuaAdaptersMovableObject::DisableScript1(MovableObject* luaSelfObject) {
+	std::string currentScriptFilePath(g_LuaMan.GetThreadCurrentLuaState()->GetCurrentlyRunningScriptFilePath());
+	return luaSelfObject->EnableOrDisableScript(currentScriptFilePath, false);
+}
 
-	void LuaAdaptersMOSRotating::GetWoundsImpl(const MOSRotating* luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables, std::vector<AEmitter*>& wounds) {
-		wounds.insert(wounds.end(), luaSelfObject->GetWoundList().begin(), luaSelfObject->GetWoundList().end());
+bool LuaAdaptersMovableObject::DisableScript2(MovableObject* luaSelfObject, const std::string& scriptPath) {
+	return luaSelfObject->EnableOrDisableScript(g_ModuleMan.GetFullModulePath(scriptPath), false);
+}
 
-		if (includePositiveDamageAttachables || includeNegativeDamageAttachables || includeNoDamageAttachables) {
-			for (const Attachable* attachable: luaSelfObject->GetAttachables()) {
-				bool attachableSatisfiesConditions = (includePositiveDamageAttachables && attachable->GetDamageMultiplier() > 0) ||
-				                                     (includeNegativeDamageAttachables && attachable->GetDamageMultiplier() < 0) ||
-				                                     (includeNoDamageAttachables && attachable->GetDamageMultiplier() == 0);
+void LuaAdaptersMovableObject::SendMessage1(MovableObject* luaSelfObject, const std::string& message) {
+	luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, {message});
+}
 
-				if (attachableSatisfiesConditions) {
-					GetWoundsImpl(attachable, includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables, wounds);
-				}
+void LuaAdaptersMovableObject::SendMessage2(MovableObject* luaSelfObject, const std::string& message, luabind::object context) {
+	LuabindObjectWrapper wrapper(&context, "", false);
+	luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, {message}, {&wrapper});
+}
+
+void LuaAdaptersMOSRotating::GibThis(MOSRotating* luaSelfObject) {
+	luaSelfObject->GibThis();
+}
+
+std::vector<AEmitter*>* LuaAdaptersMOSRotating::GetWounds1(const MOSRotating* luaSelfObject) {
+	return GetWounds2(luaSelfObject, true, false, false);
+}
+
+std::vector<AEmitter*>* LuaAdaptersMOSRotating::GetWounds2(const MOSRotating* luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) {
+	auto* wounds = new std::vector<AEmitter*>();
+	GetWoundsImpl(luaSelfObject, includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables, *wounds);
+	return wounds;
+}
+
+void LuaAdaptersMOSRotating::GetWoundsImpl(const MOSRotating* luaSelfObject, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables, std::vector<AEmitter*>& wounds) {
+	wounds.insert(wounds.end(), luaSelfObject->GetWoundList().begin(), luaSelfObject->GetWoundList().end());
+
+	if (includePositiveDamageAttachables || includeNegativeDamageAttachables || includeNoDamageAttachables) {
+		for (const Attachable* attachable: luaSelfObject->GetAttachables()) {
+			bool attachableSatisfiesConditions = (includePositiveDamageAttachables && attachable->GetDamageMultiplier() > 0) ||
+			                                     (includeNegativeDamageAttachables && attachable->GetDamageMultiplier() < 0) ||
+			                                     (includeNoDamageAttachables && attachable->GetDamageMultiplier() == 0);
+
+			if (attachableSatisfiesConditions) {
+				GetWoundsImpl(attachable, includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables, wounds);
 			}
 		}
 	}
+}
 
-	std::list<SceneObject*>* LuaAdaptersBuyMenuGUI::GetOrderList(const BuyMenuGUI* luaSelfObject) {
-		std::list<const SceneObject*> constOrderList;
-		luaSelfObject->GetOrderList(constOrderList);
+std::list<SceneObject*>* LuaAdaptersBuyMenuGUI::GetOrderList(const BuyMenuGUI* luaSelfObject) {
+	std::list<const SceneObject*> constOrderList;
+	luaSelfObject->GetOrderList(constOrderList);
 
-		// Previously I tried to push back a cloned object for const-correctness (and giving unique ptr so luabind would clean it up after)
-		// This is needed cause lua doesn't really enjoy being given a const SceneObject*
-		// But it didn't like that. So eh
-		auto* orderList = new std::list<SceneObject*>();
-		for (const SceneObject* constObjectInOrderList: constOrderList) {
-			orderList->push_back(const_cast<SceneObject*>(constObjectInOrderList));
-		}
-
-		return orderList;
+	// Previously I tried to push back a cloned object for const-correctness (and giving unique ptr so luabind would clean it up after)
+	// This is needed cause lua doesn't really enjoy being given a const SceneObject*
+	// But it didn't like that. So eh
+	auto* orderList = new std::list<SceneObject*>();
+	for (const SceneObject* constObjectInOrderList: constOrderList) {
+		orderList->push_back(const_cast<SceneObject*>(constObjectInOrderList));
 	}
 
-	Attachable* LuaAdaptersAttachable::RemoveFromParent1(Attachable* luaSelfObject) {
-		if (luaSelfObject->IsAttached()) {
-			return luaSelfObject->GetParent()->RemoveAttachable(luaSelfObject);
-		}
-		return luaSelfObject;
+	return orderList;
+}
+
+Attachable* LuaAdaptersAttachable::RemoveFromParent1(Attachable* luaSelfObject) {
+	if (luaSelfObject->IsAttached()) {
+		return luaSelfObject->GetParent()->RemoveAttachable(luaSelfObject);
+	}
+	return luaSelfObject;
+}
+
+Attachable* LuaAdaptersAttachable::RemoveFromParent2(Attachable* luaSelfObject, bool addToMovableMan, bool addBreakWounds) {
+	if (luaSelfObject->IsAttached()) {
+		return luaSelfObject->GetParent()->RemoveAttachable(luaSelfObject, addToMovableMan, addBreakWounds);
+	}
+	return luaSelfObject;
+}
+
+void LuaAdaptersTurret::AddMountedFirearm(Turret* luaSelfObject, HDFirearm* newMountedDevice) {
+	luaSelfObject->AddMountedDevice(newMountedDevice);
+}
+
+void LuaAdaptersGlobalScript::Deactivate(GlobalScript* luaSelfObject) {
+	luaSelfObject->SetActive(false);
+}
+
+int LuaAdaptersPieMenu::GetPieCommand(PieMenu* luaSelfObject) {
+	return static_cast<int>(luaSelfObject->GetPieCommand());
+}
+
+bool LuaAdaptersPieMenu::AddPieSlice(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource) {
+	return luaSelfObject->AddPieSlice(pieSliceToAdd, pieSliceOriginalSource, false);
+}
+
+bool LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource) {
+	return luaSelfObject->AddPieSliceIfPresetNameIsUnique(pieSliceToAdd, pieSliceOriginalSource, false, false);
+}
+
+bool LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource) {
+	return luaSelfObject->AddPieSliceIfPresetNameIsUnique(pieSliceToAdd, pieSliceOriginalSource, onlyCheckPieSlicesWithSameOriginalSource, false);
+}
+
+int LuaAdaptersPieSlice::GetType(PieSlice* luaSelfObject) {
+	return static_cast<int>(luaSelfObject->GetType());
+}
+
+void LuaAdaptersMovableMan::AddMO(MovableMan& movableMan, MovableObject* movableObject) {
+	if (movableMan.ValidMO(movableObject)) {
+		g_ConsoleMan.PrintString("ERROR: Tried to add a MovableObject that already exists in the simulation! " + movableObject->GetPresetName());
+	} else {
+		movableMan.AddMO(movableObject);
+	}
+}
+
+void LuaAdaptersMovableMan::AddActor(MovableMan& movableMan, Actor* actor) {
+	if (movableMan.IsActor(actor)) {
+		g_ConsoleMan.PrintString("ERROR: Tried to add an Actor that already exists in the simulation!" + actor->GetPresetName());
+	} else {
+		movableMan.AddActor(actor);
+	}
+}
+
+void LuaAdaptersMovableMan::AddItem(MovableMan& movableMan, HeldDevice* item) {
+	if (movableMan.ValidMO(dynamic_cast<MovableObject*>(item))) {
+		g_ConsoleMan.PrintString("ERROR: Tried to add an Item that already exists in the simulation!" + item->GetPresetName());
+	} else {
+		movableMan.AddItem(item);
+	}
+}
+
+void LuaAdaptersMovableMan::AddParticle(MovableMan& movableMan, MovableObject* particle) {
+	if (movableMan.ValidMO(particle)) {
+		g_ConsoleMan.PrintString("ERROR: Tried to add a Particle that already exists in the simulation!" + particle->GetPresetName());
+	} else {
+		movableMan.AddParticle(particle);
+	}
+}
+
+void LuaAdaptersMovableMan::SendGlobalMessage1(MovableMan& movableMan, const std::string& message) {
+	GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
+	if (scriptedActivity) {
+		scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, {message});
 	}
 
-	Attachable* LuaAdaptersAttachable::RemoveFromParent2(Attachable* luaSelfObject, bool addToMovableMan, bool addBreakWounds) {
-		if (luaSelfObject->IsAttached()) {
-			return luaSelfObject->GetParent()->RemoveAttachable(luaSelfObject, addToMovableMan, addBreakWounds);
-		}
-		return luaSelfObject;
+	movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message});
+}
+
+void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan& movableMan, const std::string& message, luabind::object context) {
+	LuabindObjectWrapper wrapper(&context, "", false);
+
+	GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
+	if (scriptedActivity) {
+		scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, {message}, {&wrapper});
 	}
 
-	void LuaAdaptersTurret::AddMountedFirearm(Turret* luaSelfObject, HDFirearm* newMountedDevice) {
-		luaSelfObject->AddMountedDevice(newMountedDevice);
-	}
+	movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message}, {&wrapper});
+}
 
-	void LuaAdaptersGlobalScript::Deactivate(GlobalScript* luaSelfObject) {
-		luaSelfObject->SetActive(false);
-	}
+double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan& timerMan) {
+	return static_cast<double>(timerMan.GetDeltaTimeTicks());
+}
 
-	int LuaAdaptersPieMenu::GetPieCommand(PieMenu* luaSelfObject) {
-		return static_cast<int>(luaSelfObject->GetPieCommand());
-	}
+double LuaAdaptersTimerMan::GetTicksPerSecond(const TimerMan& timerMan) {
+	return static_cast<double>(timerMan.GetTicksPerSecond());
+}
 
-	bool LuaAdaptersPieMenu::AddPieSlice(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource) {
-		return luaSelfObject->AddPieSlice(pieSliceToAdd, pieSliceOriginalSource, false);
-	}
+bool LuaAdaptersUInputMan::MouseButtonHeld(const UInputMan& uinputMan, int whichButton) {
+	return uinputMan.MouseButtonHeld(whichButton, Players::PlayerOne);
+}
 
-	bool LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique1(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource) {
-		return luaSelfObject->AddPieSliceIfPresetNameIsUnique(pieSliceToAdd, pieSliceOriginalSource, false, false);
-	}
+bool LuaAdaptersUInputMan::MouseButtonPressed(const UInputMan& uinputMan, int whichButton) {
+	return uinputMan.MouseButtonPressed(whichButton, Players::PlayerOne);
+}
 
-	bool LuaAdaptersPieMenu::AddPieSliceIfPresetNameIsUnique2(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource) {
-		return luaSelfObject->AddPieSliceIfPresetNameIsUnique(pieSliceToAdd, pieSliceOriginalSource, onlyCheckPieSlicesWithSameOriginalSource, false);
-	}
+bool LuaAdaptersUInputMan::MouseButtonReleased(const UInputMan& uinputMan, int whichButton) {
+	return uinputMan.MouseButtonReleased(whichButton, Players::PlayerOne);
+}
 
-	int LuaAdaptersPieSlice::GetType(PieSlice* luaSelfObject) {
-		return static_cast<int>(luaSelfObject->GetType());
-	}
+bool LuaAdaptersPresetMan::ReloadEntityPreset1(PresetMan& presetMan, const std::string& presetName, const std::string& className, const std::string& moduleName) {
+	return presetMan.ReloadEntityPreset(presetName, className, moduleName);
+}
 
-	void LuaAdaptersMovableMan::AddMO(MovableMan& movableMan, MovableObject* movableObject) {
-		if (movableMan.ValidMO(movableObject)) {
-			g_ConsoleMan.PrintString("ERROR: Tried to add a MovableObject that already exists in the simulation! " + movableObject->GetPresetName());
-		} else {
-			movableMan.AddMO(movableObject);
-		}
-	}
+bool LuaAdaptersPresetMan::ReloadEntityPreset2(PresetMan& presetMan, const std::string& presetName, const std::string& className) {
+	return ReloadEntityPreset1(presetMan, presetName, className, "");
+}
 
-	void LuaAdaptersMovableMan::AddActor(MovableMan& movableMan, Actor* actor) {
-		if (movableMan.IsActor(actor)) {
-			g_ConsoleMan.PrintString("ERROR: Tried to add an Actor that already exists in the simulation!" + actor->GetPresetName());
-		} else {
-			movableMan.AddActor(actor);
-		}
-	}
+std::list<Entity*>* LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan& presetMan, const std::string& group, const std::string& type, int whichModule) {
+	std::list<Entity*>* entityList = new std::list<Entity*>();
+	presetMan.GetAllOfGroup(*entityList, group, type, whichModule);
+	return entityList;
+}
 
-	void LuaAdaptersMovableMan::AddItem(MovableMan& movableMan, HeldDevice* item) {
-		if (movableMan.ValidMO(dynamic_cast<MovableObject*>(item))) {
-			g_ConsoleMan.PrintString("ERROR: Tried to add an Item that already exists in the simulation!" + item->GetPresetName());
-		} else {
-			movableMan.AddItem(item);
-		}
-	}
+const std::list<Box>* LuaAdaptersSceneMan::WrapBoxes(SceneMan& sceneMan, const Box& boxToWrap) {
+	std::list<Box>* wrappedBoxes = new std::list<Box>();
+	sceneMan.WrapBox(boxToWrap, *wrappedBoxes);
+	return wrappedBoxes;
+}
 
-	void LuaAdaptersMovableMan::AddParticle(MovableMan& movableMan, MovableObject* particle) {
-		if (movableMan.ValidMO(particle)) {
-			g_ConsoleMan.PrintString("ERROR: Tried to add a Particle that already exists in the simulation!" + particle->GetPresetName());
-		} else {
-			movableMan.AddParticle(particle);
-		}
-	}
+void LuaAdaptersPrimitiveMan::DrawPolygonPrimitive(PrimitiveMan& primitiveMan, const Vector& centerPos, int color, const luabind::object& verticesTable) {
+	primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, centerPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), false);
+}
 
-	void LuaAdaptersMovableMan::SendGlobalMessage1(MovableMan& movableMan, const std::string& message) {
-		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
-		if (scriptedActivity) {
-			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, {message});
-		}
+void LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& centerPos, int color, const luabind::object& verticesTable) {
+	primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, centerPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), false);
+}
 
-		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message});
-	}
+void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive(PrimitiveMan& primitiveMan, const Vector& startPos, int color, const luabind::object& verticesTable) {
+	primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, startPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), true);
+}
 
-	void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan& movableMan, const std::string& message, luabind::object context) {
-		LuabindObjectWrapper wrapper(&context, "", false);
+void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& startPos, int color, const luabind::object& verticesTable) {
+	primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, startPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), true);
+}
 
-		GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
-		if (scriptedActivity) {
-			scriptedActivity->RunLuaFunction("OnGlobalMessage", {}, {message}, {&wrapper});
-		}
+void LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency(PrimitiveMan& primitiveMan, int transValue, const luabind::object& primitivesTable) {
+	primitiveMan.SchedulePrimitivesForBlendedDrawing(DrawBlendMode::BlendTransparency, transValue, transValue, transValue, BlendAmountLimits::MinBlend, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
+}
 
-		movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message}, {&wrapper});
-	}
+void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending(PrimitiveMan& primitiveMan, int blendMode, int blendAmount, const luabind::object& primitivesTable) {
+	primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmount, blendAmount, blendAmount, blendAmount, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
+}
 
-	double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan& timerMan) {
-		return static_cast<double>(timerMan.GetDeltaTimeTicks());
-	}
+void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel(PrimitiveMan& primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabind::object& primitivesTable) {
+	primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmountR, blendAmountG, blendAmountB, blendAmountA, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
+}
 
-	double LuaAdaptersTimerMan::GetTicksPerSecond(const TimerMan& timerMan) {
-		return static_cast<double>(timerMan.GetTicksPerSecond());
-	}
+float LuaAdaptersUtility::GetMPP() {
+	return c_MPP;
+}
 
-	bool LuaAdaptersUInputMan::MouseButtonHeld(const UInputMan& uinputMan, int whichButton) {
-		return uinputMan.MouseButtonHeld(whichButton, Players::PlayerOne);
-	}
+float LuaAdaptersUtility::GetPPM() {
+	return c_PPM;
+}
 
-	bool LuaAdaptersUInputMan::MouseButtonPressed(const UInputMan& uinputMan, int whichButton) {
-		return uinputMan.MouseButtonPressed(whichButton, Players::PlayerOne);
-	}
+float LuaAdaptersUtility::GetLPP() {
+	return c_LPP;
+}
 
-	bool LuaAdaptersUInputMan::MouseButtonReleased(const UInputMan& uinputMan, int whichButton) {
-		return uinputMan.MouseButtonReleased(whichButton, Players::PlayerOne);
-	}
+float LuaAdaptersUtility::GetPPL() {
+	return c_PPL;
+}
 
-	bool LuaAdaptersPresetMan::ReloadEntityPreset1(PresetMan& presetMan, const std::string& presetName, const std::string& className, const std::string& moduleName) {
-		return presetMan.ReloadEntityPreset(presetName, className, moduleName);
-	}
+float LuaAdaptersUtility::GetPathFindingDefaultDigStrength() {
+	return c_PathFindingDefaultDigStrength;
+}
 
-	bool LuaAdaptersPresetMan::ReloadEntityPreset2(PresetMan& presetMan, const std::string& presetName, const std::string& className) {
-		return ReloadEntityPreset1(presetMan, presetName, className, "");
-	}
-
-	std::list<Entity*>* LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan& presetMan, const std::string& group, const std::string& type, int whichModule) {
-		std::list<Entity*>* entityList = new std::list<Entity*>();
-		presetMan.GetAllOfGroup(*entityList, group, type, whichModule);
-		return entityList;
-	}
-
-	const std::list<Box>* LuaAdaptersSceneMan::WrapBoxes(SceneMan& sceneMan, const Box& boxToWrap) {
-		std::list<Box>* wrappedBoxes = new std::list<Box>();
-		sceneMan.WrapBox(boxToWrap, *wrappedBoxes);
-		return wrappedBoxes;
-	}
-
-	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitive(PrimitiveMan& primitiveMan, const Vector& centerPos, int color, const luabind::object& verticesTable) {
-		primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, centerPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), false);
-	}
-
-	void LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& centerPos, int color, const luabind::object& verticesTable) {
-		primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, centerPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), false);
-	}
-
-	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive(PrimitiveMan& primitiveMan, const Vector& startPos, int color, const luabind::object& verticesTable) {
-		primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, startPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), true);
-	}
-
-	void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& startPos, int color, const luabind::object& verticesTable) {
-		primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, startPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), true);
-	}
-
-	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency(PrimitiveMan& primitiveMan, int transValue, const luabind::object& primitivesTable) {
-		primitiveMan.SchedulePrimitivesForBlendedDrawing(DrawBlendMode::BlendTransparency, transValue, transValue, transValue, BlendAmountLimits::MinBlend, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
-	}
-
-	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending(PrimitiveMan& primitiveMan, int blendMode, int blendAmount, const luabind::object& primitivesTable) {
-		primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmount, blendAmount, blendAmount, blendAmount, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
-	}
-
-	void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel(PrimitiveMan& primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabind::object& primitivesTable) {
-		primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmountR, blendAmountG, blendAmountB, blendAmountA, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
-	}
-
-	float LuaAdaptersUtility::GetMPP() {
-		return c_MPP;
-	}
-
-	float LuaAdaptersUtility::GetPPM() {
-		return c_PPM;
-	}
-
-	float LuaAdaptersUtility::GetLPP() {
-		return c_LPP;
-	}
-
-	float LuaAdaptersUtility::GetPPL() {
-		return c_PPL;
-	}
-
-	float LuaAdaptersUtility::GetPathFindingDefaultDigStrength() {
-		return c_PathFindingDefaultDigStrength;
-	}
-
-	void LuaAdaptersUtility::DeleteEntity(Entity* entityToDelete) {
-		delete entityToDelete;
-		entityToDelete = nullptr;
-	}
+void LuaAdaptersUtility::DeleteEntity(Entity* entityToDelete) {
+	delete entityToDelete;
+	entityToDelete = nullptr;
+}

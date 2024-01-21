@@ -58,350 +58,350 @@ FILE __iob_func[3] = {*stdin, *stdout, *stderr};
 
 using namespace RTE;
 
-	/// <summary>
-	/// Initializes all the essential managers.
-	/// </summary>
-	void InitializeManagers() {
-		ThreadMan::Construct();
-		TimerMan::Construct();
-		PresetMan::Construct();
-		ModuleMan::Construct();
-		SettingsMan::Construct();
-		WindowMan::Construct();
-		LuaMan::Construct();
-		NetworkServer::Construct();
-		NetworkClient::Construct();
-		FrameMan::Construct();
-		PerformanceMan::Construct();
-		PostProcessMan::Construct();
-		PrimitiveMan::Construct();
-		AudioMan::Construct();
-		GUISound::Construct();
-		UInputMan::Construct();
-		ConsoleMan::Construct();
-		SceneMan::Construct();
-		MovableMan::Construct();
-		MetaMan::Construct();
-		MenuMan::Construct();
-		CameraMan::Construct();
-		ActivityMan::Construct();
-		LoadingScreen::Construct();
+/// <summary>
+/// Initializes all the essential managers.
+/// </summary>
+void InitializeManagers() {
+	ThreadMan::Construct();
+	TimerMan::Construct();
+	PresetMan::Construct();
+	ModuleMan::Construct();
+	SettingsMan::Construct();
+	WindowMan::Construct();
+	LuaMan::Construct();
+	NetworkServer::Construct();
+	NetworkClient::Construct();
+	FrameMan::Construct();
+	PerformanceMan::Construct();
+	PostProcessMan::Construct();
+	PrimitiveMan::Construct();
+	AudioMan::Construct();
+	GUISound::Construct();
+	UInputMan::Construct();
+	ConsoleMan::Construct();
+	SceneMan::Construct();
+	MovableMan::Construct();
+	MetaMan::Construct();
+	MenuMan::Construct();
+	CameraMan::Construct();
+	ActivityMan::Construct();
+	LoadingScreen::Construct();
 
-		g_ThreadMan.Initialize();
-		g_SettingsMan.Initialize();
-		g_WindowMan.Initialize();
+	g_ThreadMan.Initialize();
+	g_SettingsMan.Initialize();
+	g_WindowMan.Initialize();
 
-		g_LuaMan.Initialize();
-		g_NetworkServer.Initialize();
-		g_NetworkClient.Initialize();
-		g_TimerMan.Initialize();
-		g_FrameMan.Initialize();
-		g_PostProcessMan.Initialize();
-		g_PerformanceMan.Initialize();
+	g_LuaMan.Initialize();
+	g_NetworkServer.Initialize();
+	g_NetworkClient.Initialize();
+	g_TimerMan.Initialize();
+	g_FrameMan.Initialize();
+	g_PostProcessMan.Initialize();
+	g_PerformanceMan.Initialize();
 
-		if (g_AudioMan.Initialize()) {
-			g_GUISound.Initialize();
-		}
-
-		g_UInputMan.Initialize();
-		g_ConsoleMan.Initialize();
-		g_SceneMan.Initialize();
-		g_MovableMan.Initialize();
-		g_MetaMan.Initialize();
-		g_MenuMan.Initialize();
-
-		// Overwrite Settings.ini after all the managers are created to fully populate the file. Up until this moment Settings.ini is populated only with minimal required properties to run.
-		// If Settings.ini already exists and is fully populated, this will deal with overwriting it to apply any overrides performed by the managers at boot (e.g resolution validation).
-		if (g_SettingsMan.SettingsNeedOverwrite()) {
-			g_SettingsMan.UpdateSettingsFile();
-		}
+	if (g_AudioMan.Initialize()) {
+		g_GUISound.Initialize();
 	}
 
-	/// <summary>
-	/// Destroys all the managers and frees all loaded data before termination.
-	/// </summary>
-	void DestroyManagers() {
-		g_NetworkClient.Destroy();
-		g_NetworkServer.Destroy();
-		g_MetaMan.Destroy();
-		g_PerformanceMan.Destroy();
-		g_MovableMan.Destroy();
-		g_SceneMan.Destroy();
-		g_ActivityMan.Destroy();
-		g_GUISound.Destroy();
-		g_AudioMan.Destroy();
-		g_ModuleMan.Destroy();
-		g_UInputMan.Destroy();
-		g_PostProcessMan.Destroy();
-		g_FrameMan.Destroy();
-		g_TimerMan.Destroy();
-		g_LuaMan.Destroy();
-		ContentFile::FreeAllLoaded();
-		g_ConsoleMan.Destroy();
-		g_WindowMan.Destroy();
+	g_UInputMan.Initialize();
+	g_ConsoleMan.Initialize();
+	g_SceneMan.Initialize();
+	g_MovableMan.Initialize();
+	g_MetaMan.Initialize();
+	g_MenuMan.Initialize();
+
+	// Overwrite Settings.ini after all the managers are created to fully populate the file. Up until this moment Settings.ini is populated only with minimal required properties to run.
+	// If Settings.ini already exists and is fully populated, this will deal with overwriting it to apply any overrides performed by the managers at boot (e.g resolution validation).
+	if (g_SettingsMan.SettingsNeedOverwrite()) {
+		g_SettingsMan.UpdateSettingsFile();
+	}
+}
+
+/// <summary>
+/// Destroys all the managers and frees all loaded data before termination.
+/// </summary>
+void DestroyManagers() {
+	g_NetworkClient.Destroy();
+	g_NetworkServer.Destroy();
+	g_MetaMan.Destroy();
+	g_PerformanceMan.Destroy();
+	g_MovableMan.Destroy();
+	g_SceneMan.Destroy();
+	g_ActivityMan.Destroy();
+	g_GUISound.Destroy();
+	g_AudioMan.Destroy();
+	g_ModuleMan.Destroy();
+	g_UInputMan.Destroy();
+	g_PostProcessMan.Destroy();
+	g_FrameMan.Destroy();
+	g_TimerMan.Destroy();
+	g_LuaMan.Destroy();
+	ContentFile::FreeAllLoaded();
+	g_ConsoleMan.Destroy();
+	g_WindowMan.Destroy();
 
 #ifdef DEBUG_BUILD
-		Entity::ClassInfo::DumpPoolMemoryInfo(Writer("MemCleanupInfo.txt"));
+	Entity::ClassInfo::DumpPoolMemoryInfo(Writer("MemCleanupInfo.txt"));
 #endif
+}
+
+/// <summary>
+/// Command-line argument handling.
+/// </summary>
+/// <param name="argCount">Argument count.</param>
+/// <param name="argValue">Argument values.</param>
+void HandleMainArgs(int argCount, char** argValue) {
+	// Discard the first argument because it's always the executable path/name
+	argCount--;
+	argValue++;
+	if (argCount == 0) {
+		return;
 	}
+	bool launchModeSet = false;
+	bool singleModuleSet = false;
 
-	/// <summary>
-	/// Command-line argument handling.
-	/// </summary>
-	/// <param name="argCount">Argument count.</param>
-	/// <param name="argValue">Argument values.</param>
-	void HandleMainArgs(int argCount, char** argValue) {
-		// Discard the first argument because it's always the executable path/name
-		argCount--;
-		argValue++;
-		if (argCount == 0) {
-			return;
+	for (int i = 0; i < argCount;) {
+		std::string_view currentArg = argValue[i];
+		bool lastArg = i + 1 == argCount;
+
+		if (currentArg == "-cout") {
+			System::EnableLoggingToCLI();
 		}
-		bool launchModeSet = false;
-		bool singleModuleSet = false;
-
-		for (int i = 0; i < argCount;) {
-			std::string_view currentArg = argValue[i];
-			bool lastArg = i + 1 == argCount;
-
-			if (currentArg == "-cout") {
-				System::EnableLoggingToCLI();
-			}
-			if (currentArg == "-ext-validate") {
-				System::EnableExternalModuleValidationMode();
-			}
-
-			if (!lastArg && !singleModuleSet && currentArg == "-module") {
-				std::string_view moduleToLoad = argValue[++i];
-				if (moduleToLoad.ends_with(System::GetModulePackageExtension())) {
-					g_ModuleMan.SetSingleModuleToLoad(moduleToLoad);
-					singleModuleSet = true;
-				}
-			}
-			if (!launchModeSet) {
-				if (currentArg == "-server") {
-					g_NetworkServer.EnableServerMode();
-					g_NetworkServer.SetServerPort(!lastArg ? argValue[++i] : "8000");
-					launchModeSet = true;
-				} else if (!lastArg && currentArg == "-editor") {
-					g_ActivityMan.SetEditorToLaunch(argValue[++i]);
-					launchModeSet = true;
-				}
-			}
-			++i;
+		if (currentArg == "-ext-validate") {
+			System::EnableExternalModuleValidationMode();
 		}
-		if (launchModeSet) {
-			g_SettingsMan.SetSkipIntro(true);
+
+		if (!lastArg && !singleModuleSet && currentArg == "-module") {
+			std::string_view moduleToLoad = argValue[++i];
+			if (moduleToLoad.ends_with(System::GetModulePackageExtension())) {
+				g_ModuleMan.SetSingleModuleToLoad(moduleToLoad);
+				singleModuleSet = true;
+			}
 		}
+		if (!launchModeSet) {
+			if (currentArg == "-server") {
+				g_NetworkServer.EnableServerMode();
+				g_NetworkServer.SetServerPort(!lastArg ? argValue[++i] : "8000");
+				launchModeSet = true;
+			} else if (!lastArg && currentArg == "-editor") {
+				g_ActivityMan.SetEditorToLaunch(argValue[++i]);
+				launchModeSet = true;
+			}
+		}
+		++i;
 	}
+	if (launchModeSet) {
+		g_SettingsMan.SetSkipIntro(true);
+	}
+}
 
-	/// <summary>
-	/// Polls the SDL event queue and passes events to be handled by the relevant managers.
-	/// </summary>
-	void PollSDLEvents() {
-		SDL_Event sdlEvent;
-		while (SDL_PollEvent(&sdlEvent)) {
-			switch (sdlEvent.type) {
-				case SDL_QUIT:
+/// <summary>
+/// Polls the SDL event queue and passes events to be handled by the relevant managers.
+/// </summary>
+void PollSDLEvents() {
+	SDL_Event sdlEvent;
+	while (SDL_PollEvent(&sdlEvent)) {
+		switch (sdlEvent.type) {
+			case SDL_QUIT:
+				System::SetQuit(true);
+				return;
+			case SDL_WINDOWEVENT:
+				if (sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE) {
 					System::SetQuit(true);
 					return;
-				case SDL_WINDOWEVENT:
-					if (sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE) {
-						System::SetQuit(true);
-						return;
-					}
-					g_WindowMan.QueueWindowEvent(sdlEvent);
-					break;
-				case SDL_KEYUP:
-				case SDL_KEYDOWN:
-				case SDL_TEXTINPUT:
-				case SDL_MOUSEMOTION:
-				case SDL_MOUSEBUTTONUP:
-				case SDL_MOUSEBUTTONDOWN:
-				case SDL_MOUSEWHEEL:
-				case SDL_CONTROLLERAXISMOTION:
-				case SDL_CONTROLLERBUTTONDOWN:
-				case SDL_CONTROLLERBUTTONUP:
-				case SDL_JOYAXISMOTION:
-				case SDL_JOYBUTTONDOWN:
-				case SDL_JOYBUTTONUP:
-				case SDL_JOYDEVICEADDED:
-				case SDL_JOYDEVICEREMOVED:
-					g_UInputMan.QueueInputEvent(sdlEvent);
-					break;
-				default:
-					break;
-			}
+				}
+				g_WindowMan.QueueWindowEvent(sdlEvent);
+				break;
+			case SDL_KEYUP:
+			case SDL_KEYDOWN:
+			case SDL_TEXTINPUT:
+			case SDL_MOUSEMOTION:
+			case SDL_MOUSEBUTTONUP:
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEWHEEL:
+			case SDL_CONTROLLERAXISMOTION:
+			case SDL_CONTROLLERBUTTONDOWN:
+			case SDL_CONTROLLERBUTTONUP:
+			case SDL_JOYAXISMOTION:
+			case SDL_JOYBUTTONDOWN:
+			case SDL_JOYBUTTONUP:
+			case SDL_JOYDEVICEADDED:
+			case SDL_JOYDEVICEREMOVED:
+				g_UInputMan.QueueInputEvent(sdlEvent);
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+/// <summary>
+/// Game menus loop.
+/// </summary>
+void RunMenuLoop() {
+	g_UInputMan.DisableKeys(false);
+	g_UInputMan.TrapMousePos(false);
+
+	while (!System::IsSetToQuit()) {
+		g_WindowMan.ClearRenderer();
+		PollSDLEvents();
+
+		g_WindowMan.Update();
+
+		g_UInputMan.Update();
+		g_TimerMan.Update();
+		g_TimerMan.UpdateSim();
+		g_AudioMan.Update();
+
+		if (g_WindowMan.ResolutionChanged()) {
+			g_MenuMan.Reinitialize();
+			g_ConsoleMan.Destroy();
+			g_ConsoleMan.Initialize();
+			g_LoadingScreen.CreateLoadingSplash();
+			g_WindowMan.CompleteResolutionChange();
+		}
+
+		if (g_MenuMan.Update()) {
+			break;
+		}
+		g_ConsoleMan.Update();
+
+		g_MenuMan.Draw();
+		g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
+		g_WindowMan.UploadFrame();
+	}
+}
+
+/// <summary>
+/// Game simulation loop.
+/// </summary>
+void RunGameLoop() {
+	if (System::IsSetToQuit()) {
+		return;
+	}
+	g_TimerMan.PauseSim(false);
+
+	if (g_ActivityMan.ActivitySetToRestart()) {
+		g_LoadingScreen.DrawLoadingSplash();
+		g_WindowMan.UploadFrame();
+		if (!g_ActivityMan.RestartActivity()) {
+			// This doesn't work.
+			// Somewhat related to https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/472
+			// Deal with later.
+			// g_MenuMan.GetTitleScreen()->SetTitleTransitionState(TitleScreen::TitleTransition::ScrollingFadeIn);
 		}
 	}
 
-	/// <summary>
-	/// Game menus loop.
-	/// </summary>
-	void RunMenuLoop() {
-		g_UInputMan.DisableKeys(false);
-		g_UInputMan.TrapMousePos(false);
+	long long updateStartTime = 0;
+	long long updateTotalTime = 0;
+	long long updateEndAndDrawStartTime = 0;
+	long long drawStartTime = 0;
+	long long drawTotalTime = 0;
 
-		while (!System::IsSetToQuit()) {
-			g_WindowMan.ClearRenderer();
-			PollSDLEvents();
+	while (!System::IsSetToQuit()) {
+		bool serverUpdated = false;
+		updateStartTime = g_TimerMan.GetAbsoluteTime();
 
-			g_WindowMan.Update();
+		PollSDLEvents();
+		g_WindowMan.Update();
+		g_WindowMan.ClearRenderer();
+
+		g_TimerMan.Update();
+
+		// Simulation update, as many times as the fixed update step allows in the span since last frame draw.
+		while (g_TimerMan.TimeForSimUpdate()) {
+			ZoneScopedN("Simulation Update");
+
+			serverUpdated = false;
+
+			g_PerformanceMan.NewPerformanceSample();
+			g_PerformanceMan.UpdateMSPSU();
+			g_TimerMan.UpdateSim();
+
+			g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
 
 			g_UInputMan.Update();
-			g_TimerMan.Update();
-			g_TimerMan.UpdateSim();
+
+			// It is vital that server is updated after input manager but before activity because input manager will clear received pressed and released events on next update.
+			if (g_NetworkServer.IsServerModeEnabled()) {
+				g_NetworkServer.Update(true);
+				serverUpdated = true;
+			}
+
+			g_FrameMan.Update();
+			g_LuaMan.Update();
+			g_ActivityMan.Update();
+
+			if (g_SceneMan.GetScene()) {
+				g_SceneMan.GetScene()->Update();
+			}
+
+			g_LuaMan.ClearScriptTimings();
+			g_MovableMan.Update();
+			g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
+
 			g_AudioMan.Update();
 
-			if (g_WindowMan.ResolutionChanged()) {
-				g_MenuMan.Reinitialize();
-				g_ConsoleMan.Destroy();
-				g_ConsoleMan.Initialize();
-				g_LoadingScreen.CreateLoadingSplash();
-				g_WindowMan.CompleteResolutionChange();
-			}
+			g_ActivityMan.LateUpdateGlobalScripts();
 
-			if (g_MenuMan.Update()) {
-				break;
-			}
+			// This is to support hot reloading entities in SceneEditorGUI. It's a bit hacky to put it in Main like this, but PresetMan has no update in which to clear the value, and I didn't want to set up a listener for the job.
+			// It's in this spot to allow it to be set by UInputMan update and ConsoleMan update, and read from ActivityMan update.
+			g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
+
 			g_ConsoleMan.Update();
+			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
 
-			g_MenuMan.Draw();
-			g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
-			g_WindowMan.UploadFrame();
+			if (!g_ActivityMan.IsInActivity()) {
+				g_TimerMan.PauseSim(true);
+
+				if (!g_ActivityMan.ActivitySetToRestart()) {
+					g_MenuMan.HandleTransitionIntoMenuLoop();
+					RunMenuLoop();
+				}
+			}
+			if (g_ActivityMan.ActivitySetToRestart()) {
+				g_LoadingScreen.DrawLoadingSplash();
+				g_WindowMan.UploadFrame();
+				if (!g_ActivityMan.RestartActivity()) {
+					break;
+				}
+			}
+			if (g_ActivityMan.ActivitySetToResume()) {
+				g_ActivityMan.ResumeActivity();
+				g_PerformanceMan.ResetSimUpdateTimer();
+				updateStartTime = g_TimerMan.GetAbsoluteTime();
+			}
 		}
+
+		if (g_NetworkServer.IsServerModeEnabled()) {
+			// Pause sim while we're waiting for scene transmission or scene will start changing before clients receive them and those changes will be lost.
+			g_TimerMan.PauseSim(!(g_NetworkServer.ReadyForSimulation() && g_ActivityMan.IsInActivity()));
+
+			if (!serverUpdated) {
+				g_NetworkServer.Update();
+			}
+
+			if (g_NetworkServer.GetServerSimSleepWhenIdle()) {
+				long long ticksToSleep = g_TimerMan.GetTimeToSleep();
+				if (ticksToSleep > 0) {
+					double secsToSleep = static_cast<double>(ticksToSleep) / static_cast<double>(g_TimerMan.GetTicksPerSecond());
+					long long milisToSleep = static_cast<long long>(secsToSleep) * 1000;
+					std::this_thread::sleep_for(std::chrono::milliseconds(milisToSleep));
+				}
+			}
+		}
+		updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();
+		updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
+		drawStartTime = updateEndAndDrawStartTime;
+
+		g_FrameMan.Draw();
+		g_WindowMan.DrawPostProcessBuffer();
+		g_WindowMan.UploadFrame();
+
+		drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
+		g_PerformanceMan.UpdateMSPF(updateTotalTime, drawTotalTime);
 	}
-
-	/// <summary>
-	/// Game simulation loop.
-	/// </summary>
-	void RunGameLoop() {
-		if (System::IsSetToQuit()) {
-			return;
-		}
-		g_TimerMan.PauseSim(false);
-
-		if (g_ActivityMan.ActivitySetToRestart()) {
-			g_LoadingScreen.DrawLoadingSplash();
-			g_WindowMan.UploadFrame();
-			if (!g_ActivityMan.RestartActivity()) {
-				// This doesn't work.
-				// Somewhat related to https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/issues/472
-				// Deal with later.
-				// g_MenuMan.GetTitleScreen()->SetTitleTransitionState(TitleScreen::TitleTransition::ScrollingFadeIn);
-			}
-		}
-
-		long long updateStartTime = 0;
-		long long updateTotalTime = 0;
-		long long updateEndAndDrawStartTime = 0;
-		long long drawStartTime = 0;
-		long long drawTotalTime = 0;
-
-		while (!System::IsSetToQuit()) {
-			bool serverUpdated = false;
-			updateStartTime = g_TimerMan.GetAbsoluteTime();
-
-			PollSDLEvents();
-			g_WindowMan.Update();
-			g_WindowMan.ClearRenderer();
-
-			g_TimerMan.Update();
-
-			// Simulation update, as many times as the fixed update step allows in the span since last frame draw.
-			while (g_TimerMan.TimeForSimUpdate()) {
-				ZoneScopedN("Simulation Update");
-
-				serverUpdated = false;
-
-				g_PerformanceMan.NewPerformanceSample();
-				g_PerformanceMan.UpdateMSPSU();
-				g_TimerMan.UpdateSim();
-
-				g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
-
-				g_UInputMan.Update();
-
-				// It is vital that server is updated after input manager but before activity because input manager will clear received pressed and released events on next update.
-				if (g_NetworkServer.IsServerModeEnabled()) {
-					g_NetworkServer.Update(true);
-					serverUpdated = true;
-				}
-
-				g_FrameMan.Update();
-				g_LuaMan.Update();
-				g_ActivityMan.Update();
-
-				if (g_SceneMan.GetScene()) {
-					g_SceneMan.GetScene()->Update();
-				}
-
-				g_LuaMan.ClearScriptTimings();
-				g_MovableMan.Update();
-				g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
-
-				g_AudioMan.Update();
-
-				g_ActivityMan.LateUpdateGlobalScripts();
-
-				// This is to support hot reloading entities in SceneEditorGUI. It's a bit hacky to put it in Main like this, but PresetMan has no update in which to clear the value, and I didn't want to set up a listener for the job.
-				// It's in this spot to allow it to be set by UInputMan update and ConsoleMan update, and read from ActivityMan update.
-				g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
-
-				g_ConsoleMan.Update();
-				g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
-
-				if (!g_ActivityMan.IsInActivity()) {
-					g_TimerMan.PauseSim(true);
-
-					if (!g_ActivityMan.ActivitySetToRestart()) {
-						g_MenuMan.HandleTransitionIntoMenuLoop();
-						RunMenuLoop();
-					}
-				}
-				if (g_ActivityMan.ActivitySetToRestart()) {
-					g_LoadingScreen.DrawLoadingSplash();
-					g_WindowMan.UploadFrame();
-					if (!g_ActivityMan.RestartActivity()) {
-						break;
-					}
-				}
-				if (g_ActivityMan.ActivitySetToResume()) {
-					g_ActivityMan.ResumeActivity();
-					g_PerformanceMan.ResetSimUpdateTimer();
-					updateStartTime = g_TimerMan.GetAbsoluteTime();
-				}
-			}
-
-			if (g_NetworkServer.IsServerModeEnabled()) {
-				// Pause sim while we're waiting for scene transmission or scene will start changing before clients receive them and those changes will be lost.
-				g_TimerMan.PauseSim(!(g_NetworkServer.ReadyForSimulation() && g_ActivityMan.IsInActivity()));
-
-				if (!serverUpdated) {
-					g_NetworkServer.Update();
-				}
-
-				if (g_NetworkServer.GetServerSimSleepWhenIdle()) {
-					long long ticksToSleep = g_TimerMan.GetTimeToSleep();
-					if (ticksToSleep > 0) {
-						double secsToSleep = static_cast<double>(ticksToSleep) / static_cast<double>(g_TimerMan.GetTicksPerSecond());
-						long long milisToSleep = static_cast<long long>(secsToSleep) * 1000;
-						std::this_thread::sleep_for(std::chrono::milliseconds(milisToSleep));
-					}
-				}
-			}
-			updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();
-			updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
-			drawStartTime = updateEndAndDrawStartTime;
-
-			g_FrameMan.Draw();
-			g_WindowMan.DrawPostProcessBuffer();
-			g_WindowMan.UploadFrame();
-
-			drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
-			g_PerformanceMan.UpdateMSPF(updateTotalTime, drawTotalTime);
-		}
-	}
+}
 
 /// <summary>
 /// Self-invoking lambda that installs exception handlers before Main is executed.
