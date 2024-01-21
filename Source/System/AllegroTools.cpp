@@ -1,6 +1,7 @@
 #include "AllegroTools.h"
 #include "allegro.h"
 #include "allegro/internal/aintern.h"
+
 namespace RTE {
 	unsigned long TrueAlphaBlender(unsigned long x, unsigned long y, unsigned long n) {
 		// This is the original allegro alpha blender with added alpha component blending.
