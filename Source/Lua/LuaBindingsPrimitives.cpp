@@ -113,7 +113,7 @@ namespace RTE {
 		auto luaType = SimpleTypeLuaClassDefinition(BitmapPrimitive);
 
 		luaType.set(sol::call_constructor, sol::constructors<
-		                                       BitmapPrimitive(int, const Vector&, const MOSprite*, float, int, bool, bool),
+		                                       BitmapPrimitive(int, const Vector&, const MOSprite*, float, unsigned int, bool, bool),
 		                                       BitmapPrimitive(int, const Vector&, const std::string&, float, bool, bool)>());
 	}
 } // namespace RTE

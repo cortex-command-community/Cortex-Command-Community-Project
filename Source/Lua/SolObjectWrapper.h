@@ -29,7 +29,7 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a SolObjectWrapper object in system memory.
 		explicit SolObjectWrapper(sol::object* solObject, const std::string_view& filePath, bool ownsObject = true) :
-		    m_SolObject(solObject), m_FilePath(filePath), m_OwnsObject(ownsObject) {}
+		    m_OwnsObject(ownsObject), m_SolObject(solObject), m_FilePath(filePath) {}
 #pragma endregion
 
 #pragma region Destruction

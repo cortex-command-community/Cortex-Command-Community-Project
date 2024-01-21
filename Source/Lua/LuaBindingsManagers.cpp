@@ -264,10 +264,10 @@ namespace RTE {
 		luaType["DrawTextPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const std::string& text, bool isSmall, int alignment, float rotAngle)) & PrimitiveMan::DrawTextPrimitive;
 		luaType["DrawTextPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const std::string& text, bool isSmall, int alignment)) & PrimitiveMan::DrawTextPrimitive;
 		luaType["DrawTextPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const std::string& text, bool isSmall, int alignment, float rotAngle)) & PrimitiveMan::DrawTextPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const MOSprite* moSprite, float rotAngle, int frame)) & PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped)) & PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const MOSprite* moSprite, float rotAngle, int frame)) & PrimitiveMan::DrawBitmapPrimitive;
-		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const MOSprite* moSprite, float rotAngle, unsigned int frame)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const MOSprite* moSprite, float rotAngle, unsigned int frame)) & PrimitiveMan::DrawBitmapPrimitive;
+		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped)) & PrimitiveMan::DrawBitmapPrimitive;
 		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const std::string& filePath, float rotAngle)) & PrimitiveMan::DrawBitmapPrimitive;
 		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(const Vector& start, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped)) & PrimitiveMan::DrawBitmapPrimitive;
 		luaType["DrawBitmapPrimitive"] = (void(PrimitiveMan::*)(int player, const Vector& start, const std::string& filePath, float rotAngle)) & PrimitiveMan::DrawBitmapPrimitive;

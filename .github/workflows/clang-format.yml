@@ -35,10 +35,42 @@ jobs:
 
       - name: Run clang-format
         run: |
-            .github/scripts/run-clang-format.py -r Source Data/Base.rte/Shaders \
+            .github/scripts/run-clang-format.py \
+                -i \
+                -r Source Data/Base.rte/Shaders \
                 --exclude Source/System/Base64 \
                 --exclude Source/System/BitMask \
                 --exclude Source/System/glad \
                 --exclude Source/System/MicroPather \
                 --exclude Source/System/Semver200 \
                 --exclude Source/System/StackWalker
+      - name: Add missing newlines
+        run: |
+            .github/scripts/run-clang-format.py \
+                -i --clang-format-executable .github/scripts/add-eol.sh \
+                -r Source Data/Base.rte/Shaders \
+                --exclude Source/System/Base64 \
+                --exclude Source/System/BitMask \
+                --exclude Source/System/glad \
+                --exclude Source/System/MicroPather \
+                --exclude Source/System/Semver200 \
+                --exclude Source/System/StackWalker
+      - name: Report changes
+        run: |
+          # Store the changes in a patch file first
+          git diff > clang-format-changes.patch
+          # if any changes were made, fail the build
+          if ! git diff --quiet ; then
+            echo "::error::Code misformatted. Run clang-format or apply the patch (printed below and attached to job summary) to fix."
+            # Print the changes to the console
+            cat clang-format-changes.patch
+            exit 1
+          fi
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        # Only upload the patch file if the build failed, meaning that the code was not properly formatted
+        if: failure()
+        with:
+          name: clang-format-changes.patch
+          path: |
+            clang-format-changes.patch
