@@ -1,5 +1,4 @@
-#ifndef _RTEPAUSEMENUGUI_
-#define _RTEPAUSEMENUGUI_
+#pragma once
 
 #include "Timer.h"
 
@@ -140,4 +139,3 @@ namespace RTE {
 		PauseMenuGUI& operator=(const PauseMenuGUI& rhs) = delete;
 	};
 } // namespace RTE
-#endif

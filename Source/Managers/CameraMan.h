@@ -1,5 +1,4 @@
-#ifndef _RTECAMERAMAN_
-#define _RTECAMERAMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "Timer.h"
@@ -16,7 +15,7 @@ namespace RTE {
 	public:
 #pragma region Creation
 		/// Constructor method used to instantiate a CameraMan object in system memory. Create() should be called before using the object.
-		CameraMan() { Clear(); }
+		CameraMan();
 
 		/// Makes the CameraMan object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -25,7 +24,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a CameraMan object before deletion from system memory.
-		~CameraMan() { Destroy(); }
+		~CameraMan();
 
 		/// Resets the entire CameraMan to their default settings or values.
 		void Reset() { Clear(); }
@@ -214,4 +213,3 @@ namespace RTE {
 		CameraMan& operator=(const CameraMan& rhs) = delete;
 	};
 } // namespace RTE
-#endif

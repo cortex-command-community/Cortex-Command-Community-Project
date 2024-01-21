@@ -1,5 +1,4 @@
-#ifndef _RTELUABINDDEFINITIONS_
-#define _RTELUABINDDEFINITIONS_
+#pragma once
 
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS 1
 
@@ -79,4 +78,3 @@ namespace RTE {
 		return outVector;
 	}
 } // namespace RTE
-#endif

@@ -1,5 +1,4 @@
-#ifndef _RTEPIEMENU_
-#define _RTEPIEMENU_
+#pragma once
 
 #include "PieQuadrant.h"
 #include "Controller.h"
@@ -24,9 +23,7 @@ namespace RTE {
 
 #pragma region Creation
 		    /// Constructor method used to instantiate a PieMenu object in system memory. Create() should be called before using the object.
-		    PieMenu() {
-			Clear();
-		}
+		    PieMenu();
 
 		/// Makes the PieMenu object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -48,7 +45,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a PieMenu object before deletion from system memory.
-		~PieMenu() override { Destroy(true); }
+		~PieMenu() override;
 
 		/// Destroys and resets (through Clear()) the PieMenu object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -201,7 +198,7 @@ namespace RTE {
 
 		/// Gets the command issued by this PieMenu in the last update, i.e. the PieSlice SliceType of the currently activated PieSlice, or None if no slice was activated.
 		/// @return The PieSlice type which has been picked, or None if none has been picked.
-		PieSlice::SliceType GetPieCommand() const;
+		PieSliceType GetPieCommand() const;
 
 		/// Gets a const reference to the vector containing pointers to all the PieSlices in this PieMenu.
 		/// @return A const reference to the vector containing pointers to all the PieSlices in this PieMenu.
@@ -215,7 +212,7 @@ namespace RTE {
 		/// Gets the first found PieSlice with the passed in PieSlice SliceType, if there is one. Ownership is NOT transferred!
 		/// @param pieSliceType The type of PieSlice to look for.
 		/// @return The first found PieSlice with the passed in PieSlice SliceType, or nullptr if there are no PieSlices with that SliceType in this PieMenu.
-		PieSlice* GetFirstPieSliceByType(PieSlice::SliceType pieSliceType) const;
+		PieSlice* GetFirstPieSliceByType(PieSliceType pieSliceType) const;
 
 		/// Adds a PieSlice to the PieMenu, setting its original source to the specified sliceSource. Ownership IS transferred!
 		/// The slice will be placed in the appropriate PieQuadrant for its Direction, with Any Direction using the first available PieQuadrant.
@@ -248,7 +245,7 @@ namespace RTE {
 		/// Removes any PieSlices in this PieMenu whose PieSlice SliceType matches the passed in PieSlice SliceType.
 		/// @param pieSliceTypeToRemoveBy The PieSlice SliceType to check against.
 		/// @return Whether or not any PieSlices were removed from this PieMenu.
-		bool RemovePieSlicesByType(PieSlice::SliceType pieSliceTypeToRemoveBy);
+		bool RemovePieSlicesByType(PieSliceType pieSliceTypeToRemoveBy);
 
 		/// Removes any PieSlices in this PieMenu whose original source matches the passed in Entity.
 		/// @param originalSource The original source whose PieSlices should be removed.
@@ -465,4 +462,3 @@ namespace RTE {
 		PieMenu& operator=(const PieMenu& rhs) = delete;
 	};
 } // namespace RTE
-#endif

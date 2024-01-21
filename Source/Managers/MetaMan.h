@@ -1,5 +1,4 @@
-#ifndef _RTEMETAMAN_
-#define _RTEMETAMAN_
+#pragma once
 
 /// Header file for the MetaMan class.
 /// @author Daniel Tabar
@@ -63,11 +62,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a MetaMan object in system
 		/// memory. Create() should be called before using the object.
-		MetaMan() { Clear(); }
+		MetaMan();
 
 		/// Destructor method used to clean up a MetaMan object before deletion
 		/// from system memory.
-		~MetaMan() { Destroy(); }
+		~MetaMan();
 
 		/// Makes the MetaMan object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -354,5 +353,3 @@ namespace RTE {
 		MetaMan& operator=(const MetaMan& rhs) = delete;
 	};
 } // namespace RTE
-
-#endif // File

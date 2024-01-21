@@ -15,6 +15,7 @@
 #include "DataModule.h"
 #include "MetaMan.h"
 #include "AudioMan.h"
+#include "LuaMan.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -33,6 +34,14 @@
 namespace RTE {
 
 	ConcreteClassInfo(MultiplayerServerLobby, Activity, 0);
+
+	MultiplayerServerLobby::MultiplayerServerLobby() {
+		Clear();
+	}
+
+	MultiplayerServerLobby::~MultiplayerServerLobby() {
+		Destroy(true);
+	}
 
 	void MultiplayerServerLobby::Clear() {
 		// m_pEditorGUI = 0;
@@ -142,9 +151,9 @@ namespace RTE {
 		// Allocate and (re)create the Editor GUI
 
 		/*if (m_pEditorGUI)
-		  m_pEditorGUI->Destroy();
+		    m_pEditorGUI->Destroy();
 		else
-		  m_pEditorGUI = new MultiplayerServerLobbyGUI;
+		    m_pEditorGUI = new MultiplayerServerLobbyGUI;
 		m_pEditorGUI->Create(&(m_PlayerController[0]));*/
 
 		//////////////////////////////////////////////////////////////
@@ -588,14 +597,14 @@ namespace RTE {
 				if (newActivity) {
 					m_apTeamBoxes[team]->SetDrawType(GUICollectionBox::Image);
 					/* pointless; the CPU player icon suffices, and doesn't block the real team banner
-					        // CPU Team
-					        if (pGameActivity && pGameActivity->GetCPUTeam() == team)
-					        {
-					          pIcon = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "CPU Team"));
-					          m_apTeamNameLabels[team]->SetText(pActivity->GetTeamName(team) + ":");
-					        }
-					        // The not playing row
-					        else */
+					                // CPU Team
+					                if (pGameActivity && pGameActivity->GetCPUTeam() == team)
+					                {
+					                    pIcon = dynamic_cast<const Icon *>(g_PresetMan.GetEntityPreset("Icon", "CPU Team"));
+					                    m_apTeamNameLabels[team]->SetText(pActivity->GetTeamName(team) + ":");
+					                }
+					                // The not playing row
+					                else */
 					if (team == TEAM_DISABLED) {
 						pIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Disabled Team"));
 						m_apTeamNameLabels[team]->SetText("Not Playing:");
@@ -1176,8 +1185,8 @@ namespace RTE {
 			}
 			/*else
 			{
-			  draw_sprite(finalDestBitmap, m_pCursor, mouseX - offsetX, mouseY - offsetY);
-			  draw_sprite(finalDestBitmap, m_apPlayerIcons[0]->GetBitmaps8()[0], mouseX + 7 + (baseOffsetX - offsetX), mouseY + 7 + (baseOffsetY - offsetY));
+			    draw_sprite(finalDestBitmap, m_pCursor, mouseX - offsetX, mouseY - offsetY);
+			    draw_sprite(finalDestBitmap, m_apPlayerIcons[0]->GetBitmaps8()[0], mouseX + 7 + (baseOffsetX - offsetX), mouseY + 7 + (baseOffsetY - offsetY));
 			}*/
 		}
 	}

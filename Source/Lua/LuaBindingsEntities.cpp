@@ -2,6 +2,9 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "PieSlice.h"
+#include "SoundSet.h"
+
 namespace RTE {
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Entity) {
@@ -1011,7 +1014,7 @@ namespace RTE {
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieSlice) {
 		return ConcreteTypeLuaClassDefinition(PieSlice, Entity)
 
-		    .property("Type", &PieSlice::GetType, &PieSlice::SetType)
+		    .property("Type", &LuaAdaptersPieSlice::GetType, &PieSlice::SetType)
 		    .property("Direction", &PieSlice::GetDirection, &PieSlice::SetDirection)
 		    .property("CanBeMiddleSlice", &PieSlice::GetCanBeMiddleSlice, &PieSlice::SetCanBeMiddleSlice)
 		    .property("OriginalSource", &PieSlice::GetOriginalSource)
@@ -1025,41 +1028,41 @@ namespace RTE {
 
 		    .def("ReloadScripts", &PieSlice::ReloadScripts)
 
-		    .enum_("SliceType")[luabind::value("NoType", PieSlice::SliceType::NoType),
-		                        luabind::value("Pickup", PieSlice::SliceType::Pickup),
-		                        luabind::value("Drop", PieSlice::SliceType::Drop),
-		                        luabind::value("NextItem", PieSlice::SliceType::NextItem),
-		                        luabind::value("PreviousItem", PieSlice::SliceType::PreviousItem),
-		                        luabind::value("Reload", PieSlice::SliceType::Reload),
-		                        luabind::value("BuyMenu", PieSlice::SliceType::BuyMenu),
-		                        luabind::value("Stats", PieSlice::SliceType::Stats),
-		                        luabind::value("Map", PieSlice::SliceType::Map),
-		                        luabind::value("FormSquad", PieSlice::SliceType::FormSquad),
-		                        luabind::value("Ceasefire", PieSlice::SliceType::Ceasefire),
-		                        luabind::value("Sentry", PieSlice::SliceType::Sentry),
-		                        luabind::value("Patrol", PieSlice::SliceType::Patrol),
-		                        luabind::value("BrainHunt", PieSlice::SliceType::BrainHunt),
-		                        luabind::value("GoldDig", PieSlice::SliceType::GoldDig),
-		                        luabind::value("GoTo", PieSlice::SliceType::GoTo),
-		                        luabind::value("Return", PieSlice::SliceType::Return),
-		                        luabind::value("Stay", PieSlice::SliceType::Stay),
-		                        luabind::value("Deliver", PieSlice::SliceType::Deliver),
-		                        luabind::value("Scuttle", PieSlice::SliceType::Scuttle),
-		                        luabind::value("Done", PieSlice::SliceType::EditorDone),
-		                        luabind::value("Load", PieSlice::SliceType::EditorLoad),
-		                        luabind::value("Save", PieSlice::SliceType::EditorSave),
-		                        luabind::value("New", PieSlice::SliceType::EditorNew),
-		                        luabind::value("Pick", PieSlice::SliceType::EditorPick),
-		                        luabind::value("Move", PieSlice::SliceType::EditorMove),
-		                        luabind::value("Remove", PieSlice::SliceType::EditorRemove),
-		                        luabind::value("InFront", PieSlice::SliceType::EditorInFront),
-		                        luabind::value("Behind", PieSlice::SliceType::EditorBehind),
-		                        luabind::value("ZoomIn", PieSlice::SliceType::EditorZoomIn),
-		                        luabind::value("ZoomOut", PieSlice::SliceType::EditorZoomOut),
-		                        luabind::value("Team1", PieSlice::SliceType::EditorTeam1),
-		                        luabind::value("Team2", PieSlice::SliceType::EditorTeam2),
-		                        luabind::value("Team3", PieSlice::SliceType::EditorTeam3),
-		                        luabind::value("Team4", PieSlice::SliceType::EditorTeam4)];
+		    .enum_("SliceType")[luabind::value("NoType", static_cast<int>(PieSliceType::NoType)),
+		                        luabind::value("Pickup", static_cast<int>(PieSliceType::Pickup)),
+		                        luabind::value("Drop", static_cast<int>(PieSliceType::Drop)),
+		                        luabind::value("NextItem", static_cast<int>(PieSliceType::NextItem)),
+		                        luabind::value("PreviousItem", static_cast<int>(PieSliceType::PreviousItem)),
+		                        luabind::value("Reload", static_cast<int>(PieSliceType::Reload)),
+		                        luabind::value("BuyMenu", static_cast<int>(PieSliceType::BuyMenu)),
+		                        luabind::value("Stats", static_cast<int>(PieSliceType::Stats)),
+		                        luabind::value("Map", static_cast<int>(PieSliceType::Map)),
+		                        luabind::value("FormSquad", static_cast<int>(PieSliceType::FormSquad)),
+		                        luabind::value("Ceasefire", static_cast<int>(PieSliceType::Ceasefire)),
+		                        luabind::value("Sentry", static_cast<int>(PieSliceType::Sentry)),
+		                        luabind::value("Patrol", static_cast<int>(PieSliceType::Patrol)),
+		                        luabind::value("BrainHunt", static_cast<int>(PieSliceType::BrainHunt)),
+		                        luabind::value("GoldDig", static_cast<int>(PieSliceType::GoldDig)),
+		                        luabind::value("GoTo", static_cast<int>(PieSliceType::GoTo)),
+		                        luabind::value("Return", static_cast<int>(PieSliceType::Return)),
+		                        luabind::value("Stay", static_cast<int>(PieSliceType::Stay)),
+		                        luabind::value("Deliver", static_cast<int>(PieSliceType::Deliver)),
+		                        luabind::value("Scuttle", static_cast<int>(PieSliceType::Scuttle)),
+		                        luabind::value("Done", static_cast<int>(PieSliceType::EditorDone)),
+		                        luabind::value("Load", static_cast<int>(PieSliceType::EditorLoad)),
+		                        luabind::value("Save", static_cast<int>(PieSliceType::EditorSave)),
+		                        luabind::value("New", static_cast<int>(PieSliceType::EditorNew)),
+		                        luabind::value("Pick", static_cast<int>(PieSliceType::EditorPick)),
+		                        luabind::value("Move", static_cast<int>(PieSliceType::EditorMove)),
+		                        luabind::value("Remove", static_cast<int>(PieSliceType::EditorRemove)),
+		                        luabind::value("InFront", static_cast<int>(PieSliceType::EditorInFront)),
+		                        luabind::value("Behind", static_cast<int>(PieSliceType::EditorBehind)),
+		                        luabind::value("ZoomIn", static_cast<int>(PieSliceType::EditorZoomIn)),
+		                        luabind::value("ZoomOut", static_cast<int>(PieSliceType::EditorZoomOut)),
+		                        luabind::value("Team1", static_cast<int>(PieSliceType::EditorTeam1)),
+		                        luabind::value("Team2", static_cast<int>(PieSliceType::EditorTeam2)),
+		                        luabind::value("Team3", static_cast<int>(PieSliceType::EditorTeam3)),
+		                        luabind::value("Team4", static_cast<int>(PieSliceType::EditorTeam4))];
 	}
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PieMenu) {
@@ -1088,7 +1091,7 @@ namespace RTE {
 		    .def("Wobble", &PieMenu::Wobble)
 		    .def("FreezeAtRadius", &PieMenu::FreezeAtRadius)
 
-		    .def("GetPieCommand", &PieMenu::GetPieCommand)
+		    .def("GetPieCommand", &LuaAdaptersPieMenu::GetPieCommand)
 		    .def("GetFirstPieSliceByPresetName", &PieMenu::GetFirstPieSliceByPresetName)
 		    .def("GetFirstPieSliceByType", &PieMenu::GetFirstPieSliceByType)
 		    .def("AddPieSlice", &PieMenu::AddPieSlice, luabind::adopt(_2))

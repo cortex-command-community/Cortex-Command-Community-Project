@@ -1,5 +1,4 @@
-#ifndef _RTETITLESCREEN_
-#define _RTETITLESCREEN_
+#pragma once
 
 #include "Timer.h"
 #include "Vector.h"
@@ -239,4 +238,3 @@ namespace RTE {
 		TitleScreen& operator=(const TitleScreen& rhs) = delete;
 	};
 } // namespace RTE
-#endif

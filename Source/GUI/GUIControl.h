@@ -1,5 +1,4 @@
-#ifndef _GUICONTROL_
-#define _GUICONTROL_
+#pragma once
 
 #include "GUIWriter.h"
 
@@ -145,5 +144,4 @@ namespace RTE {
 
 		GUIControlManager* m_ControlManager;
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

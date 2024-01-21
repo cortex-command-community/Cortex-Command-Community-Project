@@ -6,6 +6,14 @@ namespace RTE {
 
 	ConcreteClassInfo(Round, Entity, 500);
 
+	Round::Round() {
+		Clear();
+	}
+
+	Round::~Round() {
+		Destroy(true);
+	}
+
 	void Round::Clear() {
 		m_Particle = 0;
 		m_ParticleCount = 0;

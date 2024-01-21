@@ -1,5 +1,4 @@
-#ifndef _RTECREDITS_
-#define _RTECREDITS_
+#pragma once
 
 // DO NOT INDENT!
 // String literals are kinda trash and any whitespace/indentation will be part of the string.
@@ -142,5 +141,3 @@ FMOD Studio by Firelight Technologies Pty Ltd.
 
 
 Cortex Command is TM and © 2023 Data Realms, LLC)";
-
-#endif

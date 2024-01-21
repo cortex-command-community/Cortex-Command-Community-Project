@@ -1,5 +1,4 @@
-#ifndef _GUITEXTBOX_
-#define _GUITEXTBOX_
+#pragma once
 
 #include "GUITextPanel.h"
 
@@ -72,5 +71,4 @@ namespace RTE {
 		int m_HAlignment;
 		int m_VAlignment;
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

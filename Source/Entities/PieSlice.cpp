@@ -8,8 +8,16 @@ namespace RTE {
 
 	ConcreteClassInfo(PieSlice, Entity, 80);
 
+	PieSlice::PieSlice() {
+		Clear();
+	}
+
+	PieSlice::~PieSlice() {
+		Destroy(true);
+	}
+
 	void PieSlice::Clear() {
-		m_Type = SliceType::NoType;
+		m_Type = PieSliceType::NoType;
 		m_Direction = Directions::Any;
 		m_CanBeMiddleSlice = true;
 		m_OriginalSource = nullptr;
@@ -72,7 +80,7 @@ namespace RTE {
 	int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-		MatchProperty("Type", { m_Type = static_cast<SliceType>(std::stoi(reader.ReadPropValue())); });
+		MatchProperty("Type", { m_Type = static_cast<PieSliceType>(std::stoi(reader.ReadPropValue())); });
 		MatchProperty("Direction", {
 			if (std::string directionString = reader.ReadPropValue(); c_DirectionNameToDirectionsMap.find(directionString) != c_DirectionNameToDirectionsMap.end()) {
 				m_Direction = c_DirectionNameToDirectionsMap.find(directionString)->second;
@@ -117,8 +125,8 @@ namespace RTE {
 	int PieSlice::Save(Writer& writer) const {
 		Entity::Save(writer);
 
-		if (m_Type != SliceType::NoType) {
-			writer.NewPropertyWithValue("Type", m_Type);
+		if (m_Type != PieSliceType::NoType) {
+			writer.NewPropertyWithValue("Type", static_cast<int>(m_Type));
 		}
 		if (m_Direction != Directions::Any) {
 			writer.NewPropertyWithValue("Direction", static_cast<int>(m_Direction));

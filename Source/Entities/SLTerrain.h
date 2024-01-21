@@ -1,5 +1,4 @@
-#ifndef _RTESLTERRAIN_
-#define _RTESLTERRAIN_
+#pragma once
 
 #include "SceneLayer.h"
 #include "Matrix.h"
@@ -28,7 +27,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a SLTerrain object in system memory. Create() should be called before using the object.
-		SLTerrain() { Clear(); }
+		SLTerrain();
 
 		/// Makes the SLTerrain object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -42,7 +41,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a SLTerrain object before deletion from system memory.
-		~SLTerrain() override { Destroy(true); }
+		~SLTerrain() override;
 
 		/// Destroys and resets (through Clear()) the SLTerrain object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -225,4 +224,3 @@ namespace RTE {
 		SLTerrain& operator=(const SLTerrain& rhs) = delete;
 	};
 } // namespace RTE
-#endif

@@ -1,5 +1,4 @@
-#ifndef _GUIINPUT_
-#define _GUIINPUT_
+#pragma once
 
 namespace RTE {
 
@@ -54,7 +53,7 @@ namespace RTE {
 		/// @param whichPlayer Whether the keyboard and joysticks also can control the mouse cursor.
 		GUIInput(int whichPlayer, bool keyJoyMouseCursor = false);
 
-		virtual ~GUIInput() { Destroy(); }
+		virtual ~GUIInput();
 
 		/// Destroy the screen
 		virtual void Destroy();
@@ -164,5 +163,4 @@ namespace RTE {
 		// Whether the keyboard and joysticks also control the mouse
 		bool m_KeyJoyMouseCursor;
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

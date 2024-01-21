@@ -1,5 +1,4 @@
-#ifndef _GUISLIDER_
-#define _GUISLIDER_
+#pragma once
 
 namespace RTE {
 
@@ -163,5 +162,4 @@ namespace RTE {
 		/// Calculates the knob position and size.
 		void CalculateKnob();
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

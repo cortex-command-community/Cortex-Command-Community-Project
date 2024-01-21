@@ -1,5 +1,4 @@
-#ifndef _RTENETWORKMSG_
-#define _RTENETWORKMSG_
+#pragma once
 
 #include "Constants.h"
 #include "MessageIdentifiers.h"
@@ -260,4 +259,3 @@ namespace RTE {
 // Disables the previously set pack pragma.
 #pragma pack(pop)
 } // namespace RTE
-#endif

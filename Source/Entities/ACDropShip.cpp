@@ -11,6 +11,14 @@ namespace RTE {
 
 	ConcreteClassInfo(ACDropShip, ACraft, 10);
 
+	ACDropShip::ACDropShip() {
+		Clear();
+	}
+
+	ACDropShip::~ACDropShip() {
+		Destroy(true);
+	}
+
 	void ACDropShip::Clear() {
 		m_pBodyAG = 0;
 		m_pRThruster = 0;
@@ -347,10 +355,10 @@ namespace RTE {
 			if (m_pLThruster && m_pLThruster->IsAttached())
 				m_pLThruster->EnableEmission(false);
 			/*
-			    if (m_pURThruster && m_pURThruster->IsAttached())
-			      m_pURThruster->EnableEmission(false);
-			    if (m_pULThruster && m_pULThruster->IsAttached())
-			      m_pULThruster->EnableEmission(false);
+			        if (m_pURThruster && m_pURThruster->IsAttached())
+			            m_pURThruster->EnableEmission(false);
+			        if (m_pULThruster && m_pULThruster->IsAttached())
+			            m_pULThruster->EnableEmission(false);
 			*/
 		}
 

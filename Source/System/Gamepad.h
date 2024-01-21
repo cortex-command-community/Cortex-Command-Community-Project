@@ -1,5 +1,4 @@
-#ifndef _RTEGAMEPAD_
-#define _RTEGAMEPAD_
+#pragma once
 
 #include "Vector.h"
 #include "SDL_gamecontroller.h"
@@ -44,4 +43,3 @@ namespace RTE {
 		bool operator<(const Gamepad& rhs) const { return m_JoystickID < rhs.m_JoystickID; }
 	};
 } // namespace RTE
-#endif

@@ -12,6 +12,19 @@ namespace RTE {
 
 	ConcreteClassInfo(AtomGroup, Entity, 500);
 
+	AtomGroup::AtomGroup() {
+		Clear();
+	}
+
+	AtomGroup::AtomGroup(const AtomGroup& reference) {
+		Clear();
+		Create(reference);
+	}
+
+	AtomGroup::~AtomGroup() {
+		Destroy(true);
+	}
+
 	const std::unordered_map<std::string, AtomGroup::AreaDistributionType> AtomGroup::c_AreaDistributionTypeMap = {
 	    {"Linear", AtomGroup::AreaDistributionType::Linear},
 	    {"Circle", AtomGroup::AreaDistributionType::Circle},
@@ -1015,7 +1028,7 @@ namespace RTE {
 								/*
 								// We hit pixels in both sub and dom directions on the other MO, a corner hit.
 								} else {
-								  hitData.HitPoint.SetXY(hitPos[X], hitPos[Y]);
+								    hitData.HitPoint.SetXY(hitPos[X], hitPos[Y]);
 								}
 								*/
 								hitData.BitmapNormal[sub] = static_cast<float>(-increment[sub]);

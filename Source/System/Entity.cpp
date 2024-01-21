@@ -9,6 +9,14 @@ namespace RTE {
 	Entity::ClassInfo Entity::m_sClass("Entity");
 	Entity::ClassInfo* Entity::ClassInfo::s_ClassHead = 0;
 
+	Entity::Entity() {
+		Clear();
+	}
+
+	Entity::~Entity() {
+		Destroy(true);
+	}
+
 	void Entity::Clear() {
 		m_PresetName = "None";
 		m_IsOriginalPreset = false;
@@ -112,7 +120,7 @@ namespace RTE {
 		// TODO: Make proper save system that knows not to save redundant data!
 		/*
 		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
-		  writer.NewPropertyWithValue("AddToGroup", *itr);
+		    writer.NewPropertyWithValue("AddToGroup", *itr);
 		}
 		*/
 		return 0;

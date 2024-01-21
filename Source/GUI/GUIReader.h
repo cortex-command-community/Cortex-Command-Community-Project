@@ -1,5 +1,4 @@
-#ifndef _RTEGUIREADER_
-#define _RTEGUIREADER_
+#pragma once
 
 namespace RTE {
 
@@ -148,4 +147,3 @@ namespace RTE {
 		GUIReader& operator=(const GUIReader& rhs) = delete;
 	};
 } // namespace RTE
-#endif

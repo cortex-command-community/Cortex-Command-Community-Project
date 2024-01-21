@@ -1,5 +1,4 @@
-#ifndef _RTEACDROPSHIP_
-#define _RTEACDROPSHIP_
+#pragma once
 
 /// Header file for the ACDropShip class.
 /// @author Daniel Tabar
@@ -25,11 +24,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a ACDropShip object in system
 		/// memory. Create() should be called before using the object.
-		ACDropShip() { Clear(); }
+		ACDropShip();
 
 		/// Destructor method used to clean up a ACDropShip object before deletion
 		/// from system memory.
-		~ACDropShip() override { Destroy(true); }
+		~ACDropShip() override;
 
 		/// Makes the ACDropShip object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -204,5 +203,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File
