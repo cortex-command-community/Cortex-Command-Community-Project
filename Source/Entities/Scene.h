@@ -200,9 +200,9 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Scene)
 
-		    /// Constructor method used to instantiate a Scene object in system
-		    /// memory. Create() should be called before using the object.
-		    Scene();
+		/// Constructor method used to instantiate a Scene object in system
+		/// memory. Create() should be called before using the object.
+		Scene();
 
 		/// Destructor method used to clean up a Scene object before deletion
 		/// from system memory.
