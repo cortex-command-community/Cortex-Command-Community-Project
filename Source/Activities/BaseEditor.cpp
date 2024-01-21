@@ -55,6 +55,11 @@ int BaseEditor::Create(const BaseEditor& reference) {
 	return 0;
 }
 
+void BaseEditor::Reset() {
+	Clear();
+	Activity::Reset();
+}
+
 int BaseEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Activity::ReadProperty(propName, reader));
 	/*

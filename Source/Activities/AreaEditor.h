@@ -65,11 +65,11 @@ namespace RTE {
 
 		/// Sets the current mode of this editor.
 		/// @param newMode The new mode to set to, see the EditorGUIMode enum.
-		void SetEditorMode(EditorActivity::EditorMode newMode) { m_EditorMode = newMode; }
+		void SetEditorMode(EditorActivity::EditorMode newMode);
 
 		/// Gets the current mode of this editor.
 		/// @return The current mode this is set to; see the EditorGUIMode enum.
-		EditorActivity::EditorMode GetEditorMode() const { return m_EditorMode; }
+		EditorActivity::EditorMode GetEditorMode() const;
 
 		/// Officially starts the game accroding to parameters previously set.
 		/// @return An error return value signaling sucess or any particular failure.

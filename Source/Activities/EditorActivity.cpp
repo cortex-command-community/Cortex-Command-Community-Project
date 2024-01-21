@@ -93,6 +93,19 @@ int EditorActivity::Create(const EditorActivity& reference) {
 	return 0;
 }
 
+void EditorActivity::Reset() {
+	Clear();
+	Activity::Reset();
+}
+
+void EditorActivity::SetEditorMode(EditorMode newMode) {
+	m_EditorMode = newMode;
+}
+
+EditorActivity::EditorMode EditorActivity::GetEditorMode() const {
+	return m_EditorMode;
+}
+
 int EditorActivity::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(Activity::ReadProperty(propName, reader));
 	/*

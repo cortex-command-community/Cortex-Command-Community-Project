@@ -60,6 +60,19 @@ int AssemblyEditor::Create(const AssemblyEditor& reference) {
 	return 0;
 }
 
+void AssemblyEditor::Reset() {
+	Clear();
+	EditorActivity::Reset();
+}
+
+void AssemblyEditor::SetEditorMode(EditorActivity::EditorMode newMode) {
+	m_EditorMode = newMode;
+}
+
+EditorActivity::EditorMode AssemblyEditor::GetEditorMode() const {
+	return m_EditorMode;
+}
+
 int AssemblyEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 	/*

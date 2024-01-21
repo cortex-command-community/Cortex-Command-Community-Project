@@ -55,6 +55,28 @@ int ActorEditor::Create(const ActorEditor& reference) {
 	return 0;
 }
 
+void ActorEditor::Reset() {
+	Clear();
+	EditorActivity::Reset();
+}
+
+void ActorEditor::Destroy(bool notInherited) {
+	delete m_pEditedActor;
+	delete m_pPicker;
+
+	if (!notInherited)
+		EditorActivity::Destroy();
+	Clear();
+}
+
+void ActorEditor::SetEditorMode(EditorActivity::EditorMode newMode) {
+	m_EditorMode = newMode;
+}
+
+EditorActivity::EditorMode ActorEditor::GetEditorMode() const {
+	return m_EditorMode;
+}
+
 int ActorEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 	/*
@@ -68,15 +90,6 @@ int ActorEditor::ReadProperty(const std::string_view& propName, Reader& reader) 
 int ActorEditor::Save(Writer& writer) const {
 	EditorActivity::Save(writer);
 	return 0;
-}
-
-void ActorEditor::Destroy(bool notInherited) {
-	delete m_pEditedActor;
-	delete m_pPicker;
-
-	if (!notInherited)
-		EditorActivity::Destroy();
-	Clear();
 }
 
 int ActorEditor::Start() {

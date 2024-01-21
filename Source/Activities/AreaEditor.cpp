@@ -60,6 +60,14 @@ int AreaEditor::Create(const AreaEditor& reference) {
 	return 0;
 }
 
+void AreaEditor::SetEditorMode(EditorActivity::EditorMode newMode) {
+	m_EditorMode = newMode;
+}
+
+EditorActivity::EditorMode AreaEditor::GetEditorMode() const {
+	return m_EditorMode;
+}
+
 int AreaEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 	/*

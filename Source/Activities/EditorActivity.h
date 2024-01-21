@@ -66,10 +66,7 @@ namespace RTE {
 
 		/// Resets the entire EditorActivity, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Activity::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the EditorActivity object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -78,11 +75,11 @@ namespace RTE {
 
 		/// Sets the current mode of this editor.
 		/// @param newMode The new mode to set to, see the EditorGUIMode enum.
-		void SetEditorMode(EditorMode newMode) { m_EditorMode = newMode; }
+		void SetEditorMode(EditorMode newMode);
 
 		/// Gets the current mode of this editor.
 		/// @return The current mode this is set to; see the EditorGUIMode enum.
-		EditorMode GetEditorMode() const { return m_EditorMode; }
+		EditorMode GetEditorMode() const;
 
 		/// Officially starts the game accroding to parameters previously set.
 		/// @return An error return value signaling sucess or any particular failure.
