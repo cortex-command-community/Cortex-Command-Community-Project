@@ -215,7 +215,7 @@ namespace RTE {
 		SchedulePrimitive(std::make_unique<TextPrimitive>(player, start, text, isSmall, alignment, rotAngle));
 	}
 
-	void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped) {
+	void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped) {
 		SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, moSprite, rotAngle, frame, hFlipped, vFlipped));
 	}
 
