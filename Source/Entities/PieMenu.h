@@ -18,12 +18,12 @@ namespace RTE {
 
 	public:
 		EntityAllocation(PieMenu)
-		    SerializableOverrideMethods
-		    ClassInfoGetters
+		SerializableOverrideMethods
+		ClassInfoGetters
 
 #pragma region Creation
-		    /// Constructor method used to instantiate a PieMenu object in system memory. Create() should be called before using the object.
-		    PieMenu();
+		/// Constructor method used to instantiate a PieMenu object in system memory. Create() should be called before using the object.
+		PieMenu();
 
 		/// Makes the PieMenu object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
