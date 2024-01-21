@@ -244,6 +244,37 @@ namespace RTE {
 		return nullptr;
 	}
 
+	void SoundContainer::SetCustomPanValue(float customPanValue) {
+		m_CustomPanValue = std::clamp(customPanValue, -1.0f, 1.0f);
+		if (IsBeingPlayed()) {
+			g_AudioMan.ChangeSoundContainerPlayingChannelsCustomPanValue(this);
+		}
+	}
+
+	void SoundContainer::SetPosition(const Vector& newPosition) {
+		if (!m_Immobile && newPosition != m_Pos) {
+			m_Pos = newPosition;
+			if (IsBeingPlayed()) {
+				g_AudioMan.ChangeSoundContainerPlayingChannelsPosition(this);
+			}
+		}
+	}
+
+	void SoundContainer::SetVolume(float newVolume) {
+		newVolume = std::clamp(newVolume, 0.0F, 10.0F);
+		if (IsBeingPlayed()) {
+			g_AudioMan.ChangeSoundContainerPlayingChannelsVolume(this, newVolume);
+		}
+		m_Volume = newVolume;
+	}
+
+	void SoundContainer::SetPitch(float newPitch) {
+		m_Pitch = std::clamp(newPitch, 0.125F, 8.0F);
+		if (IsBeingPlayed()) {
+			g_AudioMan.ChangeSoundContainerPlayingChannelsPitch(this);
+		}
+	}
+
 	bool SoundContainer::Play(int player) {
 		if (HasAnySounds()) {
 			if (IsBeingPlayed()) {
@@ -256,6 +287,20 @@ namespace RTE {
 			return g_AudioMan.PlaySoundContainer(this, player);
 		}
 		return false;
+	}
+
+	bool SoundContainer::Stop(int player) {
+		return (HasAnySounds() && IsBeingPlayed()) ? g_AudioMan.StopSoundContainerPlayingChannels(this, player) : false;
+	}
+
+	bool SoundContainer::Restart(int player) {
+		return (HasAnySounds() && IsBeingPlayed()) ? g_AudioMan.StopSoundContainerPlayingChannels(this, player) && g_AudioMan.PlaySoundContainer(this, player) : false;
+	}
+
+	void SoundContainer::FadeOut(int fadeOutTime) {
+		if (IsBeingPlayed()) {
+			return g_AudioMan.FadeOutSoundContainerPlayingChannels(this, fadeOutTime);
+		}
 	}
 
 	FMOD_RESULT SoundContainer::UpdateSoundProperties() {

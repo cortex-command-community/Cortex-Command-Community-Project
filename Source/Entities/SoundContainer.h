@@ -167,12 +167,7 @@ namespace RTE {
 
 		/// Sets the custom pan value of this SoundContainer. Clamped between -1 and 1.
 		/// @param customPanValue The new custom pan value.
-		void SetCustomPanValue(float customPanValue) {
-			m_CustomPanValue = std::clamp(customPanValue, -1.0f, 1.0f);
-			if (IsBeingPlayed()) {
-				g_AudioMan.ChangeSoundContainerPlayingChannelsCustomPanValue(this);
-			}
-		}
+		void SetCustomPanValue(float customPanValue);
 
 		/// Gets the panning strength multiplier of this SoundContainer.
 		/// @return A float with the panning strength multiplier.
@@ -224,14 +219,7 @@ namespace RTE {
 		/// Sets the position of the SoundContainer's sounds while they're playing.
 		/// @param position The new position to play the SoundContainer's sounds.
 		/// @return Whether this SoundContainer's attenuation setting was successful.
-		void SetPosition(const Vector& newPosition) {
-			if (!m_Immobile && newPosition != m_Pos) {
-				m_Pos = newPosition;
-				if (IsBeingPlayed()) {
-					g_AudioMan.ChangeSoundContainerPlayingChannelsPosition(this);
-				}
-			}
-		}
+		void SetPosition(const Vector& newPosition);
 
 		/// Gets the volume the sounds in this SoundContainer are played at. Note that this does not factor volume changes due to the SoundContainer's position.
 		/// @return The volume the sounds in this SoundContainer are played at.
@@ -239,13 +227,7 @@ namespace RTE {
 
 		/// Sets the volume sounds in this SoundContainer should be played at. Note that this does not factor volume changes due to the SoundContainer's position. Does not affect currently playing sounds.
 		/// @param newVolume The new volume sounds in this SoundContainer should be played at. Limited between 0 and 10.
-		void SetVolume(float newVolume) {
-			newVolume = std::clamp(newVolume, 0.0F, 10.0F);
-			if (IsBeingPlayed()) {
-				g_AudioMan.ChangeSoundContainerPlayingChannelsVolume(this, newVolume);
-			}
-			m_Volume = newVolume;
-		}
+		void SetVolume(float newVolume);
 
 		/// Gets the pitch the sounds in this SoundContainer are played at. Note that this does not factor in global pitch.
 		/// @return The pitch the sounds in this SoundContainer are played at.
@@ -253,12 +235,7 @@ namespace RTE {
 
 		/// Sets the pitch sounds in this SoundContainer should be played at and updates any playing instances accordingly.
 		/// @param newPitch The new pitch sounds in this SoundContainer should be played at. Limited between 0.125 and 8 (8 octaves up or down).
-		void SetPitch(float newPitch) {
-			m_Pitch = std::clamp(newPitch, 0.125F, 8.0F);
-			if (IsBeingPlayed()) {
-				g_AudioMan.ChangeSoundContainerPlayingChannelsPitch(this);
-			}
-		}
+		void SetPitch(float newPitch);
 
 		/// Gets the pitch variation the sounds in this SoundContainer are played at.
 		/// @return The pitch variation the sounds in this SoundContainer are played at.
@@ -300,7 +277,7 @@ namespace RTE {
 		/// Stops playback of this SoundContainer for a specific player.
 		/// @param player Player to stop playback of this SoundContainer for.
 		/// @return Whether this SoundContainer successfully stopped playing.
-		bool Stop(int player) { return (HasAnySounds() && IsBeingPlayed()) ? g_AudioMan.StopSoundContainerPlayingChannels(this, player) : false; }
+		bool Stop(int player);
 
 		/// Restarts playback of this SoundContainer for all players.
 		/// @return Whether this SoundContainer successfully restarted its playback.
@@ -309,15 +286,11 @@ namespace RTE {
 		/// Restarts playback of this SoundContainer for a specific player.
 		/// @param player Player to restart playback of this SoundContainer for.
 		/// @return Whether this SoundContainer successfully restarted its playback.
-		bool Restart(int player) { return (HasAnySounds() && IsBeingPlayed()) ? g_AudioMan.StopSoundContainerPlayingChannels(this, player) && g_AudioMan.PlaySoundContainer(this, player) : false; }
+		bool Restart(int player);
 
 		/// Fades out playback of the SoundContainer to 0 volume.
 		/// @param fadeOutTime How long the fadeout should take.
-		void FadeOut(int fadeOutTime = 1000) {
-			if (IsBeingPlayed()) {
-				return g_AudioMan.FadeOutSoundContainerPlayingChannels(this, fadeOutTime);
-			}
-		}
+		void FadeOut(int fadeOutTime = 1000);
 #pragma endregion
 
 #pragma region Miscellaneous
