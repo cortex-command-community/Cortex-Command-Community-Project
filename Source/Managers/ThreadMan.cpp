@@ -1,7 +1,5 @@
 #include "ThreadMan.h"
 
-using namespace std;
-
 using namespace RTE;
 
 ThreadMan::ThreadMan() {
