@@ -5,6 +5,8 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "SoundSet.h"
+
 namespace RTE {
 
 	// With multithreaded Lua, objects can be destructed from multiple threads at once

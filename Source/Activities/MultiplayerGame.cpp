@@ -34,6 +34,14 @@ namespace RTE {
 
 	ConcreteClassInfo(MultiplayerGame, Activity, 0);
 
+	MultiplayerGame::MultiplayerGame() {
+		Clear();
+	}
+
+	MultiplayerGame::~MultiplayerGame() {
+		Destroy(true);
+	}
+
 	void MultiplayerGame::Clear() {
 		m_pGUIController = 0;
 		m_pGUIInput = 0;
@@ -344,9 +352,9 @@ namespace RTE {
 		}
 
 		/*if (g_UInputMan.ElementHeld(0, UInputMan::INPUT_FIRE))
-		  g_FrameMan.SetScreenText("FIRE", 0, 0, -1, false);
+		    g_FrameMan.SetScreenText("FIRE", 0, 0, -1, false);
 		else
-		  g_FrameMan.SetScreenText("-", 0, 0, -1, false);*/
+		    g_FrameMan.SetScreenText("-", 0, 0, -1, false);*/
 
 		g_NetworkClient.Update();
 	}

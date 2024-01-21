@@ -1,5 +1,4 @@
-#ifndef _RTEGENERICSAVEDDATA_
-#define _RTEGENERICSAVEDDATA_
+#pragma once
 
 #include "Serializable.h"
 
@@ -93,4 +92,3 @@ namespace RTE {
 		static const std::string c_ClassName; //!< A string with the friendly formatted type name of this object.
 	};
 } // namespace RTE
-#endif

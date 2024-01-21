@@ -1,5 +1,4 @@
-#ifndef _GUIEVENT_
-#define _GUIEVENT_
+#pragma once
 
 namespace RTE {
 
@@ -40,5 +39,4 @@ namespace RTE {
 		int m_Msg;
 		int m_Data;
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

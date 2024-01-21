@@ -14,6 +14,16 @@ namespace RTE {
 	ConcreteClassInfo(SceneLayer, Entity, 0);
 
 	template <bool TRACK_DRAWINGS>
+	SceneLayerImpl<TRACK_DRAWINGS>::SceneLayerImpl() {
+		Clear();
+	}
+
+	template <bool TRACK_DRAWINGS>
+	SceneLayerImpl<TRACK_DRAWINGS>::~SceneLayerImpl() {
+		Destroy(true);
+	}
+
+	template <bool TRACK_DRAWINGS>
 	void SceneLayerImpl<TRACK_DRAWINGS>::Clear() {
 		m_BitmapFile.Reset();
 		m_MainBitmap = nullptr;

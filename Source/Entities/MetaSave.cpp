@@ -7,6 +7,14 @@ namespace RTE {
 
 	ConcreteClassInfo(MetaSave, Entity, 0);
 
+	MetaSave::MetaSave() {
+		Clear();
+	}
+
+	MetaSave::~MetaSave() {
+		Destroy(true);
+	}
+
 	void MetaSave::Clear() {
 		m_SavePath.clear();
 		m_PlayerCount = 0;

@@ -1,10 +1,7 @@
 /*
-//TODO: Remake this into a nice offline achievement system eventually.
+//TODO: Remake this into a nice offline achievement system eventuallyï¿½.
 // NO STUPID 999 GAMES THING!
 // Possibly unlock special junk to use ingame.
-
-#ifndef _ACHIEVEMENTMAN_
-#define _ACHIEVEMENTMAN_
 
 #include "Singleton.h"
 #include "Timer.h"
@@ -24,9 +21,9 @@ public:
 
     AchievementMan();
 
-    ~AchievementMan() { Sync(); };
+    ~AchievementMan();
 
-  int Create();
+    int Create();
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Method:          IsAchievementUnlocked
@@ -66,7 +63,7 @@ public:
 //					The maximum progress of this achievement.
 // Return value:	None.
 
-  void ProgressAchievement(const char *achievementName, int progress, int max);
+    void ProgressAchievement(const char *achievementName, int progress, int max);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +76,7 @@ public:
 //					The amount of bits required to unlock this achievement.
 // Return value:	None.
 
-  void SetAchievementBit(const char *achievementName, int bit, int max);
+    void SetAchievementBit(const char *achievementName, int bit, int max);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +86,7 @@ public:
 // Arguments:       None.
 // Return value:    Whether this manager is ready.
 
-  bool IsReady() { return m_Initialized; };
+    bool IsReady() { return m_Initialized; };
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -101,10 +98,10 @@ public:
 
     void Sync();
 
-  void Destroy() { Sync(); };
+    void Destroy() { Sync(); };
 
 #ifdef STEAM_BUILD
-  STEAM_CALLBACK(AchievementMan, OnUserStatsReceived, UserStatsReceived_t, m_OnUserStatsReceived);
+    STEAM_CALLBACK(AchievementMan, OnUserStatsReceived, UserStatsReceived_t, m_OnUserStatsReceived);
 #endif // STEAM_BUILD
 
 private:
@@ -112,11 +109,9 @@ private:
 #ifdef STEAM_BUILD
     ISteamUserStats *m_pSteamUserStats;
 #endif // STEAM_BUILD
-  bool m_Initialized;
+    bool m_Initialized;
 
 };
 
 } // namespace RTE
-
-#endif // _ACHIEVEMENTMAN_
 */

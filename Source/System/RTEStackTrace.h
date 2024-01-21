@@ -1,5 +1,4 @@
-#ifndef _RTESTACKTRACE_
-#define _RTESTACKTRACE_
+#pragma once
 
 #include "StackWalker/StackWalker.h"
 
@@ -37,4 +36,3 @@ namespace RTE {
 		RTEStackTrace& operator=(const RTEStackTrace& rhs) = delete;
 	};
 } // namespace RTE
-#endif

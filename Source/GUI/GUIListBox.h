@@ -1,5 +1,4 @@
-#ifndef _GUILISTBOX_
-#define _GUILISTBOX_
+#pragma once
 
 #include "GUIListPanel.h"
 
@@ -61,5 +60,4 @@ namespace RTE {
 
 	private:
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

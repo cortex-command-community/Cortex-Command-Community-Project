@@ -54,6 +54,14 @@ using namespace RTE;
 
 const std::string MetagameGUI::c_ClassName = "MetagameGUI";
 
+MetagameGUI::MetagameGUI() {
+	Clear();
+}
+
+MetagameGUI::~MetagameGUI() {
+	Destroy();
+}
+
 void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 	if (!drawBitmap)
 		return;

@@ -1,5 +1,4 @@
-#ifndef _RTESETTINGSVIDEOGUI_
-#define _RTESETTINGSVIDEOGUI_
+#pragma once
 
 namespace RTE {
 
@@ -158,4 +157,3 @@ namespace RTE {
 		SettingsVideoGUI& operator=(const SettingsVideoGUI& rhs) = delete;
 	};
 } // namespace RTE
-#endif

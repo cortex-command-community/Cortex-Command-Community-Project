@@ -4,6 +4,15 @@ using namespace std;
 
 namespace RTE {
 
+	ThreadMan::ThreadMan() {
+		Clear();
+		Create();
+	}
+
+	ThreadMan::~ThreadMan() {
+		Destroy();
+	}
+
 	void ThreadMan::Clear() {
 		m_PriorityThreadPool.reset();
 		m_BackgroundThreadPool.reset(std::thread::hardware_concurrency() / 2);

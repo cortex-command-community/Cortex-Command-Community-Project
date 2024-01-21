@@ -1,5 +1,4 @@
-#ifndef _RTEAHUMAN_
-#define _RTEAHUMAN_
+#pragma once
 
 /// Header file for the AHuman class.
 /// @author Daniel Tabar
@@ -55,11 +54,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a AHuman object in system
 		/// memory. Create() should be called before using the object.
-		AHuman() { Clear(); }
+		AHuman();
 
 		/// Destructor method used to clean up a AHuman object before deletion
 		/// from system memory.
-		~AHuman() override { Destroy(true); }
+		~AHuman() override;
 
 		/// Makes the AHuman object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -216,7 +215,7 @@ namespace RTE {
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
 		/// @param pieSliceType The SliceType of the PieSlice being handled.
 		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
-		bool HandlePieCommand(PieSlice::SliceType pieSliceType) override;
+		bool HandlePieCommand(PieSliceType pieSliceType) override;
 
 		/// Adds an inventory item to this AHuman. This also puts that item
 		/// directly in the hands of this if they are empty.
@@ -736,5 +735,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

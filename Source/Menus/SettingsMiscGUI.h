@@ -1,5 +1,4 @@
-#ifndef _RTESETTINGSMISCGUI_
-#define _RTESETTINGSMISCGUI_
+#pragma once
 
 namespace RTE {
 
@@ -56,4 +55,3 @@ namespace RTE {
 		SettingsMiscGUI& operator=(const SettingsMiscGUI& rhs) = delete;
 	};
 } // namespace RTE
-#endif

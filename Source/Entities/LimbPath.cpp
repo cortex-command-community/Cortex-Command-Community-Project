@@ -9,6 +9,14 @@ namespace RTE {
 
 	ConcreteClassInfo(LimbPath, Entity, 20);
 
+	LimbPath::LimbPath() {
+		Clear();
+	}
+
+	LimbPath::~LimbPath() {
+		Destroy(true);
+	}
+
 	void LimbPath::Clear() {
 		m_Start.Reset();
 		m_StartSegCount = 0;

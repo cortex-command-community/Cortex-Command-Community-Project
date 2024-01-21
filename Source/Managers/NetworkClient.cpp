@@ -9,12 +9,22 @@
 #include "PerformanceMan.h"
 #include "UInputMan.h"
 #include "SoundContainer.h"
+#include "SoundSet.h"
 
 #include "RakSleep.h"
 
 #include "lz4.h"
 
 namespace RTE {
+
+	NetworkClient::NetworkClient() {
+		Clear();
+		Initialize();
+	}
+
+	NetworkClient::~NetworkClient() {
+		Destroy();
+	}
 
 	void NetworkClient::Clear() {
 		m_LastInputSentTime = 0;

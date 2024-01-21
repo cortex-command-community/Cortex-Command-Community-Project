@@ -38,6 +38,15 @@ namespace RTE {
 		}
 	}
 
+	PathFinder::PathFinder(int nodeDimension) {
+		Clear();
+		Create(nodeDimension);
+	}
+
+	PathFinder::~PathFinder() {
+		Destroy();
+	}
+
 	void PathFinder::Clear() {
 		m_NodeGrid.clear();
 		m_NodeDimension = SCENEGRIDSIZE;

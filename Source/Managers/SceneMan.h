@@ -1,5 +1,4 @@
-#ifndef _RTESCENEMAN_
-#define _RTESCENEMAN_
+#pragma once
 
 /// Header file for the SceneMan class.
 /// @author Daniel Tabar
@@ -54,14 +53,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a SceneMan object in system
 		/// memory. Create() should be called before using the object.
-		SceneMan() {
-			m_pOrphanSearchBitmap = 0;
-			Clear();
-		}
+		SceneMan();
 
 		/// Destructor method used to clean up a SceneMan object before deletion
 		/// from system memory.
-		~SceneMan() { Destroy(); }
+		~SceneMan();
 
 		/// Makes the SceneMan object ready for use.
 		void Initialize() const;
@@ -957,5 +953,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

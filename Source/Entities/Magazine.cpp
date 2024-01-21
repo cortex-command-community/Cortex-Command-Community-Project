@@ -6,6 +6,14 @@ namespace RTE {
 
 	ConcreteClassInfo(Magazine, Attachable, 50);
 
+	Magazine::Magazine() {
+		Clear();
+	}
+
+	Magazine::~Magazine() {
+		Destroy(true);
+	}
+
 	void Magazine::Clear() {
 		m_RoundCount = 0;
 		m_FullCapacity = 0;
@@ -181,10 +189,10 @@ namespace RTE {
 		    // Update rotations and scale
 
 		    // Taken care of by holder/owner Arm.
-//        m_Pos += m_ParentOffset;
-// Only apply in Draw().
-//        m_aSprite->SetAngle(m_Rotation);
-//        m_aSprite->SetScale(m_Scale);
+	//        m_Pos += m_ParentOffset;
+	// Only apply in Draw().
+	//        m_aSprite->SetAngle(m_Rotation);
+	//        m_aSprite->SetScale(m_Scale);
 		}*/
 	}
 

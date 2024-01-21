@@ -1,5 +1,4 @@
-#ifndef _RTESINGLETON_
-#define _RTESINGLETON_
+#pragma once
 
 #include "RTEError.h"
 
@@ -39,4 +38,3 @@ namespace RTE {
 
 	template <typename Type> Type* Singleton<Type>::s_Instance = nullptr;
 } // namespace RTE
-#endif

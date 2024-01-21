@@ -1,5 +1,4 @@
-#ifndef _GUISOUND_
-#define _GUISOUND_
+#pragma once
 
 #include "SoundContainer.h"
 #include "Singleton.h"
@@ -14,7 +13,7 @@ namespace RTE {
 	public:
 #pragma region Creation
 		/// Constructor method used to instantiate a GUISound object in system memory. Create() should be called before using the object.
-		GUISound() { Clear(); }
+		GUISound();
 
 		/// Creates all the GUI sound effects with Sound::Create and their additional samples with Sound::AddSample and makes the GUISound object ready for use.
 		void Initialize();
@@ -25,7 +24,7 @@ namespace RTE {
 		void Destroy() { Clear(); }
 
 		/// Destructor method used to clean up a GUISound object before deletion from system memory.
-		~GUISound() { Destroy(); }
+		~GUISound();
 #pragma endregion
 
 #pragma region Getters
@@ -182,4 +181,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif
