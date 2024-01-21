@@ -108,7 +108,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	modifiableScene->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 	modifiableScene->SetSavedGameInternal(true);
 
-		// Make sure the terrain is also treated as an original preset, otherwise it will screw up if we save then load then save again, since it'll try to be a CopyOf of itself.
+	// Make sure the terrain is also treated as an original preset, otherwise it will screw up if we save then load then save again, since it'll try to be a CopyOf of itself.
 	modifiableScene->GetTerrain()->SetPresetName(fileName);
 	modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 

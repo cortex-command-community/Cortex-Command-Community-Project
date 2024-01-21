@@ -831,10 +831,10 @@ std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() {
 	char str[64];
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
 	{
-		if (m_apUnseenLayer[team])
-		{
-			m_apUnseenLayer[team]
-		}
+	    if (m_apUnseenLayer[team])
+	    {
+	        m_apUnseenLayer[team]
+	    }
 	}
 	*/
 
