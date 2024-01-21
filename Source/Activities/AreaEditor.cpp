@@ -26,7 +26,7 @@
 #include "AreaEditorGUI.h"
 #include "GameActivity.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(AreaEditor, EditorActivity, 0);
 
@@ -569,5 +569,3 @@ namespace RTE {
 		else
 			m_pOverwriteNameLabel->SetText(g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes/" + g_SceneMan.GetScene()->GetPresetName());
 	}
-
-} // namespace RTE

@@ -19,7 +19,7 @@
 #include "GUILabel.h"
 #include "GUISlider.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ScenarioActivityConfigGUI::ScenarioActivityConfigGUI(GUIControlManager* parentControlManager) :
 	    m_GUIControlManager(parentControlManager) {
@@ -474,4 +474,3 @@ namespace RTE {
 			}
 		}
 	}
-} // namespace RTE

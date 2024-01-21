@@ -7,7 +7,7 @@
 
 #include <System/Semver200/semver200.h>
 
-namespace RTE {
+using namespace RTE;
 
 	const std::string DataModule::c_ClassName = "DataModule";
 
@@ -497,4 +497,3 @@ namespace RTE {
 
 		RTEAssert(majorVersionMatch && minorVersionInRange, m_FileName + " was developed for Cortex Command v" + m_SupportedGameVersion->str() + ", so this version of Cortex Command (v" + c_GameVersion.str() + ") may not support it.\n" + contactAuthor);
 	}
-} // namespace RTE

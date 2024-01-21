@@ -19,7 +19,7 @@
 #include "GUITextBox.h"
 #include "GUIComboBox.h"
 
-namespace RTE {
+using namespace RTE;
 
 	SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
@@ -307,4 +307,3 @@ namespace RTE {
 	void SaveLoadMenuGUI::Draw() const {
 		m_GUIControlManager->Draw();
 	}
-} // namespace RTE

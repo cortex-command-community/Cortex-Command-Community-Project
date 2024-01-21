@@ -22,7 +22,7 @@
 #include "SDL2/SDL_image.h"
 #endif
 
-namespace RTE {
+using namespace RTE;
 
 	void SDLWindowDeleter::operator()(SDL_Window* window) const { SDL_DestroyWindow(window); }
 	void SDLRendererDeleter::operator()(SDL_Renderer* renderer) const { SDL_DestroyRenderer(renderer); }
@@ -759,5 +759,3 @@ namespace RTE {
 		TracyGpuCollect;
 		FrameMark;
 	}
-
-} // namespace RTE

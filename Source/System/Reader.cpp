@@ -3,7 +3,7 @@
 #include "ModuleMan.h"
 #include "SettingsMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	void Reader::Clear() {
 		m_Stream = nullptr;
@@ -393,4 +393,3 @@ namespace RTE {
 		DiscardEmptySpace();
 		return true;
 	}
-} // namespace RTE

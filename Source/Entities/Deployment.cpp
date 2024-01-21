@@ -9,7 +9,7 @@
 #include "ACraft.h"
 #include "ActivityMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(Deployment, SceneObject, 0);
 
@@ -613,5 +613,3 @@ namespace RTE {
 			}
 		}
 	}
-
-} // namespace RTE

@@ -33,7 +33,7 @@
 
 using namespace RTE;
 
-BITMAP* RTE::BuyMenuGUI::s_pCursor = 0;
+BITMAP* BuyMenuGUI::s_pCursor = 0;
 
 const std::string BuyMenuGUI::c_DefaultBannerImagePath = "Base.rte/GUIs/BuyMenu/BuyMenuBanner.png";
 const std::string BuyMenuGUI::c_DefaultLogoImagePath = "Base.rte/GUIs/BuyMenu/BuyMenuLogo.png";

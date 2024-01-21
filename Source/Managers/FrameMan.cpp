@@ -24,7 +24,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	void BitmapDeleter::operator()(BITMAP* bitmap) const { destroy_bitmap(bitmap); }
 
@@ -1089,4 +1089,3 @@ namespace RTE {
 		m_NetworkFrameReady = m_NetworkFrameCurrent;
 		m_NetworkFrameCurrent = (m_NetworkFrameCurrent == 0) ? 1 : 0;
 	}
-} // namespace RTE

@@ -2,7 +2,7 @@
 #include "ModuleMan.h"
 #include "ActivityMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(MetaPlayer, Entity, 0);
 
@@ -132,4 +132,3 @@ namespace RTE {
 
 		return 0;
 	}
-} // namespace RTE

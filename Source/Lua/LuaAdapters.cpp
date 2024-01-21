@@ -4,7 +4,7 @@
 #include "LuabindObjectWrapper.h"
 #include "LuaMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions = {};
 
@@ -631,5 +631,3 @@ namespace RTE {
 		delete entityToDelete;
 		entityToDelete = nullptr;
 	}
-#pragma endregion
-} // namespace RTE

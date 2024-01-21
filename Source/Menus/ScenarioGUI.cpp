@@ -22,7 +22,7 @@
 #include "GUIButton.h"
 #include "GUILabel.h"
 
-namespace RTE {
+using namespace RTE;
 
 	void ScenarioGUI::Clear() {
 		m_RootBoxMaxWidth = 0;
@@ -592,4 +592,3 @@ namespace RTE {
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		circle(drawBitmap, sitePosX, sitePosY, circleRadius - 1, drawColor);
 	}
-} // namespace RTE

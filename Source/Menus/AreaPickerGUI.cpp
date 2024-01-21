@@ -24,7 +24,7 @@
 
 using namespace RTE;
 
-BITMAP* RTE::AreaPickerGUI::s_pCursor = 0;
+BITMAP* AreaPickerGUI::s_pCursor = 0;
 
 AreaPickerGUI::AreaPickerGUI() {
 	Clear();

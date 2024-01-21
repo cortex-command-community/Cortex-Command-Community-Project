@@ -23,7 +23,7 @@
 #include "BunkerAssembly.h"
 #include "BunkerAssemblyScheme.h"
 
-namespace RTE {
+using namespace RTE;
 
 	BITMAP* ObjectPickerGUI::s_Cursor = nullptr;
 
@@ -610,4 +610,3 @@ namespace RTE {
 			}
 		}
 	}
-} // namespace RTE

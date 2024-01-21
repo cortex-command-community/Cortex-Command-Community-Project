@@ -19,7 +19,7 @@
 #include "GUIControlManager.h"
 #include "GUICollectionBox.h"
 
-namespace RTE {
+using namespace RTE;
 
 	AbstractClassInfo(EditorActivity, Activity);
 
@@ -504,5 +504,3 @@ namespace RTE {
 
 	void EditorActivity::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 	}
-
-} // namespace RTE

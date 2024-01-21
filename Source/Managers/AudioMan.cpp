@@ -11,7 +11,7 @@
 #include "GUISound.h"
 #include "SoundSet.h"
 
-namespace RTE {
+using namespace RTE;
 
 	AudioMan::AudioMan() {
 		Clear();
@@ -156,7 +156,7 @@ namespace RTE {
 						if (IsInMultiplayerMode()) {
 							humanPlayerPosition += (Vector(static_cast<float>(g_FrameMan.GetPlayerFrameBufferWidth(screen)), static_cast<float>(g_FrameMan.GetPlayerFrameBufferHeight(screen))) / 2);
 						}
-						m_CurrentActivityHumanPlayerPositions.push_back(std::make_unique<const RTE::Vector>(humanPlayerPosition));
+					m_CurrentActivityHumanPlayerPositions.push_back(std::make_unique<const Vector>(humanPlayerPosition));
 					}
 				}
 
@@ -1004,4 +1004,3 @@ namespace RTE {
 		Vector sceneDimensions = g_SceneMan.GetScene() ? g_SceneMan.GetSceneDim() : Vector();
 		return sceneDimensions.IsZero() ? Vector() : Vector(fmodVector.x, sceneDimensions.m_Y - fmodVector.y);
 	}
-} // namespace RTE

@@ -27,7 +27,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(GAScripted, GameActivity, 0);
 
@@ -456,5 +456,3 @@ namespace RTE {
 			}
 		}
 	}
-
-} // namespace RTE

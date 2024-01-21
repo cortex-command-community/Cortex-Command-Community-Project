@@ -8,7 +8,7 @@
 #include "MOPixel.h"
 #include "Atom.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(SLTerrain, SceneLayer, 0);
 
@@ -491,4 +491,3 @@ namespace RTE {
 				break;
 		}
 	}
-} // namespace RTE

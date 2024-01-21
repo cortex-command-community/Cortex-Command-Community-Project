@@ -14,7 +14,7 @@
 #include "Scene.h"
 #include "SLTerrain.h"
 
-namespace RTE {
+using namespace RTE;
 
 	const std::string MetaMan::c_ClassName = "MetaMan";
 
@@ -1156,4 +1156,3 @@ namespace RTE {
 
 		m_pMetaGUI->Draw(pTargetBitmap);
 	}
-} // namespace RTE

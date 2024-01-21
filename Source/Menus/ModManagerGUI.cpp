@@ -14,7 +14,7 @@
 #include "GUIButton.h"
 #include "GUIListBox.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ModManagerGUI::ModManagerGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
 		m_GUIControlManager = std::make_unique<GUIControlManager>();
@@ -192,4 +192,3 @@ namespace RTE {
 	void ModManagerGUI::Draw() const {
 		m_GUIControlManager->Draw();
 	}
-} // namespace RTE

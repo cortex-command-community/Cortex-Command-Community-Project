@@ -26,7 +26,7 @@
 #include "BunkerAssembly.h"
 #include "BunkerAssemblyScheme.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(AssemblyEditor, EditorActivity, 0);
 
@@ -608,5 +608,3 @@ namespace RTE {
 	void AssemblyEditor::UpdateOverwriteDialog() {
 		m_pOverwriteNameLabel->SetText(m_pEditorGUI->GetCurrentAssemblyName());
 	}
-
-} // namespace RTE

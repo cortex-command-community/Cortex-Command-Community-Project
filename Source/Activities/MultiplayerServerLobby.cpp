@@ -31,7 +31,7 @@
 
 #include "NetworkServer.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(MultiplayerServerLobby, Activity, 0);
 
@@ -1200,5 +1200,3 @@ namespace RTE {
 	void MultiplayerServerLobby::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		Activity::Draw(pTargetBitmap, targetPos);
 	}
-
-} // namespace RTE

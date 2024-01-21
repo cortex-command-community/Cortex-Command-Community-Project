@@ -9,7 +9,7 @@
 #include "Loadout.h"
 #include "ACraft.h"
 
-namespace RTE {
+using namespace RTE;
 
 	PresetMan::PresetMan() {
 		Clear();

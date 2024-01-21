@@ -27,7 +27,7 @@
 
 #include "GibEditorGUI.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(GibEditor, EditorActivity, 0);
 
@@ -736,4 +736,3 @@ namespace RTE {
 		clear_bitmap(g_SceneMan.GetTerrain()->GetBGColorBitmap());
 		clear_bitmap(g_SceneMan.GetTerrain()->GetMaterialBitmap());
 	}
-} // namespace RTE

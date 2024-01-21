@@ -58,8 +58,6 @@ FILE __iob_func[3] = {*stdin, *stdout, *stderr};
 
 using namespace RTE;
 
-namespace RTE {
-
 	/// <summary>
 	/// Initializes all the essential managers.
 	/// </summary>
@@ -404,7 +402,6 @@ namespace RTE {
 			g_PerformanceMan.UpdateMSPF(updateTotalTime, drawTotalTime);
 		}
 	}
-} // namespace RTE
 
 /// <summary>
 /// Self-invoking lambda that installs exception handlers before Main is executed.

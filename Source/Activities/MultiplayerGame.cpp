@@ -29,7 +29,7 @@
 
 #include "NetworkClient.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(MultiplayerGame, Activity, 0);
 
@@ -381,5 +381,3 @@ namespace RTE {
 	void MultiplayerGame::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		Activity::Draw(pTargetBitmap, targetPos);
 	}
-
-} // namespace RTE

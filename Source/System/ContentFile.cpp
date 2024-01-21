@@ -10,7 +10,7 @@
 #include "fmod/fmod.hpp"
 #include "fmod/fmod_errors.h"
 
-namespace RTE {
+using namespace RTE;
 
 	const std::string ContentFile::c_ClassName = "ContentFile";
 
@@ -366,4 +366,3 @@ namespace RTE {
 			}
 		}
 	}
-} // namespace RTE

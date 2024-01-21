@@ -19,7 +19,7 @@
 
 #include "ObjectPickerGUI.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(ActorEditor, EditorActivity, 0);
 
@@ -246,5 +246,3 @@ namespace RTE {
 		}
 		return false;
 	}
-
-} // namespace RTE
