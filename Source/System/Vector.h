@@ -486,7 +486,7 @@ namespace RTE {
 		/// Array subscripting to access either the X or Y element of this Vector.
 		/// @param rhs An int index indicating which element is requested (X = 0, Y = 1).
 		/// @return The requested element.
-		inline float & operator[](const int& rhs) { return (rhs == 0) ? m_X : m_Y; }
+		inline float& operator[](const int& rhs) { return (rhs == 0) ? m_X : m_Y; }
 
 		inline operator glm::vec2() const { return glm::vec2(m_X, m_Y); }
 		inline operator glm::vec3() const { return glm::vec3(m_X, m_Y, 0.0F); }
