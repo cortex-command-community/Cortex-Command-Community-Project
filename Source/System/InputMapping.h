@@ -1,5 +1,4 @@
-#ifndef _RTEINPUTMAPPING_
-#define _RTEINPUTMAPPING_
+#pragma once
 
 #include "Serializable.h"
 
@@ -107,4 +106,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

@@ -1,5 +1,4 @@
-#ifndef _RTEINCLUDES_
-#define _RTEINCLUDES_
+#pragma once
 
 // Convenience macro to not have to write this out.
 #define _LINUX_OR_MACOSX_ (__unix__ || (__APPLE__ && __MACH__))
@@ -102,4 +101,3 @@ namespace std {
 		}
 	};
 } // namespace std
-#endif

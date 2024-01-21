@@ -42,6 +42,14 @@ namespace RTE {
 		bool operator()(MovableObject* pRhs, MovableObject* pLhs) { return pRhs->GetPos().m_X < pLhs->GetPos().m_X; }
 	};
 
+	MovableMan::MovableMan() {
+		Clear();
+	}
+
+	MovableMan::~MovableMan() {
+		Destroy();
+	}
+
 	void MovableMan::Clear() {
 		m_Actors.clear();
 		m_ContiguousActorIDs.clear();

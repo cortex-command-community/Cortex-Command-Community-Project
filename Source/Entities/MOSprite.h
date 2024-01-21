@@ -1,5 +1,4 @@
-#ifndef _RTEMOSPRITE_
-#define _RTEMOSPRITE_
+#pragma once
 
 /// Header file for the MOSprite class.
 /// @author Daniel Tabar
@@ -24,11 +23,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a MOSprite object in system
 		/// memory. Create() should be called before using the object.
-		MOSprite() { Clear(); }
+		MOSprite();
 
 		/// Destructor method used to clean up a MOSprite object before deletion
 		/// from system memory.
-		~MOSprite() override { Destroy(true); }
+		~MOSprite() override;
 
 		/// Makes the MOSprite object ready for use.
 		/// @param spriteFile A pointer to ContentFile that represents the bitmap file that will be
@@ -340,5 +339,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

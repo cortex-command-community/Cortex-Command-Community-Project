@@ -1,5 +1,4 @@
-#ifndef _RTETDEXPLOSIVE_
-#define _RTETDEXPLOSIVE_
+#pragma once
 
 #include "ThrownDevice.h"
 
@@ -15,7 +14,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a TDExplosive object in system memory. Create() should be called before using the object.
-		TDExplosive() { Clear(); }
+		TDExplosive();
 
 		/// Makes the TDExplosive object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -29,7 +28,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a TDExplosive object before deletion from system memory.
-		~TDExplosive() override { Destroy(true); }
+		~TDExplosive() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -83,5 +82,3 @@ namespace RTE {
 		TDExplosive& operator=(const TDExplosive& rhs) = delete;
 	};
 } // namespace RTE
-
-#endif

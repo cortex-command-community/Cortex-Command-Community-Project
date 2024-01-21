@@ -2,11 +2,20 @@
 
 #include "AEmitter.h"
 #include "PresetMan.h"
+#include "SceneMan.h"
 #include "ThreadMan.h"
 
 namespace RTE {
 
 	AbstractClassInfo(MOSprite, MovableObject);
+
+	MOSprite::MOSprite() {
+		Clear();
+	}
+
+	MOSprite::~MOSprite() {
+		Destroy(true);
+	}
 
 	void MOSprite::Clear() {
 		m_SpriteFile.Reset();

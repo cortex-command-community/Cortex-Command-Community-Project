@@ -1,5 +1,4 @@
-#ifndef _RTEThreadMan_
-#define _RTEThreadMan_
+#pragma once
 
 /// Header file for the ThreadMan class.
 /// Author(s):
@@ -29,9 +28,15 @@ namespace RTE {
 	/// The manager for any long-running background threads (i.e the simulation thread), and managing communication between threads.
 	class ThreadMan : public Singleton<ThreadMan> {
 	public:
-		ThreadMan() { Clear(); }
-		virtual ~ThreadMan() { Destroy(); }
+		/// Constructor method used to instantiate a ThreadMan object in system
+		/// memory. Create() should be called before using the object.
+		ThreadMan();
 
+		/// Destructor method used to clean up a ThreadMan object before deletion
+		/// from system memory.
+		virtual ~ThreadMan();
+
+		/// Makes the TimerMan object ready for use.
 		virtual int Initialize();
 
 		void Destroy();
@@ -108,5 +113,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

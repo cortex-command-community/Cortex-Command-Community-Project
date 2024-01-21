@@ -1,5 +1,4 @@
-#ifndef _GUISCROLLPANEL_
-#define _GUISCROLLPANEL_
+#pragma once
 
 namespace RTE {
 
@@ -172,5 +171,4 @@ namespace RTE {
 		/// @param Delta Delta movement.
 		void AdjustValue(int Delta);
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

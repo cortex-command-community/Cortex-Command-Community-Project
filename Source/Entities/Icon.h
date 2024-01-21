@@ -1,5 +1,4 @@
-#ifndef _RTEICON_
-#define _RTEICON_
+#pragma once
 
 #include "Entity.h"
 #include "ContentFile.h"
@@ -16,16 +15,11 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate an Icon object in system memory. Create() should be called before using the object.
-		Icon() { Clear(); }
+		Icon();
 
 		/// Copy constructor method used to instantiate an Icon object identical to an already existing one.
 		/// @param reference An Icon object which is passed in by reference.
-		Icon(const Icon& reference) {
-			if (this != &reference) {
-				Clear();
-				Create(reference);
-			}
-		}
+		Icon(const Icon& reference);
 
 		/// Makes the Icon object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -39,7 +33,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up an Icon object before deletion from system memory.
-		~Icon() override { Destroy(true); }
+		~Icon() override;
 
 		/// Destroys and resets (through Clear()) the Icon object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -93,4 +87,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

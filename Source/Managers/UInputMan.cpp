@@ -26,6 +26,14 @@ namespace RTE {
 	std::vector<Gamepad> UInputMan::s_PrevJoystickStates(Players::MaxPlayerCount);
 	std::vector<Gamepad> UInputMan::s_ChangedJoystickStates(Players::MaxPlayerCount);
 
+	UInputMan::UInputMan() {
+		Clear();
+	}
+
+	UInputMan::~UInputMan() {
+		Destroy();
+	}
+
 	void UInputMan::Clear() {
 		m_SkipHandlingSpecialInput = false;
 		m_TextInput.clear();

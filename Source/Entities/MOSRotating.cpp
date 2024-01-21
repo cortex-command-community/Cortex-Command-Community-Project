@@ -10,6 +10,8 @@
 #include "AEmitter.h"
 #include "Attachable.h"
 #include "HDFirearm.h"
+#include "SoundContainer.h"
+#include "PostProcessMan.h"
 #include "ThreadMan.h"
 
 #include "RTEError.h"
@@ -27,6 +29,14 @@ namespace RTE {
 	thread_local BITMAP* s_pTempBitmap128 = nullptr;
 	thread_local BITMAP* s_pTempBitmap256 = nullptr;
 	thread_local BITMAP* s_pTempBitmap512 = nullptr;
+
+	MOSRotating::MOSRotating() {
+		Clear();
+	}
+
+	MOSRotating::~MOSRotating() {
+		Destroy(true);
+	}
 
 	void MOSRotating::Clear() {
 		m_pAtomGroup = 0;

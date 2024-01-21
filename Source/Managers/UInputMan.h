@@ -1,5 +1,4 @@
-#ifndef _RTEUINPUTMAN_
-#define _RTEUINPUTMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "Vector.h"
@@ -32,7 +31,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a UInputMan object in system memory. Create() should be called before using the object.
-		UInputMan() { Clear(); }
+		UInputMan();
 
 		/// Makes the UInputMan object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -41,7 +40,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a UInputMan object before deletion from system memory.
-		~UInputMan() { Destroy(); }
+		~UInputMan();
 
 		/// Destroys and resets (through Clear()) the UInputMan object.
 		void Destroy() { Clear(); }
@@ -653,4 +652,3 @@ namespace RTE {
 		UInputMan& operator=(const UInputMan& rhs) = delete;
 	};
 } // namespace RTE
-#endif

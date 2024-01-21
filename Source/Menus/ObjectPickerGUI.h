@@ -1,5 +1,4 @@
-#ifndef _OBJECTPICKERGUI_
-#define _OBJECTPICKERGUI_
+#pragma once
 
 #include "Controller.h"
 
@@ -249,4 +248,3 @@ namespace RTE {
 		ObjectPickerGUI& operator=(const ObjectPickerGUI& rhs) = delete;
 	};
 } // namespace RTE
-#endif

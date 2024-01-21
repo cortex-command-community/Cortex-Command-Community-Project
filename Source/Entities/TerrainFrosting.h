@@ -1,5 +1,4 @@
-#ifndef _RTETERRAINFROSTING_
-#define _RTETERRAINFROSTING_
+#pragma once
 
 #include "Material.h"
 
@@ -44,4 +43,3 @@ namespace RTE {
 		void operator=(const TerrainFrosting& rhs) = delete;
 	};
 } // namespace RTE
-#endif

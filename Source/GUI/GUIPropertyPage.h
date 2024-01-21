@@ -1,5 +1,4 @@
-#ifndef _GUIPROPERTYPAGE_
-#define _GUIPROPERTYPAGE_
+#pragma once
 
 #include "GUITextPanel.h"
 #include "GUIScrollPanel.h"
@@ -114,5 +113,4 @@ namespace RTE {
 		/// Create the property page bitmap to draw.
 		void BuildBitmap();
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

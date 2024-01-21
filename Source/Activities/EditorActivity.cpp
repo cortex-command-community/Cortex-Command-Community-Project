@@ -24,6 +24,14 @@ namespace RTE {
 
 	AbstractClassInfo(EditorActivity, Activity);
 
+	EditorActivity::EditorActivity() {
+		Clear();
+	}
+
+	EditorActivity::~EditorActivity() {
+		Destroy(true);
+	}
+
 	void EditorActivity::Clear() {
 		// Most editors are single player affairs
 		m_MaxPlayerSupport = 1;

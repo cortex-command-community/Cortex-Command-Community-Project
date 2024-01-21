@@ -1,5 +1,4 @@
-#ifndef _RTEPOSTPROCESSMAN_
-#define _RTEPOSTPROCESSMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "Box.h"
@@ -35,7 +34,7 @@ namespace RTE {
 	public:
 #pragma region Creation
 		/// Constructor method used to instantiate a PostProcessMan object in system memory. Create() should be called before using the object.
-		PostProcessMan() { Clear(); }
+		PostProcessMan();
 
 		/// Makes the PostProcessMan object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -47,7 +46,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a PostProcessMan object before deletion from system memory.
-		~PostProcessMan() { Destroy(); }
+		~PostProcessMan();
 
 		/// Destroys and resets (through Clear()) the PostProcessMan object.
 		void Destroy();
@@ -244,4 +243,3 @@ namespace RTE {
 		PostProcessMan& operator=(const PostProcessMan& rhs) = delete;
 	};
 } // namespace RTE
-#endif

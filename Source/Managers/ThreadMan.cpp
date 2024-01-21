@@ -16,11 +16,22 @@ using namespace std;
 namespace RTE {
 
 	RenderableGameState::RenderableGameState() {
+
 	}
 
-	RenderableGameState::~RenderableGameState() {}
+	RenderableGameState::~RenderableGameState() {
+
+	}
 
 	const std::string ThreadMan::m_ClassName = "ThreadMan";
+
+	ThreadMan::ThreadMan() {
+		Clear();
+	}
+
+	ThreadMan::~ThreadMan() {
+		Destroy();
+	}
 
 	void ThreadMan::Clear() {
 		m_GameStateModifiable.reset();

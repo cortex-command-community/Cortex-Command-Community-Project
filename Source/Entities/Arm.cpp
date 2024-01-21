@@ -11,6 +11,14 @@ namespace RTE {
 
 	ConcreteClassInfo(Arm, Attachable, 50);
 
+	Arm::Arm() {
+		Clear();
+	}
+
+	Arm::~Arm() {
+		Destroy(true);
+	}
+
 	void Arm::Clear() {
 		m_MaxLength = 0;
 		m_MoveSpeed = 0;

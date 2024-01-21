@@ -45,6 +45,14 @@ namespace RTE {
 	    nullptr // Transparency does not rely on the blender setting, it creates a map with the dedicated function instead of with the generic one.
 	};
 
+	FrameMan::FrameMan() {
+		Clear();
+	}
+
+	FrameMan::~FrameMan() {
+		Destroy();
+	}
+
 	void FrameMan::Clear() {
 		m_HSplit = false;
 		m_VSplit = false;

@@ -1,5 +1,4 @@
-#ifndef _RTESETTINGSINPUTGUI_
-#define _RTESETTINGSINPUTGUI_
+#pragma once
 
 #include "SettingsInputMappingGUI.h"
 
@@ -112,4 +111,3 @@ namespace RTE {
 		SettingsInputGUI& operator=(const SettingsInputGUI& rhs) = delete;
 	};
 } // namespace RTE
-#endif

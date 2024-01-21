@@ -11,6 +11,14 @@
 
 namespace RTE {
 
+	CameraMan::CameraMan() {
+		Clear();
+	}
+
+	CameraMan::~CameraMan() {
+		Destroy();
+	}
+
 	void CameraMan::Clear() {
 		m_ScreenShakeStrength = 1.0F;
 		m_ScreenShakeDecay = 50.0F;

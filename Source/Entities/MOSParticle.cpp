@@ -8,6 +8,14 @@ namespace RTE {
 
 	ConcreteClassInfo(MOSParticle, MovableObject, 1000);
 
+	MOSParticle::MOSParticle() {
+		Clear();
+	}
+
+	MOSParticle::~MOSParticle() {
+		Destroy(true);
+	}
+
 	void MOSParticle::Clear() {
 		m_Atom = nullptr;
 		m_SpriteAnimMode = OVERLIFETIME;

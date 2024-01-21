@@ -18,12 +18,21 @@
 namespace RTE {
 
 	AbstractClassInfo(ACraft, Actor);
+
 	const std::string ACraft::Exit::c_ClassName = "Exit";
 
 	bool ACraft::s_CrabBombInEffect = false;
 
 #define EXITLINESPACING 7
 #define EXITSUCKDELAYMS 1500
+
+	ACraft::ACraft() {
+		Clear();
+	}
+
+	ACraft::~ACraft() {
+		Destroy(true);
+	}
 
 	void ACraft::Exit::Clear() {
 		m_Offset.Reset();
@@ -375,30 +384,30 @@ namespace RTE {
 		}
 	}
 
-	bool ACraft::HandlePieCommand(PieSlice::SliceType pieSliceIndex) {
-		if (pieSliceIndex != PieSlice::SliceType::NoType) {
-			if (pieSliceIndex == PieSlice::SliceType::Deliver) {
+	bool ACraft::HandlePieCommand(PieSliceType pieSliceIndex) {
+		if (pieSliceIndex != PieSliceType::NoType) {
+			if (pieSliceIndex == PieSliceType::Deliver) {
 				m_AIMode = AIMODE_DELIVER;
 				m_DeliveryState = FALL;
 				m_HasDelivered = false;
-			} else if (pieSliceIndex == PieSlice::SliceType::Return) {
+			} else if (pieSliceIndex == PieSliceType::Return) {
 				m_AIMode = AIMODE_RETURN;
 				m_DeliveryState = LAUNCH;
-			} else if (pieSliceIndex == PieSlice::SliceType::Stay) {
+			} else if (pieSliceIndex == PieSliceType::Stay) {
 				m_AIMode = AIMODE_STAY;
 				m_DeliveryState = FALL;
-			} else if (pieSliceIndex == PieSlice::SliceType::Sentry) {
+			} else if (pieSliceIndex == PieSliceType::Sentry) {
 				m_AIMode = AIMODE_SENTRY;
 				m_DeliveryState = FALL;
-			} else if (pieSliceIndex == PieSlice::SliceType::Return) {
+			} else if (pieSliceIndex == PieSliceType::Return) {
 				m_AIMode = AIMODE_RETURN;
 				m_DeliveryState = LAUNCH;
-			} else if (pieSliceIndex == PieSlice::SliceType::GoTo) {
+			} else if (pieSliceIndex == PieSliceType::GoTo) {
 				m_AIMode = AIMODE_GOTO;
 				m_DeliveryState = FALL;
 				ClearAIWaypoints();
 				m_UpdateMovePath = true;
-			} else if (pieSliceIndex == PieSlice::SliceType::Scuttle) {
+			} else if (pieSliceIndex == PieSliceType::Scuttle) {
 				m_AIMode = AIMODE_SCUTTLE;
 			} else {
 				return Actor::HandlePieCommand(pieSliceIndex);

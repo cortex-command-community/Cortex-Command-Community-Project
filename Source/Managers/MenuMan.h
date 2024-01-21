@@ -1,5 +1,4 @@
-#ifndef _RTEMENUMAN_
-#define _RTEMENUMAN_
+#pragma once
 
 #include "Singleton.h"
 
@@ -88,4 +87,3 @@ namespace RTE {
 		MenuMan& operator=(const MenuMan& rhs) = delete;
 	};
 } // namespace RTE
-#endif

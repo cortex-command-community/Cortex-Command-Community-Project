@@ -1,5 +1,4 @@
-#ifndef _RTEATOM_
-#define _RTEATOM_
+#pragma once
 
 #include "Matrix.h"
 #include "Material.h"
@@ -67,16 +66,11 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate an Atom object in system memory. Create() should be called before using the object.
-		Atom() { Clear(); }
+		Atom();
 
 		/// Copy constructor method used to instantiate an Atom object identical to an already existing one.
 		/// @param reference An Atom object which is passed in by reference.
-		Atom(const Atom& reference) {
-			if (this != &reference) {
-				Clear();
-				Create(reference);
-			}
-		}
+		Atom(const Atom& reference);
 
 		/// Convenience constructor to both instantiate an Atom in memory and Create it at the same time.
 		/// @param offset An offset Vector that will be used to offset collision calculations.
@@ -84,10 +78,7 @@ namespace RTE {
 		/// @param owner The owner MovableObject of this Atom. Ownership is NOT transferred!
 		/// @param trailColor The trail color.
 		/// @param trailLength The trail length. If 0, no trail will be drawn.
-		Atom(const Vector& offset, Material const* material, MovableObject* owner, Color trailColor = Color(), int trailLength = 0) {
-			Clear();
-			Create(offset, material, owner, trailColor, trailLength);
-		}
+		Atom(const Vector& offset, Material const* material, MovableObject* owner, Color trailColor = Color(), int trailLength = 0);
 
 		/// Convenience constructor to both instantiate an Atom in memory and Create it at the same time.
 		/// @param offset An offset Vector that will be used to offset collision calculations.
@@ -95,10 +86,7 @@ namespace RTE {
 		/// @param owner The owner MovableObject of this Atom. Ownership is NOT transferred!
 		/// @param trailColor The trail color.
 		/// @param trailLength The trail length. If 0, no trail will be drawn.
-		Atom(const Vector& offset, unsigned char materialID, MovableObject* owner, Color trailColor = Color(), int trailLength = 0) {
-			Clear();
-			Create(offset, g_SceneMan.GetMaterialFromID(materialID), owner, trailColor, trailLength);
-		}
+		Atom(const Vector& offset, unsigned char materialID, MovableObject* owner, Color trailColor = Color(), int trailLength = 0);
 
 		/// Creates an Atom to be identical to another, by deep copy.
 		/// @param reference A reference to the Atom to deep copy.
@@ -117,10 +105,10 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up an Atom object before deletion from system memory.
-		~Atom() { Destroy(); }
+		~Atom();
 
 		/// Destroys and resets (through Clear()) the Atom object.
-		void Destroy() { Clear(); }
+		void Destroy();
 #pragma endregion
 
 #pragma region Memory Management
@@ -428,4 +416,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

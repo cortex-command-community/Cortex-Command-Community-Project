@@ -20,6 +20,8 @@
 #include "SettingsMan.h"
 #include "FrameMan.h"
 #include "PerformanceMan.h"
+#include "PostProcessMan.h"
+#include "PieMenu.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -37,6 +39,14 @@ namespace RTE {
 	bool Actor::m_sIconsLoaded = false;
 
 #define ARROWTIME 1000
+
+	Actor::Actor() {
+		Clear();
+	}
+
+	Actor::~Actor() {
+		Destroy(true);
+	}
 
 	void Actor::Clear() {
 		m_Controller.Reset();
@@ -465,6 +475,10 @@ namespace RTE {
 		return inventoryMass;
 	}
 
+	float Actor::GetMass() const {
+		return MOSRotating::GetMass() + GetInventoryMass() + (m_GoldCarried * g_SceneMan.GetKgPerOz());
+	}
+
 	float Actor::GetBaseMass() {
 		if (m_BaseMass == std::numeric_limits<float>::infinity()) {
 			if (const Actor* presetActor = static_cast<const Actor*>(GetPreset())) {
@@ -623,6 +637,17 @@ namespace RTE {
 	void Actor::AddAIMOWaypoint(const MovableObject* pMOWaypoint) {
 		if (g_MovableMan.ValidMO(pMOWaypoint))
 			m_Waypoints.push_back(std::pair<Vector, const MovableObject*>(pMOWaypoint->GetPos(), pMOWaypoint));
+	}
+
+	void Actor::AlarmPoint(const Vector& alarmPoint) {
+		if (m_AlarmSound && m_AlarmTimer.IsPastSimTimeLimit()) {
+			m_AlarmSound->Play(alarmPoint);
+		}
+
+		if (m_AlarmTimer.GetElapsedSimTimeMS() > 50) {
+			m_AlarmTimer.Reset();
+			m_LastAlarmPos = m_PointingTarget = alarmPoint;
+		}
 	}
 
 	MovableObject* Actor::SwapNextInventory(MovableObject* pSwapIn, bool muteSound) {
@@ -1010,6 +1035,12 @@ namespace RTE {
 		for (std::vector<MOID>::iterator it = MOIDs.begin(); it != MOIDs.end(); it++) {
 			RTEAssert(*it == g_NoMOID || *it < g_MovableMan.GetMOIDCount(), "Invalid MOID in actor");
 		}
+	}
+
+	void Actor::SetPieMenu(PieMenu* newPieMenu) {
+		m_PieMenu = std::unique_ptr<PieMenu>(newPieMenu);
+		m_PieMenu->Create(this);
+		m_PieMenu->AddWhilePieMenuOpenListener(this, std::bind(&Actor::WhilePieMenuOpenListener, this, m_PieMenu.get()));
 	}
 
 	void Actor::OnNewMovePath() {

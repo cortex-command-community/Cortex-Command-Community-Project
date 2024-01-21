@@ -13,6 +13,14 @@ namespace RTE {
 	thread_local std::array<uint64_t, PerformanceMan::PerformanceCounters::PerfCounterCount> s_PerfMeasureStart; //!< Current measurement start time in microseconds.
 	thread_local std::array<uint64_t, PerformanceMan::PerformanceCounters::PerfCounterCount> s_PerfMeasureStop; //!< Current measurement stop time in microseconds.
 
+	PerformanceMan::PerformanceMan() {
+		Clear();
+	}
+
+	PerformanceMan::~PerformanceMan() {
+		Destroy();
+	}
+
 	void PerformanceMan::Clear() {
 		m_ShowPerfStats = false;
 		m_AdvancedPerfStats = true;

@@ -1,5 +1,4 @@
-#ifndef _GUICOLLECTIONBOX_
-#define _GUICOLLECTIONBOX_
+#pragma once
 
 namespace RTE {
 
@@ -26,7 +25,7 @@ namespace RTE {
 		GUICollectionBox(GUIManager* Manager, GUIControlManager* ControlManager);
 
 		/// Destructor method used to clean up this before deletion from memory.
-		~GUICollectionBox() { Destroy(); }
+		~GUICollectionBox();
 
 		/// Called when the control has been created.
 		/// @param Name Name, Position.
@@ -124,5 +123,4 @@ namespace RTE {
 		/// Create the button bitmap to draw.
 		void BuildBitmap();
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

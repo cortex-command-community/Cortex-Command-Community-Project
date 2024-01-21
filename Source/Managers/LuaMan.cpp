@@ -11,6 +11,14 @@ namespace RTE {
 
 	const std::unordered_set<std::string> LuaMan::c_FileAccessModes = {"r", "r+", "w", "w+", "a", "a+", "rt", "wt"};
 
+	LuaStateWrapper::LuaStateWrapper() {
+		Clear();
+	}
+
+	LuaStateWrapper::~LuaStateWrapper() {
+		Destroy();
+	}
+
 	void LuaStateWrapper::Clear() {
 		m_State = nullptr;
 		m_TempEntity = nullptr;
@@ -867,6 +875,14 @@ namespace RTE {
 			}
 		}
 		return stackDescription.str();
+	}
+
+	LuaMan::LuaMan() {
+		Clear();
+	}
+
+	LuaMan::~LuaMan() {
+		Destroy();
 	}
 
 	const std::vector<std::string>* LuaMan::DirectoryList(const std::string& path) {

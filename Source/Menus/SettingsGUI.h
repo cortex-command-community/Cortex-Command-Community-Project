@@ -1,5 +1,4 @@
-#ifndef _RTESETTINGSGUI_
-#define _RTESETTINGSGUI_
+#pragma once
 
 #include "SettingsVideoGUI.h"
 #include "SettingsAudioGUI.h"
@@ -89,4 +88,3 @@ namespace RTE {
 		SettingsGUI& operator=(const SettingsGUI& rhs) = delete;
 	};
 } // namespace RTE
-#endif

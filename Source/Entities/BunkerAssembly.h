@@ -1,5 +1,4 @@
-#ifndef _RTEBUNKERASSEMBLY_
-#define _RTEBUNKERASSEMBLY_
+#pragma once
 
 /// Header file for the BunkerAssembly class.
 /// @author Daniel Tabar
@@ -26,11 +25,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a BunkerAssembly object in system
 		/// memory. Create() should be called before using the object.
-		BunkerAssembly() { Clear(); }
+		BunkerAssembly();
 
 		/// Destructor method used to clean up a BunkerAssembly object before deletion
 		/// from system memory.
-		~BunkerAssembly() override { Destroy(true); }
+		~BunkerAssembly() override;
 
 		/// Makes the BunkerAssembly object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -140,5 +139,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

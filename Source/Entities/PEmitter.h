@@ -1,5 +1,4 @@
-#ifndef _RTEPEMITTER_
-#define _RTEPEMITTER_
+#pragma once
 
 /// Header file for the PEmitter class.
 /// @author Daniel Tabar
@@ -26,11 +25,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a PEmitter object in system
 		/// memory. Create() should be called before using the object.
-		PEmitter() { Clear(); }
+		PEmitter();
 
 		/// Destructor method used to clean up a PEmitter object before deletion
 		/// from system memory.
-		~PEmitter() override { Destroy(true); }
+		~PEmitter() override;
 
 		/// Makes the PEmitter object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -388,5 +387,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File
