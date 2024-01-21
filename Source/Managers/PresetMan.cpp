@@ -1,5 +1,6 @@
 #include "PresetMan.h"
 
+#include "LuaMan.h"
 #include "ModuleMan.h"
 #include "SettingsMan.h"
 #include "ConsoleMan.h"
@@ -9,6 +10,10 @@
 #include "ACraft.h"
 
 namespace RTE {
+
+	PresetMan::PresetMan() {
+		Clear();
+	}
 
 	void PresetMan::Clear() {
 		m_ReloadEntityPresetCalledThisUpdate = false;

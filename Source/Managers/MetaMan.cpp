@@ -18,6 +18,14 @@ namespace RTE {
 
 	const std::string MetaMan::c_ClassName = "MetaMan";
 
+	MetaMan::MetaMan() {
+		Clear();
+	}
+
+	MetaMan::~MetaMan() {
+		Destroy();
+	}
+
 	void MetaMan::Clear() {
 		m_pMetaGUI = 0;
 		m_GameState = NOGAME;

@@ -14,6 +14,10 @@ GUIControlManager::GUIControlManager() {
 	m_CursorType = Pointer;
 }
 
+GUIControlManager::~GUIControlManager() {
+	Destroy();
+}
+
 bool GUIControlManager::Create(GUIScreen* Screen, GUIInput* Input, const std::string& SkinDir, const std::string& SkinFilename) {
 	assert(Screen && Input);
 

@@ -1,5 +1,4 @@
-#ifndef _RTESETTINGSMAN_
-#define _RTESETTINGSMAN_
+#pragma once
 
 #include "Serializable.h"
 #include "Singleton.h"
@@ -415,4 +414,3 @@ namespace RTE {
 		SettingsMan& operator=(const SettingsMan& rhs) = delete;
 	};
 } // namespace RTE
-#endif

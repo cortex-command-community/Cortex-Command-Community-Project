@@ -1,5 +1,4 @@
-#ifndef _GUIINTERFACE_
-#define _GUIINTERFACE_
+#pragma once
 
 // Header file for abstract classes used by the GUI library.
 
@@ -194,4 +193,3 @@ namespace RTE {
 	};
 #pragma endregion
 } // namespace RTE
-#endif

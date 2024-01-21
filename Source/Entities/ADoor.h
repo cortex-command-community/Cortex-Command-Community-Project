@@ -1,5 +1,4 @@
-#ifndef _RTEADOOR_
-#define _RTEADOOR_
+#pragma once
 
 #include "Actor.h"
 #include "ADSensor.h"
@@ -27,7 +26,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a ADoor object in system memory. Create() should be called before using the object.
-		ADoor() { Clear(); }
+		ADoor();
 
 		/// Makes the ADoor object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -41,7 +40,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a ADoor object before deletion from system memory.
-		~ADoor() override { Destroy(true); }
+		~ADoor() override;
 
 		/// Destroys and resets (through Clear()) the ADoor object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -85,7 +84,7 @@ namespace RTE {
 
 		/// Sets this ADoor's door move start sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ADoor's door move start sound.
-		void SetDoorMoveStartSound(SoundContainer* newSound) { m_DoorMoveStartSound.reset(newSound); }
+		void SetDoorMoveStartSound(SoundContainer* newSound);
 
 		/// Gets this ADoor's door move sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ADoor's door move sound.
@@ -93,7 +92,7 @@ namespace RTE {
 
 		/// Sets this ADoor's door move sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ADoor's door move sound.
-		void SetDoorMoveSound(SoundContainer* newSound) { m_DoorMoveSound.reset(newSound); }
+		void SetDoorMoveSound(SoundContainer* newSound);
 
 		/// Gets this ADoor's door direction change sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ADoor's door direction change sound.
@@ -101,7 +100,7 @@ namespace RTE {
 
 		/// Sets this ADoor's door direction change sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ADoor's door direction change sound.
-		void SetDoorDirectionChangeSound(SoundContainer* newSound) { m_DoorDirectionChangeSound.reset(newSound); }
+		void SetDoorDirectionChangeSound(SoundContainer* newSound);
 
 		/// Gets this ADoor's door move end sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ADoor's door move end sound.
@@ -109,7 +108,7 @@ namespace RTE {
 
 		/// Sets this ADoor's door move end sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ADoor's door move end sound.
-		void SetDoorMoveEndSound(SoundContainer* newSound) { m_DoorMoveEndSound.reset(newSound); }
+		void SetDoorMoveEndSound(SoundContainer* newSound);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -228,4 +227,3 @@ namespace RTE {
 		ADoor& operator=(const ADoor& rhs) = delete;
 	};
 } // namespace RTE
-#endif

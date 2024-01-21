@@ -38,6 +38,14 @@ BITMAP* RTE::BuyMenuGUI::s_pCursor = 0;
 const std::string BuyMenuGUI::c_DefaultBannerImagePath = "Base.rte/GUIs/BuyMenu/BuyMenuBanner.png";
 const std::string BuyMenuGUI::c_DefaultLogoImagePath = "Base.rte/GUIs/BuyMenu/BuyMenuLogo.png";
 
+BuyMenuGUI::BuyMenuGUI() {
+	Clear();
+}
+
+BuyMenuGUI::~BuyMenuGUI() {
+	Destroy();
+}
+
 void BuyMenuGUI::Clear() {
 	m_pController = 0;
 	m_pGUIScreen = 0;

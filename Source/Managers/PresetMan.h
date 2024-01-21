@@ -1,6 +1,10 @@
-#ifndef _RTEPRESETMAN_
-#define _RTEPRESETMAN_
+#pragma once
 
+/// Header file for the PresetMan class.
+/// @author Daniel Tabar
+/// data@datarealms.com
+/// http://www.datarealms.com
+/// Inclusions of header files
 #include "Singleton.h"
 #include "Entity.h"
 
@@ -18,12 +22,17 @@ namespace RTE {
 
 	public:
 #pragma region Creation
-		/// Constructor method used to instantiate a PresetMan object in system memory. Initialize() should be called before using the object.
-		PresetMan() { Clear(); }
-#pragma endregion
+		/// Constructor method used to instantiate a PresetMan entity in system
+		/// memory. Create() should be called before using the entity.
+		PresetMan();
 
-#pragma region Destruction
-		/// Resets the entire PresetMan, including its inherited members, to their default settings or values.
+		/// Makes the PresetMan entity ready for use.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
+		int Initialize() { return 0; }
+
+		/// Resets the entire PresetMan, including its inherited members, to
+		/// their default settings or values.
 		void Reset() { Clear(); }
 #pragma endregion
 
@@ -239,4 +248,3 @@ namespace RTE {
 		PresetMan& operator=(const PresetMan& rhs) = delete;
 	};
 } // namespace RTE
-#endif

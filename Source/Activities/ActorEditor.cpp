@@ -23,6 +23,14 @@ namespace RTE {
 
 	ConcreteClassInfo(ActorEditor, EditorActivity, 0);
 
+	ActorEditor::ActorEditor() {
+		Clear();
+	}
+
+	ActorEditor::~ActorEditor() {
+		Destroy(true);
+	}
+
 	void ActorEditor::Clear() {
 		m_pEditedActor = 0;
 		m_pPicker = 0;
@@ -167,9 +175,9 @@ namespace RTE {
 			PieMenu* editedActorPieMenu = m_pEditedActor->GetPieMenu();
 			editedActorPieMenu->SetEnabled(m_PlayerController[0].IsState(ControlState::PIE_MENU_ACTIVE) && m_EditorMode != EditorActivity::LOADDIALOG);
 
-			if (editedActorPieMenu->GetPieCommand() == PieSlice::SliceType::EditorLoad) {
+			if (editedActorPieMenu->GetPieCommand() == PieSliceType::EditorLoad) {
 				ReloadActorData();
-			} else if (editedActorPieMenu->GetPieCommand() == PieSlice::SliceType::EditorPick) {
+			} else if (editedActorPieMenu->GetPieCommand() == PieSliceType::EditorPick) {
 				m_EditorMode = EditorActivity::LOADDIALOG;
 				m_ModeChange = true;
 			}

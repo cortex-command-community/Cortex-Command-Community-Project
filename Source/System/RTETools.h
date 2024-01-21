@@ -1,5 +1,4 @@
-#ifndef _RTETOOLS_
-#define _RTETOOLS_
+#pragma once
 
 // Header file for global utility methods.
 
@@ -278,4 +277,3 @@ namespace RTE {
 	}
 #pragma endregion
 } // namespace RTE
-#endif

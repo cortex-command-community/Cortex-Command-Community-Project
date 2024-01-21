@@ -5,6 +5,14 @@
 using namespace std;
 using namespace RTE;
 
+MultiplayerGameGUI::MultiplayerGameGUI() {
+	Clear();
+}
+
+MultiplayerGameGUI::~MultiplayerGameGUI() {
+	Destroy();
+}
+
 void MultiplayerGameGUI::Clear() {
 	m_pController = 0;
 }

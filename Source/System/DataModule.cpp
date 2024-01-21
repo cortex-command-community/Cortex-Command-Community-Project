@@ -11,6 +11,19 @@ namespace RTE {
 
 	const std::string DataModule::c_ClassName = "DataModule";
 
+	DataModule::DataModule() {
+		Clear();
+	}
+
+	DataModule::DataModule(const std::string& moduleName, const ProgressCallback& progressCallback) {
+		Clear();
+		Create(moduleName, progressCallback);
+	}
+
+	DataModule::~DataModule() {
+		Destroy();
+	}
+
 	void DataModule::Clear() {
 		m_ModuleType = DataModuleType::Unofficial;
 		m_FileName.clear();

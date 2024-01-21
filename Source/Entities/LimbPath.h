@@ -1,5 +1,4 @@
-#ifndef _RTELIMBPATH_
-#define _RTELIMBPATH_
+#pragma once
 
 /// Header file for the LimbPath class.
 /// @author Daniel Tabar
@@ -34,11 +33,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a LimbPath object in system
 		/// memory. Create() should be called before using the object.
-		LimbPath() { Clear(); }
+		LimbPath();
 
 		/// Destructor method used to clean up a LimbPath object before deletion
 		/// from system memory.
-		~LimbPath() override { Destroy(true); }
+		~LimbPath() override;
 
 		/// Makes the LimbPath object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -438,5 +437,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

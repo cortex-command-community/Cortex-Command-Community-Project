@@ -1,5 +1,4 @@
-#ifndef _RTEADSENSOR_
-#define _RTEADSENSOR_
+#pragma once
 
 #include "Serializable.h"
 #include "Matrix.h"
@@ -17,7 +16,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate an ADSensor object in system memory. Create() should be called before using the object.
-		ADSensor() { Clear(); }
+		ADSensor();
 
 		/// Makes the ADSensor object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -31,7 +30,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up an ADSensor object before deletion from system memory.
-		~ADSensor() { Destroy(); }
+		~ADSensor();
 
 		/// Destroys and resets (through Clear()) the ADSensor object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -79,4 +78,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

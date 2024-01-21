@@ -1,5 +1,4 @@
-#ifndef _BUYMENUGUI_
-#define _BUYMENUGUI_
+#pragma once
 
 /// BuyMenuGUI class
 /// @author Daniel Tabar
@@ -36,11 +35,11 @@ namespace RTE {
 	public:
 		/// Constructor method used to instantiate a BuyMenuGUI object in system
 		/// memory. Create() should be called before using the object.
-		BuyMenuGUI() { Clear(); }
+		BuyMenuGUI();
 
 		/// Destructor method used to clean up a BuyMenuGUI object before deletion
 		/// from system memory.
-		~BuyMenuGUI() { Destroy(); }
+		~BuyMenuGUI();
 
 		/// Makes the BuyMenuGUI object ready for use.
 		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
@@ -548,5 +547,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

@@ -18,6 +18,14 @@ namespace RTE {
 
 	ConcreteClassInfo(HeldDevice, Attachable, 50);
 
+	HeldDevice::HeldDevice() {
+		Clear();
+	}
+
+	HeldDevice::~HeldDevice() {
+		Destroy(true);
+	}
+
 	void HeldDevice::Clear() {
 		m_HeldDeviceType = WEAPON;
 		m_Activated = false;

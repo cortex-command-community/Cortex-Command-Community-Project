@@ -1,5 +1,4 @@
-#ifndef _GUIPROPERTIES_
-#define _GUIPROPERTIES_
+#pragma once
 
 namespace RTE {
 
@@ -109,5 +108,4 @@ namespace RTE {
 
 		std::vector<PropVariable*> m_VariableList;
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

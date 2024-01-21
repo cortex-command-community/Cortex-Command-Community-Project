@@ -1,5 +1,4 @@
-#ifndef _RTECONTENTFILE_
-#define _RTECONTENTFILE_
+#pragma once
 
 #include "Serializable.h"
 
@@ -214,4 +213,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

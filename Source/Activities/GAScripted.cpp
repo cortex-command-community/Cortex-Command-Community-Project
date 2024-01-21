@@ -15,6 +15,8 @@
 #include "Controller.h"
 #include "Scene.h"
 #include "Actor.h"
+#include "PieMenu.h"
+#include "LuaMan.h"
 
 #include "GUI.h"
 #include "GUIFont.h"
@@ -28,6 +30,14 @@
 namespace RTE {
 
 	ConcreteClassInfo(GAScripted, GameActivity, 0);
+
+	GAScripted::GAScripted() {
+		Clear();
+	}
+
+	GAScripted::~GAScripted() {
+		Destroy(true);
+	}
 
 	void GAScripted::Clear() {
 		m_ScriptPath.clear();

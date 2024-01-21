@@ -1,5 +1,4 @@
-#ifndef _RTEGLOBALSCRIPT_
-#define _RTEGLOBALSCRIPT_
+#pragma once
 
 #include "PieSlice.h"
 
@@ -18,7 +17,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a GlobalScript object in system memory. Create() should be called before using the object.
-		GlobalScript() { Clear(); }
+		GlobalScript();
 
 		/// Makes the GlobalScript object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -32,7 +31,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a GlobalScript object before deletion from system memory.
-		~GlobalScript() override { Destroy(true); }
+		~GlobalScript() override;
 
 		/// Destroys and resets (through Clear()) the GlobalScript object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -113,4 +112,3 @@ namespace RTE {
 		GlobalScript& operator=(const GlobalScript& rhs) = delete;
 	};
 } // namespace RTE
-#endif

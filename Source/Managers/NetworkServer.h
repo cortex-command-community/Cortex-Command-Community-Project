@@ -1,5 +1,4 @@
-#ifndef _RTENETWORKSERVER_
-#define _RTENETWORKSERVER_
+#pragma once
 
 // TODO: Figure out how to deal with anything that is defined by these and include them in implementation only to remove Windows.h macro pollution from our headers.
 #include "RakPeerInterface.h"
@@ -55,10 +54,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a NetworkServer object in system memory. This will call Create() so it shouldn't be called after.
-		NetworkServer() {
-			Clear();
-			Initialize();
-		}
+		NetworkServer();
 
 		/// Makes the NetworkServer object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -67,7 +63,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a NetworkServer object before deletion from system memory.
-		~NetworkServer() { Destroy(); }
+		~NetworkServer();
 
 		/// Destroys and resets (through Clear()) the NetworkServer object.
 		void Destroy();
@@ -473,4 +469,3 @@ namespace RTE {
 		NetworkServer& operator=(const NetworkServer& rhs) = delete;
 	};
 } // namespace RTE
-#endif

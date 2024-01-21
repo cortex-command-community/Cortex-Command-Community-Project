@@ -22,10 +22,7 @@ must not be misrepresented as being the original software.
 distribution.
 */
 
-
-#ifndef GRINNINGLIZARD_MICROPATHER_INCLUDED
-#define GRINNINGLIZARD_MICROPATHER_INCLUDED
-
+#pragma once
 
 /** @mainpage MicroPather
 	
@@ -511,6 +508,3 @@ namespace micropather
 		PathCache* pathCache;
 	};
 };	// namespace grinliz
-
-#endif
-

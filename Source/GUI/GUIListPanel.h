@@ -1,5 +1,4 @@
-#ifndef _GUILISTPANEL_
-#define _GUILISTPANEL_
+#pragma once
 
 #include "GUIScrollPanel.h"
 #include "GUIInterface.h"
@@ -329,5 +328,4 @@ namespace RTE {
 		/// @param MouseWheelChange Amount and direction of scrolling. Positive to scroll up, negative to scroll down.
 		void SelectionListScrolling(int mouseWheelChange);
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

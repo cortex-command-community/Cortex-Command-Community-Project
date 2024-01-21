@@ -1,5 +1,4 @@
-#ifndef _GIBEDITORGUI_
-#define _GIBEDITORGUI_
+#pragma once
 
 /// GibEditorGUI class
 /// @author Daniel Tabar
@@ -43,11 +42,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a GibEditorGUI object in system
 		/// memory. Create() should be called before using the object.
-		GibEditorGUI() { Clear(); }
+		GibEditorGUI();
 
 		/// Destructor method used to clean up a GibEditorGUI object before deletion
 		/// from system memory.
-		~GibEditorGUI() { Destroy(); }
+		~GibEditorGUI();
 
 		/// Makes the GibEditorGUI object ready for use.
 		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
@@ -86,8 +85,8 @@ namespace RTE {
 		void SetCurrentGib(MovableObject* pNewGibObject) { m_pCurrentGib = pNewGibObject; }
 
 		/// Gets any Pie menu slice command activated last update.
-		/// @return The enum'd int of any slice activated. See the PieSlice::SliceType enum.
-		PieSlice::SliceType GetActivatedPieSlice() const;
+		/// @return The enum'd int of any slice activated. See the PieSliceType enum.
+		PieSliceType GetActivatedPieSlice() const;
 
 		/// Gets the list of already placed gibs of the currently edited object.
 		/// Ownership of neither list not objects IS NOT transferred!
@@ -226,5 +225,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

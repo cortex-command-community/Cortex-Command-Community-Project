@@ -15,6 +15,7 @@
 #include "Scene.h"
 #include "MetaMan.h"
 #include "AudioMan.h"
+#include "LuaMan.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -33,6 +34,14 @@
 namespace RTE {
 
 	ConcreteClassInfo(MultiplayerServerLobby, Activity, 0);
+
+	MultiplayerServerLobby::MultiplayerServerLobby() {
+		Clear();
+	}
+
+	MultiplayerServerLobby::~MultiplayerServerLobby() {
+		Destroy(true);
+	}
 
 	void MultiplayerServerLobby::Clear() {
 		// m_pEditorGUI = 0;

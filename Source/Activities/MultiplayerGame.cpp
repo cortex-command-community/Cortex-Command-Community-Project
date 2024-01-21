@@ -33,6 +33,14 @@ namespace RTE {
 
 	ConcreteClassInfo(MultiplayerGame, Activity, 0);
 
+	MultiplayerGame::MultiplayerGame() {
+		Clear();
+	}
+
+	MultiplayerGame::~MultiplayerGame() {
+		Destroy(true);
+	}
+
 	void MultiplayerGame::Clear() {
 		m_pGUIController = 0;
 		m_pGUIInput = 0;

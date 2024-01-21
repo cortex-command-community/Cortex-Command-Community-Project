@@ -2,10 +2,20 @@
 #include "Atom.h"
 #include "Emission.h"
 #include "PresetMan.h"
+#include "SoundContainer.h"
+#include "PostProcessMan.h"
 
 namespace RTE {
 
 	ConcreteClassInfo(AEmitter, Attachable, 100);
+
+	AEmitter::AEmitter() {
+		Clear();
+	}
+
+	AEmitter::~AEmitter() {
+		Destroy(true);
+	}
 
 	void AEmitter::Clear() {
 		m_EmissionList.clear();

@@ -1,5 +1,4 @@
-#ifndef _RTESLBACKGROUND_
-#define _RTESLBACKGROUND_
+#pragma once
 
 #include "SceneLayer.h"
 #include "Timer.h"
@@ -17,7 +16,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a SLBackground object in system memory. Create() should be called before using the object.
-		SLBackground() { Clear(); }
+		SLBackground();
 
 		/// Makes the SLBackground object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -31,7 +30,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a SLBackground object before deletion from system memory.
-		~SLBackground() override { Destroy(true); }
+		~SLBackground() override;
 
 		/// Destroys and resets (through Clear()) the SLBackground object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -190,4 +189,3 @@ namespace RTE {
 		SLBackground& operator=(const SLBackground& rhs) = delete;
 	};
 } // namespace RTE
-#endif

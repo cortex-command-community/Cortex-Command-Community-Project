@@ -1,5 +1,4 @@
-#ifndef _RTEEMISSION_
-#define _RTEEMISSION_
+#pragma once
 
 /// File:			Emission.h
 /// Something to bundle the properties of an emission together.
@@ -172,4 +171,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-#endif

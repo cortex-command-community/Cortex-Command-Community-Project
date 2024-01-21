@@ -7,6 +7,14 @@ namespace RTE {
 
 	ConcreteClassInfo(AEJetpack, AEmitter, 20);
 
+	AEJetpack::AEJetpack() {
+		Clear();
+	}
+
+	AEJetpack::~AEJetpack() {
+		Destroy(true);
+	}
+
 	void AEJetpack::Clear() {
 		m_JetpackType = JetpackType::Standard;
 		m_JetTimeTotal = 0.0F;

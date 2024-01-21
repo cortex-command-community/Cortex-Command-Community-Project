@@ -1,5 +1,4 @@
-#ifndef _RTELUABINDOBJECTWRAPPER_
-#define _RTELUABINDOBJECTWRAPPER_
+#pragma once
 
 struct lua_State;
 
@@ -64,4 +63,3 @@ namespace RTE {
 		LuabindObjectWrapper& operator=(const LuabindObjectWrapper& rhs) = delete;
 	};
 } // namespace RTE
-#endif
