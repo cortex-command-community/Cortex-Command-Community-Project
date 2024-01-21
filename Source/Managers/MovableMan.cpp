@@ -1363,299 +1363,300 @@ void MovableMan::Update() {
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
 	{
-	    {ZoneScopedN("Actors Update");
+		{
+			ZoneScopedN("Actors Update");
 
-	g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ActorsUpdate);
-	for (Actor* actor: m_Actors) {
-		actor->Update();
+			g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ActorsUpdate);
+			for (Actor* actor: m_Actors) {
+				actor->Update();
 
-		g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
-		actor->UpdateScripts();
-		g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
+				g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
+				actor->UpdateScripts();
+				g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
-		actor->ApplyImpulses();
-	}
-	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ActorsUpdate);
-}
-
-{
-	ZoneScopedN("Items Update");
-
-	int count = 0;
-	int itemLimit = m_Items.size() - m_MaxDroppedItems;
-	for (iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt, ++count) {
-		(*iIt)->Update();
-
-		g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
-		(*iIt)->UpdateScripts();
-		g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
-
-		(*iIt)->ApplyImpulses();
-		if (count <= itemLimit) {
-			(*iIt)->SetToSettle(true);
+				actor->ApplyImpulses();
+			}
+			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ActorsUpdate);
 		}
-	}
-}
 
-{
-	ZoneScopedN("Particles Update");
+		{
+			ZoneScopedN("Items Update");
 
-	g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ParticlesUpdate);
-	for (MovableObject* particle: m_Particles) {
-		particle->Update();
+			int count = 0;
+			int itemLimit = m_Items.size() - m_MaxDroppedItems;
+			for (iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt, ++count) {
+				(*iIt)->Update();
 
-		g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
-		particle->UpdateScripts();
-		g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
+				g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
+				(*iIt)->UpdateScripts();
+				g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
-		particle->ApplyImpulses();
-		particle->RestDetection();
-		// Copy particles that are at rest to the terrain and mark them for deletion.
-		if (particle->IsAtRest()) {
-			particle->SetToSettle(true);
+				(*iIt)->ApplyImpulses();
+				if (count <= itemLimit) {
+					(*iIt)->SetToSettle(true);
+				}
+			}
 		}
-	}
-	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ParticlesUpdate);
-}
 
-{
-	ZoneScopedN("Post Update");
+		{
+			ZoneScopedN("Particles Update");
 
-	for (Actor* actor: m_Actors) {
-		actor->PostUpdate();
-	}
-	for (MovableObject* item: m_Items) {
-		item->PostUpdate();
-	}
-	for (MovableObject* particle: m_Particles) {
-		particle->PostUpdate();
-	}
-}
-} // namespace RTE
+			g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ParticlesUpdate);
+			for (MovableObject* particle: m_Particles) {
+				particle->Update();
 
-//////////////////////////////////////////////////////////////////////
-// TRANSFER ALL MOs ADDED THIS FRAME
-// All Actors, Items, and Particles added this frame now are officially added
+				g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
+				particle->UpdateScripts();
+				g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
-{
-	ZoneScopedN("MO Transfer and Deletion");
+				particle->ApplyImpulses();
+				particle->RestDetection();
+				// Copy particles that are at rest to the terrain and mark them for deletion.
+				if (particle->IsAtRest()) {
+					particle->SetToSettle(true);
+				}
+			}
+			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ParticlesUpdate);
+		}
+
+		{
+			ZoneScopedN("Post Update");
+
+			for (Actor* actor: m_Actors) {
+				actor->PostUpdate();
+			}
+			for (MovableObject* item: m_Items) {
+				item->PostUpdate();
+			}
+			for (MovableObject* particle: m_Particles) {
+				particle->PostUpdate();
+			}
+		}
+	} // namespace RTE
+
+	//////////////////////////////////////////////////////////////////////
+	// TRANSFER ALL MOs ADDED THIS FRAME
+	// All Actors, Items, and Particles added this frame now are officially added
 
 	{
-		// Actors
-		for (aIt = m_AddedActors.begin(); aIt != m_AddedActors.end(); ++aIt) {
-			// Delete instead if it's marked for it
-			if (!(*aIt)->IsSetToDelete())
-				m_Actors.push_back(*aIt);
-			else {
-				m_ValidActors.erase(*aIt);
+		ZoneScopedN("MO Transfer and Deletion");
 
-				// Also remove actor from the roster
-				if ((*aIt)->GetTeam() >= 0) {
-					// m_ActorRoster[(*aIt)->GetTeam()].remove(*aIt);
-					RemoveActorFromTeamRoster(*aIt);
+		{
+			// Actors
+			for (aIt = m_AddedActors.begin(); aIt != m_AddedActors.end(); ++aIt) {
+				// Delete instead if it's marked for it
+				if (!(*aIt)->IsSetToDelete())
+					m_Actors.push_back(*aIt);
+				else {
+					m_ValidActors.erase(*aIt);
+
+					// Also remove actor from the roster
+					if ((*aIt)->GetTeam() >= 0) {
+						// m_ActorRoster[(*aIt)->GetTeam()].remove(*aIt);
+						RemoveActorFromTeamRoster(*aIt);
+					}
+
+					(*aIt)->DestroyScriptState();
+					delete (*aIt);
+				}
+			}
+			m_AddedActors.clear();
+
+			// Items
+			for (iIt = m_AddedItems.begin(); iIt != m_AddedItems.end(); ++iIt) {
+				// Delete instead if it's marked for it
+				if (!(*iIt)->IsSetToDelete()) {
+					m_Items.push_back(*iIt);
+				} else {
+					m_ValidItems.erase(*iIt);
+					(*iIt)->DestroyScriptState();
+					delete (*iIt);
+				}
+			}
+			m_AddedItems.clear();
+
+			// Particles
+			for (parIt = m_AddedParticles.begin(); parIt != m_AddedParticles.end(); ++parIt) {
+				// Delete instead if it's marked for it
+				if (!(*parIt)->IsSetToDelete()) {
+					m_Particles.push_back(*parIt);
+				} else {
+					m_ValidParticles.erase(*parIt);
+					(*parIt)->DestroyScriptState();
+					delete (*parIt);
+				}
+			}
+			m_AddedParticles.clear();
+		}
+
+		////////////////////////////////////////////////////////////////////////////
+		// Copy (Settle) Pass
+
+		{
+			// DEATH //////////////////////////////////////////////////////////
+			// Transfer dead actors from Actor list to particle list
+			aIt = partition(m_Actors.begin(), m_Actors.end(), std::not_fn(std::mem_fn(&Actor::IsDead)));
+			amidIt = aIt;
+
+			// Move dead Actor to particles list
+			if (amidIt != m_Actors.end() /* && m_Actors.size() > 1*/) {
+				while (aIt != m_Actors.end()) {
+					// Report the death of the actor to the game
+					g_ActivityMan.GetActivity()->ReportDeath((*aIt)->GetTeam());
+
+					// Add to the particles list
+					m_Particles.push_back(*aIt);
+					m_ValidParticles.insert(*aIt);
+					// Remove from the team roster
+
+					if ((*aIt)->GetTeam() >= 0) {
+						// m_ActorRoster[(*aIt)->GetTeam()].remove(*aIt);
+						RemoveActorFromTeamRoster(*aIt);
+					}
+
+					m_ValidActors.erase(*aIt);
+					aIt++;
+				}
+				// Try to set the existing iterator to a safer value, erase can crash in debug mode otherwise?
+				aIt = m_Actors.begin();
+				m_Actors.erase(amidIt, m_Actors.end());
+			}
+
+			// ITEM SETTLE //////////////////////////////////////////////////////////
+			// Transfer excess items to particle list - use stable partition, item orde is important
+			iIt = stable_partition(m_Items.begin(), m_Items.end(), std::not_fn(std::mem_fn(&MovableObject::ToSettle)));
+			imidIt = iIt;
+
+			// Move force-settled items to particles list
+			if (imidIt != m_Items.end() /* && m_Items.size() > 1*/) {
+				while (iIt != m_Items.end()) {
+					(*iIt)->SetToSettle(false);
+					// Disable TDExplosive's immunity to settling
+					if ((*iIt)->GetRestThreshold() < 0) {
+						(*iIt)->SetRestThreshold(500);
+					}
+					m_ValidItems.erase(*iIt);
+					m_Particles.push_back(*iIt);
+					iIt++;
+				}
+				m_Items.erase(imidIt, m_Items.end());
+			}
+
+			// DELETE //////////////////////////////////////////////////////////
+			// Only delete after all travels & updates are done
+			// Actors
+			aIt = partition(m_Actors.begin(), m_Actors.end(), std::not_fn(std::mem_fn(&MovableObject::ToDelete)));
+			amidIt = aIt;
+
+			while (aIt != m_Actors.end()) {
+				// Set brain to 0 to avoid crashes due to brain deletion
+				Activity* pActivity = g_ActivityMan.GetActivity();
+				if (pActivity) {
+					if (pActivity->IsAssignedBrain(*aIt))
+						pActivity->SetPlayerBrain(0, pActivity->IsBrainOfWhichPlayer(*aIt));
+
+					pActivity->ReportDeath((*aIt)->GetTeam());
 				}
 
+				// Remove from team rosters
+				if ((*aIt)->GetTeam() >= Activity::TeamOne && (*aIt)->GetTeam() < Activity::MaxTeamCount)
+					// m_ActorRoster[(*aIt)->GetTeam()].remove(*aIt);
+					RemoveActorFromTeamRoster(*aIt);
+
+				// Delete
+				m_ValidActors.erase(*aIt);
 				(*aIt)->DestroyScriptState();
 				delete (*aIt);
-			}
-		}
-		m_AddedActors.clear();
-
-		// Items
-		for (iIt = m_AddedItems.begin(); iIt != m_AddedItems.end(); ++iIt) {
-			// Delete instead if it's marked for it
-			if (!(*iIt)->IsSetToDelete()) {
-				m_Items.push_back(*iIt);
-			} else {
-				m_ValidItems.erase(*iIt);
-				(*iIt)->DestroyScriptState();
-				delete (*iIt);
-			}
-		}
-		m_AddedItems.clear();
-
-		// Particles
-		for (parIt = m_AddedParticles.begin(); parIt != m_AddedParticles.end(); ++parIt) {
-			// Delete instead if it's marked for it
-			if (!(*parIt)->IsSetToDelete()) {
-				m_Particles.push_back(*parIt);
-			} else {
-				m_ValidParticles.erase(*parIt);
-				(*parIt)->DestroyScriptState();
-				delete (*parIt);
-			}
-		}
-		m_AddedParticles.clear();
-	}
-
-	////////////////////////////////////////////////////////////////////////////
-	// Copy (Settle) Pass
-
-	{
-		// DEATH //////////////////////////////////////////////////////////
-		// Transfer dead actors from Actor list to particle list
-		aIt = partition(m_Actors.begin(), m_Actors.end(), std::not_fn(std::mem_fn(&Actor::IsDead)));
-		amidIt = aIt;
-
-		// Move dead Actor to particles list
-		if (amidIt != m_Actors.end() /* && m_Actors.size() > 1*/) {
-			while (aIt != m_Actors.end()) {
-				// Report the death of the actor to the game
-				g_ActivityMan.GetActivity()->ReportDeath((*aIt)->GetTeam());
-
-				// Add to the particles list
-				m_Particles.push_back(*aIt);
-				m_ValidParticles.insert(*aIt);
-				// Remove from the team roster
-
-				if ((*aIt)->GetTeam() >= 0) {
-					// m_ActorRoster[(*aIt)->GetTeam()].remove(*aIt);
-					RemoveActorFromTeamRoster(*aIt);
-				}
-
-				m_ValidActors.erase(*aIt);
 				aIt++;
 			}
 			// Try to set the existing iterator to a safer value, erase can crash in debug mode otherwise?
 			aIt = m_Actors.begin();
 			m_Actors.erase(amidIt, m_Actors.end());
-		}
 
-		// ITEM SETTLE //////////////////////////////////////////////////////////
-		// Transfer excess items to particle list - use stable partition, item orde is important
-		iIt = stable_partition(m_Items.begin(), m_Items.end(), std::not_fn(std::mem_fn(&MovableObject::ToSettle)));
-		imidIt = iIt;
+			// Items
+			iIt = stable_partition(m_Items.begin(), m_Items.end(), std::not_fn(std::mem_fn(&MovableObject::ToDelete)));
+			imidIt = iIt;
 
-		// Move force-settled items to particles list
-		if (imidIt != m_Items.end() /* && m_Items.size() > 1*/) {
 			while (iIt != m_Items.end()) {
-				(*iIt)->SetToSettle(false);
-				// Disable TDExplosive's immunity to settling
-				if ((*iIt)->GetRestThreshold() < 0) {
-					(*iIt)->SetRestThreshold(500);
-				}
 				m_ValidItems.erase(*iIt);
-				m_Particles.push_back(*iIt);
+				(*iIt)->DestroyScriptState();
+				delete (*iIt);
 				iIt++;
 			}
 			m_Items.erase(imidIt, m_Items.end());
-		}
 
-		// DELETE //////////////////////////////////////////////////////////
-		// Only delete after all travels & updates are done
-		// Actors
-		aIt = partition(m_Actors.begin(), m_Actors.end(), std::not_fn(std::mem_fn(&MovableObject::ToDelete)));
-		amidIt = aIt;
+			// Particles
+			parIt = partition(m_Particles.begin(), m_Particles.end(), std::not_fn(std::mem_fn(&MovableObject::ToDelete)));
+			midIt = parIt;
 
-		while (aIt != m_Actors.end()) {
-			// Set brain to 0 to avoid crashes due to brain deletion
-			Activity* pActivity = g_ActivityMan.GetActivity();
-			if (pActivity) {
-				if (pActivity->IsAssignedBrain(*aIt))
-					pActivity->SetPlayerBrain(0, pActivity->IsBrainOfWhichPlayer(*aIt));
-
-				pActivity->ReportDeath((*aIt)->GetTeam());
+			while (parIt != m_Particles.end()) {
+				m_ValidParticles.erase(*parIt);
+				(*parIt)->DestroyScriptState();
+				delete (*parIt);
+				parIt++;
 			}
-
-			// Remove from team rosters
-			if ((*aIt)->GetTeam() >= Activity::TeamOne && (*aIt)->GetTeam() < Activity::MaxTeamCount)
-				// m_ActorRoster[(*aIt)->GetTeam()].remove(*aIt);
-				RemoveActorFromTeamRoster(*aIt);
-
-			// Delete
-			m_ValidActors.erase(*aIt);
-			(*aIt)->DestroyScriptState();
-			delete (*aIt);
-			aIt++;
+			m_Particles.erase(midIt, m_Particles.end());
 		}
-		// Try to set the existing iterator to a safer value, erase can crash in debug mode otherwise?
-		aIt = m_Actors.begin();
-		m_Actors.erase(amidIt, m_Actors.end());
 
-		// Items
-		iIt = stable_partition(m_Items.begin(), m_Items.end(), std::not_fn(std::mem_fn(&MovableObject::ToDelete)));
-		imidIt = iIt;
+		// SETTLE PARTICLES //////////////////////////////////////////////////
+		// Only settle after all updates and deletions are done
+		if (m_SettlingEnabled) {
+			parIt = partition(m_Particles.begin(), m_Particles.end(), std::not_fn(std::mem_fn(&MovableObject::ToSettle)));
+			midIt = parIt;
 
-		while (iIt != m_Items.end()) {
-			m_ValidItems.erase(*iIt);
-			(*iIt)->DestroyScriptState();
-			delete (*iIt);
-			iIt++;
-		}
-		m_Items.erase(imidIt, m_Items.end());
-
-		// Particles
-		parIt = partition(m_Particles.begin(), m_Particles.end(), std::not_fn(std::mem_fn(&MovableObject::ToDelete)));
-		midIt = parIt;
-
-		while (parIt != m_Particles.end()) {
-			m_ValidParticles.erase(*parIt);
-			(*parIt)->DestroyScriptState();
-			delete (*parIt);
-			parIt++;
-		}
-		m_Particles.erase(midIt, m_Particles.end());
-	}
-
-	// SETTLE PARTICLES //////////////////////////////////////////////////
-	// Only settle after all updates and deletions are done
-	if (m_SettlingEnabled) {
-		parIt = partition(m_Particles.begin(), m_Particles.end(), std::not_fn(std::mem_fn(&MovableObject::ToSettle)));
-		midIt = parIt;
-
-		while (parIt != m_Particles.end()) {
-			Vector parPos((*parIt)->GetPos());
-			Material const* terrMat = g_SceneMan.GetMaterialFromID(g_SceneMan.GetTerrain()->GetMaterialPixel(parPos.GetFloorIntX(), parPos.GetFloorIntY()));
-			int piling = (*parIt)->GetMaterial()->GetPiling();
-			if (piling > 0) {
-				for (int s = 0; s < piling && (terrMat->GetIndex() == (*parIt)->GetMaterial()->GetIndex() || terrMat->GetIndex() == (*parIt)->GetMaterial()->GetSettleMaterial()); ++s) {
-					if ((piling - s) % 2 == 0) {
-						parPos.m_Y -= 1.0F;
-					} else {
-						parPos.m_X += (RandomNum() >= 0.5F ? 1.0F : -1.0F);
+			while (parIt != m_Particles.end()) {
+				Vector parPos((*parIt)->GetPos());
+				Material const* terrMat = g_SceneMan.GetMaterialFromID(g_SceneMan.GetTerrain()->GetMaterialPixel(parPos.GetFloorIntX(), parPos.GetFloorIntY()));
+				int piling = (*parIt)->GetMaterial()->GetPiling();
+				if (piling > 0) {
+					for (int s = 0; s < piling && (terrMat->GetIndex() == (*parIt)->GetMaterial()->GetIndex() || terrMat->GetIndex() == (*parIt)->GetMaterial()->GetSettleMaterial()); ++s) {
+						if ((piling - s) % 2 == 0) {
+							parPos.m_Y -= 1.0F;
+						} else {
+							parPos.m_X += (RandomNum() >= 0.5F ? 1.0F : -1.0F);
+						}
+						terrMat = g_SceneMan.GetMaterialFromID(g_SceneMan.GetTerrain()->GetMaterialPixel(parPos.GetFloorIntX(), parPos.GetFloorIntY()));
 					}
-					terrMat = g_SceneMan.GetMaterialFromID(g_SceneMan.GetTerrain()->GetMaterialPixel(parPos.GetFloorIntX(), parPos.GetFloorIntY()));
+					(*parIt)->SetPos(parPos.GetFloored());
 				}
-				(*parIt)->SetPos(parPos.GetFloored());
+				if ((*parIt)->GetDrawPriority() >= terrMat->GetPriority()) {
+					(*parIt)->DrawToTerrain(g_SceneMan.GetTerrain());
+				}
+				m_ValidParticles.erase(*parIt);
+				(*parIt)->DestroyScriptState();
+				delete (*parIt);
+				parIt++;
 			}
-			if ((*parIt)->GetDrawPriority() >= terrMat->GetPriority()) {
-				(*parIt)->DrawToTerrain(g_SceneMan.GetTerrain());
-			}
-			m_ValidParticles.erase(*parIt);
-			(*parIt)->DestroyScriptState();
-			delete (*parIt);
-			parIt++;
+			m_Particles.erase(midIt, m_Particles.end());
 		}
-		m_Particles.erase(midIt, m_Particles.end());
 	}
-}
 
-// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run
-g_LuaMan.StartAsyncGarbageCollection();
+	// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run
+	g_LuaMan.StartAsyncGarbageCollection();
 
-////////////////////////////////////////////////////////////////////////
-// Draw the MO matter and IDs to their layers for next frame
-m_DrawMOIDsTask = g_ThreadMan.GetPriorityThreadPool().submit([this]() {
-	UpdateDrawMOIDs(g_SceneMan.GetMOIDBitmap());
-});
+	////////////////////////////////////////////////////////////////////////
+	// Draw the MO matter and IDs to their layers for next frame
+	m_DrawMOIDsTask = g_ThreadMan.GetPriorityThreadPool().submit([this]() {
+		UpdateDrawMOIDs(g_SceneMan.GetMOIDBitmap());
+	});
 
-////////////////////////////////////////////////////////////////////
-// Draw the MO colors ONLY if this is a drawn update!
+	////////////////////////////////////////////////////////////////////
+	// Draw the MO colors ONLY if this is a drawn update!
 
-if (g_TimerMan.DrawnSimUpdate())
-	Draw(g_SceneMan.GetMOColorBitmap());
+	if (g_TimerMan.DrawnSimUpdate())
+		Draw(g_SceneMan.GetMOColorBitmap());
 
-// Sort team rosters if necessary
-{
-	if (m_SortTeamRoster[Activity::TeamOne])
-		m_ActorRoster[Activity::TeamOne].sort(MOXPosComparison());
-	if (m_SortTeamRoster[Activity::TeamTwo])
-		m_ActorRoster[Activity::TeamTwo].sort(MOXPosComparison());
-	if (m_SortTeamRoster[Activity::TeamThree])
-		m_ActorRoster[Activity::TeamThree].sort(MOXPosComparison());
-	if (m_SortTeamRoster[Activity::TeamFour])
-		m_ActorRoster[Activity::TeamFour].sort(MOXPosComparison());
-}
+	// Sort team rosters if necessary
+	{
+		if (m_SortTeamRoster[Activity::TeamOne])
+			m_ActorRoster[Activity::TeamOne].sort(MOXPosComparison());
+		if (m_SortTeamRoster[Activity::TeamTwo])
+			m_ActorRoster[Activity::TeamTwo].sort(MOXPosComparison());
+		if (m_SortTeamRoster[Activity::TeamThree])
+			m_ActorRoster[Activity::TeamThree].sort(MOXPosComparison());
+		if (m_SortTeamRoster[Activity::TeamFour])
+			m_ActorRoster[Activity::TeamFour].sort(MOXPosComparison());
+	}
 }
 
 void MovableMan::Travel() {

@@ -50,10 +50,6 @@ ForEachMacros:
   - foreach
   - Q_FOREACH
   - BOOST_FOREACH
-StatementMacros:
-  - SerializableClassNameGetter
-  - SerializableOverrideMethods
-  - ClassInfoGetters
 IncludeBlocks:   Preserve
 IndentCaseLabels: true
 IndentGotoLabels: true
@@ -98,6 +94,10 @@ SpaceBeforeSquareBrackets: false
 #InsertNewlineAtEOF: true
 Standard:        c++17
 StatementMacros:
+  - SerializableClassNameGetter
+  - SerializableOverrideMethods
+  - ClassInfoGetters
+  - EntityAllocation
   - Q_UNUSED
   - QT_REQUIRE_VERSION
 TabWidth: 4
