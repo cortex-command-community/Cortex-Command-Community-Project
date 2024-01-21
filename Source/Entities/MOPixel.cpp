@@ -5,7 +5,7 @@
 #include "ThreadMan.h"
 #include "FrameMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(MOPixel, MovableObject, 2000);
 
@@ -271,4 +271,3 @@ namespace RTE {
 			}
 		}
 	}
-} // namespace RTE

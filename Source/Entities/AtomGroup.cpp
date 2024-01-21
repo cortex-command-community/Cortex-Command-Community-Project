@@ -8,7 +8,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(AtomGroup, Entity, 500);
 
@@ -1812,4 +1812,3 @@ namespace RTE {
 		atomToAdd->SetIgnoreMOIDsByGroup(&m_IgnoreMOIDs);
 		m_Atoms.push_back(atomToAdd);
 	}
-} // namespace RTE

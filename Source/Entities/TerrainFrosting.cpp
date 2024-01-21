@@ -1,7 +1,7 @@
 #include "TerrainFrosting.h"
 #include "SLTerrain.h"
 
-namespace RTE {
+using namespace RTE;
 
 	const std::string TerrainFrosting::c_ClassName = "TerrainFrosting";
 
@@ -69,4 +69,3 @@ namespace RTE {
 			}
 		}
 	}
-} // namespace RTE

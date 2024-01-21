@@ -23,7 +23,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(AHuman, Actor, 20);
 
@@ -2934,5 +2934,3 @@ namespace RTE {
 		}
 		return result;
 	}
-
-} // namespace RTE

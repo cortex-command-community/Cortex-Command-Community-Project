@@ -14,7 +14,8 @@
 #include "NetworkServer.h"
 
 #include "SDL.h"
-namespace RTE {
+
+using namespace RTE;
 
 	std::array<uint8_t, SDL_NUM_SCANCODES> UInputMan::s_PrevKeyStates;
 	std::array<uint8_t, SDL_NUM_SCANCODES> UInputMan::s_ChangedKeyStates;
@@ -1176,5 +1177,3 @@ namespace RTE {
 			}
 		}
 	}
-
-} // namespace RTE

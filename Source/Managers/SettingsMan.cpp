@@ -11,7 +11,7 @@
 #include "NetworkClient.h"
 #include "NetworkServer.h"
 
-namespace RTE {
+using namespace RTE;
 
 	const std::string SettingsMan::c_ClassName = "SettingsMan";
 
@@ -441,4 +441,3 @@ namespace RTE {
 
 		return 0;
 	}
-} // namespace RTE

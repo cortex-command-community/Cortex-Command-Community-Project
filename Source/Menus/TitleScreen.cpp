@@ -10,7 +10,7 @@
 #include "AllegroScreen.h"
 #include "AllegroBitmap.h"
 
-namespace RTE {
+using namespace RTE;
 
 	void TitleScreen::Clear() {
 		m_FadeAmount = 0;
@@ -646,4 +646,3 @@ namespace RTE {
 		set_trans_blender(m_FadeAmount, m_FadeAmount, m_FadeAmount, m_FadeAmount);
 		draw_trans_sprite(g_FrameMan.GetBackBuffer32(), g_FrameMan.GetOverlayBitmap32(), 0, 0);
 	}
-} // namespace RTE

@@ -8,7 +8,7 @@
 #include "Actor.h"
 #include "PieMenu.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(Attachable, MOSRotating, 0);
 
@@ -601,4 +601,3 @@ namespace RTE {
 			wound->AddOrRemovePieSlicesAndListenersFromPieMenu(pieMenuToModify, addToPieMenu);
 		}
 	}
-} // namespace RTE

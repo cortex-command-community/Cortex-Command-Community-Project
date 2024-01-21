@@ -16,7 +16,7 @@
 
 #include "RTEError.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(MOSRotating, MOSprite, 500);
 

@@ -15,7 +15,8 @@
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #endif
-namespace RTE {
+
+using namespace RTE;
 
 	volatile bool System::s_Quit = false;
 	bool System::s_LogToCLI = false;
@@ -368,4 +369,3 @@ namespace RTE {
 			return (std::search(rawData.begin(), rawData.end(), findString.begin(), findString.end()) != rawData.end()) ? 0 : 1;
 		}
 	}
-} // namespace RTE

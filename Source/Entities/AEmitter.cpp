@@ -5,7 +5,7 @@
 #include "SoundContainer.h"
 #include "PostProcessMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(AEmitter, Attachable, 100);
 
@@ -564,5 +564,3 @@ namespace RTE {
 		    !onlyPhysical && mode == g_DrawColor && m_EmitEnabled && (!m_FlashOnlyOnBurst || m_BurstTriggered))
 			m_pFlash->Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
 	}
-
-} // namespace RTE

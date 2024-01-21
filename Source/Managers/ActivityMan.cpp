@@ -27,7 +27,7 @@
 #include "MultiplayerServerLobby.h"
 #include "MultiplayerGame.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ActivityMan::ActivityMan() {
 		Clear();
@@ -448,4 +448,3 @@ namespace RTE {
 		}
 		g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ActivityUpdate);
 	}
-} // namespace RTE

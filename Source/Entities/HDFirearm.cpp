@@ -12,7 +12,7 @@
 #include "Actor.h"
 #include "Scene.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(HDFirearm, HeldDevice, 50);
 
@@ -1063,5 +1063,3 @@ namespace RTE {
 			putpixel(pTargetBitmap, aimPoint.GetFloorIntX(), aimPoint.GetFloorIntY(), g_YellowGlowColor);
 		}
 	}
-
-} // namespace RTE

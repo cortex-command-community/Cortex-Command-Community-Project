@@ -9,7 +9,7 @@
 #include "SLTerrain.h"
 #include "NetworkClient.h"
 
-namespace RTE {
+using namespace RTE;
 
 	CameraMan::CameraMan() {
 		Clear();
@@ -272,4 +272,3 @@ namespace RTE {
 		screen.DeltaOffset = screen.Offset - oldOffset;
 		screen.ScrollTimer.Reset();
 	}
-} // namespace RTE

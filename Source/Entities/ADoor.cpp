@@ -9,7 +9,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(ADoor, Actor, 20);
 
@@ -578,4 +578,3 @@ namespace RTE {
 			return;
 		}
 	}
-} // namespace RTE

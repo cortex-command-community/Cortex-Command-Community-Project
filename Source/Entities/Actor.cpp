@@ -28,7 +28,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(Actor, MOSRotating, 20);
 
@@ -1571,5 +1571,3 @@ namespace RTE {
 			}
 		}
 	}
-
-} // namespace RTE

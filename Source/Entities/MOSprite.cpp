@@ -5,7 +5,7 @@
 #include "SceneMan.h"
 #include "ThreadMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	AbstractClassInfo(MOSprite, MovableObject);
 
@@ -523,5 +523,3 @@ namespace RTE {
 		m_PrevRotation = m_Rotation;
 		m_PrevAngVel = m_AngularVel;
 	}
-
-} // namespace RTE

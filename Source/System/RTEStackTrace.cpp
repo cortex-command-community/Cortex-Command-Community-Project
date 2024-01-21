@@ -1,22 +1,21 @@
 #include "RTEStackTrace.h"
 
-namespace RTE {
+using namespace RTE;
 
-	std::string RTEStackTrace::GetCallStackAsString(const HANDLE& handle, const CONTEXT* context) {
-		m_CallstackStream.clear();
+std::string RTEStackTrace::GetCallStackAsString(const HANDLE& handle, const CONTEXT* context) {
+	m_CallstackStream.clear();
 
-		if (!handle || !context) {
-			CONTEXT currentContext;
-			RtlCaptureContext(&currentContext);
-			this->StackWalker::ShowCallstack(GetCurrentThread(), &currentContext);
-		} else {
-			this->StackWalker::ShowCallstack(handle, context);
-		}
-		return m_CallstackStream.str();
+	if (!handle || !context) {
+		CONTEXT currentContext;
+		RtlCaptureContext(&currentContext);
+		this->StackWalker::ShowCallstack(GetCurrentThread(), &currentContext);
+	} else {
+		this->StackWalker::ShowCallstack(handle, context);
 	}
+	return m_CallstackStream.str();
+}
 
-	void RTEStackTrace::OnOutput(LPCSTR text) {
-		this->StackWalker::OnOutput(text);
-		m_CallstackStream << text;
-	}
-} // namespace RTE
+void RTEStackTrace::OnOutput(LPCSTR text) {
+	this->StackWalker::OnOutput(text);
+	m_CallstackStream << text;
+}

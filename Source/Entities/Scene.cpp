@@ -34,7 +34,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(Scene, Entity, 0);
 	const std::string Scene::Area::c_ClassName = "Area";
@@ -2476,5 +2476,3 @@ namespace RTE {
 		// Note - we use + 1 when getting pathfinders by index, because our shared NoTeam pathfinder occupies index 0, and the rest come after that.
 		return m_pPathFinders[static_cast<int>(team) + 1];
 	}
-
-} // namespace RTE

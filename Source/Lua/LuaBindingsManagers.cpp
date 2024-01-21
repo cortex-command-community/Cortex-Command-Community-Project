@@ -2,7 +2,7 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
-namespace RTE {
+using namespace RTE;
 
 	LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ActivityMan) {
 		return luabind::class_<ActivityMan>("ActivityManager")
@@ -427,4 +427,3 @@ namespace RTE {
 		    .def("MouseButtonReleased", &LuaAdaptersUInputMan::MouseButtonReleased)
 		    .def("MouseButtonHeld", &LuaAdaptersUInputMan::MouseButtonHeld);
 	}
-} // namespace RTE

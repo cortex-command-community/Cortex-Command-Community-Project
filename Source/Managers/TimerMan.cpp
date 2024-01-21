@@ -12,7 +12,7 @@
 #include <time.h>
 #endif
 
-namespace RTE {
+using namespace RTE;
 
 	void TimerMan::Clear() {
 		m_StartTime = std::chrono::steady_clock::now();
@@ -123,4 +123,3 @@ namespace RTE {
 
 		m_SimSpeed = std::min(maxPossibleSimSpeed, GetTimeScale());
 	}
-} // namespace RTE

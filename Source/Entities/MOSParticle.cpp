@@ -4,7 +4,7 @@
 #include "PostProcessMan.h"
 #include "ThreadMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(MOSParticle, MovableObject, 1000);
 
@@ -271,4 +271,3 @@ namespace RTE {
 			}
 		}
 	}
-} // namespace RTE

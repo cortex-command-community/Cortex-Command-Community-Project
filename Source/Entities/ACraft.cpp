@@ -15,7 +15,7 @@
 #include "GUI.h"
 #include "AllegroBitmap.h"
 
-namespace RTE {
+using namespace RTE;
 
 	AbstractClassInfo(ACraft, Actor);
 

@@ -5,7 +5,7 @@
 
 #include "PrimitiveMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(LimbPath, Entity, 20);
 
@@ -511,5 +511,3 @@ namespace RTE {
 			prevPoint += *itr;
 		}
 	}
-
-} // namespace RTE

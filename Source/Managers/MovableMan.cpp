@@ -27,7 +27,7 @@
 
 #include <execution>
 
-namespace RTE {
+using namespace RTE;
 
 	AlarmEvent::AlarmEvent(const Vector& pos, int team, float range) {
 		m_ScenePos = pos;
@@ -1868,5 +1868,3 @@ void MovableMan::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whi
 	for (std::deque<Actor*>::reverse_iterator aIt = m_Actors.rbegin(); aIt != m_Actors.rend(); ++aIt)
 		(*aIt)->DrawHUD(pTargetBitmap, targetPos, which);
 }
-
-} // namespace RTE

@@ -5,7 +5,7 @@
 #include "PieSlice.h"
 #include "SoundSet.h"
 
-namespace RTE {
+using namespace RTE;
 
 	LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Entity) {
 		return luabind::class_<Entity>("Entity")
@@ -1345,4 +1345,3 @@ namespace RTE {
 		    .def("AddMountedDevice", &Turret::AddMountedDevice, luabind::adopt(_2))
 		    .def("AddMountedDevice", &LuaAdaptersTurret::AddMountedFirearm, luabind::adopt(_2));
 	}
-} // namespace RTE

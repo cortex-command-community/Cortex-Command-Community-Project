@@ -12,7 +12,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	const std::string Atom::c_ClassName = "Atom";
 	std::mutex Atom::s_MemoryPoolMutex;
@@ -1129,4 +1129,3 @@ namespace RTE {
 		}
 		return *this;
 	}
-} // namespace RTE

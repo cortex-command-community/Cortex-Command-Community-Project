@@ -28,7 +28,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 #define CLEANAIRINTERVAL 200000
 
@@ -2455,4 +2455,3 @@ namespace RTE {
 		}
 		return m_IntermediateSettlingBitmaps.back().second;
 	}
-} // namespace RTE

@@ -21,7 +21,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(ACrab, Actor, 20);
 
@@ -1605,5 +1605,3 @@ namespace RTE {
 		}
 		return result;
 	}
-
-} // namespace RTE

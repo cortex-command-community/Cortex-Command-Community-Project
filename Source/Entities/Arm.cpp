@@ -7,7 +7,7 @@
 #include "SceneMan.h"
 #include "ThreadMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(Arm, Attachable, 50);
 
@@ -400,4 +400,3 @@ namespace RTE {
 			renderFunc(1.0F);
 		}
 	}
-} // namespace RTE

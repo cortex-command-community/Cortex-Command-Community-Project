@@ -1,7 +1,7 @@
 #include "TerrainDebris.h"
 #include "SLTerrain.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(TerrainDebris, Entity, 0);
 
@@ -232,4 +232,3 @@ namespace RTE {
 			}
 		}
 	}
-} // namespace RTE

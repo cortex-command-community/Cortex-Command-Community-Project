@@ -7,7 +7,7 @@
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyLua.hpp"
 
-namespace RTE {
+using namespace RTE;
 
 	const std::unordered_set<std::string> LuaMan::c_FileAccessModes = {"r", "r+", "w", "w+", "a", "a+", "rt", "wt"};
 
@@ -1202,5 +1202,3 @@ namespace RTE {
 			luaState.ClearScriptTimings();
 		}
 	}
-
-} // namespace RTE

@@ -114,5 +114,3 @@ namespace RTE {
 	void ThreadMan::Destroy() {
 		Clear();
 	}
-
-} // namespace RTE

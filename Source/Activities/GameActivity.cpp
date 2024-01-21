@@ -34,7 +34,7 @@
 
 #define BRAINLZWIDTHDEFAULT 640
 
-namespace RTE {
+using namespace RTE;
 
 	AbstractClassInfo(GameActivity, Activity);
 
@@ -2528,5 +2528,3 @@ namespace RTE {
 		if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
 			m_NetworkPlayerNames[player] = name;
 	}
-
-} // namespace RTE

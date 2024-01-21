@@ -13,7 +13,7 @@
 #include "GUIFont.h"
 #include "AllegroBitmap.h"
 
-namespace RTE {
+using namespace RTE;
 
 	ConcreteClassInfo(PieMenu, Entity, 20);
 
@@ -1271,4 +1271,3 @@ namespace RTE {
 			}
 		}
 	}
-} // namespace RTE
