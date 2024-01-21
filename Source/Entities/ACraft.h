@@ -1,5 +1,4 @@
-#ifndef _RTEACRAFT_
-#define _RTEACRAFT_
+#pragma once
 
 /// Header file for the ACraft class.
 /// @author Daniel Tabar
@@ -12,6 +11,8 @@
 struct BITMAP;
 
 namespace RTE {
+
+	enum class PieSliceType : int;
 
 	/// A flying Actor which carries other things and can drop them.
 	class ACraft : public Actor {
@@ -137,11 +138,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a ACraft object in system
 		/// memory. Create() should be called before using the object.
-		ACraft() { Clear(); }
+		ACraft();
 
 		/// Destructor method used to clean up a ACraft object before deletion
 		/// from system memory.
-		~ACraft() override { Destroy(true); }
+		~ACraft() override;
 
 		/// Makes the ACraft object ready for use.
 		/// @param A Reader that the ACraft will create itself with.
@@ -203,7 +204,7 @@ namespace RTE {
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
 		/// @param pieSliceType The SliceType of the PieSlice being handled.
 		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
-		bool HandlePieCommand(PieSlice::SliceType pieSliceType) override;
+		bool HandlePieCommand(PieSliceType pieSliceType) override;
 
 		/// Tells whether this has the means and will try to right itself, or if
 		/// that's up to the Controller to do.
@@ -403,5 +404,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

@@ -1,5 +1,4 @@
-#ifndef _RTESolObjectWrapper_
-#define _RTESolObjectWrapper_
+#pragma once
 
 #include "sol/forward.hpp"
 
@@ -62,4 +61,3 @@ namespace RTE {
 		SolObjectWrapper& operator=(const SolObjectWrapper& rhs) = delete;
 	};
 } // namespace RTE
-#endif

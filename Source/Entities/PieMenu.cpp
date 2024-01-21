@@ -4,6 +4,7 @@
 #include "UInputMan.h"
 #include "PresetMan.h"
 #include "SettingsMan.h"
+#include "LuaMan.h"
 
 #include "AHuman.h"
 #include "ContentFile.h"
@@ -40,6 +41,14 @@ namespace RTE {
 	    {Directions::Right, Directions::Up}};
 
 	BITMAP* PieMenu::s_CursorBitmap = nullptr;
+
+	PieMenu::PieMenu() {
+		Clear();
+	}
+
+	PieMenu::~PieMenu() {
+		Destroy(true);
+	}
 
 	void PieMenu::Clear() {
 		m_LargeFont = nullptr;
@@ -291,9 +300,9 @@ namespace RTE {
 		return m_ActivatedPieSlice;
 	}
 
-	PieSlice::SliceType PieMenu::GetPieCommand() const {
+	PieSliceType PieMenu::GetPieCommand() const {
 		const PieSlice* activatedSlice = m_ActiveSubPieMenu ? m_ActiveSubPieMenu->GetActivatedPieSlice() : m_ActivatedPieSlice;
-		return (activatedSlice == nullptr) ? PieSlice::SliceType::NoType : activatedSlice->GetType();
+		return (activatedSlice == nullptr) ? PieSliceType::NoType : activatedSlice->GetType();
 	}
 
 	PieSlice* PieMenu::GetFirstPieSliceByPresetName(const std::string& presetName) const {
@@ -305,7 +314,7 @@ namespace RTE {
 		return nullptr;
 	}
 
-	PieSlice* PieMenu::GetFirstPieSliceByType(PieSlice::SliceType pieSliceType) const {
+	PieSlice* PieMenu::GetFirstPieSliceByType(PieSliceType pieSliceType) const {
 		for (PieSlice* pieSlice: m_CurrentPieSlices) {
 			if (pieSlice->GetType() == pieSliceType) {
 				return pieSlice;
@@ -418,7 +427,7 @@ namespace RTE {
 		return anyPieSlicesRemoved;
 	}
 
-	bool PieMenu::RemovePieSlicesByType(PieSlice::SliceType pieSliceTypeToRemoveBy) {
+	bool PieMenu::RemovePieSlicesByType(PieSliceType pieSliceTypeToRemoveBy) {
 		bool anyPieSlicesRemoved = false;
 
 		std::vector<const PieSlice*> pieSlicesToRemove;
@@ -1107,7 +1116,7 @@ namespace RTE {
 			case IconSeparatorMode::Circle:
 			case IconSeparatorMode::Square:
 				for (const PieSlice* pieSlice: m_CurrentPieSlices) {
-					if (pieSlice->GetType() != PieSlice::SliceType::NoType) {
+					if (pieSlice->GetType() != PieSliceType::NoType) {
 						DrawBackgroundPieSliceSeparator(backgroundBitmapToDrawTo, pieCircleCenterX, pieCircleCenterY, pieSlice->GetMidAngle() + subPieMenuRotationOffset, pieSlice == m_HoveredPieSlice && pieSlice->IsEnabled(), pieSlice->GetSubPieMenu());
 					}
 				}

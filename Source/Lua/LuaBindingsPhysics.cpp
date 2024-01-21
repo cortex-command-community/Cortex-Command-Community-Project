@@ -13,6 +13,7 @@
 #include "MOSRotating.h"
 #include "Attachable.h"
 #include "AEmitter.h"
+#include "SoundContainer.h"
 
 namespace RTE {
 

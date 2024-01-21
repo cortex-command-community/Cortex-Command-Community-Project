@@ -1,5 +1,4 @@
-#ifndef _SCENEEDITORGUI_
-#define _SCENEEDITORGUI_
+#pragma once
 
 /// SceneEditorGUI class
 /// @author Daniel Tabar
@@ -50,11 +49,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a SceneEditorGUI object in system
 		/// memory. Create() should be called before using the object.
-		SceneEditorGUI() { Clear(); }
+		SceneEditorGUI();
 
 		/// Destructor method used to clean up a SceneEditorGUI object before deletion
 		/// from system memory.
-		~SceneEditorGUI() { Destroy(); }
+		~SceneEditorGUI();
 
 		/// Makes the SceneEditorGUI object ready for use.
 		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
@@ -102,8 +101,8 @@ namespace RTE {
 		bool SetCurrentObject(SceneObject* pNewObject);
 
 		/// Gets any Pie menu slice command activated last update.
-		/// @return The enum'd int of any slice activated. See the PieSlice::SliceType enum.
-		PieSlice::SliceType GetActivatedPieSlice() const;
+		/// @return The enum'd int of any slice activated. See the PieSliceType enum.
+		PieSliceType GetActivatedPieSlice() const;
 
 		/// Gets the currently held Object in the cursor of this Editor. Ownership
 		/// IS NOT transferred!
@@ -251,5 +250,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

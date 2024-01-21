@@ -1,5 +1,4 @@
-#ifndef _AREAEDITORGUI_
-#define _AREAEDITORGUI_
+#pragma once
 
 /// AreaEditorGUI class
 /// @author Daniel Tabar
@@ -40,11 +39,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a AreaEditorGUI Area in system
 		/// memory. Create() should be called before using the Area.
-		AreaEditorGUI() { Clear(); }
+		AreaEditorGUI();
 
 		/// Destructor method used to clean up a AreaEditorGUI Area before deletion
 		/// from system memory.
-		~AreaEditorGUI() { Destroy(); }
+		~AreaEditorGUI();
 
 		/// Makes the AreaEditorGUI Area ready for use.
 		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
@@ -80,8 +79,8 @@ namespace RTE {
 		void SetCursorPos(const Vector& newCursorPos) { m_CursorPos = newCursorPos; }
 
 		/// Gets any Pie menu slice command activated last update.
-		/// @return The enum'd int of any slice activated. See the PieSlice::SliceType enum.
-		PieSlice::SliceType GetActivatedPieSlice() const;
+		/// @return The enum'd int of any slice activated. See the PieSliceType enum.
+		PieSliceType GetActivatedPieSlice() const;
 
 		/// Sets the currently selected Area of this Editor. Ownership IS NOT
 		/// transferred!
@@ -178,5 +177,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

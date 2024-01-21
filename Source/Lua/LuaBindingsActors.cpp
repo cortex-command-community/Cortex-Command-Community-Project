@@ -18,6 +18,8 @@
 #include "AEmitter.h"
 #include "AEJetpack.h"
 #include "Turret.h"
+#include "SoundContainer.h"
+#include "PieMenu.h"
 
 namespace RTE {
 

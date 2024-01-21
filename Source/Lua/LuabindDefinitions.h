@@ -1,5 +1,4 @@
-#ifndef _RTELUABINDDEFINITIONS_
-#define _RTELUABINDDEFINITIONS_
+#pragma once
 
 #include "lua.hpp"
 
@@ -41,4 +40,3 @@ namespace RTE {
 		return outVector;
 	}
 } // namespace RTE
-#endif

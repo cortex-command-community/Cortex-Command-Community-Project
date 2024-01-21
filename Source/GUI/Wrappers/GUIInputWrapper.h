@@ -1,5 +1,4 @@
-#ifndef _GUIINPUTWRAPPER_
-#define _GUIINPUTWRAPPER_
+#pragma once
 
 #include "GUIInput.h"
 #include "SDL_scancode.h"
@@ -57,5 +56,4 @@ namespace RTE {
 		GUIInputWrapper(const GUIInputWrapper& reference) = delete;
 		GUIInputWrapper& operator=(const GUIInputWrapper& rhs) = delete;
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

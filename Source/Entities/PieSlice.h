@@ -1,5 +1,4 @@
-#ifndef _RTEPIESLICE_
-#define _RTEPIESLICE_
+#pragma once
 
 #include "Constants.h"
 #include "SolObjectWrapper.h"
@@ -9,6 +8,52 @@ namespace RTE {
 
 	class PieMenu;
 
+	/// Enumeration for the types of PieSlices.
+	enum class PieSliceType : int {
+		NoType,
+		// Inventory management
+		Pickup,
+		Drop,
+		NextItem,
+		PreviousItem,
+		Reload,
+		// Menu and GUI activation
+		BuyMenu,
+		FullInventory,
+		Stats,
+		Map,
+		Ceasefire,
+		// Squad
+		FormSquad,
+		// AI Modes
+		AIModes,
+		Sentry,
+		Patrol,
+		BrainHunt,
+		GoldDig,
+		GoTo,
+		Return,
+		Stay,
+		Deliver,
+		Scuttle,
+		// Editor stuff
+		EditorDone,
+		EditorLoad,
+		EditorSave,
+		EditorNew,
+		EditorPick,
+		EditorMove,
+		EditorRemove,
+		EditorInFront,
+		EditorBehind,
+		EditorZoomIn,
+		EditorZoomOut,
+		EditorTeam1,
+		EditorTeam2,
+		EditorTeam3,
+		EditorTeam4
+	};
+
 	/// An individual PieSlice in a PieMenu.
 	class PieSlice : public Entity {
 
@@ -17,55 +62,9 @@ namespace RTE {
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
-		/// Enumeration for the types of PieSlices.
-		enum SliceType {
-			NoType,
-			// Inventory management
-			Pickup,
-			Drop,
-			NextItem,
-			PreviousItem,
-			Reload,
-			// Menu and GUI activation
-			BuyMenu,
-			FullInventory,
-			Stats,
-			Map,
-			Ceasefire,
-			// Squad
-			FormSquad,
-			// AI Modes
-			AIModes,
-			Sentry,
-			Patrol,
-			BrainHunt,
-			GoldDig,
-			GoTo,
-			Return,
-			Stay,
-			Deliver,
-			Scuttle,
-			// Editor stuff
-			EditorDone,
-			EditorLoad,
-			EditorSave,
-			EditorNew,
-			EditorPick,
-			EditorMove,
-			EditorRemove,
-			EditorInFront,
-			EditorBehind,
-			EditorZoomIn,
-			EditorZoomOut,
-			EditorTeam1,
-			EditorTeam2,
-			EditorTeam3,
-			EditorTeam4
-		};
-
 #pragma region Creation
 		/// Constructor method used to instantiate a PieSlice object in system memory. Create() should be called before using the object.
-		PieSlice() { Clear(); }
+		PieSlice();
 
 		/// Makes the PieSlice object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -79,7 +78,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a PieSlice object before deletion from system memory.
-		~PieSlice() override { Destroy(true); }
+		~PieSlice() override;
 
 		/// Resets the entire Serializable, including its inherited members, to their default settings or values.
 		void Reset() override { Clear(); }
@@ -88,11 +87,11 @@ namespace RTE {
 #pragma region Getters and Setters
 		/// Gets the SliceType of this PieSlice.
 		/// @return The SliceType of this PieSlice.
-		SliceType GetType() const { return m_Type; }
+		PieSliceType GetType() const { return m_Type; }
 
 		/// Sets the SliceType of this PieSlice.
 		/// @param newType The new SliceType of this PieSlice.
-		void SetType(SliceType newType) { m_Type = newType; }
+		void SetType(PieSliceType newType) { m_Type = newType; }
 
 		/// Gets the Direction of this PieSlice.
 		/// @return The Direction of this PieSlice.
@@ -231,7 +230,7 @@ namespace RTE {
 
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
-		SliceType m_Type; //!< The slice type, also used to determine the icon.
+		PieSliceType m_Type; //!< The slice type, also used to determine the icon.
 		Directions m_Direction; //!< The desired direction/location of this on the PieMenu.
 		bool m_CanBeMiddleSlice; //!< Whether or not this PieSlice is allowed to be the middle slice. Defaults to true and should usually stay that way.
 		const Entity* m_OriginalSource; //!< A pointer to the original source of this PieSlice, normally filled in when PieSlices are added to PieMenus by objects other than the PieMenu's owner, and nullptr otherwise.
@@ -261,4 +260,3 @@ namespace RTE {
 		PieSlice& operator=(const PieSlice& rhs) = delete;
 	};
 } // namespace RTE
-#endif

@@ -1,5 +1,4 @@
-#ifndef _RTECONSTANTS_
-#define _RTECONSTANTS_
+#pragma once
 
 namespace RTE {
 
@@ -356,4 +355,3 @@ namespace RTE {
 #undef uint64_t
 #pragma endregion
 } // namespace RTE
-#endif

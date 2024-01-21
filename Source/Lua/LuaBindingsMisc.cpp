@@ -12,6 +12,7 @@
 #include "MovableObject.h"
 #include "SoundContainer.h"
 #include "GlobalScript.h"
+#include "SoundSet.h"
 
 namespace RTE {
 
@@ -69,41 +70,41 @@ namespace RTE {
 
 		{
 			sol::table enumTable = LegacyEnumTypeTable("SliceType");
-			enumTable["NoType"] = PieSlice::SliceType::NoType;
-			enumTable["Pickup"] = PieSlice::SliceType::Pickup;
-			enumTable["Drop"] = PieSlice::SliceType::Drop;
-			enumTable["NextItem"] = PieSlice::SliceType::NextItem;
-			enumTable["PreviousItem"] = PieSlice::SliceType::PreviousItem;
-			enumTable["Reload"] = PieSlice::SliceType::Reload;
-			enumTable["BuyMenu"] = PieSlice::SliceType::BuyMenu;
-			enumTable["Stats"] = PieSlice::SliceType::Stats;
-			enumTable["Map"] = PieSlice::SliceType::Map;
-			enumTable["FormSquad"] = PieSlice::SliceType::FormSquad;
-			enumTable["Ceasefire"] = PieSlice::SliceType::Ceasefire;
-			enumTable["Sentry"] = PieSlice::SliceType::Sentry;
-			enumTable["Patrol"] = PieSlice::SliceType::Patrol;
-			enumTable["BrainHunt"] = PieSlice::SliceType::BrainHunt;
-			enumTable["GoldDig"] = PieSlice::SliceType::GoldDig;
-			enumTable["GoTo"] = PieSlice::SliceType::GoTo;
-			enumTable["Return"] = PieSlice::SliceType::Return;
-			enumTable["Stay"] = PieSlice::SliceType::Stay;
-			enumTable["Deliver"] = PieSlice::SliceType::Deliver;
-			enumTable["Scuttle"] = PieSlice::SliceType::Scuttle;
-			enumTable["Done"] = PieSlice::SliceType::EditorDone;
-			enumTable["Load"] = PieSlice::SliceType::EditorLoad;
-			enumTable["Save"] = PieSlice::SliceType::EditorSave;
-			enumTable["New"] = PieSlice::SliceType::EditorNew;
-			enumTable["Pick"] = PieSlice::SliceType::EditorPick;
-			enumTable["Move"] = PieSlice::SliceType::EditorMove;
-			enumTable["Remove"] = PieSlice::SliceType::EditorRemove;
-			enumTable["InFront"] = PieSlice::SliceType::EditorInFront;
-			enumTable["Behind"] = PieSlice::SliceType::EditorBehind;
-			enumTable["ZoomIn"] = PieSlice::SliceType::EditorZoomIn;
-			enumTable["ZoomOut"] = PieSlice::SliceType::EditorZoomOut;
-			enumTable["Team1"] = PieSlice::SliceType::EditorTeam1;
-			enumTable["Team2"] = PieSlice::SliceType::EditorTeam2;
-			enumTable["Team3"] = PieSlice::SliceType::EditorTeam3;
-			enumTable["Team4"] = PieSlice::SliceType::EditorTeam4;
+			enumTable["NoType"] = PieSliceType::NoType;
+			enumTable["Pickup"] = PieSliceType::Pickup;
+			enumTable["Drop"] = PieSliceType::Drop;
+			enumTable["NextItem"] = PieSliceType::NextItem;
+			enumTable["PreviousItem"] = PieSliceType::PreviousItem;
+			enumTable["Reload"] = PieSliceType::Reload;
+			enumTable["BuyMenu"] = PieSliceType::BuyMenu;
+			enumTable["Stats"] = PieSliceType::Stats;
+			enumTable["Map"] = PieSliceType::Map;
+			enumTable["FormSquad"] = PieSliceType::FormSquad;
+			enumTable["Ceasefire"] = PieSliceType::Ceasefire;
+			enumTable["Sentry"] = PieSliceType::Sentry;
+			enumTable["Patrol"] = PieSliceType::Patrol;
+			enumTable["BrainHunt"] = PieSliceType::BrainHunt;
+			enumTable["GoldDig"] = PieSliceType::GoldDig;
+			enumTable["GoTo"] = PieSliceType::GoTo;
+			enumTable["Return"] = PieSliceType::Return;
+			enumTable["Stay"] = PieSliceType::Stay;
+			enumTable["Deliver"] = PieSliceType::Deliver;
+			enumTable["Scuttle"] = PieSliceType::Scuttle;
+			enumTable["Done"] = PieSliceType::EditorDone;
+			enumTable["Load"] = PieSliceType::EditorLoad;
+			enumTable["Save"] = PieSliceType::EditorSave;
+			enumTable["New"] = PieSliceType::EditorNew;
+			enumTable["Pick"] = PieSliceType::EditorPick;
+			enumTable["Move"] = PieSliceType::EditorMove;
+			enumTable["Remove"] = PieSliceType::EditorRemove;
+			enumTable["InFront"] = PieSliceType::EditorInFront;
+			enumTable["Behind"] = PieSliceType::EditorBehind;
+			enumTable["ZoomIn"] = PieSliceType::EditorZoomIn;
+			enumTable["ZoomOut"] = PieSliceType::EditorZoomOut;
+			enumTable["Team1"] = PieSliceType::EditorTeam1;
+			enumTable["Team2"] = PieSliceType::EditorTeam2;
+			enumTable["Team3"] = PieSliceType::EditorTeam3;
+			enumTable["Team4"] = PieSliceType::EditorTeam4;
 		}
 	}
 

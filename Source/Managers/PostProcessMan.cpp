@@ -16,6 +16,14 @@
 
 namespace RTE {
 
+	PostProcessMan::PostProcessMan() {
+		Clear();
+	}
+
+	PostProcessMan::~PostProcessMan() {
+		Destroy();
+	}
+
 	void PostProcessMan::Clear() {
 		m_PostScreenEffects.clear();
 		m_PostSceneEffects.clear();

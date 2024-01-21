@@ -1,5 +1,4 @@
-#ifndef _RTEMETAPLAYER_
-#define _RTEMETAPLAYER_
+#pragma once
 
 #include "Entity.h"
 
@@ -16,20 +15,15 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a MetaPlayer object in system memory. Create() should be called before using the object.
-		MetaPlayer() { Clear(); }
+		MetaPlayer();
 
 		/// Copy constructor method used to instantiate a MetaPlayer object identical to an already existing one.
 		/// @param reference A MetaPlayer object which is passed in by reference.
-		MetaPlayer(const MetaPlayer& reference) {
-			if (this != &reference) {
-				Clear();
-				Create(reference);
-			}
-		}
+		MetaPlayer(const MetaPlayer& reference);
 
 		/// Makes the MetaPlayer object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create() override { return Entity::Create(); }
+		int Create() override;
 
 		/// Creates a MetaPlayer to be identical to another, by deep copy.
 		/// @param reference A reference to the MetaPlayer to deep copy.
@@ -39,7 +33,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a MetaPlayer object before deletion from system memory.
-		~MetaPlayer() override { Destroy(true); }
+		~MetaPlayer() override;
 
 		/// Destroys and resets (through Clear()) the MetaPlayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -236,4 +230,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

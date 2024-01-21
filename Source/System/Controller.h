@@ -1,5 +1,4 @@
-#ifndef _RTECONTROLLER_
-#define _RTECONTROLLER_
+#pragma once
 
 #include "Timer.h"
 #include "Vector.h"
@@ -357,4 +356,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

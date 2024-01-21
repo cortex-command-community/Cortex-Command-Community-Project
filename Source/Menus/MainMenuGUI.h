@@ -1,5 +1,4 @@
-#ifndef _RTEMAINMENUGUI_
-#define _RTEMAINMENUGUI_
+#pragma once
 
 #include "Controller.h"
 
@@ -216,4 +215,3 @@ namespace RTE {
 		MainMenuGUI& operator=(const MainMenuGUI& rhs) = delete;
 	};
 } // namespace RTE
-#endif

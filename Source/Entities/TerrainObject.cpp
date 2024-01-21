@@ -6,6 +6,14 @@ namespace RTE {
 
 	ConcreteClassInfo(TerrainObject, SceneObject, 0);
 
+	TerrainObject::TerrainObject() {
+		Clear();
+	}
+
+	TerrainObject::~TerrainObject() {
+		Destroy(true);
+	}
+
 	void TerrainObject::Clear() {
 		m_FGColorFile.Reset();
 		m_FGColorBitmap = nullptr;

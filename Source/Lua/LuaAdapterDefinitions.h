@@ -1,5 +1,4 @@
-#ifndef _RTELUAADAPTERDEFINITIONS_
-#define _RTELUAADAPTERDEFINITIONS_
+#pragma once
 
 #include "LuabindDefinitions.h"
 
@@ -346,9 +345,16 @@ namespace RTE {
 
 #pragma region PieMenu Lua Adapters
 	struct LuaAdaptersPieMenu {
+		static int GetPieCommand(PieMenu* luaSelfObject);
 		static bool AddPieSlice(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource);
 		static bool AddPieSliceIfPresetNameIsUnique1(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource);
 		static bool AddPieSliceIfPresetNameIsUnique2(PieMenu* luaSelfObject, PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource);
+	};
+#pragma endregion
+
+#pragma region PieSlice Lua Adapters
+	struct LuaAdaptersPieSlice {
+		static int GetType(PieSlice* luaSelfObject);
 	};
 #pragma endregion
 
@@ -550,6 +556,4 @@ namespace RTE {
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
-#endif
-
 #endif

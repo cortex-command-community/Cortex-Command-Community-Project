@@ -1,5 +1,4 @@
-#ifndef _RTEMOSROTATING_
-#define _RTEMOSROTATING_
+#pragma once
 
 /// Header file for the MOSRotating class.
 /// @author Daniel Tabar
@@ -8,8 +7,6 @@
 /// Inclusions of header files
 #include "MOSprite.h"
 #include "Gib.h"
-#include "PostProcessMan.h"
-#include "SoundContainer.h"
 
 namespace RTE {
 
@@ -17,6 +14,7 @@ namespace RTE {
 	struct HitData;
 	class AEmitter;
 	class Attachable;
+	class SoundContainer;
 
 	/// A sprite movable object that can rotate.
 	class MOSRotating : public MOSprite {
@@ -34,11 +32,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a MOSRotating object in system
 		/// memory. Create() should be called before using the object.
-		MOSRotating() { Clear(); }
+		MOSRotating();
 
 		/// Destructor method used to clean up a MOSRotating object before deletion
 		/// from system memory.
-		~MOSRotating() override { Destroy(true); }
+		~MOSRotating() override;
 
 		/// Makes the MOSRotating object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -614,5 +612,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

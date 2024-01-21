@@ -1,5 +1,4 @@
-#ifndef _GUIFONT_
-#define _GUIFONT_
+#pragma once
 
 namespace RTE {
 
@@ -108,5 +107,4 @@ namespace RTE {
 		int m_Kerning; // Spacing between characters
 		int m_Leading; // Spacing between lines
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE
