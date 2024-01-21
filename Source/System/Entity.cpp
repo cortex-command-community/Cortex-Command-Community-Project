@@ -12,7 +12,7 @@ namespace RTE {
 	Entity::Entity() {
 		Clear();
 	}
-	
+
 	Entity::~Entity() {
 		Destroy(true);
 	}

@@ -7,7 +7,7 @@ namespace RTE {
 	AllegroBitmap::AllegroBitmap() {
 		Clear();
 	}
-	
+
 	AllegroBitmap::~AllegroBitmap() {
 		Destroy();
 	}

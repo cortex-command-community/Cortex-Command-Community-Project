@@ -15,7 +15,7 @@ namespace RTE {
 	SoundSet::SoundSet() {
 		Clear();
 	}
-	
+
 	SoundSet::~SoundSet() {
 		Destroy();
 	}

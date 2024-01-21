@@ -9,7 +9,7 @@ namespace RTE {
 	Gib::Gib() {
 		Clear();
 	}
-	
+
 	Gib::~Gib() {
 		Destroy();
 	}

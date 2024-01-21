@@ -7,7 +7,7 @@
 namespace RTE {
 
 	ConcreteClassInfo(PEmitter, MOSParticle, 100);
-	
+
 	PEmitter::PEmitter() {
 		Clear();
 	}

@@ -12,7 +12,7 @@ namespace RTE {
 	Arm::Arm() {
 		Clear();
 	}
-	
+
 	Arm::~Arm() {
 		Destroy(true);
 	}

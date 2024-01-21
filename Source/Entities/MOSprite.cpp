@@ -7,7 +7,7 @@
 namespace RTE {
 
 	AbstractClassInfo(MOSprite, MovableObject);
-	
+
 	MOSprite::MOSprite() {
 		Clear();
 	}

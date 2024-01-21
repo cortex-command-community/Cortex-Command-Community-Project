@@ -30,7 +30,7 @@ namespace RTE {
 	AHuman::AHuman() {
 		Clear();
 	}
-	
+
 	AHuman::~AHuman() {
 		Destroy(true);
 	}

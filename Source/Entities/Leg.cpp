@@ -9,7 +9,7 @@ namespace RTE {
 	Leg::Leg() {
 		Clear();
 	}
-	
+
 	Leg::~Leg() {
 		Destroy(true);
 	}

@@ -5,7 +5,7 @@
 namespace RTE {
 
 	ConcreteClassInfo(Round, Entity, 500);
-	
+
 	Round::Round() {
 		Clear();
 	}

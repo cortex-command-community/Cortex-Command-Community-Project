@@ -7,7 +7,7 @@ namespace RTE {
 	AllegroScreen::AllegroScreen(BITMAP* backBuffer) {
 		m_BackBufferBitmap = std::make_unique<AllegroBitmap>(backBuffer);
 	}
-	
+
 	AllegroScreen::~AllegroScreen() {
 		Destroy();
 	}

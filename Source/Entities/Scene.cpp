@@ -45,7 +45,7 @@ namespace RTE {
 	Scene::Scene() {
 		Clear();
 	}
-	
+
 	Scene::~Scene() {
 		Destroy(true);
 	}

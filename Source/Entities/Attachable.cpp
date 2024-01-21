@@ -15,7 +15,7 @@ namespace RTE {
 	Attachable::Attachable() {
 		Clear();
 	}
-	
+
 	Attachable::~Attachable() {
 		Destroy(true);
 	}

@@ -17,7 +17,7 @@ namespace RTE {
 			Create(reference);
 		}
 	}
-	
+
 	int MetaPlayer::Create() {
 		return Entity::Create();
 	}

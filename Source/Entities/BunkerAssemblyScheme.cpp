@@ -12,7 +12,7 @@ namespace RTE {
 	BunkerAssemblyScheme::BunkerAssemblyScheme() {
 		Clear();
 	}
-	
+
 	BunkerAssemblyScheme::~BunkerAssemblyScheme() {
 		Destroy(true);
 	}

@@ -12,7 +12,7 @@
 namespace RTE {
 
 	ConcreteClassInfo(SLTerrain, SceneLayer, 0);
-	
+
 	SLTerrain::SLTerrain() {
 		Clear();
 	}

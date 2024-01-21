@@ -8,7 +8,7 @@ namespace RTE {
 	TDExplosive::TDExplosive() {
 		Clear();
 	}
-	
+
 	TDExplosive::~TDExplosive() {
 		Destroy(true);
 	}

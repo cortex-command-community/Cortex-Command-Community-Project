@@ -17,7 +17,7 @@ namespace RTE {
 	GlobalScript::GlobalScript() {
 		Clear();
 	}
-	
+
 	GlobalScript::~GlobalScript() {
 		Destroy(true);
 	}

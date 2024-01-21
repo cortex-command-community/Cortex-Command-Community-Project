@@ -11,7 +11,7 @@ namespace RTE {
 	ThrownDevice::ThrownDevice() {
 		Clear();
 	}
-	
+
 	ThrownDevice::~ThrownDevice() {
 		Destroy(true);
 	}

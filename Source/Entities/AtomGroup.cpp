@@ -20,7 +20,7 @@ namespace RTE {
 		Clear();
 		Create(reference);
 	}
-	
+
 	AtomGroup::~AtomGroup() {
 		Destroy(true);
 	}

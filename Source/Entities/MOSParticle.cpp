@@ -10,7 +10,7 @@ namespace RTE {
 	MOSParticle::MOSParticle() {
 		Clear();
 	}
-	
+
 	MOSParticle::~MOSParticle() {
 		Destroy(true);
 	}

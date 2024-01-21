@@ -9,7 +9,7 @@ namespace RTE {
 	Magazine::Magazine() {
 		Clear();
 	}
-	
+
 	Magazine::~Magazine() {
 		Destroy(true);
 	}

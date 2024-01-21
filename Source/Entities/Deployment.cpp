@@ -19,7 +19,7 @@ namespace RTE {
 	Deployment::Deployment() {
 		Clear();
 	}
-	
+
 	Deployment::~Deployment() {
 		Destroy(true);
 	}

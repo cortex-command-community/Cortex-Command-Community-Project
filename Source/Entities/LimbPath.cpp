@@ -12,7 +12,7 @@ namespace RTE {
 	LimbPath::LimbPath() {
 		Clear();
 	}
-	
+
 	LimbPath::~LimbPath() {
 		Destroy(true);
 	}
