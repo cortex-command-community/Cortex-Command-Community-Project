@@ -808,18 +808,20 @@ namespace RTE {
 				}
 
 				// Now set the selected tech's module index as what the metaplayer is going to use
-				if (pTechItem)
+				if (pTechItem) {
 					if (pTechItem->m_ExtraIndex == -2)
 						pGameActivity->SetTeamTech(team, "-All-");
 					else
 						pGameActivity->SetTeamTech(team, g_PresetMan.GetDataModuleName(pTechItem->m_ExtraIndex));
+				}
 			}
 
 			// Set up AI skill levels
-			if (m_apTeamAISkillSlider[team]->IsEnabled())
+			if (m_apTeamAISkillSlider[team]->IsEnabled()) {
 				pGameActivity->SetTeamAISkill(team, m_apTeamAISkillSlider[team]->GetValue());
-			else
+			} else {
 				pGameActivity->SetTeamAISkill(team, AISkillSetting::DefaultSkill);
+			}
 		}
 
 		// Force close all previously opened files
