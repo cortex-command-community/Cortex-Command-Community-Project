@@ -84,10 +84,7 @@ namespace RTE {
 
 		/// Resets the entire GameActivity, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Activity::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the GameActivity object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -96,7 +93,7 @@ namespace RTE {
 
 		/// Gets the current CPU-assisted team, if any (NoTeam) - LEGACY function
 		/// @return The current setting. NoTeam is no team is assisted.
-		int GetCPUTeam() const { return m_CPUTeam; }
+		int GetCPUTeam() const;
 
 		/// Sets the current CPU-assisted team, if any (NoTeam) - LEGACY function
 		/// @param team The new setting. NoTeam is no team is assisted. (default: Activity::NoTeam)
@@ -106,50 +103,33 @@ namespace RTE {
 		/// over or a player is in observation mode
 		/// @param newTarget The new absolute position to observe.
 		/// @param player Which player to set it for. (default: 0)
-		void SetObservationTarget(const Vector& newTarget, int player = 0) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-				m_ObservationTarget[player] = newTarget;
-		}
+		void SetObservationTarget(const Vector& newTarget, int player = 0);
 
 		/// Sets the player death sceneman scroll targets, for when a player-
 		/// controlled actor dies and the view should go to his last position
 		/// @param newTarget The new absolute position to set as death view.
 		/// @param player Which player to set it for. (default: 0)
-		void SetDeathViewTarget(const Vector& newTarget, int player = 0) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-				m_DeathViewTarget[player] = newTarget;
-		}
+		void SetDeathViewTarget(const Vector& newTarget, int player = 0);
 
 		/// Sets the he last selected landing zone.
 		/// @param newZone The new absolute position to set as the last selected landing zone.
 		/// @param player Which player to set it for. (default: 0)
-		void SetLandingZone(const Vector& newZone, int player = 0) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-				m_LandingZone[player] = newZone;
-		}
+		void SetLandingZone(const Vector& newZone, int player = 0);
 
 		/// Gets the he last selected landing zone.
 		/// @param player Which player to get it for. (default: 0)
 		/// @return The new absolute position to set as the last selected landing zone.
-		Vector GetLandingZone(int player = 0) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-				return m_LandingZone[player];
-			else
-				return Vector();
-		}
+		Vector GetLandingZone(int player = 0);
 
 		/// Sets the actor selection cursor position.
 		/// @param newPos The new absolute position to put the cursor at.
 		/// @param player Which player to set it for. (default: 0)
-		void SetActorSelectCursor(const Vector& newPos, int player = 0) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-				m_ActorCursor[player] = newPos;
-		}
+		void SetActorSelectCursor(const Vector& newPos, int player = 0);
 
 		/// Gets the an in-game GUI Object for a specific player.
 		/// @param which Which player to get the GUI for. (default: 0)
 		/// @return A pointer to a BuyMenuGUI. Ownership is NOT transferred!
-		BuyMenuGUI* GetBuyGUI(unsigned int which = 0) const { return m_pBuyGUI[which]; }
+		BuyMenuGUI* GetBuyGUI(unsigned int which = 0) const;
 
 		/// Checks if the in-game GUI Object is visible for a specific player.
 		/// @param which Which player to check the GUI for. -1 will check all players.
@@ -159,7 +139,7 @@ namespace RTE {
 		/// Gets the an in-game editor GUI Object for a specific player.
 		/// @param which Which player to get the GUI for. (default: 0)
 		/// @return A pointer to a SceneEditorGUI. Ownership is NOT transferred!
-		SceneEditorGUI* GetEditorGUI(unsigned int which = 0) const { return m_pEditorGUI[which]; }
+		SceneEditorGUI* GetEditorGUI(unsigned int which = 0) const;
 
 		/// Locks a player controlled actor to a specific controller mode.
 		/// Locking the actor will disable player input, including switching actors.
@@ -192,44 +172,41 @@ namespace RTE {
 		/// Sets which team is the winner, when the game is over.
 		/// @param winnerTeam The team number of the winning team. 0 is team #1. Negative number
 		/// means the game isn't over yet.
-		void SetWinnerTeam(int winnerTeam) { m_WinnerTeam = winnerTeam; }
+		void SetWinnerTeam(int winnerTeam);
 
 		/// Indicates which team is the winner, when the game is over.
 		/// @return The team number of the winning team. 0 is team #1. Negative number
 		/// means the game isn't over yet.
-		int GetWinnerTeam() const { return m_WinnerTeam; }
+		int GetWinnerTeam() const;
 
 		/// Gets access to the huge banner of any player that can display
 		/// messages which can not be missed or ignored.
 		/// @param whichColor Which color banner to get - see the GameActivity::BannerColor enum. (default: YELLOW)
 		/// @param player Which player's banner to get. (default: Players::PlayerOne)
 		/// @return A pointer to the GUIBanner object that we can
-		GUIBanner* GetBanner(int whichColor = YELLOW, int player = Players::PlayerOne) { return whichColor == YELLOW ? m_pBannerYellow[player] : m_pBannerRed[player]; }
+		GUIBanner* GetBanner(int whichColor = YELLOW, int player = Players::PlayerOne);
 
 		/// Sets the Area within which a team can land things.
 		/// @param team The number of the team we're setting for.
 		/// @param newArea The Area we're setting to limit their landings within.
-		void SetLZArea(int team, const Scene::Area& newArea) {
-			m_LandingZoneArea[team].Reset();
-			m_LandingZoneArea[team].Create(newArea);
-		}
+		void SetLZArea(int team, const Scene::Area& newArea);
 
 		/// Gets the Area within which a team can land things. OWNERSHIP IS NOT TRANSFERRED!
 		/// @param team The number of the team we're setting for.
 		/// @return The Area we're using to limit their landings within. OWNERSHIP IS NOT TRANSFERRED!
-		const Scene::Area& GetLZArea(int team) const { return m_LandingZoneArea[team]; }
+		const Scene::Area& GetLZArea(int team) const;
 
 		/// Sets the width of the landing zone box that follows around a player's
 		/// brain.
 		/// @param player The number of the in-game player we're setting for.
 		/// @param width The width of the box, in pixels. 0 means disabled.
-		void SetBrainLZWidth(int player, int width) { m_BrainLZWidth[player] = width; }
+		void SetBrainLZWidth(int player, int width);
 
 		/// Gets the width of the landing zone box that follows around a player's
 		/// brain.
 		/// @param player The number of the player we're getting for.
 		/// @return The width in pixels of the landing zone.
-		int GetBrainLZWidth(int player) const { return m_BrainLZWidth[player]; }
+		int GetBrainLZWidth(int player) const;
 
 		/// Created an objective point for one of the teams to show until cleared.
 		/// @param description The team number of the team to give objective. 0 is team #1.
@@ -242,7 +219,7 @@ namespace RTE {
 		void YSortObjectivePoints();
 
 		/// Clears all objective points previously added, for both teams.
-		void ClearObjectivePoints() { m_Objectives.clear(); }
+		void ClearObjectivePoints();
 
 		/// Adds somehting to the purchase list that will override what is set
 		/// in the buy guy next time CreateDelivery is called.
@@ -267,45 +244,36 @@ namespace RTE {
 
 		/// Clears all items from a specific player's override purchase list.
 		/// @param m_PurchaseOverride[player].clear( Which player's override purchase list to clear.
-		void ClearOverridePurchase(int player) { m_PurchaseOverride[player].clear(); }
+		void ClearOverridePurchase(int player);
 
 		/// Takes the current order out of a player's buy GUI, creates a Delivery
 		/// based off it, and stuffs it into that player's delivery queue.
 		/// @param player Which player to create the delivery for. Cargo AI mode and waypoint.
 		/// @return Success or not.
-		bool CreateDelivery(int player, int mode, Vector& waypoint) { return CreateDelivery(player, mode, waypoint, NULL); };
+		bool CreateDelivery(int player, int mode, Vector& waypoint);
 
 		/// Takes the current order out of a player's buy GUI, creates a Delivery
 		/// based off it, and stuffs it into that player's delivery queue.
 		/// @param player Which player to create the delivery for. Cargo AI mode and TargetMO.
 		/// @return Success or not.
-		bool CreateDelivery(int player, int mode, Actor* pTargetMO) {
-			Vector point(-1, -1);
-			return CreateDelivery(player, mode, point, pTargetMO);
-		};
+		bool CreateDelivery(int player, int mode, Actor* pTargetMO);
 
 		/// Takes the current order out of a player's buy GUI, creates a Delivery
 		/// based off it, and stuffs it into that player's delivery queue.
 		/// @param player Which player to create the delivery for and Cargo AI mode.
 		/// @return Success or not.
-		bool CreateDelivery(int player, int mode) {
-			Vector point(-1, -1);
-			return CreateDelivery(player, mode, point, NULL);
-		};
+		bool CreateDelivery(int player, int mode);
 
 		/// Takes the current order out of a player's buy GUI, creates a Delivery
 		/// based off it, and stuffs it into that player's delivery queue.
 		/// @param player Which player to create the delivery for.
 		/// @return Success or not.
-		bool CreateDelivery(int player) {
-			Vector point(-1, -1);
-			return CreateDelivery(player, Actor::AIMODE_SENTRY, point, NULL);
-		};
+		bool CreateDelivery(int player);
 
 		/// Shows how many deliveries this team has pending.
 		/// @param m_Deliveries[team].size( Which team to check the delivery count for.
 		/// @return The number of deliveries this team has coming.
-		int GetDeliveryCount(int team) { return m_Deliveries[team].size(); }
+		int GetDeliveryCount(int team);
 
 		/// Precalculates the player-to-screen index map, counts the number of
 		/// active players etc.
@@ -346,7 +314,7 @@ namespace RTE {
 		/// Returns the name of the tech module selected for this team during scenario setup
 		/// @param team Team to return tech module for
 		/// @return Tech module name, for example Dummy.rte, or empty string if there is no team
-		std::string GetTeamTech(int team) const { return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamTech[team] : ""; }
+		std::string GetTeamTech(int team) const;
 
 		/// Sets tech module name for specified team. Module must set must be loaded.
 		/// @param team Team to set module, module name, for example Dummy.rte
@@ -355,7 +323,7 @@ namespace RTE {
 		/// Indicates whether a specific team is assigned a CPU player in the current game.
 		/// @param team Which team index to check.
 		/// @return Whether the team is assigned a CPU player in the current activity.
-		bool TeamIsCPU(int team) const { return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamIsCPU[team] : false; }
+		bool TeamIsCPU(int team) const;
 
 		/// Returns active CPU team count.
 		/// @return Returns active CPU team count.
@@ -367,95 +335,95 @@ namespace RTE {
 
 		/// Changes how much starting gold was selected in scenario setup dialog. 20000 - infinite amount.
 		/// @param amount Starting gold amount
-		void SetStartingGold(int amount) { m_StartingGold = amount; }
+		void SetStartingGold(int amount);
 
 		/// Returns how much starting gold was selected in scenario setup dialog. 20000 - infinite amount.
 		/// @return How much starting gold must be given to human players.
-		int GetStartingGold() { return m_StartingGold; }
+		int GetStartingGold();
 
 		/// Changes whether fog of war must be enabled for this activity or not.
 		/// Never hides or reveals anything, just changes internal flag.
 		/// @param enable New fog of war state. true = enabled.
 		/// Return value:	None.
-		void SetFogOfWarEnabled(bool enable) { m_FogOfWarEnabled = enable; }
+		void SetFogOfWarEnabled(bool enable);
 
 		/// Returns whether fog of war must be enabled for this activity or not.
 		/// Call it to determine whether you should call MakeAllUnseen or not at the start of activity.
 		/// @return Whether Fog of war flag was checked during scenario setup dialog.
-		bool GetFogOfWarEnabled() { return m_FogOfWarEnabled; }
+		bool GetFogOfWarEnabled();
 
 		/// Tells whether player activity requires a cleat path to orbit to place brain
 		/// Return value:	Whether we need a clear path to orbit to place brains.
-		bool GetRequireClearPathToOrbit() const { return m_RequireClearPathToOrbit; }
+		bool GetRequireClearPathToOrbit() const;
 
 		/// Tells whether player activity requires a cleat path to orbit to place brain
 		/// @param newvalue Whether we need a clear path to orbit to place brains.
 		/// Return value:	None.
-		void SetRequireClearPathToOrbit(bool newvalue) { m_RequireClearPathToOrbit = newvalue; }
+		void SetRequireClearPathToOrbit(bool newvalue);
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		int GetDefaultFogOfWar() const { return m_DefaultFogOfWar; }
+		int GetDefaultFogOfWar() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		int GetDefaultRequireClearPathToOrbit() const { return m_DefaultRequireClearPathToOrbit; }
+		int GetDefaultRequireClearPathToOrbit() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		int GetDefaultDeployUnits() const { return m_DefaultDeployUnits; }
+		int GetDefaultDeployUnits() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		int GetDefaultGoldCakeDifficulty() const { return m_DefaultGoldCakeDifficulty; }
+		int GetDefaultGoldCakeDifficulty() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		int GetDefaultGoldEasyDifficulty() const { return m_DefaultGoldEasyDifficulty; }
+		int GetDefaultGoldEasyDifficulty() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		int GetDefaultGoldMediumDifficulty() const { return m_DefaultGoldMediumDifficulty; }
+		int GetDefaultGoldMediumDifficulty() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		int GetDefaultGoldHardDifficulty() const { return m_DefaultGoldHardDifficulty; }
+		int GetDefaultGoldHardDifficulty() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		int GetDefaultGoldNutsDifficulty() const { return m_DefaultGoldNutsDifficulty; }
+		int GetDefaultGoldNutsDifficulty() const;
 
 		/// Gets the default gold for max difficulty.
 		/// @return The default gold for max difficulty.
-		int GetDefaultGoldMaxDifficulty() const { return m_DefaultGoldMaxDifficulty; }
+		int GetDefaultGoldMaxDifficulty() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		bool GetFogOfWarSwitchEnabled() const { return m_FogOfWarSwitchEnabled; }
+		bool GetFogOfWarSwitchEnabled() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		bool GetDeployUnitsSwitchEnabled() const { return m_DeployUnitsSwitchEnabled; }
+		bool GetDeployUnitsSwitchEnabled() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		bool GetGoldSwitchEnabled() const { return m_GoldSwitchEnabled; }
+		bool GetGoldSwitchEnabled() const;
 
 		/// Method:
 		/// Description:
 		/// Return value:
-		bool GetRequireClearPathToOrbitSwitchEnabled() const { return m_RequireClearPathToOrbitSwitchEnabled; }
+		bool GetRequireClearPathToOrbitSwitchEnabled() const;
 
 		/// Returns CrabToHumanSpawnRatio for specified module
 		/// @return Crab-To-Human spawn ratio value set for specified module, 0.25 is default.
@@ -463,19 +431,19 @@ namespace RTE {
 
 		/// Returns current delivery delay
 		/// @return Returns current delivery delay
-		long GetDeliveryDelay() const { return m_DeliveryDelay; }
+		long GetDeliveryDelay() const;
 
 		/// Sets delivery delay
 		/// @param newDeliveryDelay New delivery delay value in ms
-		void SetDeliveryDelay(long newDeliveryDelay) { m_DeliveryDelay = newDeliveryDelay > 1 ? newDeliveryDelay : 1; }
+		void SetDeliveryDelay(long newDeliveryDelay);
 
 		/// Returns whether buy menu is enabled in this activity.
 		/// @param True if buy menu enabled false otherwise
-		bool GetBuyMenuEnabled() const { return m_BuyMenuEnabled; }
+		bool GetBuyMenuEnabled() const;
 
 		/// Sets whether buy menu is enabled in this activity
 		/// @param newValue True to enable buy menu, false otherwise
-		void SetBuyMenuEnabled(bool newValue) { m_BuyMenuEnabled = newValue; }
+		void SetBuyMenuEnabled(bool newValue);
 
 		/// Returns network player name
 		/// @param player Player
@@ -496,18 +464,8 @@ namespace RTE {
 
 		/// A struct to keep all data about a mission objective.
 		struct ObjectivePoint {
-			ObjectivePoint() {
-				m_Description.clear();
-				m_ScenePos.Reset();
-				m_Team = Teams::NoTeam;
-				m_ArrowDir = ARROWDOWN;
-			}
-			ObjectivePoint(const std::string& desc, const Vector& pos, int team = -1, ObjectiveArrowDir arrowDir = ARROWDOWN) {
-				m_Description = desc;
-				m_ScenePos = pos;
-				m_Team = (Teams)team;
-				m_ArrowDir = arrowDir;
-			}
+			ObjectivePoint();
+			ObjectivePoint(const std::string& desc, const Vector& pos, int team = -1, ObjectiveArrowDir arrowDir = ARROWDOWN);
 
 			/// Simply draws this' arrow relative to a point on a bitmap.
 			/// @param pTargetBitmap A pointer to the BITMAP to draw on.

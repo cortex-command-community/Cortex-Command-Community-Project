@@ -112,19 +112,19 @@ namespace RTE {
 		/// Protected member variable and method declarations
 	protected:
 		/// Updates the New dialog box, populates its lists etc.
-		virtual void UpdateNewDialog() {}
+		virtual void UpdateNewDialog();
 
 		/// Updates the Load dialog box, populates its lists etc.
-		virtual void UpdateLoadDialog() {}
+		virtual void UpdateLoadDialog();
 
 		/// Updates the Save dialog box, populates its lists etc.
-		virtual void UpdateSaveDialog() {}
+		virtual void UpdateSaveDialog();
 
 		/// Updates the Save Changes dialog box, populates its lists etc.
-		virtual void UpdateChangesDialog() {}
+		virtual void UpdateChangesDialog();
 
 		/// Updates the Overwrite dialog box, populates its lists etc.
-		virtual void UpdateOverwriteDialog() {}
+		virtual void UpdateOverwriteDialog();
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;

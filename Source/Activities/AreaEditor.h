@@ -53,10 +53,7 @@ namespace RTE {
 
 		/// Resets the entire AreaEditor, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			EditorActivity::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the AreaEditor object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)

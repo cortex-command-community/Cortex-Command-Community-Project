@@ -518,3 +518,18 @@ void EditorActivity::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int
 
 void EditorActivity::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 }
+
+void EditorActivity::UpdateNewDialog() {
+}
+
+void EditorActivity::UpdateLoadDialog() {
+}
+
+void EditorActivity::UpdateSaveDialog() {
+}
+
+void EditorActivity::UpdateChangesDialog() {
+}
+
+void EditorActivity::UpdateOverwriteDialog() {
+}

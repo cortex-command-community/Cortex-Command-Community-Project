@@ -190,6 +190,229 @@ int GameActivity::Create(const GameActivity& reference) {
 	return 0;
 }
 
+void GameActivity::Reset() {
+	Clear();
+	Activity::Reset();
+}
+
+int GameActivity::GetCPUTeam() const {
+	return m_CPUTeam;
+}
+
+void GameActivity::SetObservationTarget(const Vector& newTarget, int player) {
+	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		m_ObservationTarget[player] = newTarget;
+	}
+}
+
+void GameActivity::SetDeathViewTarget(const Vector& newTarget, int player) {
+	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		m_DeathViewTarget[player] = newTarget;
+	}
+}
+
+void GameActivity::SetLandingZone(const Vector& newZone, int player) {
+	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		m_LandingZone[player] = newZone;
+	}
+}
+
+Vector GameActivity::GetLandingZone(int player) {
+	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		return m_LandingZone[player];
+	} else {
+		return Vector();
+	}
+}
+
+void GameActivity::SetActorSelectCursor(const Vector& newPos, int player) {
+	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		m_ActorCursor[player] = newPos;
+	}
+}
+
+BuyMenuGUI* GameActivity::GetBuyGUI(unsigned int which) const {
+	return m_pBuyGUI[which];
+}
+
+SceneEditorGUI* GameActivity::GetEditorGUI(unsigned int which) const {
+	return m_pEditorGUI[which];
+}
+
+void GameActivity::SetWinnerTeam(int winnerTeam) {
+	m_WinnerTeam = winnerTeam;
+}
+
+int GameActivity::GetWinnerTeam() const {
+	return m_WinnerTeam;
+}
+
+GUIBanner* GameActivity::GetBanner(int whichColor, int player) {
+	return whichColor == YELLOW ? m_pBannerYellow[player] : m_pBannerRed[player];
+}
+
+void GameActivity::SetLZArea(int team, const Scene::Area& newArea) {
+	m_LandingZoneArea[team].Reset();
+	m_LandingZoneArea[team].Create(newArea);
+}
+
+const Scene::Area& GameActivity::GetLZArea(int team) const {
+	return m_LandingZoneArea[team];
+}
+
+void GameActivity::SetBrainLZWidth(int player, int width) {
+	m_BrainLZWidth[player] = width;
+}
+
+int GameActivity::GetBrainLZWidth(int player) const {
+	return m_BrainLZWidth[player];
+}
+
+void GameActivity::ClearObjectivePoints() {
+	m_Objectives.clear();
+}
+
+void GameActivity::ClearOverridePurchase(int player) {
+	m_PurchaseOverride[player].clear();
+}
+
+bool GameActivity::CreateDelivery(int player, int mode, Vector& waypoint) {
+	return CreateDelivery(player, mode, waypoint, NULL);
+}
+
+bool GameActivity::CreateDelivery(int player, int mode, Actor* pTargetMO) {
+	Vector point(-1, -1);
+	return CreateDelivery(player, mode, point, pTargetMO);
+};
+
+bool GameActivity::CreateDelivery(int player, int mode) {
+	Vector point(-1, -1);
+	return CreateDelivery(player, mode, point, NULL);
+};
+
+bool GameActivity::CreateDelivery(int player) {
+	Vector point(-1, -1);
+	return CreateDelivery(player, Actor::AIMODE_SENTRY, point, NULL);
+};
+
+int GameActivity::GetDeliveryCount(int team) {
+	return m_Deliveries[team].size();
+}
+
+std::string GameActivity::GetTeamTech(int team) const {
+	return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamTech[team] : "";
+}
+
+bool GameActivity::TeamIsCPU(int team) const {
+	return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamIsCPU[team] : false;
+}
+
+void GameActivity::SetStartingGold(int amount) {
+	m_StartingGold = amount;
+}
+
+int GameActivity::GetStartingGold() {
+	return m_StartingGold;
+}
+
+void GameActivity::SetFogOfWarEnabled(bool enable) {
+	m_FogOfWarEnabled = enable;
+}
+
+bool GameActivity::GetFogOfWarEnabled() {
+	return m_FogOfWarEnabled;
+}
+
+bool GameActivity::GetRequireClearPathToOrbit() const {
+	return m_RequireClearPathToOrbit;
+}
+
+void GameActivity::SetRequireClearPathToOrbit(bool newvalue) {
+	m_RequireClearPathToOrbit = newvalue;
+}
+
+int GameActivity::GetDefaultFogOfWar() const {
+	return m_DefaultFogOfWar;
+}
+
+int GameActivity::GetDefaultRequireClearPathToOrbit() const {
+	return m_DefaultRequireClearPathToOrbit;
+}
+
+int GameActivity::GetDefaultDeployUnits() const {
+	return m_DefaultDeployUnits;
+}
+
+int GameActivity::GetDefaultGoldCakeDifficulty() const {
+	return m_DefaultGoldCakeDifficulty;
+}
+
+int GameActivity::GetDefaultGoldEasyDifficulty() const {
+	return m_DefaultGoldEasyDifficulty;
+}
+
+int GameActivity::GetDefaultGoldMediumDifficulty() const {
+	return m_DefaultGoldMediumDifficulty;
+}
+
+int GameActivity::GetDefaultGoldHardDifficulty() const {
+	return m_DefaultGoldHardDifficulty;
+}
+
+int GameActivity::GetDefaultGoldNutsDifficulty() const {
+	return m_DefaultGoldNutsDifficulty;
+}
+
+int GameActivity::GetDefaultGoldMaxDifficulty() const {
+	return m_DefaultGoldMaxDifficulty;
+}
+
+bool GameActivity::GetFogOfWarSwitchEnabled() const {
+	return m_FogOfWarSwitchEnabled;
+}
+
+bool GameActivity::GetDeployUnitsSwitchEnabled() const {
+	return m_DeployUnitsSwitchEnabled;
+}
+
+bool GameActivity::GetGoldSwitchEnabled() const {
+	return m_GoldSwitchEnabled;
+}
+
+bool GameActivity::GetRequireClearPathToOrbitSwitchEnabled() const {
+	return m_RequireClearPathToOrbitSwitchEnabled;
+}
+
+long GameActivity::GetDeliveryDelay() const {
+	return m_DeliveryDelay;
+}
+
+void GameActivity::SetDeliveryDelay(long newDeliveryDelay) {
+	m_DeliveryDelay = newDeliveryDelay > 1 ? newDeliveryDelay : 1;
+}
+
+bool GameActivity::GetBuyMenuEnabled() const {
+	return m_BuyMenuEnabled;
+}
+
+void GameActivity::SetBuyMenuEnabled(bool newValue) {
+	m_BuyMenuEnabled = newValue;
+}
+
+GameActivity::ObjectivePoint::ObjectivePoint() {
+	m_Description.clear();
+	m_ScenePos.Reset();
+	m_Team = Teams::NoTeam;
+	m_ArrowDir = ARROWDOWN;
+}
+
+GameActivity::ObjectivePoint::ObjectivePoint(const std::string& desc, const Vector& pos, int team, ObjectiveArrowDir arrowDir) {
+	m_Description = desc;
+	m_ScenePos = pos;
+	m_Team = (Teams)team;
+	m_ArrowDir = arrowDir;
+}
+
 int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Activity::ReadProperty(propName, reader));
 

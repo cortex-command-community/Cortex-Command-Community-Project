@@ -60,6 +60,11 @@ int AreaEditor::Create(const AreaEditor& reference) {
 	return 0;
 }
 
+void AreaEditor::Reset() {
+	Clear();
+	EditorActivity::Reset();
+}
+
 void AreaEditor::SetEditorMode(EditorActivity::EditorMode newMode) {
 	m_EditorMode = newMode;
 }
