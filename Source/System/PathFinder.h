@@ -3,6 +3,12 @@
 #include "Box.h"
 #include "System/MicroPather/micropather.h"
 
+#include <atomic>
+#include <list>
+#include <memory>
+#include <functional>
+#include <vector>
+
 using namespace micropather;
 
 namespace RTE {

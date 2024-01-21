@@ -14,6 +14,7 @@
 #include "SLTerrain.h"
 #include "SLBackground.h"
 #include "Scene.h"
+#include "System.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"

@@ -1,5 +1,7 @@
 #include "GUI.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUIEvent::GUIEvent() {

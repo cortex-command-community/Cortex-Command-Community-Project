@@ -1,6 +1,8 @@
 #include "GUI.h"
 #include "GUIPropertyPage.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUIPropertyPage::GUIPropertyPage(GUIManager* Manager, GUIControlManager* ControlManager) :

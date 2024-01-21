@@ -3,6 +3,9 @@
 #include "Timer.h"
 #include "Vector.h"
 
+#include <array>
+#include <utility>
+
 namespace RTE {
 
 	class Actor;

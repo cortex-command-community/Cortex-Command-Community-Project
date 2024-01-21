@@ -2,6 +2,8 @@
 #include "GUIReader.h"
 #include "PresetMan.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUISkin::GUISkin(GUIScreen* Screen) {

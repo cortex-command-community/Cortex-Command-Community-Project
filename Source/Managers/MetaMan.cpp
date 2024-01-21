@@ -12,6 +12,7 @@
 #include "MetagameGUI.h"
 #include "Scene.h"
 #include "SLTerrain.h"
+#include "System.h"
 
 using namespace RTE;
 

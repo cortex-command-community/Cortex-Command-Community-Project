@@ -10,6 +10,7 @@
 #include "UInputMan.h"
 #include "NetworkClient.h"
 #include "NetworkServer.h"
+#include "System.h"
 
 using namespace RTE;
 

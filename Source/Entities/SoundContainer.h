@@ -3,6 +3,8 @@
 #include "Entity.h"
 #include "AudioMan.h"
 
+#include <unordered_set>
+
 namespace RTE {
 	class Vector;
 	struct SoundData;

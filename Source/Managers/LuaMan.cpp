@@ -3,6 +3,7 @@
 #include "LuabindObjectWrapper.h"
 #include "LuaBindingRegisterDefinitions.h"
 #include "ThreadMan.h"
+#include "System.h"
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyLua.hpp"

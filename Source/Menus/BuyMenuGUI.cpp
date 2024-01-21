@@ -30,6 +30,7 @@
 #include "HeldDevice.h"
 #include "AHuman.h"
 #include "ACraft.h"
+#include "System.h"
 
 using namespace RTE;
 

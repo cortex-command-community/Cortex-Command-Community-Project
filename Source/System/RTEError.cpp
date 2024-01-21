@@ -4,6 +4,7 @@
 #include "FrameMan.h"
 #include "ConsoleMan.h"
 #include "ActivityMan.h"
+#include "System.h"
 
 #include "SDL_messagebox.h"
 
@@ -12,6 +13,12 @@
 #include "DbgHelp.h"
 #include "RTEStackTrace.h"
 #endif
+
+#include <array>
+#include <exception>
+#include <regex>
+#include <utility>
+#include <vector>
 
 using namespace RTE;
 

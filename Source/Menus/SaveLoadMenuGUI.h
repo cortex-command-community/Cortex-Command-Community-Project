@@ -1,6 +1,9 @@
 #pragma once
 
 #include <filesystem>
+#include <vector>
+#include <string>
+#include <memory>
 
 namespace RTE {
 
