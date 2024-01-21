@@ -1,5 +1,4 @@
-#ifndef _RTESAVELOADMENUGUI_
-#define _RTESAVELOADMENUGUI_
+#pragma once
 
 #include <filesystem>
 
@@ -115,4 +114,3 @@ namespace RTE {
 		SaveLoadMenuGUI& operator=(const SaveLoadMenuGUI& rhs) = delete;
 	};
 } // namespace RTE
-#endif

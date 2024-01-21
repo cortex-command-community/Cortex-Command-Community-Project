@@ -21,6 +21,7 @@
 #include "MOPixel.h"
 #include "Atom.h"
 #include "Material.h"
+#include "SoundContainer.h"
 // Temp
 #include "Controller.h"
 
@@ -35,6 +36,15 @@ namespace RTE {
 
 	// Stored as a thread-local instead of in the class, because multithreaded Lua scripts will interfere otherwise
 	thread_local Vector s_LastRayHitPos;
+
+	SceneMan::SceneMan() {
+		m_pOrphanSearchBitmap = 0;
+		Clear();
+	}
+
+	SceneMan::~SceneMan() {
+		Destroy();
+	}
 
 	void SceneMan::Clear() {
 		m_DefaultSceneName = "Tutorial Bunker";
@@ -1984,7 +1994,7 @@ namespace RTE {
 					if (pHitMO) {
 						checkMOID = pHitMO->GetRootID();
 #ifdef DRAW_MOID_LAYER // Unnecessary with non-drawn MOIDs - they'll be culled out at the spatial partition level. \
-    // Check if we're supposed to ignore the team of what we hit
+						// Check if we're supposed to ignore the team of what we hit
 						if (ignoreTeam != Activity::NoTeam) {
 							pHitMO = pHitMO->GetRootParent();
 							// We are indeed supposed to ignore this object because of its ignoring of its specific team

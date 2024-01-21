@@ -1,5 +1,4 @@
-#ifndef _RTECONSOLEMAN_
-#define _RTECONSOLEMAN_
+#pragma once
 
 #include "Singleton.h"
 
@@ -21,7 +20,7 @@ namespace RTE {
 	public:
 #pragma region Creation
 		/// Constructor method used to instantiate a ConsoleMan object in system memory. Create() should be called before using the object.
-		ConsoleMan() { Clear(); }
+		ConsoleMan();
 
 		/// Makes the ConsoleMan object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -30,7 +29,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a ConsoleMan object before deletion from system memory.
-		~ConsoleMan() { Destroy(); }
+		~ConsoleMan();
 
 		/// Destroys and resets (through Clear()) the ConsoleMan object.
 		void Destroy();
@@ -171,4 +170,3 @@ namespace RTE {
 		ConsoleMan& operator=(const ConsoleMan& rhs) = delete;
 	};
 } // namespace RTE
-#endif

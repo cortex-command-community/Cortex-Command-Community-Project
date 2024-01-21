@@ -9,8 +9,17 @@
 #include "SoundContainer.h"
 #include "GUISound.h"
 #include "PresetMan.h"
+#include "SoundSet.h"
 
 namespace RTE {
+
+	AudioMan::AudioMan() {
+		Clear();
+	}
+
+	AudioMan::~AudioMan() {
+		Destroy();
+	}
 
 	void AudioMan::Clear() {
 		m_AudioEnabled = false;
@@ -600,10 +609,10 @@ namespace RTE {
 
 		FMOD::Channel* channel;
 		int channelIndex;
-		std::vector<const SoundSet::SoundData*> selectedSoundData;
+		std::vector<const SoundData*> selectedSoundData;
 		soundContainer->GetTopLevelSoundSet().GetFlattenedSoundData(selectedSoundData, true);
 		float pitchVariationFactor = 1.0F + std::abs(soundContainer->GetPitchVariation());
-		for (const SoundSet::SoundData* soundData: selectedSoundData) {
+		for (const SoundData* soundData: selectedSoundData) {
 			result = (result == FMOD_OK) ? m_AudioSystem->playSound(soundData->SoundObject, channelGroupToPlayIn, true, &channel) : result;
 			result = (result == FMOD_OK) ? channel->getIndex(&channelIndex) : result;
 
@@ -678,7 +687,7 @@ namespace RTE {
 		for (int channelIndex: *playingChannels) {
 			result = m_AudioSystem->getChannel(channelIndex, &soundChannel);
 			result = (result == FMOD_OK) ? soundChannel->getCurrentSound(&sound) : result;
-			const SoundSet::SoundData* soundData = soundContainer->GetSoundDataForSound(sound);
+			const SoundData* soundData = soundContainer->GetSoundDataForSound(sound);
 
 			FMOD_VECTOR soundPosition = GetAsFMODVector(soundContainer->GetPosition() + ((soundData == nullptr) ? Vector() : soundData->Offset));
 			result = (result == FMOD_OK) ? UpdatePositionalEffectsForSoundChannel(soundChannel, &soundPosition) : result;

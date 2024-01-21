@@ -9,6 +9,14 @@ namespace RTE {
 	AbstractClassInfo(SceneObject, Entity);
 	const std::string SceneObject::SOPlacer::c_ClassName = "SOPlacer";
 
+	SceneObject::SceneObject() {
+		Clear();
+	}
+
+	SceneObject::~SceneObject() {
+		Destroy(true);
+	}
+
 	void SceneObject::SOPlacer::Clear() {
 		m_pObjectReference = 0;
 		m_Offset.Reset();

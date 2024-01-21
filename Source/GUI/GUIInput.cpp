@@ -40,6 +40,10 @@ GUIInput::GUIInput(int whichPlayer, bool keyJoyMouseCursor) {
 	m_MouseWheelChange = 0;
 }
 
+GUIInput::~GUIInput() {
+	Destroy();
+}
+
 void GUIInput::Destroy() {}
 
 void GUIInput::GetKeyboard(unsigned char* Buffer) const {

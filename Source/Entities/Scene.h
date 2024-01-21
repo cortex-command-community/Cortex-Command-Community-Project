@@ -1,5 +1,4 @@
-#ifndef _RTESCENE_
-#define _RTESCENE_
+#pragma once
 
 /// Header file for the Scene class.
 /// @author Daniel Tabar
@@ -198,11 +197,11 @@ namespace RTE {
 
 		    /// Constructor method used to instantiate a Scene object in system
 		    /// memory. Create() should be called before using the object.
-		    Scene() { Clear(); }
+		    Scene();
 
 		/// Destructor method used to clean up a Scene object before deletion
 		/// from system memory.
-		~Scene() override { Destroy(true); }
+		~Scene() override;
 
 		/// Makes the Scene object ready for use.
 		/// @param pNewTerrain The Terrain to use. Ownership IS transferred!
@@ -828,5 +827,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

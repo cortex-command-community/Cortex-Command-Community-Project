@@ -1,5 +1,4 @@
-#ifndef _RTEALLEGROTOOLS_H_
-#define _RTEALLEGROTOOLS_H_
+#pragma once
 
 /// Contains hacks and workarounds for missing or wrong allegro functionality.
 /// Note: Prefer fixing in allegro itself over adding hacks here.
@@ -13,5 +12,3 @@ namespace RTE {
 	void SetTrueAlphaBlender();
 #pragma endregion
 } // namespace RTE
-
-#endif

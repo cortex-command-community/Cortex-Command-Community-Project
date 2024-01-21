@@ -1,5 +1,4 @@
-#ifndef _GUISKIN_
-#define _GUISKIN_
+#pragma once
 
 namespace RTE {
 
@@ -87,5 +86,4 @@ namespace RTE {
 		/// @param Section Section name.
 		GUIBitmap* LoadMousePointer(const std::string& Section);
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

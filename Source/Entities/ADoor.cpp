@@ -5,12 +5,21 @@
 #include "SLTerrain.h"
 #include "PresetMan.h"
 #include "SettingsMan.h"
+#include "SoundContainer.h"
 
 #include "tracy/Tracy.hpp"
 
 namespace RTE {
 
 	ConcreteClassInfo(ADoor, Actor, 20);
+
+	ADoor::ADoor() {
+		Clear();
+	}
+
+	ADoor::~ADoor() {
+		Destroy(true);
+	}
 
 	void ADoor::Clear() {
 		m_InitialSpriteAnimDuration = 0;
@@ -277,6 +286,22 @@ namespace RTE {
 			return true;
 		}
 		return false;
+	}
+
+	void ADoor::SetDoorMoveStartSound(SoundContainer* newSound) {
+		m_DoorMoveStartSound.reset(newSound);
+	}
+
+	void ADoor::SetDoorMoveSound(SoundContainer* newSound) {
+		m_DoorMoveSound.reset(newSound);
+	}
+
+	void ADoor::SetDoorDirectionChangeSound(SoundContainer* newSound) {
+		m_DoorDirectionChangeSound.reset(newSound);
+	}
+
+	void ADoor::SetDoorMoveEndSound(SoundContainer* newSound) {
+		m_DoorMoveEndSound.reset(newSound);
 	}
 
 	void ADoor::TempEraseOrRedrawDoorMaterial(bool erase) {

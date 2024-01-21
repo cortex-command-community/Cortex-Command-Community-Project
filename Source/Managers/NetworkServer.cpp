@@ -16,6 +16,7 @@
 #include "TimerMan.h"
 #include "AudioMan.h"
 #include "FrameMan.h"
+#include "PostProcessMan.h"
 
 #include "RakNetStatistics.h"
 #include "RakSleep.h"
@@ -24,6 +25,15 @@
 #include "lz4hc.h"
 
 namespace RTE {
+
+	NetworkServer::NetworkServer() {
+		Clear();
+		Initialize();
+	}
+
+	NetworkServer::~NetworkServer() {
+		Destroy();
+	}
 
 	void NetworkServer::BackgroundSendThreadFunction(NetworkServer* server, short player) {
 		const int sleepTime = 1000000 / server->m_EncodingFps;

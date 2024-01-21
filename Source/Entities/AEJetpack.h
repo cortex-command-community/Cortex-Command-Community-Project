@@ -1,5 +1,4 @@
-#ifndef _RTEAEJETPACK_
-#define _RTEAEJETPACK_
+#pragma once
 
 #include "AEmitter.h"
 
@@ -22,7 +21,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a AEJetpack object in system memory. Create() should be called before using the object.
-		AEJetpack() { Clear(); }
+		AEJetpack();
 
 		/// Makes the AEJetpack object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -36,7 +35,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a AEJetpack object before deletion from system memory.
-		~AEJetpack() override { Destroy(true); }
+		~AEJetpack() override;
 
 		/// Resets the entire AEJetpack, including its inherited members, to their default settings or values.
 		void Reset() override {
@@ -160,5 +159,3 @@ namespace RTE {
 		AEJetpack& operator=(const AEJetpack& rhs) = delete;
 	};
 } // namespace RTE
-
-#endif

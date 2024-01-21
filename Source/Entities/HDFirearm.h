@@ -1,5 +1,4 @@
-#ifndef _RTEHDFIREARM_
-#define _RTEHDFIREARM_
+#pragma once
 
 /// Header file for the HDFirearm class.
 /// @author Daniel Tabar
@@ -25,11 +24,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a HDFirearm object in system
 		/// memory. Create() should be called before using the object.
-		HDFirearm() { Clear(); }
+		HDFirearm();
 
 		/// Destructor method used to clean up a HDFirearm object before deletion
 		/// from system memory.
-		~HDFirearm() override { Destroy(true); }
+		~HDFirearm() override;
 
 		/// Makes the HDFirearm object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -221,7 +220,7 @@ namespace RTE {
 		float GetShellVelVariation() const { return m_ShellVelVariation; }
 
 		/// Sets the random velocity variation scalar at which this HDFirearm's shell is to be ejected.
-		/// @param newVariation The new velocity variation scalar.
+		/// @param newValue The new velocity variation scalar.
 		void SetShellVelVariation(float newVariation) { m_ShellVelVariation = newVariation; }
 
 		/// Sets the stiffness scalar of the joint of this HDFirearm. Unlike Attachable::SetJointStiffness, there are no limitations on this value.
@@ -604,5 +603,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

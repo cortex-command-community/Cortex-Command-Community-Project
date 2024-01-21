@@ -1,5 +1,4 @@
-#ifndef _GUICONTROLFACTORY_
-#define _GUICONTROLFACTORY_
+#pragma once
 
 namespace RTE {
 
@@ -11,5 +10,4 @@ namespace RTE {
 		/// @param Manager Control Type Name.
 		static GUIControl* CreateControl(GUIManager* Manager, GUIControlManager* ControlManager, const std::string& ControlName);
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

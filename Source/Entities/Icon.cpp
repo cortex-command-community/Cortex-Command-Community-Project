@@ -4,6 +4,21 @@ namespace RTE {
 
 	ConcreteClassInfo(Icon, Entity, 80);
 
+	Icon::Icon() {
+		Clear();
+	}
+
+	Icon::Icon(const Icon& reference) {
+		if (this != &reference) {
+			Clear();
+			Create(reference);
+		}
+	}
+
+	Icon::~Icon() {
+		Destroy(true);
+	}
+
 	void Icon::Clear() {
 		m_BitmapFile.Reset();
 		m_FrameCount = 0;
