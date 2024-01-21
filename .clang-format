@@ -97,6 +97,7 @@ StatementMacros:
   - SerializableClassNameGetter
   - SerializableOverrideMethods
   - ClassInfoGetters
+  - EntityAllocation
   - Q_UNUSED
   - QT_REQUIRE_VERSION
 TabWidth: 4
