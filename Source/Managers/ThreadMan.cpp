@@ -2,28 +2,26 @@
 
 using namespace std;
 
-namespace RTE {
+using namespace RTE;
 
-	ThreadMan::ThreadMan() {
-		Clear();
-		Create();
-	}
+ThreadMan::ThreadMan() {
+	Clear();
+	Create();
+}
 
-	ThreadMan::~ThreadMan() {
-		Destroy();
-	}
+ThreadMan::~ThreadMan() {
+	Destroy();
+}
 
-	void ThreadMan::Clear() {
-		m_PriorityThreadPool.reset();
-		m_BackgroundThreadPool.reset(std::thread::hardware_concurrency() / 2);
-	}
+void ThreadMan::Clear() {
+	m_PriorityThreadPool.reset();
+	m_BackgroundThreadPool.reset(std::thread::hardware_concurrency() / 2);
+}
 
-	int ThreadMan::Create() {
-		return 0;
-	}
+int ThreadMan::Create() {
+	return 0;
+}
 
-	void ThreadMan::Destroy() {
-		Clear();
-	}
-
-} // namespace RTE
+void ThreadMan::Destroy() {
+	Clear();
+}
