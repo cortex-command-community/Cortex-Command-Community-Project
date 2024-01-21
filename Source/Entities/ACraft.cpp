@@ -277,11 +277,11 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> m_CrashSound;
 	});
 	MatchProperty("AddExit",
-		            {
-			            Exit exit;
-			            reader >> exit;
-			            m_Exits.push_back(exit);
-		            });
+	              {
+		              Exit exit;
+		              reader >> exit;
+		              m_Exits.push_back(exit);
+	              });
 	MatchProperty("DeliveryDelayMultiplier", { reader >> m_DeliveryDelayMultiplier; });
 	MatchProperty("ExitInterval", { reader >> m_ExitInterval; });
 	MatchProperty("CanLand", { reader >> m_LandingCraft; });

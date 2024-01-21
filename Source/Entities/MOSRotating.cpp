@@ -134,11 +134,11 @@ int MOSRotating::Create() {
 }
 
 int MOSRotating::Create(ContentFile spriteFile,
-	                    const int frameCount,
-	                    const float mass,
-	                    const Vector& position,
-	                    const Vector& velocity,
-	                    const unsigned long lifetime) {
+                        const int frameCount,
+                        const float mass,
+                        const Vector& position,
+                        const Vector& velocity,
+                        const unsigned long lifetime) {
 	MOSprite::Create(spriteFile, frameCount, mass, position, velocity, lifetime);
 
 	if (!m_pFlipBitmap && m_aSprite[0]) {
@@ -222,17 +222,17 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	StartPropertyList(return MOSprite::ReadProperty(propName, reader));
 
 	MatchProperty("AtomGroup",
-		            {
-			            delete m_pAtomGroup;
-			            m_pAtomGroup = new AtomGroup();
-			            reader >> *m_pAtomGroup;
-		            });
+	              {
+		              delete m_pAtomGroup;
+		              m_pAtomGroup = new AtomGroup();
+		              reader >> *m_pAtomGroup;
+	              });
 	MatchProperty("DeepGroup",
-		            {
-			            delete m_pDeepGroup;
-			            m_pDeepGroup = new AtomGroup();
-			            reader >> *m_pDeepGroup;
-		            });
+	              {
+		              delete m_pDeepGroup;
+		              m_pDeepGroup = new AtomGroup();
+		              reader >> *m_pDeepGroup;
+	              });
 	MatchProperty("DeepCheck", { reader >> m_DeepCheck; });
 	MatchProperty("OrientToVel", { reader >> m_OrientToVel; });
 	MatchProperty("SpecialBehaviour_ClearAllAttachables", {
@@ -258,11 +258,11 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 		AddWound(wound, wound->GetParentOffset());
 	});
 	MatchProperty("AddGib",
-		            {
-			            Gib gib;
-			            reader >> gib;
-			            m_Gibs.push_back(gib);
-		            });
+	              {
+		              Gib gib;
+		              reader >> gib;
+		              m_Gibs.push_back(gib);
+	              });
 	MatchProperty("GibImpulseLimit", { reader >> m_GibImpulseLimit; });
 	MatchForwards("GibWoundLimit") MatchProperty("WoundLimit", { reader >> m_GibWoundLimit; });
 	MatchProperty("GibBlastStrength", { reader >> m_GibBlastStrength; });
@@ -291,40 +291,40 @@ int MOSRotating::Save(Writer& writer) const {
 
 	// TODO: Make proper save system that knows not to save redundant data!
 	/*
-		writer.NewProperty("AtomGroup");
-		writer << m_pAtomGroup;
-		writer.NewProperty("DeepGroup");
-		writer << m_pDeepGroup;
-		writer.NewProperty("DeepCheck");
-		writer << m_DeepCheck;
-		writer.NewProperty("OrientToVel");
-		writer << m_OrientToVel;
+	    writer.NewProperty("AtomGroup");
+	    writer << m_pAtomGroup;
+	    writer.NewProperty("DeepGroup");
+	    writer << m_pDeepGroup;
+	    writer.NewProperty("DeepCheck");
+	    writer << m_DeepCheck;
+	    writer.NewProperty("OrientToVel");
+	    writer << m_OrientToVel;
 
-		for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr)
-		{
-		    writer.NewProperty("AddEmitter");
-		    writer << (*itr);
-		}
-		for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr)
-		{
-		    writer.NewProperty("AddAttachable");
-		    writer << (*aItr);
-		}
+	    for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr)
+	    {
+	        writer.NewProperty("AddEmitter");
+	        writer << (*itr);
+	    }
+	    for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr)
+	    {
+	        writer.NewProperty("AddAttachable");
+	        writer << (*aItr);
+	    }
 	*/
 	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
 		writer.NewProperty("AddGib");
 		writer << (*gItr);
 	}
 	/*
-		writer.NewProperty("GibImpulseLimit");
-		writer << m_GibImpulseLimit;
-		writer.NewProperty("GibWoundLimit");
-		writer << m_GibWoundLimit;
-		writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
-		writer.NewProperty("GibSound");
-		writer << m_GibSound;
-		writer.NewProperty("EffectOnGib");
-		writer << m_EffectOnGib;
+	    writer.NewProperty("GibImpulseLimit");
+	    writer << m_GibImpulseLimit;
+	    writer.NewProperty("GibWoundLimit");
+	    writer << m_GibWoundLimit;
+	    writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
+	    writer.NewProperty("GibSound");
+	    writer << m_GibSound;
+	    writer.NewProperty("EffectOnGib");
+	    writer << m_EffectOnGib;
 	*/
 	return 0;
 }
@@ -334,8 +334,8 @@ int MOSRotating::GetGibWoundLimit(bool includePositiveDamageAttachables, bool in
 	if (includePositiveDamageAttachables || includeNegativeDamageAttachables || includeNoDamageAttachables) {
 		for (const Attachable* attachable: m_Attachables) {
 			bool attachableSatisfiesConditions = (includePositiveDamageAttachables && attachable->GetDamageMultiplier() > 0) ||
-				                                    (includeNegativeDamageAttachables && attachable->GetDamageMultiplier() < 0) ||
-				                                    (includeNoDamageAttachables && attachable->GetDamageMultiplier() == 0);
+			                                     (includeNegativeDamageAttachables && attachable->GetDamageMultiplier() < 0) ||
+			                                     (includeNoDamageAttachables && attachable->GetDamageMultiplier() == 0);
 
 			if (attachableSatisfiesConditions) {
 				gibWoundLimit += attachable->GetGibWoundLimit(includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables);
@@ -350,8 +350,8 @@ int MOSRotating::GetWoundCount(bool includePositiveDamageAttachables, bool inclu
 	if (includePositiveDamageAttachables || includeNegativeDamageAttachables || includeNoDamageAttachables) {
 		for (const Attachable* attachable: m_Attachables) {
 			bool attachableSatisfiesConditions = (includePositiveDamageAttachables && attachable->GetDamageMultiplier() > 0) ||
-				                                    (includeNegativeDamageAttachables && attachable->GetDamageMultiplier() < 0) ||
-				                                    (includeNoDamageAttachables && attachable->GetDamageMultiplier() == 0);
+			                                     (includeNegativeDamageAttachables && attachable->GetDamageMultiplier() < 0) ||
+			                                     (includeNoDamageAttachables && attachable->GetDamageMultiplier() == 0);
 
 			if (attachableSatisfiesConditions) {
 				woundCount += attachable->GetWoundCount(includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables);
@@ -436,8 +436,8 @@ float MOSRotating::RemoveWounds(int numberOfWoundsToRemove, bool includePositive
 
 	for (Attachable* attachable: m_Attachables) {
 		bool attachableSatisfiesConditions = (includePositiveDamageAttachables && attachable->GetDamageMultiplier() > 0) ||
-			                                    (includeNegativeDamageAttachables && attachable->GetDamageMultiplier() < 0) ||
-			                                    (includeNoDamageAttachables && attachable->GetDamageMultiplier() == 0);
+		                                     (includeNegativeDamageAttachables && attachable->GetDamageMultiplier() < 0) ||
+		                                     (includeNoDamageAttachables && attachable->GetDamageMultiplier() == 0);
 		int attachableWoundCount = attachable->GetWoundCount(includePositiveDamageAttachables, includeNegativeDamageAttachables, includeNoDamageAttachables);
 
 		if (attachableSatisfiesConditions && attachableWoundCount > 0) {
@@ -544,9 +544,9 @@ Material const* MOSRotating::GetMaterial() const {
 
 bool MOSRotating::HitsMOs() const
 {
-	if (m_pAtomGroup)
-	    return m_pAtomGroup->HitsMOs();
-	return false;
+    if (m_pAtomGroup)
+        return m_pAtomGroup->HitsMOs();
+    return false;
 }
 */
 
@@ -564,8 +564,8 @@ int MOSRotating::GetDrawPriority() const {
 
 void MOSRotating::SetAtom(AtomGroup *newAtom)
 {
-	delete m_pAtomGroup;
-	m_pAtomGroup = newAtom;
+    delete m_pAtomGroup;
+    m_pAtomGroup = newAtom;
 }
 */
 /*
@@ -577,8 +577,8 @@ void MOSRotating::SetAtom(AtomGroup *newAtom)
 
 void MOSRotating::SetToHitMOs(bool hitMOs)
 {
-	if (m_pAtomGroup)
-	    m_pAtomGroup->SetToHitMOs(hitMOs);
+    if (m_pAtomGroup)
+        m_pAtomGroup->SetToHitMOs(hitMOs);
 }
 */
 
@@ -602,9 +602,9 @@ bool MOSRotating::CollideAtPoint(HitData& hd) {
 
 	hd.HitRadius[HITEE] = (hd.HitPoint - m_Pos) * c_MPP;
 	/*
-		// Cancel if both hitor and hitee's hitpoint radii are pointing int he same direction, meaning the objects are really tangled
-		if (!hd.HitRadius[HITOR].IsZero() && hd.HitRadius[HITOR].Dot(hd.HitRadius[HITEE]) >= 0)
-		    return false;
+	    // Cancel if both hitor and hitee's hitpoint radii are pointing int he same direction, meaning the objects are really tangled
+	    if (!hd.HitRadius[HITOR].IsZero() && hd.HitRadius[HITOR].Dot(hd.HitRadius[HITEE]) >= 0)
+	        return false;
 	*/
 	hd.TotalMass[HITEE] = m_Mass;
 	hd.MomInertia[HITEE] = m_pAtomGroup->GetMomentOfInertia();
@@ -621,7 +621,7 @@ bool MOSRotating::CollideAtPoint(HitData& hd) {
 		hittorLever *= hittorLever;
 		hitteeLever *= hitteeLever;
 		float impulse = hitAcc.Dot(hd.BitmapNormal) / (((1 / hd.TotalMass[HITOR]) + (1 / hd.TotalMass[HITEE])) +
-			                                            (hittorLever / hd.MomInertia[HITOR]) + (hitteeLever / hd.MomInertia[HITEE]));
+		                                               (hittorLever / hd.MomInertia[HITOR]) + (hitteeLever / hd.MomInertia[HITEE]));
 		// TODO: Should the impfactor not be swapped? -EE vs -OR?")
 		hd.ResImpulse[HITOR] = hd.BitmapNormal * impulse * hd.ImpulseFactor[HITOR];
 		hd.ResImpulse[HITEE] = hd.BitmapNormal * -impulse * hd.ImpulseFactor[HITEE];
@@ -734,7 +734,7 @@ bool MOSRotating::ParticlePenetration(HitData& hd) {
 		// Bresenham's line drawing algorithm execution
 		for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
 			if (intPos[X] < 0 || intPos[X] >= bounds[X] ||
-				intPos[Y] < 0 || intPos[Y] >= bounds[Y]) {
+			    intPos[Y] < 0 || intPos[Y] >= bounds[Y]) {
 				exited = false;
 				break;
 			}
@@ -1555,8 +1555,8 @@ void MOSRotating::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 
 	if (mode == g_DrawMOID) {
 		g_SceneMan.RegisterMOIDDrawing(m_MOID,
-			                            spritePos.GetX() - m_SpriteRadius + m_SpriteOffset.m_X, spritePos.GetY() - m_SpriteRadius + m_SpriteOffset.m_Y,
-			                            spritePos.GetX() + m_SpriteRadius - m_SpriteOffset.m_X, spritePos.GetY() + m_SpriteRadius - m_SpriteOffset.m_Y);
+		                               spritePos.GetX() - m_SpriteRadius + m_SpriteOffset.m_X, spritePos.GetY() - m_SpriteRadius + m_SpriteOffset.m_Y,
+		                               spritePos.GetX() + m_SpriteRadius - m_SpriteOffset.m_X, spritePos.GetY() + m_SpriteRadius - m_SpriteOffset.m_Y);
 	} else {
 		BITMAP* pTempBitmap = m_pTempBitmap;
 		BITMAP* pFlipBitmap = targetBitmap ? m_pFlipBitmap : nullptr;
@@ -1675,13 +1675,13 @@ void MOSRotating::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 					// The temp bitmap should be able to hold the full size since it is larger than the max diameter.
 					// Take into account the h-flipped pivot point
 					pivot_scaled_sprite(pTempBitmap,
-						                usedFlipBitmap,
-						                pTempBitmap->w / 2,
-						                pTempBitmap->h / 2,
-						                usedFlipBitmap->w + spriteOffset.m_X,
-						                -(spriteOffset.m_Y),
-						                ftofix(rotation.GetAllegroAngle()),
-						                ftofix(scale));
+					                    usedFlipBitmap,
+					                    pTempBitmap->w / 2,
+					                    pTempBitmap->h / 2,
+					                    usedFlipBitmap->w + spriteOffset.m_X,
+					                    -(spriteOffset.m_Y),
+					                    ftofix(rotation.GetAllegroAngle()),
+					                    ftofix(scale));
 
 					// Draw the now rotated object's temporary bitmap onto the final drawing bitmap with transperency
 					// Do the passes loop in here so the intermediate drawing doesn't get done multiple times
@@ -1699,13 +1699,13 @@ void MOSRotating::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 
 						// Take into account the h-flipped pivot point
 						pivot_scaled_sprite(pTargetBitmap,
-							                usedFlipBitmap,
-							                spriteX,
-							                spriteY,
-							                usedFlipBitmap->w + spriteOffset.m_X,
-							                -(spriteOffset.m_Y),
-							                ftofix(rotation.GetAllegroAngle()),
-							                ftofix(scale));
+						                    usedFlipBitmap,
+						                    spriteX,
+						                    spriteY,
+						                    usedFlipBitmap->w + spriteOffset.m_X,
+						                    -(spriteOffset.m_Y),
+						                    ftofix(rotation.GetAllegroAngle()),
+						                    ftofix(scale));
 					}
 				}
 
@@ -1720,13 +1720,13 @@ void MOSRotating::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 					// The temp bitmap should be able to hold the full size since it is larger than the max diameter.
 					// Take into account the h-flipped pivot point
 					pivot_scaled_sprite(pTempBitmap,
-						                currentFrame,
-						                pTempBitmap->w / 2,
-						                pTempBitmap->h / 2,
-						                -(spriteOffset.m_X),
-						                -(spriteOffset.m_Y),
-						                ftofix(rotation.GetAllegroAngle()),
-						                ftofix(scale));
+					                    currentFrame,
+					                    pTempBitmap->w / 2,
+					                    pTempBitmap->h / 2,
+					                    -(spriteOffset.m_X),
+					                    -(spriteOffset.m_Y),
+					                    ftofix(rotation.GetAllegroAngle()),
+					                    ftofix(scale));
 
 					// Draw the now rotated object's temporary bitmap onto the final drawing bitmap with transperency
 					// Do the passes loop in here so the intermediate drawing doesn't get done multiple times
@@ -1742,13 +1742,13 @@ void MOSRotating::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 						int spriteY = drawPositions[i].GetFloorIntY();
 
 						pivot_scaled_sprite(pTargetBitmap,
-							                mode == g_DrawColor ? currentFrame : pTempBitmap,
-							                spriteX,
-							                spriteY,
-							                -(spriteOffset.m_X),
-							                -(spriteOffset.m_Y),
-							                ftofix(rotation.GetAllegroAngle()),
-							                ftofix(scale));
+						                    mode == g_DrawColor ? currentFrame : pTempBitmap,
+						                    spriteX,
+						                    spriteY,
+						                    -(spriteOffset.m_X),
+						                    -(spriteOffset.m_Y),
+						                    ftofix(rotation.GetAllegroAngle()),
+						                    ftofix(scale));
 					}
 				}
 			}

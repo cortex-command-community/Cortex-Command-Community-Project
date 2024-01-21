@@ -153,13 +153,13 @@ int MovableObject::Create() {
 }
 
 int MovableObject::Create(const float mass,
-	                        const Vector& position,
-	                        const Vector& velocity,
-	                        float rotAngle,
-	                        float angleVel,
-	                        unsigned long lifetime,
-	                        bool hitMOs,
-	                        bool getHitByMOs) {
+                          const Vector& position,
+                          const Vector& velocity,
+                          float rotAngle,
+                          float angleVel,
+                          unsigned long lifetime,
+                          bool hitMOs,
+                          bool getHitByMOs) {
 	m_Mass = mass;
 	m_Pos = position;
 	m_PrevPos = position;
@@ -276,11 +276,11 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("Scale", { reader >> m_Scale; });
 	MatchProperty("GlobalAccScalar", { reader >> m_GlobalAccScalar; });
 	MatchProperty("AirResistance",
-		            {
-			            reader >> m_AirResistance;
-			            // Backwards compatibility after we made this value scaled over time
-			            m_AirResistance /= 0.01666F;
-		            });
+	              {
+		              reader >> m_AirResistance;
+		              // Backwards compatibility after we made this value scaled over time
+		              m_AirResistance /= 0.01666F;
+	              });
 	MatchProperty("AirThreshold", { reader >> m_AirThreshold; });
 	MatchProperty("PinStrength", { reader >> m_PinStrength; });
 	MatchProperty("RestThreshold", { reader >> m_RestThreshold; });
@@ -298,17 +298,17 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("IgnoresAGHitsWhenSlowerThan", { reader >> m_IgnoresAGHitsWhenSlowerThan; });
 	MatchProperty("IgnoresActorHits", { reader >> m_IgnoresActorHits; });
 	MatchProperty("RemoveOrphanTerrainRadius",
-		            {
-			            reader >> m_RemoveOrphanTerrainRadius;
-			            if (m_RemoveOrphanTerrainRadius > MAXORPHANRADIUS)
-				            m_RemoveOrphanTerrainRadius = MAXORPHANRADIUS;
-		            });
+	              {
+		              reader >> m_RemoveOrphanTerrainRadius;
+		              if (m_RemoveOrphanTerrainRadius > MAXORPHANRADIUS)
+			              m_RemoveOrphanTerrainRadius = MAXORPHANRADIUS;
+	              });
 	MatchProperty("RemoveOrphanTerrainMaxArea",
-		            {
-			            reader >> m_RemoveOrphanTerrainMaxArea;
-			            if (m_RemoveOrphanTerrainMaxArea > MAXORPHANRADIUS * MAXORPHANRADIUS)
-				            m_RemoveOrphanTerrainMaxArea = MAXORPHANRADIUS * MAXORPHANRADIUS;
-		            });
+	              {
+		              reader >> m_RemoveOrphanTerrainMaxArea;
+		              if (m_RemoveOrphanTerrainMaxArea > MAXORPHANRADIUS * MAXORPHANRADIUS)
+			              m_RemoveOrphanTerrainMaxArea = MAXORPHANRADIUS * MAXORPHANRADIUS;
+	              });
 	MatchProperty("RemoveOrphanTerrainRate", { reader >> m_RemoveOrphanTerrainRate; });
 	MatchProperty("MissionCritical", { reader >> m_MissionCritical; });
 	MatchProperty("CanBeSquished", { reader >> m_CanBeSquished; });
@@ -696,11 +696,11 @@ int MovableObject::RunFunctionOfScript(const std::string& scriptPath, const std:
 //                  identical to an already existing one.
 
 MovableObject::MovableObject(const MovableObject &reference):
-	m_Mass(reference.GetMass()),
-	m_Pos(reference.GetPos()),
-	m_Vel(reference.GetVel()),
-	m_AgeTimer(reference.GetAge()),
-	m_Lifetime(reference.GetLifetime())
+    m_Mass(reference.GetMass()),
+    m_Pos(reference.GetPos()),
+    m_Vel(reference.GetVel()),
+    m_AgeTimer(reference.GetAge()),
+    m_Lifetime(reference.GetLifetime())
 {
 
 }
@@ -1045,11 +1045,11 @@ bool MovableObject::DrawToTerrain(SLTerrain* terrain) {
 		auto wrappedMaskedBlit = [](BITMAP* sourceBitmap, BITMAP* destinationBitmap, const Vector& bitmapPos, bool swapSourceWithDestination) {
 			std::array<BITMAP*, 2> bitmaps = {sourceBitmap, destinationBitmap};
 			std::array<Vector, 5> srcPos = {
-				Vector(bitmapPos.GetX(), bitmapPos.GetY()),
-				Vector(bitmapPos.GetX() + static_cast<float>(g_SceneMan.GetSceneWidth()), bitmapPos.GetY()),
-				Vector(bitmapPos.GetX() - static_cast<float>(g_SceneMan.GetSceneWidth()), bitmapPos.GetY()),
-				Vector(bitmapPos.GetX(), bitmapPos.GetY() + static_cast<float>(g_SceneMan.GetSceneHeight())),
-				Vector(bitmapPos.GetX(), bitmapPos.GetY() - static_cast<float>(g_SceneMan.GetSceneHeight()))};
+			    Vector(bitmapPos.GetX(), bitmapPos.GetY()),
+			    Vector(bitmapPos.GetX() + static_cast<float>(g_SceneMan.GetSceneWidth()), bitmapPos.GetY()),
+			    Vector(bitmapPos.GetX() - static_cast<float>(g_SceneMan.GetSceneWidth()), bitmapPos.GetY()),
+			    Vector(bitmapPos.GetX(), bitmapPos.GetY() + static_cast<float>(g_SceneMan.GetSceneHeight())),
+			    Vector(bitmapPos.GetX(), bitmapPos.GetY() - static_cast<float>(g_SceneMan.GetSceneHeight()))};
 			std::array<Vector, 5> destPos;
 			destPos.fill(Vector());
 

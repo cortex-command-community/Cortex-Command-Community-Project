@@ -14,11 +14,9 @@
 using namespace RTE;
 
 RenderableGameState::RenderableGameState() {
-
 }
 
 RenderableGameState::~RenderableGameState() {
-
 }
 
 const std::string ThreadMan::m_ClassName = "ThreadMan";
@@ -90,9 +88,9 @@ void ThreadMan::QueueInSimulationThread(std::function<void(void)> funcToRun) {
 
 	// If we're already queued, don't bother
 	auto itr = std::find_if(m_SimFunctions.begin(), m_SimFunctions.end(),
-		                    [&funcToRun](std::function<void(void)>& func) {
-			                    return funcToRun.target<void (*)(void)>() == func.target<void (*)(void)>();
-		                    });
+	                        [&funcToRun](std::function<void(void)>& func) {
+		                        return funcToRun.target<void (*)(void)>() == func.target<void (*)(void)>();
+	                        });
 
 	if (itr != m_SimFunctions.end()) {
 		return;
