@@ -420,7 +420,7 @@ void GibEditorGUI::Update() {
 			m_CursorPos = g_SceneMan.SnapPosition(m_CursorPos);
 		}
 
-		if (m_pController->IsState(RELEASE_PRIMARY))
+		if (m_pController->IsState(RELEASE_PRIMARY)) {
 
 			// Cancel placing if secondary button is pressed
 			if (m_pController->IsState(PRESS_SECONDARY) || m_pController->IsState(PIE_MENU_ACTIVE)) {
@@ -449,6 +449,7 @@ void GibEditorGUI::Update() {
 					// Go back to previous mode
 					m_EditorGUIMode = m_PreviousMode;
 			}
+		}
 
 		// Set the facing of AHumans based on right/left cursor movements
 		AHuman* pAHuman = dynamic_cast<AHuman*>(m_pCurrentGib);
