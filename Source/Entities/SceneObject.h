@@ -1,5 +1,4 @@
-#ifndef _RTESCENEOBJECT_
-#define _RTESCENEOBJECT_
+#pragma once
 
 /// Header file for the SceneObject class.
 /// @author Daniel Tabar
@@ -115,11 +114,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a SceneObject object in system
 		/// memory. Create() should be called before using the object.
-		SceneObject() { Clear(); }
+		SceneObject();
 
 		/// Destructor method used to clean up a SceneObject object before deletion
 		/// from system memory.
-		~SceneObject() override { Destroy(true); }
+		~SceneObject() override;
 
 		/// Makes the SceneObject object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -308,5 +307,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

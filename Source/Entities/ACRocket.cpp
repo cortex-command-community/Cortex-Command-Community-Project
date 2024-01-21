@@ -15,6 +15,14 @@ namespace RTE {
 
 	ConcreteClassInfo(ACRocket, ACraft, 10);
 
+	ACRocket::ACRocket() {
+		Clear();
+	}
+
+	ACRocket::~ACRocket() {
+		Destroy(true);
+	}
+
 	void ACRocket::Clear() {
 		//    m_pCapsule = 0;
 		m_pRLeg = 0;

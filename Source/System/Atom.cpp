@@ -21,6 +21,47 @@ namespace RTE {
 	// This forms a circle around the Atom's offset center, to check for mask color pixels in order to determine the normal at the Atom's position.
 	const int Atom::s_NormalChecks[c_NormalCheckCount][2] = {{0, -3}, {1, -3}, {2, -2}, {3, -1}, {3, 0}, {3, 1}, {2, 2}, {1, 3}, {0, 3}, {-1, 3}, {-2, 2}, {-3, 1}, {-3, 0}, {-3, -1}, {-2, -2}, {-1, -3}};
 
+	Atom::Atom() {
+		Clear();
+	}
+
+	Atom::Atom(const Atom& reference) {
+		if (this != &reference) {
+			Clear();
+			Create(reference);
+		}
+	}
+
+	/// Convenience constructor to both instantiate an Atom in memory and Create it at the same time.
+	/// @param offset An offset Vector that will be used to offset collision calculations.
+	/// @param material A Material that defines what material this Atom is made of.
+	/// @param owner The owner MovableObject of this Atom. Ownership is NOT transferred!
+	/// @param trailColor The trail color.
+	/// @param trailLength The trail length. If 0, no trail will be drawn.
+	Atom::Atom(const Vector& offset, Material const* material, MovableObject* owner, Color trailColor, int trailLength) {
+		Clear();
+		Create(offset, material, owner, trailColor, trailLength);
+	}
+
+	/// Convenience constructor to both instantiate an Atom in memory and Create it at the same time.
+	/// @param offset An offset Vector that will be used to offset collision calculations.
+	/// @param materialID The material ID of the Material that defines what this Atom is made of.
+	/// @param owner The owner MovableObject of this Atom. Ownership is NOT transferred!
+	/// @param trailColor The trail color.
+	/// @param trailLength The trail length. If 0, no trail will be drawn.
+	Atom::Atom(const Vector& offset, unsigned char materialID, MovableObject* owner, Color trailColor, int trailLength) {
+		Clear();
+		Create(offset, g_SceneMan.GetMaterialFromID(materialID), owner, trailColor, trailLength);
+	}
+
+	Atom::~Atom() {
+		Destroy();
+	}
+
+	void Atom::Destroy() {
+		Clear();
+	}
+
 	void Atom::Clear() {
 		m_Offset.Reset();
 		m_OriginalOffset.Reset();

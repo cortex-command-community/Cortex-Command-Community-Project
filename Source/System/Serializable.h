@@ -1,5 +1,4 @@
-#ifndef _RTESERIALIZEABLE_
-#define _RTESERIALIZEABLE_
+#pragma once
 
 #include "Reader.h"
 #include "Writer.h"
@@ -167,4 +166,3 @@ namespace RTE {
 		void Clear() {}
 	};
 } // namespace RTE
-#endif

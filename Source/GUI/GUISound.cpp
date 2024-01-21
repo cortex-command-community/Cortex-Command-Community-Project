@@ -1,6 +1,16 @@
 #include "GUISound.h"
 
+#include "SoundSet.h"
+
 namespace RTE {
+
+	GUISound::GUISound() {
+		Clear();
+	}
+
+	GUISound::~GUISound() {
+		Destroy();
+	}
 
 	void GUISound::Clear() {
 		m_SplashSound.Reset();

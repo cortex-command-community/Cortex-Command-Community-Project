@@ -1,5 +1,4 @@
-#ifndef _GUIMANAGER_
-#define _GUIMANAGER_
+#pragma once
 
 namespace RTE {
 
@@ -97,5 +96,4 @@ namespace RTE {
 		/// @param Rect Rectangle, Mouse position.
 		bool MouseInRect(const GUIRect* Rect, int X, int Y);
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

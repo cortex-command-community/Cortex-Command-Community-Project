@@ -1,5 +1,4 @@
-#ifndef _RTELOADINGSCREEN_
-#define _RTELOADINGSCREEN_
+#pragma once
 
 #include "Singleton.h"
 
@@ -67,4 +66,3 @@ namespace RTE {
 		LoadingScreen& operator=(const LoadingScreen& rhs) = delete;
 	};
 } // namespace RTE
-#endif

@@ -1,5 +1,4 @@
-#ifndef _RTESCENELAYER_
-#define _RTESCENELAYER_
+#pragma once
 
 #include "Entity.h"
 #include "ContentFile.h"
@@ -18,7 +17,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a SceneLayerImpl object in system memory. Create() should be called before using the object.
-		SceneLayerImpl() { Clear(); }
+		SceneLayerImpl();
 
 		/// Makes the SceneLayer object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -60,7 +59,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a SceneLayer object before deletion from system memory.
-		~SceneLayerImpl() override { Destroy(true); }
+		~SceneLayerImpl() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -311,4 +310,3 @@ namespace RTE {
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 	};
 } // namespace RTE
-#endif

@@ -1,8 +1,17 @@
 #include "TDExplosive.h"
+#include "SoundContainer.h"
 
 namespace RTE {
 
 	ConcreteClassInfo(TDExplosive, ThrownDevice, 50);
+
+	TDExplosive::TDExplosive() {
+		Clear();
+	}
+
+	TDExplosive::~TDExplosive() {
+		Destroy(true);
+	}
 
 	void TDExplosive::Clear() {
 		m_IsAnimatedManually = false;

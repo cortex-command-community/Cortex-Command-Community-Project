@@ -1,5 +1,4 @@
-#ifndef _GUITAB_
-#define _GUITAB_
+#pragma once
 
 namespace RTE {
 
@@ -103,5 +102,4 @@ namespace RTE {
 		/// Create the checkbox bitmap to draw.
 		void BuildBitmap();
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

@@ -1,5 +1,4 @@
-#ifndef _RTEBOX_
-#define _RTEBOX_
+#pragma once
 
 #include "Serializable.h"
 #include "Vector.h"
@@ -226,4 +225,3 @@ namespace RTE {
 		}
 	};
 } // namespace RTE
-#endif

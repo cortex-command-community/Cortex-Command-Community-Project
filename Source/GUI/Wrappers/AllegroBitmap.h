@@ -1,5 +1,4 @@
-#ifndef _ALLEGROBITMAP_
-#define _ALLEGROBITMAP_
+#pragma once
 
 #include "GUIInterface.h"
 #include "ContentFile.h"
@@ -12,7 +11,7 @@ namespace RTE {
 	public:
 #pragma region Creation
 		/// Constructor method used to instantiate an AllegroBitmap object in system memory.
-		AllegroBitmap() { Clear(); }
+		AllegroBitmap();
 
 		/// Constructor method used to instantiate an AllegroBitmap object in system memory and make it ready for use.
 		/// @param bitmap The underlaying BITMAP of this AllegroBitmap. Ownership is NOT transferred!
@@ -34,7 +33,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a AllegroBitmap object before deletion from system memory.
-		~AllegroBitmap() override { Destroy(); }
+		~AllegroBitmap() override;
 
 		/// Destroys and resets (through Clear()) the AllegroBitmap object.
 		void Destroy() override;
@@ -149,5 +148,4 @@ namespace RTE {
 		// Disallow the use of some implicit methods.
 		AllegroBitmap& operator=(const AllegroBitmap& rhs) = delete;
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

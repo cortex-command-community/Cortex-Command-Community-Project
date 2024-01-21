@@ -1,5 +1,4 @@
-#ifndef _RTEATOMGROUP_
-#define _RTEATOMGROUP_
+#pragma once
 
 #include "Atom.h"
 
@@ -18,14 +17,11 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate an AtomGroup object in system memory. Create() should be called before using the object.
-		AtomGroup() { Clear(); }
+		AtomGroup();
 
 		/// Copy constructor method used to instantiate an AtomGroup object identical to an already existing one.
 		/// @param reference An AtomGroup object which is passed in by reference.
-		AtomGroup(const AtomGroup& reference) {
-			Clear();
-			Create(reference);
-		}
+		AtomGroup(const AtomGroup& reference);
 
 		/// Makes the AtomGroup object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -60,7 +56,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up an AtomGroup object before deletion from system memory.
-		~AtomGroup() override { Destroy(true); }
+		~AtomGroup() override;
 
 		/// Destroys and resets (through Clear()) the AtomGroup object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -353,4 +349,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

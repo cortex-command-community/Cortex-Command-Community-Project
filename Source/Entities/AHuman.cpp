@@ -13,6 +13,8 @@
 #include "PresetMan.h"
 #include "Scene.h"
 #include "SettingsMan.h"
+#include "PostProcessMan.h"
+#include "PieMenu.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -24,6 +26,14 @@
 namespace RTE {
 
 	ConcreteClassInfo(AHuman, Actor, 20);
+
+	AHuman::AHuman() {
+		Clear();
+	}
+
+	AHuman::~AHuman() {
+		Destroy(true);
+	}
 
 	void AHuman::Clear() {
 		m_pHead = 0;
@@ -629,30 +639,30 @@ namespace RTE {
 	}
 	*/
 
-	bool AHuman::HandlePieCommand(PieSlice::SliceType pieSliceIndex) {
-		if (pieSliceIndex != PieSlice::SliceType::NoType) {
-			if (pieSliceIndex == PieSlice::SliceType::Pickup) {
+	bool AHuman::HandlePieCommand(PieSliceType pieSliceIndex) {
+		if (pieSliceIndex != PieSliceType::NoType) {
+			if (pieSliceIndex == PieSliceType::Pickup) {
 				m_Controller.SetState(WEAPON_PICKUP);
-			} else if (pieSliceIndex == PieSlice::SliceType::Drop) {
+			} else if (pieSliceIndex == PieSliceType::Drop) {
 				m_Controller.SetState(WEAPON_DROP);
-			} else if (pieSliceIndex == PieSlice::SliceType::Reload) {
+			} else if (pieSliceIndex == PieSliceType::Reload) {
 				m_Controller.SetState(WEAPON_RELOAD);
-			} else if (pieSliceIndex == PieSlice::SliceType::NextItem) {
+			} else if (pieSliceIndex == PieSliceType::NextItem) {
 				m_Controller.SetState(WEAPON_CHANGE_NEXT, true);
-			} else if (pieSliceIndex == PieSlice::SliceType::PreviousItem) {
+			} else if (pieSliceIndex == PieSliceType::PreviousItem) {
 				m_Controller.SetState(WEAPON_CHANGE_PREV, true);
-			} else if (pieSliceIndex == PieSlice::SliceType::Sentry) {
+			} else if (pieSliceIndex == PieSliceType::Sentry) {
 				m_AIMode = AIMODE_SENTRY;
-			} else if (pieSliceIndex == PieSlice::SliceType::Patrol) {
+			} else if (pieSliceIndex == PieSliceType::Patrol) {
 				m_AIMode = AIMODE_PATROL;
-			} else if (pieSliceIndex == PieSlice::SliceType::BrainHunt) {
+			} else if (pieSliceIndex == PieSliceType::BrainHunt) {
 				m_AIMode = AIMODE_BRAINHUNT;
 				ClearAIWaypoints();
-			} else if (pieSliceIndex == PieSlice::SliceType::GoTo) {
+			} else if (pieSliceIndex == PieSliceType::GoTo) {
 				m_AIMode = AIMODE_GOTO;
 				ClearAIWaypoints();
 				m_UpdateMovePath = true;
-			} else if (pieSliceIndex == PieSlice::SliceType::GoldDig) {
+			} else if (pieSliceIndex == PieSliceType::GoldDig) {
 				m_AIMode = AIMODE_GOLDDIG;
 			} else {
 				return Actor::HandlePieCommand(pieSliceIndex);
@@ -2865,12 +2875,12 @@ namespace RTE {
 
 		for (PieSlice* pieSlice: GetPieMenu()->GetPieSlices()) {
 			switch (pieSlice->GetType()) {
-				case PieSlice::SliceType::Pickup:
-				case PieSlice::SliceType::Reload:
-					pieSlice->SetType(m_pItemInReach ? PieSlice::SliceType::Pickup : PieSlice::SliceType::Reload);
+				case PieSliceType::Pickup:
+				case PieSliceType::Reload:
+					pieSlice->SetType(m_pItemInReach ? PieSliceType::Pickup : PieSliceType::Reload);
 					pieSlice->SetIcon(dynamic_cast<Icon*>(g_PresetMan.GetEntityPreset("Icon", m_pItemInReach ? "Pick Up" : "Refresh")->Clone()));
 
-					if (pieSlice->GetType() == PieSlice::SliceType::Pickup) {
+					if (pieSlice->GetType() == PieSliceType::Pickup) {
 						if (m_pFGArm || (m_pBGArm && m_pItemInReach->IsOneHanded())) {
 							pieSlice->SetEnabled(m_Status != INACTIVE);
 							pieSlice->SetDescription("Pick Up " + m_pItemInReach->GetPresetName());
@@ -2890,7 +2900,7 @@ namespace RTE {
 						}
 					}
 					break;
-				case PieSlice::SliceType::NextItem:
+				case PieSliceType::NextItem:
 					if (!IsInventoryEmpty() && m_pFGArm) {
 						pieSlice->SetEnabled(m_Status != INACTIVE);
 						pieSlice->SetDescription("Next Item");
@@ -2899,7 +2909,7 @@ namespace RTE {
 						pieSlice->SetDescription(m_pFGArm ? "Not Holding Anything" : "No Arm");
 					}
 					break;
-				case PieSlice::SliceType::PreviousItem:
+				case PieSliceType::PreviousItem:
 					if (!IsInventoryEmpty() && m_pFGArm) {
 						pieSlice->SetEnabled(m_Status != INACTIVE);
 						pieSlice->SetDescription("Prev Item");
@@ -2908,7 +2918,7 @@ namespace RTE {
 						pieSlice->SetDescription(m_pFGArm ? "Not Holding Anything" : "No Arm");
 					}
 					break;
-				case PieSlice::SliceType::Drop:
+				case PieSliceType::Drop:
 					if (const MovableObject* equippedFGItem = GetEquippedItem()) {
 						pieSlice->SetEnabled(m_Status != INACTIVE);
 						pieSlice->SetDescription("Drop " + equippedFGItem->GetPresetName());

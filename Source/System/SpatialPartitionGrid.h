@@ -1,5 +1,4 @@
-#ifndef _RTESPATIALPARTITIONGRID_
-#define _RTESPATIALPARTITIONGRID_
+#pragma once
 
 // TODO Move Team enum into Constants so we can avoid including Activity here.
 #include "Activity.h"
@@ -96,4 +95,3 @@ namespace RTE {
 		SpatialPartitionGrid(const SpatialPartitionGrid& reference) = delete;
 	};
 } // namespace RTE
-#endif

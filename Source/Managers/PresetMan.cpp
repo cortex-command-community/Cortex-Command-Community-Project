@@ -6,6 +6,7 @@
 #include "SceneObject.h"
 #include "Loadout.h"
 #include "ACraft.h"
+#include "LuaMan.h"
 // #include "AHuman.h"
 // #include "MOPixel.h"
 // #include "SLTerrain.h"
@@ -22,6 +23,14 @@ namespace RTE {
 	const std::array<std::pair<std::string, std::string>, 3> PresetMan::c_UserdataModules = {{{c_UserScenesModuleName, "User Scenes"},
 	                                                                                          {c_UserConquestSavesModuleName, "Conquest Saves"},
 	                                                                                          {c_UserScriptedSavesModuleName, "Scripted Activity Saves"}}};
+
+	PresetMan::PresetMan() {
+		Clear();
+	}
+
+	PresetMan::~PresetMan() {
+		Destroy();
+	}
 
 	void PresetMan::Clear() {
 		m_pDataModules.clear();
@@ -140,7 +149,7 @@ namespace RTE {
 
 			for (const std::filesystem::directory_entry& directoryEntry: modDirectoryFolders) {
 				std::string directoryEntryPath = directoryEntry.path().generic_string();
-				if (std::regex_match(directoryEntryPath, std::regex(".*\.rte"))) {
+				if (directoryEntryPath.ends_with(".rte")) {
 					std::string moduleName = directoryEntryPath.substr(directoryEntryPath.find_last_of('/') + 1, std::string::npos);
 					if (!g_SettingsMan.IsModDisabled(moduleName) && !IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
 						int moduleID = GetModuleID(moduleName);

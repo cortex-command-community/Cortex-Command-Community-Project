@@ -1,5 +1,4 @@
-#ifndef _GUIBUTTON_
-#define _GUIBUTTON_
+#pragma once
 
 namespace RTE {
 
@@ -151,5 +150,4 @@ namespace RTE {
 		/// Create the button bitmap to draw.
 		void BuildBitmap();
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

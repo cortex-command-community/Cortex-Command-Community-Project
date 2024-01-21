@@ -1,5 +1,4 @@
-#ifndef _RTE_SHADER_
-#define _RTE_SHADER_
+#pragma once
 
 #include "Serializable.h"
 #include "glm/glm.hpp"
@@ -196,4 +195,3 @@ namespace RTE {
 		int m_ProjectionUniform; //!< Location of the projection uniform (mat4 rteProjection).
 	};
 } // namespace RTE
-#endif

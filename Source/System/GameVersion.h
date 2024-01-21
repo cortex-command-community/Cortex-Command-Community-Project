@@ -1,5 +1,4 @@
-#ifndef _RTEGAMEVERSION_
-#define _RTEGAMEVERSION_
+#pragma once
 
 #include "System/Semver200/semver200.h"
 
@@ -10,4 +9,3 @@ namespace RTE {
 	static const version::Semver200_version c_GameVersion = version::Semver200_version(c_VersionString);
 #pragma endregion
 } // namespace RTE
-#endif
