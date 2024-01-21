@@ -637,7 +637,7 @@ void GUIListPanel::ScrollDown() {
 	if (m_VertScroll->_GetVisible()) {
 		int scrollValueToAdd = sensitivity;
 		if (!m_Items.empty()) {
-			RTE::GUIListPanel::Item* item = m_Items.back();
+			GUIListPanel::Item* item = m_Items.back();
 			int maximumScrollDistance = GetStackHeight(item) + GetItemHeight(item) - (m_VertScroll->GetPageSize() + m_VertScroll->GetValue());
 			scrollValueToAdd = std::clamp(maximumScrollDistance, 0, scrollValueToAdd);
 		}
@@ -652,7 +652,7 @@ void GUIListPanel::ScrollTo(int position) {
 
 		// TODO this was copied from MaxShadow's work. I'm not quite sure of the point of it tbh.
 		if (!m_Items.empty()) {
-			RTE::GUIListPanel::Item* item = m_Items.back();
+			GUIListPanel::Item* item = m_Items.back();
 			int allItemsHeight = GetStackHeight(item) + GetItemHeight(item);
 			if (position + m_VertScroll->GetPageSize() > allItemsHeight) {
 				m_VertScroll->SetValue(allItemsHeight - m_VertScroll->GetPageSize());

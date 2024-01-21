@@ -2,7 +2,6 @@
 
 #include "FrameMan.h"
 
-using namespace std;
 using namespace RTE;
 
 MultiplayerGameGUI::MultiplayerGameGUI() {
