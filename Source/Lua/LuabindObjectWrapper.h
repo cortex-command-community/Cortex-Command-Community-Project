@@ -31,7 +31,7 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a LuabindObjectWrapper object in system memory.
 		explicit LuabindObjectWrapper(luabind::adl::object* luabindObject, const std::string_view& filePath, bool ownsObject = true) :
-		    m_LuabindObject(luabindObject), m_FilePath(filePath), m_OwnsObject(ownsObject) {}
+		    m_OwnsObject(ownsObject), m_LuabindObject(luabindObject), m_FilePath(filePath) {}
 #pragma endregion
 
 #pragma region Destruction
