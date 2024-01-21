@@ -6,7 +6,7 @@
 #include "AchievementMan.h"
 #include "ConsoleMan.h"
 
-namespace RTE {
+using namespace RTE;
 
 #ifdef STEAM_BUILD
 AchievementMan::AchievementMan():
@@ -154,6 +154,4 @@ void AchievementMan::Sync()
   }
 #endif  // STEAM_BUILD
 }
-
-} // namespace RTE
 */
