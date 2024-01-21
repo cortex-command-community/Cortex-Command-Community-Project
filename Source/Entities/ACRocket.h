@@ -37,11 +37,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a ACRocket object in system
 		/// memory. Create() should be called before using the object.
-		ACRocket() { Clear(); }
+		ACRocket();
 
 		/// Destructor method used to clean up a ACRocket object before deletion
 		/// from system memory.
-		~ACRocket() override { Destroy(true); }
+		~ACRocket() override;
 
 		/// Makes the ACRocket object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

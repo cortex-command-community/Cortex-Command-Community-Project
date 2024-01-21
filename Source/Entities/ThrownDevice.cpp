@@ -8,6 +8,14 @@ namespace RTE {
 
 	ConcreteClassInfo(ThrownDevice, HeldDevice, 50);
 
+	ThrownDevice::ThrownDevice() {
+		Clear();
+	}
+	
+	ThrownDevice::~ThrownDevice() {
+		Destroy(true);
+	}
+
 	void ThrownDevice::Clear() {
 		m_ActivationSound = std::make_shared<SoundContainer>();
 		m_ActivationSound->Reset();

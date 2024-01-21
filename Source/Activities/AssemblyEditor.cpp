@@ -30,6 +30,14 @@ namespace RTE {
 
 	ConcreteClassInfo(AssemblyEditor, EditorActivity, 0);
 
+	AssemblyEditor::AssemblyEditor() {
+		Clear();
+	}
+
+	AssemblyEditor::~AssemblyEditor() {
+		Destroy(true);
+	}
+
 	void AssemblyEditor::Clear() {
 		m_pEditorGUI = 0;
 		m_pModuleCombo = 0;

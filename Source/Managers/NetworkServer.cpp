@@ -26,6 +26,15 @@
 
 namespace RTE {
 
+	NetworkServer::NetworkServer() {
+		Clear();
+		Initialize();
+	}
+
+	NetworkServer::~NetworkServer() {
+		Destroy();
+	}
+
 	void NetworkServer::BackgroundSendThreadFunction(NetworkServer* server, short player) {
 		const int sleepTime = 1000000 / server->m_EncodingFps;
 		while (server->IsServerModeEnabled() && server->IsPlayerConnected(player)) {

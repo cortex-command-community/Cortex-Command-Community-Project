@@ -21,7 +21,7 @@ public:
 
     AchievementMan();
 
-    ~AchievementMan() { Sync(); };
+    ~AchievementMan();
 
     int Create();
 

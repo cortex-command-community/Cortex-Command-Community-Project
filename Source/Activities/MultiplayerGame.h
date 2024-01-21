@@ -39,11 +39,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a MultiplayerGame object in system
 		/// memory. Create() should be called before using the object.
-		MultiplayerGame() { Clear(); }
+		MultiplayerGame();
 
 		/// Destructor method used to clean up a MultiplayerGame object before deletion
 		/// from system memory.
-		~MultiplayerGame() override { Destroy(true); }
+		~MultiplayerGame() override;
 
 		/// Makes the MultiplayerGame object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

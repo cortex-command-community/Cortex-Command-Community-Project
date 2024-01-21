@@ -180,7 +180,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a Entity in system memory. Create() should be called before using the Entity.
-		Entity() { Clear(); }
+		Entity();
 
 		/// Makes the Entity ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -209,7 +209,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a Entity before deletion from system memory.
-		virtual ~Entity() { Destroy(true); }
+		virtual ~Entity();
 
 		/// Destroys and resets (through Clear()) the Entity.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.

@@ -35,11 +35,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a BaseEditor object in system
 		/// memory. Create() should be called before using the object.
-		BaseEditor() { Clear(); }
+		BaseEditor();
 
 		/// Destructor method used to clean up a BaseEditor object before deletion
 		/// from system memory.
-		~BaseEditor() override { Destroy(true); }
+		~BaseEditor() override;
 
 		/// Makes the BaseEditor object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

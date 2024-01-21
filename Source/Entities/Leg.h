@@ -16,7 +16,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a Leg object in system memory. Create() should be called before using the object.
-		Leg() { Clear(); }
+		Leg();
 
 		/// Makes the Leg object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -30,7 +30,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a Leg object before deletion from system memory.
-		~Leg() override { Destroy(true); }
+		~Leg() override;
 
 		/// Destroys and resets (through Clear()) the Leg object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.

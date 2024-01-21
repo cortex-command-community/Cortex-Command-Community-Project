@@ -14,7 +14,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a ThrownDevice object in system memory. Create should be called before using the object.
-		ThrownDevice() { Clear(); }
+		ThrownDevice();
 
 		/// Makes the ThrownDevice object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -28,7 +28,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a ThrownDevice object before deletion from system memory.
-		~ThrownDevice() override { Destroy(true); }
+		~ThrownDevice() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.

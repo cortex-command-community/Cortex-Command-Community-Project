@@ -33,16 +33,13 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a DataModule object in system memory. Create() should be called before using the object.
-		DataModule() { Clear(); }
+		DataModule();
 
 		/// Constructor method used to instantiate a DataModule object in system memory, and also do a Create() in the same line.
 		/// Create() should therefore not be called after using this constructor.
 		/// @param moduleName A string defining the path to where the content file itself is located, either within the package file, or directly on the disk.
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
-		DataModule(const std::string& moduleName, const ProgressCallback& progressCallback = nullptr) {
-			Clear();
-			Create(moduleName, progressCallback);
-		}
+		DataModule(const std::string& moduleName, const ProgressCallback& progressCallback = nullptr);
 
 		/// Makes the DataModule object ready for use. This needs to be called after PresetMan is created.
 		/// This looks for an "index.ini" within the specified .rte directory and loads all the defined objects in that index file.
@@ -62,7 +59,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a DataModule object before deletion from system memory.
-		~DataModule() override { Destroy(); }
+		~DataModule() override;
 
 		/// Destroys and resets (through Clear()) the DataModule object.
 		void Destroy();

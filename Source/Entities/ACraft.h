@@ -138,11 +138,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a ACraft object in system
 		/// memory. Create() should be called before using the object.
-		ACraft() { Clear(); }
+		ACraft();
 
 		/// Destructor method used to clean up a ACraft object before deletion
 		/// from system memory.
-		~ACraft() override { Destroy(true); }
+		~ACraft() override;
 
 		/// Makes the ACraft object ready for use.
 		/// @param A Reader that the ACraft will create itself with.

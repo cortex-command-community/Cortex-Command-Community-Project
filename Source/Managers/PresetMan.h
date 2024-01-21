@@ -25,11 +25,11 @@ namespace RTE {
 	public:
 		/// Constructor method used to instantiate a PresetMan entity in system
 		/// memory. Create() should be called before using the entity.
-		PresetMan() { Clear(); }
+		PresetMan();
 
 		/// Destructor method used to clean up a PresetMan entity before deletion
 		/// from system memory.
-		~PresetMan() { Destroy(); }
+		~PresetMan();
 
 		/// Makes the PresetMan entity ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

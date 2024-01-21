@@ -22,6 +22,14 @@ namespace RTE {
 
 	AbstractClassInfo(Activity, Entity);
 
+	Activity::Activity() {
+		Clear();
+	}
+
+	Activity::~Activity() {
+		Destroy(true);
+	}
+
 	void Activity::Clear() {
 		m_ActivityState = ActivityState::NotStarted;
 		m_Paused = false;

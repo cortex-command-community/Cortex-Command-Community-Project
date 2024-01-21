@@ -17,7 +17,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a TerrainObject object in system memory. Create() should be called before using the object.
-		TerrainObject() { Clear(); }
+		TerrainObject();
 
 		/// Makes the TerrainObject object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -31,7 +31,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a TerrainObject object before deletion from system memory.
-		~TerrainObject() override { Destroy(true); }
+		~TerrainObject() override;
 
 		/// Destroys and resets (through Clear()) the TerrainObject object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.

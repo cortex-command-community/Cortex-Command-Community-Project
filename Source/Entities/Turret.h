@@ -16,7 +16,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a Turret object in system memory. Create() should be called before using the object.
-		Turret() { Clear(); }
+		Turret();
 
 		/// Creates a Turret to be identical to another, by deep copy.
 		/// @param reference A reference to the Turret to deep copy.
@@ -26,7 +26,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a Turret object before deletion from system memory.
-		~Turret() override { Destroy(true); }
+		~Turret() override;
 
 		/// Destroys and resets (through Clear()) the Turret object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.

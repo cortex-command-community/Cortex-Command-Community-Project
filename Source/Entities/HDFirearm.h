@@ -24,11 +24,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a HDFirearm object in system
 		/// memory. Create() should be called before using the object.
-		HDFirearm() { Clear(); }
+		HDFirearm();
 
 		/// Destructor method used to clean up a HDFirearm object before deletion
 		/// from system memory.
-		~HDFirearm() override { Destroy(true); }
+		~HDFirearm() override;
 
 		/// Makes the HDFirearm object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

@@ -35,11 +35,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a GibEditor object in system
 		/// memory. Create() should be called before using the object.
-		GibEditor() { Clear(); }
+		GibEditor();
 
 		/// Destructor method used to clean up a GibEditor object before deletion
 		/// from system memory.
-		~GibEditor() override { Destroy(true); }
+		~GibEditor() override;
 
 		/// Makes the GibEditor object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

@@ -42,6 +42,14 @@ namespace RTE {
 	// Holds the path calculated by CalculateScenePath
 	thread_local std::list<Vector> s_ScenePath;
 
+	Scene::Scene() {
+		Clear();
+	}
+	
+	Scene::~Scene() {
+		Destroy(true);
+	}
+
 	void Scene::Area::Clear() {
 		m_BoxList.clear();
 		m_Name.clear();

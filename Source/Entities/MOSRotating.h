@@ -32,11 +32,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a MOSRotating object in system
 		/// memory. Create() should be called before using the object.
-		MOSRotating() { Clear(); }
+		MOSRotating();
 
 		/// Destructor method used to clean up a MOSRotating object before deletion
 		/// from system memory.
-		~MOSRotating() override { Destroy(true); }
+		~MOSRotating() override;
 
 		/// Makes the MOSRotating object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

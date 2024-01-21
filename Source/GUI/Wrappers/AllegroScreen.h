@@ -11,7 +11,7 @@ namespace RTE {
 #pragma region Creation
 		/// Constructor method used to instantiate an AllegroScreen object in system memory and make it ready for use.
 		/// @param backBuffer A bitmap that represents the back buffer. Ownership is NOT transferred!
-		explicit AllegroScreen(BITMAP* backBuffer) { m_BackBufferBitmap = std::make_unique<AllegroBitmap>(backBuffer); }
+		explicit AllegroScreen(BITMAP* backBuffer);
 
 		/// Creates a bitmap from a file.
 		/// @param fileName File name to create bitmap from.
@@ -27,7 +27,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a AllegroScreen object before deletion from system memory.
-		~AllegroScreen() override { Destroy(); }
+		~AllegroScreen() override;
 
 		/// Destroys the AllegroScreen object.
 		void Destroy() override { m_BackBufferBitmap.reset(); }

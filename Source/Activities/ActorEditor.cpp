@@ -23,6 +23,14 @@ namespace RTE {
 
 	ConcreteClassInfo(ActorEditor, EditorActivity, 0);
 
+	ActorEditor::ActorEditor() {
+		Clear();
+	}
+
+	ActorEditor::~ActorEditor() {
+		Destroy(true);
+	}
+
 	void ActorEditor::Clear() {
 		m_pEditedActor = 0;
 		m_pPicker = 0;

@@ -16,7 +16,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a MOSParticle object in system memory. Create() should be called before using the object.
-		MOSParticle() { Clear(); }
+		MOSParticle();
 
 		/// Makes the MOSParticle object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -43,7 +43,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a MOSParticle object before deletion from system memory.
-		~MOSParticle() override { Destroy(true); }
+		~MOSParticle() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.

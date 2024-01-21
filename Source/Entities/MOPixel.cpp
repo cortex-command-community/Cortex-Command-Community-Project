@@ -7,6 +7,14 @@
 namespace RTE {
 
 	ConcreteClassInfo(MOPixel, MovableObject, 2000);
+	
+	MOPixel::MOPixel() {
+		Clear();
+	}
+	
+	MOPixel::~MOPixel() {
+		Destroy(true);
+	}
 
 	void MOPixel::Clear() {
 		m_Atom = 0;

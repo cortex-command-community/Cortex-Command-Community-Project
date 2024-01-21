@@ -24,11 +24,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a AEmitter object in system
 		/// memory. Create() should be called before using the object.
-		AEmitter() { Clear(); }
+		AEmitter();
 
 		/// Destructor method used to clean up a AEmitter object before deletion
 		/// from system memory.
-		~AEmitter() override { Destroy(true); }
+		~AEmitter() override;
 
 		/// Creates a AEmitter to be identical to another, by deep copy.
 		/// @param reference A reference to the AEmitter to deep copy.

@@ -12,6 +12,14 @@
 namespace RTE {
 
 	ConcreteClassInfo(SLTerrain, SceneLayer, 0);
+	
+	SLTerrain::SLTerrain() {
+		Clear();
+	}
+
+	SLTerrain::~SLTerrain() {
+		Destroy(true);
+	}
 
 	void SLTerrain::Clear() {
 		m_Width = 0;

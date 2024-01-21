@@ -79,7 +79,7 @@ namespace RTE {
 #pragma region Creation
 		/// Constructor method used to instantiate a AudioMan object in system memory.
 		/// Create() should be called before using the object.
-		AudioMan() { Clear(); }
+		AudioMan();
 
 		/// Makes the AudioMan object ready for use.
 		/// @return Whether the audio system was initialized successfully. If not, no audio will be available.
@@ -88,7 +88,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a AudioMan object before deletion from system memory.
-		~AudioMan() { Destroy(); }
+		~AudioMan();
 
 		/// Destroys and resets (through Clear()) the AudioMan object.
 		void Destroy();

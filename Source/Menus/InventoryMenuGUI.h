@@ -34,7 +34,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate an InventoryMenuGUI object in system memory. Create() should be called before using the object.
-		InventoryMenuGUI() { Clear(); }
+		InventoryMenuGUI();
 
 		/// Makes the InventoryMenuGUI object ready for use.
 		/// @param activityPlayerController A pointer to a Controller which will control this Menu. Ownership is NOT transferred!
@@ -46,7 +46,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up an InventoryMenuGUI object before deletion from system memory.
-		~InventoryMenuGUI() { Destroy(); }
+		~InventoryMenuGUI();
 
 		/// Destroys and resets the InventoryMenuGUI object.
 		void Destroy();

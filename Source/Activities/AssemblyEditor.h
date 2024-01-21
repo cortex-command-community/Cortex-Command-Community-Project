@@ -36,11 +36,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a AssemblyEditor object in system
 		/// memory. Create() should be called before using the object.
-		AssemblyEditor() { Clear(); }
+		AssemblyEditor();
 
 		/// Destructor method used to clean up a AssemblyEditor object before deletion
 		/// from system memory.
-		~AssemblyEditor() override { Destroy(true); }
+		~AssemblyEditor() override;
 
 		/// Makes the AssemblyEditor object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

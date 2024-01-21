@@ -14,7 +14,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a MetaSave object in system memory. Create() should be called before using the object.
-		MetaSave() { Clear(); }
+		MetaSave();
 
 		/// Makes the MetaSave object ready for use from the currently loaded MetaMan state.
 		/// @param savePath The path of the file to where the MetaMan state should be saved.
@@ -29,7 +29,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a MetaSave object before deletion from system memory.
-		~MetaSave() override { Destroy(true); }
+		~MetaSave() override;
 
 		/// Destroys and resets (through Clear()) the MetaSave object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.

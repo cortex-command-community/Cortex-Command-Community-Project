@@ -16,6 +16,14 @@ namespace RTE {
 	std::vector<BITMAP*> Deployment::m_apArrowLeftBitmap;
 	std::vector<BITMAP*> Deployment::m_apArrowRightBitmap;
 
+	Deployment::Deployment() {
+		Clear();
+	}
+	
+	Deployment::~Deployment() {
+		Destroy(true);
+	}
+
 	void Deployment::Clear() {
 		m_LoadoutName = "Default";
 		m_Icon.Reset();

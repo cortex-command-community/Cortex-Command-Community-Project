@@ -35,11 +35,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a SceneEditor object in system
 		/// memory. Create() should be called before using the object.
-		SceneEditor() { Clear(); }
+		SceneEditor();
 
 		/// Destructor method used to clean up a SceneEditor object before deletion
 		/// from system memory.
-		~SceneEditor() override { Destroy(true); }
+		~SceneEditor() override;
 
 		/// Makes the SceneEditor object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

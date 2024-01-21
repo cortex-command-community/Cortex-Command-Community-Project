@@ -37,6 +37,15 @@ namespace RTE {
 	// Stored as a thread-local instead of in the class, because multithreaded Lua scripts will interfere otherwise
 	thread_local Vector s_LastRayHitPos;
 
+	SceneMan::SceneMan() {
+		m_pOrphanSearchBitmap = 0;
+		Clear();
+	}
+
+	SceneMan::~SceneMan() {
+		Destroy();
+	}
+
 	void SceneMan::Clear() {
 		m_DefaultSceneName = "Tutorial Bunker";
 		m_pSceneToLoad = nullptr;

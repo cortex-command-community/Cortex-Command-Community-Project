@@ -35,6 +35,14 @@ namespace RTE {
 
 	ConcreteClassInfo(MultiplayerServerLobby, Activity, 0);
 
+	MultiplayerServerLobby::MultiplayerServerLobby() {
+		Clear();
+	}
+
+	MultiplayerServerLobby::~MultiplayerServerLobby() {
+		Destroy(true);
+	}
+
 	void MultiplayerServerLobby::Clear() {
 		// m_pEditorGUI = 0;
 		m_pGUIController = 0;

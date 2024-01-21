@@ -8,6 +8,14 @@ namespace RTE {
 
 	ConcreteClassInfo(PieSlice, Entity, 80);
 
+	PieSlice::PieSlice() {
+		Clear();
+	}
+
+	PieSlice::~PieSlice() {
+		Destroy(true);
+	}
+
 	void PieSlice::Clear() {
 		m_Type = PieSliceType::NoType;
 		m_Direction = Directions::Any;

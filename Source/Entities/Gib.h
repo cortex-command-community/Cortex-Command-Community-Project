@@ -24,7 +24,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a Gib object in system memory. Create() should be called before using the object.
-		Gib() { Clear(); }
+		Gib();
 
 		/// Creates a Gib to be identical to another, by deep copy.
 		/// @param reference A reference to the Gib to deep copy.
@@ -34,7 +34,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a Gib object before deletion from system memory.
-		~Gib() override { Destroy(); }
+		~Gib() override;
 
 		/// Destroys and resets (through Clear()) the Gib object.
 		void Destroy() { Clear(); }

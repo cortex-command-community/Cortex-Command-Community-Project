@@ -16,6 +16,14 @@ namespace RTE {
 
 	ConcreteClassInfo(HDFirearm, HeldDevice, 50);
 
+	HDFirearm::HDFirearm() {
+		Clear();
+	}
+
+	HDFirearm::~HDFirearm() {
+		Destroy(true);
+	}
+
 	void HDFirearm::Clear() {
 		m_pMagazineReference = 0;
 		m_pMagazine = 0;

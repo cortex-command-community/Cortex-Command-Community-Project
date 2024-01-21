@@ -64,7 +64,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a PieSlice object in system memory. Create() should be called before using the object.
-		PieSlice() { Clear(); }
+		PieSlice();
 
 		/// Makes the PieSlice object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -78,7 +78,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a PieSlice object before deletion from system memory.
-		~PieSlice() override { Destroy(true); }
+		~PieSlice() override;
 
 		/// Resets the entire Serializable, including its inherited members, to their default settings or values.
 		void Reset() override { Clear(); }

@@ -6,6 +6,14 @@ namespace RTE {
 
 	ConcreteClassInfo(Magazine, Attachable, 50);
 
+	Magazine::Magazine() {
+		Clear();
+	}
+	
+	Magazine::~Magazine() {
+		Destroy(true);
+	}
+
 	void Magazine::Clear() {
 		m_RoundCount = 0;
 		m_FullCapacity = 0;

@@ -27,6 +27,14 @@ namespace RTE {
 
 	ConcreteClassInfo(AHuman, Actor, 20);
 
+	AHuman::AHuman() {
+		Clear();
+	}
+	
+	AHuman::~AHuman() {
+		Destroy(true);
+	}
+
 	void AHuman::Clear() {
 		m_pHead = 0;
 		m_LookToAimRatio = 0.7F;

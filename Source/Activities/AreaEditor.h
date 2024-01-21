@@ -34,11 +34,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a AreaEditor object in system
 		/// memory. Create() should be called before using the object.
-		AreaEditor() { Clear(); }
+		AreaEditor();
 
 		/// Destructor method used to clean up a AreaEditor object before deletion
 		/// from system memory.
-		~AreaEditor() override { Destroy(true); }
+		~AreaEditor() override;
 
 		/// Makes the AreaEditor object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

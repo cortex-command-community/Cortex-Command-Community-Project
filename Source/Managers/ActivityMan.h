@@ -16,7 +16,7 @@ namespace RTE {
 	public:
 #pragma region Creation
 		/// Constructor method used to instantiate an ActivityMan object in system memory. Create() should be called before using the object.
-		ActivityMan() { Clear(); }
+		ActivityMan();
 
 		/// Makes the ActivityMan object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -25,7 +25,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up an ActivityMan object before deletion from system memory.
-		~ActivityMan() { Destroy(); }
+		~ActivityMan();
 
 		/// Destroys and resets (through Clear()) the ActivityMan object.
 		void Destroy() { Clear(); }

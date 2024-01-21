@@ -6,6 +6,14 @@ namespace RTE {
 
 	const std::string ADSensor::c_ClassName = "Sensor";
 
+	ADSensor::ADSensor() {
+		Clear();
+	}
+
+	ADSensor::~ADSensor() {
+		Destroy();
+	}
+
 	void ADSensor::Clear() {
 		m_StartOffset.Reset();
 		m_SensorRay.Reset();

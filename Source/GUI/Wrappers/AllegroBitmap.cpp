@@ -4,6 +4,14 @@
 
 namespace RTE {
 
+	AllegroBitmap::AllegroBitmap() {
+		Clear();
+	}
+	
+	AllegroBitmap::~AllegroBitmap() {
+		Destroy();
+	}
+
 	void AllegroBitmap::Clear() {
 		m_Bitmap = nullptr;
 		m_BitmapFile.Reset();

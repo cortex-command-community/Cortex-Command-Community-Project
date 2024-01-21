@@ -16,7 +16,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate an Arm object in system memory. Create() should be called before using the object.
-		Arm() { Clear(); }
+		Arm();
 
 		/// Makes the Arm object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -30,7 +30,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up an Arm object before deletion from system memory.
-		~Arm() override { Destroy(true); }
+		~Arm() override;
 
 		/// Destroys and resets (through Clear()) the Arm object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.

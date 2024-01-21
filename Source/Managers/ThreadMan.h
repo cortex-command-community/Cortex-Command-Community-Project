@@ -18,17 +18,14 @@ namespace RTE {
 	public:
 		/// Constructor method used to instantiate a ThreadMan object in system
 		/// memory. Create() should be called before using the object.
-		ThreadMan() {
-			Clear();
-			Create();
-		}
+		ThreadMan();
 
 		/// Makes the TimerMan object ready for use.
 		void Initialize(){};
 
 		/// Destructor method used to clean up a ThreadMan object before deletion
 		/// from system memory.
-		virtual ~ThreadMan() { Destroy(); }
+		virtual ~ThreadMan();
 
 		/// Makes the ThreadMan object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

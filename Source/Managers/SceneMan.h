@@ -53,14 +53,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a SceneMan object in system
 		/// memory. Create() should be called before using the object.
-		SceneMan() {
-			m_pOrphanSearchBitmap = 0;
-			Clear();
-		}
+		SceneMan();
 
 		/// Destructor method used to clean up a SceneMan object before deletion
 		/// from system memory.
-		~SceneMan() { Destroy(); }
+		~SceneMan();
 
 		/// Makes the SceneMan object ready for use.
 		void Initialize() const;

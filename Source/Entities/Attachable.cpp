@@ -12,6 +12,14 @@ namespace RTE {
 
 	ConcreteClassInfo(Attachable, MOSRotating, 0);
 
+	Attachable::Attachable() {
+		Clear();
+	}
+	
+	Attachable::~Attachable() {
+		Destroy(true);
+	}
+
 	void Attachable::Clear() {
 		m_Parent = nullptr;
 		m_ParentOffset.Reset();

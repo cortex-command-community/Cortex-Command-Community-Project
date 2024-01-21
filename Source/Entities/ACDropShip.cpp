@@ -11,6 +11,14 @@ namespace RTE {
 
 	ConcreteClassInfo(ACDropShip, ACraft, 10);
 
+	ACDropShip::ACDropShip() {
+		Clear();
+	}
+
+	ACDropShip::~ACDropShip() {
+		Destroy(true);
+	}
+
 	void ACDropShip::Clear() {
 		m_pBodyAG = 0;
 		m_pRThruster = 0;

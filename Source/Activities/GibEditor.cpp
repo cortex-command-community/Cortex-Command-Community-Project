@@ -31,6 +31,14 @@ namespace RTE {
 
 	ConcreteClassInfo(GibEditor, EditorActivity, 0);
 
+	GibEditor::GibEditor() {
+		Clear();
+	}
+
+	GibEditor::~GibEditor() {
+		Destroy(true);
+	}
+
 	void GibEditor::Clear() {
 		m_pEditedObject = 0;
 		m_pTestingObject = 0;

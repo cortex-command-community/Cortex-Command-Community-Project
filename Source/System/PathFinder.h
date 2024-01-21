@@ -67,10 +67,7 @@ namespace RTE {
 		/// Constructor method used to instantiate a PathFinder object.
 		/// @param nodeDimension The width and height in scene pixels that of each PathNode should represent.
 		/// @param allocate The block size that the PathNode cache is allocated from. Should be about a fourth of the total number of PathNodes.
-		PathFinder(int nodeDimension) {
-			Clear();
-			Create(nodeDimension);
-		}
+		PathFinder(int nodeDimension);
 
 		/// Makes the PathFinder object ready for use.
 		/// @param nodeDimension The width and height in scene pixels that of each PathNode should represent.
@@ -80,7 +77,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a PathFinder object before deletion.
-		~PathFinder() override { Destroy(); }
+		~PathFinder() override;
 
 		/// Destroys and resets (through Clear()) this PathFinder object.
 		void Destroy();

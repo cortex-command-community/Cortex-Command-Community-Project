@@ -17,6 +17,15 @@
 
 namespace RTE {
 
+	NetworkClient::NetworkClient() {
+		Clear();
+		Initialize();
+	}
+
+	NetworkClient::~NetworkClient() {
+		Destroy();
+	}
+
 	void NetworkClient::Clear() {
 		m_LastInputSentTime = 0;
 		m_ReceivedData = 0;

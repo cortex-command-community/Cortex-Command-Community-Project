@@ -4,6 +4,13 @@
 #include "allegro.h"
 
 namespace RTE {
+	AllegroScreen::AllegroScreen(BITMAP* backBuffer) {
+		m_BackBufferBitmap = std::make_unique<AllegroBitmap>(backBuffer);
+	}
+	
+	AllegroScreen::~AllegroScreen() {
+		Destroy();
+	}
 
 	GUIBitmap* AllegroScreen::CreateBitmap(const std::string& fileName) {
 		std::unique_ptr<AllegroBitmap> newAllegroBitmap;

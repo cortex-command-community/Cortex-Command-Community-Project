@@ -24,6 +24,14 @@ namespace RTE {
 	                                                                                          {c_UserConquestSavesModuleName, "Conquest Saves"},
 	                                                                                          {c_UserScriptedSavesModuleName, "Scripted Activity Saves"}}};
 
+	PresetMan::PresetMan() {
+		Clear();
+	}
+
+	PresetMan::~PresetMan() {
+		Destroy();
+	}
+
 	void PresetMan::Clear() {
 		m_pDataModules.clear();
 		m_DataModuleIDs.clear();

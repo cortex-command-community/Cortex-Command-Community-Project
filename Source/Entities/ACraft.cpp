@@ -18,12 +18,21 @@
 namespace RTE {
 
 	AbstractClassInfo(ACraft, Actor);
+
 	const std::string ACraft::Exit::c_ClassName = "Exit";
 
 	bool ACraft::s_CrabBombInEffect = false;
 
 #define EXITLINESPACING 7
 #define EXITSUCKDELAYMS 1500
+
+	ACraft::ACraft() {
+		Clear();
+	}
+
+	ACraft::~ACraft() {
+		Destroy(true);
+	}
 
 	void ACraft::Exit::Clear() {
 		m_Offset.Reset();

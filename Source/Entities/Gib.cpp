@@ -6,6 +6,14 @@ namespace RTE {
 
 	const std::string Gib::c_ClassName = "Gib";
 
+	Gib::Gib() {
+		Clear();
+	}
+	
+	Gib::~Gib() {
+		Destroy();
+	}
+
 	void Gib::Clear() {
 		m_GibParticle = nullptr;
 		m_Offset.Reset();

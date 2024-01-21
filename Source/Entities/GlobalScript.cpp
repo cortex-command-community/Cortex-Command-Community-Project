@@ -14,6 +14,14 @@ namespace RTE {
 
 	ConcreteClassInfo(GlobalScript, Entity, 10);
 
+	GlobalScript::GlobalScript() {
+		Clear();
+	}
+	
+	GlobalScript::~GlobalScript() {
+		Destroy(true);
+	}
+
 	void GlobalScript::Clear() {
 		m_ScriptPath.clear();
 		m_LuaClassName.clear();

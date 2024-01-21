@@ -9,6 +9,14 @@ namespace RTE {
 	Entity::ClassInfo Entity::m_sClass("Entity");
 	Entity::ClassInfo* Entity::ClassInfo::s_ClassHead = 0;
 
+	Entity::Entity() {
+		Clear();
+	}
+	
+	Entity::~Entity() {
+		Destroy(true);
+	}
+
 	void Entity::Clear() {
 		m_PresetName = "None";
 		m_IsOriginalPreset = false;

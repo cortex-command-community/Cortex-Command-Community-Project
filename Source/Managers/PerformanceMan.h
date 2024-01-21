@@ -37,7 +37,7 @@ namespace RTE {
 
 #pragma region Creation
 		///  Constructor method used to instantiate a PerformanceMan object in system memory. Create() should be called before using the object.
-		PerformanceMan() { Clear(); }
+		PerformanceMan();
 
 		/// Makes the PerformanceMan object ready for use.
 		void Initialize();
@@ -45,7 +45,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a PerformanceMan object before deletion from system memory.
-		~PerformanceMan() { Destroy(); }
+		~PerformanceMan();
 
 		/// Destroys and resets (through Clear()) the PerformanceMan object.
 		void Destroy() { Clear(); }

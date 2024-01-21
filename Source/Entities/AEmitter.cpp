@@ -9,6 +9,14 @@ namespace RTE {
 
 	ConcreteClassInfo(AEmitter, Attachable, 100);
 
+	AEmitter::AEmitter() {
+		Clear();
+	}
+
+	AEmitter::~AEmitter() {
+		Destroy(true);
+	}
+
 	void AEmitter::Clear() {
 		m_EmissionList.clear();
 		m_EmissionSound = nullptr;

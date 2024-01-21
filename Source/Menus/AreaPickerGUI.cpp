@@ -26,6 +26,14 @@ using namespace RTE;
 
 BITMAP* RTE::AreaPickerGUI::s_pCursor = 0;
 
+AreaPickerGUI::AreaPickerGUI() {
+	Clear();
+}
+
+AreaPickerGUI::~AreaPickerGUI() {
+	Destroy();
+}
+
 void AreaPickerGUI::Clear() {
 	m_pController = 0;
 	m_pGUIScreen = 0;

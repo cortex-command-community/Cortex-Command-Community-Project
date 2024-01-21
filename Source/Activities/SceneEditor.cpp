@@ -31,6 +31,14 @@ namespace RTE {
 
 	ConcreteClassInfo(SceneEditor, EditorActivity, 0);
 
+	SceneEditor::SceneEditor() {
+		Clear();
+	}
+
+	SceneEditor::~SceneEditor() {
+		Destroy(true);
+	}
+
 	void SceneEditor::Clear() {
 		m_pEditorGUI = 0;
 		m_pNewTerrainCombo = 0;

@@ -21,7 +21,7 @@ namespace RTE {
 	public:
 #pragma region Creation
 		/// Constructor method used to instantiate a LuaStateWrapper object in system memory. Initialize() should be called before using the object.
-		LuaStateWrapper() { Clear(); }
+		LuaStateWrapper();
 
 		/// Makes the LuaStateWrapper object ready for use.
 		void Initialize();
@@ -29,7 +29,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a LuaStateWrapper object before deletion from system memory.
-		~LuaStateWrapper() { Destroy(); }
+		~LuaStateWrapper();
 
 		/// Destroys and resets (through Clear()) the LuaStateWrapper object.
 		void Destroy();
@@ -270,7 +270,7 @@ namespace RTE {
 	public:
 #pragma region Creation
 		/// Constructor method used to instantiate a LuaMan object in system memory. Initialize() should be called before using the object.
-		LuaMan() { Clear(); }
+		LuaMan();
 
 		/// Makes the LuaMan object ready for use.
 		void Initialize();
@@ -278,7 +278,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a LuaMan object before deletion from system memory.
-		~LuaMan() { Destroy(); }
+		~LuaMan();
 
 		/// Destroys and resets (through Clear()) the LuaMan object.
 		void Destroy();

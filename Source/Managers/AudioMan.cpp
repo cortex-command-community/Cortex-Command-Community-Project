@@ -13,6 +13,14 @@
 
 namespace RTE {
 
+	AudioMan::AudioMan() {
+		Clear();
+	}
+
+	AudioMan::~AudioMan() {
+		Destroy();
+	}
+
 	void AudioMan::Clear() {
 		m_AudioEnabled = false;
 		m_CurrentActivityHumanPlayerPositions.clear();

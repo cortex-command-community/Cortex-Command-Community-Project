@@ -7,6 +7,14 @@ namespace RTE {
 
 	ConcreteClassInfo(Turret, Attachable, 20);
 
+	Turret::Turret() {
+		Clear();
+	}
+
+	Turret::~Turret() {
+		Destroy(true);
+	}
+
 	void Turret::Clear() {
 		m_MountedDevices.clear();
 		m_MountedDeviceRotationOffset = 0;

@@ -53,7 +53,7 @@ namespace RTE {
 		/// @param whichPlayer Whether the keyboard and joysticks also can control the mouse cursor.
 		GUIInput(int whichPlayer, bool keyJoyMouseCursor = false);
 
-		virtual ~GUIInput() { Destroy(); }
+		virtual ~GUIInput();
 
 		/// Destroy the screen
 		virtual void Destroy();

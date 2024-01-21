@@ -54,11 +54,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a AHuman object in system
 		/// memory. Create() should be called before using the object.
-		AHuman() { Clear(); }
+		AHuman();
 
 		/// Destructor method used to clean up a AHuman object before deletion
 		/// from system memory.
-		~AHuman() override { Destroy(true); }
+		~AHuman() override;
 
 		/// Makes the AHuman object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

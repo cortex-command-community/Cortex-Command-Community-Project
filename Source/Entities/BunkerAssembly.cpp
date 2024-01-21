@@ -9,6 +9,14 @@ namespace RTE {
 
 	ConcreteClassInfo(BunkerAssembly, SceneObject, 0);
 
+	BunkerAssembly::BunkerAssembly() {
+		Clear();
+	}
+	
+	BunkerAssembly::~BunkerAssembly() {
+		Destroy(true);
+	}
+
 	void BunkerAssembly::Clear() {
 		m_FGColorFile.Reset();
 		m_MaterialFile.Reset();

@@ -25,6 +25,14 @@ namespace RTE {
 
 	ConcreteClassInfo(ACrab, Actor, 20);
 
+	ACrab::ACrab() {
+		Clear();
+	}
+
+	ACrab::~ACrab() {
+		Destroy(true);
+	}
+
 	void ACrab::Clear() {
 		m_pTurret = 0;
 		m_pLFGLeg = 0;

@@ -30,6 +30,14 @@ namespace RTE {
 
 	ConcreteClassInfo(AreaEditor, EditorActivity, 0);
 
+	AreaEditor::AreaEditor() {
+		Clear();
+	}
+
+	AreaEditor::~AreaEditor() {
+		Destroy(true);
+	}
+
 	void AreaEditor::Clear() {
 		m_pEditorGUI = 0;
 		m_pNewAreaName = 0;

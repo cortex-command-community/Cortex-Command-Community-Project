@@ -16,7 +16,7 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a MOPixel object in system memory. Create() should be called before using the object.
-		MOPixel() { Clear(); }
+		MOPixel();
 
 		/// Convenience constructor to both instantiate a MOPixel in memory and Create it at the same time.
 		/// @param color A Color object specifying the color of this MOPixel.
@@ -52,7 +52,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a MOPixel object before deletion from system memory.
-		~MOPixel() override { Destroy(true); }
+		~MOPixel() override;
 
 		/// Destroys and resets (through Clear()) the MOPixel object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.

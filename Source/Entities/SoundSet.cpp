@@ -12,6 +12,14 @@ namespace RTE {
 	    {"forwards", SoundSelectionCycleMode::FORWARDS},
 	    {"all", SoundSelectionCycleMode::ALL}};
 
+	SoundSet::SoundSet() {
+		Clear();
+	}
+	
+	SoundSet::~SoundSet() {
+		Destroy();
+	}
+
 	void SoundSet::Clear() {
 		m_SoundSelectionCycleMode = SoundSelectionCycleMode::RANDOM;
 		m_CurrentSelection = {false, -1};

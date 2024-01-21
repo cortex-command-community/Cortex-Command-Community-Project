@@ -30,11 +30,11 @@ namespace RTE {
 	public:
 		/// Constructor method used to instantiate a AreaPickerGUI area in system
 		/// memory. Create() should be called before using the area.
-		AreaPickerGUI() { Clear(); }
+		AreaPickerGUI();
 
 		/// Destructor method used to clean up a AreaPickerGUI area before deletion
 		/// from system memory.
-		~AreaPickerGUI() { Destroy(); }
+		~AreaPickerGUI();
 
 		/// Makes the AreaPickerGUI area ready for use.
 		/// @param pController A poitner to a Controller which will control this Menu. Ownership is

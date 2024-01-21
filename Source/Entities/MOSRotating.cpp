@@ -33,6 +33,15 @@ namespace RTE {
 	BITMAP* MOSRotating::m_spTempBitmapS256 = 0;
 	BITMAP* MOSRotating::m_spTempBitmapS512 = 0;
 
+
+	MOSRotating::MOSRotating() {
+		Clear();
+	}
+	
+	MOSRotating::~MOSRotating() {
+		Destroy(true);
+	}
+
 	void MOSRotating::Clear() {
 		m_pAtomGroup = 0;
 		m_pDeepGroup = 0;

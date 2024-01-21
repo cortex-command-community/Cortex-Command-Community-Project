@@ -4,6 +4,14 @@
 
 namespace RTE {
 
+	GUISound::GUISound() {
+		Clear();
+	}
+
+	GUISound::~GUISound() {
+		Destroy();
+	}
+
 	void GUISound::Clear() {
 		m_SplashSound.Reset();
 		m_EnterMenuSound.Reset();

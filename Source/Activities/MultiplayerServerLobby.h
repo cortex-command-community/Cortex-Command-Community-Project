@@ -37,11 +37,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a MultiplayerServerLobby object in system
 		/// memory. Create() should be called before using the object.
-		MultiplayerServerLobby() { Clear(); }
+		MultiplayerServerLobby();
 
 		/// Destructor method used to clean up a MultiplayerServerLobby object before deletion
 		/// from system memory.
-		~MultiplayerServerLobby() override { Destroy(true); }
+		~MultiplayerServerLobby() override;
 
 		/// Makes the MultiplayerServerLobby object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.

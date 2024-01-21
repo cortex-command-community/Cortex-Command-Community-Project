@@ -7,6 +7,14 @@
 namespace RTE {
 
 	ConcreteClassInfo(PEmitter, MOSParticle, 100);
+	
+	PEmitter::PEmitter() {
+		Clear();
+	}
+
+	PEmitter::~PEmitter() {
+		Destroy(true);
+	}
 
 	void PEmitter::Clear() {
 		m_EmissionList.clear();

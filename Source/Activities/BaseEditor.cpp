@@ -25,6 +25,14 @@ namespace RTE {
 
 	ConcreteClassInfo(BaseEditor, Activity, 0);
 
+	BaseEditor::BaseEditor() {
+		Clear();
+	}
+
+	BaseEditor::~BaseEditor() {
+		Destroy(true);
+	}
+
 	void BaseEditor::Clear() {
 		m_pEditorGUI = 0;
 		m_NeedSave = false;
