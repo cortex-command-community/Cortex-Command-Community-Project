@@ -1,5 +1,4 @@
-#ifndef _GUICOMBOBOX_
-#define _GUICOMBOBOX_
+#pragma once
 
 #include "GUITextPanel.h"
 #include "GUIListPanel.h"
@@ -230,5 +229,4 @@ namespace RTE {
 		GUIBitmap* m_DrawBitmap;
 		bool m_Pushed;
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

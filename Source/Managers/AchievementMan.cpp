@@ -26,6 +26,10 @@ AchievementMan::AchievementMan():
 #endif  // STEAM_BUILD
 }
 
+AchievementMan::~AchievementMan() {
+  Sync();
+};
+
 int AchievementMan::Create()
 {
 #ifdef STEAM_BUILD

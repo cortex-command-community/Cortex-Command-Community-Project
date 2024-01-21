@@ -1,5 +1,4 @@
-#ifndef _GUILABEL_
-#define _GUILABEL_
+#pragma once
 
 #ifdef GUI_STANDALONE
 #include "Timer.h"
@@ -151,5 +150,4 @@ namespace RTE {
 		OverflowScrollState m_OverflowScrollState;
 		Timer m_OverflowScrollTimer;
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

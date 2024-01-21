@@ -11,6 +11,14 @@ namespace RTE {
 
 	const std::unordered_set<std::string> LuaMan::c_FileAccessModes = {"r", "r+", "w", "w+", "a", "a+", "rt", "wt"};
 
+	LuaStateWrapper::LuaStateWrapper() {
+		Clear();
+	}
+
+	LuaStateWrapper::~LuaStateWrapper() {
+		Destroy();
+	}
+
 	void LuaStateWrapper::Clear() {
 		m_State = nullptr;
 		m_TempEntity = nullptr;
@@ -334,7 +342,7 @@ namespace RTE {
 		// TODO
 		// It would be nice to assign to least-saturated state, but that's a bit tricky with MO registering...
 		/*auto itr = std::min_element(m_ScriptStates.begin(), m_ScriptStates.end(),
-		  [](const LuaStateWrapper& lhs, const LuaStateWrapper& rhs) { return lhs.GetRegisteredMOs().size() < rhs.GetRegisteredMOs().size(); }
+		    [](const LuaStateWrapper& lhs, const LuaStateWrapper& rhs) { return lhs.GetRegisteredMOs().size() < rhs.GetRegisteredMOs().size(); }
 		);
 
 		bool success = itr->GetMutex().try_lock();
@@ -865,6 +873,14 @@ namespace RTE {
 			}
 		}
 		return stackDescription.str();
+	}
+
+	LuaMan::LuaMan() {
+		Clear();
+	}
+
+	LuaMan::~LuaMan() {
+		Destroy();
 	}
 
 	const std::vector<std::string>* LuaMan::DirectoryList(const std::string& path) {

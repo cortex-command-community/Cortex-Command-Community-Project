@@ -15,8 +15,17 @@
 #include "AreaPickerGUI.h"
 #include "Scene.h"
 #include "GUISound.h"
+#include "PieMenu.h"
 
 using namespace RTE;
+
+AreaEditorGUI::AreaEditorGUI() {
+	Clear();
+}
+
+AreaEditorGUI::~AreaEditorGUI() {
+	Destroy();
+}
 
 void AreaEditorGUI::Clear() {
 	m_pController = 0;
@@ -89,7 +98,7 @@ void AreaEditorGUI::SetPosOnScreen(int newPosX, int newPosY) {
 	m_pPicker->SetPosOnScreen(newPosX, newPosY);
 }
 
-PieSlice::SliceType AreaEditorGUI::GetActivatedPieSlice() const {
+PieSliceType AreaEditorGUI::GetActivatedPieSlice() const {
 	return m_PieMenu->GetPieCommand();
 }
 
@@ -208,14 +217,14 @@ void AreaEditorGUI::Update() {
 		m_PieMenu->SetEnabled(false);
 	}
 
-	if (m_PieMenu->GetPieCommand() != PieSlice::SliceType::NoType) {
-		if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorPick) {
+	if (m_PieMenu->GetPieCommand() != PieSliceType::NoType) {
+		if (m_PieMenu->GetPieCommand() == PieSliceType::EditorPick) {
 			m_EditorGUIMode = PICKINGAREA;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorMove) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorMove) {
 			m_EditorGUIMode = PREADDMOVEBOX;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorRemove) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorRemove) {
 			m_EditorGUIMode = DELETINGBOX;
-		} else if (m_PieMenu->GetPieCommand() == PieSlice::SliceType::EditorDone) {
+		} else if (m_PieMenu->GetPieCommand() == PieSliceType::EditorDone) {
 			m_EditorGUIMode = DONEEDITING;
 		}
 	}

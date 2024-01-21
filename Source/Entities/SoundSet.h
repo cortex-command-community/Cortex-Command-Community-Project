@@ -1,11 +1,19 @@
-#ifndef _RTESOUNDSET_
-#define _RTESOUNDSET_
+#pragma once
 
 #include "Vector.h"
 #include "ContentFile.h"
 #include "LuaMan.h"
 
 namespace RTE {
+
+	/// Self-contained struct defining an individual sound in a SoundSet.
+	struct SoundData {
+		ContentFile SoundFile;
+		FMOD::Sound* SoundObject;
+		Vector Offset = Vector();
+		float MinimumAudibleDistance = 0.0F;
+		float AttenuationStartDistance = -1.0F;
+	};
 
 	/// A set of sounds, and their selection data.
 	class SoundSet : public Serializable {
@@ -21,18 +29,9 @@ namespace RTE {
 			ALL
 		};
 
-		/// Self-contained struct defining an individual sound in a SoundSet.
-		struct SoundData {
-			ContentFile SoundFile;
-			FMOD::Sound* SoundObject;
-			Vector Offset = Vector();
-			float MinimumAudibleDistance = 0.0F;
-			float AttenuationStartDistance = -1.0F;
-		};
-
 #pragma region Creation
 		/// Constructor method used to instantiate a SoundSet object in system memory. Create() should be called before using the object.
-		SoundSet() { Clear(); }
+		SoundSet();
 
 		/// Creates a SoundSet to be identical to another, by deep copy.
 		/// @param reference A reference to the SoundSet to deep copy.
@@ -42,7 +41,7 @@ namespace RTE {
 
 #pragma region Destruction
 		/// Destructor method used to clean up a SoundSet object before deletion from system memory.
-		~SoundSet() { Destroy(); }
+		~SoundSet();
 
 		/// Destroys and resets (through Clear()) the SoundSet object.
 		void Destroy() { Clear(); }
@@ -170,4 +169,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

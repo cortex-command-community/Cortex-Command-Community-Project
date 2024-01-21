@@ -30,6 +30,14 @@ namespace RTE {
 
 	BITMAP* InventoryMenuGUI::s_CursorBitmap = nullptr;
 
+	InventoryMenuGUI::InventoryMenuGUI() {
+		Clear();
+	}
+
+	InventoryMenuGUI::~InventoryMenuGUI() {
+		Destroy();
+	}
+
 	void InventoryMenuGUI::CarouselItemBox::GetIconsAndMass(std::vector<BITMAP*>& itemIcons, float& totalItemMass, const std::vector<std::pair<MovableObject*, MovableObject*>>* equippedItems) const {
 		if (IsForEquippedItems) {
 			itemIcons.reserve(equippedItems->size());

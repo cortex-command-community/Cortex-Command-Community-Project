@@ -1,12 +1,12 @@
-#ifndef _RTESOUNDCONTAINER_
-#define _RTESOUNDCONTAINER_
+#pragma once
 
 #include "Entity.h"
-#include "SoundSet.h"
 #include "AudioMan.h"
 
 namespace RTE {
 	class Vector;
+	struct SoundData;
+	class SoundSet;
 
 	/// A container for sounds that represent a specific sound effect.
 	class SoundContainer : public Entity {
@@ -32,14 +32,11 @@ namespace RTE {
 
 #pragma region Creation
 		/// Constructor method used to instantiate a SoundContainer object in system memory. Create() should be called before using the object.
-		SoundContainer() { Clear(); }
+		SoundContainer();
 
 		/// Copy constructor method used to instantiate a SoundContainer object identical to an already existing one.
 		/// @param reference A reference to the SoundContainer to deep copy.
-		SoundContainer(const SoundContainer& reference) {
-			Clear();
-			Create(reference);
-		}
+		SoundContainer(const SoundContainer& reference);
 
 		/// Creates a SoundContainer to be identical to another, by deep copy.
 		/// @param reference A reference to the SoundContainer to deep copy.
@@ -52,18 +49,12 @@ namespace RTE {
 		/// @param affectedByGlobalPitch Whether this SoundContainer's sounds' frequency will be affected by the global pitch.
 		/// @param busRouting Bus to route this sound to.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create(const std::string& soundFilePath, bool immobile = false, bool affectedByGlobalPitch = true, BusRouting busRouting = BusRouting::SFX) {
-			m_TopLevelSoundSet.AddSound(soundFilePath, true);
-			SetImmobile(immobile);
-			SetAffectedByGlobalPitch(affectedByGlobalPitch);
-			SetBusRouting(busRouting);
-			return 0;
-		}
+		int Create(const std::string& soundFilePath, bool immobile = false, bool affectedByGlobalPitch = true, BusRouting busRouting = BusRouting::SFX);
 #pragma endregion
 
 #pragma region Destruction
 		/// Destructor method used to clean up a SoundContainer object before deletion from system memory.
-		~SoundContainer() override { Destroy(true); }
+		~SoundContainer() override;
 
 		/// Destroys and resets (through Clear()) the SoundContainer object. It doesn't delete the Sound files, since they're owned by ContentFile static maps.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
@@ -84,7 +75,7 @@ namespace RTE {
 #pragma region Sound Management Getters and Setters
 		/// Shows whether this SoundContainer's top level SoundSet has any SoundData or SoundSets.
 		/// @return Whether this SoundContainer has any sounds.
-		bool HasAnySounds() const { return m_TopLevelSoundSet.HasAnySounds(); }
+		bool HasAnySounds() const;
 
 		enum class LengthOfSoundType {
 			Any,
@@ -98,14 +89,11 @@ namespace RTE {
 
 		/// Gets a reference to the top level SoundSet of this SoundContainer, to which all SoundData and sub SoundSets belong.
 		/// @return A reference to the top level SoundSet of this SoundContainer.
-		SoundSet& GetTopLevelSoundSet() { return m_TopLevelSoundSet; }
+		SoundSet& GetTopLevelSoundSet() { return *m_TopLevelSoundSet; }
 
 		/// Copies the passed in SoundSet reference into the top level SoundSet of this SoundContainer, effectively making that the new top level SoundSet.
 		/// @param newTopLevelSoundSet A reference to the new top level SoundSet for this SoundContainer.
-		void SetTopLevelSoundSet(const SoundSet& newTopLevelSoundSet) {
-			m_TopLevelSoundSet = newTopLevelSoundSet;
-			m_SoundPropertiesUpToDate = false;
-		}
+		void SetTopLevelSoundSet(const SoundSet& newTopLevelSoundSet);
 
 		/// Gets a vector of hashes of the sounds selected to be played next in this SoundContainer.
 		/// @return The currently playing sounds hashes.
@@ -114,7 +102,7 @@ namespace RTE {
 		/// Gets the SoundData object that corresponds to the given FMOD::Sound. If the sound can't be found, it returns a null pointer.
 		/// @param sound The FMOD::Sound to search for.
 		/// @return A pointer to the corresponding SoundData or a null pointer.
-		const SoundSet::SoundData* GetSoundDataForSound(const FMOD::Sound* sound) const;
+		const SoundData* GetSoundDataForSound(const FMOD::Sound* sound) const;
 
 		/// Gets the channels playing sounds from this SoundContainer.
 		/// @return The channels currently being used.
@@ -179,12 +167,7 @@ namespace RTE {
 
 		/// Sets the custom pan value of this SoundContainer. Clamped between -1 and 1.
 		/// @param customPanValue The new custom pan value.
-		void SetCustomPanValue(float customPanValue) {
-			m_CustomPanValue = std::clamp(customPanValue, -1.0f, 1.0f);
-			if (IsBeingPlayed()) {
-				g_AudioMan.ChangeSoundContainerPlayingChannelsCustomPanValue(this);
-			}
-		}
+		void SetCustomPanValue(float customPanValue);
 
 		/// Gets the panning strength multiplier of this SoundContainer.
 		/// @return A float with the panning strength multiplier.
@@ -236,14 +219,7 @@ namespace RTE {
 		/// Sets the position of the SoundContainer's sounds while they're playing.
 		/// @param position The new position to play the SoundContainer's sounds.
 		/// @return Whether this SoundContainer's attenuation setting was successful.
-		void SetPosition(const Vector& newPosition) {
-			if (!m_Immobile && newPosition != m_Pos) {
-				m_Pos = newPosition;
-				if (IsBeingPlayed()) {
-					g_AudioMan.ChangeSoundContainerPlayingChannelsPosition(this);
-				}
-			}
-		}
+		void SetPosition(const Vector& newPosition);
 
 		/// Gets the volume the sounds in this SoundContainer are played at. Note that this does not factor volume changes due to the SoundContainer's position.
 		/// @return The volume the sounds in this SoundContainer are played at.
@@ -251,13 +227,7 @@ namespace RTE {
 
 		/// Sets the volume sounds in this SoundContainer should be played at. Note that this does not factor volume changes due to the SoundContainer's position. Does not affect currently playing sounds.
 		/// @param newVolume The new volume sounds in this SoundContainer should be played at. Limited between 0 and 10.
-		void SetVolume(float newVolume) {
-			newVolume = std::clamp(newVolume, 0.0F, 10.0F);
-			if (IsBeingPlayed()) {
-				g_AudioMan.ChangeSoundContainerPlayingChannelsVolume(this, newVolume);
-			}
-			m_Volume = newVolume;
-		}
+		void SetVolume(float newVolume);
 
 		/// Gets the pitch the sounds in this SoundContainer are played at. Note that this does not factor in global pitch.
 		/// @return The pitch the sounds in this SoundContainer are played at.
@@ -265,12 +235,7 @@ namespace RTE {
 
 		/// Sets the pitch sounds in this SoundContainer should be played at and updates any playing instances accordingly.
 		/// @param newPitch The new pitch sounds in this SoundContainer should be played at. Limited between 0.125 and 8 (8 octaves up or down).
-		void SetPitch(float newPitch) {
-			m_Pitch = std::clamp(newPitch, 0.125F, 8.0F);
-			if (IsBeingPlayed()) {
-				g_AudioMan.ChangeSoundContainerPlayingChannelsPitch(this);
-			}
-		}
+		void SetPitch(float newPitch);
 
 		/// Gets the pitch variation the sounds in this SoundContainer are played at.
 		/// @return The pitch variation the sounds in this SoundContainer are played at.
@@ -312,7 +277,7 @@ namespace RTE {
 		/// Stops playback of this SoundContainer for a specific player.
 		/// @param player Player to stop playback of this SoundContainer for.
 		/// @return Whether this SoundContainer successfully stopped playing.
-		bool Stop(int player) { return (HasAnySounds() && IsBeingPlayed()) ? g_AudioMan.StopSoundContainerPlayingChannels(this, player) : false; }
+		bool Stop(int player);
 
 		/// Restarts playback of this SoundContainer for all players.
 		/// @return Whether this SoundContainer successfully restarted its playback.
@@ -321,15 +286,11 @@ namespace RTE {
 		/// Restarts playback of this SoundContainer for a specific player.
 		/// @param player Player to restart playback of this SoundContainer for.
 		/// @return Whether this SoundContainer successfully restarted its playback.
-		bool Restart(int player) { return (HasAnySounds() && IsBeingPlayed()) ? g_AudioMan.StopSoundContainerPlayingChannels(this, player) && g_AudioMan.PlaySoundContainer(this, player) : false; }
+		bool Restart(int player);
 
 		/// Fades out playback of the SoundContainer to 0 volume.
 		/// @param fadeOutTime How long the fadeout should take.
-		void FadeOut(int fadeOutTime = 1000) {
-			if (IsBeingPlayed()) {
-				return g_AudioMan.FadeOutSoundContainerPlayingChannels(this, fadeOutTime);
-			}
-		}
+		void FadeOut(int fadeOutTime = 1000);
 #pragma endregion
 
 #pragma region Miscellaneous
@@ -344,7 +305,7 @@ namespace RTE {
 		static const std::unordered_map<std::string, SoundOverlapMode> c_SoundOverlapModeMap; //!< A map of strings to SoundOverlapModes to support string parsing for the SoundOverlapMode enum. Populated in the implementing cpp file.
 		static const std::unordered_map<std::string, BusRouting> c_BusRoutingMap; //!< A map of strings to BusRoutings to support string parsing for the BusRouting enum. Populated in the implementing cpp file.
 
-		SoundSet m_TopLevelSoundSet; // The top level SoundSet that handles all SoundData and sub SoundSets in this SoundContainer.
+		std::shared_ptr<SoundSet> m_TopLevelSoundSet; // The top level SoundSet that handles all SoundData and sub SoundSets in this SoundContainer.
 
 		std::unordered_set<int> m_PlayingChannels; //!< The channels this SoundContainer is currently using.
 		SoundOverlapMode m_SoundOverlapMode; //!< The SoundOverlapMode for this SoundContainer, used to determine how it should handle overlapping play calls.
@@ -370,4 +331,3 @@ namespace RTE {
 		void Clear();
 	};
 } // namespace RTE
-#endif

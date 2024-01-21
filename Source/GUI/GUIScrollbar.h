@@ -1,5 +1,4 @@
-#ifndef _GUISCROLLBAR_
-#define _GUISCROLLBAR_
+#pragma once
 
 #include "GUIScrollPanel.h"
 
@@ -82,5 +81,4 @@ namespace RTE {
 
 	private:
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE

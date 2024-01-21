@@ -1,5 +1,4 @@
-#ifndef _RTELUAREGISTERDEFINITIONS_
-#define _RTELUAREGISTERDEFINITIONS_
+#pragma once
 
 #include "LuabindDefinitions.h"
 #include "LuaAdapterDefinitions.h"
@@ -303,4 +302,3 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(DrawBlendMode);
 	};
 } // namespace RTE
-#endif

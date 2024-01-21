@@ -1,5 +1,4 @@
-#ifndef _RTEERROR_
-#define _RTEERROR_
+#pragma once
 
 #include "System.h"
 
@@ -85,4 +84,3 @@ namespace RTE {
 		RTEError::AssertFunc(description, std::source_location::current()); \
 	}
 } // namespace RTE
-#endif

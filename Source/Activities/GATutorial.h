@@ -1,5 +1,4 @@
-#ifndef _RTEGATUTORIAL_
-#define _RTEGATUTORIAL_
+#pragma once
 
 /// Header file for the ActivityMan class.
 /// @author Daniel Tabar
@@ -25,11 +24,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a GATutorial object in system
 		/// memory. Create() should be called before using the object.
-		GATutorial() { Clear(); }
+		GATutorial();
 
 		/// Destructor method used to clean up a GATutorial object before deletion
 		/// from system memory.
-		~GATutorial() override { Destroy(true); }
+		~GATutorial() override;
 
 		/// Makes the GATutorial object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -207,5 +206,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

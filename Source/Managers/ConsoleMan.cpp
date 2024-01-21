@@ -16,6 +16,14 @@
 
 namespace RTE {
 
+	ConsoleMan::ConsoleMan() {
+		Clear();
+	}
+
+	ConsoleMan::~ConsoleMan() {
+		Destroy();
+	}
+
 	void ConsoleMan::Clear() {
 		m_ConsoleState = ConsoleState::Disabled;
 		m_ReadOnly = false;

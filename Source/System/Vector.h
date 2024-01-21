@@ -1,5 +1,4 @@
-#ifndef _RTEVECTOR_
-#define _RTEVECTOR_
+#pragma once
 
 #include "Serializable.h"
 #include "RTETools.h"
@@ -497,4 +496,3 @@ namespace RTE {
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this.
 	};
 } // namespace RTE
-#endif

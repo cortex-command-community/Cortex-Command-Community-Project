@@ -1,5 +1,4 @@
-#ifndef _RTESYSTEM_
-#define _RTESYSTEM_
+#pragma once
 
 namespace RTE {
 
@@ -147,4 +146,3 @@ namespace RTE {
 		static constexpr int s_MaxUnzippedFileSize = 104857600; //!< Maximum size of single file being extracted from zip archive (100MiB).
 	};
 } // namespace RTE
-#endif

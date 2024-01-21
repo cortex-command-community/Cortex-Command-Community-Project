@@ -1,5 +1,4 @@
-#ifndef _RTEMOVABLEMAN_
-#define _RTEMOVABLEMAN_
+#pragma once
 
 /// Header file for the MovableMan class.
 /// @author Daniel Tabar
@@ -55,11 +54,11 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a MovableMan object in system
 		/// memory. Create() should be called before using the object.
-		MovableMan() { Clear(); }
+		MovableMan();
 
 		/// Destructor method used to clean up a MovableMan object before deletion
 		/// from system memory.
-		~MovableMan() { Destroy(); }
+		~MovableMan();
 
 		/// Makes the MovableMan object ready for use.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -656,5 +655,3 @@ namespace RTE {
 	};
 
 } // namespace RTE
-
-#endif // File

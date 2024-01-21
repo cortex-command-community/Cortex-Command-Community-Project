@@ -7,6 +7,14 @@ namespace RTE {
 
 	ConcreteClassInfo(SLBackground, SceneLayer, 0);
 
+	SLBackground::SLBackground() {
+		Clear();
+	}
+
+	SLBackground::~SLBackground() {
+		Destroy(true);
+	}
+
 	void SLBackground::Clear() {
 		m_Bitmaps.clear();
 		m_FrameCount = 1;

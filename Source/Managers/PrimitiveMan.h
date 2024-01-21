@@ -1,5 +1,4 @@
-#ifndef _RTEPRIMITIVEMAN_
-#define _RTEPRIMITIVEMAN_
+#pragma once
 
 #include "Singleton.h"
 #include "GraphicalPrimitive.h"
@@ -401,4 +400,3 @@ namespace RTE {
 		PrimitiveMan& operator=(const PrimitiveMan& rhs) = delete;
 	};
 } // namespace RTE
-#endif

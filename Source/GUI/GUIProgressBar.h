@@ -1,5 +1,4 @@
-#ifndef _GUIPROGRESSBAR_
-#define _GUIPROGRESSBAR_
+#pragma once
 
 namespace RTE {
 
@@ -108,5 +107,4 @@ namespace RTE {
 		/// Create the progressbar bitmap to draw.
 		void BuildBitmap();
 	};
-}; // namespace RTE
-#endif
+} // namespace RTE
