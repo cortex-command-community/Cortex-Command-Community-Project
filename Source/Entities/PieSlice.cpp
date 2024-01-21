@@ -4,19 +4,19 @@
 #include "PresetMan.h"
 #include "LuaMan.h"
 
-namespace RTE {
+using namespace RTE;
 
-	ConcreteClassInfo(PieSlice, Entity, 80);
+ConcreteClassInfo(PieSlice, Entity, 80);
 
-	PieSlice::PieSlice() {
+PieSlice::PieSlice() {
 		Clear();
-	}
+}
 
-	PieSlice::~PieSlice() {
+PieSlice::~PieSlice() {
 		Destroy(true);
-	}
+}
 
-	void PieSlice::Clear() {
+void PieSlice::Clear() {
 		m_Type = PieSliceType::NoType;
 		m_Direction = Directions::Any;
 		m_CanBeMiddleSlice = true;
@@ -35,9 +35,9 @@ namespace RTE {
 		m_MidAngle = 0;
 
 		m_DrawFlippedToMatchAbsoluteAngle = false;
-	}
+}
 
-	int PieSlice::Create() {
+int PieSlice::Create() {
 		if (Entity::Create() < 0) {
 			return -1;
 		}
@@ -46,9 +46,9 @@ namespace RTE {
 		}
 
 		return 0;
-	}
+}
 
-	int PieSlice::Create(const PieSlice& reference) {
+int PieSlice::Create(const PieSlice& reference) {
 		Entity::Create(reference);
 
 		m_Type = reference.m_Type;
@@ -75,9 +75,9 @@ namespace RTE {
 		m_DrawFlippedToMatchAbsoluteAngle = reference.m_DrawFlippedToMatchAbsoluteAngle;
 
 		return 0;
-	}
+}
 
-	int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
+int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 		MatchProperty("Type", { m_Type = static_cast<PieSliceType>(std::stoi(reader.ReadPropValue())); });
@@ -120,9 +120,9 @@ namespace RTE {
 		MatchProperty("DrawFlippedToMatchAbsoluteAngle", { reader >> m_DrawFlippedToMatchAbsoluteAngle; });
 
 		EndPropertyList;
-	}
+}
 
-	int PieSlice::Save(Writer& writer) const {
+int PieSlice::Save(Writer& writer) const {
 		Entity::Save(writer);
 
 		if (m_Type != PieSliceType::NoType) {
@@ -144,9 +144,9 @@ namespace RTE {
 		}
 
 		return 0;
-	}
+}
 
-	BITMAP* RTE::PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {
+BITMAP* PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {
 		if (int iconFrameCount = m_Icon->GetFrameCount(); iconFrameCount > 0) {
 			if (!IsEnabled() && iconFrameCount > 2) {
 				return m_Icon->GetBitmaps8()[2];
@@ -157,17 +157,17 @@ namespace RTE {
 			}
 		}
 		return nullptr;
-	}
+}
 
-	PieMenu* PieSlice::GetSubPieMenu() const {
+PieMenu* PieSlice::GetSubPieMenu() const {
 		return m_SubPieMenu.get();
-	}
+}
 
-	void PieSlice::SetSubPieMenu(PieMenu* newSubPieMenu) {
+void PieSlice::SetSubPieMenu(PieMenu* newSubPieMenu) {
 		m_SubPieMenu = std::unique_ptr<PieMenu, PieMenuCustomDeleter>(newSubPieMenu);
-	}
+}
 
-	int PieSlice::ReloadScripts() {
+int PieSlice::ReloadScripts() {
 		int status = 0;
 
 		if (m_LuabindFunctionObject) {
@@ -181,13 +181,12 @@ namespace RTE {
 		}
 
 		return status;
-	}
+}
 
-	void PieSlice::RecalculateMidAngle() {
+void PieSlice::RecalculateMidAngle() {
 		m_MidAngle = m_StartAngle + (static_cast<float>(m_SlotCount) * PieQuadrant::c_PieSliceSlotSize / 2.0F);
-	}
+}
 
-	void PieSlice::PieMenuCustomDeleter::operator()(PieMenu* pieMenu) const {
+void PieSlice::PieMenuCustomDeleter::operator()(PieMenu* pieMenu) const {
 		pieMenu->Destroy(true);
-	}
-} // namespace RTE
+}

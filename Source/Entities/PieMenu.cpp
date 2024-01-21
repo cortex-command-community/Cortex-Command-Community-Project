@@ -13,44 +13,44 @@
 #include "GUIFont.h"
 #include "AllegroBitmap.h"
 
-namespace RTE {
+using namespace RTE;
 
-	ConcreteClassInfo(PieMenu, Entity, 20);
+ConcreteClassInfo(PieMenu, Entity, 20);
 
-	const std::unordered_map<std::string, PieMenu::IconSeparatorMode> PieMenu::c_IconSeparatorModeMap = {
+const std::unordered_map<std::string, PieMenu::IconSeparatorMode> PieMenu::c_IconSeparatorModeMap = {
 	    {"Line", IconSeparatorMode::Line},
 	    {"Circle", IconSeparatorMode::Circle},
 	    {"Square", IconSeparatorMode::Square}};
 
-	const std::unordered_map<ControlState, Directions> PieMenu::c_ControlStateDirections = {
+const std::unordered_map<ControlState, Directions> PieMenu::c_ControlStateDirections = {
 	    {ControlState::PRESS_UP, Directions::Up},
 	    {ControlState::PRESS_DOWN, Directions::Down},
 	    {ControlState::PRESS_LEFT, Directions::Left},
 	    {ControlState::PRESS_RIGHT, Directions::Right}};
 
-	const std::unordered_map<Directions, Directions> PieMenu::c_OppositeDirections = {
+const std::unordered_map<Directions, Directions> PieMenu::c_OppositeDirections = {
 	    {Directions::Up, Directions::Down},
 	    {Directions::Down, Directions::Up},
 	    {Directions::Left, Directions::Right},
 	    {Directions::Right, Directions::Left}};
 
-	const std::unordered_map<Directions, Directions> PieMenu::c_CounterClockwiseDirections = {
+const std::unordered_map<Directions, Directions> PieMenu::c_CounterClockwiseDirections = {
 	    {Directions::Up, Directions::Left},
 	    {Directions::Down, Directions::Right},
 	    {Directions::Left, Directions::Down},
 	    {Directions::Right, Directions::Up}};
 
-	BITMAP* PieMenu::s_CursorBitmap = nullptr;
+BITMAP* PieMenu::s_CursorBitmap = nullptr;
 
-	PieMenu::PieMenu() {
+PieMenu::PieMenu() {
 		Clear();
-	}
+}
 
-	PieMenu::~PieMenu() {
+PieMenu::~PieMenu() {
 		Destroy(true);
-	}
+}
 
-	void PieMenu::Clear() {
+void PieMenu::Clear() {
 		m_LargeFont = nullptr;
 
 		m_Owner = nullptr;
@@ -98,9 +98,9 @@ namespace RTE {
 		m_BGPieSlicesWithSubPieMenuBitmap = nullptr;
 		m_BGBitmapNeedsRedrawing = true;
 		m_BGPieSlicesWithSubPieMenuBitmapNeedsRedrawing = true;
-	}
+}
 
-	int PieMenu::Create() {
+int PieMenu::Create() {
 		if (!s_CursorBitmap) {
 			s_CursorBitmap = ContentFile("Base.rte/GUIs/PieMenus/PieCursor.png").GetAsBitmap();
 		}
@@ -114,9 +114,9 @@ namespace RTE {
 		}
 
 		return 0;
-	}
+}
 
-	int PieMenu::Create(const PieMenu& reference) {
+int PieMenu::Create(const PieMenu& reference) {
 		Entity::Create(reference);
 
 		m_LargeFont = reference.m_LargeFont;
@@ -161,9 +161,9 @@ namespace RTE {
 		RepopulateAndRealignCurrentPieSlices();
 
 		return 0;
-	}
+}
 
-	void PieMenu::Destroy(bool notInherited) {
+void PieMenu::Destroy(bool notInherited) {
 		if (!notInherited) {
 			Entity::Destroy();
 		}
@@ -171,9 +171,9 @@ namespace RTE {
 		destroy_bitmap(m_BGRotationBitmap);
 		destroy_bitmap(m_BGPieSlicesWithSubPieMenuBitmap);
 		Clear();
-	}
+}
 
-	int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
+int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
 		StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 		MatchProperty("IconSeparatorMode", {
@@ -206,9 +206,9 @@ namespace RTE {
 		});
 
 		EndPropertyList;
-	}
+}
 
-	int PieMenu::Save(Writer& writer) const {
+int PieMenu::Save(Writer& writer) const {
 		Entity::Save(writer);
 
 		writer.NewPropertyWithValue("IconSeparatorMode", static_cast<int>(m_IconSeparatorMode));
@@ -227,9 +227,9 @@ namespace RTE {
 		}
 
 		return 0;
-	}
+}
 
-	void PieMenu::SetOwner(Actor* newOwner) {
+void PieMenu::SetOwner(Actor* newOwner) {
 		RTEAssert((newOwner == nullptr) ? true : (newOwner->GetPieMenu() == this || IsSubPieMenu()), "Tried to set Pie Menu owning Actor to Actor with different Pie Menu.");
 		if (m_Owner) {
 			for (PieSlice* pieSlice: m_CurrentPieSlices) {
@@ -245,9 +245,9 @@ namespace RTE {
 			AddWhilePieMenuOpenListener(newOwner, std::bind(&MovableObject::WhilePieMenuOpenListener, newOwner, this));
 		}
 		m_Owner = newOwner;
-	}
+}
 
-	Controller* PieMenu::GetController() const {
+Controller* PieMenu::GetController() const {
 		if (m_MenuController) {
 			return m_MenuController;
 		}
@@ -256,15 +256,15 @@ namespace RTE {
 			return nullptr;
 		}
 		return m_Owner->GetController();
-	}
+}
 
-	void PieMenu::SetPos(const Vector& newPos) {
+void PieMenu::SetPos(const Vector& newPos) {
 		if (g_SceneMan.ShortestDistance(m_CenterPos, newPos, g_SceneMan.SceneWrapsX()).GetMagnitude() > 2.0F) {
 			m_CenterPos = newPos;
 		}
-	}
+}
 
-	void PieMenu::SetEnabled(bool enable, bool playSounds) {
+void PieMenu::SetEnabled(bool enable, bool playSounds) {
 		m_MenuMode = MenuMode::Normal;
 
 		bool enabledStateDoesNotMatchInput = (enable && m_EnabledState != EnabledState::Enabled && m_EnabledState != EnabledState::Enabling) || (!enable && m_EnabledState != EnabledState::Disabled && m_EnabledState != EnabledState::Disabling);
@@ -291,39 +291,39 @@ namespace RTE {
 				}
 			}
 		}
-	}
+}
 
-	const PieSlice* PieMenu::GetActivatedPieSlice() const {
+const PieSlice* PieMenu::GetActivatedPieSlice() const {
 		if (m_ActiveSubPieMenu) {
 			return m_ActiveSubPieMenu->GetActivatedPieSlice();
 		}
 		return m_ActivatedPieSlice;
-	}
+}
 
-	PieSliceType PieMenu::GetPieCommand() const {
+PieSliceType PieMenu::GetPieCommand() const {
 		const PieSlice* activatedSlice = m_ActiveSubPieMenu ? m_ActiveSubPieMenu->GetActivatedPieSlice() : m_ActivatedPieSlice;
 		return (activatedSlice == nullptr) ? PieSliceType::NoType : activatedSlice->GetType();
-	}
+}
 
-	PieSlice* PieMenu::GetFirstPieSliceByPresetName(const std::string& presetName) const {
+PieSlice* PieMenu::GetFirstPieSliceByPresetName(const std::string& presetName) const {
 		for (PieSlice* pieSlice: m_CurrentPieSlices) {
 			if (pieSlice->GetPresetName() == presetName) {
 				return pieSlice;
 			}
 		}
 		return nullptr;
-	}
+}
 
-	PieSlice* PieMenu::GetFirstPieSliceByType(PieSliceType pieSliceType) const {
+PieSlice* PieMenu::GetFirstPieSliceByType(PieSliceType pieSliceType) const {
 		for (PieSlice* pieSlice: m_CurrentPieSlices) {
 			if (pieSlice->GetType() == pieSliceType) {
 				return pieSlice;
 			}
 		}
 		return nullptr;
-	}
+}
 
-	bool PieMenu::AddPieSlice(PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource, bool allowQuadrantOverflow) {
+bool PieMenu::AddPieSlice(PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource, bool allowQuadrantOverflow) {
 		Directions pieSliceDirection = pieSliceToAdd->GetDirection();
 		if (pieSliceDirection != Directions::Any && !m_PieQuadrants.at(pieSliceDirection).m_Enabled) {
 			pieSliceToAdd->SetDirection(Directions::Any);
@@ -358,9 +358,9 @@ namespace RTE {
 			RepopulateAndRealignCurrentPieSlices();
 		}
 		return sliceWasAdded;
-	}
+}
 
-	bool PieMenu::AddPieSliceIfPresetNameIsUnique(PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource, bool allowQuadrantOverflow) {
+bool PieMenu::AddPieSliceIfPresetNameIsUnique(PieSlice* pieSliceToAdd, const Entity* pieSliceOriginalSource, bool onlyCheckPieSlicesWithSameOriginalSource, bool allowQuadrantOverflow) {
 		const std::string& pieSlicePresetName = pieSliceToAdd->GetPresetName();
 
 		if (pieSlicePresetName == "None") {
@@ -382,9 +382,9 @@ namespace RTE {
 		}
 
 		return AddPieSlice(dynamic_cast<PieSlice*>(pieSliceToAdd->Clone()), pieSliceOriginalSource, allowQuadrantOverflow);
-	}
+}
 
-	PieSlice* PieMenu::RemovePieSlice(const PieSlice* pieSliceToRemove) {
+PieSlice* PieMenu::RemovePieSlice(const PieSlice* pieSliceToRemove) {
 		PieSlice* removedPieSlice = nullptr;
 
 		if (Directions sliceDirection = pieSliceToRemove->GetDirection(); sliceDirection > Directions::None) {
@@ -408,9 +408,9 @@ namespace RTE {
 		}
 
 		return removedPieSlice;
-	}
+}
 
-	bool PieMenu::RemovePieSlicesByPresetName(const std::string& presetNameToRemoveBy) {
+bool PieMenu::RemovePieSlicesByPresetName(const std::string& presetNameToRemoveBy) {
 		bool anyPieSlicesRemoved = false;
 
 		std::vector<const PieSlice*> pieSlicesToRemove;
@@ -425,9 +425,9 @@ namespace RTE {
 			delete RemovePieSlice(pieSliceToRemove);
 		}
 		return anyPieSlicesRemoved;
-	}
+}
 
-	bool PieMenu::RemovePieSlicesByType(PieSliceType pieSliceTypeToRemoveBy) {
+bool PieMenu::RemovePieSlicesByType(PieSliceType pieSliceTypeToRemoveBy) {
 		bool anyPieSlicesRemoved = false;
 
 		std::vector<const PieSlice*> pieSlicesToRemove;
@@ -442,9 +442,9 @@ namespace RTE {
 		}
 
 		return anyPieSlicesRemoved;
-	}
+}
 
-	bool PieMenu::RemovePieSlicesByOriginalSource(const Entity* originalSource) {
+bool PieMenu::RemovePieSlicesByOriginalSource(const Entity* originalSource) {
 		bool anyPieSlicesRemoved = false;
 
 		std::vector<const PieSlice*> pieSlicesToRemove;
@@ -459,9 +459,9 @@ namespace RTE {
 		}
 
 		return anyPieSlicesRemoved;
-	}
+}
 
-	PieSlice* PieMenu::ReplacePieSlice(const PieSlice* pieSliceToReplace, PieSlice* replacementPieSlice) {
+PieSlice* PieMenu::ReplacePieSlice(const PieSlice* pieSliceToReplace, PieSlice* replacementPieSlice) {
 		if (pieSliceToReplace == nullptr) {
 			return nullptr;
 		}
@@ -526,9 +526,9 @@ namespace RTE {
 		}
 
 		return replacedPieSlice;
-	}
+}
 
-	void PieMenu::Update() {
+void PieMenu::Update() {
 		const Controller* controller = GetController();
 
 		m_ActivatedPieSlice = nullptr;
@@ -628,9 +628,9 @@ namespace RTE {
 		if (m_BGBitmapNeedsRedrawing && m_EnabledState != EnabledState::Disabled) {
 			UpdatePredrawnMenuBackgroundBitmap();
 		}
-	}
+}
 
-	void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
+void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 		Vector drawPos;
 		CalculateDrawPosition(targetBitmap, targetPos, drawPos);
 
@@ -653,9 +653,9 @@ namespace RTE {
 		if (m_ActiveSubPieMenu) {
 			m_ActiveSubPieMenu->Draw(targetBitmap, targetPos);
 		}
-	}
+}
 
-	void PieMenu::UpdateWobbling() {
+void PieMenu::UpdateWobbling() {
 		float innerRadiusChange = static_cast<float>(m_EnableDisableAnimationTimer.GetElapsedRealTimeMS()) / 6.0F;
 
 		m_BGBitmapNeedsRedrawing = true;
@@ -669,9 +669,9 @@ namespace RTE {
 
 		m_CurrentInnerRadius = std::clamp(m_CurrentInnerRadius, 0, m_FullInnerRadius / 2);
 		m_EnableDisableAnimationTimer.Reset();
-	}
+}
 
-	void PieMenu::UpdateEnablingAndDisablingProgress() {
+void PieMenu::UpdateEnablingAndDisablingProgress() {
 		m_BGBitmapNeedsRedrawing = true;
 		if (m_EnabledState == EnabledState::Enabling) {
 			m_CurrentInnerRadius = static_cast<int>(LERP(0.0F, static_cast<float>(c_EnablingDelay), 0.0F, static_cast<float>(m_FullInnerRadius), static_cast<float>(m_EnableDisableAnimationTimer.GetElapsedRealTimeMS())));
@@ -690,9 +690,9 @@ namespace RTE {
 				}
 			}
 		}
-	}
+}
 
-	bool PieMenu::HandleAnalogInput(const Vector& input) {
+bool PieMenu::HandleAnalogInput(const Vector& input) {
 		const Controller* controller = GetController();
 		const PieSlice* pieSliceToSelect = nullptr;
 
@@ -716,9 +716,9 @@ namespace RTE {
 		}
 
 		return false;
-	}
+}
 
-	bool PieMenu::HandleDigitalInput() {
+bool PieMenu::HandleDigitalInput() {
 		const Controller* controller = GetController();
 		if (!controller) {
 			return false;
@@ -812,9 +812,9 @@ namespace RTE {
 		}
 
 		return false;
-	}
+}
 
-	void PieMenu::UpdateSliceActivation() {
+void PieMenu::UpdateSliceActivation() {
 		const Controller* controller = GetController();
 		if (controller && (controller->IsState(ControlState::PRESS_PRIMARY) || (m_HoveredPieSlice != m_AlreadyActivatedPieSlice && controller->IsState(ControlState::RELEASE_SECONDARY)))) {
 			m_HoverTimer.Reset();
@@ -849,9 +849,9 @@ namespace RTE {
 				}
 			}
 		}
-	}
+}
 
-	void PieMenu::UpdatePredrawnMenuBackgroundBitmap() {
+void PieMenu::UpdatePredrawnMenuBackgroundBitmap() {
 		int centerX = IsSubPieMenu() ? 0 : m_BGBitmap->w / 2;
 		int centerY = IsSubPieMenu() ? 0 : m_BGBitmap->h / 2;
 		if (m_DirectionIfSubPieMenu == Directions::Up || m_DirectionIfSubPieMenu == Directions::Left) {
@@ -905,9 +905,9 @@ namespace RTE {
 		}
 		m_BGBitmapNeedsRedrawing = false;
 		m_BGPieSlicesWithSubPieMenuBitmapNeedsRedrawing = false;
-	}
+}
 
-	void PieMenu::CalculateDrawPosition(const BITMAP* targetBitmap, const Vector& targetPos, Vector& drawPos) const {
+void PieMenu::CalculateDrawPosition(const BITMAP* targetBitmap, const Vector& targetPos, Vector& drawPos) const {
 		drawPos = m_CenterPos - targetPos;
 		if (!targetPos.IsZero()) {
 			const Box* nearestBox = nullptr;
@@ -952,9 +952,9 @@ namespace RTE {
 		} else if (drawPos.m_Y + static_cast<float>(menuDrawRadius) > static_cast<float>(targetBitmap->h)) {
 			drawPos.m_Y = static_cast<float>(targetBitmap->h - menuDrawRadius);
 		}
-	}
+}
 
-	void PieMenu::DrawPieIcons(BITMAP* targetBitmap, const Vector& drawPos) const {
+void PieMenu::DrawPieIcons(BITMAP* targetBitmap, const Vector& drawPos) const {
 		for (const PieSlice* pieSlice: m_CurrentPieSlices) {
 			BITMAP* pieSliceIcon = pieSlice->GetAppropriateIcon(pieSlice == m_HoveredPieSlice);
 
@@ -982,9 +982,9 @@ namespace RTE {
 				}
 			}
 		}
-	}
+}
 
-	void PieMenu::DrawPieCursorAndPieSliceDescriptions(BITMAP* targetBitmap, const Vector& drawPos) const {
+void PieMenu::DrawPieCursorAndPieSliceDescriptions(BITMAP* targetBitmap, const Vector& drawPos) const {
 		int nonLineSeparatorCorrection = m_IconSeparatorMode != IconSeparatorMode::Line ? -(m_BackgroundSeparatorSize) : 0;
 		Vector cursorPos = Vector(static_cast<float>(m_CurrentInnerRadius + nonLineSeparatorCorrection), 0.0F).RadRotate(m_CursorAngle);
 		pivot_sprite(targetBitmap, s_CursorBitmap, drawPos.GetFloorIntX() + cursorPos.GetFloorIntX(), drawPos.GetFloorIntY() + cursorPos.GetFloorIntY(), s_CursorBitmap->w / 2, s_CursorBitmap->h / 2, ftofix((m_CursorAngle / c_PI) * -128.0F));
@@ -1003,9 +1003,9 @@ namespace RTE {
 				m_LargeFont->DrawAligned(&allegroBitmap, drawPos.GetFloorIntX() + textPos.GetFloorIntX(), drawPos.GetFloorIntY() + textPos.GetFloorIntY(), m_HoveredPieSlice->GetDescription().c_str(), GUIFont::Right);
 			}
 		}
-	}
+}
 
-	void PieMenu::RepopulateAndRealignCurrentPieSlices() {
+void PieMenu::RepopulateAndRealignCurrentPieSlices() {
 		m_CurrentPieSlices.clear();
 		for (PieQuadrant& pieQuadrant: m_PieQuadrants) {
 			pieQuadrant.RealignPieSlices();
@@ -1034,9 +1034,9 @@ namespace RTE {
 			}
 		}
 		ExpandPieSliceIntoEmptySpaceIfPossible();
-	}
+}
 
-	void PieMenu::ExpandPieSliceIntoEmptySpaceIfPossible() {
+void PieMenu::ExpandPieSliceIntoEmptySpaceIfPossible() {
 		const std::unordered_map<Directions, Directions> nextDirectionForGivenDirection{{Directions::Right, Directions::Up}, {Directions::Up, Directions::Left}, {Directions::Left, Directions::Down}, {Directions::Down, Directions::Right}};
 
 		for (const PieQuadrant& pieQuadrant: m_PieQuadrants) {
@@ -1052,9 +1052,9 @@ namespace RTE {
 		}
 		m_BGBitmapNeedsRedrawing = true;
 		m_BGPieSlicesWithSubPieMenuBitmapNeedsRedrawing = true;
-	}
+}
 
-	void PieMenu::RecreateBackgroundBitmaps() {
+void PieMenu::RecreateBackgroundBitmaps() {
 		if (m_BGBitmap) {
 			destroy_bitmap(m_BGBitmap);
 			m_BGBitmap = nullptr;
@@ -1079,9 +1079,9 @@ namespace RTE {
 
 		m_BGBitmapNeedsRedrawing = true;
 		m_BGPieSlicesWithSubPieMenuBitmapNeedsRedrawing = true;
-	}
+}
 
-	void PieMenu::DrawBackgroundPieSliceSeparators(BITMAP* backgroundBitmapToDrawTo, int pieCircleCenterX, int pieCircleCenterY, float subPieMenuRotationOffset) const {
+void PieMenu::DrawBackgroundPieSliceSeparators(BITMAP* backgroundBitmapToDrawTo, int pieCircleCenterX, int pieCircleCenterY, float subPieMenuRotationOffset) const {
 		switch (m_IconSeparatorMode) {
 			case IconSeparatorMode::Line:
 				for (const PieQuadrant& pieQuadrant: m_PieQuadrants) {
@@ -1124,9 +1124,9 @@ namespace RTE {
 			default:
 				RTEAbort("Invalid icon separator mode in PieMenu.");
 		}
-	}
+}
 
-	void PieMenu::DrawBackgroundPieSliceSeparator(BITMAP* backgroundBitmapToDrawTo, int pieCircleCenterX, int pieCircleCenterY, float rotAngle, bool isHoveredPieSlice, bool pieSliceHasSubPieMenu, bool drawHalfSizedSeparator) const {
+void PieMenu::DrawBackgroundPieSliceSeparator(BITMAP* backgroundBitmapToDrawTo, int pieCircleCenterX, int pieCircleCenterY, float rotAngle, bool isHoveredPieSlice, bool pieSliceHasSubPieMenu, bool drawHalfSizedSeparator) const {
 		Vector separatorOffset;
 		int backgroundSeparatorSize = m_BackgroundSeparatorSize;
 
@@ -1188,9 +1188,9 @@ namespace RTE {
 			default:
 				RTEAbort("Invalid icon separator mode in PieMenu.");
 		}
-	}
+}
 
-	bool PieMenu::SetHoveredPieSlice(const PieSlice* pieSliceToSelect, bool moveCursorIconToSlice) {
+bool PieMenu::SetHoveredPieSlice(const PieSlice* pieSliceToSelect, bool moveCursorIconToSlice) {
 		if (pieSliceToSelect == m_HoveredPieSlice) {
 			return false;
 		}
@@ -1211,9 +1211,9 @@ namespace RTE {
 			m_CursorInVisiblePosition = false;
 		}
 		return true;
-	}
+}
 
-	bool PieMenu::PreparePieSliceSubPieMenuForUse(const PieSlice* pieSliceWithSubPieMenu) const {
+bool PieMenu::PreparePieSliceSubPieMenuForUse(const PieSlice* pieSliceWithSubPieMenu) const {
 		PieMenu* subPieMenu = pieSliceWithSubPieMenu->GetSubPieMenu();
 		subPieMenu->m_ActivatedPieSlice = nullptr;
 		if (!subPieMenu || subPieMenu->IsSubPieMenu()) {
@@ -1250,9 +1250,9 @@ namespace RTE {
 		}
 
 		return true;
-	}
+}
 
-	void PieMenu::PrepareAnalogCursorForEnableOrDisable(bool enable) const {
+void PieMenu::PrepareAnalogCursorForEnableOrDisable(bool enable) const {
 		if (Controller* controller = GetController(); controller && (controller->IsMouseControlled() || controller->IsGamepadControlled())) {
 			if (!IsSubPieMenu()) {
 				g_UInputMan.SetMouseValueMagnitude(0, controller->GetPlayer());
@@ -1270,5 +1270,4 @@ namespace RTE {
 				controller->ClearAnalogCursorAngleLimits();
 			}
 		}
-	}
-} // namespace RTE
+}

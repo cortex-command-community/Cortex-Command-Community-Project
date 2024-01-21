@@ -4,116 +4,115 @@
 
 #include "PrimitiveMan.h"
 
-namespace RTE {
+using namespace RTE;
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, GraphicalPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(GraphicalPrimitive);
-		;
-	}
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, GraphicalPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(GraphicalPrimitive);
+	;
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, LinePrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(LinePrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, LinePrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(LinePrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       LinePrimitive(int, const Vector&, const Vector&, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											LinePrimitive(int, const Vector&, const Vector&, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, ArcPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(ArcPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, ArcPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(ArcPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       ArcPrimitive(int, const Vector&, float, float, int, int, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											ArcPrimitive(int, const Vector&, float, float, int, int, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, SplinePrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(SplinePrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, SplinePrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(SplinePrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       ArcPrimitive(int, const Vector&, const Vector&, const Vector&, const Vector&, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											ArcPrimitive(int, const Vector&, const Vector&, const Vector&, const Vector&, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BoxPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(BoxPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BoxPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(BoxPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       BoxPrimitive(int, const Vector&, const Vector&, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											BoxPrimitive(int, const Vector&, const Vector&, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BoxFillPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(BoxFillPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BoxFillPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(BoxFillPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       BoxFillPrimitive(int, const Vector&, const Vector&, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											BoxFillPrimitive(int, const Vector&, const Vector&, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, RoundedBoxPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(RoundedBoxPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, RoundedBoxPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(RoundedBoxPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       RoundedBoxPrimitive(int, const Vector&, const Vector&, int, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											RoundedBoxPrimitive(int, const Vector&, const Vector&, int, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, RoundedBoxFillPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(RoundedBoxFillPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, RoundedBoxFillPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(RoundedBoxFillPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       RoundedBoxFillPrimitive(int, const Vector&, const Vector&, int, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											RoundedBoxFillPrimitive(int, const Vector&, const Vector&, int, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, CirclePrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(CirclePrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, CirclePrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(CirclePrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       CirclePrimitive(int, const Vector&, int, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											CirclePrimitive(int, const Vector&, int, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, CircleFillPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(CircleFillPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, CircleFillPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(CircleFillPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       CircleFillPrimitive(int, const Vector&, int, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											CircleFillPrimitive(int, const Vector&, int, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, EllipsePrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(EllipsePrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, EllipsePrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(EllipsePrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       EllipsePrimitive(int, const Vector&, int, int, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											EllipsePrimitive(int, const Vector&, int, int, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, EllipseFillPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(EllipseFillPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, EllipseFillPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(EllipseFillPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       EllipseFillPrimitive(int, const Vector&, int, int, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											EllipseFillPrimitive(int, const Vector&, int, int, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TrianglePrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(TrianglePrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TrianglePrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(TrianglePrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       TrianglePrimitive(int, const Vector&, const Vector&, const Vector&, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											TrianglePrimitive(int, const Vector&, const Vector&, const Vector&, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TriangleFillPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(TriangleFillPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TriangleFillPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(TriangleFillPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       TriangleFillPrimitive(int, const Vector&, const Vector&, const Vector&, unsigned char)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											TriangleFillPrimitive(int, const Vector&, const Vector&, const Vector&, unsigned char)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TextPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(TextPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TextPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(TextPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       TextPrimitive(int, const Vector&, const std::string&, bool, int, float)>());
-	}
+	luaType.set(sol::call_constructor, sol::constructors<
+											TextPrimitive(int, const Vector&, const std::string&, bool, int, float)>());
+}
 
-	LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BitmapPrimitive) {
-		auto luaType = SimpleTypeLuaClassDefinition(BitmapPrimitive);
+LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BitmapPrimitive) {
+	auto luaType = SimpleTypeLuaClassDefinition(BitmapPrimitive);
 
-		luaType.set(sol::call_constructor, sol::constructors<
-		                                       BitmapPrimitive(int, const Vector&, const MOSprite*, float, unsigned int, bool, bool),
-		                                       BitmapPrimitive(int, const Vector&, const std::string&, float, bool, bool)>());
-	}
-} // namespace RTE
+	luaType.set(sol::call_constructor, sol::constructors<
+											BitmapPrimitive(int, const Vector&, const MOSprite*, float, unsigned int, bool, bool),
+											BitmapPrimitive(int, const Vector&, const std::string&, float, bool, bool)>());
+}

@@ -455,7 +455,7 @@ void GUITextPanel::DoSelection(int Start, int End) {
 	m_SelectionWidth = std::min(m_SelectionWidth, m_Width);
 }
 
-int RTE::GUITextPanel::GetStartOfNextCharacterGroup(const std::string_view& stringToCheck, int currentIndex) const {
+int GUITextPanel::GetStartOfNextCharacterGroup(const std::string_view& stringToCheck, int currentIndex) const {
 	auto isNormalCharacter = [](char charToCheck) {
 		return (std::isalnum(charToCheck) || charToCheck == '_');
 	};
@@ -475,7 +475,7 @@ int RTE::GUITextPanel::GetStartOfNextCharacterGroup(const std::string_view& stri
 	return std::distance(stringToCheck.cbegin(), currentIterator);
 }
 
-int RTE::GUITextPanel::GetStartOfPreviousCharacterGroup(const std::string_view& stringToCheck, int currentIndex) const {
+int GUITextPanel::GetStartOfPreviousCharacterGroup(const std::string_view& stringToCheck, int currentIndex) const {
 	auto isNormalCharacter = [](char charToCheck) {
 		return (std::isalnum(charToCheck) || charToCheck == '_');
 	};
