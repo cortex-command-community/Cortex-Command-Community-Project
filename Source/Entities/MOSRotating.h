@@ -14,7 +14,7 @@ namespace RTE {
 	struct HitData;
 	class AEmitter;
 	class Attachable;
-	struct SoundContainer;
+	class SoundContainer;
 
 	/// A sprite movable object that can rotate.
 	class MOSRotating : public MOSprite {
