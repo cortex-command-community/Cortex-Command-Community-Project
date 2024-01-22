@@ -486,4 +486,3 @@ Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 	}
 	return nullptr;
 }
-} // namespace RTE
