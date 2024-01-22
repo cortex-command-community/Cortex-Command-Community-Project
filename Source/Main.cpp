@@ -51,6 +51,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include "ReloadDLL.h"
+
 extern "C" {
 FILE __iob_func[3] = {*stdin, *stdout, *stderr};
 }
@@ -268,6 +270,10 @@ void RunMenuLoop() {
 		g_MenuMan.Draw();
 		g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
 		g_WindowMan.UploadFrame();
+
+#ifndef NO_DLL
+		ReloadDLL();
+#endif
 	}
 }
 
@@ -389,6 +395,9 @@ void RunGameLoop() {
 				}
 			}
 		}
+
+		Update(42);
+
 		updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();
 		updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
 		drawStartTime = updateEndAndDrawStartTime;
@@ -399,6 +408,10 @@ void RunGameLoop() {
 
 		drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
 		g_PerformanceMan.UpdateMSPF(updateTotalTime, drawTotalTime);
+
+#ifndef NO_DLL
+		ReloadDLL();
+#endif
 	}
 }
 
@@ -414,6 +427,10 @@ static const bool RTESetExceptionHandlers = []() {
 /// Implementation of the main function.
 /// </summary>
 int main(int argc, char** argv) {
+#ifndef NO_DLL
+	ReloadDLL();
+#endif
+
 	install_allegro(SYSTEM_NONE, &errno, std::atexit);
 	loadpng_init();
 
