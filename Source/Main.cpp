@@ -329,6 +329,7 @@ void RunGameLoop() {
 
 			g_FrameMan.Update();
 			g_LuaMan.Update();
+			g_ConsoleMan.Update();
 			g_ActivityMan.Update();
 
 			if (g_SceneMan.GetScene()) {
@@ -347,7 +348,6 @@ void RunGameLoop() {
 			// It's in this spot to allow it to be set by UInputMan update and ConsoleMan update, and read from ActivityMan update.
 			g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
 
-			g_ConsoleMan.Update();
 			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
 
 			if (!g_ActivityMan.IsInActivity()) {
