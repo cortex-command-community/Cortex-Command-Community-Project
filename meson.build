@@ -78,7 +78,47 @@ elif compiler.get_argument_syntax()== 'msvc'
   if host_machine.cpu_family() == 'x86'
     elfname += ' x86'
   endif
-  preprocessor_flags += ['-D_CRT_SECURE_NO_DEPRECATE', '-D_WINDOWS', '-DWIN32', '-DWIN32_LEAN_AND_MEAN']
+  preprocessor_flags += [
+    '-D_CRT_SECURE_NO_DEPRECATE',
+    '-D_WINDOWS',
+    '-DWIN32',
+    '-DWIN32_LEAN_AND_MEAN',
+    '-DNOMINMAX',
+    '-DNOGDI',
+    '-DNOKERNEL',
+    '-DNONLS',
+    '-DNOMEMMGR',
+    '-DNOGDICAPMASKS',
+    '-DNOVIRTUALKEYCODES',
+    '-DNOWINMESSAGES',
+    '-DNOWINSTYLES',
+    '-DNOMETAFILE',
+    '-DNOSCROLL',
+    '-DNOTEXTMETRIC',
+    '-DNOCOMM',
+    '-DNOKANJI',
+    '-DNOHELP',
+    '-DNOPROFILER',
+    '-DNODEFERWINDOWPOS',
+    '-DNOMCX',
+    '-DNOMENUS',
+    '-DNOICONS',
+    '-DNOKEYSTATES',
+    '-DNOSYSCOMMANDS',
+    '-DNORASTEROPS',
+    '-DNOSHOWWINDOW',
+    '-DOEMRESOURCE',
+    '-DNOATOM',
+    '-DNODRAWTEXT',
+    '-DNOCOLOR',
+    '-DNOCTLMGR',
+    '-DNOMSG',
+    '-DNOOPENFILE',
+    '-DNOSERVICE',
+    '-DNOSOUND',
+    '-DNOWH',
+    '-DNOWINOFFSETS'
+  ]
   link_args+=['-ignore:4099', '-ignore:4217']
   buildtype_debug = get_option('debug')
   if buildtype_debug
