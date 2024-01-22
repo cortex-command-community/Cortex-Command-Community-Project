@@ -314,6 +314,7 @@ void RunGameLoop() {
 	bool serverUpdated = false;
 
 	auto simFunction = [&serverUpdated]() {
+		g_LuaMan.Update();
 		g_ThreadMan.RunSimulationThreadFunctions();
 
 		if (g_ActivityMan.ActivitySetToRestart() && !g_ActivityMan.RestartActivity()) {
@@ -344,7 +345,6 @@ void RunGameLoop() {
 #endif
 
 		g_FrameMan.Update();
-		g_LuaMan.Update();
 		g_ActivityMan.Update();
 
 		if (g_SceneMan.GetScene()) {
