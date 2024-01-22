@@ -9,8 +9,8 @@ using namespace RTE;
 
 const std::array<std::string, 10> ModuleMan::c_OfficialModules = {"Base.rte", "Coalition.rte", "Imperatus.rte", "Techion.rte", "Dummy.rte", "Ronin.rte", "Browncoats.rte", "Uzira.rte", "MuIlaak.rte", "Missions.rte"};
 const std::array<std::pair<std::string, std::string>, 3> ModuleMan::c_UserdataModules = {{{c_UserScenesModuleName, "User Scenes"},
-	                                                                                        {c_UserConquestSavesModuleName, "Conquest Saves"},
-	                                                                                        {c_UserScriptedSavesModuleName, "Scripted Activity Saves"}}};
+                                                                                          {c_UserConquestSavesModuleName, "Conquest Saves"},
+                                                                                          {c_UserScriptedSavesModuleName, "Scripted Activity Saves"}}};
 
 void ModuleMan::Clear() {
 	m_LoadedDataModules.clear();
@@ -30,23 +30,23 @@ void ModuleMan::Destroy() {
 
 bool ModuleMan::IsModuleEnabled(const std::string_view& moduleName) const {
 	return std::none_of(m_DisabledDataModuleNames.begin(), m_DisabledDataModuleNames.end(),
-		                [&moduleName](const std::string_view& disabledModuleName) {
-			                return disabledModuleName == moduleName;
-		                });
+	                    [&moduleName](const std::string_view& disabledModuleName) {
+		                    return disabledModuleName == moduleName;
+	                    });
 }
 
 bool ModuleMan::IsModuleOfficial(const std::string_view& moduleName) const {
 	return std::any_of(c_OfficialModules.begin(), c_OfficialModules.end(),
-		                [&moduleName](const std::string_view& officialModuleName) {
-			                return officialModuleName == moduleName;
-		                });
+	                   [&moduleName](const std::string_view& officialModuleName) {
+		                   return officialModuleName == moduleName;
+	                   });
 }
 
 bool ModuleMan::IsModuleUserdata(const std::string_view& moduleName) const {
 	return std::any_of(c_UserdataModules.begin(), c_UserdataModules.end(),
-		                [&moduleName](const std::pair<std::string_view, std::string_view>& userdataModuleEntry) {
-			                return userdataModuleEntry.first == moduleName;
-		                });
+	                   [&moduleName](const std::pair<std::string_view, std::string_view>& userdataModuleEntry) {
+		                   return userdataModuleEntry.first == moduleName;
+	                   });
 }
 
 DataModule* ModuleMan::GetDataModule(int whichModule) {
@@ -55,9 +55,9 @@ DataModule* ModuleMan::GetDataModule(int whichModule) {
 	}
 
 	auto loadedModulesItr = std::find_if(m_LoadedDataModules.begin(), m_LoadedDataModules.end(),
-		                                    [&whichModule](const auto& loadedModuleEntry) {
-			                                    return loadedModuleEntry.first == whichModule;
-		                                    });
+	                                     [&whichModule](const auto& loadedModuleEntry) {
+		                                     return loadedModuleEntry.first == whichModule;
+	                                     });
 	return (*loadedModulesItr).second;
 }
 
@@ -67,9 +67,9 @@ int ModuleMan::GetModuleID(const std::string_view& moduleName) const {
 	}
 
 	auto loadedModulesItr = std::find_if(m_LoadedDataModules.begin(), m_LoadedDataModules.end(),
-		                                    [&moduleName](const auto& loadedModuleEntry) {
-			                                    return loadedModuleEntry.second->GetFileName() == moduleName;
-		                                    });
+	                                     [&moduleName](const auto& loadedModuleEntry) {
+		                                     return loadedModuleEntry.second->GetFileName() == moduleName;
+	                                     });
 	return (loadedModulesItr != m_LoadedDataModules.end()) ? (*loadedModulesItr).first : -1;
 }
 
@@ -131,9 +131,9 @@ bool ModuleMan::LoadDataModule(const std::string& moduleName, DataModule::DataMo
 		return true;
 	} else if (moduleType == DataModule::DataModuleType::Unofficial) {
 		auto unloadedModulesItr = std::find_if(m_UnloadedDataModules.begin(), m_UnloadedDataModules.end(),
-			                                    [&moduleName](const auto& unloadedModuleEntry) {
-				                                    return unloadedModuleEntry.second->GetFileName() == moduleName;
-			                                    });
+		                                       [&moduleName](const auto& unloadedModuleEntry) {
+			                                       return unloadedModuleEntry.second->GetFileName() == moduleName;
+		                                       });
 		if (unloadedModulesItr != m_UnloadedDataModules.end()) {
 			m_LoadedDataModules.emplace(*unloadedModulesItr);
 			m_UnloadedDataModules.erase(unloadedModulesItr);
@@ -158,9 +158,9 @@ bool ModuleMan::LoadDataModule(const std::string& moduleName, DataModule::DataMo
 bool ModuleMan::UnloadDataModule(const std::string& moduleName) {
 	if (!IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
 		auto loadedModulesItr = std::find_if(m_LoadedDataModules.begin(), m_LoadedDataModules.end(),
-			                                    [&moduleName](const auto& loadedModuleEntry) {
-				                                    return loadedModuleEntry.second->GetFileName() == moduleName;
-			                                    });
+		                                     [&moduleName](const auto& loadedModuleEntry) {
+			                                     return loadedModuleEntry.second->GetFileName() == moduleName;
+		                                     });
 
 		if (loadedModulesItr != m_LoadedDataModules.end()) {
 			m_UnloadedDataModules.emplace(*loadedModulesItr);
@@ -228,9 +228,9 @@ void ModuleMan::LoadUnofficialModules() {
 	std::vector<std::filesystem::directory_entry> modDirectoryFolders;
 	const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
 	std::copy_if(std::filesystem::directory_iterator(modDirectory), std::filesystem::directory_iterator(), std::back_inserter(modDirectoryFolders),
-		            [](auto dirEntry) {
-			            return std::filesystem::is_directory(dirEntry);
-		            });
+	             [](auto dirEntry) {
+		             return std::filesystem::is_directory(dirEntry);
+	             });
 	std::sort(modDirectoryFolders.begin(), modDirectoryFolders.end());
 
 	for (const std::filesystem::directory_entry& directoryEntry: modDirectoryFolders) {
