@@ -564,7 +564,7 @@ int MovableObject::ReloadScripts() {
 
 	// TODO consider getting rid of this const_cast. It would require either code duplication or creating some non-const methods (specifically of PresetMan::GetEntityPreset, which may be unsafe. Could be this gross exceptional handling is the best way to go.
 	MovableObject* movableObjectPreset = const_cast<MovableObject*>(dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(GetClassName(), GetPresetName(), GetModuleID())));
-	if (this != movableObjectPreset) {
+	if (movableObjectPreset && this != movableObjectPreset) {
 		movableObjectPreset->ReloadScripts();
 	}
 

@@ -320,7 +320,10 @@ void RunGameLoop() {
 
 			g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
 
+			g_LuaMan.Update();
+
 			g_UInputMan.Update();
+			g_ConsoleMan.Update();
 
 			// It is vital that server is updated after input manager but before activity because input manager will clear received pressed and released events on next update.
 			if (g_NetworkServer.IsServerModeEnabled()) {
@@ -329,7 +332,7 @@ void RunGameLoop() {
 			}
 
 			g_FrameMan.Update();
-			g_LuaMan.Update();
+
 			g_ActivityMan.Update();
 
 			if (g_SceneMan.GetScene()) {
@@ -348,7 +351,6 @@ void RunGameLoop() {
 			// It's in this spot to allow it to be set by UInputMan update and ConsoleMan update, and read from ActivityMan update.
 			g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
 
-			g_ConsoleMan.Update();
 			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
 
 			if (!g_ActivityMan.IsInActivity()) {
