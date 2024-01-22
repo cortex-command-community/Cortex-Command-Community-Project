@@ -319,7 +319,10 @@ void RunGameLoop() {
 
 			g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
 
+			g_LuaMan.Update();
+
 			g_UInputMan.Update();
+			g_ConsoleMan.Update();
 
 			// It is vital that server is updated after input manager but before activity because input manager will clear received pressed and released events on next update.
 			if (g_NetworkServer.IsServerModeEnabled()) {
@@ -328,8 +331,7 @@ void RunGameLoop() {
 			}
 
 			g_FrameMan.Update();
-			g_LuaMan.Update();
-			g_ConsoleMan.Update();
+
 			g_ActivityMan.Update();
 
 			if (g_SceneMan.GetScene()) {
