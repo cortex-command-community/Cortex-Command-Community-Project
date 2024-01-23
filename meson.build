@@ -25,6 +25,19 @@ if get_option('debug') and get_option('b_lto')
   warning('Link time optimization enabled in debug mode, debug symbols may not be fully available. Disable b_lto with "meson configure -Db_lto=false".')
 endif
 
+use_pch = get_option('use_pch').enabled()
+
+if get_option('use_pch').auto()
+  ccache = find_program('ccache', required : false)
+  if ccache.found()
+    message('Detected ccache, disabling precompiled headers')
+    use_pch = false
+  else
+    message('Using precompiled headers')
+    use_pch = true
+  endif
+endif
+
 if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
   # Build against system libraries on linux
   message('gcc detected')
