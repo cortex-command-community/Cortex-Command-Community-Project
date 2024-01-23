@@ -647,6 +647,9 @@
     <ClCompile Include="Source\System\Reader.cpp">
       <Filter>System</Filter>
     </ClCompile>
+    <ClCompile Include="Source\System\ReloadDLL.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
     <ClCompile Include="Source\System\System.cpp">
       <Filter>System</Filter>
     </ClCompile>

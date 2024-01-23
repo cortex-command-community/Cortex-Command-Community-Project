@@ -1071,6 +1071,7 @@
     <ClCompile Include="Source\System\MicroPather\micropather.cpp" />
     <ClCompile Include="Source\System\PathFinder.cpp" />
     <ClCompile Include="Source\System\Reader.cpp" />
+    <ClCompile Include="Source\System\ReloadDLL.cpp" />
     <ClCompile Include="Source\System\System.cpp" />
     <ClCompile Include="Source\System\Timer.cpp" />
     <ClCompile Include="Source\System\Vector.cpp" />
