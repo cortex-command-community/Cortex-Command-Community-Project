@@ -126,7 +126,7 @@ void PostProcessMan::CreateGLBackBuffers() {
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	UpdatePalette();
 	glActiveTexture(GL_TEXTURE0);
-	m_ProjectionMatrix = glm::ortho(0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->w), 0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->h), -1.0F, 1.0F);
+	m_ProjectionMatrix = std::make_unique<glm::mat4>(glm::ortho(0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->w), 0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->h), -1.0F, 1.0F));
 }
 
 void PostProcessMan::UpdatePalette() {
@@ -457,7 +457,7 @@ void PostProcessMan::DrawDotGlowEffects() {
 					transformMatrix = glm::translate(transformMatrix, glm::vec3(x + 0.5f, y + 0.5f, 0));
 					transformMatrix = glm::scale(transformMatrix, glm::vec3(m_YellowGlow->w * 0.5f, m_YellowGlow->h * 0.5f, 1.0));
 					m_PostProcessShader->SetInt(m_PostProcessShader->GetTextureUniform(), 0);
-					m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetProjectionUniform(), m_ProjectionMatrix);
+					m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetProjectionUniform(), *m_ProjectionMatrix);
 					m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetTransformUniform(), transformMatrix);
 					GL_CHECK(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
 				}
@@ -487,7 +487,7 @@ void PostProcessMan::DrawPostScreenEffects() {
 	glBindVertexArray(m_VertexArray);
 	m_PostProcessShader->Use();
 	m_PostProcessShader->SetInt(m_PostProcessShader->GetTextureUniform(), 0);
-	m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetProjectionUniform(), m_ProjectionMatrix);
+	m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetProjectionUniform(), *m_ProjectionMatrix);
 
 	for (const PostEffect& postEffect: m_PostScreenEffects) {
 		if (postEffect.m_Bitmap) {
