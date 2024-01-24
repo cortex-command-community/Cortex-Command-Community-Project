@@ -11,6 +11,8 @@
 #include "PresetMan.h"
 #include "SoundSet.h"
 
+#include <cstring>
+
 using namespace RTE;
 
 AudioMan::AudioMan() {

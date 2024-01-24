@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <memory>
+#include <fstream>
+
 namespace RTE {
 
 	/// Writes GUI objects to std::ostreams.

@@ -1,6 +1,8 @@
 #include "GUI.h"
 #include "GUIScrollbar.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUIScrollbar::GUIScrollbar(GUIManager* Manager, GUIControlManager* ControlManager) :

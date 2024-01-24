@@ -7,6 +7,11 @@
 #include <glm/glm.hpp>
 #include "Shader.h"
 
+#include <array>
+#include <atomic>
+#include <list>
+#include <vector>
+
 #define g_PostProcessMan PostProcessMan::Instance()
 
 namespace RTE {

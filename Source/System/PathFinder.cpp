@@ -7,6 +7,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <execution>
+
 using namespace RTE;
 
 // One pathfinder per thread, lazily initialized. Shouldn't access this directly, use GetPather() instead.

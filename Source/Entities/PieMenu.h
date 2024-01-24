@@ -4,6 +4,8 @@
 #include "Controller.h"
 #include "Matrix.h"
 
+#include <array>
+
 namespace RTE {
 
 	class Controller;

@@ -7,6 +7,11 @@
 #include "SDL_keyboard.h"
 #include "SDL_events.h"
 
+#include <algorithm>
+#include <array>
+#include <string>
+#include <vector>
+
 #define g_UInputMan UInputMan::Instance()
 
 extern "C" {

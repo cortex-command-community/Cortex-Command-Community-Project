@@ -16,6 +16,7 @@
 #include "ConsoleMan.h"
 #include "LoadingScreen.h"
 #include "SettingsMan.h"
+#include "System.h"
 
 using namespace RTE;
 

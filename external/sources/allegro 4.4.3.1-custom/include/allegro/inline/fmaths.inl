@@ -23,6 +23,8 @@
 #include "asm.inl"
 #undef ALLEGRO_IMPORT_MATH_ASM
 
+#include <errno.h>
+
 #ifdef __cplusplus
    extern "C" {
 #endif

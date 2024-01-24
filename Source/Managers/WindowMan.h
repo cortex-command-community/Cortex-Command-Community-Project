@@ -3,6 +3,10 @@
 #include "Singleton.h"
 #include "System/Shader.h"
 #include "glad/gl.h"
+
+#include <memory>
+#include <vector>
+
 #define g_WindowMan WindowMan::Instance()
 
 extern "C" {

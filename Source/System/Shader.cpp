@@ -7,6 +7,8 @@
 #include "System/System.h"
 #include "RTEError.h"
 
+#include <fstream>
+
 using namespace RTE;
 
 Shader::Shader() :

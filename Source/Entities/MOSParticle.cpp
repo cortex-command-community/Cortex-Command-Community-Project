@@ -3,6 +3,8 @@
 #include "Atom.h"
 #include "PostProcessMan.h"
 
+#include <array>
+
 using namespace RTE;
 
 ConcreteClassInfo(MOSParticle, MovableObject, 1000);

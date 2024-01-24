@@ -24,6 +24,9 @@
 #include "Deployment.h"
 #include "BunkerAssemblyScheme.h"
 
+#include <array>
+#include <string>
+
 using namespace RTE;
 
 #define MAXBRAINPATHCOST 10000

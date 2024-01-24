@@ -2,6 +2,8 @@
 
 #include "Singleton.h"
 
+#include <memory>
+
 #define g_MenuMan MenuMan::Instance()
 
 namespace RTE {

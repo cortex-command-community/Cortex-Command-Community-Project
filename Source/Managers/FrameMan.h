@@ -3,6 +3,10 @@
 #include "ContentFile.h"
 #include "Timer.h"
 #include "Box.h"
+#include "Hash.h"
+
+#include <array>
+#include <unordered_map>
 
 #define g_FrameMan FrameMan::Instance()
 

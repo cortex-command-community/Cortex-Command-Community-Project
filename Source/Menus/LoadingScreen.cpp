@@ -11,6 +11,7 @@
 #include "GUIInputWrapper.h"
 #include "GUICollectionBox.h"
 #include "GUIListBox.h"
+#include "System.h"
 
 using namespace RTE;
 

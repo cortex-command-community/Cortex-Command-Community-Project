@@ -22,6 +22,8 @@
 
 namespace RTE {
 
+	class System;
+
 #define DEFAULTGAMENAME "NewGame"
 #define AUTOSAVENAME "AutoSave"
 #define METASAVEPATH System::GetUserdataDirectory() + c_UserConquestSavesModuleName + "/"

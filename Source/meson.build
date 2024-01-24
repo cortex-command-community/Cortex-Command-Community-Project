@@ -1,5 +1,9 @@
 
-pch = meson.current_source_dir()/'System/StandardIncludes.h'
+if use_pch
+  pch = meson.current_source_dir()/'System/StandardIncludes.h'
+else
+  pch = ''
+endif
 sources = []
 source_libs = []
 source_inc_dirs += [include_directories(

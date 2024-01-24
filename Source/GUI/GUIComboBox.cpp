@@ -1,6 +1,8 @@
 #include "GUI.h"
 #include "GUIComboBox.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUIComboBox::GUIComboBox(GUIManager* Manager, GUIControlManager* ControlManager) :

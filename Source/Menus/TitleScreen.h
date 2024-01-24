@@ -6,6 +6,11 @@
 #include "MOSParticle.h"
 #include "SceneLayer.h"
 
+#include <array>
+#include <memory>
+#include <vector>
+#include <string>
+
 namespace RTE {
 
 	class AllegroScreen;

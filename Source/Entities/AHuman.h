@@ -10,6 +10,8 @@
 #include "Leg.h"
 #include "LimbPath.h"
 
+#include <array>
+
 struct BITMAP;
 
 namespace RTE {

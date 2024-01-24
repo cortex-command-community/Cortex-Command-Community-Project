@@ -3,6 +3,9 @@
 #include "Serializable.h"
 #include "RTEError.h"
 
+#include <list>
+#include <unordered_set>
+
 namespace RTE {
 
 	typedef std::function<void*()> MemoryAllocate; //!< Convenient name definition for the memory allocation callback function.

@@ -7,6 +7,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <array>
+
 using namespace RTE;
 
 std::unique_ptr<GraphicalPrimitive> PrimitiveMan::MakeUniqueOfAppropriateTypeFromPrimitiveRawPtr(GraphicalPrimitive* primitive) {
