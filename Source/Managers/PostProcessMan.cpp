@@ -112,25 +112,25 @@ void PostProcessMan::DestroyGLPointers() {
 
 void PostProcessMan::CreateGLBackBuffers() {
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer8));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RED, GL_UNSIGNED_BYTE, 0));
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RED, GL_UNSIGNED_BYTE, 0));
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
-	GL_CHECK(glBindTexture(GL_TEXTURE_1D, m_Palette8Texture));
-	GL_CHECK(glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, c_PaletteEntriesNumber, 0, GL_RGBA, GL_UNSIGNED_INT, 0));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_Palette8Texture));
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, c_PaletteEntriesNumber, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	UpdatePalette();
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	m_ProjectionMatrix = std::make_unique<glm::mat4>(glm::ortho(0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->w), 0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->h), -1.0F, 1.0F));
 }
 
 void PostProcessMan::UpdatePalette() {
-	GL_CHECK(glBindTexture(GL_TEXTURE_1D, m_Palette8Texture));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_Palette8Texture));
 	std::array<unsigned int, c_PaletteEntriesNumber> palette;
 	for (int i = 0; i < c_PaletteEntriesNumber; ++i) {
 		if (i == g_MaskColor) {
@@ -139,9 +139,9 @@ void PostProcessMan::UpdatePalette() {
 		}
 		palette[i] = makeacol32(getr8(i), getg8(i), getb8(i), 255);
 	}
-	GL_CHECK(glTexSubImage1D(GL_TEXTURE_1D, 0, 0, c_PaletteEntriesNumber, GL_RGBA, GL_UNSIGNED_BYTE, palette.data()));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, c_PaletteEntriesNumber, 1, GL_RGBA, GL_UNSIGNED_BYTE, palette.data()));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 }
 
 void PostProcessMan::LazyInitBitmap(BITMAP* bitmap) {
@@ -380,9 +380,9 @@ void PostProcessMan::PostProcess() {
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer8));
 	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RED, GL_UNSIGNED_BYTE, g_FrameMan.GetBackBuffer8()->line[0]));
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RED, GL_UNSIGNED_BYTE, g_FrameMan.GetBackBuffer8()->line[0]));
 	GL_CHECK(glActiveTexture(GL_TEXTURE1));
-	GL_CHECK(glBindTexture(GL_TEXTURE_1D, m_Palette8Texture));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_Palette8Texture));
 	GL_CHECK(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_BlitFramebuffer));
 	GL_CHECK(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_BackBuffer32, 0));
 	GL_CHECK(glViewport(0, 0, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h));
