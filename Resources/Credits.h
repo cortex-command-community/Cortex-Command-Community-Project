@@ -14,6 +14,7 @@ F R I S 0 U M A N
 G A R E T H   " G A C Y R "   Y R
 H A R D S P H E R E
 H E L I U M A N T
+J A N I S O Z A U R
 J U S T   A L E X   :/
 K E N   " C A V E "   V U   D O
 M A X   " M A X I M D U D E "   K
