@@ -37,7 +37,6 @@ void WindowMan::Clear() {
 
 	m_PrimaryWindow.reset();
 	m_BackBuffer32Texture = 0;
-	m_PrimaryWindowProjection = glm::mat4(1);
 	m_ScreenVAO = 0;
 	m_ScreenVBO = 0;
 	ClearMultiDisplayData();
