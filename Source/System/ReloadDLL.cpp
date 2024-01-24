@@ -18,7 +18,7 @@ void Update(int n) {
 }
 
 #ifndef _WIN32
-static void DLError(const std::string &function_name) {
+static void PrintDLError(const std::string &function_name) {
 	char *err = dlerror();
 	assert(err != nullptr);
 	std::cerr << "dlerror in " << function_name << "()" << ":\n" << err << "\n";
@@ -34,7 +34,7 @@ static void *LoadDynamicFunction(void *dll, const std::string &function_name) {
 #else
 	void* proc = dlsym(dll, function_name.c_str());
 	if (!proc) {
-		DLError("LoadDynamicFunction");
+		PrintDLError("LoadDynamicFunction");
 	}
 #endif
 	return proc;
@@ -47,7 +47,7 @@ static void *LoadDynamicLibrary(const std::string &dll_path) {
 #else
 	void *lib = dlopen(("./" + dll_path).c_str(), RTLD_NOW);
 	if (!lib) {
-		DLError("LoadDynamicLibrary");
+		PrintDLError("LoadDynamicLibrary");
 	}
 #endif
 	return lib;
@@ -58,7 +58,7 @@ static void FreeDynamicLibrary(void *dll) {
 	assert(FreeLibrary((HMODULE)dll));
 #else
 	if (dlclose(dll)) {
-		DLError("FreeDynamicLibrary");
+		PrintDLError("FreeDynamicLibrary");
 	}
 #endif
 }
