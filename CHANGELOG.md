@@ -124,7 +124,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `FrameMan` Lua functions `SetHudDisabled(disabled, screenId)` and `IsHudDisabled(screenId)` that allows disabling a given screen's HUD, and checking whether it's currently disabled. The screenId parameters are optional and default to screen 0.
 
-- Exposed `FrameMan` property `ScreenCount` to Lua (R).
+- Exposed `FrameMan` properties `ScreenCount` and `ResolutionMultiplier` to Lua (R).
 
 </details>
 
