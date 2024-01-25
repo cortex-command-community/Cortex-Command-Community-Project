@@ -112,6 +112,9 @@ namespace RTE {
 		/// @return The height of the player screens.
 		int GetPlayerScreenHeight() const { return GetPlayerFrameBufferHeight(-1); }
 
+		/// Gets the resolution multiplier.
+		float GetResolutionMultiplier() const;
+
 		/// Gets a Vector with the absolute position of the middle of the specified player's screen.
 		/// @param whichPlayer Player to get the middle of the screen for. -1 will give the middle of the entire game window.
 		/// @return The middle of the screen for the specified player, or the middle of the game window if that player is -1.

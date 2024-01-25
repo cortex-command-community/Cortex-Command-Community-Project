@@ -64,6 +64,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, FrameMan) {
 	    .property("PlayerScreenWidth", &FrameMan::GetPlayerScreenWidth)
 	    .property("PlayerScreenHeight", &FrameMan::GetPlayerScreenHeight)
 	    .property("ScreenCount", &FrameMan::GetScreenCount)
+	    .property("ResolutionMultiplier", &FrameMan::GetResolutionMultiplier)
 
 	    .def("IsHudDisabled", &FrameMan::IsHudDisabled)
 	    .def("SetHudDisabled", &FrameMan::SetHudDisabled)
