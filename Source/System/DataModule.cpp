@@ -3,6 +3,7 @@
 #include "SceneMan.h"
 #include "LuaMan.h"
 #include "GameVersion.h"
+#include "System.h"
 
 #include <System/Semver200/semver200.h>
 

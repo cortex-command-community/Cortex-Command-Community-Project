@@ -38,6 +38,7 @@
 #include "SLTerrain.h"
 #include "DataModule.h"
 #include "Loadout.h"
+#include "System.h"
 
 using namespace RTE;
 

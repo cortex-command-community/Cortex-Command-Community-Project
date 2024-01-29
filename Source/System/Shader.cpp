@@ -1,11 +1,14 @@
 #include "Shader.h"
 #include "glad/gl.h"
+#include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "GLCheck.h"
 
 #include "Managers/ConsoleMan.h"
 #include "System/System.h"
 #include "RTEError.h"
+
+#include <fstream>
 
 using namespace RTE;
 

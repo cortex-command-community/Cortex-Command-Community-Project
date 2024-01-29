@@ -13,6 +13,8 @@
 #include "Material.h"
 #include "MovableMan.h"
 
+#include <set>
+
 struct BITMAP;
 
 namespace RTE {

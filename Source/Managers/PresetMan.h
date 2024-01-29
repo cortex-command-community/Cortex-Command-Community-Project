@@ -8,6 +8,12 @@
 #include "Entity.h"
 #include "Singleton.h"
 
+#include <array>
+#include <list>
+#include <map>
+#include <string>
+#include <vector>
+
 #define g_PresetMan PresetMan::Instance()
 
 namespace RTE {

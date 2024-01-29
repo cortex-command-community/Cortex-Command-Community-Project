@@ -11,3 +11,4 @@ option('tracy_enable', type: 'boolean', value: true, description: 'Enable Tracy 
 option('tracy_callstack', type : 'integer', value : 0, description : 'Enfore callstack collection for tracy regions')
 option('tracy_on_demand', type : 'boolean', value : true, description : 'On-demand profiling')
 option('tracy_debuginfod', type : 'boolean', value : false, description : 'Enable debuginfod support')
+option('use_pch', type : 'feature', value : 'auto')

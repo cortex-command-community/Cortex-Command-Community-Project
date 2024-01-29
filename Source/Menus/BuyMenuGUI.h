@@ -10,6 +10,8 @@
 #include "Controller.h"
 #include "Loadout.h"
 
+#include <map>
+
 struct BITMAP;
 
 namespace RTE {

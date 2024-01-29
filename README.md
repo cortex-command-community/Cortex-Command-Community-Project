@@ -24,10 +24,9 @@ You'll probably want [Visual Studio Community Edition](https://visualstudio.micr
 You also need to have both x86 and x64 versions of the [Visual C++ Redistributable for Visual Studio 2015-2022](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) installed in order to run the compiled builds.  
 You may also want to check out the list of recommended Visual Studio plugins [here](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/Information,-Recommended-Plugins-and-Useful-Links).
 
-2. Clone this Source Repository and the [Data Repository](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data) in neighboring folders.  
-**Do Not** change the folder names unless you want to make trouble for yourself.
+2. Clone this Repository into a folder.  
 
-3. Copy the following libraries from `Cortex-Command-Community-Project-Source\external\lib\win` into the **Data Repository**:
+3. Copy the following libraries from `Cortex-Command-Community-Project\external\lib\win` into the root directory:
 * `fmod.dll`
 * `SDL2.dll`
 
@@ -85,32 +84,25 @@ For unspecified versions assume compatibility with the latest ubuntu LTS release
 
 1. Install Dependencies (see [below](#installing-dependencies) for instructions).
 
-2. Clone this Source Repository and the [Data Respository](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data).
+2. Clone this Repository and open a terminal in it.
 
-3. Open a terminal in the Source Repository.
-
-4. `meson setup build` or `meson setup --buildtype=debug build` for debug build (default is release build)  
+3. `meson setup build` or `meson setup --buildtype=debug build` for debug build (default is release build)  
 	For macOS you need to specify gcc, with `env CC=gcc-13 CXX=g++-13 meson setup build`
 
-5. `ninja -C build`
+4. `ninja -C build`
 
-6. (optional) `sudo ninja install -C build` (To uninstall later, keep the build directory intact. The game can then be uninstalled by `sudo ninja uninstall -C build`)
+5. (optional) `sudo ninja install -C build` (To uninstall later, keep the build directory intact. The game can then be uninstalled by `sudo ninja uninstall -C build`)
 
-If you want to change the buildtype afterwards, you can use `meson configure --buildtype {release or debug}` in the build directory or create a secondary build directory as in Step 4. There are also additional build options documented in the [wiki](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/Meson-build-options) as well as through running `meson configure` in the build directory.
+If you want to change the buildtype afterwards, you can use `meson configure --buildtype {release or debug}` in the build directory or create a secondary build directory as in Step 3. There are also additional build options documented in the [wiki](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/Meson-build-options) as well as through running `meson configure` in the build directory.
 
 ## Running
-(If you installed the game in step 6 above, it should appear with your regular applications and will just run)
+(If you installed the game in step 5 above, it should appear with your regular applications and will just run)
 
-1. Copy (or link, might be preferable for testing builds) `build/CortexCommand` or `build/CortexCommand_debug` (depending on if you made a debug build) into the **Data Repository**.
+1. (*optional*) Copy (link) all `libfmod` files from `external/lib/[os]/[arch]` into the repository.
+  - Linux: `cd $REPOSITORY; ln -s ../external/lib/linux/x86_64/libfmod.so* .`
+  - macOS: `cd $REPOSITORY; ln -s ../external/lib/macOS/libfmod.dylib .`
 
-   `cd $DATA_REPOSITORY; ln -s ../Cortex-Command-Community-Project-Source/build/CortexCommand . `
-
-2. (*optional*) Copy (link) all `libfmod` files from `external/lib/[os]/[arch]` into the **Data Repository**.
-  - Linux: `cd $DATA_REPOSITORY; ln -s ../Cortex-Command-Community-Project-Source/external/lib/linux/x86_64/libfmod.so* .`
-  - macOS: `cd $DATA_REPOSITORY; ln -s ../Cortex-Command-Community-Project-Source/external/lib/macOS/libfmod.dylib .`
-
-
-4. Run `./CortexCommand` or `./CortexCommand_debug` in the **Data Repository**.
+2. Run `./CortexCommand` or `./CortexCommand_debug`.
 
 ## Installing Dependencies
 
@@ -184,5 +176,4 @@ If you're familiar with github you should be familiar with making issues. It's a
 
 # How to Contribute #
 
-If you've got experience with the game's ini data through modding it, are good at spriting or know Lua, maybe you can contribute some of your time directly to the project. We'll look at any pull requests that come in and are always happy to have more hands on deck.
-If you're an experienced programmer (particularly with C++), there's also tons of work to be done in our [source](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source) repository.
+If you've got any C++ experience, experience with the game's ini data through modding it, are good at spriting or know Lua, you can contribute some of your time directly to the project. We'll look at any pull requests that come in and are always happy to have more hands on deck.

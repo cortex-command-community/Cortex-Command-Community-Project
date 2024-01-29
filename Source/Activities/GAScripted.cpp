@@ -26,6 +26,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <fstream>
+
 using namespace RTE;
 
 ConcreteClassInfo(GAScripted, GameActivity, 0);

@@ -9,6 +9,11 @@
 #include "Singleton.h"
 #include "Activity.h"
 
+#include <mutex>
+#include <map>
+#include <future>
+#include <unordered_set>
+
 #define g_MovableMan MovableMan::Instance()
 
 namespace RTE {

@@ -11,6 +11,8 @@
 #include "Scene.h"
 #include "Actor.h"
 
+#include <array>
+#include <memory>
 namespace RTE {
 
 #define OBJARROWFRAMECOUNT 4

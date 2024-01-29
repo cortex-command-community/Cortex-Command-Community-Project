@@ -12,6 +12,9 @@
 #include "PieSlice.h"
 #include "PathFinder.h"
 
+#include <memory>
+#include <list>
+
 struct BITMAP;
 
 namespace RTE {

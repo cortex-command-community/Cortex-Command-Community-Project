@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace RTE {
 
 	/// A utility class with misc static functions for different things.
