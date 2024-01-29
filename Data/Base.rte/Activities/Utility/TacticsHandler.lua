@@ -1,6 +1,51 @@
 --------------------------------------- Instructions ---------------------------------------
 
---
+------- Require this in your script like so: 
+
+-- self.tacticsHandler = require("Activities/Utility/TacticsHandler");
+-- self.tacticsHandler:Initialize(Activity, bool newGame, int minimumSquadActorCount, int maximumSquadActorCount, int squadIdleTimeLimitMS, bool verboseLogging);
+-- The squadActorCount arguments are for automatic squad merging. Squads above the maximum will not merge ever, and squads below the minimum will merge into new squads if possible.
+-- Verbose logging will also have info above every tasked actor's head. Alt-L to toggle.
+
+-- TacticsHandler is pretty complicated and not for the uninitiated.
+
+-- First off, call TacticsHandler:UpdateTacticsHandler() every frame.
+
+-- To get started at a basic level, do TacticsHandler:AddTask(string name, int team, AreaOrVectorOrMO taskPos, string taskType, int priority, number retaskTimeMultiplier)
+-- Sending an Area taskPos will randomly select a position from that Area, except in the case of PatrolArea where it will continuously select positions within it to patrol.
+-- These should be custom Areas specifically for tacticsHandler that are close to the ground! Otherwise, actors will try to fly up to positions in the air.
+
+-- Available taskTypes: Attack, Defend, PatrolArea, Brainhunt, Sentry
+-- Attack will move towards an area, but retask quickly - Defend is the same but will stay there for more time.
+-- PatrolArea will pick positions, move to them, then pick more positions. It MUST have an Area as its taskPos, or it will revert to Defend type.
+-- Brainhunt will ignore taskPos and just brainhunt.
+-- Sentry will ignore taskPos and indefinitely set the squad to sentry mode, and never retask. Use defend with a high retaskTimeMultiplier if you want them
+-- to actually go somewhere.
+
+-- After you've done that, you can do TacticsHandler:AddSquad(int team, table squadTable, string taskName, bool applyTask, bool allowMerge)
+-- squadTable should be a table of AHumans and ACrabs that you would like to squad up.
+-- taskName is the name of the task.
+-- applyTask should be true in most cases: this is actually setting AI modes and stuff to make them act properly. In some cases you might not want to do that
+-- so you can add a squad into the system without immediately making TacticsHandler give them things to do.
+-- allowMerge disables or enables merging behavior, where an existing squad under the minimumSquadActorCount will be rolled into this new one you're adding.
+
+-- You are now officially using TacticsHandler. This squad will automatically do the task you have specified and will even switch tasks periodically if more are available.
+
+-- Instead of adding squads to specific tasks, you can also rely on TacticsHandler to suggest a random task from the ones you have added.
+-- UpdateTacticsHandler will periodically return variables team, task. Note that variable "task" is the actual task table and to use it you should do task.Name.
+
+-- To remove a task, do TacticsHandler:RemoveTask(string name, int team). All squads assigned to this task will be retasked to other tasks.
+-- If no task is available the squad will keep doing the removed task, but as soon as one becomes available later it will be retasked then.
+
+-- If for some reason you'd like to task a squad without adding them into the system, or to immediately update a squad's AI according to a task,
+-- use TacticsHandler:ApplyTaskToSquadActors(squad, task). Variable squad should be a table of actors, and variable task should be an actual task table.
+
+-- Get a task table from a task name via GetTaskByName(string name, int team), or PickTask(int team) which will give you a random one.
+
+------- Saving/Loading
+
+-- Saving and loading requires you to also have the SaveLoadHandler ready.
+-- Simply run OnSave(instancedSaveLoadHandler) and OnLoad(instancedSaveLoadHandler) when appropriate.
 
 --------------------------------------- Misc. Information ---------------------------------------
 
@@ -75,16 +120,6 @@ function TacticsHandler:Initialize(activity, newGame, minimumSquadActorCount, ma
 end
 
 function TacticsHandler:OnMessage(message, object)
-
-	--print("tacticshandlergotmessage")
-
-	if message == "TacticsHandler_InvalidateActor" and object then
-		self:InvalidateActor(object);
-		--print("was told to invalidate actor!")
-		--for k, v in pairs(object) do
-		--	print(k .. v);
-		--end
-	end
 	
 end
 
@@ -183,21 +218,6 @@ function TacticsHandler:OnSave(saveLoadHandler)
 	end
 
 	print("INFO: TacticsHandler saved!");
-end
-
--- NO LONGER USED!
--- old system before the switch to UniqueID... desynced on the regular
-function TacticsHandler:InvalidateActor(infoTable)
-
-	print("tried to invalidate, table values:")
-	for k, v in pairs(infoTable) do
-		print(k)
-		print(v)
-	end
-
-	self.saveTable.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors[infoTable.actorIndex] = false;
-	--print("actor invalidated through function")
-	
 end
 
 function TacticsHandler:ReapplyAllTasks()
@@ -463,6 +483,11 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority, retaskT
 			retaskTime = 180000 * retaskTimeMultiplier;
 		elseif taskType == "PatrolArea" then
 			retaskTime = 100000 * retaskTimeMultiplier;
+			if not taskPos.RandomPoint then
+				print("WARNING: TacticsHandler added task is type PatrolArea, but its position is not an Area. Adding it as type Defend instead...");
+				taskType = "Defend";
+				retaskTime = 180000 * retaskTimeMultiplier;
+			end
 		elseif taskType == "Brainhunt" then
 			retaskTime = 240000 * retaskTimeMultiplier;
 		end
@@ -590,23 +615,6 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask, allowMer
 	
 end
 
-
--- NO LONGER USED!
--- old system before the switch to UniqueID... desynced on the regular
-function TacticsHandler:CommunicateSquadIndexesToActors()
-
-	for team, v in pairs(self.saveTable.teamList) do
-		for squad = 1, #self.saveTable.teamList[team].squadList do
-			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do
-				if actor and MovableMan:ValidMO(actor) then
-					actor:SendMessage("TacticsHandler_UpdateSquadIndex", squad);
-				end
-			end
-		end
-	end
-
-end
-
 function TacticsHandler:UpdateSquads(team)
 
 	--print("now checking team: " .. team);
@@ -720,13 +728,6 @@ function TacticsHandler:UpdateSquads(team)
 			self:RetaskSquad(self.saveTable.teamList[team].squadList[i], team, false);
 		end
 	end
-	
-	-- old system before the switch to UniqueID... desynced on the regular
-	
-	-- squad indexes have shifted if we've removed any, so tell all the actors that
-	--if squadRemoved then
-	--	self:CommunicateSquadIndexesToActors()
-	--end
 
 end
 

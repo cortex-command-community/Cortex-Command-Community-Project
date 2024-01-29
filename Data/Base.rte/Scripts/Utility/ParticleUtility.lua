@@ -1,3 +1,15 @@
+--------------------------------------- Instructions ---------------------------------------
+
+------- Require this in your script like so: 
+
+-- self.particleUtility = require("Scripts/Utility/ParticleUtility");
+
+-- This is a bunch of particle-related utilities. See each function for instructions.
+
+--------------------------------------- Misc. Information ---------------------------------------
+
+--
+
 local ParticleUtility = {}
 
 function ParticleUtility:Create()
@@ -9,7 +21,51 @@ function ParticleUtility:Create()
 	return Members;
 end
 
-function ParticleUtility:CreateDirectionalSmokeEffect(positionOrFullTable, source, angOrVector, power, spread, smokeMult, exploMult, widthSpread, velocityMult, lingerMult, airResistanceMult, gravMult)
+-- Create Directional Smoke Effect
+
+-- Self-explanatory function to quickly create a directional blast of smoke and explosion FX.
+-- The minimum arguments are position, angle, and FX power.
+-- Argument description in order:
+
+------ positionOrFullTable:
+-- The position to spawn the effect at, OR a table with every variable contained within as string keys.
+-- It must have every variable in it to be valid, and must contain the following:
+	-- Position;
+	-- RadAngle;
+	-- Power;
+	-- Source;
+	-- Spread;
+	-- SmokeMult;
+	-- ExploMult;
+	-- WidthSpread;
+	-- VelocityMult;
+	-- LingerMult;
+	-- AirResistanceMult;
+	-- GravMult;
+------ angOrVector:
+-- Either a radian angle for the effect, or a Vector() to grab the angle from. You can pass in ShortestDistance results here for example.
+----- power:
+-- Effect power. Affects type of FX spawned, amount of FX spawned, and their velocity. 15 is a small muzzle-smoke-like puff, 100 is a pretty big explosion.
+----- source:
+-- An MO that can act as the "source" for this effect. All this does is add the source's velocity to the smoke.
+----- spread:
+-- Degree spread for the particles spawned.
+----- smokeMult:
+-- Power multiplier for the smokey FX particles.
+----- exploMult:
+-- Power multiplier for the firey, explody FX particles.
+----- widthSpread:
+-- Pixel integer. With this at 0, every effect spawns at the exact same point. With it above 0, the effects are spread out to a wider area, for example vertically for a right-facing effect.
+----- velocityMult:
+-- Velocity multiplier. If your power setting doesn't result in the velocity you want you can change it with this.
+----- lingerMult:
+-- Lifetime multiplier for effects.
+----- airResistanceMult:
+-- Air resistance multiplier - this makes effects both slow down faster and to a slower terminal velocity.
+----- gravMult:
+-- Gravity multiplier. Please note that some effects have negative gravity to begin with, and this is just a flat multiplier on top of that.
+
+function ParticleUtility:CreateDirectionalSmokeEffect(positionOrFullTable, angOrVector, power, source, spread, smokeMult, exploMult, widthSpread, velocityMult, lingerMult, airResistanceMult, gravMult)
 	
 	local position;
 		

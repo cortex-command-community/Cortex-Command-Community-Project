@@ -243,9 +243,8 @@ end
 
 function DeliveryCreationHandler:OnLoad(saveLoadHandler)
 	
-	print("loading deliverycreationhandler...");
+	print("INFO: DeliveryCreationHandler loading...");
 	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("deliveryCreationHandlerSaveTable");
-	print("loaded deliverycreationhandler!");
 	
 	-- re-add virtual teams
 	
@@ -267,12 +266,15 @@ function DeliveryCreationHandler:OnLoad(saveLoadHandler)
 		end
 	end
 	
+	print("INFO: DeliveryCreationHandler loaded!");
+	
 end
 
 function DeliveryCreationHandler:OnSave(saveLoadHandler)
 	
-	print("saving deliverycreationhandler")
+	print("INFO: DeliveryCreationHandler saving...");
 	saveLoadHandler:SaveTableAsString("deliveryCreationHandlerSaveTable", self.saveTable);
+	print("INFO: DeliveryCreationHandler saved!");
 	
 end
 

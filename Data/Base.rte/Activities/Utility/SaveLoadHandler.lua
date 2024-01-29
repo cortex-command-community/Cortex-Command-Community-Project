@@ -1,6 +1,42 @@
-local SaveLoadHandler = {}
+--------------------------------------- Instructions ---------------------------------------
 
--- From Bebomonky's Last Cortex mod, from MyNameIsTrez
+------- Require this in your script like so: 
+
+-- self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
+-- self.saveLoadHandler:Initialize(bool verboseLogging);
+
+-- The main feature is table saving, which will save almost any table as a string.
+-- Aside from simple things like numbers, bools, and strings, you can also save:
+
+-- Vector()
+-- MOSRotatings and derivatives
+-- Area(), by name (it won't reconstruct it on a new Scene)
+-- Timer(), including both elapsed sim time and elapsed real time
+
+-- Simply do SaveLoadHandler:SaveTableAsString(string name, table), then yourTableVariableHere = SaveLoadHandler:ReadSavedStringAsTable(string name).
+
+
+-- There is also SaveLoadHandler:SaveMOLocally(self, string name, MOSRotating mo) and SaveLoadHandler:LoadLocallySavedMO(self, string name)
+-- so you can make use of SaveLoadHandler's unique parsing method to save and load a specific MO from any entity script.
+
+-- All of the above functions are intended to be using during official Activity game saving and loading, and will result in the info being saved
+-- in the resulting .ini file.
+
+-- If you just want a table serialized and deserialized you can directly use SaveLoadHandler:SerializeTable(table) and SaveLoadHandler:DeserializeTable(string serializedTable).
+
+
+--------------------------------------- Misc. Information ---------------------------------------
+
+-- Please note that if you're using UniqueIDs you MUST convert these to real MOs before attempting to save. As far as lua is concerned,
+-- a UniqueID is just a number, so SaveLoadHandler will save it as such instead of using its special MO method. UniqueIDs reset on game load too,
+-- so they are no longer the same anyway.
+
+-- Also, SaveLoadHandler's MO parsing method relies on trawling through entities owned by MovableMan, which means entities that actually exist in the simulation,
+-- including those in the inventory of Actors that exist in the simulation.
+-- Yes, this means that valid entities that only exist in the lua state and not in the simulation can't really be saved and loaded. Those are wiped
+-- as soon a the lua state is deleted (i.e. you save and quit a game).
+
+local SaveLoadHandler = {}
 
 function SaveLoadHandler:Create()
 	local Members = {};
@@ -13,12 +49,11 @@ end
 
 function SaveLoadHandler:Initialize(verboseLogging)
 
-	self.verboseLogging = verboseLogging;
-	
-	--print("SaveLoadHandlerinited")
-	
-	-- congrats, we did nothing
-	
+	if verboseLogging then
+		SaveLoadHandler.verboseLogging = true;
+		-- dunno why self doesn't work here...
+	end
+
 end
 
 function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
@@ -52,6 +87,9 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 		tmp = tmp .. string.format("%q", val)
 	elseif type(val) == "boolean" then
 		tmp = tmp .. (val and "true" or "false")
+	elseif type(val) == "function" then
+		tmp = tmp .. '"[inserializable function]"'
+		print("ERROR: SaveLoadHandler tried to save a function. This cannot currently be done and the table will not be as expected when loaded.");
 	elseif val.Magnitude then -- ghetto vector check
 		tmp = tmp .. string.format("%q", "Vector(" .. val.X .. "," .. val.Y .. ")")
 	elseif val.PresetName and IsMOSRotating(val) then -- IsMOSRotating freaks out if we give it something that isn't a preset at all... ghetto here too
@@ -62,10 +100,11 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 	elseif val.ElapsedSimTimeMS then -- ghetto timer check
 		tmp = tmp .. string.format("%q", "SAVELOADHANDLERTIMER_" .. tostring(val.ElapsedSimTimeMS) .. "_" .. tostring(val.ElapsedRealTimeMS))
 	else
-		tmp = tmp .. '"[inserializeable datatype:' .. type(val) .. ']"'
+		tmp = tmp .. '"[inserializable datatype:' .. type(val) .. ']"'
+		print("ERROR: SaveLoadHandler tried to save an inserializable datatype. The table will not be as expected when loaded.");
 	end
 	
-	if self.verboseLogging and depth == 0 then
+	if SaveLoadHandler.verboseLogging and depth == 0 then
 		print("INFO: SaveLoadHandler serialized this table:")
 		print(tmp)
 	end
@@ -85,6 +124,12 @@ function SaveLoadHandler:FindMOWithId(id)
 				return item;
 			end
 		end
+		for att in ToMOSRotating(act).Attachables do
+			if math.abs(att:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+				--item:removeNumberValue("saveLoadHandlerUniqueID");
+				return att;
+			end
+		end
 	end
 	for act in MovableMan.Actors do
 		if math.abs(act:GetNumberValue("saveLoadHandlerUniqueID")) == id then
@@ -97,6 +142,12 @@ function SaveLoadHandler:FindMOWithId(id)
 				return item;
 			end
 		end
+		for att in ToMOSRotating(act).Attachables do
+			if math.abs(att:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+				--item:removeNumberValue("saveLoadHandlerUniqueID");
+				return att;
+			end
+		end
 	end
 
 	for item in MovableMan.AddedItems do
@@ -104,11 +155,23 @@ function SaveLoadHandler:FindMOWithId(id)
 			--item:removeNumberValue("saveLoadHandlerUniqueID");
 			return item;
 		end
+		for att in ToMOSRotating(item).Attachables do
+			if math.abs(att:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+				--item:removeNumberValue("saveLoadHandlerUniqueID");
+				return att;
+			end
+		end
 	end
 	for item in MovableMan.Items do
 		if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
 			--item:removeNumberValue("saveLoadHandlerUniqueID");
 			return item;
+		end
+		for att in ToMOSRotating(item).Attachables do
+			if math.abs(att:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+				--item:removeNumberValue("saveLoadHandlerUniqueID");
+				return att;
+			end
 		end
 	end
 
@@ -117,11 +180,27 @@ function SaveLoadHandler:FindMOWithId(id)
 			--particle:removeNumberValue("saveLoadHandlerUniqueID");
 			return particle;
 		end
+		if IsMOSRotating(particle) then
+			for att in ToMOSRotating(particle).Attachables do
+				if math.abs(att:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+					--item:removeNumberValue("saveLoadHandlerUniqueID");
+					return att;
+				end
+			end
+		end
 	end
 	for particle in MovableMan.Particles do
 		if math.abs(particle:GetNumberValue("saveLoadHandlerUniqueID")) == id then
 			--particle:removeNumberValue("saveLoadHandlerUniqueID");
 			return particle;
+		end
+		if IsMOSRotating(particle) then
+			for att in ToMOSRotating(particle).Attachables do
+				if math.abs(att:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+					--item:removeNumberValue("saveLoadHandlerUniqueID");
+					return att;
+				end
+			end
 		end
 	end
 
@@ -132,19 +211,19 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 	for k, v in pairs(tab) do
 		if type(v) == "string" and string.find(v, "SAVELOADHANDLERUNIQUEID_") then
 			local id = math.abs(tonumber(string.sub(v, 25, -1)));
-			if self.verboseLogging then
-				print("INFO: SaveLoadHandler is parsing looking for this ID:" .. id)
+			if SaveLoadHandler.verboseLogging then
+				print("INFO: SaveLoadHandler is parsing looking for this ID: " .. id)
 			end
 			local mo = self:FindMOWithId(id);
 			if mo then
 				tab[k] = mo;
-				if self.verboseLogging then
+				if SaveLoadHandler.verboseLogging then
 					print("INFO: SaveLoadHandler set this found MO:");
 					print(v);
 				end
 			else
-				print("ERROR: SaveLoadHandler could not resolve a saved MO UniqueID! A loaded table is likely broken. The saved ID was:");
-				print("Not found: " .. v)
+				print("ERROR: SaveLoadHandler could not resolve a saved MO UniqueID! A loaded table is likely broken.");
+				print("The saved ID was: " .. v)
 			end
 		elseif type(v) == "table" then
 			self:ParseTableForMOs(v);
@@ -187,7 +266,7 @@ function SaveLoadHandler:ParseTableForTimers(tab)
 			tab[k] = Timer();
 			tab[k].ElapsedSimTimeMS = tonumber(elapsedSimTime);
 			tab[k].ElapsedRealTimeMS = tonumber(elapsedRealTime);
-			if self.verboseLogging then
+			if SaveLoadHandler.verboseLogging then
 				print("INFO: SaveLoadHandler loaded a Timer with SimTime: " .. elapsedSimTime .. " and RealTime: " .. elapsedRealTime);
 			end
 		elseif type(v) == "table" then
@@ -197,33 +276,39 @@ function SaveLoadHandler:ParseTableForTimers(tab)
 		
 end
 
-function SaveLoadHandler:ReadSavedStringAsTable(name)
-	local savedString = ActivityMan:GetActivity():LoadString(name)
-	if savedString == "" then
-		savedString = "{}";
-	end
+function SaveLoadHandler:DeserializeTable(serializedTable, name)
 
-	local tab = loadstring("return " .. savedString)()
+	local tab = loadstring("return " .. serializedTable)()
 	-- Parse for saved MOSRotatings
 	-- Very mildly inefficient in terms of looping even after resolving a value, but it happens once on startup
-	if self.verboseLogging then
+	if name and SaveLoadHandler.verboseLogging then
 		print("INFO: SaveLoadHandler is parsing this table for MOs: " .. name);
 	end
 	self:ParseTableForMOs(tab);
-	if self.verboseLogging then
+	if name and SaveLoadHandler.verboseLogging then
 		print("INFO: SaveLoadHandler is parsing this table for Vectors: " .. name);
 	end
 	self:ParseTableForVectors(tab);
-	if self.verboseLogging then
+	if name and SaveLoadHandler.verboseLogging then
 		print("INFO: SaveLoadHandler is parsing this table for Areas: " .. name);
 	end
 	self:ParseTableForAreas(tab);
-	if self.verboseLogging then
+	if name and SaveLoadHandler.verboseLogging then
 		print("INFO: SaveLoadHandler is parsing this table for Timers: " .. name);
 	end
 	self:ParseTableForTimers(tab);
 	
 	return tab;
+	
+end
+
+function SaveLoadHandler:ReadSavedStringAsTable(name)
+	local savedString = ActivityMan:GetActivity():LoadString(name)
+	if savedString == "" then
+		savedString = "{}";
+	end
+	
+	return SaveLoadHandler:DeserializeTable(savedString, name);
 
 end
 
@@ -242,7 +327,7 @@ function SaveLoadHandler:LoadLocallySavedMO(self, name)
 	local didNotFindAnMO = false;
 	
 	local notFound = true;
-	if self.verboseLogging then
+	if SaveLoadHandler.verboseLogging then
 		print("INFO: SaveLoadHandler is finding this locally saved MO: " .. name);
 	end
 	local id = math.abs(tonumber(string.sub(v, 25, -1)));

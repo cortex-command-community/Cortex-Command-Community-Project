@@ -380,7 +380,7 @@ function HUDHandler:UpdateHUDHandler()
 			-- not ideal: anyone pressing any key can skip the panning event... but the alternatives are much more roundabout
 			if self.teamCameraTimers[team]:IsPastSimMS(cameraTable.holdTime) or (not cameraTable.notCancellable and UInputMan:AnyKeyPress()) then
 				-- Callback functions
-				if cameraTable.callback then
+				if cameraTable.callback and type(cameraTable.callback) == "function" then
 					cameraTable.callback();
 				end
 				

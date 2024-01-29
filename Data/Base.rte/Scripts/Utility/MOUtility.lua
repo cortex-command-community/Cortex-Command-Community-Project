@@ -1,3 +1,16 @@
+--------------------------------------- Instructions ---------------------------------------
+
+------- Require this in your script like so: 
+
+-- self.MOUtility = require("Scripts/Utility/MOUtility");
+
+-- This is a bunch of MO-related utilities. See each function for instructions.
+-- For some functions to work you must call self.MOUtility:Update() every frame.
+
+--------------------------------------- Misc. Information ---------------------------------------
+
+--
+
 local MOUtility = {}
 
 function MOUtility:Create()
@@ -7,6 +20,9 @@ function MOUtility:Create()
 	self.__index = self;
 	
 	self.saveTable = {};
+	
+	self.saveTable.MOsToSetUnhittable = {};
+	self.saveTable.actorsToSetFrozenHP = {};
 	
 	self.saveTable.originalGHBMOs = {};
 	self.saveTable.originalHMOs = {};
@@ -21,29 +37,16 @@ function MOUtility:OnLoad(saveLoadHandler)
 	print("INFO: MOUtility state loading...");
 	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("MOUtilitySaveTable");
 	
-	self.saveTable.movableObjects = {};
-	self.saveTable.movableObjects = {};
+	self.saveTable.originalGHBMOs = {};
+	self.saveTable.originalHMOs = {};
+	self.saveTable.frozenHPs = {};
 	
-	-- match old uniqueid indexes to new uniqueid values, copying over old uniqueid's original value to a new entry using the new uniqueid
-	-- then delete old uniqueid index
-	-- try not to get confused...
-	for uniqueID, _ in pairs(self.saveTable.originalGHBMOs) do
-		self.saveTable.originalGHBMOs[self.saveTable.movableObjects[uniqueID].UniqueID] = self.saveTable.originalGHBMOs[uniqueID];
-		self.saveTable.originalGHBMOs[uniqueID] = nil;
+	-- just get back to where we were! simple
+	
+	for _, actor in pairs(self.saveTable.actorsToSetFrozenHP) do
+		MOUtility:SetFreezeActorHP(actor, true);
 	end
-	for uniqueID, _ in pairs(self.saveTable.originalHMOs) do
-		self.saveTable.originalHMOs[self.saveTable.movableObjects[uniqueID].UniqueID] = self.saveTable.originalHMOs[uniqueID];
-		self.saveTable.originalHMOs[uniqueID] = nil;
-	end
-	for uniqueID, _ in pairs(self.saveTable.frozenHPs) do
-		local actor = MovableMan:FindObjectByUniqueID(self.saveTable.movableObjects[uniqueID].UniqueID);
-		if actor then
-			self.saveTable.frozenHPs[actor.UniqueID] = actor.Health;
-		end
-		self.saveTable.frozenHPs[uniqueID] = nil;
-	end
-	self.saveTable.movableObjects = {};
-	self.saveTable.movableObjects = {};
+
 	print("INFO: MOUtility state loaded!");
 	
 end
@@ -52,34 +55,13 @@ function MOUtility:OnSave(saveLoadHandler)
 	
 	print("INFO: MOUtility state saving...");
 	
-	self.saveTable.movableObjects = {};
-	self.saveTable.movableObjects = {};
-	
-	-- turn uniqueids into mos
-	for uniqueID, _ in pairs(self.saveTable.originalGHBMOs) do
-		local mo = MovableMan:FindObjectByUniqueID(uniqueID);
-		if mo then
-			self.saveTable.movableObjects[uniqueID] = mo;
-		end
-	end
-	for uniqueID, _ in pairs(self.saveTable.originalHMOs) do
-		local mo = MovableMan:FindObjectByUniqueID(uniqueID);
-		if mo then
-			self.saveTable.movableObjects[uniqueID] = mo;
-		end
-	end
-	for uniqueID, _ in pairs(self.saveTable.frozenHPs) do
-		local mo = MovableMan:FindObjectByUniqueID(uniqueID);
-		if mo then
-			self.saveTable.movableObjects[uniqueID] = mo;
-		end
-	end
-	
 	saveLoadHandler:SaveTableAsString("MOUtilitySaveTable", self.saveTable);
-	
+
 	print("INFO: MOUtility state saved!");
 	
 end
+
+-- Internal function.
 
 function MOUtility:RecurseUnhittable(mo, unhittable, reset)
 	local valueToSet;
@@ -105,13 +87,21 @@ function MOUtility:RecurseUnhittable(mo, unhittable, reset)
 	end
 end
 
+-- Set MO Unhittable
+
+-- Sets an MO and all its children to be GetsHitByMOs false.
+-- Remembers original values, so it's non-destructive.
+
+-- Arguments: MovableObject mo, bool unhittable
+-- Unhittable arg is optional: you can call this with just an MO to have it act as a toggle.
+
 function MOUtility:SetMOUnhittable(mo, unhittable)
 
 	local toggled = false;
 	if unhittable == nil then
 		-- treat as toggle
 		toggled = true;
-		if self.saveTable.originalGHBMOs[mo.UniqueID] then
+		if self.saveTable.MOsToSetUnhittable[mo.UniqueID] then
 			unhittable = false;
 		else
 			unhittable = true;
@@ -119,10 +109,12 @@ function MOUtility:SetMOUnhittable(mo, unhittable)
 	end
 	
 	if mo then
-		if self.saveTable.originalGHBMOs[mo.UniqueID] and unhittable == false then
+		if self.saveTable.MOsToSetUnhittable[mo.UniqueID] and unhittable == false then
+			self.saveTable.MOsToSetUnhittable[mo.UniqueID] = nil;
 			-- reset to original values
 			self:RecurseUnhittable(mo, unhittable, true);
 		elseif unhittable == true then
+			self.saveTable.MOsToSetUnhittable[mo.UniqueID] = mo;
 			self:RecurseUnhittable(mo, unhittable, false);
 		end
 	else
@@ -138,22 +130,23 @@ function MOUtility:SetMOUnhittable(mo, unhittable)
 
 end
 
+-- Set MO Unhittable
+
+-- Freezes an actor's HP to its current value. Requires Update to be called every frame.
+-- Prevents death by HP but not gibbing.
+
+-- Arguments: Actor actor, bool toggle
+-- toggle arg is optional: you can call this with just an actor to have it act as a toggle.
+
 function MOUtility:SetFreezeActorHP(actor, toggle)
 
 	local toggled = false;
-	if unhittable == nil then
+	if toggle == nil then
 		-- treat as toggle
 		toggled = true;
-		local found;
-		for uniqueID, _ in pairs(self.saveTable.frozenHPs) do
-			if uniqueID == actor.UniqueID then
-				found = true;
-				toggle = false;
-				break;
-			end
-		end
-			
-		if not found then
+		if self.saveTable.actorsToSetFrozenHP[actor.UniqueID] then
+			toggle = false;
+		else
 			toggle = true;
 		end
 	end
@@ -161,14 +154,15 @@ function MOUtility:SetFreezeActorHP(actor, toggle)
 	if actor then
 		if toggle == true then
 			self.saveTable.frozenHPs[actor.UniqueID] = actor.Health;
-		elseif toggle == false and self.saveTable.frozenHPs[actor.UniqueID] then
+			self.saveTable.actorsToSetFrozenHP[actor.UniqueID] = actor;
+		elseif toggle == false and self.saveTable.actorsToSetFrozenHP[actor.UniqueID] then
 			self.saveTable.frozenHPs[actor.UniqueID] = nil;
+			self.saveTable.actorsToSetFrozenHP[actor.UniqueID] = nil;
 		end
 	else
 		print("ERROR: MOUtility tried to freeze an actor HP but was not given an actor!");
 		return false;
 	end
-
 
 	if toggled then
 		return toggle;

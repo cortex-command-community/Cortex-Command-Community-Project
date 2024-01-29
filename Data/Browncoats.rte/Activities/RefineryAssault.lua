@@ -516,13 +516,13 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
-	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) > 0 and not self.brainsInvincible then
-		self.brainsInvincible = true;
+	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) > 0 and not self.saveTable.brainsInvincible then
+		self.saveTable.brainsInvincible = true;
 		for k, brain in pairs(self.saveTable.playerBrains) do
 			self.MOUtility:SetMOUnhittable(brain, true);
 		end
-	elseif self.brainsInvincible and self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
-		self.brainsInvincible = false;
+	elseif self.saveTable.brainsInvincible and self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
+		self.saveTable.brainsInvincible = false;
 		for k, brain in pairs(self.saveTable.playerBrains) do
 			self.MOUtility:SetMOUnhittable(brain, false);
 		end

@@ -57,9 +57,6 @@ end
 
 function DockingHandler:Initialize(activity, newGame, autoAssignUnknownDropships, verboseLogging)
 	
-	print("dockhandler inited")
-	print(SceneMan.SceneOrbitDirection)
-	
 	if verboseLogging then
 		self.verboseLogging = true;
 	end
@@ -155,21 +152,23 @@ function DockingHandler:Initialize(activity, newGame, autoAssignUnknownDropships
 		end
 	end
 	
+	print("INFO: DockingHandler initialized!");
+	
 end
 
 function DockingHandler:OnLoad(saveLoadHandler)
 	
-	print("loading dockinghandler...");
+	print("INFO: DockingHandler loading...");
 	self.mainTable = saveLoadHandler:ReadSavedStringAsTable("dockingHandlerMainTable");
-	print("loaded dockinghandler!");
+	print("INFO: DockingHandler loaded!");
 	
 end
 
 function DockingHandler:OnSave(saveLoadHandler)
 	
-	print("saved docking maintable!")
-	print(self.mainTable)
+	print("INFO: DockingHandler saving...");
 	saveLoadHandler:SaveTableAsString("dockingHandlerMainTable", self.mainTable);
+	print("INFO: DockingHandler saved!");
 	
 end
 
@@ -328,8 +327,6 @@ function DockingHandler:UpdateUndersideDockingCraft()
 				
 					for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
 						if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
-							
-							print("found dock for unknown craft")
 							
 							craft.AIMode = Actor.AIMODE_GOTO;
 							--craft.Team = 0

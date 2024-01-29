@@ -969,8 +969,8 @@ function RefineryAssault:SetupFirstStage()
 	
 	-- Intro cinematics
 	
-	self.introTimer = Timer();
-	self.introLastRocketSpawnTime = 0;
+	self.saveTable.introTimer = Timer();
+	self.saveTable.introLastRocketSpawnTime = 0;
 	
 	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan1").Center;
 	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan1", cameraPos, 1, 500, true, true, true);
@@ -1076,9 +1076,9 @@ end
 
 function RefineryAssault:MonitorStage1()
 
-	if not self.introTimer:IsPastSimMS(2000) then
-		if self.introTimer:IsPastSimMS(self.introLastRocketSpawnTime + 100) then
-			self.introLastRocketSpawnTime = self.introTimer.ElapsedSimTimeMS;
+	if not self.saveTable.introTimer:IsPastSimMS(2000) then
+		if self.saveTable.introTimer:IsPastSimMS(self.saveTable.introLastRocketSpawnTime + 100) then
+			self.saveTable.introLastRocketSpawnTime = self.saveTable.introTimer.ElapsedSimTimeMS;
 			local particle = CreateAEmitter("Particle Rocket Launcher", "Base.rte");
 			particle.Pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroRocketSpawns").RandomPoint;
 			particle.Vel = Vector(math.random(-5, 5), -70);
@@ -1092,10 +1092,11 @@ function RefineryAssault:MonitorStage1()
 
 	-- Send away the initial dropship once it's empty
 	if self.saveTable.stage1InitialDropship then
-		local craft = self.saveTable.stage1InitialDropship;
+		local craft = ToACDropShip(self.saveTable.stage1InitialDropship);
 		if not craft or not MovableMan:ValidMO(craft) or craft:IsDead() then
 			self.saveTable.stage1InitialDropship = nil;
 		else
+			craft = ToACDropShip(self.saveTable.stage1InitialDropship);
 			if self.saveTable.stage1InitialDropshipToReturn then
 				if craft.AIMode == Actor.AIMODE_SENTRY then
 					craft.AIMode = Actor.AIMODE_RETURN;
@@ -1110,7 +1111,7 @@ function RefineryAssault:MonitorStage1()
 				craft.AIMode = Actor.AIMODE_GOTO;
 				craft:CloseHatch();
 				self.saveTable.stage1InitialDropshipToReturn = true;
-			elseif self.introTimer:IsPastSimMS(8000) then
+			elseif self.saveTable.introTimer:IsPastSimMS(8000) then
 				craft:OpenHatch();
 			end
 		end
