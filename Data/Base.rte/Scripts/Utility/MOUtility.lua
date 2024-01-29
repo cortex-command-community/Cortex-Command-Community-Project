@@ -7,6 +7,11 @@
 -- This is a bunch of MO-related utilities. See each function for instructions.
 -- For some functions to work you must call self.MOUtility:Update() every frame.
 
+------- Saving/Loading
+
+-- Saving and loading requires you to also have the SaveLoadHandler ready.
+-- Simply run OnSave(instancedSaveLoadHandler) and OnLoad(instancedSaveLoadHandler) when appropriate.
+
 --------------------------------------- Misc. Information ---------------------------------------
 
 --

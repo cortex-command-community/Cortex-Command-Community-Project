@@ -1,6 +1,76 @@
 --------------------------------------- Instructions ---------------------------------------
 
---
+------- Require this in your script like so: 
+
+-- self.HUDHandler = require("Activities/Utility/HUDHandler");
+-- self.HUDHandler:Initialize(Activity, bool newGame, bool verboseLogging);
+
+-- Call self.HUDHandler:UpdateHUDHandler() every frame.
+
+-- This utility lets you queue up camera panning events and set objectives to display on players' screens.
+
+------- Camera stuff
+
+-- HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCancellable, cinematicBars, disableHUDFully, callback)
+-- Only team, name, and pos are required.
+-- pos is the destination of the camera pan event - note that it will start from wherever player screens happen to be just then.
+-- If you want to pan between two positions specifically, you will need one pan event to set up the position (with a fast speed and low holdTime) first.
+-- A speed of 0.05 is about average.
+-- holdTime is the total time this event will go on, whether it reaches its destination at the given speed or not.
+-- notCancellable == true will make the event unskippable, otherwise it can be skipped by pressing any button.
+-- cinematicBars will enable or disable animated cinematic bars for this event.
+-- disableHUDFully will disable all HUD elements, including things like the gold fund counter. However, even with this false, the HUDHandler objective list is disabled.
+-- callback is a function to call when this event ends, in case you want to sync some code up with a camera pan. This will also happen if the event is skipped.
+
+-- There is also GetCameraPanEventCount(int team), RemoveCameraPanEvent(int team, string name) and RemoveAllCameraPanEvents(int team) which are self-explanatory.
+
+-- Manual cinematic bar operation can happen with HUDHandler:SetCinematicBars(int team, bool toggle, int thickness).
+-- Note that this toggle state WILL be overriden by pan events, but your set thickness is permanent.
+
+-- HUDHandler:SetCameraMinimumAndMaximumX(team, minimumX, maximumX) lets you set a minimum and maximum absolute X value for a particular team's players' cameras to go.
+-- Use this to limit view in scripted missions, for example.
+
+------- Objectives
+
+-- Objectives are rather robust in how they display.
+
+-- HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortName, objType, objLongName, objDescription, objPos,
+-- doNotShowInList, showArrowOnlyOnSpectatorView, showDescEvenWhenNotFirst, showDescOnlyOnSpectatorView)
+
+-- Only team and internal name are required for a very basic objective display - the internal name will also be the objective's short name.
+
+-- Internal name does not display on the list visually but is just there to keep track of objectives easier in code.
+-- Short name displays when the objective doesn't fulfill the criteria to have its long name displayed, and also on in-game objective arrows if applicable.
+-- objType is currently unused.
+-- Long name is displayed if criteria is fulfilled, alongside the description if applicable.
+-- Objective description is displayed if the objective is first in the list (the primary objective) or has showDescEvenWhenNotFirst set to true.
+-- objPos will enable an in-game arrow and short name display at a position in the world. You can also set an MO here to have the objective follow it.
+-- doNotShowInList will not show this objective in the HUD. Use it for internal objectives that only display in-game arrows, like a bunch of "kill actor" objectives.
+-- showArrowOnlyOnSpectatorView will show the in-game arrow only while a player is in actor select mode, i.e. holding q or e.
+-- showDescEvenWhenNotFirst will override description showing behavior and show this objective's description even if it's not first in the list.
+-- showDescOnlyOnSpectatorView is self-explanatory.
+
+-- Instead of an internal name, you can give this function a pre-constructed table. It should contain these keys:
+
+-- internalName
+-- shortName
+-- Type
+-- longName
+-- Description
+-- Position
+-- doNotShowInList
+-- showArrowOnlyOnSpectatorView
+-- showDescEvenWhenNotFirst
+-- showDescOnlyOnSpectatorView
+
+-- RemoveObjective(team, internalName) to remove an objective. There is also RemoveAllObjectives(team).
+
+-- MakeObjectivePrimary(team, internalName) will move an objective to the top of the list, displaying its long name and description if it has any.
+
+------- Saving/Loading
+
+-- Saving and loading requires you to also have the SaveLoadHandler ready.
+-- Simply run OnSave(instancedSaveLoadHandler) and OnLoad(instancedSaveLoadHandler) when appropriate.
 
 --------------------------------------- Misc. Information ---------------------------------------
 
@@ -357,6 +427,10 @@ function HUDHandler:UpdateHUDHandler()
 	self.Activity:ClearObjectivePoints();
 
 	for team = 0, #self.saveTable.teamTables do
+	
+		-- Cinematic bars
+		local disableDrawingObjectives = self:DrawCinematicBars(team);	
+	
 		local cameraTable = self.saveTable.teamTables[team].cameraQueue[1];
 
 		if cameraTable then
@@ -369,6 +443,7 @@ function HUDHandler:UpdateHUDHandler()
 					self.Activity:SetViewState(Activity.OBSERVE, player);
 					if cameraTable.disableHUDFully then
 						FrameMan:SetHudDisabled(true, self.Activity:ScreenOfPlayer(player));
+						disableDrawingObjectives = true;
 					end
 				end
 			end
@@ -421,9 +496,6 @@ function HUDHandler:UpdateHUDHandler()
 				end
 			end
 		end
-		
-		-- Cinematic bars
-		local disableDrawingObjectives = self:DrawCinematicBars(team);
 
 		-- Objectives
 		if not PerformanceMan.ShowPerformanceStats == true and not disableDrawingObjectives then
