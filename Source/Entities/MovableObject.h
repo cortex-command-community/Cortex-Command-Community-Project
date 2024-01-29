@@ -720,7 +720,7 @@ namespace RTE {
 		/// Returns force vector in newtons of the specified Force record.
 		/// @param n Force record index to get data from.
 		/// @return Force vector in newtons of the specified Force record.
-		Vector GetForceVector(unsigned int n) {
+		Vector GetForceVector(int n) {
 			if (n > 0 && n < m_Forces.size())
 				return m_Forces[n].first;
 			else
@@ -734,7 +734,7 @@ namespace RTE {
 		/// Returns offset vector in METERS (not pixels) of the specified Force record.
 		/// @param n Force record index to get data from.
 		/// @return Offset vector in meters of the specified Force record.
-		Vector GetForceOffset(unsigned int n) {
+		Vector GetForceOffset(int n) {
 			if (n > 0 && n < m_Forces.size())
 				return m_Forces[n].second;
 			else
@@ -743,14 +743,14 @@ namespace RTE {
 
 		/// Sets force vector in newtons of the specified Force record.
 		/// @param n Force record index to get data from. New Vector force value in newtons.
-		void SetForceVector(unsigned int n, Vector v) {
+		void SetForceVector(int n, Vector v) {
 			if (n > 0 && n < m_Forces.size())
 				m_Forces[n].first = v;
 		}
 
 		/// Sets offset vector in METERS (not pixels) of the specified Force record.
 		/// @param n Force record index to get data from. New Vector offset value in meters.
-		void SetForceOffset(unsigned int n, Vector v) {
+		void SetForceOffset(int n, Vector v) {
 			if (n > 0 && n < m_Forces.size())
 				m_Forces[n].second = v;
 		}
@@ -766,7 +766,7 @@ namespace RTE {
 		/// Returns Impulse vector in newtons of the specified Impulse record.
 		/// @param n Impulse record index to get data from.
 		/// @return Impulse vector in newtons of the specified Impulse record.
-		Vector GetImpulseVector(unsigned int n) {
+		Vector GetImpulseVector(int n) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				return m_ImpulseForces[n].first;
 			else
@@ -776,7 +776,7 @@ namespace RTE {
 		/// Returns offset vector in METERS (not pixels) of the specified Impulse record.
 		/// @param n Impulse record index to get data from.
 		/// @return Offset vector in meters of the specified Impulse record.
-		Vector GetImpulseOffset(unsigned int n) {
+		Vector GetImpulseOffset(int n) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				return m_ImpulseForces[n].second;
 			else
@@ -786,14 +786,14 @@ namespace RTE {
 		/// Returns offset vector in METERS (not pixels) of the specified Impulse record.
 		/// @param n Impulse record index to get data from.
 		/// @return Offset vector in meters of the specified Impulse record.
-		void SetImpulseVector(unsigned int n, Vector v) {
+		void SetImpulseVector(int n, Vector v) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				m_ImpulseForces[n].first = v;
 		}
 
 		/// Sets offset vector in METERS (not pixels) of the specified Impulse record.
 		/// @param n Impulse record index to get data from. New Vector offset value in meters.
-		void SetImpulseOffset(unsigned int n, Vector v) {
+		void SetImpulseOffset(int n, Vector v) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				m_ImpulseForces[n].second = v;
 		}

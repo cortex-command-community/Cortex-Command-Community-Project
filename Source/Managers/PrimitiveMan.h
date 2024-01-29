@@ -309,7 +309,7 @@ namespace RTE {
 		/// @param moSprite A MOSprite to draw BITMAP from.
 		/// @param rotAngle Rotation angle in radians.
 		/// @param frame Frame to draw.
-		void DrawBitmapPrimitive(const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame) { DrawBitmapPrimitive(-1, centerPos, moSprite, rotAngle, frame, false, false); }
+		void DrawBitmapPrimitive(const Vector& centerPos, const MOSprite* moSprite, float rotAngle, int frame) { DrawBitmapPrimitive(-1, centerPos, moSprite, rotAngle, frame, false, false); }
 
 		/// Schedule to draw a bitmap primitive with the option to flip the primitive horizontally and vertically.
 		/// @param centerPos Position of primitive's center in scene coordinates.
@@ -318,7 +318,7 @@ namespace RTE {
 		/// @param frame Frame to draw.
 		/// @param hFlipped Whether to flip the sprite horizontally.
 		/// @param vFlipped Whether to flip the sprite vertically.
-		void DrawBitmapPrimitive(const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped) { DrawBitmapPrimitive(-1, centerPos, moSprite, rotAngle, frame, hFlipped, vFlipped); }
+		void DrawBitmapPrimitive(const Vector& centerPos, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped) { DrawBitmapPrimitive(-1, centerPos, moSprite, rotAngle, frame, hFlipped, vFlipped); }
 
 		/// Schedule to draw a bitmap primitive visible only to a specified player.
 		/// @param player Player screen to draw primitive on.
@@ -326,7 +326,7 @@ namespace RTE {
 		/// @param moSprite A MOSprite to draw BITMAP from.
 		/// @param rotAngle Rotation angle in radians.
 		/// @param frame Frame to draw.
-		void DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame) { DrawBitmapPrimitive(player, centerPos, moSprite, rotAngle, frame, false, false); }
+		void DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, int frame) { DrawBitmapPrimitive(player, centerPos, moSprite, rotAngle, frame, false, false); }
 
 		/// Schedule to draw a bitmap primitive visible only to a specified player with the option to flip the primitive horizontally or vertically.
 		/// @param player Player screen to draw primitive on.
@@ -336,7 +336,7 @@ namespace RTE {
 		/// @param frame Frame to draw.
 		/// @param hFlipped Whether to flip the sprite horizontally.
 		/// @param vFlipped Whether to flip the sprite vertically.
-		void DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped);
+		void DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped);
 
 		/// Schedule to draw a bitmap primitive.
 		/// @param centerPos Position of primitive's center in scene coordinates.

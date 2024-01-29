@@ -99,8 +99,8 @@ namespace RTE {
 		/// Gets a pointer to the segment at the given index. Ownership is NOT transferred.
 		/// @param segmentIndex The index of the segment to get.
 		/// @return A pointer to the segment at the given index. Ownership is NOT transferred.
-		Vector* GetSegment(unsigned int segmentIndex) {
-			if (segmentIndex < m_Segments.size()) {
+		Vector* GetSegment(int segmentIndex) {
+			if (segmentIndex >= 0 && segmentIndex < m_Segments.size()) {
 				return &m_Segments.at(segmentIndex);
 			}
 			return nullptr;
@@ -219,7 +219,7 @@ namespace RTE {
 
 		/// Gets the current segment as a number, rather than an iterator.
 		/// @return The current segment as a number.
-		unsigned int GetCurrentSegmentNumber() const;
+		int GetCurrentSegmentNumber() const;
 
 		/// Sets a new array of 'waypoints' or segments of this LimbPath.
 		/// @param newSpeed An int specifying how many segments there are in the following
@@ -374,7 +374,7 @@ namespace RTE {
 		// The iterator to the segment of the path that the limb ended up on the end of
 		std::deque<Vector>::iterator m_CurrentSegment;
 
-		unsigned int m_FootCollisionsDisabledSegment; //!< The segment after which foot collisions will be disabled for this limbpath, if it's for legs.
+		int m_FootCollisionsDisabledSegment; //!< The segment after which foot collisions will be disabled for this limbpath, if it's for legs.
 
 		// Normalized measure of how far the limb has progressed toward the
 		// current segment's target. 0.0 means its farther away than the

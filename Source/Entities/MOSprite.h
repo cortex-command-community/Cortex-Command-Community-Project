@@ -88,7 +88,7 @@ namespace RTE {
 		/// @param whichFrame Which frame to get. (default: 0)
 		/// @return A pointer to the requested frame of this MOSprite's BITMAP array.
 		/// Ownership is NOT transferred!
-		BITMAP* GetSpriteFrame(unsigned int whichFrame = 0) const { return (whichFrame < m_FrameCount) ? m_aSprite[whichFrame] : 0; }
+		BITMAP* GetSpriteFrame(int whichFrame = 0) const { return (whichFrame >= 0 && whichFrame < m_FrameCount) ? m_aSprite[whichFrame] : 0; }
 
 		/// Gets the width of the bitmap of this MOSprite
 		/// @return Sprite width if loaded.

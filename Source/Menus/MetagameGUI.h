@@ -458,7 +458,7 @@ namespace RTE {
 		/// @param onlyVisible Whetehr to only care about visible lines. (default: true)
 		/// @param total The total funds to be calculating the ratios against. If negative, (default: -1)
 		/// the total line amounts is what will be used.
-		void UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, unsigned int player, bool onlyVisible = true, float total = -1);
+		void UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, int player, bool onlyVisible = true, float total = -1);
 
 		/// Draws a fancy thick flickering line to point out scene points on the
 		/// planet.
@@ -635,7 +635,7 @@ namespace RTE {
 		float m_AnimFundsMax;
 		float m_AnimFundsMin;
 		int m_AnimBuildCount;
-		unsigned int m_AnimIncomeLine;
+		int m_AnimIncomeLine;
 		bool m_AnimIncomeLineChange;
 		int m_AnimActionLine;
 		bool m_AnimActionLineChange;

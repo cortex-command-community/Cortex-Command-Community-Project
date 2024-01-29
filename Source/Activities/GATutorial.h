@@ -185,14 +185,14 @@ namespace RTE {
 		// If teh screen has just changed and needs to be redrawn
 		bool m_ScreenChange;
 		// Which tutorial step of the current area currently being played back
-		unsigned int m_CurrentStep;
+		int m_CurrentStep;
 		// Which frame of the current step's animation are we on?
 		int m_CurrentFrame;
 		// Current room
 		TutorialRoom m_CurrentRoom;
 		// Trigger box for the subsequent fight
 		Box m_FightTriggers[FIGHTSTAGECOUNT];
-		unsigned int m_EnemyCount; //!< The amount of enemy actors at the start of the activity.
+		int m_EnemyCount; //!< The amount of enemy actors at the start of the activity.
 		// The current fight stage
 		FightStage m_CurrentFightStage;
 		// The CPU opponent brain; not owned!
