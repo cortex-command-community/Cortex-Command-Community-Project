@@ -1051,7 +1051,7 @@ bool MetagameGUI::LoadGame() {
 			UpdateScenesBox(true);
 
 			// Make sure GUI boxes are on the screen; save game might have been made on wonky resolution
-			for (int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer)
+			for (unsigned int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer)
 				KeepBoxOnScreen(m_apPlayerBox[metaPlayer], 30);
 			KeepBoxOnScreen(m_pPhaseBox, 30);
 			KeepBoxOnScreen(m_pSceneInfoPopup, 30);
@@ -1626,7 +1626,7 @@ void MetagameGUI::Update() {
 	UpdateScenesBox();
 
 	// Update the site lines, if neccessary
-	for (int metaPlayer = 0; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
+	for (unsigned int metaPlayer = 0; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
 		// The tradestar is a moving target
 		if (m_aStationIncomeLineIndices[metaPlayer] >= 0 && !m_IncomeSiteLines.empty())
 			m_IncomeSiteLines[m_aStationIncomeLineIndices[metaPlayer]].m_PlanetPoint = m_StationPosOnOrbit;
@@ -2170,7 +2170,7 @@ void MetagameGUI::UpdateInput() {
 				// Add the players who own this place, if any - their actors and brains are in the scene and should be shown
 				if (g_MetaMan.IsActiveTeam(m_pSelectedScene->GetTeamOwnership())) {
 					// Go through all players and add the ones of the defending team, based on who has resident brains here
-					for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+					for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 						// Got to remember to translate from metagame player index into the in-game player index and to flag them as not a human so they dont' get their own screens
 						//                            if (g_MetaMan.m_Players[mp].GetTeam() == m_pSelectedScene->GetTeamOwnership())
 						if (m_pSelectedScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer()))
@@ -3594,7 +3594,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 
 		// Make sure all fund labels and line ratios are good
 		Scene* pScene = 0;
-		for (int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
+		for (unsigned int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
 			// Reset the funds to the full value before we started messing with animating them
 			g_MetaMan.m_Players[metaPlayer].m_Funds = g_MetaMan.m_Players[metaPlayer].m_PhaseStartFunds;
 
@@ -3685,7 +3685,7 @@ void MetagameGUI::SetupOffensives() {
 						// Unless exploring an unclaimed spot, there's going to be defenders
 						if ((*sItr)->GetTeamOwnership() != Activity::NoTeam) {
 							// Go through all players and add the ones of the defending team, based on who has resident brains here
-							for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+							for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 								// Got to remember to translate from metagame player index into the in-game player index
 								// TODO: Remove this requirement to have a brain resident to play? error-prone and not so fun for co-op player on sme team if they can't all play
 								//                                if (g_MetaMan.m_Players[mp].GetTeam() == (*sItr)->GetTeamOwnership())
@@ -3783,7 +3783,7 @@ void MetagameGUI::UpdateOffensives() {
 			m_AnimDefenseTeam = m_pAnimScene->GetTeamOwnership();
 
 		// Set up all the offensive and defensive lines for each player involved in this site's battle
-		for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+		for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// If this player is involved in this fight, show his lines etc
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 				// Save the fund levels FROM THE START of each battle so we can calculate the after state if players skip the animation
@@ -3899,7 +3899,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == LINECONNECTFW) {
 		if (NewAnimMode()) {
 			// Make sure all offensive action lines are set up for this phase
-			for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Find all players that are active during this battle
 				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 					// If this player is attacking, indicate that we've got a brain in transit.. this just changes the display, not the actual brain pool count yet
@@ -3929,7 +3929,7 @@ void MetagameGUI::UpdateOffensives() {
 		// Keep revealing segments simultaneously from all attackers until they are all revealed
 		if (m_AnimSegment < 15) {
 			if (m_AnimTimer1.GetElapsedRealTimeMS() > 150) {
-				for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+				for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 					// Only care if this player is attacking this site
 					if (m_pAnimScene->GetPresetName() == g_MetaMan.m_Players[mp].GetOffensiveTargetName() && g_MetaMan.m_Players[mp].GetOffensiveBudget() > 0)
 					//                    if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer()))
@@ -3971,7 +3971,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == SHOWDEFENDERS) {
 		if (NewAnimMode()) {
 			// Make sure all defensive and unallocated budget action lines are set up for this phase
-			for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			}
 
 			m_AnimModeDuration = 500;
@@ -4005,7 +4005,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == LINECONNECTBW) {
 		if (NewAnimMode()) {
 			// Make sure all defensive and unallocated budget action lines are set up for this phase
-			for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Only care of this player is involved in this particular battle
 				// Only care about defending players of this site
 				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer()) &&
@@ -4034,7 +4034,7 @@ void MetagameGUI::UpdateOffensives() {
 		// Keep revealing segments simultaneously from all attackers until they are all revealed
 		if (m_AnimSegment < 15) {
 			if (m_AnimTimer1.GetElapsedRealTimeMS() > 150) {
-				for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+				for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 					// Only care of this player is involved in this particular battle
 					if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 						// Find their defensive-related funds site lines
@@ -4103,7 +4103,7 @@ void MetagameGUI::UpdateOffensives() {
 			m_AnimModeDuration = 2000;
 
 			// Make sure all offensive action-related lines are set up for this battle review animation
-			for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Only the players of this battle
 				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 					// Find their site lines that are connected to the site
@@ -4131,7 +4131,7 @@ void MetagameGUI::UpdateOffensives() {
 		}
 
 		// Find the players who are involved in this battle
-		for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+		for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// Only the players of this battle
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 				// The brains who DID NOT MAKE IT - Show them blowing up at some random interval into the animation
@@ -4190,7 +4190,7 @@ void MetagameGUI::UpdateOffensives() {
 		if (m_AnimTimer2.GetElapsedRealTimeMS() > m_AnimModeDuration) {
 			// Blow up any remaining brains who are doomed
 			// Find the players who are involved in this battle
-			for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Only the players of this battle who didn't evacuate
 				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer()) &&
 				    !g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
@@ -4215,7 +4215,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == SHOWPOSTBATTLEBRAINS) {
 		if (NewAnimMode()) {
 			// Make sure all defensive and unallocated budget action lines are set up for this phase
-			for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (unsigned mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			}
 
 			// The duration of this depends on whethere there are any evacuees to travel back
@@ -4244,7 +4244,7 @@ void MetagameGUI::UpdateOffensives() {
 			// Change the display to show the evacuees transferring back to their brain pools
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->AnyBrainWasEvacuated()) {
 				// Find the players who are evacuated anything this battle
-				for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+				for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 					// Only the players of this battle who evac'd their brain
 					if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 						// Both an Attacker aborting an attack, and a Defender abandoning his site has the same effect here on the brian pool display
@@ -4262,7 +4262,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == SHOWNEWRESIDENTS) {
 		if (NewAnimMode()) {
 			// Make sure all defensive and unallocated budget action lines are set up for this phase
-			for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			}
 
 			m_AnimModeDuration = m_BattleCausedOwnershipChange ? 500 : 750;
@@ -4284,7 +4284,7 @@ void MetagameGUI::UpdateOffensives() {
 			UpdatePostBattleResidents(EaseOut(0, 1.0, MIN(1.0, m_AnimTimer2.GetElapsedRealTimeMS() / m_AnimModeDuration)));
 
 		// Find the players who are involved in this battle
-		for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+		for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// Only the players of this battle
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 				// The guys who died - remove their icons completely
@@ -4312,7 +4312,7 @@ void MetagameGUI::UpdateOffensives() {
 		UpdateSiteNameLabel(false);
 
 		// Max out the offensive lines in case the player started the battle before the lines were fully animated as connected
-		for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+		for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// Only care of this player is involved in this particular battle
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 				for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[mp].begin(); slItr != m_ActionSiteLines[mp].end(); ++slItr) {
@@ -4387,7 +4387,7 @@ bool MetagameGUI::FinalizeOffensive() {
 	}
 
 	// Deduct the original funds contribution of each player - less any unused funds of the team, taking original player contribution ratios into account
-	for (int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+	for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 		// Only the players who were battling this offensive
 		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 			// Re-set the funds level to where it was at the start of this offensive (NOT at the start of the phase, actually)
@@ -5676,7 +5676,7 @@ float MetagameGUI::GetPlayerLineFunds(std::vector<SiteLine>& lineList, int metaP
 	return totalFunds;
 }
 
-void MetagameGUI::UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, int metaPlayer, bool onlyVisible, float total) {
+void MetagameGUI::UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, unsigned int metaPlayer, bool onlyVisible, float total) {
 	if (metaPlayer < Players::PlayerOne || metaPlayer >= g_MetaMan.m_Players.size())
 		return;
 

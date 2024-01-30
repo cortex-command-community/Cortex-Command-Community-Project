@@ -560,7 +560,7 @@ namespace RTE {
 		/// @param frame Frame number of the MOSprite that will be drawn.
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
-		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, int frame, bool hFlipped, bool vFlipped) :
+		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped) :
 		    m_Bitmap(moSprite->GetSpriteFrame(frame)), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
 
 			m_StartPos = centerPos;
