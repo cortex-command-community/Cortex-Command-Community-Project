@@ -22,7 +22,7 @@ using namespace RTE;
 
 AbstractClassInfo(MovableObject, SceneObject);
 
-std::atomic<unsigned long int> MovableObject::m_UniqueIDCounter = 1;
+std::atomic<long> MovableObject::m_UniqueIDCounter = 1;
 std::string MovableObject::ms_EmptyString = "";
 
 MovableObject::MovableObject() {

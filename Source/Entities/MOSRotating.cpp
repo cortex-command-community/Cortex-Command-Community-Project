@@ -1457,7 +1457,7 @@ bool MOSRotating::AttachableIsHardcoded(const Attachable* attachableToCheck) con
 		return false;
 	}
 
-	unsigned long attachableUniqueID = attachableToCheck->GetUniqueID();
+	long attachableUniqueID = attachableToCheck->GetUniqueID();
 	return m_HardcodedAttachableUniqueIDsAndRemovers.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndRemovers.end() || m_HardcodedAttachableUniqueIDsAndSetters.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndSetters.end();
 }
 
