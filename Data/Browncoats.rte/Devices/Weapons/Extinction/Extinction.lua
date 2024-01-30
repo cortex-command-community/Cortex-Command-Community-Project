@@ -109,7 +109,7 @@ function Update(self)
 				self.fanFire = false;
 				self.cockDelay = 300;
 				self.StanceOffset = self.origStanceOffset;
-				self.SharpStanceOffset = self.origStanceOffset;
+				self.SharpStanceOffset = self.origSharpStanceOffset;
 				--self.SharpLength = self.origSharpLength;
 				self.ShakeRange = self.origShakeRange;
 				self.SharpShakeRange = self.origSharpShakeRange;
@@ -154,7 +154,7 @@ function Update(self)
 				self.fanFire = false;
 				self.cockDelay = 300;
 				self.StanceOffset = self.origStanceOffset;
-				self.SharpStanceOffset = self.origStanceOffset;
+				self.SharpStanceOffset = self.origSharpStanceOffset;
 				--self.SharpLength = self.origSharpLength;
 				self.ShakeRange = self.origShakeRange;
 				self.SharpShakeRange = self.origSharpShakeRange;
