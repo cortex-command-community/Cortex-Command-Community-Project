@@ -460,6 +460,18 @@ namespace RTE {
 		/// @param width The team to restore for.
 		void RestoreUnseenBox(const int posX, const int posY, const int width, const int height, const int team);
 
+		/// Traces along a vector and stops when the accumulated material strengths of the
+		/// traced-through terrain meets or exceeds a given value.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param endPos A Vector that will be set to the position of where the sight ray was
+		/// terminated. If it reached the end, it will be set to the end of the ray.
+		/// @param strengthLimit The accumulated material strength limit where the ray stops.
+		/// @param skip For every pixel checked along the line, how many to skip between them
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return Whether the ray was stopped prematurely or not.
+		bool CastTerrainPenetrationRay(const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip);
+
 		/// Traces along a vector and reveals or hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
