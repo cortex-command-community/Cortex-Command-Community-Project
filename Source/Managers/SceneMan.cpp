@@ -988,9 +988,6 @@ std::vector<MovableObject*>* SceneMan::DislodgePixelLine(const Vector& start, co
 	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
 	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
 
-	//if (delta[X] == 0 && delta[Y] == 0)
-	//	return false;
-
 	/////////////////////////////////////////////////////
 	// Bresenham's line drawing algorithm preparation
 
