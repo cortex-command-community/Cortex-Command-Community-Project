@@ -17,6 +17,6 @@ function Update(self)
 			self:UpdateMovePath();
 		end
 	else
-		self:DisableScript("Uzira.rte/Actors/Shared/Undead.lua");
+		self:DisableScript();
 	end
 end

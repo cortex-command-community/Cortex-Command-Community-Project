@@ -235,7 +235,7 @@ function Update(self)
 	if self.overheatLoopSound.Volume < self.overheatLoopSoundVolumeTarget then
 		self.overheatLoopSound.Volume = math.min(self.overheatLoopSoundVolumeTarget, self.overheatLoopSound.Volume + TimerMan.DeltaTimeSecs * 10);
 	elseif self.overheatLoopSound.Volume > self.overheatLoopSoundVolumeTarget then
-		self.overheatLoopSound.Volume = math.max(self.overheatLoopSoundVolumeTarget, self.overheatLoopSound.Volume - TimerMan.DeltaTimeSecs * 0.75);
+		self.overheatLoopSound.Volume = math.max(self.overheatLoopSoundVolumeTarget, self.overheatLoopSound.Volume - TimerMan.DeltaTimeSecs * 0.33);
 	end
 	
 	if self.bossMode and self.RoundInMagCount == 0 then
@@ -298,7 +298,7 @@ function Update(self)
 			end
 		else
 		
-			self.Heat = math.max(0, self.Heat - TimerMan.DeltaTimeSecs * 30);
+			self.Heat = math.max(0, self.Heat - TimerMan.DeltaTimeSecs * 60);
 			
 			if self.activated then
 				self.activated = false

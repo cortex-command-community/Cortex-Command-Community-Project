@@ -23,6 +23,12 @@ function Create(self)
 	self.deactivationMessage = self:GetStringValue("DeactivationMessage");
 	self.activationMessage = self:GetStringValue("ActivationMessage");
 	
+	if self:GetNumberValue("Deactivated") == 1 then
+		self.Deactivated = true;
+	end
+	
+	self:RemoveNumberValue("Deactivated");
+	
 	local createFunc = "Create" .. self:GetStringValue("ItemToDispenseClassName");
 	self.itemToDispense = _G[createFunc](self:GetStringValue("ItemToDispensePresetName"), self:GetStringValue("ItemToDispenseTechName"));
 	
@@ -147,4 +153,5 @@ end
 function OnSave(self)
 	self:SetNumberValue("cooldownTimer", self.cooldownTimer.ElapsedRealTimeMS);
 	self:SetNumberValue("itemsDispensed", self.itemsDispensed);
+	self:SetNumberValue("Deactivated", self.Deactivated and 1 or 0);
 end

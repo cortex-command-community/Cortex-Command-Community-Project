@@ -10,6 +10,7 @@ end
 function Create(self)
 
 	self.GibSound = nil;
+	self.MissionCritical = true;
 	
 	self.doorsTable = {};
 	for actor in MovableMan.Actors do

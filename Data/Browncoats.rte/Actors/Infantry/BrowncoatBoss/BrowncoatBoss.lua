@@ -174,15 +174,15 @@ function Update(self)
 	
 	-- Jumppack custom fx, for extra control actor-side
 	
-	local jumpPackTrigger = self.Jetpack and self.Jetpack:IsEmitting() and not self.jetpackEmitting;
+	--local jumpPackTrigger = self.Jetpack and self.Jetpack:IsEmitting() and not self.jetpackEmitting;
 	
-	if jumpPackTrigger then
-		BrowncoatBossFunctions.JumpPack(self)
-	end
+	--if jumpPackTrigger then
+	--	BrowncoatBossFunctions.JumpPack(self)
+	--end
 	
-	if not self.Jetpack or not self.Jetpack:IsEmitting() then
-		self.jetpackEmitting = false;
-	end
+	--if not self.Jetpack or not self.Jetpack:IsEmitting() then
+	--	self.jetpackEmitting = false;
+	--end
 
 	-- Jump to make this guy more bearable movement-wise
 	-- Also for extra cool boss ability
