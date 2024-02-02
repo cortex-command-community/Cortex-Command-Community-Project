@@ -151,7 +151,7 @@ function BunkerBreach:SetupDefenderActors()
 	end
 	
 	for actor in MovableMan.AddedActors do
-		if not actor:IsInGroup("Brains") and not actor:IsInGroup("Bunker Systems - Automovers") and not IsADoor(actor) then
+		if not actor:IsInGroup("Brains") and not actor:IsInGroup("Bunker Systems") then
 			if hasSpawnAreas then
 				actor.ToDelete = true;
 			elseif actor.Team ~= self.defenderTeam then
