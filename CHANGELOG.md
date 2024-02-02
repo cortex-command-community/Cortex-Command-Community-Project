@@ -126,6 +126,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Exposed `FrameMan` properties `ScreenCount` and `ResolutionMultiplier` to Lua (R).
 
+- New `SceneMan` Lua function `CastTerrainPenetrationRay(Vector start, Vector ray, Vector endPos, int strengthLimit, int skip)`, which adds up the material strength of the terrain pixels encountered along the way, and stops when the accumulated value meets or exceeds `strengthLimit`. `endPos` is filled out with the ending position of the ray, returns `true` or `false` depending on whether the ray was stopped early or not.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
