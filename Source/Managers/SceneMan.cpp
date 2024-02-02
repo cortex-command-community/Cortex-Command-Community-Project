@@ -934,10 +934,17 @@ MovableObject* SceneMan::DislodgePixelBool(int posX, int posY, bool deletePixel)
 
 std::vector<MovableObject*>* SceneMan::DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels) {
 	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
-	for (int x = 0; x <= static_cast<int>(radius) * 2; x++) {
-		for (int y = 0; y <= static_cast<int>(radius) * 2; y++) {
+	int limit = static_cast<int>(radius) * 2;
+	for (int x = 0; x <= limit; x++) {
+		for (int y = 0; y <= limit; y++) {
 			Vector checkPos = Vector(static_cast<float>(x) - radius, static_cast<float>(y) - radius) + centre;
-			if (!ShortestDistance(centre, checkPos, true).MagnitudeIsGreaterThan(radius)) {
+			Vector distance = ShortestDistance(centre, checkPos, true);
+
+			if (distance.MagnitudeIsGreaterThan(radius) && y > limit / 2) {
+				break;
+			}
+
+			if (!distance.MagnitudeIsGreaterThan(radius)) {
 				MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
 				if (px) {
 					pixelList->push_back(px);
