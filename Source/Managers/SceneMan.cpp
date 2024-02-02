@@ -893,6 +893,7 @@ bool SceneMan::TryPenetrate(int posX,
 }
 
 MovableObject* SceneMan::DislodgePixel(int posX, int posY) {
+	WrapPosition(posX, posY);
 	int materialID = getpixel(m_pCurrentScene->GetTerrain()->GetMaterialBitmap(), posX, posY);
 	if (materialID <= MaterialColorKeys::g_MaterialAir) {
 		return nullptr;
@@ -925,19 +926,20 @@ MovableObject* SceneMan::DislodgePixel(int posX, int posY) {
 // Bool variant to avoid changing the original
 MovableObject* SceneMan::DislodgePixelBool(int posX, int posY, bool deletePixel) {
 	MovableObject* pixelMO = DislodgePixel(posX, posY);
-	pixelMO->SetToDelete(deletePixel);
+	if (pixelMO) {
+		pixelMO->SetToDelete(deletePixel);
+	}
 	return pixelMO;
 }
 
 std::vector<MovableObject*>* SceneMan::DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels) {
 	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
-	for (float x = 0; x <= radius * 2; x++) {
-		for (float y = 0; y <= radius * 2; y++) {
-			Vector checkPos = Vector(x - radius, y - radius) + centre;
+	for (int x = 0; x <= static_cast<int>(radius) * 2; x++) {
+		for (int y = 0; y <= static_cast<int>(radius) * 2; y++) {
+			Vector checkPos = Vector(static_cast<float>(x) - radius, static_cast<float>(y) - radius) + centre;
 			if (!ShortestDistance(centre, checkPos, true).MagnitudeIsGreaterThan(radius)) {
-				MovableObject* px = DislodgePixel(checkPos.m_X, checkPos.m_Y);
+				MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
 				if (px) {
-					px->SetToDelete(deletePixels);
 					pixelList->push_back(px);
 				}
 			}
@@ -960,12 +962,11 @@ std::vector<MovableObject*>* SceneMan::DislodgePixelBox(const Vector& upperLeftC
 
 	float width = end.m_X - start.m_X;
 	float height = end.m_Y - start.m_Y;
-	for (float x = 0; x <= width * 2; x++) {
-		for (float y = 0; y <= height * 2; y++) {
-			Vector checkPos = start + Vector(x, y);
-			MovableObject* px = DislodgePixel(checkPos.m_X, checkPos.m_Y);
+	for (int x = 0; x <= static_cast<int>(width) * 2; x++) {
+		for (int y = 0; y <= static_cast<int>(height) * 2; y++) {
+			Vector checkPos = start + Vector(static_cast<float>(x), static_cast<float>(y));
+			MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
 			if (px) {
-				px->SetToDelete(deletePixels);
 				pixelList->push_back(px);
 			}
 		}
@@ -1034,9 +1035,8 @@ std::vector<MovableObject*>* SceneMan::DislodgePixelLine(const Vector& start, co
 			// Scene wrapping
 			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
 
-			MovableObject* px = DislodgePixel(intPos[X], intPos[Y]);
+			MovableObject* px = DislodgePixelBool(intPos[X], intPos[Y], deletePixels);
 			if (px) {
-				px->SetToDelete(deletePixels);
 				pixelList->push_back(px);
 			}
 

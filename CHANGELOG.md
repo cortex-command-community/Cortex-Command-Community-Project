@@ -126,6 +126,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Exposed `FrameMan` properties `ScreenCount` and `ResolutionMultiplier` to Lua (R).
 
+- New `SceneMan` Lua functions:
+	`DislodgePixelCircle(Vector centre, float radius, bool deletePixels)`, which calls `DislodgePixel()` on all pixels in a given circle, returns them as an iterable list. The bool is an optional argument to delete all found pixels immediately; defaults to `false`.
+	`DislodgePixelBox(Vector upperLeftCorner, Vector lowerRightCorner, bool deletePixels)`, similar to above but in a rectangular area.
+	`DislodgePixelLine(Vector startPos, Vector ray, int skip, bool deletePixels)`, calls `DislodgePixel()` on all pixels in a line, like above, but similar in function to a ray cast.
+	
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -167,6 +173,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Script values, i.e `GetStringValue`, `RemoveStringValue`, `StringValueExists` and the associated functions for `GetNumberValue`/`GetObjectValue`, have been moved from MOSRotating to MovableObject, so now any object with script support can use these values.  
 
 - The `SceneObject` property `IsBuyable` has been renamed to `Buyable`.
+
+- `SceneMan` Lua function `DislodgePixel()` now optionally accepts a third boolean argument to delete the found pixel immediately. Format is `DislodgePixel(int posX, int posY, bool deletePixel)`. `DislodgePixel()` now also automatically accounts for scene wrapping.
 
 </details>
 
