@@ -19,8 +19,8 @@ function Create(self)
 	self.loadedShell = false;
 	self.reloadCycle = false;
 
-	self.reloadDelay = 150;
-	self.origReloadTime = 1200;
+	self.reloadDelay = 200;
+	self.origReloadTime = 900;
 	
 	self.origStanceOffset = self.StanceOffset;
 	self.origSharpStanceOffset = self.SharpStanceOffset;
@@ -34,7 +34,7 @@ function Create(self)
 	self.origOneHandedReloadAngle = self.OneHandedReloadAngle;
 
 	self.ammoCounter = self.RoundInMagCount;
-	self.maxAmmoCount = self.Magazine.Capacity;
+	self.maxAmmoCount = self.Magazine and self.Magazine.Capacity or 5; -- loading a game might mess this up, so... fall-back
 	
 	self.shellsToEject = 0;
 	self.shellMOSParticle = self:StringValueExists("CylinderShellMOSParticle") and self:GetStringValue("CylinderShellMOSParticle") or "Base.rte/Casing";
@@ -61,7 +61,7 @@ function Create(self)
 	self.InheritedRotAngleTarget = 0;
 	self.InheritedRotAngleOffset = 0;
 	self.recoilAngleSize = 0.45;
-	self.recoilAngleVariation = 0.02;
+	self.recoilAngleVariation = 0.5;
 	self.rotationSpeed = 0.1;
 	
 	self.cockTimer = Timer();
@@ -109,10 +109,10 @@ function Update(self)
 				self.fanFire = false;
 				self.cockDelay = 300;
 				self.StanceOffset = self.origStanceOffset;
-				self.SharpStanceOffset = self.origStanceOffset;
+				self.SharpStanceOffset = self.origSharpStanceOffset;
 				--self.SharpLength = self.origSharpLength;
 				self.ShakeRange = self.origShakeRange;
-				self.SharpShakeRange = self.origShakeRange;
+				self.SharpShakeRange = self.origSharpShakeRange;
 			end
 		else
 			self.FullAuto = true;
@@ -127,12 +127,15 @@ function Update(self)
 		self.ammoCounter = self.ammoCounter - 1;
 		self.shellsToEject = self.shellsToEject + 1;
 		self.ReloadStartSound = self.reloadStartSound;
-		self.Frame = 1;
 		self.cockTimer:Reset();
 		self.cockDelay = 300;
+		self.hammerDown = true;
 		if self.fanFire then
 			self.cockDelay = 100;
+			self.ShakeRange = self.fanFireShakeRange;
+			self.SharpShakeRange = self.fanFireShakeRange;
 		end
+		self.Frame = 0;
 	end
 	if self.Magazine then
 	
@@ -144,8 +147,6 @@ function Update(self)
 			self.StanceOffset = self.fanFireStanceOffset;
 			self.SharpStanceOffset = self.fanFireStanceOffset;
 			--self.SharpLength = self.fanFireSharpLength;
-			self.ShakeRange = self.fanFireShakeRange;
-			self.SharpShakeRange = self.fanFireShakeRange;
 		elseif not self:IsActivated() then
 			self.fanFireTimer:Reset();
 			if self.fanFire then
@@ -153,32 +154,36 @@ function Update(self)
 				self.fanFire = false;
 				self.cockDelay = 300;
 				self.StanceOffset = self.origStanceOffset;
-				self.SharpStanceOffset = self.origStanceOffset;
+				self.SharpStanceOffset = self.origSharpStanceOffset;
 				--self.SharpLength = self.origSharpLength;
 				self.ShakeRange = self.origShakeRange;
-				self.SharpShakeRange = self.origShakeRange;
+				self.SharpShakeRange = self.origSharpShakeRange;
 			end
 		end
 	
-		if not self.reloadCycle and self.Frame == 1 then
+		if not self.reloadCycle and self.hammerDown then
 			self:Deactivate();
 			self.delayedFire = false;
+
 			
 			if self.cockTimer:IsPastSimMS(self.cockDelay) then
 				if self.fanFire then
 					--self.fanFireSound:Play(self.Pos);
 				else
 					self.cockSound:Play(self.Pos);
+					self.rotateAnim = true;
 				end
+				self.cockTimer:Reset();
+				self.rotateAnim = true;
+				self.hammerDown = false;
 				self.InheritedRotAngleTarget = 0;
-				self.Frame = 0;
 			end
 		end
 	
 		if self.loadedShell then
 			self.ReloadAngle = -0.25;
 			self.OneHandedReloadAngle = -0.4;
-			self.BaseReloadTime = self.reloadDelay * 3;
+			self.BaseReloadTime = self.reloadDelay * 1.5;
 			self.ammoCounter = math.min(self.Magazine.Capacity, self.ammoCounter + 1);
 			self.Magazine.RoundCount = self.ammoCounter;
 			self.loadedShell = false;
@@ -203,14 +208,27 @@ function Update(self)
 				self:Reload();
 			end
 		end
+		
+		if self.rotateAnim then
+			local minTime = 0;
+			local maxTime = self.cockDelay * 0.75;
+			
+			local factor = math.min(math.max(self.cockTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1);
+			
+			self.Frame = math.floor(factor * (4) + 0.5)
+			if self.Frame == 4 then
+				self.Frame = 0;
+				self.rotateAnim = false;
+			end
+		end
+		
 	else
 	
 		self.cockTimer:Reset();
-	
-		self.reloadTimer:Reset();
 		
 		if self.reloadCycle ~= true then
 			--self.cockDelay = 300;
+			self.openAnim = true;
 			self.InheritedRotAngleTarget = 0.1; -- not respected by the game currently
 			self.ReloadEndSound = self.roundInSound;
 			self.ReloadStartSound = nil;
@@ -230,21 +248,47 @@ function Update(self)
 		self.loadedShell = true;
 		
 		if self.ammoCounter == self.maxAmmoCount or self.prematureCycleEnd then
+			self.closeAnim = true;
 			self.ReloadAngle = 0.1;
 			self.OneHandedReloadAngle = 0.2;
 			self.loadedShell = false;
 			self.ReloadEndSound = self.reloadEndSound;
 			self.reloadCycleEndNext = true;			
-			self.BaseReloadTime = self.reloadDelay;
+			self.BaseReloadTime = self.reloadDelay * 2;
 		end		
 		
 	end
 	
+	if self.openAnim then
+		local minTime = 0;
+		local maxTime = 300;
+		
+		local factor = math.min(math.max(self.reloadTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1);
+		
+		self.Frame = 3 + math.floor(factor * (6) + 0.5)
+		if self.Frame == 6 then
+			self.openAnim = false;
+		end
+	end
+	
+	if self.closeAnim then
+		local minTime = 0;
+		local maxTime = 250;
+		
+		local factor = math.min(math.max(self.cockTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1);
+		
+		self.Frame = 6 - math.floor(factor * (3) + 0.5)
+		if self.Frame == 4 then
+			self.Frame = 0;
+			self.closeAnim = false;
+		end
+	end
+	
 	if self:DoneReloading() then
+		self.reloadTimer:Reset();
 		self.fireDelayTimer:Reset();
 		self.activated = false;
 		self.delayedFire = false;
-		
 	end
 	
 	if self.delayedFire and self.delayedFireTimer:IsPastSimMS(self.delayedFireTimeMS) then
@@ -253,7 +297,7 @@ function Update(self)
 		self.delayedFirstShot = false;
 	end
 
-	local fire = self:IsActivated() and self.RoundInMagCount > 0 and self.Frame == 0;
+	local fire = self:IsActivated() and self.RoundInMagCount > 0 and not self.hammerDown;
 
 	if self.delayedFirstShot == true then
 		if self.RoundInMagCount > 0 then

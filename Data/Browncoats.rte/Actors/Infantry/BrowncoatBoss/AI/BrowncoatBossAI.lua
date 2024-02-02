@@ -58,6 +58,7 @@ function Create(self)
 	self.BGLeg.ImpulseDamageThreshold = 99999999;
 	self.BGLeg.GibWoundLimit = 99999999;
 	
+	self.jumpPackSound = CreateSoundContainer("Browncoat Boss Jump Pack", "Browncoats.rte");
 	
 	self.abilityShockwaveWhooshSound = CreateSoundContainer("Browncoat Boss Ability Shockwave Whoosh", "Browncoats.rte");	
 	self.abilityShockwaveLandSound = CreateSoundContainer("Browncoat Boss Ability Shockwave Land", "Browncoats.rte");	
@@ -88,6 +89,7 @@ end
 
 function Update(self)
 	self.abilityShockwaveWhooshSound.Pos = self.Pos;
+	self.jumpPackSound.Pos = self.Pos;
 	
 	local debugHealthTrigger = UInputMan:KeyPressed(Key.N);
 	
@@ -200,16 +202,39 @@ function Update(self)
 	
 	if debugTrigger then
 		self.abilityShockwaveTrigger = true;
+		self.abilityShockwaveJumpPacked = false;
 	end
 	
 	if self.abilityShockwaveOngoing then
-		if self.abilityShockwaveTimer:IsPastSimMS(self.abilityShockwaveJumpPackDelay) then
+		if not self.abilityShockwaveJumpPacked and self.abilityShockwaveTimer:IsPastSimMS(self.abilityShockwaveJumpPackDelay) then
 		
-			self.Jetpack.NegativeThrottleMultiplier = self.jumpPackDefaultNegativeMult * 1.3;
-			self.Jetpack.PositiveThrottleMultiplier = self.jumpPackDefaultPositiveMult * 1.3;
+			self.abilityShockwaveJumpPacked = true;
+			
+			-- Old actual jetpack method
+			--self.Jetpack.NegativeThrottleMultiplier = self.jumpPackDefaultNegativeMult * 1.3;
+			--self.Jetpack.PositiveThrottleMultiplier = self.jumpPackDefaultPositiveMult * 1.3;
 			
 			self.controller:SetState(Controller.BODY_JUMPSTART, true)
 			self.controller:SetState(Controller.BODY_JUMP, true)
+			
+			self.jumpPackSound:Play(self.Pos);
+			
+			self.Vel = self.Vel + Vector(2 * self.FlipFactor, -10);
+			
+			local offset = Vector(0, -3)
+			
+			local emitterA = CreateAEmitter("Browncoat Boss JumpPack Smoke Trail Medium")
+			emitterA.InheritedRotAngleOffset = math.pi/2;
+			self.Jetpack:AddAttachable(emitterA);
+			
+			ToAttachable(emitterA).ParentOffset = offset
+			
+			local emitterB = CreateAEmitter("Browncoat Boss JumpPack Smoke Trail Heavy")
+			emitterB.InheritedRotAngleOffset = math.pi/2;
+			self.Jetpack:AddAttachable(emitterB);
+			
+			ToAttachable(emitterB).ParentOffset = offset
+			
 			if not self.abilityShockwaveWhooshSound:IsBeingPlayed() then
 				self.abilityShockwaveWhooshSound:Play(self.Pos);
 			end
@@ -237,4 +262,6 @@ function UpdateAI(self)
 end
 function Destroy(self)
 	self.AI:Destroy(self);
+	self.activity:SendMessage("Refinery_S10FinalBossDead");
+	
 end

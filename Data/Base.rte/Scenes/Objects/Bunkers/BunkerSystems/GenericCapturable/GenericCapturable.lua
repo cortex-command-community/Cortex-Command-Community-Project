@@ -29,6 +29,12 @@ function Create(self)
 	self.deactivationMessage = self:GetStringValue("DeactivationMessage");
 	self.activationMessage = self:GetStringValue("ActivationMessage");
 	
+	if self:GetNumberValue("Deactivated") == 1 then
+		self.Deactivated = true;
+	end
+	
+	self:RemoveNumberValue("Deactivated");
+	
 	self.actorCheckTimer = Timer();
 	self.actorCheckDelay = 250;
 	
@@ -211,4 +217,5 @@ function OnSave(self)
 	self:SetNumberValue("captureProgress", self.captureProgress);
 	self:SetNumberValue("dominantTeam", self.dominantTeam);
 	self:SetNumberValue("capturingTeam", self.capturingTeam);
+	self:SetNumberValue("Deactivated", self.Deactivated and 1 or 0);
 end

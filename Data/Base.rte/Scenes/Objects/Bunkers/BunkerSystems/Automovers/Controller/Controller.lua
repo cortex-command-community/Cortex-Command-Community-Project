@@ -173,7 +173,7 @@ function Update(self)
 		self:updateActivityEditingMode();
 	elseif self.currentActivity.ActivityState == Activity.RUNNING then
 		if self.obstructionCheckTimer:IsPastSimTimeLimit() then
-			self:checkForObstructions();
+			--self:checkForObstructions();
 			self.obstructionCheckTimer:Reset();
 		end
 
@@ -933,6 +933,10 @@ automoverActorFunctions.setActorMovementModeToLeaveAutomovers = function(self, a
 end
 
 automoverActorFunctions.convertActorWaypointsToWaypointData = function(self, actorData)
+	if actorData.movementMode ~= self.movementModes.teleporting then
+		return;
+	end
+	
 	local actor = actorData.actor;
 	actorData.waypointData = {};
 	local waypointData = actorData.waypointData;
