@@ -120,7 +120,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `GameActivity::LockControlledActor` Lua function to allow grab player input in the way menus (buy menu/full inventorymenu) do.
 
-- New `LuaMan` Lua I/O functions `DirectoryCreate`, `FileExists`, `DirectoryExists`, `FileRemove`, `DirectoryRemove`, `FileRename`, `DirectoryRename` and `IsValidModulePath`.
+- New `LuaMan` Lua I/O functions `DirectoryCreate`, `FileExists`, `DirectoryExists`, `FileRemove`, `DirectoryRemove`, `FileRename` and `DirectoryRename`.
 
 - New `FrameMan` Lua functions `SetHudDisabled(disabled, screenId)` and `IsHudDisabled(screenId)` that allows disabling a given screen's HUD, and checking whether it's currently disabled. The screenId parameters are optional and default to screen 0.
 
@@ -130,7 +130,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`DislodgePixelCircle(Vector centre, float radius, bool deletePixels)`, which calls `DislodgePixel()` on all pixels in a given circle, returns them as an iterable list. The bool is an optional argument to delete all found pixels immediately; defaults to `false`.
 	`DislodgePixelRing(Vector centre, float innerRadius, float outerRadius, bool deletePixels)`, same as above but additionally ignores pixels within the inner radius.
 	`DislodgePixelBox(Vector upperLeftCorner, Vector lowerRightCorner, bool deletePixels)`, similar to above, but in a rectangular area defined by upper left- and lower right corners.
-	`DislodgePixelLine(Vector startPos, Vector ray, int skip, bool deletePixels)`, calls `DislodgePixel()` on all pixels in a line, like above. Similar in function to a ray cast, so pixels can be skipped.	
+	`DislodgePixelLine(Vector startPos, Vector ray, int skip, bool deletePixels)`, calls `DislodgePixel()` on all pixels in a line, like above. Similar in function to a ray cast, so pixels can be skipped.
+
+- New `SceneMan` Lua function `CastTerrainPenetrationRay(Vector start, Vector ray, Vector endPos, int strengthLimit, int skip)`, which adds up the material strength of the terrain pixels encountered along the way, and stops when the accumulated value meets or exceeds `strengthLimit`. `endPos` is filled out with the ending position of the ray, returns `true` or `false` depending on whether the ray was stopped early or not.
 
 </details>
 
