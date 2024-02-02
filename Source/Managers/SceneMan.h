@@ -423,6 +423,21 @@ namespace RTE {
 		/// @return A list of the removed pixels, if any.
 		std::vector<MovableObject*>* DislodgePixelCircleNoBool(const Vector& centre, float radius);
 
+		/// Removes a ring of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the ring.
+		/// @param innerRadius The inner radius of the ring of pixels to remove.
+		/// @param outerRadius The outer radius of the ring of pixels to remove.
+		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MovableObject*>* DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels);
+
+		/// Removes a ring of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the ring.
+		/// @param innerRadius The inner radius of the ring of pixels to remove.
+		/// @param outerRadius The outer radius of the ring of pixels to remove.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MovableObject*>* DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius);
+
 		/// Removes a box of pixels from the terrain and adds them to MovableMan.
 		/// @param upperLeftCorner The vector position of the upper left corner of the box.
 		/// @param lowerRightCorner The vector position of the lower right corner of the box.

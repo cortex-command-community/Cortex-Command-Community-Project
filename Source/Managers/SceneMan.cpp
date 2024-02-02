@@ -953,6 +953,33 @@ std::vector<MovableObject*>* SceneMan::DislodgePixelCircleNoBool(const Vector& c
 	return DislodgePixelCircle(centre, radius, false);
 }
 
+std::vector<MovableObject*>* SceneMan::DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels) {
+	// Account for users inputting radii in the wrong order
+	if (outerRadius < innerRadius) {
+		std::swap(outerRadius, innerRadius);
+	}
+
+	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
+	for (int x = 0; x <= static_cast<int>(outerRadius) * 2; x++) {
+		for (int y = 0; y <= static_cast<int>(outerRadius) * 2; y++) {
+			Vector checkPos = Vector(static_cast<float>(x) - outerRadius, static_cast<float>(y) - outerRadius) + centre;
+			Vector distance = ShortestDistance(centre, checkPos, true);
+			if (!distance.MagnitudeIsGreaterThan(outerRadius) && !distance.MagnitudeIsLessThan(innerRadius)) {
+				MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+				if (px) {
+					pixelList->push_back(px);
+				}
+			}
+		}
+	}
+
+	return pixelList;
+}
+
+std::vector<MovableObject*>* SceneMan::DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius) {
+	return DislodgePixelRing(centre, innerRadius, outerRadius, false);
+}
+
 std::vector<MovableObject*>* SceneMan::DislodgePixelBox(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels) {
 	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
 

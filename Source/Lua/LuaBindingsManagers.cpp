@@ -338,7 +338,9 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 	    .def("DislodgePixelCircle", (const std::vector<MovableObject*>* (SceneMan::*)(const Vector& centre, float radius, bool deletePixels) const) & SceneMan::DislodgePixelCircle, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("DislodgePixelCircle", (const std::vector<MovableObject*>* (SceneMan::*)(const Vector& centre, float radius) const) & SceneMan::DislodgePixelCircleNoBool, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("DislodgePixelBox", (const std::vector<MovableObject*>* (SceneMan::*)(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels) const) & SceneMan::DislodgePixelBox, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-	    .def("DislodgePixelBox", (const std::vector<MovableObject*>* (SceneMan::*)(const Vector& upperLeftCorner, const Vector& lowerRightCorner) const) & SceneMan::DislodgePixelBoxNoBool, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator);
+	    .def("DislodgePixelBox", (const std::vector<MovableObject*>* (SceneMan::*)(const Vector& upperLeftCorner, const Vector& lowerRightCorner) const) & SceneMan::DislodgePixelBoxNoBool, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("DislodgePixelRing", (const std::vector<MovableObject*>* (SceneMan::*)(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels) const) & SceneMan::DislodgePixelRing, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("DislodgePixelRing", (const std::vector<MovableObject*>* (SceneMan::*)(const Vector& centre, float innerRadius, float outerRadius) const) & SceneMan::DislodgePixelRingNoBool, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, CameraMan) {

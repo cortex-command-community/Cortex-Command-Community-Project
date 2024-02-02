@@ -128,9 +128,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `SceneMan` Lua functions:
 	`DislodgePixelCircle(Vector centre, float radius, bool deletePixels)`, which calls `DislodgePixel()` on all pixels in a given circle, returns them as an iterable list. The bool is an optional argument to delete all found pixels immediately; defaults to `false`.
-	`DislodgePixelBox(Vector upperLeftCorner, Vector lowerRightCorner, bool deletePixels)`, similar to above but in a rectangular area.
-	`DislodgePixelLine(Vector startPos, Vector ray, int skip, bool deletePixels)`, calls `DislodgePixel()` on all pixels in a line, like above, but similar in function to a ray cast.
-	
+	`DislodgePixelRing(Vector centre, float innerRadius, float outerRadius, bool deletePixels)`, same as above but additionally ignores pixels within the inner radius.
+	`DislodgePixelBox(Vector upperLeftCorner, Vector lowerRightCorner, bool deletePixels)`, similar to above, but in a rectangular area defined by upper left- and lower right corners.
+	`DislodgePixelLine(Vector startPos, Vector ray, int skip, bool deletePixels)`, calls `DislodgePixel()` on all pixels in a line, like above. Similar in function to a ray cast, so pixels can be skipped.	
 
 </details>
 
