@@ -103,7 +103,9 @@ function Update(self)
 			end
 		end
 		
-		if self.otherHandGun or not self.parent.BGArm or not self.parent.FGArm then
+		local playerControlled = self.parent:IsPlayerControlled()
+		
+		if self.otherHandGun or not self.parent.BGArm or not self.parent.FGArm or not playerControlled then
 			self.FullAuto = false;
 			if self.fanFire then
 				--self.FullAuto = false;
@@ -115,9 +117,13 @@ function Update(self)
 				self.ShakeRange = self.origShakeRange;
 				self.SharpShakeRange = self.origSharpShakeRange;
 			end
+			if not playerControlled then
+				self.RateOfFire = 70;
+			end
 		else
 			self.FullAuto = true;
 			self.reloadDelay = 150;
+			self.RateOfFire = 300;
 		end
 	else
 		self.parent = nil;
