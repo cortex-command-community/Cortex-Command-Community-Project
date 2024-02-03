@@ -893,6 +893,7 @@ bool SceneMan::TryPenetrate(int posX,
 }
 
 MovableObject* SceneMan::DislodgePixel(int posX, int posY) {
+	WrapPosition(posX, posY);
 	int materialID = getpixel(m_pCurrentScene->GetTerrain()->GetMaterialBitmap(), posX, posY);
 	if (materialID <= MaterialColorKeys::g_MaterialAir) {
 		return nullptr;
@@ -920,6 +921,180 @@ MovableObject* SceneMan::DislodgePixel(int posX, int posY) {
 	m_pCurrentScene->GetTerrain()->SetMaterialPixel(posX, posY, MaterialColorKeys::g_MaterialAir);
 
 	return pixelMO;
+}
+
+// Bool variant to avoid changing the original
+MovableObject* SceneMan::DislodgePixelBool(int posX, int posY, bool deletePixel) {
+	MovableObject* pixelMO = DislodgePixel(posX, posY);
+	if (pixelMO) {
+		pixelMO->SetToDelete(deletePixel);
+	}
+	return pixelMO;
+}
+
+std::vector<MovableObject*>* SceneMan::DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels) {
+	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
+	int limit = static_cast<int>(radius) * 2;
+	for (int x = 0; x <= limit; x++) {
+		for (int y = 0; y <= limit; y++) {
+			Vector checkPos = Vector(static_cast<float>(x) - radius, static_cast<float>(y) - radius) + centre;
+			Vector distance = ShortestDistance(centre, checkPos, true);
+
+			if (distance.MagnitudeIsGreaterThan(radius) && y > limit / 2) {
+				break;
+			}
+
+			if (!distance.MagnitudeIsGreaterThan(radius)) {
+				MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+				if (px) {
+					pixelList->push_back(px);
+				}
+			}
+		}
+	}
+
+	return pixelList;
+}
+
+std::vector<MovableObject*>* SceneMan::DislodgePixelCircleNoBool(const Vector& centre, float radius) {
+	return DislodgePixelCircle(centre, radius, false);
+}
+
+std::vector<MovableObject*>* SceneMan::DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels) {
+	// Account for users inputting radii in the wrong order
+	if (outerRadius < innerRadius) {
+		std::swap(outerRadius, innerRadius);
+	}
+
+	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
+	int limit = static_cast<int>(outerRadius) * 2;
+	for (int x = 0; x <= limit; x++) {
+		for (int y = 0; y <= limit; y++) {
+			Vector checkPos = Vector(static_cast<float>(x) - outerRadius, static_cast<float>(y) - outerRadius) + centre;
+			Vector distance = ShortestDistance(centre, checkPos, true);
+
+			if (distance.MagnitudeIsLessThan(innerRadius) && y < limit - y) {
+				y = limit - y;
+				continue;
+			}
+
+			if (distance.MagnitudeIsGreaterThan(outerRadius) && y > limit / 2) {
+				break;
+			}
+
+			if (!distance.MagnitudeIsGreaterThan(outerRadius) && !distance.MagnitudeIsLessThan(innerRadius)) {
+				MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+				if (px) {
+					pixelList->push_back(px);
+				}
+			}
+		}
+	}
+
+	return pixelList;
+}
+
+std::vector<MovableObject*>* SceneMan::DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius) {
+	return DislodgePixelRing(centre, innerRadius, outerRadius, false);
+}
+
+std::vector<MovableObject*>* SceneMan::DislodgePixelBox(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels) {
+	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
+
+	// Make sure it works even if people input corners in the wrong order
+	Vector start = Vector(std::min(upperLeftCorner.m_X, lowerRightCorner.m_X), std::min(upperLeftCorner.m_Y, lowerRightCorner.m_Y));
+	Vector end = Vector(std::max(upperLeftCorner.m_X, lowerRightCorner.m_X), std::max(upperLeftCorner.m_Y, lowerRightCorner.m_Y));
+
+	float width = end.m_X - start.m_X;
+	float height = end.m_Y - start.m_Y;
+	for (int x = 0; x <= static_cast<int>(width) * 2; x++) {
+		for (int y = 0; y <= static_cast<int>(height) * 2; y++) {
+			Vector checkPos = start + Vector(static_cast<float>(x), static_cast<float>(y));
+			MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+			if (px) {
+				pixelList->push_back(px);
+			}
+		}
+	}
+
+	return pixelList;
+}
+
+std::vector<MovableObject*>* SceneMan::DislodgePixelBoxNoBool(const Vector& upperLeftCorner, const Vector& lowerRightCorner) {
+	return DislodgePixelBox(upperLeftCorner, lowerRightCorner, false);
+}
+
+std::vector<MovableObject*>* SceneMan::DislodgePixelLine(const Vector& start, const Vector& ray, int skip, bool deletePixels) {
+	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
+	int error, dom, sub, domSteps, skipped = skip;
+	int intPos[2], delta[2], delta2[2], increment[2];
+
+	intPos[X] = std::floor(start.m_X);
+	intPos[Y] = std::floor(start.m_Y);
+	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
+	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
+
+	/////////////////////////////////////////////////////
+	// Bresenham's line drawing algorithm preparation
+
+	if (delta[X] < 0) {
+		increment[X] = -1;
+		delta[X] = -delta[X];
+	} else
+		increment[X] = 1;
+
+	if (delta[Y] < 0) {
+		increment[Y] = -1;
+		delta[Y] = -delta[Y];
+	} else
+		increment[Y] = 1;
+
+	// Scale by 2, for better accuracy of the error at the first pixel
+	delta2[X] = delta[X] << 1;
+	delta2[Y] = delta[Y] << 1;
+
+	// If X is dominant, Y is submissive, and vice versa.
+	if (delta[X] > delta[Y]) {
+		dom = X;
+		sub = Y;
+	} else {
+		dom = Y;
+		sub = X;
+	}
+
+	error = delta2[sub] - delta[dom];
+
+	/////////////////////////////////////////////////////
+	// Bresenham's line drawing algorithm execution
+
+	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
+		intPos[dom] += increment[dom];
+		if (error >= 0) {
+			intPos[sub] += increment[sub];
+			error -= delta2[dom];
+		}
+		error += delta2[sub];
+
+		// Only check pixel if we're not due to skip any, or if this is the last pixel
+		if (++skipped > skip || domSteps + 1 == delta[dom]) {
+			// Scene wrapping
+			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
+
+			MovableObject* px = DislodgePixelBool(intPos[X], intPos[Y], deletePixels);
+			if (px) {
+				pixelList->push_back(px);
+			}
+
+			// Reset skip counter
+			skipped = 0;
+		}
+	}
+
+	return pixelList;
+}
+
+std::vector<MovableObject*>* SceneMan::DislodgePixelLineNoBool(const Vector& start, const Vector& ray, int skip) {
+	return DislodgePixelLine(start, ray, skip, false);
 }
 
 void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {

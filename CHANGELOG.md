@@ -126,6 +126,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Exposed `FrameMan` properties `ScreenCount` and `ResolutionMultiplier` to Lua (R).
 
+- New `SceneMan` Lua functions:
+	`DislodgePixelCircle(Vector centre, float radius, bool deletePixels)`, which calls `DislodgePixel()` on all pixels in a given circle, returns them as an iterable list. The bool is an optional argument to delete all found pixels immediately; defaults to `false`.
+	`DislodgePixelRing(Vector centre, float innerRadius, float outerRadius, bool deletePixels)`, same as above but additionally ignores pixels within the inner radius.
+	`DislodgePixelBox(Vector upperLeftCorner, Vector lowerRightCorner, bool deletePixels)`, similar to above, but in a rectangular area defined by upper left- and lower right corners.
+	`DislodgePixelLine(Vector startPos, Vector ray, int skip, bool deletePixels)`, calls `DislodgePixel()` on all pixels in a line, like above. Similar in function to a ray cast, so pixels can be skipped.
+
 - New `SceneMan` Lua function `CastTerrainPenetrationRay(Vector start, Vector ray, Vector endPos, int strengthLimit, int skip)`, which adds up the material strength of the terrain pixels encountered along the way, and stops when the accumulated value meets or exceeds `strengthLimit`. `endPos` is filled out with the ending position of the ray, returns `true` or `false` depending on whether the ray was stopped early or not.
 
 </details>
@@ -169,6 +175,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Script values, i.e `GetStringValue`, `RemoveStringValue`, `StringValueExists` and the associated functions for `GetNumberValue`/`GetObjectValue`, have been moved from MOSRotating to MovableObject, so now any object with script support can use these values.  
 
 - The `SceneObject` property `IsBuyable` has been renamed to `Buyable`.
+
+- `SceneMan` Lua function `DislodgePixel()` now optionally accepts a third boolean argument to delete the found pixel immediately. Format is `DislodgePixel(int posX, int posY, bool deletePixel)`. `DislodgePixel()` now also automatically accounts for scene wrapping.
 
 </details>
 
