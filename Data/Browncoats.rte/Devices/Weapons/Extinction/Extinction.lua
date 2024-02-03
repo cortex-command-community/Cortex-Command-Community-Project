@@ -1,6 +1,7 @@
 function OnFire(self)
 
 	self.InheritedRotAngleTarget = self.recoilAngleSize * RangeRand(self.recoilAngleVariation, 1)
+	self.rotationSpeed = 0.4;
 
 end
 
@@ -60,8 +61,8 @@ function Create(self)
 	
 	self.InheritedRotAngleTarget = 0;
 	self.InheritedRotAngleOffset = 0;
-	self.recoilAngleSize = 0.45;
-	self.recoilAngleVariation = 0.5;
+	self.recoilAngleSize = 0.5;
+	self.recoilAngleVariation = 0.8;
 	self.rotationSpeed = 0.1;
 	
 	self.cockTimer = Timer();
@@ -177,6 +178,7 @@ function Update(self)
 				self.rotateAnim = true;
 				self.hammerDown = false;
 				self.InheritedRotAngleTarget = 0;
+				self.rotationSpeed = 0.1;
 			end
 		end
 	
