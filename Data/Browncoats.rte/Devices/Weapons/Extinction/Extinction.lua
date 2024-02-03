@@ -105,6 +105,8 @@ function Update(self)
 		
 		local playerControlled = self.parent:IsPlayerControlled()
 		
+		self.RateOfFire = 300;
+		
 		if self.otherHandGun or not self.parent.BGArm or not self.parent.FGArm or not playerControlled then
 			self.FullAuto = false;
 			if self.fanFire then
@@ -123,7 +125,6 @@ function Update(self)
 		else
 			self.FullAuto = true;
 			self.reloadDelay = 150;
-			self.RateOfFire = 300;
 		end
 	else
 		self.parent = nil;
