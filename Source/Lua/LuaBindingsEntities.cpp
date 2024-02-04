@@ -763,7 +763,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOPixel) {
 	return ConcreteTypeLuaClassDefinition(MOPixel, MovableObject)
 
 	    .property("TrailLength", &MOPixel::GetTrailLength, &MOPixel::SetTrailLength)
-	    .property("Staininess", &MOPixel::GetStaininess, &MOPixel::SetStaininess);
+	    .property("Staininess", &MOPixel::GetStaininess, &MOPixel::SetStaininess)
+	    .property("Color", &MOPixel::GetColorIndex, &MOPixel::SetColorIndex);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSParticle) {
