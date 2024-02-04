@@ -892,7 +892,7 @@ bool SceneMan::TryPenetrate(int posX,
 	return false;
 }
 
-MOPixel* SceneMan::DislodgePixel(int posX, int posY) {
+MovableObject* SceneMan::DislodgePixel(int posX, int posY) {
 	WrapPosition(posX, posY);
 	int materialID = getpixel(m_pCurrentScene->GetTerrain()->GetMaterialBitmap(), posX, posY);
 	if (materialID <= MaterialColorKeys::g_MaterialAir) {
@@ -924,16 +924,16 @@ MOPixel* SceneMan::DislodgePixel(int posX, int posY) {
 }
 
 // Bool variant to avoid changing the original
-MOPixel* SceneMan::DislodgePixelBool(int posX, int posY, bool deletePixel) {
-	MOPixel* pixelMO = DislodgePixel(posX, posY);
+MovableObject* SceneMan::DislodgePixelBool(int posX, int posY, bool deletePixel) {
+	MovableObject* pixelMO = DislodgePixel(posX, posY);
 	if (pixelMO) {
 		pixelMO->SetToDelete(deletePixel);
 	}
 	return pixelMO;
 }
 
-std::vector<MOPixel*>* SceneMan::DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels) {
-	std::vector<MOPixel*>* pixelList = new std::vector<MOPixel*>();
+std::vector<MovableObject*>* SceneMan::DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels) {
+	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
 	int limit = static_cast<int>(radius) * 2;
 	for (int x = 0; x <= limit; x++) {
 		for (int y = 0; y <= limit; y++) {
@@ -945,7 +945,7 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelCircle(const Vector& centre, float
 			}
 
 			if (!distance.MagnitudeIsGreaterThan(radius)) {
-				MOPixel* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+				MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
 				if (px) {
 					pixelList->push_back(px);
 				}
@@ -956,17 +956,17 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelCircle(const Vector& centre, float
 	return pixelList;
 }
 
-std::vector<MOPixel*>* SceneMan::DislodgePixelCircleNoBool(const Vector& centre, float radius) {
+std::vector<MovableObject*>* SceneMan::DislodgePixelCircleNoBool(const Vector& centre, float radius) {
 	return DislodgePixelCircle(centre, radius, false);
 }
 
-std::vector<MOPixel*>* SceneMan::DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels) {
+std::vector<MovableObject*>* SceneMan::DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels) {
 	// Account for users inputting radii in the wrong order
 	if (outerRadius < innerRadius) {
 		std::swap(outerRadius, innerRadius);
 	}
 
-	std::vector<MOPixel*>* pixelList = new std::vector<MOPixel*>();
+	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
 	int limit = static_cast<int>(outerRadius) * 2;
 	for (int x = 0; x <= limit; x++) {
 		for (int y = 0; y <= limit; y++) {
@@ -983,7 +983,7 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelRing(const Vector& centre, float i
 			}
 
 			if (!distance.MagnitudeIsGreaterThan(outerRadius) && !distance.MagnitudeIsLessThan(innerRadius)) {
-				MOPixel* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+				MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
 				if (px) {
 					pixelList->push_back(px);
 				}
@@ -994,12 +994,12 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelRing(const Vector& centre, float i
 	return pixelList;
 }
 
-std::vector<MOPixel*>* SceneMan::DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius) {
+std::vector<MovableObject*>* SceneMan::DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius) {
 	return DislodgePixelRing(centre, innerRadius, outerRadius, false);
 }
 
-std::vector<MOPixel*>* SceneMan::DislodgePixelBox(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels) {
-	std::vector<MOPixel*>* pixelList = new std::vector<MOPixel*>();
+std::vector<MovableObject*>* SceneMan::DislodgePixelBox(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels) {
+	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
 
 	// Make sure it works even if people input corners in the wrong order
 	Vector start = Vector(std::min(upperLeftCorner.m_X, lowerRightCorner.m_X), std::min(upperLeftCorner.m_Y, lowerRightCorner.m_Y));
@@ -1010,7 +1010,7 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelBox(const Vector& upperLeftCorner,
 	for (int x = 0; x <= static_cast<int>(width) * 2; x++) {
 		for (int y = 0; y <= static_cast<int>(height) * 2; y++) {
 			Vector checkPos = start + Vector(static_cast<float>(x), static_cast<float>(y));
-			MOPixel* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+			MovableObject* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
 			if (px) {
 				pixelList->push_back(px);
 			}
@@ -1020,12 +1020,12 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelBox(const Vector& upperLeftCorner,
 	return pixelList;
 }
 
-std::vector<MOPixel*>* SceneMan::DislodgePixelBoxNoBool(const Vector& upperLeftCorner, const Vector& lowerRightCorner) {
+std::vector<MovableObject*>* SceneMan::DislodgePixelBoxNoBool(const Vector& upperLeftCorner, const Vector& lowerRightCorner) {
 	return DislodgePixelBox(upperLeftCorner, lowerRightCorner, false);
 }
 
-std::vector<MOPixel*>* SceneMan::DislodgePixelLine(const Vector& start, const Vector& ray, int skip, bool deletePixels) {
-	std::vector<MOPixel*>* pixelList = new std::vector<MOPixel*>();
+std::vector<MovableObject*>* SceneMan::DislodgePixelLine(const Vector& start, const Vector& ray, int skip, bool deletePixels) {
+	std::vector<MovableObject*>* pixelList = new std::vector<MovableObject*>();
 	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 
@@ -1080,7 +1080,7 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelLine(const Vector& start, const Ve
 			// Scene wrapping
 			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
 
-			MOPixel* px = DislodgePixelBool(intPos[X], intPos[Y], deletePixels);
+			MovableObject* px = DislodgePixelBool(intPos[X], intPos[Y], deletePixels);
 			if (px) {
 				pixelList->push_back(px);
 			}
@@ -1093,7 +1093,7 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelLine(const Vector& start, const Ve
 	return pixelList;
 }
 
-std::vector<MOPixel*>* SceneMan::DislodgePixelLineNoBool(const Vector& start, const Vector& ray, int skip) {
+std::vector<MovableObject*>* SceneMan::DislodgePixelLineNoBool(const Vector& start, const Vector& ray, int skip) {
 	return DislodgePixelLine(start, ray, skip, false);
 }
 

@@ -401,27 +401,27 @@ namespace RTE {
 		/// @param posX The X coordinate of the terrain pixel.
 		/// @param posX The Y coordinate of the terrain pixel.
 		/// @return The newly dislodged pixel, if one was found.
-		MOPixel* DislodgePixel(int posX, int posY);
+		MovableObject* DislodgePixel(int posX, int posY);
 
 		/// Removes a pixel from the terrain and adds it to MovableMan.
 		/// @param posX The X coordinate of the terrain pixel.
 		/// @param posX The Y coordinate of the terrain pixel.
 		/// @param deletePixel Whether or not to immediately mark the pixel for deletion.
 		/// @return The newly dislodged pixel, if one was found.
-		MOPixel* DislodgePixelBool(int posX, int posY, bool deletePixel);
+		MovableObject* DislodgePixelBool(int posX, int posY, bool deletePixel);
 
 		/// Removes a circle of pixels from the terrain and adds them to MovableMan.
 		/// @param centre The vector position of the centre of the circle.
 		/// @param radius The radius of the circle of pixels to remove.
 		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
 		/// @return A list of the removed pixels, if any.
-		std::vector<MOPixel*>* DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels);
+		std::vector<MovableObject*>* DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels);
 
 		/// Removes a circle of pixels from the terrain and adds them to MovableMan.
 		/// @param centre The vector position of the centre of the circle.
 		/// @param radius The radius of the circle of pixels to remove.
 		/// @return A list of the removed pixels, if any.
-		std::vector<MOPixel*>* DislodgePixelCircleNoBool(const Vector& centre, float radius);
+		std::vector<MovableObject*>* DislodgePixelCircleNoBool(const Vector& centre, float radius);
 
 		/// Removes a ring of pixels from the terrain and adds them to MovableMan.
 		/// @param centre The vector position of the centre of the ring.
@@ -429,27 +429,27 @@ namespace RTE {
 		/// @param outerRadius The outer radius of the ring of pixels to remove.
 		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
 		/// @return A list of the removed pixels, if any.
-		std::vector<MOPixel*>* DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels);
+		std::vector<MovableObject*>* DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels);
 
 		/// Removes a ring of pixels from the terrain and adds them to MovableMan.
 		/// @param centre The vector position of the centre of the ring.
 		/// @param innerRadius The inner radius of the ring of pixels to remove.
 		/// @param outerRadius The outer radius of the ring of pixels to remove.
 		/// @return A list of the removed pixels, if any.
-		std::vector<MOPixel*>* DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius);
+		std::vector<MovableObject*>* DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius);
 
 		/// Removes a box of pixels from the terrain and adds them to MovableMan.
 		/// @param upperLeftCorner The vector position of the upper left corner of the box.
 		/// @param lowerRightCorner The vector position of the lower right corner of the box.
 		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
 		/// @return A list of the removed pixels, if any.
-		std::vector<MOPixel*>* DislodgePixelBox(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels);
+		std::vector<MovableObject*>* DislodgePixelBox(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels);
 
 		/// Removes a box of pixels from the terrain and adds them to MovableMan.
 		/// @param upperLeftCorner The vector position of the upper left corner of the box.
 		/// @param lowerRightCorner The vector position of the lower right corner of the box.
 		/// @return A list of the removed pixels, if any.
-		std::vector<MOPixel*>* DislodgePixelBoxNoBool(const Vector& upperLeftCorner, const Vector& lowerRightCorner);
+		std::vector<MovableObject*>* DislodgePixelBoxNoBool(const Vector& upperLeftCorner, const Vector& lowerRightCorner);
 
 		/// Removes a line of pixels from the terrain and adds them to MovableMan.
 		/// @param start The starting position.
@@ -457,14 +457,14 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them.
 		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
 		/// @return A list of the removed pixels, if any.
-		std::vector<MOPixel*>* DislodgePixelLine(const Vector& start, const Vector& ray, int skip, bool deletePixels);
+		std::vector<MovableObject*>* DislodgePixelLine(const Vector& start, const Vector& ray, int skip, bool deletePixels);
 
 		/// Removes a line of pixels from the terrain and adds them to MovableMan.
 		/// @param start The starting position.
 		/// @param ray The vector to trace along.
 		/// @param skip For every pixel checked along the line, how many to skip between them.
 		/// @return A list of the removed pixels, if any.
-		std::vector<MOPixel*>* DislodgePixelLineNoBool(const Vector& start, const Vector& ray, int skip);
+		std::vector<MovableObject*>* DislodgePixelLineNoBool(const Vector& start, const Vector& ray, int skip);
 
 		/// Sets one team's view of the scene to be unseen, using a generated map
 		/// of a specific resolution chunkiness.
