@@ -68,7 +68,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New delivery system, Buy Doors:
 	Buy doors are customizable inert background objects that can take orders either via Lua messages or by using the pie menu near them.
-	Using them via the pie menu will order your current buy menu catalogue. 
+	Using them via the pie menu will order your current buy menu order. 
 	
 - Capturable Framework, which is a very customizable object that can be captured by teams and send out Lua messages as it does so. Should be extremely useful to make new forms of activities.
 
