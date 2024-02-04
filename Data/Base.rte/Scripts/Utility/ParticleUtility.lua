@@ -127,19 +127,15 @@ function ParticleUtility:CreateDirectionalSmokeEffect(positionOrFullTable, angOr
 		for _ = 0, math.floor((count / (math.random(2,4))) * smokeMult) do
 		
 			-- Tiny smoke, high spread
-			local tinySmokeCount = math.random(math.max(0, math.floor(smokePower/25)), math.max(0, math.ceil(smokePower/12.5)));
+			local tinySmokeCount = math.random(math.max(0, math.floor(smokePower/12.5)), math.max(0, math.ceil(smokePower/6.25)));
 			for i = 1, tinySmokeCount do	
-				local countFactor = i/tinySmokeCount;
-				local randSpread = (math.random(-spread*500, spread*500)/1000) * countFactor;
-				local easeFactor = math.abs(randSpread/(spread/2))
-				factor = 1 - math.cos((easeFactor * math.pi) / 2);
-				randSpread = randSpread * easeFactor;
+				local randSpread = (math.random(-spread*500, spread*500)/1000)
 				local randVelocityMult = RangeRand(0.5, 1.5);
 				
 				local particle = CreateMOSParticle("Tiny Smoke Ball 1", "Base.rte");
 				particle.Pos = position + Vector(0, RangeRand(-widthspread/2, widthspread/2)):DegRotate(angle);
 				particle.Vel = Vector(velocity.X, velocity.Y):DegRotate(randSpread) * randVelocityMult;
-				particle.Lifetime = particle.Lifetime * RangeRand(0.75, 1.25) * lingerMult;
+				particle.Lifetime = particle.Lifetime * RangeRand(0.75, 1.75) * lingerMult;
 				particle.AirThreshold = (particle.AirThreshold / airResistanceMult) * (lingerMult/airResistanceMult);
 				particle.AirResistance = math.min(62.5, particle.AirResistance * airResistanceMult);
 				particle.GlobalAccScalar = particle.GlobalAccScalar * gravMult;
@@ -214,7 +210,7 @@ function ParticleUtility:CreateDirectionalSmokeEffect(positionOrFullTable, angOr
 				randSpread = randSpread * easeFactor;
 				local randVelocityMult = RangeRand(0.5, 1.5);
 				
-				local particle = CreateMOSParticle("Explosion Smoke Small", "Base.rte");
+				local particle = CreateMOSParticle("Side Thruster Blast Ball 1", "Base.rte");
 				particle.Pos = position + Vector(0, RangeRand(-widthspread/2, widthspread/2)):DegRotate(angle);
 				particle.Vel = Vector(velocity.X, velocity.Y):DegRotate(randSpread) * randVelocityMult;
 				particle.Lifetime = particle.Lifetime * RangeRand(0.4, 0.8) * (lingerMult);

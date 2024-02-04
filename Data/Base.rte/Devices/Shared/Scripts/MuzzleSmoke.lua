@@ -10,7 +10,7 @@ function Create(self)
 	
 	self.muzzleSmokeSize = self:NumberValueExists("MuzzleSmokeSize") and self:GetNumberValue("MuzzleSmokeSize") or self.muzzleSmokeSize;
 	if self.muzzleSmokeSize == nil then
-		self.muzzleSmokeSize = self.Mass;
+		self.muzzleSmokeSize = self.Mass/1.5;
 	end
 	
 	self.muzzleSmokeVel = math.sqrt(self.muzzleSmokeSize) * 5;
@@ -21,13 +21,13 @@ function Create(self)
 	self.fireSmokeEffect.RadAngle = self.RotAngle;
 	self.fireSmokeEffect.Power = self.muzzleSmokeSize;
 	self.fireSmokeEffect.Spread = (self.ShakeRange + self.SharpShakeRange) * 0.5 + self.ParticleSpreadRange;
-	self.fireSmokeEffect.SmokeMult = 1;
+	self.fireSmokeEffect.SmokeMult = 0.5;
 	self.fireSmokeEffect.ExploMult = 1;
-	self.fireSmokeEffect.WidthSpread = 1;
-	self.fireSmokeEffect.VelocityMult = 1;
+	self.fireSmokeEffect.WidthSpread = 0;
+	self.fireSmokeEffect.VelocityMult = 0.5;
 	self.fireSmokeEffect.LingerMult = 0.45;
-	self.fireSmokeEffect.AirResistanceMult = 1.2;
-	self.fireSmokeEffect.GravMult = 0.5;
+	self.fireSmokeEffect.AirResistanceMult = 1;
+	self.fireSmokeEffect.GravMult = 1;
 	
 	self.particleUtility = require("Scripts/Utility/ParticleUtility");	
 	

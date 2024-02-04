@@ -1,6 +1,7 @@
 function OnFire(self)
 
 	self.InheritedRotAngleTarget = self.recoilAngleSize * RangeRand(self.recoilAngleVariation, 1)
+	self.rotationSpeed = 0.4;
 
 end
 
@@ -60,8 +61,8 @@ function Create(self)
 	
 	self.InheritedRotAngleTarget = 0;
 	self.InheritedRotAngleOffset = 0;
-	self.recoilAngleSize = 0.45;
-	self.recoilAngleVariation = 0.5;
+	self.recoilAngleSize = 0.5;
+	self.recoilAngleVariation = 0.8;
 	self.rotationSpeed = 0.1;
 	
 	self.cockTimer = Timer();
@@ -102,7 +103,11 @@ function Update(self)
 			end
 		end
 		
-		if self.otherHandGun or not self.parent.BGArm or not self.parent.FGArm then
+		local playerControlled = self.parent:IsPlayerControlled()
+		
+		self.RateOfFire = 300;
+		
+		if self.otherHandGun or not self.parent.BGArm or not self.parent.FGArm or not playerControlled then
 			self.FullAuto = false;
 			if self.fanFire then
 				--self.FullAuto = false;
@@ -113,6 +118,9 @@ function Update(self)
 				--self.SharpLength = self.origSharpLength;
 				self.ShakeRange = self.origShakeRange;
 				self.SharpShakeRange = self.origSharpShakeRange;
+			end
+			if not playerControlled then
+				self.RateOfFire = 70;
 			end
 		else
 			self.FullAuto = true;
@@ -177,6 +185,7 @@ function Update(self)
 				self.rotateAnim = true;
 				self.hammerDown = false;
 				self.InheritedRotAngleTarget = 0;
+				self.rotationSpeed = 0.1;
 			end
 		end
 	
