@@ -23,8 +23,8 @@ function Create(self)
 	self.reloadDelay = 200;
 	self.origReloadTime = 900;
 	
-	self.origStanceOffset = self.StanceOffset;
-	self.origSharpStanceOffset = self.SharpStanceOffset;
+	self.origStanceOffset = Vector(self.StanceOffset.X, self.StanceOffset.Y);
+	self.origSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y);
 	
 	self.origShakeRange = self.ShakeRange;
 	self.origSharpShakeRange = self.SharpShakeRange;
