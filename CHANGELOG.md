@@ -134,7 +134,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `SceneMan` Lua function `CastTerrainPenetrationRay(Vector start, Vector ray, Vector endPos, int strengthLimit, int skip)`, which adds up the material strength of the terrain pixels encountered along the way, and stops when the accumulated value meets or exceeds `strengthLimit`. `endPos` is filled out with the ending position of the ray, returns `true` or `false` depending on whether the ray was stopped early or not.
 
-- Exposed `MOPixel` property `Color` to Lua. It gets and sets the index of the MOPixel's color. You may need to use `ToMOPixel()` to access it.
+- Exposed `MOPixel` property `Color` to Lua (R/W). It gets and sets the index of the MOPixel's color.
 
 </details>
 
@@ -179,6 +179,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - The `SceneObject` property `IsBuyable` has been renamed to `Buyable`.
 
 - `SceneMan` Lua function `DislodgePixel()` now optionally accepts a third boolean argument to delete the found pixel immediately. Format is `DislodgePixel(int posX, int posY, bool deletePixel)`. `DislodgePixel()` now also automatically accounts for scene wrapping.
+
+- `SceneMan` Lua function `DislodgePixel()` and all of its derivatives now return `MOPixels` instead of `MovableObjects`.
 
 </details>
 
