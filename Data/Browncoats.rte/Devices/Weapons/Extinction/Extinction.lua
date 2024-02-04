@@ -348,6 +348,4 @@ function Update(self)
 		self.InheritedRotAngleTarget = math.max(self.InheritedRotAngleTarget - TimerMan.DeltaTimeSecs, 0);
 	end
 	
-	print(self.origStanceOffset)
-
 end
