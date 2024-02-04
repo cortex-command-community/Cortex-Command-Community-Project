@@ -40,11 +40,9 @@ function Create(self)
 	
 	self.Activity = ToGameActivity(ActivityMan:GetActivity());
 	self.Scene = SceneMan.Scene;
-	--print(self:GetStringValue("SceneCaptureArea"))
 	if self:StringValueExists("SceneCaptureArea") then
 		if self.Scene:HasArea(self:GetStringValue("SceneCaptureArea")) then
 			self.captureArea = self.Scene:GetArea(self:GetStringValue("SceneCaptureArea"));
-			--print("foundarea")
 		end
 	end
 	
@@ -191,19 +189,18 @@ function ThreadedUpdate(self)
 	end
 	
 	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -20), tostring("Team: " .. self.Team), true, 1);
-	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -30), tostring("Capturing Team: " .. self.capturingTeam), true, 1);
-	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -40), tostring("Dominant Team: " .. self.dominantTeam), true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -30), tostring("Capturing Team: " .. self.capturingTeam), true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -40), tostring("Dominant Team: " .. self.dominantTeam), true, 1);
 	
-	PrimitiveMan:DrawTextPrimitive(self.Pos, tostring(self.captureProgress * 100), true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.Pos, tostring(self.captureProgress * 100), true, 1);
 	
-	if self.Deactivated then
-		PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -60), "DEACTIVATED"	, true, 1);	
-	end
+	-- if self.Deactivated then
+		-- PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -60), "DEACTIVATED"	, true, 1);	
+	-- end
 end
 
 function SyncedUpdate(self)
 	if self.shouldSendCaptureMessage then
-		print("shouldhavesentmessage: " .. self.messageOnCapture)
 		if self.useGlobalMessaging then
 			MovableMan:SendGlobalMessage(self.messageOnCapture, self.dominantTeam);
 		else
