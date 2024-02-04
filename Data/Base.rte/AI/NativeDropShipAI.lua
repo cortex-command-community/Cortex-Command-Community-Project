@@ -121,8 +121,6 @@ function NativeDropShipAI:Update(Owner)
 			self.DeliveryState = ACraft.FALL;
 		end
 	end
-	
-	-- print(Owner.AIMode);
 
 	if self.PlayerInterferedTimer:IsPastSimTimeLimit() then
 		self.StuckTimer:Reset();
@@ -168,27 +166,9 @@ function NativeDropShipAI:Update(Owner)
 		if Owner.IsWaitingOnNewMovePath then
 			self.reachedWaypoint = false;
 			self.Waypoint = nil;
-			-- print("wasnotready");
 			return;
 		end
-	
-		-- print("ourpos")
-		-- print(Owner.Pos)
-		-- print("")
-		-- print("desiredpos")
-		-- print(self.Waypoint)
-		-- print("")
-		-- if Owner:GetWaypointListSize() > 0 then
-			-- print("nextWaypointPos")
-			-- for Wpt in Owner.SceneWaypoints do
-				-- print(Wpt)
-			-- end
-		-- else
-			-- print("nonewwaypoint")
-		-- end
-		-- print("")
-		-- print(self.reachedWaypoint)
-	
+
 		if self.Waypoint == nil or self.reachedWaypoint then
 			self.reachedWaypoint = false;
 			for Wpt in Owner.MovePath do
@@ -198,11 +178,9 @@ function NativeDropShipAI:Update(Owner)
 			local Dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);
 			if Dist.Magnitude < 20 then
 				if Owner:GetWaypointListSize() == 0 then
-					--print("sentry")
 					Owner.AIMode = Actor.AIMODE_SENTRY;
 					self.Waypoint = Owner.Pos;
 				else
-					--print("reached, cleared")
 					Owner:ClearMovePath();
 					Owner:UpdateMovePath();
 					self.reachedWaypoint = true;
