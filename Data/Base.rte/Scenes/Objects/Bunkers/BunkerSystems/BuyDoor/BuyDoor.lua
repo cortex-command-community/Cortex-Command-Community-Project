@@ -259,7 +259,7 @@ function ThreadedUpdate(self)
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos, self.Message, true, 1);
 	end
 	
-	PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
 	
 	if self.Unusable then
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -20), "UNUSABLE", true, 1);
