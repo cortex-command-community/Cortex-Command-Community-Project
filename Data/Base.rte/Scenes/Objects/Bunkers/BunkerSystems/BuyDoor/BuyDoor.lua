@@ -1,21 +1,17 @@
 function OnMessage(self, message, context)
-	--print("message gotten?")
-	--if self:IsInventoryEmpty() then
-		if message == "BuyDoor_CustomTableOrder" then
-			self.Unusable = true;
-			local finalOrder = BuyDoorSetupOrder(self, context, true);
-			
-			--print("WE HAVE GOTTEN AN ORDER")
-			
-			if finalOrder then
-				self.orderTimer:Reset();
-				self.orderDelivering = true;
-			else
-				print("Buy Door was given a custom table order, but it had no items!");
-			end
+
+	if message == "BuyDoor_CustomTableOrder" then
+		self.Unusable = true;
+		local finalOrder = BuyDoorSetupOrder(self, context, true);
+		
+		if finalOrder then
+			self.orderTimer:Reset();
+			self.orderDelivering = true;
+		else
+			print("Buy Door was given a custom table order, but it had no items!");
 		end
-	--end
-	
+	end
+		
 	if message == "BuyDoor_ChangeCooldownTime" then
 		self.cooldownTime = context;
 		self:SetNumberValue("CooldownTime", context);
@@ -58,7 +54,6 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 			local clonedItem = _G[typeCast](item):Clone();
 			if IsActor(clonedItem) and team then
 				clonedItem.Team = team;
-				--print(clonedItem)
 			end
 			if IsAHuman(item) then
 				lastActor = clonedItem;
@@ -105,7 +100,6 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 	-- Finally, add the order to our inventory
 	
 	for k, item in pairs(finalOrder) do
-		--print(item)
 		self:AddInventoryItem(item);
 	end
 	
@@ -142,8 +136,6 @@ function Create(self)
 	if self.Frame == 0 then
 		self.Frame = 1;
 	end
-	
-	--print("buydoor" .. self.Frame)
 
 	self.isStayingOpen = false;
 	if self:GetNumberValue("isStayingOpen") == 1 then
@@ -215,7 +207,6 @@ function ThreadedUpdate(self)
 		-- Spawn the next object
 		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
 			self:RequestSyncedUpdate();
-			--print("GIVE ME SYNCED UPDATE NOW")
 		end
 	elseif self.isStayingOpen and not self.isClosing and self.stayOpenTimer:IsPastSimTimeLimit() then
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
@@ -230,7 +221,6 @@ function ThreadedUpdate(self)
 	if self.cooldownTimer:IsPastSimMS(self.cooldownTime) then
 		self.Unusable = false;
 		if self.orderDelivering then
-			--print("trying to deliver....")
 			self.Unusable = true;
 			if self.orderTimer:IsPastSimMS(self.orderDelay) then
 				self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
@@ -269,7 +259,7 @@ function ThreadedUpdate(self)
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos, self.Message, true, 1);
 	end
 	
-	PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
 	
 	if self.Unusable then
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -20), "UNUSABLE", true, 1);
@@ -315,24 +305,12 @@ function SyncedUpdate(self)
 						if self:IsInventoryEmpty() and not self.Unusable then
 							-- Set up order here
 							
-							-- We have to rebuild this table each time, because teams can change
-							
-							-- self.playerTeamTable = {};
-							-- for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-								-- if self.Activity:PlayerActive(player) and self.Activity:PlayerHuman(player) then
-									-- self.playerTeamTable[self.Activity:GetTeamOfPlayer(player)] = player;
-								-- end
-							-- end
-							
 							local team = actor.Team;
 							local player = actor:GetController().Player;		
 							local buyGUI = self.Activity:GetBuyGUI(player);
 							local orderCost = buyGUI:GetTotalCartCost();
 							
 							local funds = self.Activity:GetTeamFunds(team);
-							
-							--print("cost: "..orderCost)
-							--print("funds: "..funds)
 							
 							if funds < orderCost then
 								self.Message = "Insufficient funds!"

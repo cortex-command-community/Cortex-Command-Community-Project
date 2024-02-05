@@ -113,16 +113,14 @@ function NativeDropShipAI:Update(Owner)
 			else
 				startingHeight = Owner.Pos.Y;
 			end
-			local WptL = SceneMan:MovePointToGround(Vector(-Owner.Radius, startingHeight), self.hoverAlt, 12);
-			local WptC = SceneMan:MovePointToGround(Vector(0, startingHeight), self.hoverAlt, 12);
-			local WptR = SceneMan:MovePointToGround(Vector(Owner.Radius, startingHeight), self.hoverAlt, 12);
+			local WptL = SceneMan:MovePointToGround(Vector(Owner.Pos.X - Owner.Radius, startingHeight), self.hoverAlt, 12);
+			local WptC = SceneMan:MovePointToGround(Vector(Owner.Pos.X, startingHeight), self.hoverAlt, 12);
+			local WptR = SceneMan:MovePointToGround(Vector(Owner.Pos.X + Owner.Radius, startingHeight), self.hoverAlt, 12);
 			self.Waypoint = Vector(Owner.Pos.X, math.min(WptL.Y, WptC.Y, WptR.Y));
 
 			self.DeliveryState = ACraft.FALL;
 		end
 	end
-	
-	-- print(Owner.AIMode);
 
 	if self.PlayerInterferedTimer:IsPastSimTimeLimit() then
 		self.StuckTimer:Reset();
@@ -152,9 +150,9 @@ function NativeDropShipAI:Update(Owner)
 					self.Waypoint.Y = -500;
 				else
 					local startingHeight = math.max(Owner.Radius * 1.25, Owner.Pos.Y);
-					local WptL = SceneMan:MovePointToGround(Vector(-Owner.Radius, startingHeight), self.hoverAlt, 12);
-					local WptC = SceneMan:MovePointToGround(Vector(0, startingHeight), self.hoverAlt, 12);
-					local WptR = SceneMan:MovePointToGround(Vector(Owner.Radius, startingHeight), self.hoverAlt, 12);
+					local WptL = SceneMan:MovePointToGround(Vector(Owner.Pos.X - Owner.Radius, startingHeight), self.hoverAlt, 12);
+					local WptC = SceneMan:MovePointToGround(Vector(Owner.Pos.X, startingHeight), self.hoverAlt, 12);
+					local WptR = SceneMan:MovePointToGround(Vector(Owner.Pos.X + Owner.Radius, startingHeight), self.hoverAlt, 12);
 					self.Waypoint = Vector(Owner.Pos.X, math.min(WptL.Y, WptC.Y, WptR.Y));
 				end
 			end
@@ -168,27 +166,9 @@ function NativeDropShipAI:Update(Owner)
 		if Owner.IsWaitingOnNewMovePath then
 			self.reachedWaypoint = false;
 			self.Waypoint = nil;
-			-- print("wasnotready");
 			return;
 		end
-	
-		-- print("ourpos")
-		-- print(Owner.Pos)
-		-- print("")
-		-- print("desiredpos")
-		-- print(self.Waypoint)
-		-- print("")
-		-- if Owner:GetWaypointListSize() > 0 then
-			-- print("nextWaypointPos")
-			-- for Wpt in Owner.SceneWaypoints do
-				-- print(Wpt)
-			-- end
-		-- else
-			-- print("nonewwaypoint")
-		-- end
-		-- print("")
-		-- print(self.reachedWaypoint)
-	
+
 		if self.Waypoint == nil or self.reachedWaypoint then
 			self.reachedWaypoint = false;
 			for Wpt in Owner.MovePath do
@@ -198,11 +178,9 @@ function NativeDropShipAI:Update(Owner)
 			local Dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);
 			if Dist.Magnitude < 20 then
 				if Owner:GetWaypointListSize() == 0 then
-					--print("sentry")
 					Owner.AIMode = Actor.AIMODE_SENTRY;
 					self.Waypoint = Owner.Pos;
 				else
-					--print("reached, cleared")
 					Owner:ClearMovePath();
 					Owner:UpdateMovePath();
 					self.reachedWaypoint = true;

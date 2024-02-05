@@ -84,7 +84,7 @@ function ThreadedUpdate(self)
 		PrimitiveMan:DrawTextPrimitive(self.Pos, self.Message, true, 1);
 	end
 	
-	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
 	
 end
 

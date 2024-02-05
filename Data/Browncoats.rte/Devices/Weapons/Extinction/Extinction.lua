@@ -23,8 +23,8 @@ function Create(self)
 	self.reloadDelay = 200;
 	self.origReloadTime = 900;
 	
-	self.origStanceOffset = self.StanceOffset;
-	self.origSharpStanceOffset = self.SharpStanceOffset;
+	self.origStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y);
+	self.origSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y);
 	
 	self.origShakeRange = self.ShakeRange;
 	self.origSharpShakeRange = self.SharpShakeRange;
@@ -347,5 +347,5 @@ function Update(self)
 	if self.InheritedRotAngleTarget > 0 then
 		self.InheritedRotAngleTarget = math.max(self.InheritedRotAngleTarget - TimerMan.DeltaTimeSecs, 0);
 	end
-
+	
 end

@@ -32,6 +32,11 @@ function DebugFunctionsScript:UpdateScript()
 		-- Keypad 9 for HUD Toggle
 		if UInputMan:KeyPressed(Key.KP_9) then
 			self.HUDToggle = not self.HUDToggle and true or false;
+			if self.HUDToggle then
+				FrameMan:SetHudDisabled(true, 0);
+			else
+				FrameMan:SetHudDisabled(false, 0);
+			end
 		end
 		
 		if self.HUDToggle then
@@ -108,6 +113,9 @@ function DebugFunctionsScript:UpdateScript()
 			for actor in MovableMan.Actors do
 				if actor:IsPlayerControlled() then
 					MovableMan:ChangeActorTeam(actor, teamNum)
+					if not IsACraft(actor) then
+						actor.AIMode = Actor.AIMODE_SENTRY;
+					end
 					if IsACRocket(actor) or IsACDropShip(ToActor(actor)) then
 						for item in actor.Inventory do
 							if (IsAHuman(item) or IsACrab(item)) then
