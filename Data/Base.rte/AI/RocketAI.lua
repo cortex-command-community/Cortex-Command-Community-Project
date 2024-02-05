@@ -195,9 +195,6 @@ function ThreadedUpdateAI(self)
 	if self.DeliveryState ~= ACraft.UNLOAD then
 		dist = SceneMan:ShortestDistance(self.Pos+self.Vel, self.LZpos, false);
 		change = self.YposPID:Update(dist.Y, 0);
-		--print("NEW")
-		--print(dist)
-		--print(change)
 		if math.abs(self.RotAngle) < 0.9 then
 			if self.AIMode == Actor.AIMODE_GOTO then
 				if change < 0 then

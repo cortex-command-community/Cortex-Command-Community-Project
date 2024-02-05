@@ -60,7 +60,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	New `SoundContainer` INI and Lua (R/W) property `BusRouting`, which denotes which bus the SoundContainer routes to. Available busses: `SFX, UI, Music`. Defaults to `SFX`.  
 	`Enum` binding for `SoundContainer.BusRouting`: `SFX = 0, UI = 1, MUSIC = 2`.  
 	New `SoundContainer` INI and Lua (R/W) property `PanningStrengthMultiplier`, which will multiply the strength of 3D panning. This can be used to achieve for example a psuedo-Immobile effect where attenuation effects are still applied but the sound does not move from the center. Recommended to keep between 0.0 and 1.0.  
-	New `SoundContainer` INI and Lua (R/W) property `CustomPanValue`, which hard-overrides the panning of a sound. Clamped between -1 and 1 for left and right panning. 0 disables the override and will re-enable default behavior. This should probably only be used on Immobile sounds, but it can be used on any sound. No guarantees.
+	New `SoundContainer` INI and Lua (R/W) property `CustomPanValue`, which hard-overrides the panning of a sound. Clamped between -1 and 1 for left and right panning. 0 disables the override and will re-enable default behavior. This should probably only be used on Immobile sounds, but it can be used on any sound.
+	
+- Many new sounds added to the game.
+	Browncoats have gotten a full sound revamp for everything except their actors. Every item now has its own custom sounds.
+	Most base explosions and Riot Shield sounds have been redone.
+
+- New delivery system, Buy Doors:
+	Buy doors are customizable inert background objects that can take orders either via Lua messages or by using the pie menu near them.
+	Using them via the pie menu will order your current buy menu order. 
+	
+- Capturable Framework, which is a very customizable object that can be captured by teams and send out Lua messages as it does so. Should be extremely useful to make new forms of activities.
+
+- Item Dispenser object which dispenses items via the pie menu in a customizable way.
+
+- Timed capturing docks for rockets and dropships, which are nifty on their own but shine when used with the DockingHandler to have AI use them.
+
+- A whole suite of Lua frameworks for activities:
+	BuyDoorHandler, which has a few utility functions to use buy doors at the activity-level easier.
+	DeliveryCreationHandler, which standardizes creating squads of actors and their equipment.
+	DockingHandler, which handles craft docking using the new docks.
+	HUDHandler, which provides functions for displaying listed objectives, panning the camera, and other camera-related utilities.
+	SaveLoadHandler, which can serialize tables and also handle saving and loading tricky things like MOs.
+	TacticsHandler, which is a framework to add tasks and squads and have those squads go around doing tasks without further input.
+	
+- Two minor utility scripts:
+	MOUtility, which currently has functions to smartly set MOs to be unhittable or to freeze actor HP.
+	ParticleUtility, which currently has a directional smoke FX creation function.
 
 - Tracy profiler integration.  
 	You can now attach Tracy to builds of the game and see profiling information about various zones and how long they take.  
@@ -82,7 +108,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `HDFirearm` INI and Lua (R/W) property `ReloadEndOffset`, to define how many milliseconds prior to the reload being complete that the `ReloadEndSound` should play. Defaults to -1, which means the game will automatically calculate so that the middle of the sound is aligned with the reload completing.  
 
-- New `Actor` INI and Lua (R/W) property `PainThreshold`, which determines how much damage this actor must take in a frame to play their `PainSound`. This can be set to 0 to never manually play the sound. Defaults to 15.  
+- New `Actor` INI and Lua (R/W) property `PainThreshold`, which determines how much damage this actor must take in a frame to play their `PainSound`. This can be set to 0 to never play the sound. Defaults to 15.  
 
 - New `AHuman` INI and Lua (R/W) property `MaxWalkPathCrouchShift`, which determines how much the actor will automatically duck down to avoid low ceilings above them. This can be set to 0 to never duck. Defaults to 6.  
 
@@ -136,6 +162,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `MOPixel` Lua functions `GetColorIndex()` and `SetColorIndex(int newColorIndex)`, which allow you to get and set the index of the pixel's color.
 
+- Three new Browncoat items have been added: a shield with reactive explosive armor, a revolver, and a close-range incendiary battle rifle.
+
+- AI idle aim timer (the time the AI stops after aiming fully up or fully down in sentry mode) is now customizable using a custom number value for ACrabs. Use it to make your turrets less spastic.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -182,6 +212,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `SceneMan` Lua function `DislodgePixel()` and all of its derivatives now return `MOPixels` instead of `MovableObjects`.
 
+- MuzzleSmoke.lua now uses the new ParticleUtility directional smoke function for a more interesting effect.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -201,6 +233,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed a bug where AI pathfinding would choose unoptimal routes.
 
 - Fixed a crash that could occur when scripted objects were deleted, particularly when switching scene.
+
+- Fixed underperforming fire weaponry. It wasn't sticking to Attachables and as such would only very rarely do damage-over-time.
+
+- Fixed dropships using absolute positions to calculate their delivery waypoint, resulting in them moving weirdly.
 
 </details>
 
