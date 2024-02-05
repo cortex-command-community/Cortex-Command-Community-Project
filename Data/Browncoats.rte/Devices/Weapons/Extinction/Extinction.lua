@@ -23,8 +23,10 @@ function Create(self)
 	self.reloadDelay = 200;
 	self.origReloadTime = 900;
 	
-	self.origStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y);
-	self.origSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y);
+	-- for some reason if this is added to sim while facing leftwards, StanceOffsets will actually be flipped.
+	
+	self.origStanceOffset = Vector(self.StanceOffset.X*self.FlipFactor, self.StanceOffset.Y);
+	self.origSharpStanceOffset = Vector(self.SharpStanceOffset.X*self.FlipFactor, self.SharpStanceOffset.Y);
 	
 	self.origShakeRange = self.ShakeRange;
 	self.origSharpShakeRange = self.SharpShakeRange;
