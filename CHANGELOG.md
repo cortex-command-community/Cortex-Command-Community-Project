@@ -134,7 +134,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `SceneMan` Lua function `CastTerrainPenetrationRay(Vector start, Vector ray, Vector endPos, int strengthLimit, int skip)`, which adds up the material strength of the terrain pixels encountered along the way, and stops when the accumulated value meets or exceeds `strengthLimit`. `endPos` is filled out with the ending position of the ray, returns `true` or `false` depending on whether the ray was stopped early or not.
 
-- Exposed `MOPixel` property `Color` to Lua (R/W). It gets and sets the index of the MOPixel's color.
+- New `MOPixel` Lua functions `GetColorIndex()` and `SetColorIndex(int newColorIndex)`, which allow you to get and set the index of the pixel's color.
 
 </details>
 
