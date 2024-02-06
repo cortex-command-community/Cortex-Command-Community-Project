@@ -63,7 +63,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	New `SoundContainer` INI and Lua (R/W) property `CustomPanValue`, which hard-overrides the panning of a sound. Clamped between -1 and 1 for left and right panning. 0 disables the override and will re-enable default behavior. This should probably only be used on Immobile sounds, but it can be used on any sound.
 	
 - Many new sounds added to the game.
-	Browncoats have gotten a full sound revamp for everything except their actors. Every item now has its own custom sounds.
+	Browncoats have gotten a full sound revamp for everything except their actors. Every Browncoat item now has its own custom sounds.
 	Most base explosions and Riot Shield sounds have been redone.
 
 - New delivery system, Buy Doors:
