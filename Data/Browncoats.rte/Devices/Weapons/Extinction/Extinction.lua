@@ -23,10 +23,14 @@ function Create(self)
 	self.reloadDelay = 200;
 	self.origReloadTime = 900;
 	
-	-- for some reason if this is added to sim while facing leftwards, StanceOffsets will actually be flipped.
+	-- for some reason if this is added to sim while facing leftwards, StanceOffset will actually be flipped.
+	-- but not sharpstanceoffset...............
+
 	
 	self.origStanceOffset = Vector(self.StanceOffset.X*self.FlipFactor, self.StanceOffset.Y);
-	self.origSharpStanceOffset = Vector(self.SharpStanceOffset.X*self.FlipFactor, self.SharpStanceOffset.Y);
+	self.origSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y);
+	
+	self.origSupportOffset = Vector(self.SupportOffset.X, self.SupportOffset.Y);
 	
 	self.origShakeRange = self.ShakeRange;
 	self.origSharpShakeRange = self.SharpShakeRange;
@@ -55,8 +59,9 @@ function Create(self)
 	self.fanFireHoldTime = 200;
 	self.fanFire = false;
 	
-	self.fanFireStanceOffset = Vector(7, 7);
+	self.fanFireStanceOffset = Vector(12, 7);
 	self.fanFireSharpStanceOffset = self.fanFireStanceOffset;
+	self.fanFireSupportOffset = Vector(-2, -5);
 	self.fanFireShakeRange = 6;
 	self.fanFireSharpShakeRange = 6;
 	self.fanFireSharpLength = 100;
@@ -117,6 +122,7 @@ function Update(self)
 				self.cockDelay = 300;
 				self.StanceOffset = self.origStanceOffset;
 				self.SharpStanceOffset = self.origSharpStanceOffset;
+				self.SupportOffset = self.origSupportOffset;
 				--self.SharpLength = self.origSharpLength;
 				self.ShakeRange = self.origShakeRange;
 				self.SharpShakeRange = self.origSharpShakeRange;
@@ -156,6 +162,7 @@ function Update(self)
 			self.cockDelay = 100;
 			self.StanceOffset = self.fanFireStanceOffset;
 			self.SharpStanceOffset = self.fanFireStanceOffset;
+			self.SupportOffset = self.fanFireSupportOffset;
 			--self.SharpLength = self.fanFireSharpLength;
 		elseif not self:IsActivated() then
 			self.fanFireTimer:Reset();
@@ -165,6 +172,7 @@ function Update(self)
 				self.cockDelay = 300;
 				self.StanceOffset = self.origStanceOffset;
 				self.SharpStanceOffset = self.origSharpStanceOffset;
+				self.SupportOffset = self.origSupportOffset;
 				--self.SharpLength = self.origSharpLength;
 				self.ShakeRange = self.origShakeRange;
 				self.SharpShakeRange = self.origSharpShakeRange;
