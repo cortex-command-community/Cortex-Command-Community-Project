@@ -124,15 +124,15 @@ function SyncedUpdate(self)
 		end
 		
 		for att in self.Attachables do
-			if math.random(0, 100) > 40 then
+			if math.random(0, 100) > 25 then
 				local width = math.floor(ToMOSprite(att):GetSpriteWidth() * 0.5 + 0.5);
 				local offset = Vector(math.random(-width, width), math.random(-width, width));
-				local setAngle = self.RotAngle
+				local setAngle = self.RotAngle;
 				local woundName = att:GetEntryWoundPresetName();
 				local wound;
 				if woundName ~= "" then
 					wound = CreateAEmitter(woundName);
-					wound.InheritedRotAngleOffset = setAngle;
+					wound.RotAngle = setAngle;
 					att:AddWound(wound, offset, true);
 				end
 			end
