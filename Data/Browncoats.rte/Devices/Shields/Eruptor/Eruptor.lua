@@ -1,6 +1,6 @@
 function Create(self)
 
-	self.bashWindupSound = CreateSoundContainer("Browncoat RS-04 Bash Windup", "Browncoats.rte");
+	self.bashWindupSound = CreateSoundContainer("Metal Shield Foley", "Base.rte");
 	self.bashSwingSound = CreateSoundContainer("Browncoat RS-04 Bash Swing", "Browncoats.rte");
 	self.bashImpactSound = CreateSoundContainer("Browncoat RS-04 Bash Impact", "Browncoats.rte");
 
@@ -123,8 +123,11 @@ function SyncedUpdate(self)
 			ctrl:SetState(i, false);
 		end
 		
+		local attachablesTriggered = 0;
+		
 		for att in self.Attachables do
 			if math.random(0, 100) > 25 then
+				attachablesTriggered = attachablesTriggered + 1;
 				local width = math.floor(ToMOSprite(att):GetSpriteWidth() * 0.5 + 0.5);
 				local offset = Vector(math.random(-width, width), math.random(-width, width));
 				local setAngle = self.RotAngle;
@@ -133,6 +136,9 @@ function SyncedUpdate(self)
 				if woundName ~= "" then
 					wound = CreateAEmitter(woundName);
 					wound.RotAngle = setAngle;
+					if wound.BurstSound then
+						wound.BurstSound.Volume = math.max(0, 1 - (0.4*attachablesTriggered));
+					end
 					att:AddWound(wound, offset, true);
 				end
 			end
