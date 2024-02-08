@@ -123,6 +123,10 @@ function SyncedUpdate(self)
 			ctrl:SetState(i, false);
 		end
 		
+		if self.hitActor.BodyHitSound then
+			self.hitActor.BodyHitSound:Play(self.hitActor.Pos);
+		end
+		
 		local attachablesTriggered = 0;
 		
 		for att in self.Attachables do
