@@ -160,6 +160,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `SceneMan` Lua function `CastTerrainPenetrationRay(Vector start, Vector ray, Vector endPos, int strengthLimit, int skip)`, which adds up the material strength of the terrain pixels encountered along the way, and stops when the accumulated value meets or exceeds `strengthLimit`. `endPos` is filled out with the ending position of the ray, returns `true` or `false` depending on whether the ray was stopped early or not.
 
+- New `MOPixel` Lua functions `GetColorIndex()` and `SetColorIndex(int newColorIndex)`, which allow you to get and set the index of the pixel's color.
+
 - Three new Browncoat items have been added: a shield with reactive explosive armor, a revolver, and a close-range incendiary battle rifle.
 
 - AI idle aim timer (the time the AI stops after aiming fully up or fully down in sentry mode) is now customizable using a custom number value for ACrabs. Use it to make your turrets less spastic.
@@ -207,6 +209,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - The `SceneObject` property `IsBuyable` has been renamed to `Buyable`.
 
 - `SceneMan` Lua function `DislodgePixel()` now optionally accepts a third boolean argument to delete the found pixel immediately. Format is `DislodgePixel(int posX, int posY, bool deletePixel)`. `DislodgePixel()` now also automatically accounts for scene wrapping.
+
+- `SceneMan` Lua function `DislodgePixel()` and all of its derivatives now return `MOPixels` instead of `MovableObjects`.
 
 - MuzzleSmoke.lua now uses the new ParticleUtility directional smoke function for a more interesting effect.
 
