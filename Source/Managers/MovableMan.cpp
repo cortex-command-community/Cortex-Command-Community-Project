@@ -1334,7 +1334,9 @@ void MovableMan::Update() {
 			                                                     g_LuaMan.SetThreadLuaStateOverride(&luaState);
 
 			                                                     for (MovableObject* mo: luaState.GetRegisteredMOs()) {
-				                                                     mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
+				                                                     if (ValidMO(mo->GetRootParent())) {
+					                                                     mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
+				                                                     }
 			                                                     }
 
 			                                                     g_LuaMan.SetThreadLuaStateOverride(nullptr);
