@@ -51,6 +51,9 @@ end
 
 function ThreadedUpdate(self)
 
+	self.bashWindupSound.Pos = self.Pos;
+	self.bashSwingSound.Pos = self.Pos;
+
 	if self.equippedInMainHand then
 		if not self.bashCoolDown then
 			if self:IsActivated() then
@@ -74,6 +77,7 @@ function ThreadedUpdate(self)
 				self.bashActive = false;
 				self.bashTimer:Reset();
 				self.bashCoolDown = true;
+				self.hitActor = nil;
 				self.StanceOffset = self.origStanceOffset;
 				self.SharpStanceOffset = self.origSharpStanceOffset;
 			elseif self.bashTimer:IsPastSimMS(self.bashWindupTime) then
@@ -114,7 +118,7 @@ end
 
 function SyncedUpdate(self)
 
-	if MovableMan:ValidMO(self.hitActor) then
+	if self.hitActor and MovableMan:ValidMO(self.hitActor) then
 		local ctrl = self.hitActor:GetController();
 		
 		self.hitActor.Status = math.max(1, self.hitActor.Status);
@@ -149,13 +153,6 @@ function SyncedUpdate(self)
 		end
 		
 	end
-
-end
-
-function Update(self)
-
-	self.bashWindupSound.Pos = self.Pos;
-	self.bashSwingSound.Pos = self.Pos;
 
 end
 

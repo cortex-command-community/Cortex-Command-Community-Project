@@ -6,6 +6,7 @@ function Create(self)
 end
 function ThreadedUpdate(self)
 
+	self.shieldWalkSound.Pos = self.Pos;
 	self.parent = self:GetRootParent();
 	
 	if IsAHuman(self.parent) then
@@ -15,10 +16,4 @@ function ThreadedUpdate(self)
 		end
 	end
 
-end
-
-function Update(self)
-
-	self.shieldWalkSound.Pos = self.Pos;
-	
 end
