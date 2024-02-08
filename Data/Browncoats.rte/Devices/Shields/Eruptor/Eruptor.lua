@@ -56,6 +56,7 @@ function ThreadedUpdate(self)
 			if self:IsActivated() then
 				if not self.Bashing then
 					self.bashWindupSound:Play(self.Pos);
+					self.bashSwingSound:Play(self.Pos);
 					self.hitMOTable = {};
 					self.Bashing = true;
 					self.bashTimer:Reset();
@@ -102,7 +103,6 @@ function ThreadedUpdate(self)
 
 				if not self.bashActive then
 					self.bashActive = true;
-					self.bashSwingSound:Play(self.Pos);
 				end
 				self.StanceOffset = self.bashActiveStanceOffset;
 				self.SharpStanceOffset = self.bashActiveStanceOffset;
