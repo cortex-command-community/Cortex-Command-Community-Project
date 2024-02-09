@@ -256,12 +256,6 @@ float PEmitter::EstimateImpulse(bool burst) {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  GibThis
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gibs this, effectively destroying it and creating multiple gibs or
-//                  pieces in its place.
-
 void PEmitter::GibThis(Vector impactImpulse, float internalBlast, MovableObject *pIgnoreMO)
 {
 

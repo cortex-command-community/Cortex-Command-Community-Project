@@ -255,7 +255,6 @@ namespace RTE {
 		/// @param drawBitmap The bitmap to draw on.
 		void Draw(BITMAP* drawBitmap);
 
-		/// Method:		SetToStartNewGame
 		/// Resets internal state of GUI to show 'Start new campaign' screen
 		void SetToStartNewGame();
 

@@ -872,14 +872,10 @@ namespace RTE {
 		bool ObscuredPoint(int x, int y, int team = -1);
 
 		/*
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SceneRectsIntersect
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether two IntRect:s in the scene intersect, while taking
-		//                  wrapping into account.
-		// Arguments:       The point on the scene to check.
-		// Return value:    Whether that point is obscured/obstructed or not.
-
+		/// Tells whether two IntRect:s in the scene intersect, while taking
+		/// wrapping into account.
+		/// @param x The point on the scene to check.
+		/// @return Whether that point is obscured/obstructed or not.
 		    bool SceneRectsIntersect(int x, int y);
 		*/
 
