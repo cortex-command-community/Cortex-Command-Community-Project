@@ -21,6 +21,7 @@ function Update(self)
 			self.activeSound:Stop();
 			self.charge = 0;
 		end
+		
 		self.inventorySwapTimer:Reset();
 		if self.Magazine.RoundCount > 0 then
 			if self.animTimer:IsPastSimMS(200 * (1 - self.charge)) then
@@ -41,9 +42,11 @@ function Update(self)
 					MovableMan:AddParticle(damagePar);
 				end
 			end
+
 			if self:DoneReloading() then
 				self:Deactivate();
 			end
+
 			if self:IsActivated() and not self.forceFire then
 				self:Deactivate();
 
@@ -53,6 +56,7 @@ function Update(self)
 				else
 					self.activeSound:Play(self.Pos);
 				end
+
 				if not self.chargeTimer:IsPastSimTimeLimit() then
 					self.charge = self.chargeTimer.ElapsedSimTimeMS/self.chargeDelay;
 				else
@@ -63,6 +67,7 @@ function Update(self)
 						self.forceFire = true;
 					end
 				end
+
 				self.Magazine.RoundCount = math.ceil(self.charge * 100);
 			else
 				self.Magazine.RoundCount = 1;

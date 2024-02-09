@@ -33,6 +33,12 @@ function NativeHumanAI:Create(Owner)
 
 	Members.TargetLostTimer = Timer();
 	Members.TargetLostTimer:SetSimTimeLimitMS(1000);
+	
+	-- customizable variables, trend started by pawnis on 01/09/2023 :)
+	
+	-- humble beginnings
+	-- pause time between sweeping aim up and down when guarding
+	Members.idleAimTime = Owner:NumberValueExists("AIIdleAimTime") and Owner:GetNumberValue("AIIdleAimTime") or 500;
 
 	-- set shooting skill
 	Members.aimSpeed, Members.aimSkill, Members.skill = HumanBehaviors.GetTeamShootingSkill(Owner.Team);

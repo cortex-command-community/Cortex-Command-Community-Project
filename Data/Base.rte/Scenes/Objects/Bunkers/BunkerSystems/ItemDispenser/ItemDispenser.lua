@@ -1,27 +1,28 @@
 function OnMessage(self, message)
-
 	if message == self.deactivationMessage or message == "DEACTIVATEALLITEMDISPENSERS" then
 		self.Deactivated = true;
 	elseif message == self.activationMessage or message == "ACTIVATEALLITEMDISPENSERS" then
 		self.Deactivated = false;
 	end
-
 end
 
 function OnGlobalMessage(self, message)
-
 	if message == self.deactivationMessage or message == "DEACTIVATEALLITEMDISPENSERS" then
 		self.Deactivated = true;
 	elseif message == self.activationMessage or message == "ACTIVATEALLITEMDISPENSERS" then
 		self.Deactivated = false;
 	end
-
 end
 
 function Create(self)
-
 	self.deactivationMessage = self:GetStringValue("DeactivationMessage");
 	self.activationMessage = self:GetStringValue("ActivationMessage");
+	
+	if self:GetNumberValue("Deactivated") == 1 then
+		self.Deactivated = true;
+	end
+	
+	self:RemoveNumberValue("Deactivated");
 	
 	local createFunc = "Create" .. self:GetStringValue("ItemToDispenseClassName");
 	self.itemToDispense = _G[createFunc](self:GetStringValue("ItemToDispensePresetName"), self:GetStringValue("ItemToDispenseTechName"));
@@ -33,6 +34,7 @@ function Create(self)
 		self.cooldownTimer.ElapsedRealTimeMS = self:GetNumberValue("cooldownTimer");
 		self:RemoveNumberValue("cooldownTimer");
 	end
+	
 	self.cooldownTime = self:GetNumberValue("CooldownTime");
 	
 	if self:NumberValueExists("itemsDispensed") then
@@ -58,7 +60,6 @@ function Create(self)
 end
 
 function ThreadedUpdate(self)
-
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
 		for actor in MovableMan:GetMOsInRadius(self.Pos, self.detectRange) do
 			if (not self.Deactivated) and (not self.closeActorTable[actor.UniqueID]) and IsAHuman(actor) or IsACrab(actor) then
@@ -78,8 +79,7 @@ function ThreadedUpdate(self)
 		PrimitiveMan:DrawTextPrimitive(self.Pos, self.Message, true, 1);
 	end
 	
-	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
-	
+	--PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
 end
 
 function SyncedUpdate(self)
@@ -147,4 +147,5 @@ end
 function OnSave(self)
 	self:SetNumberValue("cooldownTimer", self.cooldownTimer.ElapsedRealTimeMS);
 	self:SetNumberValue("itemsDispensed", self.itemsDispensed);
+	self:SetNumberValue("Deactivated", self.Deactivated and 1 or 0);
 end

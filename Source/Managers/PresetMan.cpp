@@ -43,12 +43,6 @@ void PresetMan::Clear() {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Save
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Saves the complete state of this PresetMan with a Writer for
-//                  later recreation with Create(Reader &reader);
-
 int PresetMan::Save(Writer &writer) const
 {
     writer << m_Actors.size();

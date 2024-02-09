@@ -348,12 +348,6 @@ void GATutorial::End() {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateEditing
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     This is a special update step for when any player is still editing the
-//                  scene.
-
 void GATutorial::UpdateEditing()
 {
     GameActivity::UpdateEditing();

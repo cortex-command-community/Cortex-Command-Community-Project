@@ -31,6 +31,7 @@ function Update(self)
 				break;
 			end
 		end
+		
 		if rayHit == true then
 			self.actionPhase = 1;
 		else
@@ -54,6 +55,7 @@ function Update(self)
 			self.toDetonate = true;
 		end
 	end
+
 	if self.detonateTimer:IsPastSimMS(self.detonateDelay) or self.toDetonate then
 		local explosion = CreateMOSRotating("Particle Dummy Frag Nailer Explosion");
 		explosion.Pos = self.Pos;

@@ -25,6 +25,7 @@ function Update(self)
 		self.target = nil;
 		self.PinStrength = 0;
 	end
+	
 	if self.PinStrength > 0 then
 		self.Pos = self.Pos + self.Vel * rte.PxTravelledPerFrame;
 	end

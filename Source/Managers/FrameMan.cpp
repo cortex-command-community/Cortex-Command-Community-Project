@@ -273,6 +273,10 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 	}
 }
 
+float FrameMan::GetResolutionMultiplier() const {
+	return g_WindowMan.GetResMultiplier();
+}
+
 Vector FrameMan::GetMiddleOfPlayerScreen(int whichPlayer) {
 	Vector middleOfPlayerScreen;
 
