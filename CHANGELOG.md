@@ -52,15 +52,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 		team -- The team to use when calculating the path, allowing the path to ignore that team's doors. If not specified, it will default to `Activity.NOTEAM`, and no doors will be ignored.
 	);
 	```
-
-- New FMOD and SoundContainer features:  
-	The game is now divided into SFX, UI, and Music busses which all route into the Master bus.  
-	The SFX bus has compression added for a better listening experience, and a safety volume limiter has been added to the Master bus.  
-	Aside from volume being attenuated, sounds will now also be lowpass filtered as distance increases.  
-	New `SoundContainer` INI and Lua (R/W) property `BusRouting`, which denotes which bus the SoundContainer routes to. Available busses: `SFX, UI, Music`. Defaults to `SFX`.  
-	`Enum` binding for `SoundContainer.BusRouting`: `SFX = 0, UI = 1, MUSIC = 2`.  
-	New `SoundContainer` INI and Lua (R/W) property `PanningStrengthMultiplier`, which will multiply the strength of 3D panning. This can be used to achieve for example a psuedo-Immobile effect where attenuation effects are still applied but the sound does not move from the center. Recommended to keep between 0.0 and 1.0.  
-	New `SoundContainer` INI and Lua (R/W) property `CustomPanValue`, which hard-overrides the panning of a sound. Clamped between -1 and 1 for left and right panning. 0 disables the override and will re-enable default behavior. This should probably only be used on Immobile sounds, but it can be used on any sound.
 	
 - Many new sounds added to the game.  
 	Browncoats have gotten a full sound revamp for everything except their actors. Every Browncoat item now has its own custom sounds.  
@@ -75,6 +66,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Item Dispenser object which dispenses items via the pie menu in a customizable way.
 
 - Timed capturing docks for rockets and dropships, which are nifty on their own but shine when used with the DockingHandler to have AI use them.
+
+- Three new Browncoat items have been added: a shield with reactive explosive armor, a revolver, and a close-range incendiary battle rifle.
 
 - A whole suite of Lua frameworks for activities:  
 	BuyDoorHandler, which has a few utility functions to use buy doors at the activity-level easier.  
@@ -99,6 +92,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`tracy.ZoneBeginN(text)` to begin a custom named zone, and `tracy.ZoneName(text)` to dynamically set the current zone name on a per-call basis.  
 	`tracy.Message(text)` to send a tracy message.  
 	Lua scripts without any tracy documentation are still profiled by tracy, however only at a granularity of how long the entire script takes to execute.  
+
+- New FMOD and SoundContainer features:  
+	The game is now divided into SFX, UI, and Music busses which all route into the Master bus.  
+	The SFX bus has compression added for a better listening experience, and a safety volume limiter has been added to the Master bus.  
+	Aside from volume being attenuated, sounds will now also be lowpass filtered as distance increases.  
+	New `SoundContainer` INI and Lua (R/W) property `BusRouting`, which denotes which bus the SoundContainer routes to. Available busses: `SFX, UI, Music`. Defaults to `SFX`.  
+	`Enum` binding for `SoundContainer.BusRouting`: `SFX = 0, UI = 1, MUSIC = 2`.  
+	New `SoundContainer` INI and Lua (R/W) property `PanningStrengthMultiplier`, which will multiply the strength of 3D panning. This can be used to achieve for example a psuedo-Immobile effect where attenuation effects are still applied but the sound does not move from the center. Recommended to keep between 0.0 and 1.0.  
+	New `SoundContainer` INI and Lua (R/W) property `CustomPanValue`, which hard-overrides the panning of a sound. Clamped between -1 and 1 for left and right panning. 0 disables the override and will re-enable default behavior. This should probably only be used on Immobile sounds, but it can be used on any sound.
 
 - New `HeldDevice` Lua function `IsBeingHeld`, which returns whether or not the `HeldDevice` is currently being held.  
 
@@ -166,9 +168,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `MOPixel` Lua functions `GetColorIndex()` and `SetColorIndex(int newColorIndex)`, which allow you to get and set the index of the pixel's color.
 
-- Three new Browncoat items have been added: a shield with reactive explosive armor, a revolver, and a close-range incendiary battle rifle.
-
-- AI idle aim timer (the time the AI stops after aiming fully up or fully down in sentry mode) is now customizable using a custom number value for ACrabs. Use it to make your turrets less spastic.
+- AI idle aim timer (the time the AI stops after aiming fully up or fully down in sentry mode) is now customizable using the custom number value `AIIdleAimTime` for ACrabs. Use it to make your turrets less spastic.
 
 </details>
 
@@ -246,7 +246,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Removed</b></summary>
 
-- Removed RealToSimCap and OneSimUpdatePerFrame. Instead we try to always target 60fps, even if it slows the simulation down a little.
+- Removed `RealToSimCap` and `OneSimUpdatePerFrame`. Instead we try to always target 60fps, even if it slows the simulation down a little.
 
 </details>
 
