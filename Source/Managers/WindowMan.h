@@ -1,8 +1,12 @@
 #pragma once
 
 #include "Singleton.h"
-#include "System/Shader.h"
+#include "glm/fwd.hpp"
 #include "glad/gl.h"
+
+#include <memory>
+#include <vector>
+
 #define g_WindowMan WindowMan::Instance()
 
 extern "C" {
@@ -187,7 +191,6 @@ namespace RTE {
 		GLuint m_BackBuffer32Texture; //!< Streaming texture for the software rendered stuff.
 		GLuint m_ScreenBufferTexture; //!< Internal backbuffer for the final blit and sceenshots, only clear immediately before drawing.
 		GLuint m_ScreenBufferFBO; //!< Framebuffer object for the screen buffer texture.
-		glm::mat4 m_PrimaryWindowProjection; //!< Projection Matrix for the main window.
 		std::unique_ptr<SDL_Rect> m_PrimaryWindowViewport; //!< Viewport for the main window.
 
 		std::vector<std::shared_ptr<SDL_Window>> m_MultiDisplayWindows; //!< Additional windows for multi-display fullscreen.

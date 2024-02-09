@@ -13,6 +13,8 @@
 #include "Material.h"
 #include "MovableMan.h"
 
+#include <set>
+
 struct BITMAP;
 
 namespace RTE {
@@ -718,7 +720,7 @@ namespace RTE {
 		/// Returns force vector in newtons of the specified Force record.
 		/// @param n Force record index to get data from.
 		/// @return Force vector in newtons of the specified Force record.
-		Vector GetForceVector(unsigned int n) {
+		Vector GetForceVector(size_t n) {
 			if (n > 0 && n < m_Forces.size())
 				return m_Forces[n].first;
 			else
@@ -732,7 +734,7 @@ namespace RTE {
 		/// Returns offset vector in METERS (not pixels) of the specified Force record.
 		/// @param n Force record index to get data from.
 		/// @return Offset vector in meters of the specified Force record.
-		Vector GetForceOffset(unsigned int n) {
+		Vector GetForceOffset(size_t n) {
 			if (n > 0 && n < m_Forces.size())
 				return m_Forces[n].second;
 			else
@@ -741,14 +743,14 @@ namespace RTE {
 
 		/// Sets force vector in newtons of the specified Force record.
 		/// @param n Force record index to get data from. New Vector force value in newtons.
-		void SetForceVector(unsigned int n, Vector v) {
+		void SetForceVector(size_t n, Vector v) {
 			if (n > 0 && n < m_Forces.size())
 				m_Forces[n].first = v;
 		}
 
 		/// Sets offset vector in METERS (not pixels) of the specified Force record.
 		/// @param n Force record index to get data from. New Vector offset value in meters.
-		void SetForceOffset(unsigned int n, Vector v) {
+		void SetForceOffset(size_t n, Vector v) {
 			if (n > 0 && n < m_Forces.size())
 				m_Forces[n].second = v;
 		}
@@ -764,7 +766,7 @@ namespace RTE {
 		/// Returns Impulse vector in newtons of the specified Impulse record.
 		/// @param n Impulse record index to get data from.
 		/// @return Impulse vector in newtons of the specified Impulse record.
-		Vector GetImpulseVector(unsigned int n) {
+		Vector GetImpulseVector(size_t n) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				return m_ImpulseForces[n].first;
 			else
@@ -774,7 +776,7 @@ namespace RTE {
 		/// Returns offset vector in METERS (not pixels) of the specified Impulse record.
 		/// @param n Impulse record index to get data from.
 		/// @return Offset vector in meters of the specified Impulse record.
-		Vector GetImpulseOffset(unsigned int n) {
+		Vector GetImpulseOffset(size_t n) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				return m_ImpulseForces[n].second;
 			else
@@ -784,14 +786,14 @@ namespace RTE {
 		/// Returns offset vector in METERS (not pixels) of the specified Impulse record.
 		/// @param n Impulse record index to get data from.
 		/// @return Offset vector in meters of the specified Impulse record.
-		void SetImpulseVector(unsigned int n, Vector v) {
+		void SetImpulseVector(size_t n, Vector v) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				m_ImpulseForces[n].first = v;
 		}
 
 		/// Sets offset vector in METERS (not pixels) of the specified Impulse record.
 		/// @param n Impulse record index to get data from. New Vector offset value in meters.
-		void SetImpulseOffset(unsigned int n, Vector v) {
+		void SetImpulseOffset(size_t n, Vector v) {
 			if (n > 0 && n < m_ImpulseForces.size())
 				m_ImpulseForces[n].second = v;
 		}
@@ -937,11 +939,11 @@ namespace RTE {
 
 		/// Returns the next unique id for MO's and increments unique ID counter
 		/// @return Returns the next unique id.
-		static unsigned long int GetNextUniqueID() { return ++m_UniqueIDCounter; }
+		static long GetNextUniqueID() { return ++m_UniqueIDCounter; }
 
 		/// Returns this MO's unique persistent ID
 		/// @return Returns this MO's unique persistent ID
-		unsigned long int const GetUniqueID() const { return m_UniqueID; }
+		long GetUniqueID() const { return m_UniqueID; }
 
 		/// Gets the preset name and unique ID of this MO, often useful for error messages.
 		/// @return A string containing the unique ID and preset name of this MO.
@@ -1096,7 +1098,7 @@ namespace RTE {
 		// Member variables
 		static Entity::ClassInfo m_sClass;
 		// Global counter with unique ID's
-		static std::atomic<unsigned long int> m_UniqueIDCounter;
+		static std::atomic<long> m_UniqueIDCounter;
 		// The type of MO this is, either Actor, Item, or Particle
 		int m_MOType;
 		float m_Mass; // In metric kilograms (kg).
@@ -1227,7 +1229,7 @@ namespace RTE {
 		bool m_RandomizeEffectRotAngleEveryFrame;
 
 		// This object's unique persistent ID
-		long int m_UniqueID;
+		long m_UniqueID;
 		// In which radis should we look to remove orphaned terrain on terrain penetration,
 		// must not be greater than SceneMan::ORPHANSIZE, or will be truncated
 		int m_RemoveOrphanTerrainRadius;
@@ -1252,7 +1254,7 @@ namespace RTE {
 		// Unique ID of particle hit this MO
 		long int m_ParticleUniqueIDHit;
 		// Number of sim update frame when last collision was detected
-		unsigned int m_LastCollisionSimFrameNumber;
+		int m_LastCollisionSimFrameNumber;
 		int m_SimUpdatesBetweenScriptedUpdates; //!< The number of Sim updates between each scripted update for this MovableObject.
 		int m_SimUpdatesSinceLastScriptedUpdate; //!< The counter for the current number of Sim updates since this MovableObject last ran a scripted update.
 

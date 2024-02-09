@@ -129,19 +129,19 @@ function OneManArmyZeroG:SetupHumanPlayerBrains(actorGroup, primaryGroup, second
 						local primaryWeapon, secondaryWeapon, tertiaryWeapon, actor;
 						for entity in dataModule.Presets do
 							local picked;	--Prevent duplicates
-							if not primaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).IsBuyable then
+							if not primaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).Buyable then
 								primaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
 								picked = true;
 							end
-							if not picked and not secondaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(secondaryGroup) and ToMOSRotating(entity).IsBuyable then
+							if not picked and not secondaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(secondaryGroup) and ToMOSRotating(entity).Buyable then
 								secondaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
 								picked = true;
 							end
-							if not picked and not tertiaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(tertiaryGroup) and ToMOSRotating(entity).IsBuyable then
+							if not picked and not tertiaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(tertiaryGroup) and ToMOSRotating(entity).Buyable then
 								tertiaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
 								picked = true;
 							end
-							if not picked and not actor and entity.ClassName == "AHuman" and ToMOSRotating(entity):HasObjectInGroup(actorGroup) and ToMOSRotating(entity).IsBuyable then
+							if not picked and not actor and entity.ClassName == "AHuman" and ToMOSRotating(entity):HasObjectInGroup(actorGroup) and ToMOSRotating(entity).Buyable then
 								actor = CreateAHuman(entity:GetModuleAndPresetName());
 							end
 						end

@@ -2,6 +2,10 @@
 
 #include "MOSprite.h"
 
+#include <array>
+#include <string>
+#include <vector>
+
 namespace RTE {
 
 #pragma region Graphical Primitive

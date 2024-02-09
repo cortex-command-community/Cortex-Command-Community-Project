@@ -1,5 +1,4 @@
 function Create(self)
-
 	-- saving and loading can mess this up, so handle it:
 	
 	self.pinPos = Vector(self.Pos.X, self.Pos.Y);
@@ -13,12 +12,9 @@ function Create(self)
 	end
 
 	self.AIMode = Actor.AIMODE_SENTRY;
-
 end
 
 function Update(self)
-
 	-- keep anything from moving us
 	self.Pos = self.pinPos;
-	
 end

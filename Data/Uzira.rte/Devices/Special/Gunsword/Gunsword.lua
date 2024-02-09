@@ -14,6 +14,7 @@ function Create(self)
 	self.particle.Mass = 2;
 	self.particle.Sharpness = (self.Sharpness/self.length/self.particle.Mass);
 end
+
 function Update(self)
 	local sinAngle = math.sin(self.rotNum);
 	local cosAngle = math.cos(self.rotNum);
@@ -28,6 +29,7 @@ function Update(self)
 		if not self.Supported then
 			speed = speed * 0.7;
 		end
+		
 		if aimNum > 1 then
 			self.HUDVisible = true;
 			if activated then
@@ -40,6 +42,7 @@ function Update(self)
 				if not parent:IsPlayerControlled() and sinAngle > 0.3 then
 					parent:GetController():SetState(Controller.WEAPON_FIRE, false);
 				end
+
 				parent.AngularVel = parent.AngularVel + cosAngle * 0.3 * speed * self.FlipFactor;
 				self.particle.Team = parent.Team;
 				if cosAngle < 0 then	--Swing
@@ -53,12 +56,14 @@ function Update(self)
 							part.Vel = self.Vel + Vector(self.length * self.FlipFactor, 0):RadRotate(self.RotAngle - math.sqrt(i) * 0.5 * self.FlipFactor) * math.sqrt(swingProgress);
 							MovableMan:AddParticle(part);
 						end
+
 						parent.Vel = parent.Vel + Vector(swingSpeed/(5 + self.momentum), 0):RadRotate(parent:GetAimAngle(true));
 						if not self.swingSound:IsBeingPlayed() then
 							self.swingSound.Pos = self.Pos;
 							self.swingSound:Play();
 							self:RemoveWounds(1);
 						end
+
 						self.throwSpeed = (speed * swingProgress) * 4;
 					end
 				elseif activated then
@@ -67,6 +72,7 @@ function Update(self)
 				else
 					self.swingSound.Pitch = math.sqrt(speed);
 				end
+
 				self:Deactivate();
 				
 				local twoPI = math.pi * 2;
@@ -75,6 +81,7 @@ function Update(self)
 				else
 					self.rotNum = 0;
 				end
+
 				if self.Magazine then
 					self.Magazine.Scale = 1;
 					self.Scale = 0;
@@ -85,9 +92,11 @@ function Update(self)
 				if self.Magazine then
 					self.Magazine.Scale = 0;
 				end
+
 				self.Scale = 1;
 			end
 		end
+
 		if self:DoneReloading() or not parent:GetController():IsState(Controller.AIM_SHARP) then
 			self.justFired = false;
 		end
@@ -100,6 +109,7 @@ function Update(self)
 		if self.Magazine then
 			self.Magazine.Scale = 0;
 		end
+
 		self.Scale = 1;
 		self.rotNum = 0;
 		if self.throwSpeed > 0 then
@@ -113,8 +123,10 @@ function Update(self)
 			end
 		end
 	end
+
 	self.momentum = (self.momentum + self.Vel.Magnitude * math.max(-self.AngularVel * self.FlipFactor, 1)) * 0.5;
 end
+
 function OnDetach(self, exParent)
 	if self.throwSpeed > 0 and IsArm(exParent) then
 		local throwAngle = exParent.RotAngle;
@@ -125,11 +137,13 @@ function OnDetach(self, exParent)
 			self.Team = self.user.Team;
 			self.IgnoresTeamHits = true;
 		end
+
 		self.Vel = self.Vel + Vector(self.throwSpeed * math.sqrt(math.abs(ToArm(exParent).ThrowStrength)) * exParent.FlipFactor, 0):RadRotate(throwAngle * self.FlipFactor);
 		self.AngularVel = -self.Vel.Magnitude * self.FlipFactor;
 		self.throwSpeed = self.Vel.Magnitude;
 	end
 end
+
 function OnCollideWithMO(self, mo, rootMO)
 	if self.user then
 		if self.throwSpeed > 1 and IsActor(self.user) and self.momentum > 10 then
@@ -148,6 +162,7 @@ function OnCollideWithMO(self, mo, rootMO)
 			self.Vel = (self.Vel + SceneMan:ShortestDistance(self.Pos, self.user.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.throwSpeed)) * 0.3;
 			self.user = nil;
 		end
+
 		self.throwSpeed = 1;
 		self:SetWhichMOToNotHit(rootMO, -1);
 	end

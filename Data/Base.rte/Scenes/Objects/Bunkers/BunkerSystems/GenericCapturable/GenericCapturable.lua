@@ -29,16 +29,20 @@ function Create(self)
 	self.deactivationMessage = self:GetStringValue("DeactivationMessage");
 	self.activationMessage = self:GetStringValue("ActivationMessage");
 	
+	if self:GetNumberValue("Deactivated") == 1 then
+		self.Deactivated = true;
+	end
+	
+	self:RemoveNumberValue("Deactivated");
+	
 	self.actorCheckTimer = Timer();
 	self.actorCheckDelay = 250;
 	
 	self.Activity = ToGameActivity(ActivityMan:GetActivity());
 	self.Scene = SceneMan.Scene;
-	--print(self:GetStringValue("SceneCaptureArea"))
 	if self:StringValueExists("SceneCaptureArea") then
 		if self.Scene:HasArea(self:GetStringValue("SceneCaptureArea")) then
 			self.captureArea = self.Scene:GetArea(self:GetStringValue("SceneCaptureArea"));
-			--print("foundarea")
 		end
 	end
 	
@@ -101,6 +105,7 @@ function ThreadedUpdate(self)
 				if IsActor(actor) then
 					self.actorTeamNumTable[actor.Team] = self.actorTeamNumTable[actor.Team] + 1
 				end
+				
 				if actor:IsInGroup("Brains") then
 					self.teamHasBrainTable[actor.Team] = true;
 				end
@@ -144,6 +149,7 @@ function ThreadedUpdate(self)
 		if self.FXcapturing then
 			self.FXstopCapture = true;
 		end
+
 		self.FXcapturing = false;
 	end
 	
@@ -164,7 +170,6 @@ function ThreadedUpdate(self)
 				if self.Team == -1 and self.dominantTeam == self.Team then
 					self.captureProgress = 0;
 				end
-					
 			else
 				if self.dominantTeam ~= self.Team then
 					self.Team = self.dominantTeam;
@@ -184,25 +189,25 @@ function ThreadedUpdate(self)
 		end
 	end
 	
-	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -20), tostring("Team: " .. self.Team), true, 1);
-	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -30), tostring("Capturing Team: " .. self.capturingTeam), true, 1);
-	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -40), tostring("Dominant Team: " .. self.dominantTeam), true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -20), tostring("Team: " .. self.Team), true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -30), tostring("Capturing Team: " .. self.capturingTeam), true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -40), tostring("Dominant Team: " .. self.dominantTeam), true, 1);
 	
-	PrimitiveMan:DrawTextPrimitive(self.Pos, tostring(self.captureProgress * 100), true, 1);
+	--PrimitiveMan:DrawTextPrimitive(self.Pos, tostring(self.captureProgress * 100), true, 1);
 	
-	if self.Deactivated then
-		PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -60), "DEACTIVATED"	, true, 1);	
-	end
+	-- if self.Deactivated then
+		-- PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -60), "DEACTIVATED"	, true, 1);	
+	-- end
 end
 
 function SyncedUpdate(self)
 	if self.shouldSendCaptureMessage then
-		print("shouldhavesentmessage: " .. self.messageOnCapture)
 		if self.useGlobalMessaging then
 			MovableMan:SendGlobalMessage(self.messageOnCapture, self.dominantTeam);
 		else
 			self.Activity:SendMessage(self.messageOnCapture, self.dominantTeam);
 		end
+
 		self.shouldSendCaptureMessage = false;
 	end
 end
@@ -211,4 +216,5 @@ function OnSave(self)
 	self:SetNumberValue("captureProgress", self.captureProgress);
 	self:SetNumberValue("dominantTeam", self.dominantTeam);
 	self:SetNumberValue("capturingTeam", self.capturingTeam);
+	self:SetNumberValue("Deactivated", self.Deactivated and 1 or 0);
 end

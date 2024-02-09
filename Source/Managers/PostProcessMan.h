@@ -2,10 +2,16 @@
 
 #include "Singleton.h"
 #include "Box.h"
-#include "SceneMan.h"
 #include "glad/gl.h"
-#include <glm/glm.hpp>
+#include "glm/fwd.hpp"
+#include "SceneMan.h"
 #include "Shader.h"
+
+#include <array>
+#include <atomic>
+#include <memory>
+#include <list>
+#include <vector>
 
 #define g_PostProcessMan PostProcessMan::Instance()
 
@@ -179,7 +185,7 @@ namespace RTE {
 		GLuint m_BlitFramebuffer; //!< Framebuffer for blitting the 8bpp backbuffer to the 32bpp backbuffer.
 		GLuint m_PostProcessFramebuffer; //!< Framebuffer for post-processing effects.
 		GLuint m_PostProcessDepthBuffer; //!< Depth buffer for post-processing effects.
-		glm::mat4 m_ProjectionMatrix; //!< Projection matrix for post-processing effects.
+		std::unique_ptr<glm::mat4> m_ProjectionMatrix; //!< Projection matrix for post-processing effects.
 		GLuint m_VertexBuffer; //!< Vertex buffer for post-processing effects.
 		GLuint m_VertexArray; //!< Vertex array for post-processing effects.
 		std::unique_ptr<Shader> m_Blit8; //!< Shader for blitting the 8bpp backbuffer to the 32bpp backbuffer.

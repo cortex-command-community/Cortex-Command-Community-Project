@@ -2,6 +2,9 @@
 
 #include "Singleton.h"
 
+#include <deque>
+#include <chrono>
+
 #define g_TimerMan TimerMan::Instance()
 
 namespace RTE {

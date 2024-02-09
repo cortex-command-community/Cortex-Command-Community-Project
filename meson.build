@@ -25,6 +25,19 @@ if get_option('debug') and get_option('b_lto')
   warning('Link time optimization enabled in debug mode, debug symbols may not be fully available. Disable b_lto with "meson configure -Db_lto=false".')
 endif
 
+use_pch = get_option('use_pch').enabled()
+
+if get_option('use_pch').auto()
+  ccache = find_program('ccache', required : false)
+  if ccache.found()
+    message('Detected ccache, disabling precompiled headers')
+    use_pch = false
+  else
+    message('Using precompiled headers')
+    use_pch = true
+  endif
+endif
+
 if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
   # Build against system libraries on linux
   message('gcc detected')
@@ -54,7 +67,6 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
     debug_type = get_option('debug_type')
     if debug_type == 'release'
       preprocessor_flags += ['-DRELEASE_BUILD'] # enable minimal debug features
-	  add_global_arguments('-DLUABIND_NO_ERROR_CHECKING', language:'cpp')
     elif debug_type == 'minimal'
       preprocessor_flags += ['-DMIN_DEBUG_BUILD', '-DDEBUGMODE'] # enable some debug features
     elif debug_type == 'full'
@@ -62,8 +74,7 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
     endif
   else
     extra_args = ['-w'] # Disable all warnings for release builds
-    preprocessor_flags += ['-DRELEASE_BUILD', '-DNDEBUG', '-DLUABIND_NO_ERROR_CHECKING'] # disable all debug features
-    add_global_arguments('-DLUABIND_NO_ERROR_CHECKING', language:'cpp')
+    preprocessor_flags += ['-DRELEASE_BUILD', '-DNDEBUG'] # disable all debug features
   endif
   if compiler.get_id() =='gcc' and compiler.version().version_compare('<9')
     link_args += ['-lstdc++fs']
@@ -78,7 +89,47 @@ elif compiler.get_argument_syntax()== 'msvc'
   if host_machine.cpu_family() == 'x86'
     elfname += ' x86'
   endif
-  preprocessor_flags += ['-D_CRT_SECURE_NO_DEPRECATE', '-D_WINDOWS', '-DWIN32', '-DWIN32_LEAN_AND_MEAN']
+  preprocessor_flags += [
+    '-D_CRT_SECURE_NO_DEPRECATE',
+    '-D_WINDOWS',
+    '-DWIN32',
+    '-DWIN32_LEAN_AND_MEAN',
+    '-DNOMINMAX',
+    '-DNOGDI',
+    '-DNOKERNEL',
+    '-DNONLS',
+    '-DNOMEMMGR',
+    '-DNOGDICAPMASKS',
+    '-DNOVIRTUALKEYCODES',
+    '-DNOWINMESSAGES',
+    '-DNOWINSTYLES',
+    '-DNOMETAFILE',
+    '-DNOSCROLL',
+    '-DNOTEXTMETRIC',
+    '-DNOCOMM',
+    '-DNOKANJI',
+    '-DNOHELP',
+    '-DNOPROFILER',
+    '-DNODEFERWINDOWPOS',
+    '-DNOMCX',
+    '-DNOMENUS',
+    '-DNOICONS',
+    '-DNOKEYSTATES',
+    '-DNOSYSCOMMANDS',
+    '-DNORASTEROPS',
+    '-DNOSHOWWINDOW',
+    '-DOEMRESOURCE',
+    '-DNOATOM',
+    '-DNODRAWTEXT',
+    '-DNOCOLOR',
+    '-DNOCTLMGR',
+    '-DNOMSG',
+    '-DNOOPENFILE',
+    '-DNOSERVICE',
+    '-DNOSOUND',
+    '-DNOWH',
+    '-DNOWINOFFSETS'
+  ]
   link_args+=['-ignore:4099', '-ignore:4217']
   buildtype_debug = get_option('debug')
   if buildtype_debug
@@ -87,7 +138,6 @@ elif compiler.get_argument_syntax()== 'msvc'
     if debug_type == 'release'
       elfname+='.release'
       preprocessor_flags += ['-DDEBUG_RELEASE_BUILD'] # enable minimal debug features
-      add_global_arguments('-DLUABIND_NO_ERROR_CHECKING', language:'cpp')
     elif debug_type == 'minimal'
       elfname += '.minimal'
       preprocessor_flags += ['-DDEBUGMODE'] # enable some debug features
@@ -97,7 +147,6 @@ elif compiler.get_argument_syntax()== 'msvc'
     endif
   else
     preprocessor_flags += ['-DRELEASE_BUILD', '-DNDEBUG']
-    add_global_arguments('-DLUABIND_NO_ERROR_CHECKING', language:'cpp')
   endif
 else
   error('Using unknown compiler, please use gcc or msvc compatible compilers')

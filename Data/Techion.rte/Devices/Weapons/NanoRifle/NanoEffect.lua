@@ -58,11 +58,11 @@ function Update(self)
 
 		--Cause damage to enemies, or heal friendlies.
 		if self.pulseTimer:IsPastSimMS(self.pulseTime + self.target.Material.StructuralIntegrity * 2) then
-
 			if IsAttachable(self.target) then
 				self.nextTarget = ToAttachable(self.target):GetParent();
 				self.nextTargetOffset = ToAttachable(self.target).ParentOffset;
 			end
+
 			if self.healing then
 				if self.target.WoundCount > 0 then
 					local damage = self.target:RemoveWounds(1);
@@ -82,9 +82,11 @@ function Update(self)
 					ToMOSRotating(self.target):AddWound(wound, self.targetOffset + Vector(math.random(-1, 1), math.random(-1, 1)), true);
 				end
 			end
+
 			self.pulses = self.pulses + 1;
 			self.pulseTimer:Reset();
 		end
+		
 		if self.pulses > self.maxPulses then
 			self.ToDelete = true;
 		end

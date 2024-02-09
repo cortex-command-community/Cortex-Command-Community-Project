@@ -2,6 +2,9 @@
 #include "ConsoleMan.h"
 #include "PresetMan.h"
 #include "SettingsMan.h"
+#include "System.h"
+
+#include <fstream>
 
 using namespace RTE;
 

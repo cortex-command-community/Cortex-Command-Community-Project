@@ -1,5 +1,7 @@
 #include "GUI.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUIProperties::GUIProperties(const std::string& Name) {

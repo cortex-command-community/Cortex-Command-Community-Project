@@ -4,6 +4,8 @@
 #include "ContentFile.h"
 #include "Box.h"
 
+#include <future>
+
 namespace RTE {
 
 	/// A scrolling layer of the Scene.

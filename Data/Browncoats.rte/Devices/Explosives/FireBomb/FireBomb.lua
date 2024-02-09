@@ -32,10 +32,12 @@ function Update(self)
 							checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 						end
 					end
+					
 					local terrCheck = SceneMan:GetTerrMatter(checkPos.X,checkPos.Y);
 					if terrCheck ~= rte.airID then
 						break;
 					end
+
 					if i == 5 then
 						self.angleList[#self.angleList + 1] = angleCheck;
 					end

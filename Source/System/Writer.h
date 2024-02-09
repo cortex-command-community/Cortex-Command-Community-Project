@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <memory>
+#include <ostream>
+
 namespace RTE {
 
 	/// Writes RTE objects to std::ostreams.

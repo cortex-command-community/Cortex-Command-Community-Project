@@ -2,6 +2,7 @@ function Update(self)
 	if self:DoneReloading() then
 		self:SetNextMagazineName("Magazine Ronin RPG-7");
 	end
+	
 	if self.RoundInMagCount == 0 and self.Magazine then
 		self.Magazine.ToDelete = true;
 	end

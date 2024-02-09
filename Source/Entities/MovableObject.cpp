@@ -10,15 +10,19 @@
 #include "Actor.h"
 #include "SLTerrain.h"
 #include "PieMenu.h"
+#include "Serializable.h"
+#include "System.h"
 
 #include "Base64/base64.h"
 #include "tracy/Tracy.hpp"
+
+#include <array>
 
 using namespace RTE;
 
 AbstractClassInfo(MovableObject, SceneObject);
 
-std::atomic<unsigned long int> MovableObject::m_UniqueIDCounter = 1;
+std::atomic<long> MovableObject::m_UniqueIDCounter = 1;
 std::string MovableObject::ms_EmptyString = "";
 
 MovableObject::MovableObject() {
@@ -563,7 +567,7 @@ int MovableObject::ReloadScripts() {
 
 	// TODO consider getting rid of this const_cast. It would require either code duplication or creating some non-const methods (specifically of PresetMan::GetEntityPreset, which may be unsafe. Could be this gross exceptional handling is the best way to go.
 	MovableObject* movableObjectPreset = const_cast<MovableObject*>(dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(GetClassName(), GetPresetName(), GetModuleID())));
-	if (this != movableObjectPreset) {
+	if (movableObjectPreset && this != movableObjectPreset) {
 		movableObjectPreset->ReloadScripts();
 	}
 

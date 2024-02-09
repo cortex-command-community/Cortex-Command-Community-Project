@@ -5,6 +5,7 @@ function Update(self)
 		trail.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(i);
 		MovableMan:AddParticle(trail);
 	end
+	
 	local glow = CreateMOPixel("Impulse Grenade Trail Glow 2");
 	glow.Pos = self.Pos;
 	MovableMan:AddParticle(glow);
