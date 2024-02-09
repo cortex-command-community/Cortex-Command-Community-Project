@@ -14,12 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Massive performance improvements, especially in very large scenes with lots of actors.  
 
-- New multithreaded AI and Lua scripts.
+- New multithreaded AI and Lua scripts.  
 	Lua scripts now have extra callback functions `ThreadedUpdateAI(self)`, `ThreadedUpdate(self)` and `SyncedUpdate(self)`.  
 	The `Threaded` callback functions are run in a multithreaded fashion, whereas `Update` runs in a singlethreaded fashion (where it's safe to modify global state or affect other objects).  
 	The `SyncedUpdate` callback is called in a single-threaded fashion, but only when an MO directly requests it by calling `self:RequestSyncedUpdate()`. This gives greater performance, as the script can avoid any single-threaded updates being called on it until it explicitly needs it.  
 
-- New generic Lua messaging system, to allow scripts on objects to communicate with other objects or scripts.
+- New generic Lua messaging system, to allow scripts on objects to communicate with other objects or scripts.  
 	Scripts on `MovableObject` now have new callback functions `OnMessage(self, message, context)` and `OnGlobalMessage(self, message, context)`.  
 	Script on `Activity` also have similar functions: `ActivityName:OnMessage(message, context)` and `ActivityName:OnGlobalMessage(message, context)`.  
 	The `OnMessage` callback will be triggered whenever the `SendMessage(message, context)` is called on an object, i.e `Object:SendMessage("Hello World")`.  
@@ -33,7 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	New INI and Lua (R/W) property `CanAdjustAngleWhileFiring`, which defines whether the jet angle can change while the jetpack is active. Defaults to true.  
 	New INI and Lua (R/W) property `AdjustsThrottleForWeight`, which defines whether the jetpack will adjust it's throttle (between `NegativeThrottleMultiplier` and `PositiveThrottleMultiplier`) to account for any extra inventory mass. Increased throttle will decrease jet time accordingly. Defaults to true.  
 
-- Multithreaded asynchronous pathfinding, which dramatically improves performance on large maps and improves AI responsiveness.
+- Multithreaded asynchronous pathfinding, which dramatically improves performance on large maps and improves AI responsiveness.  
 	New `Actor` Lua property (R) `IsWaitingOnNewMovePath`, which returns true while the actor is currently calculating a new path.  
 	New Lua `SceneMan` function `CalculatePathAsync` for asynchronous pathfinding. This function has no return value, and is used as follows:
 	```lua
@@ -62,13 +62,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	New `SoundContainer` INI and Lua (R/W) property `PanningStrengthMultiplier`, which will multiply the strength of 3D panning. This can be used to achieve for example a psuedo-Immobile effect where attenuation effects are still applied but the sound does not move from the center. Recommended to keep between 0.0 and 1.0.  
 	New `SoundContainer` INI and Lua (R/W) property `CustomPanValue`, which hard-overrides the panning of a sound. Clamped between -1 and 1 for left and right panning. 0 disables the override and will re-enable default behavior. This should probably only be used on Immobile sounds, but it can be used on any sound.
 	
-- Many new sounds added to the game.
-	Browncoats have gotten a full sound revamp for everything except their actors. Every Browncoat item now has its own custom sounds.
+- Many new sounds added to the game.  
+	Browncoats have gotten a full sound revamp for everything except their actors. Every Browncoat item now has its own custom sounds.  
 	Most base explosions and Riot Shield sounds have been redone.
 
-- New delivery system, Buy Doors:
-	Buy doors are customizable inert background objects that can take orders either via Lua messages or by using the pie menu near them.
-	Using them via the pie menu will order your current buy menu order. 
+- New delivery system, Buy Doors:  
+	Buy doors are customizable inert background objects that can take orders either via Lua messages or by using the pie menu near them.  
+	Using them via the pie menu will order your current buy menu order.
 	
 - Capturable Framework, which is a very customizable object that can be captured by teams and send out Lua messages as it does so. Should be extremely useful to make new forms of activities.
 
@@ -76,16 +76,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Timed capturing docks for rockets and dropships, which are nifty on their own but shine when used with the DockingHandler to have AI use them.
 
-- A whole suite of Lua frameworks for activities:
-	BuyDoorHandler, which has a few utility functions to use buy doors at the activity-level easier.
-	DeliveryCreationHandler, which standardizes creating squads of actors and their equipment.
-	DockingHandler, which handles craft docking using the new docks.
-	HUDHandler, which provides functions for displaying listed objectives, panning the camera, and other camera-related utilities.
-	SaveLoadHandler, which can serialize tables and also handle saving and loading tricky things like MOs.
+- A whole suite of Lua frameworks for activities:  
+	BuyDoorHandler, which has a few utility functions to use buy doors at the activity-level easier.  
+	DeliveryCreationHandler, which standardizes creating squads of actors and their equipment.  
+	DockingHandler, which handles craft docking using the new docks.  
+	HUDHandler, which provides functions for displaying listed objectives, panning the camera, and other camera-related utilities.  
+	SaveLoadHandler, which can serialize tables and also handle saving and loading tricky things like MOs.  
 	TacticsHandler, which is a framework to add tasks and squads and have those squads go around doing tasks without further input.
 	
-- Two minor utility scripts:
-	MOUtility, which currently has functions to smartly set MOs to be unhittable or to freeze actor HP.
+- Human actors have redone foley sounds (terrain impacts, device switching sounds) and also new subtle footstep sounds, including light and heavy variants for the various light and heavy actors.
+
+- Shields now make noise when walked with.
+
+- Two minor utility scripts:  
+	MOUtility, which currently has functions to smartly set MOs to be unhittable or to freeze actor HP.  
 	ParticleUtility, which currently has a directional smoke FX creation function.
 
 - Tracy profiler integration.  
@@ -200,7 +204,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`JetReplenishRate`  
 	`JetAngleRange`  
 	`JetTimeTotal`  
-	`JetTimeLeft`  
+	`JetTimeLeft`
 
 - Improved loading times on large maps.  
 
