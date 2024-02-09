@@ -45,20 +45,16 @@ namespace RTE {
 		int Create() override;
 
 		/*
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the LimbPath object ready for use.
-		// Arguments:       A Vector specifying starting point of this LimbPath, relative
-		//                  to the owning RTEActor's origin.
-		//                  An int specifying how many segments there are in the following
-		//                  segment array. This MUST match the actual size of the array!
-		//                  An array of Vectors that hold the desired path segments to use.
-		//                  A float specifying the constant travel speed the limb traveling this
-		//                  LimbPath should have, in m/s.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the LimbPath object ready for use.
+		/// @param startPoint A Vector specifying starting point of this LimbPath, relative
+		/// to the owning RTEActor's origin.
+		/// @param segCount An int specifying how many segments there are in the following (default: 1)
+		/// segment array. This MUST match the actual size of the array!
+		/// @param aSegArray An array of Vectors that hold the desired path segments to use. (default: new Vector)
+		/// @param travelSpeed A float specifying the constant travel speed the limb traveling this (default: 1.0)
+		/// LimbPath should have, in m/s.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		    int Create(const Vector &startPoint,
 		                       const unsigned int segCount = 1,
 		                       const Vector *aSegArray = new Vector,
