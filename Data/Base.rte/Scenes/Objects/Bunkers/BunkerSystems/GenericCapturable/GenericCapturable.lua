@@ -105,6 +105,7 @@ function ThreadedUpdate(self)
 				if IsActor(actor) then
 					self.actorTeamNumTable[actor.Team] = self.actorTeamNumTable[actor.Team] + 1
 				end
+				
 				if actor:IsInGroup("Brains") then
 					self.teamHasBrainTable[actor.Team] = true;
 				end
@@ -148,6 +149,7 @@ function ThreadedUpdate(self)
 		if self.FXcapturing then
 			self.FXstopCapture = true;
 		end
+
 		self.FXcapturing = false;
 	end
 	
@@ -168,7 +170,6 @@ function ThreadedUpdate(self)
 				if self.Team == -1 and self.dominantTeam == self.Team then
 					self.captureProgress = 0;
 				end
-					
 			else
 				if self.dominantTeam ~= self.Team then
 					self.Team = self.dominantTeam;
@@ -206,6 +207,7 @@ function SyncedUpdate(self)
 		else
 			self.Activity:SendMessage(self.messageOnCapture, self.dominantTeam);
 		end
+
 		self.shouldSendCaptureMessage = false;
 	end
 end

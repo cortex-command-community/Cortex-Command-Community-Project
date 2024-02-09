@@ -1,11 +1,9 @@
 function Create(self)
-	
 	self.shieldWalkSound = CreateSoundContainer("Metal Shield Walk", "Base.rte");
 	self.shieldWalkTimer = Timer();
-
 end
-function ThreadedUpdate(self)
 
+function ThreadedUpdate(self)
 	self.shieldWalkSound.Pos = self.Pos;
 	self.parent = self:GetRootParent();
 	
@@ -15,5 +13,4 @@ function ThreadedUpdate(self)
 			self.shieldWalkSound:Play(self.Pos);
 		end
 	end
-
 end

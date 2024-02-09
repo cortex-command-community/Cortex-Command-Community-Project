@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.captureSound = CreateSoundContainer("Dock Capture", "Base.rte");
 	self.releaseSound = CreateSoundContainer("Dock Release", "Base.rte");
 
@@ -22,15 +21,11 @@ function Create(self)
 	self.confirmCapture = true;
 	
 	if self:StringValueExists("savedDockedCraft") then
-	
 		self.craft = self.saveLoadHandled:LoadLocallySavedMO(self, "savedDockedCraft");
-		
 	end
-	
 end
 
 function Update(self)
-
 	if UInputMan:KeyPressed(Key.U) then
 		self:ReloadScripts();
 	end
@@ -39,6 +34,7 @@ function Update(self)
 	if self.WoundCount > (self.GibWoundLimit * 0.9) then
 		self.ToSettle = true;
 	end
+
 	if self.craft and MovableMan:ValidMO(self.craft) then
 		--This block runs before HoldTimer it's passed
 		if not self.HoldTimer:IsPastSimMS(self.HoldTime) then
@@ -55,6 +51,7 @@ function Update(self)
 				self.craft.Status = 0;
 			end
 		end
+
 		if self.HasDockedCraft then
 		
 			if self.confirmCapture and self.HoldTimer:IsPastSimMS(650) then
@@ -97,6 +94,7 @@ function Update(self)
 			if self.craft.Status < Actor.DYING then
 				self.craft.Status = Actor.UNSTABLE;	--Deactivated
 			end
+
 			--Heal the craft
 			if self.healTimer:IsPastSimMS(self.craft.Mass) then
 				self.healTimer:Reset();
@@ -107,6 +105,7 @@ function Update(self)
 				end
 			end
 		end
+
 		if self.ReleaseTimer:IsPastSimMS(self.ReleaseTime) then -- Once ReleaseTimer stops resetting it can finally run
 			self.craft.AIMode = Actor.AIMODE_RETURN
 			self.craft:RemoveNumberValue("Docked");
@@ -115,7 +114,6 @@ function Update(self)
 			self.releaseSound:Play(self.Pos);
 
 			for i = 1, 2 do
-			
 				local direction = 1;
 			
 				if i == 2 then direction = -1 end;
@@ -137,10 +135,7 @@ function Update(self)
 					particle.Pos = self.Pos + Vector(self.visualDockDistance * direction + math.random(-4, 4), math.random(-3, 3));
 					MovableMan:AddParticle(particle);
 				end	
-				
 			end
-	
-			
 		end
 	elseif self.ReleaseTimer:IsPastSimMS(self.ReleaseTime * 4) and self.updateTimer:IsPastSimMS(200) then
 		self.craft = nil;
@@ -152,17 +147,14 @@ function Update(self)
 				self.captureSound:Play(self.Pos);
 			end
 		end
+
 		self.HoldTimer:Reset();
 		self.updateTimer:Reset();
 	end
 end
 
 function OnSave(self)
-
 	if self.craft then
-	
 		self.saveLoadHandler:SaveMOLocally(self, "savedDockedCraft", self.craft);
-		
 	end
-
 end

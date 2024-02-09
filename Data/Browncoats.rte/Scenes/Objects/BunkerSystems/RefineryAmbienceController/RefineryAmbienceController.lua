@@ -1,5 +1,4 @@
 function Create(self)
-
 	local activity = ActivityMan:GetActivity();
 	
 	print("Refinery Ambience Controller initialized")
@@ -33,16 +32,13 @@ function Create(self)
 	
 	self.oneShotTimer = Timer();
 	self.oneShotDelay = math.random(20000, 60000);
-
 end
 
 function ThreadedUpdate(self)
-
 	self.ToSettle = false;
 	self.ToDelete = false;
 
 	for player, indoorness in pairs(self.playerIndoornesses) do
-	
 		local cursorPos = CameraMan:GetScrollTarget(player)
 		
 		if SceneMan.Scene:WithinArea("IndoorArea", cursorPos) then		
@@ -56,7 +52,6 @@ function ThreadedUpdate(self)
 		self.playerExtContainers[player].Volume = math.max(0.01, 1 - self.playerIndoornesses[player]);
 		self.playerIntContainers[player].Volume = math.max(0.01, self.playerIndoornesses[player]);
 		self.playerIntOneShotContainers[player].Volume = math.max(0.01, self.playerIndoornesses[player]);
-		
 	end
 	
 	if self.ambienceTimer:IsPastRealMS(self.ambienceDelay) then
@@ -69,7 +64,6 @@ function ThreadedUpdate(self)
 		for player, container in pairs(self.playerIntContainers) do
 			container:Play(player);
 		end
-		
 	end
 	
 	if self.oneShotTimer:IsPastRealMS(self.oneShotDelay) then
@@ -80,9 +74,7 @@ function ThreadedUpdate(self)
 			container:Play(player);
 			container.CustomPanValue = math.random(-100, 100)/100;
 		end
-		
 	end
-
 end
 
 function Destroy(self)

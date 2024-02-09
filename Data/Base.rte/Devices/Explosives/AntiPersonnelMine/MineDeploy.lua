@@ -7,7 +7,6 @@ function Update(self)
 	if IsActor(parent) then
 		self.alliedTeam = ToActor(parent).Team;
 	elseif self:IsActivated() then
-
 		local mine = CreateMOSRotating("Anti Personnel Mine Active");
 		mine.Pos = self.Pos;
 		mine.Vel = self.Vel;

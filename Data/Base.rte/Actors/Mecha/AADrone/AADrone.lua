@@ -105,7 +105,7 @@ function Create(self)
 					+ self.SAM_Target:RotateOffset(self.SAM_Offset)
 					+ self.SAM_Target.Vel * math.min(range / 50, 20)
 				)
-				* 0.4 -- Filter the AimPos to reduce noise
+				* 0.4; -- Filter the AimPos to reduce noise
 	end
 end
 

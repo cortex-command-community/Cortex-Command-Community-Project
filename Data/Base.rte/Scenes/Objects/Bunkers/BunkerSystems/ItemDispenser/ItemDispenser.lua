@@ -1,25 +1,20 @@
 function OnMessage(self, message)
-
 	if message == self.deactivationMessage or message == "DEACTIVATEALLITEMDISPENSERS" then
 		self.Deactivated = true;
 	elseif message == self.activationMessage or message == "ACTIVATEALLITEMDISPENSERS" then
 		self.Deactivated = false;
 	end
-
 end
 
 function OnGlobalMessage(self, message)
-
 	if message == self.deactivationMessage or message == "DEACTIVATEALLITEMDISPENSERS" then
 		self.Deactivated = true;
 	elseif message == self.activationMessage or message == "ACTIVATEALLITEMDISPENSERS" then
 		self.Deactivated = false;
 	end
-
 end
 
 function Create(self)
-
 	self.deactivationMessage = self:GetStringValue("DeactivationMessage");
 	self.activationMessage = self:GetStringValue("ActivationMessage");
 	
@@ -39,6 +34,7 @@ function Create(self)
 		self.cooldownTimer.ElapsedRealTimeMS = self:GetNumberValue("cooldownTimer");
 		self:RemoveNumberValue("cooldownTimer");
 	end
+	
 	self.cooldownTime = self:GetNumberValue("CooldownTime");
 	
 	if self:NumberValueExists("itemsDispensed") then
@@ -64,7 +60,6 @@ function Create(self)
 end
 
 function ThreadedUpdate(self)
-
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
 		for actor in MovableMan:GetMOsInRadius(self.Pos, self.detectRange) do
 			if (not self.Deactivated) and (not self.closeActorTable[actor.UniqueID]) and IsAHuman(actor) or IsACrab(actor) then
@@ -85,7 +80,6 @@ function ThreadedUpdate(self)
 	end
 	
 	--PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
-	
 end
 
 function SyncedUpdate(self)

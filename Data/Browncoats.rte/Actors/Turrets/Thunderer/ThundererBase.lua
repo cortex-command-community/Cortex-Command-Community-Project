@@ -1,5 +1,4 @@
 function Create(self)
-
 	if self:GetNumberValue("KeepUnflipped") == -1 then
 		self.keepFlipped = true;
 	else
@@ -19,14 +18,11 @@ function Create(self)
 	end
 
 	self.AIMode = Actor.AIMODE_SENTRY;
-
 end
 
 function Update(self)
-
 	-- keep anything from moving us
 	self.Pos = self.pinPos;
 
 	self.HFlipped = self.keepFlipped;
-	
 end

@@ -11,12 +11,14 @@ function Update(self)
 	if not (actor and IsAHuman(actor)) then
 		self.pullTimer:Reset();
 	end
+
 	if self.FiredFrame then
 		self.shell = CreateMOSParticle("Shell");
 		self.loaded = false;
 		self.playedSound = false;
 		self.rotFactor = math.pi;
 	end
+
 	if not self.loaded and self.RoundInMagCount > 0 and not self.reloadCycle then
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
@@ -38,6 +40,7 @@ function Update(self)
 			self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-rotTotal * self.FlipFactor);
 			self.rotFactor = self.rotFactor - math.pi * 0.0005 * self.RateOfFire;
 		end
+		
 		if self.rotFactor <= 0 then
 			self.loaded = true;
 			self.Frame = 0;

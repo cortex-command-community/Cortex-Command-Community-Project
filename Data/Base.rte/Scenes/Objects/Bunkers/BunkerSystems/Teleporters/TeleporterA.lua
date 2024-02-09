@@ -80,16 +80,19 @@ function Update(self)
 									MovableMan:AddParticle(glow);
 								end
 							end
+
 							-- Shut off teleportation on this set until the delay is up.
 							cantele[self.listnum]:Reset();
 						end
 					end
 				end
+
 				if target == nil then
 					self.porttime = self.porttimemax;
 				end
 			end
 		end
+		
 		self.SpriteAnimDuration = self.porttime;
 	end
 end

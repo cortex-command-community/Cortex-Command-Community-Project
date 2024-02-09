@@ -1,5 +1,4 @@
 function OnMessage(self, message, context)
-
 	if message == "BuyDoor_CustomTableOrder" then
 		self.Unusable = true;
 		local finalOrder = BuyDoorSetupOrder(self, context, true);
@@ -16,7 +15,6 @@ function OnMessage(self, message, context)
 		self.cooldownTime = context;
 		self:SetNumberValue("CooldownTime", context);
 	end
-
 end
 
 function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
@@ -25,7 +23,6 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 	local finalOrder = {};
 
 	if isCustomOrder then
-	
 		self.currentTeam = -1;
 		for item in self.Inventory do
 			if IsActor(item) then
@@ -35,7 +32,6 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 		end
 		
 		-- hopefully added to inv for us...
-		
 		-- for i = 1, #orderList do
 			-- local item = orderList[i];
 			-- print(item)
@@ -44,9 +40,7 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 		-- end
 		
 		return finalOrder;
-		
 	else
-
 		for item in orderList do
 			local class = item.ClassName;
 			local typeCast = "To" .. class
@@ -55,6 +49,7 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 			if IsActor(clonedItem) and team then
 				clonedItem.Team = team;
 			end
+
 			if IsAHuman(item) then
 				lastActor = clonedItem;
 				if preActorItemList and #preActorItemList > 0 then
@@ -63,6 +58,7 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 					end
 					preActorItemList = nil;
 				end
+
 				table.insert(finalOrder, lastActor);
 			elseif IsActor(item) then			
 				item = clonedItem;
@@ -77,8 +73,6 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 			else
 				print("Buy Door was given an order item with a class it couldn't handle: " .. item);
 			end
-				
-			
 		end
 	end
 	
@@ -87,6 +81,7 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 		for k, preActorItem in ipairs(preActorItemList) do
 			table.insert(finalOrder, preActorItem);
 		end
+
 		preActorItemList = nil;
 	end
 	
@@ -106,7 +101,6 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 	self.currentTeam = team;
 	
 	return finalOrder;
-
 end
 
 function Create(self)
@@ -116,8 +110,6 @@ function Create(self)
 		MovableMan:AddParticle(us);
 	end
 
-	-- Frame 0 is used to display the control console that we will place
-	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(self);
 	
@@ -133,6 +125,7 @@ function Create(self)
 		MovableMan:AddParticle(self.console);
 	end
 
+	-- Frame 0 is used to display the control console that we will place
 	if self.Frame == 0 then
 		self.Frame = 1;
 	end
@@ -143,6 +136,7 @@ function Create(self)
 	else
 		self.isStayingOpen = false;
 	end
+
 	self.isClosing = false;
 
 	self.stayOpenTimer = Timer();
@@ -159,6 +153,7 @@ function Create(self)
 		self.cooldownTimer.ElapsedRealTimeMS = self:GetNumberValue("cooldownTimer");
 		self:RemoveNumberValue("cooldownTimer");
 	end
+
 	self.cooldownTime = self:NumberValueExists("CooldownTime") and self:GetNumberValue("CooldownTime") or 3000;
 	
 	self.orderTimer = Timer();
@@ -166,11 +161,13 @@ function Create(self)
 		self.cooldownTimer.ElapsedRealTimeMS = self:GetNumberValue("orderTimer");
 		self:RemoveNumberValue("orderTimer");
 	end
+
 	self.orderDelay = self:NumberValueExists("OrderDelay") and self:GetNumberValue("OrderDelay") or 5000;
 	
 	if self:NumberValueExists("orderDelivering") and self:GetNumberValue("orderDelivering") == 1 then
 		self.orderDelivering = true;
 	end
+
 	if not self.orderDelivering and not self:IsInventoryEmpty() then
 		-- we must have been interrupted mid-actual delivery
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
@@ -248,6 +245,7 @@ function ThreadedUpdate(self)
 				if actor.Team ~= self.Team then
 					self.Unusable = true;
 				end
+
 				self.closeActorTable[actor.UniqueID] = actor.UniqueID;
 			end
 		end
@@ -267,7 +265,6 @@ function ThreadedUpdate(self)
 	else
 		self:RemoveNumberValue("BuyDoor_Unusable");
 	end
-	
 end
 
 function SyncedUpdate(self)
@@ -321,18 +318,14 @@ function SyncedUpdate(self)
 								self.Activity:SetTeamFunds(funds - orderCost, team);
 							end
 							
-							local orderList = buyGUI:GetOrderList();
-							
+							local orderList = buyGUI:GetOrderList();						
 							local finalOrder = BuyDoorSetupOrder(self, orderList, false, team);
 							
 							if finalOrder then
-							
 								self.orderTimer:Reset();
 								self.orderDelivering = true;
-								
 							end
 						end
-						
 					end
 				end
 			else
@@ -349,5 +342,4 @@ function OnSave(self)
 	self:SetNumberValue("orderTimer", self.orderTimer.ElapsedRealTimeMS);
 	self:SetNumberValue("orderDelivering", self.orderDelivering and 1 or 0);
 	self:SetNumberValue("currentTeam", self.currentTeam);
-
 end

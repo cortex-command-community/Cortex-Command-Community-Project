@@ -1,12 +1,9 @@
 function OnFire(self)
-
 	self.InheritedRotAngleTarget = self.recoilAngleSize * RangeRand(self.recoilAngleVariation, 1)
 	self.rotationSpeed = 0.4;
-
 end
 
 function Create(self)
-
 	self.fanFireSound = CreateSoundContainer("Fanfire Browncoat R-500", "Browncoats.rte");
 	self.fanFireSound.Volume = 0.6
 	self.cockSound = CreateSoundContainer("Cock Browncoat R-500", "Browncoats.rte");
@@ -74,11 +71,9 @@ function Create(self)
 	
 	self.cockTimer = Timer();
 	self.cockDelay = 300;
-
 end
 
 function Update(self)
-
 	self.fanFireSound.Pos = self.Pos;
 	self.cockSound.Pos = self.Pos;
 	self.preSound.Pos = self.Pos;
@@ -127,6 +122,7 @@ function Update(self)
 				self.ShakeRange = self.origShakeRange;
 				self.SharpShakeRange = self.origSharpShakeRange;
 			end
+
 			if not playerControlled then
 				self.RateOfFire = 70;
 			end
@@ -151,10 +147,11 @@ function Update(self)
 			self.ShakeRange = self.fanFireShakeRange;
 			self.SharpShakeRange = self.fanFireShakeRange;
 		end
+
 		self.Frame = 0;
 	end
+
 	if self.Magazine then
-	
 		if self.FullAuto and not self.reloadCycle and self:IsActivated() and self.fanFireTimer:IsPastSimMS(self.fanFireHoldTime) then
 			self.fanFire = true;
 			--self.FullAuto = true;
@@ -182,7 +179,6 @@ function Update(self)
 		if not self.reloadCycle and self.hammerDown then
 			self:Deactivate();
 			self.delayedFire = false;
-
 			
 			if self.cockTimer:IsPastSimMS(self.cockDelay) then
 				if self.fanFire then
@@ -191,6 +187,7 @@ function Update(self)
 					self.cockSound:Play(self.Pos);
 					self.rotateAnim = true;
 				end
+
 				self.cockTimer:Reset();
 				self.rotateAnim = true;
 				self.hammerDown = false;
@@ -207,6 +204,7 @@ function Update(self)
 			self.Magazine.RoundCount = self.ammoCounter;
 			self.loadedShell = false;
 		end
+
 		if self.reloadCycleEndNext == true then
 			self.Magazine.RoundCount = self.ammoCounter;
 			self.prematureCycleEnd = false;
@@ -217,11 +215,13 @@ function Update(self)
 			self.OneHandedReloadAngle = self.origOneHandedReloadAngle;
 			self.reloadCycle = false;
 		end
+
 		if self:IsActivated() then
 			if self.reloadCycle then
 				self.prematureCycleEnd = true;
 			end
 		end
+
 		if self.reloadCycle and self.reloadTimer:IsPastSimMS(self.reloadDelay) then
 			if self.parent then
 				self:Reload();
@@ -240,9 +240,7 @@ function Update(self)
 				self.rotateAnim = false;
 			end
 		end
-		
 	else
-	
 		self.cockTimer:Reset();
 		
 		if self.reloadCycle ~= true then
@@ -275,7 +273,6 @@ function Update(self)
 			self.reloadCycleEndNext = true;			
 			self.BaseReloadTime = self.reloadDelay * 2;
 		end		
-		
 	end
 	
 	if self.openAnim then
@@ -357,5 +354,4 @@ function Update(self)
 	if self.InheritedRotAngleTarget > 0 then
 		self.InheritedRotAngleTarget = math.max(self.InheritedRotAngleTarget - TimerMan.DeltaTimeSecs, 0);
 	end
-	
 end

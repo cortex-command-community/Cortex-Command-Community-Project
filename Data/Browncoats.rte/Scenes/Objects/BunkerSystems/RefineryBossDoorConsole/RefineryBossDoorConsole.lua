@@ -1,9 +1,7 @@
 function OnMessage(self, message)
-
 	if message == "ActivateRefineryBossDoorConsole" then
 		self.Activated = true;
 	end
-	
 end
 	
 
@@ -26,7 +24,6 @@ function Create(self)
 end
 
 function ThreadedUpdate(self)
-
 	if self.Activated then
 	
 		if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
@@ -40,11 +37,9 @@ function ThreadedUpdate(self)
 			self:RequestSyncedUpdate();
 		end
 	end
-	
 end
 
 function SyncedUpdate(self)
-
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
 		self.actorUpdateTimer:Reset();
 		

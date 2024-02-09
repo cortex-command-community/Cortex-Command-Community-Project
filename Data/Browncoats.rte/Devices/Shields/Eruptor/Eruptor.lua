@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.bashWindupSound = CreateSoundContainer("Metal Shield Foley", "Base.rte");
 	self.bashSwingSound = CreateSoundContainer("Browncoat RS-04 Bash Swing", "Browncoats.rte");
 	self.bashImpactSound = CreateSoundContainer("Browncoat RS-04 Bash Impact", "Browncoats.rte");
@@ -29,11 +28,9 @@ function Create(self)
 			self:SetOneHanded(false);
 		end
 	end
-	
 end
 
 function OnAttach(self, newParent)
-
 	self.equippedInMainHand = false;
 	self:SetOneHanded(true);
 	self.Bashing = false;
@@ -46,11 +43,9 @@ function OnAttach(self, newParent)
 			self:SetOneHanded(false);
 		end
 	end
-	
 end
 
 function ThreadedUpdate(self)
-
 	self.hitActor = nil;
 
 	self.bashWindupSound.Pos = self.Pos;
@@ -114,11 +109,9 @@ function ThreadedUpdate(self)
 			end
 		end
 	end
-
 end
 
 function SyncedUpdate(self)
-
 	if self.hitActor and MovableMan:ValidMO(self.hitActor) then
 		local ctrl = self.hitActor:GetController();
 		
@@ -148,15 +141,11 @@ function SyncedUpdate(self)
 					if wound.BurstSound then
 						wound.BurstSound.Volume = math.max(0, 1 - (0.4*attachablesTriggered));
 					end
+					
 					att:AddWound(wound, offset, true);
 				end
 			end
 		end
 		
 	end
-
-end
-
-function Destroy(self)
-
 end

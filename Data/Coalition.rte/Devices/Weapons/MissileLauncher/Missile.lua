@@ -10,6 +10,7 @@ function Create(self)
 			self.targetSound:Play(self.Pos);
 		end
 	end
+	
 	self.lifeTimer:SetSimTimeLimitMS(self.Lifetime - math.ceil(TimerMan.DeltaTimeMS));
 end
 
@@ -29,6 +30,7 @@ function Update(self)
 			self.AngularVel = self.AngularVel * 0.5 - (turnAngle * self.turnStrength);
 		end
 	end
+
 	if self.lifeTimer:IsPastSimTimeLimit() then
 		self:GibThis();
 	end
