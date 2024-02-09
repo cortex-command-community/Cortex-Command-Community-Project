@@ -53,9 +53,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	);
 	```
 	
-- Many new sounds added to the game.  
+- Many new sounds have been added or enhanced.  
 	Browncoats have gotten a full sound revamp for everything except their actors. Every Browncoat item now has its own custom sounds.  
-	Most base explosions and Riot Shield sounds have been redone.
+	Most base explosions and Riot Shield sounds have been redone.  
+	Human actors have redone foley sounds (terrain impacts, device switching sounds) and also new subtle footstep sounds, including light and heavy variants for the various light and heavy actors.  
+	Shields now make noise when walked with.  
+	New sounds effects have been added for when helmets or armour are shot at.
 
 - New delivery system, Buy Doors:  
 	Buy doors are customizable inert background objects that can take orders either via Lua messages or by using the pie menu near them.  
@@ -76,10 +79,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	HUDHandler, which provides functions for displaying listed objectives, panning the camera, and other camera-related utilities.  
 	SaveLoadHandler, which can serialize tables and also handle saving and loading tricky things like MOs.  
 	TacticsHandler, which is a framework to add tasks and squads and have those squads go around doing tasks without further input.
-	
-- Human actors have redone foley sounds (terrain impacts, device switching sounds) and also new subtle footstep sounds, including light and heavy variants for the various light and heavy actors.
-
-- Shields now make noise when walked with.
 
 - Two minor utility scripts:  
 	MOUtility, which currently has functions to smartly set MOs to be unhittable or to freeze actor HP.  
