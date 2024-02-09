@@ -2,7 +2,6 @@
 -- There is likely better ways of doing a lot of this, potentially even standardizing it so it can be easily used more widely
 
 function OnFire(self)
-
 	CameraMan:AddScreenShake(7, self.Pos);
 	
 	local shot = self.Shot:Clone();
@@ -15,22 +14,18 @@ function OnFire(self)
 	
 	self.animTimer:Reset();
 	self.firingAnim = true;
-	
 end
 
 function OnReload(self)
-
 	self.reloadToSmoke = true;
 	self.animTimer:Reset();
 	
 	if self.currentBaseFrame ~= 20 then
 		self.oldFrame = self.Frame;
 	end
-	
 end
 
 function Create(self)
-
 	-- self.servoLoopSound = CreateSoundContainer("Coalition Bunker Cannon Servo Loop", "Coalition.rte");
 	-- self.servoLoopSound.Volume = 0;
 	-- self.servoLoopSound.Pitch = 1;
@@ -63,12 +58,9 @@ function Create(self)
 	self.rotationSpeed = 0.10;
 	self.smoothedRotAngle = self.RotAngle;
 	self.InheritedRotAngleTarget = 0;
-	
-
 end
 
 function Update(self)
-
 	--self.servoLoopSound.Pos = self.Pos;
 
 	self.parent = IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()) or nil;
@@ -104,7 +96,6 @@ function Update(self)
 	end
 	
 	if self.firingAnim then
-	
 		self:Deactivate();
 	
 		local progress = math.min(1, self.animTimer.ElapsedSimTimeMS / self.firingAnimTime);
@@ -114,7 +105,6 @@ function Update(self)
 		local barrel = self.currentBarrel == 0 and self.topBarrel or self.bottomBarrel;
 		local jointOffsetX = 10 * math.sin(progress * math.pi);
 		barrel.JointOffset = Vector(jointOffsetX, 0);
-		
 		
 		if progress == 1 then
 			self.MuzzleOffset = self.currentBarrel == 0 and self.bottomMuzzleOffset or self.topMuzzleOffset;
@@ -188,7 +178,5 @@ function Update(self)
 end
 
 function Destroy(self)
-
 	self.servoLoopSound:Stop(-1);
-	
 end

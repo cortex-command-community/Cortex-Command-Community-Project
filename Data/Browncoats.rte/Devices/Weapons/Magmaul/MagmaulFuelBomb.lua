@@ -21,6 +21,7 @@ function Update(self)
 				checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 			end
 		end
+		
 		local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
 		if terrCheck == rte.airID then
 			local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);

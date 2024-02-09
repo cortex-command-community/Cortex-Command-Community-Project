@@ -27,6 +27,7 @@ function Create(self)
 			end
 		end
 	end
+	
 	for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 		if SceneMan:AnythingUnseen(team) then
 			local size = self.effectRadius * 0.6;
@@ -39,6 +40,7 @@ function Create(self)
 			end
 		end
 	end
+
 	self.buzzSound = CreateSoundContainer("Ronin Scrambler Buzz", "Ronin.rte");
 end
 
@@ -58,15 +60,18 @@ function Update(self)
 					if ctrl:IsState(Controller.MOVE_LEFT) then
 						dir = dir - 1;
 					end
+
 					if ctrl:IsState(Controller.MOVE_RIGHT) then
 						dir = dir + 1;
 					end
+
 					actor.AngularVel = actor.AngularVel - dir/(1 + math.abs(actor.AngularVel));
 					if math.random(50) < numberValue then
 						for i = 0, 29 do --Go through and disable the gameplay-related controller states
 							ctrl:SetState(i, false);
 						end
 					end
+
 					local framesPerFlash = 6;
 					if (numberValue/framesPerFlash) - math.floor(numberValue/framesPerFlash) == 0 then
 						actor:FlashWhite(1);
@@ -74,6 +79,7 @@ function Update(self)
 							self.buzzSound:Play(actor.Pos);
 						end
 					end
+
 					actor:SetNumberValue("RoninScrambler", numberValue - 1);
 				else
 					actor:RemoveNumberValue("RoninScrambler");
@@ -81,6 +87,7 @@ function Update(self)
 			end
 		end
 	end
+
 	if actorCount == 0 then
 		self.ToDelete = true;
 	end

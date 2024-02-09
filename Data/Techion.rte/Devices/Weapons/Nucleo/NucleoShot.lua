@@ -1,5 +1,4 @@
 function Explode(self)
-
 	--TODO: Add wounds through Lua like the other disintegrator weapons
 	local particleCount = 13;
 	for i = 1, particleCount do
@@ -31,7 +30,6 @@ function Explode(self)
 	MovableMan:AddParticle(blastpar);
 
 	self.ToDelete = true;
-	
 end
 
 function OnMessage(self, message, context)
@@ -55,7 +53,6 @@ function OnMessage(self, message, context)
 end
 
 function Create(self)
-
 	self.detTimer = Timer();
 	self.boom = false;
 
@@ -70,7 +67,6 @@ function Create(self)
 end
 
 function ThreadedUpdate(self)
-
 	if self.detTimer:IsPastSimMS(self.detDelay) then
 		Explode(self);
 	else
@@ -110,6 +106,7 @@ function ThreadedUpdate(self)
 			end
 		end
 	end
+
 	self.Vel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(math.min(self.Vel.Magnitude + self.acceleration, self.speed));
 	self.AngularVel = self.AngularVel * 0.9;
 	self.RotAngle = 0;
@@ -126,5 +123,6 @@ function SyncedUpdate(self)
 			particle:SendMessage("Nucleo_Explode");
 		end
 	end
+
 	Explode(self)
 end

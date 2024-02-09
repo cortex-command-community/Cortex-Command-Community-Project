@@ -1,5 +1,4 @@
 function Create(self)
-	
 	self.startCaptureSound = CreateSoundContainer("Browncoat Capturable Start Capture", "Base.rte");
 	self.capturingSound = CreateSoundContainer("Browncoat Capturable Capturing", "Base.rte");
 	self.stopCaptureSound = CreateSoundContainer("Browncoat Capturable Stop Capture", "Base.rte");
@@ -7,11 +6,9 @@ function Create(self)
 	
 	self.capturingTimer = Timer();
 	self.capturingDelay = 500;
-	
 end
 
 function Update(self)
-
 	if self.FXstartCapture then
 		self.startCaptureSound:Play(self.Pos);
 		self.capturingTimer:Reset();
@@ -40,6 +37,5 @@ function Update(self)
 	self.FXstartCapture = false;
 	self.FXstopCapture = false;
 	self.FXcaptureSuccess = false;
-	self.FXcaptureUncapped = false;
-				
+	self.FXcaptureUncapped = false;			
 end

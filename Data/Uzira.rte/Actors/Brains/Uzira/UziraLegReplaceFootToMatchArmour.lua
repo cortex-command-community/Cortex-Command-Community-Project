@@ -9,5 +9,6 @@ function Update(self)
 		end
 		self.Foot = CreateAttachable(string.sub(self.Foot.PresetName, 1, -2) .. footNameSuffix, "Uzira.rte");
 	end
+	
 	self:DisableScript();
 end

@@ -3,6 +3,7 @@ function Create(self)
 	
 	self.bulletTable = {};
 end
+
 function Update(self)
 	if self.FiredFrame then
 		local bullet = CreateMOSRotating("Particle Nucleo");
@@ -17,5 +18,4 @@ function Update(self)
 	if self:DoneReloading() then
 		self.bulletTable = {};
 	end
-	
 end

@@ -17,6 +17,7 @@ function Update(self)
 					checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 				end
 			end
+			
 			local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 			if moCheck ~= rte.NoMOID then
 				local actor = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);

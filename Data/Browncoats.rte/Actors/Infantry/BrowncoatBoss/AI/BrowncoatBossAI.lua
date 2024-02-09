@@ -98,16 +98,13 @@ function Update(self)
 	end
 
 	if not self:IsDead() then
-	
 		-- Replenish our oil throw ability to always have it ready
 	
 		if not self.deathScripted == true then
-	
 			if not self:HasObjectInGroup("Bombs") then 
 				local explosive = self.quickThrowExplosive:Clone();
 				self:AddInventoryItem(explosive);
 			end
-			
 		end
 
 		-- The boss LMG already has its own OnAttach delay and animation, but might as well do it here too for a post-quickthrow pause
@@ -121,9 +118,7 @@ function Update(self)
 		-- Boss health bar
 		
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
-			
 			if self.activity:PlayerActive(player) and self.activity:PlayerHuman(player) then
-			
 				local pos = CameraMan:GetOffset(player);
 				pos.X = pos.X + FrameMan.PlayerScreenWidth * 0.5;
 				--print(pos)
@@ -142,17 +137,13 @@ function Update(self)
 				PrimitiveMan:DrawLinePrimitive(pos - xOffset, pos + xOffset, 26, 10);
 				-- Bar Foreground
 				PrimitiveMan:DrawLinePrimitive(pos - xOffset, pos - xOffset + Vector(xOffset.X * 2 * fac, 0), color, 10);
-				
 			end
-			
 		end		
-		
 	end
 	
 	-- Death sequence
 	
 	if self.deathScripted then
-	
 		self.Health = 1;
 		self.Status = 0;
 	
@@ -164,7 +155,6 @@ function Update(self)
 		self.deathScriptedStartSound:Play(self.Pos);
 		
 		if self.deathScriptedTimer:IsPastSimMS(self.deathScriptedExplodeDelay) then
-		
 			self.deathScriptedExplodeSound:Play(self.Pos);
 			self.MissionCritical = false;
 			for att in self.Attachables do
@@ -174,9 +164,7 @@ function Update(self)
 			self:GibThis();
 			
 			CameraMan:AddScreenShake(25, self.Pos);
-		
 		elseif self.deathScriptedMidBurnDone ~= true and self.deathScriptedTimer:IsPastSimMS(self.deathScriptedMidBurnDelay) then
-		
 			self.deathScriptedMidBurnDone = true;
 			-- played via BurstSound
 			--self.deathScriptedMidBurnSound:Play(self.Pos);
@@ -207,7 +195,6 @@ function Update(self)
 	
 	if self.abilityShockwaveOngoing then
 		if not self.abilityShockwaveJumpPacked and self.abilityShockwaveTimer:IsPastSimMS(self.abilityShockwaveJumpPackDelay) then
-		
 			self.abilityShockwaveJumpPacked = true;
 			
 			-- Old actual jetpack method
@@ -240,11 +227,9 @@ function Update(self)
 			end
 		end
 	end
-
 end
 
 function UpdateAI(self)
-
 	-- Quick throw AI trigger on a timer
 
 	if not self:IsPlayerControlled() then -- just in case
@@ -260,8 +245,8 @@ function UpdateAI(self)
 
 	self.AI:Update(self);
 end
+
 function Destroy(self)
 	self.AI:Destroy(self);
 	self.activity:SendMessage("Refinery_S10FinalBossDead");
-	
 end

@@ -59,7 +59,6 @@ function ThreadedUpdate(self)
 				self.delayedFireTimer:Reset()
 			end
 		else
-			
 			if self.activated then
 				self.activated = false
 			end
