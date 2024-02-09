@@ -51,6 +51,8 @@ end
 
 function ThreadedUpdate(self)
 
+	self.hitActor = nil;
+
 	self.bashWindupSound.Pos = self.Pos;
 	self.bashSwingSound.Pos = self.Pos;
 
@@ -77,7 +79,6 @@ function ThreadedUpdate(self)
 				self.bashActive = false;
 				self.bashTimer:Reset();
 				self.bashCoolDown = true;
-				self.hitActor = nil;
 				self.StanceOffset = self.origStanceOffset;
 				self.SharpStanceOffset = self.origSharpStanceOffset;
 			elseif self.bashTimer:IsPastSimMS(self.bashWindupTime) then
