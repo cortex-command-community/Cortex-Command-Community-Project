@@ -690,12 +690,6 @@ int MovableObject::RunFunctionOfScript(const std::string& scriptPath, const std:
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Constructor:     MovableObject
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Copy constructor method used to instantiate a MovableObject object
-//                  identical to an already existing one.
-
 MovableObject::MovableObject(const MovableObject &reference):
     m_Mass(reference.GetMass()),
     m_Pos(reference.GetPos()),

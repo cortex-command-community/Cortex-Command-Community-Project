@@ -61,11 +61,6 @@ int LimbPath::Create() {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the LimbPath object ready for use.
-
 int LimbPath::Create(const Vector &startPoint,
                      const unsigned int segCount,
                      const Vector *aSegArray,
