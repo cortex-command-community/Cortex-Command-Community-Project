@@ -29,6 +29,14 @@ on:
       new_release_version:
         type: string
         required: false
+      osx-version:
+        type: string
+        required: false
+        default: "11.1"
+      macosx-deployment-target:
+        type: string
+        required: false
+        default: "10.15"
 
   # Triggers the workflow when called by a top-level workflow
   workflow_call:
@@ -48,6 +56,14 @@ on:
       new_release_version:
         type: string
         required: false
+      osx-version:
+        type: string
+        required: false
+        default: "11.1"
+      macosx-deployment-target:
+        type: string
+        required: false
+        default: "10.15"
 
 jobs:
   build-linux:
