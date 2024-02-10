@@ -210,6 +210,8 @@ jobs:
           -Dinstall_data=false -Dinstall_runner=false -Dfmod_dir=Contents/Frameworks \
           --bindir=Contents/MacOS \
           --prefix="/" \
+          -Ddylibbundler_args="-ns -s ${{env.OSXCROSS_TARGET}}/macports/pkgs/opt/local/lib/ \
+            -s ${{env.OSXCROSS_TARGET}}/macports/pkgs/opt/local/libexec/onetbb/lib/" \
           build
 
       - name: Build
@@ -221,7 +223,7 @@ jobs:
       - name: Create App Bundle
         if: ${{inputs.upload_artefacts}}
         run: |
-          DESTDIR="/tmp/Cortex Command.app" meson install -C build
+          meson install --destdir="/tmp/Cortex Command.app" -C build
 
       - name: Tar files
         if: ${{inputs.upload_artefacts}}

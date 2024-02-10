@@ -138,4 +138,17 @@ runs:
 
     - shell: bash
       run: |
-        patch -i ${GITHUB_ACTION_PATH}/macports.patch ${OSXCROSS_FOLDER}/target/bin/osxcross-macports
+        OUT=$(patch -N -i ${GITHUB_ACTION_PATH}/macports.patch ${OSXCROSS_FOLDER}/target/bin/osxcross-macports) || echo "${OUT}" | grep "Skipping patch" -q || (echo "$OUT" && false);
+
+    - uses: actions/checkout@v4
+      with:
+        repository: auriamg/macdylibbundler
+        path: ${{env.OSXCROSS_FOLDER}}/dylibbundler
+
+    - shell: bash
+      run: |
+        echo "::group::Install dylibbundler"
+        cd ${OSXCROSS_FOLDER}/dylibbundler
+        make
+        echo "${OSXCROSS_FOLDER}/dylibbundler" >> $GITHUB_PATH
+        echo "::endgroup::"
