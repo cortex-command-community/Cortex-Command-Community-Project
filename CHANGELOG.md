@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Release v6.0.0] - 2024/02/11
 
 <details><summary><b>Added</b></summary>
 
@@ -269,7 +269,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ***
 
-## [0.1.0 pre-release 5.0][0.1.0-pre5.0] - 2023/06/17
+## [Release v5.0.0] - 2023/06/17
 
 <details><summary><b>Added</b></summary>
 
@@ -1183,7 +1183,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 4.0][0.1.0-pre4.0] - 2022/02/28
+## [Release v4.0.0] - 2022/02/28
 
 <details><summary><b>Added</b></summary>
 
@@ -1724,7 +1724,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 3.0][0.1.0-pre3.0] - 2020/12/25
+## [Release v3.0.0] - 2020/12/25
 
 <details><summary><b>Added</b></summary>
 
@@ -2060,7 +2060,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 2][0.1.0-pre2] - 2020/05/08
+## [Release v2.0.0] - 2020/05/08
 
 <details><summary><b>Added</b></summary>
 
@@ -2288,7 +2288,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 1][0.1.0-pre1] - 2020/01/27
+## [Release v1.0.0] - 2020/01/27
 
 <details><summary><b>Added</b></summary>
 
@@ -2380,9 +2380,10 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 Note: For a log of changes made prior to the commencement of the open source community project, look [here.](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/Previous-Closed-Source-Changelog)
 
 
-[unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development
-[0.1.0-pre1]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre1
-[0.1.0-pre2]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre2
-[0.1.0-pre3.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre3.0
-[0.1.0-pre4.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
-[0.1.0-pre5.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.0
+[Release v1.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre1
+[Release v2.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre2
+[Release v3.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre3.0
+[Release v4.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
+[Release v5.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.0
+[Release v6.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.0.0
+[Unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development
