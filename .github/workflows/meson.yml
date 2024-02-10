@@ -56,8 +56,10 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
 
       - name: Install Dependencies
         run: |
@@ -66,7 +68,7 @@ jobs:
           sudo pip install meson
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@v1.2.11
         with:
           key: ${{ github.job }}-${{ matrix.os }}
 
@@ -123,7 +125,7 @@ jobs:
 
       - name: Upload Appimage
         if: ${{inputs.upload_artefacts}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CortexCommand (Linux)
           path: CortexCommand.AppImage
@@ -229,8 +231,10 @@ jobs:
     name: Windows Build
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
 
       - name: Install Dependencies
         run: |
