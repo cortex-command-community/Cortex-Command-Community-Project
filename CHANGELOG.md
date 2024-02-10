@@ -58,7 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Most base explosions and Riot Shield sounds have been redone.  
 	Human actors have redone foley sounds (terrain impacts, device switching sounds) and also new subtle footstep sounds, including light and heavy variants for the various light and heavy actors.  
 	Shields now make noise when walked with.  
-	New sounds effects have been added for when helmets or armour are shot at.
+	Flesh and metal penetration sounds have been overhauled to be more varied and interesting.
 
 - New delivery system, Buy Doors:  
 	Buy doors are customizable inert background objects that can take orders either via Lua messages or by using the pie menu near them.  
