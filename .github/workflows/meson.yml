@@ -130,20 +130,40 @@ jobs:
           if-no-files-found: error
 
   build-macos:
-    runs-on: macos-11
+    runs-on: ubuntu-latest
     name: MacOS Build
 
     env:
-      GCC_VERSION: "13"
-      MACOSX_DEPLOYMENT_TARGET: 10.15
+      MACOSX_DEPLOYMENT_TARGET: ${{inputs.macosx-deployment-target}}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: "Install Osxcross"
+        id: osxcross
+        uses: ./.github/actions/osxcross
+        with:
+          osx-version: ${{ inputs.osx-version }}
+      
+      - name: "Cache Dependencies"
+        uses: actions/cache@v4
+        with:
+          key: ${{runner.os}}-${{inputs.osx-version}}-macports
+          path: ${{env.OSXCROSS_FOLDER}}/target/macports
 
       - name: "Install Dependencies"
-        uses: melusina-org/setup-macports@v1
-        with:
-          parameters: ".github/parameters/macports.yml"
+        env:
+          OSXCROSS_MACPORTS_MIRROR: "https://packages.macports.org"
+        run: |
+          echo "::group::Installing mac deps"
+          omp install libsdl2 onetbb lz4 libpng minizip luajit flac
+          echo "OSXCROSS_PKG_CONFIG_PATH=${{env.OSXCROSS_TARGET}}/macports/pkgs/opt/local/libexec/onetbb/lib/pkgconfig" >> $GITHUB_ENV
+          echo "::endgroup::"
+          echo "::group::Installing meson"
+          pip install meson ninja
+          echo "::endgroup::"
 
       - name: Set Version
         if: ${{inputs.new_release_version}}
@@ -153,23 +173,19 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@v1.2.11
         with:
           key: ${{ github.job }}-${{ matrix.os }}
 
       - name: Setup Meson
         env:
-          CC: "ccache gcc-${{env.GCC_VERSION}}"
-          CXX: "ccache g++-${{env.GCC_VERSION}}"
           LDFLAGS: "-static-libgcc -static-libstdc++"
         run: |
-          meson setup --buildtype=${{inputs.build_type}} -Ddebug_type=${{inputs.debug_level}} -Db_lto=false build
+          meson setup --cross-file=${{steps.osxcross.outputs.meson-osxcross}} --buildtype=${{inputs.build_type}} -Ddebug_type=${{inputs.debug_level}} -Db_lto=false build
 
       - name: Configure for App Bundle
         if: ${{inputs.upload_artefacts}}
         env:
-          CC: "ccache gcc-${{env.GCC_VERSION}}"
-          CXX: "ccache g++-${{env.GCC_VERSION}}"
           LDFLAGS: "-static-libgcc -static-libstdc++"
         run: |
           meson configure \
@@ -180,8 +196,6 @@ jobs:
 
       - name: Build
         env:
-          CC: "ccache gcc-${{env.GCC_VERSION}}"
-          CXX: "ccache g++-${{env.GCC_VERSION}}"
           LDFLAGS: "-static-libgcc -static-libstdc++"
         run: |
           meson compile -C build
@@ -194,7 +208,6 @@ jobs:
       - name: Tar files
         if: ${{inputs.upload_artefacts}}
         run: |
-          tree /tmp/
           cd /tmp/
           tar -cvf CortexCommand.tar "Cortex Command.app"
 
@@ -204,7 +217,7 @@ jobs:
 
       - name: Artifact Deploy
         if: ${{inputs.upload_artefacts}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CortexCommand (macOS)
           path: |
