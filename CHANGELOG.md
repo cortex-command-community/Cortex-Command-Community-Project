@@ -58,7 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Most base explosions and Riot Shield sounds have been redone.  
 	Human actors have redone foley sounds (terrain impacts, device switching sounds) and also new subtle footstep sounds, including light and heavy variants for the various light and heavy actors.  
 	Shields now make noise when walked with.  
-	New sounds effects have been added for when helmets or armour are shot at.
+	Flesh and metal penetration sounds have been overhauled to be more varied and interesting.
 
 - New delivery system, Buy Doors:  
 	Buy doors are customizable inert background objects that can take orders either via Lua messages or by using the pie menu near them.  
@@ -183,6 +183,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`z` is the patch number, which is currently not enforced.  
 
   Mods published for any development builds must match that development version exactly.
+  
+- Flesh and metal penetration sounds have been overhauled.
+	Base.rte wounds have been tweaked a bit to aid sound organization. Most actors now re-define their wounds inline to change the sound used, rather than having copies pre-defined in Base.rte.
+	
+	As a result, the following wounds have been removed: Dent Metal Chest Plate, Dent Metal Helmet, Wound Clothed Flesh Head, Wound Clothed Flesh Limb, Wound Clothed Flesh Torso.
+	
+	The following sounds have been removed: Armored Flesh Limb Impact.
+	
+	The following sounds have been renamed:
+	Flesh Impact Exit Sweetener -> Flesh Exit Sweetener
+	Clothed Flesh Head Impact -> Flesh Head Impact
+	Clothed Flesh Torso Impact -> Flesh Torso Impact
+	Clothed Flesh Limb Impact -> Flesh Limb Impact
+	Armored Flesh Head Impact -> Flesh Head Impact Armored
+	Armored Flesh Torso Impact -> Flesh Torso Impact Armored
+	Metal Penetration Hit -> Metal Impact Generic
+	
+	There has also been mild repathing of these newer flesh sounds but the old Steam-build ones are still in the same place.
 
 - Pressing F2 to reload scripts now also reloads the scripts for all MOs currently in the scene.
 
