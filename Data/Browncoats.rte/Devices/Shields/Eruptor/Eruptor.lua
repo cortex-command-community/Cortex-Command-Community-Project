@@ -22,7 +22,7 @@ function Create(self)
 	self:SetOneHanded(true);
 	local rootParent = self:GetRootParent();
 	if IsAHuman(rootParent) then
-		if ToAHuman(rootParent).EquippedItem.UniqueID == self.UniqueID then
+		if ToAHuman(rootParent).EquippedItem and ToAHuman(rootParent).EquippedItem.UniqueID == self.UniqueID then
 			ToAHuman(rootParent):UnequipBGArm();
 			self.equippedInMainHand = true;
 			self:SetOneHanded(false);
