@@ -9,6 +9,7 @@ function ThreadedUpdate(self)
 	if not self.origRateOfFire then	--Check original stats on Update() to include global script changes
 		self.origRateOfFire = self.RateOfFire;
 	end
+
 	if self.FiredFrame then
 		local parent = self:GetParent() or self;
 
@@ -17,7 +18,6 @@ function ThreadedUpdate(self)
 
 		self.fireRateRevertTimer:Reset();
 	elseif self.RateOfFire < self.origRateOfFire then
-
 		self.RateOfFire = math.min(self.RateOfFire * (1 + self.fireRateRevertIncrement * 0.01) + self.fireRateRevertIncrement, self.origRateOfFire);
 		self.fireRateRevertTimer:Reset();
 	end

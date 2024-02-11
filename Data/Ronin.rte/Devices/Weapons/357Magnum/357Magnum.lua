@@ -34,6 +34,7 @@ function Update(self)
 				self.triggerPulled = false;
 				self:Deactivate();
 			end
+
 			if self:GetNumberValue("CowboyMode") >= 3 then
 				--In the draw phase, you can still fire - but the gun may be pointed downwards and result in friendly fire
 				if self.drawGunAngle > 0 then
@@ -46,6 +47,7 @@ function Update(self)
 					end
 				end
 			end
+
 			self.RotAngle = self.RotAngle - (self.drawGunAngle * self.FlipFactor);
 
 			if self:GetNumberValue("CowboyMode") == 1 then --Setup phase
@@ -55,10 +57,8 @@ function Update(self)
 
 				self.drawGunAngle = 1.4;
 				self:Deactivate();
-
 			elseif self:GetNumberValue("CowboyMode") == 2 then --Ready to draw
 				self:Deactivate();
-
 			elseif self:GetNumberValue("CowboyMode") == 3 then --Drawing gun
 				if self.triggerPulled == true then
 					self:Deactivate();
@@ -67,9 +67,9 @@ function Update(self)
 					self:SetNumberValue("CowboyMode", 4); --Soon can fire
 				end
 			elseif self:GetNumberValue("CowboyMode") == 6 then --Revert without firing
-
 				self:RemoveNumberValue("CowboyMode");
 			end
+			
 			if self:IsReloading() then
 				self.RotAngle = self.prevAngle + (self.FlipFactor * 0.42 * self.drawGunSpeed);
 				self.JointOffset = Vector(2, 2);

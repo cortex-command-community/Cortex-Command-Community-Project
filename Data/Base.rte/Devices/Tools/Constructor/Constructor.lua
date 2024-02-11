@@ -6,6 +6,7 @@ function ConstructorWrapPos(checkPos)
 			checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 		end
 	end
+
 	return checkPos;
 end
 
@@ -20,18 +21,21 @@ function ConstructorFloodFill(x, y, startnum, maxnum, array, realposition, reals
 				ConstructorFloodFill(x + 1, y, startnum + 1, maxnum, array, checkPos, realspacing);
 			end
 		end
+
 		if array[x - 1][y] == -1 or array[x - 1][y] > startnum then
 			local checkPos = ConstructorWrapPos(realposition + Vector(-realspacing, 0));
 			if SceneMan:GetTerrMatter(checkPos.X + (realspacing * 0.5), checkPos.Y + (realspacing * 0.5)) == rte.airID then
 				ConstructorFloodFill(x - 1, y, startnum + 1, maxnum, array, checkPos, realspacing);
 			end
 		end
+
 		if array[x][y + 1] == -1 or array[x][y + 1] > startnum then
 			local checkPos = ConstructorWrapPos(realposition + Vector(0, realspacing));
 			if SceneMan:GetTerrMatter(checkPos.X + (realspacing * 0.5), checkPos.Y + (realspacing * 0.5)) == rte.airID then
 				ConstructorFloodFill(x, y + 1, startnum + 1, maxnum, array, checkPos, realspacing);
 			end
 		end
+
 		if array[x][y - 1] == -1 or array[x][y - 1] > startnum then
 			local checkPos = ConstructorWrapPos(realposition + Vector(0, -realspacing));
 			if SceneMan:GetTerrMatter(checkPos.X + (realspacing * 0.5), checkPos.Y + (realspacing * 0.5)) == rte.airID then
@@ -272,6 +276,7 @@ function Update(self)
 										break;
 									end
 								end
+
 								if freeSlot then
 									local buildThis = {};
 									buildThis[1] = mapX;
@@ -288,6 +293,7 @@ function Update(self)
 		else
 			self.toAutoBuild = false;
 		end
+
 		local mode = self:GetNumberValue("BuildMode");
 		if mode == 0 and not self.cursor then
 			-- activation
@@ -355,6 +361,7 @@ function Update(self)
 									end
 								end
 							end
+
 							if found > 0 then
 								if digWeightTotal > 0 then
 									digWeightTotal = digWeightTotal/9;
@@ -381,7 +388,6 @@ function Update(self)
 
 			self.buildList = {};
 			self.cursor = nil;
-
 		elseif mode == 2 then	-- build
 			self:RemoveNumberValue("BuildMode");
 
@@ -404,7 +410,6 @@ function Update(self)
 		end
 
 		if self.cursor then
-
 			local cursorMovement = Vector();
 			local mouseControlled = ctrl:IsMouseControlled();
 			local aiming = false;
@@ -416,22 +421,27 @@ function Update(self)
 				if ctrl:IsState(Controller.HOLD_UP) or ctrl:IsState(Controller.BODY_JUMP) then
 					cursorMovement = cursorMovement + Vector(0, -1);
 				end
+
 				if ctrl:IsState(Controller.HOLD_DOWN) or ctrl:IsState(Controller.BODY_CROUCH) then
 					cursorMovement = cursorMovement + Vector(0, 1);
 				end
+
 				if ctrl:IsState(Controller.HOLD_LEFT) then
 					cursorMovement = cursorMovement + Vector(-1, 0);
 				end
+
 				if ctrl:IsState(Controller.HOLD_RIGHT) then
 					cursorMovement = cursorMovement + Vector(1, 0);
 				end
 			end
+
 			if ctrl:IsState(Controller.WEAPON_CHANGE_NEXT) then
 				self.buildSize = self.buildSize * 2;
 				if self.buildSize > self.buildSizeMax then
 					self.buildSize = self.buildSizeMin;
 				end
 			end
+
 			if ctrl:IsState(Controller.WEAPON_CHANGE_PREV) then
 				self.buildSize = self.buildSize/2;
 				if self.buildSize < self.buildSizeMin then
@@ -442,6 +452,7 @@ function Update(self)
 			if cursorMovement:MagnitudeIsGreaterThan(0) then
 				self.cursor = self.cursor + (mouseControlled and cursorMovement or cursorMovement:SetMagnitude(self.cursorMoveSpeed * (aiming and 0.5 or 1)));
 			end
+
 			local precise = not mouseControlled and aiming;
 			local map = Vector();
 			if precise then
@@ -453,12 +464,14 @@ function Update(self)
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(0, 4), self.cursor + Vector(0, -4), displayColorYellow);
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(4, 0), self.cursor + Vector(-4, 0), displayColorYellow);
 			end
+
 			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.buildSize - 1, self.buildSize - 1), displayColorYellow);
 
 			local dist = SceneMan:ShortestDistance(actor.ViewPoint, self.cursor, SceneMan.SceneWrapsX);
 			if math.abs(dist.X) > self.maxCursorDist.X then
 				self.cursor.X = actor.ViewPoint.X + self.maxCursorDist.X * (dist.X < 0 and -1 or 1);
 			end
+
 			if math.abs(dist.Y) > self.maxCursorDist.Y then
 				self.cursor.Y = actor.ViewPoint.Y + self.maxCursorDist.Y * (dist.Y < 0 and -1 or 1);
 			end
@@ -491,6 +504,7 @@ function Update(self)
 				self.cursor = nil;
 			end
 		end
+
 		-- clean up the build list of nil slots and draw the squares to show the build layout
 		local tempList = {};
 		for i = 1, #self.buildList do
@@ -505,6 +519,7 @@ function Update(self)
 				end
 			end
 		end
+
 		self.buildList = tempList;
 
 		-- building up the first block in the build queue
@@ -535,6 +550,7 @@ function Update(self)
 								else
 									name = "Base.rte/Constructor Tile " .. math.random(16);
 								end
+								
 								local terrainObject = CreateTerrainObject(name);
 								terrainObject.Pos = pos;
 								SceneMan:AddSceneObject(terrainObject);
@@ -554,6 +570,7 @@ function Update(self)
 								PrimitiveMan:DrawBoxFillPrimitive(otherScreen, Vector(bx + self.buildList[1][1] + 1, by + self.buildList[1][2] + 1), Vector(bx + self.buildList[1][1] + cellSize, by + self.buildList[1][2] + cellSize), displayColorWhite);
 							end
 						end
+
 						if screen ~= -1 then
 							PrimitiveMan:DrawLinePrimitive(screen, self.Pos, buildPos, displayColorBlue);
 						end

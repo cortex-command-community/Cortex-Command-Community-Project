@@ -613,25 +613,11 @@ bool AHuman::CollideAtPoint(HitData& hd) {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OnBounce
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits and then
-//                  bounces off of something. This is called by the owned Atom/AtomGroup
-//                  of this MovableObject during travel.
-
 bool AHuman::OnBounce(const Vector &pos)
 {
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OnSink
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits and then
-//                  sink into something. This is called by the owned Atom/AtomGroup
-//                  of this MovableObject during travel.
 
 bool AHuman::OnSink(const Vector &pos)
 {
@@ -2830,40 +2816,18 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  GetLimbPathSpeed
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Get walking limb path speed for the specified preset.
-
 float AHuman::GetLimbPathSpeed(int speedPreset) const {
 	return m_Paths[FGROUND][WALK].GetSpeed(speedPreset);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  SetLimbPathSpeed
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Set walking limb path speed for the specified preset.
 
 void AHuman::SetLimbPathSpeed(int speedPreset, float speed) {
 	m_Paths[FGROUND][WALK].OverrideSpeed(speedPreset, speed);
 	m_Paths[BGROUND][WALK].OverrideSpeed(speedPreset, speed);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  GetLimbPathPushForce
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the force that a limb traveling walking LimbPath can push against
-//                  stuff in the scene with.
-
 float AHuman::GetLimbPathPushForce() const {
 	return m_Paths[FGROUND][WALK].GetDefaultPushForce();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  SetLimbPathPushForce
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets the default force that a limb traveling walking LimbPath can push against
-//                  stuff in the scene with.
 
 void AHuman::SetLimbPathPushForce(float force) {
 	m_Paths[FGROUND][WALK].OverridePushForce(force);

@@ -11,5 +11,6 @@ function Update(self)
 			self.Frame = (self.Frame + 1) % self.loopFrames;
 		end
 	end
+	
 	self.lastRoundCount = self.RoundCount;
 end

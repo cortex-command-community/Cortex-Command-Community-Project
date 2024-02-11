@@ -30,7 +30,6 @@ local handleMinionSpawning = function(self)
 		if funds >= self.spawnCost or self.GoldCarried >= self.spawnCost then
 			local spawnPos = self.Pos + Vector(0, self.Radius + RangeRand(0, self.spawnRadius)):RadRotate(RangeRand(-1, 1));
 			if SceneMan:CastMaxStrengthRay(self.Pos, spawnPos, 8) < self.spawnTerrainTolerance * 2 then
-
 				local pointCount = 10;
 				local radius = self.minionTemplate.Radius/math.sqrt(pointCount);
 				local totalSurroundingTerrain = 0;
@@ -48,6 +47,7 @@ local handleMinionSpawning = function(self)
 						break;
 					end
 				end
+
 				if totalSurroundingTerrain < totalTolerance then
 					local weapon = self.weapons[math.random(#self.weapons)]:Clone();
 					weapon.DeleteWhenRemovedFromParent = true;
@@ -66,12 +66,14 @@ local handleMinionSpawning = function(self)
 					else
 						ActivityMan:GetActivity():SetTeamFunds(funds - self.spawnCost, self.Team);
 					end
+
 					self.spawnTimer:SetSimTimeLimitMS(self.baseSpawnTime * #self.minions);
 							
 					local spawnSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(self.enableMinionSpawning and "DisableMinionSpawning" or "EnableMinionSpawning");
 					if spawnSlice then
 						spawnSlice.Description = self.enableMinionSpawning and "Let the dead sleep..." or "Raise the living dead!";
 					end
+
 					return;
 				end
 			end
@@ -91,6 +93,7 @@ local cleanupDeadMinions = function(self)
 			table.remove(self.minions, i);
 		end
 	end
+
 	for i = 1, #self.frenziedMinions do
 		if not MovableMan:IsActor(self.frenziedMinions[i]) or self.frenziedMinions[i].Health <= 0 then
 			table.remove(self.frenziedMinions, i);
@@ -139,6 +142,7 @@ local updateMinions = function(self)
 				self:SetNumberValue("MinionsFrenzy", 1);
 			end
 		end
+
 		self:updateFrenziedMinions();
 	end
 	if self:IsPlayerControlled() and self.HUDVisible then
@@ -168,6 +172,7 @@ local updateFrenziedMinions = function(self)
 				end
 			end
 		end
+
 		if not isBrainhunting then
 			if not frenziedMinion.MOMoveTarget or not MovableMan:IsActor(frenziedMinion.MOMoveTarget) then
 				frenziedMinion.AIMode = Actor.AIMODE_BRAINHUNT;
@@ -273,6 +278,7 @@ function Update(self)
 		for i = 1, #self.minions do
 			self.frenziedMinions[#self.frenziedMinions + 1] = self.minions[i];
 		end
+		
 		self.minions = {};
 		self:updateFrenziedMinions();
 	end
