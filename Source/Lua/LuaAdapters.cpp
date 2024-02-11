@@ -295,15 +295,16 @@ void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::
 	// So, luabind::object is a weak reference, holding just a stack and a position in the stack
 	// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
 	// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
-	// Note that also, the callbackParam's interpreter is actually different from our Lua state.
 	// It looks like Luabind constructs temporary interpreters and really doesn't like if you destroy these luabind objects
 	// In any case, it's extremely unsafe to use! For example capturing the callback by value into the lambdas causes random crashes
 	// Even if we did literally nothing with it except capture it into a no-op lambda
-	LuaStateWrapper* luaState = g_LuaMan.GetThreadCurrentLuaState();
+	// TODO: validate this is still actually the case. Changes to lua may have fixed this
+	lua_State* luaState = callbackParam.interpreter();
 	static int currentCallbackId = 0;
 	int thisCallbackId = currentCallbackId++;
 	if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
-		luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
+		g_ConsoleMan.PrintString(std::to_string(reinterpret_cast<unsigned long long>(luaState)));
+		luabind::call_function<void>(luaState, "_AddAsyncPathCallback", thisCallbackId, callbackParam);
 	}
 
 	auto callLuaCallback = [luaState, thisCallbackId, movePathToGround](std::shared_ptr<volatile PathRequest> pathRequestVol) {
@@ -316,7 +317,7 @@ void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::
 				}
 			}
 
-			luabind::call_function<void>(luaState->GetLuaState(), "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
+			luabind::call_function<void>(luaState, "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
 		});
 	};
 
