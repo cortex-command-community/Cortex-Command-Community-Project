@@ -35,7 +35,7 @@ void LuaStateWrapper::Initialize() {
 
 	// Disable gc. We do this manually, so we can thread it to occur parallel with non-lua updates
 	// Not doing this for now... see StartAsyncGarbageCollection()
-	//lua_gc(m_State, LUA_GCSTOP, 0);
+	// lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
 	    {LUA_COLIBNAME, luaopen_base},
