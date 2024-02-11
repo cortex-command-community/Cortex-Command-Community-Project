@@ -303,7 +303,6 @@ void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::
 	static int currentCallbackId = 0;
 	int thisCallbackId = currentCallbackId++;
 	if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
-		g_ConsoleMan.PrintString(std::to_string(reinterpret_cast<unsigned long long>(luaState)));
 		luabind::call_function<void>(luaState, "_AddAsyncPathCallback", thisCallbackId, callbackParam);
 	}
 
