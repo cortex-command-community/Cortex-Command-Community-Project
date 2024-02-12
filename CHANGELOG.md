@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Added</b></summary>
 
+- New `MovableObject` INI and Lua (R/W) property `LifeVariation` which can be used to randomize the `Lifetime` of MOs from when they're added to the simulation.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
