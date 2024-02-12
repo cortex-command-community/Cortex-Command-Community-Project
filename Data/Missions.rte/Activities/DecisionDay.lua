@@ -1243,9 +1243,10 @@ function DecisionDay:SpawnAndUpdateInitialDropShips()
 			end
 		else
 			initialDropShipAndVelocity.dropShip.Vel.X = initialDropShipAndVelocity.velX;
-			if initialDropShipAndVelocity.dropShip.TravelImpulse.Magnitude > 10 then
+			if initialDropShipAndVelocity.dropShip.TravelImpulse.Magnitude > 10 or initialDropShipAndVelocity.dropShip.Age > 100000 then
 				initialDropShipAndVelocity.dropShip:GibThis();
 			end
+			print(initialDropShipAndVelocity.dropShip.Age)
 		end
 	end
 end
