@@ -225,6 +225,14 @@ namespace RTE {
 		/// @return A unsigned long describing the current lifetime in ms. 0 means unlimited.
 		unsigned long GetLifetime() const { return m_Lifetime; }
 
+		/// Gets the specified variation in lifetime of the emitted particles.
+		/// @return The life variation rationally expressed.. 0.1 = up to 10% variation.
+		float GetLifeVariation() const { return m_LifeVariation; }
+
+		/// Sets the specified variation in lifetime of the emitted particles.
+		/// @param newVariation The life variation rationally expressed.. 0.1 = up to 10% variation.
+		void SetLifeVariation(float newVariation) { m_LifeVariation = newVariation; }
+
 		/// Gets the MOID of this MovableObject for this frame.
 		/// @return An int specifying the MOID that this MovableObject is
 		/// assigned for the current frame only.
@@ -1127,6 +1135,8 @@ namespace RTE {
 		Timer m_RestTimer;
 
 		unsigned long m_Lifetime;
+		// The variation in life time of this MO, in percentage of the initial lifetime
+		float m_LifeVariation;
 		// The sharpness factor that gets added to single pixel hit impulses in
 		// applicable situations.
 		float m_Sharpness;

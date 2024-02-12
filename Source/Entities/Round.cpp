@@ -20,7 +20,7 @@ void Round::Clear() {
 	m_FireVel = 0;
 	m_InheritsFirerVelocity = false;
 	m_Separation = 0;
-	m_LifeVariation = 0;
+	m_LifeVariation = 0.0F;
 	m_Shell = 0;
 	m_ShellVel = 0;
 	m_FireSound.Reset();

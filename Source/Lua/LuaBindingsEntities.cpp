@@ -893,6 +893,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("AirThreshold", &MovableObject::GetAirThreshold, &MovableObject::SetAirThreshold)
 	    .property("Age", &MovableObject::GetAge, &MovableObject::SetAge)
 	    .property("Lifetime", &MovableObject::GetLifetime, &MovableObject::SetLifetime)
+	    .property("LifeVariation", &MovableObject::GetLifeVariation, &MovableObject::SetLifeVariation)
 	    .property("ID", &MovableObject::GetID)
 	    .property("UniqueID", &MovableObject::GetUniqueID)
 	    .property("RootID", &MovableObject::GetRootID)

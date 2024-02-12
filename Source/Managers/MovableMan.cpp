@@ -667,7 +667,7 @@ void MovableMan::AddActor(Actor* actorToAdd) {
 			}
 			actorToAdd->NotResting();
 			actorToAdd->NewFrame();
-			actorToAdd->SetAge(0);
+			actorToAdd->SetAge(static_cast<int>(actorToAdd->GetLifetime() * actorToAdd->GetLifeVariation() * RandomNormalNum()));
 		}
 
 		{
@@ -695,7 +695,7 @@ void MovableMan::AddItem(HeldDevice* itemToAdd) {
 			}
 			itemToAdd->NotResting();
 			itemToAdd->NewFrame();
-			itemToAdd->SetAge(0);
+			itemToAdd->SetAge(static_cast<int>(itemToAdd->GetLifetime() * itemToAdd->GetLifeVariation() * RandomNormalNum()));
 		}
 
 		std::lock_guard<std::mutex> lock(m_AddedItemsMutex);
@@ -718,7 +718,7 @@ void MovableMan::AddParticle(MovableObject* particleToAdd) {
 			// TODO consider moving particles out of grass. It's old code that was removed because it's slow to do this for every particle.
 			particleToAdd->NotResting();
 			particleToAdd->NewFrame();
-			particleToAdd->SetAge(0);
+			particleToAdd->SetAge(static_cast<int>(particleToAdd->GetLifetime() * particleToAdd->GetLifeVariation() * RandomNormalNum()));
 		}
 		if (particleToAdd->IsDevice()) {
 			std::lock_guard<std::mutex> lock(m_AddedItemsMutex);

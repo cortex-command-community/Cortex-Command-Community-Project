@@ -15,7 +15,7 @@ void Emission::Clear() {
 	m_Spread = 0;
 	m_MinVelocity = 0;
 	m_MaxVelocity = 0;
-	m_LifeVariation = 0.1;
+	m_LifeVariation = 0.1F;
 	m_PushesEmitter = true;
 	m_InheritsVel = 0;
 	m_StartTimer.SetSimTimeLimitMS(0);

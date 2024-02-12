@@ -51,6 +51,7 @@ void MovableObject::Clear() {
 	m_AgeTimer.Reset();
 	m_RestTimer.Reset();
 	m_Lifetime = 0;
+	m_LifeVariation = 0.0F;
 	m_Sharpness = 1.0;
 	//    m_MaterialId = 0;
 	m_CheckTerrIntersection = false;
@@ -286,6 +287,7 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("PinStrength", { reader >> m_PinStrength; });
 	MatchProperty("RestThreshold", { reader >> m_RestThreshold; });
 	MatchProperty("LifeTime", { reader >> m_Lifetime; });
+	MatchProperty("LifeVariation", { reader >> m_LifeVariation; });
 	MatchProperty("Age", {
 		double age;
 		reader >> age;
@@ -415,6 +417,8 @@ int MovableObject::Save(Writer& writer) const {
 	writer << m_RestThreshold;
 	writer.NewProperty("LifeTime");
 	writer << m_Lifetime;
+	writer.NewProperty("LifeVariation");
+	writer << m_LifeVariation;
 	writer.NewProperty("Sharpness");
 	writer << m_Sharpness;
 	writer.NewProperty("HitsMOs");
