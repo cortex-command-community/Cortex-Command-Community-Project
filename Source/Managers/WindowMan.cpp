@@ -683,10 +683,12 @@ void WindowMan::Update() {
 	m_EventQueue.clear();
 }
 
-void WindowMan::ClearRenderer() {
+void WindowMan::ClearRenderer(bool clearFrameMan) {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-	g_FrameMan.ClearBackBuffer32();
+	if (clearFrameMan) {
+		g_FrameMan.ClearBackBuffer32();
+	}
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 	GL_CHECK(glActiveTexture(GL_TEXTURE1));
