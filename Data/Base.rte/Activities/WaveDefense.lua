@@ -229,10 +229,10 @@ function WaveDefense:UpdateActivity()
 				-- Remove and refund the player's brains (otherwise edit mode does not work)
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						local Brain = self:GetPlayerBrain(player);
-						if MovableMan:IsActor(Brain) then
-							self:ChangeTeamFunds(Brain:GetTotalValue(0, 1), self.playerTeam);
-							MovableMan:RemoveActor(Brain);
+						local brain = self:GetPlayerBrain(player);
+						if MovableMan:IsActor(brain) then
+							self:ChangeTeamFunds(brain:GetTotalValue(0, 1), self:GetTeamOfPlayer(player));
+							MovableMan:RemoveActor(brain);
 						end
 					end
 				end

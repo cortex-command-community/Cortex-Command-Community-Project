@@ -668,7 +668,7 @@ void MovableMan::AddActor(Actor* actorToAdd) {
 			}
 			actorToAdd->NotResting();
 			actorToAdd->NewFrame();
-			actorToAdd->SetAge(g_TimerMan.GetDeltaTimeMS() * -1.0f);
+			actorToAdd->SetAge(0);
 		}
 
 		{
@@ -696,7 +696,7 @@ void MovableMan::AddItem(HeldDevice* itemToAdd) {
 			}
 			itemToAdd->NotResting();
 			itemToAdd->NewFrame();
-			itemToAdd->SetAge(g_TimerMan.GetDeltaTimeMS() * -1.0f);
+			itemToAdd->SetAge(0);
 		}
 
 		std::lock_guard<std::mutex> lock(m_AddedItemsMutex);
@@ -719,7 +719,7 @@ void MovableMan::AddParticle(MovableObject* particleToAdd) {
 			// TODO consider moving particles out of grass. It's old code that was removed because it's slow to do this for every particle.
 			particleToAdd->NotResting();
 			particleToAdd->NewFrame();
-			particleToAdd->SetAge(g_TimerMan.GetDeltaTimeMS() * -1.0f);
+			particleToAdd->SetAge(0);
 		}
 		if (particleToAdd->IsDevice()) {
 			std::lock_guard<std::mutex> lock(m_AddedItemsMutex);
@@ -1310,7 +1310,9 @@ void MovableMan::Update() {
 			                                                     g_LuaMan.SetThreadLuaStateOverride(&luaState);
 
 			                                                     for (MovableObject* mo: luaState.GetRegisteredMOs()) {
-				                                                     mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
+				                                                     if (ValidMO(mo->GetRootParent())) {
+					                                                     mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
+				                                                     }
 			                                                     }
 
 			                                                     g_LuaMan.SetThreadLuaStateOverride(nullptr);

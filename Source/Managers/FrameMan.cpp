@@ -16,6 +16,7 @@
 #include "SLTerrain.h"
 #include "SLBackground.h"
 #include "Scene.h"
+#include "System.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -279,6 +280,10 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 		m_FlashScreenColor[i] = -1;
 		m_FlashedLastFrame[i] = false;
 	}
+}
+
+float FrameMan::GetResolutionMultiplier() const {
+	return g_WindowMan.GetResMultiplier();
 }
 
 Vector FrameMan::GetMiddleOfPlayerScreen(int whichPlayer) {
@@ -595,8 +600,8 @@ void FrameMan::SaveScreenToBitmap() {
 		return;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBufferTexture());
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->line[0]);
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBufferTexture()));
+	GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->line[0]));
 }
 
 int FrameMan::SaveIndexedPNG(const char* fileName, BITMAP* bitmapToSave) const {

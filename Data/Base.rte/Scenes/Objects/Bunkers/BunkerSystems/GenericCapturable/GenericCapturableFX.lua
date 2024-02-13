@@ -1,5 +1,4 @@
 function Create(self)
-	
 	self.startCaptureSound = CreateSoundContainer("Capturable Start Capture", "Base.rte");
 	self.capturingSound = CreateSoundContainer("Capturable Capturing", "Base.rte");
 	self.capturingCriticalSound = CreateSoundContainer("Capturable Capturing Critical", "Base.rte");
@@ -8,15 +7,14 @@ function Create(self)
 	
 	self.capturingTimer = Timer();
 	self.capturingDelay = 500;
-	
 end
 
 function Update(self)
-
 	if self.FXstartCapture then
 		self.startCaptureSound:Play(self.Pos);
 		self.capturingTimer:Reset();
 	end
+
 	if self.FXcapturing or self.Contested then
 		local sound = self.capturingSound;
 		self.capturingDelay = 500;
@@ -28,12 +26,15 @@ function Update(self)
 			sound:Play(self.Pos);
 		end
 	end
+
 	if self.FXstopCapture then
 		self.stopCaptureSound:Play(self.Pos);
 	end
+
 	if self.FXcaptureSuccess then
 		self.captureSuccessSound:Play(self.Pos);
 	end
+
 	if self.FXcaptureUncapped then
 		self.capturingTimer:Reset();
 	end
@@ -41,6 +42,5 @@ function Update(self)
 	self.FXstartCapture = false;
 	self.FXstopCapture = false;
 	self.FXcaptureSuccess = false;
-	self.FXcaptureUncapped = false;
-				
+	self.FXcaptureUncapped = false;			
 end

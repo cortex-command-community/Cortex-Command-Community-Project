@@ -1,15 +1,13 @@
 function OnMessage(self, message)
-
 	if message == "RefineryAssault_S4TankBlownUp" then
 		self.blowUpTimer = Timer();
 		self.randTime = math.random(600, 750);
 	end
-	
 end
 
 function Create(self)
-
 	self.GibSound = nil;
+	self.MissionCritical = true;
 	
 	self.doorsTable = {};
 	for actor in MovableMan.Actors do
@@ -17,11 +15,9 @@ function Create(self)
 			table.insert(self.doorsTable, actor);
 		end
 	end
-	
 end
 
 function Update(self)
-
 	if self.blowUpTimer and self.blowUpTimer:IsPastSimMS(self.randTime) then
 		self.MissionCritical = false;
 		self:GibThis();
@@ -34,5 +30,4 @@ function Update(self)
 			end
 		end
 	end
-	
 end

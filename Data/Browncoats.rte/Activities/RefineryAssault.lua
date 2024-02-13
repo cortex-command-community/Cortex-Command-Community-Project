@@ -19,7 +19,7 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 	-- remove BuyDoorArea_ from the area name to get our table key
 	local areaKey = string.sub(area.Name, 13, -1);
 	
-	print("area key: " .. areaKey);
+	--print("area key: " .. areaKey);
 
 	self.saveTable.buyDoorTables[areaKey] = {};
 	
@@ -37,7 +37,7 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 	-- end
 	
 	for mo in MovableMan.AddedActors do
-		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) and not mo:NumberValueExists("SubcommanderDoor") then
+		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) then
 			table.insert(self.saveTable.buyDoorTables.All, mo)
 			self.saveTable.buyDoorTables[areaKey][tonumber(#self.saveTable.buyDoorTables.All)] = mo;
 		end
@@ -87,27 +87,28 @@ function RefineryAssault:UpdateFunds()
 
 	-- Debug view
 	
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
-		
-		if self:PlayerActive(player) and self:PlayerHuman(player) then
-		
-			local pos = CameraMan:GetOffset(player);
-			pos.X = pos.X + FrameMan.PlayerScreenWidth * 0.5;
-			--print(pos)
-			local yOffset = FrameMan.PlayerScreenHeight * 0.87;
-			local xOffset = Vector(FrameMan.PlayerScreenWidth * 0.33, 0);
-			pos.Y = pos.Y + yOffset
-			
-			local textPos = Vector(pos.X, pos.Y - 20);
-			PrimitiveMan:DrawTextPrimitive(textPos, "aiteam: " .. tostring(aiTeamFunds), false, 1)
-			
-			local textPos = Vector(pos.X - 100, pos.Y - 20);
-			PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
+	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
 
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
 			
-		end
-		
-	end	
+				local pos = CameraMan:GetOffset(player);
+				pos.X = pos.X + FrameMan.PlayerScreenWidth * 0.5;
+				--print(pos)
+				local yOffset = FrameMan.PlayerScreenHeight * 0.87;
+				local xOffset = Vector(FrameMan.PlayerScreenWidth * 0.33, 0);
+				pos.Y = pos.Y + yOffset
+				
+				local textPos = Vector(pos.X, pos.Y - 20);
+				--PrimitiveMan:DrawTextPrimitive(textPos, "aiteam: " .. tostring(aiTeamFunds), false, 1)
+				
+				local textPos = Vector(pos.X - 100, pos.Y - 20);
+				--PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
+
+				
+			end
+		end	
+	end
 
 end
 
@@ -129,6 +130,8 @@ end
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
 	
+	self.verboseLogging = true;
+	
 	self.humansAreControllingAlliedActors = false;
 	
 	self.humanTeam = Activity.TEAM_1;
@@ -147,7 +150,7 @@ function RefineryAssault:StartActivity(newGame)
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
 	
-	self.playerGoldIncreaseAmount = 5000;	
+	self.playerGoldIncreaseAmount = 5;	
 	self.humanAIGoldIncreaseAmount = 50;
 	
 	self.aiTeamGoldIncreaseAmount = 0;
@@ -156,23 +159,26 @@ function RefineryAssault:StartActivity(newGame)
 	
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
-	self.saveLoadHandler:Initialize(self, newGame);
+	self.saveLoadHandler:Initialize(self.verboseLogging);
 	
 	self.tacticsHandler = require("Activities/Utility/TacticsHandler");
-	self.tacticsHandler:Initialize(self, newGame);
+	self.tacticsHandler:Initialize(self, newGame, 2, 5, 45000, self.verboseLogging);
 	
 	self.dockingHandler = require("Activities/Utility/DockingHandler");
-	self.dockingHandler:Initialize(self, true, newGame);
+	self.dockingHandler:Initialize(self, newGame, false, self.verboseLogging);
 	
 	self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
 	self.buyDoorHandler:Initialize(self, newGame);
 	
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
-	self.deliveryCreationHandler:Initialize(self);
+	self.deliveryCreationHandler:Initialize(self, self.verboseLogging);
 	
 	self.HUDHandler = require("Activities/Utility/HUDHandler");
-	self.HUDHandler:Initialize(self, newGame);
+	self.HUDHandler:Initialize(self, newGame, self.verboseLogging);
 	
+	self.particleUtility = require("Scripts/Utility/ParticleUtility");
+	
+	self.MOUtility = require("Scripts/Utility/MOUtility");	
 	
 	-- Stage stuff
 	
@@ -187,10 +193,47 @@ function RefineryAssault:StartActivity(newGame)
 	table.insert(self.stageFunctionTable, self.MonitorStage4);
 	table.insert(self.stageFunctionTable, self.MonitorStage5);
 	table.insert(self.stageFunctionTable, self.MonitorStage6);
+	table.insert(self.stageFunctionTable, self.MonitorStage7);
+	table.insert(self.stageFunctionTable, self.MonitorStage8);
+	table.insert(self.stageFunctionTable, self.MonitorStage9);
+	table.insert(self.stageFunctionTable, self.MonitorStage10);
+	
+	-- 6
+	
+	-- Find stage 6 subcommander door
+	for mo in MovableMan.AddedActors do
+		if mo.PresetName == "Refinery Subcommander Door" then
+			self.stage6SubcommanderDoor = mo;
+			mo.Team = 1;
+		end
+	end
+
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 	
 	if newGame then
-	
 		self.saveTable = {};
+		
+		self.saveTable.activeDocks = {1, 2};
+		self.deliveryCreationHandler:RemoveAvailablePreset(-1, "Tubby Rocket");
+		self.deliveryCreationHandler:RemoveAvailablePreset(-1, "Drop Crate");
+		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Browncoat Boss");
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "MG-85 Manbreaker");
+		
+		self.saveTable.doorsToConstantlyReset = {};
+
+		for actor in MovableMan.AddedActors do
+			if actor:NumberValueExists("BossVaultDoor") then
+				table.insert(self.saveTable.doorsToConstantlyReset, actor);
+			elseif actor.PresetName == "Refinery Objective Prison Door" then
+				self.saveTable.roninPrisonerDoor = actor;
+				table.insert(self.saveTable.doorsToConstantlyReset, actor);
+			end
+			
+		end
 		
 		-- Always active base task for defenders
 		self.tacticsHandler:AddTask("Brainhunt", self.aiTeam, Vector(0, 0), "Brainhunt", 2);
@@ -223,17 +266,32 @@ function RefineryAssault:StartActivity(newGame)
 		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S3_3");
 		self:SetupBuyDoorAreaTable(self, area);	
 
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S3_4");
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_1");
+		self:SetupBuyDoorAreaTable(self, area);
+		
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_2");
+		self:SetupBuyDoorAreaTable(self, area);
+		
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_3");
+		self:SetupBuyDoorAreaTable(self, area);
+		
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_4");
+		self:SetupBuyDoorAreaTable(self, area);
+		
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_5");
+		self:SetupBuyDoorAreaTable(self, area);
+
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_6");
 		self:SetupBuyDoorAreaTable(self, area);
 
 		self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
 		
 		self.saveTable.buyDoorTables.teamAreas = {};
 		self.saveTable.buyDoorTables.teamAreas[self.humanTeam] = {};
-		self.saveTable.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2", "S3_1", "S3_2", "S3_3", "S3_4"};
+		self.saveTable.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2", "S3_1", "S3_2", "S3_3", "S4_1", "S4_2", "S4_3", "S4_4", "S4_5", "S4_6"};
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.All) do
-			print(v)
+			--print(v)
 			v.Team = self.aiTeam;
 		end
 		
@@ -247,14 +305,8 @@ function RefineryAssault:StartActivity(newGame)
 		automoverController.Pos = Vector();
 		automoverController.Team = self.aiTeam;
 		MovableMan:AddActor(automoverController);
-
-		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
-		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
-		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
-		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 		
 		-- Tell capturables to deactivate, we'll activate them as we go along
-		
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole1");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole2");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole1");
@@ -263,6 +315,13 @@ function RefineryAssault:StartActivity(newGame)
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole4");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3DrillOverloadConsole");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3OilCapturable");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole1");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole2");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole3");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole4");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole5");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS7AuxAuthConsole");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS10FinalConsole");
 
 		-- Stage stuff
 
@@ -333,6 +392,9 @@ function RefineryAssault:ResumeLoadedGame()
 	self.dockingHandler:OnLoad(self.saveLoadHandler);
 	self.buyDoorHandler:OnLoad(self.saveLoadHandler);
 	self.deliveryCreationHandler:OnLoad(self.saveLoadHandler);
+	self.HUDHandler:OnLoad(self.saveLoadHandler);
+	
+	self.MOUtility:OnLoad(self.saveLoadHandler);
 	
 	self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
 		
@@ -341,7 +403,6 @@ end
 function RefineryAssault:OnSave()
 	
 	self.saveLoadHandler:SaveTableAsString("saveTable", self.saveTable);
-	
 	
 	self:SaveNumber("stage", self.Stage);
 
@@ -358,6 +419,9 @@ function RefineryAssault:OnSave()
 	self.dockingHandler:OnSave(self.saveLoadHandler);
 	self.buyDoorHandler:OnSave(self.saveLoadHandler);
 	self.deliveryCreationHandler:OnSave(self.saveLoadHandler);
+	self.HUDHandler:OnSave(self.saveLoadHandler);
+	
+	self.MOUtility:OnSave(self.saveLoadHandler);
 	
 end
 
@@ -383,9 +447,20 @@ end
 
 function RefineryAssault:UpdateActivity()
 
-	if UInputMan:KeyPressed(Key.F) and UInputMan:KeyHeld(Key.SPACE) then
-		self.ActivityState = Activity.EDITING;
-	end
+	-- if UInputMan:KeyPressed(Key.F) and UInputMan:KeyHeld(Key.SPACE) then
+		-- self.ActivityState = Activity.EDITING;
+
+		-- -- Remove and refund the player's brains (otherwise edit mode does not work)
+		-- for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			-- if self:PlayerActive(player) and self:PlayerHuman(player) then
+				-- local brain = self:GetPlayerBrain(player);
+				-- if MovableMan:IsActor(brain) then
+					-- self:ChangeTeamFunds(brain:GetTotalValue(0, 1), self:GetTeamOfPlayer(player));
+					-- MovableMan:RemoveActor(brain);
+				-- end
+			-- end
+		-- end
+	-- end
 
 	-- Monitor stage objectives
 	
@@ -403,14 +478,21 @@ function RefineryAssault:UpdateActivity()
 	
 	if task and self:GetAIFunds(team) > 0 then
 		--print("gottask")
-		local squad = self:SendBuyDoorDelivery(team, task);
-		if squad then
-			self.tacticsHandler:AddTaskedSquad(team, squad, task.Name);
-		elseif team == self.humanTeam then
-			squad = self:SendDockDelivery(team, task);
-			if squad then
-				self.tacticsHandler:AddTaskedSquad(team, squad, task.Name);
+		local squad;
+		if team == self.aiTeam then
+			squad = self:SendBuyDoorDelivery(team, task);
+		else
+			if math.random() < 0.2 then
+				squad = self:SendDockDelivery(team, task);
+			else
+				squad = self:SendBuyDoorDelivery(team, task);
 			end
+			if not squad then
+				squad = self:SendBuyDoorDelivery(team, task);
+			end
+		end
+		if squad then
+			self.tacticsHandler:AddSquad(team, squad, task.Name, true);
 		end
 	end
 	
@@ -422,12 +504,64 @@ function RefineryAssault:UpdateActivity()
 	
 	self.HUDHandler:UpdateHUDHandler();
 	
+	-- Update MOUtility not needed yet
+	
+	--self.MOUtility:Update();
+	
+
+	for k, door in pairs(self.saveTable.doorsToConstantlyReset) do
+		if not door or not MovableMan:ValidMO(door) then
+		else
+			ToADoor(door):ResetSensorTimer();
+		end
+	end
+	
+	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) > 0 and not self.saveTable.brainsInvincible then
+		self.saveTable.brainsInvincible = true;
+		for k, brain in pairs(self.saveTable.playerBrains) do
+			self.MOUtility:SetMOUnhittable(brain, true);
+		end
+	elseif self.saveTable.brainsInvincible and self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
+		self.saveTable.brainsInvincible = false;
+		for k, brain in pairs(self.saveTable.playerBrains) do
+			self.MOUtility:SetMOUnhittable(brain, false);
+		end
+	end
 	
 	
+	if self.roninPrisonerMessageTimer and not self.roninPrisonerMessageTimer:IsPastSimMS(6000) then
+		if self.saveTable.roninPrisonerLeader and MovableMan:ValidMO(self.saveTable.roninPrisonerLeader) then
+			PrimitiveMan:DrawTextPrimitive(self.saveTable.roninPrisonerLeader.AboveHUDPos, "We are in your debt.", true, 1);
+		end
+	else
+		if self.saveTable.roninPrisonerDoor and not MovableMan:ValidMO(self.saveTable.roninPrisonerDoor) then
+			self:SendMessage("RefineryAssault_RoninPrisonerDoorBroken");
+			self.saveTable.roninPrisonerDoor = nil;
+		end
+	end
 	
 	
 	
 	-- Debug
+	
+	if UInputMan.FlagAltState then
+
+		-- Unlimit camera
+		if UInputMan:KeyPressed(Key.KP_8) then
+			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 999999);
+		end
+		
+		-- AI funds
+		if UInputMan:KeyPressed(Key.KP_7) then
+			self:ChangeAIFunds(0, 200);
+			self:ChangeAIFunds(1, 200);
+		end
+		
+		if UInputMan:KeyPressed(Key.KP_6) then
+			self:SendMessage("Captured_RefineryS3DockConsole")
+		end
+		
+	end
 	
 	local debugDoorTrigger = UInputMan:KeyPressed(Key.J)	
 	
@@ -443,14 +577,14 @@ function RefineryAssault:UpdateActivity()
 	
 	if debugTrigger then
 	
-		self:SendDockDelivery(self.humanTeam, false);
+		--self:SendDockDelivery(self.humanTeam, false);
 		print("tried dropship")
 		
 	end
 	
 	if debugRocketTrigger then
 	
-		self:SendDockDelivery(self.humanTeam, true);
+		--self:SendDockDelivery(self.humanTeam, true);
 		print("triedrocket")
 		
 	end	

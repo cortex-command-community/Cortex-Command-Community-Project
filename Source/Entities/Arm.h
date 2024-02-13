@@ -2,6 +2,8 @@
 
 #include "Attachable.h"
 
+#include <queue>
+
 namespace RTE {
 
 	class HeldDevice;

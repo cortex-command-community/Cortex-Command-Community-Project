@@ -2,6 +2,9 @@
 
 #include "Vector.h"
 #include "Matrix.h"
+#include "System.h"
+
+#include <string_view>
 
 namespace RTE {
 

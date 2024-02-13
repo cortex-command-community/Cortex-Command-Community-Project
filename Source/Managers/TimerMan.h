@@ -3,6 +3,8 @@
 #include "Singleton.h"
 
 #include <atomic>
+#include <deque>
+#include <chrono>
 
 #define g_TimerMan TimerMan::Instance()
 

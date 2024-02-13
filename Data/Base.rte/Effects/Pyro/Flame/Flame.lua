@@ -29,13 +29,13 @@ function ThreadedUpdate(self)
 	self.Throttle = self.Throttle - TimerMan.DeltaTimeMS/self.Lifetime;
 	self.damage = 0;
 
-	if self.target and IsMOSRotating(self.target) and self.target.ID ~= rte.NoMOID and not self.target.ToDelete and (self.teamAware == false or self.target.Team ~= self.Team) and MovableMan:ValidMO(self.target) then
+	if self.target and IsMOSRotating(self.target) and self.target.ID ~= rte.NoMOID and (not self.target.ToDelete) and (self.teamAware == false or self.target.Team ~= self.Team) then
 		self.Vel = Vector();
 		self.Pos = self.target.Pos + Vector(self.stickOffset.X, self.stickOffset.Y):RadRotate(self.target.RotAngle - self.targetStickAngle);
 		local actor = self.target:GetRootParent();
 		if IsActor(actor) then
 			actor = ToActor(actor);
-			self.damage = math.max(self.target.DamageMultiplier * (self.Throttle + 1), 0.1)/((actor.Mass - actor.InventoryMass) * 0.5 + self.target.Material.StructuralIntegrity);
+			self.damage = math.max(self.target.DamageMultiplier * (self.Throttle + 1), 0.1)/((actor.Mass - actor.InventoryMass) * 0.25 + self.target.Material.StructuralIntegrity);
 			--Stop, drop and roll!
 			self.deleteDelay = self.deleteDelay - math.abs(actor.AngularVel);
 			self:RequestSyncedUpdate();
@@ -59,7 +59,7 @@ end
 
 function SyncedUpdate(self)
 	if self.target and self.damage ~= 0 then
-		local actor = ToActor(self.target);
+		local actor = ToActor(self.target:GetRootParent());
 		actor.Health = actor.Health - self.damage;
 	elseif self.extraPar then
 		MovableMan:AddParticle(self.extraPar);

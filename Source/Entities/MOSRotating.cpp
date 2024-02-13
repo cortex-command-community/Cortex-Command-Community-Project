@@ -536,12 +536,6 @@ Material const* MOSRotating::GetMaterial() const {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  HitsMOs
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets whether this MovableObject is set to collide with other
-//                  MovableObject:s during travel.
-
 bool MOSRotating::HitsMOs() const
 {
     if (m_pAtomGroup)
@@ -555,13 +549,6 @@ int MOSRotating::GetDrawPriority() const {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          SetAtom
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Replaces the current AtomGroup of this MOSRotating with a new one.
-// Arguments:       A reference to the new AtomGroup.
-// Return value:    None.
-
 void MOSRotating::SetAtom(AtomGroup *newAtom)
 {
     delete m_pAtomGroup;
@@ -569,12 +556,6 @@ void MOSRotating::SetAtom(AtomGroup *newAtom)
 }
 */
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  SetToHitMOs
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets this MovableObject to collide with other MovableObjects during
-//                  travel.
-
 void MOSRotating::SetToHitMOs(bool hitMOs)
 {
     if (m_pAtomGroup)
@@ -1381,7 +1362,7 @@ bool MOSRotating::AttachableIsHardcoded(const Attachable* attachableToCheck) con
 		return false;
 	}
 
-	unsigned long attachableUniqueID = attachableToCheck->GetUniqueID();
+	long attachableUniqueID = attachableToCheck->GetUniqueID();
 	return m_HardcodedAttachableUniqueIDsAndRemovers.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndRemovers.end() || m_HardcodedAttachableUniqueIDsAndSetters.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndSetters.end();
 }
 

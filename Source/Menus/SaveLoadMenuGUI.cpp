@@ -19,6 +19,8 @@
 #include "GUITextBox.h"
 #include "GUIComboBox.h"
 
+#include <execution>
+
 using namespace RTE;
 
 SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {

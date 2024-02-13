@@ -11,6 +11,7 @@ function Update(self)
 	if self.lifeTimer:IsPastSimMS(4000) then
 		self:GibThis();
 	end
+	
 	for i = 1, self.dots do
 		local checkPos = self.Pos + Vector(self.Vel.X, self.Vel.Y):SetMagnitude((i/self.dots) * self.raylength);
 		if SceneMan.SceneWrapsX then
@@ -20,6 +21,7 @@ function Update(self)
 				checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 			end
 		end
+
 		local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
 		if terrCheck == rte.airID then
 			local moCheck = SceneMan:GetMOIDPixel(checkPos.X,checkPos.Y);

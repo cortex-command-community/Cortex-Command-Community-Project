@@ -6,11 +6,8 @@
 #include "ThreadMan.h"
 #include "ConsoleMan.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#elif _LINUX_OR_MACOSX_
-#include <time.h>
-#endif
+#include <algorithm>
+#include <limits>
 
 using namespace RTE;
 

@@ -1,6 +1,8 @@
 #include "GUI.h"
 #include "GUIReader.h"
 
+#include <fstream>
+
 using namespace RTE;
 
 GUIReader::StreamInfo::StreamInfo(std::ifstream* stream, const std::string& filePath, int currentLine, int prevIndent) :

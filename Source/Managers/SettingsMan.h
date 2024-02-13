@@ -3,6 +3,9 @@
 #include "Serializable.h"
 #include "Singleton.h"
 
+#include <list>
+#include <cmath>
+
 #define g_SettingsMan SettingsMan::Instance()
 
 namespace RTE {

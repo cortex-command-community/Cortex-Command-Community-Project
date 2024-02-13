@@ -2,6 +2,9 @@
 
 #include "Singleton.h"
 
+#include <memory>
+#include <string>
+
 #define g_LoadingScreen LoadingScreen::Instance()
 
 namespace RTE {

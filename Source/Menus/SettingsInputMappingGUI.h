@@ -2,6 +2,9 @@
 
 #include "SettingsInputMappingWizardGUI.h"
 
+#include <array>
+#include <memory>
+
 namespace RTE {
 
 	class GUIControlManager;

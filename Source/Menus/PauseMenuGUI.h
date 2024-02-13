@@ -2,6 +2,10 @@
 
 #include "Timer.h"
 
+#include <array>
+#include <memory>
+#include <string>
+
 struct BITMAP;
 
 namespace RTE {
