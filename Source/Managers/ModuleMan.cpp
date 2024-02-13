@@ -4,6 +4,7 @@
 
 #include "LoadingScreen.h"
 #include "RTETools.h"
+#include "System.h"
 
 using namespace RTE;
 
