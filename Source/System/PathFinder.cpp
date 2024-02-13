@@ -211,23 +211,23 @@ std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector star
 	const_cast<Vector&>(pathRequest->targetPos) = end;
 
 	g_ThreadMan.GetBackgroundThreadPool().push_task(
-		[this, start, end, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
-			// Cast away the volatile-ness - only matters outside (and complicates the API otherwise)
-			PathRequest& request = const_cast<PathRequest&>(*volRequest);
+	    [this, start, end, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
+		    // Cast away the volatile-ness - only matters outside (and complicates the API otherwise)
+		    PathRequest& request = const_cast<PathRequest&>(*volRequest);
 
-			int status = this->CalculatePath(start, end, request.path, request.totalCost, digStrength);
+		    int status = this->CalculatePath(start, end, request.path, request.totalCost, digStrength);
 
-			request.status = status;
-			request.pathLength = request.path.size();
+		    request.status = status;
+		    request.pathLength = request.path.size();
 
-			if (callback) {
-				callback(volRequest);
-			}
+		    if (callback) {
+			    callback(volRequest);
+		    }
 
-			// Have to set to complete after the callback, so anything that blocks on it knows that the callback will have been called by now
-			// This has the awkward side-effect that the complete flag is actually false during the callback - but that's fine, if it's called we know it's complete anyways
-			request.complete = true;
-		},
+		    // Have to set to complete after the callback, so anything that blocks on it knows that the callback will have been called by now
+		    // This has the awkward side-effect that the complete flag is actually false during the callback - but that's fine, if it's called we know it's complete anyways
+		    request.complete = true;
+	    },
 	    pathRequest);
 
 	return pathRequest;
