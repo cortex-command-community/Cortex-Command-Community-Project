@@ -151,7 +151,7 @@ namespace RTE {
 		float m_MinVelocity;
 		// The maximum velocity an emitted MO can have when emitted
 		float m_MaxVelocity;
-		// The variation in life time of each emitted particle, in percentage of the existing life time of the particle
+		// The variation in life time of each emitted aprticle, in percentage of the existing life time of the partilcle
 		float m_LifeVariation;
 		// Whether these emissions push the emitter around with recoil or not.
 		bool m_PushesEmitter;
