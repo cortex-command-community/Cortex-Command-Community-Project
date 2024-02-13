@@ -892,7 +892,8 @@ bool SceneMan::TryPenetrate(int posX,
 	return false;
 }
 
-MovableObject* SceneMan::DislodgePixel(int posX, int posY) {
+MOPixel* SceneMan::DislodgePixel(int posX, int posY) {
+	WrapPosition(posX, posY);
 	int materialID = getpixel(m_pCurrentScene->GetTerrain()->GetMaterialBitmap(), posX, posY);
 	if (materialID <= MaterialColorKeys::g_MaterialAir) {
 		return nullptr;
@@ -920,6 +921,180 @@ MovableObject* SceneMan::DislodgePixel(int posX, int posY) {
 	m_pCurrentScene->GetTerrain()->SetMaterialPixel(posX, posY, MaterialColorKeys::g_MaterialAir);
 
 	return pixelMO;
+}
+
+// Bool variant to avoid changing the original
+MOPixel* SceneMan::DislodgePixelBool(int posX, int posY, bool deletePixel) {
+	MOPixel* pixelMO = DislodgePixel(posX, posY);
+	if (pixelMO) {
+		pixelMO->SetToDelete(deletePixel);
+	}
+	return pixelMO;
+}
+
+std::vector<MOPixel*>* SceneMan::DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels) {
+	std::vector<MOPixel*>* pixelList = new std::vector<MOPixel*>();
+	int limit = static_cast<int>(radius) * 2;
+	for (int x = 0; x <= limit; x++) {
+		for (int y = 0; y <= limit; y++) {
+			Vector checkPos = Vector(static_cast<float>(x) - radius, static_cast<float>(y) - radius) + centre;
+			Vector distance = ShortestDistance(centre, checkPos, true);
+
+			if (distance.MagnitudeIsGreaterThan(radius) && y > limit / 2) {
+				break;
+			}
+
+			if (!distance.MagnitudeIsGreaterThan(radius)) {
+				MOPixel* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+				if (px) {
+					pixelList->push_back(px);
+				}
+			}
+		}
+	}
+
+	return pixelList;
+}
+
+std::vector<MOPixel*>* SceneMan::DislodgePixelCircleNoBool(const Vector& centre, float radius) {
+	return DislodgePixelCircle(centre, radius, false);
+}
+
+std::vector<MOPixel*>* SceneMan::DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels) {
+	// Account for users inputting radii in the wrong order
+	if (outerRadius < innerRadius) {
+		std::swap(outerRadius, innerRadius);
+	}
+
+	std::vector<MOPixel*>* pixelList = new std::vector<MOPixel*>();
+	int limit = static_cast<int>(outerRadius) * 2;
+	for (int x = 0; x <= limit; x++) {
+		for (int y = 0; y <= limit; y++) {
+			Vector checkPos = Vector(static_cast<float>(x) - outerRadius, static_cast<float>(y) - outerRadius) + centre;
+			Vector distance = ShortestDistance(centre, checkPos, true);
+
+			if (distance.MagnitudeIsLessThan(innerRadius) && y < limit - y) {
+				y = limit - y;
+				continue;
+			}
+
+			if (distance.MagnitudeIsGreaterThan(outerRadius) && y > limit / 2) {
+				break;
+			}
+
+			if (!distance.MagnitudeIsGreaterThan(outerRadius) && !distance.MagnitudeIsLessThan(innerRadius)) {
+				MOPixel* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+				if (px) {
+					pixelList->push_back(px);
+				}
+			}
+		}
+	}
+
+	return pixelList;
+}
+
+std::vector<MOPixel*>* SceneMan::DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius) {
+	return DislodgePixelRing(centre, innerRadius, outerRadius, false);
+}
+
+std::vector<MOPixel*>* SceneMan::DislodgePixelBox(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels) {
+	std::vector<MOPixel*>* pixelList = new std::vector<MOPixel*>();
+
+	// Make sure it works even if people input corners in the wrong order
+	Vector start = Vector(std::min(upperLeftCorner.m_X, lowerRightCorner.m_X), std::min(upperLeftCorner.m_Y, lowerRightCorner.m_Y));
+	Vector end = Vector(std::max(upperLeftCorner.m_X, lowerRightCorner.m_X), std::max(upperLeftCorner.m_Y, lowerRightCorner.m_Y));
+
+	float width = end.m_X - start.m_X;
+	float height = end.m_Y - start.m_Y;
+	for (int x = 0; x <= static_cast<int>(width) * 2; x++) {
+		for (int y = 0; y <= static_cast<int>(height) * 2; y++) {
+			Vector checkPos = start + Vector(static_cast<float>(x), static_cast<float>(y));
+			MOPixel* px = DislodgePixelBool(checkPos.m_X, checkPos.m_Y, deletePixels);
+			if (px) {
+				pixelList->push_back(px);
+			}
+		}
+	}
+
+	return pixelList;
+}
+
+std::vector<MOPixel*>* SceneMan::DislodgePixelBoxNoBool(const Vector& upperLeftCorner, const Vector& lowerRightCorner) {
+	return DislodgePixelBox(upperLeftCorner, lowerRightCorner, false);
+}
+
+std::vector<MOPixel*>* SceneMan::DislodgePixelLine(const Vector& start, const Vector& ray, int skip, bool deletePixels) {
+	std::vector<MOPixel*>* pixelList = new std::vector<MOPixel*>();
+	int error, dom, sub, domSteps, skipped = skip;
+	int intPos[2], delta[2], delta2[2], increment[2];
+
+	intPos[X] = std::floor(start.m_X);
+	intPos[Y] = std::floor(start.m_Y);
+	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
+	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
+
+	/////////////////////////////////////////////////////
+	// Bresenham's line drawing algorithm preparation
+
+	if (delta[X] < 0) {
+		increment[X] = -1;
+		delta[X] = -delta[X];
+	} else
+		increment[X] = 1;
+
+	if (delta[Y] < 0) {
+		increment[Y] = -1;
+		delta[Y] = -delta[Y];
+	} else
+		increment[Y] = 1;
+
+	// Scale by 2, for better accuracy of the error at the first pixel
+	delta2[X] = delta[X] << 1;
+	delta2[Y] = delta[Y] << 1;
+
+	// If X is dominant, Y is submissive, and vice versa.
+	if (delta[X] > delta[Y]) {
+		dom = X;
+		sub = Y;
+	} else {
+		dom = Y;
+		sub = X;
+	}
+
+	error = delta2[sub] - delta[dom];
+
+	/////////////////////////////////////////////////////
+	// Bresenham's line drawing algorithm execution
+
+	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
+		intPos[dom] += increment[dom];
+		if (error >= 0) {
+			intPos[sub] += increment[sub];
+			error -= delta2[dom];
+		}
+		error += delta2[sub];
+
+		// Only check pixel if we're not due to skip any, or if this is the last pixel
+		if (++skipped > skip || domSteps + 1 == delta[dom]) {
+			// Scene wrapping
+			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
+
+			MOPixel* px = DislodgePixelBool(intPos[X], intPos[Y], deletePixels);
+			if (px) {
+				pixelList->push_back(px);
+			}
+
+			// Reset skip counter
+			skipped = 0;
+		}
+	}
+
+	return pixelList;
+}
+
+std::vector<MOPixel*>* SceneMan::DislodgePixelLineNoBool(const Vector& start, const Vector& ray, int skip) {
+	return DislodgePixelLine(start, ray, skip, false);
 }
 
 void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
@@ -1075,6 +1250,94 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 		// Fill the box
 		rectfill(pUnseenLayer->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_BlackColor);
 	}
+}
+
+bool SceneMan::CastTerrainPenetrationRay(const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip) {
+	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int intPos[2], delta[2], delta2[2], increment[2];
+	bool stopped = false;
+	unsigned char materialID;
+	Material const* foundMaterial;
+	int totalStrength = 0;
+	// Save the projected end of the ray pos
+	endPos = start + ray;
+
+	intPos[X] = std::floor(start.m_X);
+	intPos[Y] = std::floor(start.m_Y);
+	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
+	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
+
+	if (delta[X] == 0 && delta[Y] == 0)
+		return false;
+
+	/////////////////////////////////////////////////////
+	// Bresenham's line drawing algorithm preparation
+
+	if (delta[X] < 0) {
+		increment[X] = -1;
+		delta[X] = -delta[X];
+	} else
+		increment[X] = 1;
+
+	if (delta[Y] < 0) {
+		increment[Y] = -1;
+		delta[Y] = -delta[Y];
+	} else
+		increment[Y] = 1;
+
+	// Scale by 2, for better accuracy of the error at the first pixel
+	delta2[X] = delta[X] << 1;
+	delta2[Y] = delta[Y] << 1;
+
+	// If X is dominant, Y is submissive, and vice versa.
+	if (delta[X] > delta[Y]) {
+		dom = X;
+		sub = Y;
+	} else {
+		dom = Y;
+		sub = X;
+	}
+
+	error = delta2[sub] - delta[dom];
+
+	/////////////////////////////////////////////////////
+	// Bresenham's line drawing algorithm execution
+
+	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
+		intPos[dom] += increment[dom];
+		if (error >= 0) {
+			intPos[sub] += increment[sub];
+			error -= delta2[dom];
+		}
+		error += delta2[sub];
+
+		// Only check pixel if we're not due to skip any, or if this is the last pixel
+		if (++skipped > skip || domSteps + 1 == delta[dom]) {
+			// Scene wrapping
+			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
+
+			// Check the strength of the terrain to see if we can penetrate further
+			materialID = GetTerrMatter(intPos[X], intPos[Y]);
+			// Get the material object
+			foundMaterial = GetMaterialFromID(materialID);
+			// Add the encountered material's strength to the tally
+			totalStrength += foundMaterial->GetIntegrity();
+			// See if we have hit the limits of our ray's strength
+			if (totalStrength >= strengthLimit) {
+				// Save the position of the end of the ray where blocked
+				endPos.SetXY(intPos[X], intPos[Y]);
+				stopped = true;
+				break;
+			}
+			// Reset skip counter
+			skipped = 0;
+			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
+			}
+		}
+	}
+
+	return stopped;
 }
 
 // TODO Every raycast should use some shared line drawing method (or maybe something more efficient if it exists, that needs looking into) instead of having a ton of duplicated code.

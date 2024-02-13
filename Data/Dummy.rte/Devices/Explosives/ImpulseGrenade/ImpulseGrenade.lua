@@ -11,6 +11,7 @@ function Update(self)
 			trail.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(i);
 			MovableMan:AddParticle(trail);
 		end
+		
 		local glow = CreateMOPixel("Impulse Grenade Trail Glow 2");
 		glow.Pos = self.Pos;
 		MovableMan:AddParticle(glow);
@@ -28,11 +29,13 @@ function Update(self)
 		self.fuze = Timer();
 		self.GibWoundLimit = self.GibWoundLimit * 2;
 	end
+
 	if self.deadMansSwitch and self.ID ~= rte.NoMOID then
 		if self.RootID == self.ID then
 			self:Activate();
 		end
 	end
+
 	if self:GetParent() or self.ID == rte.NoMOID or self.WoundCount > 0 then
 		self.deadMansSwitch = true;
 	end

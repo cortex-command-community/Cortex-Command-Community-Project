@@ -74,7 +74,6 @@ namespace RTE {
 		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
 		void PreControllerUpdate() override;
 
-		/// Virtual method:	GetMaxPassengers
 		/// The recomended, not absolute, maximum number of actors that fit in the
 		/// invetory. Used by the activity AI.
 		/// @return An integer with the recomended number of actors that fit in the craft.

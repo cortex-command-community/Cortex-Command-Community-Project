@@ -53,6 +53,7 @@ function Update(self)
 		self.ToDelete = false;
 		self.ToSettle = false;
 	end
+
 	endPoint = math.floor(endPoint);
 
 	--Draw out the path.
@@ -85,6 +86,7 @@ function Update(self)
 			frontA.Vel = (fireVector * 0.5 - waveOffset) * 0.2;
 			MovableMan:AddParticle(frontA);
 		end
+
 		--Add the blue wave effect.
 		local partB = CreateMOPixel("Techion.rte/Dihelical Cannon Effect Particle");
 		partB.Pos = downPos;
@@ -121,6 +123,7 @@ function Update(self)
 							mo:AddWound(wound, woundOffset:RadRotate(-mo.RotAngle * mo.FlipFactor), true);
 						end
 					end
+
 					local rootMO = mo:GetRootParent();
 					if i == 2 and IsActor(rootMO) then
 						local melter = self.melter:Clone();
@@ -130,6 +133,7 @@ function Update(self)
 						melter.PinStrength = self.disintegrationStrength;
 						MovableMan:AddMO(melter);
 					end
+
 					self.hits = self.hits + (i == 2 and math.sqrt(mo.Material.StructuralIntegrity) + math.sqrt(mo.Radius + mo.Mass) * 0.1 or 1);
 					
 					--Add the dissipate effect.
@@ -140,13 +144,14 @@ function Update(self)
 				end
 			end
 		end
-		if (self.lastAmplitude > 0 and amplitude < 0) or (self.lastAmplitude < 0 and amplitude > 0) then
 
+		if (self.lastAmplitude > 0 and amplitude < 0) or (self.lastAmplitude < 0 and amplitude > 0) then
 			local part = CreateMOPixel("Techion.rte/Dihelical Cannon Large Effect Particle");
 			part.Pos = linePos - Vector(self.direction.X, self.direction.Y):SetMagnitude(2);
 			part.Vel = fireVector * 0.1;
 			MovableMan:AddParticle(part);
 		end
+
 		self.lastAmplitude = amplitude;
 		if self.hits > self.strengthThreshold then
 
@@ -161,8 +166,10 @@ function Update(self)
 		else
 			self.hits = self.hits * 0.9;
 		end
+
 		self.flaceLength = self.flaceLength * (1 + 0.05/self.flaceLength);
 		self.maxAmplitude = self.flaceLength * 0.5;
 	end
+	
 	self.lastI = endPoint;
 end

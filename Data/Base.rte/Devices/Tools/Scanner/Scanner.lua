@@ -38,15 +38,18 @@ function OnFire(self)
 				checkPos = Vector(checkPos.X + SceneMan.SceneWidth, checkPos.Y);
 			end
 		end
+		
 		signalStrength = signalStrength - (self.signalDecrement + SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(checkPos.X, checkPos.Y)).StructuralIntegrity) * scanSpacing;
 		if signalStrength < 0 then
 			break;
 		end
+
 		if SceneMan:IsUnseen(checkPos.X, checkPos.Y, self.Team) then
 			SceneMan:RevealUnseen(checkPos.X, checkPos.Y, self.Team);
 			break;
 		end
 	end
+
 	if self.detectedItemPos == nil then
 		local mo = MovableMan:GetMOFromID(SceneMan:CastMORay(self.MuzzlePos, trace, self:GetRootParent().ID, Activity.NOTEAM, rte.airID, true, 1));
 		if mo and IsMOSRotating(mo) then

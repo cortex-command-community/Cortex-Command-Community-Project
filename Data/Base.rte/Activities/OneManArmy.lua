@@ -113,19 +113,19 @@ function OneManArmy:SetupHumanPlayerBrains(actorGroup, primaryGroup, secondaryGr
 						local primaryWeapon, secondaryWeapon, throwable, actor;
 						for entity in module.Presets do
 							local picked;	--Prevent duplicates
-							if not primaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).IsBuyable then
+							if not primaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).Buyable then
 								primaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
 								picked = true;
 							end
-							if not picked and not secondaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(secondaryGroup) and ToMOSRotating(entity).IsBuyable then
+							if not picked and not secondaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(secondaryGroup) and ToMOSRotating(entity).Buyable then
 								secondaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
 								picked = true;
 							end
-							if not picked and not throwable and entity.ClassName == "TDExplosive" and ToMOSRotating(entity):HasObjectInGroup("Bombs - Grenades") and ToMOSRotating(entity).IsBuyable then
+							if not picked and not throwable and entity.ClassName == "TDExplosive" and ToMOSRotating(entity):HasObjectInGroup("Bombs - Grenades") and ToMOSRotating(entity).Buyable then
 								throwable = CreateTDExplosive(entity:GetModuleAndPresetName());
 								picked = true;
 							end
-							if not picked and not actor and entity.ClassName == "AHuman" and ToMOSRotating(entity):HasObjectInGroup(actorGroup) and ToMOSRotating(entity).IsBuyable then
+							if not picked and not actor and entity.ClassName == "AHuman" and ToMOSRotating(entity):HasObjectInGroup(actorGroup) and ToMOSRotating(entity).Buyable then
 								actor = CreateAHuman(entity:GetModuleAndPresetName());
 							end
 						end

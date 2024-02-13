@@ -19,11 +19,10 @@
 -- Odd-numbered Down Orbit Direction dropship docks will assume the drop position is to the left of your area.
 -- Even-numbered docks will assume it is to the right.
 
--- No dropshio dock objects are placed for Down Orbit Direction maps.
+-- No dropship dock objects are placed for Down Orbit Direction maps.
 
 -- When ready, use SpawnDockingCraft(craft, int specificDockNumber) with a craft reference not currently in sim to send it a dock.
--- specificDockNumber is optional, and in fact should be used carefully as there is no safety checking to see if the dock is already in use.
--- It will readily override another docking craft at that number and stop updating the old one, resulting in undesirable behavior.
+-- specificDockNumber is optional. It will try only that dock (and return false if it's busy) instead of grabbing any available dock.
 
 -- The handler will also automatically grab dropships that enter sim without its knowledge, put them on a wait list, and assign them a dock
 -- when one is available if it is initialized to do so.
@@ -56,15 +55,18 @@ function DockingHandler:Create()
 	return Members;
 end
 
-function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame)
+function DockingHandler:Initialize(activity, newGame, autoAssignUnknownDropships, verboseLogging)
 	
-	print("dockhandler inited")
-	print(SceneMan.SceneOrbitDirection)
+	if verboseLogging then
+		self.verboseLogging = true;
+	end
+	
+	if autoAssignUnknownDropships then
+		self.autoAssignUnknownDropships = true;
+	end
 	
 	self.Activity = activity;
-	
-	self.autoAssignUnknownDropships = autoAssignUnknownDropships or false;
-	
+
 	-- Set up player dropship dock wait list
 	
 	self.playerDSDockCheckTimer = Timer();
@@ -77,7 +79,6 @@ function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame
 	-- if it's 2 or 3, we don't know what the hell the player is doing...
 	
 	-- Set up docks
-	-- TODO make better with iteration
 	
 	if newGame then
 	
@@ -90,25 +91,37 @@ function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame
 
 		self.mainTable.activeDSDockTable = {};
 		
-		self.mainTable.activeDSDockTable[1] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship Dock 1").Center + Vector(0, 0),
-		["activeCraft"] =  nil,
-		["dockingStage"] =  nil};
+		local i = 1;
 		
-		self.mainTable.activeDSDockTable[2] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship Dock 2").Center + Vector(0, 0),
-		["activeCraft"] =  nil, 
-		["dockingStage"] =  nil};
+		while SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i) do	
+			self.mainTable.activeDSDockTable[i] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship Dock " .. i).Center,
+			["activeCraft"] =  nil,
+			["dockingStage"] =  nil};			
+			i = i + 1;
+			-- Jump two if needed, the player may want to avoid overlap as per above instructions
+			if SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i) then
+			elseif SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i + 1) then
+				i = i + 1;
+			end
+				
+		end
 		
 		
 		self.mainTable.activeRocketDockTable = {};
 		
-		self.mainTable.activeRocketDockTable[1] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket Dock 1").Center + Vector(0, 0),
-		["activeCraft"] =  nil, 
-		["dockingStage"] =  nil};
+		i = 1;
 		
-		self.mainTable.activeRocketDockTable[2] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket Dock 2").Center + Vector(0, 0),
-		["activeCraft"] =  nil, 
-		["dockingStage"] =  nil};
-		
+		while SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i) do	
+			self.mainTable.activeRocketDockTable[i] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket Dock " .. i).Center,
+			["activeCraft"] =  nil,
+			["dockingStage"] =  nil};
+			i = i + 1;
+			if SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i) then
+			elseif SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i + 1) then
+				i = i + 1;
+			end
+		end
+
 		if not self.undersideScene then
 		
 			-- Place dropship capturer docks if relevant
@@ -120,6 +133,7 @@ function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame
 				dockObject.GibImpulseLimit = 9999999999;
 				dockObject.GibWoundLimit = 9999999999;
 				dockObject.PinStrength = 9999999999;
+				dockObject.GetsHitByMOs = false;
 				MovableMan:AddParticle(dockObject);
 			end
 		end
@@ -133,29 +147,35 @@ function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame
 			dockObject.GibImpulseLimit = 9999999999;
 			dockObject.GibWoundLimit = 9999999999;
 			dockObject.PinStrength = 9999999999;
+			dockObject.GetsHitByMOs = false;
 			MovableMan:AddParticle(dockObject);
 		end
 	end
+	
+	print("INFO: DockingHandler initialized!");
 	
 end
 
 function DockingHandler:OnLoad(saveLoadHandler)
 	
-	print("loading dockinghandler...");
+	print("INFO: DockingHandler loading...");
 	self.mainTable = saveLoadHandler:ReadSavedStringAsTable("dockingHandlerMainTable");
-	print("loaded dockinghandler!");
+	print("INFO: DockingHandler loaded!");
 	
 end
 
 function DockingHandler:OnSave(saveLoadHandler)
 	
-	print("saved docking maintable!")
-	print(self.mainTable)
+	print("INFO: DockingHandler saving...");
 	saveLoadHandler:SaveTableAsString("dockingHandlerMainTable", self.mainTable);
+	print("INFO: DockingHandler saved!");
 	
 end
 
 function DockingHandler:SpawnDockingCraft(craft, specificDock)
+	if self.verboseLogging then
+		print("INFO: DockingHandler is attempting to spawn a docking craft. Specific dock if applicable: " .. specificDock);
+	end
 	if self.undersideScene then
 		return self:SpawnUndersideDockingCraft(craft, specificDock);
 	else
@@ -178,11 +198,19 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 	craft.AIMode = Actor.AIMODE_GOTO;
 	--craft.DeliveryState = ACraft.STANDBY;
 	
+	local dockToDockAt = nil;
+	local dockTable;
+	
 	if IsACDropShip(craft) then
 	
-		local dockToDockAt = nil;
-		local dockTable;
-		if specificDock == nil then
+		if specificDock then
+			if not self.mainTable.activeDSDockTable[specificDock].activeCraft and not self.mainTable.activeRocketDockTable[specificDock].activeCraft then
+				dockToDockAt = specificDock;
+				dockTable = self.mainTable.activeDSDockTable[specificDock];
+			else
+				return false;
+			end
+		else
 			for i, dockInfoTable in ipairs(self.mainTable.activeDSDockTable) do
 				if not dockInfoTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
 					dockToDockAt = i;
@@ -190,8 +218,6 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 					break;
 				end
 			end
-		else
-			dockToDockAt = specificDock;
 		end
 	
 		if dockToDockAt then
@@ -202,9 +228,11 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
 			
-			craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
+			local pos = dockTable.dockPosition + Vector(0, 500);
+			SceneMan:ForceBounds(pos);				
+			craft:AddAISceneWaypoint(pos);
 			craft:AddAISceneWaypoint(dockTable.dockPosition);
-			local direction = dockToDockAt % 2 == 0 and -1 or 1;	
+			local direction = dockToDockAt % 2 == 0 and 1 or -1;	
 			craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(275 * direction, 0))
 			
 			dockTable.activeCraft = craft;
@@ -213,11 +241,16 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			dockingSuccess = true;
 		end
 		
-	else
-	
-		local dockToDockAt = nil;
-		local dockTable;
-		if specificDock == nil then
+	elseif IsACRocket(craft) and not craft:IsInGroup("Craft - Crates") then
+		
+		if specificDock then
+			if not self.mainTable.activeRocketDockTable[specificDock].activeCraft and not self.mainTable.activeDSDockTable[specificDock].activeCraft then
+				dockToDockAt = specificDock;
+				dockTable = self.mainTable.activeRocketDockTable[specificDock];
+			else
+				return false;
+			end
+		else
 			for i, dockInfoTable in ipairs(self.mainTable.activeRocketDockTable) do
 				if not dockInfoTable.activeCraft and not self.mainTable.activeDSDockTable[i].activeCraft then
 					dockToDockAt = i;
@@ -225,8 +258,6 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 					break;
 				end
 			end
-		else
-			dockToDockAt = specificDock;
 		end
 	
 		if dockToDockAt then
@@ -239,7 +270,7 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
 			
-			craft:AddAISceneWaypoint(dockTable.dockPosition);
+			craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, -250));
 			
 			dockTable.activeCraft = craft;
 			dockTable.dockingStage = 1;
@@ -247,11 +278,16 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			dockingSuccess = true;
 			
 		end
+	else
+		print("ERROR: DockingHandler received a craft that was neither a dropship nor a rocket! Here is what it received:");
+		print(craft)
+		return false;
 	end
 		
 	if dockingSuccess == true then
 		MovableMan:AddActor(craft);
 		craft:UpdateMovePath();
+		--craft:SetMovePathToUpdate();
 	else
 		--print("failed")
 	end
@@ -292,8 +328,6 @@ function DockingHandler:UpdateUndersideDockingCraft()
 					for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
 						if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
 							
-							print("found dock for unknown craft")
-							
 							craft.AIMode = Actor.AIMODE_GOTO;
 							--craft.Team = 0
 							--craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
@@ -302,9 +336,11 @@ function DockingHandler:UpdateUndersideDockingCraft()
 							-- Mark this craft's dock number, not used except to see if there's any dock at all
 							craft:SetNumberValue("Dock Number", i);
 							
-							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
+							local pos = dockTable.dockPosition + Vector(0, 500);
+							SceneMan:ForceBounds(pos);				
+							craft:AddAISceneWaypoint(pos);
 							craft:AddAISceneWaypoint(dockTable.dockPosition);
-							local direction = i % 2 == 0 and -1 or 1;	
+							local direction = i % 2 == 0 and 1 or -1;	
 							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(275 * direction, 0))
 							
 							dockTable.activeCraft = craft;
@@ -359,8 +395,9 @@ function DockingHandler:UpdateUndersideDockingCraft()
 						
 						-- Mark this craft's dock number, not used except to see if there's any dock at all
 						craft:SetNumberValue("Dock Number", i2);
-						
-						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
+						local pos = dockTable.dockPosition + Vector(0, 500);
+						SceneMan:ForceBounds(pos);				
+						craft:AddAISceneWaypoint(pos);
 						
 						dockTable.activeCraft = craft;
 						dockTable.dockingStage = 1;
@@ -379,7 +416,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 	for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
 		if dockTable.activeCraft then
 			
-			local direction = i % 2 == 0 and -1 or 1;	
+			local direction = i % 2 == 0 and 1 or -1;	
 			local craft = dockTable.activeCraft;
 			
 			if craft and MovableMan:ValidMO(craft) then
@@ -434,7 +471,9 @@ function DockingHandler:UpdateUndersideDockingCraft()
 				
 					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true))
 				
-					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition  + Vector(0, 500), true).Magnitude
+					local pos = dockTable.dockPosition + Vector(0, 500);
+					SceneMan:ForceBounds(pos);				
+					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, pos, true).Magnitude
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
 						dockTable.dockingStage = 2;
@@ -462,6 +501,9 @@ function DockingHandler:UpdateUndersideDockingCraft()
 			
 				craft = ToACraft(craft)
 				
+				--print(craft)
+				--print(dockingStage)
+				
 				--craft.DeliveryState = ACraft.STANDBY;
 				craft.AIMode = Actor.AIMODE_GOTO;
 				
@@ -469,10 +511,10 @@ function DockingHandler:UpdateUndersideDockingCraft()
 					-- help these fucking things along, i'm sorry they're too stupid
 					local distVectorFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true)
 					if math.abs(distVectorFromDockArea.X) > 1 then -- we're helplessly off-course, abort
-						print(distVectorFromDockArea.X)
-						print("aborted")
-						print(craft.Pos);
-						print(dockTable.dockPosition)
+						--print(distVectorFromDockArea.X)
+						--print("aborted")
+						--print(craft.Pos);
+						--print(dockTable.dockPosition)
 						dockTable.dockingStage = 3;
 						craft:ClearAIWaypoints();
 						craft:AddAISceneWaypoint(Vector(craft.Pos.X, SceneMan.Scene.Height + 500));
@@ -590,7 +632,7 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 		
 	if dockingSuccess == true then
 		MovableMan:AddActor(craft);
-		craft:UpdateMovePath();
+		--craft:SetMovePathToUpdate();
 	else
 		--print("failed")
 		return false;
@@ -627,7 +669,9 @@ function DockingHandler:UpdateRegularDockingCraft()
 							-- Mark this craft's dock number, not used except to see if there's any dock at all
 							craft:SetNumberValue("Dock Number", i);
 							
-							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, -500));
+							local pos = dockTable.dockPosition + Vector(0, 500);
+							SceneMan:ForceBounds(pos);				
+							craft:AddAISceneWaypoint(pos);
 							craft:AddAISceneWaypoint(dockTable.dockPosition);
 							
 							dockTable.activeCraft = craft;
@@ -683,7 +727,9 @@ function DockingHandler:UpdateRegularDockingCraft()
 						-- Mark this craft's dock number, not used except to see if there's any dock at all
 						craft:SetNumberValue("Dock Number", i2);
 						
-						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, -500));
+						local pos = dockTable.dockPosition + Vector(0, 500);
+						SceneMan:ForceBounds(pos);				
+						craft:AddAISceneWaypoint(pos);
 						craft:AddAISceneWaypoint(dockTable.dockPosition);
 						
 						dockTable.activeCraft = craft;
@@ -703,7 +749,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 	for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
 		if dockTable.activeCraft then
 			
-			local direction = i % 2 == 0 and -1 or 1;	
+			local direction = i % 2 == 0 and 1 or -1;	
 			local craft = dockTable.activeCraft;
 			
 			if craft and MovableMan:ValidMO(craft) then
@@ -756,10 +802,10 @@ function DockingHandler:UpdateRegularDockingCraft()
 					-- help these fucking things along, i'm sorry they're too stupid
 					local distVectorFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true)
 					if math.abs(distVectorFromDockArea.X) > 1 then -- we're helplessly off-course, abort
-						print(distVectorFromDockArea.X)
-						print("aborted")
-						print(craft.Pos);
-						print(dockTable.dockPosition)
+						--print(distVectorFromDockArea.X)
+						--print("aborted")
+						--print(craft.Pos);
+						--print(dockTable.dockPosition)
 						dockTable.dockingStage = 3;
 						craft:ClearAIWaypoints();
 						craft:AddAISceneWaypoint(Vector(craft.Pos.X, SceneMan.Scene.Height + 500));

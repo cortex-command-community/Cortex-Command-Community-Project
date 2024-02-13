@@ -172,7 +172,7 @@ namespace RTE {
 		void Update();
 
 		/// Clears the primary renderer, or all the renderers if in multi-display fullscreen.
-		void ClearRenderer();
+		void ClearRenderer(bool clearFrameMan = true);
 
 		/// Set this Frame to draw the game. To be set before UploadFrame. Resets on ClearRenderer.
 		void DrawPostProcessBuffer() { m_DrawPostProcessBuffer = true; }
