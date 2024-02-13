@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+<details><summary><b>Added</b></summary>
+
+</details>
+
+<details><summary><b>Changed</b></summary>
+
+- Nerfed the Coalition Grenade Launcher and the Devastator a tiny bit. They are still scary and the Devastator can still one-shot most things on a good hit, but they did not need to be that oppressive.
+
+</details>
+
+<details><summary><b>Fixed</b></summary>
+
+- Fixed initial Decision Day dropships never exploding and sticking around.
+
+- Reverted a change to pathfinding, that although was technically accurate, caused issues with the AI being too eager to path up-and-over obstacles instead of through them. In the future this will likely be revisited when we get jump-aware pathfinding.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+</details>
+
 ## [Release v6.0.0] - 2024/02/11
 
 <details><summary><b>Added</b></summary>
@@ -2384,6 +2408,6 @@ Note: For a log of changes made prior to the commencement of the open source com
 [Release v2.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre2
 [Release v3.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre3.0
 [Release v4.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
-[Release v5.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.0
+[Release v5.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.2
 [Release v6.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.0.0
 [Unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development

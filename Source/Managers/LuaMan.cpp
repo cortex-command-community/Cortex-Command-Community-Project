@@ -34,7 +34,8 @@ void LuaStateWrapper::Initialize() {
 	tracy::LuaRegister(m_State);
 
 	// Disable gc. We do this manually, so we can thread it to occur parallel with non-lua updates
-	lua_gc(m_State, LUA_GCSTOP, 0);
+	// Not doing this for now... see StartAsyncGarbageCollection()
+	// lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
 	    {LUA_COLIBNAME, luaopen_base},
@@ -1172,6 +1173,11 @@ void LuaMan::Update() {
 
 void LuaMan::StartAsyncGarbageCollection() {
 	ZoneScoped;
+
+	// For now we're not doing this... because it's slower than normal (blocking) GC collection during the update
+	// This is because Lua is trash and basically GCSTEP is meaningless and can cause memory leak runaway, whereas GCCOLLECT is ultra-expensive
+	// So for now we do normal GC collection :(
+	return;
 
 	std::vector<LuaStateWrapper*> allStates;
 	allStates.reserve(m_ScriptStates.size() + 1);

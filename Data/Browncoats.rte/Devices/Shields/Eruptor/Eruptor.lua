@@ -21,12 +21,10 @@ function Create(self)
 	self.equippedInMainHand = false;
 	self:SetOneHanded(true);
 	local rootParent = self:GetRootParent();
-	if IsAHuman(rootParent) then
-		if ToAHuman(rootParent).EquippedItem.UniqueID == self.UniqueID then
-			ToAHuman(rootParent):UnequipBGArm();
-			self.equippedInMainHand = true;
-			self:SetOneHanded(false);
-		end
+	if IsAHuman(rootParent) and ToAHuman(rootParent).EquippedItem and ToAHuman(rootParent).EquippedItem.UniqueID == self.UniqueID then
+		ToAHuman(rootParent):UnequipBGArm();
+		self.equippedInMainHand = true;
+		self:SetOneHanded(false);
 	end
 end
 
@@ -36,12 +34,10 @@ function OnAttach(self, newParent)
 	self.Bashing = false;
 	self.bashActive = false;
 	self.HitsMOs = false	local rootParent = self:GetRootParent();
-	if IsAHuman(rootParent) then
-		if ToAHuman(rootParent).EquippedItem.UniqueID == self.UniqueID then
-			ToAHuman(rootParent):UnequipBGArm();
-			self.equippedInMainHand = true;
-			self:SetOneHanded(false);
-		end
+	if IsAHuman(rootParent) and ToAHuman(rootParent).EquippedItem and ToAHuman(rootParent).EquippedItem.UniqueID == self.UniqueID then
+		ToAHuman(rootParent):UnequipBGArm();
+		self.equippedInMainHand = true;
+		self:SetOneHanded(false);
 	end
 end
 
@@ -104,6 +100,7 @@ function ThreadedUpdate(self)
 				if not self.bashActive then
 					self.bashActive = true;
 				end
+				
 				self.StanceOffset = self.bashActiveStanceOffset;
 				self.SharpStanceOffset = self.bashActiveStanceOffset;
 			end
@@ -146,6 +143,5 @@ function SyncedUpdate(self)
 				end
 			end
 		end
-		
 	end
 end
