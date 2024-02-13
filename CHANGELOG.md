@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Changed</b></summary>
 
+- Nerfed the Coalition Grenade Launcher and the Devastator a tiny bit. They are still scary and the Devastator can still one-shot most things on a good hit, but they did not need to be that oppressive.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
