@@ -1,0 +1,154 @@
+name: "Setup osxcross"
+author: mbround18
+description: Setup osxcross for rust/other compilation projects.
+branding:
+  icon: 'aperture'  
+  color: 'green'
+
+
+inputs:
+  osx-version:
+    description: "Version of osx to use."
+    required: true
+
+outputs:
+  legacy-ssl:
+    value: ${{steps.gen_configs.outputs.legacy-ssl}}
+  meson-osxcross:
+    value: ${{steps.gen_configs.outputs.meson-osxcross}}
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        mkdir -p $GITHUB_ACTION_PATH/osxcross
+        echo "OSXCROSS_FOLDER=$(echo "$GITHUB_ACTION_PATH/osxcross" | sed 's/\.\/*//g')" >> $GITHUB_ENV
+
+
+    - uses: actions/checkout@v4
+      with:
+        repository: tpoechtrager/osxcross
+        path: ${{env.OSXCROSS_FOLDER}}
+
+    - shell: bash
+      id: target
+      run: |
+        repeat(){
+          for i in {1..90}; do echo -n "$1"; done
+        }
+
+        echo "::group::Disclaimer Click Here for Info"
+        echo ""
+        repeat "-"
+        echo ""
+        echo "The first time you run this it will take upwards of 9 minutes to compile. Subsequent builds are cached."
+        echo ""
+        repeat "-"
+        echo ""
+        echo "::endgroup::"
+
+
+        echo "::group::Installing Deps"
+
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends -y -qq clang gcc g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev  cmake libxml2-dev libssl-dev xz-utils 
+        echo "::endgroup::"
+
+        # Check setup for osx version
+        echo "::group::Fetching macosx SDK"
+        FILE_NAME="MacOSX${{ inputs.osx-version }}.sdk.tar.xz"
+
+        # Check joseluisq/macosx-sdks for release
+        wget -nc "https://github.com/joseluisq/macosx-sdks/releases/download/${{ inputs.osx-version }}/${FILE_NAME}" -O "$OSXCROSS_FOLDER/tarballs/${FILE_NAME}"
+        echo "::endgroup::"
+
+        echo "OSXCROSS_TARGET=${OSXCROSS_FOLDER}/target" >> $GITHUB_ENV
+
+    - uses: actions/cache@v4
+      id: cache
+      with:
+        key: ${{ runner.os }}-osxcross-${{ inputs.osx-version }}
+        path: |
+          ${{ env.OSXCROSS_TARGET }}
+          
+
+    - shell: bash
+      if: steps.cache.outputs.cache-hit != 'true'
+      env:
+        SDK_VERSION: "${{ inputs.osx-version }}"
+        UNATTENDED: "yes"
+      run: |
+        cd ${OSXCROSS_FOLDER}
+        echo "::group::Build osxcross"
+        ./build.sh
+        echo "::endgroup::"
+        echo "::group::Build GCC"
+        ./build_gcc.sh
+        echo "::endgroup::"
+
+    - shell: bash
+      id: gen_configs
+      run: |
+        echo "::group::Setting up Bin files"
+        OSXCROSS_FOLDER="$(echo "${GITHUB_ACTION_PATH}/osxcross" | sed 's/\.\/*//g')"
+        echo "OSXCROSS Folder = ${OSXCROSS_FOLDER}"
+
+        if [ ! -d "$OSXCROSS_FOLDER/target/bin" ]; then
+          echo "Error! Failed to find ${OSXCROSS_FOLDER}/target/bin folder!"
+          exit 1
+        else
+          if hash sudo 2>/dev/null; then
+            sudo chmod +x $OSXCROSS_FOLDER/target/bin/*
+          else
+            chmod +x $OSXCROSS_FOLDER/target/bin/*
+          fi
+        fi        
+        echo "::endgroup::"
+
+        echo "::group::Finding Arch Name"
+        echo "$OSXCROSS_FOLDER/target/bin" >> $GITHUB_PATH
+        ARCH_TARGET="$(ls $OSXCROSS_FOLDER/target | grep apple)"
+        echo "::endgroup::"
+
+        ln -sf ${ARCH_TARGET}-otool ${OSXCROSS_TARGET}/bin/otool
+        ln -sf ${ARCH_TARGET}-install_name_tool ${OSXCROSS_TARGET}/bin/install_name_tool
+
+        echo "::group::Write meson cross file"
+        cat << EOF > $OSXCROSS_FOLDER/meson_osxcross.txt
+        [constants]
+        arch = '${ARCH_TARGET}'
+        [binaries]
+        c = ['ccache', arch + '-gcc']
+        cpp = ['ccache', arch + '-g++']
+        strip = arch + '-strip'
+        pkg-config = arch  + '-pkg-config'
+        ranlib = arch + '-gcc-ranlib'
+        ar = arch + '-gcc-ar'
+        
+        [host_machine]
+        system = 'darwin'
+        cpu_family = 'x86_64'
+        cpu = 'x86_64'
+        endian = 'little'
+        EOF
+        echo "::endgroup::"
+
+        echo "meson-osxcross=${OSXCROSS_FOLDER}/meson_osxcross.txt" >> $GITHUB_OUTPUT
+
+    - shell: bash
+      run: |
+        OUT=$(patch -N -i ${GITHUB_ACTION_PATH}/macports.patch ${OSXCROSS_FOLDER}/target/bin/osxcross-macports) || echo "${OUT}" | grep "Skipping patch" -q || (echo "$OUT" && false);
+
+    - uses: actions/checkout@v4
+      with:
+        repository: auriamg/macdylibbundler
+        path: ${{env.OSXCROSS_FOLDER}}/dylibbundler
+
+    - shell: bash
+      run: |
+        echo "::group::Install dylibbundler"
+        cd ${OSXCROSS_FOLDER}/dylibbundler
+        make
+        echo "${OSXCROSS_FOLDER}/dylibbundler" >> $GITHUB_PATH
+        echo "::endgroup::"
