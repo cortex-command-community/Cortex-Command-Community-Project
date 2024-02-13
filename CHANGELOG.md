@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Fixed</b></summary>
 
+- Fixed initial Decision Day dropships never exploding and sticking around.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
