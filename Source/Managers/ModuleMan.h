@@ -4,6 +4,8 @@
 #include "Singleton.h"
 #include "DataModule.h"
 
+#include <unordered_set>
+
 #define g_ModuleMan ModuleMan::Instance()
 
 namespace RTE {
