@@ -645,7 +645,7 @@ function DecisionDay:SetTableValueByKey(tableToSetValueFor, keyToLoad)
 	local existingValueType = type(existingValue);
 
 	if existingValueType == "nil" then
-		("Loading Error: Tried to load " .. tableKey .." but there's no existing value for it!");
+		print("Loading Error: Tried to load " .. tableKey .." but there's no existing value for it!");
 	end
 
 	if existingValueType == "number" then
@@ -655,13 +655,13 @@ function DecisionDay:SetTableValueByKey(tableToSetValueFor, keyToLoad)
 	elseif existingValueType == "boolean" then
 		tableToSetValueFor[tableKey] = self:LoadNumber(keyToLoad) ~= 0;
 	elseif existingValueType == "table" then
-		("Loading Error: Tables are not supported, use . for subkeys!")
+		print("Loading Error: Tables are not supported, use . for subkeys!")
 	elseif existingValueType == "userdata" then
 		if existingValue.ElapsedSimTimeMS ~= nil then
 			tableToSetValueFor[tableKey]:SetSimTimeLimitMS(self:LoadNumber(keyToLoad .. ".SimTimeLimitMS"));
 			tableToSetValueFor[tableKey].ElapsedSimTimeMS = self:LoadNumber(keyToLoad .. ".ElapsedSimTimeMS");
 		else
-			("Loading Error: The only supported userdata type is Timer!");
+			print("Loading Error: The only supported userdata type is Timer!");
 		end
 	end
 end
