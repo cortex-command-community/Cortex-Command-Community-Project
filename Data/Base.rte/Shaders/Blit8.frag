@@ -1,12 +1,15 @@
 // Blit8.frag
-#version 330 core
+#version 300 es
 
-in vec2 textureUV;
+precision highp float;
+precision highp sampler2D;
 
-out vec4 FragColor;
+in highp vec2 textureUV;
 
-uniform sampler2D rteTexture;
-uniform sampler2D rtePalette;
+out highp vec4 FragColor;
+
+uniform highp sampler2D rteTexture;
+uniform highp sampler2D rtePalette;
 
 void main() {
 	float colorIndex = texture(rteTexture, vec2(textureUV.x, -textureUV.y)).r;

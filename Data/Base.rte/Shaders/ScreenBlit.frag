@@ -1,11 +1,14 @@
-#version 330 core
+#version 300 es
 
-in vec2 textureUV;
+precision highp float;
+precision highp sampler2D;
 
-out vec4 FragColor;
+in highp vec2 textureUV;
 
-uniform sampler2D rteTexture;
-uniform sampler2D rteGUITexture;
+out highp vec4 FragColor;
+
+uniform highp sampler2D rteTexture;
+uniform highp sampler2D rteGUITexture;
 
 vec4 texture2DAA(sampler2D tex, vec2 uv) {
 	vec2 texsize = vec2(textureSize(tex, 0));

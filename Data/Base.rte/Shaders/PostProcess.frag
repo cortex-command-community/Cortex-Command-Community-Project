@@ -1,11 +1,14 @@
-#version 330 core
+#version 300 es
 
-in vec2 textureUV;
+precision highp float;
+precision highp sampler2D;
 
-out vec4 FragColor;
+in highp vec2 textureUV;
 
-uniform sampler2D rteTexture;
-uniform vec4 rteColor;
+out highp vec4 FragColor;
+
+uniform highp sampler2D rteTexture;
+uniform highp vec4 rteColor;
 
 void main() {
 	FragColor = texture(rteTexture, textureUV) * rteColor;
