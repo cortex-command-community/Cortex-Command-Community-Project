@@ -310,13 +310,6 @@ bool HeldDevice::TransferJointImpulses(Vector& jointImpulses, float jointStiffne
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Travel
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Travels this, using its physical representation.
-// Arguments:       None.
-// Return value:    None.
-
 void HeldDevice::Travel()
 {
     Attachable::Travel();

@@ -11,12 +11,14 @@ function Update(self)
 	if actor and IsAHuman(actor) then
 		parent = ToAHuman(actor);
 	end
+
 	if self.FiredFrame then
 		self.shell = CreateMOSParticle("Casing Long");
 		self.loaded = false;
 		self.playedSound = false;
 		self.rotFactor = math.pi;
 	end
+
 	if parent and not self.loaded and self.RoundInMagCount > 0 and not self.reloadCycle then
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
@@ -31,6 +33,7 @@ function Update(self)
 				MovableMan:AddParticle(self.shell);
 				self.shell = nil;
 			end
+
 			--Animate the gun to signify the bolt being pulled
 			local balance = 5 + math.abs(math.sin(actor.RotAngle) * 5);	--Laying down horizontally reduces swaying when pulling bolt
 			self.Frame = 1;
@@ -42,6 +45,7 @@ function Update(self)
 
 			self.rotFactor = self.rotFactor - (math.pi * 0.0005 * self.RateOfFire);
 		end
+		
 		if self.rotFactor <= 0 then
 			self.loaded = true;
 			self.Frame = 0;

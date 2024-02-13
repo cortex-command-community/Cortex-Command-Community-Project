@@ -137,7 +137,7 @@ void WindowMan::CreatePrimaryWindow() {
 
 	int windowPosX = (m_ResX * m_ResMultiplier <= m_PrimaryWindowDisplayWidth) ? SDL_WINDOWPOS_CENTERED : (m_MaxResX - (m_ResX * m_ResMultiplier)) / 2;
 	int windowPosY = SDL_WINDOWPOS_CENTERED;
-	int windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE;
+	int windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
 	if (m_Fullscreen) {
 		windowFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -152,7 +152,7 @@ void WindowMan::CreatePrimaryWindow() {
 		m_ResMultiplier = 1;
 		g_SettingsMan.SetSettingsNeedOverwrite();
 
-		m_PrimaryWindow = std::shared_ptr<SDL_Window>(SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_ResX * m_ResMultiplier, m_ResY * m_ResMultiplier, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN), SDLWindowDeleter());
+		m_PrimaryWindow = std::shared_ptr<SDL_Window>(SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_ResX * m_ResMultiplier, m_ResY * m_ResMultiplier, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN), SDLWindowDeleter());
 		if (!m_PrimaryWindow) {
 			RTEAbort("Failed to create window because:\n" + std::string(SDL_GetError()));
 		}
@@ -565,7 +565,7 @@ bool WindowMan::ChangeResolutionToMultiDisplayFullscreen(float resMultiplier) {
 		if (displayIndex == m_PrimaryWindowDisplayIndex) {
 			m_MultiDisplayWindows.emplace_back(m_PrimaryWindow);
 		} else {
-			m_MultiDisplayWindows.emplace_back(SDL_CreateWindow(nullptr, displayOffsetX, displayOffsetY, displayWidth, displayHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_SKIP_TASKBAR), SDLWindowDeleter());
+			m_MultiDisplayWindows.emplace_back(SDL_CreateWindow(nullptr, displayOffsetX, displayOffsetY, displayWidth, displayHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_SKIP_TASKBAR), SDLWindowDeleter());
 			if (m_MultiDisplayWindows.back()) {
 			} else {
 				errorSettingFullscreen = true;
@@ -683,10 +683,12 @@ void WindowMan::Update() {
 	m_EventQueue.clear();
 }
 
-void WindowMan::ClearRenderer() {
+void WindowMan::ClearRenderer(bool clearFrameMan) {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-	g_FrameMan.ClearBackBuffer32();
+	if (clearFrameMan) {
+		g_FrameMan.ClearBackBuffer32();
+	}
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 	GL_CHECK(glActiveTexture(GL_TEXTURE1));

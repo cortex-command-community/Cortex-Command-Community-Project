@@ -364,7 +364,6 @@ namespace RTE {
 		/// the trigger'.
 		void Deactivate() override;
 
-		/// Method:			StopActivationSound
 		/// Aborts playing of active sound no matter what. Used to silence spinning
 		/// weapons when weapons swapped
 		void StopActivationSound();

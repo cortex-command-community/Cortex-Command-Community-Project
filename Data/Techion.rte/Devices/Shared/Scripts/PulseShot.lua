@@ -61,6 +61,7 @@ function PulsarDissipate(self, inverted)
 	elseif self.Vel:MagnitudeIsLessThan(1) then
 		hit = true;
 	end
+
 	if hit then
 		local offset = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(skipPx);
 		self.explosion = CreateAEmitter("Techion.rte/Laser Dissipate Effect");
@@ -73,6 +74,7 @@ function PulsarDissipate(self, inverted)
 		self.TrailLength = 0;
 		self.ToDelete = true;
 	end
+	
 	return hit;
 end
 

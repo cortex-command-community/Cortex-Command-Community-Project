@@ -103,6 +103,7 @@ function TimedExplosiveStick(self)
 				end
 			end
 		end
+
 		local rayHitPos = Vector();
 		local rayHit = false;
 		for i = 1, 2 do
@@ -123,6 +124,7 @@ function TimedExplosiveStick(self)
 				break;
 			end
 		end
+		
 		if rayHit then
 			self.actionPhase = 1;
 		elseif SceneMan:CastStrengthRay(self.Pos, checkVec, 0, rayHitPos, 1, rte.airID, SceneMan.SceneWrapsX) then

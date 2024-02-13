@@ -254,14 +254,12 @@ namespace RTE {
 		/// get drawn etc.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
-		/// Virtual method:	GetMaxPassengers
 		/// The recomended, not absolute, maximum number of actors that fit in the
 		/// invetory. Used by the activity AI.
 		/// @return An integer with the recomended number of actors that fit in the craft.
 		/// Default is -1 (unknown).
 		virtual int GetMaxPassengers() const { return m_MaxPassengers; }
 
-		/// Virtual method:	SetMaxPassengers
 		/// Sets the recomended, not absolute, maximum number of actors that fit in the
 		/// invetory. Used by the activity AI.
 		/// @param max An integer with the recomended number of actors that fit in the craft.

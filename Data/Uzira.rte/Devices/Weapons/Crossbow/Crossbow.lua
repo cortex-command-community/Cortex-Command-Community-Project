@@ -21,6 +21,7 @@ function Update(self)
 	elseif self.Frame ~= 0 and self.Frame ~= self.FrameCount - 1 then
 		self.Frame = self.FrameCount - 1;
 	end
+	
 	if self.Magazine and not self:GetParent() and self.TravelImpulse:MagnitudeIsGreaterThan(self.Mass) then
 		if math.random() < 0.5 then
 			self:Activate();

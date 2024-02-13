@@ -113,11 +113,6 @@ int ACrab::Create() {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the ACrab object ready for use.
-
 int ACrab::Create(BITMAP *pSprite,
                    Controller *pController,
                    const float mass,
@@ -408,12 +403,6 @@ void ACrab::Destroy(bool notInherited) {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetTotalValue
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the total liquidation value of this Actor and all its carried
-//                  gold and inventory.
-
 float ACrab::GetTotalValue(int nativeModule, float foreignMult) const
 {
     float totalValue = Actor::GetTotalValue(nativeModule, foreignMult);
@@ -422,11 +411,6 @@ float ACrab::GetTotalValue(int nativeModule, float foreignMult) const
 }
 */
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  GetCPUPos
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gets the absoltue position of this' brain, or equivalent.
-
 Vector ACrab::GetCPUPos() const
 {
     if (m_pTurret && m_pTurret->IsAttached() && m_pTurret->GetMountedMO())
@@ -621,25 +605,11 @@ bool ACrab::CollideAtPoint(HitData& hd) {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OnBounce
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits and then
-//                  bounces off of something. This is called by the owned Atom/AtomGroup
-//                  of this MovableObject during travel.
-
 bool ACrab::OnBounce(const Vector &pos)
 {
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OnSink
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Defines what should happen when this MovableObject hits and then
-//                  sink into something. This is called by the owned Atom/AtomGroup
-//                  of this MovableObject during travel.
 
 bool ACrab::OnSink(const Vector &pos)
 {

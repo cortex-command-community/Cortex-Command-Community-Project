@@ -1,5 +1,4 @@
 function Update(self)
-
 	if self.Age > self.Lifetime - 100 then
 		self:GibThis();
 		local igniter = CreateMOSRotating("Browncoat Boss Oil Bomb Igniter", "Browncoats.rte");
@@ -12,5 +11,4 @@ function Update(self)
 		igniter.Team = self.Team;
 		MovableMan:AddParticle(igniter);
 	end
-
 end
