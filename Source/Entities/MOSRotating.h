@@ -8,6 +8,8 @@
 #include "MOSprite.h"
 #include "Gib.h"
 
+#include <unordered_set>
+
 namespace RTE {
 
 	class AtomGroup;

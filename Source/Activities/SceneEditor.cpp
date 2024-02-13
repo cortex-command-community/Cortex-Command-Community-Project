@@ -23,6 +23,7 @@
 #include "GUIButton.h"
 #include "GUILabel.h"
 #include "GUIComboBox.h"
+#include "System.h"
 
 #include "SceneEditorGUI.h"
 #include "GameActivity.h"

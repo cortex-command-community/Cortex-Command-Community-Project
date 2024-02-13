@@ -13,6 +13,7 @@
 #include "MetagameGUI.h"
 #include "Scene.h"
 #include "SLTerrain.h"
+#include "System.h"
 
 using namespace RTE;
 
@@ -484,12 +485,6 @@ int MetaMan::OnlyTeamWithAnyBrainPoolLeft() {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          OneOrNoneTeamsLeft
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates whether there is less than two teams left in this game with
-//                  a brain in its ranks at all.
-
 bool MetaMan::OneOrNoneTeamsLeft()
 {
     // See if only one team remains with any brains
@@ -513,12 +508,6 @@ bool MetaMan::OneOrNoneTeamsLeft()
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          WhichTeamLeft
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Indicates which single team is left, if any.
-// Arguments:       None.
 
 int MetaMan::WhichTeamLeft()
 {

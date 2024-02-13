@@ -8,6 +8,7 @@
 #include "SceneObject.h"
 #include "Loadout.h"
 #include "ACraft.h"
+#include "System.h"
 
 using namespace RTE;
 

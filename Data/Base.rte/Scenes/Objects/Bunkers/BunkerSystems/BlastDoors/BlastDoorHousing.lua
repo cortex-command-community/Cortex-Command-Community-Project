@@ -1,14 +1,10 @@
 function Create(self)
-
 	self.doorParent = ToADoor(self:GetRootParent());
 	self.lastFrame = 0;
-	
 end
 
 function ThreadedUpdate(self)
-
 	if IsADoor(self.doorParent) then
-	
 		-- handle frame wrapping
 		if self.doorParent:GetDoorState() == ADoor.OPENING then
 			if self.lastFrame == self.doorParent.FrameCount - 1 and self.doorParent.Frame == 0 then

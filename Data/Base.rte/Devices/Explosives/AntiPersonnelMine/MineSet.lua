@@ -40,18 +40,17 @@ function Update(self)
 		AntiPersonnelMineTable = {};
 		AntiPersonnelMineTable[self.tableNum] = self;
 	end
+
 	if self.Sharpness ~= 0 then
 		self.ToDelete = true;
 	end
 
 	if self.actionPhase == 0 then
-
 		local trace = Vector(self.Vel.X, self.Vel.Y + 1):SetMagnitude(math.max(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.Radius));
 		local rayHitPos = Vector();
 		local terrainRaycast = SceneMan:CastStrengthRay(self.Pos, trace, 5, rayHitPos, 0, rte.airID, SceneMan.SceneWrapsX);
 
 		if terrainRaycast == true then
-
 			trace = Vector(trace.X, trace.Y):SetMagnitude(trace.Magnitude + 5);
 			local rayHitPosA = Vector();
 			local terrainRaycastA = SceneMan:CastStrengthRay(self.Pos + Vector(0, 3):RadRotate(Vector(self.Vel.X, self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosA, 0, rte.airID, SceneMan.SceneWrapsX);
@@ -72,13 +71,10 @@ function Update(self)
 			self.activateSound:Play(self.Pos);
 			self.delayTimer:Reset();
 		end
-
 	elseif self.actionPhase == 1 then
-
 		self.Vel = self.PinStrength == 0 and self.Vel or Vector();
 
 		if self.blinkTimer:IsPastSimMS(500) then
-
 			self.blinkTimer:Reset();
 
 			if self.blink == false then
@@ -120,9 +116,7 @@ function Update(self)
 				MovableMan:AddParticle(effectpar);
 			end
 		end
-
 	elseif self.actionPhase == 2 then
-
 		if self.blink == false then
 			self.blink = true;
 			self.Frame = ((self.alliedTeam + 1) * 2) + 1;

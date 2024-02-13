@@ -1,7 +1,6 @@
 -- Incorporates Filipawn Industries code
 
 function Create(self)
-
 	self.turnStrength = 3;
 	self.shake = 0.5;
 	self.lifeTimer = Timer();
@@ -39,6 +38,7 @@ function Create(self)
 	self.lifeTimer:SetSimTimeLimitMS(math.random(self.Lifetime * 0.5, self.Lifetime - math.ceil(TimerMan.DeltaTimeMS)));
 	self.activationDelay = math.random(260, 300);
 end
+
 function Update(self)
 	self.GlobalAccScalar = 1/math.sqrt(1 + math.abs(self.Vel.X) * 0.1);
 	if self.lifeTimer:IsPastSimMS(self.activationDelay) then
@@ -53,9 +53,7 @@ function Update(self)
 			local velCurrent = self.Vel-- + SceneMan.GlobalAcc
 			local velTarget = Vector(100, 0):RadRotate(angToTarget)
 			local velDif = velTarget - velCurrent
-			
-			
-			
+	
 			-- Frotate self.hoverDirection
 			local min_value = -math.pi;
 			local max_value = math.pi;

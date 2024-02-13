@@ -19,11 +19,13 @@ runs:
       run: |
         zip --must-match -j CortexCommand.windows.zip \
           release/Cortex\ Command*.exe/Cortex\ Command*.exe \
+          release/Cortex\ Command*.exe/Cortex\ Command*.pdb \
           external/lib/win/{fmod,SDL2}.dll
 
     - name: Compress Linux Release
       shell: bash
       run: |
+        chmod +x "release/CortexCommand (Linux)/CortexCommand.AppImage"
         zip --must-match -j CortexCommand.linux.zip \
           "release/CortexCommand (Linux)/CortexCommand.AppImage" \
           external/lib/linux/x86_64/libfmod.so*

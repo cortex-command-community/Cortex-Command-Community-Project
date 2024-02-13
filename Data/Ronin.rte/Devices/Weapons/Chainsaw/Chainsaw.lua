@@ -35,6 +35,7 @@ function Update(self)
 				self.activated = true;
 				self.actTimer:Reset();
 			end
+
 			if self.activated then
 
 				if self.rotFactor < 1 then
@@ -56,6 +57,7 @@ function Update(self)
 				end
 			end
 		end
+
 		self.actDelay = 200;
 
 		self.StanceOffset = Vector(10 + self.rotFactor * 3, 1):RadRotate(math.sin(self.rotFactor * 0.3) - 0.3);
@@ -66,6 +68,7 @@ function Update(self)
 		if self.activated == true then
 			self.actDelay = 2000;
 		end
+
 		self.lastAngle = self.RotAngle;
 	end
 	if self.Magazine then
@@ -79,9 +82,11 @@ function Update(self)
 					self.AngularVel = self.AngularVel * 0.99;
 				end
 			end
+
 			self.RateOfFire = self.origFireRate + 9 * (math.sqrt(turn * 100) + math.sqrt(self.Vel.Largest * 100));
 			self.ParticleSpreadRange = self.origParticleSpread + 3 * (math.sqrt(turn * 100) + math.sqrt(self.Vel.Largest));
 		end
+		
 		if self:IsActivated() and self.Magazine.RoundCount ~= 0 then
 			self.Scale = 0;
 			self.fired = true;

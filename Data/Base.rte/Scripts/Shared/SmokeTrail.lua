@@ -29,6 +29,7 @@ function Update(self)
 
 			self.smokeTwirlCounter = self.smokeTwirlCounter + RangeRand(-0.2, 0.4);
 		end
+		
 		MovableMan:AddParticle(effect);
 	end
 end

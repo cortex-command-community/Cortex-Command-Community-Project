@@ -8,6 +8,9 @@
 #include "MOPixel.h"
 #include "Atom.h"
 
+#include <array>
+#include <execution>
+
 using namespace RTE;
 
 ConcreteClassInfo(SLTerrain, SceneLayer, 0);

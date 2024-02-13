@@ -14,6 +14,7 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Scene.h"
+#include "System.h"
 
 #include "GUI.h"
 #include "GUICollectionBox.h"

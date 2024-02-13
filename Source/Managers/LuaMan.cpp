@@ -4,6 +4,7 @@
 #include "LuaBindingRegisterDefinitions.h"
 #include "ThreadMan.h"
 #include "ModuleMan.h"
+#include "System.h"
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyLua.hpp"
@@ -34,7 +35,8 @@ void LuaStateWrapper::Initialize() {
 	tracy::LuaRegister(m_State);
 
 	// Disable gc. We do this manually, so we can thread it to occur parallel with non-lua updates
-	lua_gc(m_State, LUA_GCSTOP, 0);
+	// Not doing this for now... see StartAsyncGarbageCollection()
+	// lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
 	    {LUA_COLIBNAME, luaopen_base},
@@ -78,7 +80,6 @@ void LuaStateWrapper::Initialize() {
 	                             .def("GetFileList", &LuaStateWrapper::FileList, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	                             .def("FileExists", &LuaStateWrapper::FileExists)
 	                             .def("DirectoryExists", &LuaStateWrapper::DirectoryExists)
-	                             .def("IsValidModulePath", &LuaStateWrapper::IsValidModulePath)
 	                             .def("FileOpen", &LuaStateWrapper::FileOpen)
 	                             .def("FileClose", &LuaStateWrapper::FileClose)
 	                             .def("FileRemove", &LuaStateWrapper::FileRemove)
@@ -280,7 +281,6 @@ const std::vector<std::string>* LuaStateWrapper::DirectoryList(const std::string
 const std::vector<std::string>* LuaStateWrapper::FileList(const std::string& path) { return g_LuaMan.FileList(path); }
 bool LuaStateWrapper::FileExists(const std::string& path) { return g_LuaMan.FileExists(path); }
 bool LuaStateWrapper::DirectoryExists(const std::string& path) { return g_LuaMan.DirectoryExists(path); }
-bool LuaStateWrapper::IsValidModulePath(const std::string& path) { return g_LuaMan.IsValidModulePath(path); }
 int LuaStateWrapper::FileOpen(const std::string& path, const std::string& accessMode) { return g_LuaMan.FileOpen(path, accessMode); }
 void LuaStateWrapper::FileClose(int fileIndex) { return g_LuaMan.FileClose(fileIndex); }
 void LuaStateWrapper::FileCloseAll() { return g_LuaMan.FileCloseAll(); }
@@ -887,17 +887,17 @@ LuaMan::~LuaMan() {
 }
 
 const std::vector<std::string>* LuaMan::DirectoryList(const std::string& path) {
-	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + path;
 	auto* directoryPaths = new std::vector<std::string>();
 
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
 		if (std::filesystem::exists(fullPath)) {
-			for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(fullPath)) {
-				if (directoryEntry.is_directory()) {
-					directoryPaths->emplace_back(directoryEntry.path().filename().generic_string());
+			for (const auto& entry: std::filesystem::directory_iterator(fullPath)) {
+				if (entry.is_directory()) {
+					directoryPaths->emplace_back(entry.path().filename().generic_string());
 				}
 			}
 		}
@@ -906,17 +906,17 @@ const std::vector<std::string>* LuaMan::DirectoryList(const std::string& path) {
 }
 
 const std::vector<std::string>* LuaMan::FileList(const std::string& path) {
-	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + path;
 	auto* filePaths = new std::vector<std::string>();
 
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
 		if (std::filesystem::exists(fullPath)) {
-			for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(fullPath)) {
-				if (directoryEntry.is_regular_file()) {
-					filePaths->emplace_back(directoryEntry.path().filename().generic_string());
+			for (const auto& entry: std::filesystem::directory_iterator(fullPath)) {
+				if (entry.is_regular_file()) {
+					filePaths->emplace_back(entry.path().filename().generic_string());
 				}
 			}
 		}
@@ -926,7 +926,7 @@ const std::vector<std::string>* LuaMan::FileList(const std::string& path) {
 
 bool LuaMan::FileExists(const std::string& path) {
 	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
@@ -937,7 +937,7 @@ bool LuaMan::FileExists(const std::string& path) {
 
 bool LuaMan::DirectoryExists(const std::string& path) {
 	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
@@ -1051,7 +1051,7 @@ bool LuaMan::FileRemove(const std::string& path) {
 
 bool LuaMan::DirectoryCreate(const std::string& path, bool recursive) {
 	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
@@ -1069,7 +1069,7 @@ bool LuaMan::DirectoryCreate(const std::string& path, bool recursive) {
 
 bool LuaMan::DirectoryRemove(const std::string& path, bool recursive) {
 	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
@@ -1111,7 +1111,7 @@ bool LuaMan::FileRename(const std::string& oldPath, const std::string& newPath) 
 bool LuaMan::DirectoryRename(const std::string& oldPath, const std::string& newPath) {
 	std::string fullOldPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(oldPath);
 	std::string fullNewPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(newPath);
-	if (IsValidModulePath(fullOldPath) && IsValidModulePath(fullNewPath)) {
+	if (fullOldPath.find("..") == std::string::npos && fullNewPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
 		fullNewPath = GetCaseInsensitiveFullPath(fullNewPath);
@@ -1176,6 +1176,11 @@ void LuaMan::Update() {
 
 void LuaMan::StartAsyncGarbageCollection() {
 	ZoneScoped;
+
+	// For now we're not doing this... because it's slower than normal (blocking) GC collection during the update
+	// This is because Lua is trash and basically GCSTEP is meaningless and can cause memory leak runaway, whereas GCCOLLECT is ultra-expensive
+	// So for now we do normal GC collection :(
+	return;
 
 	std::vector<LuaStateWrapper*> allStates;
 	allStates.reserve(m_ScriptStates.size() + 1);

@@ -7,6 +7,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <execution>
+
 using namespace RTE;
 
 // One pathfinder per thread, lazily initialized. Shouldn't access this directly, use GetPather() instead.
@@ -208,24 +210,25 @@ std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector star
 	const_cast<Vector&>(pathRequest->startPos) = start;
 	const_cast<Vector&>(pathRequest->targetPos) = end;
 
-	g_ThreadMan.GetBackgroundThreadPool().push_task([this, start, end, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
-		// Cast away the volatile-ness - only matters outside (and complicates the API otherwise)
-		PathRequest& request = const_cast<PathRequest&>(*volRequest);
+	g_ThreadMan.GetBackgroundThreadPool().push_task(
+	    [this, start, end, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
+		    // Cast away the volatile-ness - only matters outside (and complicates the API otherwise)
+		    PathRequest& request = const_cast<PathRequest&>(*volRequest);
 
-		int status = this->CalculatePath(start, end, request.path, request.totalCost, digStrength);
+		    int status = this->CalculatePath(start, end, request.path, request.totalCost, digStrength);
 
-		request.status = status;
-		request.pathLength = request.path.size();
+		    request.status = status;
+		    request.pathLength = request.path.size();
 
-		if (callback) {
-			callback(volRequest);
-		}
+		    if (callback) {
+			    callback(volRequest);
+		    }
 
-		// Have to set to complete after the callback, so anything that blocks on it knows that the callback will have been called by now
-		// This has the awkward side-effect that the complete flag is actually false during the callback - but that's fine, if it's called we know it's complete anyways
-		request.complete = true;
-	},
-	                                                pathRequest);
+		    // Have to set to complete after the callback, so anything that blocks on it knows that the callback will have been called by now
+		    // This has the awkward side-effect that the complete flag is actually false during the callback - but that's fine, if it's called we know it's complete anyways
+		    request.complete = true;
+	    },
+	    pathRequest);
 
 	return pathRequest;
 }
@@ -277,7 +280,11 @@ std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, int 
 }
 
 float PathFinder::LeastCostEstimate(void* startState, void* endState) {
-	return g_SceneMan.ShortestDistance((static_cast<PathNode*>(startState))->Pos, (static_cast<PathNode*>(endState))->Pos).GetMagnitude() / m_NodeDimension;
+	// Now, it's technically correct to divide this by NodeDimension in order to not get an extreme overestimate of cost (by a factor of 20!)
+	// But... turns out doing so actually makes pathfinding worse, because it encourages taking the cheapest path up and around obstable instead of straight through them
+	// This is a combination of no jump-aware pathing and material transition cost balancing
+	// TODO: When the time comes, fix this (again) ;)
+	return g_SceneMan.ShortestDistance((static_cast<PathNode*>(startState))->Pos, (static_cast<PathNode*>(endState))->Pos).GetMagnitude() /* / m_NodeDimension*/;
 }
 
 void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* adjacentList) {
@@ -298,16 +305,19 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		adjCost.state = static_cast<void*>(node->Up);
 		adjacentList->push_back(adjCost);
 	}
+
 	if (node->Right && node->Right->m_Navigatable) {
 		adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->RightMaterial) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->Right);
 		adjacentList->push_back(adjCost);
 	}
+
 	if (node->Down && node->Down->m_Navigatable) {
 		adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->DownMaterial) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->Down);
 		adjacentList->push_back(adjCost);
 	}
+
 	if (node->Left && node->Left->m_Navigatable) {
 		adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->LeftMaterial) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->Left);
@@ -320,16 +330,19 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		adjCost.state = static_cast<void*>(node->UpRight);
 		adjacentList->push_back(adjCost);
 	}
+
 	if (node->RightDown && node->RightDown->m_Navigatable) {
 		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->RightDownMaterial) * 1.4F) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->RightDown);
 		adjacentList->push_back(adjCost);
 	}
+
 	if (node->DownLeft && node->DownLeft->m_Navigatable) {
 		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->DownLeftMaterial) * 1.4F) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->DownLeft);
 		adjacentList->push_back(adjCost);
 	}
+
 	if (node->LeftUp && node->LeftUp->m_Navigatable) {
 		adjCost.cost = 1.4F + extraUpCost + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
 		adjCost.state = static_cast<void*>(node->LeftUp);
@@ -347,10 +360,12 @@ bool PathFinder::PositionsAreTheSamePathNode(const Vector& pos1, const Vector& p
 
 float PathFinder::GetMaterialTransitionCost(const Material& material) const {
 	float strength = material.GetIntegrity();
+
 	// Always treat doors as diggable.
 	if (strength > s_DigStrength && material.GetIndex() != MaterialColorKeys::g_MaterialDoor) {
 		strength *= 1000.0F;
 	}
+
 	return strength;
 }
 
@@ -375,14 +390,17 @@ bool PathFinder::UpdateNodeCosts(PathNode* node) const {
 		Vector offset(0.0F, 3.0F);
 		node->RightMaterial = getStrongerMaterial(StrongestMaterialAlongLine(node->Pos - offset, node->Right->Pos - offset), StrongestMaterialAlongLine(node->Pos + offset, node->Right->Pos + offset));
 	}
+
 	if (node->Down) {
 		Vector offset(3.0F, 0.0F);
 		node->DownMaterial = getStrongerMaterial(StrongestMaterialAlongLine(node->Pos - offset, node->Down->Pos - offset), StrongestMaterialAlongLine(node->Pos + offset, node->Down->Pos + offset));
 	}
+
 	if (node->UpRight) {
 		Vector offset(2.0F, 2.0F);
 		node->UpRightMaterial = getStrongerMaterial(StrongestMaterialAlongLine(node->Pos - offset, node->UpRight->Pos - offset), StrongestMaterialAlongLine(node->Pos + offset, node->UpRight->Pos + offset));
 	}
+
 	if (node->RightDown) {
 		Vector offset(2.0F, -2.0F);
 		node->RightDownMaterial = getStrongerMaterial(StrongestMaterialAlongLine(node->Pos - offset, node->RightDown->Pos - offset), StrongestMaterialAlongLine(node->Pos + offset, node->RightDown->Pos + offset));
@@ -440,6 +458,7 @@ float PathFinder::GetNodeAverageTransitionCost(const PathNode& node) const {
 			count++;
 		}
 	}
+
 	return totalCostOfAdjacentNodes / std::max(static_cast<float>(count), 1.0F);
 }
 

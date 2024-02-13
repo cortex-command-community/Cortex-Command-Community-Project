@@ -13,6 +13,13 @@
 
 #include "ActivityMan.h"
 
+#include <map>
+#include <array>
+#include <list>
+#include <vector>
+#include <string>
+#include <utility>
+
 #define g_SceneMan SceneMan::Instance()
 
 namespace RTE {
@@ -24,6 +31,7 @@ namespace RTE {
 	class SceneObject;
 	class TerrainObject;
 	class MovableObject;
+	class MOPixel;
 	class Material;
 	class SoundContainer;
 	struct PostEffect;
@@ -394,7 +402,70 @@ namespace RTE {
 		/// @param posX The X coordinate of the terrain pixel.
 		/// @param posX The Y coordinate of the terrain pixel.
 		/// @return The newly dislodged pixel, if one was found.
-		MovableObject* DislodgePixel(int posX, int posY);
+		MOPixel* DislodgePixel(int posX, int posY);
+
+		/// Removes a pixel from the terrain and adds it to MovableMan.
+		/// @param posX The X coordinate of the terrain pixel.
+		/// @param posX The Y coordinate of the terrain pixel.
+		/// @param deletePixel Whether or not to immediately mark the pixel for deletion.
+		/// @return The newly dislodged pixel, if one was found.
+		MOPixel* DislodgePixelBool(int posX, int posY, bool deletePixel);
+
+		/// Removes a circle of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the circle.
+		/// @param radius The radius of the circle of pixels to remove.
+		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels);
+
+		/// Removes a circle of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the circle.
+		/// @param radius The radius of the circle of pixels to remove.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelCircleNoBool(const Vector& centre, float radius);
+
+		/// Removes a ring of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the ring.
+		/// @param innerRadius The inner radius of the ring of pixels to remove.
+		/// @param outerRadius The outer radius of the ring of pixels to remove.
+		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels);
+
+		/// Removes a ring of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the ring.
+		/// @param innerRadius The inner radius of the ring of pixels to remove.
+		/// @param outerRadius The outer radius of the ring of pixels to remove.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius);
+
+		/// Removes a box of pixels from the terrain and adds them to MovableMan.
+		/// @param upperLeftCorner The vector position of the upper left corner of the box.
+		/// @param lowerRightCorner The vector position of the lower right corner of the box.
+		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelBox(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels);
+
+		/// Removes a box of pixels from the terrain and adds them to MovableMan.
+		/// @param upperLeftCorner The vector position of the upper left corner of the box.
+		/// @param lowerRightCorner The vector position of the lower right corner of the box.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelBoxNoBool(const Vector& upperLeftCorner, const Vector& lowerRightCorner);
+
+		/// Removes a line of pixels from the terrain and adds them to MovableMan.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param skip For every pixel checked along the line, how many to skip between them.
+		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelLine(const Vector& start, const Vector& ray, int skip, bool deletePixels);
+
+		/// Removes a line of pixels from the terrain and adds them to MovableMan.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param skip For every pixel checked along the line, how many to skip between them.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelLineNoBool(const Vector& start, const Vector& ray, int skip);
 
 		/// Sets one team's view of the scene to be unseen, using a generated map
 		/// of a specific resolution chunkiness.
@@ -452,6 +523,18 @@ namespace RTE {
 		/// @param posY The width and height of the box to be restored, in scene units (pixels)
 		/// @param width The team to restore for.
 		void RestoreUnseenBox(const int posX, const int posY, const int width, const int height, const int team);
+
+		/// Traces along a vector and stops when the accumulated material strengths of the
+		/// traced-through terrain meets or exceeds a given value.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param endPos A Vector that will be set to the position of where the sight ray was
+		/// terminated. If it reached the end, it will be set to the end of the ray.
+		/// @param strengthLimit The accumulated material strength limit where the ray stops.
+		/// @param skip For every pixel checked along the line, how many to skip between them
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return Whether the ray was stopped prematurely or not.
+		bool CastTerrainPenetrationRay(const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip);
 
 		/// Traces along a vector and reveals or hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
@@ -789,14 +872,10 @@ namespace RTE {
 		bool ObscuredPoint(int x, int y, int team = -1);
 
 		/*
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SceneRectsIntersect
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether two IntRect:s in the scene intersect, while taking
-		//                  wrapping into account.
-		// Arguments:       The point on the scene to check.
-		// Return value:    Whether that point is obscured/obstructed or not.
-
+		/// Tells whether two IntRect:s in the scene intersect, while taking
+		/// wrapping into account.
+		/// @param x The point on the scene to check.
+		/// @return Whether that point is obscured/obstructed or not.
 		    bool SceneRectsIntersect(int x, int y);
 		*/
 

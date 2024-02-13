@@ -9,6 +9,7 @@ function Update(self)
 	if self.WoundCount > (self.GibWoundLimit * 0.9) then
 		self.ToSettle = true;
 	end
+
 	if self.craft and IsActor(self.craft) and self.craft.AIMode == Actor.AIMODE_STAY then
 		--Disable collisions with the ship
 		self.craft:SetWhichMOToNotHit(self, 100);
@@ -20,6 +21,7 @@ function Update(self)
 		if self.craft.Status < Actor.DYING then
 			self.craft.Status = Actor.UNSTABLE;	--Deactivated
 		end
+		
 		--Heal the craft.
 		if self.healTimer:IsPastSimMS(self.craft.Mass) then
 			self.healTimer:Reset();
@@ -37,6 +39,7 @@ function Update(self)
 				self.craft = ToACDropShip(actor);
 			end
 		end
+
 		self.updateTimer:Reset();
 	end
 end

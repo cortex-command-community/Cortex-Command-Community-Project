@@ -1,9 +1,14 @@
 option('debug_type', type: 'combo', choices: ['full','minimal','release'], value:'minimal', description: 'Enable certain Debug features, that might slow down the game')
 option('data_install_dir', type:'string', value:'share/CortexCommand', description: 'Where to install the data files relative to prefix directory')
+
 option('install_fmod', type:'boolean', value: true, description: 'Wether to install the fmod library.')
 option('fmod_dir', type:'string', value:'lib/CortexCommand/', description: 'Where to install the fmod library relative to prefix directory.')
+
 option('install_data', type: 'boolean', value: true, description: 'Whether to install the data repo.')
 option('install_runner', type: 'boolean', value: true, description: 'Whether to install the runner script.')
+
+option('dylibbundler_args', type: 'string', value: '', description: 'Additional arguments passed to the bundle_dylibs script for macos')
+
 option('sane_warnings', type: 'boolean', value: false, description: 'Disable certain warnings, that are reasonably safe to ignore, though we should fix them at some point.')
 option('use_prebuilt_libraries', type: 'boolean', value: true, description: 'On windows use the prebuilt libraries')
 
@@ -11,3 +16,5 @@ option('tracy_enable', type: 'boolean', value: true, description: 'Enable Tracy 
 option('tracy_callstack', type : 'integer', value : 0, description : 'Enfore callstack collection for tracy regions')
 option('tracy_on_demand', type : 'boolean', value : true, description : 'On-demand profiling')
 option('tracy_debuginfod', type : 'boolean', value : false, description : 'Enable debuginfod support')
+
+option('use_pch', type : 'feature', value : 'auto')

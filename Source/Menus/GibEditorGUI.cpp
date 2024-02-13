@@ -16,6 +16,8 @@
 #include "GUISound.h"
 #include "PieMenu.h"
 
+#include <array>
+
 using namespace RTE;
 
 #define MAXZOOMFACTOR 5

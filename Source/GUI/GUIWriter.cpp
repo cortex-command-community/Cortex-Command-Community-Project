@@ -1,5 +1,7 @@
 #include "GUIWriter.h"
 
+#include <iostream>
+
 using namespace RTE;
 
 void GUIWriter::Clear() {

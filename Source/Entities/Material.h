@@ -4,6 +4,8 @@
 #include "ContentFile.h"
 #include "Color.h"
 
+#include <cmath>
+
 namespace RTE {
 
 	/// Represents a material and holds all the relevant data.

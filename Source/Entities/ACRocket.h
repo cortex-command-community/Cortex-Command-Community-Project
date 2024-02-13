@@ -90,7 +90,6 @@ namespace RTE {
 		/// indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
-		/// Virtual method:	GetMaxPassengers
 		/// The recomended, not absolute, maximum number of actors that fit in the
 		/// invetory. Used by the activity AI.
 		/// @return An integer with the recomended number of actors that fit in the craft.
@@ -153,7 +152,6 @@ namespace RTE {
 		/// @param newThruster The new thruster to use.
 		void SetULeftThruster(AEmitter* newThruster);
 
-		/// Method:			GetGearState
 		/// Gets the the landing gear state
 		/// @return Current landing gear state.
 		unsigned int GetGearState() const { return m_GearState; }

@@ -27,6 +27,7 @@ function Update(self)
 	else
 		self.Vel = Vector();
 	end
+	
 	if self.GibWoundLimit > 0 then
 		self.Lifetime = math.max(self.baseLifetime * (1 - self.WoundCount/self.GibWoundLimit), 1);
 	end

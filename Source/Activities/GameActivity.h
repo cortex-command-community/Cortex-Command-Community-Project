@@ -11,6 +11,8 @@
 #include "Scene.h"
 #include "Actor.h"
 
+#include <array>
+#include <memory>
 namespace RTE {
 
 #define OBJARROWFRAMECOUNT 4
@@ -393,68 +395,32 @@ namespace RTE {
 		/// Return value:	None.
 		void SetRequireClearPathToOrbit(bool newvalue) { m_RequireClearPathToOrbit = newvalue; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		int GetDefaultFogOfWar() const { return m_DefaultFogOfWar; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		int GetDefaultRequireClearPathToOrbit() const { return m_DefaultRequireClearPathToOrbit; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		int GetDefaultDeployUnits() const { return m_DefaultDeployUnits; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		int GetDefaultGoldCakeDifficulty() const { return m_DefaultGoldCakeDifficulty; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		int GetDefaultGoldEasyDifficulty() const { return m_DefaultGoldEasyDifficulty; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		int GetDefaultGoldMediumDifficulty() const { return m_DefaultGoldMediumDifficulty; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		int GetDefaultGoldHardDifficulty() const { return m_DefaultGoldHardDifficulty; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		int GetDefaultGoldNutsDifficulty() const { return m_DefaultGoldNutsDifficulty; }
 
 		/// Gets the default gold for max difficulty.
 		/// @return The default gold for max difficulty.
 		int GetDefaultGoldMaxDifficulty() const { return m_DefaultGoldMaxDifficulty; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		bool GetFogOfWarSwitchEnabled() const { return m_FogOfWarSwitchEnabled; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		bool GetDeployUnitsSwitchEnabled() const { return m_DeployUnitsSwitchEnabled; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		bool GetGoldSwitchEnabled() const { return m_GoldSwitchEnabled; }
 
-		/// Method:
-		/// Description:
-		/// Return value:
 		bool GetRequireClearPathToOrbitSwitchEnabled() const { return m_RequireClearPathToOrbitSwitchEnabled; }
 
 		/// Returns CrabToHumanSpawnRatio for specified module

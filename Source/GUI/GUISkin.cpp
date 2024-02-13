@@ -2,6 +2,8 @@
 #include "GUIReader.h"
 #include "ModuleMan.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUISkin::GUISkin(GUIScreen* Screen) {

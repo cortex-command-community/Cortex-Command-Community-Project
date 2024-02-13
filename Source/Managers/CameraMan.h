@@ -4,6 +4,8 @@
 #include "Timer.h"
 #include "Vector.h"
 
+#include <array>
+
 #define g_CameraMan CameraMan::Instance()
 
 namespace RTE {

@@ -8,6 +8,9 @@
 #include "Timer.h"
 #include "allegro.h"
 
+#include <list>
+#include <map>
+
 struct BITMAP;
 
 #define MAXBANNERFONTCHARS 256

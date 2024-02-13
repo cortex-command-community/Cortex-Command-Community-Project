@@ -193,7 +193,8 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 	end
 
 	local SharpTimer = Timer();
-	local aimTime = 2000;
+	local IdleAimTimer = Timer();
+	local sharpAimTime = AI.idleAimTime;
 	local angDiff = 1;
 	AI.deviceState = ACrab.POINTING;
 
@@ -206,36 +207,40 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 	while true do
 		aim = Owner:GetAimAngle(false);
 
-		if sweepUp then
-			if aim < maxAng then
-				if aim < maxAng/5 and aim > minAng/5 and PosRand() > 0.3 then
-					AI.Ctrl:SetState(Controller.AIM_UP, false);
+		if IdleAimTimer:IsPastSimMS(AI.idleAimTime) then
+			if sweepUp then
+				if aim < maxAng then
+					if aim < maxAng/5 and aim > minAng/5 and PosRand() > 0.3 then
+						AI.Ctrl:SetState(Controller.AIM_UP, false);
+					else
+						AI.Ctrl:SetState(Controller.AIM_UP, true);
+					end
 				else
-					AI.Ctrl:SetState(Controller.AIM_UP, true);
+					sweepUp = false;
+					IdleAimTimer:Reset();
 				end
 			else
-				sweepUp = false;
-			end
-		else
-			if aim > minAng then
-				if aim < maxAng/5 and aim > minAng/5 and PosRand() > 0.3 then
-					AI.Ctrl:SetState(Controller.AIM_DOWN, false);
+				if aim > minAng then
+					if aim < maxAng/5 and aim > minAng/5 and PosRand() > 0.3 then
+						AI.Ctrl:SetState(Controller.AIM_DOWN, false);
+					else
+						AI.Ctrl:SetState(Controller.AIM_DOWN, true);
+					end
 				else
-					AI.Ctrl:SetState(Controller.AIM_DOWN, true);
+					sweepUp = true;
+					IdleAimTimer:Reset();
 				end
-			else
-				sweepUp = true;
 			end
 		end
 
-		if SharpTimer:IsPastSimMS(aimTime) then
+		if SharpTimer:IsPastSimMS(AI.idleAimTime) then
 			SharpTimer:Reset();
 
 			if AI.deviceState == ACrab.AIMING then
-				aimTime = RangeRand(1000, 3000);
+				sharpAimTime = RangeRand(AI.idleAimTime * 0.5, AI.idleAimTime * 1.5);
 				AI.deviceState = ACrab.POINTING;
 			else
-				aimTime = RangeRand(6000, 12000) * angDiff;
+				sharpAimTime = RangeRand(AI.idleAimTime * 3, AI.idleAimTime * 6) * angDiff;
 				AI.deviceState = ACrab.AIMING;
 			end
 
