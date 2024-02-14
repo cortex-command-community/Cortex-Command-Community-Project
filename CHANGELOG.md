@@ -8,9 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Added</b></summary>
 
+- New metal gibbing sounds used mainly for robots.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
+
+- Enhanced dropship and engine explosion sounds while still keeping their old vibe.
 
 </details>
 
