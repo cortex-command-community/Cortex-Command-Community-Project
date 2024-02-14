@@ -653,6 +653,8 @@ bool MovableMan::AddMO(MovableObject* movableObjectToAdd) {
 
 void MovableMan::AddActor(Actor* actorToAdd) {
 	if (actorToAdd) {
+		RTEAssert(g_ActivityMan.ActivityRunning(), "No activity running, can't add actors!");
+
 		actorToAdd->SetAsAddedToMovableMan();
 		actorToAdd->CorrectAttachableAndWoundPositionsAndRotations();
 
