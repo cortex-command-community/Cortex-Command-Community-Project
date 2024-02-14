@@ -22,6 +22,8 @@ namespace RTE {
 		/// system memory.
 		GUIControl();
 
+		virtual ~GUIControl() = default;
+
 		/// Called when the control has been created.
 		/// @param Name Name, Position, Size
 		virtual void Create(const std::string& Name, int X, int Y, int Width = -1, int Height = -1);
