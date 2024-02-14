@@ -11,7 +11,7 @@ runs:
       run: sed -i -E '/c_VersionString = /s/"[^"]*"/"${{inputs.new_release_version}}"/' Source/System/GameVersion.h
       shell: bash
 
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v5
 
     - name: Rewrite meson version
       run: |
