@@ -11,10 +11,6 @@ namespace RTE {
 		/// @param Screen GUIScreen Interface.
 		explicit GUISkin(GUIScreen* Screen);
 
-		/// Destructor method used to free a GUISkin object in system
-		/// memory.
-		~GUISkin();
-
 		/// Loads a skin for a directory
 		/// @param directory Skin directory and the file within to use
 		bool Load(const std::string& directory, const std::string& fileName = "skin.ini");
