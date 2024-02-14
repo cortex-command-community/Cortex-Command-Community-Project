@@ -683,9 +683,10 @@ void MovableMan::AddActor(Actor* actorToAdd) {
 
 void MovableMan::AddItem(HeldDevice* itemToAdd) {
 	if (itemToAdd) {
-		if (g_ActivityMan.ActivityRunning()) {
-			g_ActivityMan.GetActivity()->ForceSetTeamAsActive(itemToAdd->GetTeam());
-		}
+		RTEAssert(g_ActivityMan.ActivityRunning(), "No activity running, can't add items!");
+
+		g_ActivityMan.GetActivity()->ForceSetTeamAsActive(itemToAdd->GetTeam());
+
 		itemToAdd->SetAsAddedToMovableMan();
 		itemToAdd->CorrectAttachableAndWoundPositionsAndRotations();
 
@@ -708,9 +709,10 @@ void MovableMan::AddItem(HeldDevice* itemToAdd) {
 
 void MovableMan::AddParticle(MovableObject* particleToAdd) {
 	if (particleToAdd) {
-		if (g_ActivityMan.ActivityRunning()) {
-			g_ActivityMan.GetActivity()->ForceSetTeamAsActive(particleToAdd->GetTeam());
-		}
+		RTEAssert(g_ActivityMan.ActivityRunning(), "No activity running, can't add particles!");
+
+		g_ActivityMan.GetActivity()->ForceSetTeamAsActive(particleToAdd->GetTeam());
+
 		particleToAdd->SetAsAddedToMovableMan();
 		if (MOSRotating* particleToAddAsMOSRotating = dynamic_cast<MOSRotating*>(particleToAdd)) {
 			particleToAddAsMOSRotating->CorrectAttachableAndWoundPositionsAndRotations();
