@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New metal gibbing sounds used mainly for robots.
 
+- New LightRobot and HeavyRobot foley and footstep sounds, completing update 6.0's light and heavy cloth sounds.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
