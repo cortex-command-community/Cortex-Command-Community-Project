@@ -652,9 +652,7 @@ bool MovableMan::AddMO(MovableObject* movableObjectToAdd) {
 }
 
 void MovableMan::AddActor(Actor* actorToAdd) {
-	if (actorToAdd) {
-		RTEAssert(g_ActivityMan.ActivityRunning(), "No activity running, can't add actors!");
-
+	if (actorToAdd && g_ActivityMan.ActivityRunning()) {
 		actorToAdd->SetAsAddedToMovableMan();
 		actorToAdd->CorrectAttachableAndWoundPositionsAndRotations();
 
@@ -684,9 +682,7 @@ void MovableMan::AddActor(Actor* actorToAdd) {
 }
 
 void MovableMan::AddItem(HeldDevice* itemToAdd) {
-	if (itemToAdd) {
-		RTEAssert(g_ActivityMan.ActivityRunning(), "No activity running, can't add items!");
-
+	if (itemToAdd && g_ActivityMan.ActivityRunning()) {
 		g_ActivityMan.GetActivity()->ForceSetTeamAsActive(itemToAdd->GetTeam());
 
 		itemToAdd->SetAsAddedToMovableMan();
@@ -710,9 +706,7 @@ void MovableMan::AddItem(HeldDevice* itemToAdd) {
 }
 
 void MovableMan::AddParticle(MovableObject* particleToAdd) {
-	if (particleToAdd) {
-		RTEAssert(g_ActivityMan.ActivityRunning(), "No activity running, can't add particles!");
-
+	if (particleToAdd && g_ActivityMan.ActivityRunning()) {
 		g_ActivityMan.GetActivity()->ForceSetTeamAsActive(particleToAdd->GetTeam());
 
 		particleToAdd->SetAsAddedToMovableMan();
