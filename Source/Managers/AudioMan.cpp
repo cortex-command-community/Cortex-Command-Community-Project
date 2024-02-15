@@ -1027,7 +1027,6 @@ FMOD_RESULT AudioMan::SetMusicMuffledState(bool musicMuffledState) {
 	return status;
 }
 
-
 FMOD_VECTOR AudioMan::GetAsFMODVector(const Vector& vector, float zValue) const {
 	Vector sceneDimensions = g_SceneMan.GetScene() ? g_SceneMan.GetSceneDim() : Vector();
 	return sceneDimensions.IsZero() ? FMOD_VECTOR{0, 0, zValue} : FMOD_VECTOR{vector.m_X, sceneDimensions.m_Y - vector.m_Y, zValue};
