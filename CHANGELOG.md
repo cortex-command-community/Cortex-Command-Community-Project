@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed nucleo shots breaking if saving and loading them mid explosion sequence.
 
+- Fixed Dummy Assault resetting funds to their initial value upon loading a saved game.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
