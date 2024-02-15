@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Reverted a change to pathfinding, that although was technically accurate, caused issues with the AI being too eager to path up-and-over obstacles instead of through them. In the future this will likely be revisited when we get jump-aware pathfinding.
 
+- Fixed Dummy Assault resetting funds to their initial value upon loading a saved game.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
