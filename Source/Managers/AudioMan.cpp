@@ -44,6 +44,7 @@ void AudioMan::Clear() {
 	m_MinimumDistanceForPanning = 30.0F;
 	//////////////////////////////////////////////////
 
+	m_MusicMuffled = false;
 	m_MusicPath.clear();
 	m_MusicPlayList.clear();
 	m_SilenceTimer.Reset();
@@ -81,6 +82,12 @@ bool AudioMan::Initialize() {
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->createChannelGroup("SFX", &m_SFXChannelGroup) : audioSystemSetupResult;
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->createChannelGroup("UI", &m_UIChannelGroup) : audioSystemSetupResult;
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->createChannelGroup("Music", &m_MusicChannelGroup) : audioSystemSetupResult;
+
+	// Add a lowpass filter to the music channel group for pause menu usage
+	FMOD::DSP* dsp_multibandeq;
+	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->createDSPByType(FMOD_DSP_TYPE_MULTIBAND_EQ, &dsp_multibandeq) : audioSystemSetupResult;
+	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_multibandeq->setParameterFloat(1, 22000.0f) : audioSystemSetupResult; // Functionally inactive lowpass filter
+	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_MusicChannelGroup->addDSP(0, dsp_multibandeq) : audioSystemSetupResult;
 
 	// Add a safety limiter to the master channel group, after fader
 	FMOD::DSP* dsp_limiter;
@@ -1001,6 +1008,23 @@ FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* 
 		}
 	}
 	return FMOD_OK;
+}
+
+FMOD_RESULT AudioMan::SetMusicMuffledState(bool musicMuffledState) {
+	FMOD_RESULT status = FMOD_OK;
+	if (musicMuffledState != m_MusicMuffled) {
+		FMOD::DSP* dsp_multibandeq;
+		status = (status == FMOD_OK) ? m_MusicChannelGroup->getDSP(0, &dsp_multibandeq) : status;
+		float frequency = 22000.0F;
+
+		if (musicMuffledState) {
+			frequency = 1000.0F;
+		}
+
+		status = (status == FMOD_OK) ? dsp_multibandeq->setParameterFloat(1, frequency) : status;
+		m_MusicMuffled = musicMuffledState;
+	}
+	return status;
 }
 
 FMOD_VECTOR AudioMan::GetAsFMODVector(const Vector& vector, float zValue) const {
