@@ -8,10 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Added</b></summary>
 
+- New sounds:
+	New metal gibbing sounds used mainly for robots.
+	New plastic impact and gib sounds for dummies.
+	New LightRobot and HeavyRobot foley and footstep sounds, completing update 6.0's light and heavy cloth sounds.
+
+- The pause menu will now muffle the music being played, just like in every modern game ever.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
 
+- Enhanced dropship and engine explosion sounds while still keeping their old vibe.
+  
 - Nerfed the Coalition Grenade Launcher and the Devastator a tiny bit. They are still scary and the Devastator can still one-shot most things on a good hit, but they did not need to be that oppressive.
 
 </details>
@@ -21,6 +30,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed initial Decision Day dropships never exploding and sticking around.
 
 - Reverted a change to pathfinding, that although was technically accurate, caused issues with the AI being too eager to path up-and-over obstacles instead of through them. In the future this will likely be revisited when we get jump-aware pathfinding.
+
+- Fixed nucleo shots breaking if saving and loading them mid explosion sequence.
+
+- Fixed Dummy Assault resetting funds to their initial value upon loading a saved game.
 
 </details>
 
