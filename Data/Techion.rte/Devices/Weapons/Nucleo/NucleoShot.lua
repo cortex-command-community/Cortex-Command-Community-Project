@@ -54,6 +54,7 @@ end
 
 function Create(self)
 	self.detTimer = Timer();
+	self.detDelay = 1000;
 	self.boom = false;
 
 	self.speed = 15;
