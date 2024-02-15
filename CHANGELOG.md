@@ -2435,4 +2435,5 @@ Note: For a log of changes made prior to the commencement of the open source com
 [Release v4.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
 [Release v5.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.2
 [Release v6.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.0.0
+[Release v6.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.1.0
 [Unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development
