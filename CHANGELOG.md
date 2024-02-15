@@ -8,11 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Added</b></summary>
 
-- New metal gibbing sounds used mainly for robots.
+- New sounds:
+	New metal gibbing sounds used mainly for robots.
+	New plastic impact and gib sounds for dummies.
+	New LightRobot and HeavyRobot foley and footstep sounds, completing update 6.0's light and heavy cloth sounds.
 
-- New plastic impact and gib sounds for dummies.
-
-- New LightRobot and HeavyRobot foley and footstep sounds, completing update 6.0's light and heavy cloth sounds.
+- The pause menu will now muffle the music being played, just like in every modern game ever.
 
 </details>
 
