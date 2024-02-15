@@ -13,8 +13,6 @@ function DummyAssault:StartActivity(isNewGame)
 	self.CPUTeam = Activity.TEAM_2;
 	self.CPUTech = self:GetTeamTech(Activity.TEAM_2);
 
-	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-
 	if isNewGame then
 		self:StartNewGame();
 	else
