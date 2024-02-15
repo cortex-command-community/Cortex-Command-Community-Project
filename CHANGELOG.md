@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The pause menu will now muffle the music being played, just like in every modern game ever.
 
+- Various weapons have had lifetime variation added to their rounds, making things look a bit less artificial.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -34,6 +36,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed nucleo shots breaking if saving and loading them mid explosion sequence.
 
 - Fixed Dummy Assault resetting funds to their initial value upon loading a saved game.
+
+- Fixed a few memory leaks.
+
+- Fixed an over-eager assert that could fire often even when it caused no issues.
+
+- Fixed an issue with mouse position being inaccurate on Mac builds.
+
+- Fixed some compatibility issues which meant the game wouldn't run on older PCs.
+
+- Fixed an issue where the loading screen progress window didn't work even when enabled.
 
 </details>
 
