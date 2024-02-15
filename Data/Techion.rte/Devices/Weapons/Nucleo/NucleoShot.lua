@@ -19,7 +19,7 @@ function Explode(self)
 			melter.Pos = self.Pos;
 			melter.Team = self.Team;
 			melter.Sharpness = ToActor(parent).ID;
-			melter.PinStrength = self.disintegrationStrength * math.sqrt(math.max(1, #self.connectableParticles));
+			melter.PinStrength = self.disintegrationStrength * math.sqrt(math.max(1, (self.connectableParticles and #self.connectableParticles or 1)));
 			MovableMan:AddMO(melter);
 		end
 	end
@@ -118,10 +118,12 @@ function ThreadedUpdate(self)
 end
 
 function SyncedUpdate(self)
-	for k, particle in pairs(self.connectableParticles) do
-		if MovableMan:ValidMO(particle) then
-			particle.Pos = self.Pos + Vector(math.random() * 5, 0):RadRotate(math.random() * math.pi * 2);
-			particle:SendMessage("Nucleo_Explode");
+	if self.connectableParticles then
+		for k, particle in pairs(self.connectableParticles) do
+			if MovableMan:ValidMO(particle) then
+				particle.Pos = self.Pos + Vector(math.random() * 5, 0):RadRotate(math.random() * math.pi * 2);
+				particle:SendMessage("Nucleo_Explode");
+			end
 		end
 	end
 
