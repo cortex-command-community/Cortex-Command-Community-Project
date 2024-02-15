@@ -85,7 +85,7 @@ bool AudioMan::Initialize() {
 
 	// Add a lowpass filter to the music channel group for pause menu usage
 	FMOD::DSP* dsp_multibandeq;
-	audioSystemSetupResult = (audioSystemSetupResult== FMOD_OK) ? m_AudioSystem->createDSPByType(FMOD_DSP_TYPE_MULTIBAND_EQ, &dsp_multibandeq) : audioSystemSetupResult;
+	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->createDSPByType(FMOD_DSP_TYPE_MULTIBAND_EQ, &dsp_multibandeq) : audioSystemSetupResult;
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? dsp_multibandeq->setParameterFloat(1, 22000.0f) : audioSystemSetupResult; // Functionally inactive lowpass filter
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_MusicChannelGroup->addDSP(0, dsp_multibandeq) : audioSystemSetupResult;
 
@@ -1012,12 +1012,12 @@ FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* 
 
 FMOD_RESULT AudioMan::SetMusicMuffledState(bool musicMuffledState) {
 	FMOD_RESULT status = FMOD_OK;
-	if (musicMuffledState != m_MusicMuffled){
+	if (musicMuffledState != m_MusicMuffled) {
 		FMOD::DSP* dsp_multibandeq;
 		status = (status == FMOD_OK) ? m_MusicChannelGroup->getDSP(0, &dsp_multibandeq) : status;
 		float frequency = 22000.0F;
-		
-		if (musicMuffledState){
+
+		if (musicMuffledState) {
 			frequency = 1000.0F;
 		}
 
