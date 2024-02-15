@@ -15,7 +15,6 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/epsilon.hpp"
 #include "tracy/Tracy.hpp"
-#include "tracy/TracyOpenGL.hpp"
 
 #ifdef __linux__
 #include "Resources/cccp.xpm"
@@ -99,8 +98,8 @@ void WindowMan::Initialize() {
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 	CreatePrimaryWindow();
 	InitializeOpenGL();
 	CreateBackBufferTexture();
@@ -137,7 +136,7 @@ void WindowMan::CreatePrimaryWindow() {
 
 	int windowPosX = (m_ResX * m_ResMultiplier <= m_PrimaryWindowDisplayWidth) ? SDL_WINDOWPOS_CENTERED : (m_MaxResX - (m_ResX * m_ResMultiplier)) / 2;
 	int windowPosY = SDL_WINDOWPOS_CENTERED;
-	int windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE;
+	int windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
 	if (m_Fullscreen) {
 		windowFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -152,7 +151,7 @@ void WindowMan::CreatePrimaryWindow() {
 		m_ResMultiplier = 1;
 		g_SettingsMan.SetSettingsNeedOverwrite();
 
-		m_PrimaryWindow = std::shared_ptr<SDL_Window>(SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_ResX * m_ResMultiplier, m_ResY * m_ResMultiplier, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN), SDLWindowDeleter());
+		m_PrimaryWindow = std::shared_ptr<SDL_Window>(SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_ResX * m_ResMultiplier, m_ResY * m_ResMultiplier, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN), SDLWindowDeleter());
 		if (!m_PrimaryWindow) {
 			RTEAbort("Failed to create window because:\n" + std::string(SDL_GetError()));
 		}
@@ -206,7 +205,6 @@ void WindowMan::InitializeOpenGL() {
 	GL_CHECK(glGenTextures(1, &m_BackBuffer32Texture));
 	GL_CHECK(glGenTextures(1, &m_ScreenBufferTexture));
 	GL_CHECK(glGenFramebuffers(1, &m_ScreenBufferFBO));
-	TracyGpuContext;
 }
 
 void WindowMan::CreateBackBufferTexture() {
@@ -565,7 +563,7 @@ bool WindowMan::ChangeResolutionToMultiDisplayFullscreen(float resMultiplier) {
 		if (displayIndex == m_PrimaryWindowDisplayIndex) {
 			m_MultiDisplayWindows.emplace_back(m_PrimaryWindow);
 		} else {
-			m_MultiDisplayWindows.emplace_back(SDL_CreateWindow(nullptr, displayOffsetX, displayOffsetY, displayWidth, displayHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_SKIP_TASKBAR), SDLWindowDeleter());
+			m_MultiDisplayWindows.emplace_back(SDL_CreateWindow(nullptr, displayOffsetX, displayOffsetY, displayWidth, displayHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_SKIP_TASKBAR), SDLWindowDeleter());
 			if (m_MultiDisplayWindows.back()) {
 			} else {
 				errorSettingFullscreen = true;
@@ -683,10 +681,12 @@ void WindowMan::Update() {
 	m_EventQueue.clear();
 }
 
-void WindowMan::ClearRenderer() {
+void WindowMan::ClearRenderer(bool clearFrameMan) {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-	g_FrameMan.ClearBackBuffer32();
+	if (clearFrameMan) {
+		g_FrameMan.ClearBackBuffer32();
+	}
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 	GL_CHECK(glActiveTexture(GL_TEXTURE1));
@@ -695,7 +695,6 @@ void WindowMan::ClearRenderer() {
 }
 
 void WindowMan::UploadFrame() {
-	TracyGpuZone("Upload Frame");
 	GL_CHECK(glDisable(GL_DEPTH_TEST));
 
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, m_ScreenBufferFBO));
@@ -707,14 +706,12 @@ void WindowMan::UploadFrame() {
 
 	GL_CHECK(glEnable(GL_BLEND));
 	if (m_DrawPostProcessBuffer) {
-		TracyGpuZone("Upload Post Process Buffer");
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_PostProcessMan.GetPostProcessColorBuffer()));
 		GL_CHECK(glActiveTexture(GL_TEXTURE1));
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
 		GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
 		GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h, GL_RGBA, GL_UNSIGNED_BYTE, g_FrameMan.GetBackBuffer32()->line[0]));
 	} else {
-		TracyGpuZone("Upload no Post Process Buffer");
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 		GL_CHECK(glActiveTexture(GL_TEXTURE1));
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
@@ -722,7 +719,6 @@ void WindowMan::UploadFrame() {
 		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, g_FrameMan.GetBackBuffer32()->line[0]));
 	}
 	{
-		TracyGpuZone("Setup Draw Screen");
 		GL_CHECK(glBindVertexArray(m_ScreenVAO));
 		m_ScreenBlitShader->Use();
 		m_ScreenBlitShader->SetInt(m_ScreenBlitShader->GetTextureUniform(), 0);
@@ -737,13 +733,11 @@ void WindowMan::UploadFrame() {
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_ScreenBufferTexture));
 	}
 	if (m_MultiDisplayWindows.empty()) {
-		TracyGpuZone("Swap Window");
 		GL_CHECK(glViewport(m_PrimaryWindowViewport->x, m_PrimaryWindowViewport->y, m_PrimaryWindowViewport->w, m_PrimaryWindowViewport->h));
 		m_ScreenBlitShader->SetMatrix4f(m_ScreenBlitShader->GetTransformUniform(), glm::mat4(1.0f));
 		GL_CHECK(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
 		SDL_GL_SwapWindow(m_PrimaryWindow.get());
 	} else {
-		TracyGpuZone("Swap Multi Display");
 		for (size_t i = 0; i < m_MultiDisplayWindows.size(); ++i) {
 			SDL_GL_MakeCurrent(m_MultiDisplayWindows.at(i).get(), m_GLContext.get());
 			int windowW, windowH;
@@ -755,6 +749,5 @@ void WindowMan::UploadFrame() {
 			SDL_GL_SwapWindow(m_MultiDisplayWindows.at(i).get());
 		}
 	}
-	TracyGpuCollect;
 	FrameMark;
 }

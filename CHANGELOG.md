@@ -20,10 +20,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 <details><summary><b>Changed</b></summary>
 
 - Enhanced dropship and engine explosion sounds while still keeping their old vibe.
+  
+- Nerfed the Coalition Grenade Launcher and the Devastator a tiny bit. They are still scary and the Devastator can still one-shot most things on a good hit, but they did not need to be that oppressive.
 
 </details>
 
 <details><summary><b>Fixed</b></summary>
+
+- Fixed initial Decision Day dropships never exploding and sticking around.
+
+- Reverted a change to pathfinding, that although was technically accurate, caused issues with the AI being too eager to path up-and-over obstacles instead of through them. In the future this will likely be revisited when we get jump-aware pathfinding.
+
+- Fixed Dummy Assault resetting funds to their initial value upon loading a saved game.
 
 </details>
 

@@ -206,7 +206,7 @@ if host_machine.system() in ['linux','darwin']
     deps += dependency('SDL2_image')
   endif
   if host_machine.system()=='darwin'
-    deps += dependency('appleframeworks', modules: ['foundation'])  
+    deps += dependency('appleframeworks', modules: ['Foundation'])  
   endif
 elif host_machine.system() == 'windows'
   sdl2 = subproject('SDL2-2.26.3')
