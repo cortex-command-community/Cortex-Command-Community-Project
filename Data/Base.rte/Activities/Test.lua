@@ -70,14 +70,14 @@ function Test:UpdateActivity()
 	if self.doorMessageTimer then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:SetScreenText("NOTE: You can press ALT + 1 to open or close all doors", player, 0, -1, false);
+				FrameMan:SetScreenText("NOTE: You can press ALT + 1 to open or close all doors", self:ScreenOfPlayer(player), 0, -1, false);
 			end
 		end
 		if self.doorMessageTimer:IsPastSimTimeLimit() then
 			self.doorMessageTimer = nil;
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
-					FrameMan:ClearScreenText(player);
+					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 				end
 			end
 		end
