@@ -496,7 +496,7 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 			Vector(LZ.X, LZ.Y), Destination, false, digStrenght, team);
 	end
 
-	while pathRequestsCompleted ~= #GoodLZs do
+	while pathRequestsCompleted < #GoodLZs do
 		coroutine.yield(); -- wait until all paths are complete
 	end
 

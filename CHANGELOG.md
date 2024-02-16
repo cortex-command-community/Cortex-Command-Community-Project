@@ -4,7 +4,56 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Release v6.1.0] - 2024/02/15
+
+<details><summary><b>Added</b></summary>
+
+- New sounds:
+	New metal gibbing sounds used mainly for robots.
+	New plastic impact and gib sounds for dummies.
+	New LightRobot and HeavyRobot foley and footstep sounds, completing update 6.0's light and heavy cloth sounds.
+
+- The pause menu will now muffle the music being played, just like in every modern game ever.
+
+- Various weapons have had lifetime variation added to their rounds, making things look a bit less artificial.
+
+</details>
+
+<details><summary><b>Changed</b></summary>
+
+- Enhanced dropship and engine explosion sounds while still keeping their old vibe.
+  
+- Nerfed the Coalition Grenade Launcher and the Devastator a tiny bit. They are still scary and the Devastator can still one-shot most things on a good hit, but they did not need to be that oppressive.
+
+</details>
+
+<details><summary><b>Fixed</b></summary>
+
+- Fixed initial Decision Day dropships never exploding and sticking around.
+
+- Reverted a change to pathfinding, that although was technically accurate, caused issues with the AI being too eager to path up-and-over obstacles instead of through them. In the future this will likely be revisited when we get jump-aware pathfinding.
+
+- Fixed nucleo shots breaking if saving and loading them mid explosion sequence.
+
+- Fixed Dummy Assault resetting funds to their initial value upon loading a saved game.
+
+- Fixed a few memory leaks.
+
+- Fixed an over-eager assert that could fire often even when it caused no issues.
+
+- Fixed an issue with mouse position being inaccurate on Mac builds.
+
+- Fixed some compatibility issues which meant the game wouldn't run on older PCs.
+
+- Fixed an issue where the loading screen progress window didn't work even when enabled.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+</details>
+
+## [Release v6.0.0] - 2024/02/11
 
 <details><summary><b>Added</b></summary>
 
@@ -58,7 +107,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Most base explosions and Riot Shield sounds have been redone.  
 	Human actors have redone foley sounds (terrain impacts, device switching sounds) and also new subtle footstep sounds, including light and heavy variants for the various light and heavy actors.  
 	Shields now make noise when walked with.  
-	New sounds effects have been added for when helmets or armour are shot at.
+	Flesh and metal penetration sounds have been overhauled to be more varied and interesting.
 
 - New delivery system, Buy Doors:  
 	Buy doors are customizable inert background objects that can take orders either via Lua messages or by using the pie menu near them.  
@@ -183,6 +232,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`z` is the patch number, which is currently not enforced.  
 
   Mods published for any development builds must match that development version exactly.
+  
+- Flesh and metal penetration sounds have been overhauled.
+	Base.rte wounds have been tweaked a bit to aid sound organization. Most actors now re-define their wounds inline to change the sound used, rather than having copies pre-defined in Base.rte.
+	
+	As a result, the following wounds have been removed: Dent Metal Chest Plate, Dent Metal Helmet, Wound Clothed Flesh Head, Wound Clothed Flesh Limb, Wound Clothed Flesh Torso.
+	
+	The following sounds have been removed: Armored Flesh Limb Impact.
+	
+	The following sounds have been renamed:
+	Flesh Impact Exit Sweetener -> Flesh Exit Sweetener
+	Clothed Flesh Head Impact -> Flesh Head Impact
+	Clothed Flesh Torso Impact -> Flesh Torso Impact
+	Clothed Flesh Limb Impact -> Flesh Limb Impact
+	Armored Flesh Head Impact -> Flesh Head Impact Armored
+	Armored Flesh Torso Impact -> Flesh Torso Impact Armored
+	Metal Penetration Hit -> Metal Impact Generic
+	
+	There has also been mild repathing of these newer flesh sounds but the old Steam-build ones are still in the same place.
 
 - Pressing F2 to reload scripts now also reloads the scripts for all MOs currently in the scene.
 
@@ -251,7 +318,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ***
 
-## [0.1.0 pre-release 5.0][0.1.0-pre5.0] - 2023/06/17
+## [Release v5.0.0] - 2023/06/17
 
 <details><summary><b>Added</b></summary>
 
@@ -1165,7 +1232,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 4.0][0.1.0-pre4.0] - 2022/02/28
+## [Release v4.0.0] - 2022/02/28
 
 <details><summary><b>Added</b></summary>
 
@@ -1706,7 +1773,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 3.0][0.1.0-pre3.0] - 2020/12/25
+## [Release v3.0.0] - 2020/12/25
 
 <details><summary><b>Added</b></summary>
 
@@ -2042,7 +2109,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 2][0.1.0-pre2] - 2020/05/08
+## [Release v2.0.0] - 2020/05/08
 
 <details><summary><b>Added</b></summary>
 
@@ -2270,7 +2337,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 1][0.1.0-pre1] - 2020/01/27
+## [Release v1.0.0] - 2020/01/27
 
 <details><summary><b>Added</b></summary>
 
@@ -2362,9 +2429,11 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 Note: For a log of changes made prior to the commencement of the open source community project, look [here.](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/Previous-Closed-Source-Changelog)
 
 
-[unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development
-[0.1.0-pre1]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre1
-[0.1.0-pre2]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre2
-[0.1.0-pre3.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre3.0
-[0.1.0-pre4.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
-[0.1.0-pre5.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.0
+[Release v1.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre1
+[Release v2.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre2
+[Release v3.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre3.0
+[Release v4.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
+[Release v5.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.2
+[Release v6.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.0.0
+[Release v6.1.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.1.0
+[Unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development
