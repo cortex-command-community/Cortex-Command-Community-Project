@@ -96,8 +96,8 @@ function DummyAssault:EndActivity()
 	if self.humanTeam == self.WinnerTeam then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:ClearScreenText(player);
-				FrameMan:SetScreenText("Congratulations, you've destroyed the enemy base!", player, 0, -1, false);
+				FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+				FrameMan:SetScreenText("Congratulations, you've destroyed the enemy base!", self:ScreenOfPlayer(player), 0, -1, false);
 			end
 		end
 	end
@@ -139,7 +139,7 @@ function DummyAssault:UpdateActivity()
 						self:SwitchToActor(newBrain, player, team);
 						self:GetBanner(GUIBanner.RED, player):ClearText();
 					else
-						FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, false);
+						FrameMan:SetScreenText("Your brain has been lost!", self:ScreenOfPlayer(player), 333, -1, false);
 						self.brainDead[player] = true;
 						-- Now see if all brains of self player's team are dead, and if so, end the game
 						if not MovableMan:GetFirstBrainActor(team) then
