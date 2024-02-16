@@ -14,8 +14,20 @@ function RefineryAssault:HandleMessage(message, object)
 	--print(object)
 	
 	-- this is ugly, but there's no way to avoid this stuff except hiding it away even harder than in this separate script...
+	
+	if message == "RefineryAssault_IntroCinematicDone" then
+	
+		self.saveTable.introCinematicDone = true;
+	
+		if self:GetFogOfWarEnabled() then
+			SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam);
+		end
+		
+		-- Shorthand to make debug skipping this actually matter
+		
+		self.HUDHandler:RemoveAllCameraPanEvents(self.humanTeam);
 
-	if message == "Captured_RefineryLCHackConsole1" then
+	elseif message == "Captured_RefineryLCHackConsole1" then
 	
 		self.stage2HoldTimer:Reset();
 
@@ -568,7 +580,11 @@ function RefineryAssault:HandleMessage(message, object)
 	-- ActivityMan:GetActivity():SendMessage("SkipStage2");
 	-- ActivityMan:GetActivity():SendMessage("SkipStage3");
 	if message == "SkipStage1" then
-		for a in MovableMan.Actors do if a.Team == 1 and a.ClassName == "AHuman" and SceneMan.Scene:WithinArea("Mission Stage Area 1", a.Pos) then a.Health = 0 end end
+		if self.saveTable.introCinematicDone then
+			for a in MovableMan.Actors do if a.Team == 1 and a.ClassName == "AHuman" and SceneMan.Scene:WithinArea("Mission Stage Area 1", a.Pos) then a.Health = 0 end end
+		else
+			self:SendMessage("RefineryAssault_IntroCinematicDone");
+		end
 	elseif message == "SkipStage2" then
 		self.stage2HoldingBothConsoles = true;
 		self.stage2TimeToHoldConsoles = 0;
@@ -982,10 +998,15 @@ function RefineryAssault:SetupFirstStage()
 	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan3", cameraPos, 0.01, 3500, true, true, true);
 	
 	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan4").Center;
+	
+	local introEndFunction = function() 
+		local activity = ToGameActivity(ActivityMan:GetActivity());
+		activity:SendMessage("RefineryAssault_IntroCinematicDone");
+	end
 
 	-- Fog of war-causing callback if it's enabled, but none if it's not
 	if self:GetFogOfWarEnabled() then
-		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true, function() SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam); end);
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true, introEndFunction);
 	else
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true);
 	end
@@ -1019,7 +1040,7 @@ function RefineryAssault:SetupFirstStage()
 	
 	-- Set up player squad and dropship
 	
-	local dropShip = self.deliveryCreationHandler:CreateEliteSquadWithCraft(self.humanTeam, false, 5);
+	local dropShip, squad = self.deliveryCreationHandler:CreateEliteSquadWithCraft(self.humanTeam, false, 5);
 	local dropShipPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_HumanBrainSpawn").Center;
 	dropShip.Team = self.humanTeam;
 	dropShip.Pos = dropShipPos;
@@ -1029,8 +1050,9 @@ function RefineryAssault:SetupFirstStage()
 	
 	self.saveTable.playerBrains = {};
 	
+	local brain;
 	for i, player in pairs(self.humanPlayers) do
-		local brain = PresetMan:GetLoadout("Infantry Brain", self.humanTeamTech, false);
+		brain = PresetMan:GetLoadout("Infantry Brain", self.humanTeamTech, false);
 		if brain then
 			brain:RemoveInventoryItem("Constructor");
 		else
@@ -1053,6 +1075,11 @@ function RefineryAssault:SetupFirstStage()
 	self.saveTable.stage1InitialDropship = dropShip;
 	
 	MovableMan:AddActor(dropShip)
+	
+	for k, actor in pairs(squad) do
+		ToActor(actor):AddAIMOWaypoint(brain);
+	end
+	
 	--dropShip:OpenHatch();
 	
 	-- HUD handler listed objective

@@ -317,10 +317,11 @@ function HUDHandler:RemoveAllCameraPanEvents(team, doNotResetHUD)
 	self.saveTable.teamTables[team].cameraQueue = {};
 	
 	if not doNotResetHUD then
-		for team = 0, #self.saveTable.teamTables do
-			FrameMan:SetHudDisabled(false);
-			self:SetCinematicBars(team, false, false);
+		for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+			self.Activity:SetViewState(Activity.ACTORSELECT, player);
+			FrameMan:SetHudDisabled(false, self.Activity:ScreenOfPlayer(player));
 		end
+		self:SetCinematicBars(team, false, false);
 	end
 	
 end
