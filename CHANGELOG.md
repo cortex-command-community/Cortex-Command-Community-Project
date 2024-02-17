@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed some activities iterating from `0` to `PlayerCount - 1` instead of iterating over every player index and filtering to active human players. For example, "Exploration" (Doainar) was unable to progress if you used a different player than player 1.
 
+- Fixed an issue that could cause post-effects to appear very blurry.
+
 </details>
 
 ## [Release v6.1.0] - 2024/02/15
