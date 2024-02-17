@@ -516,15 +516,17 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
-	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) > 0 and not self.saveTable.brainsInvincible then
-		self.saveTable.brainsInvincible = true;
-		for k, brain in pairs(self.saveTable.playerBrains) do
-			self.MOUtility:SetMOUnhittable(brain, true);
-		end
-	elseif self.saveTable.brainsInvincible and self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
-		self.saveTable.brainsInvincible = false;
-		for k, brain in pairs(self.saveTable.playerBrains) do
-			self.MOUtility:SetMOUnhittable(brain, false);
+	if not self.debugInvincibleBrain then
+		if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) > 0 and not self.saveTable.brainsInvincible then
+			self.saveTable.brainsInvincible = true;
+			for k, brain in pairs(self.saveTable.playerBrains) do
+				self.MOUtility:SetMOUnhittable(brain, true);
+			end
+		elseif self.saveTable.brainsInvincible and self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
+			self.saveTable.brainsInvincible = false;
+			for k, brain in pairs(self.saveTable.playerBrains) do
+				self.MOUtility:SetMOUnhittable(brain, false);
+			end
 		end
 	end
 	
@@ -545,7 +547,6 @@ function RefineryAssault:UpdateActivity()
 	-- Debug
 	
 	if UInputMan.FlagAltState then
-
 		-- Unlimit camera
 		if UInputMan:KeyPressed(Key.KP_8) then
 			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 999999);
@@ -557,10 +558,33 @@ function RefineryAssault:UpdateActivity()
 			self:ChangeAIFunds(1, 200);
 		end
 		
+		-- Invincible brain and infinite gun
 		if UInputMan:KeyPressed(Key.KP_6) then
-			self:SendMessage("Captured_RefineryS3DockConsole")
+			self.debugInvincibleBrain = true;
+			for k, brain in pairs(self.saveTable.playerBrains) do
+				if not self.saveTable.brainsInvincible then
+					self.MOUtility:SetMOUnhittable(brain, true);
+				end
+				local gun = CreateHDFirearm("M16A2", "Ronin.rte");
+				gun.Magazine.RoundCount = -1;
+				gun.RateOfFire = 1500;
+				gun.PresetName = "Debug M16A2";
+				brain:AddInventoryItem(gun);
+				
+				ToAHuman(brain).Jetpack.JetTimeTotal = 9999;
+				ToAHuman(brain).Jetpack.JetReplenishRate = 99;
+				
+				brain.MissionCritical = true;
+				ToAHuman(brain).Head.MissionCritical = true;
+				brain.Health = 9999;
+				brain.GibImpulseLimit = 999999;
+				brain.GibWoundLimit = 999999;
+				for att in brain.Attachables do
+					att.GibImpulseLimit = 999999;
+					att.GibWoundLimit = 999999;
+				end			
+			end
 		end
-		
 	end
 	
 	local debugDoorTrigger = UInputMan:KeyPressed(Key.J)	
