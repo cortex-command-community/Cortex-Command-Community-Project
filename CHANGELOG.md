@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a rare crash that could occur depending on Lua garbage collection and async processing.
 
+- Fixed a missing Lua write binding for `AEJetpack`'s `JetTimeLeft` property.
+
 </details>
 
 ## [Release v6.1.0] - 2024/02/15
