@@ -1447,6 +1447,10 @@ function RefineryAssault:MonitorStage3()
 	
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OpenDoors");
 		
+		-- Reveal fog
+		local box = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceFogRevealArea").FirstBox;
+		SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+		
 		local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
 		
 		local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Alarm", "Browncoats.rte");
@@ -1584,6 +1588,10 @@ function RefineryAssault:MonitorStage5()
 		
 		self.stage6SubcommanderDoor:SendMessage("BuyDoor_CustomTableOrder");
 		
+		-- Reveal fog
+		local box = SceneMan.Scene:GetOptionalArea("RefineryAssault_S6SubcommanderViewFogRevealArea").FirstBox;
+		SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+		
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S6SubcommanderView", self.stage6SubcommanderDoor.Pos, 0.05, 5000, true);
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
@@ -1684,6 +1692,7 @@ function RefineryAssault:MonitorStage6()
 			
 			if keyCardLost then
 				-- spawn a new one
+				self.stage7FrameWaited = false;
 				self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
 				self.saveTable.stage6Keycard.Pos = self.stage6SubcommanderDoor.Pos
 				MovableMan:AddItem(self.saveTable.stage6Keycard);
@@ -1691,7 +1700,6 @@ function RefineryAssault:MonitorStage6()
 		else
 			self.stage7FrameWaited = true;
 		end
-		self.stage7FrameWaited = false;
 	end
 
 end

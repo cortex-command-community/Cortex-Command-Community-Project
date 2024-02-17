@@ -516,7 +516,7 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
-	if not self.debugInvincibleBrain then
+	if not self.saveTable.debugInvincibleBrain then
 		if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) > 0 and not self.saveTable.brainsInvincible then
 			self.saveTable.brainsInvincible = true;
 			for k, brain in pairs(self.saveTable.playerBrains) do
@@ -558,9 +558,17 @@ function RefineryAssault:UpdateActivity()
 			self:ChangeAIFunds(1, 200);
 		end
 		
+		-- Brain teleport to cursor
+		if UInputMan:KeyPressed(Key.SPACE) then
+			for k, brain in pairs(self.saveTable.playerBrains) do
+				local pos = CameraMan:GetScrollTarget(0);
+				brain.Pos = pos;
+			end
+		end
+		
 		-- Invincible brain and infinite gun
-		if UInputMan:KeyPressed(Key.KP_6) then
-			self.debugInvincibleBrain = true;
+		if not self.saveTable.debugInvincibleBrain and UInputMan:KeyPressed(Key.KP_6) then
+			self.saveTable.debugInvincibleBrain = true;
 			for k, brain in pairs(self.saveTable.playerBrains) do
 				if not self.saveTable.brainsInvincible then
 					self.MOUtility:SetMOUnhittable(brain, true);
