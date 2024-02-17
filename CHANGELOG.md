@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue that could cause post-effects to appear very blurry.
 
+- Fixed a rare crash that could occur depending on Lua garbage collection and async processing.
+
 </details>
 
 ## [Release v6.1.0] - 2024/02/15
