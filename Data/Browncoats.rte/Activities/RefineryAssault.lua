@@ -569,14 +569,18 @@ function RefineryAssault:UpdateActivity()
 				gun.Magazine.RoundCount = -1;
 				gun.RateOfFire = 1500;
 				gun.PresetName = "Debug M16A2";
+				gun.Reloadable = false;
 				brain:AddInventoryItem(gun);
+				
+				brain.GetsHitByMOs = true; -- need this for capturables to work
 				
 				ToAHuman(brain).Jetpack.JetTimeTotal = 9999;
 				ToAHuman(brain).Jetpack.JetReplenishRate = 99;
 				
 				brain.MissionCritical = true;
 				ToAHuman(brain).Head.MissionCritical = true;
-				brain.Health = 9999;
+				ToAHuman(brain).MaxHealth = 999999;
+				ToAHuman(brain).Health = 999999;
 				brain.GibImpulseLimit = 999999;
 				brain.GibWoundLimit = 999999;
 				for att in brain.Attachables do
