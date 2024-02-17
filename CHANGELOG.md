@@ -6,21 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-<details><summary><b>Added</b></summary>
-
-</details>
-
 <details><summary><b>Changed</b></summary>
+
+- Massacre now displays the remaining kill count to each player's screen instead of just the first one.
 
 </details>
 
 <details><summary><b>Fixed</b></summary>
 
+- Fixed instances of `FrameMan:ClearScreenText()` and `FrameMan:SetScreenText()` supplying a player index instead of a screen index. For example, "Signal Hunt" wouldn't display the Alchiral messages if you used a different player than player 1.
+
+- Fixed some activities iterating from `0` to `PlayerCount - 1` instead of iterating over every player index and filtering to active human players. For example, "Exploration" (Doainar) was unable to progress if you used a different player than player 1.
+
+- Fixed an issue that could cause post-effects to appear very blurry.
+
 - Fixed a rare crash that could occur depending on Lua garbage collection and async processing.
-
-</details>
-
-<details><summary><b>Removed</b></summary>
 
 </details>
 

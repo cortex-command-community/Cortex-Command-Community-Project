@@ -224,9 +224,9 @@ function OneManArmy:UpdateActivity()
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
 				if self.startMessageTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) / 1000) .. " seconds left", player, 0, 1000, false);
+					FrameMan:SetScreenText(math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) / 1000) .. " seconds left", self:ScreenOfPlayer(player), 0, 1000, false);
 				else
-					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", player, 333, 5000, true);
+					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", self:ScreenOfPlayer(player), 333, 5000, true);
 				end
 
 				-- The current player's team
@@ -235,8 +235,8 @@ function OneManArmy:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("Your brain has been destroyed!", player, 333, -1, false);
+					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+					FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 333, -1, false);
 					-- Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
 						self.WinnerTeam = self:OtherTeam(team);
@@ -249,8 +249,8 @@ function OneManArmy:UpdateActivity()
 				--Check if the player has won.
 				if self.winTimer:IsPastSimMS(self.timeLimit) then
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("You survived!", player, 333, -1, false);
+					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+					FrameMan:SetScreenText("You survived!", self:ScreenOfPlayer(player), 333, -1, false);
 
 					self.WinnerTeam = player;
 

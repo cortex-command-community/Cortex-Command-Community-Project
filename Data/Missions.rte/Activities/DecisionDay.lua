@@ -1109,8 +1109,8 @@ end
 
 function DecisionDay:UpdateMessages()
 	if self.speedrunData and ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
-		FrameMan:ClearScreenText(Activity.PLAYER_1);
-		FrameMan:SetScreenText(ActivitySpeedrunHelper.GetSpeedrunDuration(self.speedrunData), Activity.PLAYER_1, 0, 1, ActivitySpeedrunHelper.SpeedrunCompleted(self.speedrunData));
+		FrameMan:ClearScreenText(0);
+		FrameMan:SetScreenText(ActivitySpeedrunHelper.GetSpeedrunDuration(self.speedrunData), 0, 0, 1, ActivitySpeedrunHelper.SpeedrunCompleted(self.speedrunData));
 		return;
 	end
 
@@ -1204,8 +1204,8 @@ function DecisionDay:UpdateMessages()
 		end
 
 		if messageText then
-			FrameMan:ClearScreenText(player);
-			FrameMan:SetScreenText(messageText, player, blinkTime, 0, textCentered);
+			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+			FrameMan:SetScreenText(messageText, self:ScreenOfPlayer(player), blinkTime, 0, textCentered);
 		end
 	end
 end

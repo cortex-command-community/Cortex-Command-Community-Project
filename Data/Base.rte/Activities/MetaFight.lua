@@ -33,7 +33,7 @@ function MetaFight:BrainCheck()
 					-- All hope is lost for this player
 					else
 						self:ResetMessageTimer(player);
---						FrameMan:ClearScreenText(player);
+--						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 --						FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 333, -1, false);
 						-- Save the position of this player's brain's last known position as the last brain death position
 						self.LastBrainDeathPos = self.LastBrainPos[player];
@@ -835,7 +835,7 @@ function MetaFight:UpdateActivity()
 						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 						-- Clear the messages before starting the game
 						self:ResetMessageTimer(player);
-						FrameMan:ClearScreenText(player);
+						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 						-- Reset the screen occlusion if any players are still in menus
 						CameraMan:SetScreenOcclusion(Vector(), self:ScreenOfPlayer(player));
 					end
