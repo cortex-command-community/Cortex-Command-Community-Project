@@ -1,3 +1,4 @@
+
 #include "MetagameGUI.h"
 
 #include "WindowMan.h"
@@ -69,8 +70,8 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 
 	// Draw the appropriate growing geometric figure around the location, growing
 	if (m_Style == SiteTarget::CROSSHAIRSSHRINK) {
-		float radius = Lerp(0.0f, 1.0f, 200f, 10f, m_AnimProgress);
-		float lineLen = Lerp(0.0f, 1.0f, 60f, 10f, m_AnimProgress);
+		float radius = Lerp(0.0f, 1.0f, 200.0f, 10.0f, m_AnimProgress);
+		float lineLen = Lerp(0.0f, 1.0f, 60.0f, 10.0f, m_AnimProgress);
 		float rotation = Lerp(0.0f, 1.0f, Matrix(-c_EighthPI), Matrix(0.0f), m_AnimProgress).GetRadAngle();
 		Vector inner;
 		Vector outer;
@@ -84,8 +85,8 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 			DrawGlowLine(drawBitmap, m_CenterPos + inner, m_CenterPos + outer, m_Color);
 		}
 	} else if (m_Style == SiteTarget::CROSSHAIRSGROW) {
-		float radius = Lerp(0.0f, 1.0f, 10f, 200f, m_AnimProgress);
-		float lineLen = Lerp(0.0f, 1.0f, 10f, 60f, m_AnimProgress);
+		float radius = Lerp(0.0f, 1.0f, 10.0f, 200.0f, m_AnimProgress);
+		float lineLen = Lerp(0.0f, 1.0f, 10.0f, 60.0f, m_AnimProgress);
 		float rotation = Lerp(0.0f, 1.0f, Matrix(-c_EighthPI), Matrix(0.0f), m_AnimProgress).GetRadAngle();
 		Vector inner;
 		Vector outer;
@@ -99,26 +100,26 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 			DrawGlowLine(drawBitmap, m_CenterPos + inner, m_CenterPos + outer, m_Color);
 		}
 	} else if (m_Style == SiteTarget::CIRCLESHRINK) {
-		float radius = Lerp(0.0, 1.0, 24, 6, m_AnimProgress);
-		int blendAmount = Lerp(0.0, 1.0, 0, 255, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 24.0f, 6.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 0.0f, 255.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		circle(drawBitmap, m_CenterPos.m_X, m_CenterPos.m_Y, radius, m_Color);
 	} else if (m_Style == SiteTarget::CIRCLEGROW) {
-		float radius = Lerp(0.0, 1.0, 6, 24, m_AnimProgress);
-		int blendAmount = Lerp(0.0, 1.0, 255, 0, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 6.0f, 24.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 255.0f, 0.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		circle(drawBitmap, m_CenterPos.m_X, m_CenterPos.m_Y, radius, m_Color);
 	} else if (m_Style == SiteTarget::SQUARESHRINK) {
-		float radius = Lerp(0.0, 1.0, 24, 6, m_AnimProgress);
-		int blendAmount = Lerp(0.0, 1.0, 0, 255, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 24.0f, 6.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 0.0f, 255.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		rect(drawBitmap, m_CenterPos.m_X - radius, m_CenterPos.m_Y - radius, m_CenterPos.m_X + radius, m_CenterPos.m_Y + radius, m_Color);
 	}
 	// Default
 	else // if (m_Style == SiteTarget::SQUAREGROW)
 	{
-		float radius = Lerp(0.0, 1.0, 6, 24, m_AnimProgress);
-		int blendAmount = Lerp(0.0, 1.0, 255, 0, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 6.0f, 24.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 255.0f, 0.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		rect(drawBitmap, m_CenterPos.m_X - radius, m_CenterPos.m_Y - radius, m_CenterPos.m_X + radius, m_CenterPos.m_Y + radius, m_Color);
 	}
