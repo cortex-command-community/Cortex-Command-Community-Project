@@ -27,6 +27,7 @@ R I K U   " 4 Z K "   K
 S T E W I E
 T H O M A S   " C A U S E L E S S "   M A R C H
 T O P K E K
+W I L L I A M   " M A G E K I N G 1 7 "   H O W A R D
 Z A L O
 
 Art and Content Production
