@@ -28,6 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a rare crash that could occur depending on Lua garbage collection and async processing.
 
+- Fixed a crash that could occur when using the Nucleo Swarm weapon.
+
 - Fixed a missing Lua write binding for `AEJetpack`'s `JetTimeLeft` property.
 
 - Fixed an issue where glows wouldn't render if the EffectStopTime was lower than the simulation deltatime.
