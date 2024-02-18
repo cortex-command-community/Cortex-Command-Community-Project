@@ -121,13 +121,13 @@ namespace RTE {
 		/// @return Whether this SceneLayer wraps on the Y axis or not.
 		bool WrapsY() const { return m_WrapY; }
 
-		/// Gets a specific pixel from the bitmap of this SceneLayer. LockBitmaps() must be called before using this method.
+		/// Gets a specific pixel from the bitmap of this SceneLayer.
 		/// @param pixelX The X coordinate of the pixel to get.
 		/// @param pixelY The Y coordinate of the pixel to get.
 		/// @return An int specifying the requested pixel's color index.
 		int GetPixel(int pixelX, int pixelY) const;
 
-		/// Sets a specific pixel on the bitmap of this SceneLayer to a specific value. LockBitmaps() must be called before using this method.
+		/// Sets a specific pixel on the bitmap of this SceneLayer to a specific value.
 		/// @param pixelX The X coordinate of the pixel to set.
 		/// @param pixelY The Y coordinate of the pixel to set.
 		/// @param materialID The color index to set the pixel to.
@@ -142,16 +142,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// Lock the internal bitmap so it can be accessed by GetPixel() etc. UnlockBitmaps() should always be called after accesses are completed.
-		/// Doing it in a separate method like this is more efficient because many bitmap accesses can be performed between a lock and unlock.
-		void LockBitmaps() { /*acquire_bitmap(m_MainBitmap);*/
-		}
-
-		/// Unlocks the internal bitmaps and prevents access to display memory. UnlockBitmaps() should only be called after LockBitmaps().
-		/// Doing it in a separate method like this is more efficient because many bitmap accesses can be performed between a lock and an unlock.
-		void UnlockBitmaps() { /*release_bitmap(m_MainBitmap);*/
-		}
-
 		/// Clears our BITMAP.
 		/// @param clearTo What color to clear the bitmap to.
 		void ClearBitmap(ColorKeys clearTo);

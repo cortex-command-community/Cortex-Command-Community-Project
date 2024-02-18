@@ -1052,7 +1052,6 @@ void HDFirearm::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whic
 	sharpLength -= static_cast<float>(pointSpacing * pointCount) * 0.5F;
 	Vector muzzleOffset(std::max(m_MuzzleOff.m_X, m_SpriteRadius), m_MuzzleOff.m_Y);
 
-	// acquire_bitmap(pTargetBitmap);
 	for (int i = 0; i < pointCount; ++i) {
 		Vector aimPoint(sharpLength + static_cast<float>(pointSpacing * i), 0);
 		aimPoint = RotateOffset(aimPoint + muzzleOffset) + m_Pos;
@@ -1062,5 +1061,4 @@ void HDFirearm::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whic
 		g_SceneMan.WrapPosition(aimPoint);
 		putpixel(pTargetBitmap, aimPoint.GetFloorIntX(), aimPoint.GetFloorIntY(), g_YellowGlowColor);
 	}
-	// release_bitmap(pTargetBitmap);
 }

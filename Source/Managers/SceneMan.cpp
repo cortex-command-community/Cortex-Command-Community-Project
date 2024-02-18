@@ -53,7 +53,6 @@ void SceneMan::Clear() {
 	m_PlaceUnits = true;
 	m_pCurrentScene = nullptr;
 	m_pMOColorLayer = nullptr;
-	m_pMOIDLayer = nullptr;
 	m_pDebugLayer = nullptr;
 
 	m_LayerDrawMode = g_LayerNormal;
@@ -156,20 +155,12 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 
 	//    m_pCurrentScene->GetTerrain()->CleanAir();
 
-	// Re-create the MoveableObject:s color SceneLayer
+	// Re-create the MoveableObject's color SceneLayer
 	delete m_pMOColorLayer;
 	BITMAP* pBitmap = create_bitmap_ex(8, GetSceneWidth(), GetSceneHeight());
 	clear_to_color(pBitmap, g_MaskColor);
 	m_pMOColorLayer = new SceneLayerTracked();
 	m_pMOColorLayer->Create(pBitmap, true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
-	pBitmap = 0;
-
-	// Re-create the MoveableObject:s ID SceneLayer
-	delete m_pMOIDLayer;
-	pBitmap = create_bitmap_ex(c_MOIDLayerBitDepth, GetSceneWidth(), GetSceneHeight());
-	clear_to_color(pBitmap, g_NoMOID);
-	m_pMOIDLayer = new SceneLayerTracked();
-	m_pMOIDLayer->Create(pBitmap, false, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
 	pBitmap = 0;
 
 	const int cellSize = 20;
@@ -186,7 +177,7 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 	}
 
 	// Finally draw the ID:s of the MO:s to the MOID layers for the first time
-	g_MovableMan.UpdateDrawMOIDs(m_pMOIDLayer->GetBitmap());
+	g_MovableMan.UpdateDrawMOIDs();
 
 	g_NetworkServer.LockScene(false);
 	g_NetworkServer.ResetScene();
@@ -306,7 +297,6 @@ void SceneMan::Destroy() {
 
 	delete m_pCurrentScene;
 	delete m_pDebugLayer;
-	delete m_pMOIDLayer;
 	delete m_pMOColorLayer;
 	delete m_pUnseenRevealSound;
 
@@ -390,27 +380,6 @@ BITMAP* SceneMan::GetDebugBitmap() const {
 	return m_pDebugLayer->GetBitmap();
 }
 
-BITMAP* SceneMan::GetMOIDBitmap() const {
-	return m_pMOIDLayer->GetBitmap();
-}
-
-// TEMP!
-bool SceneMan::MOIDClearCheck() {
-	BITMAP* pMOIDMap = m_pMOIDLayer->GetBitmap();
-	int badMOID = g_NoMOID;
-	for (int y = 0; y < pMOIDMap->h; ++y) {
-		for (int x = 0; x < pMOIDMap->w; ++x) {
-			if ((badMOID = _getpixel(pMOIDMap, x, y)) != g_NoMOID) {
-				g_FrameMan.SaveBitmapToPNG(pMOIDMap, "MOIDCheck");
-				g_FrameMan.SaveBitmapToPNG(m_pMOColorLayer->GetBitmap(), "MOIDCheck");
-				RTEAbort("Bad MOID of MO detected: " + g_MovableMan.GetMOFromID(badMOID)->GetPresetName());
-				return false;
-			}
-		}
-	}
-	return true;
-}
-
 unsigned char SceneMan::GetTerrMatter(int pixelX, int pixelY) {
 	RTEAssert(m_pCurrentScene, "Trying to get terrain matter before there is a scene or terrain!");
 
@@ -444,25 +413,8 @@ MOID SceneMan::GetMOIDPixel(int pixelX, int pixelY, int ignoreTeam) {
 		m_pDebugLayer->SetPixel(pixelX, pixelY, 5);
 	}
 
-	if (pixelX < 0 || pixelX >= m_pMOIDLayer->GetBitmap()->w || pixelY < 0 || pixelY >= m_pMOIDLayer->GetBitmap()->h) {
-		return g_NoMOID;
-	}
-
-#ifdef DRAW_MOID_LAYER
-	MOID moid = getpixel(m_pMOIDLayer->GetBitmap(), pixelX, pixelY);
-#else
 	const std::vector<MOID>& moidList = m_MOIDsGrid.GetMOIDsAtPosition(pixelX, pixelY, ignoreTeam, true);
 	MOID moid = g_MovableMan.GetMOIDPixel(pixelX, pixelY, moidList);
-#endif
-
-	if (g_SettingsMan.SimplifiedCollisionDetection()) {
-		if (moid != ColorKeys::g_NoMOID && moid != ColorKeys::g_MOIDMaskColor) {
-			const MOSprite* mo = dynamic_cast<MOSprite*>(g_MovableMan.GetMOFromID(moid));
-			return (mo && !mo->GetTraveling()) ? moid : ColorKeys::g_NoMOID;
-		} else {
-			return ColorKeys::g_NoMOID;
-		}
-	}
 
 	return moid;
 }
@@ -481,42 +433,12 @@ Vector SceneMan::GetGlobalAcc() const {
 	return m_pCurrentScene->GetGlobalAcc();
 }
 
-void SceneMan::LockScene() {
-	//    RTEAssert(!m_pCurrentScene->IsLocked(), "Hey, locking already locked scene!");
-	if (m_pCurrentScene && !m_pCurrentScene->IsLocked()) {
-		m_pCurrentScene->Lock();
-		m_pMOColorLayer->LockBitmaps();
-		m_pMOIDLayer->LockBitmaps();
-	}
-}
-
-void SceneMan::UnlockScene() {
-	//    RTEAssert(m_pCurrentScene->IsLocked(), "Hey, unlocking already unlocked scene!");
-	if (m_pCurrentScene && m_pCurrentScene->IsLocked()) {
-		m_pCurrentScene->Unlock();
-		m_pMOColorLayer->UnlockBitmaps();
-		m_pMOIDLayer->UnlockBitmaps();
-	}
-}
-
-bool SceneMan::SceneIsLocked() const {
-	RTEAssert(m_pCurrentScene, "Trying to check if scene is locked before there is a scene or terrain!");
-	return m_pCurrentScene->IsLocked();
-}
-
 void SceneMan::RegisterDrawing(const BITMAP* bitmap, int moid, int left, int top, int right, int bottom) {
 	if (m_pMOColorLayer && m_pMOColorLayer->GetBitmap() == bitmap) {
 		m_pMOColorLayer->RegisterDrawing(left, top, right, bottom);
-	} else if (m_pMOIDLayer && m_pMOIDLayer->GetBitmap() == bitmap) {
-#ifdef DRAW_MOID_LAYER
-		m_pMOIDLayer->RegisterDrawing(left, top, right, bottom);
-#else
-		const MovableObject* mo = g_MovableMan.GetMOFromID(moid);
-		if (mo) {
-			IntRect rect(left, top, right, bottom);
-			m_MOIDsGrid.Add(rect, *mo);
-		}
-#endif
+	} else if (const MovableObject* mo = g_MovableMan.GetMOFromID(moid)) {
+		IntRect rect(left, top, right, bottom);
+		m_MOIDsGrid.Add(rect, *mo);
 	}
 }
 
@@ -527,11 +449,7 @@ void SceneMan::RegisterDrawing(const BITMAP* bitmap, int moid, const Vector& cen
 }
 
 void SceneMan::ClearAllMOIDDrawings() {
-#ifdef DRAW_MOID_LAYER
-	m_pMOIDLayer->ClearBitmap(g_NoMOID);
-#else
 	m_MOIDsGrid.Reset();
-#endif
 }
 
 bool SceneMan::WillPenetrate(const int posX,
@@ -2046,28 +1964,9 @@ MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID
 			// Detect MOIDs
 			hitMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
 			if (hitMOID != g_NoMOID && hitMOID != ignoreMOID && g_MovableMan.GetRootMOID(hitMOID) != ignoreMOID) {
-#ifdef DRAW_MOID_LAYER // Unnecessary with non-drawn MOIDs - they'll be culled out at the spatial partition level.
-				// Check if we're supposed to ignore the team of what we hit
-				if (ignoreTeam != Activity::NoTeam) {
-					const MovableObject* pHitMO = g_MovableMan.GetMOFromID(hitMOID);
-					pHitMO = pHitMO ? pHitMO->GetRootParent() : 0;
-					// Yup, we are supposed to ignore this!
-					if (pHitMO && pHitMO->IgnoresTeamHits() && pHitMO->GetTeam() == ignoreTeam) {
-						;
-					} else {
-						// Save last ray pos
-						s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-						return hitMOID;
-					}
-				}
-				// Legit hit
-				else
-#endif
-				{
-					// Save last ray pos
-					s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-					return hitMOID;
-				}
+				// Save last ray pos
+				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+				return hitMOID;
 			}
 
 			// Detect terrain hits
@@ -2256,16 +2155,6 @@ float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& 
 				MovableObject* pHitMO = g_MovableMan.GetMOFromID(checkMOID);
 				if (pHitMO) {
 					checkMOID = pHitMO->GetRootID();
-#ifdef DRAW_MOID_LAYER // Unnecessary with non-drawn MOIDs - they'll be culled out at the spatial partition level. \
-						// Check if we're supposed to ignore the team of what we hit
-					if (ignoreTeam != Activity::NoTeam) {
-						pHitMO = pHitMO->GetRootParent();
-						// We are indeed supposed to ignore this object because of its ignoring of its specific team
-						if (pHitMO && pHitMO->IgnoresTeamHits() && pHitMO->GetTeam() == ignoreTeam) {
-							checkMOID = g_NoMOID;
-						}
-					}
-#endif
 				}
 			}
 
@@ -2370,19 +2259,19 @@ Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accu
 	return groundPoint;
 }
 
-bool SceneMan::IsWithinBounds(const int pixelX, const int pixelY, const int margin) {
+bool SceneMan::IsWithinBounds(const int pixelX, const int pixelY, const int margin) const {
 	if (m_pCurrentScene)
 		return m_pCurrentScene->GetTerrain()->IsWithinBounds(pixelX, pixelY, margin);
 
 	return false;
 }
 
-bool SceneMan::ForceBounds(int& posX, int& posY) {
+bool SceneMan::ForceBounds(int& posX, int& posY) const {
 	RTEAssert(m_pCurrentScene, "Trying to access scene before there is one!");
 	return m_pCurrentScene->GetTerrain()->ForceBounds(posX, posY);
 }
 
-bool SceneMan::ForceBounds(Vector& pos) {
+bool SceneMan::ForceBounds(Vector& pos) const {
 	RTEAssert(m_pCurrentScene, "Trying to access scene before there is one!");
 
 	int posX = std::floor(pos.m_X);
@@ -2396,12 +2285,12 @@ bool SceneMan::ForceBounds(Vector& pos) {
 	return wrapped;
 }
 
-bool SceneMan::WrapPosition(int& posX, int& posY) {
+bool SceneMan::WrapPosition(int& posX, int& posY) const {
 	RTEAssert(m_pCurrentScene, "Trying to access scene before there is one!");
 	return m_pCurrentScene->GetTerrain()->WrapPosition(posX, posY);
 }
 
-bool SceneMan::WrapPosition(Vector& pos) {
+bool SceneMan::WrapPosition(Vector& pos) const {
 	RTEAssert(m_pCurrentScene, "Trying to access scene before there is one!");
 
 	int posX = std::floor(pos.m_X);
@@ -2415,7 +2304,7 @@ bool SceneMan::WrapPosition(Vector& pos) {
 	return wrapped;
 }
 
-Vector SceneMan::SnapPosition(const Vector& pos, bool snap) {
+Vector SceneMan::SnapPosition(const Vector& pos, bool snap) const {
 	Vector snappedPos = pos;
 
 	if (snap) {
@@ -2426,7 +2315,7 @@ Vector SceneMan::SnapPosition(const Vector& pos, bool snap) {
 	return snappedPos;
 }
 
-Vector SceneMan::ShortestDistance(Vector pos1, Vector pos2, bool checkBounds) {
+Vector SceneMan::ShortestDistance(Vector pos1, Vector pos2, bool checkBounds) const {
 	if (!m_pCurrentScene)
 		return Vector();
 
@@ -2462,7 +2351,7 @@ Vector SceneMan::ShortestDistance(Vector pos1, Vector pos2, bool checkBounds) {
 	return distance;
 }
 
-float SceneMan::ShortestDistanceX(float val1, float val2, bool checkBounds, int direction) {
+float SceneMan::ShortestDistanceX(float val1, float val2, bool checkBounds, int direction) const {
 	if (!m_pCurrentScene)
 		return 0;
 
@@ -2498,7 +2387,7 @@ float SceneMan::ShortestDistanceX(float val1, float val2, bool checkBounds, int 
 	return distance;
 }
 
-float SceneMan::ShortestDistanceY(float val1, float val2, bool checkBounds, int direction) {
+float SceneMan::ShortestDistanceY(float val1, float val2, bool checkBounds, int direction) const {
 	if (!m_pCurrentScene)
 		return 0;
 
@@ -2659,7 +2548,6 @@ void SceneMan::Update(int screenId) {
 
 	const Vector& offset = g_CameraMan.GetOffset(screenId);
 	m_pMOColorLayer->SetOffset(offset);
-	m_pMOIDLayer->SetOffset(offset);
 	if (m_pDebugLayer) {
 		m_pDebugLayer->SetOffset(offset);
 	}
@@ -2711,11 +2599,6 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 			terrain->SetLayerToDraw(SLTerrain::LayerType::MaterialLayer);
 			terrain->Draw(targetBitmap, targetBox);
 			break;
-#ifdef DRAW_MOID_LAYER
-		case LayerDrawMode::g_LayerMOID:
-			m_pMOIDLayer->Draw(targetBitmap, targetBox);
-			break;
-#endif
 		default:
 			if (!skipBackgroundLayers) {
 				for (std::list<SLBackground*>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); ++backgroundLayer) {

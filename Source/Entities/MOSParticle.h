@@ -115,9 +115,6 @@ namespace RTE {
 		float m_TimeRest; //!< Accumulated time in seconds that did not cause a frame change.
 
 	private:
-		/// Sets the screen effect to draw at the final post-processing stage.
-		void SetPostScreenEffectToDraw() const;
-
 		/// Clears all the member variables of this MOSParticle, effectively resetting the members of this abstraction level only.
 		void Clear();
 

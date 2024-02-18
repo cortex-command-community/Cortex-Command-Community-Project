@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Added</b></summary>
 
+- New `MovableObject` INI and Lua property `PostEffectEnabled` (R/W), which determines whether or not the screen effect of an MO is enabled. Defaults to `true` for `MOPixels` and `MOSParticles`, `false` for everything else (to avoid backwards compatibility issues).
+
 - `Lerp` can now be used on Vectors and Matrices/Rotations, not just numbers.
 
 </details>
@@ -19,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Slightly nerfed the Imperatus combat robot jetpack.
 
 - Improvements to AI navigation in automovers, so they get stuck less often.
+
+- Screen effects (glows) can now show on *any* `MovableObject` they're attached to; you may need to set `EffectAlwaysShows = 1` to see them on `MOSRotatings`. Try `InheritEffectRotAngle = 1` on one of them!
 
 - `LERP` Lua binding has been deprecated, and renamed to `Lerp`.
 
@@ -47,6 +51,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed an issue where a mission-specific keycard item was being bought by the AI.
 
 - Fixed `MovableObject` INI and Lua property `IgnoreTerrain` not having any appreciable effect.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+- Removed `Settings.ini` property `SimplifiedCollisionDetection = 0/1`. With the physics detection overhaul in pre-5, this became unnecessary.
 
 </details>
 

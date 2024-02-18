@@ -176,9 +176,6 @@ namespace RTE {
 		float m_Staininess; //!< How likely a pixel is to stain a surface when it collides with it. Defaults to 0 (never stain).
 
 	private:
-		/// Sets the screen effect to draw at the final post-processing stage.
-		void SetPostScreenEffectToDraw() const;
-
 		/// Clears all the member variables of this MOPixel, effectively resetting the members of this abstraction level only.
 		void Clear();
 	};

@@ -275,7 +275,6 @@ namespace RTE {
 
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
-		void PostUpdate() override { Attachable::PostUpdate(); }
 
 		/// Returns burst damage of this emitter.
 		/// @return Burst damage of emitter.

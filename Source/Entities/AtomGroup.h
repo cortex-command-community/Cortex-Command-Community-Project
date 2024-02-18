@@ -183,9 +183,8 @@ namespace RTE {
 		/// @param travelTime The amount of time in seconds that this AtomGroup is supposed to travel.
 		/// @param callOnBounce Whether to call the parent MOSR's OnBounce function upon bouncing against anything or not.
 		/// @param callOnSink Whether to call the parent MOSR's OnSink function upon sinking into anything or not.
-		/// @param scenePreLocked Whether the Scene has been pre-locked or not.
 		/// @return The amount of time remaining of the travelTime passed in, in seconds. This may only possibly be a non-zero if callOnBounce or callOnSink are true.
-		float Travel(float travelTime, bool callOnBounce = false, bool callOnSink = false, bool scenePreLocked = false);
+		float Travel(float travelTime, bool callOnBounce = false, bool callOnSink = false);
 
 		/// Makes this AtomGroup travel and react when terrain is hit. Effects are applied to the passed in variables.
 		/// @param position A reference to a Vector with the starting position of the AtomGroup origin. Will be altered according to where the AtomGroup ends up after it's done traveling.
@@ -198,11 +197,10 @@ namespace RTE {
 		/// @param travelTime The amount of time in seconds that this AtomGroup is supposed to travel.
 		/// @param callOnBounce Whether to call the parent MOSR's OnBounce function upon bouncing against anything or not.
 		/// @param callOnSink Whether to call the parent MOSR's OnSink function upon sinking into anything or not.
-		/// @param scenePreLocked Whether the Scene has been pre-locked or not.
 		/// @return The amount of time remaining of the travelTime passed in, in seconds. This may only possibly be a non-zero if callOnBounce or callOnSink are true.
 		/// @remark
 		/// Pseudocode explaining how this works can be found at: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/Notes-on-AtomGroup::Travel.
-		float Travel(Vector& position, Vector& velocity, Matrix& rotation, float& angularVel, bool& didWrap, Vector& totalImpulse, float mass, float travelTime, bool callOnBounce = false, bool callOnSink = false, bool scenePreLocked = false);
+		float Travel(Vector& position, Vector& velocity, Matrix& rotation, float& angularVel, bool& didWrap, Vector& totalImpulse, float mass, float travelTime, bool callOnBounce = false, bool callOnSink = false);
 
 		/// Makes this AtomGroup travel without rotation and react with the scene by pushing against it.
 		/// @param position A reference to a Vector with the starting position of the AtomGroup origin. Will be altered according to where the AtomGroup ends up after done traveling.
@@ -212,9 +210,8 @@ namespace RTE {
 		/// @param travelTime The amount of time in seconds that this AtomGroup is supposed to travel.
 		/// @param callOnBounce Whether to call the parent MOSR's OnBounce function upon bouncing against anything or not.
 		/// @param callOnSink Whether to call the parent MOSR's OnSink function upon sinking into anything or not.
-		/// @param scenePreLocked Whether the Scene has been pre-locked or not.
 		/// @return A Vector with the resulting push impulse force, in Newton-second (Ns).
-		Vector PushTravel(Vector& position, const Vector& velocity, float pushForce, bool& didWrap, float travelTime, bool callOnBounce = false, bool callOnSink = false, bool scenePreLocked = false);
+		Vector PushTravel(Vector& position, const Vector& velocity, float pushForce, bool& didWrap, float travelTime, bool callOnBounce = false, bool callOnSink = false);
 
 		/// Makes this AtomGroup travel as a pushing entity relative to the position of the owning MOSRotating.
 		/// If stuff in the scene is hit, resulting forces are be added to the owning MOSRotating's impulse forces.
