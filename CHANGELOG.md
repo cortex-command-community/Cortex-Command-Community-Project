@@ -42,6 +42,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 </details>
 
+<details><summary><b>Removed</b></summary>
+
+- Removed `Settings.ini` property `SimplifiedCollisionDetection = 0/1`. With the physics detection overhaul in pre-5, this became unnecessary.
+
+</details>
+
 ## [Release v6.1.0] - 2024/02/15
 
 <details><summary><b>Added</b></summary>

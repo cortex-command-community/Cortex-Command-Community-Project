@@ -246,15 +246,8 @@ void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode,
 			break;
 	}
 
-	bool shouldDraw = true;
-
-#ifndef DRAW_MOID_LAYER
-	shouldDraw = mode != DrawMode::g_DrawMOID;
-#endif
-
 	Vector pixelPos = m_Pos - targetPos;
-
-	if (shouldDraw) {
+	if (mode != DrawMode::g_DrawMOID) {
 		putpixel(targetBitmap, pixelPos.GetFloorIntX(), pixelPos.GetFloorIntY(), drawColor);
 	}
 

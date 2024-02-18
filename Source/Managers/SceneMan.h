@@ -40,10 +40,6 @@ namespace RTE {
 	enum LayerDrawMode {
 		g_LayerNormal = 0,
 		g_LayerTerrainMatter,
-
-#ifdef DRAW_MOID_LAYER
-		g_LayerMOID
-#endif
 	};
 
 #define SCENEGRIDSIZE 24

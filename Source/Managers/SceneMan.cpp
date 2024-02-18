@@ -448,21 +448,8 @@ MOID SceneMan::GetMOIDPixel(int pixelX, int pixelY, int ignoreTeam) {
 		return g_NoMOID;
 	}
 
-#ifdef DRAW_MOID_LAYER
-	MOID moid = getpixel(m_pMOIDLayer->GetBitmap(), pixelX, pixelY);
-#else
 	const std::vector<MOID>& moidList = m_MOIDsGrid.GetMOIDsAtPosition(pixelX, pixelY, ignoreTeam, true);
 	MOID moid = g_MovableMan.GetMOIDPixel(pixelX, pixelY, moidList);
-#endif
-
-	if (g_SettingsMan.SimplifiedCollisionDetection()) {
-		if (moid != ColorKeys::g_NoMOID && moid != ColorKeys::g_MOIDMaskColor) {
-			const MOSprite* mo = dynamic_cast<MOSprite*>(g_MovableMan.GetMOFromID(moid));
-			return (mo && !mo->GetTraveling()) ? moid : ColorKeys::g_NoMOID;
-		} else {
-			return ColorKeys::g_NoMOID;
-		}
-	}
 
 	return moid;
 }
@@ -508,15 +495,11 @@ void SceneMan::RegisterDrawing(const BITMAP* bitmap, int moid, int left, int top
 	if (m_pMOColorLayer && m_pMOColorLayer->GetBitmap() == bitmap) {
 		m_pMOColorLayer->RegisterDrawing(left, top, right, bottom);
 	} else if (m_pMOIDLayer && m_pMOIDLayer->GetBitmap() == bitmap) {
-#ifdef DRAW_MOID_LAYER
-		m_pMOIDLayer->RegisterDrawing(left, top, right, bottom);
-#else
 		const MovableObject* mo = g_MovableMan.GetMOFromID(moid);
 		if (mo) {
 			IntRect rect(left, top, right, bottom);
 			m_MOIDsGrid.Add(rect, *mo);
 		}
-#endif
 	}
 }
 
@@ -527,11 +510,7 @@ void SceneMan::RegisterDrawing(const BITMAP* bitmap, int moid, const Vector& cen
 }
 
 void SceneMan::ClearAllMOIDDrawings() {
-#ifdef DRAW_MOID_LAYER
-	m_pMOIDLayer->ClearBitmap(g_NoMOID);
-#else
 	m_MOIDsGrid.Reset();
-#endif
 }
 
 bool SceneMan::WillPenetrate(const int posX,
@@ -2046,28 +2025,9 @@ MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID
 			// Detect MOIDs
 			hitMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
 			if (hitMOID != g_NoMOID && hitMOID != ignoreMOID && g_MovableMan.GetRootMOID(hitMOID) != ignoreMOID) {
-#ifdef DRAW_MOID_LAYER // Unnecessary with non-drawn MOIDs - they'll be culled out at the spatial partition level.
-				// Check if we're supposed to ignore the team of what we hit
-				if (ignoreTeam != Activity::NoTeam) {
-					const MovableObject* pHitMO = g_MovableMan.GetMOFromID(hitMOID);
-					pHitMO = pHitMO ? pHitMO->GetRootParent() : 0;
-					// Yup, we are supposed to ignore this!
-					if (pHitMO && pHitMO->IgnoresTeamHits() && pHitMO->GetTeam() == ignoreTeam) {
-						;
-					} else {
-						// Save last ray pos
-						s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-						return hitMOID;
-					}
-				}
-				// Legit hit
-				else
-#endif
-				{
-					// Save last ray pos
-					s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-					return hitMOID;
-				}
+				// Save last ray pos
+				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+				return hitMOID;
 			}
 
 			// Detect terrain hits
@@ -2256,16 +2216,6 @@ float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& 
 				MovableObject* pHitMO = g_MovableMan.GetMOFromID(checkMOID);
 				if (pHitMO) {
 					checkMOID = pHitMO->GetRootID();
-#ifdef DRAW_MOID_LAYER // Unnecessary with non-drawn MOIDs - they'll be culled out at the spatial partition level. \
-						// Check if we're supposed to ignore the team of what we hit
-					if (ignoreTeam != Activity::NoTeam) {
-						pHitMO = pHitMO->GetRootParent();
-						// We are indeed supposed to ignore this object because of its ignoring of its specific team
-						if (pHitMO && pHitMO->IgnoresTeamHits() && pHitMO->GetTeam() == ignoreTeam) {
-							checkMOID = g_NoMOID;
-						}
-					}
-#endif
 				}
 			}
 
@@ -2711,11 +2661,6 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 			terrain->SetLayerToDraw(SLTerrain::LayerType::MaterialLayer);
 			terrain->Draw(targetBitmap, targetBox);
 			break;
-#ifdef DRAW_MOID_LAYER
-		case LayerDrawMode::g_LayerMOID:
-			m_pMOIDLayer->Draw(targetBitmap, targetBox);
-			break;
-#endif
 		default:
 			if (!skipBackgroundLayers) {
 				for (std::list<SLBackground*>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); ++backgroundLayer) {

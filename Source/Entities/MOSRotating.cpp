@@ -1245,17 +1245,6 @@ bool MOSRotating::DeepCheck(bool makeMOPs, int skipMOP, int maxMOPs) {
 	return false;
 }
 
-void MOSRotating::PreTravel() {
-	MOSprite::PreTravel();
-
-#ifdef DRAW_MOID_LAYER
-	// If this is going slow enough, check for and redraw the MOID representations of any other MOSRotatings that may be overlapping this
-	if (m_GetsHitByMOs && m_HitsMOs && m_Vel.GetX() < 2.0F && m_Vel.GetY() < 2.0F) {
-		g_MovableMan.RedrawOverlappingMOIDs(this);
-	}
-#endif
-}
-
 void MOSRotating::Travel() {
 	MOSprite::Travel();
 
@@ -1625,12 +1614,9 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 	}
 
 	// If we're drawing a material silhouette, then create an intermediate material bitmap as well
-#ifdef DRAW_MOID_LAYER
-	bool intermediateBitmapUsed = mode != g_DrawColor && mode != g_DrawTrans;
-#else
 	bool intermediateBitmapUsed = mode != g_DrawColor && mode != g_DrawTrans && mode != g_DrawMOID;
 	RTEAssert(mode != g_DrawNoMOID, "DrawNoMOID drawing mode used with no MOID layer!");
-#endif
+
 	if (intermediateBitmapUsed) {
 		clear_to_color(pTempBitmap, keyColor);
 
@@ -1651,18 +1637,13 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 		}
 	}
 
-#ifdef DRAW_MOID_LAYER
-	bool needsWrap = true;
-#else
-	bool needsWrap = mode != g_DrawMOID;
-#endif
-
 	// Take care of wrapping situations
 	Vector aDrawPos[4];
 	int passes = 1;
 
 	aDrawPos[0] = spritePos;
 
+	bool needsWrap = mode != g_DrawMOID;
 	if (needsWrap && g_SceneMan.SceneWrapsX()) {
 		// See if need to double draw this across the scene seam if we're being drawn onto a scenewide bitmap
 		if (targetPos.IsZero() && m_WrapDoubleDraw) {
@@ -1691,12 +1672,7 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 	}
 
 	if (m_HFlipped && pFlipBitmap) {
-#ifdef DRAW_MOID_LAYER
-		bool drawIntermediate = true;
-#else
 		bool drawIntermediate = mode != g_DrawMOID;
-#endif
-
 		if (drawIntermediate) {
 			// Don't size the intermediate bitmaps to the m_Scale, because the scaling happens after they are done
 			clear_to_color(pFlipBitmap, keyColor);
@@ -1732,11 +1708,10 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 				int spriteX = aDrawPos[i].GetFloorIntX();
 				int spriteY = aDrawPos[i].GetFloorIntY();
 				g_SceneMan.RegisterDrawing(pTargetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, spriteX + m_SpriteOffset.m_X - (m_SpriteRadius * m_Scale), spriteY + m_SpriteOffset.m_Y - (m_SpriteRadius * m_Scale), spriteX - m_SpriteOffset.m_X + (m_SpriteRadius * m_Scale), spriteY - m_SpriteOffset.m_Y + (m_SpriteRadius * m_Scale));
-#ifndef DRAW_MOID_LAYER
 				if (mode == g_DrawMOID) {
 					continue;
 				}
-#endif
+
 				// Take into account the h-flipped pivot point
 				pivot_scaled_sprite(pTargetBitmap, pFlipBitmap, spriteX, spriteY, pFlipBitmap->w + m_SpriteOffset.GetFloorIntX(), -(m_SpriteOffset.GetFloorIntY()), ftofix(m_Rotation.GetAllegroAngle()), ftofix(m_Scale));
 			}
@@ -1763,11 +1738,10 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 				int spriteX = aDrawPos[i].GetFloorIntX();
 				int spriteY = aDrawPos[i].GetFloorIntY();
 				g_SceneMan.RegisterDrawing(pTargetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, spriteX + m_SpriteOffset.m_X - (m_SpriteRadius * m_Scale), spriteY + m_SpriteOffset.m_Y - (m_SpriteRadius * m_Scale), spriteX - m_SpriteOffset.m_X + (m_SpriteRadius * m_Scale), spriteY - m_SpriteOffset.m_Y + (m_SpriteRadius * m_Scale));
-#ifndef DRAW_MOID_LAYER
 				if (mode == g_DrawMOID) {
 					continue;
 				}
-#endif
+				
 				pivot_scaled_sprite(pTargetBitmap, mode == g_DrawColor ? m_aSprite[m_Frame] : pTempBitmap, spriteX, spriteY, -m_SpriteOffset.GetFloorIntX(), -m_SpriteOffset.GetFloorIntY(), ftofix(m_Rotation.GetAllegroAngle()), ftofix(m_Scale));
 			}
 		}
