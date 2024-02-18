@@ -42,6 +42,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a crash that could occur when mods applied an invalid team to an Actor.
 
+- Fixed a crash that could occur when an actor was damaged without a defined wound.
+
 - Fixed a missing Lua write binding for `AEJetpack`'s `JetTimeLeft` property.
 
 - Fixed an issue where glows wouldn't render if the EffectStopTime was lower than the simulation deltatime.
