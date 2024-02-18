@@ -910,6 +910,13 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 		waypointData = nil,
 	};
 
+	if not actor:NumberValueExists("Automover_OldMoveProximityLimit") then
+		actor:SetNumberValue("Automover_OldMoveProximityLimit", actor.MoveProximityLimit);
+	end
+
+	-- Make move proximity much lower so we don't get caught on corners
+	actor.MoveProximityLimit = 2;
+
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
 	actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice, self);
@@ -924,6 +931,11 @@ automoverActorFunctions.removeActorFromAutomoverTable = function(self, actor, op
 	end
 
 	if MovableMan:ValidMO(actor) then
+		if actor:NumberValueExists("Automover_OldMoveProximityLimit") then
+			actor.MoveProximityLimit = actor:GetNumberValue("Automover_OldMoveProximityLimit");
+			actor:RemoveNumberValue("Automover_OldMoveProximityLimit");
+		end
+
 		actor.PieMenu:RemovePieSlicesByPresetName(self.leaveAutomoverNetworkPieSlice.PresetName);
 		actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
 
