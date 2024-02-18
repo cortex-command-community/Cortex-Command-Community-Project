@@ -552,7 +552,7 @@ bool Atom::StepForward(int numSteps) {
 			g_SceneMan.WrapPosition(m_IntPos[X], m_IntPos[Y]);
 
 			// Detect terrain hits, if not disabled.
-			if (g_MaterialAir != (m_TerrainMatHit = g_SceneMan.GetTerrMatter(m_IntPos[X], m_IntPos[Y]))) {
+			if (g_MaterialAir != (m_TerrainMatHit = g_SceneMan.GetTerrMatter(m_IntPos[X], m_IntPos[Y])) && !m_OwnerMO->m_IgnoreTerrain) {
 				// Check if we're temporarily disabled from hitting terrain
 				if (!m_TerrainHitsDisabled) {
 					m_OwnerMO->SetHitWhatTerrMaterial(m_TerrainMatHit);
@@ -766,7 +766,7 @@ int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
 		// Bresenham's line drawing algorithm execution
 		for (domSteps = 0; domSteps < delta[dom] && !(hit[X] || hit[Y]); ++domSteps) {
 			// Check for the special case if the Atom is starting out embedded in terrain. This can happen if something large gets copied to the terrain and embeds some Atoms.
-			if (domSteps == 0 && g_SceneMan.GetTerrMatter(intPos[X], intPos[Y]) != g_MaterialAir) {
+			if (domSteps == 0 && !m_OwnerMO->m_IgnoreTerrain && g_SceneMan.GetTerrMatter(intPos[X], intPos[Y]) != g_MaterialAir) {
 				++hitCount;
 				hit[X] = hit[Y] = true;
 				if (g_SceneMan.TryPenetrate(intPos[X], intPos[Y], velocity * mass * sharpness, velocity, retardation, 0.5F, m_NumPenetrations, removeOrphansRadius, removeOrphansMaxArea, removeOrphansRate)) {
