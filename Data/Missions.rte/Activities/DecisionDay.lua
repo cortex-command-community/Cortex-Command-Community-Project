@@ -2045,8 +2045,8 @@ function DecisionDay:UpdateMainBunkerExternalPopoutTurrets()
 			if not boxData.movementTimer:IsPastSimTimeLimit() and boxData.actor then
 				local startPos = self.popoutTurretsData[bunkerId].turretsActivated and box.Center or box.Center + Vector(25, 25);
 				local endPos = self.popoutTurretsData[bunkerId].turretsActivated and box.Center + Vector(25, 25) or box.Center;
-				boxData.actor.Pos.X = LERP(0, 1, startPos.X, endPos.X, boxData.movementTimer.SimTimeLimitProgress);
-				boxData.actor.Pos.Y = LERP(0, 1, startPos.Y, endPos.Y, boxData.movementTimer.SimTimeLimitProgress);
+				boxData.actor.Pos.X = Lerp(0, 1, startPos.X, endPos.X, boxData.movementTimer.SimTimeLimitProgress);
+				boxData.actor.Pos.Y = Lerp(0, 1, startPos.Y, endPos.Y, boxData.movementTimer.SimTimeLimitProgress);
 				if boxData.movementSound:IsBeingPlayed() then
 					boxData.movementSound.Pos = boxData.actor.Pos;
 				else

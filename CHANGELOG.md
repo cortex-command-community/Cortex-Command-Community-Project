@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+<details><summary><b>Added</b></summary>
+
+- `Lerp` can now be used on Vectors and Matrices/Rotations, not just numbers.
+
+</details>
+
 <details><summary><b>Changed</b></summary>
 
 - Massacre now displays the remaining kill count to each player's screen instead of just the first one.
@@ -13,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Slightly nerfed the Imperatus combat robot jetpack.
 
 - Improvements to AI navigation in automovers, so they get stuck less often.
+
+- `LERP` Lua binding has been deprecated, and renamed to `Lerp`.
 
 </details>
 

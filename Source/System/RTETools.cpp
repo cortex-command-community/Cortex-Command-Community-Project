@@ -1,6 +1,7 @@
 #include "RTETools.h"
 
 #include "Vector.h"
+#include "Matrix.h"
 #include "System.h"
 
 #include <string_view>
@@ -30,13 +31,38 @@ namespace RTE {
 		g_RandomGenerator.Seed(constSeed);
 	}
 
-	float LERP(float scaleStart, float scaleEnd, float startValue, float endValue, float progressScalar) {
+	float Lerp(float scaleStart, float scaleEnd, float startValue, float endValue, float progressScalar) {
 		if (progressScalar <= scaleStart) {
 			return startValue;
 		} else if (progressScalar >= scaleEnd) {
 			return endValue;
 		}
 		return startValue + ((progressScalar - scaleStart) * ((endValue - startValue) / (scaleEnd - scaleStart)));
+	}
+
+	Vector Lerp(float scaleStart, float scaleEnd, Vector startPos, Vector endPos, float progressScalar) {
+		Vector startToEnd = endPos - startPos;
+		return startPos + (startToEnd * Lerp(scaleStart, scaleEnd, 0.0F, 1.0F, progressScalar));
+	}
+
+	Matrix Lerp(float scaleStart, float scaleEnd, Matrix startRot, Matrix endRot, float progressScalar) {
+		const float fullTurn = c_PI * 2.0F;
+		float angleDelta = std::fmod(endRot.GetRadAngle() - startRot.GetRadAngle(), fullTurn);
+		float angleDistance = std::fmod(angleDelta * 2.0F, fullTurn) - angleDelta;
+		return Matrix(startRot.GetRadAngle() + (angleDistance * Lerp(scaleStart, scaleEnd, 0.0F, 1.0F, progressScalar)));
+
+		float startRad = startRot.GetRadAngle();
+		float endRad = endRot.GetRadAngle();
+		float diff = startRad - endRad;
+		if (diff > c_PI) {
+			std::swap(startRad, endRad);
+			diff -= c_PI;
+		} else if (diff < -c_PI) {
+			std::swap(startRad, endRad);
+			diff += c_PI;
+		}
+
+		return Matrix(startRad + (diff * Lerp(scaleStart, scaleEnd, 0.0F, 1.0F, progressScalar)));
 	}
 
 	float EaseIn(float start, float end, float progressScalar) {
