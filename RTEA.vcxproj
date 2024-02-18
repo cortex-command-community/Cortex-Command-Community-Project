@@ -213,9 +213,9 @@
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='17.0'">/bigobj %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;TRACY_ENABLE;TRACY_ON_DEMAND;DEBUG_BUILD;DEBUGMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;DEBUG_BUILD;DEBUGMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>

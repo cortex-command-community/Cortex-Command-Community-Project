@@ -30,13 +30,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a crash that could occur when using the Nucleo Swarm weapon.
 
+- Fixed a crash that could occur when mods applied an invalid team to an Actor.
+
 - Fixed a missing Lua write binding for `AEJetpack`'s `JetTimeLeft` property.
 
 - Fixed an issue where glows wouldn't render if the EffectStopTime was lower than the simulation deltatime.
 
 - Fixed an issue where sometimes doors were owned by the wrong team in Bunker Breach and Survival activities.
 
-- Fixed an issue where a mission-only item was being bought by the AI.
+- Fixed an issue where a mission-specific keycard item was being bought by the AI.
+
+- Fixed `MovableObject` INI and Lua property `IgnoreTerrain` not having any appreciable effect.
 
 </details>
 
@@ -82,10 +86,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed some compatibility issues which meant the game wouldn't run on older PCs.
 
 - Fixed an issue where the loading screen progress window didn't work even when enabled.
-
-</details>
-
-<details><summary><b>Removed</b></summary>
 
 </details>
 
