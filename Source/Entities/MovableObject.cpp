@@ -346,7 +346,7 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("InheritEffectRotAngle", { reader >> m_InheritEffectRotAngle; });
 	MatchProperty("RandomizeEffectRotAngle", { reader >> m_RandomizeEffectRotAngle; });
 	MatchProperty("RandomizeEffectRotAngleEveryFrame", { reader >> m_RandomizeEffectRotAngleEveryFrame; });
-	MatchProperty("EffectStopTime", { 
+	MatchProperty("EffectStopTime", {
 		reader >> m_EffectStopTime; 
 		m_EffectStopTime = std::max(m_EffectStopTime, static_cast<int>(g_TimerMan.GetDeltaTimeMS()) + 1);
 	});
