@@ -339,7 +339,6 @@ void AEmitter::SetFlash(Attachable* newFlash) {
 		m_pFlash->SetInheritsRotAngle(false);
 		m_pFlash->SetDeleteWhenRemovedFromParent(true);
 		m_pFlash->SetCollidesWithTerrainWhileAttached(false);
-		m_pFlash->MovableObject::SetEffectDrawEveryFrame(false);
 	}
 }
 

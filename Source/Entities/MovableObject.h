@@ -400,11 +400,11 @@ namespace RTE {
 
 		/// Gets whether or not this MovableObject's effect is drawn every frame.
 		/// @return Boolean indicating whether or not the effect is drawn.
-		bool GetEffectDrawEveryFrame() const { return m_EffectDrawEveryFrame; }
+		bool GetPostEffectEnabled() const { return m_PostEffectEnabled; }
 
 		/// Sets whether or not to draw this MovableObject's effect every frame.
 		/// @param Boolean indicating whether or not to draw the effect.
-		void SetEffectDrawEveryFrame(bool newValue) { m_EffectDrawEveryFrame = newValue; }
+		void SetPostEffectEnabled(bool newValue) { m_PostEffectEnabled = newValue; }
 
 		/// Sets the current angular velocity of this MovableObject. Positive is
 		/// a counter clockwise rotation.
@@ -1240,7 +1240,7 @@ namespace RTE {
 		// Whether effects rot angle should be randomized every frame
 		bool m_RandomizeEffectRotAngleEveryFrame;
 		// Whether or not to draw the effect every frame; used for flashes
-		bool m_EffectDrawEveryFrame;
+		bool m_PostEffectEnabled;
 
 		// This object's unique persistent ID
 		long m_UniqueID;

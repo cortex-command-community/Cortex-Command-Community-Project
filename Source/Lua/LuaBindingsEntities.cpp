@@ -921,6 +921,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("ApplyWoundDamageOnCollision", &MovableObject::GetApplyWoundDamageOnCollision, &MovableObject::SetApplyWoundDamageOnCollision)
 	    .property("ApplyWoundBurstDamageOnCollision", &MovableObject::GetApplyWoundBurstDamageOnCollision, &MovableObject::SetApplyWoundBurstDamageOnCollision)
 	    .property("SimUpdatesBetweenScriptedUpdates", &MovableObject::GetSimUpdatesBetweenScriptedUpdates, &MovableObject::SetSimUpdatesBetweenScriptedUpdates)
+	    .property("PostEffectEnabled", &MovableObject::GetPostEffectEnabled, &MovableObject::SetPostEffectEnabled)
 
 	    .def("GetParent", (MOSRotating * (MovableObject::*)()) & MovableObject::GetParent)
 	    .def("GetParent", (const MOSRotating* (MovableObject::*)() const) & MovableObject::GetParent)

@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+<details><summary><b>Added</b></summary>
+
+- New `MovableObject` INI and Lua property `PostEffectEnabled` (R/W), which determines whether or not the screen effect of an MO is enabled. Defaults to `true` for `MOPixels` and `MOSParticles`, `false` for everything else (to avoid backwards compatibility issues).
+
+</details>
+
 <details><summary><b>Changed</b></summary>
 
 - Massacre now displays the remaining kill count to each player's screen instead of just the first one.
@@ -14,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Improvements to AI navigation in automovers, so they get stuck less often.
 
-- Screen effects (glows) now show on *any* `MovableObject` they're attached to; you may need to set `EffectAlwaysShows = 1` to see them. Try `InheritEffectRotAngle = 1` on a `MOSRotating`!
+- Screen effects (glows) can now show on *any* `MovableObject` they're attached to; you may need to set `EffectAlwaysShows = 1` to see them on `MOSRotatings`. Try `InheritEffectRotAngle = 1` on one of them!
 
 </details>
 

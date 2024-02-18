@@ -97,7 +97,7 @@ void MovableObject::Clear() {
 	m_EffectStartStrength = 128;
 	m_EffectStopStrength = 128;
 	m_EffectAlwaysShows = false;
-	m_EffectDrawEveryFrame = true;
+	m_PostEffectEnabled = false;
 
 	m_UniqueID = 0;
 
@@ -221,6 +221,7 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_MissionCritical = reference.m_MissionCritical;
 	m_CanBeSquished = reference.m_CanBeSquished;
 	m_HUDVisible = reference.m_HUDVisible;
+	m_PostEffectEnabled = reference.m_PostEffectEnabled;
 
 	m_ForceIntoMasterLuaState = reference.m_ForceIntoMasterLuaState;
 	for (auto& [scriptPath, scriptEnabled]: reference.m_AllLoadedScripts) {
@@ -342,6 +343,7 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 		m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
 		m_ScreenEffectHash = m_ScreenEffectFile.GetHash();
 	});
+	MatchProperty("PostEffectEnabled", { reader >> m_PostEffectEnabled; });
 	MatchProperty("EffectStartTime", { reader >> m_EffectStartTime; });
 	MatchProperty("EffectRotAngle", { reader >> m_EffectRotAngle; });
 	MatchProperty("InheritEffectRotAngle", { reader >> m_InheritEffectRotAngle; });
@@ -447,6 +449,8 @@ int MovableObject::Save(Writer& writer) const {
 	}
 	writer.NewProperty("ScreenEffect");
 	writer << m_ScreenEffectFile;
+	writer.NewProperty("PostEffectEnabled");
+	writer << m_PostEffectEnabled;
 	writer.NewProperty("EffectStartTime");
 	writer << m_EffectStartTime;
 	writer.NewProperty("EffectStopTime");
@@ -895,7 +899,7 @@ void MovableObject::Update() {
 		m_EffectRotAngle = c_PI * 2.0F * RandomNormalNum();
 	}
 
-	if (m_pScreenEffect && m_EffectDrawEveryFrame) {
+	if (m_pScreenEffect && m_PostEffectEnabled) {
 		MovableObject::SetPostScreenEffectToDraw();
 	}
 }
