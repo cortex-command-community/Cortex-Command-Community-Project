@@ -900,7 +900,7 @@ void MovableObject::Update() {
 	}
 
 	if (m_pScreenEffect && m_PostEffectEnabled) {
-		MovableObject::SetPostScreenEffectToDraw();
+		SetPostScreenEffectToDraw();
 	}
 }
 

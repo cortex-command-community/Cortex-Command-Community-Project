@@ -1067,9 +1067,6 @@ namespace RTE {
 		/// @return Whether this MO has requested a synced update this frame.
 		virtual bool HasRequestedSyncedUpdate() { return m_RequestedSyncedUpdate; }
 
-		/// Sets the screen effect to draw at the final post-processing stage.
-		void SetPostScreenEffectToDraw() const;
-
 		/// Protected member variable and method declarations
 	protected:
 		/// Does necessary work to setup a script object name for this object, allowing it to be accessed in Lua, then runs all of the MO's scripts' Create functions in Lua.
@@ -1291,6 +1288,9 @@ namespace RTE {
 		// Disallow the use of some implicit methods.
 		MovableObject(const MovableObject& reference) = delete;
 		MovableObject& operator=(const MovableObject& ref) = delete;
+
+		/// Sets the screen effect to draw at the final post-processing stage.
+		void SetPostScreenEffectToDraw() const;
 	};
 
 } // namespace RTE
