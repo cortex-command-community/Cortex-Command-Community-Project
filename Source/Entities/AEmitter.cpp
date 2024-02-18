@@ -314,8 +314,8 @@ int AEmitter::GetTotalBurstSize() const {
 }
 
 float AEmitter::GetScaledThrottle(float throttle, float multiplier) const {
-	float throttleFactor = LERP(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, throttle);
-	return LERP(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor * multiplier);
+	float throttleFactor = Lerp(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, throttle);
+	return Lerp(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor * multiplier);
 }
 
 void AEmitter::SetFlash(Attachable* newFlash) {
