@@ -20,7 +20,7 @@ MOSParticle::~MOSParticle() {
 void MOSParticle::Clear() {
 	m_Atom = nullptr;
 	m_SpriteAnimMode = OVERLIFETIME;
-	m_PostEffectEnabled = true; // Default to true for backwards compatibility reasons
+	m_PostEffectEnabled = true;		// Default to true for backwards compatibility reasons
 }
 
 int MOSParticle::Create() {
