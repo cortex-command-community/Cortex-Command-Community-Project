@@ -19,7 +19,7 @@ function Explode(self)
 			melter.Pos = self.Pos;
 			melter.Team = self.Team;
 			melter.Sharpness = ToActor(parent).ID;
-			melter.PinStrength = self.disintegrationStrength * math.sqrt(math.max(1, #self.connectableParticles));
+			melter.PinStrength = self.disintegrationStrength * math.sqrt(math.max(1, (self.connectableParticles and #self.connectableParticles or 1)));
 			MovableMan:AddMO(melter);
 		end
 	end
@@ -43,10 +43,10 @@ function OnMessage(self, message, context)
 		self.detDelay = 4000/math.sqrt(math.max(1, #self.connectableParticles));
 		self.Vel = Vector(self.Vel.X, self.Vel.Y):DegRotate(#self.connectableParticles * RangeRand(-1, 1));
 		for k, particle in pairs(self.connectableParticles) do
-			particle:SendMessage("Nucleo_NewConnectableParticle", self);
+			particle:SendMessage("Nucleo_NewConnectableParticle", self.UniqueID);
 		end
 	elseif message == "Nucleo_NewConnectableParticle" then
-		table.insert(self.connectableParticles, context);
+		table.insert(self.connectableParticles, MovableMan:FindObjectByUniqueID(context));
 	elseif message == "Nucleo_Explode" then
 		Explode(self);
 	end
@@ -54,6 +54,7 @@ end
 
 function Create(self)
 	self.detTimer = Timer();
+	self.detDelay = 1000;
 	self.boom = false;
 
 	self.speed = 15;
@@ -117,10 +118,12 @@ function ThreadedUpdate(self)
 end
 
 function SyncedUpdate(self)
-	for k, particle in pairs(self.connectableParticles) do
-		if MovableMan:ValidMO(particle) then
-			particle.Pos = self.Pos + Vector(math.random() * 5, 0):RadRotate(math.random() * math.pi * 2);
-			particle:SendMessage("Nucleo_Explode");
+	if self.connectableParticles then
+		for k, particle in pairs(self.connectableParticles) do
+			if MovableMan:ValidMO(particle) then
+				particle.Pos = self.Pos + Vector(math.random() * 5, 0):RadRotate(math.random() * math.pi * 2);
+				particle:SendMessage("Nucleo_Explode");
+			end
 		end
 	end
 

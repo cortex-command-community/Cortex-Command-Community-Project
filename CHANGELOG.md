@@ -6,12 +6,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+<details><summary><b>Changed</b></summary>
+
+- Massacre now displays the remaining kill count to each player's screen instead of just the first one.
+
+- Slightly nerfed the Imperatus combat robot jetpack.
+
+- Improvements to AI navigation in automovers, so they get stuck less often.
+
+</details>
+
+<details><summary><b>Fixed</b></summary>
+
+- Fixed instances of `FrameMan:ClearScreenText()` and `FrameMan:SetScreenText()` supplying a player index instead of a screen index. For example, "Signal Hunt" wouldn't display the Alchiral messages if you used a different player than player 1.
+
+- Fixed some activities iterating from `0` to `PlayerCount - 1` instead of iterating over every player index and filtering to active human players. For example, "Exploration" (Doainar) was unable to progress if you used a different player than player 1.
+
+- Fixed an issue that could cause post-effects to appear very blurry.
+
+- Fixed a rare crash that could occur depending on Lua garbage collection and async processing.
+
+- Fixed a missing Lua write binding for `AEJetpack`'s `JetTimeLeft` property.
+
+- Fixed an issue where glows wouldn't render if the EffectStopTime was lower than the simulation deltatime.
+
+- Fixed an issue where sometimes doors were owned by the wrong team in Bunker Breach and Survival activities.
+
+- Fixed an issue where a mission-only item was being bought by the AI.
+
+</details>
+
+## [Release v6.1.0] - 2024/02/15
+
 <details><summary><b>Added</b></summary>
+
+- New sounds:
+	New metal gibbing sounds used mainly for robots.
+	New plastic impact and gib sounds for dummies.
+	New LightRobot and HeavyRobot foley and footstep sounds, completing update 6.0's light and heavy cloth sounds.
+
+- The pause menu will now muffle the music being played, just like in every modern game ever.
+
+- Various weapons have had lifetime variation added to their rounds, making things look a bit less artificial.
 
 </details>
 
 <details><summary><b>Changed</b></summary>
 
+- Enhanced dropship and engine explosion sounds while still keeping their old vibe.
+  
 - Nerfed the Coalition Grenade Launcher and the Devastator a tiny bit. They are still scary and the Devastator can still one-shot most things on a good hit, but they did not need to be that oppressive.
 
 </details>
@@ -21,6 +64,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed initial Decision Day dropships never exploding and sticking around.
 
 - Reverted a change to pathfinding, that although was technically accurate, caused issues with the AI being too eager to path up-and-over obstacles instead of through them. In the future this will likely be revisited when we get jump-aware pathfinding.
+
+- Fixed nucleo shots breaking if saving and loading them mid explosion sequence.
+
+- Fixed Dummy Assault resetting funds to their initial value upon loading a saved game.
+
+- Fixed a few memory leaks.
+
+- Fixed an over-eager assert that could fire often even when it caused no issues.
+
+- Fixed an issue with mouse position being inaccurate on Mac builds.
+
+- Fixed some compatibility issues which meant the game wouldn't run on older PCs.
+
+- Fixed an issue where the loading screen progress window didn't work even when enabled.
 
 </details>
 
@@ -2412,4 +2469,5 @@ Note: For a log of changes made prior to the commencement of the open source com
 [Release v4.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
 [Release v5.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.2
 [Release v6.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.0.0
+[Release v6.1.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.1.0
 [Unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development

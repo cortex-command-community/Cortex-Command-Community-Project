@@ -35,7 +35,7 @@ jobs:
 
       - name: Checkout code
         if: ${{ steps.check_manual_run.outputs.needs_build == 'false' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: fetch tags
         if: ${{ steps.check_manual_run.outputs.needs_build == 'false' }}
@@ -90,7 +90,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: fetch tags
         run: git fetch --tags origin

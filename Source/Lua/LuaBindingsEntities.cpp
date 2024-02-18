@@ -377,7 +377,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEJetpack) {
 
 	    .property("JetpackType", &AEJetpack::GetJetpackType, &AEJetpack::SetJetpackType)
 	    .property("JetTimeTotal", &AEJetpack::GetJetTimeTotal, &AEJetpack::SetJetTimeTotal)
-	    .property("JetTimeLeft", &AEJetpack::GetJetTimeLeft)
+	    .property("JetTimeLeft", &AEJetpack::GetJetTimeLeft, &AEJetpack::SetJetTimeLeft)
 	    .property("JetReplenishRate", &AEJetpack::GetJetReplenishRate, &AEJetpack::SetJetReplenishRate)
 	    .property("MinimumFuelRatio", &AEJetpack::GetMinimumFuelRatio, &AEJetpack::SetMinimumFuelRatio)
 	    .property("JetAngleRange", &AEJetpack::GetJetAngleRange, &AEJetpack::SetJetAngleRange)

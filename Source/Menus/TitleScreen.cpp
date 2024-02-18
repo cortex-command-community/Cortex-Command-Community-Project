@@ -474,6 +474,7 @@ void TitleScreen::UpdateTitleTransitions() {
 				m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), m_GameLogoPlanetViewOffsetY));
 				m_StationOrbitTimer.SetElapsedRealTimeS(m_StationOrbitTimerElapsedTime);
 				g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/thisworld5.ogg", -1);
+				g_AudioMan.SetMusicMuffledState(false);
 			}
 			g_AudioMan.SetTempMusicVolume(EaseOut(0, 1.0F, m_SectionProgress));
 			m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 255.0F, 0, m_SectionProgress));

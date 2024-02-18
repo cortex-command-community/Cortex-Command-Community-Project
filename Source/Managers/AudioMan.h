@@ -302,6 +302,11 @@ namespace RTE {
 
 		/// Clears the music queue.
 		void ClearMusicQueue() { m_MusicPlayList.clear(); }
+
+		/// Sets the music muffled state.
+		/// @param musicMuffledState The new music muffled state to set.
+		/// @return Whether the new music muffled state was successfully set.
+		FMOD_RESULT SetMusicMuffledState(bool musicMuffledState);
 #pragma endregion
 
 #pragma region Lua Sound File Playing
@@ -397,6 +402,7 @@ namespace RTE {
 		float m_MinimumDistanceForPanning;
 		//////////////////////////////////////////////////
 
+		bool m_MusicMuffled; //!< Whether the music bus is muffled.
 		std::string m_MusicPath; //!< The path to the last played music stream.
 		std::list<std::string> m_MusicPlayList; //!< Playlist of paths to music to play after the current non looping one is done.
 		Timer m_SilenceTimer; //!< Timer for measuring silences between songs.
