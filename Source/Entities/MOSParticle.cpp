@@ -118,7 +118,7 @@ void MOSParticle::Travel() {
 	// Do static particle bounce calculations.
 	int hitCount = 0;
 	if (!IsTooFast()) {
-		m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true, g_SceneMan.SceneIsLocked());
+		m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true);
 	}
 
 	m_Atom->ClearMOIDIgnoreList();
@@ -166,7 +166,9 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 	// TODO I think this is an array with 4 elements to account for Y wrapping. Y wrapping is not really handled in this game, so this can probably be knocked down to 2 elements. Also, I'm sure this code can be simplified.
 	std::array<Vector, 4> drawPositions = {spritePos};
 	int drawPasses = 1;
-	if (g_SceneMan.SceneWrapsX()) {
+
+	bool needsWrap = mode != g_DrawMOID;
+	if (needsWrap && g_SceneMan.SceneWrapsX()) {
 		if (targetPos.IsZero() && m_WrapDoubleDraw) {
 			if (spritePos.GetFloorIntX() < m_aSprite[m_Frame]->w) {
 				drawPositions.at(drawPasses) = spritePos;
@@ -201,9 +203,6 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 			case g_DrawWhite:
 				draw_character_ex(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY, g_WhiteColor, -1);
 				break;
-			case g_DrawNoMOID:
-				draw_character_ex(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY, g_NoMOID, -1);
-				break;
 			case g_DrawTrans:
 				draw_trans_sprite(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
 				break;
@@ -211,12 +210,14 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 				set_alpha_blender();
 				draw_trans_sprite(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
 				break;
+			case g_DrawMOID:
+				break;
 			default:
 				draw_sprite(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
 				break;
 		}
 
-		g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, spriteX, spriteY, spriteX + m_aSprite[m_Frame]->w, spriteY + m_aSprite[m_Frame]->h);
+		g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, spriteX, spriteY, spriteX + m_aSprite[m_Frame]->w, spriteY + m_aSprite[m_Frame]->h);
 	}
 }
 

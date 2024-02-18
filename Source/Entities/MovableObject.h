@@ -915,12 +915,6 @@ namespace RTE {
 		/// be done every frame.
 		void UpdateMOID(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID = g_NoMOID, bool makeNewMOID = true);
 
-		/// Draws the MOID representation of this to the SceneMan's MOID layer if
-		/// this is found to potentially overlap another MovableObject.
-		/// @param pOverlapMO The MovableObject to check this for overlap against.
-		/// @return Whether it was drawn or not.
-		virtual bool DrawMOIDIfOverlapping(MovableObject* pOverlapMO) { return false; }
-
 		/// Draws this' current graphical HUD overlay representation to a
 		/// BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.

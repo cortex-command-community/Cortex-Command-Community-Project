@@ -274,7 +274,6 @@ namespace RTE {
 		Vector GetCurrentPos() const { return Vector(m_IntPos[X], m_IntPos[Y]); }
 
 		/// Sets this Atom up for a straight segment of a trajectory to step through. If this Atom find the startPos to be on an MO, it will ignore any collisions with that MO for the entire segment.
-		/// The Scene MUST BE LOCKED before calling this!
 		/// @param startPos A Vector with the position to start from, in scene coordinates.
 		/// @param trajectory A Vector with the trajectory to travel during this next segment.
 		/// @param stepRatio The ratio between the actual steps to be taken and the future calls to TakeStep().
@@ -289,7 +288,7 @@ namespace RTE {
 		/// @return The length of the currently traversed segment.
 		float GetSegLength() const { return m_SegTraj.GetMagnitude(); }
 
-		/// Takes one step along the trajectory segment set up by SetupSeg(). The Scene MUST BE LOCKED before calling this!
+		/// Takes one step along the trajectory segment set up by SetupSeg().
 		/// @param numSteps The number of steps to take.
 		/// @return
 		/// Whether anything was hit during the steps or not. MO hits will only be reported if this Atom is set to hit them, and the MO hit is not ignored by this Atom (if the segment started on that MO).
@@ -318,9 +317,8 @@ namespace RTE {
 		/// Uses the current state of the owning MovableObject to determine if there are any collisions in the path of its travel during this frame, and if so, apply all collision responses to the MO.
 		/// @param travelTime The amount of time in s that this Atom is allowed to travel.
 		/// @param autoTravel A bool specifying if the end position result should be moved along the trajectory if no terrain is hit.
-		/// @param scenePreLocked Whether the Scene has been pre-locked or not.
 		/// @return The number of hits against terrain that were made during the travel.
-		int Travel(float travelTime, bool autoTravel = true, bool scenePreLocked = false);
+		int Travel(float travelTime, bool autoTravel = true);
 #pragma endregion
 
 #pragma region Operator Overloads

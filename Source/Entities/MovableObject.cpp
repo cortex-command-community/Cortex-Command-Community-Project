@@ -890,7 +890,7 @@ void MovableObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode
 		return;
 	}
 
-	g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, m_Pos - targetPos, 1.0F);
+	g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, m_Pos - targetPos, 1.0F);
 }
 
 int MovableObject::UpdateScripts() {

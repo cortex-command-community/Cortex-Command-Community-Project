@@ -815,8 +815,6 @@ void NetworkServer::SendSceneData(short player) {
 			bmp = terrain->GetFGColorBitmap();
 		}
 
-		lock_bitmap(bmp);
-
 		for (lineX = 0;; lineX += lineWidth) {
 			int width = lineWidth;
 			if (lineX + width >= g_SceneMan.GetSceneWidth()) {
@@ -882,7 +880,6 @@ void NetworkServer::SendSceneData(short player) {
 				break;
 			}
 		}
-		release_bitmap(bmp);
 	}
 
 	m_SceneLock[player].unlock();

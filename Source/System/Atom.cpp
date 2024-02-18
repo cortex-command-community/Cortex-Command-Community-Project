@@ -627,13 +627,14 @@ void Atom::StepBack() {
 	}
 }
 
-int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
+int Atom::Travel(float travelTime, bool autoTravel) {
 	ZoneScoped;
 
 	if (!m_OwnerMO) {
 		RTEAbort("Traveling an Atom without a parent MO!");
 		return travelTime;
 	}
+	
 	Vector& position = m_OwnerMO->m_Pos;
 	Vector& velocity = m_OwnerMO->m_Vel;
 	float mass = m_OwnerMO->GetMass();
@@ -689,11 +690,6 @@ int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
 
 	// Bake in the Atom offset.
 	position += m_Offset;
-
-	// Lock all bitmaps involved outside the loop.
-	if (!scenePreLocked) {
-		g_SceneMan.LockScene();
-	}
 
 	// Loop for all the different straight segments (between bounces etc) that have to be traveled during the timeLeft.
 	do {
@@ -1060,12 +1056,6 @@ int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
 		}
 
 		g_SceneMan.RegisterDrawing(trailBitmap, g_NoMOID, topLeftExtent.m_X, topLeftExtent.m_Y, bottomRightExtent.m_X + 1.0F, bottomRightExtent.m_Y + 1.0F);
-	}
-
-	// Unlock all bitmaps involved.
-	// if (m_TrailLength) { trailBitmap->UnLock(); }
-	if (!scenePreLocked) {
-		g_SceneMan.UnlockScene();
 	}
 
 	// Extract Atom offset.

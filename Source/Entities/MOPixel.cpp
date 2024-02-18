@@ -165,7 +165,7 @@ void MOPixel::Travel() {
 	// Do static particle bounce calculations.
 	int hitCount = 0;
 	if (!IsTooFast()) {
-		hitCount = m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true, g_SceneMan.SceneIsLocked());
+		hitCount = m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true);
 	}
 
 	m_Atom->ClearMOIDIgnoreList();
@@ -184,6 +184,7 @@ bool MOPixel::CollideAtPoint(HitData& hd) {
 	} else {
 		m_AlreadyHitBy.insert(hd.Body[HITOR]->GetID());
 	}
+
 	return true;
 }
 
@@ -235,12 +236,6 @@ void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode,
 		case g_DrawMaterial:
 			drawColor = m_Atom->GetMaterial()->GetSettleMaterial();
 			break;
-		case g_DrawMOID:
-			drawColor = m_MOID;
-			break;
-		case g_DrawNoMOID:
-			drawColor = g_NoMOID;
-			break;
 		default:
 			drawColor = m_Color.GetIndex();
 			break;
@@ -251,7 +246,7 @@ void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode,
 		putpixel(targetBitmap, pixelPos.GetFloorIntX(), pixelPos.GetFloorIntY(), drawColor);
 	}
 
-	g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, pixelPos, 1.0F);
+	g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, pixelPos, 1.0F);
 }
 
 void MOPixel::SetPostScreenEffectToDraw() const {

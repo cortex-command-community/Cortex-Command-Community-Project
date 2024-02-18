@@ -275,6 +275,7 @@ void HeldDevice::Activate() {
 	if (!m_Activated) {
 		m_ActivationTimer.Reset();
 	}
+	
 	m_Activated = true;
 }
 
