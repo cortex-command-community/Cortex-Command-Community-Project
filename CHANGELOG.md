@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Massacre now displays the remaining kill count to each player's screen instead of just the first one.
 
+- Slightly nerfed the Imperatus combat robot jetpack.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -25,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed a missing Lua write binding for `AEJetpack`'s `JetTimeLeft` property.
 
 - Fixed an issue where glows wouldn't render if the EffectStopTime was lower than the simulation deltatime.
+
+- Fixed an issue where a mission-only item was being bought by the AI.
 
 </details>
 
