@@ -329,17 +329,23 @@ function SignalHunt:DoSpeedrunMode()
 	
 	AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
 	
-	local rocket = self:GetPlayerBrain(0);
-	rocket.PlayerControllable = true;
-	rocket.HUDVisible = true;
-	for item in rocket.Inventory do
-		rocket:RemoveInventoryItem(item.ModuleName, item.PresetName);
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			local rocket = self:GetPlayerBrain(player);
+			rocket.PlayerControllable = true;
+			rocket.HUDVisible = true;
+			for item in rocket.Inventory do
+				rocket:RemoveInventoryItem(item.ModuleName, item.PresetName);
+			end
+			local brain = CreateAHuman("Brain Robot", "Base.rte");
+			brain:AddInventoryItem(CreateHDFirearm("Old Stock Pistol", "Base.rte"));
+			brain.Team = self.humanTeam;
+			rocket:AddInventoryItem(brain);
+			self:SwitchToActor(rocket, player, self.humanTeam);
+			-- Speedrun mode only works with a single human player, but if that ever changes, this break can be removed.
+			break
+		end
 	end
-	local brain = CreateAHuman("Brain Robot", "Base.rte");
-	brain:AddInventoryItem(CreateHDFirearm("Old Stock Pistol", "Base.rte"));
-	brain.Team = self.humanTeam;
-	rocket:AddInventoryItem(brain);
-	self:SwitchToActor(rocket, 0, self.humanTeam);
 	
 	local currentZombieSpawnDifficultyMultiplier = self.zombieSpawnDifficultyMultiplier;
 	self:SetupDifficultySettings();
@@ -409,6 +415,7 @@ function SignalHunt:DoSecret(playersWhoCompletedCode)
 		MovableMan:ChangeActorTeam(playerBrain, self.zombieTeam);
 		self:SetTeamOfPlayer(player, self.zombieTeam);
 		self:SetPlayerBrain(playerBrain, player);
+		self:SwitchToActor(playerBrain, player, self.zombieTeam)
 	end
 	
 	local otherHumanPlayersExist = self.HumanCount > #playersWhoCompletedCode;
@@ -418,7 +425,7 @@ function SignalHunt:DoSecret(playersWhoCompletedCode)
 	
 	local zombieWaypoint = SceneMan:MovePointToGround(self.humanLZ:GetCenterPoint(), 10, 10);
 	for actor in MovableMan.Actors do
-		if actor.Team == self.zombieTeam then
+		if actor.Team == self.zombieTeam and not actor:IsPlayerControlled() then
 			actor:ClearAIWaypoints();
 			if otherHumanPlayersExist then
 				actor.AIMode = Actor.AIMODE_BRAINHUNT;
@@ -578,7 +585,14 @@ function SignalHunt:UpdateActivity()
 	self:DoGameOverCheck();
 	
 	if self.speedrunData and not ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
-		if IsAHuman(self:GetPlayerBrain(Activity.PLAYER_1)) then
+		brainbot_spawned = false
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) and IsAHuman(self:GetPlayerBrain(player)) then
+				brainbot_spawned = true
+				break
+			end
+		end
+		if brainbot_spawned then
 			self.speedrunData = nil;
 		else
 			ActivitySpeedrunHelper.CheckForSpeedrun(self.speedrunData);
