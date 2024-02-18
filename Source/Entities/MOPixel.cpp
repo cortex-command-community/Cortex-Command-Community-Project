@@ -24,7 +24,7 @@ void MOPixel::Clear() {
 	m_MaxLethalRange = 1;
 	m_LethalSharpness = 1;
 	m_Staininess = 0;
-	m_PostEffectEnabled = true;
+	m_PostEffectEnabled = true;	// Default to true for backwards compatibility reasons
 }
 
 int MOPixel::Create() {
