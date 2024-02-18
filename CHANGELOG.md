@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Slightly nerfed the Imperatus combat robot jetpack.
 
+- Improvements to AI navigation in automovers, so they get stuck less often.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
