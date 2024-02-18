@@ -634,7 +634,7 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 		RTEAbort("Traveling an Atom without a parent MO!");
 		return travelTime;
 	}
-	
+
 	Vector& position = m_OwnerMO->m_Pos;
 	Vector& velocity = m_OwnerMO->m_Vel;
 	float mass = m_OwnerMO->GetMass();

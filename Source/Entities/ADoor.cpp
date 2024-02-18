@@ -76,9 +76,8 @@ int ADoor::Create(const ADoor& reference) {
 	for (const ADSensor& sensor: reference.m_Sensors) {
 		m_Sensors.push_back(sensor);
 	}
-	
-	m_SensorInterval = reference.m_SensorInterval;
 
+	m_SensorInterval = reference.m_SensorInterval;
 	m_DoorState = reference.m_DoorState;
 	m_ClosedByDefault = reference.m_ClosedByDefault;
 	m_OpenOffset = reference.m_OpenOffset;
@@ -206,7 +205,7 @@ void ADoor::Destroy(bool notInherited) {
 	if (m_DoorMoveStartSound) {
 		m_DoorMoveStartSound->Stop();
 	}
-	
+
 	if (m_DoorMoveSound) {
 		m_DoorMoveSound->Stop();
 	}

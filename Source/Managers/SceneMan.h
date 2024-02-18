@@ -298,7 +298,7 @@ namespace RTE {
 		                   const int posY,
 		                   const Vector& impulse);
 
-		/// Calculate whether a pixel of the scene would be knocked loose and turned into a MO by another particle of a certain material going at a certain velocity. 
+		/// Calculate whether a pixel of the scene would be knocked loose and turned into a MO by another particle of a certain material going at a certain velocity.
 		/// If so, the incoming particle will knock loose the specified pixel in the scene and momentarily take its place.
 		/// @param posX The X and Y coord of the scene pixel that is to be collided with.
 		/// @param posY The impulse force exerted on the terrain pixel. If this magnitude

@@ -1363,7 +1363,7 @@ bool AtomGroup::ResolveTerrainIntersection(Vector& position, unsigned char stron
 	if (intersectingAtoms.empty()) {
 		return true;
 	}
-	
+
 	if (intersectingAtoms.size() >= m_Atoms.size()) {
 		return false;
 	}
