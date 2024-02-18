@@ -209,7 +209,7 @@ function Harvester:UpdateActivity()
 		end
 
 		if self.addFogOfWar then
-			SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(Activity.PLAYER_1));
+			SceneMan:MakeAllUnseen(Vector(20, 20), Activity.TEAM_1);
 			self.addFogOfWar = false;
 		end
 
