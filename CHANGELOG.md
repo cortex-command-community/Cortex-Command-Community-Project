@@ -85,10 +85,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 </details>
 
-<details><summary><b>Removed</b></summary>
-
-</details>
-
 ## [Release v6.0.0] - 2024/02/11
 
 <details><summary><b>Added</b></summary>
