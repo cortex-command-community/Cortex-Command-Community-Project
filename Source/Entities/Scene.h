@@ -810,8 +810,8 @@ namespace RTE {
 	private:
 		/// Gets the pathfinder for a given team.
 		/// @param team The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.
-		/// @return A pointer to the pathfinder for the given team.
-		std::unique_ptr<PathFinder>& GetPathFinder(Activity::Teams team);
+		/// @return A reference to the pathfinder for the given team.
+		PathFinder& GetPathFinder(Activity::Teams team);
 
 		/// Serializes the SceneObject via the Writer. Necessary because full serialization doesn't know how to deal with duplicate properties.
 		/// @param writer The Writer being used for serialization.

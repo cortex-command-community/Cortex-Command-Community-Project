@@ -2313,17 +2313,17 @@ int Scene::SetOwnerOfAllDoors(int team, int player) {
 }
 
 void Scene::ResetPathFinding() {
-	GetPathFinder(Activity::Teams::NoTeam)->RecalculateAllCosts();
+	GetPathFinder(Activity::Teams::NoTeam).RecalculateAllCosts();
 	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 		g_MovableMan.OverrideMaterialDoors(true, team);
-		GetPathFinder(static_cast<Activity::Teams>(team))->RecalculateAllCosts();
+		GetPathFinder(static_cast<Activity::Teams>(team)).RecalculateAllCosts();
 		g_MovableMan.OverrideMaterialDoors(false, team);
 	}
 }
 
 void Scene::BlockUntilAllPathingRequestsComplete() {
 	for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
-		while (GetPathFinder(static_cast<Activity::Teams>(team))->GetCurrentPathingRequests() != 0) {};
+		while (GetPathFinder(static_cast<Activity::Teams>(team)).GetCurrentPathingRequests() != 0) {};
 	}
 }
 
@@ -2337,7 +2337,7 @@ void Scene::UpdatePathFinding() {
 	// TODO: this can indefinitely block updates if pathing requests are made every frame. Figure out a solution for this
 	// Either force-complete pathing requests occasionally, or delay starting new pathing requests if we've not updated in a while
 	for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
-		if (GetPathFinder(static_cast<Activity::Teams>(team))->GetCurrentPathingRequests() != 0) {
+		if (GetPathFinder(static_cast<Activity::Teams>(team)).GetCurrentPathingRequests() != 0) {
 			return;
 		};
 	}
@@ -2349,7 +2349,7 @@ void Scene::UpdatePathFinding() {
 	}
 
 	// Update our shared pathFinder
-	std::vector<int> updatedNodes = GetPathFinder(Activity::Teams::NoTeam)->RecalculateAreaCosts(m_pTerrain->GetUpdatedMaterialAreas(), nodesToUpdate);
+	std::vector<int> updatedNodes = GetPathFinder(Activity::Teams::NoTeam).RecalculateAreaCosts(m_pTerrain->GetUpdatedMaterialAreas(), nodesToUpdate);
 	if (!updatedNodes.empty()) {
 		// Update each team's pathFinder
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
@@ -2360,7 +2360,7 @@ void Scene::UpdatePathFinding() {
 			// Remove the material representation of all doors of this team so we can navigate through them (they'll open for us).
 			g_MovableMan.OverrideMaterialDoors(true, team);
 
-			GetPathFinder(static_cast<Activity::Teams>(team))->UpdateNodeList(updatedNodes);
+			GetPathFinder(static_cast<Activity::Teams>(team)).UpdateNodeList(updatedNodes);
 
 			// Place back the material representation of all doors of this team so they are as we found them.
 			g_MovableMan.OverrideMaterialDoors(false, team);
@@ -2373,23 +2373,14 @@ void Scene::UpdatePathFinding() {
 
 float Scene::CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float digStrength, Activity::Teams team) {
 	float totalCostResult = -1;
+	int result = GetPathFinder(team).CalculatePath(start, end, pathResult, totalCostResult, digStrength);
 
-	if (const std::unique_ptr<PathFinder>& pathFinder = GetPathFinder(team)) {
-		int result = pathFinder->CalculatePath(start, end, pathResult, totalCostResult, digStrength);
-
-		// It's ok if start and end nodes happen to be the same, the exact pixel locations are added at the front and end of the result regardless
-		return (result == micropather::MicroPather::SOLVED || result == micropather::MicroPather::START_END_SAME) ? totalCostResult : -1;
-	}
-
-	return false;
+	// It's ok if start and end nodes happen to be the same, the exact pixel locations are added at the front and end of the result regardless
+	return (result == micropather::MicroPather::SOLVED || result == micropather::MicroPather::START_END_SAME) ? totalCostResult : -1;
 }
 
 std::shared_ptr<volatile PathRequest> Scene::CalculatePathAsync(const Vector& start, const Vector& end, float digStrength, Activity::Teams team, PathCompleteCallback callback) {
-	if (const std::unique_ptr<PathFinder>& pathFinder = GetPathFinder(team)) {
-		return pathFinder->CalculatePathAsync(start, end, digStrength, callback);
-	}
-
-	return nullptr;
+	return GetPathFinder(team).CalculatePathAsync(start, end, digStrength, callback);
 }
 
 int Scene::GetScenePathSize() const {
@@ -2401,11 +2392,7 @@ std::list<Vector>& Scene::GetScenePath() {
 }
 
 bool Scene::PositionsAreTheSamePathNode(const Vector& pos1, const Vector& pos2) const {
-	if (const std::unique_ptr<PathFinder>& pathFinder = const_cast<Scene*>(this)->GetPathFinder(Activity::Teams::NoTeam)) {
-		return pathFinder->PositionsAreTheSamePathNode(pos1, pos2);
-	}
-
-	return false;
+	return const_cast<Scene*>(this)->GetPathFinder(Activity::Teams::NoTeam).PositionsAreTheSamePathNode(pos1, pos2);
 }
 
 void Scene::Lock() {
@@ -2447,7 +2434,7 @@ void Scene::UpdateSim() {
 
 		m_NavigatableAreasUpToDate = true;
 		for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
-			PathFinder& pathFinder = *GetPathFinder(static_cast<Activity::Teams>(team));
+			PathFinder& pathFinder = GetPathFinder(static_cast<Activity::Teams>(team));
 
 			pathFinder.MarkAllNodesNavigatable(m_NavigatableAreas.empty());
 
@@ -2467,7 +2454,11 @@ void Scene::UpdateSim() {
 	}
 }
 
-std::unique_ptr<PathFinder>& Scene::GetPathFinder(Activity::Teams team) {
+PathFinder& Scene::GetPathFinder(Activity::Teams team) {
+	if (team < Activity::NoTeam || team >= Activity::MaxTeamCount) {
+		return *m_pPathFinders[0]; // Use NoTeam if a mod does something insane like applying an actor to team 6 (yes this actually happens)
+	}
+
 	// Note - we use + 1 when getting pathfinders by index, because our shared NoTeam pathfinder occupies index 0, and the rest come after that.
-	return m_pPathFinders[static_cast<int>(team) + 1];
+	return *m_pPathFinders[static_cast<int>(team) + 1];
 }
