@@ -12,6 +12,7 @@
 #include "LuabindObjectWrapper.h"
 #include "Material.h"
 #include "MovableMan.h"
+#include "PostProcessMan.h"
 
 #include <set>
 
@@ -396,6 +397,14 @@ namespace RTE {
 		/// Gets the stopping strength of this MovableObject's effect.
 		/// @return The stopping strength of the effect, 0-255.
 		int GetEffectStopStrength() const { return m_EffectStopStrength; }
+
+		/// Gets whether or not this MovableObject's effect is drawn every frame.
+		/// @return Boolean indicating whether or not the effect is drawn.
+		bool GetEffectDrawEveryFrame() const { return m_EffectDrawEveryFrame; }
+
+		/// Sets whether or not to draw this MovableObject's effect every frame.
+		/// @param Boolean indicating whether or not to draw the effect.
+		void SetEffectDrawEveryFrame(bool newValue) { m_EffectDrawEveryFrame = newValue; }
 
 		/// Sets the current angular velocity of this MovableObject. Positive is
 		/// a counter clockwise rotation.
@@ -1058,6 +1067,9 @@ namespace RTE {
 		/// @return Whether this MO has requested a synced update this frame.
 		virtual bool HasRequestedSyncedUpdate() { return m_RequestedSyncedUpdate; }
 
+		/// Sets the screen effect to draw at the final post-processing stage.
+		void SetPostScreenEffectToDraw() const;
+
 		/// Protected member variable and method declarations
 	protected:
 		/// Does necessary work to setup a script object name for this object, allowing it to be accessed in Lua, then runs all of the MO's scripts' Create functions in Lua.
@@ -1227,6 +1239,8 @@ namespace RTE {
 		bool m_RandomizeEffectRotAngle;
 		// Whether effects rot angle should be randomized every frame
 		bool m_RandomizeEffectRotAngleEveryFrame;
+		// Whether or not to draw the effect every frame; used for flashes
+		bool m_EffectDrawEveryFrame;
 
 		// This object's unique persistent ID
 		long m_UniqueID;

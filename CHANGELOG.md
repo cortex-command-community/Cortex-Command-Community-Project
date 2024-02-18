@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Improvements to AI navigation in automovers, so they get stuck less often.
 
+- Screen effects (glows) now show on *any* `MovableObject` they're attached to; you may need to set `EffectAlwaysShows = 1` to see them. Try `InheritEffectRotAngle = 1` on a `MOSRotating`!
+
 </details>
 
 <details><summary><b>Fixed</b></summary>

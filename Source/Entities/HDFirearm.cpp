@@ -407,6 +407,7 @@ void HDFirearm::SetFlash(Attachable* newFlash) {
 		m_pFlash->SetDrawnNormallyByParent(false);
 		m_pFlash->SetDeleteWhenRemovedFromParent(true);
 		m_pFlash->SetCollidesWithTerrainWhileAttached(false);
+		m_pFlash->MovableObject::SetEffectDrawEveryFrame(false);
 	}
 }
 
