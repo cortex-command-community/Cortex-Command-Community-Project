@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where glows wouldn't render if the EffectStopTime was lower than the simulation deltatime.
 
+- Fixed an issue where sometimes doors were owned by the wrong team in Bunker Breach and Survival activities.
+
 </details>
 
 ## [Release v6.1.0] - 2024/02/15
