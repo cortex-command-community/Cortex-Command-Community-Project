@@ -330,7 +330,6 @@ void Scene::Clear() {
 	m_AreaList.clear();
 	m_NavigatableAreas.clear();
 	m_NavigatableAreasUpToDate = false;
-	m_Locked = false;
 	m_GlobalAcc.Reset();
 	m_SelectedAssemblies.clear();
 	m_AssembliesCounts.clear();
@@ -2393,22 +2392,6 @@ std::list<Vector>& Scene::GetScenePath() {
 
 bool Scene::PositionsAreTheSamePathNode(const Vector& pos1, const Vector& pos2) const {
 	return const_cast<Scene*>(this)->GetPathFinder(Activity::Teams::NoTeam).PositionsAreTheSamePathNode(pos1, pos2);
-}
-
-void Scene::Lock() {
-	//    RTEAssert(!m_Locked, "Hey, locking already locked scene!");
-	if (!m_Locked) {
-		m_pTerrain->LockBitmaps();
-		m_Locked = true;
-	}
-}
-
-void Scene::Unlock() {
-	//    RTEAssert(m_Locked, "Hey, unlocking already unlocked scene!");
-	if (m_Locked) {
-		m_pTerrain->UnlockBitmaps();
-		m_Locked = false;
-	}
 }
 
 void Scene::Update() {

@@ -1146,20 +1146,6 @@ void MovableMan::RegisterAlarmEvent(const AlarmEvent& newEvent) {
 	m_AddedAlarmEvents.push_back(newEvent);
 }
 
-void MovableMan::RedrawOverlappingMOIDs(MovableObject* pOverlapsThis) {
-	for (std::deque<Actor*>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt) {
-		(*aIt)->DrawMOIDIfOverlapping(pOverlapsThis);
-	}
-
-	for (std::deque<MovableObject*>::iterator iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt) {
-		(*iIt)->DrawMOIDIfOverlapping(pOverlapsThis);
-	}
-
-	for (std::deque<MovableObject*>::iterator parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt) {
-		(*parIt)->DrawMOIDIfOverlapping(pOverlapsThis);
-	}
-}
-
 void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
 	if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
 		for (auto attachablrItr = mosr->GetAttachableList().begin(); attachablrItr != mosr->GetAttachableList().end();) {
@@ -1429,9 +1415,11 @@ void MovableMan::Update() {
 			for (Actor* actor: m_Actors) {
 				actor->PostUpdate();
 			}
+
 			for (MovableObject* item: m_Items) {
 				item->PostUpdate();
 			}
+
 			for (MovableObject* particle: m_Particles) {
 				particle->PostUpdate();
 			}
@@ -1641,7 +1629,7 @@ void MovableMan::Update() {
 	////////////////////////////////////////////////////////////////////////
 	// Draw the MO matter and IDs to their layers for next frame
 	m_DrawMOIDsTask = g_ThreadMan.GetPriorityThreadPool().submit([this]() {
-		UpdateDrawMOIDs(g_SceneMan.GetMOIDBitmap());
+		UpdateDrawMOIDs();
 	});
 
 	////////////////////////////////////////////////////////////////////
@@ -1805,7 +1793,7 @@ void MovableMan::VerifyMOIDIndex() {
 	}
 }
 
-void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
+void MovableMan::UpdateDrawMOIDs() {
 	ZoneScoped;
 
 	///////////////////////////////////////////////////
@@ -1827,7 +1815,7 @@ void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
 		m_ContiguousActorIDs[actor] = actorID++;
 		if (!actor->IsSetToDelete()) {
 			actor->UpdateMOID(m_MOIDIndex);
-			actor->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+			actor->Draw(nullptr, Vector(), g_DrawMOID, true);
 			currentMOID = m_MOIDIndex.size();
 		} else {
 			actor->SetAsNoID();
@@ -1837,7 +1825,7 @@ void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
 	for (MovableObject* item: m_Items) {
 		if (!item->IsSetToDelete()) {
 			item->UpdateMOID(m_MOIDIndex);
-			item->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+			item->Draw(nullptr, Vector(), g_DrawMOID, true);
 			currentMOID = m_MOIDIndex.size();
 		} else {
 			item->SetAsNoID();
@@ -1847,7 +1835,7 @@ void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
 	for (MovableObject* particle: m_Particles) {
 		if (!particle->IsSetToDelete()) {
 			particle->UpdateMOID(m_MOIDIndex);
-			particle->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+			particle->Draw(nullptr, Vector(), g_DrawMOID, true);
 			currentMOID = m_MOIDIndex.size();
 		} else {
 			particle->SetAsNoID();
