@@ -43,10 +43,10 @@ function OnMessage(self, message, context)
 		self.detDelay = 4000/math.sqrt(math.max(1, #self.connectableParticles));
 		self.Vel = Vector(self.Vel.X, self.Vel.Y):DegRotate(#self.connectableParticles * RangeRand(-1, 1));
 		for k, particle in pairs(self.connectableParticles) do
-			particle:SendMessage("Nucleo_NewConnectableParticle", self);
+			particle:SendMessage("Nucleo_NewConnectableParticle", self.UniqueID);
 		end
 	elseif message == "Nucleo_NewConnectableParticle" then
-		table.insert(self.connectableParticles, context);
+		table.insert(self.connectableParticles, MovableMan:FindObjectByUniqueID(context));
 	elseif message == "Nucleo_Explode" then
 		Explode(self);
 	end
