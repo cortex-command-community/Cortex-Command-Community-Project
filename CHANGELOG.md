@@ -38,7 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where a mission-specific keycard item was being bought by the AI.
 
-- Fixed `MovableObject` INI property `IgnoreTerrain` not having any appreciable effect.
+- Fixed `MovableObject` INI and Lua property `IgnoreTerrain` not having any appreciable effect.
 
 </details>
 
