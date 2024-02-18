@@ -12,6 +12,7 @@
 #include "PieMenu.h"
 #include "Serializable.h"
 #include "System.h"
+#include "PostProcessMan.h"
 
 #include "Base64/base64.h"
 #include "tracy/Tracy.hpp"

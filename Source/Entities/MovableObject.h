@@ -12,7 +12,6 @@
 #include "LuabindObjectWrapper.h"
 #include "Material.h"
 #include "MovableMan.h"
-#include "PostProcessMan.h"
 
 #include <set>
 
