@@ -1006,10 +1006,7 @@ function DecisionDay:UpdateCamera()
 	local scrollTargetAndSpeed;
 	if self.currentStage <= self.stages.showInitialText then
 		if self.currentStage == self.stages.showInitialText and self.messageTimer.SimTimeLimitProgress > 0.75 then
-			local brain = self:GetPlayerBrain(0);
-			if brain then
-				scrollTargetAndSpeed = {brain.Pos, fastScroll};
-			end
+			scrollTargetAndSpeed = {nil, fastScroll};
 		else
 			local dropShipToFollow = #self.initialDropShipsAndVelocities > 0 and self.initialDropShipsAndVelocities[1].dropShip or nil;
 			if dropShipToFollow then
@@ -1101,7 +1098,14 @@ function DecisionDay:UpdateCamera()
 
 	if scrollTargetAndSpeed then
 		for _, player in pairs(self.humanPlayers) do
-			CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], player);
+			if not scrollTargetAndSpeed[1] then
+				brain = self:GetPlayerBrain(player)
+				if brain then
+					CameraMan:SetScrollTarget(brain.pos, scrollTargetAndSpeed[2], player)
+				end
+			else
+				CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], player);
+			end
 		end
 	end
 	self.cameraIsPanning = scrollTargetAndSpeed ~= nil;
