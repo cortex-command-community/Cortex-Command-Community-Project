@@ -67,6 +67,13 @@ function Survival:StartNewGame()
 		self.randomSpawnTime = 4000;
 	end
 	self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.randomSpawnTime)) * rte.SpawnIntervalScale;
+	
+	for actor in MovableMan.AddedActors do
+		if IsADoor(actor) then
+			-- Give every door to the player team
+			actor.Team = self:GetTeamOfPlayer(Activity.PLAYER_1);
+		end
+	end
 
 	self:SetupHumanPlayerBrains();
 end
