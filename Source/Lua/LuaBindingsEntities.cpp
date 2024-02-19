@@ -890,6 +890,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("Diameter", &MovableObject::GetDiameter)
 	    .property("Scale", &MovableObject::GetScale, &MovableObject::SetScale)
 	    .property("EffectRotAngle", &MovableObject::GetEffectRotAngle, &MovableObject::SetEffectRotAngle)
+	    .property("EffectStartStrength", &MovableObject::GetEffectStartStrengthFloat, &MovableObject::SetEffectStartStrengthFloat)
+	    .property("EffectStopStrength", &MovableObject::GetEffectStopStrengthFloat, &MovableObject::SetEffectStopStrengthFloat)
 	    .property("GlobalAccScalar", &MovableObject::GetGlobalAccScalar, &MovableObject::SetGlobalAccScalar)
 	    .property("AirResistance", &MovableObject::GetAirResistance, &MovableObject::SetAirResistance)
 	    .property("AirThreshold", &MovableObject::GetAirThreshold, &MovableObject::SetAirThreshold)
@@ -988,7 +990,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .def("RotateOffset", &MovableObject::RotateOffset)
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage1)
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage2)
-	    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate);
+	    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate)
+	    .def("SetEffectStrength", &MovableObject::SetEffectStrength);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {

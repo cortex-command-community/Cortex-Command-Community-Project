@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Added `HDFirearm` lua bindings `EjectionOffset` (R/W) and `EjectionPos` (R). Work similarly to their Muzzle variants.
 
+- Exposed `MovableObject` INI properties `EffectStartStrength` and `EffectStopStrength` to Lua (R/W). Default range in Lua is a float from 0-1 (0%-100%), but going outside of this range is possible.
+
+- New `MovableObject` Lua function `SetEffectStrength(float strength)`, which sets both `EffectStartStrength` and `EffectStopStrength` to the given value in order to simplify setting glow strength to a specific value.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
