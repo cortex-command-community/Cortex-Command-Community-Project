@@ -23,11 +23,19 @@ namespace RTE {
 
 	/// A representation of a DataModule containing zero or many Material, Effect, Ammo, Device, Actor, or Scene definitions.
 	class DataModule : public Serializable {
+		friend class ModuleMan;
 		friend struct SystemLuaBindings;
 
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
+
+		/// Enumeration for the different types of DataModules.
+		enum class DataModuleType {
+			Unofficial, // Mods and any other modules not shipped with the game.
+			Official,
+			Userdata // Userdata written by the game (e.g saved games or editor scenes) that should be ignored anywhere where that is relevant.
+		};
 
 		/// Struct that holds data about the custom BuyMenu/ObjectPicker theme of this DataModule.
 		/// Themes are used when a DataModule is considered a faction and is selected to be played as in an Activity.
@@ -54,14 +62,6 @@ namespace RTE {
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const std::string& moduleName, const ProgressCallback& progressCallback = nullptr);
-
-		/// Creates a new DataModule directory with "Index.ini" on disk to be used for userdata. Does NOT instantiate the newly created DataModule.
-		/// @param moduleName File/folder name of the data module, e.g. "MyMod.rte".
-		/// @param friendlyName Friendly name of the data module, e.g. "My Weapons Mod".
-		/// @param scanFolderContents Whether module loader should scan for any .ini's inside module folder instead of loading files defined in IncludeFile only.
-		/// @param ignoreMissingItems Whether module loader should ignore missing items in this module.
-		/// @return Whether the DataModule was successfully created on disk.
-		static bool CreateOnDiskAsUserdata(const std::string& moduleName, const std::string_view& friendlyName, bool scanFolderContents = false, bool ignoreMissingItems = false);
 #pragma endregion
 
 #pragma region Destruction
@@ -88,12 +88,13 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Module Information Getters
+		/// Gets whether this DataModule is an official module.
+		/// @return Whether this DataModule is an official module.
+		bool IsOfficial() const { return m_ModuleType == DataModuleType::Official; }
+
 		/// Gets whether this DataModule is a userdata module.
 		/// @return Whether this DataModule is used for userdata written by the game.
-		bool IsUserdata() const { return m_IsUserdata; }
-
-		/// Sets this DataModule as a userdata module.
-		void SetAsUserdata() { m_IsUserdata = true; }
+		bool IsUserdata() const { return m_ModuleType == DataModuleType::Userdata; }
 
 		/// Gets the file name of this DataModule, e.g. "MyMod.rte".
 		/// @return A string with the data module file name.
@@ -241,7 +242,7 @@ namespace RTE {
 			std::string m_FileReadFrom; //!< Where the instance was read from.
 		};
 
-		bool m_IsUserdata; //!< Whether this DataModule contains userdata written by the game (e.g saved games or editor scenes), meaning it is not an official nor a 3rd party module and is ignored anywhere where that is relevant.
+		DataModuleType m_ModuleType; //!< The type of this DataModule. See DataModuleType enumeration.
 		bool m_ScanFolderContents; //!< Indicates whether module loader should scan for any .ini's inside module folder instead of loading files defined in IncludeFile only.
 		bool m_IgnoreMissingItems; //!< Indicates whether module loader should ignore missing items in this module.
 

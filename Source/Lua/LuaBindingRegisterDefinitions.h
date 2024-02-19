@@ -191,6 +191,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(ConsoleMan);
 		LuaBindingRegisterFunctionDeclarationForType(FrameMan);
 		LuaBindingRegisterFunctionDeclarationForType(MetaMan);
+		LuaBindingRegisterFunctionDeclarationForType(ModuleMan);
 		LuaBindingRegisterFunctionDeclarationForType(MovableMan);
 		LuaBindingRegisterFunctionDeclarationForType(PerformanceMan);
 		LuaBindingRegisterFunctionDeclarationForType(PostProcessMan);

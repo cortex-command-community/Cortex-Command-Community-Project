@@ -273,7 +273,7 @@ namespace RTE {
 		void AttemptToRevertToPreviousResolution(bool revertToDefaults = false);
 #pragma endregion
 
-#pragma region Multi - Display Handling
+#pragma region Multi-Display Handling
 		/// Clears all the multi-display data, resetting the game to a single-window-single-display state.
 		void ClearMultiDisplayData();
 

@@ -1,5 +1,6 @@
 #include "ActorEditor.h"
 
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "FrameMan.h"
@@ -15,7 +16,6 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Scene.h"
-#include "DataModule.h"
 
 #include "ObjectPickerGUI.h"
 
@@ -239,7 +239,7 @@ bool ActorEditor::ReloadActorData() {
 	if (m_pEditedActor) {
 		std::string presetName = m_pEditedActor->GetPresetName();
 		std::string className = m_pEditedActor->GetClassName();
-		std::string moduleName = g_PresetMan.GetDataModuleName(m_pEditedActor->GetModuleID());
+		std::string moduleName = g_ModuleMan.GetModuleName(m_pEditedActor->GetModuleID());
 		g_PresetMan.ReloadEntityPreset(presetName, className, moduleName, false);
 		LoadActor(g_PresetMan.GetEntityPreset(className, presetName, moduleName));
 		return m_pEditedActor != nullptr;

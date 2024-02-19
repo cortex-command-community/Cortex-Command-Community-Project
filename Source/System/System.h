@@ -84,7 +84,7 @@ namespace RTE {
 		static bool PathExistsCaseSensitive(const std::string& pathToCheck);
 #pragma endregion
 
-#pragma region Command - Line Interface
+#pragma region Command-Line Interface
 		/// Tells whether printing loading progress report and console to command-line is enabled or not.
 		/// @return Whether printing to command-line is enabled or not.
 		static bool IsLoggingToCLI() { return s_LogToCLI; }

@@ -1,5 +1,6 @@
 #include "AudioMan.h"
 
+#include "ModuleMan.h"
 #include "CameraMan.h"
 #include "ConsoleMan.h"
 #include "FrameMan.h"
@@ -8,7 +9,6 @@
 #include "ActivityMan.h"
 #include "SoundContainer.h"
 #include "GUISound.h"
-#include "PresetMan.h"
 #include "SoundSet.h"
 
 #include <cstring>
@@ -314,7 +314,7 @@ void AudioMan::FinishIngameLoopingSounds() {
 
 void AudioMan::PlayMusic(const char* filePath, int loops, float volumeOverrideIfNotMuted) {
 	if (m_AudioEnabled) {
-		const std::string fullFilePath = g_PresetMan.GetFullModulePath(filePath);
+		const std::string fullFilePath = g_ModuleMan.GetFullModulePath(filePath);
 		if (m_IsInMultiplayerMode) {
 			RegisterMusicEvent(-1, NetworkMusicState::MUSIC_PLAY, fullFilePath.c_str(), loops);
 		}

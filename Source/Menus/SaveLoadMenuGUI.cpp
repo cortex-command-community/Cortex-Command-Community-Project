@@ -1,7 +1,7 @@
 #include "SaveLoadMenuGUI.h"
 
 #include "ActivityMan.h"
-#include "PresetMan.h"
+#include "ModuleMan.h"
 #include "WindowMan.h"
 
 #include "PauseMenuGUI.h"
@@ -80,7 +80,7 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 
 	m_GUIControlManager->GetManager()->SetFocus(nullptr);
 
-	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/";
+	std::string saveFilePath = g_ModuleMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/";
 	for (const auto& entry: std::filesystem::directory_iterator(saveFilePath)) {
 		if (entry.is_directory()) {
 			SaveRecord record;
@@ -191,7 +191,7 @@ void SaveLoadMenuGUI::CreateSave() {
 }
 
 void SaveLoadMenuGUI::DeleteSave() {
-	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText();
+	std::string saveFilePath = g_ModuleMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText();
 
 	std::filesystem::remove_all(saveFilePath);
 	g_GUISound.ConfirmSound()->Play();

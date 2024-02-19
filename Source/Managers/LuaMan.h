@@ -325,7 +325,7 @@ namespace RTE {
 		const std::unordered_map<std::string, PerformanceMan::ScriptTiming> GetScriptTimings() const;
 #pragma endregion
 
-#pragma region File I / O Handling
+#pragma region File I/O Handling
 		/// Returns a vector of all the directories in path, which is relative to the working directory.
 		/// @param path Directory path relative to the working directory.
 		/// @return A vector of the directories in path.

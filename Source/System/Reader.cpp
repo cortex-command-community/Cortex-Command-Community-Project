@@ -1,6 +1,6 @@
 #include "Reader.h"
 #include "ConsoleMan.h"
-#include "PresetMan.h"
+#include "ModuleMan.h"
 #include "SettingsMan.h"
 #include "System.h"
 
@@ -49,12 +49,12 @@ int Reader::Create(const std::string& fileName, bool overwrites, const ProgressC
 		m_DataModuleName = "Base.rte";
 		m_DataModuleID = 0;
 	} else {
-		m_FilePath = g_PresetMan.GetFullModulePath(fileName);
+		m_FilePath = g_ModuleMan.GetFullModulePath(fileName);
 
 		// Extract the file name and module name from the path
 		m_FileName = m_FilePath.substr(m_FilePath.find_last_of("/\\") + 1);
-		m_DataModuleName = g_PresetMan.GetModuleNameFromPath(m_FilePath);
-		m_DataModuleID = g_PresetMan.GetModuleID(m_DataModuleName);
+		m_DataModuleName = g_ModuleMan.GetModuleNameFromPath(m_FilePath);
+		m_DataModuleID = g_ModuleMan.GetModuleID(m_DataModuleName);
 	}
 
 	return Create(std::make_unique<std::ifstream>(m_FilePath), overwrites, progressCallback, failOK);
@@ -81,7 +81,7 @@ int Reader::Create(std::unique_ptr<std::istream>&& stream, bool overwrites, cons
 }
 
 int Reader::GetReadModuleID() const {
-	return (m_DataModuleID < 0) ? g_PresetMan.GetModuleID(m_DataModuleName) : m_DataModuleID;
+	return (m_DataModuleID < 0) ? g_ModuleMan.GetModuleID(m_DataModuleName) : m_DataModuleID;
 }
 
 std::string Reader::WholeFileAsString() const {
@@ -322,7 +322,7 @@ bool Reader::StartIncludeFile() {
 	}
 
 	// Get the file path from the current stream before pushing it into the StreamStack, otherwise we can't open a new stream after releasing it because we can't read.
-	std::string includeFilePath = g_PresetMan.GetFullModulePath(ReadPropValue());
+	std::string includeFilePath = g_ModuleMan.GetFullModulePath(ReadPropValue());
 
 	// Push the current stream onto the StreamStack for future retrieval when the new include file has run out of data.
 	m_StreamStack.push(StreamInfo(m_Stream.release(), m_FilePath, m_CurrentLine, m_PreviousIndent));

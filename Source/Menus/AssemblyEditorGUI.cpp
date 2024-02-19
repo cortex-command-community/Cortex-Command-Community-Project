@@ -2,6 +2,7 @@
 
 #include "CameraMan.h"
 #include "FrameMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "ActivityMan.h"
 #include "GameActivity.h"
@@ -190,7 +191,7 @@ void AssemblyEditorGUI::SetModuleSpace(int moduleSpaceID) {
 }
 
 void AssemblyEditorGUI::SetNativeTechModule(int whichModule) {
-	if (whichModule >= 0 && whichModule < g_PresetMan.GetTotalModuleCount()) {
+	if (whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount()) {
 		m_NativeTechModule = whichModule;
 		m_pPicker->SetNativeTechModule(m_NativeTechModule);
 	}

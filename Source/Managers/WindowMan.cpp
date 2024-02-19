@@ -4,7 +4,7 @@
 #include "ActivityMan.h"
 #include "UInputMan.h"
 #include "ConsoleMan.h"
-#include "PresetMan.h"
+#include "ModuleMan.h"
 #include "PostProcessMan.h"
 
 #include "GLCheck.h"
@@ -103,7 +103,7 @@ void WindowMan::Initialize() {
 	CreatePrimaryWindow();
 	InitializeOpenGL();
 	CreateBackBufferTexture();
-	m_ScreenBlitShader = std::make_unique<Shader>(g_PresetMan.GetFullModulePath("Base.rte/Shaders/ScreenBlit.vert"), g_PresetMan.GetFullModulePath("Base.rte/Shaders/ScreenBlit.frag"));
+	m_ScreenBlitShader = std::make_unique<Shader>(g_ModuleMan.GetFullModulePath("Base.rte/Shaders/ScreenBlit.vert"), g_ModuleMan.GetFullModulePath("Base.rte/Shaders/ScreenBlit.frag"));
 
 	// SDL is kinda dumb about the taskbar icon so we need to poll after creating the window for it to show up, otherwise there's no icon till it starts polling in the main menu loop.
 	SDL_PollEvent(nullptr);
