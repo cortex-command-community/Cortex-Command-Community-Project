@@ -456,6 +456,9 @@ namespace RTE {
 		/// Updates the MOIDs of all current MOs.
 		void UpdateDrawMOIDs();
 
+		// Forces MOID drawing to complete (should be done before any physics sim or collision detection etc)
+		void CompleteQueuedMOIDDrawings();
+
 		/// Draws this MovableMan's current graphical representation to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())

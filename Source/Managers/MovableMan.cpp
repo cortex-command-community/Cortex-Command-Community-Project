@@ -123,7 +123,20 @@ void MovableMan::Destroy() {
 
 MovableObject* MovableMan::GetMOFromID(MOID whichID) {
 	if (whichID != g_NoMOID && whichID != 0 && whichID < m_MOIDIndex.size()) {
-		return m_MOIDIndex[whichID];
+		// This is really, really awful
+		// But, Lua scripts can take ownership of an MO which exists in this list
+		// And then the MO can be deallocated by Lua GC
+		// Meaning that this ptr points to stale memory.
+		// Due to our pooled memory system, we can avoid a crash by just... checking that the MO isn't NoMOID
+		// But this is still atrociously awful and terrible and this can point to a newly-allocated object that just so happens to be allocated the same place.
+		// Anyways, until we can fix the god-awful abomination that is this game's memory ownership semantics, we're stuck with this
+		// Which is also technically undefined behaviour
+		MovableObject* candidate = m_MOIDIndex[whichID];
+		if (candidate->GetID() != whichID) {
+			return nullptr;
+		}
+
+		return candidate;
 	}
 	return nullptr;
 }
@@ -1654,10 +1667,6 @@ void MovableMan::Update() {
 void MovableMan::Travel() {
 	ZoneScoped;
 
-	if (m_DrawMOIDsTask.valid()) {
-		m_DrawMOIDsTask.wait();
-	}
-
 	// Travel Actors
 	{
 		ZoneScopedN("Actors Travel");
@@ -1854,6 +1863,12 @@ void MovableMan::UpdateDrawMOIDs() {
 				m_TeamMOIDCount[team]++;
 			}
 		}
+	}
+}
+
+void MovableMan::CompleteQueuedMOIDDrawings() {
+	if (m_DrawMOIDsTask.valid()) {
+		m_DrawMOIDsTask.wait();
 	}
 }
 
