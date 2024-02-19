@@ -276,8 +276,7 @@ namespace RTE {
 		/// @param newOffset New offset value.
 		void SetMuzzleOffset(Vector newOffset) override { m_MuzzleOff = newOffset; }
 
-		/// Gets the absolute position of the muzzle or other equivalent point of
-		/// this.
+		/// Gets the absolute position of the Shell ejection point.
 		/// @return A vector describing the absolute world coordinates for the Shell
 		/// ejection point of this
 		Vector GetEjectionPos() const;
