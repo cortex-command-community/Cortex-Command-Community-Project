@@ -147,7 +147,8 @@ MOID MovableMan::GetMOIDPixel(int pixelX, int pixelY, const std::vector<int>& mo
 		MOID moid = *itr;
 		const MovableObject* mo = GetMOFromID(moid);
 
-		RTEAssert(mo, "Null MO found in MOID list!");
+		// Commented... see MovableMan::GetMOFromID
+		// RTEAssert(mo, "Null MO found in MOID list!");
 		if (mo == nullptr) {
 			continue;
 		}
