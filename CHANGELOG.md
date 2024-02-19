@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Added `HDFirearm` lua bindings `EjectionOffset` (R/W) and `EjectionPos` (R). Work similarly to their Muzzle variants.
 
-- New `MovableObject` Lua functions `GetScreenEffectPath()` and `SetScreenEffectPath(string pathToFile)`, which get and set the file path to the object's screen effect. Setting is very slow!
+- New `MovableObject` Lua functions `GetScreenEffectPath()` and `SetScreenEffectPath(string pathToFile)`, which get and set the file path to the object's screen effect.
 
 </details>
 
