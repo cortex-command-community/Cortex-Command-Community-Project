@@ -517,6 +517,52 @@ function RefineryAssault:HandleMessage(message, object)
 	
 		self.saveTable.cameraServerBroken = self.saveTable.cameraServerBroken == nil and 1 or self.saveTable.cameraServerBroken + 1;
 		
+	elseif message == "RefineryAssault_KeycardPickedUp" then
+		
+		if self.Stage < 7 then
+			for k, brain in pairs(self.saveTable.playerBrains) do
+				if object == brain.UniqueID then
+					self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+					MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
+					self.Stage = 7;
+					
+					for particle in MovableMan.Particles do
+						if particle.PresetName == "Refinery Authorization Console" then
+						
+							particle:SendMessage("ActivateRefineryAuthorizationConsole");
+				
+							self.HUDHandler:AddObjective(self.humanTeam,
+							"S7AuthorizeBrain",
+							"Authorize yourself",
+							"Attack",
+							"Authorize your commander using the keycard",
+							"With the keycard, you can authorize your commander's physical signature to open the CNC-center blast door at this console.",
+							particle.Pos,
+							false,
+							true,
+							true);					
+					
+						elseif particle.PresetName == "Refinery S7 Auxiliary Authorization Console" then
+						
+							self.HUDHandler:AddObjective(self.humanTeam,
+							"S7AuxAuth",
+							"Hack",
+							"Attack",
+							"Hack the auxiliary authorization console",
+							"This console is also responsible for the CNC-center's door authorization list. Hack it.",
+							particle.Pos,
+							false,
+							true,
+							true);
+							
+						end
+					end
+					break;
+				end
+			end
+		end
+				
+		
 	elseif message == "RefineryAssault_S7BrainAuthorized" then		
 	
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S7AuthorizeBrain");
@@ -1620,86 +1666,18 @@ end
 
 function RefineryAssault:MonitorStage6()
 
-	-- if not self.saveTable.stage6subCommanderKilled then
-
-		-- if not self.saveTable.stage6subCommander or not MovableMan:ValidMO(self.saveTable.stage6subCommander) or self.saveTable.stage6subCommander:IsDead() then
-			-- self.HUDHandler:RemoveObjective(self.humanTeam, "S6KillSubcommander");
-			-- self.saveTable.stage6subCommanderKilled = true;
-		-- end
-
-	-- end	
-	
-	-- NOTE: on first frame when the keycard disappears it is, for some reason, not in any actor's inventory
-	-- so we have to wait a frame
+	if not self.saveTable.stage6subCommanderKilled then
+		if not self.saveTable.stage6subCommander or not MovableMan:ValidMO(self.saveTable.stage6subCommander) or self.saveTable.stage6subCommander:IsDead() then
+			self.HUDHandler:RemoveObjective(self.humanTeam, "S6KillSubcommander");
+			self.saveTable.stage6subCommanderKilled = true;
+		end
+	end	
 	
 	if not self.saveTable.stage6Keycard or (self.saveTable.stage6Keycard.HasEverBeenAddedToMovableMan and not MovableMan:ValidMO(self.saveTable.stage6Keycard)) then
-		
-		if self.stage7FrameWaited then
-		
-			local keyCardLost = true;
-		
-			-- inefficient if misc. actor is holding onto it... and obj arrow disappears
-			-- hopefully AI doesn't ever randomly pick it up
-			-- alternative: auto drop it, force brain to pick it up first
-			for actor in MovableMan.Actors do
-				for item in actor.Inventory do
-					if item.PresetName == "Browncoat Military Keycard" then
-						keyCardLost = false;
-						if actor.Team == self.humanTeam and actor:IsInGroup("Brains") then
-							-- player brain got it
-							actor:RemoveInventoryItem("Browncoat Military Keycard");
-							self.HUDHandler:RemoveAllObjectives(self.humanTeam);
-							MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
-							self.Stage = 7;
-							
-							for particle in MovableMan.Particles do
-								if particle.PresetName == "Refinery Authorization Console" then
-								
-									particle:SendMessage("ActivateRefineryAuthorizationConsole");
-						
-									self.HUDHandler:AddObjective(self.humanTeam,
-									"S7AuthorizeBrain",
-									"Authorize yourself",
-									"Attack",
-									"Authorize your commander using the keycard",
-									"With the keycard, you can authorize your commander's physical signature to open the CNC-center blast door at this console.",
-									particle.Pos,
-									false,
-									true,
-									true);					
-							
-								elseif particle.PresetName == "Refinery S7 Auxiliary Authorization Console" then
-								
-									self.HUDHandler:AddObjective(self.humanTeam,
-									"S7AuxAuth",
-									"Hack",
-									"Attack",
-									"Hack the auxiliary authorization console",
-									"This console is also responsible for the CNC-center's door authorization list. Hack it.",
-									particle.Pos,
-									false,
-									true,
-									true);
-									
-								end
-							end
-							
-							return;
-						end
-					end
-				end
-			end
-			
-			if keyCardLost then
-				-- spawn a new one
-				self.stage7FrameWaited = false;
-				self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
-				self.saveTable.stage6Keycard.Pos = self.stage6SubcommanderDoor.Pos
-				MovableMan:AddItem(self.saveTable.stage6Keycard);
-			end
-		else
-			self.stage7FrameWaited = true;
-		end
+		-- spawn a new one
+		self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
+		self.saveTable.stage6Keycard.Pos = self.stage6SubcommanderDoor.Pos
+		MovableMan:AddItem(self.saveTable.stage6Keycard);
 	end
 
 end
