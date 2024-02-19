@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `Lerp` can now be used on Vectors and Matrices/Rotations, not just numbers.
 
-- Added missing `HDFirearm` lua bindings, `EjectionOffset` (R/W) and `EjectionPos` (R). Work similarly to their Muzzle variants.
+- Added `HDFirearm` lua bindings `EjectionOffset` (R/W) and `EjectionPos` (R). Work similarly to their Muzzle variants.
 
 </details>
 
