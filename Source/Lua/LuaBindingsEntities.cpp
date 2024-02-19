@@ -988,7 +988,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .def("RotateOffset", &MovableObject::RotateOffset)
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage1)
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage2)
-	    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate);
+	    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate)
+	    .def("GetScreenEffectPath", &MovableObject::GetScreenEffectPath)
+	    .def("SetScreenEffectPath", &MovableObject::SetScreenEffectPath);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
