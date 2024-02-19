@@ -991,7 +991,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage1)
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage2)
 	    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate)
-	    .def("SetEffectStrength", &MovableObject::SetEffectStrength);
+	    .def("SetEffectStrength", &MovableObject::SetEffectStrength)
+	    .def("GetScreenEffectPath", &MovableObject::GetScreenEffectPath)
+	    .def("SetScreenEffectPath", &MovableObject::SetScreenEffectPath);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
