@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `LERP` Lua binding has been deprecated, and renamed to `Lerp`.
 
+- Six activities (Harvester, Keepie-Uppie, Massacre, One-Man Army, One-Man Army (Diggers Only), and Survival) now avoid AI deployments on top of the player.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -53,6 +55,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed an issue where a mission-specific keycard item was being bought by the AI.
 
 - Fixed `MovableObject` INI and Lua property `IgnoreTerrain` not having any appreciable effect.
+
+- Fixed Signal Hunt speedrun mode not working properly if you used a player other than 1.
+
+- Fixed Decision Day camera potentially getting stuck at the start if player 1 wasn't present.
 
 </details>
 
