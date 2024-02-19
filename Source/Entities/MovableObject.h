@@ -395,11 +395,11 @@ namespace RTE {
 
 		/// Gets the starting strength of this MovableObject's effect as a float.
 		/// @return The starting strength of the effect, 0.0-1.0.
-		float GetEffectStartStrengthFloat() const { return (float)m_EffectStartStrength / 255.0f; }
+		float GetEffectStartStrengthFloat() const { return static_cast<float>(m_EffectStartStrength) / 255.0f; }
 
 		/// Sets the starting strength of this MovableObject's effect.
 		/// @param strength The new starting strength of the effect, 0.0-1.0.
-		void SetEffectStartStrengthFloat(float strength) { m_EffectStartStrength = std::floor((float)255 * strength); }
+		void SetEffectStartStrengthFloat(float strength) { m_EffectStartStrength = std::floor(255.0F * strength); }
 
 		/// Gets the stopping strength of this MovableObject's effect.
 		/// @return The stopping strength of the effect, 0-255.
@@ -407,15 +407,15 @@ namespace RTE {
 
 		/// Gets the stopping strength of this MovableObject's effect as a float.
 		/// @return The stopping strength of the effect, 0.0-1.0.
-		float GetEffectStopStrengthFloat() const { return (float)m_EffectStopStrength / 255.0f; }
+		float GetEffectStopStrengthFloat() const { return static_cast<float>(m_EffectStopStrength) / 255.0f; }
 
 		/// Sets the stopping strength of this MovableObject's effect.
 		/// @param strength The new stopping strength of the effect, 0.0-1.0.
-		void SetEffectStopStrengthFloat(float strength) { m_EffectStopStrength = std::floor((float)255 * strength); }
+		void SetEffectStopStrengthFloat(float strength) { m_EffectStopStrength = std::floor(255.0F * strength); }
 
 		/// Sets both strengths of this MovableObject's effect.
 		/// @param strength The new strengths of the effect, 0.0-1.0.
-		void SetEffectStrength(float strength) { m_EffectStartStrength = m_EffectStopStrength = std::floor((float)255 * strength); }
+		void SetEffectStrength(float strength) { m_EffectStartStrength = m_EffectStopStrength = std::floor(255.0F * strength); }
 
 		/// Gets whether or not this MovableObject's effect is drawn every frame.
 		/// @return Boolean indicating whether or not the effect is drawn.
