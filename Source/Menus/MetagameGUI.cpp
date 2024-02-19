@@ -582,6 +582,7 @@ int MetagameGUI::Create(Controller* pController) {
 
 	// Hide all screens, the appropriate screen will reappear on next update
 	HideAllScreens();
+	m_TechAndFlagListFetched = false;
 	return 0;
 }
 
@@ -717,33 +718,43 @@ void MetagameGUI::SetEnabled(bool enable) {
 		g_GUISound.ExitMenuSound()->Play();
 	}
 
-	// Populate the tech comboboxes with the available tech modules
-	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-		m_apPlayerTechSelect[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
-		m_apPlayerTechSelect[team]->SetSelectedIndex(0);
-	}
-	for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-		if (const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID)) {
-			if (dataModule->IsFaction()) {
-				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-					m_apPlayerTechSelect[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
-					m_apPlayerTechSelect[team]->GetListPanel()->ScrollToTop();
+	if (!m_TechAndFlagListFetched) {
+		m_TechAndFlagListFetched = true;
+		// Populate the tech comboboxes with the available tech modules
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			m_apPlayerTechSelect[player]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
+			m_apPlayerTechSelect[player]->SetSelectedIndex(0);
+		}
+		for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
+			if (const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID)) {
+				if (dataModule->IsFaction()) {
+					for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+						m_apPlayerTechSelect[player]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
+					}
+				}
+			}
+		}
+		// Start scrolled to the top.
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			m_apPlayerTechSelect[player]->GetListPanel()->ScrollToTop();
+		}
+
+		// Populate team selection flags.
+		std::list<Entity*> flagList;
+		g_PresetMan.GetAllOfGroup(flagList, "Flags", "Icon");
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			for (std::list<Entity*>::iterator itr = flagList.begin(); itr != flagList.end(); ++itr) {
+				if (const Icon* pIcon = dynamic_cast<Icon*>(*itr)) {
+					m_apPlayerTeamSelect[player]->AddItem("", "", new AllegroBitmap(pIcon->GetBitmaps32()[0]), pIcon);
 				}
 			}
 		}
 	}
-
-	std::list<Entity*> flagList;
-	g_PresetMan.GetAllOfGroup(flagList, "Flags", "Icon");
+	// If a player has no team selected, default to the same team as their player index.
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
-		for (std::list<Entity*>::iterator itr = flagList.begin(); itr != flagList.end(); ++itr) {
-			if (const Icon* pIcon = dynamic_cast<Icon*>(*itr)) {
-				m_apPlayerTeamSelect[player]->AddItem("", "", new AllegroBitmap(pIcon->GetBitmaps32()[0]), pIcon);
-			}
+		if (m_apPlayerTeamSelect[player]->GetSelectedIndex() < 0) {
+			m_apPlayerTeamSelect[player]->SetSelectedIndex(player);
 		}
-	}
-	if (m_apPlayerTeamSelect[Players::PlayerOne]->GetSelectedIndex() < 0) {
-		m_apPlayerTeamSelect[Players::PlayerOne]->SetSelectedIndex(0);
 	}
 
 	m_ScreenChange = true;
