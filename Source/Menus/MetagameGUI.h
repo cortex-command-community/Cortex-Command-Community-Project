@@ -772,6 +772,8 @@ namespace RTE {
 		// The scene currently being played, NOT OWNED
 		Scene* m_pPlayingScene;
 
+		bool m_TechAndFlagListFetched; //!< Whether the tech list was fetched and each team's ComboBox was populated with it, even if no valid tech modules were added. The team flags are also populated at the same time.
+
 		// NEW GAME DIALOG
 		// Game size label and slider
 		GUILabel* m_pSizeLabel;

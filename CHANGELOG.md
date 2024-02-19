@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `Lerp` can now be used on Vectors and Matrices/Rotations, not just numbers.
 
+- Added `HDFirearm` lua bindings `EjectionOffset` (R/W) and `EjectionPos` (R). Work similarly to their Muzzle variants.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -59,6 +61,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed Signal Hunt speedrun mode not working properly if you used a player other than 1.
 
 - Fixed Decision Day camera potentially getting stuck at the start if player 1 wasn't present.
+
+- Fixed Conquest tech selection dropdown getting repeatedly repopulated with duplicated entries, which could cause a crash.
 
 </details>
 
