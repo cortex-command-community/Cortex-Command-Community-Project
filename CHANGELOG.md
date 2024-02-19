@@ -60,6 +60,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed Decision Day camera potentially getting stuck at the start if player 1 wasn't present.
 
+- Fixed Conquest tech selection dropdown getting repeatedly repopulated with duplicated entries, which could cause a crash.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
