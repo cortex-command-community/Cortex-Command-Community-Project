@@ -359,11 +359,6 @@ void MultiplayerGame::Update() {
 	g_NetworkClient.Update();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          DrawGUI
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 void MultiplayerGame::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 	if (m_pGUIController) {
 		AllegroScreen drawScreen(pTargetBitmap);
@@ -372,12 +367,6 @@ void MultiplayerGame::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, in
 			m_pGUIController->DrawMouse();
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this MultiplayerGame's current graphical representation to a
-//                  BITMAP of choice. This includes all game-related graphics.
 
 void MultiplayerGame::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 	Activity::Draw(pTargetBitmap, targetPos);

@@ -6,6 +6,133 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+<details><summary><b>Fixed</b></summary>
+
+- Fixed Constructor auto-cancelling build mode if you actively selected the "Order Construction" pie menu option.
+
+</details>
+
+## [Release v6.2.0] - 2024/02/19
+
+<details><summary><b>Added</b></summary>
+
+- New `MovableObject` INI and Lua property `PostEffectEnabled` (R/W), which determines whether or not the screen effect of an MO is enabled. Defaults to `true` for `MOPixels` and `MOSParticles`, `false` for everything else (to avoid backwards compatibility issues).
+
+- `Lerp` can now be used on Vectors and Matrices/Rotations, not just numbers.
+
+- Added `HDFirearm` lua bindings `EjectionOffset` (R/W) and `EjectionPos` (R). Work similarly to their Muzzle variants.
+
+- New `MovableObject` Lua functions `GetScreenEffectPath()` and `SetScreenEffectPath(string pathToFile)`, which get and set the file path to the object's screen effect.
+
+- Exposed `MovableObject` INI properties `EffectStartStrength` and `EffectStopStrength` to Lua (R/W). Default range in Lua is a float from 0-1 (0%-100%), but going outside of this range is possible.
+
+- New `MovableObject` Lua function `SetEffectStrength(float strength)`, which sets both `EffectStartStrength` and `EffectStopStrength` to the given value in order to simplify setting glow strength to a specific value.
+
+</details>
+
+<details><summary><b>Changed</b></summary>
+
+- Massacre now displays the remaining kill count to each player's screen instead of just the first one.
+
+- Slightly nerfed the Imperatus combat robot jetpack.
+
+- Improvements to AI navigation in automovers, so they get stuck less often.
+
+- Screen effects (glows) can now show on *any* `MovableObject` they're attached to; you may need to set `EffectAlwaysShows = 1` to see them on `MOSRotatings`. Try `InheritEffectRotAngle = 1` on one of them!
+
+- `LERP` Lua binding has been deprecated, and renamed to `Lerp`.
+
+- Six activities (Harvester, Keepie-Uppie, Massacre, One-Man Army, One-Man Army (Diggers Only), and Survival) now avoid AI deployments on top of the player.
+
+</details>
+
+<details><summary><b>Fixed</b></summary>
+
+- Fixed instances of `FrameMan:ClearScreenText()` and `FrameMan:SetScreenText()` supplying a player index instead of a screen index. For example, "Signal Hunt" wouldn't display the Alchiral messages if you used a different player than player 1.
+
+- Fixed some activities iterating from `0` to `PlayerCount - 1` instead of iterating over every player index and filtering to active human players. For example, "Exploration" (Doainar) was unable to progress if you used a different player than player 1.
+
+- Fixed an issue that could cause post-effects to appear very blurry.
+
+- Fixed a couple of rare crashes that could occur depending on Lua garbage collection and async processing.
+
+- Fixed a crash that could occur when using the Nucleo Swarm weapon.
+
+- Fixed a crash that could occur when mods applied an invalid team to an Actor.
+
+- Fixed a crash that could occur when an actor was damaged without a defined wound.
+
+- Fixed a missing Lua write binding for `AEJetpack`'s `JetTimeLeft` property.
+
+- Fixed an issue where glows wouldn't render if the EffectStopTime was lower than the simulation deltatime.
+
+- Fixed an issue where sometimes doors were owned by the wrong team in Bunker Breach and Survival activities.
+
+- Fixed an issue where a mission-specific keycard item was being bought by the AI.
+
+- Fixed `MovableObject` INI and Lua property `IgnoreTerrain` not having any appreciable effect.
+
+- Fixed Signal Hunt speedrun mode not working properly if you used a player other than 1.
+
+- Fixed Decision Day camera potentially getting stuck at the start if player 1 wasn't present.
+
+- Fixed Conquest tech selection dropdown getting repeatedly repopulated with duplicated entries, which could cause a crash.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+- Removed `Settings.ini` property `SimplifiedCollisionDetection = 0/1`. With the physics detection overhaul in pre-5, this became unnecessary.
+
+</details>
+
+## [Release v6.1.0] - 2024/02/15
+
+<details><summary><b>Added</b></summary>
+
+- New sounds:
+	New metal gibbing sounds used mainly for robots.
+	New plastic impact and gib sounds for dummies.
+	New LightRobot and HeavyRobot foley and footstep sounds, completing update 6.0's light and heavy cloth sounds.
+
+- The pause menu will now muffle the music being played, just like in every modern game ever.
+
+- Various weapons have had lifetime variation added to their rounds, making things look a bit less artificial.
+
+</details>
+
+<details><summary><b>Changed</b></summary>
+
+- Enhanced dropship and engine explosion sounds while still keeping their old vibe.
+  
+- Nerfed the Coalition Grenade Launcher and the Devastator a tiny bit. They are still scary and the Devastator can still one-shot most things on a good hit, but they did not need to be that oppressive.
+
+</details>
+
+<details><summary><b>Fixed</b></summary>
+
+- Fixed initial Decision Day dropships never exploding and sticking around.
+
+- Reverted a change to pathfinding, that although was technically accurate, caused issues with the AI being too eager to path up-and-over obstacles instead of through them. In the future this will likely be revisited when we get jump-aware pathfinding.
+
+- Fixed nucleo shots breaking if saving and loading them mid explosion sequence.
+
+- Fixed Dummy Assault resetting funds to their initial value upon loading a saved game.
+
+- Fixed a few memory leaks.
+
+- Fixed an over-eager assert that could fire often even when it caused no issues.
+
+- Fixed an issue with mouse position being inaccurate on Mac builds.
+
+- Fixed some compatibility issues which meant the game wouldn't run on older PCs.
+
+- Fixed an issue where the loading screen progress window didn't work even when enabled.
+
+</details>
+
+## [Release v6.0.0] - 2024/02/11
+
 <details><summary><b>Added</b></summary>
 
 - Added in-game pause menu when pressing `Esc`. Pressing `Shift + Esc` will skip this menu and pause into scenario/conquest menu.  
@@ -14,12 +141,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Massive performance improvements, especially in very large scenes with lots of actors.  
 
-- New multithreaded AI and Lua scripts.
+- New multithreaded AI and Lua scripts.  
 	Lua scripts now have extra callback functions `ThreadedUpdateAI(self)`, `ThreadedUpdate(self)` and `SyncedUpdate(self)`.  
 	The `Threaded` callback functions are run in a multithreaded fashion, whereas `Update` runs in a singlethreaded fashion (where it's safe to modify global state or affect other objects).  
 	The `SyncedUpdate` callback is called in a single-threaded fashion, but only when an MO directly requests it by calling `self:RequestSyncedUpdate()`. This gives greater performance, as the script can avoid any single-threaded updates being called on it until it explicitly needs it.  
 
-- New generic Lua messaging system, to allow scripts on objects to communicate with other objects or scripts.
+- New generic Lua messaging system, to allow scripts on objects to communicate with other objects or scripts.  
 	Scripts on `MovableObject` now have new callback functions `OnMessage(self, message, context)` and `OnGlobalMessage(self, message, context)`.  
 	Script on `Activity` also have similar functions: `ActivityName:OnMessage(message, context)` and `ActivityName:OnGlobalMessage(message, context)`.  
 	The `OnMessage` callback will be triggered whenever the `SendMessage(message, context)` is called on an object, i.e `Object:SendMessage("Hello World")`.  
@@ -33,7 +160,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	New INI and Lua (R/W) property `CanAdjustAngleWhileFiring`, which defines whether the jet angle can change while the jetpack is active. Defaults to true.  
 	New INI and Lua (R/W) property `AdjustsThrottleForWeight`, which defines whether the jetpack will adjust it's throttle (between `NegativeThrottleMultiplier` and `PositiveThrottleMultiplier`) to account for any extra inventory mass. Increased throttle will decrease jet time accordingly. Defaults to true.  
 
-- Multithreaded asynchronous pathfinding, which dramatically improves performance on large maps and improves AI responsiveness.
+- Multithreaded asynchronous pathfinding, which dramatically improves performance on large maps and improves AI responsiveness.  
 	New `Actor` Lua property (R) `IsWaitingOnNewMovePath`, which returns true while the actor is currently calculating a new path.  
 	New Lua `SceneMan` function `CalculatePathAsync` for asynchronous pathfinding. This function has no return value, and is used as follows:
 	```lua
@@ -52,15 +179,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 		team -- The team to use when calculating the path, allowing the path to ignore that team's doors. If not specified, it will default to `Activity.NOTEAM`, and no doors will be ignored.
 	);
 	```
+	
+- Many new sounds have been added or enhanced.  
+	Browncoats have gotten a full sound revamp for everything except their actors. Every Browncoat item now has its own custom sounds.  
+	Most base explosions and Riot Shield sounds have been redone.  
+	Human actors have redone foley sounds (terrain impacts, device switching sounds) and also new subtle footstep sounds, including light and heavy variants for the various light and heavy actors.  
+	Shields now make noise when walked with.  
+	Flesh and metal penetration sounds have been overhauled to be more varied and interesting.
 
-- New FMOD and SoundContainer features:  
-	The game is now divided into SFX, UI, and Music busses which all route into the Master bus.  
-	The SFX bus has compression added for a better listening experience, and a safety volume limiter has been added to the Master bus.  
-	Aside from volume being attenuated, sounds will now also be lowpass filtered as distance increases.  
-	New `SoundContainer` INI and Lua (R/W) property `BusRouting`, which denotes which bus the SoundContainer routes to. Available busses: `SFX, UI, Music`. Defaults to `SFX`.  
-	`Enum` binding for `SoundContainer.BusRouting`: `SFX = 0, UI = 1, MUSIC = 2`.  
-	New `SoundContainer` INI and Lua (R/W) property `PanningStrengthMultiplier`, which will multiply the strength of 3D panning. This can be used to achieve for example a psuedo-Immobile effect where attenuation effects are still applied but the sound does not move from the center. Recommended to keep between 0.0 and 1.0.  
-	New `SoundContainer` INI and Lua (R/W) property `CustomPanValue`, which hard-overrides the panning of a sound. Clamped between -1 and 1 for left and right panning. 0 disables the override and will re-enable default behavior. This should probably only be used on Immobile sounds, but it can be used on any sound. No guarantees.
+- New delivery system, Buy Doors:  
+	Buy doors are customizable inert background objects that can take orders either via Lua messages or by using the pie menu near them.  
+	Using them via the pie menu will order your current buy menu order.
+	
+- Capturable Framework, which is a very customizable object that can be captured by teams and send out Lua messages as it does so. Should be extremely useful to make new forms of activities.
+
+- Item Dispenser object which dispenses items via the pie menu in a customizable way.
+
+- Timed capturing docks for rockets and dropships, which are nifty on their own but shine when used with the DockingHandler to have AI use them.
+
+- Three new Browncoat items have been added: a shield with reactive explosive armor, a revolver, and a close-range incendiary battle rifle.
+
+- A whole suite of Lua frameworks for activities:  
+	BuyDoorHandler, which has a few utility functions to use buy doors at the activity-level easier.  
+	DeliveryCreationHandler, which standardizes creating squads of actors and their equipment.  
+	DockingHandler, which handles craft docking using the new docks.  
+	HUDHandler, which provides functions for displaying listed objectives, panning the camera, and other camera-related utilities.  
+	SaveLoadHandler, which can serialize tables and also handle saving and loading tricky things like MOs.  
+	TacticsHandler, which is a framework to add tasks and squads and have those squads go around doing tasks without further input.
+
+- Two minor utility scripts:  
+	MOUtility, which currently has functions to smartly set MOs to be unhittable or to freeze actor HP.  
+	ParticleUtility, which currently has a directional smoke FX creation function.
 
 - Tracy profiler integration.  
 	You can now attach Tracy to builds of the game and see profiling information about various zones and how long they take.  
@@ -69,6 +218,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`tracy.ZoneBeginN(text)` to begin a custom named zone, and `tracy.ZoneName(text)` to dynamically set the current zone name on a per-call basis.  
 	`tracy.Message(text)` to send a tracy message.  
 	Lua scripts without any tracy documentation are still profiled by tracy, however only at a granularity of how long the entire script takes to execute.  
+
+- New FMOD and SoundContainer features:  
+	The game is now divided into SFX, UI, and Music busses which all route into the Master bus.  
+	The SFX bus has compression added for a better listening experience, and a safety volume limiter has been added to the Master bus.  
+	Aside from volume being attenuated, sounds will now also be lowpass filtered as distance increases.  
+	New `SoundContainer` INI and Lua (R/W) property `BusRouting`, which denotes which bus the SoundContainer routes to. Available busses: `SFX, UI, Music`. Defaults to `SFX`.  
+	`Enum` binding for `SoundContainer.BusRouting`: `SFX = 0, UI = 1, MUSIC = 2`.  
+	New `SoundContainer` INI and Lua (R/W) property `PanningStrengthMultiplier`, which will multiply the strength of 3D panning. This can be used to achieve for example a psuedo-Immobile effect where attenuation effects are still applied but the sound does not move from the center. Recommended to keep between 0.0 and 1.0.  
+	New `SoundContainer` INI and Lua (R/W) property `CustomPanValue`, which hard-overrides the panning of a sound. Clamped between -1 and 1 for left and right panning. 0 disables the override and will re-enable default behavior. This should probably only be used on Immobile sounds, but it can be used on any sound.
 
 - New `HeldDevice` Lua function `IsBeingHeld`, which returns whether or not the `HeldDevice` is currently being held.  
 
@@ -82,7 +240,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `HDFirearm` INI and Lua (R/W) property `ReloadEndOffset`, to define how many milliseconds prior to the reload being complete that the `ReloadEndSound` should play. Defaults to -1, which means the game will automatically calculate so that the middle of the sound is aligned with the reload completing.  
 
-- New `Actor` INI and Lua (R/W) property `PainThreshold`, which determines how much damage this actor must take in a frame to play their `PainSound`. This can be set to 0 to never manually play the sound. Defaults to 15.  
+- New `Actor` INI and Lua (R/W) property `PainThreshold`, which determines how much damage this actor must take in a frame to play their `PainSound`. This can be set to 0 to never play the sound. Defaults to 15.  
 
 - New `AHuman` INI and Lua (R/W) property `MaxWalkPathCrouchShift`, which determines how much the actor will automatically duck down to avoid low ceilings above them. This can be set to 0 to never duck. Defaults to 6.  
 
@@ -120,11 +278,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `GameActivity::LockControlledActor` Lua function to allow grab player input in the way menus (buy menu/full inventorymenu) do.
 
-- New `LuaMan` Lua I/O functions `DirectoryCreate`, `FileExists`, `DirectoryExists`, `FileRemove`, `DirectoryRemove`, `FileRename`, `DirectoryRename` and `IsValidModulePath`.
+- New `LuaMan` Lua I/O functions `DirectoryCreate`, `FileExists`, `DirectoryExists`, `FileRemove`, `DirectoryRemove`, `FileRename` and `DirectoryRename`.
 
 - New `FrameMan` Lua functions `SetHudDisabled(disabled, screenId)` and `IsHudDisabled(screenId)` that allows disabling a given screen's HUD, and checking whether it's currently disabled. The screenId parameters are optional and default to screen 0.
 
-- Exposed `FrameMan` property `ScreenCount` to Lua (R).
+- Exposed `FrameMan` properties `ScreenCount` and `ResolutionMultiplier` to Lua (R).
+
+- New `SceneMan` Lua functions:
+	`DislodgePixelCircle(Vector centre, float radius, bool deletePixels)`, which calls `DislodgePixel()` on all pixels in a given circle, returns them as an iterable list. The bool is an optional argument to delete all found pixels immediately; defaults to `false`.
+	`DislodgePixelRing(Vector centre, float innerRadius, float outerRadius, bool deletePixels)`, same as above but additionally ignores pixels within the inner radius.
+	`DislodgePixelBox(Vector upperLeftCorner, Vector lowerRightCorner, bool deletePixels)`, similar to above, but in a rectangular area defined by upper left- and lower right corners.
+	`DislodgePixelLine(Vector startPos, Vector ray, int skip, bool deletePixels)`, calls `DislodgePixel()` on all pixels in a line, like above. Similar in function to a ray cast, so pixels can be skipped.
+
+- New `SceneMan` Lua function `CastTerrainPenetrationRay(Vector start, Vector ray, Vector endPos, int strengthLimit, int skip)`, which adds up the material strength of the terrain pixels encountered along the way, and stops when the accumulated value meets or exceeds `strengthLimit`. `endPos` is filled out with the ending position of the ray, returns `true` or `false` depending on whether the ray was stopped early or not.
+
+- New `MOPixel` Lua functions `GetColorIndex()` and `SetColorIndex(int newColorIndex)`, which allow you to get and set the index of the pixel's color.
+
+- AI idle aim timer (the time the AI stops after aiming fully up or fully down in sentry mode) is now customizable using the custom number value `AIIdleAimTime` for ACrabs. Use it to make your turrets less spastic.
 
 </details>
 
@@ -140,6 +310,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`z` is the patch number, which is currently not enforced.  
 
   Mods published for any development builds must match that development version exactly.
+  
+- Flesh and metal penetration sounds have been overhauled.
+	Base.rte wounds have been tweaked a bit to aid sound organization. Most actors now re-define their wounds inline to change the sound used, rather than having copies pre-defined in Base.rte.
+	
+	As a result, the following wounds have been removed: Dent Metal Chest Plate, Dent Metal Helmet, Wound Clothed Flesh Head, Wound Clothed Flesh Limb, Wound Clothed Flesh Torso.
+	
+	The following sounds have been removed: Armored Flesh Limb Impact.
+	
+	The following sounds have been renamed:
+	Flesh Impact Exit Sweetener -> Flesh Exit Sweetener
+	Clothed Flesh Head Impact -> Flesh Head Impact
+	Clothed Flesh Torso Impact -> Flesh Torso Impact
+	Clothed Flesh Limb Impact -> Flesh Limb Impact
+	Armored Flesh Head Impact -> Flesh Head Impact Armored
+	Armored Flesh Torso Impact -> Flesh Torso Impact Armored
+	Metal Penetration Hit -> Metal Impact Generic
+	
+	There has also been mild repathing of these newer flesh sounds but the old Steam-build ones are still in the same place.
 
 - Pressing F2 to reload scripts now also reloads the scripts for all MOs currently in the scene.
 
@@ -160,13 +348,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`JetReplenishRate`  
 	`JetAngleRange`  
 	`JetTimeTotal`  
-	`JetTimeLeft`  
+	`JetTimeLeft`
 
 - Improved loading times on large maps.  
 
 - Script values, i.e `GetStringValue`, `RemoveStringValue`, `StringValueExists` and the associated functions for `GetNumberValue`/`GetObjectValue`, have been moved from MOSRotating to MovableObject, so now any object with script support can use these values.  
 
 - The `SceneObject` property `IsBuyable` has been renamed to `Buyable`.
+
+- `SceneMan` Lua function `DislodgePixel()` now optionally accepts a third boolean argument to delete the found pixel immediately. Format is `DislodgePixel(int posX, int posY, bool deletePixel)`. `DislodgePixel()` now also automatically accounts for scene wrapping.
+
+- `SceneMan` Lua function `DislodgePixel()` and all of its derivatives now return `MOPixels` instead of `MovableObjects`.
+
+- MuzzleSmoke.lua now uses the new ParticleUtility directional smoke function for a more interesting effect.
 
 </details>
 
@@ -188,17 +382,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a crash that could occur when scripted objects were deleted, particularly when switching scene.
 
+- Fixed underperforming fire weaponry. It wasn't sticking to Attachables and as such would only very rarely do damage-over-time.
+
+- Fixed dropships using absolute positions to calculate their delivery waypoint, resulting in them moving weirdly.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
 
-- Removed RealToSimCap and OneSimUpdatePerFrame. Instead we try to always target 60fps, even if it slows the simulation down a little.
+- Removed `RealToSimCap` and `OneSimUpdatePerFrame`. Instead we try to always target 60fps, even if it slows the simulation down a little.
 
 </details>
 
 ***
 
-## [0.1.0 pre-release 5.0][0.1.0-pre5.0] - 2023/06/17
+## [Release v5.0.0] - 2023/06/17
 
 <details><summary><b>Added</b></summary>
 
@@ -1112,7 +1310,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 4.0][0.1.0-pre4.0] - 2022/02/28
+## [Release v4.0.0] - 2022/02/28
 
 <details><summary><b>Added</b></summary>
 
@@ -1653,7 +1851,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 3.0][0.1.0-pre3.0] - 2020/12/25
+## [Release v3.0.0] - 2020/12/25
 
 <details><summary><b>Added</b></summary>
 
@@ -1989,7 +2187,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 2][0.1.0-pre2] - 2020/05/08
+## [Release v2.0.0] - 2020/05/08
 
 <details><summary><b>Added</b></summary>
 
@@ -2217,7 +2415,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 ***
 
-## [0.1.0 pre-release 1][0.1.0-pre1] - 2020/01/27
+## [Release v1.0.0] - 2020/01/27
 
 <details><summary><b>Added</b></summary>
 
@@ -2309,9 +2507,12 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 Note: For a log of changes made prior to the commencement of the open source community project, look [here.](https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/wiki/Previous-Closed-Source-Changelog)
 
 
-[unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development
-[0.1.0-pre1]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre1
-[0.1.0-pre2]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre2
-[0.1.0-pre3.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre3.0
-[0.1.0-pre4.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
-[0.1.0-pre5.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.0
+[Release v1.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre1
+[Release v2.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Data/releases/tag/v0.1.0-pre2
+[Release v3.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre3.0
+[Release v4.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre4.0
+[Release v5.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.2
+[Release v6.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.0.0
+[Release v6.1.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.1.0
+[Release v6.2.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.2.0
+[Unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development

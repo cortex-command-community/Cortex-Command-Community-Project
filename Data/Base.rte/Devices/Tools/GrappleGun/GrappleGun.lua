@@ -31,6 +31,7 @@ function Update(self)
 					self:Deactivate();
 				end
 			end
+
 			if self.Magazine then
 				-- Double tapping crouch retrieves the hook
 				if self.Magazine.Scale == 1 then
@@ -47,6 +48,7 @@ function Update(self)
 					else
 						self.canTap = true;
 					end
+
 					if self.tapTimerJump:IsPastSimMS(self.tapTime) then
 						self.tapCounter = 0;
 					else
@@ -56,6 +58,7 @@ function Update(self)
 						end
 					end
 				end
+
 				-- A guide arrow appears at higher speeds
 				if (self.Magazine.Scale == 0 and not controller:IsState(Controller.AIM_SHARP)) or parent.Vel:MagnitudeIsGreaterThan(6) then
 					self.guide = true;
@@ -63,6 +66,7 @@ function Update(self)
 					self.guide = false;
 				end
 			end
+
 			if self.guide then
 				local frame = 0;
 				if parent.Vel:MagnitudeIsGreaterThan(12) then
@@ -75,6 +79,7 @@ function Update(self)
 		else
 			self:Deactivate();
 		end
+		
 		if self.Magazine then
 			self.Magazine.RoundCount = 1;
 			self.Magazine.Scale = 1;

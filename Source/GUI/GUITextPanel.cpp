@@ -1,6 +1,8 @@
 #include "GUI.h"
 #include "GUITextPanel.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUITextPanel::GUITextPanel(GUIManager* Manager) :

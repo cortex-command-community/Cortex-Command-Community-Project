@@ -14,6 +14,7 @@ F R I S 0 U M A N
 G A R E T H   " G A C Y R "   Y R
 H A R D S P H E R E
 H E L I U M A N T
+J A N I S O Z A U R
 J U S T   A L E X   :/
 K E N   " C A V E "   V U   D O
 M A X   " M A X I M D U D E "   K
@@ -26,6 +27,7 @@ R I K U   " 4 Z K "   K
 S T E W I E
 T H O M A S   " C A U S E L E S S "   M A R C H
 T O P K E K
+W I L L I A M   " M A G E K I N G 1 7 "   H O W A R D
 Z A L O
 
 Art and Content Production

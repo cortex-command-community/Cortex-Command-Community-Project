@@ -2,6 +2,8 @@
 #include "GUIReader.h"
 #include "PresetMan.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUISkin::GUISkin(GUIScreen* Screen) {
@@ -13,10 +15,6 @@ GUISkin::GUISkin(GUIScreen* Screen) {
 	m_MousePointers[2] = nullptr;
 
 	Clear();
-}
-
-GUISkin::~GUISkin() {
-	Destroy();
 }
 
 void GUISkin::Clear() {

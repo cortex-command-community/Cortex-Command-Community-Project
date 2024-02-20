@@ -4,6 +4,8 @@
 #include "LuabindObjectWrapper.h"
 #include "LuaMan.h"
 
+#include "lj_obj.h"
+
 using namespace RTE;
 
 std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions = {};
@@ -295,15 +297,12 @@ void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::
 	// So, luabind::object is a weak reference, holding just a stack and a position in the stack
 	// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
 	// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
-	// Note that also, the callbackParam's interpreter is actually different from our Lua state.
-	// It looks like Luabind constructs temporary interpreters and really doesn't like if you destroy these luabind objects
-	// In any case, it's extremely unsafe to use! For example capturing the callback by value into the lambdas causes random crashes
-	// Even if we did literally nothing with it except capture it into a no-op lambda
-	LuaStateWrapper* luaState = g_LuaMan.GetThreadCurrentLuaState();
+	lua_State* luaState = mainthread(G(callbackParam.interpreter())); // Get the main thread for the state, in case we're a temp lua thread
+
 	static int currentCallbackId = 0;
 	int thisCallbackId = currentCallbackId++;
 	if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
-		luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
+		luabind::call_function<void>(luaState, "_AddAsyncPathCallback", thisCallbackId, callbackParam);
 	}
 
 	auto callLuaCallback = [luaState, thisCallbackId, movePathToGround](std::shared_ptr<volatile PathRequest> pathRequestVol) {
@@ -316,7 +315,7 @@ void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::
 				}
 			}
 
-			luabind::call_function<void>(luaState->GetLuaState(), "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
+			luabind::call_function<void>(luaState, "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
 		});
 	};
 

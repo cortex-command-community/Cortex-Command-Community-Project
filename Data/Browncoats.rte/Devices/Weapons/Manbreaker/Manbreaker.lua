@@ -4,18 +4,15 @@
 -- Last worked on 25/09/2023
 
 function OnAttach(self)
-
 	if self.bossMode then
 		--self.Heat = 0;
 		self.bossChamberAnim = true;
 		self.bossChamberTimer:Reset();
 		self.bossChamberSoundPlayed = false;
 	end
-
 end
 
 function OnFire(self)
-
 	CameraMan:AddScreenShake(self.screenShakeAmount, self.Pos);
 	
 	self.mechTailSound:Play(self.Pos);
@@ -46,9 +43,7 @@ function OnFire(self)
 				particle.Pos = self.MuzzlePos;
 				MovableMan:AddParticle(particle);
 			end
-
 		end		
-		
 	else
 		self.shotSound:Play(self.Pos);
 	end
@@ -82,7 +77,6 @@ function OnFire(self)
 	self.Heat = math.min(self.heatLimit, self.Heat + self.heatPerShot);
 	
 	if self.Heat == self.heatLimit then
-	
 		self.overheatFixSound:Play(self.Pos);
 		self.Overheated = true;
 		self.overheatCount = self.overheatCount + 1;
@@ -146,15 +140,11 @@ function OnFire(self)
 				particle.Pos = self.Pos;
 				MovableMan:AddParticle(particle);
 			end
-
 		end
-			
 	end
-	
 end
 
 function Create(self)
-
 	self.preSound = CreateSoundContainer("Pre Browncoat MG-85", "Browncoat.rte");
 	
 	self.firstShotSound = CreateSoundContainer("First Shot Browncoat MG-85", "Browncoat.rte");
@@ -199,7 +189,6 @@ function Create(self)
 	self.screenShakeAmount = 3;
 	
 	if self:NumberValueExists("Boss Mode") then
-	
 		self.bossChamberSound = CreateSoundContainer("Boss Chamber Browncoat MG-85", "Browncoat.rte");
 		
 		self.firstShotSound.Volume = 1.3;
@@ -220,11 +209,9 @@ function Create(self)
 		
 		self.bossChamberSoundPlayed = false;
 	end
-
 end
 
 function Update(self)
-
 	self.preSound.Pos = self.Pos;
 	self.overheatLoopSound.Pos = self.Pos;
 	self.overheatFixSound.Pos = self.Pos;
@@ -235,7 +222,7 @@ function Update(self)
 	if self.overheatLoopSound.Volume < self.overheatLoopSoundVolumeTarget then
 		self.overheatLoopSound.Volume = math.min(self.overheatLoopSoundVolumeTarget, self.overheatLoopSound.Volume + TimerMan.DeltaTimeSecs * 10);
 	elseif self.overheatLoopSound.Volume > self.overheatLoopSoundVolumeTarget then
-		self.overheatLoopSound.Volume = math.max(self.overheatLoopSoundVolumeTarget, self.overheatLoopSound.Volume - TimerMan.DeltaTimeSecs * 0.75);
+		self.overheatLoopSound.Volume = math.max(self.overheatLoopSoundVolumeTarget, self.overheatLoopSound.Volume - TimerMan.DeltaTimeSecs * 0.33);
 	end
 	
 	if self.bossMode and self.RoundInMagCount == 0 then
@@ -297,8 +284,7 @@ function Update(self)
 				self.delayedFireTimer:Reset()
 			end
 		else
-		
-			self.Heat = math.max(0, self.Heat - TimerMan.DeltaTimeSecs * 30);
+			self.Heat = math.max(0, self.Heat - TimerMan.DeltaTimeSecs * 60);
 			
 			if self.activated then
 				self.activated = false
@@ -307,15 +293,12 @@ function Update(self)
 	elseif fire == false then
 		self.firstShot = true;
 		self.delayedFirstShot = true;
-		
 	end
 	
 	if self.Overheated then
-	
 		self.Heat = math.max(0, self.Heat - TimerMan.DeltaTimeSecs * 30);
 		
 		if self.overheatFixTimer:IsPastSimMS(self.overheatFixDelay) then
-		
 			self.Heat = 0;
 		
 			self.rotationSpeed = 0.01;
@@ -332,19 +315,14 @@ function Update(self)
 			self.SupportOffset = self.originalSupportOffset;
 			
 			self.InheritedRotAngleTarget = 0;
-			
 		elseif self.overheatFixTimer:IsPastSimMS(self.overheatFixDelay / 1.5) then
-			
 			self.rotationSpeed = 0.03;
 			
 			self.SupportOffset = Vector(-1, -2);
 			
 			self.InheritedRotAngleTarget = 0;
-			
 		elseif self.overheatFixTimer:IsPastSimMS(self.overheatFixDelay / 2) then
-		
 			if self.overheatStuckShell == true then
-		
 				self.SupportOffset = Vector(-5, -2);
 				
 				local shell = CreateAEmitter("Smoking Large Casing", "Base.rte");
@@ -358,23 +336,17 @@ function Update(self)
 				self.overheatStuckShell = false;
 				
 				self.InheritedRotAngleTarget = -0.05;
-				
 			end
-				
 		elseif self.overheatFixTimer:IsPastSimMS(self.overheatFixDelay / 4) then
-		
 			self.rotationSpeed = 0.05;
 		
 			self.SupportOffset = Vector(0, -2)
 			
 			self.InheritedRotAngleTarget = -0.15;
-			
 		end
-		
 	end			
 	
 	if self.bossChamberAnim then
-	
 		if self.bossChamberTimer:IsPastSimMS(self.bossChamberDelay) then
 		
 			self.bossChamberAnim = false;
@@ -386,17 +358,13 @@ function Update(self)
 			self.SupportOffset = self.originalSupportOffset;
 			
 			self.InheritedRotAngleTarget = 0;
-			
 		elseif self.bossChamberTimer:IsPastSimMS(self.bossChamberDelay / 1.5) then
-			
 			self.rotationSpeed = 0.02;
 			
 			self.SupportOffset = Vector(-1, -2);
 			
 			self.InheritedRotAngleTarget = 0.25;
-			
 		elseif self.bossChamberTimer:IsPastSimMS(self.bossChamberDelay / 2) then
-		
 			self.SupportOffset = Vector(-5, -2);
 			
 			self.InheritedRotAngleTarget = 3;
@@ -404,8 +372,7 @@ function Update(self)
 			if self.bossChamberSoundPlayed == false then
 				self.bossChamberSoundPlayed = true;
 				self.bossChamberSound:Play(self.Pos);
-			end
-				
+			end	
 		elseif self.bossChamberTimer:IsPastSimMS(self.bossChamberDelay / 4) then
 		
 			self.rotationSpeed = 0.01;
@@ -413,13 +380,10 @@ function Update(self)
 			self.SupportOffset = Vector(0, -2)
 			
 			self.InheritedRotAngleTarget = 3;
-			
 		end
-		
 	end	
 	
 	if self.heatFXTimer:IsPastSimMS(500) then
-	
 		self.heatFXTimer:Reset();
 		
 		for i = 1, self.Heat / 20 do
@@ -437,7 +401,6 @@ function Update(self)
 			particle.Pos = self.Pos;
 			MovableMan:AddParticle(particle);
 		end	
-		
 	end
 	
 	if self.InheritedRotAngleOffset ~= self.InheritedRotAngleTarget then
@@ -449,7 +412,6 @@ function Update(self)
 end
 
 function OnDetach(self)
-
 	self.overheatLoopSound.Volume = 0;
 	self.Overheated = false;
 	self.bossChamberAnim = false;
@@ -457,12 +419,9 @@ function OnDetach(self)
 	self.overheatStuckShell = false;
 	self.InheritedRotAngleTarget = 0;
 	self.rotationSpeed = 0.01;
-	
 end
 
 function Destroy(self)
-
 	self.overheatLoopSound:Stop(-1);
 	self.overheatFixSound:Stop(-1);
-	
 end

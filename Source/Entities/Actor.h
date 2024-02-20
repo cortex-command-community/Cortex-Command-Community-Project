@@ -613,15 +613,6 @@ namespace RTE {
 		/// @param movableObjectToIgnore A pointer to an MO which the Gibs and Attachables should not be colliding with.
 		void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr) override;
 
-		/// Calculates the collision response when another MO's Atom collides with
-		/// this MO's physical representation. The effects will be applied
-		/// directly to this MO, and also represented in the passed in HitData.
-		/// @param hitData Reference to the HitData struct which describes the collision. This
-		/// will be modified to represent the results of the collision.
-		/// @return Whether the collision has been deemed valid. If false, then disregard
-		/// any impulses in the Hitdata.
-		bool CollideAtPoint(HitData& hitData) override;
-
 		/// Determines whether a particle which has hit this MO will penetrate,
 		/// and if so, whether it gets lodged or exits on the other side of this
 		/// MO. Appropriate effects will be determined and applied ONLY IF there

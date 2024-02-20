@@ -18,6 +18,7 @@
 #include "PauseMenuGUI.h"
 #include "MetagameGUI.h"
 #include "LoadingScreen.h"
+#include "System.h"
 
 using namespace RTE;
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "System.h"
-
 #include "allegro.h"
 #include "loadpng.h"
 
@@ -16,6 +14,9 @@
 #else
 #define AbortAction std::abort()
 #endif
+
+#include <source_location>
+#include <string>
 
 namespace RTE {
 

@@ -1,6 +1,8 @@
 #include "GUI.h"
 #include "GUIScrollPanel.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUIScrollPanel::GUIScrollPanel(GUIManager* Manager) :

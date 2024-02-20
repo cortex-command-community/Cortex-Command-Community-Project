@@ -8,6 +8,6 @@ function Update(self)
 		--Bounce on the very first hit, and explode on the next
 		self.GibImpulseLimit = 1;
 		self.HitsMOs = self.HitsMOs or math.random() < 0.5;
-		self:DisableScript("Coalition.rte/Devices/Explosives/ClusterGrenade/ClusterPart.lua");
+		self:DisableScript();
 	end
 end

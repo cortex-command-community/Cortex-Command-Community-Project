@@ -211,7 +211,7 @@ function WaveDefense:UpdateActivity()
 			local time = math.floor(self.PrepareForNextWaveTimer:LeftTillRealTimeLimitMS() / 1000);
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
-					FrameMan:SetScreenText("The next wave arrive in "..time.." seconds. Press [Space] to enter edit mode.", player, 0, 100, false);
+					FrameMan:SetScreenText("The next wave arrive in "..time.." seconds. Press [Space] to enter edit mode.", self:ScreenOfPlayer(player), 0, 100, false);
 				end
 			end
 
@@ -229,10 +229,10 @@ function WaveDefense:UpdateActivity()
 				-- Remove and refund the player's brains (otherwise edit mode does not work)
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						local Brain = self:GetPlayerBrain(player);
-						if MovableMan:IsActor(Brain) then
-							self:ChangeTeamFunds(Brain:GetTotalValue(0, 1), self.playerTeam);
-							MovableMan:RemoveActor(Brain);
+						local brain = self:GetPlayerBrain(player);
+						if MovableMan:IsActor(brain) then
+							self:ChangeTeamFunds(brain:GetTotalValue(0, 1), self:GetTeamOfPlayer(player));
+							MovableMan:RemoveActor(brain);
 						end
 					end
 				end
@@ -292,8 +292,8 @@ function WaveDefense:UpdateActivity()
 			end
 		end
 
-		-- Show the remaining funds and current wave on player 1's screen only
-		FrameMan:ClearScreenText(Activity.PLAYER_1);
+		-- Show the remaining funds and current wave on first screen only
+		FrameMan:ClearScreenText(0);
 		local str = "Wave "..self.wave.."  |  ";
 		local remainingFunds = math.floor(self:GetTeamFunds(self.CPUTeam));
 		if remainingFunds <= 0 then
@@ -301,7 +301,7 @@ function WaveDefense:UpdateActivity()
 		else
 			str = str .. "Remaining Enemy Budget: " .. remainingFunds .. " oz";
 		end
-		FrameMan:SetScreenText(str, Activity.PLAYER_1, 0, 10, false);
+		FrameMan:SetScreenText(str, 0, 0, 10, false);
 
 		-- Clear all objective markers, they get re-added each frame
 		self:ClearObjectivePoints()
@@ -312,7 +312,7 @@ function WaveDefense:UpdateActivity()
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				if not self.StartTimer:IsPastRealMS(3000) then
-					FrameMan:SetScreenText("Survive wave "..self.wave, player, 333, 5000, true);
+					FrameMan:SetScreenText("Survive wave "..self.wave, self:ScreenOfPlayer(player), 333, 5000, true);
 				end
 
 				-- The current player's team
@@ -332,9 +332,9 @@ function WaveDefense:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
+					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 					local str = "Your brain has been destroyed on wave "..self.wave.." at "..self.Difficulty.."% difficulty";
-					FrameMan:SetScreenText(str, player, 333, -1, false);
+					FrameMan:SetScreenText(str, self:ScreenOfPlayer(player), 333, -1, false);
 				else
 					playertally = playertally + 1;
 					if not setTeam[team] then
@@ -371,7 +371,7 @@ function WaveDefense:UpdateActivity()
 			else
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						FrameMan:SetScreenText("Wave "..self.wave.." defeated!", player, 250, 500, true);
+						FrameMan:SetScreenText("Wave "..self.wave.." defeated!", self:ScreenOfPlayer(player), 250, 500, true);
 					end
 				end
 			end

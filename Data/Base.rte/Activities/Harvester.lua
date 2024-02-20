@@ -157,9 +157,9 @@ function Harvester:UpdateActivity()
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
 				if self.startMessageTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(self.goldNeeded - (math.ceil(self:GetTeamFunds(Activity.TEAM_1)) - self.humanTeamFundsAfterInitialEditingPhase) .. " oz of gold left", player, 0, 1000, false);
+					FrameMan:SetScreenText(self.goldNeeded - (math.ceil(self:GetTeamFunds(Activity.TEAM_1)) - self.humanTeamFundsAfterInitialEditingPhase) .. " oz of gold left", self:ScreenOfPlayer(player), 0, 1000, false);
 				else
-					FrameMan:SetScreenText("Dig up " .. self.goldDisplay .. " oz of gold!", player, 333, 5000, true);
+					FrameMan:SetScreenText("Dig up " .. self.goldDisplay .. " oz of gold!", self:ScreenOfPlayer(player), 333, 5000, true);
 				end
 
 				-- The current player's team
@@ -179,8 +179,8 @@ function Harvester:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("Your brain has been destroyed!", player, 333, -1, false);
+					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+					FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 333, -1, false);
 					-- Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
 						self.WinnerTeam = self:OtherTeam(team);
@@ -191,8 +191,8 @@ function Harvester:UpdateActivity()
 				--Check if the player has won.
 				if self:GetTeamFunds(Activity.TEAM_1) - self.humanTeamFundsAfterInitialEditingPhase > self.goldNeeded then
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("You dug up all the gold!", player, 333, -1, false);
+					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+					FrameMan:SetScreenText("You dug up all the gold!", self:ScreenOfPlayer(player), 333, -1, false);
 
 					self.WinnerTeam = Activity.TEAM_1;
 
@@ -209,7 +209,7 @@ function Harvester:UpdateActivity()
 		end
 
 		if self.addFogOfWar then
-			SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(Activity.PLAYER_1));
+			SceneMan:MakeAllUnseen(Vector(20, 20), Activity.TEAM_1);
 			self.addFogOfWar = false;
 		end
 
@@ -294,11 +294,11 @@ function Harvester:UpdateActivity()
 
 			if ship then
 				-- Set the spawn point of the ship from orbit
-				if self.playertally == 1 then
-					for i = 1, #self.playerlist do
-						if self.playerlist[i] == true then
+				if self.HumanCount == 1 then
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						if self:PlayerActive(player) and self:PlayerHuman(player) then
 							local sceneChunk = SceneMan.SceneWidth / 3;
-							local checkPos = self:GetPlayerBrain(i - 1).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
+							local checkPos = self:GetPlayerBrain(player).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
 							if checkPos > SceneMan.SceneWidth then
 								checkPos = checkPos - SceneMan.SceneWidth;
 							elseif checkPos < 0 then

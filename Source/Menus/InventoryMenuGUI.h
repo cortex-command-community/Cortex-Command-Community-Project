@@ -8,6 +8,12 @@
 #include "AllegroScreen.h"
 #include "GUIInputWrapper.h"
 
+#include <array>
+#include <deque>
+#include <memory>
+#include <vector>
+#include <utility>
+
 namespace RTE {
 
 	class Controller;

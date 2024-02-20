@@ -24,6 +24,7 @@ void MOPixel::Clear() {
 	m_MaxLethalRange = 1;
 	m_LethalSharpness = 1;
 	m_Staininess = 0;
+	m_PostEffectEnabled = true; // Default to true for backwards compatibility reasons
 }
 
 int MOPixel::Create() {
@@ -165,7 +166,7 @@ void MOPixel::Travel() {
 	// Do static particle bounce calculations.
 	int hitCount = 0;
 	if (!IsTooFast()) {
-		hitCount = m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true, g_SceneMan.SceneIsLocked());
+		hitCount = m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true);
 	}
 
 	m_Atom->ClearMOIDIgnoreList();
@@ -184,6 +185,7 @@ bool MOPixel::CollideAtPoint(HitData& hd) {
 	} else {
 		m_AlreadyHitBy.insert(hd.Body[HITOR]->GetID());
 	}
+
 	return true;
 }
 
@@ -217,10 +219,6 @@ void MOPixel::Update() {
 			}
 		}
 	}
-
-	if (m_pScreenEffect) {
-		SetPostScreenEffectToDraw();
-	}
 }
 
 void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
@@ -235,36 +233,15 @@ void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode,
 		case g_DrawMaterial:
 			drawColor = m_Atom->GetMaterial()->GetSettleMaterial();
 			break;
-		case g_DrawMOID:
-			drawColor = m_MOID;
-			break;
-		case g_DrawNoMOID:
-			drawColor = g_NoMOID;
-			break;
 		default:
 			drawColor = m_Color.GetIndex();
 			break;
 	}
 
-	bool shouldDraw = true;
-
-#ifndef DRAW_MOID_LAYER
-	shouldDraw = mode != DrawMode::g_DrawMOID;
-#endif
-
 	Vector pixelPos = m_Pos - targetPos;
-
-	if (shouldDraw) {
+	if (mode != DrawMode::g_DrawMOID) {
 		putpixel(targetBitmap, pixelPos.GetFloorIntX(), pixelPos.GetFloorIntY(), drawColor);
 	}
 
-	g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, pixelPos, 1.0F);
-}
-
-void MOPixel::SetPostScreenEffectToDraw() const {
-	if (m_AgeTimer.GetElapsedSimTimeMS() >= m_EffectStartTime && (m_EffectStopTime == 0 || !m_AgeTimer.IsPastSimMS(m_EffectStopTime))) {
-		if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY())) {
-			g_PostProcessMan.RegisterPostEffect(m_Pos, m_pScreenEffect, m_ScreenEffectHash, LERP(m_EffectStartTime, m_EffectStopTime, m_EffectStartStrength, m_EffectStopStrength, m_AgeTimer.GetElapsedSimTimeMS()), m_EffectRotAngle);
-		}
-	}
+	g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, pixelPos, 1.0F);
 }

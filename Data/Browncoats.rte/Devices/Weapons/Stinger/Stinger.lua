@@ -4,8 +4,9 @@ function OnFire(self)
 
 end
 
-function Create(self
-)
+function Create(self)
+
 	self.mechSound = CreateSoundContainer("Mech Browncoat HG-10", "Browncoats.rte");
+	
 	
 end

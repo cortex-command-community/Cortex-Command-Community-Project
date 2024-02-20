@@ -27,15 +27,19 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
 
       - name: Install dependencies
-        run: sudo apt-get install -y clang-format
+        run: |
+          mkdir bin
+          wget https://github.com/muttleyxd/clang-tools-static-binaries/releases/download/master-8f72ab3c/clang-format-17_linux-amd64 -O bin/clang-format-17
+          chmod +x bin/clang-format-17
 
       - name: Run clang-format
         run: |
             .github/scripts/run-clang-format.py \
+                --clang-format-executable bin/clang-format-17 \
                 -i \
                 -r Source Data/Base.rte/Shaders \
                 --exclude Source/System/Base64 \
@@ -47,7 +51,8 @@ jobs:
       - name: Add missing newlines
         run: |
             .github/scripts/run-clang-format.py \
-                -i --clang-format-executable .github/scripts/add-eol.sh \
+                --clang-format-executable .github/scripts/add-eol.sh \
+                -i \
                 -r Source Data/Base.rte/Shaders \
                 --exclude Source/System/Base64 \
                 --exclude Source/System/BitMask \

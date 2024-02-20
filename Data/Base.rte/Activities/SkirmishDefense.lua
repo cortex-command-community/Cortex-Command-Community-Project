@@ -308,7 +308,7 @@ function SkirmishDefense:UpdateActivity()
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				if not self.startTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText("Survive the assault!", player, 333, 5000, true);
+					FrameMan:SetScreenText("Survive the assault!", self:ScreenOfPlayer(player), 333, 5000, true);
 				end
 				-- The current player's team
 				local team = self:GetTeamOfPlayer(player);
@@ -328,8 +328,8 @@ function SkirmishDefense:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("Your brain has been destroyed!", player, 333, -1, false);
+					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+					FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 333, -1, false);
 				else
 					playertally = playertally + 1;
 					if not setTeam[team] then

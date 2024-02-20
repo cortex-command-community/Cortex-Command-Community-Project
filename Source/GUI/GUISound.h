@@ -22,9 +22,6 @@ namespace RTE {
 #pragma region Destruction
 		/// Destroys and resets (through Clear()) the GUISound object.
 		void Destroy() { Clear(); }
-
-		/// Destructor method used to clean up a GUISound object before deletion from system memory.
-		~GUISound();
 #pragma endregion
 
 #pragma region Getters

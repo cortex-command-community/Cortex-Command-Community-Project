@@ -86,9 +86,17 @@ namespace RTE {
 		/// @return A Color object describing the color.
 		Color GetColor() const { return m_Color; }
 
+		/// Gets the index of the color of this MOPixel.
+		/// @return An int that is the index of the Color object.
+		int GetColorIndex() const { return m_Color.GetIndex(); }
+
 		/// Sets the color value of this MOPixel.
 		/// @param newColor A Color object specifying the new color index value.
 		void SetColor(Color newColor) { m_Color = newColor; }
+
+		/// Sets the color value of this MOPixel via index.
+		/// @param newColor An int specifying the new color index value.
+		void SetColorIndex(int newColorIndex) { m_Color.SetRGBWithIndex(newColorIndex); }
 
 		/// Travel distance until the bullet start to lose lethality.
 		/// @return The factor that modifies the base value.
@@ -168,9 +176,6 @@ namespace RTE {
 		float m_Staininess; //!< How likely a pixel is to stain a surface when it collides with it. Defaults to 0 (never stain).
 
 	private:
-		/// Sets the screen effect to draw at the final post-processing stage.
-		void SetPostScreenEffectToDraw() const;
-
 		/// Clears all the member variables of this MOPixel, effectively resetting the members of this abstraction level only.
 		void Clear();
 	};

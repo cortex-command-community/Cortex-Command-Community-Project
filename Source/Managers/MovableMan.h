@@ -9,6 +9,11 @@
 #include "Singleton.h"
 #include "Activity.h"
 
+#include <mutex>
+#include <map>
+#include <future>
+#include <unordered_set>
+
 #define g_MovableMan MovableMan::Instance()
 
 namespace RTE {
@@ -432,8 +437,7 @@ namespace RTE {
 		/// @return Whether enabled or not.
 		bool IsParticleSettlingEnabled() { return m_SettlingEnabled; }
 
-		/// Sets whether particles will get copied into the terrain upon them
-		/// settling down.
+		/// Sets whether particles will get copied into the terrain upon them settling down.
 		/// @param enable Whether to enable or not. (default: true)
 		void EnableParticleSettling(bool enable = true) { m_SettlingEnabled = enable; }
 
@@ -441,34 +445,26 @@ namespace RTE {
 		/// @return Whether enabled or not.
 		bool IsMOSubtractionEnabled() { return m_MOSubtractionEnabled; }
 
-		/// Forces all objects potnetially overlapping a specific MO to re-draw
-		/// this MOID representations onto the MOID bitmap.
-		/// @param pOverlapsThis A pointer to the MO to check for overlaps against. Ownerhip is NOT
-		/// transferred.
-		void RedrawOverlappingMOIDs(MovableObject* pOverlapsThis);
-
 		/// Updates the state of this MovableMan. Supposed to be done every frame.
 		void Update();
 
-		/// Draws this MovableMan's all MO's current material representations to a
-		/// BITMAP of choice.
+		/// Draws this MovableMan's all MO's current material representations to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene.
 		void DrawMatter(BITMAP* pTargetBitmap, Vector& targetPos);
 
-		/// Updates the MOIDs of all current MOs and draws their ID's to a BITMAP
-		/// of choice. If there are more than 255 MO's to draw, some will not be.
-		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
-		void UpdateDrawMOIDs(BITMAP* pTargetBitmap);
+		/// Updates the MOIDs of all current MOs.
+		void UpdateDrawMOIDs();
 
-		/// Draws this MovableMan's current graphical representation to a
-		/// BITMAP of choice.
+		// Forces MOID drawing to complete (should be done before any physics sim or collision detection etc)
+		void CompleteQueuedMOIDDrawings();
+
+		/// Draws this MovableMan's current graphical representation to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector());
 
-		/// Draws the HUDs of all MovableObject:s of this MovableMan to a BITMAP
-		/// of choice.
+		/// Draws the HUDs of all MovableObject:s of this MovableMan to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		/// @param which Which player's screen is being drawn. Tis affects which actor's HUDs (default: 0)

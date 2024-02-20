@@ -8,6 +8,8 @@
 #include "MOSprite.h"
 #include "Gib.h"
 
+#include <unordered_set>
+
 namespace RTE {
 
 	class AtomGroup;
@@ -317,26 +319,17 @@ namespace RTE {
 		/// @return Whether deep penetration was detected and erasure was done.
 		bool DeepCheck(bool makeMOPs = true, int skipMOP = 2, int maxMOP = 100);
 
-		/// Does stuff that needs to be done before Travel(). Always call before
-		/// calling Travel.
-		void PreTravel() override;
-
-		/// Travels this MOSRotatin, using its physical representation.
+		/// Travels this MOSRotating, using its physical representation.
 		void Travel() override;
 
-		/// Does stuff that needs to be done after Update(). Always call after
-		/// calling Update.
+		/// Does stuff that needs to be done after Update(). Always call after calling Update.
 		void PostTravel() override;
 
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
-		void PostUpdate() override;
 
-		/// Draws the MOID representation of this to the SceneMan's MOID layer if
-		/// this is found to potentially overlap another MovableObject.
-		/// @param pOverlapMO The MovableObject to check this for overlap against.
-		/// @return Whether it was drawn or not.
-		bool DrawMOIDIfOverlapping(MovableObject* pOverlapMO) override;
+		// Stuff that needs to be updated post-Update.
+		void PostUpdate() override;
 
 		/// Draws this MOSRotating's current graphical representation to a
 		/// BITMAP of choice.

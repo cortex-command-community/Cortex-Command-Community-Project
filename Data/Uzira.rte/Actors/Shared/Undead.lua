@@ -5,6 +5,7 @@ function Create(self)
 		self.Status = Actor.UNSTABLE;
 	end
 end
+
 function Update(self)
 	if self.rising then
 		self.Pos = self.Pos + Vector(RangeRand(-1, 1), -math.random());
@@ -17,6 +18,6 @@ function Update(self)
 			self:UpdateMovePath();
 		end
 	else
-		self:DisableScript("Uzira.rte/Actors/Shared/Undead.lua");
+		self:DisableScript();
 	end
 end

@@ -275,6 +275,7 @@ void HeldDevice::Activate() {
 	if (!m_Activated) {
 		m_ActivationTimer.Reset();
 	}
+
 	m_Activated = true;
 }
 
@@ -310,13 +311,6 @@ bool HeldDevice::TransferJointImpulses(Vector& jointImpulses, float jointStiffne
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Travel
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Travels this, using its physical representation.
-// Arguments:       None.
-// Return value:    None.
-
 void HeldDevice::Travel()
 {
     Attachable::Travel();

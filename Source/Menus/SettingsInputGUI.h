@@ -4,6 +4,9 @@
 
 struct BITMAP;
 
+#include <array>
+#include <memory>
+
 namespace RTE {
 
 	class Controller;

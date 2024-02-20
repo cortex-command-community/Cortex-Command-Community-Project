@@ -5,9 +5,15 @@
 #include "RTEError.h"
 #include "Constants.h"
 
+#include <random>
+#include <memory>
+#include <string_view>
+#include <type_traits>
+
 namespace RTE {
 
 	class Vector;
+	class Matrix;
 
 #pragma region Random Numbers
 	class RandomGenerator {
@@ -110,14 +116,34 @@ namespace RTE {
 
 #pragma region Interpolation
 	/// Simple Linear Interpolation, with an added bonus: scaleStart and scaleEnd let you define your scale, where 0 and 1 would be standard scale.
-	/// This scale is used to normalize your progressScalar value and LERP accordingly.
-	/// @param scaleStart The start of the scale to LERP along.
-	/// @param scaleEnd The end of the scale to LERP along.
-	/// @param startValue The start value of your LERP.
-	/// @param endValue The end value of your LERP.
-	/// @param progressScalar How far your LERP has progressed. Automatically normalized through use of scaleStart and scaleEnd.
+	/// This scale is used to normalize your progressScalar value and Lerp accordingly.
+	/// @param scaleStart The start of the scale to Lerp along.
+	/// @param scaleEnd The end of the scale to Lerp along.
+	/// @param startValue The start value of your Lerp.
+	/// @param endValue The end value of your Lerp.
+	/// @param progressScalar How far your Lerp has progressed. Automatically normalized through use of scaleStart and scaleEnd.
 	/// @return Interpolated value.
-	float LERP(float scaleStart, float scaleEnd, float startValue, float endValue, float progressScalar);
+	float Lerp(float scaleStart, float scaleEnd, float startValue, float endValue, float progressScalar);
+
+	/// Simple Linear Interpolation, with an added bonus: scaleStart and scaleEnd let you define your scale, where 0 and 1 would be standard scale.
+	/// This scale is used to normalize your progressScalar value and Lerp accordingly.
+	/// @param scaleStart The start of the scale to Lerp along.
+	/// @param scaleEnd The end of the scale to Lerp along.
+	/// @param startValue The start position of your Lerp.
+	/// @param endValue The end position of your Lerp.
+	/// @param progressScalar How far your Lerp has progressed. Automatically normalized through use of scaleStart and scaleEnd.
+	/// @return Interpolated value.
+	Vector Lerp(float scaleStart, float scaleEnd, Vector startPos, Vector endPos, float progressScalar);
+
+	/// Simple Linear Interpolation, with an added bonus: scaleStart and scaleEnd let you define your scale, where 0 and 1 would be standard scale.
+	/// This scale is used to normalize your progressScalar value and Lerp accordingly.
+	/// @param scaleStart The start of the scale to Lerp along.
+	/// @param scaleEnd The end of the scale to Lerp along.
+	/// @param startRot The start rotation of your Lerp.
+	/// @param endRot The end rotation of your Lerp.
+	/// @param progressScalar How far your Lerp has progressed. Automatically normalized through use of scaleStart and scaleEnd.
+	/// @return Interpolated value.
+	Matrix Lerp(float scaleStart, float scaleEnd, Matrix startRot, Matrix endRot, float progressScalar);
 
 	/// Nonlinear ease-in interpolation. Starts slow.
 	/// @param start Start value.
