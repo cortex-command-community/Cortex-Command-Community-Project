@@ -363,33 +363,33 @@ namespace RTE {
 		/// Return value:	None.
 		void SetRequireClearPathToOrbit(bool newvalue);
 
-		int GetDefaultFogOfWar() const { return m_DefaultFogOfWar; }
+		int GetDefaultFogOfWar() const;
 
-		int GetDefaultRequireClearPathToOrbit() const { return m_DefaultRequireClearPathToOrbit; }
+		int GetDefaultRequireClearPathToOrbit() const;
 
-		int GetDefaultDeployUnits() const { return m_DefaultDeployUnits; }
+		int GetDefaultDeployUnits() const;
 
-		int GetDefaultGoldCakeDifficulty() const { return m_DefaultGoldCakeDifficulty; }
+		int GetDefaultGoldCakeDifficulty() const;
 
-		int GetDefaultGoldEasyDifficulty() const { return m_DefaultGoldEasyDifficulty; }
+		int GetDefaultGoldEasyDifficulty() const;
 
-		int GetDefaultGoldMediumDifficulty() const { return m_DefaultGoldMediumDifficulty; }
+		int GetDefaultGoldMediumDifficulty() const;
 
-		int GetDefaultGoldHardDifficulty() const { return m_DefaultGoldHardDifficulty; }
+		int GetDefaultGoldHardDifficulty() const;
 
-		int GetDefaultGoldNutsDifficulty() const { return m_DefaultGoldNutsDifficulty; }
+		int GetDefaultGoldNutsDifficulty() const;
 
 		/// Gets the default gold for max difficulty.
 		/// @return The default gold for max difficulty.
 		int GetDefaultGoldMaxDifficulty() const;
 
-		bool GetFogOfWarSwitchEnabled() const { return m_FogOfWarSwitchEnabled; }
+		bool GetFogOfWarSwitchEnabled() const;
 
-		bool GetDeployUnitsSwitchEnabled() const { return m_DeployUnitsSwitchEnabled; }
+		bool GetDeployUnitsSwitchEnabled() const;
 
-		bool GetGoldSwitchEnabled() const { return m_GoldSwitchEnabled; }
+		bool GetGoldSwitchEnabled() const;
 
-		bool GetRequireClearPathToOrbitSwitchEnabled() const { return m_RequireClearPathToOrbitSwitchEnabled; }
+		bool GetRequireClearPathToOrbitSwitchEnabled() const;
 
 		/// Returns CrabToHumanSpawnRatio for specified module
 		/// @return Crab-To-Human spawn ratio value set for specified module, 0.25 is default.
