@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+<details><summary><b>Fixed</b></summary>
+
+- Fixed Constructor auto-cancelling build mode if you actively selected the "Order Construction" pie menu option.
+
+</details>
+
 ## [Release v6.2.0] - 2024/02/19
 
 <details><summary><b>Added</b></summary>
