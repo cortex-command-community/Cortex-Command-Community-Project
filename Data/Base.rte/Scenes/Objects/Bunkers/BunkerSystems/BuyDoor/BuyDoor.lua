@@ -238,17 +238,20 @@ function ThreadedUpdate(self)
 	end
 	
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
+		local enemyPresent = false;
 		for actor in MovableMan:GetMOsInRadius(self.Pos, self.detectRange, -1, false) do
 			if (not self.closeActorTable[actor.UniqueID]) and IsAHuman(actor) or IsACrab(actor) then
 				actor = ToActor(actor);
 				-- nearby enemies disable use
 				if actor.Team ~= self.Team then
-					self.Unusable = true;
+					enemyPresent = true;
+				else
+					self.closeActorTable[actor.UniqueID] = actor.UniqueID;
 				end
 
-				self.closeActorTable[actor.UniqueID] = actor.UniqueID;
 			end
 		end
+		self.enemyPresent = enemyPresent;
 		
 		self:RequestSyncedUpdate();
 	end
@@ -258,6 +261,8 @@ function ThreadedUpdate(self)
 	end
 	
 	--PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
+	
+	self.Unusable = self.enemyPresent and true or self.Unusable;
 	
 	if self.Unusable then
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -20), "UNUSABLE", true, 1);
