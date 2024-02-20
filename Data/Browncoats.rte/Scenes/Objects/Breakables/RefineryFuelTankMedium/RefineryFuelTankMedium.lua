@@ -7,11 +7,21 @@ function Update(self)
 		self.PinStrength = 0;
 		
 		self.AngularVel = math.random(-1, 1);
-		self.Vel = self.Vel + Vector(math.random(-2, 2), 0);
+		self.Vel = self.Vel + Vector(math.random(-1, 1), 0);
 		
 	end
 end
 
 function OnCollideWithTerrain(self)
 	self:GibThis();
+end
+
+function OnCollideWithMO(self, MO, rootMO)
+
+	if self.PinStrength == 0 and MO.UniqueID == rootMO.UniqueID then
+		print(MO)
+		print(rootMO)
+		ToMOSRotating(MO):GibThis();
+	end
+	
 end
