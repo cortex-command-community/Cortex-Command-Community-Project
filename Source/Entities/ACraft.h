@@ -50,7 +50,7 @@ namespace RTE {
 
 			/// Constructor method used to instantiate a Exit object in system
 			/// memory. Create() should be called before using the object.
-			Exit() { Clear(); }
+			Exit();
 
 			/// Makes the Exit object ready for use.
 			/// @return An error return value signaling sucess or any particular failure.
@@ -65,25 +65,25 @@ namespace RTE {
 
 			/// Resets the entire Serializable, including its inherited members, to their
 			/// default settings or values.
-			void Reset() override { Clear(); }
+			void Reset() override;
 
 			/// Gets the position offset of this exit from the position of its ACraft.
 			/// @return The coordinates relative to the m_Pos of this' ACraft.
-			Vector GetOffset() const { return m_Offset; }
+			Vector GetOffset() const;
 
 			/// Gets the velocity of anything that exits through this.
 			/// @return The velocity vector for anything exiting through this.
-			Vector GetVelocity() const { return m_Velocity * (1.0F + m_VelSpread * RandomNormalNum()); }
+			Vector GetVelocity() const;
 
 			/// Gets the width from the center tanget created by the velocity vector
 			/// out from the offet point. This times two gives the total width of the
 			/// opening.
 			/// @return Half the total width of the opening.
-			float GetRadius() const { return m_Radius; }
+			float GetRadius() const;
 
 			/// Gets the distance this exit can suck in objects from.
 			/// @return The sucking range of this.
-			float GetRange() const { return m_Range; }
+			float GetRange() const;
 
 			/// Calculates whether this exit is currently clear enough of terrain to
 			/// safely put things through without them ending up in the terrain.
@@ -96,7 +96,7 @@ namespace RTE {
 			/// Tells if this is clear of the terrain to put things through. Faster than
 			/// CheckIfClear().
 			/// @return If this has been determined clear to put anything through.
-			bool IsClear() const { return m_Clear; }
+			bool IsClear() const;
 
 			/// Uses cast MO rays to see if anyhting is able to be drawn into this
 			/// exit. If so, it will alter the positiona nd velocity of the objet so
@@ -160,10 +160,7 @@ namespace RTE {
 
 		/// Resets the entire ACraft, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Actor::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -195,7 +192,7 @@ namespace RTE {
 
 		/// Gets the current state of the hatch.
 		/// @return An int encoding the hatch state. See the HatchState enum.
-		unsigned int GetHatchState() const { return m_HatchState; }
+		unsigned int GetHatchState() const;
 
 		/// Sets which team this belongs to, and all its inventory too.
 		/// @param team The assigned team number.
@@ -209,7 +206,7 @@ namespace RTE {
 		/// Tells whether this has the means and will try to right itself, or if
 		/// that's up to the Controller to do.
 		/// @return Wheter this will try to auto stabilize.
-		virtual bool AutoStabilizing() { return false; }
+		virtual bool AutoStabilizing();
 
 		/// Opens the hatch doors, if they're closed or closing.
 		void OpenHatch();
@@ -234,11 +231,11 @@ namespace RTE {
 
 		/// Gets the mass of this ACraft, including the mass of its Attachables, wounds and inventory.
 		/// @return The mass of this ACraft, its inventory and all its Attachables and wounds in Kilograms (kg).
-		float GetMass() const override { return Actor::GetMass() + GetCollectedInventoryMass(); }
+		float GetMass() const override;
 
 		/// Indicated whether this has landed and delivered yet on its current run.
 		/// @return Whether this has delivered yet.
-		bool HasDelivered() { return m_HasDelivered; }
+		bool HasDelivered();
 
 		/// Resets all the timers related to this, including the scuttle timer.
 		void ResetAllTimers() override;
@@ -258,37 +255,37 @@ namespace RTE {
 		/// invetory. Used by the activity AI.
 		/// @return An integer with the recomended number of actors that fit in the craft.
 		/// Default is -1 (unknown).
-		virtual int GetMaxPassengers() const { return m_MaxPassengers; }
+		virtual int GetMaxPassengers() const;
 
 		/// Sets the recomended, not absolute, maximum number of actors that fit in the
 		/// invetory. Used by the activity AI.
 		/// @param max An integer with the recomended number of actors that fit in the craft.
 		/// Default is -1 (unknown).
-		virtual void SetMaxPassengers(int max) { m_MaxPassengers = max; }
+		virtual void SetMaxPassengers(int max);
 
 		/// Description:		Returns delivery delay multiplier.
 		/// @return Delivery delay multiplier.
-		float GetDeliveryDelayMultiplier() const { return m_DeliveryDelayMultiplier; }
+		float GetDeliveryDelayMultiplier() const;
 
 		/// Description:		Sets delivery delay multiplier.
 		/// @param newValue Delivery delay multiplier.
-		void SetDeliveryDelayMultiplier(float newValue) { m_DeliveryDelayMultiplier = newValue; }
+		void SetDeliveryDelayMultiplier(float newValue);
 
 		/// Gets whether this ACraft will scuttle automatically on death.
 		/// @return Whether this ACraft will scuttle automatically on death.
-		bool GetScuttleOnDeath() const { return m_ScuttleOnDeath; }
+		bool GetScuttleOnDeath() const;
 
 		/// Sets whether this ACraft will scuttle automatically on death.
 		/// @param scuttleOnDeath Whether this ACraft will scuttle automatically on death.
-		void SetScuttleOnDeath(bool scuttleOnDeath) { m_ScuttleOnDeath = scuttleOnDeath; }
+		void SetScuttleOnDeath(bool scuttleOnDeath);
 
 		/// Gets the hatch opening/closing delay of this ACraft.
 		/// @return The hatch delay of this ACraft.
-		int GetHatchDelay() const { return m_HatchDelay; }
+		int GetHatchDelay() const;
 
 		/// Sets the hatch opening/closing delay of this ACraft.
 		/// @param newDelay The new hatch delay of this ACraft.
-		void SetHatchDelay(int newDelay) { m_HatchDelay = newDelay; }
+		void SetHatchDelay(int newDelay);
 
 		/// Destroys this ACraft and creates its specified Gibs in its place with appropriate velocities. Any Attachables are removed and also given appropriate velocities.
 		/// @param impactImpulse The impulse (kg * m/s) of the impact causing the gibbing to happen.
@@ -297,27 +294,27 @@ namespace RTE {
 
 		/// Gets this ACraft's hatch opening sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ACraft's hatch opening sound.
-		SoundContainer* GetHatchOpenSound() const { return m_HatchOpenSound; }
+		SoundContainer* GetHatchOpenSound() const;
 
 		/// Sets this ACraft's hatch opening sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ACraft's hatch opening sound.
-		void SetHatchOpenSound(SoundContainer* newSound) { m_HatchOpenSound = newSound; }
+		void SetHatchOpenSound(SoundContainer* newSound);
 
 		/// Gets this ACraft's hatch closing sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ACraft's hatch closing sound.
-		SoundContainer* GetHatchCloseSound() const { return m_HatchCloseSound; }
+		SoundContainer* GetHatchCloseSound() const;
 
 		/// Sets this ACraft's hatch closing sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ACraft's hatch closing sound.
-		void SetHatchCloseSound(SoundContainer* newSound) { m_HatchCloseSound = newSound; }
+		void SetHatchCloseSound(SoundContainer* newSound);
 
 		/// Gets this ACraft's crash sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ACraft's crash sound.
-		SoundContainer* GetCrashSound() const { return m_CrashSound; }
+		SoundContainer* GetCrashSound() const;
 
 		/// Sets this ACraft's crash sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ACraft's crash sound.
-		void SetCrashSound(SoundContainer* newSound) { m_CrashSound = newSound; }
+		void SetCrashSound(SoundContainer* newSound);
 
 		/// Protected member variable and method declarations
 	protected:

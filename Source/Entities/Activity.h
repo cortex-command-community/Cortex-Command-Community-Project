@@ -93,81 +93,76 @@ namespace RTE {
 
 		/// Destroys and resets (through Clear()) the Activity object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
-		void Destroy(bool notInherited = false) override {
-			if (!notInherited) {
-				Entity::Destroy();
-			}
-			Clear();
-		}
+		void Destroy(bool notInherited = false) override;
 #pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets the current Activity state code. See the ActivityState enumeration for values.
 		/// @return The current state of this Activity. See ActivityState enumeration.
-		ActivityState GetActivityState() const { return m_ActivityState; }
+		ActivityState GetActivityState() const;
 
 		/// Overrides the current Activity state. Should not be used much, use dedicated state setting functions instead.
 		/// @param newState The new state to set.
-		void SetActivityState(ActivityState newState) { m_ActivityState = newState; }
+		void SetActivityState(ActivityState newState);
 
 		/// Indicates whether the Activity is currently running or not (not editing, over or paused)
 		/// @return Whether the Activity is running or not.
-		bool IsRunning() const { return (m_ActivityState == ActivityState::Running || m_ActivityState == ActivityState::Editing) && !m_Paused; }
+		bool IsRunning() const;
 
 		/// Indicates whether the Activity is currently paused or not.
 		/// @return Whether the Activity is paused or not.
-		bool IsPaused() const { return m_Paused; }
+		bool IsPaused() const;
 
 		/// Pauses and unpauses the Activity.
 		/// @param pause Whether to pause the Activity or not.
-		virtual void SetPaused(bool pause = true) { m_Paused = pause; }
+		virtual void SetPaused(bool pause = true);
 
 		/// Indicates whether the Activity is over or not.
 		/// @return Whether the Activity is over or not.
-		bool IsOver() const { return m_ActivityState == ActivityState::Over; }
+		bool IsOver() const;
 
 		/// Gets the user-friendly description of this Activity.
 		/// @return A string with the user-friendly description of this Activity.
-		std::string GetDescription() const { return m_Description; }
+		std::string GetDescription() const;
 
 		/// Gets the max number of players supported by this Activity.
 		/// @return The max number of players supported by this Activity.
-		int GetMaxPlayerSupport() const { return m_MaxPlayerSupport; }
+		int GetMaxPlayerSupport() const;
 
 		/// Gets the minimum number of teams with players that this Activity requires.
 		/// @return The minimum number of Teams this Activity requires to run.
-		int GetMinTeamsRequired() const { return m_MinTeamsRequired; }
+		int GetMinTeamsRequired() const;
 
 		/// Tells if a particular Scene supports this specific Activity on it. Usually that means certain Areas need to be defined in the Scene.
 		/// @param scene The Scene to check if it supports this Activity. Ownership is NOT transferred!
 		/// @param teams How many teams we're checking for. Some scenes may support and Activity but only for a limited number of teams. If -1, not applicable.
 		/// @return Whether the Scene has the right stuff.
-		virtual bool SceneIsCompatible(Scene* scene, int teams = -1) { return scene && teams <= m_MinTeamsRequired; }
+		virtual bool SceneIsCompatible(Scene* scene, int teams = -1);
 
 		/// Shows in which stage of the Campaign this appears.
 		/// @return The stage number in the campaign. -1 means it's not in the campaign.
-		int GetInCampaignStage() const { return m_InCampaignStage; }
+		int GetInCampaignStage() const;
 
 		///
 		/// Sets in which stage of the Campaign this appears.
 		/// @param newStage The new stage to set. -1 means it doesn't appear in the campaign.
-		void SetInCampaignStage(int newStage) { m_InCampaignStage = newStage; }
+		void SetInCampaignStage(int newStage);
 
 		/// Gets the name of the current scene.
 		/// @return A string with the instance name of the scene.
-		std::string GetSceneName() const { return m_SceneName; }
+		std::string GetSceneName() const;
 
 		/// Sets the name of the scene this is associated with.
 		/// @param sceneName The new name of the scene to load next game.
-		void SetSceneName(const std::string sceneName) { m_SceneName = sceneName; }
+		void SetSceneName(const std::string sceneName);
 
 		/// Gets whether craft must be considered orbited if they reach the map border on non-wrapped maps.
 		/// @return Whether craft are considered orbited when at the border of a non-wrapping map.
-		bool GetCraftOrbitAtTheEdge() const { return m_CraftOrbitAtTheEdge; }
+		bool GetCraftOrbitAtTheEdge() const;
 
 		/// Sets whether craft must be considered orbited if they reach the map border on non-wrapped maps.
 		/// @param value Whether to consider orbited or not.
-		void SetCraftOrbitAtTheEdge(bool value) { m_CraftOrbitAtTheEdge = value; }
+		void SetCraftOrbitAtTheEdge(bool value);
 #pragma endregion
 
 #pragma region Virtual Override Methods
@@ -185,12 +180,12 @@ namespace RTE {
 		/// @param targetBitmap A pointer to a screen-sized BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene.
 		/// @param whichScreen Which screen's GUI to draw onto the bitmap.
-		virtual void DrawGUI(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0) {}
+		virtual void DrawGUI(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0);
 
 		/// Draws this Activity's current graphical representation to a BITMAP of choice. This includes all game-related graphics.
 		/// @param targetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene.
-		virtual void Draw(BITMAP* targetBitmap, const Vector& targetPos = Vector()) {}
+		virtual void Draw(BITMAP* targetBitmap, const Vector& targetPos = Vector());
 #pragma endregion
 
 #pragma region Player Handling
@@ -200,7 +195,7 @@ namespace RTE {
 		/// Indicates whether a specific player is active in the current game.
 		/// @param player Which player index to check.
 		/// @return Whether the player is active in the current Activity.
-		bool PlayerActive(int player) const { return m_IsActive[player]; }
+		bool PlayerActive(int player) const;
 
 		/// Turns off a player if they were active. Should only be done if brain etc are already taken care of and disposed of properly.
 		/// Will also deactivate the team this player is on, if there's no other active players still on it.
@@ -223,7 +218,7 @@ namespace RTE {
 
 		/// Gets the total number of active players in the current Activity, AI or Human.
 		/// @return The total number of players in the current Activity.
-		int GetPlayerCount() const { return m_PlayerCount; }
+		int GetPlayerCount() const;
 
 		/// Gets the total number of human players in the current Activity.
 		/// @return The total number of players in the current Activity.
@@ -232,12 +227,12 @@ namespace RTE {
 		/// Indicates whether a specific player is human in the current game, ie not an AI player and has a screen etc.
 		/// @param player Which player index to check.
 		/// @return Whether the player is active as a Human in the current Activity.
-		bool PlayerHuman(int player) const { return m_IsHuman[player]; }
+		bool PlayerHuman(int player) const;
 
 		/// Gets the current team a specific player belongs to.
 		/// @param player The player to get the team info on.
 		/// @return The team number of the specified player.
-		int GetTeamOfPlayer(int player) const { return m_Team[player]; }
+		int GetTeamOfPlayer(int player) const;
 
 		/// Sets the current team a specific player belongs to.
 		/// @param player The player to set the team for.
@@ -247,7 +242,7 @@ namespace RTE {
 		/// Converts a player index into a screen index, and only if that player is human.
 		/// @param player Which player index to convert.
 		/// @return The screen index, or -1 if non-human player or no players.
-		int ScreenOfPlayer(int player) const { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_PlayerScreen[player] : -1; }
+		int ScreenOfPlayer(int player) const;
 
 		/// Converts a screen index into a player index, if that screen exists.
 		/// @param screen Which screen index to convert.
@@ -257,31 +252,27 @@ namespace RTE {
 		/// Gets the current viewing state for a specific player. See the ViewState enumeration for values.
 		/// @param whichPlayer Which player to get the view state for.
 		/// @return The current viewing state of the player.
-		ViewState GetViewState(int whichPlayer = 0) const { return m_ViewState[whichPlayer]; }
+		ViewState GetViewState(int whichPlayer = 0) const;
 
 		/// Sets the current viewing state for a specific player. See the ViewState enumeration for values.
 		/// @param whichViewState The state to set to.
 		/// @param whichPlayer Which player to set the view state for.
-		void SetViewState(ViewState whichViewState, int whichPlayer = 0) { m_ViewState[whichPlayer] = whichViewState; }
+		void SetViewState(ViewState whichViewState, int whichPlayer = 0);
 
 		/// Resets the message timer for one player.
 		/// @param player The player to reset the message timer for.
-		void ResetMessageTimer(int player = 0) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
-				m_MessageTimer[player].Reset();
-			}
-		}
+		void ResetMessageTimer(int player = 0);
 
 		/// Gets a pointer to the GUI controller of the specified player.
 		/// @param player Which player to get the Controller of.
 		/// @return A pointer to the player's Controller. Ownership is NOT transferred!
-		Controller* GetPlayerController(int player = 0) { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? &m_PlayerController[player] : nullptr; }
+		Controller* GetPlayerController(int player = 0);
 #pragma endregion
 
 #pragma region Team Handling
 		/// Gets the total number of teams in the current Activity.
 		/// @return The total number of teams in the current Activity.
-		int GetTeamCount() const { return m_TeamCount; }
+		int GetTeamCount() const;
 
 		/// Gets the name of a specific team.
 		/// @param whichTeam Which team to get the name of. 0 = first team.
@@ -291,38 +282,26 @@ namespace RTE {
 		/// Sets the name of a specific team.
 		/// @param whichTeam Which team to set the name of. 0 = first team.
 		/// @param newName The name to set it to.
-		void SetTeamName(int whichTeam, const std::string& newName) {
-			if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
-				m_TeamNames[whichTeam] = newName;
-			}
-		}
+		void SetTeamName(int whichTeam, const std::string& newName);
 
 		/// Gets the Icon of a specific team.
 		/// @param whichTeam Which team to get the Icon of. 0 = first team.
 		/// @return The current Icon of that team.
-		const Icon* GetTeamIcon(int whichTeam = 0) const { return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? &m_TeamIcons[whichTeam] : nullptr; }
+		const Icon* GetTeamIcon(int whichTeam = 0) const;
 
 		/// Sets the Icon of a specific team.
 		/// @param whichTeam Which team to set the Icon of. 0 = first team.
 		/// @param newIcon The Icon to set it to.
-		void SetTeamIcon(int whichTeam, const Icon& newIcon) {
-			if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
-				m_TeamIcons[whichTeam] = newIcon;
-			}
-		}
+		void SetTeamIcon(int whichTeam, const Icon& newIcon);
 
 		/// Indicates whether a specific team is active in the current game.
 		/// @param team Which team index to check.
 		/// @return Whether the team is active in the current Activity.
-		bool TeamActive(int team) const { return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamActive[team] : false; }
+		bool TeamActive(int team) const;
 
 		/// Sets the given team as active, even if it shouldn't be considered as such normally. Useful for Activities that don't want to define/show all used teams.
 		/// @param team The team to force as active.
-		void ForceSetTeamAsActive(int team) {
-			if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
-				m_TeamActive[team] = true;
-			}
-		}
+		void ForceSetTeamAsActive(int team);
 
 		/// Indicates whether a team is player controlled or not.
 		/// @param team The team number to check.
@@ -337,29 +316,25 @@ namespace RTE {
 		/// Gets the number of deaths on a specific team so far on the current Activity.
 		/// @param whichTeam Which team to get the death tally of. 0 = first team.
 		/// @return The current death count.
-		int GetTeamDeathCount(int whichTeam = 0) const { return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? m_TeamDeaths[whichTeam] : 0; }
+		int GetTeamDeathCount(int whichTeam = 0) const;
 
 		/// Increments the tally of a death of an actor on a specific team.
 		/// @param whichTeam Which team to increase the death count of. 0 = first team.
 		/// @param howMany The new death count.
 		/// @return The updated death count of the team.
-		int ReportDeath(int whichTeam = 0, int howMany = 1) { return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? m_TeamDeaths[whichTeam] += howMany : 0; }
+		int ReportDeath(int whichTeam = 0, int howMany = 1);
 #pragma endregion
 
 #pragma region Funds Handling
 		/// Gets the amount of funds a specific team currently has in the Activity.
 		/// @param whichTeam Which team to get the fund count from. 0 = first team.
 		/// @return A float with the funds tally for the requested team.
-		float GetTeamFunds(int whichTeam = 0) const { return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? m_TeamFunds[whichTeam] : 0; }
+		float GetTeamFunds(int whichTeam = 0) const;
 
 		/// Sets the amount of funds a specific team currently has in the Activity.
 		/// @param newFunds Which team to set the fund count for. 0 = first team.
 		/// @param which A float with the funds tally for the requested team.
-		void SetTeamFunds(float newFunds, int whichTeam = 0) {
-			if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
-				m_TeamFunds[whichTeam] = newFunds;
-			}
-		}
+		void SetTeamFunds(float newFunds, int whichTeam = 0);
 
 		/// Changes a team's funds level by a certain amount.
 		/// @param howMuch The amount with which to change the funds balance.
@@ -374,7 +349,7 @@ namespace RTE {
 		/// Gets the amount of funds a specific player originally added to his team's collective stash.
 		/// @param player Which player to check for.
 		/// @return A float with the funds originally deposited by this player.
-		float GetPlayerFundsContribution(int player) const { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_FundsContribution[player] : 0; }
+		float GetPlayerFundsContribution(int player) const;
 
 		/// Sets a new amount of starting funds for a player, after he has already been added.
 		/// @param player Which player slot to update - has to already be active.
@@ -391,16 +366,16 @@ namespace RTE {
 #pragma region Brain Handling
 		/// Shows how many human controlled brains are left in this Activity.
 		/// @return How many human controlled brains are left in this Activity.
-		int HumanBrainCount() const { return GetBrainCount(true); }
+		int HumanBrainCount() const;
 
 		/// Shows how many AI controlled brains are left in this Activity.
 		/// @return how many AI controlled brains are left in this Activity.
-		int AIBrainCount() const { return GetBrainCount(false); }
+		int AIBrainCount() const;
 
 		/// Gets the current Brain actor for a specific player.
 		/// @param player Which player to get the brain actor for.
 		/// @return A pointer to the Brain Actor. Ownership is NOT transferred!
-		Actor* GetPlayerBrain(int player = 0) const { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_Brain[player] : nullptr; }
+		Actor* GetPlayerBrain(int player = 0) const;
 
 		/// Sets the current Brain actor for a specific player.
 		/// @param newBrain A pointer to the new brain Actor. Ownership is NOT transferred!
@@ -410,29 +385,22 @@ namespace RTE {
 		/// Shows whether a specific player ever had a Brain yet.
 		/// @param player Which player to check whether they ever had a Brain.
 		/// @return Whether this player ever had a Brain.
-		bool PlayerHadBrain(int player = 0) const { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_HadBrain[player] : false; }
+		bool PlayerHadBrain(int player = 0) const;
 
 		/// Sets to indicate that the player had a Brain at some point. This is to simulate that in automated battle cases.
 		/// @param player Which player to set whether he had a Brain or not.
 		/// @param hadBrain Whether he should be flagged as having had a Brain.
-		void SetPlayerHadBrain(int player, bool hadBrain = true) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-				m_HadBrain[player] = hadBrain;
-		}
+		void SetPlayerHadBrain(int player, bool hadBrain = true);
 
 		/// Shows whether a specific player's Brain was evacuated into orbit so far.
 		/// @param player Which player to check whether their Brain was evacuated.
 		/// @return Whether this player had a Brain that was evacuated.
-		bool BrainWasEvacuated(int player = 0) const { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_BrainEvacuated[player] : false; }
+		bool BrainWasEvacuated(int player = 0) const;
 
 		/// Sets whether a player's Brain was evacuated during the Activity.
 		/// @param player Which player to check whether their Brain was evacuated.
 		/// @param evacuated Whether it was evacuated yet.
-		void SetBrainEvacuated(int player = 0, bool evacuated = true) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
-				m_BrainEvacuated[player] = evacuated;
-			}
-		}
+		void SetBrainEvacuated(int player = 0, bool evacuated = true);
 
 		/// Shows whether ANY player evacuated their Brain.
 		/// @return Whether any player evacuated their Brain yet.
@@ -463,11 +431,11 @@ namespace RTE {
 
 		/// Gets the current difficulty setting.
 		/// @return The current setting.
-		int GetDifficulty() const { return m_Difficulty; }
+		int GetDifficulty() const;
 
 		/// Sets the current difficulty setting.
 		/// @param newDifficulty The new difficulty setting.
-		void SetDifficulty(int newDifficulty) { m_Difficulty = Limit(newDifficulty, DifficultySetting::MaxDifficulty, DifficultySetting::MinDifficulty); }
+		void SetDifficulty(int newDifficulty);
 #pragma endregion
 
 #pragma region AI Handling
@@ -484,18 +452,14 @@ namespace RTE {
 		/// Sets AI skill level for specified team.
 		/// @param team The team to set for.
 		/// @param skill AI skill level, 1-100.
-		void SetTeamAISkill(int team, int skill) {
-			if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
-				m_TeamAISkillLevels[team] = Limit(skill, AISkillSetting::UnfairSkill, AISkillSetting::MinSkill);
-			}
-		}
+		void SetTeamAISkill(int team, int skill);
 #pragma endregion
 
 #pragma region Actor Handling
 		/// Gets the currently controlled actor of a specific player.
 		/// @param player Which player to get the controlled actor of.
 		/// @return A pointer to the controlled Actor. Ownership is NOT transferred! 0 If no actor is currently controlled by this player.
-		Actor* GetControlledActor(int player = 0) { return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_ControlledActor[player] : nullptr; }
+		Actor* GetControlledActor(int player);
 
 		/// Makes the player's ControlledActor the leader of any squad it is a member of.
 		/// @param player Player to reassign for.
@@ -513,13 +477,13 @@ namespace RTE {
 		/// @param player Player to force for.
 		/// @param team Which team to switch to next Actor on.
 		/// @param actorToSkip An Actor pointer to skip in the sequence.
-		virtual void SwitchToPrevActor(int player, int team, Actor* actorToSkip = 0) { SwitchToPrevOrNextActor(false, player, team, actorToSkip); }
+		virtual void SwitchToPrevActor(int player, int team, Actor* actorToSkip = 0);
 
 		/// Forces the Activity to focus player control to the next Actor of a specific team, other than the current one focused on.
 		/// @param player Player to force for.
 		/// @param team Which team to switch to next Actor on.
 		/// @param actorToSkip An Actor pointer to skip in the sequence.
-		virtual void SwitchToNextActor(int player, int team, Actor* actorToSkip = 0) { SwitchToPrevOrNextActor(true, player, team, actorToSkip); }
+		virtual void SwitchToNextActor(int player, int team, Actor* actorToSkip = 0);
 
 		/// Forces player to lose control of the currently selected Actor, as if it had died.
 		/// @param player Which player to lose control of their selected Actor.
@@ -537,29 +501,29 @@ namespace RTE {
 
 		/// Gets whether or not this Activity allows the player to manually save.
 		/// @return Whether or not this Activity allows the player to manually save.
-		bool GetAllowsUserSaving() const { return m_AllowsUserSaving; }
+		bool GetAllowsUserSaving() const;
 
 		/// Sets whether or not this Activity can be manually saved be the player.
 		/// @param allowsUserSaving Whether or not this Activity can be manually saved be the player.
-		void SetAllowsUserSaving(bool allowsUserSaving) { m_AllowsUserSaving = allowsUserSaving; }
+		void SetAllowsUserSaving(bool allowsUserSaving);
 
 		/// Saves a string which will be stored in our ini.
 		/// @param key The key of the saved string.
 		/// @param value The string to save.
-		void SaveString(const std::string& key, const std::string& value) { m_SavedValues.SaveString(key, value); };
+		void SaveString(const std::string& key, const std::string& value);
 
 		/// Loads and returns a previously saved string.
 		/// @param key The key of the string to load.
-		const std::string& LoadString(const std::string& key) { return m_SavedValues.LoadString(key); };
+		const std::string& LoadString(const std::string& key);
 
 		/// Saves a number which will be stored in our ini.
 		/// @param key The key of the saved number.
 		/// @param value The number to save.
-		void SaveNumber(const std::string& key, float value) { m_SavedValues.SaveNumber(key, value); };
+		void SaveNumber(const std::string& key, float value);
 
 		/// Loads and returns a previously saved number.
 		/// @param key The key of the string to load.
-		float LoadNumber(const std::string& key) { return m_SavedValues.LoadNumber(key); };
+		float LoadNumber(const std::string& key);
 #pragma endregion
 
 	protected:

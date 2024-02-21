@@ -30,6 +30,77 @@ Activity::~Activity() {
 	Destroy(true);
 }
 
+void Activity::Destroy(bool notInherited) {
+	if (!notInherited) {
+		Entity::Destroy();
+	}
+	Clear();
+}
+
+Activity::ActivityState Activity::GetActivityState() const {
+	return m_ActivityState;
+}
+
+void Activity::SetActivityState(ActivityState newState) {
+	m_ActivityState = newState;
+}
+
+bool Activity::IsRunning() const {
+	return (m_ActivityState == ActivityState::Running || m_ActivityState == ActivityState::Editing) && !m_Paused;
+}
+
+bool Activity::IsPaused() const {
+	return m_Paused;
+}
+
+void Activity::SetPaused(bool pause) {
+	m_Paused = pause;
+}
+
+bool Activity::IsOver() const {
+	return m_ActivityState == ActivityState::Over;
+}
+
+std::string Activity::GetDescription() const {
+	return m_Description;
+}
+
+int Activity::GetMaxPlayerSupport() const {
+	return m_MaxPlayerSupport;
+}
+
+int Activity::GetMinTeamsRequired() const {
+	return m_MinTeamsRequired;
+}
+
+bool Activity::SceneIsCompatible(Scene* scene, int teams) {
+	return scene && teams <= m_MinTeamsRequired;
+}
+
+int Activity::GetInCampaignStage() const {
+	return m_InCampaignStage;
+}
+
+void Activity::SetInCampaignStage(int newStage) {
+	m_InCampaignStage = newStage;
+}
+
+std::string Activity::GetSceneName() const {
+	return m_SceneName;
+}
+
+void Activity::SetSceneName(const std::string sceneName) {
+	m_SceneName = sceneName;
+}
+
+bool Activity::GetCraftOrbitAtTheEdge() const {
+	return m_CraftOrbitAtTheEdge;
+}
+
+void Activity::SetCraftOrbitAtTheEdge(bool value) {
+	m_CraftOrbitAtTheEdge = value;
+}
+
 void Activity::Clear() {
 	m_ActivityState = ActivityState::NotStarted;
 	m_Paused = false;
@@ -351,6 +422,12 @@ void Activity::End() {
 	m_ActivityState = ActivityState::Over;
 }
 
+void Activity::DrawGUI(BITMAP* targetBitmap, const Vector& targetPos, int whichScreen) {
+}
+
+void Activity::Draw(BITMAP* targetBitmap, const Vector& targetPos) {
+}
+
 void Activity::SetupPlayers() {
 	m_TeamCount = 0;
 	m_PlayerCount = 0;
@@ -379,6 +456,10 @@ void Activity::SetupPlayers() {
 		}
 		m_PlayerScreen[player] = screenIndex;
 	}
+}
+
+bool Activity::PlayerActive(int player) const {
+	return m_IsActive[player];
 }
 
 bool Activity::DeactivatePlayer(int playerToDeactivate) {
@@ -464,6 +545,10 @@ void Activity::ClearPlayers(bool resetFunds) {
 	m_PlayerCount = m_TeamCount = 0;
 }
 
+int Activity::GetPlayerCount() const {
+	return m_PlayerCount;
+}
+
 int Activity::GetHumanCount() const {
 	int humans = 0;
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -472,6 +557,14 @@ int Activity::GetHumanCount() const {
 		}
 	}
 	return humans;
+}
+
+bool Activity::PlayerHuman(int player) const {
+	return m_IsHuman[player];
+}
+
+int Activity::GetTeamOfPlayer(int player) const {
+	return m_Team[player];
 }
 
 void Activity::SetTeamOfPlayer(int player, int team) {
@@ -484,6 +577,10 @@ void Activity::SetTeamOfPlayer(int player, int team) {
 	m_IsActive[player] = true;
 }
 
+int Activity::ScreenOfPlayer(int player) const {
+	return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_PlayerScreen[player] : -1;
+}
+
 int Activity::PlayerOfScreen(int screen) const {
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 		if (m_PlayerScreen[player] == screen) {
@@ -493,11 +590,59 @@ int Activity::PlayerOfScreen(int screen) const {
 	return Players::NoPlayer;
 }
 
+Activity::ViewState Activity::GetViewState(int whichPlayer) const {
+	return m_ViewState[whichPlayer];
+}
+
+void Activity::SetViewState(Activity::ViewState whichViewState, int whichPlayer) {
+	m_ViewState[whichPlayer] = whichViewState;
+}
+
+void Activity::ResetMessageTimer(int player) {
+	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		m_MessageTimer[player].Reset();
+	}
+}
+
+Controller* Activity::GetPlayerController(int player) {
+	return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? &m_PlayerController[player] : nullptr;
+}
+
+int Activity::GetTeamCount() const {
+	return m_TeamCount;
+}
+
 std::string Activity::GetTeamName(int whichTeam) const {
 	if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
 		return m_TeamActive[whichTeam] ? m_TeamNames[whichTeam] : "Inactive Team";
 	}
 	return "";
+}
+
+void Activity::SetTeamName(int whichTeam, const std::string& newName) {
+	if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
+		m_TeamNames[whichTeam] = newName;
+	}
+}
+
+const Icon* Activity::GetTeamIcon(int whichTeam) const {
+	return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? &m_TeamIcons[whichTeam] : nullptr;
+}
+
+void Activity::SetTeamIcon(int whichTeam, const Icon& newIcon) {
+	if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
+		m_TeamIcons[whichTeam] = newIcon;
+	}
+}
+
+bool Activity::TeamActive(int team) const {
+	return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamActive[team] : false;
+}
+
+void Activity::ForceSetTeamAsActive(int team) {
+	if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
+		m_TeamActive[team] = true;
+	}
 }
 
 bool Activity::IsHumanTeam(int whichTeam) const {
@@ -521,6 +666,24 @@ int Activity::PlayersInTeamCount(int team) const {
 	return count;
 }
 
+int Activity::GetTeamDeathCount(int whichTeam) const {
+	return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? m_TeamDeaths[whichTeam] : 0;
+}
+
+int Activity::ReportDeath(int whichTeam, int howMany) {
+	return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? m_TeamDeaths[whichTeam] += howMany : 0;
+}
+
+float Activity::GetTeamFunds(int whichTeam) const {
+	return (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) ? m_TeamFunds[whichTeam] : 0;
+}
+
+void Activity::SetTeamFunds(float newFunds, int whichTeam) {
+	if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
+		m_TeamFunds[whichTeam] = newFunds;
+	}
+}
+
 void Activity::ChangeTeamFunds(float howMuch, int whichTeam) {
 	if (whichTeam >= Teams::TeamOne && whichTeam < Teams::MaxTeamCount) {
 		m_TeamFunds[whichTeam] += howMuch;
@@ -542,6 +705,10 @@ bool Activity::TeamFundsChanged(int whichTeam) {
 		return changed;
 	}
 	return false;
+}
+
+float Activity::GetPlayerFundsContribution(int player) const {
+	return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_FundsContribution[player] : 0;
 }
 
 bool Activity::UpdatePlayerFundsContribution(int player, float newFunds) {
@@ -579,6 +746,18 @@ float Activity::GetPlayerFundsShare(int player) const {
 	return 0;
 }
 
+int Activity::HumanBrainCount() const {
+	return GetBrainCount(true);
+}
+
+int Activity::AIBrainCount() const {
+	return GetBrainCount(false);
+}
+
+Actor* Activity::GetPlayerBrain(int player) const {
+	return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_Brain[player] : nullptr;
+}
+
 void Activity::SetPlayerBrain(Actor* newBrain, int player) {
 	if ((player >= Players::PlayerOne || player < Players::MaxPlayerCount) && newBrain) {
 		if (newBrain->GetTeam() != m_Team[player]) {
@@ -587,6 +766,26 @@ void Activity::SetPlayerBrain(Actor* newBrain, int player) {
 		m_HadBrain[player] = true;
 	}
 	m_Brain[player] = newBrain;
+}
+
+bool Activity::PlayerHadBrain(int player) const {
+	return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_HadBrain[player] : false;
+}
+
+void Activity::SetPlayerHadBrain(int player, bool hadBrain) {
+	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		m_HadBrain[player] = hadBrain;
+	}
+}
+
+bool Activity::BrainWasEvacuated(int player) const {
+	return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_BrainEvacuated[player] : false;
+}
+
+void Activity::SetBrainEvacuated(int player, bool evacuated) {
+	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
+		m_BrainEvacuated[player] = evacuated;
+	}
 }
 
 bool Activity::AnyBrainWasEvacuated() const {
@@ -641,6 +840,14 @@ std::string Activity::GetDifficultyString(int difficulty) {
 	}
 }
 
+int Activity::GetDifficulty() const {
+	return m_Difficulty;
+}
+
+void Activity::SetDifficulty(int newDifficulty) {
+	m_Difficulty = Limit(newDifficulty, DifficultySetting::MaxDifficulty, DifficultySetting::MinDifficulty);
+}
+
 std::string Activity::GetAISkillString(int skill) {
 	if (skill < AISkillSetting::InferiorSkill) {
 		return "Inferior";
@@ -668,6 +875,16 @@ int Activity::GetTeamAISkill(int team) const {
 		}
 		return (count > 0) ? avgskill / count : AISkillSetting::DefaultSkill;
 	}
+}
+
+void Activity::SetTeamAISkill(int team, int skill) {
+	if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
+		m_TeamAISkillLevels[team] = Limit(skill, AISkillSetting::UnfairSkill, AISkillSetting::MinSkill);
+	}
+}
+
+Actor* Activity::GetControlledActor(int player) {
+	return (player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_ControlledActor[player] : nullptr;
 }
 
 void Activity::ReassignSquadLeader(const int player, const int team) {
@@ -752,6 +969,14 @@ bool Activity::SwitchToActor(Actor* actor, int player, int team) {
 	return true;
 }
 
+void Activity::SwitchToPrevActor(int player, int team, Actor* actorToSkip) {
+	SwitchToPrevOrNextActor(false, player, team, actorToSkip);
+}
+
+void Activity::SwitchToNextActor(int player, int team, Actor* actorToSkip) {
+	SwitchToPrevOrNextActor(true, player, team, actorToSkip);
+}
+
 void Activity::LoseControlOfActor(int player) {
 	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
 		if (Actor* actor = m_ControlledActor[player]; actor && g_MovableMan.IsActor(actor)) {
@@ -817,6 +1042,30 @@ void Activity::HandleCraftEnteringOrbit(ACraft* orbitedCraft) {
 	// The craft entering orbit will count as a death for the team because it's being deleted, so we need to decrement the team's death count to keep it correct.
 	m_TeamDeaths[orbitedCraftTeam]--;
 }
+
+bool Activity::GetAllowsUserSaving() const {
+	return m_AllowsUserSaving;
+}
+
+void Activity::SetAllowsUserSaving(bool allowsUserSaving) {
+	m_AllowsUserSaving = allowsUserSaving;
+}
+
+void Activity::SaveString(const std::string& key, const std::string& value) {
+	m_SavedValues.SaveString(key, value);
+};
+
+const std::string& Activity::LoadString(const std::string& key) {
+	return m_SavedValues.LoadString(key);
+};
+
+void Activity::SaveNumber(const std::string& key, float value) {
+	m_SavedValues.SaveNumber(key, value);
+};
+
+float Activity::LoadNumber(const std::string& key) {
+	return m_SavedValues.LoadNumber(key);
+};
 
 int Activity::GetBrainCount(bool getForHuman) const {
 	int brainCount = 0;

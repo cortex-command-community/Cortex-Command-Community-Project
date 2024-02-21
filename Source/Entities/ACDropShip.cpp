@@ -104,6 +104,11 @@ int ACDropShip::Create(const ACDropShip& reference) {
 	return 0;
 }
 
+void ACDropShip::Reset() {
+	Clear();
+	ACraft::Reset();
+}
+
 int ACDropShip::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return ACraft::ReadProperty(propName, reader));
 
@@ -226,6 +231,10 @@ MOID ACDropShip::DetectObstacle(float distance) {
 		return detected;
 
 	return false;
+}
+
+bool ACDropShip::AutoStabilizing() {
+	return true;
 }
 
 void ACDropShip::PreControllerUpdate() {
@@ -439,6 +448,14 @@ void ACDropShip::PreControllerUpdate() {
 	}
 }
 
+int ACDropShip::GetMaxPassengers() const {
+	return m_MaxPassengers > -1 ? m_MaxPassengers : 4;
+}
+
+AEmitter* ACDropShip::GetRightThruster() const {
+	return m_pRThruster;
+}
+
 void ACDropShip::SetRightThruster(AEmitter* newThruster) {
 	if (m_pRThruster && m_pRThruster->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pRThruster);
@@ -460,6 +477,10 @@ void ACDropShip::SetRightThruster(AEmitter* newThruster) {
 		}
 		m_pRThruster->SetInheritsRotAngle(false);
 	}
+}
+
+AEmitter* ACDropShip::GetLeftThruster() const {
+	return m_pLThruster;
 }
 
 void ACDropShip::SetLeftThruster(AEmitter* newThruster) {
@@ -485,6 +506,10 @@ void ACDropShip::SetLeftThruster(AEmitter* newThruster) {
 	}
 }
 
+AEmitter* ACDropShip::GetURightThruster() const {
+	return m_pURThruster;
+}
+
 void ACDropShip::SetURightThruster(AEmitter* newThruster) {
 	if (m_pURThruster && m_pURThruster->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pURThruster);
@@ -505,6 +530,10 @@ void ACDropShip::SetURightThruster(AEmitter* newThruster) {
 			m_pURThruster->SetDamageMultiplier(1.0F);
 		}
 	}
+}
+
+AEmitter* ACDropShip::GetULeftThruster() const {
+	return m_pULThruster;
 }
 
 void ACDropShip::SetULeftThruster(AEmitter* newThruster) {
@@ -529,25 +558,8 @@ void ACDropShip::SetULeftThruster(AEmitter* newThruster) {
 	}
 }
 
-void ACDropShip::SetRightHatch(Attachable* newHatch) {
-	if (m_pRHatch && m_pRHatch->IsAttached()) {
-		RemoveAndDeleteAttachable(m_pRHatch);
-	}
-	if (newHatch == nullptr) {
-		m_pRHatch = nullptr;
-	} else {
-		m_pRHatch = newHatch;
-		AddAttachable(newHatch);
-
-		m_HardcodedAttachableUniqueIDsAndSetters.insert({newHatch->GetUniqueID(), [](MOSRotating* parent, Attachable* attachable) {
-			                                                 dynamic_cast<ACDropShip*>(parent)->SetRightHatch(attachable);
-		                                                 }});
-
-		if (m_pRHatch->HasNoSetDamageMultiplier()) {
-			m_pRHatch->SetDamageMultiplier(1.0F);
-		}
-		m_pRHatch->SetInheritsRotAngle(false);
-	}
+Attachable* ACDropShip::GetLeftHatch() const {
+	return m_pLHatch;
 }
 
 void ACDropShip::SetLeftHatch(Attachable* newHatch) {
@@ -569,4 +581,57 @@ void ACDropShip::SetLeftHatch(Attachable* newHatch) {
 		}
 		m_pLHatch->SetInheritsRotAngle(false);
 	}
+}
+
+Attachable* ACDropShip::GetRightHatch() const {
+	return m_pRHatch;
+}
+
+void ACDropShip::SetRightHatch(Attachable* newHatch) {
+	if (m_pRHatch && m_pRHatch->IsAttached()) {
+		RemoveAndDeleteAttachable(m_pRHatch);
+	}
+	if (newHatch == nullptr) {
+		m_pRHatch = nullptr;
+	} else {
+		m_pRHatch = newHatch;
+		AddAttachable(newHatch);
+
+		m_HardcodedAttachableUniqueIDsAndSetters.insert({newHatch->GetUniqueID(), [](MOSRotating* parent, Attachable* attachable) {
+			                                                 dynamic_cast<ACDropShip*>(parent)->SetRightHatch(attachable);
+		                                                 }});
+
+		if (m_pRHatch->HasNoSetDamageMultiplier()) {
+			m_pRHatch->SetDamageMultiplier(1.0F);
+		}
+		m_pRHatch->SetInheritsRotAngle(false);
+	}
+}
+
+float ACDropShip::GetMaxEngineAngle() const {
+	return m_MaxEngineAngle;
+}
+
+void ACDropShip::SetMaxEngineAngle(float newAngle) {
+	m_MaxEngineAngle = newAngle;
+}
+
+float ACDropShip::GetLateralControlSpeed() const {
+	return m_LateralControlSpeed;
+}
+
+void ACDropShip::SetLateralControlSpeed(float newSpeed) {
+	m_LateralControl = newSpeed;
+}
+
+float ACDropShip::GetLateralControl() const {
+	return m_LateralControl;
+}
+
+float ACDropShip::GetHoverHeightModifier() const {
+	return m_HoverHeightModifier;
+}
+
+void ACDropShip::SetHoverHeightModifier(float newHoverHeightModifier) {
+	m_HoverHeightModifier = newHoverHeightModifier;
 }

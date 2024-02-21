@@ -43,10 +43,7 @@ namespace RTE {
 
 		/// Resets the entire ACDropShip, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			ACraft::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -69,7 +66,7 @@ namespace RTE {
 		/// Tells whether this has the means and will try to right itself, or if
 		/// that's up to the Controller to do.
 		/// @return Wheter this will try to auto stabilize.
-		bool AutoStabilizing() override { return true; }
+		bool AutoStabilizing() override;
 
 		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
 		void PreControllerUpdate() override;
@@ -78,11 +75,11 @@ namespace RTE {
 		/// invetory. Used by the activity AI.
 		/// @return An integer with the recomended number of actors that fit in the craft.
 		/// Default is four.
-		int GetMaxPassengers() const override { return m_MaxPassengers > -1 ? m_MaxPassengers : 4; }
+		int GetMaxPassengers() const override;
 
 		/// Gets the right side thruster of this ACDropship.
 		/// @return A pointer to the right side thruster of this ACDropship. Ownership is NOT transferred.
-		AEmitter* GetRightThruster() const { return m_pRThruster; }
+		AEmitter* GetRightThruster() const;
 
 		/// Sets the right side thruster for this ACDropship.
 		/// @param newThruster The new thruster to use.
@@ -90,7 +87,7 @@ namespace RTE {
 
 		/// Gets the left side thruster of this ACDropship.
 		/// @return A pointer to the left side thruster of this ACDropship. Ownership is NOT transferred.
-		AEmitter* GetLeftThruster() const { return m_pLThruster; }
+		AEmitter* GetLeftThruster() const;
 
 		/// Sets the left side thruster for this ACDropship.
 		/// @param newThruster The new thruster to use.
@@ -98,7 +95,7 @@ namespace RTE {
 
 		/// Gets the right side secondary thruster of this ACDropship.
 		/// @return A pointer to the right side secondary thruster of this ACDropship. Ownership is NOT transferred.
-		AEmitter* GetURightThruster() const { return m_pURThruster; }
+		AEmitter* GetURightThruster() const;
 
 		/// Sets the right side secondary thruster for this ACDropship.
 		/// @param newThruster The new thruster to use.
@@ -106,7 +103,7 @@ namespace RTE {
 
 		/// Gets the left side secondary thruster of this ACDropship.
 		/// @return A pointer to the left side secondary thruster of this ACDropship. Ownership is NOT transferred.
-		AEmitter* GetULeftThruster() const { return m_pULThruster; }
+		AEmitter* GetULeftThruster() const;
 
 		/// Sets the left side secondary thruster for this ACDropship.
 		/// @param newThruster The new thruster to use.
@@ -114,7 +111,7 @@ namespace RTE {
 
 		/// Gets the left side hatch of this ACDropship.
 		/// @return A pointer to the left side hatch of this ACDropship. Ownership is NOT transferred.
-		Attachable* GetLeftHatch() const { return m_pLHatch; }
+		Attachable* GetLeftHatch() const;
 
 		/// Sets the left side hatch for this ACDropship.
 		/// @param newHatch The new hatch to use.
@@ -122,7 +119,7 @@ namespace RTE {
 
 		/// Gets the right side hatch of this ACDropship.
 		/// @return A pointer to the right side hatch of this ACDropship. Ownership is NOT transferred.
-		Attachable* GetRightHatch() const { return m_pRHatch; }
+		Attachable* GetRightHatch() const;
 
 		/// Sets the right side hatch for this ACDropship.
 		/// @param newHatch The new hatch to use.
@@ -130,31 +127,31 @@ namespace RTE {
 
 		/// Get max engine rotation angle in degrees.
 		/// @return Max engine angle in degrees.
-		float GetMaxEngineAngle() const { return m_MaxEngineAngle; }
+		float GetMaxEngineAngle() const;
 
 		/// Sets max engine rotation angle in degrees.
 		/// @param newAngle Max engine angle in degrees.
-		void SetMaxEngineAngle(float newAngle) { m_MaxEngineAngle = newAngle; }
+		void SetMaxEngineAngle(float newAngle);
 
 		/// Gets the abstract rate of LateralControl change. Default is 6
 		/// @return Current lateral control speed value.
-		float GetLateralControlSpeed() const { return m_LateralControlSpeed; }
+		float GetLateralControlSpeed() const;
 
 		/// Sets the abstract rate of LateralControl change. Default is 6
 		/// @param newSpeed New lateral control speed value.
-		void SetLateralControlSpeed(float newSpeed) { m_LateralControl = newSpeed; }
+		void SetLateralControlSpeed(float newSpeed);
 
 		/// Sets lateral control value -1.0 to 1.0 control of sideways movement. 0 means try to stand still in X.
 		/// @return Current lateral control value.
-		float GetLateralControl() const { return m_LateralControl; }
+		float GetLateralControl() const;
 
 		/// Gets the modifier for height at which this ACDropship should hover above terrain.
 		/// @return The modifier for height at which this ACDropship should hover above terrain.
-		float GetHoverHeightModifier() const { return m_HoverHeightModifier; }
+		float GetHoverHeightModifier() const;
 
 		/// Sets the modifier for height at which this ACDropship should hover above terrain.
 		/// @param newHoverHeightModifier The new modifier for height at which this ACDropship should hover above terrain.
-		void SetHoverHeightModifier(float newHoverHeightModifier) { m_HoverHeightModifier = newHoverHeightModifier; }
+		void SetHoverHeightModifier(float newHoverHeightModifier);
 
 		/// Protected member variable and method declarations
 	protected:

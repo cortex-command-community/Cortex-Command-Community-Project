@@ -145,6 +145,11 @@ int ACRocket::Create(const ACRocket& reference) {
 	return 0;
 }
 
+void ACRocket::Reset() {
+	Clear();
+	ACraft::Reset();
+}
+
 int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return ACraft::ReadProperty(propName, reader));
 
@@ -403,6 +408,14 @@ void ACRocket::Update() {
 	}
 }
 
+int ACRocket::GetMaxPassengers() const {
+	return m_MaxPassengers > -1 ? m_MaxPassengers : 2;
+}
+
+Leg* ACRocket::GetRightLeg() const {
+	return m_pRLeg;
+}
+
 void ACRocket::SetRightLeg(Leg* newLeg) {
 	if (m_pRLeg && m_pRLeg->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pRLeg);
@@ -423,6 +436,10 @@ void ACRocket::SetRightLeg(Leg* newLeg) {
 			m_pRLeg->SetDamageMultiplier(1.0F);
 		}
 	}
+}
+
+Leg* ACRocket::GetLeftLeg() const {
+	return m_pLLeg;
 }
 
 void ACRocket::SetLeftLeg(Leg* newLeg) {
@@ -448,6 +465,10 @@ void ACRocket::SetLeftLeg(Leg* newLeg) {
 	}
 }
 
+AEmitter* ACRocket::GetMainThruster() const {
+	return m_pMThruster;
+}
+
 void ACRocket::SetMainThruster(AEmitter* newThruster) {
 	if (m_pMThruster && m_pMThruster->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pMThruster);
@@ -469,6 +490,10 @@ void ACRocket::SetMainThruster(AEmitter* newThruster) {
 		}
 		m_pMThruster->SetInheritedRotAngleOffset(-c_HalfPI);
 	}
+}
+
+AEmitter* ACRocket::GetRightThruster() const {
+	return m_pRThruster;
 }
 
 void ACRocket::SetRightThruster(AEmitter* newThruster) {
@@ -494,6 +519,10 @@ void ACRocket::SetRightThruster(AEmitter* newThruster) {
 	}
 }
 
+AEmitter* ACRocket::GetLeftThruster() const {
+	return m_pLThruster;
+}
+
 void ACRocket::SetLeftThruster(AEmitter* newThruster) {
 	if (m_pLThruster && m_pLThruster->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pLThruster);
@@ -515,6 +544,10 @@ void ACRocket::SetLeftThruster(AEmitter* newThruster) {
 		}
 		m_pLThruster->SetInheritedRotAngleOffset(c_PI - c_EighthPI);
 	}
+}
+
+AEmitter* ACRocket::GetURightThruster() const {
+	return m_pURThruster;
 }
 
 void ACRocket::SetURightThruster(AEmitter* newThruster) {
@@ -540,6 +573,10 @@ void ACRocket::SetURightThruster(AEmitter* newThruster) {
 	}
 }
 
+AEmitter* ACRocket::GetULeftThruster() const {
+	return m_pULThruster;
+}
+
 void ACRocket::SetULeftThruster(AEmitter* newThruster) {
 	if (m_pULThruster && m_pULThruster->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pULThruster);
@@ -561,6 +598,10 @@ void ACRocket::SetULeftThruster(AEmitter* newThruster) {
 		}
 		m_pULThruster->SetInheritedRotAngleOffset(c_HalfPI + c_EighthPI);
 	}
+}
+
+unsigned int ACRocket::GetGearState() const {
+	return m_GearState;
 }
 
 void ACRocket::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {

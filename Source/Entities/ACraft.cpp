@@ -34,6 +34,10 @@ ACraft::~ACraft() {
 	Destroy(true);
 }
 
+ACraft::Exit::Exit() {
+	Clear();
+}
+
 void ACraft::Exit::Clear() {
 	m_Offset.Reset();
 	m_Velocity.Reset();
@@ -60,6 +64,26 @@ int ACraft::Exit::Create() {
 		return -1;
 
 	return 0;
+}
+
+void ACraft::Exit::Reset() {
+	Clear();
+}
+
+Vector ACraft::Exit::GetOffset() const {
+	return m_Offset;
+}
+
+Vector ACraft::Exit::GetVelocity() const {
+	return m_Velocity * (1.0F + m_VelSpread * RandomNormalNum());
+}
+
+float ACraft::Exit::GetRadius() const {
+	return m_Radius;
+}
+
+float ACraft::Exit::GetRange() const {
+	return m_Range;
 }
 
 int ACraft::Exit::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -96,6 +120,10 @@ bool ACraft::Exit::CheckIfClear(const Vector& pos, Matrix& rot, float size) {
 	Vector ray = m_Velocity;
 	ray.SetMagnitude(size);
 	return m_Clear = !g_SceneMan.CastNotMaterialRay(pos + (m_Offset * rot), ray * rot, g_MaterialAir, notUsed);
+}
+
+bool ACraft::Exit::IsClear() const {
+	return m_Clear;
 }
 
 MOSRotating* ACraft::Exit::SuckInMOs(ACraft* pExitOwner) {
@@ -260,6 +288,11 @@ int ACraft::Create(const ACraft& reference) {
 	return 0;
 }
 
+void ACraft::Reset() {
+	Clear();
+	Actor::Reset();
+}
+
 int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
@@ -372,6 +405,10 @@ bool ACraft::HasObjectInGroup(std::string groupName) const {
 	return false;
 }
 
+unsigned int ACraft::GetHatchState() const {
+	return m_HatchState;
+}
+
 void ACraft::SetTeam(int team) {
 	Actor::SetTeam(team);
 
@@ -413,6 +450,10 @@ bool ACraft::HandlePieCommand(PieSliceType pieSliceIndex) {
 			return Actor::HandlePieCommand(pieSliceIndex);
 		}
 	}
+	return false;
+}
+
+bool ACraft::AutoStabilizing() {
 	return false;
 }
 
@@ -599,6 +640,38 @@ float ACraft::GetCollectedInventoryMass() const {
 	return inventoryMass;
 }
 
+int ACraft::GetMaxPassengers() const {
+	return m_MaxPassengers;
+}
+
+void ACraft::SetMaxPassengers(int max) {
+	m_MaxPassengers = max;
+}
+
+float ACraft::GetDeliveryDelayMultiplier() const {
+	return m_DeliveryDelayMultiplier;
+}
+
+void ACraft::SetDeliveryDelayMultiplier(float newValue) {
+	m_DeliveryDelayMultiplier = newValue;
+}
+
+bool ACraft::GetScuttleOnDeath() const {
+	return m_ScuttleOnDeath;
+}
+
+void ACraft::SetScuttleOnDeath(bool scuttleOnDeath) {
+	m_ScuttleOnDeath = scuttleOnDeath;
+}
+
+int ACraft::GetHatchDelay() const {
+	return m_HatchDelay;
+}
+
+void ACraft::SetHatchDelay(int newDelay) {
+	m_HatchDelay = newDelay;
+}
+
 void ACraft::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
 	if (g_SettingsMan.CrabBombsEnabled() && !s_CrabBombInEffect) {
 		s_CrabBombInEffect = true;
@@ -619,6 +692,38 @@ void ACraft::GibThis(const Vector& impactImpulse, MovableObject* movableObjectTo
 		s_CrabBombInEffect = false;
 	}
 	Actor::GibThis(impactImpulse, movableObjectToIgnore);
+}
+
+SoundContainer* ACraft::GetHatchOpenSound() const {
+	return m_HatchOpenSound;
+}
+
+void ACraft::SetHatchOpenSound(SoundContainer* newSound) {
+	m_HatchOpenSound = newSound;
+}
+
+SoundContainer* ACraft::GetHatchCloseSound() const {
+	return m_HatchCloseSound;
+}
+
+void ACraft::SetHatchCloseSound(SoundContainer* newSound) {
+	m_HatchCloseSound = newSound;
+}
+
+SoundContainer* ACraft::GetCrashSound() const {
+	return m_CrashSound;
+}
+
+void ACraft::SetCrashSound(SoundContainer* newSound) {
+	m_CrashSound = newSound;
+}
+
+float ACraft::GetMass() const {
+	return Actor::GetMass() + GetCollectedInventoryMass();
+}
+
+bool ACraft::HasDelivered() {
+	return m_HasDelivered;
 }
 
 void ACraft::ResetAllTimers() {

@@ -62,10 +62,7 @@ namespace RTE {
 
 		/// Resets the entire ACrab, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Actor::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -79,7 +76,7 @@ namespace RTE {
 
 		/// Gets the Turret of this ACrab.
 		/// @return A pointer to Turret of this ACrab. Ownership is NOT transferred!
-		Turret* GetTurret() const { return m_pTurret; }
+		Turret* GetTurret() const;
 
 		/// Sets the Turret for this ACrab. Ownership IS transferred!
 		/// @param newTurret The new Turret to use.
@@ -87,7 +84,7 @@ namespace RTE {
 
 		/// Gets the jetpack of this ACrab.
 		/// @return A pointer to the jetpack of this ACrab. Ownership is NOT transferred!
-		AEJetpack* GetJetpack() const { return m_pJetpack; }
+		AEJetpack* GetJetpack() const;
 
 		/// Sets the jetpack for this ACrab. Ownership IS Transferred!
 		/// @param newJetpack The new jetpack to use.
@@ -95,7 +92,7 @@ namespace RTE {
 
 		/// Gets the left foreground Leg of this ACrab.
 		/// @return A pointer to the left foreground Leg of this ACrab. Ownership is NOT transferred!
-		Leg* GetLeftFGLeg() const { return m_pLFGLeg; }
+		Leg* GetLeftFGLeg() const;
 
 		/// Sets the left foreground Leg for this ACrab. Ownership IS transferred!
 		/// @param newLeg The new Leg to use.
@@ -103,7 +100,7 @@ namespace RTE {
 
 		/// Gets the left background Leg of this ACrab.
 		/// @return A pointer to the left background Leg of this ACrab. Ownership is NOT transferred!
-		Leg* GetLeftBGLeg() const { return m_pLBGLeg; }
+		Leg* GetLeftBGLeg() const;
 
 		/// Sets the left background Leg for this ACrab. Ownership IS transferred!
 		/// @param newLeg The new Leg to use.
@@ -111,7 +108,7 @@ namespace RTE {
 
 		/// Gets the right foreground Leg of this ACrab.
 		/// @return A pointer to the right foreground Leg of this ACrab. Ownership is NOT transferred!
-		Leg* GetRightFGLeg() const { return m_pRFGLeg; }
+		Leg* GetRightFGLeg() const;
 
 		/// Sets the right foreground Leg for this ACrab. Ownership IS transferred!
 		/// @param newLeg The new Leg to use.
@@ -119,7 +116,7 @@ namespace RTE {
 
 		/// Gets the right BG Leg of this ACrab.
 		/// @return A pointer to the right background Leg of this ACrab. Ownership is NOT transferred!
-		Leg* GetRightBGLeg() const { return m_pRBGLeg; }
+		Leg* GetRightBGLeg() const;
 
 		/// Sets the right background Leg for this ACrab. Ownership IS transferred!
 		/// @param newLeg The new Leg to use.
@@ -192,7 +189,7 @@ namespace RTE {
 
 		/// Gets whether this ACrab has just taken a stride this frame.
 		/// @return Whether this ACrab has taken a stride this frame or not.
-		bool StrideFrame() const { return m_StrideFrame; }
+		bool StrideFrame() const;
 
 		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
 		void PreControllerUpdate() override;
@@ -222,7 +219,7 @@ namespace RTE {
 		/// @param layer Whether to get foreground or background LimbPath.
 		/// @param movementState Which movement state to get the LimbPath for.
 		/// @return The LimbPath corresponding to the passed in Layer and MovementState values.
-		LimbPath* GetLimbPath(Side side, Layer layer, MovementState movementState) { return &m_Paths[side][layer][movementState]; }
+		LimbPath* GetLimbPath(Side side, Layer layer, MovementState movementState);
 
 		/// Get walking limb path speed for the specified preset.
 		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST
@@ -245,27 +242,27 @@ namespace RTE {
 
 		/// Gets this ACrab's stride sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ACrab's stride sound.
-		SoundContainer* GetStrideSound() const { return m_StrideSound; }
+		SoundContainer* GetStrideSound() const;
 
 		/// Sets this ACrab's stride sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ACrab's stride sound.
-		void SetStrideSound(SoundContainer* newSound) { m_StrideSound = newSound; }
+		void SetStrideSound(SoundContainer* newSound);
 
 		/// Gets the upper limit of this ACrab's aim range.
 		/// @return The upper limit of this ACrab's aim range.
-		float GetAimRangeUpperLimit() const { return m_AimRangeUpperLimit; }
+		float GetAimRangeUpperLimit() const;
 
 		/// Sets the upper limit of this ACrab's aim range.
 		/// @param aimRangeUpperLimit The new upper limit of this ACrab's aim range.
-		void SetAimRangeUpperLimit(float aimRangeUpperLimit) { m_AimRangeUpperLimit = aimRangeUpperLimit; }
+		void SetAimRangeUpperLimit(float aimRangeUpperLimit);
 
 		/// Gets the lower limit of this ACrab's aim range.
 		/// @return The lower limit of this ACrab's aim range.
-		float GetAimRangeLowerLimit() const { return m_AimRangeLowerLimit; }
+		float GetAimRangeLowerLimit() const;
 
 		/// Sets the lower limit of this ACrab's aim range.
 		/// @param aimRangeLowerLimit The new lower limit of this ACrab's aim range.
-		void SetAimRangeLowerLimit(float aimRangeLowerLimit) { m_AimRangeLowerLimit = aimRangeLowerLimit; }
+		void SetAimRangeLowerLimit(float aimRangeLowerLimit);
 
 		/// Protected member variable and method declarations
 	protected:

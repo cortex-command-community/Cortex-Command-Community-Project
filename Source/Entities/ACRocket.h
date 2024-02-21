@@ -56,10 +56,7 @@ namespace RTE {
 
 		/// Resets the entire ACRocket, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			ACraft::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -94,11 +91,11 @@ namespace RTE {
 		/// invetory. Used by the activity AI.
 		/// @return An integer with the recomended number of actors that fit in the craft.
 		/// Default is two.
-		int GetMaxPassengers() const override { return m_MaxPassengers > -1 ? m_MaxPassengers : 2; }
+		int GetMaxPassengers() const override;
 
 		/// Gets the right leg of this ACRocket.
 		/// @return A pointer to the right Leg of this ACRocket. Ownership is NOT transferred.
-		Leg* GetRightLeg() const { return m_pRLeg; }
+		Leg* GetRightLeg() const;
 
 		/// Sets the right Leg for this ACRocket.
 		/// @param newLeg The new Leg to use.
@@ -106,7 +103,7 @@ namespace RTE {
 
 		/// Gets the left Leg of this ACRocket.
 		/// @return A pointer to the left Leg of this ACRocket. Ownership is NOT transferred.
-		Leg* GetLeftLeg() const { return m_pLLeg; }
+		Leg* GetLeftLeg() const;
 
 		/// Sets the left Leg for this ACRocket.
 		/// @param newLeg The new Leg to use.
@@ -114,7 +111,7 @@ namespace RTE {
 
 		/// Gets the main thruster of this ACRocket.
 		/// @return A pointer to the main thruster of this ACRocket. Ownership is NOT transferred.
-		AEmitter* GetMainThruster() const { return m_pMThruster; }
+		AEmitter* GetMainThruster() const;
 
 		/// Sets the main thruster for this ACRocket.
 		/// @param newThruster The new thruster to use.
@@ -122,7 +119,7 @@ namespace RTE {
 
 		/// Gets the right side thruster of this ACRocket.
 		/// @return A pointer to the right side thruster of this ACRocket. Ownership is NOT transferred.
-		AEmitter* GetRightThruster() const { return m_pRThruster; }
+		AEmitter* GetRightThruster() const;
 
 		/// Sets the right side thruster for this ACRocket.
 		/// @param newThruster The new thruster to use.
@@ -130,7 +127,7 @@ namespace RTE {
 
 		/// Gets the left side thruster of this ACRocket.
 		/// @return A pointer to the left side thruster of this ACRocket. Ownership is NOT transferred.
-		AEmitter* GetLeftThruster() const { return m_pLThruster; }
+		AEmitter* GetLeftThruster() const;
 
 		/// Sets the left side thruster for this ACRocket.
 		/// @param newThruster The new thruster to use.
@@ -138,7 +135,7 @@ namespace RTE {
 
 		/// Gets the right side secondary thruster of this ACRocket.
 		/// @return A pointer to the right side secondary thruster of this ACRocket. Ownership is NOT transferred.
-		AEmitter* GetURightThruster() const { return m_pURThruster; }
+		AEmitter* GetURightThruster() const;
 
 		/// Sets the right side secondary thruster for this ACRocket.
 		/// @param newThruster The new thruster to use.
@@ -146,7 +143,7 @@ namespace RTE {
 
 		/// Gets the left side secondary thruster of this ACRocket.
 		/// @return A pointer to the left side secondary thruster of this ACRocket. Ownership is NOT transferred.
-		AEmitter* GetULeftThruster() const { return m_pULThruster; }
+		AEmitter* GetULeftThruster() const;
 
 		/// Sets the left side secondary thruster for this ACRocket.
 		/// @param newThruster The new thruster to use.
@@ -154,7 +151,7 @@ namespace RTE {
 
 		/// Gets the the landing gear state
 		/// @return Current landing gear state.
-		unsigned int GetGearState() const { return m_GearState; }
+		unsigned int GetGearState() const;
 
 		/// Protected member variable and method declarations
 	protected:

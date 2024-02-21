@@ -245,6 +245,11 @@ int ACrab::Create(const ACrab& reference) {
 	return 0;
 }
 
+void ACrab::Reset() {
+	Clear();
+	Actor::Reset();
+}
+
 int ACrab::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
@@ -427,6 +432,10 @@ Vector ACrab::GetEyePos() const {
 	return m_Pos;
 }
 
+Turret* ACrab::GetTurret() const {
+	return m_pTurret;
+}
+
 void ACrab::SetTurret(Turret* newTurret) {
 	if (m_pTurret && m_pTurret->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pTurret);
@@ -447,6 +456,10 @@ void ACrab::SetTurret(Turret* newTurret) {
 			m_pTurret->SetDamageMultiplier(5.0F);
 		}
 	}
+}
+
+AEJetpack* ACrab::GetJetpack() const {
+	return m_pJetpack;
 }
 
 void ACrab::SetJetpack(AEJetpack* newJetpack) {
@@ -473,6 +486,10 @@ void ACrab::SetJetpack(AEJetpack* newJetpack) {
 	}
 }
 
+Leg* ACrab::GetLeftFGLeg() const {
+	return m_pLFGLeg;
+}
+
 void ACrab::SetLeftFGLeg(Leg* newLeg) {
 	if (m_pLFGLeg && m_pLFGLeg->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pLFGLeg);
@@ -494,6 +511,10 @@ void ACrab::SetLeftFGLeg(Leg* newLeg) {
 		}
 		m_pLFGLeg->SetInheritsHFlipped(-1);
 	}
+}
+
+Leg* ACrab::GetLeftBGLeg() const {
+	return m_pLBGLeg;
 }
 
 void ACrab::SetLeftBGLeg(Leg* newLeg) {
@@ -519,6 +540,10 @@ void ACrab::SetLeftBGLeg(Leg* newLeg) {
 	}
 }
 
+Leg* ACrab::GetRightFGLeg() const {
+	return m_pRFGLeg;
+}
+
 void ACrab::SetRightFGLeg(Leg* newLeg) {
 	if (m_pRFGLeg && m_pRFGLeg->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pRFGLeg);
@@ -539,6 +564,10 @@ void ACrab::SetRightFGLeg(Leg* newLeg) {
 			m_pRFGLeg->SetDamageMultiplier(1.0F);
 		}
 	}
+}
+
+Leg* ACrab::GetRightBGLeg() const {
+	return m_pRBGLeg;
 }
 
 void ACrab::SetRightBGLeg(Leg* newLeg) {
@@ -756,6 +785,30 @@ MovableObject* ACrab::LookForMOs(float FOVSpread, unsigned char ignoreMaterial, 
 	return pSeenMO;
 }
 
+SoundContainer* ACrab::GetStrideSound() const {
+	return m_StrideSound;
+}
+
+void ACrab::SetStrideSound(SoundContainer* newSound) {
+	m_StrideSound = newSound;
+}
+
+float ACrab::GetAimRangeUpperLimit() const {
+	return m_AimRangeUpperLimit;
+}
+
+void ACrab::SetAimRangeUpperLimit(float aimRangeUpperLimit) {
+	m_AimRangeUpperLimit = aimRangeUpperLimit;
+}
+
+float ACrab::GetAimRangeLowerLimit() const {
+	return m_AimRangeLowerLimit;
+}
+
+void ACrab::SetAimRangeLowerLimit(float aimRangeLowerLimit) {
+	m_AimRangeLowerLimit = aimRangeLowerLimit;
+}
+
 void ACrab::OnNewMovePath() {
 	Actor::OnNewMovePath();
 
@@ -786,6 +839,10 @@ void ACrab::OnNewMovePath() {
 			previousPoint = (*lItr);
 		}
 	}
+}
+
+bool ACrab::StrideFrame() const {
+	return m_StrideFrame;
 }
 
 void ACrab::PreControllerUpdate() {
@@ -1482,6 +1539,10 @@ void ACrab::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 			m_HUDStack -= 9;
 		}
 	}
+}
+
+LimbPath* ACrab::GetLimbPath(Side side, Layer layer, MovementState movementState) {
+	return &m_Paths[side][layer][movementState];
 }
 
 float ACrab::GetLimbPathSpeed(int speedPreset) const {
