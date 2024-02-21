@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed Constructor auto-cancelling build mode if you actively selected the "Order Construction" pie menu option.
 
+- Fixed issue where the off hand wouldn't default to the `IdleOffset` of it's arm when the current held device had `Supportable = 0`.
+
+- Fixed edge case where having a device with `UseSupportOffsetWhileReloading = 1` and `Supportable = 0/1` depending on if it was reloading or not would result in the gun not being held by the support hand when reloading.
+
 </details>
 
 ## [Release v6.2.0] - 2024/02/19
