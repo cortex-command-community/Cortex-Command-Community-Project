@@ -246,6 +246,22 @@ namespace RTE {
 		/// Sets the pitch variation the sounds in this SoundContainer are played at.
 		/// @param newValue The pitch variation the sounds in this SoundContainer are played at.
 		void SetPitchVariation(float newValue) { m_PitchVariation = newValue; }
+
+		/// Gets the music pre-entry time for this SoundContainer.
+		/// @return The time before the music starts in this SoundContainer in MS.
+		float GetMusicPreEntryTime() const { return m_MusicPreEntryTime; }
+
+		/// Sets the music pre-entry time for this SoundContainer.
+		/// @param newValue The new MusicPreEntryTime for this SoundContainer in MS.
+		void SetMusicPreEntryTime(float newValue) { m_MusicPreEntryTime = newValue; }
+
+		/// Gets the music post-exit time for this SoundContainer.
+		/// @return The time after the music ends in this SoundContainer in MS.
+		float GetMusicPostExitTime() const { return m_MusicPostExitTime; }
+
+		/// Sets the music post-exit time for this SoundContainer.
+		/// @param newValue The new MusicPostExitTime for this SoundContainer in MS.
+		void SetMusicPostExitTime(float newValue) { m_MusicPostExitTime = newValue; }
 #pragma endregion
 
 #pragma region Playback Controls
@@ -328,6 +344,9 @@ namespace RTE {
 		float m_Pitch; //!< The current natural pitch of this SoundContainer's sounds.
 		float m_PitchVariation; //!< The randomized pitch variation of this SoundContainer's sounds. 1 means the sound will vary a full octave both ways.
 		float m_Volume; //!< The current natural volume of this SoundContainer's sounds.
+
+		float m_MusicPreEntryTime; //!< The time in MS before the music starts in this SoundContainer.
+		float m_MusicPostExitTime; //!< The time in MS after the music ends in this SoundContainer, until the end of the sound.
 
 		/// Clears all the member variables of this SoundContainer, effectively resetting the members of this abstraction level only.
 		void Clear();

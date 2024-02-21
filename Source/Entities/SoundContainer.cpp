@@ -52,6 +52,9 @@ void SoundContainer::Clear() {
 	m_Volume = 1.0F;
 	m_Pitch = 1.0F;
 	m_PitchVariation = 0;
+
+	m_MusicPreEntryTime = 0.0F;
+	m_MusicPostExitTime = 0.0F;
 }
 
 int SoundContainer::Create(const SoundContainer& reference) {
@@ -76,6 +79,9 @@ int SoundContainer::Create(const SoundContainer& reference) {
 	m_Volume = reference.m_Volume;
 	m_Pitch = reference.m_Pitch;
 	m_PitchVariation = reference.m_PitchVariation;
+
+	m_MusicPreEntryTime = reference.m_MusicPreEntryTime;
+	m_MusicPostExitTime = reference.m_MusicPostExitTime;
 
 	return 0;
 }
@@ -144,6 +150,9 @@ int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reade
 	MatchProperty("Volume", { reader >> m_Volume; });
 	MatchProperty("Pitch", { reader >> m_Pitch; });
 	MatchProperty("PitchVariation", { reader >> m_PitchVariation; });
+	
+	MatchProperty("MusicPreEntryTime", { reader >> m_MusicPreEntryTime; });
+	MatchProperty("MusicPostExitTime", { reader >> m_MusicPostExitTime; });
 
 	EndPropertyList;
 }
@@ -190,6 +199,11 @@ int SoundContainer::Save(Writer& writer) const {
 	writer << m_Pitch;
 	writer.NewProperty("PitchVariation");
 	writer << m_PitchVariation;
+
+	writer.NewProperty("MusicPreEntryTime");
+	writer << m_MusicPreEntryTime;
+	writer.NewProperty("MusicPostExitTime");
+	writer << m_MusicPostExitTime;
 
 	return 0;
 }
