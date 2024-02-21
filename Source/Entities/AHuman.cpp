@@ -2243,7 +2243,7 @@ void AHuman::PreControllerUpdate() {
 				} else if (heldDevice) {
 					if (HeldDevice* bgDevice = GetEquippedBGItem(); bgDevice && !heldDevice->IsOneHanded()) {
 						UnequipBGArm();
-					} else if (!bgDevice && !heldDevice->IsReloading() && heldDevice->IsSupportable()) {
+					} else if (!bgDevice && (!heldDevice->IsReloading() || heldDevice->GetUseSupportOffsetWhileReloading()) && heldDevice->IsSupportable()) {
 						m_pBGArm->SetHeldDeviceThisArmIsTryingToSupport(heldDevice);
 
 						if (!m_pBGArm->HasAnyHandTargets() && m_pBGArm->GetHandHasReachedCurrentTarget()) {

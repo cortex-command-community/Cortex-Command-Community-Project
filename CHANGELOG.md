@@ -10,7 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed Constructor auto-cancelling build mode if you actively selected the "Order Construction" pie menu option.
 
-- Fixed regression introduced in v6.2.0 preventing Massacre, One-Man Army, One-Man Army (Diggers Only), and Survival from spawning enemies at all.
+- Fixed issue where the offhand wouldn't default to the `IdleOffset` of it's arm when the current held device had `Supportable = 0`.
+
+- Fixed edge case where having a device with `UseSupportOffsetWhileReloading = 1`, and `Supportable = 0/1` depending on if it was reloading or not, would result in the gun not being held by the support hand when reloading.
+
+- Fixed regression introduced in v6.2.0 preventing Massacre, One-Man Army, One-Man Army (Diggers Only), and Survival from spawning enemies at all.  
 
 </details>
 
