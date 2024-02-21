@@ -739,6 +739,7 @@
     <ClInclude Include="Source\Entities\Activity.h" />
     <ClInclude Include="Source\Entities\ADSensor.h" />
     <ClInclude Include="Source\Entities\AEJetpack.h" />
+    <ClInclude Include="Source\Entities\DynamicSong.h" />
     <ClInclude Include="Source\Entities\Emission.h" />
     <ClInclude Include="Source\Entities\Gib.h" />
     <ClInclude Include="Source\Entities\MetaSave.h" />
@@ -759,6 +760,7 @@
     <ClInclude Include="Source\Lua\LuaBindingRegisterDefinitions.h" />
     <ClInclude Include="Source\GUI\GUIWriter.h" />
     <ClInclude Include="Source\Managers\CameraMan.h" />
+    <ClInclude Include="Source\Managers\MusicMan.h" />
     <ClInclude Include="Source\Managers\MenuMan.h" />
     <ClInclude Include="Source\Managers\NetworkClient.h" />
     <ClInclude Include="Source\Managers\NetworkServer.h" />
@@ -931,6 +933,7 @@
   <ItemGroup>
     <ClCompile Include="external\sources\tracy\public\TracyClient.cpp" />
     <ClCompile Include="Source\Entities\AEJetpack.cpp" />
+    <ClCompile Include="Source\Entities\DynamicSong.cpp" />
     <ClCompile Include="Source\GUI\Wrappers\AllegroBitmap.cpp" />
     <ClCompile Include="Source\GUI\Wrappers\AllegroScreen.cpp" />
     <ClCompile Include="Source\GUI\Wrappers\GUIInputWrapper.cpp" />
@@ -984,6 +987,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
     </ClCompile>
+    <ClCompile Include="Source\Managers\MusicMan.cpp" />
     <ClCompile Include="Source\Managers\LuaMan.cpp">
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
