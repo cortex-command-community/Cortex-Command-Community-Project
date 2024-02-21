@@ -4,17 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Release v6.2.1] - 2024/02/21
 
 <details><summary><b>Fixed</b></summary>
 
+- Fixed regression introduced in v6.2.0 preventing Massacre, One-Man Army, One-Man Army (Diggers Only), and Survival from spawning enemies at all. 
+
 - Fixed Constructor auto-cancelling build mode if you actively selected the "Order Construction" pie menu option.
 
-- Fixed issue where the offhand wouldn't default to the `IdleOffset` of it's arm when the current held device had `Supportable = 0`.
+- Fixed issue where the offhand wouldn't default to the `IdleOffset` of its arm when the current held device had `Supportable = 0`.
 
-- Fixed edge case where having a device with `UseSupportOffsetWhileReloading = 1`, and `Supportable = 0/1` depending on if it was reloading or not, would result in the gun not being held by the support hand when reloading.
-
-- Fixed regression introduced in v6.2.0 preventing Massacre, One-Man Army, One-Man Army (Diggers Only), and Survival from spawning enemies at all.  
+- Fixed edge case where having a device with `UseSupportOffsetWhileReloading = 1`, and `Supportable = 0/1` depending on if it was reloading or not, would result in the gun not being held by the support hand when reloading. 
 
 </details>
 
@@ -2521,4 +2521,5 @@ Note: For a log of changes made prior to the commencement of the open source com
 [Release v6.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.0.0
 [Release v6.1.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.1.0
 [Release v6.2.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.2.0
+[Release v6.2.1]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.2.1
 [Unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development
