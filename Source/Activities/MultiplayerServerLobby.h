@@ -56,10 +56,7 @@ namespace RTE {
 
 		/// Resets the entire MultiplayerServerLobby, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Activity::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the MultiplayerServerLobby object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)

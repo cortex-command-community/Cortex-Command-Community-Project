@@ -82,6 +82,11 @@ int MultiplayerGame::Create(const MultiplayerGame& reference) {
 	return 0;
 }
 
+void MultiplayerGame::Reset() {
+	Clear();
+	Activity::Reset();
+}
+
 int MultiplayerGame::ReadProperty(const std::string_view& propName, Reader& reader) {
 	return Activity::ReadProperty(propName, reader);
 }

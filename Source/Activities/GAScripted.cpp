@@ -71,6 +71,12 @@ int GAScripted::Create() {
 	return 0;
 }
 
+int GAScripted::Create(std::string scriptPath, std::string scriptClassName) {
+	m_ScriptPath = scriptPath;
+	m_LuaClassName = scriptClassName;
+	return Create();
+};
+
 int GAScripted::Create(const GAScripted& reference) {
 	if (GameActivity::Create(reference) < 0) {
 		return -1;
@@ -86,6 +92,11 @@ int GAScripted::Create(const GAScripted& reference) {
 	}
 
 	return 0;
+}
+
+void GAScripted::Reset() {
+	Clear();
+	Activity::Reset();
 }
 
 int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -176,6 +187,10 @@ void GAScripted::RefreshActivityFunctions() {
 	for (const auto& [functionName, functionObject]: scriptFileFunctions) {
 		m_ScriptFunctions[functionName] = std::unique_ptr<LuabindObjectWrapper>(functionObject);
 	}
+}
+
+const std::string& GAScripted::GetLuaClassName() const {
+	return m_LuaClassName;
 }
 
 bool GAScripted::HasSaveFunction() const {
@@ -432,6 +447,9 @@ void GAScripted::CollectRequiredAreas() {
 			} while (pos != std::string::npos && pos < commentPos);
 		}
 	}
+}
+
+void GAScripted::InitAIs() {
 }
 
 void GAScripted::AddPieSlicesToActiveActorPieMenus() {

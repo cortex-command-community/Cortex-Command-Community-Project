@@ -118,6 +118,11 @@ int GATutorial::Create(const GATutorial& reference) {
 	return 0;
 }
 
+void GATutorial::Reset() {
+	Clear();
+	Activity::Reset();
+}
+
 int GATutorial::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return GameActivity::ReadProperty(propName, reader));
 	/*

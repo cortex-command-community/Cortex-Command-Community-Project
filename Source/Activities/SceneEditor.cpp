@@ -65,6 +65,11 @@ int SceneEditor::Create(const SceneEditor& reference) {
 	return 0;
 }
 
+void SceneEditor::Reset() {
+	Clear();
+	EditorActivity::Reset();
+}
+
 int SceneEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 	/*
@@ -86,6 +91,14 @@ void SceneEditor::Destroy(bool notInherited) {
 	if (!notInherited)
 		EditorActivity::Destroy();
 	Clear();
+}
+
+void SceneEditor::SetEditorMode(EditorActivity::EditorMode newMode) {
+	m_EditorMode = newMode;
+}
+
+EditorActivity::EditorMode SceneEditor::GetEditorMode() const {
+	return m_EditorMode;
 }
 
 int SceneEditor::Start() {

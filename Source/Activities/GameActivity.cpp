@@ -2548,6 +2548,10 @@ int GameActivity::GetActiveHumanTeamCount() const {
 	return count;
 }
 
+bool GameActivity::ObjPointYPosComparison::operator()(ObjectivePoint& rhs, ObjectivePoint& lhs) {
+	return rhs.m_ScenePos.m_Y < lhs.m_ScenePos.m_Y;
+}
+
 int GameActivity::OtherTeam(int team) {
 	// Only one team in this game, so can't return another one
 	if (m_TeamCount == 1)

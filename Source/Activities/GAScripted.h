@@ -48,11 +48,7 @@ namespace RTE {
 		/// of this class.
 		/// @return An error return value signaling sucess or any particular failure.
 		/// Anything below 0 is an error signal.
-		int Create(std::string scriptPath, std::string scriptClassName) {
-			m_ScriptPath = scriptPath;
-			m_LuaClassName = scriptClassName;
-			return Create();
-		};
+		int Create(std::string scriptPath, std::string scriptClassName);
 
 		/// Creates a GAScripted to be identical to another, by deep copy.
 		/// @param reference A reference to the GAScripted to deep copy.
@@ -62,10 +58,7 @@ namespace RTE {
 
 		/// Resets the entire GAScripted, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Activity::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the GAScripted object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -85,7 +78,7 @@ namespace RTE {
 
 		/// Gets the class name of the Lua-derived class defined in this' script.
 		/// @return A string with the friendly-formatted Lua type name of this object.
-		const std::string& GetLuaClassName() const { return m_LuaClassName; }
+		const std::string& GetLuaClassName() const;
 
 		/// Tells if a particular Scene supports this specific Activity on it.
 		/// Usually that means certain Area:s need to be defined in the Scene.
@@ -140,7 +133,7 @@ namespace RTE {
 		void CollectRequiredAreas();
 
 		/// Does nothing - we do this in script! Just overrides the base behaviour.
-		void InitAIs() override{};
+		void InitAIs() override;
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;

@@ -452,7 +452,7 @@ namespace RTE {
 
 		// Comparison functor for sorting objective points by their y pos using STL's sort
 		struct ObjPointYPosComparison {
-			bool operator()(ObjectivePoint& rhs, ObjectivePoint& lhs) { return rhs.m_ScenePos.m_Y < lhs.m_ScenePos.m_Y; }
+			bool operator()(ObjectivePoint& rhs, ObjectivePoint& lhs);
 		};
 
 		/// Gets the next other team number from the one passed in, if any. If there

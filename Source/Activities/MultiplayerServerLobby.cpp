@@ -113,6 +113,11 @@ int MultiplayerServerLobby::Create(const MultiplayerServerLobby& reference) {
 	return 0;
 }
 
+void MultiplayerServerLobby::Reset() {
+	Clear();
+	Activity::Reset();
+}
+
 int MultiplayerServerLobby::ReadProperty(const std::string_view& propName, Reader& reader) {
 	return Activity::ReadProperty(propName, reader);
 }

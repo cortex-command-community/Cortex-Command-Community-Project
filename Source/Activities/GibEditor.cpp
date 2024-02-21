@@ -65,6 +65,11 @@ int GibEditor::Create(const GibEditor& reference) {
 	return 0;
 }
 
+void GibEditor::Reset() {
+	Clear();
+	EditorActivity::Reset();
+}
+
 int GibEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
 	/*
@@ -88,6 +93,14 @@ void GibEditor::Destroy(bool notInherited) {
 	if (!notInherited)
 		EditorActivity::Destroy();
 	Clear();
+}
+
+void GibEditor::SetEditorMode(EditorActivity::EditorMode newMode) {
+	m_EditorMode = newMode;
+}
+
+EditorActivity::EditorMode GibEditor::GetEditorMode() const {
+	return m_EditorMode;
 }
 
 int GibEditor::Start() {
