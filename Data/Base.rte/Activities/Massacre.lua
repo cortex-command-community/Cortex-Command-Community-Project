@@ -301,7 +301,7 @@ function Massacre:UpdateActivity()
 					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 						if self:PlayerActive(player) and self:PlayerHuman(player) then
 							local sceneChunk = SceneMan.SceneWidth / 3;
-							local checkPos = self:GetPlayerBrain(i - 1).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
+							local checkPos = self:GetPlayerBrain(player).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
 							if checkPos > SceneMan.SceneWidth then
 								checkPos = checkPos - SceneMan.SceneWidth;
 							elseif checkPos < 0 then

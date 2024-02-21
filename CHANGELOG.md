@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed Constructor auto-cancelling build mode if you actively selected the "Order Construction" pie menu option.
 
+- Fixed regression introduced in v6.2.0 preventing Massacre, One-Man Army, One-Man Army (Diggers Only), and Survival from spawning enemies at all.
+
 </details>
 
 ## [Release v6.2.0] - 2024/02/19
