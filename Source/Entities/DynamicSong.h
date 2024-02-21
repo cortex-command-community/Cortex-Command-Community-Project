@@ -46,6 +46,26 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region Getters and Setters
+
+	/// Gets the vector of TransitionSoundContainers for this DynamicSongSection.
+	/// @return The vector of TransitionSoundContainers for this DynamicSongSection.
+	std::vector<SoundContainer>& GetTransitionSoundContainers() { return m_TransitionSoundContainers; }
+		
+	/// Gets the vector of SoundContainers for this DynamicSongSection.
+	/// @return The vector of SoundContainers for this DynamicSongSection.
+	std::vector<SoundContainer>& GetSoundContainers() { return m_SoundContainers; }
+
+	/// Gets the SectionType of this DynamicSongSection.
+	/// @return The SectionType of this DynamicSongSection.
+	std::string& GetSectionType() { return m_SectionType; }
+
+	/// Sets the SectionType of this DynamicSongSection.
+	/// @param newSectionType The new SectionType for this DynamicSongSection.
+	void SetSectionType(const std::string& newSectionType) { m_SectionType = newSectionType; }	
+		
+#pragma endregion 
+
 #pragma region SoundContainer Addition
 
 		/// Adds a copy of the given SoundContainer to this SongSection.
@@ -112,11 +132,23 @@ namespace RTE {
 		}
 #pragma endregion
 
-#pragma region DynamicSoundSection Addition
+#pragma region Getters and Setters
 
-		/// Sets the Default Song Section of this DynamicSong.
-		/// @param songSection The new DynamicSongSection to set.
-		void SetDefaultSongSection(const DynamicSongSection& songSection) { m_DefaultSongSection = songSection; }
+		/// Gets the DefaultSongSection for this DynamicSong.
+		/// @return The default DynamicSongSection for this DynamicSong.
+		DynamicSongSection& GetDefaultSongSection() { return m_DefaultSongSection; }
+
+		/// Sets the DefaultSongSection for this DynamicSong.
+		/// @param newDefaultSongSection The new default DynamicSongSection for this DynamicSong.
+		void SetDefaultSongSection(const DynamicSongSection& newDefaultSongSection) { m_DefaultSongSection = newDefaultSongSection; }
+
+		/// Gets the vector of DynamicSongSections for this DynamicSong.
+		/// @return The vector of DynamicSongSections for this DynamicSong.
+		std::vector<DynamicSongSection>& GetSongSections() { return m_SongSections; }
+		
+#pragma endregion 
+
+#pragma region DynamicSoundSection Addition
 		
 		/// Adds a copy of the given DynamicSongSection to this DynamicSong.
 		/// @param songSectionToAdd The DynamicSongSection to copy to this DynamicSong.

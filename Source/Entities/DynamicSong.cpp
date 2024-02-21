@@ -61,6 +61,27 @@ int DynamicSongSection::ReadProperty(const std::string_view& propName, Reader& r
 	EndPropertyList;
 }
 
+int DynamicSongSection::Save(Writer& writer) const {
+	Entity::Save(writer);
+
+	for (const SoundContainer& soundContainer: m_TransitionSoundContainers) {
+		writer.NewProperty("AddTransitionSoundContainer");
+		writer.ObjectStart("SoundContainer");
+		writer << soundContainer;
+		writer.ObjectEnd();
+	}
+	for (const SoundContainer& soundContainer: m_SoundContainers) {
+		writer.NewProperty("AddSoundContainer");
+		writer.ObjectStart("SoundContainer");
+		writer << soundContainer;
+		writer.ObjectEnd();
+	}
+	writer.NewProperty("SectionType");
+	writer << m_SectionType;
+
+	return 0;
+}
+
 #pragma endregion 
 
 #pragma region DynamicSong
@@ -110,6 +131,23 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 	});
 
 	EndPropertyList;
+}
+
+int DynamicSong::Save(Writer& writer) const {
+	Entity::Save(writer);
+
+	writer.NewProperty("DefaultSongSection");
+	writer.ObjectStart("DynamicSongSection");
+	writer << m_DefaultSongSection;
+	writer.ObjectEnd();
+	for (const DynamicSongSection& dynamicSongSection: m_SongSections) {
+		writer.NewProperty("AddSongSection");
+		writer.ObjectStart("SoundContainer");
+		writer << dynamicSongSection;
+		writer.ObjectEnd();
+	}
+
+	return 0;
 }
 
 #pragma endregion 
