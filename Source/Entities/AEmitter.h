@@ -38,10 +38,7 @@ namespace RTE {
 
 		/// Resets the entire AEmitter, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			MOSRotating::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -50,11 +47,11 @@ namespace RTE {
 
 		/// Indicates whether this AEmitter is currently enabled and emitting.
 		/// @return Whether it's emitting or not.
-		bool IsEmitting() const { return m_EmitEnabled; }
+		bool IsEmitting() const;
 
 		/// Returns whether this emitter was emitting last frame.
 		/// @return Whether this emitter was emitting last frame.
-		bool WasEmitting() const { return m_WasEmitting; }
+		bool WasEmitting() const;
 
 		/// Reset the timers of all emissions so they will start/stop at the
 		/// correct relative offsets from now.
@@ -80,35 +77,35 @@ namespace RTE {
 		/// Gets the scale factor that will be applied to the regular spread and
 		/// emission velocity to get the burst particle parameters.
 		/// @return The scale factor.
-		float GetBurstScale() const { return m_BurstScale; }
+		float GetBurstScale() const;
 
 		/// Gets the angle of direction that the emitted particles will be shot at.
 		/// @return A float with the angle in radians.
-		float GetEmitAngle() const { return m_EmitAngle.GetRadAngle(); }
+		float GetEmitAngle() const;
 
-		const Matrix& GetEmitAngleMatrix() const { return m_EmitAngle; }
+		const Matrix& GetEmitAngleMatrix() const;
 
 		/// Gets the offset of the emission point from this' sprite center, which gets rotated with this.
 		/// @return The emission offset.
-		Vector GetEmitOffset() const { return m_EmissionOffset; }
+		Vector GetEmitOffset() const;
 
 		/// Sets the offset of the emission point from this' sprite center, which gets rotated with this.
 		/// @param newOffset The new emission offset.
-		void SetEmitOffset(const Vector& newOffset) { m_EmissionOffset = newOffset; }
+		void SetEmitOffset(const Vector& newOffset);
 
 		/// A vector in the direction, including the rotation of the emitter, that
 		/// the emitted particles will be shot at.
 		/// @return A unit vector.
-		Vector GetEmitVector() const { return Vector(1, 0).RadRotate(m_HFlipped ? c_PI + m_Rotation.GetRadAngle() - m_EmitAngle.GetRadAngle() : m_Rotation.GetRadAngle() + m_EmitAngle.GetRadAngle()); }
+		Vector GetEmitVector() const;
 
 		/// A vector in the opposite direction, including the rotation of the
 		/// emitter, that the emitted particles will be shot at.
 		/// @return A unit vector.
-		Vector GetRecoilVector() const { return Vector(-1, 0).RadRotate(m_HFlipped ? c_PI + m_Rotation.GetRadAngle() - m_EmitAngle.GetRadAngle() : m_Rotation.GetRadAngle() + m_EmitAngle.GetRadAngle()); }
+		Vector GetRecoilVector() const;
 
 		/// Gets the BurstSpacing for this emitter.
 		/// @return The BurstSpacing in ms.
-		float GetBurstSpacing() const { return m_BurstSpacing; }
+		float GetBurstSpacing() const;
 
 		/*
 		/// Gets the angle spread of velocity of the emitted MO's to each side of
@@ -116,19 +113,19 @@ namespace RTE {
 		/// @return A float with the spread in r's. PI/2 would mean that MO's fly out to
 		/// one side only, with the m_EmitAngle defining the middle of that half
 		/// circle.
-		    float GetEmitSpread() const { return m_Spread; }
+		    float GetEmitSpread() const;
 
 
 		/// Gets the min end of the range the velocity of a particle being emitted
 		/// by this AEmitter can have.
 		/// @return A float with the min vel possible for an emitted particle.
-		    float GetEmitVelMin() const { return m_MinVelocity; }
+		    float GetEmitVelMin() const;
 
 
 		/// Gets the max end of the range the velocity of a particle being emitted
 		/// by this AEmitter can have.
 		/// @return A float with the max vel possible for an emitted particle.
-		    float GetEmitVelMax() const { return m_MaxVelocity; }
+		    float GetEmitVelMax() const;
 		*/
 
 		/// Gets the normalized throttle scalar which controls how to affect the
@@ -136,15 +133,15 @@ namespace RTE {
 		/// the Throttle property instead.
 		/// @return A float with the normalized throttle scalar. 1.0 means max throttle,
 		/// 0 means normal, -1.0 means least emission rate.
-		float GetThrottle() const { return m_Throttle; }
+		float GetThrottle() const;
 
 		/// Gets the adjusted throttle multiplier that is factored into the emission rate of this AEmitter.
 		/// @return The throttle strength as a multiplier.
-		float GetThrottleFactor() const { return Lerp(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle); }
+		float GetThrottleFactor() const;
 
 		/// Gets the throttle value that will achieve a given throttle factor that is factored into the emission rate of this AEmitter.
 		/// @return The throttle value that will achieve the given throttle factor.
-		float GetThrottleForThrottleFactor(float throttleFactor) const { return Lerp(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor); }
+		float GetThrottleForThrottleFactor(float throttleFactor) const;
 
 		/// Returns a scaled throttle value that represents a linear increase of force.
 		/// Because of (bad) reasons, throttle is in the range -1.0F to 1.0F, where -1.0F is "minimum force" and 1.0F is "maximum force".
@@ -158,45 +155,45 @@ namespace RTE {
 
 		/// Gets the negative throttle multiplier of this AEmitter.
 		/// @return The negative throttle multiplier of this AEmitter.
-		float GetNegativeThrottleMultiplier() const { return m_NegativeThrottleMultiplier; }
+		float GetNegativeThrottleMultiplier() const;
 
 		/// Gets the positive throttle multiplier of this AEmitter.
 		/// @return The positive throttle multiplier of this AEmitter.
-		float GetPositiveThrottleMultiplier() const { return m_PositiveThrottleMultiplier; }
+		float GetPositiveThrottleMultiplier() const;
 
 		/// Sets the negative throttle multiplier of this AEmitter.
 		/// @param newValue The new throttle multiplier of this AEmitter.
-		void SetNegativeThrottleMultiplier(float newValue) { m_NegativeThrottleMultiplier = newValue; }
+		void SetNegativeThrottleMultiplier(float newValue);
 
 		/// Sets the positive throttle multiplier of this AEmitter.
 		/// @param newValue The new throttle multiplier of this AEmitter.
-		void SetPositiveThrottleMultiplier(float newValue) { m_PositiveThrottleMultiplier = newValue; }
+		void SetPositiveThrottleMultiplier(float newValue);
 
 		/*
 		/// Sets the rate at which this AEmitter emits its particles.
 		/// @param rate A float with the rate in #/min.
-		    void SetEmitRate(const float rate) { m_PPM = rate; }
+		    void SetEmitRate(const float rate);
 
 
 		/// Sets the number of particles that will be emitted in one shot upon
 		/// a triggered burst of this AEmitter.
 		/// @param count The number of emitted particles a burst should have. 0 means burst
 		/// are disabled.
-		    void SetBurstCount(const int count) { m_BurstSize = count; }
+		    void SetBurstCount(const int count);
 		*/
 
 		/// Sets the scale factor that will be applied to the regular spread and
 		/// emission velocity to get the burst particle parameters.
 		/// @param scale The scale factor.
-		void SetBurstScale(const float scale) { m_BurstScale = scale; }
+		void SetBurstScale(const float scale);
 
 		/// Sets the BurstSpacing for this emitter.
 		/// @param spacing The BurstSpacing in ms.
-		void SetBurstSpacing(const float spacing) { m_BurstSpacing = spacing; }
+		void SetBurstSpacing(const float spacing);
 
 		/// Gets the flash of this AEmitter.
 		/// @return A pointer to the AEmitter's flash. Ownership is NOT transferred!
-		Attachable* GetFlash() const { return m_pFlash; }
+		Attachable* GetFlash() const;
 
 		/// Sets the flash for this AEmitter. Ownership IS transferred!
 		/// @param newFlash The new flash to use.
@@ -205,22 +202,22 @@ namespace RTE {
 		/// Gets the display scale factor of the flash effect. This is purely
 		/// visual.
 		/// @return The scale factor of the flash draw.
-		float GetFlashScale() const { return m_FlashScale; }
+		float GetFlashScale() const;
 
 		/// Sets the display scale factor of the flash effect. This is purely
 		/// visual.
 		/// @param flashScale The scale factor of the flash draw. (default: 1.0f)
-		void SetFlashScale(float flashScale = 1.0f) { m_FlashScale = flashScale; }
+		void SetFlashScale(float flashScale = 1.0f);
 
 		/// Sets the angle of direction that the emitted particles will be shot at.
 		/// @param m_EmitAngle.SetRadAngle(angle A float with the angle in radians.
-		void SetEmitAngle(const float angle) { m_EmitAngle.SetRadAngle(angle); }
+		void SetEmitAngle(const float angle);
 
 		/// Sets the normalized throttle scalar which controls how to affect the
 		/// emission rate as per the emisison rate range.
 		/// @param m_Throttle A float with the normalized throttle scalar. 1.0 means max throttle, (default: throttle > 1.0f ? 1.0f : (throttle < -1.0f ? -1.0f : throttle)
 		/// 0 means normal, -1.0 means least emission rate.
-		void SetThrottle(float throttle) { m_Throttle = throttle > 1.0f ? 1.0f : (throttle < -1.0f ? -1.0f : throttle); }
+		void SetThrottle(float throttle);
 
 		/*
 		/// Sets the angle spread of velocity of the emitted MO's to each side of
@@ -228,77 +225,70 @@ namespace RTE {
 		/// @param spread A float with the spread in r's. PI/2 would mean that MO's fly out to
 		/// one side only, with the m_EmitAngle defining the middle of that half
 		/// circle.
-		    void SetEmitSpread(const float spread) { m_Spread = spread; }
+		    void SetEmitSpread(const float spread);
 
 
 		/// Sets the min end of the range the velocity of a particle being emitted
 		/// by this AEmitter can have.
 		/// @param minVel A float with the min vel possible for an emitted particle.
-		    void SetEmitVelMin(const float minVel) { m_MinVelocity = minVel; }
+		    void SetEmitVelMin(const float minVel);
 
 
 		/// Sets the max end of the range the velocity of a particle being emitted
 		/// by this AEmitter can have.
 		/// @param maxVel A float with the max vel possible for an emitted particle.
-		    void SetEmitVelMax(const float maxVel) { m_MaxVelocity = maxVel; }
+		    void SetEmitVelMax(const float maxVel);
 		*/
 
 		/// Triggers a one-shot burst of emissions in the number that has
 		/// previously been set. The burst will happen during the next Update of
 		/// this AEmitter.
-		void TriggerBurst() { m_BurstTriggered = true; }
+		void TriggerBurst();
 
 		/// Checks if it is possible to trigger a one-shot burst of emissions during
 		/// the next Update of this AEmitter.
 		/// @return If it is possible to trigger a burst.
-		bool CanTriggerBurst() { return m_BurstSpacing <= 0 || m_BurstTimer.IsPastSimMS(m_BurstSpacing); }
+		bool CanTriggerBurst();
 
 		/// Indicates whether this AEmitter is set to burst next update or not.
 		/// @return Whether a burst is gonna happen or not..
-		bool IsSetToBurst() const { return m_BurstTriggered; }
+		bool IsSetToBurst() const;
 
 		/// Registers a new AlarmEvent if this emitter has a loudness above zero.
 		/// @param Team Team that will ignore this AlarmEvent.
-		void AlarmOnEmit(int Team) const {
-			if (m_LoudnessOnEmit > 0)
-				g_MovableMan.RegisterAlarmEvent(AlarmEvent(m_Pos, Team, m_LoudnessOnEmit));
-		}
+		void AlarmOnEmit(int Team) const;
 
 		/// Resest all the timers used by this. Can be emitters, etc. This is to
 		/// prevent backed up emissions to come out all at once while this has been
 		/// held dormant in an inventory.
-		void ResetAllTimers() override {
-			Attachable::ResetAllTimers();
-			m_BurstTimer.Reset();
-			m_LastEmitTmr.Reset();
-		}
+		void ResetAllTimers() override;
 
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
 
 		/// Returns burst damage of this emitter.
 		/// @return Burst damage of emitter.
-		float GetBurstDamage() const { return m_BurstDamage * m_EmitterDamageMultiplier; }
+		float GetBurstDamage() const;
 
 		/// Sets burst damage of this emitter.
 		/// @param newValue Burst damage of emitter.
-		void SetBurstDamage(float newValue) { m_BurstDamage = newValue; }
+		void SetBurstDamage(float newValue);
 
 		/// Returns emit damage of this emitter.
 		/// @return Emit damage of emitter.
-		float GetEmitDamage() const { return m_EmitDamage * m_EmitterDamageMultiplier; }
+		float GetEmitDamage() const;
 
 		/// Sets emit damage of this emitter.
 		/// @param newValue Emit damage of emitter.
-		void SetEmitDamage(float newValue) { m_EmitDamage = newValue; }
+		void SetEmitDamage(float newValue);
 
 		/// Returns damage multiplier of this emitter.
 		/// @return Damage multiplier of emitter.
-		float GetEmitterDamageMultiplier() const { return m_EmitterDamageMultiplier; }
+		float GetEmitterDamageMultiplier() const;
 
 		/// Sets damage multiplier of this emitter.
 		/// @param newValue New damage multiplier of emitter
-		void SetEmitterDamageMultiplier(float newValue) { m_EmitterDamageMultiplier = newValue; }
+		void SetEmitterDamageMultiplier(float newValue);
 
 		/// Draws this AEmitter's current graphical representation to a
 		/// BITMAP of choice.
@@ -311,47 +301,47 @@ namespace RTE {
 
 		/// Indicates whether this emitter deals damage.
 		/// @return Returns true if this emitter deals damage.
-		bool IsDamaging() { return (m_EmitDamage > 0 || m_BurstDamage > 0) && m_EmitterDamageMultiplier > 0; }
+		bool IsDamaging();
 
 		/// Gets the number of emissions emitted since emission was last enabled.
 		/// @return The number of emissions emitted since emission was last enabled.
-		long GetEmitCount() const { return m_EmitCount; }
+		long GetEmitCount() const;
 
 		/// Gets the number of emissions left before emitter is disabled.
 		/// @return Returns the number of emissions left before emitter is disabled.
-		long GetEmitCountLimit() const { return m_EmitCountLimit; }
+		long GetEmitCountLimit() const;
 
 		/// Sets the number of emissions left before emitter is disabled.
 		/// @param newValue New number of emissions left
-		void SetEmitCountLimit(long newValue) { m_EmitCountLimit = newValue; }
+		void SetEmitCountLimit(long newValue);
 
 		/// Gets this AEmitter's emission sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this AEmitter's emission sound.
-		SoundContainer* GetEmissionSound() const { return m_EmissionSound; }
+		SoundContainer* GetEmissionSound() const;
 
 		/// Sets this AEmitter's emission sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this AEmitter's emission sound.
-		void SetEmissionSound(SoundContainer* newSound) { m_EmissionSound = newSound; }
+		void SetEmissionSound(SoundContainer* newSound);
 
 		/// Gets this AEmitter's burst sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this AEmitter's burst sound.
-		SoundContainer* GetBurstSound() const { return m_BurstSound; }
+		SoundContainer* GetBurstSound() const;
 
 		/// Sets this AEmitter's burst sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this AEmitter's burst sound.
-		void SetBurstSound(SoundContainer* newSound) { m_BurstSound = newSound; }
+		void SetBurstSound(SoundContainer* newSound);
 
 		/// Gets this AEmitter's end sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this AEmitter's end sound.
-		SoundContainer* GetEndSound() const { return m_EndSound; }
+		SoundContainer* GetEndSound() const;
 
 		/// Sets this AEmitter's end sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this AEmitter's end sound.
-		void SetEndSound(SoundContainer* newSound) { m_EndSound = newSound; }
+		void SetEndSound(SoundContainer* newSound);
 
 		/// Returns whether this emitter just started emitting this frame.
 		/// @return Whether this emitter just started emitting this frame.
-		bool JustStartedEmitting() const { return !m_WasEmitting && m_EmitEnabled; }
+		bool JustStartedEmitting() const;
 
 		/// Protected member variable and method declarations
 	protected:

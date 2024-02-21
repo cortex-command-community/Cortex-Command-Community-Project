@@ -283,6 +283,12 @@ int Actor::Create(const Actor& reference) {
 	return 0;
 }
 
+void Actor::Reset() {
+	Clear();
+	MOSRotating::Reset();
+	m_MOType = MovableObject::TypeActor;
+}
+
 int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return MOSRotating::ReadProperty(propName, reader));
 
@@ -491,8 +497,56 @@ float Actor::GetBaseMass() {
 	return m_BaseMass;
 }
 
+Controller* Actor::GetController() {
+	return &m_Controller;
+}
+
 bool Actor::IsPlayerControlled() const {
 	return m_Controller.GetInputMode() == Controller::CIM_PLAYER && m_Controller.GetPlayer() >= 0;
+}
+
+bool Actor::IsControllable() const {
+	return true;
+}
+
+bool Actor::IsPlayerControllable() const {
+	return m_PlayerControllable;
+}
+
+void Actor::SetPlayerControllable(bool playerControllable) {
+	m_PlayerControllable = playerControllable;
+}
+
+int Actor::GetStatus() const {
+	return m_Status;
+}
+
+float Actor::GetHealth() const {
+	return m_Health;
+}
+
+float Actor::GetPrevHealth() const {
+	return m_PrevHealth;
+}
+
+float Actor::GetMaxHealth() const {
+	return m_MaxHealth;
+}
+
+void Actor::SetMaxHealth(int newValue) {
+	m_MaxHealth = newValue;
+}
+
+int Actor::GetAimDistance() const {
+	return m_AimDistance;
+}
+
+void Actor::SetAimDistance(int newValue) {
+	m_AimDistance = newValue;
+}
+
+float Actor::GetGoldCarried() const {
+	return m_GoldCarried;
 }
 
 float Actor::GetTotalValue(int nativeModule, float foreignMult, float nativeMult) const {
@@ -533,6 +587,21 @@ bool Actor::HasObjectInGroup(std::string groupName) const {
 	return false;
 }
 
+void Actor::SetStatus(Actor::Status newStatus) {
+	m_Status = newStatus;
+	if (newStatus == Actor::Status::UNSTABLE) {
+		m_StableRecoverTimer.Reset();
+	}
+}
+
+Actor::MovementState Actor::GetMovementState() const {
+	return m_MoveState;
+}
+
+void Actor::SetMovementState(MovementState newMovementState) {
+	m_MoveState = newMovementState;
+}
+
 void Actor::SetTeam(int team) {
 	MovableObject::SetTeam(team);
 
@@ -548,6 +617,71 @@ void Actor::SetTeam(int team) {
 		if (pActor)
 			pActor->SetTeam(team);
 	}
+}
+
+void Actor::SetGoldCarried(float goldOz) {
+	m_GoldCarried = goldOz;
+}
+
+void Actor::SetAimAngle(float newAngle) {
+	m_AimAngle = newAngle;
+	Clamp(m_AimAngle, m_AimRange, -m_AimRange);
+}
+
+float Actor::GetAimAngle(bool adjustForFlipped) const {
+	return adjustForFlipped ? FacingAngle(m_AimAngle) : m_AimAngle;
+}
+
+int Actor::GetPassengerSlots() const {
+	return m_PassengerSlots;
+}
+
+Vector Actor::GetCPUPos() const {
+	return m_Pos;
+}
+
+Vector Actor::GetEyePos() const {
+	return m_Pos;
+}
+
+Vector Actor::GetAboveHUDPos() const {
+	return m_Pos + Vector(0, m_HUDStack + 6);
+}
+
+Vector Actor::GetHolsterOffset() const {
+	return m_HolsterOffset;
+}
+
+void Actor::SetHolsterOffset(Vector newOffset) {
+	m_HolsterOffset = newOffset;
+}
+
+Vector Actor::GetReloadOffset() const {
+	return m_ReloadOffset;
+}
+
+void Actor::SetReloadOffset(Vector newOffset) {
+	m_ReloadOffset = newOffset;
+}
+
+Vector Actor::GetViewPoint() const {
+	return m_ViewPoint.IsZero() ? m_Pos : m_ViewPoint;
+}
+
+HeldDevice* Actor::GetItemInReach() const {
+	return m_pItemInReach;
+}
+
+Vector Actor::GetLookVector() const {
+	return m_ViewPoint - GetEyePos();
+}
+
+float Actor::GetSharpAimProgress() const {
+	return m_SharpAimProgress;
+}
+
+float Actor::GetHeight() const {
+	return m_CharHeight;
 }
 
 void Actor::SetControllerMode(Controller::InputMode newMode, int newPlayer) {
@@ -567,6 +701,22 @@ Controller::InputMode Actor::SwapControllerModes(Controller::InputMode newMode, 
 	Controller::InputMode returnMode = m_Controller.GetInputMode();
 	SetControllerMode(newMode, newPlayer);
 	return returnMode;
+}
+
+void Actor::SetPassengerSlots(int newPassengerSlots) {
+	m_PassengerSlots = newPassengerSlots;
+}
+
+void Actor::SetViewPoint(Vector newPoint) {
+	m_ViewPoint = newPoint;
+}
+
+void Actor::SetItemInReach(HeldDevice* pItem) {
+	m_pItemInReach = pItem;
+}
+
+bool Actor::IsWithinRange(Vector& point) const {
+	return false;
 }
 
 bool Actor::Look(float FOVSpread, float range) {
@@ -634,9 +784,91 @@ void Actor::RestDetection() {
 	}
 }
 
+void Actor::SetAIMode(AIMode newMode) {
+	m_AIMode = newMode;
+}
+
+void Actor::AddAISceneWaypoint(const Vector& waypoint) {
+	m_Waypoints.push_back(std::pair<Vector, MovableObject*>(waypoint, (MovableObject*)NULL));
+}
+
 void Actor::AddAIMOWaypoint(const MovableObject* pMOWaypoint) {
 	if (g_MovableMan.ValidMO(pMOWaypoint))
 		m_Waypoints.push_back(std::pair<Vector, const MovableObject*>(pMOWaypoint->GetPos(), pMOWaypoint));
+}
+
+const std::list<std::pair<Vector, const MovableObject*>>& Actor::GetWaypointList() const {
+	return m_Waypoints;
+}
+
+int Actor::GetWaypointsSize() {
+	return m_Waypoints.size();
+}
+
+void Actor::ClearMovePath() {
+	m_MovePath.clear();
+	m_MoveTarget = m_Pos;
+	m_MoveVector.Reset();
+}
+
+void Actor::AddToMovePathBeginning(Vector newCoordinate) {
+	m_MovePath.push_front(newCoordinate);
+	m_MoveTarget = newCoordinate;
+	m_MoveVector.Reset();
+}
+
+void Actor::AddToMovePathEnd(Vector newCoordinate) {
+	m_MovePath.push_back(newCoordinate);
+}
+
+Vector Actor::GetMovePathEnd() const {
+	return m_MovePath.back();
+}
+
+bool Actor::RemoveMovePathBeginning() {
+	if (!m_MovePath.empty()) {
+		m_MovePath.pop_front();
+		m_MoveTarget = m_MovePath.empty() ? m_Pos : m_MovePath.front();
+		m_MoveVector.Reset();
+		return true;
+	}
+	return false;
+}
+
+bool Actor::RemoveMovePathEnd() {
+	if (!m_MovePath.empty()) {
+		m_MovePath.pop_back();
+		return true;
+	}
+	return false;
+}
+
+const MovableObject* Actor::GetMOMoveTarget() const {
+	return m_pMOMoveTarget;
+}
+
+void Actor::SetPerceptiveness(float newPerceptiveness) {
+	m_Perceptiveness = newPerceptiveness;
+}
+
+float Actor::GetPerceptiveness() const {
+	return m_Perceptiveness;
+}
+
+bool Actor::GetCanRevealUnseen() const {
+	return m_CanRevealUnseen;
+}
+
+void Actor::SetCanRevealUnseen(bool newCanRevealUnseen) {
+	m_CanRevealUnseen = newCanRevealUnseen;
+}
+
+void Actor::SetPainThreshold(float newPainThreshold) {
+	m_PainThreshold = newPainThreshold;
+}
+
+float Actor::GetPainThreshold() const {
+	return m_PainThreshold;
 }
 
 void Actor::AlarmPoint(const Vector& alarmPoint) {
@@ -648,6 +880,13 @@ void Actor::AlarmPoint(const Vector& alarmPoint) {
 		m_AlarmTimer.Reset();
 		m_LastAlarmPos = m_PointingTarget = alarmPoint;
 	}
+}
+
+Vector Actor::GetAlarmPoint() {
+	if (m_AlarmTimer.GetElapsedSimTimeMS() > g_TimerMan.GetDeltaTimeMS()) {
+		return Vector();
+	}
+	return m_LastAlarmPos;
 }
 
 MovableObject* Actor::SwapNextInventory(MovableObject* pSwapIn, bool muteSound) {
@@ -670,6 +909,14 @@ MovableObject* Actor::SwapNextInventory(MovableObject* pSwapIn, bool muteSound) 
 		m_DeviceSwitchSound->Play(m_Pos);
 
 	return pRetDev;
+}
+
+void Actor::AddInventoryItem(MovableObject* pItemToAdd) {
+	AddToInventoryBack(pItemToAdd);
+}
+
+void Actor::RemoveInventoryItem(const std::string& presetName) {
+	RemoveInventoryItem("", presetName);
 }
 
 void Actor::RemoveInventoryItem(const std::string& moduleName, const std::string& presetName) {
@@ -826,6 +1073,22 @@ void Actor::DropAllGold() {
 	m_GoldCarried = 0;
 }
 
+int Actor::GetInventorySize() const {
+	return m_Inventory.size();
+}
+
+bool Actor::IsInventoryEmpty() {
+	return m_Inventory.empty();
+}
+
+const std::deque<MovableObject*>* Actor::GetInventory() const {
+	return &m_Inventory;
+}
+
+float Actor::GetMaxInventoryMass() const {
+	return m_MaxInventoryMass;
+}
+
 bool Actor::AddToInventoryFront(MovableObject* itemToAdd) {
 	// This function is called often to add stuff we just removed from our hands, which may be set to delete so we need to guard against that lest we crash.
 	if (!itemToAdd || itemToAdd->IsSetToDelete()) {
@@ -844,6 +1107,18 @@ bool Actor::AddToInventoryBack(MovableObject* itemToAdd) {
 
 	m_Inventory.push_back(itemToAdd);
 	return true;
+}
+
+float Actor::GetAimRange() const {
+	return m_AimRange;
+}
+
+void Actor::SetAimRange(float range) {
+	m_AimRange = range;
+}
+
+void Actor::DrawWaypoints(bool drawWaypoints) {
+	m_DrawWaypoints = drawWaypoints;
 }
 
 void Actor::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {
@@ -966,8 +1241,49 @@ bool Actor::ParticlePenetration(HitData& hd) {
 	return penetrated;
 }
 
+const float Actor::AddHealth(const float addedHealth) {
+	return m_Health += addedHealth;
+}
+
+void Actor::SetHealth(const float setHealth) {
+	m_Health = setHealth;
+}
+
+bool Actor::IsStatus(Status which) const {
+	return m_Status == which;
+}
+
+bool Actor::IsDead() const {
+	return m_Status == DEAD;
+}
+
+bool Actor::HandlePieCommand(PieSliceType pieSliceType) {
+	return false;
+}
+
+int Actor::GetAIMode() const {
+	return m_AIMode;
+}
+
 BITMAP* Actor::GetAIModeIcon() {
 	return m_apAIIcons[m_AIMode];
+}
+
+void Actor::ClearAIWaypoints() {
+	m_pMOMoveTarget = 0;
+	m_Waypoints.clear();
+	m_MovePath.clear();
+	m_MoveTarget = m_Pos;
+	m_MoveVector.Reset();
+}
+
+Vector Actor::GetLastAIWaypoint() const {
+	if (!m_Waypoints.empty()) {
+		return m_Waypoints.back().first;
+	} else if (!m_MovePath.empty()) {
+		return m_MovePath.back();
+	}
+	return m_Pos;
 }
 
 MOID Actor::GetAIMOWaypointID() const {
@@ -975,6 +1291,19 @@ MOID Actor::GetAIMOWaypointID() const {
 		return m_pMOMoveTarget->GetID();
 	else
 		return g_NoMOID;
+}
+
+void Actor::PreTravel() {
+	MOSRotating::PreTravel();
+	m_GoldPicked = false;
+}
+
+void Actor::SetMovePathToUpdate() {
+	m_UpdateMovePath = true;
+}
+
+int Actor::GetMovePathSize() const {
+	return m_MovePath.size();
 }
 
 void Actor::UpdateMovePath() {
@@ -1020,6 +1349,10 @@ void Actor::UpdateMovePath() {
 	m_UpdateMovePath = false;
 }
 
+bool Actor::IsWaitingOnNewMovePath() const {
+	return m_PathRequest != nullptr || m_UpdateMovePath;
+}
+
 float Actor::EstimateDigStrength() const {
 	return m_AIBaseDigStrength;
 }
@@ -1031,6 +1364,106 @@ void Actor::VerifyMOIDs() {
 	for (std::vector<MOID>::iterator it = MOIDs.begin(); it != MOIDs.end(); it++) {
 		RTEAssert(*it == g_NoMOID || *it < g_MovableMan.GetMOIDCount(), "Invalid MOID in actor");
 	}
+}
+
+float Actor::GetTravelImpulseDamage() const {
+	return m_TravelImpulseDamage;
+}
+
+void Actor::SetTravelImpulseDamage(float value) {
+	m_TravelImpulseDamage = value;
+}
+
+SoundContainer* Actor::GetBodyHitSound() const {
+	return m_BodyHitSound;
+}
+
+void Actor::SetBodyHitSound(SoundContainer* newSound) {
+	m_BodyHitSound = newSound;
+}
+
+SoundContainer* Actor::GetAlarmSound() const {
+	return m_AlarmSound;
+}
+
+void Actor::SetAlarmSound(SoundContainer* newSound) {
+	m_AlarmSound = newSound;
+}
+
+SoundContainer* Actor::GetPainSound() const {
+	return m_PainSound;
+}
+
+void Actor::SetPainSound(SoundContainer* newSound) {
+	m_PainSound = newSound;
+}
+
+SoundContainer* Actor::GetDeathSound() const {
+	return m_DeathSound;
+}
+
+void Actor::SetDeathSound(SoundContainer* newSound) {
+	m_DeathSound = newSound;
+}
+
+SoundContainer* Actor::GetDeviceSwitchSound() const {
+	return m_DeviceSwitchSound;
+}
+
+void Actor::SetDeviceSwitchSound(SoundContainer* newSound) {
+	m_DeviceSwitchSound = newSound;
+}
+
+Vector Actor::GetStableVel() const {
+	return m_StableVel;
+}
+
+void Actor::SetStableVel(float newVelX, float newVelY) {
+	m_StableVel.SetXY(newVelX, newVelY);
+}
+
+void Actor::SetStableVel(Vector newVelVector) {
+	m_StableVel = newVelVector;
+}
+
+int Actor::GetStableRecoverDelay() const {
+	return m_StableRecoverDelay;
+}
+
+void Actor::SetStableRecoverDelay(int newRecoverDelay) {
+	m_StableRecoverDelay = newRecoverDelay;
+}
+
+float Actor::GetMoveProximityLimit() const {
+	return m_MoveProximityLimit;
+}
+
+void Actor::SetMoveProximityLimit(float newProximityLimit) {
+	m_MoveProximityLimit = newProximityLimit;
+}
+
+bool Actor::IsOrganic() const {
+	return m_Organic;
+}
+
+bool Actor::IsMechanical() const {
+	return m_Mechanical;
+}
+
+bool Actor::GetLimbPushForcesAndCollisionsDisabled() const {
+	return m_LimbPushForcesAndCollisionsDisabled;
+}
+
+void Actor::SetLimbPushForcesAndCollisionsDisabled(bool newLimbPushForcesAndCollisionsDisabled) {
+	m_LimbPushForcesAndCollisionsDisabled = newLimbPushForcesAndCollisionsDisabled;
+}
+
+std::string Actor::GetDefaultPieMenuName() const {
+	return "Default Actor Pie Menu";
+}
+
+PieMenu* Actor::GetPieMenu() const {
+	return m_PieMenu.get();
 }
 
 void Actor::SetPieMenu(PieMenu* newPieMenu) {
@@ -1056,6 +1489,14 @@ void Actor::OnNewMovePath() {
 		// Nowhere to gooooo
 		m_MoveTarget = m_PrevPathTarget = m_Pos;
 	}
+}
+
+float Actor::GetAIBaseDigStrength() const {
+	return m_AIBaseDigStrength;
+}
+
+void Actor::SetAIBaseDigStrength(float newAIBaseDigStrength) {
+	m_AIBaseDigStrength = newAIBaseDigStrength;
 }
 
 void Actor::PreControllerUpdate() {
@@ -1267,6 +1708,22 @@ void Actor::FullUpdate() {
 	PreControllerUpdate();
 	m_Controller.Update();
 	Update();
+}
+
+void Actor::SetDeploymentID(unsigned int newID) {
+	m_DeploymentID = newID;
+}
+
+unsigned int Actor::GetDeploymentID() const {
+	return m_DeploymentID;
+}
+
+float Actor::GetSightDistance() const {
+	return m_SightDistance;
+}
+
+void Actor::SetSightDistance(float newValue) {
+	m_SightDistance = newValue;
 }
 
 void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {

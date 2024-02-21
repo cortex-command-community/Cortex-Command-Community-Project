@@ -369,6 +369,11 @@ int AHuman::Save(Writer& writer) const {
 	return 0;
 }
 
+void AHuman::Reset() {
+	Clear();
+	Actor::Reset();
+}
+
 void AHuman::Destroy(bool notInherited) {
 	delete m_pFGHandGroup;
 	delete m_pBGHandGroup;
@@ -432,6 +437,10 @@ Vector AHuman::GetEyePos() const {
 	return m_Pos;
 }
 
+Attachable* AHuman::GetHead() const {
+	return m_pHead;
+}
+
 void AHuman::SetHead(Attachable* newHead) {
 	if (m_pHead && m_pHead->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pHead);
@@ -456,6 +465,10 @@ void AHuman::SetHead(Attachable* newHead) {
 	}
 }
 
+AEJetpack* AHuman::GetJetpack() const {
+	return m_pJetpack;
+}
+
 void AHuman::SetJetpack(AEJetpack* newJetpack) {
 	if (m_pJetpack && m_pJetpack->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pJetpack);
@@ -477,6 +490,10 @@ void AHuman::SetJetpack(AEJetpack* newJetpack) {
 		}
 		m_pJetpack->SetApplyTransferredForcesAtOffset(false);
 	}
+}
+
+Arm* AHuman::GetFGArm() const {
+	return m_pFGArm;
 }
 
 void AHuman::SetFGArm(Arm* newArm) {
@@ -503,6 +520,10 @@ void AHuman::SetFGArm(Arm* newArm) {
 	}
 }
 
+Arm* AHuman::GetBGArm() const {
+	return m_pBGArm;
+}
+
 void AHuman::SetBGArm(Arm* newArm) {
 	if (m_pBGArm && m_pBGArm->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pBGArm);
@@ -526,6 +547,10 @@ void AHuman::SetBGArm(Arm* newArm) {
 	}
 }
 
+Leg* AHuman::GetFGLeg() const {
+	return m_pFGLeg;
+}
+
 void AHuman::SetFGLeg(Leg* newLeg) {
 	if (m_pFGLeg && m_pFGLeg->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pFGLeg);
@@ -546,6 +571,10 @@ void AHuman::SetFGLeg(Leg* newLeg) {
 			m_pFGLeg->SetDamageMultiplier(1.0F);
 		}
 	}
+}
+
+Leg* AHuman::GetBGLeg() const {
+	return m_pBGLeg;
 }
 
 void AHuman::SetBGLeg(Leg* newLeg) {
@@ -571,8 +600,44 @@ void AHuman::SetBGLeg(Leg* newLeg) {
 	}
 }
 
+Attachable* AHuman::GetFGFoot() const {
+	return m_pFGLeg ? m_pFGLeg->GetFoot() : nullptr;
+}
+
+void AHuman::SetFGFoot(Attachable* newFoot) {
+	if (m_pFGLeg && m_pFGLeg->IsAttached()) {
+		m_pFGLeg->SetFoot(newFoot);
+	}
+}
+
+Attachable* AHuman::GetBGFoot() const {
+	return m_pBGLeg ? m_pBGLeg->GetFoot() : nullptr;
+}
+
+void AHuman::SetBGFoot(Attachable* newFoot) {
+	if (m_pBGLeg && m_pBGLeg->IsAttached()) {
+		m_pBGLeg->SetFoot(newFoot);
+	}
+}
+
 BITMAP* AHuman::GetGraphicalIcon() const {
 	return m_GraphicalIcon ? m_GraphicalIcon : (m_pHead ? m_pHead->GetSpriteFrame(0) : GetSpriteFrame(0));
+}
+
+AHuman::UpperBodyState AHuman::GetUpperBodyState() const {
+	return m_ArmsState;
+}
+
+void AHuman::SetUpperBodyState(UpperBodyState newUpperBodyState) {
+	m_ArmsState = newUpperBodyState;
+}
+
+AHuman::ProneState AHuman::GetProneState() const {
+	return m_ProneState;
+}
+
+void AHuman::SetProneState(ProneState newProneState) {
+	m_ProneState = newProneState;
 }
 
 bool AHuman::HandlePieCommand(PieSliceType pieSliceIndex) {
@@ -786,6 +851,10 @@ bool AHuman::EquipLoadedFirearmInGroup(std::string group, std::string excludeGro
 	}
 
 	return false;
+}
+
+bool AHuman::EquipNamedDevice(const std::string& presetName, bool doEquip) {
+	return EquipNamedDevice("", presetName, doEquip);
 }
 
 bool AHuman::EquipNamedDevice(const std::string& moduleName, const std::string& presetName, bool doEquip) {
@@ -1041,6 +1110,10 @@ bool AHuman::UnequipFGArm() {
 	return false;
 }
 
+float AHuman::GetThrowProgress() const {
+	return m_ThrowPrepTime > 0 ? static_cast<float>(std::min(m_ThrowTmr.GetElapsedSimTimeMS() / static_cast<double>(m_ThrowPrepTime), 1.0)) : 1.0F;
+}
+
 bool AHuman::UnequipBGArm() {
 	if (m_pBGArm) {
 		if (HeldDevice* heldDevice = m_pBGArm->GetHeldDevice()) {
@@ -1051,6 +1124,19 @@ bool AHuman::UnequipBGArm() {
 		}
 	}
 	return false;
+}
+
+void AHuman::UnequipArms() {
+	UnequipBGArm();
+	UnequipFGArm();
+}
+
+HeldDevice* AHuman::GetEquippedItem() const {
+	return m_pFGArm ? m_pFGArm->GetHeldDevice() : nullptr;
+}
+
+HeldDevice* AHuman::GetEquippedBGItem() const {
+	return m_pBGArm ? m_pBGArm->GetHeldDevice() : nullptr;
 }
 
 float AHuman::GetEquippedMass() const {
@@ -1313,6 +1399,74 @@ void AHuman::ResetAllTimers() {
 	}
 }
 
+float AHuman::GetRotAngleTarget(MovementState movementState) {
+	return m_RotAngleTargets[movementState];
+}
+
+void AHuman::SetRotAngleTarget(MovementState movementState, float newRotAngleTarget) {
+	m_RotAngleTargets[movementState] = newRotAngleTarget;
+}
+
+long AHuman::GetThrowPrepTime() const {
+	return m_ThrowPrepTime;
+}
+
+void AHuman::SetThrowPrepTime(long newPrepTime) {
+	m_ThrowPrepTime = newPrepTime;
+}
+
+float AHuman::GetArmSwingRate() const {
+	return m_ArmSwingRate;
+}
+
+void AHuman::SetArmSwingRate(float newValue) {
+	m_ArmSwingRate = newValue;
+}
+
+float AHuman::GetDeviceArmSwayRate() const {
+	return m_DeviceArmSwayRate;
+}
+
+void AHuman::SetDeviceArmSwayRate(float newValue) {
+	m_DeviceArmSwayRate = newValue;
+}
+
+float AHuman::GetMaxWalkPathCrouchShift() const {
+	return m_MaxWalkPathCrouchShift;
+}
+
+void AHuman::SetMaxWalkPathCrouchShift(float newValue) {
+	m_MaxWalkPathCrouchShift = newValue;
+}
+
+float AHuman::GetMaxCrouchRotation() const {
+	return m_MaxCrouchRotation;
+}
+
+void AHuman::SetMaxCrouchRotation(float newValue) {
+	m_MaxCrouchRotation = newValue;
+}
+
+float AHuman::GetCrouchAmount() const {
+	return (m_WalkPathOffset.m_Y * -1.0F) / m_MaxWalkPathCrouchShift;
+}
+
+float AHuman::GetCrouchAmountOverride() const {
+	return m_CrouchAmountOverride;
+}
+
+void AHuman::SetCrouchAmountOverride(float newValue) {
+	m_CrouchAmountOverride = newValue;
+}
+
+SoundContainer* AHuman::GetStrideSound() const {
+	return m_StrideSound;
+}
+
+void AHuman::SetStrideSound(SoundContainer* newSound) {
+	m_StrideSound = newSound;
+}
+
 void AHuman::OnNewMovePath() {
 	Actor::OnNewMovePath();
 
@@ -1420,6 +1574,22 @@ void AHuman::UpdateCrouching() {
 	} else {
 		m_WalkPathOffset.Reset();
 	}
+}
+
+float AHuman::GetWalkAngle(AHuman::Layer whichLayer) const {
+	return m_WalkAngle[whichLayer].GetRadAngle();
+}
+
+void AHuman::SetWalkAngle(AHuman::Layer whichLayer, float angle) {
+	m_WalkAngle[whichLayer] = Matrix(angle);
+}
+
+bool AHuman::StrideFrame() const {
+	return m_StrideFrame;
+}
+
+bool AHuman::IsClimbing() const {
+	return m_ArmClimbing[FGROUND] || m_ArmClimbing[BGROUND];
 }
 
 void AHuman::PreControllerUpdate() {
@@ -2758,6 +2928,10 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 			m_HUDStack -= 9;
 		}
 	}
+}
+
+LimbPath* AHuman::GetLimbPath(Layer layer, MovementState movementState) {
+	return &m_Paths[layer][movementState];
 }
 
 float AHuman::GetLimbPathSpeed(int speedPreset) const {

@@ -30,7 +30,7 @@ namespace RTE {
 
 		/// Makes the ADoor object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create() override { return Actor::Create(); }
+		int Create() override;
 
 		/// Creates a ADoor to be identical to another, by deep copy.
 		/// @param reference A reference to the ADoor to deep copy.
@@ -47,16 +47,13 @@ namespace RTE {
 		void Destroy(bool notInherited = false) override;
 
 		/// Resets the entire ADoor, including its inherited members, to their default settings or values.
-		void Reset() override {
-			Clear();
-			Actor::Reset();
-		}
+		void Reset() override;
 #pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets the moving door Attachable of this ADoor
 		/// @return A pointer to the door Attachable of this. Ownership is NOT transferred!
-		Attachable* GetDoor() const { return m_Door; }
+		Attachable* GetDoor() const;
 
 		/// Sets the moving door Attachable for this ADoor.
 		/// @param newDoor The new moving door attachable to use.
@@ -64,23 +61,23 @@ namespace RTE {
 
 		/// Gets the current state of the door.
 		/// @return The current state of this ADoor. See the DoorState enum.
-		DoorState GetDoorState() const { return m_DoorState; }
+		DoorState GetDoorState() const;
 
 		/// Sets whether this ADoor closes (or opens) after a while by default.
 		/// @param closedByDefault Whether the door by default goes to a closed position. If not, then it will open after a while.
-		void SetClosedByDefault(bool closedByDefault) { m_ClosedByDefault = closedByDefault; }
+		void SetClosedByDefault(bool closedByDefault);
 
 		/// Tells whether the player can switch control to this at all.
 		/// @return Whether a player can control this at all.
-		bool IsControllable() const override { return false; }
+		bool IsControllable() const override;
 
 		/// Gets whether or not this ADoor's door material has been drawn.
 		/// @return Whether or not this ADoor's door material has been drawn.
-		bool GetDoorMaterialDrawn() const { return m_DoorMaterialDrawn; }
+		bool GetDoorMaterialDrawn() const;
 
 		/// Gets this ADoor's door move start sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ADoor's door move start sound.
-		SoundContainer* GetDoorMoveStartSound() const { return m_DoorMoveStartSound.get(); }
+		SoundContainer* GetDoorMoveStartSound() const;
 
 		/// Sets this ADoor's door move start sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ADoor's door move start sound.
@@ -88,7 +85,7 @@ namespace RTE {
 
 		/// Gets this ADoor's door move sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ADoor's door move sound.
-		SoundContainer* GetDoorMoveSound() const { return m_DoorMoveSound.get(); }
+		SoundContainer* GetDoorMoveSound() const;
 
 		/// Sets this ADoor's door move sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ADoor's door move sound.
@@ -96,7 +93,7 @@ namespace RTE {
 
 		/// Gets this ADoor's door direction change sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ADoor's door direction change sound.
-		SoundContainer* GetDoorDirectionChangeSound() const { return m_DoorDirectionChangeSound.get(); }
+		SoundContainer* GetDoorDirectionChangeSound() const;
 
 		/// Sets this ADoor's door direction change sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ADoor's door direction change sound.
@@ -104,7 +101,7 @@ namespace RTE {
 
 		/// Gets this ADoor's door move end sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ADoor's door move end sound.
-		SoundContainer* GetDoorMoveEndSound() const { return m_DoorMoveEndSound.get(); }
+		SoundContainer* GetDoorMoveEndSound() const;
 
 		/// Sets this ADoor's door move end sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this ADoor's door move end sound.
@@ -126,7 +123,7 @@ namespace RTE {
 		void TempEraseOrRedrawDoorMaterial(bool erase);
 
 		/// Resets the sensor Timer for this ADoor, effectively making it ignore Actors.
-		void ResetSensorTimer() { m_SensorTimer.Reset(); }
+		void ResetSensorTimer();
 #pragma endregion
 
 #pragma region Virtual Override Methods

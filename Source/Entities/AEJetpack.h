@@ -38,10 +38,7 @@ namespace RTE {
 		~AEJetpack() override;
 
 		/// Resets the entire AEJetpack, including its inherited members, to their default settings or values.
-		void Reset() override {
-			Clear();
-			AEmitter::Reset();
-		}
+		void Reset() override;
 #pragma endregion
 
 		/// Updates this AEJetpack from our parent actor.
@@ -49,79 +46,79 @@ namespace RTE {
 
 		/// Returns whether or not this jetpack is fully fueled.
 		/// @return Whether or not this jetpack is fully fueled.
-		bool IsFullyFueled() const { return m_JetTimeLeft >= m_JetTimeTotal - (m_JetTimeTotal * std::numeric_limits<float>::epsilon()); }
+		bool IsFullyFueled() const;
 
 		/// Returns whether or not this jetpack is out of fuel.
 		/// @return Whether or not this jetpack is out of fuel.
-		bool IsOutOfFuel() const { return m_JetTimeLeft <= std::numeric_limits<float>::epsilon(); }
+		bool IsOutOfFuel() const;
 
 		/// Gets the amount of time this jetpack can fire when filled, in ms.
 		/// @return The amount of time this jetpack can fire when it's at max.
-		float GetJetTimeTotal() const { return m_JetTimeTotal; }
+		float GetJetTimeTotal() const;
 
 		/// Sets the amount of time this' jetpack can fire when filled, in ms.
 		/// @param newValue The amount of time this jetpack can fire when it's at max.
-		void SetJetTimeTotal(float newValue) { m_JetTimeTotal = newValue; }
+		void SetJetTimeTotal(float newValue);
 
 		/// Gets the amount of time this jetpack can still fire until out, in ms.
 		/// @return The amount of time this jetpack can still fire before running out.
-		float GetJetTimeLeft() const { return m_JetTimeLeft; }
+		float GetJetTimeLeft() const;
 
 		/// Sets the amount of time this' jetpack can still fire until out, in ms.
 		/// @param newValue The amount of time this' jetpack can still fire before running out.
-		void SetJetTimeLeft(float newValue) { m_JetTimeLeft = newValue < m_JetTimeTotal ? newValue : m_JetTimeTotal; }
+		void SetJetTimeLeft(float newValue);
 
 		/// Gets the ratio of jetpack time that is left.
 		/// @return The ratio of jetpack time that is left.
-		float GetJetTimeRatio() { return m_JetTimeLeft / m_JetTimeTotal; }
+		float GetJetTimeRatio();
 
 		/// Gets the rate at which this AHuman's jetpack is replenished during downtime.
 		/// @return The rate at which the jetpack is replenished.
-		float GetJetReplenishRate() const { return m_JetReplenishRate; }
+		float GetJetReplenishRate() const;
 
 		/// Sets the rate at which this AHuman's jetpack is replenished during downtime.
 		/// @param newValue The rate at which the jetpack is replenished.
-		void SetJetReplenishRate(float newValue) { m_JetReplenishRate = newValue; }
+		void SetJetReplenishRate(float newValue);
 
 		/// Gets the rate at which this AHuman's jetpack is replenished during downtime.
 		/// @return The rate at which the jetpack is replenished.
-		float GetMinimumFuelRatio() const { return m_MinimumFuelRatio; }
+		float GetMinimumFuelRatio() const;
 
 		/// Sets the rate at which this AHuman's jetpack is replenished during downtime.
 		/// @param newValue The rate at which the jetpack is replenished.
-		void SetMinimumFuelRatio(float newValue) { m_MinimumFuelRatio = newValue; }
+		void SetMinimumFuelRatio(float newValue);
 
 		/// Gets the scalar ratio at which this jetpack's thrust angle follows the aim angle of the user.
 		/// @return The ratio at which this jetpack follows the aim angle of the user.
-		float GetJetAngleRange() const { return m_JetAngleRange; }
+		float GetJetAngleRange() const;
 
 		/// Sets the scalar ratio at which this jetpack's thrust angle follows the aim angle of the user.
 		/// @param newValue The ratio at which this jetpack follows the aim angle of the user.
-		void SetJetAngleRange(float newValue) { m_JetAngleRange = newValue; }
+		void SetJetAngleRange(float newValue);
 
 		/// Gets the type of this jetpack.
 		/// @return The type of this jetpack.
-		JetpackType GetJetpackType() const { return m_JetpackType; }
+		JetpackType GetJetpackType() const;
 
 		/// Sets the type of this jetpack.
 		/// @param newType The new type of this jetpack.
-		void SetJetpackType(JetpackType newType) { m_JetpackType = newType; }
+		void SetJetpackType(JetpackType newType);
 
 		/// Returns whether the angle of this jetpack can adjust while firing, or if it can only be aimed while off.
 		/// @return Whether the angle of this jetpack can adjust while firing.
-		bool GetCanAdjustAngleWhileFiring() const { return m_CanAdjustAngleWhileFiring; }
+		bool GetCanAdjustAngleWhileFiring() const;
 
 		/// Sets whether the angle of this can adjust while firing, or if it can only be aimed while off.
 		/// @param newValue The new value for whether the angle of this jetpack can adjust while firing.
-		void SetCanAdjustAngleWhileFiring(bool newValue) { m_CanAdjustAngleWhileFiring = newValue; }
+		void SetCanAdjustAngleWhileFiring(bool newValue);
 
 		/// Returns whether this jetpack adjusts it's throttle to balance for extra weight.
 		/// @return Whether this jetpack adjusts it's throttle to balance for extra weight.
-		bool GetAdjustsThrottleForWeight() const { return m_AdjustsThrottleForWeight; }
+		bool GetAdjustsThrottleForWeight() const;
 
 		/// Sets whether this jetpack adjusts it's throttle to balance for extra weight.
 		/// @param newValue The new value for whether this jetpack adjusts it's throttle to balance for extra weight.
-		void SetAdjustsThrottleForWeight(bool newValue) { m_AdjustsThrottleForWeight = newValue; }
+		void SetAdjustsThrottleForWeight(bool newValue);
 
 	protected:
 		static Entity::ClassInfo m_sClass;

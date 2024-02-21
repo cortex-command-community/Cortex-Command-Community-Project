@@ -75,10 +75,7 @@ namespace RTE {
 
 		/// Resets the entire AHuman, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Actor::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -119,7 +116,7 @@ namespace RTE {
 
 		/// Gets the head of this AHuman.
 		/// @return A pointer to the head of this AHuman. Ownership is NOT transferred.
-		Attachable* GetHead() const { return m_pHead; }
+		Attachable* GetHead() const;
 
 		/// Sets the head for this AHuman.
 		/// @param newHead The new head to use.
@@ -127,7 +124,7 @@ namespace RTE {
 
 		/// Gets the jetpack of this AHuman.
 		/// @return A pointer to the jetpack of this AHuman. Ownership is NOT transferred.
-		AEJetpack* GetJetpack() const { return m_pJetpack; }
+		AEJetpack* GetJetpack() const;
 
 		/// Sets the jetpack for this AHuman.
 		/// @param newJetpack The new jetpack to use.
@@ -135,7 +132,7 @@ namespace RTE {
 
 		/// Gets the foreground Arm of this AHuman.
 		/// @return A pointer to the foreground Arm of this AHuman. Ownership is NOT transferred.
-		Arm* GetFGArm() const { return m_pFGArm; }
+		Arm* GetFGArm() const;
 
 		/// Sets the foreground Arm for this AHuman.
 		/// @param newArm The new Arm to use.
@@ -143,7 +140,7 @@ namespace RTE {
 
 		/// Gets the background arm of this AHuman.
 		/// @return A pointer to the background arm of this AHuman. Ownership is NOT transferred.
-		Arm* GetBGArm() const { return m_pBGArm; }
+		Arm* GetBGArm() const;
 
 		/// Sets the background Arm for this AHuman.
 		/// @param newArm The new Arm to use.
@@ -151,7 +148,7 @@ namespace RTE {
 
 		/// Gets the foreground Leg of this AHuman.
 		/// @return A pointer to the foreground Leg of this AHuman. Ownership is NOT transferred.
-		Leg* GetFGLeg() const { return m_pFGLeg; }
+		Leg* GetFGLeg() const;
 
 		/// Sets the foreground Leg for this AHuman.
 		/// @param newLeg The new Leg to use.
@@ -159,7 +156,7 @@ namespace RTE {
 
 		/// Gets the background Leg of this AHuman.
 		/// @return A pointer to the background Leg of this AHuman. Ownership is NOT transferred.
-		Leg* GetBGLeg() const { return m_pBGLeg; }
+		Leg* GetBGLeg() const;
 
 		/// Sets the background Leg for this AHuman.
 		/// @param newLeg The new Leg to use.
@@ -167,43 +164,35 @@ namespace RTE {
 
 		/// Gets the foot Attachable of this AHuman's foreground Leg.
 		/// @return A pointer to the foot Attachable of this AHuman's foreground Leg. Ownership is NOT transferred!
-		Attachable* GetFGFoot() const { return m_pFGLeg ? m_pFGLeg->GetFoot() : nullptr; }
+		Attachable* GetFGFoot() const;
 
 		/// Sets the foot Attachable of this AHuman's foreground Leg.
 		/// @param newFoot The new foot for this AHuman's foreground Leg to use.
-		void SetFGFoot(Attachable* newFoot) {
-			if (m_pFGLeg && m_pFGLeg->IsAttached()) {
-				m_pFGLeg->SetFoot(newFoot);
-			}
-		}
+		void SetFGFoot(Attachable* newFoot);
 
 		/// Gets the foot Attachable of this AHuman's background Leg.
 		/// @return A pointer to the foot Attachable of this AHuman's background Leg. Ownership is NOT transferred!
-		Attachable* GetBGFoot() const { return m_pBGLeg ? m_pBGLeg->GetFoot() : nullptr; }
+		Attachable* GetBGFoot() const;
 
 		/// Sets the foot Attachable of this AHuman's background Leg.
 		/// @param newFoot The new foot for this AHuman's background Leg to use.
-		void SetBGFoot(Attachable* newFoot) {
-			if (m_pBGLeg && m_pBGLeg->IsAttached()) {
-				m_pBGLeg->SetFoot(newFoot);
-			}
-		}
+		void SetBGFoot(Attachable* newFoot);
 
 		/// Gets this AHuman's UpperBodyState.
 		/// @return This AHuman's UpperBodyState.
-		UpperBodyState GetUpperBodyState() const { return m_ArmsState; }
+		UpperBodyState GetUpperBodyState() const;
 
 		/// Sets this AHuman's UpperBodyState to the new state.
 		/// @param newUpperBodyState This AHuman's new UpperBodyState.
-		void SetUpperBodyState(UpperBodyState newUpperBodyState) { m_ArmsState = newUpperBodyState; }
+		void SetUpperBodyState(UpperBodyState newUpperBodyState);
 
 		/// Gets this AHuman's ProneState.
 		/// @return This AHuman's ProneState.
-		ProneState GetProneState() const { return m_ProneState; }
+		ProneState GetProneState() const;
 
 		/// Sets this AHuman's ProneState to the new state.
 		/// @param newProneState This AHuman's new ProneState.
-		void SetProneState(ProneState newProneState) { m_ProneState = newProneState; }
+		void SetProneState(ProneState newProneState);
 
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
 		/// @param pieSliceType The SliceType of the PieSlice being handled.
@@ -260,7 +249,7 @@ namespace RTE {
 		/// @param presetName The preset name of the HeldDevice to equip.
 		/// @param doEquip Whether to actually equip any matching item found in the inventory, or just report whether or not it's there.
 		/// @return Whether a matching HeldDevice was successfully found/switched -o, or already held.
-		bool EquipNamedDevice(const std::string& presetName, bool doEquip) { return EquipNamedDevice("", presetName, doEquip); }
+		bool EquipNamedDevice(const std::string& presetName, bool doEquip);
 
 		/// Switches the equipped HeldDevice (if any) to the first found device with the specified module and preset name in the inventory.
 		/// If the equipped HeldDevice is of that module and preset name, nothing happens.
@@ -307,7 +296,7 @@ namespace RTE {
 
 		/// Gets the throw chargeup progress of this AHuman.
 		/// @return The throw chargeup progress, as a scalar from 0 to 1.
-		float GetThrowProgress() const { return m_ThrowPrepTime > 0 ? static_cast<float>(std::min(m_ThrowTmr.GetElapsedSimTimeMS() / static_cast<double>(m_ThrowPrepTime), 1.0)) : 1.0F; }
+		float GetThrowProgress() const;
 
 		/// Unequips whatever is in the FG arm and puts it into the inventory.
 		/// @return Whether there was anything to unequip.
@@ -318,18 +307,15 @@ namespace RTE {
 		bool UnequipBGArm();
 
 		/// Unequips whatever is in either of the arms and puts them into the inventory.
-		void UnequipArms() {
-			UnequipBGArm();
-			UnequipFGArm();
-		}
+		void UnequipArms();
 
 		/// Gets the FG Arm's HeldDevice. Ownership is NOT transferred.
 		/// @return The FG Arm's HeldDevice.
-		HeldDevice* GetEquippedItem() const { return m_pFGArm ? m_pFGArm->GetHeldDevice() : nullptr; }
+		HeldDevice* GetEquippedItem() const;
 
 		/// Gets the BG Arm's HeldDevice. Ownership is NOT transferred.
 		/// @return The BG Arm's HeldDevice.
-		HeldDevice* GetEquippedBGItem() const { return m_pBGArm ? m_pBGArm->GetHeldDevice() : nullptr; }
+		HeldDevice* GetEquippedBGItem() const;
 
 		/// Gets the total mass of this AHuman's currently equipped devices.
 		/// @return The mass of this AHuman's equipped devices.
@@ -421,20 +407,20 @@ namespace RTE {
 		/// Gets the walk path rotation for the specified Layer.
 		/// @param whichLayer The Layer in question.
 		/// @return The walk angle in radians.
-		float GetWalkAngle(AHuman::Layer whichLayer) const { return m_WalkAngle[whichLayer].GetRadAngle(); }
+		float GetWalkAngle(AHuman::Layer whichLayer) const;
 
 		/// Sets the walk path rotation for the specified Layer.
 		/// @param whichLayer The Layer in question.
 		/// @param angle The angle to set.
-		void SetWalkAngle(AHuman::Layer whichLayer, float angle) { m_WalkAngle[whichLayer] = Matrix(angle); }
+		void SetWalkAngle(AHuman::Layer whichLayer, float angle);
 
 		/// Gets whether this AHuman has just taken a stride this frame.
 		/// @return Whether this AHuman has taken a stride this frame or not.
-		bool StrideFrame() const { return m_StrideFrame; }
+		bool StrideFrame() const;
 
 		/// Gets whether this AHuman is currently attempting to climb something, using arms.
 		/// @return Whether this AHuman is currently climbing or not.
-		bool IsClimbing() const { return m_ArmClimbing[FGROUND] || m_ArmClimbing[BGROUND]; }
+		bool IsClimbing() const;
 
 		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
 		void PreControllerUpdate() override;
@@ -463,7 +449,7 @@ namespace RTE {
 		/// @param layer Whether to get foreground or background LimbPath.
 		/// @param movementState Which movement state to get the LimbPath for.
 		/// @return The LimbPath corresponding to the passed in Layer and MovementState values.
-		LimbPath* GetLimbPath(Layer layer, MovementState movementState) { return &m_Paths[layer][movementState]; }
+		LimbPath* GetLimbPath(Layer layer, MovementState movementState);
 
 		/// Get walking limb path speed for the specified preset.
 		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST
@@ -487,72 +473,72 @@ namespace RTE {
 		/// Gets the target rot angle for the given MovementState.
 		/// @param movementState The MovementState to get the rot angle target for.
 		/// @return The target rot angle for the given MovementState.
-		float GetRotAngleTarget(MovementState movementState) { return m_RotAngleTargets[movementState]; }
+		float GetRotAngleTarget(MovementState movementState);
 
 		/// Sets the target rot angle for the given MovementState.
 		/// @param movementState The MovementState to get the rot angle target for.
 		/// @param newRotAngleTarget The new rot angle target to use.
-		void SetRotAngleTarget(MovementState movementState, float newRotAngleTarget) { m_RotAngleTargets[movementState] = newRotAngleTarget; }
+		void SetRotAngleTarget(MovementState movementState, float newRotAngleTarget);
 
 		/// Gets the duration it takes this AHuman to fully charge a throw.
 		/// @return The duration it takes to fully charge a throw in MS.
-		long GetThrowPrepTime() const { return m_ThrowPrepTime; }
+		long GetThrowPrepTime() const;
 
 		/// Sets the duration it takes this AHuman to fully charge a throw.
 		/// @param newPrepTime New duration to fully charge a throw in MS.
-		void SetThrowPrepTime(long newPrepTime) { m_ThrowPrepTime = newPrepTime; }
+		void SetThrowPrepTime(long newPrepTime);
 
 		/// Gets the rate at which this AHuman's Arms will swing with Leg movement, if they're not holding or supporting a HeldDevice.
 		/// @return The arm swing rate of this AHuman.
-		float GetArmSwingRate() const { return m_ArmSwingRate; }
+		float GetArmSwingRate() const;
 
 		/// Sets the rate at which this AHuman's Arms will swing with Leg movement, if they're not holding or supporting a HeldDevice.
 		/// @param newValue The new arm swing rate for this AHuman.
-		void SetArmSwingRate(float newValue) { m_ArmSwingRate = newValue; }
+		void SetArmSwingRate(float newValue);
 
 		/// Gets the rate at which this AHuman's Arms will sway with Leg movement, if they're holding or supporting a HeldDevice.
 		/// @return The device arm sway rate of this AHuman.
-		float GetDeviceArmSwayRate() const { return m_DeviceArmSwayRate; }
+		float GetDeviceArmSwayRate() const;
 
 		/// Sets the rate at which this AHuman's Arms will sway with Leg movement, if they're holding or supporting a HeldDevice.
 		/// @param newValue The new device arm sway rate for this AHuman.
-		void SetDeviceArmSwayRate(float newValue) { m_DeviceArmSwayRate = newValue; }
+		void SetDeviceArmSwayRate(float newValue);
 
 		/// Gets this AHuman's max walkpath adjustment upwards to crouch below low ceilings.
 		/// @return This AHuman's max walkpath adjustment.
-		float GetMaxWalkPathCrouchShift() const { return m_MaxWalkPathCrouchShift; }
+		float GetMaxWalkPathCrouchShift() const;
 
 		/// Sets this AHuman's max walkpath adjustment upwards to crouch below low ceilings.
 		/// @param newValue The new value for this AHuman's max walkpath adjustment.
-		void SetMaxWalkPathCrouchShift(float newValue) { m_MaxWalkPathCrouchShift = newValue; }
+		void SetMaxWalkPathCrouchShift(float newValue);
 
 		/// Gets this AHuman's max crouch rotation to duck below low ceilings.
 		/// @return This AHuman's max crouch rotation adjustment.
-		float GetMaxCrouchRotation() const { return m_MaxCrouchRotation; }
+		float GetMaxCrouchRotation() const;
 
 		/// Sets this AHuman's max crouch rotation to duck below low ceilings.
 		/// @param newValue The new value for this AHuman's max crouch rotation adjustment.
-		void SetMaxCrouchRotation(float newValue) { m_MaxCrouchRotation = newValue; }
+		void SetMaxCrouchRotation(float newValue);
 
 		/// Gets this AHuman's current crouch amount. 0.0 == fully standing, 1.0 == fully crouched.
 		/// @return This AHuman's current crouch amount.
-		float GetCrouchAmount() const { return (m_WalkPathOffset.m_Y * -1.0F) / m_MaxWalkPathCrouchShift; }
+		float GetCrouchAmount() const;
 
 		/// Gets this AHuman's current crouch amount override. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
 		/// @return This AHuman's current crouch amount override.
-		float GetCrouchAmountOverride() const { return m_CrouchAmountOverride; }
+		float GetCrouchAmountOverride() const;
 
 		/// Sets this AHuman's current crouch amount override.
 		/// @param newValue The new value for this AHuman's current crouch amount override.
-		void SetCrouchAmountOverride(float newValue) { m_CrouchAmountOverride = newValue; }
+		void SetCrouchAmountOverride(float newValue);
 
 		/// Gets this AHuman's stride sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this AHuman's stride sound.
-		SoundContainer* GetStrideSound() const { return m_StrideSound; }
+		SoundContainer* GetStrideSound() const;
 
 		/// Sets this AHuman's stride sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this AHuman's stride sound.
-		void SetStrideSound(SoundContainer* newSound) { m_StrideSound = newSound; }
+		void SetStrideSound(SoundContainer* newSound);
 
 		/// Protected member variable and method declarations
 	protected:

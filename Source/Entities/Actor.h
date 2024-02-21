@@ -93,11 +93,7 @@ namespace RTE {
 
 		/// Resets the entire Actor, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			MOSRotating::Reset();
-			m_MOType = MovableObject::TypeActor;
-		}
+		void Reset() override;
 
 		/// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
 		void DestroyScriptState();
@@ -121,7 +117,7 @@ namespace RTE {
 
 		/// Gets this Actor's Controller. Ownership IS NOT transferred!
 		/// @return A const pointer to this Actor's Controller.
-		Controller* GetController() { return &m_Controller; }
+		Controller* GetController();
 
 		/// Tells whether a player is currently controlling this.
 		/// @return Whether a player is controlling this.
@@ -129,49 +125,49 @@ namespace RTE {
 
 		/// Tells wheter the player can switch control to this at all
 		/// @return Whether a player can control this at all.
-		virtual bool IsControllable() const { return true; }
+		virtual bool IsControllable() const;
 
 		/// Gets whether or not this Actor can be controlled by human players. Note that this does not protect the Actor's Controller from having its input mode forced to CIM_PLAYER (e.g. via Lua).
 		/// @return Whether or not this Actor can be controlled by human players.
-		bool IsPlayerControllable() const { return m_PlayerControllable; }
+		bool IsPlayerControllable() const;
 
 		/// Sets whether or not this Actor can be controlled by human players.
 		/// @param playerControllable Whether or not this Actor should be able to be controlled by human players.
-		void SetPlayerControllable(bool playerControllable) { m_PlayerControllable = playerControllable; }
+		void SetPlayerControllable(bool playerControllable);
 
 		/// Returns the current Status of this.
 		/// @return The status.
-		int GetStatus() const { return m_Status; }
+		int GetStatus() const;
 
 		/// Gets this Actor's health value.
 		/// @return A float describing this Actor's health.
-		float GetHealth() const { return m_Health; }
+		float GetHealth() const;
 
 		/// Gets this Actor's previous health value, prior to this frame.
 		/// @return A float describing this Actor's previous health.
-		float GetPrevHealth() const { return m_PrevHealth; }
+		float GetPrevHealth() const;
 
 		/// Gets this Actor's maximum health value.
 		/// @return A float describing this Actor's max health.
-		float GetMaxHealth() const { return m_MaxHealth; }
+		float GetMaxHealth() const;
 
 		/// Gets this Actor's maximum health value.
 		/// @param newValue New max health value.
-		void SetMaxHealth(int newValue) { m_MaxHealth = newValue; }
+		void SetMaxHealth(int newValue);
 
 		/// Gets the distance between the actor and the view point when not
 		/// sharp aiming.
 		/// @return A const int describing how far this actor aims/looks by default.
-		int GetAimDistance() const { return m_AimDistance; }
+		int GetAimDistance() const;
 
 		/// Gets the distance between the actor and the view point when not
 		/// sharp aiming.
 		/// @return A const int describing how far this actor aims/looks by default.
-		void SetAimDistance(int newValue) { m_AimDistance = newValue; }
+		void SetAimDistance(int newValue);
 
 		/// Gets how many ounces of gold this Actor is carrying.
 		/// @return The current amount of carried gold, in Oz.
-		float GetGoldCarried() const { return m_GoldCarried; }
+		float GetGoldCarried() const;
 
 		/// Gets the total liquidation value of this Actor and all its carried
 		/// gold and inventory.
@@ -199,62 +195,62 @@ namespace RTE {
 		/// Gets this Actor's aim angle.
 		/// @param adjustForFlipped Whether to adjust the angle for flipping or not. (default: true)
 		/// @return The angle, in radians.
-		float GetAimAngle(bool adjustForFlipped = true) const { return adjustForFlipped ? FacingAngle(m_AimAngle) : m_AimAngle; }
+		float GetAimAngle(bool adjustForFlipped = true) const;
 
 		/// Gets this Actor's passenger slots.
 		/// @return The Actor's passenger plots
-		int GetPassengerSlots() const { return m_PassengerSlots; }
+		int GetPassengerSlots() const;
 
 		/// Gets the absoltue position of this' brain, or equivalent.
 		/// @return A Vector with the absolute position of this' brain.
-		virtual Vector GetCPUPos() const { return m_Pos; }
+		virtual Vector GetCPUPos() const;
 
 		/// Gets the absoltue position of this' eye, or equivalent, where look
 		/// vector starts from.
 		/// @return A Vector with the absolute position of this' eye or view point.
-		virtual Vector GetEyePos() const { return m_Pos; }
+		virtual Vector GetEyePos() const;
 
 		/// Gets the absoltue position of the top of this' HUD stack.
 		/// @return A Vector with the absolute position of this' HUD stack top point.
-		Vector GetAboveHUDPos() const override { return m_Pos + Vector(0, m_HUDStack + 6); }
+		Vector GetAboveHUDPos() const override;
 
 		/// Gets the offset position of the holster where this Actor draws his devices from.
 		/// @return The offset position of the holster.
-		Vector GetHolsterOffset() const { return m_HolsterOffset; }
+		Vector GetHolsterOffset() const;
 
 		/// Sets the offset position of the holster where this Actor draws his devices from.
 		/// @param newOffset A new holster offset.
-		void SetHolsterOffset(Vector newOffset) { m_HolsterOffset = newOffset; }
+		void SetHolsterOffset(Vector newOffset);
 
 		/// Gets the offset position of where this Actor reloads his devices from.
 		/// @return The offset position of the where this Actor reloads his devices from.
-		Vector GetReloadOffset() const { return m_ReloadOffset; }
+		Vector GetReloadOffset() const;
 
 		/// Sets the offset position of the where this Actor reloads his devices from.
 		/// @param newOffset The new offset position of where this Actor reloads his devices from.
-		void SetReloadOffset(Vector newOffset) { m_ReloadOffset = newOffset; }
+		void SetReloadOffset(Vector newOffset);
 
 		/// Gets the point at which this actor is viewing, or that the scene frame
 		/// should be centered on if tracking this Actor's view. In absolute scene
 		/// coordinates.
 		/// @return The point in absolute scene coordinates.
-		Vector GetViewPoint() const { return m_ViewPoint.IsZero() ? m_Pos : m_ViewPoint; }
+		Vector GetViewPoint() const;
 
 		/// Gets the item that is within reach of the Actor at this frame, ready to be be picked up. Ownership is NOT transferred!
 		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any.
-		HeldDevice* GetItemInReach() const { return m_pItemInReach; }
+		HeldDevice* GetItemInReach() const;
 
 		/// Gets the direction where this is looking/aiming.
 		/// @return A Vector with the direction in which this is looking along.
-		Vector GetLookVector() const { return m_ViewPoint - GetEyePos(); }
+		Vector GetLookVector() const;
 
 		/// Gets the normalized amount of sharp aim that has been achieved by this.
 		/// @return Sharp aim progress between 0 - 1.0. 1.0 is fully aimed.
-		float GetSharpAimProgress() const { return m_SharpAimProgress; }
+		float GetSharpAimProgress() const;
 
 		/// Gets the approximate height of this Actor, standing up.
 		/// @return A float with the approximate height, in pixels.
-		float GetHeight() const { return m_CharHeight; }
+		float GetHeight() const;
 
 		/// Sets this Actor's new Controller input mode.
 		/// @param newMode The new input mode.
@@ -269,20 +265,15 @@ namespace RTE {
 
 		/// Sets this Actor's status.
 		/// @param newStatus A Status enumeration.
-		void SetStatus(Actor::Status newStatus) {
-			m_Status = newStatus;
-			if (newStatus == Actor::Status::UNSTABLE) {
-				m_StableRecoverTimer.Reset();
-			}
-		}
+		void SetStatus(Actor::Status newStatus);
 
 		/// Gets this Actor's MovementState.
 		/// @return This Actor's MovementState.
-		MovementState GetMovementState() const { return m_MoveState; }
+		MovementState GetMovementState() const;
 
 		/// Sets this Actor's MovementState to the new state.
 		/// @param newMovementState This Actor's new MovementState.
-		void SetMovementState(MovementState newMovementState) { m_MoveState = newMovementState; }
+		void SetMovementState(MovementState newMovementState);
 
 		/// Sets which team this Actor belongs to.
 		/// @param team The assigned team number.
@@ -290,36 +281,33 @@ namespace RTE {
 
 		/// Sets how many ounces of gold this Actor is carrying.
 		/// @param goldOz The new amount of carried gold, in Oz.
-		void SetGoldCarried(float goldOz) { m_GoldCarried = goldOz; }
+		void SetGoldCarried(float goldOz);
 
 		/// Sets this Actor's aim angle.
 		/// @param newAngle A new angle, in radians.
-		void SetAimAngle(float newAngle) {
-			m_AimAngle = newAngle;
-			Clamp(m_AimAngle, m_AimRange, -m_AimRange);
-		}
+		void SetAimAngle(float newAngle);
 
 		/// Sets this Actor's passenger slots.
 		/// @param newPassengerSlots A new amount of passenger slots.
-		void SetPassengerSlots(int newPassengerSlots) { m_PassengerSlots = newPassengerSlots; }
+		void SetPassengerSlots(int newPassengerSlots);
 
 		/// Sets the point at which this actor is viewing, or that the scene frame
 		/// should be centered on if tracking this Actor's view. In absolute scene
 		/// coordinates.
 		/// @param newPoint A new point in absolute scene coords.
-		void SetViewPoint(Vector newPoint) { m_ViewPoint = newPoint; }
+		void SetViewPoint(Vector newPoint);
 
 		/// Sets the item that is within reach of the Actor at this frame, so that
 		/// it may be picked up. Ownership is NOT transferred!
 		/// @param pItem A pointer to the item that has been determined to be within reach of
 		/// this Actor. Ownership is NOT transferred!
-		void SetItemInReach(HeldDevice* pItem) { m_pItemInReach = pItem; }
+		void SetItemInReach(HeldDevice* pItem);
 
 		/// Tells whether a point on the scene is within range of the currently
 		/// used device and aiming status, if applicable.
 		/// @param point A Vector witht he aboslute coordinates of a point to check.
 		/// @return Whether the point is within range of this.
-		virtual bool IsWithinRange(Vector& point) const { return false; }
+		virtual bool IsWithinRange(Vector& point) const;
 
 		/// Casts an unseen-revealing ray in the direction of where this is facing.
 		/// @param FOVSpread The degree angle to deviate from the current view point in the ray
@@ -338,29 +326,29 @@ namespace RTE {
 		/// Adds health points to this Actor's current health value.
 		/// @param setHealth A float specifying the value to add.
 		/// @return The resulting total health of this Actor.
-		const float AddHealth(const float addedHealth) { return m_Health += addedHealth; }
+		const float AddHealth(const float addedHealth);
 
 		/// Sets this Actor's current health value.
 		/// @param setHealth A float specifying the value to set to.
-		void SetHealth(const float setHealth) { m_Health = setHealth; }
+		void SetHealth(const float setHealth);
 
 		/// Checks if this Actor is in a specific status.
 		/// @param which Which status to check for.
 		/// @return A bool with the answer.
-		bool IsStatus(Status which) const { return m_Status == which; }
+		bool IsStatus(Status which) const;
 
 		/// Checks if this Actor is dead.
 		/// @return A const bool with the answer.
-		bool IsDead() const { return m_Status == DEAD; }
+		bool IsDead() const;
 
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
 		/// @param pieSliceType The SliceType of the PieSlice being handled.
 		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
-		virtual bool HandlePieCommand(PieSliceType pieSliceType) { return false; }
+		virtual bool HandlePieCommand(PieSliceType pieSliceType);
 
 		/// Gets this' AI mode.
 		/// @return The current AI mode.
-		int GetAIMode() const { return m_AIMode; }
+		int GetAIMode() const;
 
 		/// Gets the icon bitmap associated with this' current AI mode and team.
 		/// @return The current AI mode icon of this. Ownership is NOT transferred!
@@ -368,13 +356,13 @@ namespace RTE {
 
 		/// Sets this' AI mode.
 		/// @param newMode The new AI mode. (default: AIMODE_SENTRY)
-		void SetAIMode(AIMode newMode = AIMODE_SENTRY) { m_AIMode = newMode; }
+		void SetAIMode(AIMode newMode = AIMODE_SENTRY);
 
 		/// Adds an absolute scene point to the list of waypoints this is going to
 		/// go to, in order
 		/// @param m_Waypoints.push_back(std::pair<Vector The new scene point this should try to get to after all other waypoints
 		/// are reached.
-		void AddAISceneWaypoint(const Vector& waypoint) { m_Waypoints.push_back(std::pair<Vector, MovableObject*>(waypoint, (MovableObject*)NULL)); }
+		void AddAISceneWaypoint(const Vector& waypoint);
 
 		/// Adds an MO in the scene as the next waypoint for this to go to, in order
 		/// @param pMOWaypoint The new MO this should try to get to after all other waypoints are reached.
@@ -383,25 +371,12 @@ namespace RTE {
 
 		/// Removes all AI waypoints and clears the current path to the current
 		/// waypoint. The AI Actor will stop in its tracks.
-		void ClearAIWaypoints() {
-			m_pMOMoveTarget = 0;
-			m_Waypoints.clear();
-			m_MovePath.clear();
-			m_MoveTarget = m_Pos;
-			m_MoveVector.Reset();
-		}
+		void ClearAIWaypoints();
 
 		/// Gets the last or furthest set AI waypoint of this. If none, this' pos
 		/// is returned.
 		/// @return The furthest set AI waypoint of this.
-		Vector GetLastAIWaypoint() const {
-			if (!m_Waypoints.empty()) {
-				return m_Waypoints.back().first;
-			} else if (!m_MovePath.empty()) {
-				return m_MovePath.back();
-			}
-			return m_Pos;
-		}
+		Vector GetLastAIWaypoint() const;
 
 		/// Gets the ID of the last set AI MO waypoint of this. If none, g_NoMOID is returned.
 		/// @return The furthest set AI MO waypoint of this.
@@ -409,91 +384,69 @@ namespace RTE {
 
 		/// Gets the list of waypoints for this Actor.
 		/// @return The list of waypoints for this Actor.
-		const std::list<std::pair<Vector, const MovableObject*>>& GetWaypointList() const { return m_Waypoints; }
+		const std::list<std::pair<Vector, const MovableObject*>>& GetWaypointList() const;
 
 		/// Gets how many waypoints this actor have.
 		/// @return How many waypoints.
-		int GetWaypointsSize() { return m_Waypoints.size(); };
+		int GetWaypointsSize();
 
 		/// Clears the list of coordinates in this' current MovePath, ie the path
 		/// to the next Waypoint.
-		void ClearMovePath() {
-			m_MovePath.clear();
-			m_MoveTarget = m_Pos;
-			m_MoveVector.Reset();
-		}
+		void ClearMovePath();
 
 		/// Adds a coordinate to the beginning of the MovePath, meaning the one
 		/// closest to this Actor.
 		/// @param newCoordinate The new coordinate to add to the front of the MovePath.
-		void AddToMovePathBeginning(Vector newCoordinate) {
-			m_MovePath.push_front(newCoordinate);
-			m_MoveTarget = newCoordinate;
-			m_MoveVector.Reset();
-		}
+		void AddToMovePathBeginning(Vector newCoordinate);
 
 		/// Adds a coordinate to the end of the MovePath, meaning the one
 		/// closest to this Actor's next waypoint.
 		/// @param m_MovePath.push_back(newCoordinate The new coordinate to add to the end of the MovePath.
-		void AddToMovePathEnd(Vector newCoordinate) { m_MovePath.push_back(newCoordinate); }
+		void AddToMovePathEnd(Vector newCoordinate);
 
 		/// Gets the last position in this Actor's move path.
 		/// @return The last position in this Actor's move path.
-		Vector GetMovePathEnd() const { return m_MovePath.back(); }
+		Vector GetMovePathEnd() const;
 
 		/// Removes a coordinate from the beginning of the MovePath, meaning the
 		/// one closest to this Actor.
 		/// @return Whether there was any coordinate to remove. If false, the MovePath
 		/// is empty.
-		bool RemoveMovePathBeginning() {
-			if (!m_MovePath.empty()) {
-				m_MovePath.pop_front();
-				m_MoveTarget = m_MovePath.empty() ? m_Pos : m_MovePath.front();
-				m_MoveVector.Reset();
-				return true;
-			}
-			return false;
-		}
+		bool RemoveMovePathBeginning();
 
 		/// Removes a coordinate from the end of the MovePath, meaning the
 		/// one farthest from this Actor.
 		/// @return Whether there was any coordinate to remove. If false, the MovePath
 		/// is empty.
-		bool RemoveMovePathEnd() {
-			if (!m_MovePath.empty()) {
-				m_MovePath.pop_back();
-				return true;
-			}
-			return false;
-		}
+		bool RemoveMovePathEnd();
 
 		/// Gets a pointer to the MovableObject move target of this Actor.
 		/// @return A pointer to the MovableObject move target of this Actor.
-		const MovableObject* GetMOMoveTarget() const { return m_pMOMoveTarget; }
+		const MovableObject* GetMOMoveTarget() const;
 
 		/// Sets this' perceptiveness to alarming events going on around him.
 		/// @param newPerceptiveness The current perceptiveness, 0.0 - 1.0
-		void SetPerceptiveness(float newPerceptiveness) { m_Perceptiveness = newPerceptiveness; }
+		void SetPerceptiveness(float newPerceptiveness);
 
 		/// Gets this' perceptiveness to alarming events going on around him.
 		/// @return The current perceptiveness, 0.0 - 1.0
-		float GetPerceptiveness() const { return m_Perceptiveness; }
+		float GetPerceptiveness() const;
 
 		/// Gets whether this actor is able to reveal unseen areas by looking.
 		/// @return Whether this actor can reveal unseen areas.
-		bool GetCanRevealUnseen() const { return m_CanRevealUnseen; }
+		bool GetCanRevealUnseen() const;
 
 		/// Sets whether this actor can reveal unseen areas by looking.
 		/// @param newCanRevealUnseen Whether this actor can reveal unseen areas.
-		void SetCanRevealUnseen(bool newCanRevealUnseen) { m_CanRevealUnseen = newCanRevealUnseen; }
+		void SetCanRevealUnseen(bool newCanRevealUnseen);
 
 		/// Sets this' PainThreshold value above which it will play PainSound
 		/// @param newPainThreshold Desired PainThreshold value
-		void SetPainThreshold(float newPainThreshold) { m_PainThreshold = newPainThreshold; }
+		void SetPainThreshold(float newPainThreshold);
 
 		/// Gets this' PainThreshold value above which it will play PainSound
 		/// @return The current PainThreshold
-		float GetPainThreshold() const { return m_PainThreshold; }
+		float GetPainThreshold() const;
 
 		/// Makes this alarmed about a certian point on in the scene, overriding
 		/// the current AI mode until a certain time has passed.
@@ -504,21 +457,16 @@ namespace RTE {
 		/// Gets any point on the scene this actor should be alarmed about this frame.
 		/// @return The new scene point this should look at and see if anything dangerous
 		/// is there or (0,0) if nothing is alarming.
-		Vector GetAlarmPoint() {
-			if (m_AlarmTimer.GetElapsedSimTimeMS() > g_TimerMan.GetDeltaTimeMS()) {
-				return Vector();
-			}
-			return m_LastAlarmPos;
-		}
+		Vector GetAlarmPoint();
 
 		/// Adds an inventory item to this Actor.
 		/// @param AddToInventoryBack(pItemToAdd An pointer to the new item to add. Ownership IS TRANSFERRED!
 		/// @return None..
-		virtual void AddInventoryItem(MovableObject* pItemToAdd) { AddToInventoryBack(pItemToAdd); }
+		virtual void AddInventoryItem(MovableObject* pItemToAdd);
 
 		/// Removes a specified item from the actor's inventory. Only one item is removed at a time.
 		/// @param RemoveInventoryItem("" Preset name of an item to remove.
-		void RemoveInventoryItem(const std::string& presetName) { RemoveInventoryItem("", presetName); }
+		void RemoveInventoryItem(const std::string& presetName);
 
 		/// Removes the first inventory item with the given module name and preset name.
 		/// @param moduleName The module name of the item to remove.
@@ -570,19 +518,19 @@ namespace RTE {
 
 		/// Tells how many things are in the invetory
 		/// @return The number of things in the inventory
-		int GetInventorySize() const { return m_Inventory.size(); }
+		int GetInventorySize() const;
 
 		/// Tells whether inventory is completely empty
 		/// @return Whether inventory is completely empty.
-		bool IsInventoryEmpty() { return m_Inventory.empty(); }
+		bool IsInventoryEmpty();
 
 		/// Gets the deque of inventory of this. Ownership is NOT transferred.
 		/// @return A const pointer to the inventory deque of this. OWNERSHIP IS NOT TRANSFERRED!
-		const std::deque<MovableObject*>* GetInventory() const { return &m_Inventory; }
+		const std::deque<MovableObject*>* GetInventory() const;
 
 		/// Returns the maximum total mass this Actor can carry in its inventory.
 		/// @return The maximum carriable mass of this Actor.
-		float GetMaxInventoryMass() const { return m_MaxInventoryMass; }
+		float GetMaxInventoryMass() const;
 
 		/// Attempts to add an item to the front of our inventory.
 		/// @return Whether we succeeded in adding the item. We may fail if the object doesn't exist or is set to delete.
@@ -595,17 +543,17 @@ namespace RTE {
 		/// The limit of this actors aiming angle, in each direction, in radians.
 		/// @return The arc range of the aiming angle in radians.
 		/// Eg if HalfPI, it means full 180 degree range
-		float GetAimRange() const { return m_AimRange; }
+		float GetAimRange() const;
 
 		/// Sets the limit of this actors aiming angle, in each direction, in radians.
 		/// @param range The arc range of the aiming angle in radians.
 		/// Eg if HalfPI, it means full 180 degree range
-		void SetAimRange(float range) { m_AimRange = range; }
+		void SetAimRange(float range);
 
 		/// Makes this draw its current waypoints and related data on the scene in
 		/// its HUD drawing stage.
 		/// @param drawWaypoints Whether to enable or disable the drawing of the waypoints. (default: true)
-		void DrawWaypoints(bool drawWaypoints = true) { m_DrawWaypoints = drawWaypoints; }
+		void DrawWaypoints(bool drawWaypoints = true);
 
 		/// Destroys this MOSRotating and creates its specified Gibs in its place with appropriate velocities.
 		/// Any Attachables are removed and also given appropriate velocities.
@@ -626,25 +574,22 @@ namespace RTE {
 
 		/// Does stuff that needs to be done before Travel(). Always call before
 		/// calling Travel.
-		void PreTravel() override {
-			MOSRotating::PreTravel();
-			m_GoldPicked = false;
-		}
+		void PreTravel() override;
 
 		/// Sets this' AI's move path to be updated. Will update the path to the
 		/// current waypoint, if any.
-		void SetMovePathToUpdate() { m_UpdateMovePath = true; }
+		void SetMovePathToUpdate();
 
 		/// Gets how many waypoints there are in the MovePath currently
 		/// @return The number of waypoints in the MovePath.
-		int GetMovePathSize() const { return m_MovePath.size(); }
+		int GetMovePathSize() const;
 
 		/// Starts updating this Actor's movepath.
 		virtual void UpdateMovePath();
 
 		/// Returns whether we're waiting on a new pending movepath.
 		/// @return Whether we're waiting on a new pending movepath.
-		bool IsWaitingOnNewMovePath() const { return m_PathRequest != nullptr || m_UpdateMovePath; }
+		bool IsWaitingOnNewMovePath() const;
 
 		/// Estimates what material strength this actor can penetrate.
 		/// @return The actor's dig strength.
@@ -652,11 +597,11 @@ namespace RTE {
 
 		/// Gets this Actor's base dig strength, or the strength of terrain they can expect to walk through without tools.
 		/// @return The actors base dig strength.
-		float GetAIBaseDigStrength() const { return m_AIBaseDigStrength; }
+		float GetAIBaseDigStrength() const;
 
 		/// Sets this Actor's base dig strength, or the strength of terrain they can expect to walk through without tools.
 		/// @param newAIBaseDigStrength The new base dig strength for this Actor.
-		void SetAIBaseDigStrength(float newAIBaseDigStrength) { m_AIBaseDigStrength = newAIBaseDigStrength; }
+		void SetAIBaseDigStrength(float newAIBaseDigStrength);
 
 		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
 		virtual void PreControllerUpdate();
@@ -669,19 +614,19 @@ namespace RTE {
 
 		/// Description:		Sets deployment ID for this actor
 		/// @param newID New deployment id.
-		void SetDeploymentID(unsigned int newID) { m_DeploymentID = newID; }
+		void SetDeploymentID(unsigned int newID);
 
 		/// Description:		Gets deployment ID of this actor
 		/// @return Returns deployment id of this actor.
-		unsigned int GetDeploymentID() const { return m_DeploymentID; }
+		unsigned int GetDeploymentID() const;
 
 		/// Description:		Returns actor's sight distance.
 		/// @return Returns actor's sight distance.
-		float GetSightDistance() const { return m_SightDistance; }
+		float GetSightDistance() const;
 
 		/// Description:		Sets actor's sight distance.
 		/// @param newValue New sight distance value.
-		void SetSightDistance(float newValue) { m_SightDistance = newValue; }
+		void SetSightDistance(float newValue);
 
 		/// Draws this Actor's current graphical HUD overlay representation to a
 		/// BITMAP of choice.
@@ -696,104 +641,104 @@ namespace RTE {
 
 		/// Returns Threshold for taking damage from travel impulses, in kg * m/s
 		/// @return Threshold for taking damage from travel impulses, in kg * m/s
-		float GetTravelImpulseDamage() const { return m_TravelImpulseDamage; }
+		float GetTravelImpulseDamage() const;
 
 		/// Sets Threshold for taking damage from travel impulses, in kg * m/s
 		/// @param value Threshold for taking damage from travel impulses, in kg * m/s
-		void SetTravelImpulseDamage(float value) { m_TravelImpulseDamage = value; }
+		void SetTravelImpulseDamage(float value);
 
 		/// Gets this Actor's body hit sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this Actor's body hit sound.
-		SoundContainer* GetBodyHitSound() const { return m_BodyHitSound; }
+		SoundContainer* GetBodyHitSound() const;
 
 		/// Sets this Actor's body hit sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this Actor's body hit sound.
-		void SetBodyHitSound(SoundContainer* newSound) { m_BodyHitSound = newSound; }
+		void SetBodyHitSound(SoundContainer* newSound);
 
 		/// Gets this Actor's alarm sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this Actor's alarm sound.
-		SoundContainer* GetAlarmSound() const { return m_AlarmSound; }
+		SoundContainer* GetAlarmSound() const;
 
 		/// Sets this Actor's alarm sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this Actor's alarm sound.
-		void SetAlarmSound(SoundContainer* newSound) { m_AlarmSound = newSound; }
+		void SetAlarmSound(SoundContainer* newSound);
 
 		/// Gets this Actor's pain sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this Actor's pain sound.
-		SoundContainer* GetPainSound() const { return m_PainSound; }
+		SoundContainer* GetPainSound() const;
 
 		/// Sets this Actor's pain sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this Actor's pain sound.
-		void SetPainSound(SoundContainer* newSound) { m_PainSound = newSound; }
+		void SetPainSound(SoundContainer* newSound);
 
 		/// Gets this Actor's death sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this Actor's death sound.
-		SoundContainer* GetDeathSound() const { return m_DeathSound; }
+		SoundContainer* GetDeathSound() const;
 
 		/// Sets this Actor's death sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this Actor's death sound.
-		void SetDeathSound(SoundContainer* newSound) { m_DeathSound = newSound; }
+		void SetDeathSound(SoundContainer* newSound);
 
 		/// Gets this Actor's device switch sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this Actor's device switch sound.
-		SoundContainer* GetDeviceSwitchSound() const { return m_DeviceSwitchSound; }
+		SoundContainer* GetDeviceSwitchSound() const;
 
 		/// Sets this Actor's device switch sound. Ownership IS transferred!
 		/// @param newSound The new SoundContainer for this Actor's device switch sound.
-		void SetDeviceSwitchSound(SoundContainer* newSound) { m_DeviceSwitchSound = newSound; }
+		void SetDeviceSwitchSound(SoundContainer* newSound);
 
 		/// Gets the X and Y thresholds for how fast the actor can travel before losing stability.
 		/// @return A Vector with the X and Y thresholds for how fast the actor can travel before losing stability.
-		Vector GetStableVel() const { return m_StableVel; }
+		Vector GetStableVel() const;
 
 		/// Sets the X and Y thresholds for how fast the actor can travel before losing stability.
 		/// @param newVelX New value for how fast the actor can travel before losing stability on X axis.
 		/// @param newVelY New value for how fast the actor can travel before losing stability on Y axis.
-		void SetStableVel(float newVelX, float newVelY) { m_StableVel.SetXY(newVelX, newVelY); }
+		void SetStableVel(float newVelX, float newVelY);
 
 		/// Sets the X and Y thresholds for how fast the actor can travel before losing stability.
 		/// @param newVelVector Vector with new values for how fast the actor can travel before losing stability on both axis.
-		void SetStableVel(Vector newVelVector) { m_StableVel = newVelVector; }
+		void SetStableVel(Vector newVelVector);
 
 		/// Gets the recovery delay from UNSTABLE to STABLE, in MS.
 		/// @return The recovery delay, in MS.
-		int GetStableRecoverDelay() const { return m_StableRecoverDelay; }
+		int GetStableRecoverDelay() const;
 
 		/// Sets the recovery delay from UNSTABLE to STABLE, in MS.
 		/// @param newRecoverDelay The recovery delay, in MS.
-		void SetStableRecoverDelay(int newRecoverDelay) { m_StableRecoverDelay = newRecoverDelay; }
+		void SetStableRecoverDelay(int newRecoverDelay);
 
 		/// Gets the distance in which the Actor will have considered itself to have reached it's waypoint.
 		/// @return The move proximity limit.
-		float GetMoveProximityLimit() const { return m_MoveProximityLimit; }
+		float GetMoveProximityLimit() const;
 
 		/// Sets the distance in which the Actor will have considered itself to have reached it's waypoint.
 		/// @param newProximityLimit The move proximity limit.
-		void SetMoveProximityLimit(float newProximityLimit) { m_MoveProximityLimit = newProximityLimit; }
+		void SetMoveProximityLimit(float newProximityLimit);
 
 		/// Gets whether or not this Actor has the organic flag set and should be considered as organic.
 		/// @return Whether or not this Actor has the organic flag set and should be considered as organic.
-		bool IsOrganic() const { return m_Organic; }
+		bool IsOrganic() const;
 
 		/// Gets whether or not this Actor has the mechanical flag set and should be considered as mechanical.
 		/// @return Whether or not this Actor has the mechanical flag set and should be considered as mechanical.
-		bool IsMechanical() const { return m_Mechanical; }
+		bool IsMechanical() const;
 
 		/// Gets whether or not this Actor's limb push forces have been disabled.
 		/// @return Whether or not this Actor's limb push forces have been disabled.
-		bool GetLimbPushForcesAndCollisionsDisabled() const { return m_LimbPushForcesAndCollisionsDisabled; }
+		bool GetLimbPushForcesAndCollisionsDisabled() const;
 
 		/// Sets whether or not this Actor's limb push forces should be disabled.
 		/// @param newLimbPushForcesAndCollisionsDisabled Whether or not this Actor's limb push forces should be disabled.
-		void SetLimbPushForcesAndCollisionsDisabled(bool newLimbPushForcesAndCollisionsDisabled) { m_LimbPushForcesAndCollisionsDisabled = newLimbPushForcesAndCollisionsDisabled; }
+		void SetLimbPushForcesAndCollisionsDisabled(bool newLimbPushForcesAndCollisionsDisabled);
 
 		/// Gets the default PieMenu name for this type.
 		/// @return The default PieMenu name for this type.
-		virtual std::string GetDefaultPieMenuName() const { return "Default Actor Pie Menu"; }
+		virtual std::string GetDefaultPieMenuName() const;
 
 		/// Gets a pointer to the PieMenu for this Actor. Ownership is NOT transferred.
 		/// @return The PieMenu for this Actor.
-		PieMenu* GetPieMenu() const { return m_PieMenu.get(); }
+		PieMenu* GetPieMenu() const;
 
 		/// Sets the PieMenu for this Actor. Ownership IS transferred.
 		/// @param newPieMenu The new PieMenu for this Actor.

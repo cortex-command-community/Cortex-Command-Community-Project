@@ -60,6 +60,10 @@ void ADoor::Clear() {
 	m_CanBeSquished = false;
 }
 
+int ADoor::Create() {
+	return Actor::Create();
+}
+
 int ADoor::Create(const ADoor& reference) {
 	if (reference.m_Door) {
 		m_ReferenceHardcodedAttachableUniqueIDs.insert(reference.m_Door->GetUniqueID());
@@ -233,6 +237,15 @@ void ADoor::Destroy(bool notInherited) {
 	Clear();
 }
 
+void ADoor::Reset() {
+	Clear();
+	Actor::Reset();
+}
+
+Attachable* ADoor::GetDoor() const {
+	return m_Door;
+}
+
 void ADoor::SetDoor(Attachable* newDoor) {
 	if (m_DoorMaterialDrawn) {
 		RTEAssert(m_Door, "Door material drawn without an m_Door! This should've been cleared when the door was!");
@@ -298,16 +311,48 @@ bool ADoor::EraseDoorMaterial(bool updateMaterialArea) {
 	return false;
 }
 
+ADoor::DoorState ADoor::GetDoorState() const {
+	return m_DoorState;
+}
+
+void ADoor::SetClosedByDefault(bool closedByDefault) {
+	m_ClosedByDefault = closedByDefault;
+}
+
+bool ADoor::IsControllable() const {
+	return false;
+}
+
+bool ADoor::GetDoorMaterialDrawn() const {
+	return m_DoorMaterialDrawn;
+}
+
+SoundContainer* ADoor::GetDoorMoveStartSound() const {
+	return m_DoorMoveStartSound.get();
+}
+
 void ADoor::SetDoorMoveStartSound(SoundContainer* newSound) {
 	m_DoorMoveStartSound.reset(newSound);
+}
+
+SoundContainer* ADoor::GetDoorMoveSound() const {
+	return m_DoorMoveSound.get();
 }
 
 void ADoor::SetDoorMoveSound(SoundContainer* newSound) {
 	m_DoorMoveSound.reset(newSound);
 }
 
+SoundContainer* ADoor::GetDoorDirectionChangeSound() const {
+	return m_DoorDirectionChangeSound.get();
+}
+
 void ADoor::SetDoorDirectionChangeSound(SoundContainer* newSound) {
 	m_DoorDirectionChangeSound.reset(newSound);
+}
+
+SoundContainer* ADoor::GetDoorMoveEndSound() const {
+	return m_DoorMoveEndSound.get();
 }
 
 void ADoor::SetDoorMoveEndSound(SoundContainer* newSound) {
@@ -329,6 +374,10 @@ void ADoor::TempEraseOrRedrawDoorMaterial(bool erase) {
 		DrawDoorMaterial(true, false);
 		m_DoorMaterialDrawn = doorMaterialDrawnState;
 	}
+}
+
+void ADoor::ResetSensorTimer() {
+	m_SensorTimer.Reset();
 }
 
 void ADoor::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToIgnore) {

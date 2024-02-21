@@ -20,7 +20,7 @@ namespace RTE {
 
 		/// Makes the ADSensor object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create() override { return Serializable::Create(); }
+		int Create() override;
 
 		/// Creates an ADSensor to be identical to another, by deep copy.
 		/// @param reference A reference to the ADSensor to deep copy.
@@ -34,25 +34,25 @@ namespace RTE {
 
 		/// Destroys and resets (through Clear()) the ADSensor object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
-		void Destroy() { Clear(); }
+		void Destroy();
 #pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets the starting position offset of this ADSensor from the owning ADoor position.
 		/// @return The starting coordinates relative to the m_Pos of this' ADoor.
-		Vector GetStartOffset() const { return m_StartOffset; }
+		Vector GetStartOffset() const;
 
 		/// Sets the starting position offset of this ADSensor from the owning ADoor position.
 		/// @param startOffsetValue The new starting coordinates relative to the m_Pos of this' ADoor.
-		void SetStartOffset(const Vector& startOffsetValue) { m_StartOffset = startOffsetValue; }
+		void SetStartOffset(const Vector& startOffsetValue);
 
 		/// Gets the sensor ray vector out from the start offset's position.
 		/// @return The sensor ray vector.
-		Vector GetSensorRay() const { return m_SensorRay; }
+		Vector GetSensorRay() const;
 
 		/// Sets the sensor ray vector out from the start offset's position.
 		/// @param sensorRayValue The new sensor ray vector.
-		void SetSensorRay(const Vector& sensorRayValue) { m_SensorRay = sensorRayValue; }
+		void SetSensorRay(const Vector& sensorRayValue);
 #pragma endregion
 
 #pragma region Concrete Methods

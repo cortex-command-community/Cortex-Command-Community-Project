@@ -20,6 +20,10 @@ void ADSensor::Clear() {
 	m_Skip = 3;
 }
 
+int ADSensor::Create() {
+	return Serializable::Create();
+}
+
 int ADSensor::Create(const ADSensor& reference) {
 	m_StartOffset = reference.m_StartOffset;
 	m_SensorRay = reference.m_SensorRay;
@@ -49,6 +53,26 @@ int ADSensor::Save(Writer& writer) const {
 	writer << m_Skip;
 
 	return 0;
+}
+
+void ADSensor::Destroy() {
+	Clear();
+}
+
+Vector ADSensor::GetStartOffset() const {
+	return m_StartOffset;
+}
+
+void ADSensor::SetStartOffset(const Vector& startOffsetValue) {
+	m_StartOffset = startOffsetValue;
+}
+
+Vector ADSensor::GetSensorRay() const {
+	return m_SensorRay;
+}
+
+void ADSensor::SetSensorRay(const Vector& sensorRayValue) {
+	m_SensorRay = sensorRayValue;
 }
 
 Actor* ADSensor::SenseActor(const Vector& doorPos, const Matrix& doorRot, bool doorHFlipped, MOID ignoreMOID) {

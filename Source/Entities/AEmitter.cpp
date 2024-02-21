@@ -219,6 +219,11 @@ int AEmitter::Save(Writer& writer) const {
 	return 0;
 }
 
+void AEmitter::Reset() {
+	Clear();
+	MOSRotating::Reset();
+}
+
 void AEmitter::Destroy(bool notInherited) {
 	// Stop playback of sounds gracefully
 	if (m_EmissionSound) {
@@ -237,6 +242,14 @@ void AEmitter::Destroy(bool notInherited) {
 	if (!notInherited)
 		Attachable::Destroy();
 	Clear();
+}
+
+bool AEmitter::IsEmitting() const {
+	return m_EmitEnabled;
+}
+
+bool AEmitter::WasEmitting() const {
+	return m_WasEmitting;
 }
 
 void AEmitter::ResetEmissionTimers() {
@@ -313,9 +326,101 @@ int AEmitter::GetTotalBurstSize() const {
 	return totalBurstSize;
 }
 
+float AEmitter::GetBurstScale() const {
+	return m_BurstScale;
+}
+
+float AEmitter::GetEmitAngle() const {
+	return m_EmitAngle.GetRadAngle();
+}
+
+const Matrix& AEmitter::GetEmitAngleMatrix() const {
+	return m_EmitAngle;
+}
+
+Vector AEmitter::GetEmitOffset() const {
+	return m_EmissionOffset;
+}
+
+void AEmitter::SetEmitOffset(const Vector& newOffset) {
+	m_EmissionOffset = newOffset;
+}
+
+Vector AEmitter::GetEmitVector() const {
+	return Vector(1, 0).RadRotate(m_HFlipped ? c_PI + m_Rotation.GetRadAngle() - m_EmitAngle.GetRadAngle() : m_Rotation.GetRadAngle() + m_EmitAngle.GetRadAngle());
+}
+
+Vector AEmitter::GetRecoilVector() const {
+	return Vector(-1, 0).RadRotate(m_HFlipped ? c_PI + m_Rotation.GetRadAngle() - m_EmitAngle.GetRadAngle() : m_Rotation.GetRadAngle() + m_EmitAngle.GetRadAngle());
+}
+
+float AEmitter::GetBurstSpacing() const {
+	return m_BurstSpacing;
+}
+
+// float AEmitter::GetEmitSpread() const {
+// 	return m_Spread;
+// }
+
+// float AEmitter::GetEmitVelMin() const {
+// 	return m_MinVelocity;
+// }
+
+// float AEmitter::GetEmitVelMax() const {
+// 	return m_MaxVelocity;
+// }
+
+float AEmitter::GetThrottle() const {
+	return m_Throttle;
+}
+
+float AEmitter::GetThrottleFactor() const {
+	return Lerp(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle);
+}
+
+float AEmitter::GetThrottleForThrottleFactor(float throttleFactor) const {
+	return Lerp(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor);
+}
+
 float AEmitter::GetScaledThrottle(float throttle, float multiplier) const {
 	float throttleFactor = Lerp(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, throttle);
 	return Lerp(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor * multiplier);
+}
+
+float AEmitter::GetNegativeThrottleMultiplier() const {
+	return m_NegativeThrottleMultiplier;
+}
+
+float AEmitter::GetPositiveThrottleMultiplier() const {
+	return m_PositiveThrottleMultiplier;
+}
+
+void AEmitter::SetNegativeThrottleMultiplier(float newValue) {
+	m_NegativeThrottleMultiplier = newValue;
+}
+
+void AEmitter::SetPositiveThrottleMultiplier(float newValue) {
+	m_PositiveThrottleMultiplier = newValue;
+}
+
+// void AEmitter::SetEmitRate(const float rate) {
+// 	m_PPM = rate;
+// }
+
+// void AEmitter::SetBurstCount(const int count) {
+// 	m_BurstSize = count;
+// }
+
+void AEmitter::SetBurstScale(const float scale) {
+	m_BurstScale = scale;
+}
+
+void AEmitter::SetBurstSpacing(const float spacing) {
+	m_BurstSpacing = spacing;
+}
+
+Attachable* AEmitter::GetFlash() const {
+	return m_pFlash;
 }
 
 void AEmitter::SetFlash(Attachable* newFlash) {
@@ -340,6 +445,58 @@ void AEmitter::SetFlash(Attachable* newFlash) {
 		m_pFlash->SetDeleteWhenRemovedFromParent(true);
 		m_pFlash->SetCollidesWithTerrainWhileAttached(false);
 	}
+}
+
+float AEmitter::GetFlashScale() const {
+	return m_FlashScale;
+}
+
+void AEmitter::SetFlashScale(float flashScale) {
+	m_FlashScale = flashScale;
+}
+
+void AEmitter::SetEmitAngle(const float angle) {
+	m_EmitAngle.SetRadAngle(angle);
+}
+
+void AEmitter::SetThrottle(float throttle) {
+	m_Throttle = throttle > 1.0f ? 1.0f : (throttle < -1.0f ? -1.0f : throttle);
+}
+
+// void AEmitter::SetEmitSpread(const float spread) {
+// 	m_Spread = spread;
+// }
+
+// void AEmitter::SetEmitVelMin(const float minVel) {
+// 	m_MinVelocity = minVel;
+// }
+
+// void AEmitter::SetEmitVelMax(const float maxVel) {
+// 	m_MaxVelocity = maxVel;
+// }
+
+void AEmitter::TriggerBurst() {
+	m_BurstTriggered = true;
+}
+
+bool AEmitter::CanTriggerBurst() {
+	return m_BurstSpacing <= 0 || m_BurstTimer.IsPastSimMS(m_BurstSpacing);
+}
+
+bool AEmitter::IsSetToBurst() const {
+	return m_BurstTriggered;
+}
+
+void AEmitter::AlarmOnEmit(int Team) const {
+	if (m_LoudnessOnEmit > 0) {
+		g_MovableMan.RegisterAlarmEvent(AlarmEvent(m_Pos, Team, m_LoudnessOnEmit));
+	}
+}
+
+void AEmitter::ResetAllTimers() {
+	Attachable::ResetAllTimers();
+	m_BurstTimer.Reset();
+	m_LastEmitTmr.Reset();
 }
 
 void AEmitter::Update() {
@@ -548,6 +705,30 @@ void AEmitter::Update() {
 	}
 }
 
+float AEmitter::GetBurstDamage() const {
+	return m_BurstDamage * m_EmitterDamageMultiplier;
+}
+
+void AEmitter::SetBurstDamage(float newValue) {
+	m_BurstDamage = newValue;
+}
+
+float AEmitter::GetEmitDamage() const {
+	return m_EmitDamage * m_EmitterDamageMultiplier;
+}
+
+void AEmitter::SetEmitDamage(float newValue) {
+	m_EmitDamage = newValue;
+}
+
+float AEmitter::GetEmitterDamageMultiplier() const {
+	return m_EmitterDamageMultiplier;
+}
+
+void AEmitter::SetEmitterDamageMultiplier(float newValue) {
+	m_EmitterDamageMultiplier = newValue;
+}
+
 void AEmitter::Draw(BITMAP* pTargetBitmap,
                     const Vector& targetPos,
                     DrawMode mode,
@@ -563,4 +744,48 @@ void AEmitter::Draw(BITMAP* pTargetBitmap,
 	if (m_pFlash && m_pFlash->IsDrawnAfterParent() &&
 	    !onlyPhysical && mode == g_DrawColor && m_EmitEnabled && (!m_FlashOnlyOnBurst || m_BurstTriggered))
 		m_pFlash->Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
+}
+
+bool AEmitter::IsDamaging() {
+	return (m_EmitDamage > 0 || m_BurstDamage > 0) && m_EmitterDamageMultiplier > 0;
+}
+
+long AEmitter::GetEmitCount() const {
+	return m_EmitCount;
+}
+
+long AEmitter::GetEmitCountLimit() const {
+	return m_EmitCountLimit;
+}
+
+void AEmitter::SetEmitCountLimit(long newValue) {
+	m_EmitCountLimit = newValue;
+}
+
+SoundContainer* AEmitter::GetEmissionSound() const {
+	return m_EmissionSound;
+}
+
+void AEmitter::SetEmissionSound(SoundContainer* newSound) {
+	m_EmissionSound = newSound;
+}
+
+SoundContainer* AEmitter::GetBurstSound() const {
+	return m_BurstSound;
+}
+
+void AEmitter::SetBurstSound(SoundContainer* newSound) {
+	m_BurstSound = newSound;
+}
+
+SoundContainer* AEmitter::GetEndSound() const {
+	return m_EndSound;
+}
+
+void AEmitter::SetEndSound(SoundContainer* newSound) {
+	m_EndSound = newSound;
+}
+
+bool AEmitter::JustStartedEmitting() const {
+	return !m_WasEmitting && m_EmitEnabled;
 }

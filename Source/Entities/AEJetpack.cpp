@@ -15,6 +15,11 @@ AEJetpack::~AEJetpack() {
 	Destroy(true);
 }
 
+void AEJetpack::Reset() {
+	Clear();
+	AEmitter::Reset();
+}
+
 void AEJetpack::Clear() {
 	m_JetpackType = JetpackType::Standard;
 	m_JetTimeTotal = 0.0F;
@@ -183,6 +188,82 @@ void AEJetpack::UpdateBurstState(Actor& parentActor) {
 			SetEmitAngle(jetAngle * flip - c_HalfPI);
 		}
 	}
+}
+
+bool AEJetpack::IsFullyFueled() const {
+	return m_JetTimeLeft >= m_JetTimeTotal - (m_JetTimeTotal * std::numeric_limits<float>::epsilon());
+}
+
+bool AEJetpack::IsOutOfFuel() const {
+	return m_JetTimeLeft <= std::numeric_limits<float>::epsilon();
+}
+
+float AEJetpack::GetJetTimeTotal() const {
+	return m_JetTimeTotal;
+}
+
+void AEJetpack::SetJetTimeTotal(float newValue) {
+	m_JetTimeTotal = newValue;
+}
+
+float AEJetpack::GetJetTimeLeft() const {
+	return m_JetTimeLeft;
+}
+
+void AEJetpack::SetJetTimeLeft(float newValue) {
+	m_JetTimeLeft = newValue < m_JetTimeTotal ? newValue : m_JetTimeTotal;
+}
+
+float AEJetpack::GetJetTimeRatio() {
+	return m_JetTimeLeft / m_JetTimeTotal;
+}
+
+float AEJetpack::GetJetReplenishRate() const {
+	return m_JetReplenishRate;
+}
+
+void AEJetpack::SetJetReplenishRate(float newValue) {
+	m_JetReplenishRate = newValue;
+}
+
+float AEJetpack::GetMinimumFuelRatio() const {
+	return m_MinimumFuelRatio;
+}
+
+void AEJetpack::SetMinimumFuelRatio(float newValue) {
+	m_MinimumFuelRatio = newValue;
+}
+
+float AEJetpack::GetJetAngleRange() const {
+	return m_JetAngleRange;
+}
+
+void AEJetpack::SetJetAngleRange(float newValue) {
+	m_JetAngleRange = newValue;
+}
+
+AEJetpack::JetpackType AEJetpack::GetJetpackType() const {
+	return m_JetpackType;
+}
+
+void AEJetpack::SetJetpackType(JetpackType newType) {
+	m_JetpackType = newType;
+}
+
+bool AEJetpack::GetCanAdjustAngleWhileFiring() const {
+	return m_CanAdjustAngleWhileFiring;
+}
+
+void AEJetpack::SetCanAdjustAngleWhileFiring(bool newValue) {
+	m_CanAdjustAngleWhileFiring = newValue;
+}
+
+bool AEJetpack::GetAdjustsThrottleForWeight() const {
+	return m_AdjustsThrottleForWeight;
+}
+
+void AEJetpack::SetAdjustsThrottleForWeight(bool newValue) {
+	m_AdjustsThrottleForWeight = newValue;
 }
 
 void AEJetpack::Burst(Actor& parentActor, float fuelUseMultiplier) {
