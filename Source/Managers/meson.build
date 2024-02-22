@@ -9,6 +9,7 @@ sources += files(
 'MenuMan.cpp',
 'MetaMan.cpp',
 'MovableMan.cpp',
+'MusicMan.cpp'
 'NetworkClient.cpp',
 'NetworkServer.cpp',
 'PerformanceMan.cpp',
