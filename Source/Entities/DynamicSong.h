@@ -23,7 +23,6 @@ namespace RTE {
 		/// @param reference A reference to the DynamicSongSection to deep copy.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const DynamicSongSection& reference);
-
 #pragma endregion
 
 #pragma region Destruction
@@ -47,7 +46,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Getters and Setters
-
 	/// Gets the vector of TransitionSoundContainers for this DynamicSongSection.
 	/// @return The vector of TransitionSoundContainers for this DynamicSongSection.
 	std::vector<SoundContainer>& GetTransitionSoundContainers() { return m_TransitionSoundContainers; }
@@ -71,7 +69,6 @@ namespace RTE {
 	/// Selects a random SoundContainer with no repeats.
 	/// @return The selected SoundContainer.
 	SoundContainer& SelectSoundContainer();
-		
 #pragma endregion 
 
 	private:
@@ -107,7 +104,6 @@ namespace RTE {
 		/// @param reference A reference to the DynamicSong to deep copy.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const DynamicSong& reference);
-
 #pragma endregion
 
 #pragma region Destruction
@@ -131,7 +127,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Getters and Setters
-
 		/// Gets the DefaultSongSection for this DynamicSong.
 		/// @return The default DynamicSongSection for this DynamicSong.
 		DynamicSongSection& GetDefaultSongSection() { return m_DefaultSongSection; }
@@ -143,15 +138,12 @@ namespace RTE {
 		/// Gets the vector of DynamicSongSections for this DynamicSong.
 		/// @return The vector of DynamicSongSections for this DynamicSong.
 		std::vector<DynamicSongSection>& GetSongSections() { return m_SongSections; }
-		
 #pragma endregion 
 
 #pragma region DynamicSoundSection Addition
-		
 		/// Adds a copy of the given DynamicSongSection to this DynamicSong.
 		/// @param songSectionToAdd The DynamicSongSection to copy to this DynamicSong.
 		void AddSongSection(const DynamicSongSection& songSectionToAdd) { m_SongSections.push_back(songSectionToAdd); }
-
 #pragma endregion
 
 	private:

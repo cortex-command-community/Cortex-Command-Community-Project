@@ -375,9 +375,14 @@ void ActivityMan::PauseActivity(bool pause, bool skipPauseMenu) {
 	m_InActivity = !pause;
 	m_ResumingActivityFromPauseMenu = false;
 	m_SkipPauseMenuWhenPausingActivity = skipPauseMenu;
+	
 	g_AudioMan.PauseIngameSounds(pause);
 	g_AudioMan.SetMusicMuffledState(pause);
-	if (!pause) g_MusicMan.EndHardcodedMusic();
+
+	if (!pause) {
+		g_MusicMan.EndHardcodedMusic();
+	}
+
 	g_ConsoleMan.PrintString("SYSTEM: Activity \"" + m_Activity->GetPresetName() + "\" was " + (pause ? "paused" : "resumed"));
 }
 

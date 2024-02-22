@@ -14,7 +14,6 @@ namespace RTE {
 	class MusicMan : public Singleton<MusicMan> {
 
 	public:
-
 		/// Hardcoded music types for things like the main menu.
 		enum HardcodedMusicTypes {
 			IntroMusic = 0,
@@ -50,7 +49,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Music Handling
-
 		/// Begins playing a new dynamic song, optionally from a specific section type.
 		/// @param songName PresetName of the dynamic song to play.
 		/// @param songSectionType Type of DynamicSongSection to play first.
@@ -79,7 +77,6 @@ namespace RTE {
 
 		/// Signals the end of hardcoded music, resuming other music if needed.
 		void EndHardcodedMusic();
-
 #pragma endregion
 
 	protected:
@@ -103,9 +100,7 @@ namespace RTE {
 		Timer m_MusicTimer; //!< Timer for musical horizontal sequencing.
 
 	private:
-
 #pragma region Internal Music Handling
-
 		/// Sets the current SoundContainer that should be playing.
 		/// @param newSoundContainer New SoundContainer that should be playing.
 		void SetCurrentSoundContainer(SoundContainer* newSoundContainer) {m_CurrentSoundContainer = newSoundContainer;}
@@ -123,7 +118,6 @@ namespace RTE {
 
 		/// Selects and sets the next SoundContainer from the current SongSection.
 		void SelectNextSoundContainer(bool selectTransition = false);
-
 #pragma endregion
 
 		/// Clears all the member variables of this MusicMan, effectively resetting the members of this abstraction level only.

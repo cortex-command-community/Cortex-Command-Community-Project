@@ -45,12 +45,15 @@ bool MusicMan::InitializeHardcodedSoundContainers() {
 	if (const SoundContainer* introMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Intro Music"))) {
 		m_IntroMusicSoundContainer = dynamic_cast<SoundContainer*>(introMusicSoundContainer->Clone());
 	}
+	
 	if (const SoundContainer* mainMenuMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music"))) {
 		m_MainMenuMusicSoundContainer = dynamic_cast<SoundContainer*>(mainMenuMusicSoundContainer->Clone());
 	}
+
 	if (const SoundContainer* mainMenuMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Scenario Menu Music"))) {
 		m_ScenarioMenuMusicSoundContainer = dynamic_cast<SoundContainer*>(mainMenuMusicSoundContainer->Clone());
 	}
+
 	return true;
 }
 
@@ -71,10 +74,9 @@ void MusicMan::Update() {
 	}
 }
 
-#pragma region Music Handling
-
 bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType, bool playImmediately){
 	g_AudioMan.StopMusic();
+
 	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", std::move(songName)))) {
 		m_IsSetToNotPlayMusic = false;
 		m_CurrentSong = dynamic_cast<DynamicSong*>(dynamicSongToPlay->Clone());
@@ -85,8 +87,10 @@ bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType
 			// If we don't have a current sound container, we're not playing any song, so move the Next container appropriately and start it up
 			CyclePlayingSoundContainers();
 		}
+
 		return true;
 	}
+
 	return false;
 }
 
@@ -110,8 +114,10 @@ bool MusicMan::CyclePlayingSoundContainers(bool fadeOutCurrent) {
 		if (fadeOutCurrent) {
 			m_CurrentSoundContainer->FadeOut(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
 		}
+
 		m_OldSoundContainer = m_CurrentSoundContainer;
 	}
+
 	m_CurrentSoundContainer = m_NextSoundContainer;
 	SelectNextSoundContainer();
 	m_MusicTimer.Reset();
@@ -126,17 +132,31 @@ bool MusicMan::EndMusic(bool fadeOutCurrent) {
 	if (fadeOutCurrent && m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		m_CurrentSoundContainer->FadeOut(2000);
 	}
-	if (m_IsSetToNotPlayMusic) return false;
+
+	if (m_IsSetToNotPlayMusic) {
+		return false;
+	}
+
 	m_IsSetToNotPlayMusic = true;
 	return true;
 }
 
 void MusicMan::PlayHardcodedMusic(HardcodedMusicTypes hardcodedMusicType) {
-	if (m_HardcodedMusicSoundContainer != nullptr) m_HardcodedMusicSoundContainer->Stop();
+	if (m_HardcodedMusicSoundContainer != nullptr) {
+		m_HardcodedMusicSoundContainer->Stop();
+	}
 	
-	if (m_OldSoundContainer != nullptr) m_OldSoundContainer->SetPaused(true);
-	if (m_CurrentSoundContainer != nullptr) m_CurrentSoundContainer->SetPaused(true);
-	if (m_NextSoundContainer != nullptr) m_NextSoundContainer->SetPaused(true);
+	if (m_OldSoundContainer != nullptr) {
+		m_OldSoundContainer->SetPaused(true);
+	}
+
+	if (m_CurrentSoundContainer != nullptr) {
+		m_CurrentSoundContainer->SetPaused(true);
+	}
+
+	if (m_NextSoundContainer != nullptr) {
+		m_NextSoundContainer->SetPaused(true);
+	}
 	
 	switch (hardcodedMusicType) {
 		case IntroMusic:
@@ -157,9 +177,18 @@ void MusicMan::PlayHardcodedMusic(HardcodedMusicTypes hardcodedMusicType) {
 void MusicMan::EndHardcodedMusic() {
 	m_HardcodedMusicSoundContainer->Stop();
 	
-	if (m_OldSoundContainer != nullptr) m_OldSoundContainer->SetPaused(false);
-	if (m_CurrentSoundContainer != nullptr) m_CurrentSoundContainer->SetPaused(false);
-	if (m_NextSoundContainer != nullptr) m_NextSoundContainer->SetPaused(false);
+	if (m_OldSoundContainer != nullptr) {
+		m_OldSoundContainer->SetPaused(false);
+	}
+
+	if (m_CurrentSoundContainer != nullptr) {
+		m_CurrentSoundContainer->SetPaused(false);
+	}
+
+	if (m_NextSoundContainer != nullptr) {
+		m_NextSoundContainer->SetPaused(false);
+	}
+
 	g_AudioMan.SetMusicMuffledState(false);
 }
 
@@ -181,5 +210,3 @@ void MusicMan::SelectNextSoundContainer(bool playTransition) {
 		m_NextSoundContainer = &m_CurrentSongSection->SelectSoundContainer();
 	}
 }
-
-#pragma endregion

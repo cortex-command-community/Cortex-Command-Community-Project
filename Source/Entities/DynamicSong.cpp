@@ -5,7 +5,6 @@ using namespace RTE;
 ConcreteClassInfo(DynamicSongSection, Entity, 50);
 ConcreteClassInfo(DynamicSong, Entity, 50);
 
-#pragma region DynamicSongSection
 DynamicSongSection::DynamicSongSection() {
 	Clear();
 }
@@ -35,12 +34,15 @@ int DynamicSongSection::Create(const DynamicSongSection& reference) {
 		soundContainer.Create(referenceSoundContainer);
 		m_TransitionSoundContainers.push_back(soundContainer);
 	}
+
 	m_LastTransitionSoundContainerIndex = reference.m_LastTransitionSoundContainerIndex;
+
 	for (const SoundContainer& referenceSoundContainer: reference.m_SoundContainers) {
 		SoundContainer soundContainer;
 		soundContainer.Create(referenceSoundContainer);
 		m_SoundContainers.push_back(soundContainer);
 	}
+
 	m_LastSoundContainerIndex = reference.m_LastSoundContainerIndex;
 	m_SectionType = reference.m_SectionType;
 	
@@ -129,10 +131,6 @@ SoundContainer& DynamicSongSection::SelectSoundContainer() {
 	return m_SoundContainers[randomIndex];
 }
 
-
-#pragma endregion 
-
-#pragma region DynamicSong
 DynamicSong::DynamicSong() {
 	Clear();
 }
@@ -155,6 +153,7 @@ int DynamicSong::Create(const DynamicSong& reference) {
 	Entity::Create(reference);
 
 	m_DefaultSongSection.Create(reference.m_DefaultSongSection);
+
 	for (const DynamicSongSection& referenceDynamicSongSection: reference.m_SongSections) {
 		DynamicSongSection dynamicSongSection;
 		dynamicSongSection.Create(referenceDynamicSongSection);
@@ -188,6 +187,7 @@ int DynamicSong::Save(Writer& writer) const {
 	writer.ObjectStart("DynamicSongSection");
 	writer << m_DefaultSongSection;
 	writer.ObjectEnd();
+	
 	for (const DynamicSongSection& dynamicSongSection: m_SongSections) {
 		writer.NewProperty("AddSongSection");
 		writer.ObjectStart("SoundContainer");
@@ -197,5 +197,3 @@ int DynamicSong::Save(Writer& writer) const {
 
 	return 0;
 }
-
-#pragma endregion 
