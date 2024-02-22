@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+<details><summary><b>Fixed</b></summary>
+
+- Fixed regression introduced in 6.1 causing Conquest activities to immediately fail if a defending brain was present (and probably breaking other activities as well).
+
+- Fixed the Conquest start game menu not letting you immediately start a game until you tweak some settings.
+
+</details>
+
 ## [Release v6.2.1] - 2024/02/21
 
 <details><summary><b>Fixed</b></summary>
