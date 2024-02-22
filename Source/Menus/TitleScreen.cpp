@@ -394,6 +394,7 @@ void TitleScreen::UpdateIntroPreMainMenuSequence() {
 				SetSectionDurationAndResetSwitch(0.5F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
 				m_FadeAmount = 0;
 				g_AudioMan.PlayMusic("Base.rte/Music/Hubnester/ccmenu.ogg", -1);
+				g_AudioMan.SetMusicMuffledState(false);
 			}
 			m_ScrollOffset.SetY(EaseOut(m_PreMainMenuScrollOffsetY, 0, m_SectionProgress));
 			m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseOut(120, m_GameLogoMainMenuOffsetY, m_SectionProgress)));
@@ -431,6 +432,7 @@ void TitleScreen::UpdateTitleTransitions() {
 				SetSectionDurationAndResetSwitch(1.0F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
 				g_GUISound.SplashSound()->Play();
 				g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/thisworld5.ogg", -1);
+				g_AudioMan.SetMusicMuffledState(false);
 			}
 			m_ScrollOffset.SetY(EaseOut(0, m_PlanetViewScrollOffsetY, m_SectionProgress));
 			m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseOut(m_GameLogoMainMenuOffsetY, m_GameLogoPlanetViewOffsetY, m_SectionProgress)));
@@ -442,6 +444,7 @@ void TitleScreen::UpdateTitleTransitions() {
 			if (m_SectionSwitch) {
 				SetSectionDurationAndResetSwitch(1.0F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
 				g_AudioMan.PlayMusic("Base.rte/Music/Hubnester/ccmenu.ogg", -1);
+				g_AudioMan.SetMusicMuffledState(false);
 			}
 			m_ScrollOffset.SetY(EaseOut(m_PlanetViewScrollOffsetY, 0, m_SectionProgress));
 			m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseOut(m_GameLogoPlanetViewOffsetY, m_GameLogoMainMenuOffsetY, m_SectionProgress)));
@@ -497,6 +500,7 @@ void TitleScreen::UpdateTitleTransitions() {
 				SetSectionDurationAndResetSwitch(0.75F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
 				m_StationOrbitTimer.SetElapsedRealTimeS(m_StationOrbitTimerElapsedTime);
 				g_AudioMan.PlayMusic("Base.rte/Music/Hubnester/ccmenu.ogg", -1);
+				g_AudioMan.SetMusicMuffledState(false);
 			}
 			g_AudioMan.SetTempMusicVolume(EaseOut(0, 1.0F, m_SectionProgress));
 			m_ScrollOffset.SetY(EaseOut(250, 0, m_SectionProgress));
