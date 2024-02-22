@@ -49,6 +49,15 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position, int player)) & AudioMan::PlaySound, luabind::adopt(luabind::result));
 }
 
+LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {
+	return luabind::class_<MusicMan>("MusicManager")
+
+	.def("PlayDynamicSong", &MusicMan::PlayDynamicSong)
+	.def("SetNextDynamicSongSection", &MusicMan::SetNextDynamicSongSection)
+	.def("EndMusic", &MusicMan::EndMusic);
+
+}
+
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {
 	return luabind::class_<ConsoleMan>("ConsoleManager")
 

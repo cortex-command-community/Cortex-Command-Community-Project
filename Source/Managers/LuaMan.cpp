@@ -169,6 +169,7 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(GUILuaBindings, SceneEditorGUI),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ActivityMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, AudioMan),
+	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MusicMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, CameraMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
@@ -219,6 +220,7 @@ void LuaStateWrapper::Initialize() {
 	luabind::globals(m_State)["PrimitiveMan"] = &g_PrimitiveMan;
 	luabind::globals(m_State)["PresetMan"] = &g_PresetMan;
 	luabind::globals(m_State)["AudioMan"] = &g_AudioMan;
+	luabind::globals(m_State)["MusicMan"] = &g_MusicMan;
 	luabind::globals(m_State)["UInputMan"] = &g_UInputMan;
 	luabind::globals(m_State)["SceneMan"] = &g_SceneMan;
 	luabind::globals(m_State)["ActivityMan"] = &g_ActivityMan;

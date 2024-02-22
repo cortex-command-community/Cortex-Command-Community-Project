@@ -21,7 +21,9 @@ DynamicSongSection::~DynamicSongSection() {
 
 void DynamicSongSection::Clear() {
 	m_TransitionSoundContainers.clear();
+	m_LastTransitionSoundContainerIndex = 0;
 	m_SoundContainers.clear();
+	m_LastSoundContainerIndex = 0;
 	m_SectionType = "None";
 }
 
@@ -33,11 +35,13 @@ int DynamicSongSection::Create(const DynamicSongSection& reference) {
 		soundContainer.Create(referenceSoundContainer);
 		m_TransitionSoundContainers.push_back(soundContainer);
 	}
+	m_LastTransitionSoundContainerIndex = reference.m_LastTransitionSoundContainerIndex;
 	for (const SoundContainer& referenceSoundContainer: reference.m_SoundContainers) {
 		SoundContainer soundContainer;
 		soundContainer.Create(referenceSoundContainer);
 		m_SoundContainers.push_back(soundContainer);
 	}
+	m_LastSoundContainerIndex = reference.m_LastSoundContainerIndex;
 	m_SectionType = reference.m_SectionType;
 	
 	return 0;
@@ -49,12 +53,12 @@ int DynamicSongSection::ReadProperty(const std::string_view& propName, Reader& r
 	MatchProperty("AddTransitionSoundContainer", {
 		SoundContainer soundContainerToAdd;
 		reader >> soundContainerToAdd;
-		AddTransitionSoundContainer(soundContainerToAdd);
+		m_TransitionSoundContainers.push_back(soundContainerToAdd);
 	});
 	MatchProperty("AddSoundContainer", {
 		SoundContainer soundContainerToAdd;
 		reader >> soundContainerToAdd;
-		AddSoundContainer(soundContainerToAdd);
+		m_SoundContainers.push_back(soundContainerToAdd);
 	});
 	MatchProperty("SectionType", { reader >> m_SectionType; });
 
@@ -70,17 +74,61 @@ int DynamicSongSection::Save(Writer& writer) const {
 		writer << soundContainer;
 		writer.ObjectEnd();
 	}
+	writer.NewProperty("LastTransitionSoundContainerIndex");
+	writer << m_LastTransitionSoundContainerIndex;
 	for (const SoundContainer& soundContainer: m_SoundContainers) {
 		writer.NewProperty("AddSoundContainer");
 		writer.ObjectStart("SoundContainer");
 		writer << soundContainer;
 		writer.ObjectEnd();
 	}
+	writer.NewProperty("LastSoundContainerIndex");
+	writer << m_LastSoundContainerIndex;
 	writer.NewProperty("SectionType");
 	writer << m_SectionType;
 
 	return 0;
 }
+
+SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
+	if (m_TransitionSoundContainers.empty()) {
+		return SelectSoundContainer();
+	}
+	if (m_TransitionSoundContainers.size() == 1) {
+		return m_TransitionSoundContainers[0];
+	}
+	
+	std::vector<unsigned int> validIndices;
+	for (unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++) {
+		if (i != m_LastTransitionSoundContainerIndex) {
+			validIndices.push_back(i);
+		}
+	}
+
+	unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+	m_LastTransitionSoundContainerIndex = randomIndex;
+	return m_TransitionSoundContainers[randomIndex];
+}
+
+SoundContainer& DynamicSongSection::SelectSoundContainer() {
+	RTEAssert(!m_SoundContainers.empty(), "Tried to get a SoundContainer from a DynamicSongSection with none to choose from!");
+	
+	if (m_SoundContainers.size() == 1) {
+		return m_SoundContainers[0];
+	}
+	
+	std::vector<unsigned int> validIndices;
+	for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
+		if (i != m_LastSoundContainerIndex) {
+			validIndices.push_back(i);
+		}
+	}
+
+	unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+	m_LastSoundContainerIndex = randomIndex;
+	return m_SoundContainers[randomIndex];
+}
+
 
 #pragma endregion 
 
@@ -127,7 +175,7 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("AddSongSection", {
 		DynamicSongSection songSectionToAdd;
 		reader >> songSectionToAdd;
-		AddSongSection(songSectionToAdd);
+		m_SongSections.push_back(songSectionToAdd);
 	});
 
 	EndPropertyList;

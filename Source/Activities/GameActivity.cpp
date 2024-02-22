@@ -872,12 +872,7 @@ int GameActivity::Start() {
 	}
 
 	// Start the in-game music
-	g_AudioMan.ClearMusicQueue();
-	g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", 0);
-	g_AudioMan.QueueSilence(30);
-	g_AudioMan.QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
-	g_AudioMan.QueueSilence(30);
-	g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
+
 
 	return error;
 }

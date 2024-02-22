@@ -62,27 +62,25 @@ namespace RTE {
 
 	/// Sets the SectionType of this DynamicSongSection.
 	/// @param newSectionType The new SectionType for this DynamicSongSection.
-	void SetSectionType(const std::string& newSectionType) { m_SectionType = newSectionType; }	
+	void SetSectionType(const std::string& newSectionType) { m_SectionType = newSectionType; }
+
+	/// Selects a random transitional SoundContainer with no repeats.
+	/// @return The selected transitional SoundContainer.
+	SoundContainer& SelectTransitionSoundContainer();
+
+	/// Selects a random SoundContainer with no repeats.
+	/// @return The selected SoundContainer.
+	SoundContainer& SelectSoundContainer();
 		
 #pragma endregion 
-
-#pragma region SoundContainer Addition
-
-		/// Adds a copy of the given SoundContainer to this SongSection.
-		/// @param soundContainerToAdd The SoundContainer to copy to this SongSection.
-		void AddTransitionSoundContainer(const SoundContainer& soundContainerToAdd) { m_TransitionSoundContainers.push_back(soundContainerToAdd); }
-		
-		/// Adds a copy of the given SoundContainer to this SongSection.
-		/// @param soundContainerToAdd The SoundContainer to copy to this SongSection.
-		void AddSoundContainer(const SoundContainer& soundContainerToAdd) { m_SoundContainers.push_back(soundContainerToAdd); }
-
-#pragma endregion
 
 	private:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 
 		std::vector<SoundContainer> m_TransitionSoundContainers; //!< The SoundContainers that will play when first switching to this DynamicSongSection.
+		unsigned int m_LastTransitionSoundContainerIndex; //!< The last index used to select a TransitionSoundContainer.
 		std::vector<SoundContainer> m_SoundContainers; //!< The SoundContainers making up this DynamicSongSection.
+		unsigned int m_LastSoundContainerIndex; //!< The last index used to select a SoundContainer.
 		std::string m_SectionType; //!< The name of the type of dynamic music this is.
 		
 		/// Clears all the member variables of this DynamicSongSection, effectively resetting the members of this abstraction level only.
