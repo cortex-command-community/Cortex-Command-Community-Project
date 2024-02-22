@@ -68,7 +68,8 @@ namespace RTE {
 		bool m_IsSetToNotPlayMusic; //!< Whether this is set to no longer cycle through music or not.
 		
 		DynamicSong* m_CurrentSong; //!< The current DynamicSong being played.
-		std::string m_CurrentSongSectionType; //!< The current DynamicSongSection we are trying to play.
+		std::string m_CurrentSongSectionType; //!< The current type of DynamicSongSection we are trying to play.
+		DynamicSongSection* m_CurrentSongSection; //!< The current DynamicSongSection we are actually playing.
 		
 		SoundContainer* m_CurrentSoundContainer; //!< The current selected SoundContainer playing as music.
 		SoundContainer* m_NextSoundContainer; //!< The next selected SoundContainer to play as music.
@@ -90,12 +91,12 @@ namespace RTE {
 		/// Sets the current SongSectionType this wants to play.
 		/// @param newSongSectionType New SongSectionType for this to want to play.
 		void SetCurrentSongSectionType(std::string newSongSectionType) {m_CurrentSongSectionType = newSongSectionType;}
+		
+		/// Selects and sets the next SongSection based on the current SongSectionType.
+		void SelectNextSongSection();
 
-		/// Selects and sets the next SoundContainer based on the current song and SongSectionType.
-		void PlayCurrentSoundContainer() const;
-
-		/// Selects and sets the next SongSection and SoundContainer based on the current song and SongSectionType.
-		void SelectNextSongSectionAndSoundContainer(bool selectTransition = false);
+		/// Selects and sets the next SoundContainer from the current SongSection.
+		void SelectNextSoundContainer(bool selectTransition = false);
 
 #pragma endregion
 
