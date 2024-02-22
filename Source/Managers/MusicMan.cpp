@@ -16,11 +16,19 @@ MusicMan::~MusicMan() {
 
 void MusicMan::Clear() {
 	m_IsSetToNotPlayMusic = true;
+	m_HardcodedSoundContainersInitialized = false;
+
+	m_IntroMusicSoundContainer = nullptr;
+	m_MainMenuMusicSoundContainer = nullptr;
+	m_ScenarioMenuMusicSoundContainer = nullptr;
+
+	m_HardcodedMusicSoundContainer = nullptr;
 	
 	m_CurrentSong = nullptr;
 	m_CurrentSongSectionType = "Default";
 	m_CurrentSongSection = nullptr;
 
+	m_OldSoundContainer = nullptr;
 	m_CurrentSoundContainer = nullptr;
 	m_NextSoundContainer = nullptr;
 
@@ -32,12 +40,30 @@ bool MusicMan::Initialize() {
 	return true;
 }
 
+bool MusicMan::InitializeHardcodedSoundContainers() {
+	// Have to do it here so these are read in at all..
+	if (const SoundContainer* introMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Intro Music"))) {
+		m_IntroMusicSoundContainer = dynamic_cast<SoundContainer*>(introMusicSoundContainer->Clone());
+	}
+	if (const SoundContainer* mainMenuMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music"))) {
+		m_MainMenuMusicSoundContainer = dynamic_cast<SoundContainer*>(mainMenuMusicSoundContainer->Clone());
+	}
+	if (const SoundContainer* mainMenuMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Scenario Menu Music"))) {
+		m_ScenarioMenuMusicSoundContainer = dynamic_cast<SoundContainer*>(mainMenuMusicSoundContainer->Clone());
+	}
+	return true;
+}
+
 void MusicMan::Destroy() {
 	// AudioMan will stop any music playing on its Destroy since they're just SoundContainers, so we don't need to worry
 	Clear();
 }
 
 void MusicMan::Update() {
+	if (!m_HardcodedSoundContainersInitialized) {
+		m_HardcodedSoundContainersInitialized = InitializeHardcodedSoundContainers();
+	}
+	
 	if (!m_IsSetToNotPlayMusic) {
 		if (m_MusicTimer.IsPastRealTimeLimit()) {
 			CyclePlayingSoundContainers(false);
@@ -80,8 +106,11 @@ bool MusicMan::SetNextDynamicSongSection(std::string newSongSectionType, bool pl
 }
 
 bool MusicMan::CyclePlayingSoundContainers(bool fadeOutCurrent) {
-	if (m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed() && fadeOutCurrent) {
-		m_CurrentSoundContainer->FadeOut(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
+	if (m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
+		if (fadeOutCurrent) {
+			m_CurrentSoundContainer->FadeOut(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
+		}
+		m_OldSoundContainer = m_CurrentSoundContainer;
 	}
 	m_CurrentSoundContainer = m_NextSoundContainer;
 	SelectNextSoundContainer();
@@ -100,6 +129,38 @@ bool MusicMan::EndMusic(bool fadeOutCurrent) {
 	if (m_IsSetToNotPlayMusic) return false;
 	m_IsSetToNotPlayMusic = true;
 	return true;
+}
+
+void MusicMan::PlayHardcodedMusic(HardcodedMusicTypes hardcodedMusicType) {
+	if (m_HardcodedMusicSoundContainer != nullptr) m_HardcodedMusicSoundContainer->Stop();
+	
+	if (m_OldSoundContainer != nullptr) m_OldSoundContainer->SetPaused(true);
+	if (m_CurrentSoundContainer != nullptr) m_CurrentSoundContainer->SetPaused(true);
+	if (m_NextSoundContainer != nullptr) m_NextSoundContainer->SetPaused(true);
+	
+	switch (hardcodedMusicType) {
+		case IntroMusic:
+			m_HardcodedMusicSoundContainer = m_IntroMusicSoundContainer;
+			break;
+		case MainMenuMusic:
+			m_HardcodedMusicSoundContainer = m_MainMenuMusicSoundContainer;
+			break;
+		case ScenarioMenuMusic:
+			m_HardcodedMusicSoundContainer = m_ScenarioMenuMusicSoundContainer;
+			break;
+	}
+	
+	m_HardcodedMusicSoundContainer->Play();
+	g_AudioMan.SetMusicMuffledState(false);
+}
+
+void MusicMan::EndHardcodedMusic() {
+	m_HardcodedMusicSoundContainer->Stop();
+	
+	if (m_OldSoundContainer != nullptr) m_OldSoundContainer->SetPaused(false);
+	if (m_CurrentSoundContainer != nullptr) m_CurrentSoundContainer->SetPaused(false);
+	if (m_NextSoundContainer != nullptr) m_NextSoundContainer->SetPaused(false);
+	g_AudioMan.SetMusicMuffledState(false);
 }
 
 void MusicMan::SelectNextSongSection() {

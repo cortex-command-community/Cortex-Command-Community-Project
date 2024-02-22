@@ -313,6 +313,7 @@ void AudioMan::FinishIngameLoopingSounds() {
 }
 
 void AudioMan::PlayMusic(const char* filePath, int loops, float volumeOverrideIfNotMuted) {
+	return;
 	if (m_AudioEnabled) {
 		const std::string fullFilePath = g_PresetMan.GetFullModulePath(filePath);
 		if (m_IsInMultiplayerMode) {
@@ -383,6 +384,7 @@ void AudioMan::PlayMusic(const char* filePath, int loops, float volumeOverrideIf
 }
 
 void AudioMan::PlayNextStream() {
+	return;
 	if (m_AudioEnabled && !m_MusicPlayList.empty()) {
 		std::string nextString = m_MusicPlayList.front();
 		m_MusicPlayList.pop_front();
@@ -414,6 +416,7 @@ void AudioMan::PlayNextStream() {
 }
 
 void AudioMan::StopMusic() {
+	return;
 	if (m_AudioEnabled) {
 		if (m_IsInMultiplayerMode) {
 			RegisterMusicEvent(-1, MUSIC_STOP, 0, 0, 0.0, 0.0);
@@ -428,6 +431,7 @@ void AudioMan::StopMusic() {
 }
 
 void AudioMan::QueueMusicStream(const char* filepath) {
+	return;
 	if (m_AudioEnabled) {
 		bool isPlaying;
 		FMOD_RESULT result = m_MusicChannelGroup->isPlaying(&isPlaying);
@@ -659,10 +663,13 @@ bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
 			return false;
 		}
 
-		result = channel->setPaused(false);
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Failed to start playing sounds from SoundContainer " + soundContainer->GetPresetName() + " after setting it up: " + std::string(FMOD_ErrorString(result)));
-			return false;
+		// If we are marked as paused at this point we will likely be unpaused later
+		if (!soundContainer->GetPaused()) {
+			result = channel->setPaused(false);
+			if (result != FMOD_OK) {
+				g_ConsoleMan.PrintString("ERROR: Failed to start playing sounds from SoundContainer " + soundContainer->GetPresetName() + " after setting it up: " + std::string(FMOD_ErrorString(result)));
+				return false;
+			}		
 		}
 
 		soundContainer->AddPlayingChannel(channelIndex);
@@ -832,6 +839,20 @@ void AudioMan::FadeOutSoundContainerPlayingChannels(SoundContainer* soundContain
 
 		if (result != FMOD_OK) {
 			g_ConsoleMan.PrintString("ERROR: Could not fade out sounds in SoundContainer " + soundContainer->GetPresetName() + ": " + std::string(FMOD_ErrorString(result)));
+		}
+	}
+}
+
+void AudioMan::SetPausedSoundContainerPlayingChannels(SoundContainer* soundContainer, bool paused) const {
+	FMOD_RESULT result = FMOD_OK;
+	FMOD::Channel* soundChannel;
+
+	const std::unordered_set<int>* playingChannels = soundContainer->GetPlayingChannels();
+	for (int channelIndex: *playingChannels) {
+		result = m_AudioSystem->getChannel(channelIndex, &soundChannel);
+		result = (result == FMOD_OK) ? soundChannel->setPaused(paused) : result;
+		if (result != FMOD_OK) {
+			g_ConsoleMan.PrintString("ERROR: Could not set pausedness for SoundContainer " + soundContainer->GetPresetName() + ": " + std::string(FMOD_ErrorString(result)));
 		}
 	}
 }

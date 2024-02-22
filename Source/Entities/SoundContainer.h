@@ -247,6 +247,14 @@ namespace RTE {
 		/// @param newValue The pitch variation the sounds in this SoundContainer are played at.
 		void SetPitchVariation(float newValue) { m_PitchVariation = newValue; }
 
+		/// Gets whether this SoundContainer's channels are paused or not.
+		/// @return Whether this SoundContainer's channels are paused or not.
+		bool GetPaused() const { return m_Paused; }
+
+		/// Sets whether this SoundContainer's channels are paused or not.
+		/// @param paused The new paused setting.
+		void SetPaused(bool paused);
+
 		/// Gets the music pre-entry time for this SoundContainer.
 		/// @return The time before the music starts in this SoundContainer in MS.
 		float GetMusicPreEntryTime() const { return m_MusicPreEntryTime; }
@@ -345,6 +353,7 @@ namespace RTE {
 		float m_PitchVariation; //!< The randomized pitch variation of this SoundContainer's sounds. 1 means the sound will vary a full octave both ways.
 		float m_Volume; //!< The current natural volume of this SoundContainer's sounds.
 
+		bool m_Paused; //!< Whether this SoundContainer is paused or not.
 		float m_MusicPreEntryTime; //!< The time in MS before the music starts in this SoundContainer.
 		float m_MusicPostExitTime; //!< The time in MS after the music ends in this SoundContainer, until the end of the sound.
 

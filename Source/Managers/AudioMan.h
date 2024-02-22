@@ -453,6 +453,11 @@ namespace RTE {
 		/// @param soundContainer A pointer to a SoundContainer object. Ownership is NOT transferred!
 		/// @param fadeOutTime The amount of time, in ms, to fade out over.
 		void FadeOutSoundContainerPlayingChannels(SoundContainer* soundContainer, int fadeOutTime);
+
+		/// Pauses or unpauses a SoundContainer.
+		/// @param soundContainer A pointer to a SoundContainer object. Ownership is NOT transferred!
+		/// @param paused Whether to pause or unpause.
+		void SetPausedSoundContainerPlayingChannels(SoundContainer* soundContainer, bool paused) const;
 #pragma endregion
 
 #pragma region 3D Effect Handling

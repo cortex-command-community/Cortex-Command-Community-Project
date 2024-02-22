@@ -53,6 +53,7 @@ void SoundContainer::Clear() {
 	m_Pitch = 1.0F;
 	m_PitchVariation = 0;
 
+	m_Paused = false;
 	m_MusicPreEntryTime = 0.0F;
 	m_MusicPostExitTime = 0.0F;
 }
@@ -80,6 +81,7 @@ int SoundContainer::Create(const SoundContainer& reference) {
 	m_Pitch = reference.m_Pitch;
 	m_PitchVariation = reference.m_PitchVariation;
 
+	m_Paused = reference.m_Paused;
 	m_MusicPreEntryTime = reference.m_MusicPreEntryTime;
 	m_MusicPostExitTime = reference.m_MusicPostExitTime;
 
@@ -200,6 +202,8 @@ int SoundContainer::Save(Writer& writer) const {
 	writer.NewProperty("PitchVariation");
 	writer << m_PitchVariation;
 
+	writer.NewProperty("Paused");
+	writer << m_Paused;
 	writer.NewProperty("MusicPreEntryTime");
 	writer << m_MusicPreEntryTime;
 	writer.NewProperty("MusicPostExitTime");
@@ -288,6 +292,14 @@ void SoundContainer::SetPitch(float newPitch) {
 		g_AudioMan.ChangeSoundContainerPlayingChannelsPitch(this);
 	}
 }
+
+void SoundContainer::SetPaused(bool paused) {
+	if (paused != m_Paused) {
+		m_Paused = paused;
+		g_AudioMan.SetPausedSoundContainerPlayingChannels(this, paused);
+	}
+}
+
 
 bool SoundContainer::Play(int player) {
 	if (HasAnySounds()) {

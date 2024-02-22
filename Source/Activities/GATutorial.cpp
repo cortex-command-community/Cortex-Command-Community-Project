@@ -330,7 +330,7 @@ void GATutorial::End() {
 	}
 
 	// Temp fix so music doesn't start playing if ending the Activity when changing resolution through the in-game settings.
-	if (!m_Paused) {
+	/*if (!m_Paused) {
 		// Play the appropriate tune on player win/lose
 		if (playerWon) {
 			g_AudioMan.ClearMusicQueue();
@@ -344,7 +344,7 @@ void GATutorial::End() {
 			g_AudioMan.QueueSilence(10);
 			g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
 		}
-	}
+	}*/
 }
 
 /*

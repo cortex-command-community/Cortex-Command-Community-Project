@@ -15,14 +15,25 @@ namespace RTE {
 
 	public:
 
+		/// Hardcoded music types for things like the main menu.
+		enum HardcodedMusicTypes {
+			IntroMusic = 0,
+			MainMenuMusic = 1,
+			ScenarioMenuMusic = 2
+		};
+
 #pragma region Creation
 		/// Constructor method used to instantiate a MusicMan object in system memory.
 		/// Create() should be called before using the object.
 		MusicMan();
 
 		/// Makes the MusicMan object ready for use.
-		/// @return Whether the audio system was initialized successfully. If not, no audio will be available.
+		/// @return Whether the muic system was initialized successfully.
 		bool Initialize();
+
+		// Makes the hardcoded music ready for use.
+		// @return Whether the SoundContainers were successfully found or not.
+		bool InitializeHardcodedSoundContainers();
 #pragma endregion
 
 #pragma region Destruction
@@ -62,15 +73,30 @@ namespace RTE {
 		/// @return True if this was not set to end music previously, false if it already was.
 		bool EndMusic(bool fadeOutCurrent = false);
 
+		/// Function to interrupt other music and play a type of hardcoded music.
+		/// @param hardcodedMusicType The type of hardcoded music to play.
+		void PlayHardcodedMusic(HardcodedMusicTypes hardcodedMusicType);
+
+		/// Signals the end of hardcoded music, resuming other music if needed.
+		void EndHardcodedMusic();
+
 #pragma endregion
 
 	protected:
 		bool m_IsSetToNotPlayMusic; //!< Whether this is set to no longer cycle through music or not.
+		bool m_HardcodedSoundContainersInitialized; //!< Whether we have initialized base hardcoded SoundContainers or not.
+
+		SoundContainer* m_IntroMusicSoundContainer; //!< SoundContainer for hardcoded intro music.
+		SoundContainer* m_MainMenuMusicSoundContainer; //!< SoundContainer for hardcoded main menu music.
+		SoundContainer* m_ScenarioMenuMusicSoundContainer; //!< SoundContainer for hardcoded scenario menu music.
+		
+		SoundContainer* m_HardcodedMusicSoundContainer; //!< Current hardcoded music being played.
 		
 		DynamicSong* m_CurrentSong; //!< The current DynamicSong being played.
 		std::string m_CurrentSongSectionType; //!< The current type of DynamicSongSection we are trying to play.
 		DynamicSongSection* m_CurrentSongSection; //!< The current DynamicSongSection we are actually playing.
-		
+
+		SoundContainer* m_OldSoundContainer; //!< The previous Soundcontainer that was played as music.
 		SoundContainer* m_CurrentSoundContainer; //!< The current selected SoundContainer playing as music.
 		SoundContainer* m_NextSoundContainer; //!< The next selected SoundContainer to play as music.
 

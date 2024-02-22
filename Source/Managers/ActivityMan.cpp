@@ -26,6 +26,7 @@
 #include "NetworkServer.h"
 #include "MultiplayerServerLobby.h"
 #include "MultiplayerGame.h"
+#include "MusicMan.h"
 
 using namespace RTE;
 
@@ -376,6 +377,7 @@ void ActivityMan::PauseActivity(bool pause, bool skipPauseMenu) {
 	m_SkipPauseMenuWhenPausingActivity = skipPauseMenu;
 	g_AudioMan.PauseIngameSounds(pause);
 	g_AudioMan.SetMusicMuffledState(pause);
+	if (!pause) g_MusicMan.EndHardcodedMusic();
 	g_ConsoleMan.PrintString("SYSTEM: Activity \"" + m_Activity->GetPresetName() + "\" was " + (pause ? "paused" : "resumed"));
 }
 
