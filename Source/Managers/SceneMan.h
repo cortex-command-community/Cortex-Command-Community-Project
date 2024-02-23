@@ -1,10 +1,5 @@
 #pragma once
 
-/// Header file for the SceneMan class.
-/// @author Daniel Tabar
-/// data@datarealms.com
-/// http://www.datarealms.com
-/// Inclusions of header files
 #include "Serializable.h"
 #include "Timer.h"
 #include "Box.h"

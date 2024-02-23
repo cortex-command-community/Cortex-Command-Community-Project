@@ -1,10 +1,5 @@
 #pragma once
 
-/// Header file for the ACDropShip class.
-/// @author Daniel Tabar
-/// data@datarealms.com
-/// http://www.datarealms.com
-/// Inclusions of header files
 #include "ACraft.h"
 
 namespace RTE {

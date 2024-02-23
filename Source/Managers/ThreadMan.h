@@ -1,8 +1,5 @@
 #pragma once
 
-/// Header file for the ThreadMan class.
-/// Author(s):
-/// Inclusions of header files
 #include "Singleton.h"
 #define g_ThreadMan ThreadMan::Instance()
 

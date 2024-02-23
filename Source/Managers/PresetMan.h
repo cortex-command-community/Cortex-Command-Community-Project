@@ -1,10 +1,5 @@
 #pragma once
 
-/// Header file for the PresetMan class.
-/// @author Daniel Tabar
-/// data@datarealms.com
-/// http://www.datarealms.com
-/// Inclusions of header files
 #include "Entity.h"
 #include "Singleton.h"
 

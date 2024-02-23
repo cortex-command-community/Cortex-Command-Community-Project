@@ -1,10 +1,5 @@
 #pragma once
 
-/// Header file for the HeldDevice class.
-/// @author Daniel Tabar
-/// data@datarealms.com
-/// http://www.datarealms.com
-/// Inclusions of header files
 #include "Attachable.h"
 #include "Actor.h"
 

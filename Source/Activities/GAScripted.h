@@ -1,10 +1,5 @@
 #pragma once
 
-/// Header file for the ActivityMan class.
-/// @author Daniel Tabar
-/// data@datarealms.com
-/// http://www.datarealms.com
-/// Inclusions of header files
 #include "GameActivity.h"
 #include "GlobalScript.h"
 #include "Box.h"

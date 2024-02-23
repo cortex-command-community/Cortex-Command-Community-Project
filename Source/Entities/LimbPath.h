@@ -1,10 +1,5 @@
 #pragma once
 
-/// Header file for the LimbPath class.
-/// @author Daniel Tabar
-/// data@datarealms.com
-/// http://www.datarealms.com
-/// Inclusions of header files
 #include "Entity.h"
 #include "Vector.h"
 #include "ActivityMan.h"

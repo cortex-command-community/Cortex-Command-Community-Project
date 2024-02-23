@@ -1,10 +1,5 @@
 #pragma once
 
-/// Header file for the MetaMan class.
-/// @author Daniel Tabar
-/// data@datarealms.com
-/// http://www.datarealms.com
-/// Inclusions of header files
 #include "RTETools.h"
 #include "Singleton.h"
 #define g_MetaMan MetaMan::Instance()

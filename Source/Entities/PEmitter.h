@@ -1,10 +1,5 @@
 #pragma once
 
-/// Header file for the PEmitter class.
-/// @author Daniel Tabar
-/// data@datarealms.com
-/// http://www.datarealms.com
-/// Inclusions of header files
 #include "MOSParticle.h"
 #include "Emission.h"
 #include "SoundContainer.h"

@@ -1,10 +1,5 @@
 #pragma once
 
-/// Header file for the SceneObject class.
-/// @author Daniel Tabar
-/// data@datarealms.com
-/// http://www.datarealms.com
-/// Inclusions of header files, forward declarations, namespace stuff
 #include "Entity.h"
 #include "Matrix.h"
 
