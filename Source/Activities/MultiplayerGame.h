@@ -24,7 +24,6 @@ namespace RTE {
 	/// 9/17/2007 Spliced out and made to derive from EditorActivty
 	class MultiplayerGame : public Activity {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(MultiplayerGame);
@@ -93,7 +92,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -138,7 +136,6 @@ namespace RTE {
 		// Position of music being played, used to recover playback state after pause
 		double m_LastMusicPos;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this Activity, effectively
 		/// resetting the members of this abstraction level only.

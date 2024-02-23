@@ -26,7 +26,6 @@ namespace RTE {
 	/// A GUI for picking isntance areas in Cortex Command
 	class AreaPickerGUI {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		/// Constructor method used to instantiate a AreaPickerGUI area in system
 		/// memory. Create() should be called before using the area.
@@ -107,7 +106,6 @@ namespace RTE {
 		/// @param drawBitmap The bitmap to draw on.
 		void Draw(BITMAP* drawBitmap) const;
 
-		/// Protected member variable and method declarations
 	protected:
 		enum PickerEnabled {
 			ENABLING = 0,
@@ -155,7 +153,6 @@ namespace RTE {
 		// Screen position of the cursor
 		Vector m_CursorPos;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this AreaPickerGUI, effectively
 		/// resetting the members of this abstraction level only.

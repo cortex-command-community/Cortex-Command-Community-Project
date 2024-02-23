@@ -10,7 +10,6 @@ namespace RTE {
 	/// A ComboBox control class.
 	class GUIComboBox : public GUIControl, public GUIPanel {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Notifications
 		enum {

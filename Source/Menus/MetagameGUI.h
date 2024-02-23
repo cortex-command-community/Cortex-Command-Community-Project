@@ -34,7 +34,6 @@ namespace RTE {
 	/// A full menu system that represents the metagame GUI for Cortex Command
 	class MetagameGUI : public Serializable {
 
-		/// Public member variable, method and friend function declarations
 		SerializableClassNameGetter
 		SerializableOverrideMethods
 
@@ -262,7 +261,6 @@ namespace RTE {
 		/// @param newStationPos The position of the station on the planet orbit.
 		void SetStationOrbitPos(const Vector& newStationPos) { m_StationPosOnOrbit = newStationPos; }
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Makes the MetaMan object ready for use -> this is acutally a light
 		/// and not complete version of the one that takes a controller.
@@ -823,7 +821,6 @@ namespace RTE {
 
 		Vector m_StationPosOnOrbit; //!< The position of the station on the planet orbit.
 
-		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 

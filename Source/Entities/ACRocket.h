@@ -23,7 +23,6 @@ namespace RTE {
 			GearStateCount
 		};
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ACRocket);
@@ -148,7 +147,6 @@ namespace RTE {
 		/// @return Current landing gear state.
 		unsigned int GetGearState() const;
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -176,7 +174,6 @@ namespace RTE {
 		LimbPath m_Paths[2][GearStateCount];
 		float m_MaxGimbalAngle; //!< How much the main engine is able to tilt in order to stabilize the rocket.
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this ACRocket, effectively
 		/// resetting the members of this abstraction level only.

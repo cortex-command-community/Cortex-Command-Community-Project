@@ -27,7 +27,6 @@ namespace RTE {
 		friend class Atom;
 		friend struct EntityLuaBindings;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		ScriptFunctionNames("Create", "Destroy", "Update", "ThreadedUpdate", "SyncedUpdate", "OnScriptDisable", "OnScriptEnable", "OnCollideWithTerrain", "OnCollideWithMO", "WhilePieMenuOpen", "OnSave", "OnMessage", "OnGlobalMessage");
 		SerializableOverrideMethods;
@@ -1087,7 +1086,6 @@ namespace RTE {
 		/// @return Whether this MO has requested a synced update this frame.
 		virtual bool HasRequestedSyncedUpdate() { return m_RequestedSyncedUpdate; }
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Does necessary work to setup a script object name for this object, allowing it to be accessed in Lua, then runs all of the MO's scripts' Create functions in Lua.
 		/// @return 0 on success, -2 if it fails to setup the script object in Lua, and -3 if it fails to run any Create function.
@@ -1289,7 +1287,6 @@ namespace RTE {
 		int m_SimUpdatesBetweenScriptedUpdates; //!< The number of Sim updates between each scripted update for this MovableObject.
 		int m_SimUpdatesSinceLastScriptedUpdate; //!< The counter for the current number of Sim updates since this MovableObject last ran a scripted update.
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this MovableObject, effectively resetting the members of this abstraction level only.
 		void Clear();

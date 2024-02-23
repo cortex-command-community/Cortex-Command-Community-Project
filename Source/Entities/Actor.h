@@ -20,7 +20,6 @@ namespace RTE {
 	class Actor : public MOSRotating {
 		friend struct EntityLuaBindings;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		enum Status {
 			STABLE = 0,
@@ -739,7 +738,6 @@ namespace RTE {
 		/// @param newPieMenu The new PieMenu for this Actor.
 		void SetPieMenu(PieMenu* newPieMenu);
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
@@ -933,7 +931,6 @@ namespace RTE {
 
 		bool m_LimbPushForcesAndCollisionsDisabled; //<! Whether or limb push forces and collisions have been disabled (likely for Lua purposes).
 
-		/// Private member variable and method declarations
 	private:
 		std::unique_ptr<PieMenu> m_PieMenu;
 

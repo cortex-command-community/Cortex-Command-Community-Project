@@ -10,7 +10,6 @@ namespace RTE {
 	/// tilt independently of the body to achieve steering.
 	class ACDropShip : public ACraft {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ACDropShip);
@@ -148,7 +147,6 @@ namespace RTE {
 		/// @param newHoverHeightModifier The new modifier for height at which this ACDropship should hover above terrain.
 		void SetHoverHeightModifier(float newHoverHeightModifier);
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -182,7 +180,6 @@ namespace RTE {
 
 		float m_HoverHeightModifier; //!< The modifier for the height at which this ACDropShip should hover above terrain when releasing its cargo. Used in cpp and Lua AI.
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this ACDropShip, effectively
 		/// resetting the members of this abstraction level only.

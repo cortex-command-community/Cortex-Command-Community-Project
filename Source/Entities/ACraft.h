@@ -13,7 +13,6 @@ namespace RTE {
 	class ACraft : public Actor {
 		friend struct EntityLuaBindings;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -38,7 +37,6 @@ namespace RTE {
 
 			friend class ACraft;
 
-			/// Public member variable, method and friend function declarations
 		public:
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
@@ -102,7 +100,6 @@ namespace RTE {
 			/// OWNERSHIP NOT TRANSFERRED!
 			MOSRotating* SuckInMOs(ACraft* pExitOwner);
 
-			/// Protected member variable and method declarations
 		protected:
 			// The offset of this exit relative the position of its ACraft
 			Vector m_Offset;
@@ -119,7 +116,6 @@ namespace RTE {
 			// Movable Object that is being drawn into this exit
 			MOSRotating* m_pIncomingMO;
 
-			/// Private member variable and method declarations
 		private:
 			static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
@@ -311,7 +307,6 @@ namespace RTE {
 		/// @param newSound The new SoundContainer for this ACraft's crash sound.
 		void SetCrashSound(SoundContainer* newSound);
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -382,7 +377,6 @@ namespace RTE {
 		// Mutliplier to apply to default delivery time
 		float m_DeliveryDelayMultiplier;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this ACraft, effectively
 		/// resetting the members of this abstraction level only.

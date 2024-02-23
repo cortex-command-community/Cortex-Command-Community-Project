@@ -16,7 +16,6 @@ namespace RTE {
 		friend class LuaMan;
 		friend class ActivityMan;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		ScriptFunctionNames("StartActivity", "UpdateActivity", "PauseActivity", "EndActivity", "OnSave", "CraftEnteredOrbit", "OnMessage", "OnGlobalMessage");
 
@@ -121,7 +120,6 @@ namespace RTE {
 
 		int RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Goes through the script file and checks for any mentions and uses of
 		/// Area:s that are required for this Activity to run in a Scene.
@@ -145,7 +143,6 @@ namespace RTE {
 
 		std::unordered_map<std::string, std::unique_ptr<LuabindObjectWrapper>> m_ScriptFunctions; //!< A map of LuabindObjectWrappers that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
 
-		/// Private member variable and method declarations
 	private:
 		/// Returns whether this GAScripted has an OnSave function, to act as a default for whether saving is allowed or not.
 		/// @return Whether this GAScripted has an OnSave function

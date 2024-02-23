@@ -33,7 +33,6 @@ namespace RTE {
 	class MetaMan : public Singleton<MetaMan>, public Serializable {
 		friend struct ManagerLuaBindings;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		friend class MetagameGUI;
 		friend class MetaSave;
@@ -292,7 +291,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector());
 
-		/// Protected member variable and method declarations
 	protected:
 		// GUI controller, owned
 		MetagameGUI* m_pMetaGUI;
@@ -337,7 +335,6 @@ namespace RTE {
 		// Timer for measuring how long each phase has gone for
 		Timer m_PhaseTimer;
 
-		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 

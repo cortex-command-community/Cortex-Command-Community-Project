@@ -14,7 +14,6 @@ namespace RTE {
 	/// relevant to be placed in a specific location in a Scene.
 	class Deployment : public SceneObject {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Deployment);
@@ -180,7 +179,6 @@ namespace RTE {
 		/// @param flipped A bool with the new value.
 		void SetHFlipped(const bool flipped) override;
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -201,7 +199,6 @@ namespace RTE {
 		static std::vector<BITMAP*> m_apArrowLeftBitmap;
 		static std::vector<BITMAP*> m_apArrowRightBitmap;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this Deployment, effectively
 		/// resetting the members of this abstraction level only.

@@ -45,7 +45,6 @@ namespace RTE {
 	class SceneMan : public Singleton<SceneMan>, public Serializable {
 		friend class SettingsMan;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
@@ -910,7 +909,6 @@ namespace RTE {
 		/// @param newHeight The new compacting height, in pixels.
 		void SetScrapCompactingHeight(int newHeight) { m_ScrapCompactingHeight = newHeight; }
 
-		/// Protected member variable and method declarations
 	protected:
 		static std::vector<std::pair<int, BITMAP*>> m_IntermediateSettlingBitmaps; //!< Intermediate bitmaps of different sizes that are used to draw settled MovableObjects into the terrain.
 
@@ -970,7 +968,6 @@ namespace RTE {
 
 		int m_ScrapCompactingHeight; //!< The maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
 
-		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 

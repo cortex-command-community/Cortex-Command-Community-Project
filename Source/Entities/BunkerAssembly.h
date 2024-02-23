@@ -11,7 +11,6 @@ namespace RTE {
 	/// material layer and optional background layer.
 	class BunkerAssembly : public TerrainObject {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(BunkerAssembly);
@@ -104,7 +103,6 @@ namespace RTE {
 		/// like indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -119,7 +117,6 @@ namespace RTE {
 		// Assembly symmetric to this one
 		std::string m_SymmetricAssembly;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this BunkerAssembly, effectively
 		/// resetting the members of this abstraction level only.

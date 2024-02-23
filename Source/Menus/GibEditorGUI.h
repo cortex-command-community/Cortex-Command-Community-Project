@@ -26,7 +26,6 @@ namespace RTE {
 	/// A placement part of the gib editor which manages the pie menu and picker.
 	class GibEditorGUI {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Different modes of this editor
 		enum EditorGUIMode {
@@ -134,7 +133,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) const;
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Adds a MovableObject to be placed in the editor. Ownership IS transferred!
 		/// @param pObjectToAdd The MovableOjbect instace to add, OIT!
@@ -216,7 +214,6 @@ namespace RTE {
 		// Currently placed scene object to make blink when drawing it. NOT OWNED.
 		const MovableObject* m_pObjectToBlink;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this GibEditorGUI, effectively
 		/// resetting the members of this abstraction level only.

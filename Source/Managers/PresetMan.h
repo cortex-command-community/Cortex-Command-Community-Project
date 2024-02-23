@@ -22,7 +22,6 @@ namespace RTE {
 	class PresetMan : public Singleton<PresetMan> {
 		friend struct ManagerLuaBindings;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		/// Constructor method used to instantiate a PresetMan entity in system
 		/// memory. Create() should be called before using the entity.
@@ -341,7 +340,6 @@ namespace RTE {
 		/// @return Created actor if matching loadout was found or 0. OWNERSHIP IS TRANSFERED.
 		Actor* GetLoadout(std::string loadoutName, int moduleNumber, bool spawnDropShip);
 
-		/// Protected member variable and method declarations
 	protected:
 		// Owned and loaded DataModule:s
 		std::vector<DataModule*> m_pDataModules;
@@ -360,7 +358,6 @@ namespace RTE {
 		// This is just a handy total of all the groups registered in all the individual DataModule:s
 		std::list<std::string> m_TotalGroupRegister;
 
-		/// Private member variable and method declarations
 	private:
 		static const std::array<std::string, 10> c_OfficialModules; // Array storing the names of all the official modules.
 		static const std::array<std::pair<std::string, std::string>, 3> c_UserdataModules; // Array storing the names of all the userdata modules.

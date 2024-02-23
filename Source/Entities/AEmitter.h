@@ -8,7 +8,6 @@ namespace RTE {
 	/// An attachable MO that creates and emits particle MO's.
 	class AEmitter : public Attachable {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		friend struct EntityLuaBindings;
 
@@ -338,7 +337,6 @@ namespace RTE {
 		/// @return Whether this emitter just started emitting this frame.
 		bool JustStartedEmitting() const;
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -401,7 +399,6 @@ namespace RTE {
 		// Whether the burst sound follows the emitter
 		bool m_BurstSoundFollowsEmitter;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this AEmitter, effectively
 		/// resetting the members of this abstraction level only.

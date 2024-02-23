@@ -26,7 +26,6 @@ namespace RTE {
 	/// A full menu system that represents the scene editing GUI for Cortex Command
 	class SceneEditorGUI {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		enum FeatureSets {
 			ONLOADEDIT = 0,
@@ -158,7 +157,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) const;
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Updates the path to the current brain in the cursor or resident in the scene, if any. If there's none, the path is cleared.
 		/// @return Whether a brain was found in the cursor or the scene.
@@ -241,7 +239,6 @@ namespace RTE {
 		// The current pathfinding request
 		std::shared_ptr<volatile PathRequest> m_PathRequest;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this SceneEditorGUI, effectively
 		/// resetting the members of this abstraction level only.

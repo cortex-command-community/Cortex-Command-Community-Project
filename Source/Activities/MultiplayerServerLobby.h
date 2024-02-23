@@ -28,7 +28,6 @@ namespace RTE {
 	/// 9/17/2007 Spliced out and made to derive from EditorActivty
 	class MultiplayerServerLobby : public GameActivity {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(MultiplayerServerLobby);
@@ -111,7 +110,6 @@ namespace RTE {
 
 		int PlayerCount();
 
-		/// Protected member variable and method declarations
 	protected:
 		// These add on the player and team max counts
 		enum PlayerColumns {
@@ -188,7 +186,6 @@ namespace RTE {
 		// The map of Activity:ies, and the Scene:s compatible with each, neither of which are owned here
 		std::map<Activity*, std::list<Scene*>> m_Activities;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this Activity, effectively
 		/// resetting the members of this abstraction level only.

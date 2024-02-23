@@ -23,7 +23,6 @@ namespace RTE {
 	/// A full menu system that represents the scene editing GUI for Cortex Command
 	class AreaEditorGUI {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Different modes of this editor
 		enum EditorGUIMode {
@@ -117,7 +116,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) const;
 
-		/// Protected member variable and method declarations
 	protected:
 		enum BlinkMode {
 			NOBLINK = 0,
@@ -165,7 +163,6 @@ namespace RTE {
 		// Currently placed scene Area to make blink when drawing it. NOT OWNED.
 		const Box* m_pBoxToBlink;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this AreaEditorGUI, effectively
 		/// resetting the members of this abstraction level only.

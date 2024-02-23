@@ -47,7 +47,6 @@ namespace RTE {
 		friend class SettingsMan;
 		friend struct ManagerLuaBindings;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
@@ -540,7 +539,6 @@ namespace RTE {
 		/// Clears all cached lua functions on all MOs, including owned child MOs.
 		void ReloadLuaScripts();
 
-		/// Protected member variable and method declarations
 	protected:
 		// All actors in the scene
 		std::deque<Actor*> m_Actors;
@@ -619,7 +617,6 @@ namespace RTE {
 		// Global map which stores all objects so they could be foud by their unique ID
 		std::map<long int, MovableObject*> m_KnownObjects;
 
-		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 

@@ -33,7 +33,6 @@ namespace RTE {
 	/// A full menu system that represents a purchasing GUI for Cortex Command
 	class BuyMenuGUI {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		/// Constructor method used to instantiate a BuyMenuGUI object in system
 		/// memory. Create() should be called before using the object.
@@ -300,7 +299,6 @@ namespace RTE {
 		void SetLogoImage(const std::string& imagePath);
 #pragma endregion
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Makes sure all things that to happen when category is changed, happens.
 		/// @param focusOnCategoryTabs Wheter to change focus to the category tabs or not. (default: true)
@@ -507,7 +505,6 @@ namespace RTE {
 		// A map of owned items, for which the gold will not be deducted when bought
 		std::map<std::string, int> m_OwnedItems;
 
-		/// Private member variable and method declarations
 	private:
 		static const std::string c_DefaultBannerImagePath; //!< Path to the default banner image.
 		static const std::string c_DefaultLogoImagePath; //!< Path to the default logo image.

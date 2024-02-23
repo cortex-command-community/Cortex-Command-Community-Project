@@ -9,7 +9,6 @@ namespace RTE {
 	/// A firearm device that fires projectile MO's and discharges shell MO's.
 	class HDFirearm : public HeldDevice {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(HDFirearm);
@@ -457,7 +456,6 @@ namespace RTE {
 		/// @param newValue Manual animation flag value.
 		void SetAnimatedManually(bool newValue);
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Sets this Attachable's parent MOSRotating, and also sets its Team based on its parent and, if the Attachable is set to collide, adds/removes Atoms to its new/old parent.
 		/// Additionally, sets this HDFirearm as not firing or reloading, and resets its reload timer.
@@ -578,7 +576,6 @@ namespace RTE {
 		    std::string m_BallisticScriptFunction;
 		*/
 
-		/// Private member variable and method declarations
 	private:
 		/// Ensures the reload Timer's time limit is set accordingly, based on whether the HDFirearm has support available.
 		void CorrectReloadTimerForSupportAvailable();

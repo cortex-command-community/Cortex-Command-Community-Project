@@ -1,8 +1,5 @@
 #pragma once
 
-/// File:			Emission.h
-/// Something to bundle the properties of an emission together.
-/// 07/21/2006 Emission turned into 'Serializable' class.
 #include "Serializable.h"
 #include "MovableObject.h"
 
@@ -13,7 +10,6 @@ namespace RTE {
 		friend class AEmitter;
 		friend class PEmitter;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Emission);
@@ -123,10 +119,7 @@ namespace RTE {
 		/// @param offset New offset value.
 		void SetOffset(Vector offset);
 
-		/// Protected member variable and method declarations
 	protected:
-		// Member variables
-		// static const std::string m_sClassName;
 		// Member variables
 		static Entity::ClassInfo m_sClass;
 
@@ -160,7 +153,6 @@ namespace RTE {
 		// Offset of the emission point from Emitter's sprite center, which gets rotated with owner Emitter
 		Vector m_Offset;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this Emission, effectively
 		/// resetting the members of this abstraction level only.

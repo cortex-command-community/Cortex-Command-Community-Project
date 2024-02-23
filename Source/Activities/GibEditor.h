@@ -21,7 +21,6 @@ namespace RTE {
 	/// Activity for editing gib placement within MOSRotating:s.
 	class GibEditor : public EditorActivity {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(GibEditor);
@@ -92,7 +91,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Saves the current object to an appropriate ini file, and asks user if they want to overwrite first if object of this name exists.
 		/// @param saveAsName The name of the new object to be saved.
@@ -134,7 +132,6 @@ namespace RTE {
 		// The editor GUI
 		GibEditorGUI* m_pEditorGUI;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the layers of the testing area terrain so nothing that somehow settled lingers between edited object changes and testing phases.
 		void ClearTestArea() const;

@@ -43,7 +43,6 @@ namespace RTE {
 			Timer timer;
 		};
 
-		/// Public member variable, method and friend function declarations
 	public:
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -415,7 +414,6 @@ namespace RTE {
 		/// @param player Player number, player name
 		void SetNetworkPlayerName(int player, std::string name);
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Takes the current order out of a player's buy GUI, creates a Delivery
 		/// based off it, and stuffs it into that player's delivery queue.
@@ -585,7 +583,6 @@ namespace RTE {
 
 		std::string m_NetworkPlayerNames[Players::MaxPlayerCount];
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this Activity, effectively
 		/// resetting the members of this abstraction level only.

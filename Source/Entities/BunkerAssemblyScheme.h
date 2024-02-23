@@ -14,7 +14,6 @@ namespace RTE {
 	/// material layer and optional background layer.
 	class BunkerAssemblyScheme : public SceneObject {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Different scheme properties are encoded on colors of scheme bitmap
 		enum SchemeColor {
@@ -135,7 +134,6 @@ namespace RTE {
 		/// @return Deployments limit.
 		int GetMaxDeployments() const;
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -163,7 +161,6 @@ namespace RTE {
 		// To which group we should add assemblies linked to this scheme
 		std::string m_AssemblyGroup;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this BunkerAssemblyScheme, effectively
 		/// resetting the members of this abstraction level only.

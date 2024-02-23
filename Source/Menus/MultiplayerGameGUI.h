@@ -19,7 +19,6 @@ namespace RTE {
 	/// Class history:
 	class MultiplayerGameGUI {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Different modes of this editor
 		enum GUIMode {
@@ -63,12 +62,10 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) const;
 
-		/// Protected member variable and method declarations
 	protected:
 		// Controller which conrols this menu. Not owned
 		Controller* m_pController;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this MultiplayerGameGUI, effectively
 		/// resetting the members of this abstraction level only.

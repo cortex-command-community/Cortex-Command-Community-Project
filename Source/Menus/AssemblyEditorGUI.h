@@ -24,7 +24,6 @@ namespace RTE {
 	/// A full menu system that represents the scene editing GUI for Cortex Command
 	class AssemblyEditorGUI {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		enum FeatureSets {
 			ONLOADEDIT = 0
@@ -158,7 +157,6 @@ namespace RTE {
 		/// @param newName New name for assembly.
 		void SetCurrentAssemblyName(std::string newName) { m_CurrentAssemblyName = newName; }
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Updates the PieMenu config based ont eh current editor state.
 		void UpdatePieMenu();
@@ -244,7 +242,6 @@ namespace RTE {
 		// Edited assembly name
 		std::string m_CurrentAssemblyName;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this AssemblyEditorGUI, effectively
 		/// resetting the members of this abstraction level only.

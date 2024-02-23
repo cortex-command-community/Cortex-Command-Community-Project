@@ -11,7 +11,6 @@ namespace RTE {
 	class ThreadMan :
 	    public Singleton<ThreadMan> {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		/// Constructor method used to instantiate a ThreadMan object in system
 		/// memory. Create() should be called before using the object.
@@ -40,9 +39,6 @@ namespace RTE {
 
 		BS::thread_pool& GetBackgroundThreadPool() { return m_BackgroundThreadPool; }
 
-		/// Protected member variable and method declarations
-	protected:
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this ThreadMan, effectively
 		/// resetting the members of this abstraction level only.

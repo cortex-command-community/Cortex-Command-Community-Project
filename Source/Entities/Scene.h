@@ -25,7 +25,6 @@ namespace RTE {
 
 		friend struct EntityLuaBindings;
 
-		/// Public member variable, method and friend function declarations
 	public:
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -48,7 +47,6 @@ namespace RTE {
 
 			friend struct EntityLuaBindings;
 
-			/// Public member variable, method and friend function declarations
 		public:
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
@@ -156,14 +154,12 @@ namespace RTE {
 			/// @return The name used to ID this Area.
 			std::string GetName() const { return m_Name; }
 
-			/// Protected member variable and method declarations
 		protected:
 			// The list of Box:es defining the Area in the owner Scene
 			std::vector<Box> m_BoxList;
 			// The name tag of this Area
 			std::string m_Name;
 
-			/// Private member variable and method declarations
 		private:
 			static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
@@ -700,7 +696,6 @@ namespace RTE {
 		/// @return Pointer to preview bitmap.
 		BITMAP* GetPreviewBitmap() const { return m_pPreviewBitmap; };
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -782,7 +777,6 @@ namespace RTE {
 
 		std::list<Deployment*> m_Deployments;
 
-		/// Private member variable and method declarations
 	private:
 		/// Gets the pathfinder for a given team.
 		/// @param team The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.

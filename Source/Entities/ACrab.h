@@ -27,7 +27,6 @@ namespace RTE {
 			LAYERCOUNT
 		};
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ACrab);
@@ -259,7 +258,6 @@ namespace RTE {
 		/// @param aimRangeLowerLimit The new lower limit of this ACrab's aim range.
 		void SetAimRangeLowerLimit(float aimRangeLowerLimit);
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
@@ -387,7 +385,6 @@ namespace RTE {
 		int WhilePieMenuOpenListener(const PieMenu* pieMenu) override;
 #pragma endregion
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this ACrab, effectively
 		/// resetting the members of this abstraction level only.

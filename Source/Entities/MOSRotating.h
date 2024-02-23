@@ -16,7 +16,6 @@ namespace RTE {
 	/// A sprite movable object that can rotate.
 	class MOSRotating : public MOSprite {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		friend class AtomGroup;
 		friend class SLTerrain;
@@ -481,7 +480,6 @@ namespace RTE {
 		/// Method to be run when the game is saved via ActivityMan::SaveCurrentGame. Not currently used in metagame or editor saving.
 		void OnSave() override;
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Transfers forces and impulse forces from the given Attachable to this MOSRotating, gibbing and/or removing the Attachable if needed.
 		/// @param attachable A pointer to the Attachable to apply forces from. Ownership is NOT transferred!
@@ -588,7 +586,6 @@ namespace RTE {
 		static BITMAP* m_spTempBitmapS256;
 		static BITMAP* m_spTempBitmapS512;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this MOSRotating, effectively
 		/// resetting the members of this abstraction level only.

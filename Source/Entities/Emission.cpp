@@ -29,16 +29,6 @@ void Emission::Clear() {
 	m_Offset.Reset();
 }
 
-/*
-int AEmitter::Emission::Create()
-{
-if (Serializable::Create() < 0)
-return -1;
-
-return 0;
-}
-*/
-
 int Emission::Create(const Emission& reference) {
 	m_pEmission = reference.m_pEmission;
 	m_PPM = reference.m_PPM;

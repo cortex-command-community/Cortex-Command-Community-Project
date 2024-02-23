@@ -21,7 +21,6 @@ namespace RTE {
 	/// the screen, grabbing the player's attention.
 	class GUIBanner {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		enum FontMode {
 			REGULAR = 0,
@@ -165,7 +164,6 @@ namespace RTE {
 		/// @param pTargetBitmap The target bitmap to draw to.
 		void Draw(BITMAP* pTargetBitmap);
 
-		/// Private member variable and method declarations
 	private:
 		// Font bitmap files - not owned
 		BITMAP* m_pFontImage[FONTMODECOUNT];

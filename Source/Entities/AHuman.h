@@ -40,7 +40,6 @@ namespace RTE {
 			BGROUND
 		};
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(AHuman);
@@ -535,7 +534,6 @@ namespace RTE {
 		/// @param newSound The new SoundContainer for this AHuman's stride sound.
 		void SetStrideSound(SoundContainer* newSound);
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
@@ -697,7 +695,6 @@ namespace RTE {
 		int WhilePieMenuOpenListener(const PieMenu* pieMenu) override;
 #pragma endregion
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this AHuman, effectively
 		/// resetting the members of this abstraction level only.

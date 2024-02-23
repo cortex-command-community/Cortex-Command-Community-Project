@@ -21,7 +21,6 @@ namespace RTE {
 	/// Campaign metagame. Doesn't need all the document-model dlg boxes.
 	class BaseEditor : public Activity {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(BaseEditor);
@@ -84,7 +83,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Saves the current scene to an appropriate ini file, and asks user if
 		/// they want to overwrite first if scene of this name exists.
@@ -104,7 +102,6 @@ namespace RTE {
 		// Dirty Scene?
 		bool m_NeedSave;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this Activity, effectively
 		/// resetting the members of this abstraction level only.

@@ -11,7 +11,6 @@ namespace RTE {
 	/// BITMAP.
 	class MOSprite : public MovableObject {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -274,7 +273,6 @@ namespace RTE {
 		/// @return 1 for not flipped, -1 for flipped.
 		float GetFlipFactor() const { return m_HFlipped ? -1.0F : 1.0F; }
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -314,7 +312,6 @@ namespace RTE {
 		// Exit wound template
 		const AEmitter* m_pExitWound;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this MOSprite, effectively
 		/// resetting the members of this abstraction level only.

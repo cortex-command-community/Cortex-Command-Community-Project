@@ -11,7 +11,6 @@ namespace RTE {
 	/// anything that can be places in a scene.
 	class SceneObject : public Entity {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -30,7 +29,6 @@ namespace RTE {
 		class SOPlacer :
 		    public Serializable {
 
-			/// Public member variable, method and friend function declarations
 		public:
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
@@ -85,7 +83,6 @@ namespace RTE {
 			/// @return The new copy with correct placement applied. OWNERSHIP IS TRANSFERRED!
 			SceneObject* GetPlacedCopy(const SceneObject* pParent = 0) const;
 
-			/// Protected member variable and method declarations
 		protected:
 			// The pointer to the preset instance, that copies of which will be placed. Not Owned!
 			const SceneObject* m_pObjectReference;
@@ -98,7 +95,6 @@ namespace RTE {
 			// The team of the placed object
 			int m_Team;
 
-			/// Private member variable and method declarations
 		private:
 			static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
@@ -272,7 +268,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
 		void DrawTeamMark(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) const;
 
-		/// Protected member variable and method declarations
 	protected:
 		// Forbidding copying
 		SceneObject(const SceneObject& reference) = delete;
@@ -294,7 +289,6 @@ namespace RTE {
 		// The player this was placed by in edit mode
 		int m_PlacedByPlayer;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this SceneObject, effectively
 		/// resetting the members of this abstraction level only.

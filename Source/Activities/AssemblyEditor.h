@@ -22,7 +22,6 @@ namespace RTE {
 	/// 9/17/2007 Spliced out and made to derive from EditorActivty
 	class AssemblyEditor : public EditorActivity {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(AssemblyEditor);
@@ -93,7 +92,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Creates and builds assembly which fits currently selected scheme and returns
 		/// it's pointer. Owhership IS transfered.
@@ -130,7 +128,6 @@ namespace RTE {
 
 		GUIComboBox* m_pModuleCombo;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this Activity, effectively
 		/// resetting the members of this abstraction level only.

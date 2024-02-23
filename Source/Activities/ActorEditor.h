@@ -22,7 +22,6 @@ namespace RTE {
 	/// Activity for testing and quickly iterating on Actor data definitions.
 	class ActorEditor : public EditorActivity {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ActorEditor);
@@ -93,7 +92,6 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Reloads the Actor itself and sets up the pie menu to match its setup.
 		/// @param pActorToLoad An Entity Preset of the Actor to load into the editor. OWNERSHIP IS NOT TRANSFERRED!
@@ -112,7 +110,6 @@ namespace RTE {
 		// The picker for selecting which object to load
 		ObjectPickerGUI* m_pPicker;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this Activity, effectively
 		/// resetting the members of this abstraction level only.
