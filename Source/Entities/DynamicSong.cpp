@@ -174,6 +174,12 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("AddSongSection", {
 		DynamicSongSection songSectionToAdd;
 		reader >> songSectionToAdd;
+		for (DynamicSongSection& songSection: GetSongSections()) {
+			if (songSection.GetSectionType() == songSectionToAdd.GetSectionType()) {
+				RTEAssert(false, "Tried to add a SongSection with SectionType " + songSection.GetSectionType() + ", which the DynamicSong already had in another SongSection!")
+				break;
+			}
+		}
 		m_SongSections.push_back(songSectionToAdd);
 	});
 
