@@ -224,6 +224,7 @@ void AudioMan::SetGlobalPitch(float pitch, bool includeImmobileSounds, bool incl
 }
 
 void AudioMan::SetTempMusicVolume(float volume) {
+	return;
 	if (m_AudioEnabled && IsMusicPlaying()) {
 		FMOD::Channel* musicChannel;
 		FMOD_RESULT result = m_MusicChannelGroup->getChannel(0, &musicChannel);
