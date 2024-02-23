@@ -20,6 +20,18 @@ Attachable::~Attachable() {
 	Destroy(true);
 }
 
+void Attachable::Destroy(bool notInherited) {
+	if (!notInherited) {
+		MOSRotating::Destroy();
+	}
+	Clear();
+}
+
+void Attachable::Reset() {
+	Clear();
+	MOSRotating::Reset();
+}
+
 void Attachable::Clear() {
 	m_Parent = nullptr;
 	m_ParentOffset.Reset();
@@ -181,6 +193,130 @@ int Attachable::Save(Writer& writer) const {
 	return 0;
 }
 
+MOSRotating* Attachable::GetParent() {
+	return m_Parent;
+}
+
+const MOSRotating* Attachable::GetParent() const {
+	return m_Parent;
+}
+
+bool Attachable::IsAttached() const {
+	return m_Parent != nullptr;
+}
+
+bool Attachable::IsAttachedTo(const MOSRotating* parentToCheck) const {
+	return m_Parent == parentToCheck;
+}
+
+MovableObject* Attachable::GetRootParent() {
+	return m_Parent ? m_Parent->GetRootParent() : this;
+}
+
+const MovableObject* Attachable::GetRootParent() const {
+	return m_Parent ? m_Parent->GetRootParent() : this;
+}
+
+const Vector& Attachable::GetParentOffset() const {
+	return m_ParentOffset;
+}
+
+void Attachable::SetParentOffset(const Vector& newParentOffset) {
+	m_ParentOffset = newParentOffset;
+}
+
+bool Attachable::IsDrawnAfterParent() const {
+	return m_DrawAfterParent;
+}
+
+void Attachable::SetDrawnAfterParent(bool drawAfterParent) {
+	m_DrawAfterParent = drawAfterParent;
+}
+
+bool Attachable::IsDrawnNormallyByParent() const {
+	return m_DrawnNormallyByParent;
+}
+
+void Attachable::SetDrawnNormallyByParent(bool drawnNormallyByParent) {
+	m_DrawnNormallyByParent = drawnNormallyByParent;
+}
+
+bool Attachable::GetDeleteWhenRemovedFromParent() const {
+	return m_DeleteWhenRemovedFromParent;
+}
+
+void Attachable::SetDeleteWhenRemovedFromParent(bool deleteWhenRemovedFromParent) {
+	m_DeleteWhenRemovedFromParent = deleteWhenRemovedFromParent;
+}
+
+bool Attachable::GetGibWhenRemovedFromParent() const {
+	return m_GibWhenRemovedFromParent;
+}
+
+void Attachable::SetGibWhenRemovedFromParent(bool gibWhenRemovedFromParent) {
+	m_GibWhenRemovedFromParent = gibWhenRemovedFromParent;
+}
+
+bool Attachable::GetApplyTransferredForcesAtOffset() const {
+	return m_ApplyTransferredForcesAtOffset;
+}
+
+void Attachable::SetApplyTransferredForcesAtOffset(bool appliesTransferredForcesAtOffset) {
+	m_ApplyTransferredForcesAtOffset = appliesTransferredForcesAtOffset;
+}
+
+float Attachable::GetGibWithParentChance() const {
+	return m_GibWithParentChance;
+}
+
+void Attachable::SetGibWithParentChance(float gibWithParentChance) {
+	m_GibWithParentChance = gibWithParentChance;
+}
+
+float Attachable::GetParentGibBlastStrengthMultiplier() const {
+	return m_ParentGibBlastStrengthMultiplier;
+}
+
+void Attachable::SetParentGibBlastStrengthMultiplier(float parentGibBlastStrengthMultiplier) {
+	m_ParentGibBlastStrengthMultiplier = parentGibBlastStrengthMultiplier;
+}
+
+bool Attachable::IsWound() const {
+	return m_IsWound;
+}
+
+void Attachable::SetIsWound(bool isWound) {
+	m_IsWound = isWound;
+}
+
+float Attachable::GetJointStrength() const {
+	return m_JointStrength;
+}
+
+void Attachable::SetJointStrength(float jointStrength) {
+	m_JointStrength = jointStrength;
+}
+
+float Attachable::GetJointStiffness() const {
+	return m_JointStiffness;
+}
+
+void Attachable::SetJointStiffness(float jointStiffness) {
+	m_JointStiffness = std::clamp(jointStiffness, 0.0F, 1.0F);
+}
+
+const Vector& Attachable::GetJointOffset() const {
+	return m_JointOffset;
+}
+
+void Attachable::SetJointOffset(const Vector& newJointOffset) {
+	m_JointOffset = newJointOffset;
+}
+
+const Vector& Attachable::GetJointPos() const {
+	return m_JointPos;
+}
+
 bool Attachable::TransferJointForces(Vector& jointForces) {
 	if (!m_Parent) {
 		return false;
@@ -245,6 +381,10 @@ bool Attachable::TransferJointImpulses(Vector& jointImpulses, float jointStiffne
 	return true;
 }
 
+void Attachable::AddDamage(float damageAmount) {
+	m_DamageCount += damageAmount;
+}
+
 float Attachable::CollectDamage() {
 	if (m_DamageMultiplier != 0) {
 		float totalDamage = m_DamageCount;
@@ -259,6 +399,66 @@ float Attachable::CollectDamage() {
 		return totalDamage * m_DamageMultiplier;
 	}
 	return 0;
+}
+
+const AEmitter* Attachable::GetBreakWound() const {
+	return m_BreakWound;
+}
+
+void Attachable::SetBreakWound(AEmitter* breakWound) {
+	m_BreakWound = breakWound;
+}
+
+const AEmitter* Attachable::GetParentBreakWound() const {
+	return m_ParentBreakWound;
+}
+
+void Attachable::SetParentBreakWound(AEmitter* breakWound) {
+	m_ParentBreakWound = breakWound;
+}
+
+int Attachable::InheritsHFlipped() const {
+	return m_InheritsHFlipped;
+}
+
+void Attachable::SetInheritsHFlipped(int inheritsHFlipped) {
+	m_InheritsHFlipped = inheritsHFlipped;
+}
+
+bool Attachable::InheritsRotAngle() const {
+	return m_InheritsRotAngle;
+}
+
+void Attachable::SetInheritsRotAngle(bool inheritsRotAngle) {
+	m_InheritsRotAngle = inheritsRotAngle;
+}
+
+float Attachable::GetInheritedRotAngleOffset() const {
+	return m_InheritedRotAngleOffset;
+}
+
+void Attachable::SetInheritedRotAngleOffset(float inheritedRotAngleOffset) {
+	m_InheritedRotAngleOffset = inheritedRotAngleOffset;
+}
+
+bool Attachable::InheritsFrame() const {
+	return m_InheritsFrame;
+}
+
+void Attachable::SetInheritsFrame(bool inheritsFrame) {
+	m_InheritsFrame = inheritsFrame;
+}
+
+long Attachable::GetAtomSubgroupID() const {
+	return m_AtomSubgroupID;
+}
+
+void Attachable::SetAtomSubgroupID(long subgroupID) {
+	m_AtomSubgroupID = subgroupID;
+}
+
+bool Attachable::GetCollidesWithTerrainWhileAttached() const {
+	return m_CollidesWithTerrainWhileAttached;
 }
 
 void Attachable::SetCollidesWithTerrainWhileAttached(bool collidesWithTerrainWhileAttached) {
@@ -279,6 +479,14 @@ bool Attachable::CanCollideWithTerrain() const {
 		}
 	}
 	return m_CollidesWithTerrainWhileAttached;
+}
+
+bool Attachable::GetIgnoresParticlesWhileAttached() const {
+	return m_IgnoresParticlesWhileAttached;
+}
+
+void Attachable::SetIgnoresParticlesWhileAttached(bool ignoresParticlesWhileAttached) {
+	m_IgnoresParticlesWhileAttached = ignoresParticlesWhileAttached;
 }
 
 bool Attachable::CollideAtPoint(HitData& hd) {
@@ -441,12 +649,28 @@ void Attachable::UpdateAttachableAndWoundMass(float oldAttachableOrWoundMass, fl
 	}
 }
 
+void Attachable::AddAttachable(Attachable* attachable) {
+	MOSRotating::AddAttachable(attachable);
+}
+
 void Attachable::AddAttachable(Attachable* attachable, const Vector& parentOffsetToSet) {
 	float previousMassForUpdatingParent = m_Parent ? GetMass() : 0.0F;
 	MOSRotating::AddAttachable(attachable, parentOffsetToSet);
 	if (m_Parent) {
 		m_Parent->UpdateAttachableAndWoundMass(previousMassForUpdatingParent, GetMass());
 	}
+}
+
+Attachable* Attachable::RemoveAttachable(long attachableUniqueID) {
+	return MOSRotating::RemoveAttachable(attachableUniqueID);
+}
+
+Attachable* Attachable::RemoveAttachable(long attachableUniqueID, bool addToMovableMan, bool addBreakWounds) {
+	return MOSRotating::RemoveAttachable(attachableUniqueID, addToMovableMan, addBreakWounds);
+}
+
+Attachable* Attachable::RemoveAttachable(Attachable* attachable) {
+	return MOSRotating::RemoveAttachable(attachable);
 }
 
 Attachable* Attachable::RemoveAttachable(Attachable* attachable, bool addToMovableMan, bool addBreakWounds) {
@@ -464,6 +688,10 @@ void Attachable::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet,
 	if (m_Parent) {
 		m_Parent->UpdateAttachableAndWoundMass(previousMassForUpdatingParent, GetMass());
 	}
+}
+
+float Attachable::RemoveWounds(int numberOfWoundsToRemove) {
+	return MOSRotating::RemoveWounds(numberOfWoundsToRemove);
 }
 
 float Attachable::RemoveWounds(int numberOfWoundsToRemove, bool includeAttachablesWithAPositiveDamageMultiplier, bool includeAttachablesWithANegativeDamageMultiplier, bool includeAttachablesWithNoDamageMultiplier) {

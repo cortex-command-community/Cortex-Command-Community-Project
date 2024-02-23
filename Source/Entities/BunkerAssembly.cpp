@@ -41,6 +41,15 @@ int BunkerAssembly::Create() {
 	return 0;
 }
 
+void BunkerAssembly::Reset() {
+	Clear();
+	SceneObject::Reset();
+}
+
+const std::list<SceneObject*>* BunkerAssembly::GetPlacedObjects() const {
+	return &m_PlacedObjects;
+}
+
 void BunkerAssembly::AddPlacedObject(SceneObject* pSO) {
 	m_PlacedObjects.push_back(pSO);
 
@@ -323,6 +332,10 @@ std::vector<Deployment*> BunkerAssembly::GetDeployments() {
 	return deploymentsList;
 }
 
+std::string BunkerAssembly::GetParentAssemblySchemeName() const {
+	return m_ParentAssemblyScheme;
+}
+
 bool BunkerAssembly::IsOnScenePoint(Vector& scenePoint) const {
 	if (!m_pPresentationBitmap)
 		return false;
@@ -344,6 +357,18 @@ void BunkerAssembly::SetTeam(int team) {
 	// Make sure all the objects to be placed will be of the same team
 	for (std::list<SceneObject*>::iterator itr = m_PlacedObjects.begin(); itr != m_PlacedObjects.end(); ++itr)
 		(*itr)->SetTeam(team);
+}
+
+BITMAP* BunkerAssembly::GetGraphicalIcon() const {
+	return m_pPresentationBitmap;
+}
+
+std::string BunkerAssembly::GetSymmetricAssemblyName() const {
+	return m_SymmetricAssembly;
+}
+
+void BunkerAssembly::SetSymmetricAssemblyName(std::string newSymmetricAssembly) {
+	m_SymmetricAssembly = newSymmetricAssembly;
 }
 
 void BunkerAssembly::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {

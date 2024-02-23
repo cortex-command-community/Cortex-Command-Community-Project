@@ -30,7 +30,7 @@ namespace RTE {
 		/// Creates an AtomGroup to be identical to another, by deep copy.
 		/// @param reference A reference to the AtomGroup to deep copy.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create(const AtomGroup& reference) { return Create(reference, false); }
+		int Create(const AtomGroup& reference);
 
 		/// Creates an AtomGroup to be identical to another, by deep copy, with the option to only copy Atoms that belong to the reference AtomGroup's owner thereby excluding any Atom subgroups.
 		/// @param reference A reference to the AtomGroup to deep copy.
@@ -42,7 +42,7 @@ namespace RTE {
 		/// The passed in MOSRotating will also be made the owner of this AtomGroup! Ownership of the MOSRotating is NOT transferred!
 		/// @param ownerMOSRotating A pointer to a MOSRotating whose outline will be approximated by Atoms of this AtomGroup, and that will be set as the owner of this AtomGroup.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create(MOSRotating* ownerMOSRotating) { return Create(ownerMOSRotating, m_Material, m_Resolution, m_Depth); }
+		int Create(MOSRotating* ownerMOSRotating);
 
 		/// Creates an AtomGroup after the silhouette shape of a passed in MOSRotating by dotting the outline of the sprite with Atoms.
 		/// The passed in MOSRotating will also be made the owner of this AtomGroup! Ownership of the MOSRotating is NOT transferred!
@@ -63,16 +63,13 @@ namespace RTE {
 		void Destroy(bool notInherited = false) override;
 
 		/// Resets the entire AtomGroup, including its inherited members, to their default settings or values.
-		void Reset() override {
-			Clear();
-			Entity::Reset();
-		}
+		void Reset() override;
 #pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets the current list of Atoms that make up the group.
 		/// @return A const reference to the Atom list.
-		const std::vector<Atom*>& GetAtomList() const { return m_Atoms; }
+		const std::vector<Atom*>& GetAtomList() const;
 
 		/// Sets the a new list of Atoms that make up the group.
 		/// @param newAtoms List of Atoms that make up the group.
@@ -80,7 +77,7 @@ namespace RTE {
 
 		/// Gets the current number of Atoms that make up the group.
 		/// @return The number of Atoms that make up the group.
-		int GetAtomCount() const { return m_Atoms.size(); }
+		int GetAtomCount() const;
 
 		/// Gets max radius of the AtomGroup through the longest magnitude of all the Atom's offsets.
 		/// @return The largest magnitude of Atom's offsets, in pixels.
@@ -88,7 +85,7 @@ namespace RTE {
 
 		/// Gets the current owner MOSRotating of this AtomGroup.
 		/// @return A pointer to the owner.
-		MOSRotating* GetOwner() const { return m_OwnerMOSR; }
+		MOSRotating* GetOwner() const;
 
 		/// Sets the current owner MOSRotating of this AtomGroup.
 		/// @param newOwner A pointer to the new owner. Ownership is NOT transferred!
@@ -96,19 +93,19 @@ namespace RTE {
 
 		/// Gets the Material of this AtomGroup.
 		/// @return A const pointer to the Material.
-		const Material* GetMaterial() const { return (m_Material) ? m_Material : g_SceneMan.GetMaterialFromID(g_MaterialAir); }
+		const Material* GetMaterial() const;
 
 		/// Gets whether this AtomGroup's Atoms are to be automatically generated based on a bitmap, or manually specified.
 		/// @return Whether this AtomGroup is auto generated from a bitmap or not.
-		bool AutoGenerate() const { return m_AutoGenerate; }
+		bool AutoGenerate() const;
 
 		/// Gets the resolution (density of Atoms) of this AtomGroup. Higher values mean a less dense and less accurate physical representation of the owner MOSR's graphical representation.
 		/// @return The resolution value of this AtomGroup. 0 means the Atoms in this AtomGroup were defined manually.
-		int GetResolution() const { return m_Resolution; }
+		int GetResolution() const;
 
 		/// Gets the depth Atoms in this AtomGroup are placed off the edge of the owning MOSR's graphical representation outline towards it's center.
 		/// @return The depth, in pixels. If 0, Atoms are placed right on the edge of the MOSR outline.
-		int GetDepth() const { return m_Depth; }
+		int GetDepth() const;
 
 		/// Gets the offset of an Atom in this AtomGroup adjusted to the Owner MOSRotating horizontal flip and rotation.
 		/// @param atom The individual Atom to get the offset for.
@@ -118,12 +115,12 @@ namespace RTE {
 		/// Gets the current position of this AtomGroup as a limb.
 		/// @param hFlipped Whether to adjust the position for horizontal flip or not.
 		/// @return The absolute limb position in the world.
-		Vector GetLimbPos(bool hFlipped = false) const { return m_LimbPos.GetFloored() + m_JointOffset.GetXFlipped(hFlipped); }
+		Vector GetLimbPos(bool hFlipped = false) const;
 
 		/// Sets the current position of this AtomGroup as a limb.
 		/// @param newPos The Vector with the new absolute position.
 		/// @param hFlipped Whether to adjust the new position for horizontal flip or not.
-		void SetLimbPos(const Vector& newPos, bool hFlipped = false) { m_LimbPos = newPos - m_JointOffset.GetXFlipped(hFlipped); }
+		void SetLimbPos(const Vector& newPos, bool hFlipped = false);
 
 		/// Gets the current mass moment of inertia of this AtomGroup.
 		/// @return A float with the moment of inertia, in Kg * meter^2.
@@ -131,7 +128,7 @@ namespace RTE {
 
 		/// Sets the offset of the joint relative to this AtomGroup's origin when used as a limb.
 		/// @param newOffset The new joint offset.
-		void SetJointOffset(const Vector& newOffset) { m_JointOffset = newOffset; }
+		void SetJointOffset(const Vector& newOffset);
 #pragma endregion
 
 #pragma region Atom Management
@@ -139,11 +136,7 @@ namespace RTE {
 		/// Note, this resets the moment of inertia, which then has to be recalculated.
 		/// @param newAtom A pointer to an Atom that will pushed onto the end of the list. Ownership IS transferred!
 		/// @param subgroupID The subgroup ID that the new Atom will have within the group.
-		void AddAtom(Atom* newAtom, long subgroupID = 0) {
-			newAtom->SetSubID(subgroupID);
-			m_Atoms.push_back(newAtom);
-			m_MomentOfInertia = 0.0F;
-		}
+		void AddAtom(Atom* newAtom, long subgroupID = 0);
 
 		/// Adds a list of new Atoms to the internal list that makes up this AtomGroup. Ownership of all Atoms in the list IS NOT transferred!
 		/// @param atomList A list of pointers to Atoms whose copies will be pushed onto the end of this AtomGroup's list. Ownership IS NOT transferred!
@@ -158,17 +151,12 @@ namespace RTE {
 		bool RemoveAtoms(long removeID);
 
 		/// Removes all atoms in this AtomGroup, leaving it empty of Atoms.
-		void RemoveAllAtoms() {
-			m_Atoms.clear();
-			m_SubGroups.clear();
-			m_MomentOfInertia = 0.0F;
-			m_StoredOwnerMass = 0.0F;
-		}
+		void RemoveAllAtoms();
 
 		/// Gets whether the AtomGroup contains a subgroup with the given subgroupID.
 		/// @param subgroupID The subgroupID to check for.
 		/// @return Whether this AtomGroup contains a subgroup with the given subgroupID.
-		bool ContainsSubGroup(long subgroupID) const { return m_SubGroups.count(subgroupID) != 0; }
+		bool ContainsSubGroup(long subgroupID) const;
 
 		/// Updates the offsets of a subgroup of Atoms in this AtomGroup. This allows repositioning a subgroup to match the position and rotation of the graphical representation of it's owner MOSR.
 		/// @param subgroupID The desired subgroup ID of the Atoms to update offsets for.
@@ -241,16 +229,16 @@ namespace RTE {
 #pragma region Collision
 		/// Adds a MOID that this AtomGroup should ignore collisions with during its next Travel sequence.
 		/// @param moidToIgnore The MOID to add to the ignore list.
-		void AddMOIDToIgnore(MOID moidToIgnore) { m_IgnoreMOIDs.push_back(moidToIgnore); }
+		void AddMOIDToIgnore(MOID moidToIgnore);
 
 		/// Checks whether this AtomGroup is set to ignore collisions with a MOSR of a specific MOID.
 		/// @param whichMOID The MOID to check if it is ignored.
 		/// @return Whether or not this MOID is being ignored.
-		bool IsIgnoringMOID(MOID whichMOID) { return (*(m_Atoms.begin()))->IsIgnoringMOID(whichMOID); }
+		bool IsIgnoringMOID(MOID whichMOID);
 
 		/// Clears the list of MOIDs that this AtomGroup is set to ignore collisions with during its next Travel sequence.
 		/// This should be done each frame so that fresh MOIDs can be re-added. (MOIDs are only valid during a frame).
-		void ClearMOIDIgnoreList() { m_IgnoreMOIDs.clear(); }
+		void ClearMOIDIgnoreList();
 
 		/// Gets whether any of the Atoms in this AtomGroup are on top of terrain pixels.
 		/// @return Whether any Atom of this AtomGroup is on top of a terrain pixel.

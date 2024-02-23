@@ -17,6 +17,55 @@ Arm::~Arm() {
 	Destroy(true);
 }
 
+void Arm::Destroy(bool notInherited) {
+	if (!notInherited) {
+		Attachable::Destroy();
+	}
+	Clear();
+}
+
+void Arm::Reset() {
+	Clear();
+	Attachable::Reset();
+}
+
+float Arm::GetMaxLength() const {
+	return m_MaxLength;
+}
+
+float Arm::GetMoveSpeed() const {
+	return m_MoveSpeed;
+}
+
+void Arm::SetMoveSpeed(float newMoveSpeed) {
+	m_MoveSpeed = newMoveSpeed;
+}
+
+Vector Arm::GetHandIdleOffset() const {
+	return m_HandIdleOffset;
+}
+
+void Arm::SetHandIdleOffset(const Vector& newDefaultIdleOffset) {
+	m_HandIdleOffset = newDefaultIdleOffset;
+}
+
+float Arm::GetHandIdleRotation() const {
+	return m_HandIdleRotation;
+}
+
+void Arm::SetHandIdleRotation(float newHandIdleRotation) {
+	m_HandIdleRotation = newHandIdleRotation;
+}
+
+Vector Arm::GetHandCurrentOffset() const {
+	return m_HandCurrentOffset;
+}
+
+void Arm::SetHandCurrentOffset(const Vector& newHandOffset) {
+	m_HandCurrentOffset = newHandOffset;
+	m_HandCurrentOffset.CapMagnitude(m_MaxLength);
+}
+
 void Arm::Clear() {
 	m_MaxLength = 0;
 	m_MoveSpeed = 0;
@@ -119,8 +168,32 @@ int Arm::Save(Writer& writer) const {
 	return 0;
 }
 
+Vector Arm::GetHandPos() const {
+	return m_JointPos + m_HandCurrentOffset;
+}
+
 void Arm::SetHandPos(const Vector& newHandPos) {
 	SetHandCurrentOffset(g_SceneMan.ShortestDistance(m_JointPos, newHandPos, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY()));
+}
+
+float Arm::GetGripStrength() const {
+	return m_GripStrength;
+}
+
+void Arm::SetGripStrength(float newGripStrength) {
+	m_GripStrength = newGripStrength;
+}
+
+float Arm::GetThrowStrength() const {
+	return m_ThrowStrength;
+}
+
+void Arm::SetThrowStrength(float newThrowStrength) {
+	m_ThrowStrength = newThrowStrength;
+}
+
+void Arm::AddHandTarget(const std::string& description, const Vector& handTargetPositionToAdd) {
+	AddHandTarget(description, handTargetPositionToAdd, 0);
 }
 
 void Arm::AddHandTarget(const std::string& description, const Vector& handTargetPositionToAdd, float delayAtTarget) {
@@ -135,6 +208,41 @@ void Arm::AddHandTarget(const std::string& description, const Vector& handTarget
 		}
 		m_HandTargets.emplace(description, handTargetOffsetToAdd, delayAtTarget, m_HFlipped);
 	}
+}
+
+void Arm::RemoveNextHandTarget() {
+	if (!m_HandTargets.empty()) {
+		m_HandTargets.pop();
+		m_HandHasReachedCurrentTarget = false;
+	}
+}
+
+bool Arm::HasAnyHandTargets() const {
+	return !m_HandTargets.empty();
+}
+
+int Arm::GetNumberOfHandTargets() const {
+	return m_HandTargets.size();
+}
+
+std::string Arm::GetNextHandTargetDescription() const {
+	return m_HandTargets.empty() ? "" : m_HandTargets.front().Description;
+}
+
+Vector Arm::GetNextHandTargetPosition() const {
+	return m_HandTargets.empty() ? Vector() : m_HandTargets.front().TargetOffset + m_JointPos;
+}
+
+bool Arm::GetHandHasReachedCurrentTarget() const {
+	return m_HandHasReachedCurrentTarget;
+}
+
+void Arm::ClearHandTargets() {
+	m_HandTargets = {};
+}
+
+HeldDevice* Arm::GetHeldDevice() const {
+	return m_HeldDevice;
 }
 
 void Arm::SetHeldDevice(HeldDevice* newHeldDevice) {
@@ -161,6 +269,14 @@ void Arm::SetHeldDevice(HeldDevice* newHeldDevice) {
 	}
 }
 
+HeldDevice* Arm::GetHeldDeviceThisArmIsTryingToSupport() const {
+	return m_HeldDeviceThisArmIsTryingToSupport;
+}
+
+void Arm::SetHeldDeviceThisArmIsTryingToSupport(HeldDevice* newHeldDeviceThisArmShouldTryToSupport) {
+	m_HeldDeviceThisArmIsTryingToSupport = newHeldDeviceThisArmShouldTryToSupport;
+}
+
 HeldDevice* Arm::SwapHeldDevice(HeldDevice* newHeldDevice) {
 	Attachable* previousHeldDevice = RemoveAttachable(m_HeldDevice, false, false);
 	SetHeldDevice(newHeldDevice);
@@ -169,6 +285,13 @@ HeldDevice* Arm::SwapHeldDevice(HeldDevice* newHeldDevice) {
 
 bool Arm::HandIsCloseToTargetOffset(const Vector& targetOffset) const {
 	return (m_HandCurrentOffset - targetOffset).MagnitudeIsLessThan(m_MaxLength / 10.0F);
+}
+
+void Arm::PostTravel() {
+	if (IsAttached()) {
+		m_AngularVel = 0;
+	}
+	MOSRotating::PostTravel();
 }
 
 void Arm::Update() {
@@ -217,6 +340,9 @@ void Arm::Update() {
 
 	m_HandIdleRotation = 0;
 }
+
+Arm::HandTarget::HandTarget(const std::string_view& description, const Vector& targetOffset, float delayAtTarget, bool hFlippedWhenTargetWasCreated) :
+			    Description(description), TargetOffset(targetOffset), DelayAtTarget(delayAtTarget), HFlippedWhenTargetWasCreated(hFlippedWhenTargetWasCreated) {}
 
 void Arm::UpdateHandCurrentOffset(bool armHasParent, bool heldDeviceIsAThrownDevice) {
 	if (armHasParent) {

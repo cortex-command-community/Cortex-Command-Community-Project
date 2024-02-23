@@ -22,7 +22,7 @@ namespace RTE {
 
 		/// Constructor method used to instantiate a Emission object in system
 		/// memory. Create() should be called before using the object.
-		Emission() { Clear(); }
+		Emission();
 
 		/// Creates a Emission to be identical to another, by deep copy.
 		/// @param reference A reference to the Emission to deep copy.
@@ -32,99 +32,96 @@ namespace RTE {
 
 		/// Resets the entire Serializable, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override { Clear(); }
+		void Reset() override;
 
 		/// Gets the reference particle to be emitted. Owenership is NOT transferred!
 		/// @return A pointer to the particle to be emitted. Not transferred!
-		const MovableObject* GetEmissionParticlePreset() { return m_pEmission; }
+		const MovableObject* GetEmissionParticlePreset();
 
 		/// Gets the rate at which these emissions are made, in particles per minute.
 		/// @return The emission rate in PPM.
-		float GetRate() const { return m_PPM; }
+		float GetRate() const;
 
 		/// Sets the rate at which these emissions are made, in particles per minute.
 		/// @param newPPM The emission rate in PPM.
-		void SetRate(float newPPM) { m_PPM = newPPM; }
+		void SetRate(float newPPM);
 
 		/// Gets the number of extra particles that are bursted at the beginning of
 		/// emission.
 		/// @return The burst size.
-		int GetBurstSize() const { return m_BurstSize; }
+		int GetBurstSize() const;
 
 		/// Sets the number of extra particles that are bursted at the beginning of
 		/// emission.
 		/// @param newSize The burst size.
-		void SetBurstSize(int newSize) { m_BurstSize = newSize; }
+		void SetBurstSize(int newSize);
 
 		/// Gets the angle spread of velocity of the emitted MO's to each side of
 		/// the m_EmitAngle angle. in radians. PI/2 would mean that MO's fly out to
 		/// one side only, with the m_Rotation defining the middle of that half circle.
 		/// @return The emission spread in radians.
-		float GetSpread() const { return m_Spread; }
+		float GetSpread() const;
 
 		/// Sets the angle spread of velocity of the emitted MO's to each side of
 		/// the m_EmitAngle angle. in radians. PI/2 would mean that MO's fly out to
 		/// one side only, with the m_Rotation defining the middle of that half circle.
 		/// @param newSpread The emission spread in radians.
-		void SetSpread(float newSpread) { m_Spread = newSpread; }
+		void SetSpread(float newSpread);
 
 		/// Gets the specified minimum velocity an emitted MO can have when emitted.
 		/// @return The min emission velocity in m/s.
-		float GetMinVelocity() const { return m_MinVelocity; }
+		float GetMinVelocity() const;
 
 		/// Sets the specified minimum velocity an emitted MO can have when emitted.
 		/// @param newVel The min emission velocity in m/s.
-		void SetMinVelocity(float newVel) { m_MinVelocity = newVel; }
+		void SetMinVelocity(float newVel);
 
 		/// Gets the specified maximum velocity an emitted MO can have when emitted.
 		/// @return The max emission velocity in m/s.
-		float GetMaxVelocity() const { return m_MaxVelocity; }
+		float GetMaxVelocity() const;
 
 		/// Gets the specified maximum velocity an emitted MO can have when emitted.
 		/// @param newVel The max emission velocity in m/s.
-		void SetMaxVelocity(float newVel) { m_MaxVelocity = newVel; }
+		void SetMaxVelocity(float newVel);
 
 		/// Gets the specified variation in lifetime of the emitted particles.
 		/// @return The life variation rationally expressed.. 0.1 = up to 10% varitaion.
-		float GetLifeVariation() const { return m_LifeVariation; }
+		float GetLifeVariation() const;
 
 		/// Sets the specified variation in lifetime of the emitted particles.
 		/// @param newVariation The life variation rationally expressed.. 0.1 = up to 10% varitaion.
-		void SetLifeVariation(float newVariation) { m_LifeVariation = newVariation; }
+		void SetLifeVariation(float newVariation);
 
 		/// Indicates whether this emission is supposed to push its emitter back
 		/// because of recoil.
 		/// @return Whether recoil pushing is enabled or not for this emitter.
-		bool PushesEmitter() const { return m_PushesEmitter; }
+		bool PushesEmitter() const;
 
 		/// Sets whether this emission is supposed to push its emitter back
 		/// because of recoil.
 		/// @param newValue Whether recoil pushing is enabled or not for this emitter.
-		void SetPushesEmitter(bool newValue) { m_PushesEmitter = newValue; }
+		void SetPushesEmitter(bool newValue);
 
 		/// Shows whether this should be emitting now or not, based on what its
 		/// start and end timers are set to.
 		/// @return Whether this should be emitting right now.
-		bool IsEmissionTime() { return m_StartTimer.IsPastSimTimeLimit() && !m_StopTimer.IsPastSimTimeLimit(); }
+		bool IsEmissionTime();
 
 		/// Resets the emission timers so they start counting time as to wheter
 		/// emissions are clearer.
-		void ResetEmissionTimers() {
-			m_StartTimer.Reset();
-			m_StopTimer.Reset();
-		}
+		void ResetEmissionTimers();
 
 		/// How much of the root parent's velocity this emission inherit
 		/// @return The proportion of the velocity inherited. 0.1 = 10% inheritance.
-		float InheritsVelocity() { return m_InheritsVel; }
+		float InheritsVelocity();
 
 		/// Gets offset of the emission point from Emitter's sprite center, which gets rotated with owner Emitter
 		/// @return Returns emission offset.
-		Vector GetOffset() const { return m_Offset; }
+		Vector GetOffset() const;
 
 		/// Sets offset of the emission point from Emitter's sprite center, which gets rotated with owner Emitter
 		/// @param offset New offset value.
-		void SetOffset(Vector offset) { m_Offset = offset; }
+		void SetOffset(Vector offset);
 
 		/// Protected member variable and method declarations
 	protected:

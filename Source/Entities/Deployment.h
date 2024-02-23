@@ -57,10 +57,7 @@ namespace RTE {
 
 		/// Resets the entire Deployment, including its inherited members, to
 		/// their default settings or values.
-		void Reset() override {
-			Clear();
-			SceneObject::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the Deployment object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -71,21 +68,21 @@ namespace RTE {
 		/// GUI lists etc.
 		/// @return A good identifyable graphical representation of this in a BITMAP, if
 		/// available. If not, 0 is returned. Ownership is NOT TRANSFERRED!
-		BITMAP* GetGraphicalIcon() const override { return !m_Icon.GetBitmaps8().empty() ? m_Icon.GetBitmaps8()[0] : nullptr; }
+		BITMAP* GetGraphicalIcon() const override;
 
 		/// Gets the name of the Loadout that this Deployment spawns.
 		/// @return The name of the Loadout preset that this Deployment spawns.
-		const std::string& GetLoadoutName() { return m_LoadoutName; }
+		const std::string& GetLoadoutName();
 
 		/// Gets a bitmap showing a good identifyable icon of this.
 		/// @return The Icon that represents this graphically.
-		Icon GetIcon() { return m_Icon; }
+		Icon GetIcon();
 
 		/// Gets the radius around this deployment that gets checked if another
 		/// actor/item of the same type and name already exists and will block
 		/// re-spawning a new one by this
 		/// @return The radius this Deployment will be checking within.
-		float GetSpawnRadius() const { return m_SpawnRadius; }
+		float GetSpawnRadius() const;
 
 		/// Indicates whether this' current graphical representation overlaps
 		/// a point in absolute scene coordinates.
@@ -144,10 +141,10 @@ namespace RTE {
 		/// no Tech is specified and the base value is returned.
 		/// @param foreignMult How much to multiply the value if this happens to be a foreign Tech. (default: 1.0)
 		/// @return The cost, in oz of gold.
-		float GetGoldValue(int nativeModule = 0, float foreignMult = 1.0, float nativeMult = 1.0) const override { return GetTotalValue(nativeModule, foreignMult, nativeMult); }
+		float GetGoldValue(int nativeModule = 0, float foreignMult = 1.0, float nativeMult = 1.0) const override;
 
 		/// DOES THE SAME THING AS GetGoldValue, USED ONLY TO PRESERVE LUA COMPATIBILITY
-		float GetGoldValueOld(int nativeModule = 0, float foreignMult = 1.0) const override { return GetTotalValue(nativeModule, foreignMult, 1.0); }
+		float GetGoldValueOld(int nativeModule = 0, float foreignMult = 1.0) const override;
 
 		/// Gets the total liquidation value of a spawn of this, including
 		/// everything carried by it.
@@ -160,17 +157,14 @@ namespace RTE {
 
 		/// Return this deployment's unique ID
 		/// @return This deployment's ID
-		unsigned int GetID() const { return m_ID; };
+		unsigned int GetID() const;
 
 		/// Clones id from the specified deployment
 		/// @param from Deployment to clone Id from.
-		void CloneID(Deployment* from) {
-			if (from)
-				m_ID = from->GetID();
-		};
+		void CloneID(Deployment* from);
 
 		/// Generates new random ID for this deployment.
-		void NewID() { m_ID = RandomNum(1, 0xFFFF); };
+		void NewID();
 
 		/// Draws this Deployment's current graphical representation to a
 		/// BITMAP of choice.
@@ -184,12 +178,12 @@ namespace RTE {
 		/// Returns whether this MOSprite is being drawn flipped horizontally
 		/// (along the vertical axis), or not.
 		/// @return Whether flipped or not.
-		bool IsHFlipped() const override { return m_HFlipped; }
+		bool IsHFlipped() const override;
 
 		/// Sets whether this should be drawn flipped horizontally (around the
 		/// vertical axis).
 		/// @param flipped A bool with the new value.
-		void SetHFlipped(const bool flipped) override { m_HFlipped = flipped; }
+		void SetHFlipped(const bool flipped) override;
 
 		/// Protected member variable and method declarations
 	protected:

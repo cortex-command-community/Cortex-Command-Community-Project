@@ -64,6 +64,10 @@ int AtomGroup::Create() {
 	return 0;
 }
 
+int AtomGroup::Create(const AtomGroup& reference) {
+	return Create(reference, false);
+}
+
 int AtomGroup::Create(const AtomGroup& reference, bool onlyCopyOwnerAtoms) {
 	Entity::Create(reference);
 
@@ -107,6 +111,10 @@ int AtomGroup::Create(const AtomGroup& reference, bool onlyCopyOwnerAtoms) {
 	}
 
 	return 0;
+}
+
+int AtomGroup::Create(MOSRotating* ownerMOSRotating) {
+	return Create(ownerMOSRotating, m_Material, m_Resolution, m_Depth);
 }
 
 int AtomGroup::Create(MOSRotating* ownerMOSRotating, Material const* material, int resolution, int depth) {
@@ -206,11 +214,24 @@ void AtomGroup::Destroy(bool notInherited) {
 	Clear();
 }
 
+void AtomGroup::Reset() {
+	Clear();
+	Entity::Reset();
+}
+
+const std::vector<Atom*>& AtomGroup::GetAtomList() const {
+	return m_Atoms;
+}
+
 void AtomGroup::SetAtomList(const std::vector<Atom*>& newAtoms) {
 	for (const Atom* atom: m_Atoms) {
 		delete atom;
 	}
 	m_Atoms = newAtoms;
+}
+
+int AtomGroup::GetAtomCount() const {
+	return m_Atoms.size();
 }
 
 float AtomGroup::CalculateMaxRadius() const {
@@ -226,6 +247,10 @@ float AtomGroup::CalculateMaxRadius() const {
 	return std::sqrt(sqrLongest);
 }
 
+MOSRotating* AtomGroup::GetOwner() const {
+	return m_OwnerMOSR;
+}
+
 void AtomGroup::SetOwner(MOSRotating* newOwner) {
 	m_OwnerMOSR = newOwner;
 	for (Atom* atom: m_Atoms) {
@@ -233,8 +258,32 @@ void AtomGroup::SetOwner(MOSRotating* newOwner) {
 	}
 }
 
+const Material* AtomGroup::GetMaterial() const {
+	return (m_Material) ? m_Material : g_SceneMan.GetMaterialFromID(g_MaterialAir);
+}
+
+bool AtomGroup::AutoGenerate() const {
+	return m_AutoGenerate;
+}
+
+int AtomGroup::GetResolution() const {
+	return m_Resolution;
+}
+
+int AtomGroup::GetDepth() const {
+	return m_Depth;
+}
+
 Vector AtomGroup::GetAdjustedAtomOffset(const Atom* atom) const {
 	return atom->GetOffset().GetXFlipped(m_OwnerMOSR->m_HFlipped) * m_OwnerMOSR->GetRotMatrix();
+}
+
+Vector AtomGroup::GetLimbPos(bool hFlipped) const {
+	return m_LimbPos.GetFloored() + m_JointOffset.GetXFlipped(hFlipped);
+}
+
+void AtomGroup::SetLimbPos(const Vector& newPos, bool hFlipped) {
+	m_LimbPos = newPos - m_JointOffset.GetXFlipped(hFlipped);
 }
 
 float AtomGroup::GetMomentOfInertia() {
@@ -256,6 +305,16 @@ float AtomGroup::GetMomentOfInertia() {
 	}
 
 	return m_MomentOfInertia;
+}
+
+void AtomGroup::SetJointOffset(const Vector& newOffset) {
+	m_JointOffset = newOffset;
+}
+
+void AtomGroup::AddAtom(Atom* newAtom, long subgroupID) {
+	newAtom->SetSubID(subgroupID);
+	m_Atoms.push_back(newAtom);
+	m_MomentOfInertia = 0.0F;
 }
 
 void AtomGroup::AddAtoms(const std::vector<Atom*>& atomList, long subgroupID, const Vector& offset, const Matrix& offsetRotation) {
@@ -302,6 +361,17 @@ bool AtomGroup::RemoveAtoms(long removeID) {
 	}
 
 	return removedAny;
+}
+
+void AtomGroup::RemoveAllAtoms() {
+	m_Atoms.clear();
+	m_SubGroups.clear();
+	m_MomentOfInertia = 0.0F;
+	m_StoredOwnerMass = 0.0F;
+}
+
+bool AtomGroup::ContainsSubGroup(long subgroupID) const {
+	return m_SubGroups.count(subgroupID) != 0;
 }
 
 bool AtomGroup::UpdateSubAtoms(long subgroupID, const Vector& newOffset, const Matrix& newOffsetRotation) {
@@ -1302,6 +1372,18 @@ void AtomGroup::FlailAsLimb(const Vector& ownerPos, const Vector& jointOffset, c
 		m_LimbPos = jointPos + limbRange;
 	}
 	return;
+}
+
+void AtomGroup::AddMOIDToIgnore(MOID moidToIgnore) {
+	m_IgnoreMOIDs.push_back(moidToIgnore);
+}
+
+bool AtomGroup::IsIgnoringMOID(MOID whichMOID) {
+	return (*(m_Atoms.begin()))->IsIgnoringMOID(whichMOID);
+}
+
+void AtomGroup::ClearMOIDIgnoreList() {
+	m_IgnoreMOIDs.clear();
 }
 
 bool AtomGroup::InTerrain() const {

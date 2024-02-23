@@ -56,6 +56,11 @@ int BunkerAssemblyScheme::Create(const BunkerAssemblyScheme& reference) {
 	return 0;
 }
 
+void BunkerAssemblyScheme::Reset() {
+	Clear();
+	SceneObject::Reset();
+}
+
 int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return SceneObject::ReadProperty(propName, reader));
 
@@ -219,6 +224,26 @@ void BunkerAssemblyScheme::Destroy(bool notInherited) {
 	Clear();
 }
 
+const int BunkerAssemblyScheme::GetBitmapWidth() const {
+	return m_pPresentationBitmap->w;
+}
+
+const int BunkerAssemblyScheme::GetBitmapHeight() const {
+	return m_pPresentationBitmap->h;
+}
+
+const Vector BunkerAssemblyScheme::GetBitmapOffset() const {
+	return m_BitmapOffset;
+}
+
+BITMAP* BunkerAssemblyScheme::GetBitmap() const {
+	return m_pPresentationBitmap;
+}
+
+int BunkerAssemblyScheme::GetArea() const {
+	return m_pBitmap->h * m_pBitmap->w;
+}
+
 BITMAP* BunkerAssemblyScheme::GetGraphicalIcon() const {
 	return m_pIconBitmap;
 }
@@ -298,3 +323,24 @@ void BunkerAssemblyScheme::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, 
 			draw_trans_sprite(pTargetBitmap, m_pPresentationBitmap, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY());
 	}
 }
+
+bool BunkerAssemblyScheme::IsOneTypePerScene() {
+	return m_IsOneTypePerScene;
+}
+
+std::string BunkerAssemblyScheme::GetSymmetricSchemeName() const {
+	return m_SymmetricScheme;
+}
+
+std::string BunkerAssemblyScheme::GetAssemblyGroup() const {
+	return m_AssemblyGroup;
+}
+
+int BunkerAssemblyScheme::GetLimit() {
+	return m_Limit;
+}
+
+int BunkerAssemblyScheme::GetMaxDeployments() const {
+	return m_MaxDeployments;
+}
+

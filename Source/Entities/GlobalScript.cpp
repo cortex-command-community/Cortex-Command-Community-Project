@@ -18,10 +18,6 @@ GlobalScript::GlobalScript() {
 	Clear();
 }
 
-GlobalScript::~GlobalScript() {
-	Destroy(true);
-}
-
 void GlobalScript::Clear() {
 	m_ScriptPath.clear();
 	m_LuaClassName.clear();
@@ -29,6 +25,10 @@ void GlobalScript::Clear() {
 	m_HasStarted = false;
 	m_LateUpdate = false;
 	m_PieSlicesToAdd.clear();
+}
+
+int GlobalScript::Create() {
+	return 0;
 }
 
 int GlobalScript::Create(const GlobalScript& reference) {
@@ -45,6 +45,22 @@ int GlobalScript::Create(const GlobalScript& reference) {
 	}
 
 	return 0;
+}
+
+GlobalScript::~GlobalScript() {
+	Destroy(true);
+}
+
+void GlobalScript::Destroy(bool notInherited) {
+	if (!notInherited) {
+		Entity::Destroy();
+	}
+	Clear();
+}
+
+void GlobalScript::Reset() {
+	Clear();
+	Entity::Reset();
 }
 
 int GlobalScript::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -70,6 +86,18 @@ int GlobalScript::Save(Writer& writer) const {
 	}
 
 	return 0;
+}
+
+bool GlobalScript::IsActive() const {
+	return m_IsActive;
+}
+
+void GlobalScript::SetActive(bool active) {
+	m_IsActive = active;
+}
+
+bool GlobalScript::ShouldLateUpdate() const {
+	return m_LateUpdate;
 }
 
 const std::vector<std::unique_ptr<PieSlice>>& GlobalScript::GetPieSlicesToAdd() const {

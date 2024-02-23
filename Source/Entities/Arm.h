@@ -36,64 +36,53 @@ namespace RTE {
 
 		/// Destroys and resets (through Clear()) the Arm object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
-		void Destroy(bool notInherited = false) override {
-			if (!notInherited) {
-				Attachable::Destroy();
-			}
-			Clear();
-		}
+		void Destroy(bool notInherited = false) override;
 
 		/// Resets the entire Arm, including its inherited members, to their default settings or values.
-		void Reset() override {
-			Clear();
-			Attachable::Reset();
-		}
+		void Reset() override;
 #pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets the max length of this Arm when fully extended, i.e. the farthest possible length from its joint position to the hand.
 		/// @return The max length of this Arm.
-		float GetMaxLength() const { return m_MaxLength; }
+		float GetMaxLength() const;
 
 		/// Gets the move speed of this Arm, where 1.0 is instant and 0.0 is none.
 		/// @return The move speed of this Arm.
-		float GetMoveSpeed() const { return m_MoveSpeed; }
+		float GetMoveSpeed() const;
 
 		/// Sets the move speed of this Arm, where 1.0 is instant and 0.0 is none.
 		/// @return The new move speed of this Arm.
-		void SetMoveSpeed(float newMoveSpeed) { m_MoveSpeed = newMoveSpeed; }
+		void SetMoveSpeed(float newMoveSpeed);
 
 		/// Gets the default idle offset of this Arm's hand, i.e. the default offset from the joint position that this Arm will try to move to when not moving towards a position.
 		/// @return The idle offset of this Arm's hand.
-		Vector GetHandIdleOffset() const { return m_HandIdleOffset; }
+		Vector GetHandIdleOffset() const;
 
 		/// Sets the default idle offset of this Arm's hand, i.e. the default offset from the joint position that this Arm will try to move to when not moving towards a position.
 		/// @param newDefaultIdleOffset The new idle offset of this Arm's hand.
-		void SetHandIdleOffset(const Vector& newDefaultIdleOffset) { m_HandIdleOffset = newDefaultIdleOffset; }
+		void SetHandIdleOffset(const Vector& newDefaultIdleOffset);
 
 		/// Gets the rotation that is being applied to this Arm's hand, if it's using an idle offset.
 		/// @return The idle rotation of this Arm's hand.
-		float GetHandIdleRotation() const { return m_HandIdleRotation; }
+		float GetHandIdleRotation() const;
 
 		/// Sets the rotation that is being applied to this Arm's hand, if it's using an idle offset. Note that this value is reset to 0 every update.
 		/// @param newHandIdleRotation The new idle rotation of this Arm's hand.
-		void SetHandIdleRotation(float newHandIdleRotation) { m_HandIdleRotation = newHandIdleRotation; }
+		void SetHandIdleRotation(float newHandIdleRotation);
 
 		/// Gets the current offset of this Arm's hand, i.e. its distance from the joint position.
 		/// @return This current offset of this Arm's hand.
-		Vector GetHandCurrentOffset() const { return m_HandCurrentOffset; }
+		Vector GetHandCurrentOffset() const;
 
 		/// Sets the current offset of this Arm's hand, i.e. its distance from the joint position. The value is capped to the max length of the Arm.
 		/// @param newHandOffset The new current offset of this Arm's hand.
 		// TODO maybe don't want this in favor of SetHandPos?
-		void SetHandCurrentOffset(const Vector& newHandOffset) {
-			m_HandCurrentOffset = newHandOffset;
-			m_HandCurrentOffset.CapMagnitude(m_MaxLength);
-		}
+		void SetHandCurrentOffset(const Vector& newHandOffset);
 
 		/// Gets the current position of this Arm's hand in absolute Scene coordinates.
 		/// @return The current position of this Arm's hand in absolute Scene coordinates.
-		Vector GetHandPos() const { return m_JointPos + m_HandCurrentOffset; }
+		Vector GetHandPos() const;
 
 		/// Sets the current position of this Arm's hand to an absolute scene coordinate. If needed, the set position is modified so its distance from the joint position of the Arm is capped to the max length of the Arm.
 		/// @param newHandPos The new current position of this Arm's hand as absolute scene coordinate.
@@ -101,26 +90,26 @@ namespace RTE {
 
 		/// Gets the the strength with which this Arm will grip its HeldDevice.
 		/// @return The grip strength of this Arm.
-		float GetGripStrength() const { return m_GripStrength; }
+		float GetGripStrength() const;
 
 		/// Sets the strength with which this Arm will grip its HeldDevice.
 		/// @param newGripStrength The new grip strength for this Arm to use.
-		void SetGripStrength(float newGripStrength) { m_GripStrength = newGripStrength; }
+		void SetGripStrength(float newGripStrength);
 
 		/// Gets the the strength with which this Arm will throw a ThrownDevice.
 		/// @return The throw strength of this Arm.
-		float GetThrowStrength() const { return m_ThrowStrength; }
+		float GetThrowStrength() const;
 
 		/// Sets the strength with which this Arm will throw a ThrownDevice.
 		/// @param newThrowStrength The new throw strength for this Arm to use.
-		void SetThrowStrength(float newThrowStrength) { m_ThrowStrength = newThrowStrength; }
+		void SetThrowStrength(float newThrowStrength);
 #pragma endregion
 
 #pragma region Hand Animation Handling
 		/// Adds a HandTarget position, in absolute scene coordinates, to the queue for the Arm to move its hand towards. Target positions are removed from the queue when they're reached (or as close to reached as is possible).
 		/// @param description The description of this HandTarget, for easy identification.
 		/// @param handTargetPositionToAdd The position, in absolute scene coordinates, to add the queue of hand targets.
-		void AddHandTarget(const std::string& description, const Vector& handTargetPositionToAdd) { AddHandTarget(description, handTargetPositionToAdd, 0); }
+		void AddHandTarget(const std::string& description, const Vector& handTargetPositionToAdd);
 
 		/// Adds a HandTarget position, in absolute scene coordinates, to the queue for the Arm to move its hand towards. Target positions are removed from the queue when they're reached (or as close to reached as is possible).
 		/// If the target position is very close to the last element in the queue, or has the same name as it, the last element in the queue is updated to avoid filling the queue with similar values.
@@ -130,41 +119,36 @@ namespace RTE {
 		void AddHandTarget(const std::string& description, const Vector& handTargetPositionToAdd, float delayAtTarget);
 
 		/// Removes this Arm's next HandTarget, if there is one.
-		void RemoveNextHandTarget() {
-			if (!m_HandTargets.empty()) {
-				m_HandTargets.pop();
-				m_HandHasReachedCurrentTarget = false;
-			}
-		}
+		void RemoveNextHandTarget();
 
 		/// Gets whether or not this Arm has any HandTargets.
 		/// @return Whether or not this Arm has any HandTargets.
-		bool HasAnyHandTargets() const { return !m_HandTargets.empty(); }
+		bool HasAnyHandTargets() const;
 
 		/// Gets the number of HandTargets this Arm has.
 		/// @return The number of HandTargets this Arm has.
-		int GetNumberOfHandTargets() const { return m_HandTargets.size(); }
+		int GetNumberOfHandTargets() const;
 
 		/// Gets the name of this Arm's next HandTarget.
 		/// @return The name of this Arm's next HandTarget.
-		std::string GetNextHandTargetDescription() const { return m_HandTargets.empty() ? "" : m_HandTargets.front().Description; }
+		std::string GetNextHandTargetDescription() const;
 
 		/// Gets the position, in absolute scene coordinates, of this Arm's next HandTarget.
 		/// @return The position of this Arm's next HandTarget.
-		Vector GetNextHandTargetPosition() const { return m_HandTargets.empty() ? Vector() : m_HandTargets.front().TargetOffset + m_JointPos; }
+		Vector GetNextHandTargetPosition() const;
 
 		/// Gets whether or not the hand has reached its current target. This is either the front of the HandTarget queue, or the offset it's currently trying to move to to when it has no HandTargets specified.
 		/// @return Whether or not the hand has reached its current target.
-		bool GetHandHasReachedCurrentTarget() const { return m_HandHasReachedCurrentTarget; }
+		bool GetHandHasReachedCurrentTarget() const;
 
 		/// Empties the queue of HandTargets. With the queue empty, the hand will move to its appropriate idle offset.
-		void ClearHandTargets() { m_HandTargets = {}; }
+		void ClearHandTargets();
 #pragma endregion
 
 #pragma region HeldDevice Management
 		/// Gets the HeldDevice currently held by this Arm.
 		/// @return The HeldDevice currently held by this Arm. Ownership is NOT transferred.
-		HeldDevice* GetHeldDevice() const { return m_HeldDevice; }
+		HeldDevice* GetHeldDevice() const;
 
 		/// Sets the HeldDevice held by this Arm.
 		/// @param newHeldDevice The new HeldDevice to be held by this Arm. Ownership IS transferred.
@@ -172,11 +156,11 @@ namespace RTE {
 
 		/// Gets the HeldDevice this Arm is trying to support.
 		/// @return The HeldDevice this Arm is trying to support. Ownership is NOT transferred.
-		HeldDevice* GetHeldDeviceThisArmIsTryingToSupport() const { return m_HeldDeviceThisArmIsTryingToSupport; }
+		HeldDevice* GetHeldDeviceThisArmIsTryingToSupport() const;
 
 		/// Sets the HeldDevice being this Arm is trying to support.
 		/// @param newHeldDeviceForThisArmToTryToSupport The new HeldDevice this Arm should try to support. Ownership is NOT transferred.
-		void SetHeldDeviceThisArmIsTryingToSupport(HeldDevice* newHeldDeviceThisArmShouldTryToSupport) { m_HeldDeviceThisArmIsTryingToSupport = newHeldDeviceThisArmShouldTryToSupport; }
+		void SetHeldDeviceThisArmIsTryingToSupport(HeldDevice* newHeldDeviceThisArmShouldTryToSupport);
 
 		/// Replaces the HeldDevice currently held by this Arm with a new one, and returns the old one. Ownership IS transferred both ways.
 		/// @param newHeldDevice The new HeldDevice to be held by this Arm. Ownership IS transferred.
@@ -194,12 +178,7 @@ namespace RTE {
 
 #pragma region Override Methods
 		/// Does stuff that needs to be done after Update().
-		void PostTravel() override {
-			if (IsAttached()) {
-				m_AngularVel = 0;
-			}
-			MOSRotating::PostTravel();
-		}
+		void PostTravel() override;
 
 		/// Updates this Arm. Supposed to be done every frame.
 		void Update() override;
@@ -216,8 +195,7 @@ namespace RTE {
 		/// Struct for storing data about each target in the Arm's queue of HandTargets.
 		struct HandTarget {
 			/// Constructor method used to instantiate a HandTarget object in system memory.
-			HandTarget(const std::string_view& description, const Vector& targetOffset, float delayAtTarget, bool hFlippedWhenTargetWasCreated) :
-			    Description(description), TargetOffset(targetOffset), DelayAtTarget(delayAtTarget), HFlippedWhenTargetWasCreated(hFlippedWhenTargetWasCreated) {}
+			HandTarget(const std::string_view& description, const Vector& targetOffset, float delayAtTarget, bool hFlippedWhenTargetWasCreated);
 
 			std::string Description = "";
 			Vector TargetOffset;

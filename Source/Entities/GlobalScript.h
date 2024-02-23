@@ -21,7 +21,7 @@ namespace RTE {
 
 		/// Makes the GlobalScript object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create() override { return 0; }
+		int Create() override;
 
 		/// Creates an GlobalScript to be identical to another, by deep copy.
 		/// @param reference A reference to the GlobalScript to deep copy.
@@ -35,32 +35,24 @@ namespace RTE {
 
 		/// Destroys and resets (through Clear()) the GlobalScript object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
-		void Destroy(bool notInherited = false) override {
-			if (!notInherited) {
-				Entity::Destroy();
-			}
-			Clear();
-		}
+		void Destroy(bool notInherited = false) override;
 
 		/// Resets the entire GlobalScript, including its inherited members, to their default settings or values.
-		void Reset() override {
-			Clear();
-			Entity::Reset();
-		}
+		void Reset() override;
 #pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets whether or not this GlobalScript is active. Active scripts can be deactivated automatically if it fails to execute it's Update function without errors to avoid filling the console with error messages.
 		/// @return Whether or not this GlobalScript is active.
-		bool IsActive() const { return m_IsActive; }
+		bool IsActive() const;
 
 		/// Sets whether or not this GlobalScript should be active.
 		/// @param active Whether or not this GlobalScript should be active.
-		void SetActive(bool active) { m_IsActive = active; }
+		void SetActive(bool active);
 
 		/// Gets whether or not this GlobalScript should be updated late, i.e. after the standard MovableMan update.
 		/// @return Whether or not this GlobalScript should be updated late.
-		bool ShouldLateUpdate() const { return m_LateUpdate; }
+		bool ShouldLateUpdate() const;
 
 		/// Gets the list of PieSlices this GlobalScript adds to any active Actor PieMenus.
 		/// @return The list of PieSilces this GlobalScript adds to any active Actor PieMenus

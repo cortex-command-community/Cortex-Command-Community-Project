@@ -14,6 +14,66 @@ Gib::~Gib() {
 	Destroy();
 }
 
+void Gib::Destroy() {
+	Clear();
+}
+
+const MovableObject* Gib::GetParticlePreset() const {
+	return m_GibParticle;
+}
+
+void Gib::SetParticlePreset(const MovableObject* newParticlePreset) {
+	m_GibParticle = newParticlePreset;
+}
+
+Vector Gib::GetOffset() const {
+	return m_Offset;
+}
+
+unsigned int Gib::GetCount() const {
+	return m_Count;
+}
+
+float Gib::GetSpread() const {
+	return m_Spread;
+}
+
+float Gib::GetMinVelocity() const {
+	return std::min(m_MinVelocity, m_MaxVelocity);
+}
+
+void Gib::SetMinVelocity(float newMinVelocity) {
+	m_MinVelocity = newMinVelocity;
+}
+
+float Gib::GetMaxVelocity() const {
+	return std::max(m_MinVelocity, m_MaxVelocity);
+}
+
+void Gib::SetMaxVelocity(float newMaxVelocity) {
+	m_MaxVelocity = newMaxVelocity;
+}
+
+float Gib::GetLifeVariation() const {
+	return m_LifeVariation;
+}
+
+float Gib::InheritsVelocity() const {
+	return m_InheritsVel;
+}
+
+bool Gib::IgnoresTeamHits() const {
+	return m_IgnoresTeamHits;
+}
+
+Gib::SpreadMode Gib::GetSpreadMode() const {
+	return m_SpreadMode;
+}
+
+void Gib::SetSpreadMode(SpreadMode newSpreadMode) {
+	m_SpreadMode = (newSpreadMode < SpreadMode::SpreadRandom || newSpreadMode > SpreadMode::SpreadSpiral) ? SpreadMode::SpreadRandom : newSpreadMode;
+}
+
 void Gib::Clear() {
 	m_GibParticle = nullptr;
 	m_Offset.Reset();

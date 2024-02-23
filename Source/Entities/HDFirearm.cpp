@@ -167,6 +167,11 @@ int HDFirearm::Create(const HDFirearm& reference) {
 	return 0;
 }
 
+void HDFirearm::Reset() {
+	Clear();
+	HeldDevice::Reset();
+}
+
 int HDFirearm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return HeldDevice::ReadProperty(propName, reader));
 
@@ -364,6 +369,30 @@ void HDFirearm::Destroy(bool notInherited) {
 	Clear();
 }
 
+int HDFirearm::GetReloadEndOffset() const {
+	return m_ReloadEndOffset;
+}
+
+void HDFirearm::SetReloadEndOffset(int newRate) {
+	m_ReloadEndOffset = newRate;
+}
+
+int HDFirearm::GetRateOfFire() const {
+	return m_RateOfFire;
+}
+
+void HDFirearm::SetRateOfFire(int newRate) {
+	m_RateOfFire = newRate;
+}
+
+double HDFirearm::GetMSPerRound() const {
+	return 60000.0 / static_cast<double>(m_RateOfFire);
+}
+
+Magazine* HDFirearm::GetMagazine() const {
+	return m_pMagazine;
+}
+
 void HDFirearm::SetMagazine(Magazine* newMagazine) {
 	if (m_pMagazine && m_pMagazine->IsAttached()) {
 		RemoveAndDeleteAttachable(m_pMagazine);
@@ -385,6 +414,10 @@ void HDFirearm::SetMagazine(Magazine* newMagazine) {
 			m_pMagazineReference = dynamic_cast<const Magazine*>(newMagazineReference);
 		}
 	}
+}
+
+Attachable* HDFirearm::GetFlash() const {
+	return m_pFlash;
 }
 
 void HDFirearm::SetFlash(Attachable* newFlash) {
@@ -438,6 +471,115 @@ int HDFirearm::GetRoundInMagCapacity() const {
 		return m_pMagazineReference->GetCapacity();
 	}
 	return 0;
+}
+
+int HDFirearm::GetActivationDelay() const {
+	return m_ActivationDelay;
+}
+
+void HDFirearm::SetActivationDelay(int delay) {
+	m_ActivationDelay = delay;
+}
+
+int HDFirearm::GetDeactivationDelay() const {
+	return m_DeactivationDelay;
+}
+
+void HDFirearm::SetDeactivationDelay(int delay) {
+	m_DeactivationDelay = delay;
+}
+
+int HDFirearm::GetBaseReloadTime() const {
+	return m_BaseReloadTime;
+}
+
+void HDFirearm::SetBaseReloadTime(int newReloadTime) {
+	m_BaseReloadTime = newReloadTime;
+	CorrectReloadTimerForSupportAvailable();
+}
+
+int HDFirearm::GetReloadTime() const {
+	return m_ReloadTmr.GetSimTimeLimitMS() <= 0 ? m_BaseReloadTime : static_cast<int>(std::floor(m_ReloadTmr.GetSimTimeLimitMS()));
+}
+
+bool HDFirearm::IsDualReloadable() const {
+	return m_DualReloadable;
+}
+
+void HDFirearm::SetDualReloadable(bool newDualReloadable) {
+	m_DualReloadable = newDualReloadable;
+}
+
+float HDFirearm::GetOneHandedReloadTimeMultiplier() const {
+	return m_OneHandedReloadTimeMultiplier;
+}
+
+void HDFirearm::SetOneHandedReloadTimeMultiplier(float newOneHandedReloadTimeMultiplier) {
+	m_OneHandedReloadTimeMultiplier = newOneHandedReloadTimeMultiplier;
+}
+
+float HDFirearm::GetReloadAngle() const {
+	return m_ReloadAngle;
+}
+
+void HDFirearm::SetReloadAngle(float newReloadAngle) {
+	m_ReloadAngle = newReloadAngle;
+}
+
+float HDFirearm::GetOneHandedReloadAngle() const {
+	return m_OneHandedReloadAngle;
+}
+
+void HDFirearm::SetOneHandedReloadAngle(float newOneHandedReloadAngle) {
+	m_OneHandedReloadAngle = newOneHandedReloadAngle;
+}
+
+float HDFirearm::GetCurrentReloadAngle() const {
+	return m_SupportAvailable ? m_ReloadAngle : m_OneHandedReloadAngle;
+}
+
+float HDFirearm::GetShakeRange() const {
+	return m_ShakeRange;
+}
+
+void HDFirearm::SetShakeRange(float range) {
+	m_ShakeRange = range;
+}
+
+float HDFirearm::GetSharpShakeRange() const {
+	return m_SharpShakeRange;
+}
+
+void HDFirearm::SetSharpShakeRange(float range) {
+	m_SharpShakeRange = range;
+}
+
+float HDFirearm::GetNoSupportFactor() const {
+	return m_NoSupportFactor;
+}
+
+void HDFirearm::SetNoSupportFactor(float factor) {
+	m_NoSupportFactor = factor;
+}
+
+float HDFirearm::GetParticleSpreadRange() const {
+	return m_ParticleSpreadRange;
+}
+
+void HDFirearm::SetParticleSpreadRange(float range) {
+	m_ParticleSpreadRange = range;
+}
+
+float HDFirearm::GetShellVelVariation() const {
+	return m_ShellVelVariation;
+}
+
+void HDFirearm::SetShellVelVariation(float newVariation) {
+	m_ShellVelVariation = newVariation;
+}
+
+void HDFirearm::SetJointStiffness(float jointStiffness) {
+	m_JointStiffness = jointStiffness;
 }
 
 float HDFirearm::GetAIFireVel() {
@@ -531,8 +673,98 @@ Vector HDFirearm::GetMuzzlePos() const {
 	return m_Pos + RotateOffset(m_MuzzleOff);
 }
 
+Vector HDFirearm::GetMuzzleOffset() const {
+	return m_MuzzleOff;
+}
+
+void HDFirearm::SetMuzzleOffset(Vector newOffset) {
+	m_MuzzleOff = newOffset;
+}
+
 Vector HDFirearm::GetEjectionPos() const {
 	return m_Pos + RotateOffset(m_EjectOff);
+}
+
+Vector HDFirearm::GetEjectionOffset() const {
+	return m_EjectOff;
+}
+
+void HDFirearm::SetEjectionOffset(Vector newOffset) {
+	m_EjectOff = newOffset;
+}
+
+SoundContainer* HDFirearm::GetPreFireSound() const {
+	return m_PreFireSound;
+}
+
+void HDFirearm::SetPreFireSound(SoundContainer* newSound) {
+	m_PreFireSound = newSound;
+}
+
+SoundContainer* HDFirearm::GetFireSound() const {
+	return m_FireSound;
+}
+
+void HDFirearm::SetFireSound(SoundContainer* newSound) {
+	m_FireSound = newSound;
+}
+
+SoundContainer* HDFirearm::GetFireEchoSound() const {
+	return m_FireEchoSound;
+}
+
+void HDFirearm::SetFireEchoSound(SoundContainer* newSound) {
+	m_FireEchoSound = newSound;
+}
+
+SoundContainer* HDFirearm::GetActiveSound() const {
+	return m_ActiveSound;
+}
+
+void HDFirearm::SetActiveSound(SoundContainer* newSound) {
+	m_ActiveSound = newSound;
+}
+
+SoundContainer* HDFirearm::GetDeactivationSound() const {
+	return m_DeactivationSound;
+}
+
+void HDFirearm::SetDeactivationSound(SoundContainer* newSound) {
+	m_DeactivationSound = newSound;
+}
+
+SoundContainer* HDFirearm::GetEmptySound() const {
+	return m_EmptySound;
+}
+
+void HDFirearm::SetEmptySound(SoundContainer* newSound) {
+	m_EmptySound = newSound;
+}
+
+SoundContainer* HDFirearm::GetReloadStartSound() const {
+	return m_ReloadStartSound;
+}
+
+void HDFirearm::SetReloadStartSound(SoundContainer* newSound) {
+	m_ReloadStartSound = newSound;
+}
+
+SoundContainer* HDFirearm::GetReloadEndSound() const {
+	return m_ReloadEndSound;
+}
+
+void HDFirearm::SetReloadEndSound(SoundContainer* newSound) {
+	m_ReloadEndSound = newSound;
+}
+
+void HDFirearm::ResetAllTimers() {
+	HeldDevice::ResetAllTimers();
+	m_LastFireTmr.Reset();
+	m_ReloadTmr.Reset();
+}
+
+float HDFirearm::GetReloadProgress() const {
+	return IsReloading() && m_BaseReloadTime > 0 ? static_cast<float>(m_ReloadTmr.SimTimeLimitProgress()) : 1.0F;
 }
 
 void HDFirearm::RestDetection() {
@@ -617,6 +849,14 @@ void HDFirearm::Reload() {
 	}
 }
 
+bool HDFirearm::IsReloading() const {
+	return m_Reloading;
+}
+
+bool HDFirearm::DoneReloading() const {
+	return m_DoneReloading;
+}
+
 bool HDFirearm::NeedsReloading() const {
 	if (!m_Reloading && m_Reloadable) {
 		if (m_pMagazine) {
@@ -646,6 +886,23 @@ bool HDFirearm::IsEmpty() const {
 		return m_pMagazine->IsEmpty();
 	}
 	return true;
+}
+
+bool HDFirearm::IsFullAuto() const {
+	return m_FullAuto;
+}
+
+bool HDFirearm::IsReloadable() const {
+	return m_Reloadable;
+}
+
+void HDFirearm::SetReloadable(bool isReloadable) {
+	m_Reloadable = isReloadable;
+	m_Reloading = m_Reloading && m_Reloadable;
+}
+
+void HDFirearm::SetFullAuto(bool newValue) {
+	m_FullAuto = newValue;
 }
 
 void HDFirearm::Update() {
@@ -1015,6 +1272,41 @@ float HDFirearm::EstimateDigStrength() const {
 	return m_pMagazine ? m_pMagazine->EstimateDigStrength() : m_pMagazineReference->EstimateDigStrength();
 }
 
+bool HDFirearm::FiredOnce() const {
+	return m_FiredOnce;
+}
+
+bool HDFirearm::FiredFrame() const {
+	return m_FireFrame;
+}
+
+bool HDFirearm::CanFire() const {
+	return m_LastFireTmr.IsPastSimMS(GetMSPerRound());
+}
+
+bool HDFirearm::HalfwayToNextRound() const {
+	return m_LastFireTmr.IsPastSimMS(GetMSPerRound() / 2.0);
+}
+
+int HDFirearm::RoundsFired() const {
+	return m_RoundsFired;
+}
+
+bool HDFirearm::IsAnimatedManually() const {
+	return m_IsAnimatedManually;
+}
+
+void HDFirearm::SetAnimatedManually(bool newValue) {
+	m_IsAnimatedManually = newValue;
+}
+
+void HDFirearm::SetParent(MOSRotating* newParent) {
+	HeldDevice::SetParent(newParent);
+	Deactivate();
+	m_Reloading = false;
+	m_ReloadTmr.Reset();
+}
+
 void HDFirearm::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
 	if (m_pFlash && m_FireFrame && !m_pFlash->IsDrawnAfterParent() && mode == g_DrawColor && !onlyPhysical) {
 		m_pFlash->Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
@@ -1065,4 +1357,8 @@ void HDFirearm::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whic
 		g_SceneMan.WrapPosition(aimPoint);
 		putpixel(pTargetBitmap, aimPoint.GetFloorIntX(), aimPoint.GetFloorIntY(), g_YellowGlowColor);
 	}
+}
+
+void HDFirearm::CorrectReloadTimerForSupportAvailable() {
+	m_ReloadTmr.SetSimTimeLimitMS(static_cast<double>(static_cast<float>(m_BaseReloadTime) * (m_SupportAvailable ? 1.0F : m_OneHandedReloadTimeMultiplier)));
 }

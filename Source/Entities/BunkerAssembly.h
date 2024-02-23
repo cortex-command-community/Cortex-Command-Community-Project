@@ -49,10 +49,7 @@ namespace RTE {
 
 		/// Resets the entire BunkerAssembly, including its inherited members, to
 		/// their default settings or values.
-		void Reset() override {
-			Clear();
-			SceneObject::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the BunkerAssembly object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -61,7 +58,7 @@ namespace RTE {
 
 		/// Description:
 		/// Return value:
-		std::string GetParentAssemblySchemeName() const { return m_ParentAssemblyScheme; }
+		std::string GetParentAssemblySchemeName() const;
 
 		/// Indicates whether this' current graphical representation overlaps
 		/// a point in absolute scene coordinates.
@@ -81,7 +78,7 @@ namespace RTE {
 
 		/// Gets the list of SceneObject:s which are placed in this assembly on loading.
 		/// @return The list of of placed objects. Ownership is NOT transferred!
-		const std::list<SceneObject*>* GetPlacedObjects() const { return &m_PlacedObjects; }
+		const std::list<SceneObject*>* GetPlacedObjects() const;
 
 		/// Adds placed object to the internallist of placed objects for this assembly,
 		/// applies it's image to presentation bitmap and sets assembly price accordingly.
@@ -93,15 +90,15 @@ namespace RTE {
 		/// GUI lists etc.
 		/// @return A good identifyable graphical representation of this in a BITMAP, if
 		/// available. If not, 0 is returned. Ownership is NOT TRANSFERRED!
-		BITMAP* GetGraphicalIcon() const override { return m_pPresentationBitmap; };
+		BITMAP* GetGraphicalIcon() const override;
 
 		/// Gets the name of an assembly symmetric to this one.
 		/// @return Symmetric assembly name.
-		std::string GetSymmetricAssemblyName() const { return m_SymmetricAssembly; };
+		std::string GetSymmetricAssemblyName() const;
 
 		/// Sets the name of an assembly symmetric to this one.
 		/// @param newSymmetricAssembly Symmetric assembly name.
-		void SetSymmetricAssemblyName(std::string newSymmetricAssembly) { m_SymmetricAssembly = newSymmetricAssembly; };
+		void SetSymmetricAssemblyName(std::string newSymmetricAssembly);
 
 		/// Draws this TerrainObject's current graphical representation to a
 		/// BITMAP of choice.

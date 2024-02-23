@@ -37,66 +37,66 @@ namespace RTE {
 		~Gib() override;
 
 		/// Destroys and resets (through Clear()) the Gib object.
-		void Destroy() { Clear(); }
+		void Destroy();
 #pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets the reference particle to be used as a Gib. Ownership is NOT transferred!
 		/// @return A pointer to the particle to be used as a Gib.
-		const MovableObject* GetParticlePreset() const { return m_GibParticle; }
+		const MovableObject* GetParticlePreset() const;
 
 		/// Sets the reference particle to be used as a Gib. Ownership is NOT transferred!
 		/// @param newParticlePreset A pointer to the new particle to be used as a Gib.
-		void SetParticlePreset(const MovableObject* newParticlePreset) { m_GibParticle = newParticlePreset; }
+		void SetParticlePreset(const MovableObject* newParticlePreset);
 
 		/// Gets the spawn offset of this Gib from the parent's position.
 		/// @return The offset in pixels from the parent's position where this Gib gets spawned.
-		Vector GetOffset() const { return m_Offset; }
+		Vector GetOffset() const;
 
 		/// Gets the number of copies of the GibParticle object that will be spawned in this Gib.
 		/// @return The number of copies of the GibParticle object that will be spawned in this Gib.
-		unsigned int GetCount() const { return m_Count; }
+		unsigned int GetCount() const;
 
 		/// Gets the angle spread of the spawned GibParticle objects to each side of the parent's angle in radians.
 		/// PI/2 would mean that GibParticles fly out to one side only, with the m_Rotation of the parent defining the middle of that half circle.
 		/// @return The GibParticle spread in radians.
-		float GetSpread() const { return m_Spread; }
+		float GetSpread() const;
 
 		/// Gets the specified minimum velocity a GibParticle object can have when spawned.
 		/// @return The minimum velocity a GibParticle can have when spawned in m/s.
-		float GetMinVelocity() const { return std::min(m_MinVelocity, m_MaxVelocity); }
+		float GetMinVelocity() const;
 
 		/// Sets the specified minimum velocity a GibParticle object can have when spawned.
 		/// @param newMinVelocity The new minimum velocity in m/s.
-		void SetMinVelocity(float newMinVelocity) { m_MinVelocity = newMinVelocity; }
+		void SetMinVelocity(float newMinVelocity);
 
 		/// Gets the specified maximum velocity a GibParticle object can have when spawned.
 		/// @return The maximum velocity a GibParticle can have when spawned in m/s.
-		float GetMaxVelocity() const { return std::max(m_MinVelocity, m_MaxVelocity); }
+		float GetMaxVelocity() const;
 
 		/// Sets the specified maximum velocity a GibParticle object can have when spawned.
 		/// @param newMaxVelocity The new maximum velocity in m/s.
-		void SetMaxVelocity(float newMaxVelocity) { m_MaxVelocity = newMaxVelocity; }
+		void SetMaxVelocity(float newMaxVelocity);
 
 		/// Gets the specified variation in Lifetime of the GibParticle objects.
 		/// @return The life variation rationally expressed. 0.1 = up to 10% variation.
-		float GetLifeVariation() const { return m_LifeVariation; }
+		float GetLifeVariation() const;
 
 		/// Gets how much of the gibbing parent's velocity this Gib's GibParticles should inherit.
 		/// @return The proportion of inherited velocity as a scalar from 0 to 1.
-		float InheritsVelocity() const { return m_InheritsVel; }
+		float InheritsVelocity() const;
 
 		/// Gets whether this Gib's GibParticles should ignore hits with the team of the gibbing parent.
 		/// @return Whether this Gib's GibParticles should ignore hits with the team of the gibbing parent.
-		bool IgnoresTeamHits() const { return m_IgnoresTeamHits; }
+		bool IgnoresTeamHits() const;
 
 		/// Gets this Gib's spread mode, which determines how velocity angles are applied to the GibParticles.
 		/// @return The spread mode of this Gib.
-		SpreadMode GetSpreadMode() const { return m_SpreadMode; }
+		SpreadMode GetSpreadMode() const;
 
 		/// Sets this Gib's spread mode, which determines how velocity angles are applied to the GibParticles.
 		/// @param newSpreadMode The new spread mode of this Gib. See the SpreadMode enumeration.
-		void SetSpreadMode(SpreadMode newSpreadMode) { m_SpreadMode = (newSpreadMode < SpreadMode::SpreadRandom || newSpreadMode > SpreadMode::SpreadSpiral) ? SpreadMode::SpreadRandom : newSpreadMode; }
+		void SetSpreadMode(SpreadMode newSpreadMode);
 #pragma endregion
 
 	protected:

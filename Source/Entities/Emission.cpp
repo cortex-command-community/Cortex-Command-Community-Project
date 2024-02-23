@@ -7,6 +7,10 @@ using namespace RTE;
 
 ConcreteClassInfo(Emission, Entity, 100);
 
+Emission::Emission() {
+	Clear();
+}
+
 void Emission::Clear() {
 	m_pEmission = 0;
 	m_PPM = 0;
@@ -51,6 +55,91 @@ int Emission::Create(const Emission& reference) {
 	m_Offset = reference.m_Offset;
 
 	return 0;
+}
+
+void Emission::Reset() {
+	Clear();
+}
+
+const MovableObject* Emission::GetEmissionParticlePreset() {
+	return m_pEmission;
+}
+
+float Emission::GetRate() const {
+	return m_PPM;
+}
+
+void Emission::SetRate(float newPPM) {
+	m_PPM = newPPM;
+}
+
+int Emission::GetBurstSize() const {
+	return m_BurstSize;
+}
+
+void Emission::SetBurstSize(int newSize) {
+	m_BurstSize = newSize;
+}
+
+float Emission::GetSpread() const {
+	return m_Spread;
+}
+
+void Emission::SetSpread(float newSpread) {
+	m_Spread = newSpread;
+}
+
+float Emission::GetMinVelocity() const {
+	return m_MinVelocity;
+}
+
+void Emission::SetMinVelocity(float newVel) {
+	m_MinVelocity = newVel;
+}
+
+float Emission::GetMaxVelocity() const {
+	return m_MaxVelocity;
+}
+
+void Emission::SetMaxVelocity(float newVel) {
+	m_MaxVelocity = newVel;
+}
+
+float Emission::GetLifeVariation() const {
+	return m_LifeVariation;
+}
+
+void Emission::SetLifeVariation(float newVariation) {
+	m_LifeVariation = newVariation;
+}
+
+bool Emission::PushesEmitter() const {
+	return m_PushesEmitter;
+}
+
+void Emission::SetPushesEmitter(bool newValue) {
+	m_PushesEmitter = newValue;
+}
+
+bool Emission::IsEmissionTime() {
+	return m_StartTimer.IsPastSimTimeLimit() && !m_StopTimer.IsPastSimTimeLimit();
+}
+
+void Emission::ResetEmissionTimers() {
+	m_StartTimer.Reset();
+	m_StopTimer.Reset();
+}
+
+float Emission::InheritsVelocity() {
+	return m_InheritsVel;
+}
+
+Vector Emission::GetOffset() const {
+	return m_Offset;
+}
+
+void Emission::SetOffset(Vector offset) {
+	m_Offset = offset;
 }
 
 int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {

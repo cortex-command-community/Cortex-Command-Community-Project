@@ -78,6 +78,11 @@ int Deployment::Create(const Deployment& reference) {
 	return 0;
 }
 
+void Deployment::Reset() {
+	Clear();
+	SceneObject::Reset();
+}
+
 int Deployment::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return SceneObject::ReadProperty(propName, reader));
 
@@ -347,6 +352,14 @@ bool Deployment::DeploymentBlocked(int player, const std::list<SceneObject*>& ex
 	return blocked;
 }
 
+float Deployment::GetGoldValue(int nativeModule, float foreignMult, float nativeMult) const {
+	return GetTotalValue(nativeModule, foreignMult, nativeMult);
+}
+
+float Deployment::GetGoldValueOld(int nativeModule, float foreignMult) const {
+	return GetTotalValue(nativeModule, foreignMult, 1.0);
+}
+
 float Deployment::GetTotalValue(int nativeModule, float foreignMult, float nativeMult) const {
 	float totalValue = 0;
 	const Actor* pFirstActor = 0;
@@ -439,6 +452,22 @@ float Deployment::GetTotalValue(int nativeModule, float foreignMult, float nativ
 	return totalValue;
 }
 
+BITMAP* Deployment::GetGraphicalIcon() const {
+	return !m_Icon.GetBitmaps8().empty() ? m_Icon.GetBitmaps8()[0] : nullptr;
+}
+
+const std::string& Deployment::GetLoadoutName() {
+	return m_LoadoutName;
+}
+
+Icon Deployment::GetIcon() {
+	return m_Icon;
+}
+
+float Deployment::GetSpawnRadius() const {
+	return m_SpawnRadius;
+}
+
 bool Deployment::IsOnScenePoint(Vector& scenePoint) const {
 	if (m_Icon.GetBitmaps8().empty() || !(m_Icon.GetBitmaps8().at(0)))
 		return false;
@@ -497,6 +526,20 @@ bool Deployment::IsOnScenePoint(Vector& scenePoint) const {
 	}
 
 	return false;
+}
+
+unsigned int Deployment::GetID() const {
+	return m_ID;
+}
+
+void Deployment::CloneID(Deployment* from) {
+	if (from) {
+		m_ID = from->GetID();
+	}
+}
+
+void Deployment::NewID() {
+	m_ID = RandomNum(1, 0xFFFF);
 }
 
 void Deployment::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
@@ -612,4 +655,12 @@ void Deployment::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode m
 			}
 		}
 	}
+}
+
+bool Deployment::IsHFlipped() const {
+	return m_HFlipped;
+}
+
+void Deployment::SetHFlipped(const bool flipped) {
+	m_HFlipped = flipped;
 }

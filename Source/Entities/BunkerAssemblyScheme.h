@@ -66,10 +66,7 @@ namespace RTE {
 
 		/// Resets the entire BunkerAssemblyScheme, including its inherited members, to
 		/// their default settings or values.
-		void Reset() override {
-			Clear();
-			SceneObject::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the BunkerAssemblyScheme object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -78,24 +75,24 @@ namespace RTE {
 
 		/// Gets the width this' bitmap.
 		/// @return Width of bitmap.
-		const int GetBitmapWidth() const { return m_pPresentationBitmap->w; }
+		const int GetBitmapWidth() const;
 
 		/// Gets the height this' material bitmap.
 		/// @return Height of 'material' bitmap.
-		const int GetBitmapHeight() const { return m_pPresentationBitmap->h; }
+		const int GetBitmapHeight() const;
 
 		/// Gets the offset of presentation bitmap
 		/// @return Offset of bitmap
-		const Vector GetBitmapOffset() const { return m_BitmapOffset; }
+		const Vector GetBitmapOffset() const;
 
 		/// Gets the BITMAP object that this BunkerAssemblyScheme uses for its fore-
 		/// ground color representation.
 		/// @return A pointer to the foreground color BITMAP object. Ownership is not
 		/// transferred.
-		BITMAP* GetBitmap() const { return m_pPresentationBitmap; }
+		BITMAP* GetBitmap() const;
 
 		/// Gets the area of the structure bitmap.
-		int GetArea() const { return m_pBitmap->h * m_pBitmap->w; }
+		int GetArea() const;
 
 		/// Gets a bitmap showing a good identifyable icon of this, for use in
 		/// GUI lists etc.
@@ -125,23 +122,23 @@ namespace RTE {
 		/// Returns whether sceneman should select just a single assembly for this scheme
 		/// and use it everywhere on the scene.
 		/// @return Whether we allowed to use just one type of assembly for this scheme
-		bool IsOneTypePerScene() { return m_IsOneTypePerScene; }
+		bool IsOneTypePerScene();
 
 		/// Gets the name of the scheme symmetric to this one.
 		/// @return Symmetric scheme name.
-		std::string GetSymmetricSchemeName() const { return m_SymmetricScheme; }
+		std::string GetSymmetricSchemeName() const;
 
 		/// Gets the name of group to which assemblies linked with this scheme must be added.
 		/// @return Assembly group name.
-		std::string GetAssemblyGroup() const { return m_AssemblyGroup; }
+		std::string GetAssemblyGroup() const;
 
 		/// Returns the limit of these schemes per scene. 0 - no limit.
 		/// @return Scheme limit.
-		int GetLimit() { return m_Limit; }
+		int GetLimit();
 
 		/// Returns the number of deployments this scheme is allowed to place.
 		/// @return Deployments limit.
-		int GetMaxDeployments() const { return m_MaxDeployments; }
+		int GetMaxDeployments() const;
 
 		/// Protected member variable and method declarations
 	protected:
