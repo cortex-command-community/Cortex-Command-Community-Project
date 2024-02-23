@@ -339,6 +339,7 @@ int ActivityMan::StartActivity(const std::string& className, const std::string& 
 				newActivityAsGameActivity->SetTeamFunds(static_cast<float>(newActivityAsGameActivity->GetStartingGold()), 0);
 			}
 		}
+		g_MusicMan.ResetMusicState();
 		return StartActivity(newActivity);
 	} else {
 		g_ConsoleMan.PrintString("ERROR: Couldn't find the " + className + " named " + presetName + " to start! Has it been defined?");
@@ -380,7 +381,7 @@ void ActivityMan::PauseActivity(bool pause, bool skipPauseMenu) {
 	g_AudioMan.SetMusicMuffledState(pause);
 
 	if (!pause) {
-		g_MusicMan.EndHardcodedMusic();
+		g_MusicMan.EndInterruptingMusic();
 	}
 
 	g_ConsoleMan.PrintString("SYSTEM: Activity \"" + m_Activity->GetPresetName() + "\" was " + (pause ? "paused" : "resumed"));

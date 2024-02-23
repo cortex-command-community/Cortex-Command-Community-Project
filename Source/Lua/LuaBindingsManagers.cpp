@@ -44,6 +44,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 	    .def("QueueMusicStream", &AudioMan::QueueMusicStream)
 	    .def("QueueSilence", &AudioMan::QueueSilence)
 	    .def("ClearMusicQueue", &AudioMan::ClearMusicQueue)
+	    .def("SetMusicMuffledState", &AudioMan::SetMusicMuffledState)
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath)) & AudioMan::PlaySound, luabind::adopt(luabind::result))
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position)) & AudioMan::PlaySound, luabind::adopt(luabind::result))
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position, int player)) & AudioMan::PlaySound, luabind::adopt(luabind::result));

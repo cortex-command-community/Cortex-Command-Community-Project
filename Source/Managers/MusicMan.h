@@ -48,18 +48,37 @@ namespace RTE {
 		void Update();
 #pragma endregion
 
+#pragma region Music Getters and Setters
+		/// Gets the hardcoded intro music SoundContainer for the game.
+		/// @return A pointer to the SoundContainer.
+		SoundContainer* GetHardcodedIntroMusic() const { return m_IntroMusicSoundContainer; }
+
+		/// Gets the hardcoded main menu music SoundContainer for the game.
+		/// @return A pointer to the SoundContainer.
+		SoundContainer* GetHardcodedMainMenuMusic() const { return m_MainMenuMusicSoundContainer; }
+		
+		/// Gets the hardcoded scenario menu music SoundContainer for the game.
+		/// @return A pointer to the SoundContainer.
+		SoundContainer* GetHardcodedScenarioMenuMusic() const { return m_ScenarioMenuMusicSoundContainer; }
+#pragma endregion
+		
 #pragma region Music Handling
+		/// Resets music state, stopping and clearing playing dynamic songs or interrupting music, etc. to make ready for new music.
+		void ResetMusicState();
+		
 		/// Begins playing a new dynamic song, optionally from a specific section type.
 		/// @param songName PresetName of the dynamic song to play.
 		/// @param songSectionType Type of DynamicSongSection to play first.
 		/// @param playImmediately Whether to immediately play this song or wait for the current music piece to end.
+		/// @param playTransition Whether to play the TransitionSoundContainer of the upcoming section or not.
 		/// @return Whether the song was successfully started or not.
-		bool PlayDynamicSong(std::string songName, std::string songSectionType = "Default", bool playImmediately = false);
+		bool PlayDynamicSong(std::string songName, std::string songSectionType = "Default", bool playImmediately = false, bool playTransition);
 
-		/// Switches the next SongSection to play and optionally plays it immediately.
+		/// Switches the next SongSection queued to play.
 		/// @param songSectionType Next SongSectionType to play.
 		/// @param playImmediately Whether to immediately play the new SongSectionType or not.
-		bool SetNextDynamicSongSection(std::string songSectionType, bool playImmediately);
+		/// @param playTransition Whether to play the TransitionSoundContainer of the upcoming section or not.
+		bool SetNextDynamicSongSection(std::string songSectionType, bool playImmediately, bool playTransition = true);
 
 		/// Plays the next queued SoundContainer and prepares a new one.
 		/// @param fadeOutCurrent Whether to fade out the current playing SoundContainer or let it play out.
@@ -73,10 +92,10 @@ namespace RTE {
 
 		/// Function to interrupt other music and play a type of hardcoded music.
 		/// @param hardcodedMusicType The type of hardcoded music to play.
-		void PlayHardcodedMusic(HardcodedMusicTypes hardcodedMusicType);
+		void PlayInterruptingMusic(SoundContainer* soundContainer);
 
 		/// Signals the end of hardcoded music, resuming other music if needed.
-		void EndHardcodedMusic();
+		void EndInterruptingMusic();
 #pragma endregion
 
 	protected:
@@ -87,7 +106,7 @@ namespace RTE {
 		SoundContainer* m_MainMenuMusicSoundContainer; //!< SoundContainer for hardcoded main menu music.
 		SoundContainer* m_ScenarioMenuMusicSoundContainer; //!< SoundContainer for hardcoded scenario menu music.
 		
-		SoundContainer* m_HardcodedMusicSoundContainer; //!< Current hardcoded music being played.
+		SoundContainer* m_InterruptingMusicSoundContainer; //!< Current interrupting music being played.
 		
 		DynamicSong* m_CurrentSong; //!< The current DynamicSong being played.
 		std::string m_CurrentSongSectionType; //!< The current type of DynamicSongSection we are trying to play.

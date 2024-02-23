@@ -2619,7 +2619,8 @@ void MetagameGUI::CompletedActivity() {
 			UpdateScenesBox(true);
 
 			// Play some nice ambient music
-			g_MusicMan.PlayHardcodedMusic(MusicMan::HardcodedMusicTypes::MainMenuMusic);
+			g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedMainMenuMusic());
+			g_AudioMan.SetMusicMuffledState(false);
 		}
 	}
 }

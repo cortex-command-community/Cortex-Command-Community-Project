@@ -22,7 +22,7 @@ void MusicMan::Clear() {
 	m_MainMenuMusicSoundContainer = nullptr;
 	m_ScenarioMenuMusicSoundContainer = nullptr;
 
-	m_HardcodedMusicSoundContainer = nullptr;
+	m_InterruptingMusicSoundContainer = nullptr;
 	
 	m_CurrentSong = nullptr;
 	m_CurrentSongSectionType = "Default";
@@ -76,14 +76,44 @@ void MusicMan::Update() {
 	}
 }
 
-bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType, bool playImmediately){
+void MusicMan::ResetMusicState() {
+	if (m_InterruptingMusicSoundContainer != nullptr) {
+		m_InterruptingMusicSoundContainer->Stop();
+	}
+	
+	if (m_OldSoundContainer != nullptr) {
+		m_OldSoundContainer->Stop();
+	}
+
+	if (m_CurrentSoundContainer != nullptr) {
+		m_CurrentSoundContainer->Stop();
+	}
+
+	if (m_NextSoundContainer != nullptr) {
+		m_NextSoundContainer->Stop();
+	}
+
+	m_IsPlayingDynamicMusic = false;
+	m_InterruptingMusicSoundContainer = nullptr;
+	
+	m_CurrentSong = nullptr;
+	m_CurrentSongSectionType = "Default";
+	m_CurrentSongSection = nullptr;
+
+	m_OldSoundContainer = nullptr;
+	m_CurrentSoundContainer = nullptr;
+	m_NextSoundContainer = nullptr;
+}
+
+
+bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType, bool playImmediately, bool playTransition){
 	g_AudioMan.StopMusic();
 
 	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", std::move(songName)))) {
 		m_CurrentSong = dynamic_cast<DynamicSong*>(dynamicSongToPlay->Clone());
 		SetCurrentSongSectionType(std::move(songSectionType));
 		SelectNextSongSection();
-		SelectNextSoundContainer(true);
+		SelectNextSoundContainer(playTransition);
 		if (!m_CurrentSoundContainer || playImmediately) {
 			// If we don't have a current sound container, we're not playing any song, so move the Next container appropriately and start it up
 			CyclePlayingSoundContainers();
@@ -96,14 +126,14 @@ bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType
 	return false;
 }
 
-bool MusicMan::SetNextDynamicSongSection(std::string newSongSectionType, bool playImmediately){
+bool MusicMan::SetNextDynamicSongSection(std::string newSongSectionType, bool playImmediately, bool playTransition){
 	if (newSongSectionType == m_CurrentSongSectionType) {
 		return false;
 	}
 	
 	SetCurrentSongSectionType(std::move(newSongSectionType));
 	SelectNextSongSection();
-	SelectNextSoundContainer(true);
+	SelectNextSoundContainer(playTransition);
 	if (playImmediately) {
 		CyclePlayingSoundContainers(true);
 	}
@@ -143,9 +173,9 @@ bool MusicMan::EndMusic(bool fadeOutCurrent) {
 	return true;
 }
 
-void MusicMan::PlayHardcodedMusic(HardcodedMusicTypes hardcodedMusicType) {
-	if (m_HardcodedMusicSoundContainer != nullptr) {
-		m_HardcodedMusicSoundContainer->Stop();
+void MusicMan::PlayInterruptingMusic(SoundContainer* soundContainer) {
+	if (m_InterruptingMusicSoundContainer != nullptr) {
+		m_InterruptingMusicSoundContainer->Stop();
 	}
 	
 	if (m_OldSoundContainer != nullptr) {
@@ -160,30 +190,18 @@ void MusicMan::PlayHardcodedMusic(HardcodedMusicTypes hardcodedMusicType) {
 		m_NextSoundContainer->SetPaused(true);
 	}
 	
-	switch (hardcodedMusicType) {
-		case IntroMusic:
-			m_HardcodedMusicSoundContainer = m_IntroMusicSoundContainer;
-			break;
-		case MainMenuMusic:
-			m_HardcodedMusicSoundContainer = m_MainMenuMusicSoundContainer;
-			break;
-		case ScenarioMenuMusic:
-			m_HardcodedMusicSoundContainer = m_ScenarioMenuMusicSoundContainer;
-			break;
-	}
-	
-	m_HardcodedMusicSoundContainer->Play();
+	m_InterruptingMusicSoundContainer = soundContainer;
+	m_InterruptingMusicSoundContainer->Play();
 	if (m_IsPlayingDynamicMusic) {
 		m_ReturnToDynamicMusic = true;
 		m_IsPlayingDynamicMusic = false;
 		m_MusicPausedTime = m_MusicTimer.GetElapsedRealTimeMS();
 	}
-	g_AudioMan.SetMusicMuffledState(false);
 }
 
-void MusicMan::EndHardcodedMusic() {
-	if (m_HardcodedMusicSoundContainer && m_HardcodedMusicSoundContainer->IsBeingPlayed()) {
-		m_HardcodedMusicSoundContainer->Stop();
+void MusicMan::EndInterruptingMusic() {
+	if (m_InterruptingMusicSoundContainer && m_InterruptingMusicSoundContainer->IsBeingPlayed()) {
+		m_InterruptingMusicSoundContainer->Stop();
         
         if (m_OldSoundContainer != nullptr) {
         	m_OldSoundContainer->SetPaused(false);
@@ -204,7 +222,6 @@ void MusicMan::EndHardcodedMusic() {
 			m_MusicTimer.SetRealTimeLimitMS(m_MusicTimer.GetRealTimeLimitMS() + elapsedPausedTime);
 		}
 	}
-	g_AudioMan.SetMusicMuffledState(false);
 }
 
 void MusicMan::SelectNextSongSection() {
