@@ -73,6 +73,12 @@ int Magazine::Create(const Magazine& reference) {
 	return 0;
 }
 
+void Magazine::Reset() {
+	Clear();
+	Attachable::Reset();
+	m_CollidesWithTerrainWhileAttached = false;
+}
+
 int Magazine::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
@@ -140,6 +146,34 @@ Round* Magazine::PopNextRound() {
 	return tempRound;
 }
 
+int Magazine::GetRoundCount() const {
+	return m_RoundCount;
+}
+
+void Magazine::SetRoundCount(int newCount) {
+	m_RoundCount = newCount;
+}
+
+bool Magazine::IsEmpty() const {
+	return m_FullCapacity >= 0 && m_RoundCount == 0;
+}
+
+bool Magazine::IsFull() const {
+	return m_FullCapacity > 0 ? (m_RoundCount == m_FullCapacity || m_RoundCount < 0) : m_FullCapacity < 0;
+}
+
+bool Magazine::IsOverHalfFull() const {
+	return m_FullCapacity > 0 ? ((m_RoundCount > (m_FullCapacity / 2)) || m_RoundCount < 0) : m_FullCapacity < 0;
+}
+
+int Magazine::GetCapacity() const {
+	return m_FullCapacity;
+}
+
+bool Magazine::IsDiscardable() const {
+	return m_Discardable;
+}
+
 float Magazine::EstimateDigStrength() const {
 	float maxPenetration = 1;
 	if (m_pTracerRound) {
@@ -165,6 +199,18 @@ float Magazine::EstimateDigStrength() const {
 	}
 
 	return maxPenetration;
+}
+
+float Magazine::GetAIAimVel() const {
+	return m_AIAimVel;
+}
+
+int Magazine::GetAIAimBlastRadius() const {
+	return m_AIBlastRadius;
+}
+
+float Magazine::GetAIAimPenetration() const {
+	return m_AIAimPenetration;
 }
 
 float Magazine::GetBulletAccScalar() {

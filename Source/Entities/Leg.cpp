@@ -14,6 +14,18 @@ Leg::~Leg() {
 	Destroy(true);
 }
 
+void Leg::Destroy(bool notInherited) {
+	if (!notInherited) {
+		Attachable::Destroy();
+	}
+	Clear();
+}
+
+void Leg::Reset() {
+	Clear();
+	Attachable::Reset();
+}
+
 void Leg::Clear() {
 	m_Foot = nullptr;
 
@@ -117,6 +129,10 @@ int Leg::Save(Writer& writer) const {
 	return 0;
 }
 
+Attachable* Leg::GetFoot() const {
+	return m_Foot;
+}
+
 void Leg::SetFoot(Attachable* newFoot) {
 	if (m_Foot && m_Foot->IsAttached()) {
 		RemoveAndDeleteAttachable(m_Foot);
@@ -138,6 +154,30 @@ void Leg::SetFoot(Attachable* newFoot) {
 		m_Foot->SetParentGibBlastStrengthMultiplier(0.0F);
 		m_Foot->SetCollidesWithTerrainWhileAttached(false);
 	}
+}
+
+float Leg::GetMinLength() const {
+	return m_MinExtension;
+}
+
+float Leg::GetMaxLength() const {
+	return m_MaxExtension;
+}
+
+float Leg::GetMoveSpeed() const {
+	return m_MoveSpeed;
+}
+
+void Leg::SetMoveSpeed(float newMoveSpeed) {
+	m_MoveSpeed = newMoveSpeed;
+}
+
+void Leg::SetTargetPosition(const Vector& targetPosition) {
+	m_TargetPosition = targetPosition;
+}
+
+void Leg::EnableIdle(bool idle) {
+	m_WillIdle = idle;
 }
 
 AtomGroup* Leg::GetFootGroupFromFootAtomGroup() {

@@ -48,6 +48,148 @@ MetaPlayer::~MetaPlayer() {
 	Destroy(true);
 }
 
+void MetaPlayer::Destroy(bool notInherited) {
+	if (!notInherited) {
+		Entity::Destroy();
+	}
+	Clear();
+}
+
+void MetaPlayer::Reset() {
+	Clear();
+	Entity::Reset();
+}
+
+std::string MetaPlayer::GetName() const {
+	return m_Name;
+}
+
+void MetaPlayer::SetName(std::string newName) {
+	m_Name = newName;
+}
+
+int MetaPlayer::GetTeam() const {
+	return m_Team;
+}
+
+void MetaPlayer::SetTeam(int newTeam) {
+	m_Team = newTeam;
+}
+
+bool MetaPlayer::IsHuman() const {
+	return m_Human;
+}
+
+void MetaPlayer::SetHuman(bool human) {
+	m_Human = human;
+}
+
+int MetaPlayer::GetInGamePlayer() const {
+	return m_InGamePlayer;
+}
+
+int MetaPlayer::GetNativeTechModule() const {
+	return m_NativeTechModule;
+}
+
+float MetaPlayer::GetAggressiveness() const {
+	return m_Aggressiveness;
+}
+
+void MetaPlayer::SetAggressiveness(float aggressiveness) {
+	m_Aggressiveness = aggressiveness;
+}
+
+int MetaPlayer::GetGameOverRound() const {
+	return m_GameOverRound;
+}
+
+void MetaPlayer::SetGameOverRound(int gameOverRound) {
+	m_GameOverRound = gameOverRound;
+}
+
+bool MetaPlayer::IsGameOverByRound(int whichRound) const {
+	return m_GameOverRound >= 0 && m_GameOverRound <= whichRound;
+}
+
+std::string MetaPlayer::GetOffensiveTargetName() const {
+	return m_OffensiveTarget;
+}
+
+void MetaPlayer::SetOffensiveTargetName(std::string targetName) {
+	m_OffensiveTarget = targetName;
+}
+
+float MetaPlayer::GetFunds() const {
+	return m_Funds;
+}
+
+void MetaPlayer::SetFunds(float newFunds) {
+	m_Funds = newFunds;
+}
+
+float MetaPlayer::ChangeFunds(float howMuch) {
+	return m_Funds += howMuch;
+}
+
+float MetaPlayer::SpendFunds(float howMuch) {
+	howMuch = std::min(m_Funds, howMuch);
+	m_Funds -= howMuch;
+	return howMuch;
+}
+
+float MetaPlayer::GetOffensiveBudget() const {
+	return m_OffensiveBudget;
+}
+
+void MetaPlayer::SetOffensiveBudget(float newBudget) {
+	m_OffensiveBudget = newBudget;
+}
+
+float MetaPlayer::GetForeignCostMultiplier() const {
+	return m_ForeignCostMult;
+}
+
+float MetaPlayer::GetNativeCostMultiplier() const {
+	return m_NativeCostMult;
+}
+
+void MetaPlayer::SetNativeCostMultiplier(float newNativeCostMult) {
+	m_NativeCostMult = newNativeCostMult;
+}
+
+int MetaPlayer::GetBrainPoolCount() const {
+	return m_BrainPool;
+}
+
+void MetaPlayer::SetBrainPoolCount(int brainCount) {
+	m_BrainPool = brainCount;
+}
+
+int MetaPlayer::ChangeBrainPoolCount(int change) {
+	return m_BrainPool += change;
+}
+
+int MetaPlayer::GetBrainsInTransit() const {
+	return m_BrainsInTransit;
+}
+
+void MetaPlayer::SetBrainsInTransit(int transitCount) {
+	m_BrainsInTransit = transitCount;
+}
+
+int MetaPlayer::ChangeBrainsInTransit(int change) {
+	return m_BrainsInTransit += change;
+}
+
+MetaPlayer& MetaPlayer::operator=(const MetaPlayer& rhs) {
+	if (this != &rhs) {
+		Destroy();
+		Create(rhs);
+	}
+	return *this;
+}
+
 void MetaPlayer::Clear() {
 	m_Name = "";
 	m_Team = Activity::NoTeam;

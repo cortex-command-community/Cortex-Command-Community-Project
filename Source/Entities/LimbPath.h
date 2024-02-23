@@ -19,7 +19,6 @@ namespace RTE {
 	/// path is continuous.
 	class LimbPath : public Entity {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(LimbPath);
@@ -39,23 +38,6 @@ namespace RTE {
 		/// Anything below 0 is an error signal.
 		int Create() override;
 
-		/*
-		/// Makes the LimbPath object ready for use.
-		/// @param startPoint A Vector specifying starting point of this LimbPath, relative
-		/// to the owning RTEActor's origin.
-		/// @param segCount An int specifying how many segments there are in the following (default: 1)
-		/// segment array. This MUST match the actual size of the array!
-		/// @param aSegArray An array of Vectors that hold the desired path segments to use. (default: new Vector)
-		/// @param travelSpeed A float specifying the constant travel speed the limb traveling this (default: 1.0)
-		/// LimbPath should have, in m/s.
-		/// @return An error return value signaling sucess or any particular failure.
-		/// Anything below 0 is an error signal.
-		    int Create(const Vector &startPoint,
-		                       const unsigned int segCount = 1,
-		                       const Vector *aSegArray = new Vector,
-		                       const float travelSpeed = 1.0);
-		*/
-
 		/// Creates a LimbPath to be identical to another, by deep copy.
 		/// @param reference A reference to the LimbPath to deep copy.
 		/// @return An error return value signaling sucess or any particular failure.
@@ -64,10 +46,7 @@ namespace RTE {
 
 		/// Resets the entire LimbPath, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Entity::Reset();
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the LimbPath object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -76,37 +55,32 @@ namespace RTE {
 
 		/// Gets the coordinates where the limb should start at the start of the LimbPath cycle, relative to the owning AtomGroup's local origin.
 		/// @return A Vector with the start position.
-		const Vector& GetStartOffset() const { return m_Start; }
+		const Vector& GetStartOffset() const;
 
 		/// Sets the coordinates where the limb should start at the start of the LimbPath cycle, relative to the owning AtomGroup's local origin.
 		/// @param newStartOffset A Vector with the new start offset.
-		void SetStartOffset(const Vector& newStartOffset) { m_Start = newStartOffset; }
+		void SetStartOffset(const Vector& newStartOffset);
 
 		/// Gets the number of Vector:s the internal array of 'waypoints' or
 		/// segments of this LimbPath.
 		/// @return An int with he count.
-		int GetSegCount() const { return m_Segments.size(); }
+		int GetSegCount() const;
 
 		/// Gets a pointer to the segment at the given index. Ownership is NOT transferred.
 		/// @param segmentIndex The index of the segment to get.
 		/// @return A pointer to the segment at the given index. Ownership is NOT transferred.
-		Vector* GetSegment(int segmentIndex) {
-			if (segmentIndex < static_cast<int>(m_Segments.size())) {
-				return &m_Segments.at(segmentIndex);
-			}
-			return nullptr;
-		}
+		Vector* GetSegment(int segmentIndex);
 
 		/// Gets whether or not foot collisions should be disabled, i.e. the limbpath's progress is greater than the FootCollisionsDisabledSegment value.
 		/// @return Whether or not foot collisions should be disabled for this limbpath at its current progress.
-		bool FootCollisionsShouldBeDisabled() const { return m_FootCollisionsDisabledSegment >= 0 && GetSegCount() - GetCurrentSegmentNumber() <= m_FootCollisionsDisabledSegment; }
+		bool FootCollisionsShouldBeDisabled() const;
 
 		/// Gets how far the limb was last reported to be away form the current
 		/// segment target/waypoint.
 		/// @return A normalized float describing the progress made toward the current
 		/// segment last frame. 0.5 means it was half the length of the current
 		/// segment away from it.
-		float GetSegProgress() const { return m_SegProgress; }
+		float GetSegProgress() const;
 
 		/// Gets the APPROXIMATE scene position that the limb was reported to be
 		/// last frame. This really shouldn't be used by external clients.
@@ -125,36 +99,31 @@ namespace RTE {
 
 		/// Gets the speed that a limb traveling this LimbPath should have.
 		/// @return A float describing the speed in m/s.
-		float GetSpeed() const { return m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier; }
+		float GetSpeed() const;
 
 		/// Gets the speed that a limb traveling this LimbPath should have for the specified preset.
 		/// @param speedPreset Predefined speed preset to set the value for.
 		/// @return A float describing the speed in m/s.
-		float GetSpeed(int speedPreset) const {
-			if (speedPreset == SLOW || speedPreset == NORMAL || speedPreset == FAST)
-				return m_TravelSpeed[speedPreset];
-			else
-				return 0;
-		}
+		float GetSpeed(int speedPreset) const;
 
 		/// Sets the current travel speed multiplier.
 		/// @param newValue The new travel speed multiplier.
-		void SetTravelSpeedMultiplier(float newValue) { m_TravelSpeedMultiplier = newValue; }
+		void SetTravelSpeedMultiplier(float newValue);
 
 		/// Gets the current travel speed multiplier.
 		/// @return The current travel speed multiplier.
-		float GetTravelSpeedMultiplier() const { return m_TravelSpeedMultiplier; }
+		float GetTravelSpeedMultiplier() const;
 
 		/// Gets the force that a limb traveling this LimbPath can push against
 		/// stuff in the scene with. It will increase to the double if progress
 		/// isn't made on the segment.
 		/// @return The currently set force maximum, in kg * m/s^2.
-		float GetPushForce() const { return m_PushForce + (m_PushForce * (m_SegTimer.GetElapsedSimTimeMS() / 500)); }
+		float GetPushForce() const;
 
 		/// Gets thedefault, unaltered force that a limb traveling this LimbPath can push against
 		/// stuff in the scene with.
 		/// @return The default set force maximum, in kg * m/s^2.
-		float GetDefaultPushForce() const { return m_PushForce; }
+		float GetDefaultPushForce() const;
 
 		/// Gets the time needed to get to the target waypoint of the current
 		/// segment at the current speed, if there are no obstacles. The chunk
@@ -168,26 +137,26 @@ namespace RTE {
 		/// Gets the total time that this entire path should take to travel along
 		/// with the current speed setting, including the start segments.
 		/// @return The total time (ms) this should take to travel along, if unobstructed.
-		float GetTotalPathTime() const { return ((m_TotalLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
+		float GetTotalPathTime() const;
 
 		/// Gets the total time that this path should take to travel along
 		/// with the current speed setting, NOT including the start segments.
 		/// @return The total time (ms) this should take to travel along, if unobstructed.
-		float GetRegularPathTime() const { return ((m_RegularLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
+		float GetRegularPathTime() const;
 
 		/// Gets the ratio of time since the path was restarted and the total time
 		/// it should take to travel along the path with the current speed setting,
 		/// including the start segments.
 		/// @return A positive scalar ratio showing the progress. 0 - 1.0 and beyond.
 		/// If the path has ended, but not been reset, 0 is returned.
-		float GetTotalTimeProgress() const { return m_Ended ? 0 : (m_PathTimer.GetElapsedSimTimeMS() / GetTotalPathTime()); }
+		float GetTotalTimeProgress() const;
 
 		/// Gets the ratio of time since the path was restarted and the total time
 		/// it should take to travel along the path with the current speed setting,
 		/// NOT including the start segments.
 		/// @return A positive scalar ratio showing the progress. 0 - 1.0 and beyond.
 		/// If the path has ended, but not been reset, 0 is returned.
-		float GetRegularTimeProgress() const { return m_Ended ? 0 : (m_PathTimer.GetElapsedSimTimeMS() / GetRegularPathTime()); }
+		float GetRegularTimeProgress() const;
 
 		/// Used to report how much progress was made to getting the limb close to
 		/// the target (the current segment waypoint).
@@ -212,16 +181,6 @@ namespace RTE {
 		/// @return The current segment as a number.
 		int GetCurrentSegmentNumber() const;
 
-		/// Sets a new array of 'waypoints' or segments of this LimbPath.
-		/// @param newSpeed An int specifying how many segments there are in the following
-		/// segment array. This MUST match the actual size of the array!
-		/// A pointer to the new Vector array.
-		//    void SetSegments(const unsigned int segCount, const Vector *newSegments);
-
-		/// Sets the current seg pointer to whichever segment in the segment deque.
-		/// @param newSpeed An int that is an index to a valid element of the internal segment array.
-		//    void SetCurrentSeg(unsigned int currentSeg) { m_CurrentSegment = currentSeg; }
-
 		/// Sets the speed that a limb traveling this LimbPath should have to one
 		/// of the three predefined speed settings.
 		/// @param newSpeed An int specifying which discrete speed setting to use from the Speed
@@ -236,67 +195,64 @@ namespace RTE {
 		/// Sets the force that a limb traveling this LimbPath can push against
 		/// stuff in the scene with.
 		/// @param newForce The new push force maximum, in kg * m/s^2.
-		void OverridePushForce(float newForce) { m_PushForce = newForce; };
+		void OverridePushForce(float newForce);
 
 		/// Sets the amount of time that will be used by the limb to travel every
 		/// frame. Defined in seconds.
 		/// @param newFrameTime A float describing the time in s.
-		void SetFrameTime(float newFrameTime) { m_TimeLeft = newFrameTime; }
+		void SetFrameTime(float newFrameTime);
 
 		/// Sets whether this path is flipped horizontally or not. If being
 		/// flipped the path automatically restarts.
 		/// @param hflipped A bool telling this path to be flipped or not.
-		void SetHFlip(bool hflipped) { m_HFlipped = hflipped; }
+		void SetHFlip(bool hflipped);
 
 		/// Gets the h flip.
 		/// @return The h flip.
-		bool GetHFlip() { return m_HFlipped; }
+		bool GetHFlip();
 
 		/// Informs this LimbPath of the absolute world coordinates of its owning
 		/// Actor's limb's joint for this frame. Needs to be done before
 		/// travelling anyhting along this path each frame.
 		/// @param jointPos A Vector with the updated joint position info.
-		void SetJointPos(const Vector& jointPos) { m_JointPos = jointPos; }
+		void SetJointPos(const Vector& jointPos);
 
 		/// Informs this LimbPath of the current velocity  of its owning Actor's
 		/// limb's joint for this frame. Needs to be done before travelling
 		/// anyhting along this path each frame.
 		/// @param jointVel A Vector with the updated joint velocity info.
-		void SetJointVel(const Vector& jointVel) { m_JointVel = jointVel; }
+		void SetJointVel(const Vector& jointVel);
 
 		/// Informs this LimbPath of the current rotation of its owning Actor's
 		/// for this frame. Needs to be done before travelling
 		/// anything along this path each frame.
 		/// @param rotation A Matrix with the updated rotation info.
-		void SetRotation(const Matrix& rotation) {
-			m_Rotation = rotation;
-			m_Rotation.SetXFlipped(m_HFlipped);
-		}
+		void SetRotation(const Matrix& rotation);
 
 		/// Sets the new rotation offset.
 		/// @param rotationOffset The new rotation offset, in local space.
-		void SetRotationOffset(const Vector& rotationOffset) { m_RotationOffset = rotationOffset; }
+		void SetRotationOffset(const Vector& rotationOffset);
 
 		/// Sets the new position offset.
 		/// @param rotationOffset The new position offset, in local space.
-		void SetPositionOffset(const Vector& positionOffset) { m_PositionOffset = positionOffset; }
+		void SetPositionOffset(const Vector& positionOffset);
 
 		/// Returns if GetNextMoveVec() have to be called again or not on this
 		/// frame. If the last call didn't use up all the time moving on the
 		/// current segment because it ended, this will return false. Then
 		/// GetNextMoveVec() needs to be called at least one more time this frame.
 		/// @return A bool with the answer.
-		bool FrameDone() const { return m_TimeLeft <= 0; }
+		bool FrameDone() const;
 
 		/// Indicates whether the last call to ProgressMade() completed the
 		/// entire path. Use Restart() to start the path over.
 		/// @return A bool with the answer.
-		bool PathEnded() const { return m_Ended; }
+		bool PathEnded() const;
 
 		/// Indicates whether the path has been restarted without making any
 		/// progress yet.
 		/// @return A bool with the answer.
-		bool PathIsAtStart() const { return m_CurrentSegment == m_Segments.begin() && m_SegProgress == 0; }
+		bool PathIsAtStart() const;
 
 		/// Sets this LimbPath's progress to its end.
 		void Terminate();
@@ -325,12 +281,12 @@ namespace RTE {
 		/// Indicated whether this path is has been created and had some data set
 		/// yet.
 		/// @return Whether this has been Create:ed yet.
-		bool IsInitialized() const { return !m_Start.IsZero() || !m_Segments.empty(); }
+		bool IsInitialized() const;
 
 		/// Indicated whether this path is in fact just a single point to where
 		/// the limb will always be ordered to move toward. IE a standing still
 		/// type limb movement.
-		bool IsStaticPoint() const { return m_Segments.empty(); }
+		bool IsStaticPoint() const;
 
 		/// Returns the lowest y position of this LimbPath.
 		/// @return The lowest y position of this LimbPath.
@@ -347,7 +303,6 @@ namespace RTE {
 		/// @param color The color to draw the path's pixels as. (default: 34)
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), unsigned char color = 34) const;
 
-		/// Protected member variable and method declarations
 	protected:
 		static Entity::ClassInfo m_sClass;
 
@@ -415,7 +370,6 @@ namespace RTE {
 		bool m_Ended;
 		bool m_HFlipped;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this LimbPath, effectively
 		/// resetting the members of this abstraction level only.

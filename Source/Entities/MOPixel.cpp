@@ -12,8 +12,27 @@ MOPixel::MOPixel() {
 	Clear();
 }
 
+MOPixel::MOPixel(Color color, const float mass, const Vector& position, const Vector& velocity, Atom* atom, const unsigned long lifetime) {
+	Clear();
+	Create(color, mass, position, velocity, atom, lifetime);
+}
+
 MOPixel::~MOPixel() {
 	Destroy(true);
+}
+
+void MOPixel::Destroy(bool notInherited) {
+	delete m_Atom;
+
+	if (!notInherited) {
+		MovableObject::Destroy();
+	}
+	Clear();
+}
+
+void MOPixel::Reset() {
+	Clear();
+	MovableObject::Reset();
 }
 
 void MOPixel::Clear() {
@@ -106,23 +125,42 @@ int MOPixel::Save(Writer& writer) const {
 	return 0;
 }
 
-void MOPixel::Destroy(bool notInherited) {
-	delete m_Atom;
-
-	if (!notInherited) {
-		MovableObject::Destroy();
-	}
-	Clear();
+int MOPixel::GetDrawPriority() const {
+	return m_Atom->GetMaterial()->GetPriority();
 }
 
-int MOPixel::GetDrawPriority() const { return m_Atom->GetMaterial()->GetPriority(); }
+const Material* MOPixel::GetMaterial() const {
+	return m_Atom->GetMaterial();
+}
 
-const Material* MOPixel::GetMaterial() const { return m_Atom->GetMaterial(); }
+const Atom* MOPixel::GetAtom() const {
+	return m_Atom;
+}
 
 void MOPixel::SetAtom(Atom* newAtom) {
 	delete m_Atom;
 	m_Atom = newAtom;
 	m_Atom->SetOwner(this);
+}
+
+Color MOPixel::GetColor() const {
+	return m_Color;
+}
+
+int MOPixel::GetColorIndex() const {
+	return m_Color.GetIndex();
+}
+
+void MOPixel::SetColor(Color newColor) {
+	m_Color = newColor;
+}
+
+void MOPixel::SetColorIndex(int newColorIndex) {
+	m_Color.SetRGBWithIndex(newColorIndex);
+}
+
+float MOPixel::GetMaxLethalRangeFactor() const {
+	return m_MaxLethalRange;
 }
 
 void MOPixel::SetLethalRange(float range) {
@@ -138,6 +176,14 @@ int MOPixel::GetTrailLength() const {
 
 void MOPixel::SetTrailLength(int trailLength) {
 	m_Atom->SetTrailLength(trailLength);
+}
+
+float MOPixel::GetStaininess() const {
+	return m_Staininess;
+}
+
+void MOPixel::SetStaininess(float staininess) {
+	m_Staininess = staininess;
 }
 
 bool MOPixel::HitTestAtPixel(int pixelX, int pixelY) const {
@@ -198,6 +244,14 @@ void MOPixel::RestDetection() {
 		m_RestTimer.Reset();
 		m_ToSettle = false;
 	}
+}
+
+bool MOPixel::OnBounce(HitData& hd) {
+	return false;
+}
+
+bool MOPixel::OnSink(HitData& hd) {
+	return false;
 }
 
 void MOPixel::Update() {

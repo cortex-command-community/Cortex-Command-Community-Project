@@ -5,6 +5,17 @@ using namespace RTE;
 
 ConcreteClassInfo(Material, Entity, 0);
 
+Material::Material() {
+	Clear();
+}
+
+Material::Material(const Material& reference) {
+	if (this != &reference) {
+		Clear();
+		Create(reference);
+	}
+}
+
 void Material::Clear() {
 	m_Index = 0;
 	m_Priority = -1;
@@ -53,6 +64,87 @@ int Material::Create(const Material& reference) {
 	m_TerrainBGTexture = reference.m_TerrainBGTexture;
 
 	return 0;
+}
+
+void Material::Reset() {
+	Clear();
+	Entity::Reset();
+}
+
+BITMAP* Material::GetFGTexture() const {
+	return m_TerrainFGTexture;
+}
+
+BITMAP* Material::GetBGTexture() const {
+	return m_TerrainBGTexture;
+}
+
+unsigned char Material::GetIndex() const {
+	return m_Index;
+}
+
+void Material::SetIndex(unsigned char newIndex) {
+	m_Index = newIndex;
+}
+
+int Material::GetPriority() const {
+	return m_Priority < 0 ? static_cast<int>(std::ceil(m_Integrity)) : m_Priority;
+}
+
+int Material::GetPiling() const {
+	return m_Piling;
+}
+
+float Material::GetIntegrity() const {
+	return m_Integrity;
+}
+
+float Material::GetRestitution() const {
+	return m_Restitution;
+}
+
+float Material::GetFriction() const {
+	return m_Friction;
+}
+
+float Material::GetStickiness() const {
+	return m_Stickiness;
+}
+
+float Material::GetVolumeDensity() const {
+	return m_VolumeDensity;
+}
+
+float Material::GetPixelDensity() const {
+	return m_PixelDensity;
+}
+
+unsigned char Material::GetSettleMaterial() const {
+	return (m_SettleMaterialIndex != 0) ? m_SettleMaterialIndex : m_Index;
+}
+
+unsigned char Material::GetSpawnMaterial() const {
+	return m_SpawnMaterialIndex;
+}
+
+bool Material::IsScrap() const {
+	return m_IsScrap;
+}
+
+Color Material::GetColor() const {
+	return m_Color;
+}
+
+bool Material::UsesOwnColor() const {
+	return m_UseOwnColor;
+}
+
+Material& Material::operator=(const Material& rhs) {
+	if (this != &rhs) {
+		Destroy();
+		Create(rhs);
+	}
+	return *this;
 }
 
 int Material::ReadProperty(const std::string_view& propName, Reader& reader) {

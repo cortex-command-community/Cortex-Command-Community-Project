@@ -74,3 +74,28 @@ void Icon::Destroy(bool notInherited) {
 	}
 	Clear();
 }
+
+void Icon::Reset() {
+	Clear();
+	Entity::Reset();
+}
+
+unsigned int Icon::GetFrameCount() const {
+	return m_FrameCount;
+}
+
+std::vector<BITMAP*> Icon::GetBitmaps8() const {
+	return m_BitmapsIndexed;
+}
+
+std::vector<BITMAP*> Icon::GetBitmaps32() const {
+	return m_BitmapsTrueColor;
+}
+
+Icon& Icon::operator=(const Icon& rhs) {
+	if (this != &rhs) {
+		Destroy();
+		Create(rhs);
+	}
+	return *this;
+}

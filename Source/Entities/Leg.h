@@ -34,24 +34,16 @@ namespace RTE {
 
 		/// Destroys and resets (through Clear()) the Leg object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
-		void Destroy(bool notInherited = false) override {
-			if (!notInherited) {
-				Attachable::Destroy();
-			}
-			Clear();
-		}
+		void Destroy(bool notInherited = false) override;
 
 		/// Resets the entire Leg, including its inherited members, to their default settings or values.
-		void Reset() override {
-			Clear();
-			Attachable::Reset();
-		}
+		void Reset() override;
 #pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets the foot of this Leg.
 		/// @return A pointer to foot of this Leg. Ownership is NOT transferred!
-		Attachable* GetFoot() const { return m_Foot; }
+		Attachable* GetFoot() const;
 
 		/// Sets the foot for this Leg. Ownership IS transferred!
 		/// @param newFoot The new foot to use.
@@ -59,27 +51,27 @@ namespace RTE {
 
 		/// Gets the min length this of Leg, the minimum allowed length from its joint to its ankle's position.
 		/// @return The min length, in pixels, of this Leg.
-		float GetMinLength() const { return m_MinExtension; }
+		float GetMinLength() const;
 
 		/// Gets the max length this Leg, the maximum allowed length from its joint to its ankle's position.
 		/// @return The max length, in pixels, of this Leg.
-		float GetMaxLength() const { return m_MaxExtension; }
+		float GetMaxLength() const;
 
 		/// Gets the move speed of this Leg, where 1.0 is instant and 0.0 is no movement.
 		/// @return The move speed of this Leg.
-		float GetMoveSpeed() const { return m_MoveSpeed; }
+		float GetMoveSpeed() const;
 
 		/// Sets the move speed of this Leg, where 1.0 is instant and 0.0 is no movement.
 		/// @return The new move speed of this Leg.
-		void SetMoveSpeed(float newMoveSpeed) { m_MoveSpeed = newMoveSpeed; }
+		void SetMoveSpeed(float newMoveSpeed);
 
 		/// Sets the position this Leg should move towards, in absolute coordinates.
 		/// @param targetPosition The position the Leg should move towards.
-		void SetTargetPosition(const Vector& targetPosition) { m_TargetPosition = targetPosition; }
+		void SetTargetPosition(const Vector& targetPosition);
 
 		/// Sets whether this Leg will go into idle offset mode if the target appears to be above the joint of the Leg.
 		/// @param idle Whether to enable idling if the target offset is above the joint.
-		void EnableIdle(bool idle = true) { m_WillIdle = idle; }
+		void EnableIdle(bool idle = true);
 #pragma endregion
 
 #pragma region Concrete Methods

@@ -60,28 +60,6 @@ int LimbPath::Create() {
 	return 0;
 }
 
-/*
-int LimbPath::Create(const Vector &startPoint,
-                     const unsigned int segCount,
-                     const Vector *aSegArray,
-                     const float travelSpeed)
-{
-    m_StartPoint = startPoint;
-    m_SegCount = segCount;
-    m_TravelSpeed = travelSpeed;
-
-    m_Segments = new Vector[m_SegCount];
-
-    if (aSegArray)
-    {
-        for (int i = 0; i < m_SegCount; ++i)
-            m_Segments[i] = aSegArray[i];
-    }
-
-    return 0;
-}
-*/
-
 int LimbPath::Create(const LimbPath& reference) {
 	Entity::Create(reference);
 
@@ -114,6 +92,11 @@ int LimbPath::Create(const LimbPath& reference) {
 	Terminate();
 
 	return 0;
+}
+
+void LimbPath::Reset() {
+	Clear();
+	Entity::Reset();
 }
 
 int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -191,6 +174,33 @@ void LimbPath::Destroy(bool notInherited) {
 	Clear();
 }
 
+const Vector& LimbPath::GetStartOffset() const {
+	return m_Start;
+}
+
+void LimbPath::SetStartOffset(const Vector& newStartOffset) {
+	m_Start = newStartOffset;
+}
+
+int LimbPath::GetSegCount() const {
+	return m_Segments.size();
+}
+
+Vector* LimbPath::GetSegment(int segmentIndex) {
+	if (segmentIndex < static_cast<int>(m_Segments.size())) {
+		return &m_Segments.at(segmentIndex);
+	}
+	return nullptr;
+}
+
+bool LimbPath::FootCollisionsShouldBeDisabled() const {
+	return m_FootCollisionsDisabledSegment >= 0 && GetSegCount() - GetCurrentSegmentNumber() <= m_FootCollisionsDisabledSegment;
+}
+
+float LimbPath::GetSegProgress() const {
+	return m_SegProgress;
+}
+
 Vector LimbPath::GetProgressPos() {
 	Vector returnVec(m_Start);
 	if (IsStaticPoint()) {
@@ -254,6 +264,34 @@ Vector LimbPath::GetCurrentVel(const Vector& limbPos) {
 	return returnVel;
 }
 
+float LimbPath::GetSpeed() const {
+	return m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier;
+}
+
+float LimbPath::GetSpeed(int speedPreset) const {
+	if (speedPreset == SLOW || speedPreset == NORMAL || speedPreset == FAST) {
+		return m_TravelSpeed[speedPreset];
+	} else {
+		return 0;
+	}
+}
+
+void LimbPath::SetTravelSpeedMultiplier(float newValue) {
+	m_TravelSpeedMultiplier = newValue;
+}
+
+float LimbPath::GetTravelSpeedMultiplier() const {
+	return m_TravelSpeedMultiplier;
+}
+
+float LimbPath::GetPushForce() const {
+	return m_PushForce + (m_PushForce * (m_SegTimer.GetElapsedSimTimeMS() / 500));
+}
+
+float LimbPath::GetDefaultPushForce() const {
+	return m_PushForce;
+}
+
 float LimbPath::GetNextTimeChunk(const Vector& limbPos) {
 	float timeChunk;
 
@@ -278,6 +316,22 @@ float LimbPath::GetNextTimeChunk(const Vector& limbPos) {
 	}
 
 	return timeChunk;
+}
+
+float LimbPath::GetTotalPathTime() const {
+	return ((m_TotalLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000;
+}
+
+float LimbPath::GetRegularPathTime() const {
+	return ((m_RegularLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000;
+}
+
+float LimbPath::GetTotalTimeProgress() const {
+	return m_Ended ? 0 : (m_PathTimer.GetElapsedSimTimeMS() / GetTotalPathTime());
+}
+
+float LimbPath::GetRegularTimeProgress() const {
+	return m_Ended ? 0 : (m_PathTimer.GetElapsedSimTimeMS() / GetRegularPathTime());
 }
 
 void LimbPath::ReportProgress(const Vector& limbPos) {
@@ -359,6 +413,55 @@ void LimbPath::OverrideSpeed(int speedPreset, float newSpeed) {
 	if (speedPreset == SLOW || speedPreset == FAST || speedPreset == NORMAL) {
 		m_TravelSpeed[m_WhichSpeed] = newSpeed;
 	}
+}
+
+void LimbPath::OverridePushForce(float newForce) {
+	m_PushForce = newForce;
+}
+
+void LimbPath::SetFrameTime(float newFrameTime) {
+	m_TimeLeft = newFrameTime;
+}
+
+void LimbPath::SetHFlip(bool hflipped) {
+	m_HFlipped = hflipped;
+}
+
+bool LimbPath::GetHFlip() {
+	return m_HFlipped;
+}
+
+void LimbPath::SetJointPos(const Vector& jointPos) {
+	m_JointPos = jointPos;
+}
+
+void LimbPath::SetJointVel(const Vector& jointVel) {
+	m_JointVel = jointVel;
+}
+
+void LimbPath::SetRotation(const Matrix& rotation) {
+	m_Rotation = rotation;
+	m_Rotation.SetXFlipped(m_HFlipped);
+}
+
+void LimbPath::SetRotationOffset(const Vector& rotationOffset) {
+	m_RotationOffset = rotationOffset;
+}
+
+void LimbPath::SetPositionOffset(const Vector& positionOffset) {
+	m_PositionOffset = positionOffset;
+}
+
+bool LimbPath::FrameDone() const {
+	return m_TimeLeft <= 0;
+}
+
+bool LimbPath::PathEnded() const {
+	return m_Ended;
+}
+
+bool LimbPath::PathIsAtStart() const {
+	return m_CurrentSegment == m_Segments.begin() && m_SegProgress == 0;
 }
 
 void LimbPath::Terminate() {
@@ -463,6 +566,14 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 	m_CurrentSegment = prevSeg;
 	m_SegProgress = prevProg;
 	return false;
+}
+
+bool LimbPath::IsInitialized() const {
+	return !m_Start.IsZero() || !m_Segments.empty();
+}
+
+bool LimbPath::IsStaticPoint() const {
+	return m_Segments.empty();
 }
 
 // Todo - cache this instead of recalculating each time!

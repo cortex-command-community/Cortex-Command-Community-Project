@@ -36,11 +36,7 @@ namespace RTE {
 
 		/// Resets the entire Magazine, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Attachable::Reset();
-			m_CollidesWithTerrainWhileAttached = false;
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -59,32 +55,32 @@ namespace RTE {
 
 		/// Returns how many rounds are left in this Magazine.
 		/// @return The number of rounds left. Negative value means infinite ammo left!
-		int GetRoundCount() const { return m_RoundCount; }
+		int GetRoundCount() const;
 
 		/// Sets how many rounds are left in this Magazine.
 		/// @param newCount The new number of rounds left. Negative value means infinite ammo!
-		void SetRoundCount(int newCount) { m_RoundCount = newCount; }
+		void SetRoundCount(int newCount);
 
 		/// Returns whether this Magazine is out of rounds.
 		/// @return Whether this Magazine is out of rounds or not.
-		bool IsEmpty() const { return m_FullCapacity >= 0 && m_RoundCount == 0; }
+		bool IsEmpty() const;
 
 		/// Returns whether this Magazine has not used up any rounds yet.
 		/// @return Whether this Magazine has not used any rounds yet.
-		bool IsFull() const { return m_FullCapacity > 0 ? (m_RoundCount == m_FullCapacity || m_RoundCount < 0) : m_FullCapacity < 0; }
+		bool IsFull() const;
 
 		/// Returns whether this Magazine has not used up half of the rounds yet.
 		/// @return Whether this Magazine has not used half of its rounds yet.
-		bool IsOverHalfFull() const { return m_FullCapacity > 0 ? ((m_RoundCount > (m_FullCapacity / 2)) || m_RoundCount < 0) : m_FullCapacity < 0; }
+		bool IsOverHalfFull() const;
 
 		/// Returns teh number of rounds this can hold when it's full.
 		/// @return The number of rounds this can hold. Negative value means infinite ammo.
-		int GetCapacity() const { return m_FullCapacity; }
+		int GetCapacity() const;
 
 		/// Whether this Magazine should be released into the scene when discarded
 		/// or just deleted.
 		/// @return Whether this Magazine should be relesed into scene or deleted when released.
-		bool IsDiscardable() const { return m_Discardable; }
+		bool IsDiscardable() const;
 
 		/// Estimates what material strength the rounds in the magazine can destroy.
 		/// @return The material strength.
@@ -92,16 +88,16 @@ namespace RTE {
 
 		/// Tells the AI what muzzle velocity to assume when aiming this weapon.
 		/// @return Velocity in m/s.
-		float GetAIAimVel() const { return m_AIAimVel; }
+		float GetAIAimVel() const;
 
 		/// Tells the AI what distance in pixels from the rounds in this mag round
 		/// are mostly safe.
 		/// @return Distance in pixels.
-		int GetAIAimBlastRadius() const { return m_AIBlastRadius; }
+		int GetAIAimBlastRadius() const;
 
 		/// Tells the AI how much material this projectile can penetrate.
 		/// @return The material strenght.
-		float GetAIAimPenetration() const { return m_AIAimPenetration; }
+		float GetAIAimPenetration() const;
 
 		/// Gets the bullet acceleration scalar the AI use when aiming this weapon.
 		/// @return A float with the scalar.

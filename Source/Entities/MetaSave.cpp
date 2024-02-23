@@ -15,6 +15,33 @@ MetaSave::~MetaSave() {
 	Destroy(true);
 }
 
+void MetaSave::Destroy(bool notInherited) {
+	if (!notInherited) {
+		Entity::Destroy();
+	}
+	Clear();
+}
+
+std::string MetaSave::GetSavePath() const {
+	return m_SavePath;
+}
+
+int MetaSave::GetPlayerCount() const {
+	return m_PlayerCount;
+}
+
+int MetaSave::GetDifficulty() const {
+	return m_Difficulty;
+}
+
+int MetaSave::GetRoundCount() const {
+	return m_RoundCount;
+}
+
+int MetaSave::GetSiteCount() const {
+	return m_SiteCount;
+}
+
 void MetaSave::Clear() {
 	m_SavePath.clear();
 	m_PlayerCount = 0;

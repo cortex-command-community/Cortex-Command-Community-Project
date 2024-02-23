@@ -144,6 +144,12 @@ int HeldDevice::Create(const HeldDevice& reference) {
 	return 0;
 }
 
+void HeldDevice::Reset() {
+	Clear();
+	Attachable::Reset();
+	m_MOType = MovableObject::TypeHeldDevice;
+}
+
 int HeldDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
@@ -225,9 +231,14 @@ int HeldDevice::Save(Writer& writer) const {
 
 void HeldDevice::Destroy(bool notInherited) {
 
-	if (!notInherited)
+	if (!notInherited) {
 		Attachable::Destroy();
+	}
 	Clear();
+}
+
+Vector HeldDevice::GetAboveHUDPos() const {
+	return m_Pos + Vector(0, -32);
 }
 
 Vector HeldDevice::GetStanceOffset() const {
@@ -235,8 +246,9 @@ Vector HeldDevice::GetStanceOffset() const {
 		float rotAngleScalar = std::abs(std::sin(GetRootParent()->GetRotAngle()));
 		// Deviate the vertical axis towards regular StanceOffset based on the user's rotation so that sharp aiming doesn't look awkward when prone
 		return Vector(m_SharpStanceOffset.GetX(), m_SharpStanceOffset.GetY() * (1.0F - rotAngleScalar) + m_StanceOffset.GetY() * rotAngleScalar).GetXFlipped(m_HFlipped);
-	} else
+	} else {
 		return m_StanceOffset.GetXFlipped(m_HFlipped);
+	}
 }
 
 Vector HeldDevice::GetSupportPos() const {
@@ -252,8 +264,117 @@ Vector HeldDevice::GetMagazinePos() const {
 	return m_Pos;
 }
 
+Vector HeldDevice::GetMuzzlePos() const {
+	return m_Pos;
+}
+
+Vector HeldDevice::GetMuzzleOffset() const {
+	return Vector();
+}
+
+void HeldDevice::SetMuzzleOffset(Vector newOffset) {
+	/* Actually does something in inherited classes */
+}
+
+float HeldDevice::GetGripStrengthMultiplier() const {
+	return m_GripStrengthMultiplier;
+}
+
+void HeldDevice::SetGripStrengthMultiplier(float gripStrengthMultiplier) {
+	m_GripStrengthMultiplier = gripStrengthMultiplier;
+}
+
+bool HeldDevice::GetsHitByMOsWhenHeld() const {
+	return m_GetsHitByMOsWhenHeld;
+}
+
+void HeldDevice::SetGetsHitByMOsWhenHeld(bool value) {
+	m_GetsHitByMOsWhenHeld = value;
+}
+
 bool HeldDevice::IsBeingHeld() const {
 	return dynamic_cast<const Arm*>(m_Parent);
+}
+
+void HeldDevice::SetStanceOffset(Vector newValue) {
+	m_StanceOffset = newValue;
+}
+
+Vector HeldDevice::GetSharpStanceOffset() const {
+	return m_SharpStanceOffset;
+}
+
+void HeldDevice::SetSharpStanceOffset(Vector newValue) {
+	m_SharpStanceOffset = newValue;
+}
+
+float HeldDevice::GetSharpLength() const {
+	return m_MaxSharpLength;
+}
+
+void HeldDevice::SetSharpLength(float newLength) {
+	m_MaxSharpLength = newLength;
+}
+
+bool HeldDevice::IsSupportable() const {
+	return m_Supportable;
+}
+
+void HeldDevice::SetSupportable(bool shouldBeSupportable) {
+	m_Supportable = shouldBeSupportable;
+}
+
+bool HeldDevice::GetSupported() const {
+	return m_Supportable && m_Supported;
+}
+
+void HeldDevice::SetSupported(bool supported) {
+	m_Supported = m_Supportable && supported;
+}
+
+bool HeldDevice::GetSupportAvailable() const {
+	return m_Supportable && m_SupportAvailable;
+}
+
+void HeldDevice::SetSupportAvailable(bool supportAvailable) {
+	m_SupportAvailable = m_Supportable && supportAvailable;
+}
+
+bool HeldDevice::GetUseSupportOffsetWhileReloading() const {
+	return m_UseSupportOffsetWhileReloading;
+}
+
+void HeldDevice::SetUseSupportOffsetWhileReloading(bool value) {
+	m_UseSupportOffsetWhileReloading = value;
+}
+
+Vector HeldDevice::GetSupportOffset() const {
+	return m_SupportOffset;
+}
+
+void HeldDevice::SetSupportOffset(Vector newOffset) {
+	m_SupportOffset = newOffset;
+}
+
+bool HeldDevice::HasPickupLimitations() const {
+	return IsUnPickupable() || !m_PickupableByPresetNames.empty();
+}
+
+bool HeldDevice::IsUnPickupable() const {
+	return m_IsUnPickupable;
+}
+
+void HeldDevice::SetUnPickupable(bool shouldBeUnPickupable) {
+	m_IsUnPickupable = shouldBeUnPickupable;
+}
+
+bool HeldDevice::IsPickupableBy(const Actor* actor) const {
+	return !HasPickupLimitations() || m_PickupableByPresetNames.find(actor->GetPresetName()) != m_PickupableByPresetNames.end();
+}
+
+void HeldDevice::AddPickupableByPresetName(const std::string& presetName) {
+	SetUnPickupable(false);
+	m_PickupableByPresetNames.insert(presetName);
 }
 
 void HeldDevice::RemovePickupableByPresetName(const std::string& actorPresetName) {
@@ -261,6 +382,46 @@ void HeldDevice::RemovePickupableByPresetName(const std::string& actorPresetName
 	if (pickupableByPresetNameEntry != m_PickupableByPresetNames.end()) {
 		m_PickupableByPresetNames.erase(pickupableByPresetNameEntry);
 	}
+}
+
+float HeldDevice::GetVisualRecoilMultiplier() const {
+	return m_VisualRecoilMultiplier;
+}
+
+void HeldDevice::SetVisualRecoilMultiplier(float value) {
+	m_VisualRecoilMultiplier = value;
+}
+
+void HeldDevice::SetSharpAim(float sharpAim) {
+	m_SharpAim = sharpAim;
+}
+
+bool HeldDevice::IsWeapon() {
+	return m_HeldDeviceType == WEAPON;
+}
+
+bool HeldDevice::IsTool() {
+	return m_HeldDeviceType == TOOL;
+}
+
+bool HeldDevice::IsShield() {
+	return m_HeldDeviceType == SHIELD;
+}
+
+bool HeldDevice::IsDualWieldable() const {
+	return m_DualWieldable;
+}
+
+void HeldDevice::SetDualWieldable(bool isDualWieldable) {
+	m_DualWieldable = isDualWieldable;
+}
+
+bool HeldDevice::IsOneHanded() const {
+	return m_OneHanded;
+}
+
+void HeldDevice::SetOneHanded(bool newValue) {
+	m_OneHanded = newValue;
 }
 
 bool HeldDevice::CollideAtPoint(HitData& hd) {
@@ -310,12 +471,36 @@ bool HeldDevice::TransferJointImpulses(Vector& jointImpulses, float jointStiffne
 	return intact;
 }
 
-/*
-void HeldDevice::Travel()
-{
-    Attachable::Travel();
+void HeldDevice::Reload() {
 }
-*/
+
+bool HeldDevice::IsActivated() const {
+	return m_Activated;
+}
+
+const Timer& HeldDevice::GetActivationTimer() const {
+	return m_ActivationTimer;
+}
+
+bool HeldDevice::IsReloading() const {
+	return false;
+}
+
+bool HeldDevice::DoneReloading() const {
+	return false;
+}
+
+bool HeldDevice::NeedsReloading() const {
+	return false;
+}
+
+bool HeldDevice::IsFull() const {
+	return true;
+}
+
+bool HeldDevice::IsEmpty() const {
+	return false;
+}
 
 void HeldDevice::Update() {
 	Attachable::Update();
@@ -471,4 +656,9 @@ void HeldDevice::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whi
 			}
 		}
 	}
+}
+
+void HeldDevice::ResetAllTimers() {
+	Attachable::ResetAllTimers();
+	m_ActivationTimer.Reset();
 }

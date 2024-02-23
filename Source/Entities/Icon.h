@@ -40,37 +40,28 @@ namespace RTE {
 		void Destroy(bool notInherited = false) override;
 
 		/// Resets the entire Icon, including its inherited members, to their default settings or values.
-		void Reset() override {
-			Clear();
-			Entity::Reset();
-		}
+		void Reset() override;
 #pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets the number of frames in this Icon's animation.
 		/// @return The number of frames in the animation.
-		unsigned int GetFrameCount() const { return m_FrameCount; }
+		unsigned int GetFrameCount() const;
 
 		/// Gets the array of 8-bit bitmaps of this Icon, as many as GetFrameCount says. Neither the array nor the BITMAPs are transferred ownership!
 		/// @return The BITMAPs in 8bpp of this Icon.
-		std::vector<BITMAP*> GetBitmaps8() const { return m_BitmapsIndexed; }
+		std::vector<BITMAP*> GetBitmaps8() const;
 
 		/// Gets the array of 32-bit bitmaps of this Icon, as many as GetFrameCount says. Neither the array nor the BITMAPs are transferred ownership!
 		/// @return The BITMAPs in 32bpp of this Icon.
-		std::vector<BITMAP*> GetBitmaps32() const { return m_BitmapsTrueColor; }
+		std::vector<BITMAP*> GetBitmaps32() const;
 #pragma endregion
 
 #pragma region Operator Overloads
 		/// An assignment operator for setting one Icon equal to another.
 		/// @param rhs An Icon reference.
 		/// @return A reference to the changed Icon.
-		Icon& operator=(const Icon& rhs) {
-			if (this != &rhs) {
-				Destroy();
-				Create(rhs);
-			}
-			return *this;
-		}
+		Icon& operator=(const Icon& rhs);
 #pragma endregion
 
 	protected:

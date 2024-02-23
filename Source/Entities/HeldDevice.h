@@ -19,7 +19,6 @@ namespace RTE {
 	/// 01/31/2007 Made concrete so Shields can be jsut HeldDevice:s
 	class HeldDevice : public Attachable {
 
-		/// Public member variable, method and friend function declarations
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(HeldDevice);
@@ -47,11 +46,7 @@ namespace RTE {
 
 		/// Resets the entire HeldDevice, including its inherited members, to their
 		/// default settings or values.
-		void Reset() override {
-			Clear();
-			Attachable::Reset();
-			m_MOType = MovableObject::TypeHeldDevice;
-		}
+		void Reset() override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
@@ -60,7 +55,7 @@ namespace RTE {
 
 		/// Gets the absoltue position of the top of this' HUD stack.
 		/// @return A Vector with the absolute position of this' HUD stack top point.
-		Vector GetAboveHUDPos() const override { return m_Pos + Vector(0, -32); }
+		Vector GetAboveHUDPos() const override;
 
 		/// Gets the absolute position of the support handhold that this HeldDevice
 		/// offers.
@@ -78,19 +73,18 @@ namespace RTE {
 		/// this.
 		/// @return A vector describing the absolute world coordinates for the muzzle point
 		/// of this
-		virtual Vector GetMuzzlePos() const { return m_Pos; }
+		virtual Vector GetMuzzlePos() const;
 
 		/// Gets the unrotated relative offset from the position to the muzzle or
 		/// other equivalent point of this.
 		/// @return A unrotated vector describing the relative for the muzzle point of
 		/// this from this' position.
-		virtual Vector GetMuzzleOffset() const { return Vector(); }
+		virtual Vector GetMuzzleOffset() const;
 
 		/// Sets the unrotated relative offset from the position to the muzzle or
 		/// other equivalent point of this.
 		/// @param newOffset Bew ofsset value.
-		virtual void SetMuzzleOffset(Vector newOffset) { /* Actually does something in inherited classes */
-		}
+		virtual void SetMuzzleOffset(Vector newOffset);
 
 		/// Gets the current position offset of this HeldDevice's joint relative
 		/// from the parent Actor's position, if attached.
@@ -100,91 +94,88 @@ namespace RTE {
 		/// Sets the current position offset of this HeldDevice's joint relative
 		/// from the parent Actor's position, if attached.
 		/// @param newValue New value.
-		void SetStanceOffset(Vector newValue) { m_StanceOffset = newValue; }
+		void SetStanceOffset(Vector newValue);
 
 		/// Sets the current position offset of this HeldDevice's joint relative
 		/// from the parent Actor's position, if attached.
 		/// @param New value.
-		Vector GetSharpStanceOffset() const { return m_SharpStanceOffset; }
+		Vector GetSharpStanceOffset() const;
 
 		/// Sets the current position offset of this HeldDevice's joint relative
 		/// from the parent Actor's position, if attached.
 		/// @param newValue New value.
-		void SetSharpStanceOffset(Vector newValue) { m_SharpStanceOffset = newValue; }
+		void SetSharpStanceOffset(Vector newValue);
 
 		/// Gets how much farther an Actor which holds this device can see when
 		/// aiming this HeldDevice sharply.
 		/// @return The length in world pixel units.
-		float GetSharpLength() const { return m_MaxSharpLength; }
+		float GetSharpLength() const;
 
 		/// Sets how much farther an Actor which holds this device can see when
 		/// aiming this HeldDevice sharply.
 		/// @param newLength The length in world pixel units.
-		void SetSharpLength(float newLength) { m_MaxSharpLength = newLength; }
+		void SetSharpLength(float newLength);
 
 		/// Gets whether this HeldDevice can be supported when held.
 		/// @return Whether this HeldDevice can be supported when held.
-		bool IsSupportable() const { return m_Supportable; }
+		bool IsSupportable() const;
 
 		/// Sets whether this HeldDevice can be supported when held.
 		/// @param shouldBeSupportable Whether this HeldDevice can be supported when held.
-		void SetSupportable(bool shouldBeSupportable) { m_Supportable = shouldBeSupportable; }
+		void SetSupportable(bool shouldBeSupportable);
 
 		/// Gets whether this HeldDevice is currently supported by a second Arm.
 		/// @return Whether this HeldDevice is supported or not.
-		bool GetSupported() const { return m_Supportable && m_Supported; }
+		bool GetSupported() const;
 
 		/// Sets whether this HeldDevice is currently supported by a second Arm.
 		/// @param supported Whether this HeldDevice is being supported.
-		void SetSupported(bool supported) { m_Supported = m_Supportable && supported; }
+		void SetSupported(bool supported);
 
 		/// Gets whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
 		/// @return Whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
-		bool GetSupportAvailable() const { return m_Supportable && m_SupportAvailable; }
+		bool GetSupportAvailable() const;
 
 		/// Sets whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
 		/// @param supported Whether this HeldDevice's parent has a second Arm available to provide support (or this is on a Turret).
-		void SetSupportAvailable(bool supportAvailable) { m_SupportAvailable = m_Supportable && supportAvailable; }
+		void SetSupportAvailable(bool supportAvailable);
 
 		/// Gets whether this HeldDevice while be held at the support offset with the off-hand when reloading.
 		/// @return Whether this HeldDevice while be held at the support offset with the off-hand when reloading.
-		bool GetUseSupportOffsetWhileReloading() const { return m_UseSupportOffsetWhileReloading; }
+		bool GetUseSupportOffsetWhileReloading() const;
 
 		/// Sets whether this HeldDevice while be held at the support offset with the off-hand when reloading.
 		/// @param value Whether this HeldDevice while be held at the support offset with the off-hand when reloading.
-		void SetUseSupportOffsetWhileReloading(bool value) { m_UseSupportOffsetWhileReloading = value; }
+		void SetUseSupportOffsetWhileReloading(bool value);
 
 		/// Returns support offset.
 		/// @return Support offset value.
-		Vector GetSupportOffset() const { return m_SupportOffset; }
+		Vector GetSupportOffset() const;
 
 		/// Sets support offset.
 		/// @param newOffset New support offset value.
-		void SetSupportOffset(Vector newOffset) { m_SupportOffset = newOffset; }
+		void SetSupportOffset(Vector newOffset);
 
 		/// Gets whether this HeldDevice has any limitations on what can pick it up.
 		/// @return Whether this HeldDevice has any limitations on what can pick it up.
-		bool HasPickupLimitations() const { return IsUnPickupable() || !m_PickupableByPresetNames.empty(); }
+		bool HasPickupLimitations() const;
 
 		/// Gets whether this HeldDevice cannot be picked up at all.
 		/// @return Whether this HeldDevice cannot be picked up at all.
-		bool IsUnPickupable() const { return m_IsUnPickupable; }
+		bool IsUnPickupable() const;
 
 		/// Sets whether this HeldDevice cannot be picked up at all.
 		/// @param shouldBeUnPickupable Whether this HeldDevice cannot be picked up at all. True means it cannot, false means any other limitations will apply normally.
-		void SetUnPickupable(bool shouldBeUnPickupable) { m_IsUnPickupable = shouldBeUnPickupable; }
+		void SetUnPickupable(bool shouldBeUnPickupable);
 
 		/// Checks whether the given Actor can pick up this HeldDevice.
 		/// @param actor The Actor to check. Ownership is NOT transferred.
 		/// @return Whether the given Actor can pick up this HeldDevice.
-		bool IsPickupableBy(const Actor* actor) const { return !HasPickupLimitations() || m_PickupableByPresetNames.find(actor->GetPresetName()) != m_PickupableByPresetNames.end(); }
+		bool IsPickupableBy(const Actor* actor) const;
 
 		/// Specify that objects with the given PresetName can pick up this HeldDevice.
 		/// @param presetName The PresetName of an object that should be able to pick up this HeldDevice.
-		void AddPickupableByPresetName(const std::string& presetName) {
-			SetUnPickupable(false);
-			m_PickupableByPresetNames.insert(presetName);
-		}
+		void AddPickupableByPresetName(const std::string& presetName);
 
 		/// Remove allowance for objects with the given PresetName to pick up this HeldDevice.
 		/// Note that if the last allowance is removed, the HeldDevice will no longer have pickup limitations, rather than setting itself as unpickupable.
@@ -193,19 +184,19 @@ namespace RTE {
 
 		/// Gets the multiplier for how well this HeldDevice can be gripped by Arms.
 		/// @return The grip strength multiplier for this HeldDevice.
-		float GetGripStrengthMultiplier() const { return m_GripStrengthMultiplier; }
+		float GetGripStrengthMultiplier() const;
 
 		/// Sets the multiplier for how well this HeldDevice can be gripped by Arms.
 		/// @param gripStrengthMultiplier The new grip strength multiplier for this HeldDevice.
-		void SetGripStrengthMultiplier(float gripStrengthMultiplier) { m_GripStrengthMultiplier = gripStrengthMultiplier; }
+		void SetGripStrengthMultiplier(float gripStrengthMultiplier);
 
 		/// Gets whether this can get hit by MOs when held.
 		/// @return Whether this can get hit by MOs when held.
-		bool GetsHitByMOsWhenHeld() const { return m_GetsHitByMOsWhenHeld; }
+		bool GetsHitByMOsWhenHeld() const;
 
 		/// Sets whether this can get hit by MOs when held.
 		/// @param value Whether this can get hit by MOs when held.
-		void SetGetsHitByMOsWhenHeld(bool value) { m_GetsHitByMOsWhenHeld = value; }
+		void SetGetsHitByMOsWhenHeld(bool value);
 
 		/// Gets whether this HeldDevice is currently being held or not.
 		/// @return Whether this HeldDevice is currently being held or not.
@@ -213,46 +204,46 @@ namespace RTE {
 
 		/// Gets the visual recoil multiplier.
 		/// @return A float with the scalar value.
-		float GetVisualRecoilMultiplier() const { return m_VisualRecoilMultiplier; }
+		float GetVisualRecoilMultiplier() const;
 
 		/// Sets the visual recoil multiplier.
 		/// @param value The new recoil multiplier scalar.
-		void SetVisualRecoilMultiplier(float value) { m_VisualRecoilMultiplier = value; }
+		void SetVisualRecoilMultiplier(float value);
 
 		/// Sets the degree to which this is being aimed sharp. This will
 		/// affect the accuracy and what GetParentOffset returns.
 		/// @param sharpAim A normalized scalar between 0 (no sharp aim) to 1.0 (best aim).
-		void SetSharpAim(float sharpAim) { m_SharpAim = sharpAim; }
+		void SetSharpAim(float sharpAim);
 
 		/// Indicates whether this is an offensive weapon or not.
 		/// @return Offensive weapon or not.
-		bool IsWeapon() { return m_HeldDeviceType == WEAPON; }
+		bool IsWeapon();
 
 		/// Indicates whether this is a tool or not.
 		/// @return Tool or not.
-		bool IsTool() { return m_HeldDeviceType == TOOL; }
+		bool IsTool();
 
 		/// Indicates whether this is a shield or not.
 		/// @return Shield or not.
-		bool IsShield() { return m_HeldDeviceType == SHIELD; }
+		bool IsShield();
 
 		/// Indicates whether this is a dual wieldable weapon or not.
 		/// @return Dual wieldable or not.
-		bool IsDualWieldable() const { return m_DualWieldable; }
+		bool IsDualWieldable() const;
 
 		/// Sets whether this is a dual wieldable weapon or not.
 		/// @param isDualWieldable Dual wieldable or not.
-		void SetDualWieldable(bool isDualWieldable) { m_DualWieldable = isDualWieldable; }
+		void SetDualWieldable(bool isDualWieldable);
 
 		/// Indicates whether this can be held and operated effectively with one
 		/// hand or not.
 		/// @return One handed device or not.
-		bool IsOneHanded() const { return m_OneHanded; }
+		bool IsOneHanded() const;
 
 		/// Sets whether this can be held and operated effectively with one
 		/// hand or not.
 		/// @param newValue New value.
-		void SetOneHanded(bool newValue) { m_OneHanded = newValue; }
+		void SetOneHanded(bool newValue);
 
 		/// Calculates the collision response when another MO's Atom collides with
 		/// this MO's physical representation. The effects will be applied
@@ -273,36 +264,36 @@ namespace RTE {
 
 		/// Throws out the currently used Magazine, if any, and puts in a new one
 		/// after the reload delay is up.
-		virtual void Reload() {}
+		virtual void Reload();
 
 		/// Tells whether the device is curtrently being activated.
 		/// @return Whether being activated.
-		virtual bool IsActivated() const { return m_Activated; }
+		virtual bool IsActivated() const;
 
 		/// Gets the activation Timer for this HeldDevice.
 		/// @return The activation Timer for this HeldDevice.
-		const Timer& GetActivationTimer() const { return m_ActivationTimer; }
+		const Timer& GetActivationTimer() const;
 
 		/// Tells whether the device is curtrently being reloaded.
 		/// @return Whetehr being reloaded.
-		virtual bool IsReloading() const { return false; }
+		virtual bool IsReloading() const;
 
 		/// Tells whether the device just finished reloading this frame.
 		/// @return Whether just done reloading this frame.
-		virtual bool DoneReloading() const { return false; }
+		virtual bool DoneReloading() const;
 
 		/// Tells whether the device is curtrently in need of being reloaded.
 		/// @return Whetehr in need of reloading (ie not full).
-		virtual bool NeedsReloading() const { return false; }
+		virtual bool NeedsReloading() const;
 
 		/// Tells whether the device is curtrently full and reloading won't have
 		/// any effect.
 		/// @return Whetehr magazine is full or not.
-		virtual bool IsFull() const { return true; }
+		virtual bool IsFull() const;
 
 		/// Tells whether this HeldDevice is currently empty of ammo.
 		/// @return Whether this HeldDevice is empty.
-		virtual bool IsEmpty() const { return false; }
+		virtual bool IsEmpty() const;
 
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
@@ -325,10 +316,7 @@ namespace RTE {
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
 		/// Resest all the timers used by this. Can be emitters, etc. This is to prevent backed up emissions to come out all at once while this has been held dormant in an inventory.
-		void ResetAllTimers() override {
-			Attachable::ResetAllTimers();
-			m_ActivationTimer.Reset();
-		}
+		void ResetAllTimers() override;
 
 #pragma region Force Transferral
 		/// Bundles up all the accumulated impulse forces of this HeldDevice and calculates how they transfer to the joint, and therefore to the parent.
@@ -342,7 +330,6 @@ namespace RTE {
 		bool TransferJointImpulses(Vector& jointImpulses, float jointStiffnessValueToUse = -1, float jointStrengthValueToUse = -1, float gibImpulseLimitValueToUse = -1) override;
 #pragma endregion
 
-		/// Protected member variable and method declarations
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -389,7 +376,6 @@ namespace RTE {
 		/// The multiplier for visual recoil
 		float m_VisualRecoilMultiplier;
 
-		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this HeldDevice, effectively
 		/// resetting the members of this abstraction level only.

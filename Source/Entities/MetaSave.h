@@ -33,34 +33,29 @@ namespace RTE {
 
 		/// Destroys and resets (through Clear()) the MetaSave object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
-		void Destroy(bool notInherited = false) override {
-			if (!notInherited) {
-				Entity::Destroy();
-			}
-			Clear();
-		}
+		void Destroy(bool notInherited = false) override;
 #pragma endregion
 
 #pragma region Getters
 		/// Gets the full path to the ini file that stores the state of the MetaMan this is associated with.
 		/// @return The path to the ini with the MetaMan state info.
-		std::string GetSavePath() const { return m_SavePath; }
+		std::string GetSavePath() const;
 
 		/// Gets the total number of players this game has (including AIs).
 		/// @return The player count.
-		int GetPlayerCount() const { return m_PlayerCount; }
+		int GetPlayerCount() const;
 
 		/// Gets the difficulty for this game.
 		/// @return Difficulty setting.
-		int GetDifficulty() const { return m_Difficulty; }
+		int GetDifficulty() const;
 
 		/// Gets the round number that this game is on.
 		/// @return The round count.
-		int GetRoundCount() const { return m_RoundCount; }
+		int GetRoundCount() const;
 
 		/// Gets the total number of Scenes this game has.
 		/// @return The number of Scenes.
-		int GetSiteCount() const { return m_SiteCount; }
+		int GetSiteCount() const;
 #pragma endregion
 
 	protected:

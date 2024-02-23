@@ -25,10 +25,7 @@ namespace RTE {
 		/// @param velocity A Vector specifying the initial velocity.
 		/// @param atom An Atom that will collide with the terrain. Ownership IS transferred!
 		/// @param lifetime The amount of time in ms this MOPixel will exist. 0 means unlimited.
-		MOPixel(Color color, const float mass, const Vector& position, const Vector& velocity, Atom* atom, const unsigned long lifetime = 0) {
-			Clear();
-			Create(color, mass, position, velocity, atom, lifetime);
-		}
+		MOPixel(Color color, const float mass, const Vector& position, const Vector& velocity, Atom* atom, const unsigned long lifetime = 0);
 
 		/// Makes the MOPixel object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -59,10 +56,7 @@ namespace RTE {
 		void Destroy(bool notInherited = false) override;
 
 		/// Resets the entire MOPixel, including its inherited members, to their default settings or values.
-		void Reset() override {
-			Clear();
-			MovableObject::Reset();
-		}
+		void Reset() override;
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -76,7 +70,7 @@ namespace RTE {
 
 		/// Gets the current Atom of this MOPixel.
 		/// @return A const reference to the current Atom.
-		const Atom* GetAtom() const { return m_Atom; }
+		const Atom* GetAtom() const;
 
 		/// Replaces the current Atom of this MOPixel with a new one.
 		/// @param newAtom A reference to the new Atom. Ownership IS transferred!
@@ -84,23 +78,23 @@ namespace RTE {
 
 		/// Gets the color of this MOPixel.
 		/// @return A Color object describing the color.
-		Color GetColor() const { return m_Color; }
+		Color GetColor() const;
 
 		/// Gets the index of the color of this MOPixel.
 		/// @return An int that is the index of the Color object.
-		int GetColorIndex() const { return m_Color.GetIndex(); }
+		int GetColorIndex() const;
 
 		/// Sets the color value of this MOPixel.
 		/// @param newColor A Color object specifying the new color index value.
-		void SetColor(Color newColor) { m_Color = newColor; }
+		void SetColor(Color newColor);
 
 		/// Sets the color value of this MOPixel via index.
 		/// @param newColor An int specifying the new color index value.
-		void SetColorIndex(int newColorIndex) { m_Color.SetRGBWithIndex(newColorIndex); }
+		void SetColorIndex(int newColorIndex);
 
 		/// Travel distance until the bullet start to lose lethality.
 		/// @return The factor that modifies the base value.
-		float GetMaxLethalRangeFactor() const { return m_MaxLethalRange; }
+		float GetMaxLethalRangeFactor() const;
 
 		/// Travel distance until the bullet start to lose lethality.
 		/// @param range The distance in pixels.
@@ -116,11 +110,11 @@ namespace RTE {
 
 		/// Gets this MOPixel's staininess, which defines how likely a pixel is to stain a surface when it collides with it.
 		/// @return This MOPixel's current staininess value.
-		float GetStaininess() const { return m_Staininess; }
+		float GetStaininess() const;
 
 		/// Sets this MOPixel's staininess, which defines how likely a pixel is to stain a surface when it collides with it.
 		/// @param staininess The new staininess value.
-		void SetStaininess(float staininess) { m_Staininess = staininess; }
+		void SetStaininess(float staininess);
 
 		/// Whether a set of X, Y coordinates overlap us (in world space).
 		/// @param pixelX The given X coordinate, in world space.
@@ -145,12 +139,12 @@ namespace RTE {
 		/// Defines what should happen when this MOPixel hits and then bounces off of something. This is called by the owned Atom/AtomGroup of this MOPixel during travel.
 		/// @param hd The HitData describing the collision in detail.
 		/// @return Whether the MOPixel should immediately halt any travel going on after this bounce.
-		bool OnBounce(HitData& hd) override { return false; }
+		bool OnBounce(HitData& hd) override;
 
 		/// Defines what should happen when this MOPixel hits and then sink into something. This is called by the owned Atom/AtomGroup of this MOPixel during travel.
 		/// @param hd The HitData describing the collision in detail.
 		/// @return Whether the MOPixel should immediately halt any travel going on after this sinkage.
-		bool OnSink(HitData& hd) override { return false; }
+		bool OnSink(HitData& hd) override;
 
 		/// Updates this MOPixel. Supposed to be done every frame.
 		void Update() override;

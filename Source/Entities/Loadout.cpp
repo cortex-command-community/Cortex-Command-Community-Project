@@ -13,15 +13,24 @@ void Loadout::Clear() {
 	m_CargoItems.clear();
 }
 
-/*
-int Loadout::Create()
-{
-    if (Entity::Create() < 0)
-        return -1;
-
-    return 0;
+Loadout::Loadout() {
+	Clear();
 }
-*/
+
+Loadout::Loadout(const Loadout& reference) {
+	if (this != &reference) {
+		Clear();
+		Create(reference);
+	}
+}
+
+Loadout& Loadout::operator=(const Loadout& rhs) {
+	if (this != &rhs) {
+		Destroy();
+		Create(rhs);
+	}
+	return *this;
+}
 
 int Loadout::Create(const Loadout& reference) {
 	Entity::Create(reference);
@@ -33,6 +42,15 @@ int Loadout::Create(const Loadout& reference) {
 		m_CargoItems.push_back(*itr);
 
 	return 0;
+}
+
+void Loadout::Reset() {
+	Clear();
+	Entity::Reset();
+}
+
+bool Loadout::IsComplete() {
+	return m_Complete;
 }
 
 int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -105,17 +123,6 @@ int Loadout::Save(Writer& writer) const {
 
 	return 0;
 }
-
-/*
-void Loadout::Destroy(bool notInherited)
-{
-//  delete;
-
-    if (!notInherited)
-        Entity::Destroy();
-    Clear();
-}
-*/
 
 Actor* Loadout::CreateFirstActor(int nativeModule, float foreignMult, float nativeMult, float& costTally) const {
 	// The Actor instance we return and pass ownership of
@@ -219,4 +226,23 @@ SceneObject* Loadout::CreateFirstDevice(int nativeModule, float foreignMult, flo
 
 	// PASSING OWNERSHIP
 	return pReturnObject;
+}
+
+const ACraft* Loadout::GetDeliveryCraft() const {
+	return m_pDeliveryCraft;
+}
+
+void Loadout::SetDeliveryCraft(const ACraft* pCraft) {
+	m_pDeliveryCraft = pCraft;
+	m_Complete = m_Complete && m_pDeliveryCraft;
+}
+
+std::list<const SceneObject*>* Loadout::GetCargoList() {
+	return &m_CargoItems;
+}
+
+void Loadout::AddToCargoList(const SceneObject* pNewItem) {
+	if (pNewItem) {
+		m_CargoItems.push_back(pNewItem);
+	}
 }
