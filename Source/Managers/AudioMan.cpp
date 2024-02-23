@@ -663,8 +663,9 @@ bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
 			return false;
 		}
 
-		// If we are marked as paused at this point we will likely be unpaused later
-		if (!soundContainer->GetPaused()) {
+		// At this point the sound is ready to go, but if the SoundContainer is explicitly paused, it and this new channel will hopefully be unpaused
+		// at some later point in time by whatever paused it
+		if (!soundContainer->IsPaused()) {
 			result = channel->setPaused(false);
 			if (result != FMOD_OK) {
 				g_ConsoleMan.PrintString("ERROR: Failed to start playing sounds from SoundContainer " + soundContainer->GetPresetName() + " after setting it up: " + std::string(FMOD_ErrorString(result)));

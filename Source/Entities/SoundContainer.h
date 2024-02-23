@@ -249,7 +249,7 @@ namespace RTE {
 
 		/// Gets whether this SoundContainer's channels are paused or not.
 		/// @return Whether this SoundContainer's channels are paused or not.
-		bool GetPaused() const { return m_Paused; }
+		bool IsPaused() const { return m_Paused; }
 
 		/// Sets whether this SoundContainer's channels are paused or not.
 		/// @param paused The new paused setting.

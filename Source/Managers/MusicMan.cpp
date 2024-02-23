@@ -15,7 +15,7 @@ MusicMan::~MusicMan() {
 }
 
 void MusicMan::Clear() {
-	m_IsSetToNotPlayMusic = true;
+	m_IsPlayingDynamicMusic = false;
 	m_HardcodedSoundContainersInitialized = false;
 
 	m_IntroMusicSoundContainer = nullptr;
@@ -34,6 +34,8 @@ void MusicMan::Clear() {
 
 	m_MusicTimer.Reset();
 	m_MusicTimer.SetRealTimeLimitMS(-1);
+	m_MusicPausedTime = 0.0;
+	m_ReturnToDynamicMusic = false;
 }
 
 bool MusicMan::Initialize() {
@@ -67,7 +69,7 @@ void MusicMan::Update() {
 		m_HardcodedSoundContainersInitialized = InitializeHardcodedSoundContainers();
 	}
 	
-	if (!m_IsSetToNotPlayMusic) {
+	if (m_IsPlayingDynamicMusic) {
 		if (m_MusicTimer.IsPastRealTimeLimit()) {
 			CyclePlayingSoundContainers(false);
 		}
@@ -78,7 +80,6 @@ bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType
 	g_AudioMan.StopMusic();
 
 	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", std::move(songName)))) {
-		m_IsSetToNotPlayMusic = false;
 		m_CurrentSong = dynamic_cast<DynamicSong*>(dynamicSongToPlay->Clone());
 		SetCurrentSongSectionType(std::move(songSectionType));
 		SelectNextSongSection();
@@ -87,7 +88,8 @@ bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType
 			// If we don't have a current sound container, we're not playing any song, so move the Next container appropriately and start it up
 			CyclePlayingSoundContainers();
 		}
-
+		m_IsPlayingDynamicMusic = true;
+		
 		return true;
 	}
 
@@ -133,11 +135,11 @@ bool MusicMan::EndMusic(bool fadeOutCurrent) {
 		m_CurrentSoundContainer->FadeOut(2000);
 	}
 
-	if (m_IsSetToNotPlayMusic) {
+	if (!m_IsPlayingDynamicMusic) {
 		return false;
 	}
 
-	m_IsSetToNotPlayMusic = true;
+	m_IsPlayingDynamicMusic = false;
 	return true;
 }
 
@@ -171,24 +173,37 @@ void MusicMan::PlayHardcodedMusic(HardcodedMusicTypes hardcodedMusicType) {
 	}
 	
 	m_HardcodedMusicSoundContainer->Play();
+	if (m_IsPlayingDynamicMusic) {
+		m_ReturnToDynamicMusic = true;
+		m_IsPlayingDynamicMusic = false;
+		m_MusicPausedTime = m_MusicTimer.GetElapsedRealTimeMS();
+	}
 	g_AudioMan.SetMusicMuffledState(false);
 }
 
 void MusicMan::EndHardcodedMusic() {
-	m_HardcodedMusicSoundContainer->Stop();
-	
-	if (m_OldSoundContainer != nullptr) {
-		m_OldSoundContainer->SetPaused(false);
-	}
+	if (m_HardcodedMusicSoundContainer && m_HardcodedMusicSoundContainer->IsBeingPlayed()) {
+		m_HardcodedMusicSoundContainer->Stop();
+        
+        if (m_OldSoundContainer != nullptr) {
+        	m_OldSoundContainer->SetPaused(false);
+        }
 
-	if (m_CurrentSoundContainer != nullptr) {
-		m_CurrentSoundContainer->SetPaused(false);
-	}
+        if (m_CurrentSoundContainer != nullptr) {
+        	m_CurrentSoundContainer->SetPaused(false);
+        }
 
-	if (m_NextSoundContainer != nullptr) {
-		m_NextSoundContainer->SetPaused(false);
+        if (m_NextSoundContainer != nullptr) {
+        	m_NextSoundContainer->SetPaused(false);
+        }
+		
+		if (m_ReturnToDynamicMusic) {
+			m_ReturnToDynamicMusic = false;
+			m_IsPlayingDynamicMusic = true;
+			double elapsedPausedTime = m_MusicTimer.GetElapsedRealTimeMS() - m_MusicPausedTime;
+			m_MusicTimer.SetRealTimeLimitMS(m_MusicTimer.GetRealTimeLimitMS() + elapsedPausedTime);
+		}
 	}
-
 	g_AudioMan.SetMusicMuffledState(false);
 }
 

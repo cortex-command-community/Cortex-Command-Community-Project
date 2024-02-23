@@ -80,7 +80,7 @@ namespace RTE {
 #pragma endregion
 
 	protected:
-		bool m_IsSetToNotPlayMusic; //!< Whether this is set to no longer cycle through music or not.
+		bool m_IsPlayingDynamicMusic; //!< Whether this is actively playing dynamic music or not.
 		bool m_HardcodedSoundContainersInitialized; //!< Whether we have initialized base hardcoded SoundContainers or not.
 
 		SoundContainer* m_IntroMusicSoundContainer; //!< SoundContainer for hardcoded intro music.
@@ -93,11 +93,13 @@ namespace RTE {
 		std::string m_CurrentSongSectionType; //!< The current type of DynamicSongSection we are trying to play.
 		DynamicSongSection* m_CurrentSongSection; //!< The current DynamicSongSection we are actually playing.
 
-		SoundContainer* m_OldSoundContainer; //!< The previous Soundcontainer that was played as music.
+		SoundContainer* m_OldSoundContainer; //!< The previous SoundContainer that was played as music.
 		SoundContainer* m_CurrentSoundContainer; //!< The current selected SoundContainer playing as music.
 		SoundContainer* m_NextSoundContainer; //!< The next selected SoundContainer to play as music.
 
 		Timer m_MusicTimer; //!< Timer for musical horizontal sequencing.
+		double m_MusicPausedTime; //!< Elapsed MusicTimer time when we last paused, used to resync on unpause.
+		bool m_ReturnToDynamicMusic; //!< Signifier that this was playing dynamic music before being interrupted.
 
 	private:
 #pragma region Internal Music Handling
