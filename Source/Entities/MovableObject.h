@@ -434,8 +434,16 @@ namespace RTE {
 		bool GetPostEffectEnabled() const { return m_PostEffectEnabled; }
 
 		/// Sets whether or not to draw this MovableObject's effect every frame.
-		/// @param Boolean indicating whether or not to draw the effect.
+		/// @param newValue Boolean indicating whether or not to draw the effect.
 		void SetPostEffectEnabled(bool newValue) { m_PostEffectEnabled = newValue; }
+
+		/// Gets whether or not this MovableObject's effect can be obscured.
+		/// @return Boolean indicating whether or not the effect can be obscured.
+		bool GetEffectAlwaysShows() const { return m_EffectAlwaysShows; }
+
+		/// Sets whether or not this MovableObject's effect can be obscured.
+		/// @param newValue Boolean indicating whether or not the effect can be obscured.
+		void SetEffectAlwaysShows(bool newValue) { m_EffectAlwaysShows = newValue; }
 
 		/// Sets the current angular velocity of this MovableObject. Positive is
 		/// a counter clockwise rotation.
