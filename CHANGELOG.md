@@ -9,14 +9,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 <details><summary><b>Added</b></summary>
 
 - Exposed `MovableObject` INI property `EffectAlwaysShows` to Lua (R/W), boolean.
+  
+<details><summary><b>Changed</b></summary>
+
+- Brain vs Brain now uses the Infantry Brain preset if available, and picks a random brain if not.
 
 </details>
 
 <details><summary><b>Fixed</b></summary>
 
+- Fixed `UseSupportOffsetWhileReloading` defaulting to true instead of false
+
 - Fixed regression introduced in 6.1 causing Conquest activities to immediately fail if a defending brain was present (and probably breaking other activities as well).
 
 - Fixed the Conquest start game menu not letting you immediately start a game until you tweak some settings.
+
+- Fixed One Man Army (and Diggers Only) assigning a player to the winning team instead of a team.
 
 </details>
 
