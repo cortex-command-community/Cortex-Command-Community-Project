@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Exposed `MovableObject` INI property `EffectAlwaysShows` to Lua (R/W), boolean. This property defines whether or not the glows on this MO will be obscured by other MOs.
   
+</details>
+
 <details><summary><b>Changed</b></summary>
 
 - Brain vs Brain now uses the Infantry Brain preset if available, and picks a random brain if not.
