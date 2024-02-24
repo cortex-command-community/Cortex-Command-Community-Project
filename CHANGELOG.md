@@ -4,11 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Release v6.2.2] - 2024/02/24
 
 <details><summary><b>Added</b></summary>
 
-- Exposed `MovableObject` INI property `EffectAlwaysShows` to Lua (R/W), boolean.
+- Exposed `MovableObject` INI property `EffectAlwaysShows` to Lua (R/W), boolean. This property defines whether or not the glows on this MO will be obscured by other MOs.
   
 <details><summary><b>Changed</b></summary>
 
@@ -18,13 +18,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Fixed</b></summary>
 
-- Fixed `UseSupportOffsetWhileReloading` defaulting to true instead of false
+- Fixed `UseSupportOffsetWhileReloading` defaulting to true instead of false, causing weird reload animations in some cases.
 
 - Fixed regression introduced in 6.1 causing Conquest activities to immediately fail if a defending brain was present (and probably breaking other activities as well).
 
 - Fixed the Conquest start game menu not letting you immediately start a game until you tweak some settings.
 
-- Fixed One Man Army (and Diggers Only) assigning a player to the winning team instead of a team.
+- Fixed potential issues with One Man Army (and Diggers Only) that could occur when the player is not assigned to the first team.
 
 </details>
 
@@ -2546,4 +2546,5 @@ Note: For a log of changes made prior to the commencement of the open source com
 [Release v6.1.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.1.0
 [Release v6.2.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.2.0
 [Release v6.2.1]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.2.1
+[Release v6.2.2]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.2.2
 [Unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development
