@@ -757,6 +757,9 @@ void MetagameGUI::SetEnabled(bool enable) {
 		}
 	}
 
+	if (enable) {
+		UpdatePlayerSetup(); // Ensure everything's ready to jump right in to the game, if the player wants.
+	}
 	m_ScreenChange = true;
 }
 
