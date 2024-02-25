@@ -10,7 +10,7 @@
 #define g_MusicMan MusicMan::Instance()
 
 namespace RTE {
-	
+
 	class MusicMan : public Singleton<MusicMan> {
 
 	public:
@@ -56,16 +56,16 @@ namespace RTE {
 		/// Gets the hardcoded main menu music SoundContainer for the game.
 		/// @return A pointer to the SoundContainer.
 		SoundContainer* GetHardcodedMainMenuMusic() const { return m_MainMenuMusicSoundContainer; }
-		
+
 		/// Gets the hardcoded scenario menu music SoundContainer for the game.
 		/// @return A pointer to the SoundContainer.
 		SoundContainer* GetHardcodedScenarioMenuMusic() const { return m_ScenarioMenuMusicSoundContainer; }
 #pragma endregion
-		
+
 #pragma region Music Handling
 		/// Resets music state, stopping and clearing playing dynamic songs or interrupting music, etc. to make ready for new music.
 		void ResetMusicState();
-		
+
 		/// Begins playing a new dynamic song, optionally from a specific section type.
 		/// @param songName PresetName of the dynamic song to play.
 		/// @param songSectionType Type of DynamicSongSection to play first.
@@ -84,7 +84,7 @@ namespace RTE {
 		/// @param fadeOutCurrent Whether to fade out the current playing SoundContainer or let it play out.
 		/// @return Whether the function completed successfully or not.
 		bool CyclePlayingSoundContainers(bool fadeOutCurrent = true);
-		
+
 		/// Sets the current playing music to end, disabling further playback of new music.
 		/// @param Whether to also fade out the current playing music or not.
 		/// @return True if this was not set to end music previously, false if it already was.
@@ -122,10 +122,18 @@ namespace RTE {
 
 	private:
 #pragma region Internal Music Handling
+		/// Sets the current SoundContainer that should be playing.
+		/// @param newSoundContainer New SoundContainer that should be playing.
+		void SetCurrentSoundContainer(SoundContainer* newSoundContainer) { m_CurrentSoundContainer = newSoundContainer; }
+
+		/// Sets the next SoundContainer that should play after the current one.
+		/// @param newSoundContainer New SoundContainer that should play next.
+		void SetNextSoundContainer(SoundContainer* newSoundContainer) { m_NextSoundContainer = newSoundContainer; }
+
 		/// Sets the current SongSectionType this wants to play.
 		/// @param newSongSectionType New SongSectionType for this to want to play.
-		void SetCurrentSongSectionType(std::string newSongSectionType) {m_CurrentSongSectionType = newSongSectionType;}
-		
+		void SetCurrentSongSectionType(std::string newSongSectionType) { m_CurrentSongSectionType = newSongSectionType; }
+
 		/// Selects and sets the next SongSection based on the current SongSectionType.
 		void SelectNextSongSection();
 

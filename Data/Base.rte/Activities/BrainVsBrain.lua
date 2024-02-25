@@ -125,13 +125,25 @@ function BrainvsBrain:StartNewGame()
 					local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
 					-- Spawn a brain if we can't find an unassigned brain in the scene to give each player
 					if not foundBrain then
-						local Brain = RandomAHuman("Brains", self:GetTeamTech(self:GetTeamOfPlayer(player)));
-						if Brain then
-							local Weapon = RandomHDFirearm("Weapons - Primary", self:GetTeamTech(self:GetTeamOfPlayer(player)));
-							if Weapon then
-								Brain:AddInventoryItem(Weapon);
+						local techID = PresetMan:GetModuleID(self:GetTeamTech(self:GetTeamOfPlayer(player)));
+						local Brain;
+						if techID ~= -1 then
+							Brain = PresetMan:GetLoadout("Infantry Brain", techID, false);
+							if Brain then
+								Brain:RemoveInventoryItem("Constructor");
 							end
+						end
+						if not Brain then
+							Brain = RandomAHuman("Brains", techID);
+							if Brain then
+								local Weapon = RandomHDFirearm("Weapons - Primary", self:GetTeamTech(self:GetTeamOfPlayer(player)));
+								if Weapon then
+									Brain:AddInventoryItem(Weapon);
+								end
+							end
+						end
 
+						if Brain then
 							Brain.AIMode = Actor.AIMODE_SENTRY;
 							Brain.Team = self:GetTeamOfPlayer(player);
 
@@ -192,13 +204,24 @@ function BrainvsBrain:StartNewGame()
 		self:SetTeamFunds(self:GetStartingGold()*(self.Difficulty/100+0.5), self.CPUTeam);
 		self.bombChance = math.random(self.Difficulty*0.7, self.Difficulty) / 120;
 
-		self.CPUBrain = CreateAHuman("Brain Robot", "Base.rte");
-		if self.CPUBrain then
-			local Weapon = CreateHDFirearm("SMG", "Base.rte");
-			if Weapon then
-				self.CPUBrain:AddInventoryItem(Weapon);
+		local techID = PresetMan:GetModuleID(self:GetTeamTech(self.CPUTeam));
+		if techID ~= -1 then
+			self.CPUBrain = PresetMan:GetLoadout("Infantry Brain", techID, false);
+			if self.CPUBrain then
+				self.CPUBrain:RemoveInventoryItem("Constructor");
 			end
+		end
+		if not self.CPUBrain then
+			self.CPUBrain = RandomAHuman("Brains", techID);
+			if self.CPUBrain then
+				local Weapon = CreateHDFirearm("SMG", "Base.rte");
+				if Weapon then
+					self.CPUBrain:AddInventoryItem(Weapon);
+				end
+			end
+		end
 
+		if self.CPUBrain then
 			self.CPUBrain.AIMode = Actor.AIMODE_SENTRY;
 			self.CPUBrain.Team = self.CPUTeam;
 

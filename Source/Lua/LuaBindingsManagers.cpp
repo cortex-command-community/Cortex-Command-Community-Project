@@ -53,9 +53,9 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {
 	return luabind::class_<MusicMan>("MusicManager")
 
-	.def("PlayDynamicSong", &MusicMan::PlayDynamicSong)
-	.def("SetNextDynamicSongSection", &MusicMan::SetNextDynamicSongSection)
-	.def("EndMusic", &MusicMan::EndMusic);
+	    .def("PlayDynamicSong", &MusicMan::PlayDynamicSong)
+	    .def("SetNextDynamicSongSection", &MusicMan::SetNextDynamicSongSection)
+	    .def("EndMusic", &MusicMan::EndMusic);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {

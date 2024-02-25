@@ -666,7 +666,7 @@ bool MovableMan::AddMO(MovableObject* movableObjectToAdd) {
 }
 
 void MovableMan::AddActor(Actor* actorToAdd) {
-	if (actorToAdd && g_ActivityMan.ActivityRunning()) {
+	if (actorToAdd && g_ActivityMan.GetActivity()) {
 		actorToAdd->SetAsAddedToMovableMan();
 		actorToAdd->CorrectAttachableAndWoundPositionsAndRotations();
 
@@ -696,7 +696,7 @@ void MovableMan::AddActor(Actor* actorToAdd) {
 }
 
 void MovableMan::AddItem(HeldDevice* itemToAdd) {
-	if (itemToAdd && g_ActivityMan.ActivityRunning()) {
+	if (itemToAdd && g_ActivityMan.GetActivity()) {
 		g_ActivityMan.GetActivity()->ForceSetTeamAsActive(itemToAdd->GetTeam());
 
 		itemToAdd->SetAsAddedToMovableMan();
@@ -720,7 +720,7 @@ void MovableMan::AddItem(HeldDevice* itemToAdd) {
 }
 
 void MovableMan::AddParticle(MovableObject* particleToAdd) {
-	if (particleToAdd && g_ActivityMan.ActivityRunning()) {
+	if (particleToAdd && g_ActivityMan.GetActivity()) {
 		g_ActivityMan.GetActivity()->ForceSetTeamAsActive(particleToAdd->GetTeam());
 
 		particleToAdd->SetAsAddedToMovableMan();

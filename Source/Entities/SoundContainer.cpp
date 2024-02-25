@@ -152,7 +152,7 @@ int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reade
 	MatchProperty("Volume", { reader >> m_Volume; });
 	MatchProperty("Pitch", { reader >> m_Pitch; });
 	MatchProperty("PitchVariation", { reader >> m_PitchVariation; });
-	
+
 	MatchProperty("MusicPreEntryTime", { reader >> m_MusicPreEntryTime; });
 	MatchProperty("MusicPostExitTime", { reader >> m_MusicPostExitTime; });
 
@@ -299,7 +299,6 @@ void SoundContainer::SetPaused(bool paused) {
 		g_AudioMan.SetPausedSoundContainerPlayingChannels(this, paused);
 	}
 }
-
 
 bool SoundContainer::Play(int player) {
 	if (HasAnySounds()) {

@@ -671,7 +671,7 @@ bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
 			if (result != FMOD_OK) {
 				g_ConsoleMan.PrintString("ERROR: Failed to start playing sounds from SoundContainer " + soundContainer->GetPresetName() + " after setting it up: " + std::string(FMOD_ErrorString(result)));
 				return false;
-			}		
+			}
 		}
 
 		soundContainer->AddPlayingChannel(channelIndex);
