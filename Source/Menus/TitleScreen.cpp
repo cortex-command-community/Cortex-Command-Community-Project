@@ -9,6 +9,7 @@
 #include "GUI.h"
 #include "AllegroScreen.h"
 #include "AllegroBitmap.h"
+#include "PresetMan.h"
 #include "MusicMan.h"
 
 using namespace RTE;
@@ -46,7 +47,7 @@ void TitleScreen::Clear() {
 
 	m_ScrollOffset.Reset();
 	m_PlanetViewScrollOffsetY = 325 + m_PlanetRadius - (static_cast<float>(g_WindowMan.GetResY()) / 2);
-
+	
 	m_FinishedPlayingIntro = false;
 	m_IntroSequenceState = IntroSequence::DataRealmsLogoFadeIn;
 	m_IntroSongTimer.Reset();

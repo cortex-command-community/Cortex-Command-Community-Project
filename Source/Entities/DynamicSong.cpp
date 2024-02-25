@@ -20,9 +20,9 @@ DynamicSongSection::~DynamicSongSection() {
 
 void DynamicSongSection::Clear() {
 	m_TransitionSoundContainers.clear();
-	m_LastTransitionSoundContainerIndex = 0;
+	m_LastTransitionSoundContainerIndex = -1;
 	m_SoundContainers.clear();
-	m_LastSoundContainerIndex = 0;
+	m_LastSoundContainerIndex = -1;
 	m_SectionType = "None";
 }
 

@@ -72,7 +72,7 @@ namespace RTE {
 		/// @param playImmediately Whether to immediately play this song or wait for the current music piece to end.
 		/// @param playTransition Whether to play the TransitionSoundContainer of the upcoming section or not.
 		/// @return Whether the song was successfully started or not.
-		bool PlayDynamicSong(std::string songName, std::string songSectionType = "Default", bool playImmediately = false, bool playTransition);
+		bool PlayDynamicSong(std::string songName, std::string songSectionType = "Default", bool playImmediately = false, bool playTransition = true);
 
 		/// Switches the next SongSection queued to play.
 		/// @param songSectionType Next SongSectionType to play.
@@ -105,10 +105,10 @@ namespace RTE {
 		SoundContainer* m_IntroMusicSoundContainer; //!< SoundContainer for hardcoded intro music.
 		SoundContainer* m_MainMenuMusicSoundContainer; //!< SoundContainer for hardcoded main menu music.
 		SoundContainer* m_ScenarioMenuMusicSoundContainer; //!< SoundContainer for hardcoded scenario menu music.
+
+		std::unique_ptr<SoundContainer> m_InterruptingMusicSoundContainer; //!< Current interrupting music being played.
 		
-		SoundContainer* m_InterruptingMusicSoundContainer; //!< Current interrupting music being played.
-		
-		DynamicSong* m_CurrentSong; //!< The current DynamicSong being played.
+		std::unique_ptr<DynamicSong> m_CurrentSong; //!< The current DynamicSong being played.
 		std::string m_CurrentSongSectionType; //!< The current type of DynamicSongSection we are trying to play.
 		DynamicSongSection* m_CurrentSongSection; //!< The current DynamicSongSection we are actually playing.
 
@@ -122,14 +122,6 @@ namespace RTE {
 
 	private:
 #pragma region Internal Music Handling
-		/// Sets the current SoundContainer that should be playing.
-		/// @param newSoundContainer New SoundContainer that should be playing.
-		void SetCurrentSoundContainer(SoundContainer* newSoundContainer) {m_CurrentSoundContainer = newSoundContainer;}
-
-		/// Sets the next SoundContainer that should play after the current one.
-		/// @param newSoundContainer New SoundContainer that should play next.
-		void SetNextSoundContainer(SoundContainer* newSoundContainer) {m_NextSoundContainer = newSoundContainer;}
-
 		/// Sets the current SongSectionType this wants to play.
 		/// @param newSongSectionType New SongSectionType for this to want to play.
 		void SetCurrentSongSectionType(std::string newSongSectionType) {m_CurrentSongSectionType = newSongSectionType;}

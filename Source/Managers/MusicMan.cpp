@@ -110,7 +110,7 @@ bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType
 	g_AudioMan.StopMusic();
 
 	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", std::move(songName)))) {
-		m_CurrentSong = dynamic_cast<DynamicSong*>(dynamicSongToPlay->Clone());
+		m_CurrentSong = std::unique_ptr<DynamicSong>(dynamic_cast<DynamicSong*>(dynamicSongToPlay->Clone()));
 		SetCurrentSongSectionType(std::move(songSectionType));
 		SelectNextSongSection();
 		SelectNextSoundContainer(playTransition);
@@ -190,7 +190,7 @@ void MusicMan::PlayInterruptingMusic(SoundContainer* soundContainer) {
 		m_NextSoundContainer->SetPaused(true);
 	}
 	
-	m_InterruptingMusicSoundContainer = soundContainer;
+	m_InterruptingMusicSoundContainer = std::unique_ptr<SoundContainer>(dynamic_cast<SoundContainer*>(soundContainer->Clone()));
 	m_InterruptingMusicSoundContainer->Play();
 	if (m_IsPlayingDynamicMusic) {
 		m_ReturnToDynamicMusic = true;

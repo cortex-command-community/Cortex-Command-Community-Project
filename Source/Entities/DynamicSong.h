@@ -45,6 +45,16 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region SoundContainer Addition
+	/// Adds a new TransitionSoundContainer to this DynamicSongSection.
+	/// @param soundContainerToAdd The new SoundContainer to add.
+	void AddTransitionSoundContainer(const SoundContainer& soundContainerToAdd) { m_TransitionSoundContainers.push_back(soundContainerToAdd); }
+
+	/// Adds a new SoundContainer to this DynamicSongSection.
+	/// @param soundContainerToAdd The new SoundContainer to add.
+	void AddSoundContainer(const SoundContainer& soundContainerToAdd) { m_SoundContainers.push_back(soundContainerToAdd); }
+#pragma endregion 
+
 #pragma region Getters and Setters
 	/// Gets the vector of TransitionSoundContainers for this DynamicSongSection.
 	/// @return The vector of TransitionSoundContainers for this DynamicSongSection.
@@ -125,7 +135,21 @@ namespace RTE {
 			Entity::Reset();
 		}
 #pragma endregion
-
+		
+#pragma region SongSection Addition
+		/// Adds a new DynamicSongSection to this DynamicSong. Will assert if this DynamicSong already has a song section with the given SectionType.
+		/// @param songSectionToAdd The new DynamicSongSection to add.
+		void AddSongSection(DynamicSongSection& songSectionToAdd) {
+			for (DynamicSongSection& songSection: GetSongSections()) {
+				if (songSection.GetSectionType() == songSectionToAdd.GetSectionType()) {
+					RTEAssert(false, "Tried to add a SongSection with SectionType " + songSection.GetSectionType() + ", which the DynamicSong already had in another SongSection!")
+					break;
+				}
+			}
+			m_SongSections.push_back(songSectionToAdd);
+		}
+#pragma endregion
+		
 #pragma region Getters and Setters
 		/// Gets the DefaultSongSection for this DynamicSong.
 		/// @return The default DynamicSongSection for this DynamicSong.
@@ -139,12 +163,6 @@ namespace RTE {
 		/// @return The vector of DynamicSongSections for this DynamicSong.
 		std::vector<DynamicSongSection>& GetSongSections() { return m_SongSections; }
 #pragma endregion 
-
-#pragma region DynamicSoundSection Addition
-		/// Adds a copy of the given DynamicSongSection to this DynamicSong.
-		/// @param songSectionToAdd The DynamicSongSection to copy to this DynamicSong.
-		void AddSongSection(const DynamicSongSection& songSectionToAdd) { m_SongSections.push_back(songSectionToAdd); }
-#pragma endregion
 
 	private:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
