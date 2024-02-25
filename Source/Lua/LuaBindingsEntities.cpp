@@ -890,6 +890,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("Diameter", &MovableObject::GetDiameter)
 	    .property("Scale", &MovableObject::GetScale, &MovableObject::SetScale)
 	    .property("EffectRotAngle", &MovableObject::GetEffectRotAngle, &MovableObject::SetEffectRotAngle)
+	    .property("EffectAlwaysShows", &MovableObject::GetEffectAlwaysShows, &MovableObject::SetEffectAlwaysShows)
 	    .property("EffectStartStrength", &MovableObject::GetEffectStartStrengthFloat, &MovableObject::SetEffectStartStrengthFloat)
 	    .property("EffectStopStrength", &MovableObject::GetEffectStopStrengthFloat, &MovableObject::SetEffectStopStrengthFloat)
 	    .property("GlobalAccScalar", &MovableObject::GetGlobalAccScalar, &MovableObject::SetGlobalAccScalar)

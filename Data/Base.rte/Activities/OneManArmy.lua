@@ -255,7 +255,7 @@ end
 
 function OneManArmy:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER then
-		ActivityMan:GetActivity():SetTeamFunds(0, 0);
+		ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_1);
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages
@@ -285,7 +285,7 @@ function OneManArmy:UpdateActivity()
 					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 					FrameMan:SetScreenText("You survived!", self:ScreenOfPlayer(player), 333, -1, false);
 
-					self.WinnerTeam = player;
+					self.WinnerTeam = team;
 
 					--Kill all enemies
 					for actor in MovableMan.Actors do
