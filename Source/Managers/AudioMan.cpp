@@ -45,15 +45,10 @@ void AudioMan::Clear() {
 	//////////////////////////////////////////////////
 
 	m_MusicMuffled = false;
-	m_MusicPath.clear();
-	m_MusicPlayList.clear();
-	m_SilenceTimer.Reset();
-	m_SilenceTimer.SetRealTimeLimitS(-1);
 
 	m_IsInMultiplayerMode = false;
 	for (int i = 0; i < c_MaxClients; i++) {
 		m_SoundEvents[i].clear();
-		m_MusicEvents[i].clear();
 	}
 }
 
@@ -197,10 +192,7 @@ void AudioMan::Update() {
 		}
 
 		status = status == FMOD_OK ? m_AudioSystem->update() : status;
-
-		if (!IsMusicPlaying() && m_SilenceTimer.IsPastRealTimeLimit()) {
-			PlayNextStream();
-		}
+		
 		if (status != FMOD_OK) {
 			g_ConsoleMan.PrintString("ERROR: Could not update AudioMan due to FMOD error: " + std::string(FMOD_ErrorString(status)));
 		}
@@ -223,26 +215,9 @@ void AudioMan::SetGlobalPitch(float pitch, bool includeImmobileSounds, bool incl
 	m_SFXChannelGroup->setPitch(m_GlobalPitch);
 }
 
-void AudioMan::SetTempMusicVolume(float volume) {
-	return;
-	if (m_AudioEnabled && IsMusicPlaying()) {
-		FMOD::Channel* musicChannel;
-		FMOD_RESULT result = m_MusicChannelGroup->getChannel(0, &musicChannel);
-		result = (result == FMOD_OK) ? musicChannel->setVolume(std::clamp(volume, 0.0F, 1.0F)) : result;
-
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Could not set temporary volume for current music track: " + std::string(FMOD_ErrorString(result)));
-		}
-	}
-}
-
 bool AudioMan::SetMusicPitch(float pitch) {
 	if (!m_AudioEnabled) {
 		return false;
-	}
-
-	if (m_IsInMultiplayerMode) {
-		RegisterMusicEvent(-1, MUSIC_SET_PITCH, 0, 0, 0.0, pitch);
 	}
 
 	pitch = Limit(pitch, 8, 0.125); // Limit pitch change to 8 octaves up or down
@@ -253,42 +228,6 @@ bool AudioMan::SetMusicPitch(float pitch) {
 	}
 
 	return true;
-}
-
-float AudioMan::GetMusicPosition() const {
-	if (m_AudioEnabled && IsMusicPlaying()) {
-		FMOD_RESULT result;
-		FMOD::Channel* musicChannel;
-		unsigned int position;
-
-		result = m_MusicChannelGroup->getChannel(0, &musicChannel);
-		result = (result == FMOD_OK) ? musicChannel->getPosition(&position, FMOD_TIMEUNIT_MS) : result;
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Could not get music position: " + std::string(FMOD_ErrorString(result)));
-		}
-
-		return (result == FMOD_OK) ? (static_cast<float>(position)) / 1000.0F : 0;
-	}
-	return 0.0F;
-}
-
-void AudioMan::SetMusicPosition(float position) {
-	if (m_AudioEnabled && IsMusicPlaying()) {
-		FMOD::Channel* musicChannel;
-		FMOD_RESULT result = m_MusicChannelGroup->getChannel(0, &musicChannel);
-
-		FMOD::Sound* musicSound;
-		result = (result == FMOD_OK) ? musicChannel->getCurrentSound(&musicSound) : result;
-
-		unsigned int musicLength = 0;
-		result = (result == FMOD_OK) ? musicSound->getLength(&musicLength, FMOD_TIMEUNIT_MS) : result;
-
-		result = (result == FMOD_OK) ? musicChannel->setPosition(std::clamp(static_cast<unsigned int>(position * 1000.0F), 0U, musicLength), FMOD_TIMEUNIT_MS) : result;
-
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Could not set music position: " + std::string(FMOD_ErrorString(result)));
-		}
-	}
 }
 
 void AudioMan::FinishIngameLoopingSounds() {
@@ -313,140 +252,6 @@ void AudioMan::FinishIngameLoopingSounds() {
 	}
 }
 
-void AudioMan::PlayMusic(const char* filePath, int loops, float volumeOverrideIfNotMuted) {
-	return;
-	if (m_AudioEnabled) {
-		const std::string fullFilePath = g_PresetMan.GetFullModulePath(filePath);
-		if (m_IsInMultiplayerMode) {
-			RegisterMusicEvent(-1, NetworkMusicState::MUSIC_PLAY, fullFilePath.c_str(), loops);
-		}
-
-		bool musicIsPlaying;
-		FMOD_RESULT result = m_MusicChannelGroup->isPlaying(&musicIsPlaying);
-		if (result == FMOD_OK && musicIsPlaying) {
-			bool doNotPlayNextStream = true;
-			result = m_MusicChannelGroup->setUserData(&doNotPlayNextStream);
-			result = (result == FMOD_OK) ? m_MusicChannelGroup->stop() : result;
-			result = (result == FMOD_OK) ? m_MusicChannelGroup->setUserData(nullptr) : result;
-		}
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Could not stop existing music to play new music: " + std::string(FMOD_ErrorString(result)));
-			return;
-		}
-
-		FMOD::Sound* musicStream;
-
-		result = m_AudioSystem->createStream(fullFilePath.c_str(), ((loops == 0 || loops == 1) ? FMOD_LOOP_OFF : FMOD_LOOP_NORMAL), nullptr, &musicStream);
-
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Could not open music file " + fullFilePath + ": " + std::string(FMOD_ErrorString(result)));
-			return;
-		}
-
-		result = musicStream->setLoopCount(loops);
-		if (result != FMOD_OK && (loops != 0 && loops != 1)) {
-			g_ConsoleMan.PrintString("ERROR: Failed to set looping for music file: " + fullFilePath + ". This means it will only play 1 time, instead of " + (loops == 0 ? "looping endlessly." : loops + " times.") + std::string(FMOD_ErrorString(result)));
-		}
-
-		FMOD::Channel* musicChannel;
-		result = musicStream->set3DMinMaxDistance(c_SoundMaxAudibleDistance, c_SoundMaxAudibleDistance);
-		result = (result == FMOD_OK) ? m_AudioSystem->playSound(musicStream, m_MusicChannelGroup, true, &musicChannel) : result;
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Could not play music file: " + fullFilePath + ": " + std::string(FMOD_ErrorString(result)));
-			return;
-		}
-		result = musicChannel->setPriority(PRIORITY_HIGH);
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Failed to set music as high priority when playing music file.");
-		}
-
-		if (volumeOverrideIfNotMuted >= 0.0F && m_MusicVolume > 0.0F) {
-			volumeOverrideIfNotMuted = std::clamp((volumeOverrideIfNotMuted > 1.0F ? volumeOverrideIfNotMuted / 100.0F : volumeOverrideIfNotMuted), 0.0F, 1.0F);
-			result = musicChannel->setVolume(volumeOverrideIfNotMuted);
-			if (result != FMOD_OK && (loops != 0 && loops != 1)) {
-				g_ConsoleMan.PrintString("ERROR: Failed to set volume override for music file: " + fullFilePath + ". This means it will stay at " + std::to_string(m_MusicVolume) + ": " + std::string(FMOD_ErrorString(result)));
-			}
-		}
-
-		m_MusicPath = fullFilePath;
-
-		result = musicChannel->setCallback(MusicChannelEndedCallback);
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Failed to set callback for music ending. This means no more music in the music playlist will play after this one is finished: " + std::string(FMOD_ErrorString(result)));
-			return;
-		}
-
-		result = musicChannel->setPaused(false);
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Failed to start playing music after setting it up: " + std::string(FMOD_ErrorString(result)));
-			return;
-		}
-	}
-}
-
-void AudioMan::PlayNextStream() {
-	return;
-	if (m_AudioEnabled && !m_MusicPlayList.empty()) {
-		std::string nextString = m_MusicPlayList.front();
-		m_MusicPlayList.pop_front();
-
-		if (!nextString.empty() && nextString[0] == '@') {
-			try {
-				int seconds = std::stoi(nextString.substr(1, nextString.size()));
-				m_SilenceTimer.SetRealTimeLimitS((seconds > 0) ? seconds : 0);
-				m_SilenceTimer.Reset();
-
-				bool isPlaying;
-				FMOD_RESULT result = m_MusicChannelGroup->isPlaying(&isPlaying);
-				if (result == FMOD_OK && isPlaying) {
-					if (m_IsInMultiplayerMode) {
-						RegisterMusicEvent(-1, MUSIC_SILENCE, nullptr, seconds);
-					}
-					result = m_MusicChannelGroup->stop();
-				}
-				if (result != FMOD_OK) {
-					g_ConsoleMan.PrintString("ERROR: Could not play silence as specified in music queue, when trying to play next stream: " + std::string(FMOD_ErrorString(result)));
-				}
-			} catch (const std::invalid_argument&) {
-				g_ConsoleMan.PrintString("ERROR: Could invalid silence specification when trying to play next stream.");
-			}
-		} else {
-			PlayMusic(nextString.c_str(), m_MusicPlayList.empty() ? -1 : 0);
-		}
-	}
-}
-
-void AudioMan::StopMusic() {
-	return;
-	if (m_AudioEnabled) {
-		if (m_IsInMultiplayerMode) {
-			RegisterMusicEvent(-1, MUSIC_STOP, 0, 0, 0.0, 0.0);
-		}
-
-		FMOD_RESULT result = m_MusicChannelGroup->stop();
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Could not stop music: " + std::string(FMOD_ErrorString(result)));
-		}
-		m_MusicPlayList.clear();
-	}
-}
-
-void AudioMan::QueueMusicStream(const char* filepath) {
-	return;
-	if (m_AudioEnabled) {
-		bool isPlaying;
-		FMOD_RESULT result = m_MusicChannelGroup->isPlaying(&isPlaying);
-
-		if (result != FMOD_OK) {
-			g_ConsoleMan.PrintString("ERROR: Could not queue music stream: " + std::string(FMOD_ErrorString(result)));
-		} else if (!isPlaying) {
-			PlayMusic(filepath);
-		} else {
-			m_MusicPlayList.push_back(std::string(filepath));
-		}
-	}
-}
-
 SoundContainer* AudioMan::PlaySound(const std::string& filePath, const Vector& position, int player) {
 	if (m_IsInMultiplayerMode) {
 		return nullptr;
@@ -459,54 +264,6 @@ SoundContainer* AudioMan::PlaySound(const std::string& filePath, const Vector& p
 		PlaySoundContainer(newSoundContainer, player);
 	}
 	return newSoundContainer;
-}
-
-void AudioMan::GetMusicEvents(int player, std::list<NetworkMusicData>& list) {
-	if (player < 0 || player >= c_MaxClients) {
-		return;
-	}
-	list.clear();
-	g_SoundEventsListMutex[player].lock();
-
-	for (const NetworkMusicData& musicEvent: m_MusicEvents[player]) {
-		list.push_back(musicEvent);
-	}
-	m_MusicEvents[player].clear();
-	g_SoundEventsListMutex[player].unlock();
-}
-
-void AudioMan::RegisterMusicEvent(int player, NetworkMusicState state, const char* filepath, int loopsOrSilence, float position, float pitch) {
-	if (player == -1) {
-		for (int i = 0; i < c_MaxClients; i++) {
-			RegisterMusicEvent(i, state, filepath, loopsOrSilence, position, pitch);
-		}
-	} else {
-		NetworkMusicData musicData;
-		musicData.State = state;
-		musicData.LoopsOrSilence = loopsOrSilence;
-		musicData.Pitch = pitch;
-		musicData.Position = position;
-		if (filepath) {
-			std::strncpy(musicData.Path, filepath, 255);
-		} else {
-			std::memset(musicData.Path, 0, 255);
-		}
-		g_SoundEventsListMutex[player].lock();
-		m_MusicEvents[player].push_back(musicData);
-		g_SoundEventsListMutex[player].unlock();
-	}
-}
-
-void AudioMan::ClearMusicEvents(int player) {
-	if (player == -1 || player >= c_MaxClients) {
-		for (int i = 0; i < c_MaxClients; i++) {
-			ClearMusicEvents(i);
-		}
-	} else {
-		g_SoundEventsListMutex[player].lock();
-		m_MusicEvents[player].clear();
-		g_SoundEventsListMutex[player].unlock();
-	}
 }
 
 void AudioMan::GetSoundEvents(int player, std::list<NetworkSoundData>& list) {
@@ -989,17 +746,6 @@ FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soun
 	result = (result == FMOD_OK && (sceneWraps || positionOverride)) ? soundChannel->set3DAttributes(&channelPosition, nullptr) : result;
 
 	return result;
-}
-
-FMOD_RESULT F_CALLBACK AudioMan::MusicChannelEndedCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE channelControlType, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void* unusedCommandData1, void* unusedCommandData2) {
-	if (channelControlType == FMOD_CHANNELCONTROL_CHANNEL && callbackType == FMOD_CHANNELCONTROL_CALLBACK_END) {
-		void* userData;
-		FMOD_RESULT result = g_AudioMan.m_MusicChannelGroup->getUserData(&userData);
-		if (userData == nullptr) {
-			g_AudioMan.PlayNextStream();
-		}
-	}
-	return FMOD_OK;
 }
 
 FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE channelControlType, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void* unusedCommandData1, void* unusedCommandData2) {

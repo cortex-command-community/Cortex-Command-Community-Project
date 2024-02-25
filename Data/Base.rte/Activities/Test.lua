@@ -17,8 +17,7 @@ function Test:StartActivity()
 					self.ActivityState = Activity.EDITING;
 					-- Open all doors so we can do pathfinding through them with the brain placement
 					MovableMan:OpenAllDoors(true, Activity.NOTEAM);
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					MusicMan:PlayDynamicSong("Generic Ambient Music");
 					self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player);
 				else
 					-- Set the found brain to be the selected actor at start

@@ -28,12 +28,11 @@ void MusicMan::Clear() {
 	m_CurrentSongSectionType = "Default";
 	m_CurrentSongSection = nullptr;
 
-	m_OldSoundContainer = nullptr;
+	m_PreviousSoundContainer = nullptr;
 	m_CurrentSoundContainer = nullptr;
 	m_NextSoundContainer = nullptr;
-
 	m_MusicTimer.Reset();
-	m_MusicTimer.SetRealTimeLimitMS(-1);
+	m_MusicTimer.SetRealTimeLimitMS(0);
 	m_MusicPausedTime = 0.0;
 	m_ReturnToDynamicMusic = false;
 }
@@ -81,8 +80,8 @@ void MusicMan::ResetMusicState() {
 		m_InterruptingMusicSoundContainer->Stop();
 	}
 
-	if (m_OldSoundContainer != nullptr) {
-		m_OldSoundContainer->Stop();
+	if (m_PreviousSoundContainer != nullptr) {
+		m_PreviousSoundContainer->Stop();
 	}
 
 	if (m_CurrentSoundContainer != nullptr) {
@@ -93,28 +92,28 @@ void MusicMan::ResetMusicState() {
 		m_NextSoundContainer->Stop();
 	}
 
-	m_IsPlayingDynamicMusic = false;
-	m_InterruptingMusicSoundContainer = nullptr;
-
-	m_CurrentSong = nullptr;
-	m_CurrentSongSectionType = "Default";
-	m_CurrentSongSection = nullptr;
-
-	m_OldSoundContainer = nullptr;
-	m_CurrentSoundContainer = nullptr;
-	m_NextSoundContainer = nullptr;
+	Clear();
 }
 
-bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType, bool playImmediately, bool playTransition) {
-	g_AudioMan.StopMusic();
-
-	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", std::move(songName)))) {
+bool MusicMan::PlayDynamicSong(const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition) {
+	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", songName))) {
+		if (m_CurrentSong != nullptr && playImmediately) {
+			if (m_PreviousSoundContainer) {
+				m_PreviousSoundContainer->Stop();
+				m_PreviousSoundContainer = nullptr;
+			}	
+			if (m_CurrentSoundContainer) {
+				m_CurrentSoundContainer->FadeOut(1000);
+				m_PreviousSoundContainer = std::unique_ptr<SoundContainer>(m_CurrentSoundContainer.release());
+			}
+		}
+		
 		m_CurrentSong = std::unique_ptr<DynamicSong>(dynamic_cast<DynamicSong*>(dynamicSongToPlay->Clone()));
-		SetCurrentSongSectionType(std::move(songSectionType));
+		SetCurrentSongSectionType(songSectionType);
 		SelectNextSongSection();
 		SelectNextSoundContainer(playTransition);
-		if (!m_CurrentSoundContainer || playImmediately) {
-			// If we don't have a current sound container, we're not playing any song, so move the Next container appropriately and start it up
+		// If this isn't the case, then the MusicTimer's existing setup should make it play properly anyway, even if it's just instant
+		if (playImmediately) {
 			CyclePlayingSoundContainers();
 		}
 		m_IsPlayingDynamicMusic = true;
@@ -125,12 +124,12 @@ bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType
 	return false;
 }
 
-bool MusicMan::SetNextDynamicSongSection(std::string newSongSectionType, bool playImmediately, bool playTransition) {
+bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, bool playImmediately, bool playTransition) {
 	if (newSongSectionType == m_CurrentSongSectionType) {
 		return false;
 	}
 
-	SetCurrentSongSectionType(std::move(newSongSectionType));
+	SetCurrentSongSectionType(newSongSectionType);
 	SelectNextSongSection();
 	SelectNextSoundContainer(playTransition);
 	if (playImmediately) {
@@ -145,11 +144,11 @@ bool MusicMan::CyclePlayingSoundContainers(bool fadeOutCurrent) {
 		if (fadeOutCurrent) {
 			m_CurrentSoundContainer->FadeOut(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
 		}
-
-		m_OldSoundContainer = m_CurrentSoundContainer;
+		m_PreviousSoundContainer = std::unique_ptr<SoundContainer>(m_CurrentSoundContainer.release());
 	}
 
-	m_CurrentSoundContainer = m_NextSoundContainer;
+	// Clone instead of just point to because we might wanna keep this around even if the DynamicSong is gone
+	m_CurrentSoundContainer = std::unique_ptr<SoundContainer>(dynamic_cast<SoundContainer*>(m_NextSoundContainer->Clone()));
 	SelectNextSoundContainer();
 	m_MusicTimer.Reset();
 	double timeUntilNextShouldBePlayed = m_CurrentSoundContainer->GetLength(SoundContainer::LengthOfSoundType::NextPlayed) - m_CurrentSoundContainer->GetMusicPostExitTime() - m_NextSoundContainer->GetMusicPreEntryTime();
@@ -159,7 +158,7 @@ bool MusicMan::CyclePlayingSoundContainers(bool fadeOutCurrent) {
 	return true;
 }
 
-bool MusicMan::EndMusic(bool fadeOutCurrent) {
+bool MusicMan::EndDynamicMusic(bool fadeOutCurrent) {
 	if (fadeOutCurrent && m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		m_CurrentSoundContainer->FadeOut(2000);
 	}
@@ -168,6 +167,10 @@ bool MusicMan::EndMusic(bool fadeOutCurrent) {
 		return false;
 	}
 
+	m_MusicTimer.Reset();
+	m_MusicTimer.SetRealTimeLimitMS(0);
+	m_MusicPausedTime = 0.0;
+	m_ReturnToDynamicMusic = false;
 	m_IsPlayingDynamicMusic = false;
 	return true;
 }
@@ -177,8 +180,8 @@ void MusicMan::PlayInterruptingMusic(SoundContainer* soundContainer) {
 		m_InterruptingMusicSoundContainer->Stop();
 	}
 
-	if (m_OldSoundContainer != nullptr) {
-		m_OldSoundContainer->SetPaused(true);
+	if (m_PreviousSoundContainer != nullptr) {
+		m_PreviousSoundContainer->SetPaused(true);
 	}
 
 	if (m_CurrentSoundContainer != nullptr) {
@@ -202,8 +205,8 @@ void MusicMan::EndInterruptingMusic() {
 	if (m_InterruptingMusicSoundContainer && m_InterruptingMusicSoundContainer->IsBeingPlayed()) {
 		m_InterruptingMusicSoundContainer->Stop();
 
-		if (m_OldSoundContainer != nullptr) {
-			m_OldSoundContainer->SetPaused(false);
+		if (m_PreviousSoundContainer != nullptr) {
+			m_PreviousSoundContainer->SetPaused(false);
 		}
 
 		if (m_CurrentSoundContainer != nullptr) {
@@ -228,10 +231,11 @@ void MusicMan::SelectNextSongSection() {
 		for (DynamicSongSection& dynamicSongSection: m_CurrentSong->GetSongSections()) {
 			if (dynamicSongSection.GetSectionType() == m_CurrentSongSectionType) {
 				m_CurrentSongSection = &dynamicSongSection;
-				break;
+				return;
 			}
 		}
 	}
+	m_CurrentSongSection = &m_CurrentSong->GetDefaultSongSection();
 }
 
 void MusicMan::SelectNextSoundContainer(bool playTransition) {

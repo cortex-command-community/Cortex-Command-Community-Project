@@ -481,7 +481,6 @@ void TitleScreen::UpdateTitleTransitions() {
 				g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedScenarioMenuMusic());
 				g_AudioMan.SetMusicMuffledState(false);
 			}
-			g_AudioMan.SetTempMusicVolume(EaseOut(0, 1.0F, m_SectionProgress));
 			m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 255.0F, 0, m_SectionProgress));
 			if (m_SectionElapsedTime >= m_SectionDuration) {
 				SetTitleTransitionState((m_TitleTransitionState == TitleTransition::ScenarioFadeIn) ? TitleTransition::ScenarioMenu : TitleTransition::MetaGameMenu);
@@ -491,7 +490,6 @@ void TitleScreen::UpdateTitleTransitions() {
 			if (m_SectionSwitch) {
 				SetSectionDurationAndResetSwitch(0.75F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
 			}
-			g_AudioMan.SetTempMusicVolume(EaseIn(1.0F, 0, m_SectionProgress));
 			m_FadeAmount = static_cast<int>(EaseIn(0, 255, m_SectionProgress));
 			if (m_SectionElapsedTime >= (m_SectionDuration + endDelay)) {
 				SetTitleTransitionState(TitleTransition::TransitionEnd);
@@ -504,7 +502,6 @@ void TitleScreen::UpdateTitleTransitions() {
 				g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedMainMenuMusic());
 				g_AudioMan.SetMusicMuffledState(false);
 			}
-			g_AudioMan.SetTempMusicVolume(EaseOut(0, 1.0F, m_SectionProgress));
 			m_ScrollOffset.SetY(EaseOut(250, 0, m_SectionProgress));
 			m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseOut(m_GameLogoPlanetViewOffsetY, m_GameLogoMainMenuOffsetY, m_SectionProgress)));
 			m_FadeAmount = static_cast<int>(EaseOut(255, 0, m_SectionProgress));
@@ -517,7 +514,6 @@ void TitleScreen::UpdateTitleTransitions() {
 			if (m_SectionSwitch) {
 				SetSectionDurationAndResetSwitch(0.75F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
 			}
-			g_AudioMan.SetTempMusicVolume(EaseIn(1.0F, 0, m_SectionProgress));
 			m_ScrollOffset.SetY(EaseIn(0, 250, m_SectionProgress));
 			m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), EaseIn(m_GameLogoMainMenuOffsetY, m_GameLogoPlanetViewOffsetY, m_SectionProgress)));
 			m_FadeAmount = static_cast<int>(EaseIn(0, 255, m_SectionProgress));

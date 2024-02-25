@@ -23,7 +23,7 @@ void DynamicSongSection::Clear() {
 	m_LastTransitionSoundContainerIndex = -1;
 	m_SoundContainers.clear();
 	m_LastSoundContainerIndex = -1;
-	m_SectionType = "None";
+	m_SectionType = "Default";
 }
 
 int DynamicSongSection::Create(const DynamicSongSection& reference) {
@@ -169,7 +169,7 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DefaultSongSection", {
 		DynamicSongSection songSection;
 		reader >> songSection;
-		SetDefaultSongSection(songSection);
+		m_DefaultSongSection = songSection;
 	});
 	MatchProperty("AddSongSection", {
 		DynamicSongSection songSectionToAdd;

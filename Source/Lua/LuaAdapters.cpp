@@ -538,6 +538,42 @@ void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan& movableMan, const std
 	movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message}, {&wrapper});
 }
 
+bool LuaAdaptersMusicMan::PlayDynamicSong1(MusicMan& musicMan, const std::string& songName) {
+	return musicMan.PlayDynamicSong(songName);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong2(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType) {
+	return musicMan.PlayDynamicSong(songName, songSectionType);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong3(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately) {
+	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong4(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition) {
+	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately, playTransition);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection1(MusicMan& musicMan, const std::string& songSectionType) {
+	return musicMan.SetNextDynamicSongSection(songSectionType);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection2(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately) {
+	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection3(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition) {
+	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately, playTransition);
+}
+
+bool LuaAdaptersMusicMan::CyclePlayingSoundContainers1(MusicMan& musicMan) {
+	return musicMan.CyclePlayingSoundContainers();
+}
+
+bool LuaAdaptersMusicMan::CyclePlayingSoundContainers2(MusicMan& musicMan, bool fadeOutCurrent) {
+	return musicMan.CyclePlayingSoundContainers(fadeOutCurrent);
+}
+
 double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan& timerMan) {
 	return static_cast<double>(timerMan.GetDeltaTimeTicks());
 }

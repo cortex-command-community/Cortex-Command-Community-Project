@@ -424,6 +424,22 @@ namespace RTE {
 	};
 #pragma endregion
 
+#pragma region MusicMan Lua Adapters
+	struct LuaAdaptersMusicMan {
+		static bool PlayDynamicSong1(MusicMan& musicMan, const std::string& songName);
+		static bool PlayDynamicSong2(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType);
+		static bool PlayDynamicSong3(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately);
+		static bool PlayDynamicSong4(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition);
+
+		static bool SetNextDynamicSongSection1(MusicMan& musicMan, const std::string& songSectionType);
+		static bool SetNextDynamicSongSection2(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately);
+		static bool SetNextDynamicSongSection3(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition);
+
+		static bool CyclePlayingSoundContainers1(MusicMan& musicMan);
+		static bool CyclePlayingSoundContainers2(MusicMan& musicMan, bool fadeOutCurrent);
+	};
+#pragma endregion
+	
 #pragma region TimerMan Lua Adapters
 	struct LuaAdaptersTimerMan {
 		/// Gets the current number of ticks that the simulation should be updating with. Lua can't handle int64 (or long long apparently) so we'll expose this specialized function.
