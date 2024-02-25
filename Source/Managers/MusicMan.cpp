@@ -142,6 +142,9 @@ bool MusicMan::PlayDynamicSong(const std::string& songName, const std::string& s
 }
 
 bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, bool playImmediately, bool playTransition) {
+	if (!m_IsPlayingDynamicMusic) {
+		return false;
+	}
 	SetCurrentSongSectionType(newSongSectionType);
 	SelectNextSongSection();
 	SelectNextSoundContainer(playTransition);
@@ -178,15 +181,17 @@ bool MusicMan::CyclePlayingSoundContainers(bool fadeOutCurrent) {
 }
 
 bool MusicMan::EndDynamicMusic(bool fadeOutCurrent) {
+	if (!m_IsPlayingDynamicMusic) {
+		return false;
+	}
+
+	m_CurrentSong = nullptr;
+	
 	if (m_PreviousSoundContainer && m_PreviousSoundContainer->IsBeingPlayed()) {
 		m_PreviousSoundContainer->FadeOut(500);
 	}
 	if (fadeOutCurrent && m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		m_CurrentSoundContainer->FadeOut(2000);
-	}
-
-	if (!m_IsPlayingDynamicMusic) {
-		return false;
 	}
 	
 	m_MusicTimer.Reset();
