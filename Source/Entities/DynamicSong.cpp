@@ -45,7 +45,7 @@ int DynamicSongSection::Create(const DynamicSongSection& reference) {
 
 	m_LastSoundContainerIndex = reference.m_LastSoundContainerIndex;
 	m_SectionType = reference.m_SectionType;
-	
+
 	return 0;
 }
 
@@ -99,7 +99,7 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 	if (m_TransitionSoundContainers.size() == 1) {
 		return m_TransitionSoundContainers[0];
 	}
-	
+
 	std::vector<unsigned int> validIndices;
 	for (unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++) {
 		if (i != m_LastTransitionSoundContainerIndex) {
@@ -114,11 +114,11 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 
 SoundContainer& DynamicSongSection::SelectSoundContainer() {
 	RTEAssert(!m_SoundContainers.empty(), "Tried to get a SoundContainer from a DynamicSongSection with none to choose from!");
-	
+
 	if (m_SoundContainers.size() == 1) {
 		return m_SoundContainers[0];
 	}
-	
+
 	std::vector<unsigned int> validIndices;
 	for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
 		if (i != m_LastSoundContainerIndex) {
@@ -159,7 +159,7 @@ int DynamicSong::Create(const DynamicSong& reference) {
 		dynamicSongSection.Create(referenceDynamicSongSection);
 		m_SongSections.push_back(dynamicSongSection);
 	}
-	
+
 	return 0;
 }
 
@@ -176,7 +176,7 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 		reader >> songSectionToAdd;
 		for (DynamicSongSection& songSection: GetSongSections()) {
 			if (songSection.GetSectionType() == songSectionToAdd.GetSectionType()) {
-				RTEAssert(false, "Tried to add a SongSection with SectionType " + songSection.GetSectionType() + ", which the DynamicSong already had in another SongSection!")
+				RTEAssert(false, "Tried to add a SongSection with SectionType " + songSection.GetSectionType() + ", which the DynamicSong already had in another SongSection!");
 				break;
 			}
 		}
@@ -193,7 +193,7 @@ int DynamicSong::Save(Writer& writer) const {
 	writer.ObjectStart("DynamicSongSection");
 	writer << m_DefaultSongSection;
 	writer.ObjectEnd();
-	
+
 	for (const DynamicSongSection& dynamicSongSection: m_SongSections) {
 		writer.NewProperty("AddSongSection");
 		writer.ObjectStart("SoundContainer");

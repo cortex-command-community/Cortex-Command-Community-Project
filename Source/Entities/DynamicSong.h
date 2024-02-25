@@ -46,30 +46,30 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Getters and Setters
-	/// Gets the vector of TransitionSoundContainers for this DynamicSongSection.
-	/// @return The vector of TransitionSoundContainers for this DynamicSongSection.
-	std::vector<SoundContainer>& GetTransitionSoundContainers() { return m_TransitionSoundContainers; }
-		
-	/// Gets the vector of SoundContainers for this DynamicSongSection.
-	/// @return The vector of SoundContainers for this DynamicSongSection.
-	std::vector<SoundContainer>& GetSoundContainers() { return m_SoundContainers; }
+		/// Gets the vector of TransitionSoundContainers for this DynamicSongSection.
+		/// @return The vector of TransitionSoundContainers for this DynamicSongSection.
+		std::vector<SoundContainer>& GetTransitionSoundContainers() { return m_TransitionSoundContainers; }
 
-	/// Gets the SectionType of this DynamicSongSection.
-	/// @return The SectionType of this DynamicSongSection.
-	std::string& GetSectionType() { return m_SectionType; }
+		/// Gets the vector of SoundContainers for this DynamicSongSection.
+		/// @return The vector of SoundContainers for this DynamicSongSection.
+		std::vector<SoundContainer>& GetSoundContainers() { return m_SoundContainers; }
 
-	/// Sets the SectionType of this DynamicSongSection.
-	/// @param newSectionType The new SectionType for this DynamicSongSection.
-	void SetSectionType(const std::string& newSectionType) { m_SectionType = newSectionType; }
+		/// Gets the SectionType of this DynamicSongSection.
+		/// @return The SectionType of this DynamicSongSection.
+		std::string& GetSectionType() { return m_SectionType; }
 
-	/// Selects a random transitional SoundContainer with no repeats.
-	/// @return The selected transitional SoundContainer.
-	SoundContainer& SelectTransitionSoundContainer();
+		/// Sets the SectionType of this DynamicSongSection.
+		/// @param newSectionType The new SectionType for this DynamicSongSection.
+		void SetSectionType(const std::string& newSectionType) { m_SectionType = newSectionType; }
 
-	/// Selects a random SoundContainer with no repeats.
-	/// @return The selected SoundContainer.
-	SoundContainer& SelectSoundContainer();
-#pragma endregion 
+		/// Selects a random transitional SoundContainer with no repeats.
+		/// @return The selected transitional SoundContainer.
+		SoundContainer& SelectTransitionSoundContainer();
+
+		/// Selects a random SoundContainer with no repeats.
+		/// @return The selected SoundContainer.
+		SoundContainer& SelectSoundContainer();
+#pragma endregion
 
 	private:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
@@ -79,7 +79,7 @@ namespace RTE {
 		std::vector<SoundContainer> m_SoundContainers; //!< The SoundContainers making up this DynamicSongSection.
 		unsigned int m_LastSoundContainerIndex; //!< The last index used to select a SoundContainer.
 		std::string m_SectionType; //!< The name of the type of dynamic music this is.
-		
+
 		/// Clears all the member variables of this DynamicSongSection, effectively resetting the members of this abstraction level only.
 		void Clear();
 	};
@@ -138,7 +138,7 @@ namespace RTE {
 		/// Gets the vector of DynamicSongSections for this DynamicSong.
 		/// @return The vector of DynamicSongSections for this DynamicSong.
 		std::vector<DynamicSongSection>& GetSongSections() { return m_SongSections; }
-#pragma endregion 
+#pragma endregion
 
 #pragma region DynamicSoundSection Addition
 		/// Adds a copy of the given DynamicSongSection to this DynamicSong.
@@ -151,7 +151,7 @@ namespace RTE {
 
 		DynamicSongSection m_DefaultSongSection; //!< The fallback DynamicSongSection if one with the desired Type can't be found.
 		std::vector<DynamicSongSection> m_SongSections; //!< The DynamicSongSections making up this DynamicSong.
-		
+
 		/// Clears all the member variables of this DynamicSong, effectively resetting the members of this abstraction level only.
 		void Clear();
 	};

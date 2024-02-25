@@ -23,7 +23,7 @@ void MusicMan::Clear() {
 	m_ScenarioMenuMusicSoundContainer = nullptr;
 
 	m_InterruptingMusicSoundContainer = nullptr;
-	
+
 	m_CurrentSong = nullptr;
 	m_CurrentSongSectionType = "Default";
 	m_CurrentSongSection = nullptr;
@@ -47,7 +47,7 @@ bool MusicMan::InitializeHardcodedSoundContainers() {
 	if (const SoundContainer* introMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Intro Music"))) {
 		m_IntroMusicSoundContainer = dynamic_cast<SoundContainer*>(introMusicSoundContainer->Clone());
 	}
-	
+
 	if (const SoundContainer* mainMenuMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music"))) {
 		m_MainMenuMusicSoundContainer = dynamic_cast<SoundContainer*>(mainMenuMusicSoundContainer->Clone());
 	}
@@ -68,7 +68,7 @@ void MusicMan::Update() {
 	if (!m_HardcodedSoundContainersInitialized) {
 		m_HardcodedSoundContainersInitialized = InitializeHardcodedSoundContainers();
 	}
-	
+
 	if (m_IsPlayingDynamicMusic) {
 		if (m_MusicTimer.IsPastRealTimeLimit()) {
 			CyclePlayingSoundContainers(false);
@@ -80,7 +80,7 @@ void MusicMan::ResetMusicState() {
 	if (m_InterruptingMusicSoundContainer != nullptr) {
 		m_InterruptingMusicSoundContainer->Stop();
 	}
-	
+
 	if (m_OldSoundContainer != nullptr) {
 		m_OldSoundContainer->Stop();
 	}
@@ -95,7 +95,7 @@ void MusicMan::ResetMusicState() {
 
 	m_IsPlayingDynamicMusic = false;
 	m_InterruptingMusicSoundContainer = nullptr;
-	
+
 	m_CurrentSong = nullptr;
 	m_CurrentSongSectionType = "Default";
 	m_CurrentSongSection = nullptr;
@@ -105,8 +105,7 @@ void MusicMan::ResetMusicState() {
 	m_NextSoundContainer = nullptr;
 }
 
-
-bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType, bool playImmediately, bool playTransition){
+bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType, bool playImmediately, bool playTransition) {
 	g_AudioMan.StopMusic();
 
 	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", std::move(songName)))) {
@@ -119,25 +118,25 @@ bool MusicMan::PlayDynamicSong(std::string songName, std::string songSectionType
 			CyclePlayingSoundContainers();
 		}
 		m_IsPlayingDynamicMusic = true;
-		
+
 		return true;
 	}
 
 	return false;
 }
 
-bool MusicMan::SetNextDynamicSongSection(std::string newSongSectionType, bool playImmediately, bool playTransition){
+bool MusicMan::SetNextDynamicSongSection(std::string newSongSectionType, bool playImmediately, bool playTransition) {
 	if (newSongSectionType == m_CurrentSongSectionType) {
 		return false;
 	}
-	
+
 	SetCurrentSongSectionType(std::move(newSongSectionType));
 	SelectNextSongSection();
 	SelectNextSoundContainer(playTransition);
 	if (playImmediately) {
 		CyclePlayingSoundContainers(true);
 	}
-	
+
 	return true;
 }
 
@@ -177,7 +176,7 @@ void MusicMan::PlayInterruptingMusic(SoundContainer* soundContainer) {
 	if (m_InterruptingMusicSoundContainer != nullptr) {
 		m_InterruptingMusicSoundContainer->Stop();
 	}
-	
+
 	if (m_OldSoundContainer != nullptr) {
 		m_OldSoundContainer->SetPaused(true);
 	}
@@ -189,7 +188,7 @@ void MusicMan::PlayInterruptingMusic(SoundContainer* soundContainer) {
 	if (m_NextSoundContainer != nullptr) {
 		m_NextSoundContainer->SetPaused(true);
 	}
-	
+
 	m_InterruptingMusicSoundContainer = soundContainer;
 	m_InterruptingMusicSoundContainer->Play();
 	if (m_IsPlayingDynamicMusic) {
@@ -202,19 +201,19 @@ void MusicMan::PlayInterruptingMusic(SoundContainer* soundContainer) {
 void MusicMan::EndInterruptingMusic() {
 	if (m_InterruptingMusicSoundContainer && m_InterruptingMusicSoundContainer->IsBeingPlayed()) {
 		m_InterruptingMusicSoundContainer->Stop();
-        
-        if (m_OldSoundContainer != nullptr) {
-        	m_OldSoundContainer->SetPaused(false);
-        }
 
-        if (m_CurrentSoundContainer != nullptr) {
-        	m_CurrentSoundContainer->SetPaused(false);
-        }
+		if (m_OldSoundContainer != nullptr) {
+			m_OldSoundContainer->SetPaused(false);
+		}
 
-        if (m_NextSoundContainer != nullptr) {
-        	m_NextSoundContainer->SetPaused(false);
-        }
-		
+		if (m_CurrentSoundContainer != nullptr) {
+			m_CurrentSoundContainer->SetPaused(false);
+		}
+
+		if (m_NextSoundContainer != nullptr) {
+			m_NextSoundContainer->SetPaused(false);
+		}
+
 		if (m_ReturnToDynamicMusic) {
 			m_ReturnToDynamicMusic = false;
 			m_IsPlayingDynamicMusic = true;

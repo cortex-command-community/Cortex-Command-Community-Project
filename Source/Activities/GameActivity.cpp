@@ -873,7 +873,6 @@ int GameActivity::Start() {
 
 	// Start the in-game music
 
-
 	return error;
 }
 

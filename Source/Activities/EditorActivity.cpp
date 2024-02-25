@@ -144,8 +144,8 @@ int EditorActivity::Start() {
 	m_ModeChange = true;
 
 	// Play editing music
-	//g_AudioMan.ClearMusicQueue();
-	//g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+	// g_AudioMan.ClearMusicQueue();
+	// g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg");
 
 	// Force the split screen config to just be one big screen for editing
 	g_FrameMan.ResetSplitScreens(false, false);
