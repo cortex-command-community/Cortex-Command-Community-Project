@@ -107,6 +107,8 @@ namespace RTE {
 		std::unique_ptr<SoundContainer> m_CurrentSoundContainer; //!< The current selected SoundContainer playing as music.
 		SoundContainer* m_NextSoundContainer; //!< The next selected SoundContainer to play as music.
 
+		Timer m_MusicFadeTimer; //!< Timer for timing the start of music fading if a piece is cycled prematurely.
+		bool m_PreviousSoundContainerSetToFade; //!< Whether this is waiting to fade out the PreviousSoundContainer in case of premature cycling.
 		Timer m_MusicTimer; //!< Timer for musical horizontal sequencing.
 		double m_MusicPausedTime; //!< Elapsed MusicTimer time when we last paused, used to resync on unpause.
 		bool m_ReturnToDynamicMusic; //!< Signifier that this was playing dynamic music before being interrupted.
