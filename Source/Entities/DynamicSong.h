@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Entity.h"
+#include "SoundContainer.h"
 
 namespace RTE {
 	/// A typed SongSection containing one or more SoundContainers to play.
