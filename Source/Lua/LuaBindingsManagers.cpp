@@ -43,16 +43,23 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {
 	return luabind::class_<MusicMan>("MusicManager")
 
+	    .def("ResetMusicState", &MusicMan::ResetMusicState)
 	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong1)
 	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong2)
 	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong3)
 	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong4)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong5)
 	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection1)
 	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection2)
 	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection3)
+	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection4)
 	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers1)
 	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers2)
-	    .def("EndDynamicMusic", &MusicMan::EndDynamicMusic);
+	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic1)
+	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic2)
+	    .def("PlayInterruptingMusic", &MusicMan::PlayInterruptingMusic)
+	    .def("EndInterruptingMusic", &MusicMan::EndInterruptingMusic);
+	
 }
 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {

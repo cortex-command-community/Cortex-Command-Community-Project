@@ -430,13 +430,18 @@ namespace RTE {
 		static bool PlayDynamicSong2(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType);
 		static bool PlayDynamicSong3(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately);
 		static bool PlayDynamicSong4(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition);
+		static bool PlayDynamicSong5(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade);
 
 		static bool SetNextDynamicSongSection1(MusicMan& musicMan, const std::string& songSectionType);
 		static bool SetNextDynamicSongSection2(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately);
 		static bool SetNextDynamicSongSection3(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition);
+		static bool SetNextDynamicSongSection4(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade);
 
 		static bool CyclePlayingSoundContainers1(MusicMan& musicMan);
-		static bool CyclePlayingSoundContainers2(MusicMan& musicMan, bool fadeOutCurrent);
+		static bool CyclePlayingSoundContainers2(MusicMan& musicMan, bool smoothFade);
+
+		static bool EndDynamicMusic1(MusicMan& musicMan);
+		static bool EndDynamicMusic2(MusicMan& musicMan, bool fadeOutCurrent);
 	};
 #pragma endregion
 

@@ -554,6 +554,10 @@ bool LuaAdaptersMusicMan::PlayDynamicSong4(MusicMan& musicMan, const std::string
 	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately, playTransition);
 }
 
+bool LuaAdaptersMusicMan::PlayDynamicSong5(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
+	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately, playTransition, smoothFade);
+}
+
 bool LuaAdaptersMusicMan::SetNextDynamicSongSection1(MusicMan& musicMan, const std::string& songSectionType) {
 	return musicMan.SetNextDynamicSongSection(songSectionType);
 }
@@ -566,12 +570,24 @@ bool LuaAdaptersMusicMan::SetNextDynamicSongSection3(MusicMan& musicMan, const s
 	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately, playTransition);
 }
 
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection4(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
+	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately, playTransition, smoothFade);
+}
+
 bool LuaAdaptersMusicMan::CyclePlayingSoundContainers1(MusicMan& musicMan) {
 	return musicMan.CyclePlayingSoundContainers();
 }
 
-bool LuaAdaptersMusicMan::CyclePlayingSoundContainers2(MusicMan& musicMan, bool fadeOutCurrent) {
-	return musicMan.CyclePlayingSoundContainers(fadeOutCurrent);
+bool LuaAdaptersMusicMan::CyclePlayingSoundContainers2(MusicMan& musicMan, bool smoothFade) {
+	return musicMan.CyclePlayingSoundContainers(smoothFade);
+}
+
+bool LuaAdaptersMusicMan::EndDynamicMusic1(MusicMan& musicMan) {
+	return musicMan.EndDynamicMusic();
+}
+
+bool LuaAdaptersMusicMan::EndDynamicMusic2(MusicMan& musicMan, bool fadeOutCurrent) {
+	return musicMan.EndDynamicMusic(fadeOutCurrent);
 }
 
 double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan& timerMan) {

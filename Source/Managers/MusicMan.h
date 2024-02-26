@@ -43,19 +43,22 @@ namespace RTE {
 		/// @param songSectionType Type of DynamicSongSection to play first.
 		/// @param playImmediately Whether to immediately play this song or wait for the current music piece to end.
 		/// @param playTransition Whether to play the TransitionSoundContainer of the upcoming section or not.
+		/// @param smoothFade True is long fade of the previous SoundContainer according to new PreEntry, false is fast fade at the new PreEntry.
 		/// @return Whether the song was successfully started or not.
-		bool PlayDynamicSong(const std::string& songName, const std::string& songSectionType = "Default", bool playImmediately = false, bool playTransition = true);
+		bool PlayDynamicSong(const std::string& songName, const std::string& songSectionType = "Default", bool playImmediately = false, bool playTransition = true, bool smoothFade = false);
 
 		/// Switches the next SongSection queued to play.
 		/// @param songSectionType Next SongSectionType to play.
 		/// @param playImmediately Whether to immediately play the new SongSectionType or not.
 		/// @param playTransition Whether to play the TransitionSoundContainer of the upcoming section or not.
-		bool SetNextDynamicSongSection(const std::string& songSectionType, bool playImmediately = false, bool playTransition = true);
+		/// @param smoothFade True is long fade of the previous SoundContainer according to new PreEntry, false is fast fade at the new PreEntry.
+		/// @return True if successful, false if no dynamic song is currently playing.
+		bool SetNextDynamicSongSection(const std::string& songSectionType, bool playImmediately = false, bool playTransition = true, bool smoothFade = false);
 
 		/// Plays the next queued SoundContainer and prepares a new one.
-		/// @param fadeOutCurrent Whether to fade out the current playing SoundContainer or let it play out. False may cause undesirable overlap.
+		/// @param smoothFade True is long fade of the previous SoundContainer according to new PreEntry, false is fast fade at the new PreEntry.
 		/// @return Whether the function completed successfully or not.
-		bool CyclePlayingSoundContainers(bool fadeOutCurrent = true);
+		bool CyclePlayingSoundContainers(bool smoothFade = false);
 
 		/// Sets the current playing dynamic music to end, disabling further playback of new music.
 		/// @param fadeOutCurrent Whether to also fade out the current playing music or not.
@@ -63,12 +66,12 @@ namespace RTE {
 		bool EndDynamicMusic(bool fadeOutCurrent = false);
 
 		/// Function to interrupt other music and play a SoundContainer as music. DynamicSongs playing are paused accordingly.
-		/// This is generally used for hardcoded music, e.g Intro/Scenario/Main Menu music.
-		/// In future we may expose this to script and make these things non-hardcoded (perhaps scripts that can run during menus).
+		/// Used for hardcoded music like the intro and main menu.
+		/// This is exposed to Lua, but the above hardcoded calls will happily override the Lua. Something to keep in mind.
 		/// @param soundContainer The SoundContainer to play as interrupting music.
 		void PlayInterruptingMusic(const SoundContainer* soundContainer);
 
-		/// Signals the end of hardcoded music, resuming other music if needed.
+		/// Signals the end of hardcoded music, resuming dynamic music if needed.
 		void EndInterruptingMusic();
 #pragma endregion
 

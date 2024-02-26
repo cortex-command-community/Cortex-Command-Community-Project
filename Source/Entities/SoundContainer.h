@@ -353,6 +353,7 @@ namespace RTE {
 		float m_PitchVariation; //!< The randomized pitch variation of this SoundContainer's sounds. 1 means the sound will vary a full octave both ways.
 		float m_Volume; //!< The current natural volume of this SoundContainer's sounds.
 
+		bool m_WasFadedOut; //!< Whether this SoundContainer has had its current playing sounds faded out or not.
 		bool m_Paused; //!< Whether this SoundContainer is paused or not.
 		float m_MusicPreEntryTime; //!< The time in MS before the music starts in this SoundContainer.
 		float m_MusicPostExitTime; //!< The time in MS after the music ends in this SoundContainer, until the end of the sound.
