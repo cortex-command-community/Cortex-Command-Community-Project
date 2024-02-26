@@ -265,7 +265,7 @@ void TitleScreen::UpdateIntroSlideshowSequence(bool skipSlideshow) {
 				m_IntroScrollDuration = 66.6F - m_IntroScrollStartTime;
 				m_ScrollOffset.SetY(m_IntroScrollStartOffsetY);
 
-				g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedIntroMusic());
+				g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Intro Music")));
 				g_AudioMan.SetMusicMuffledState(false);
 			}
 			m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 255.0F, 0, m_SectionProgress));
@@ -395,7 +395,7 @@ void TitleScreen::UpdateIntroPreMainMenuSequence() {
 			if (m_SectionSwitch) {
 				SetSectionDurationAndResetSwitch(0.5F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
 				m_FadeAmount = 0;
-				g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedMainMenuMusic());
+				g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music")));
 				g_AudioMan.SetMusicMuffledState(false);
 			}
 			m_ScrollOffset.SetY(EaseOut(m_PreMainMenuScrollOffsetY, 0, m_SectionProgress));
@@ -433,7 +433,7 @@ void TitleScreen::UpdateTitleTransitions() {
 			if (m_SectionSwitch) {
 				SetSectionDurationAndResetSwitch(1.0F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
 				g_GUISound.SplashSound()->Play();
-				g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedScenarioMenuMusic());
+				g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Scenario Menu Music")));
 				g_AudioMan.SetMusicMuffledState(false);
 			}
 			m_ScrollOffset.SetY(EaseOut(0, m_PlanetViewScrollOffsetY, m_SectionProgress));
@@ -445,7 +445,7 @@ void TitleScreen::UpdateTitleTransitions() {
 		case TitleTransition::PlanetToMainMenu:
 			if (m_SectionSwitch) {
 				SetSectionDurationAndResetSwitch(1.0F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
-				g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedMainMenuMusic());
+				g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music")));
 				g_AudioMan.SetMusicMuffledState(false);
 			}
 			m_ScrollOffset.SetY(EaseOut(m_PlanetViewScrollOffsetY, 0, m_SectionProgress));
@@ -478,7 +478,7 @@ void TitleScreen::UpdateTitleTransitions() {
 				m_ScrollOffset.SetY(m_PlanetViewScrollOffsetY);
 				m_GameLogo.SetPos(Vector(static_cast<float>(m_TitleScreenMaxWidth / 2), m_GameLogoPlanetViewOffsetY));
 				m_StationOrbitTimer.SetElapsedRealTimeS(m_StationOrbitTimerElapsedTime);
-				g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedScenarioMenuMusic());
+				g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Scenario Menu Music")));
 				g_AudioMan.SetMusicMuffledState(false);
 			}
 			m_FadeAmount = static_cast<int>(Lerp(0, 1.0F, 255.0F, 0, m_SectionProgress));
@@ -499,7 +499,7 @@ void TitleScreen::UpdateTitleTransitions() {
 			if (m_SectionSwitch) {
 				SetSectionDurationAndResetSwitch(0.75F * g_SettingsMan.GetMenuTransitionDurationMultiplier());
 				m_StationOrbitTimer.SetElapsedRealTimeS(m_StationOrbitTimerElapsedTime);
-				g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedMainMenuMusic());
+				g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music")));
 				g_AudioMan.SetMusicMuffledState(false);
 			}
 			m_ScrollOffset.SetY(EaseOut(250, 0, m_SectionProgress));

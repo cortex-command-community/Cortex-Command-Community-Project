@@ -19,10 +19,6 @@ namespace RTE {
 		/// Makes the MusicMan object ready for use.
 		/// @return Whether the muic system was initialized successfully.
 		bool Initialize();
-
-		// Makes the hardcoded music ready for use.
-		// @return Whether the SoundContainers were successfully found or not.
-		bool InitializeHardcodedSoundContainers();
 #pragma endregion
 
 #pragma region Destruction
@@ -36,20 +32,6 @@ namespace RTE {
 #pragma region Concrete Methods
 		/// Updates the state of this MusicMan. Supposed to be done every frame before drawing.
 		void Update();
-#pragma endregion
-
-#pragma region Music Getters and Setters
-		/// Gets the hardcoded intro music SoundContainer for the game.
-		/// @return A pointer to the SoundContainer.
-		SoundContainer* GetHardcodedIntroMusic() const { return m_IntroMusicSoundContainer; }
-
-		/// Gets the hardcoded main menu music SoundContainer for the game.
-		/// @return A pointer to the SoundContainer.
-		SoundContainer* GetHardcodedMainMenuMusic() const { return m_MainMenuMusicSoundContainer; }
-
-		/// Gets the hardcoded scenario menu music SoundContainer for the game.
-		/// @return A pointer to the SoundContainer.
-		SoundContainer* GetHardcodedScenarioMenuMusic() const { return m_ScenarioMenuMusicSoundContainer; }
 #pragma endregion
 
 #pragma region Music Handling
@@ -81,8 +63,10 @@ namespace RTE {
 		bool EndDynamicMusic(bool fadeOutCurrent = false);
 
 		/// Function to interrupt other music and play a SoundContainer as music. DynamicSongs playing are paused accordingly.
+		/// This is generally used for hardcoded music, e.g Intro/Scenario/Main Menu music.
+		/// In future we may expose this to script and make these things non-hardcoded (perhaps scripts that can run during menus).
 		/// @param soundContainer The SoundContainer to play as interrupting music.
-		void PlayInterruptingMusic(SoundContainer* soundContainer);
+		void PlayInterruptingMusic(const SoundContainer* soundContainer);
 
 		/// Signals the end of hardcoded music, resuming other music if needed.
 		void EndInterruptingMusic();
@@ -90,11 +74,6 @@ namespace RTE {
 
 	protected:
 		bool m_IsPlayingDynamicMusic; //!< Whether this is actively playing dynamic music or not.
-		bool m_HardcodedSoundContainersInitialized; //!< Whether we have initialized base hardcoded SoundContainers or not.
-
-		SoundContainer* m_IntroMusicSoundContainer; //!< SoundContainer for hardcoded intro music.
-		SoundContainer* m_MainMenuMusicSoundContainer; //!< SoundContainer for hardcoded main menu music.
-		SoundContainer* m_ScenarioMenuMusicSoundContainer; //!< SoundContainer for hardcoded scenario menu music.
 
 		std::unique_ptr<SoundContainer> m_InterruptingMusicSoundContainer; //!< Current interrupting music being played.
 

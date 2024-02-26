@@ -16,11 +16,6 @@ MusicMan::~MusicMan() {
 
 void MusicMan::Clear() {
 	m_IsPlayingDynamicMusic = false;
-	m_HardcodedSoundContainersInitialized = false;
-
-	m_IntroMusicSoundContainer = nullptr;
-	m_MainMenuMusicSoundContainer = nullptr;
-	m_ScenarioMenuMusicSoundContainer = nullptr;
 
 	m_InterruptingMusicSoundContainer = nullptr;
 
@@ -45,39 +40,19 @@ bool MusicMan::Initialize() {
 	return true;
 }
 
-bool MusicMan::InitializeHardcodedSoundContainers() {
-	// Have to do it here so these are read in at all..
-	if (const SoundContainer* introMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Intro Music"))) {
-		m_IntroMusicSoundContainer = dynamic_cast<SoundContainer*>(introMusicSoundContainer->Clone());
-	}
-
-	if (const SoundContainer* mainMenuMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music"))) {
-		m_MainMenuMusicSoundContainer = dynamic_cast<SoundContainer*>(mainMenuMusicSoundContainer->Clone());
-	}
-
-	if (const SoundContainer* mainMenuMusicSoundContainer = dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Scenario Menu Music"))) {
-		m_ScenarioMenuMusicSoundContainer = dynamic_cast<SoundContainer*>(mainMenuMusicSoundContainer->Clone());
-	}
-
-	return true;
-}
-
 void MusicMan::Destroy() {
 	// AudioMan will stop any music playing on its Destroy since they're just SoundContainers, so we don't need to worry
 	Clear();
 }
 
 void MusicMan::Update() {
-	if (!m_HardcodedSoundContainersInitialized) {
-		m_HardcodedSoundContainersInitialized = InitializeHardcodedSoundContainers();
-	}
-
 	if (m_IsPlayingDynamicMusic) {
 		if (m_MusicTimer.IsPastRealTimeLimit()) {
 			CyclePlayingSoundContainers(false);
 		}
 		if (m_PreviousSoundContainerSetToFade && m_MusicFadeTimer.IsPastRealTimeLimit()) {
-			m_PreviousSoundContainer->FadeOut(250);
+			const int musicFadeOutTimeMs = 250;
+			m_PreviousSoundContainer->FadeOut(musicFadeOutTimeMs);
 			m_PreviousSoundContainerSetToFade = false;
 		}
 	} else {
@@ -204,7 +179,7 @@ bool MusicMan::EndDynamicMusic(bool fadeOutCurrent) {
 	return true;
 }
 
-void MusicMan::PlayInterruptingMusic(SoundContainer* soundContainer) {
+void MusicMan::PlayInterruptingMusic(const SoundContainer* soundContainer) {
 	if (m_InterruptingMusicSoundContainer != nullptr) {
 		m_InterruptingMusicSoundContainer->Stop();
 	}

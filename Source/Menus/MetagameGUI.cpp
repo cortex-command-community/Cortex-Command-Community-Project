@@ -2622,7 +2622,7 @@ void MetagameGUI::CompletedActivity() {
 			UpdateScenesBox(true);
 
 			// Play some nice ambient music
-			g_MusicMan.PlayInterruptingMusic(g_MusicMan.GetHardcodedMainMenuMusic());
+			g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music")));
 			g_AudioMan.SetMusicMuffledState(false);
 		}
 	}
