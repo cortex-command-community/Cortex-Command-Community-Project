@@ -439,7 +439,7 @@ namespace RTE {
 		static bool CyclePlayingSoundContainers2(MusicMan& musicMan, bool fadeOutCurrent);
 	};
 #pragma endregion
-	
+
 #pragma region TimerMan Lua Adapters
 	struct LuaAdaptersTimerMan {
 		/// Gets the current number of ticks that the simulation should be updating with. Lua can't handle int64 (or long long apparently) so we'll expose this specialized function.

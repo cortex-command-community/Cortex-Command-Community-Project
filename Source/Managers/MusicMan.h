@@ -11,7 +11,6 @@ namespace RTE {
 	class MusicMan : public Singleton<MusicMan> {
 
 	public:
-
 #pragma region Creation
 		/// Constructor method used to instantiate a MusicMan object in system memory.
 		/// Create() should be called before using the object.
@@ -98,11 +97,11 @@ namespace RTE {
 		SoundContainer* m_ScenarioMenuMusicSoundContainer; //!< SoundContainer for hardcoded scenario menu music.
 
 		std::unique_ptr<SoundContainer> m_InterruptingMusicSoundContainer; //!< Current interrupting music being played.
-		
+
 		std::unique_ptr<DynamicSong> m_CurrentSong; //!< The current DynamicSong being played.
 		std::string m_CurrentSongSectionType; //!< The current type of DynamicSongSection we are trying to play.
 		DynamicSongSection* m_CurrentSongSection; //!< The current DynamicSongSection we are actually playing.
-		
+
 		std::unique_ptr<SoundContainer> m_PreviousSoundContainer; //!< The previous SoundContainer that was played as music. We keep it to allow it to play out while Current ramps up.
 		std::unique_ptr<SoundContainer> m_CurrentSoundContainer; //!< The current selected SoundContainer playing as music.
 		SoundContainer* m_NextSoundContainer; //!< The next selected SoundContainer to play as music.

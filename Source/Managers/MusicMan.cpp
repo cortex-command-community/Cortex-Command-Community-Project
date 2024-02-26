@@ -122,7 +122,8 @@ bool MusicMan::PlayDynamicSong(const std::string& songName, const std::string& s
 				if (m_PreviousSoundContainer) {
 					m_PreviousSoundContainer->Stop();
 					m_PreviousSoundContainer = nullptr;
-				}	
+				}
+
 				if (m_CurrentSoundContainer) {
 					m_PreviousSoundContainerSetToFade = true;
 					m_MusicFadeTimer.Reset();
@@ -186,14 +187,15 @@ bool MusicMan::EndDynamicMusic(bool fadeOutCurrent) {
 	}
 
 	m_CurrentSong = nullptr;
-	
+
 	if (m_PreviousSoundContainer && m_PreviousSoundContainer->IsBeingPlayed()) {
 		m_PreviousSoundContainer->FadeOut(500);
 	}
+
 	if (fadeOutCurrent && m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		m_CurrentSoundContainer->FadeOut(2000);
 	}
-	
+
 	m_MusicTimer.Reset();
 	m_MusicTimer.SetRealTimeLimitMS(0);
 	m_MusicPausedTime = 0.0;
@@ -218,7 +220,7 @@ void MusicMan::PlayInterruptingMusic(SoundContainer* soundContainer) {
 	if (m_NextSoundContainer != nullptr) {
 		m_NextSoundContainer->SetPaused(true);
 	}
-	
+
 	m_InterruptingMusicSoundContainer = std::unique_ptr<SoundContainer>(dynamic_cast<SoundContainer*>(soundContainer->Clone()));
 	m_InterruptingMusicSoundContainer->Play();
 	if (m_IsPlayingDynamicMusic) {
@@ -254,16 +256,18 @@ void MusicMan::EndInterruptingMusic() {
 }
 
 void MusicMan::SelectNextSongSection() {
-	if (!m_CurrentSongSection || m_CurrentSongSection->GetSectionType() != m_CurrentSongSectionType) {
-		for (DynamicSongSection& dynamicSongSection: m_CurrentSong->GetSongSections()) {
-			if (dynamicSongSection.GetSectionType() == m_CurrentSongSectionType) {
-				m_CurrentSongSection = &dynamicSongSection;
-				return;
-			}
-		}
-	} else {
+	if (m_CurrentSongSection && m_CurrentSongSection->GetSectionType() == m_CurrentSongSectionType) {
+		// Our current song section is already suitable
 		return;
 	}
+
+	for (DynamicSongSection& dynamicSongSection: m_CurrentSong->GetSongSections()) {
+		if (dynamicSongSection.GetSectionType() == m_CurrentSongSectionType) {
+			m_CurrentSongSection = &dynamicSongSection;
+			return;
+		}
+	}
+
 	m_CurrentSongSection = &m_CurrentSong->GetDefaultSongSection();
 }
 

@@ -292,7 +292,7 @@ int ActivityMan::StartActivity(Activity* activity) {
 	m_Activity.reset(dynamic_cast<Activity*>(m_StartActivity->Clone()));
 
 	g_MusicMan.ResetMusicState();
-	
+
 	m_Activity->SetupPlayers();
 	int error = m_Activity->Start();
 
@@ -315,7 +315,7 @@ int ActivityMan::StartActivity(Activity* activity) {
 
 	// Reset the mouse input to the center
 	g_UInputMan.SetMouseValueMagnitude(0.05F);
-	
+
 	g_AudioMan.PauseIngameSounds(false);
 
 	g_PerformanceMan.ResetPerformanceTimings();
