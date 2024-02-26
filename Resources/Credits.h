@@ -43,6 +43,7 @@ M A X   " M A X I M D U D E "   K
 M E T A L L O B O X
 M I S S A K   G H O S T   C O M O D O
 M R M I K E X  /  C H E R K O V
+N I K O L A I   " B A D B E A V E R "   G O L U B O V
 P A W N I S H O O V Y
 P R I M E T Y R A N T
 R I K U   " 4 Z K "   K
