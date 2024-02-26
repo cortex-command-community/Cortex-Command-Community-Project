@@ -171,7 +171,7 @@ namespace RTE {
 
 		Vector m_ScrollOffset; //!< The scrolling position of the whole title screen scene.
 		float m_PlanetViewScrollOffsetY; //!< The title screen scene scroll position when in planet overview menus.
-		
+
 		bool m_FinishedPlayingIntro; //!< Whether the intro sequence finished playing.
 		IntroSequence m_IntroSequenceState; //!< The current intro sequence state.
 		Timer m_IntroSongTimer; //!< Timer used to sync the intro sequence progress with the intro song.
@@ -193,7 +193,7 @@ namespace RTE {
 #pragma region Create Breakdown
 		/// Initializes music SoundContainers after they are done being loaded.
 		void InitializeMusic();
-		
+
 		/// Creates all the elements that compose the title screen scene.
 		void CreateTitleElements();
 
