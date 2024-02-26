@@ -691,7 +691,7 @@ void NetworkClient::ReceiveMusicEventsMsg(RakNet::Packet* packet) {
 
 				char buf[128];
 				std::snprintf(buf, sizeof(buf), "MUSIC %s %d", path, musicDataPointer->LoopsOrSilence);
-			
+
 				break;
 			case AudioMan::MUSIC_STOP:
 				break;

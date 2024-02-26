@@ -192,7 +192,6 @@ void AudioMan::Update() {
 		}
 
 		status = status == FMOD_OK ? m_AudioSystem->update() : status;
-		
 		if (status != FMOD_OK) {
 			g_ConsoleMan.PrintString("ERROR: Could not update AudioMan due to FMOD error: " + std::string(FMOD_ErrorString(status)));
 		}
