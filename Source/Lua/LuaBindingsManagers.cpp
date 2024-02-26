@@ -59,7 +59,6 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {
 	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic2)
 	    .def("PlayInterruptingMusic", &MusicMan::PlayInterruptingMusic)
 	    .def("EndInterruptingMusic", &MusicMan::EndInterruptingMusic);
-	
 }
 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {
