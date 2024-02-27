@@ -294,7 +294,6 @@ int GATutorial::Start() {
 
 	// Start music
 	g_MusicMan.PlayDynamicSong("Generic Battle Music");
-	
 	return error;
 }
 
@@ -325,14 +324,14 @@ void GATutorial::End() {
 
 	// Temp fix so music doesn't start playing if ending the Activity when changing resolution through the in-game settings.
 	if (!m_Paused) {
-	    // Play the appropriate tune on player win/lose
-	    if (playerWon) {
+		// Play the appropriate tune on player win/lose
+		if (playerWon) {
 			g_MusicMan.PlayDynamicSong("Generic Victory Music", "Default", true);
 			g_MusicMan.PlayDynamicSong("Generic Ambient Music");
-	    } else {
-	    	g_MusicMan.PlayDynamicSong("Generic Defeat Music", "Default", true);
-	    	g_MusicMan.PlayDynamicSong("Generic Ambient Music");
-	    }
+		} else {
+			g_MusicMan.PlayDynamicSong("Generic Defeat Music", "Default", true);
+			g_MusicMan.PlayDynamicSong("Generic Ambient Music");
+		}
 	}
 }
 
