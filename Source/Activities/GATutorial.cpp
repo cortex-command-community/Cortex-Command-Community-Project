@@ -18,6 +18,7 @@
 #include "GUIFont.h"
 #include "AllegroBitmap.h"
 #include "BuyMenuGUI.h"
+#include "MusicMan.h"
 #include "SceneEditorGUI.h"
 
 #define MAPNAME(element) g_UInputMan.GetControlScheme(m_TutorialPlayer)->GetMappingName(element)
@@ -290,17 +291,10 @@ int GATutorial::Start() {
 
 	//    m_FightTriggerEast.Create(Vector(526, 0), 52, 840);
 	//    m_FightTriggerWest.Create(Vector(1336, 0), 52, 840);
-	/*
-	    // Start special tutorial playlist
-	    g_AudioMan.ClearMusicQueue();
-	    g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", 0);
-	    g_AudioMan.QueueSilence(30);
-	    g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
-	    g_AudioMan.QueueSilence(30);
-	    g_AudioMan.QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
-	    g_AudioMan.QueueSilence(30);
-	    g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
-	*/
+
+	// Start music
+	g_MusicMan.PlayDynamicSong("Generic Battle Music");
+	
 	return error;
 }
 
@@ -330,21 +324,16 @@ void GATutorial::End() {
 	}
 
 	// Temp fix so music doesn't start playing if ending the Activity when changing resolution through the in-game settings.
-	/*if (!m_Paused) {
+	if (!m_Paused) {
 	    // Play the appropriate tune on player win/lose
 	    if (playerWon) {
-	        g_AudioMan.ClearMusicQueue();
-	        // Loop it twice, nice tune!
-	        g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2);
-	        g_AudioMan.QueueSilence(10);
-	        g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			g_MusicMan.PlayDynamicSong("Generic Victory Music", "Default", true);
+			g_MusicMan.PlayDynamicSong("Generic Ambient Music");
 	    } else {
-	        g_AudioMan.ClearMusicQueue();
-	        g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 0);
-	        g_AudioMan.QueueSilence(10);
-	        g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+	    	g_MusicMan.PlayDynamicSong("Generic Defeat Music", "Default", true);
+	    	g_MusicMan.PlayDynamicSong("Generic Ambient Music");
 	    }
-	}*/
+	}
 }
 
 /*
