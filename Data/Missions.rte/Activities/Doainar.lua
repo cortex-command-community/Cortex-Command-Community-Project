@@ -247,7 +247,7 @@ function DoainarMission:UpdateActivity()
 								self:ResetMessageTimer(player);
 								FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 								FrameMan:SetScreenText("Uh oh, looks like you angered the mother crab!  Kill it before it kills you!", self:ScreenOfPlayer(player), 0, 7500, true);
-								MusicMan:PlayDynamicSong("Generic Boss Fight Music", true);
+								MusicMan:PlayDynamicSong("GenericBoss Fight Music", "Default", true);
 							end
 						end
 

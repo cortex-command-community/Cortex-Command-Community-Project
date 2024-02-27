@@ -844,7 +844,7 @@ function DecisionDay:DoSpeedrunMode()
 	self:SetTeamTech(self.aiTeam, "-All-");
 	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
 	
-	MusicMan:PlayDynamicSong("Generic Boss Fight Music", true);
+	MusicMan:PlayDynamicSong("GenericBoss Fight Music", "Default", true);
 	
 	self.messageTimer:SetSimTimeLimitMS(1);
 	

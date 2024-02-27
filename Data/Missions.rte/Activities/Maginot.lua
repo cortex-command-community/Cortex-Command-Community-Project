@@ -387,7 +387,7 @@ function MaginotMission:UpdateActivity()
 		self.currentFightStage = self.fightStage.evacuateBrain;
 		self.screenTextTimer:Reset();
 		self.roundTimer:Reset();
-		MusicMan:PlayDynamicSong("Generic Boss Fight Music", true);
+		MusicMan:PlayDynamicSong("GenericBoss Fight Music", "Default", true);
 	elseif self.currentFightStage < self.fightStage.enterEvacuationRocket then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) and not self.brainDead[player] and self.rescueTrigger:IsInside(self:GetPlayerBrain(player).Pos) then
