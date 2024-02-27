@@ -134,7 +134,7 @@ function Survival:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER and self.ActivityState ~= Activity.EDITING then
 		if not self.musicStarted then
 			self.musicStarted = true;
-			MusicMan:PlayDynamicSong("Generic Battle Music");
+			MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
 		end
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then

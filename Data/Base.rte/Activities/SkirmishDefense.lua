@@ -246,7 +246,7 @@ function SkirmishDefense:UpdateActivity()
 	else
 		if not self.musicStarted then
 			self.musicStarted = true;
-			MusicMan:PlayDynamicSong("Generic Battle Music");
+			MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
 		end
 		if not self.startTimer:IsPastSimMS(500) then
 			-- Make sure all actors are in sentry mode
