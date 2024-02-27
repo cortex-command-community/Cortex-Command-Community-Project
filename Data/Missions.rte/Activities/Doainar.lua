@@ -148,9 +148,9 @@ function DoainarMission:ResumeLoadedGame()
 	end
 
 	if self.mamaAggressive and not self.mamaDead then
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+		MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 	elseif self.passedPitfall then
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ruinexploration.ogg", -1, -1);
+		MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
 	end
 end
 
