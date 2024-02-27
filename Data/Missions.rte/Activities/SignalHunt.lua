@@ -326,7 +326,7 @@ function SignalHunt:DoSpeedrunMode()
 	self.Difficulty = Activity.MAXDIFFICULTY;
 	self:SetTeamFunds(0, self.humanTeam);
 	
-	MusicMan:PlayDynamicSong("GenericBoss Fight Music", "Default", true);
+	MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 	
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
