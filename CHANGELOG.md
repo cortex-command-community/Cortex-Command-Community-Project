@@ -6,9 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+<details><summary><b>Added</b></summary>
+
+- New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.
+	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
+	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.
+	`PlayInterruptingMusic(SoundContainer soundContainer)` to start an interrupting piece of music which will pause any playing DynamicSong. Note that pause menu music happily overrides this currently.
+	`EndInterruptingMusic()` to end any playing interrupting music, and resume any paused DynamicSongs.
+	`EndDynamicMusic(bool fadeOut)` to end any currently playing dynamic music, optionally immediately fading it out. If not fading it out, the currently playing piece will play to completion.
+	`ResetMusicState()` to immediately end all music and return the MusicMan to a blank state.
+	
+- New entities `DynamicSongSection` and `DynamicSong` which are used for organizing music to play using the new system.
+  
+</details>
+
 <details><summary><b>Changed</b></summary>
 
 - Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+- Removed all music-related functionality from AudioMan.
 
 </details>
 
