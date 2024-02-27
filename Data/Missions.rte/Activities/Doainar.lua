@@ -264,7 +264,7 @@ function DoainarMission:UpdateActivity()
 							self:ResetMessageTimer(player);
 							FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 							FrameMan:SetScreenText("That was a close one.  Go finish off their den!", self:ScreenOfPlayer(player), 0, 7500, true);
-							MusicMan:PlayDynamicSong("Generic Battle Music", true);
+							MusicMan:PlayDynamicSong("Generic Ambient Music", "Default", true);
 						end
 
 						if MovableMan:IsParticle(self.eggSac) == false and self.sacDestroyed == false then

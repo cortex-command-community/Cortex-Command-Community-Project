@@ -80,9 +80,9 @@ function Massacre:SetupHumanPlayerBrains()
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
 				if not foundBrain then
 					self.ActivityState = Activity.EDITING;
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					MusicMan:PlayDynamicSong("Generic Ambient Music");
 				else
+					MusicMan:PlayDynamicSong("Generic Battle Music");
 					-- Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
@@ -129,22 +129,22 @@ function Massacre:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
 
 function Massacre:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER and self.ActivityState ~= Activity.EDITING then
+		if not self.musicStarted then
+			self.musicStarted = true;
+			MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
+		end
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
@@ -340,5 +340,6 @@ function Massacre:UpdateActivity()
 		end
 	else
 		self.startMessageTimer:Reset();
+		self.musicStarted = false;
 	end
 end
