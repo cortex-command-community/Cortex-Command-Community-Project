@@ -48,6 +48,9 @@ function MaginotMission:OnSave()
 end
 
 function MaginotMission:StartNewGame()
+
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
 	self:SetTeamFunds(self:GetStartingGold(), self.defenderTeam);
 
 	self.currentFightStage = self.fightStage.beginFight;
@@ -130,15 +133,12 @@ function MaginotMission:EndActivity()
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
 			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -387,6 +387,7 @@ function MaginotMission:UpdateActivity()
 		self.currentFightStage = self.fightStage.evacuateBrain;
 		self.screenTextTimer:Reset();
 		self.roundTimer:Reset();
+		MusicMan:PlayDynamicSong("Generic Boss Fight Music", true);
 	elseif self.currentFightStage < self.fightStage.enterEvacuationRocket then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) and not self.brainDead[player] and self.rescueTrigger:IsInside(self:GetPlayerBrain(player).Pos) then

@@ -39,6 +39,8 @@ function SiteScan:StartActivity()
 			self:GetBanner(GUIBanner.RED, player):ClearText();
 		end
 	end
+	
+	MusicMan:PlayDynamicSong("Generic Ambient Music");
 
 	-- Place resident brains into the simulation so they'll be collected properly afterwards
 	SceneMan.Scene:PlaceResidentBrains(self);
