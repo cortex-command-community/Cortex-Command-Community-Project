@@ -74,9 +74,9 @@ function RefineryAssault:UpdateFunds()
 	local playerFunds = self:GetTeamFunds(self.humanTeam);
 	local aiTeamFunds = self:GetTeamFunds(self.aiTeam);
 
-	if self.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
+	if self.saveTable.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
 	
-		self.goldTimer:Reset();
+		self.saveTable.goldTimer:Reset();
 		
 		self:SetTeamFunds(playerFunds + self.playerGoldIncreaseAmount, self.humanTeam);
 		self.humanAIFunds = self.humanAIFunds + self.humanAIGoldIncreaseAmount;
@@ -147,7 +147,6 @@ function RefineryAssault:StartActivity(newGame)
 	end
 	
 	
-	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
 	
 	self.playerGoldIncreaseAmount = 5;	
@@ -183,7 +182,6 @@ function RefineryAssault:StartActivity(newGame)
 	-- Stage stuff
 	
 	--2
-	self.stage2HoldTimer = Timer();
 	self.stage2TimeToHoldConsoles = 5000;
 	
 	self.stageFunctionTable = {};
@@ -215,6 +213,7 @@ function RefineryAssault:StartActivity(newGame)
 	
 	if newGame then
 		self.saveTable = {};
+		self.saveTable.goldTimer = Timer();
 		
 		self.saveTable.activeDocks = {1, 2};
 		self.deliveryCreationHandler:RemoveAvailablePreset(-1, "Tubby Rocket");
@@ -234,6 +233,8 @@ function RefineryAssault:StartActivity(newGame)
 			end
 			
 		end
+		
+		self.saveTable.stage2HoldTimer = Timer();
 		
 		-- Always active base task for defenders
 		self.tacticsHandler:AddTask("Brainhunt", self.aiTeam, Vector(0, 0), "Brainhunt", 2);
@@ -326,7 +327,7 @@ function RefineryAssault:StartActivity(newGame)
 		-- Stage stuff
 
 		--3
-		self.stage3ConsolesBroken = 0;
+		self.saveTable.stage3ConsolesBroken = 0;
 		
 		for particle in MovableMan.Particles do
 			if particle.PresetName == "Browncoat Refinery Console Breakable Objective" then
@@ -378,14 +379,6 @@ function RefineryAssault:ResumeLoadedGame()
 	print("loaded local refineryassault save table!");
 	
 	self.Stage = self:LoadNumber("stage");
-
-	self.goldTimer.ElapsedRealTimeMS = self:LoadNumber("goldTimer");
-	
-	self.stage2HoldingBothConsoles = self:LoadNumber("stage2HoldingBothConsoles") == 1 and true or false;
-	self.stage2HoldTimer.ElapsedRealTimeMS = self:LoadNumber("stage2HoldTimer");
-	
-	self.stage3ConsolesBroken = self:LoadNumber("stage3ConsolesBroken");
-	self.stage3DrillOverloaded = self:LoadNumber("stage3DrillOverloaded") == 1 and true or false;
 	
 	-- Handlers
 	self.tacticsHandler:OnLoad(self.saveLoadHandler);
@@ -405,14 +398,6 @@ function RefineryAssault:OnSave()
 	self.saveLoadHandler:SaveTableAsString("saveTable", self.saveTable);
 	
 	self:SaveNumber("stage", self.Stage);
-
-	self:SaveNumber("goldTimer", self.goldTimer.ElapsedRealTimeMS);
-	
-	self:SaveNumber("stage2HoldingBothConsoles", self.stage2HoldingBothConsoles and 1 or 0);
-	self:SaveNumber("stage2HoldTimer", self.stage2HoldTimer.ElapsedRealTimeMS);
-	
-	self:SaveNumber("stage3ConsolesBroken", self.stage2ConsolesBroken or 0);
-	self:SaveNumber("stage3DrillOverloaded", self.stage2DrillOverloaded and 1 or 0);
 	
 	-- Handlers
 	self.tacticsHandler:OnSave(self.saveLoadHandler);

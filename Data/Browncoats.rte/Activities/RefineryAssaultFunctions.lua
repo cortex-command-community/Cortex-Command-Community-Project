@@ -29,7 +29,7 @@ function RefineryAssault:HandleMessage(message, object)
 
 	elseif message == "Captured_RefineryLCHackConsole1" then
 	
-		self.stage2HoldTimer:Reset();
+		self.saveTable.stage2HoldTimer:Reset();
 
 		print(self.humanTeam .. " team vs object: " .. object);
 		
@@ -41,7 +41,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 			-- if we have the other one, we have both, initiate win condition timer
 			if self.stage2HoldingLC2 then
-				self.stage2HoldingBothConsoles = true;
+				self.saveTable.stage2HoldingBothConsoles = true;
 			end
 	
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC1");
@@ -54,7 +54,7 @@ function RefineryAssault:HandleMessage(message, object)
 			print("NOTHUMAN CAPPED 1");
 			print(self.humanTeam .. " team vs object: " .. object);
 			self.stage2HoldingLC1 = false;
-			self.stage2HoldingBothConsoles = false;
+			self.saveTable.stage2HoldingBothConsoles = false;
 		
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.aiTeam], "LC1");
 			self:RemoveStringFromTable("LC1", self.saveTable.buyDoorTables.teamAreas[self.humanTeam]);
@@ -70,7 +70,7 @@ function RefineryAssault:HandleMessage(message, object)
 
 	elseif message == "Captured_RefineryLCHackConsole2" then
 	
-		self.stage2HoldTimer:Reset();
+		self.saveTable.stage2HoldTimer:Reset();
 	
 		if object == self.humanTeam then
 		
@@ -80,7 +80,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 			-- if we have the other one, we have both, initiate win condition timer
 			if self.stage2HoldingLC1 then
-				self.stage2HoldingBothConsoles = true;
+				self.saveTable.stage2HoldingBothConsoles = true;
 			end
 	
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC2");
@@ -91,7 +91,7 @@ function RefineryAssault:HandleMessage(message, object)
 			end
 		else
 			self.stage2HoldingLC2 = false;
-			self.stage2HoldingBothConsoles = false;
+			self.saveTable.stage2HoldingBothConsoles = false;
 			
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.aiTeam], "LC2");
 			self:RemoveStringFromTable("LC2", self.saveTable.buyDoorTables.teamAreas[self.humanTeam]);
@@ -220,7 +220,7 @@ function RefineryAssault:HandleMessage(message, object)
 	elseif message == "Captured_RefineryS3DrillOverloadConsole" then	
 		
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
-		self.stage3DrillOverloaded = true;
+		self.saveTable.stage3DrillOverloaded = true;
 		
 		MovableMan:SendGlobalMessage("RefineryAssault_DrillOverloadBegin");
 	
@@ -632,7 +632,7 @@ function RefineryAssault:HandleMessage(message, object)
 			self:SendMessage("RefineryAssault_IntroCinematicDone");
 		end
 	elseif message == "SkipStage2" then
-		self.stage2HoldingBothConsoles = true;
+		self.saveTable.stage2HoldingBothConsoles = true;
 		self.stage2TimeToHoldConsoles = 0;
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC2");
@@ -662,8 +662,8 @@ function RefineryAssault:HandleMessage(message, object)
 
 		self.stage3AllConsolesBroken = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
-		self.saveTable.enemyActorTables.stage3FacilityOperator = {};
-		self.stage3DrillOverloaded = true;
+		self.saveTable.stage3FacilityOperator = nil;
+		self.saveTable.stage3DrillOverloaded = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
 	elseif message == "SkipStage4" then
 		for k, door in pairs(self.saveTable.stage4Door) do
@@ -996,19 +996,6 @@ function RefineryAssault:SetupStartingActors()
 		self.tacticsHandler:AddSquad(self.aiTeam, stage1SquadsTable[k], task.Name, true);
 	end
 	
-	self.saveTable.enemyActorTables.stage3FacilityOperator = {};
-	
-	-- note index access, we get a table back
-	local facilityOperator = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
-	local area = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3FacilityOperator");
-	local pos = SceneMan:MovePointToGround(area.Center, 50, 3);
-	
-	facilityOperator.Pos = pos;
-	MovableMan:AddActor(facilityOperator);
-	facilityOperator.AIMode = Actor.AIMODE_SENTRY;
-	
-	table.insert(self.saveTable.enemyActorTables.stage3FacilityOperator, facilityOperator);
-	
 	-- Stage 3 and 4 door stuff, might as well save it
 	
 	self.saveTable.stage3Doors = {};
@@ -1314,10 +1301,10 @@ end
 
 function RefineryAssault:MonitorStage2()
 
-	--print("stage 2 timer: " .. self.stage2HoldTimer.ElapsedSimTimeMS);
-	--print(self.stage2HoldingBothConsoles)
+	--print("stage 2 timer: " .. self.saveTable.stage2HoldTimer.ElapsedSimTimeMS);
+	--print(self.saveTable.stage2HoldingBothConsoles)
 
-	if self.stage2HoldingBothConsoles == true and self.stage2HoldTimer:IsPastSimMS(self.stage2TimeToHoldConsoles) then
+	if self.saveTable.stage2HoldingBothConsoles == true and self.saveTable.stage2HoldTimer:IsPastSimMS(self.stage2TimeToHoldConsoles) then
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE S2 WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 		self.Stage = 3;
 		
@@ -1350,6 +1337,18 @@ function RefineryAssault:MonitorStage2()
 				print("found refinery breakable console and added task")
 			end
 		end
+		
+		-- Setup the one actor objective
+		
+		-- note index access, we get a table back
+		self.saveTable.stage3FacilityOperator = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
+		self.saveTable.stage3FacilityOperator.Head = CreateAttachable("Browncoat Heavy Alt Head B", "Browncoats.rte");
+		local area = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3FacilityOperator");
+		local pos = SceneMan:MovePointToGround(area.Center, 50, 3);
+		
+		self.saveTable.stage3FacilityOperator.Pos = pos;
+		MovableMan:AddActor(self.saveTable.stage3FacilityOperator);
+		self.saveTable.stage3FacilityOperator.AIMode = Actor.AIMODE_SENTRY;
 		
 		--Monies
 		
@@ -1449,17 +1448,11 @@ end
 
 function RefineryAssault:MonitorStage3()
 
-	if not self.stage3FacilityOperatorKilled then
-
-		for k, actor in pairs(self.saveTable.enemyActorTables.stage3FacilityOperator) do
-			if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
-				table.remove(self.saveTable.enemyActorTables.stage3FacilityOperator, k);
-			end
-		end
-		
-		if #self.saveTable.enemyActorTables.stage3FacilityOperator == 0 then
+	if not self.saveTable.stage3FacilityOperatorKilled then
+		local actor = self.saveTable.stage3FacilityOperator;
+		if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
 			self.HUDHandler:RemoveObjective(self.humanTeam, "S3DefeatOperator");
-			self.stage3FacilityOperatorKilled = true;
+			self.saveTable.stage3FacilityOperatorKilled = true;
 		end
 		
 	end
@@ -1486,7 +1479,7 @@ function RefineryAssault:MonitorStage3()
 		
 	end
 
-	if self.stage3AllConsolesBroken and self.stage3FacilityOperatorKilled and self.stage3DrillOverloaded and not self.stage3DoorSequenceTimer then
+	if self.stage3AllConsolesBroken and self.saveTable.stage3FacilityOperatorKilled and self.saveTable.stage3DrillOverloaded and not self.stage3DoorSequenceTimer then
 	
 		-- initiate scripted sequence
 		self.stage3DoorSequenceTimer = Timer();
@@ -1622,6 +1615,8 @@ function RefineryAssault:MonitorStage5()
 		-- note index access, we get a table back
 		self.saveTable.stage6subCommander = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
 		self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
+		-- give subcommander cool head and keycard
+		self.saveTable.stage6subCommander.Head = CreateAttachable("Browncoat Heavy Alt Head A", "Browncoats.rte");
 		self.saveTable.stage6subCommander:AddInventoryItem(self.saveTable.stage6Keycard);
 		
 		table.insert(self.saveTable.enemyActorTables.stage6SubCommanderSquad, self.saveTable.stage6subCommander);
@@ -1667,7 +1662,7 @@ end
 function RefineryAssault:MonitorStage6()
 
 	if not self.saveTable.stage6subCommanderKilled then
-		if not self.saveTable.stage6subCommander or not MovableMan:ValidMO(self.saveTable.stage6subCommander) or self.saveTable.stage6subCommander:IsDead() then
+		if not self.saveTable.stage6subCommander or (self.saveTable.stage6subCommander.HasEverBeenAddedToMovableMan and not MovableMan:ValidMO(self.saveTable.stage6subCommander)) or self.saveTable.stage6subCommander:IsDead() then
 			self.HUDHandler:RemoveObjective(self.humanTeam, "S6KillSubcommander");
 			self.saveTable.stage6subCommanderKilled = true;
 		end

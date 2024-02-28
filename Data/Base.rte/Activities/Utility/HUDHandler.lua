@@ -534,8 +534,15 @@ function HUDHandler:UpdateHUDHandler()
 				
 				-- c++ objectives are per team, not per player, so we can't do it per player yet...
 				if objTable.Position and spectatorView then
-					local pos = not objTable.Position.PresetName and objTable.Position or objTable.Position.Pos; -- severely ghetto mo check
-					self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
+					local pos;
+					if objTable.Position.PresetName then -- severely ghetto mo check
+						pos = objTable.Position.Pos;
+					else
+						pos = objTable.Position;
+					end
+					if not pos.Magnitude == 0 then -- if it's 0, 0 something probably went wrong, don't display it
+						self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
+					end
 				end
 			end
 		end
