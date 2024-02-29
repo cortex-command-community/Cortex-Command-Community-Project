@@ -88,12 +88,12 @@ namespace RTE {
 			m_SoundContainerSelectionCycleMode = newSoundContainerSelectionCycleMode;
 			m_LastTransitionSoundContainerIndex = -1;
 			m_TransitionShuffleUnplayedIndices.clear();
-			for(unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++ ) {
+			for (unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++) {
 				m_TransitionShuffleUnplayedIndices.push_back(i);
 			}
 			m_LastSoundContainerIndex = -1;
 			m_ShuffleUnplayedIndices.clear();
-			for(unsigned int i = 0; i < m_SoundContainers.size(); i++ ) {
+			for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
 				m_ShuffleUnplayedIndices.push_back(i);
 			}
 		}
@@ -126,7 +126,7 @@ namespace RTE {
 		unsigned int m_LastSoundContainerIndex; //!< The last index used to select a SoundContainer.
 		std::vector<unsigned int> m_ShuffleUnplayedIndices; //!< Indices left to play if in Shuffle mode.
 
-		SoundContainerSelectionCycleMode m_SoundContainerSelectionCycleMode;  //!< The selection cycle mode to use when selecting the next SoundContainer.
+		SoundContainerSelectionCycleMode m_SoundContainerSelectionCycleMode; //!< The selection cycle mode to use when selecting the next SoundContainer.
 		std::string m_SectionType; //!< The name of the type of dynamic music this is.
 
 		/// Clears all the member variables of this DynamicSongSection, effectively resetting the members of this abstraction level only.

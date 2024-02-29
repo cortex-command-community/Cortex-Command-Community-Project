@@ -6,8 +6,8 @@ ConcreteClassInfo(DynamicSongSection, Entity, 50);
 ConcreteClassInfo(DynamicSong, Entity, 50);
 
 const std::unordered_map<std::string, DynamicSongSection::SoundContainerSelectionCycleMode> DynamicSongSection::c_SoundContainerSelectionCycleModeMap = {
-	{"randomnorepeat", SoundContainerSelectionCycleMode::RANDOMNOREPEAT},
-	{"shuffle", SoundContainerSelectionCycleMode::SHUFFLE}};
+    {"randomnorepeat", SoundContainerSelectionCycleMode::RANDOMNOREPEAT},
+    {"shuffle", SoundContainerSelectionCycleMode::SHUFFLE}};
 
 DynamicSongSection::DynamicSongSection() {
 	Clear();
@@ -26,11 +26,11 @@ void DynamicSongSection::Clear() {
 	m_TransitionSoundContainers.clear();
 	m_LastTransitionSoundContainerIndex = -1;
 	m_TransitionShuffleUnplayedIndices.clear();
-	
+
 	m_SoundContainers.clear();
 	m_LastSoundContainerIndex = -1;
 	m_ShuffleUnplayedIndices.clear();
-	
+
 	m_SoundContainerSelectionCycleMode = RANDOMNOREPEAT;
 	m_SectionType = "Default";
 }
@@ -44,7 +44,7 @@ int DynamicSongSection::Create(const DynamicSongSection& reference) {
 		m_TransitionSoundContainers.push_back(soundContainer);
 	}
 	m_LastTransitionSoundContainerIndex = reference.m_LastTransitionSoundContainerIndex;
-	
+
 	for (const SoundContainer& referenceSoundContainer: reference.m_SoundContainers) {
 		SoundContainer soundContainer;
 		soundContainer.Create(referenceSoundContainer);
@@ -131,9 +131,9 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 	if (m_TransitionSoundContainers.size() == 1) {
 		return m_TransitionSoundContainers[0];
 	}
-	
+
 	if (m_TransitionShuffleUnplayedIndices.empty()) {
-		for(unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++ ) {
+		for (unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++) {
 			if (i != m_LastTransitionSoundContainerIndex) {
 				m_TransitionShuffleUnplayedIndices.push_back(i);
 			}
@@ -171,7 +171,7 @@ SoundContainer& DynamicSongSection::SelectSoundContainer() {
 	}
 
 	if (m_ShuffleUnplayedIndices.empty()) {
-		for(unsigned int i = 0; i < m_SoundContainers.size(); i++ ) {
+		for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
 			if (i != m_LastSoundContainerIndex) {
 				m_ShuffleUnplayedIndices.push_back(i);
 			}
