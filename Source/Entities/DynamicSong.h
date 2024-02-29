@@ -87,14 +87,14 @@ namespace RTE {
 		void SetSoundContainerSelectionCycleMode(SoundContainerSelectionCycleMode newSoundContainerSelectionCycleMode) {
 			m_SoundContainerSelectionCycleMode = newSoundContainerSelectionCycleMode;
 			m_LastTransitionSoundContainerIndex = -1;
-			m_TransitionShuffleIndices.clear();
-			for(unsigned int i = 0; i <= m_TransitionSoundContainers.size() - 1; i++ ) {
-				m_TransitionShuffleIndices.push_back(i);
+			m_TransitionShuffleUnplayedIndices.clear();
+			for(unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++ ) {
+				m_TransitionShuffleUnplayedIndices.push_back(i);
 			}
 			m_LastSoundContainerIndex = -1;
-			m_ShuffleIndices.clear();
-			for(unsigned int i = 0; i <= m_SoundContainers.size() - 1; i++ ) {
-				m_ShuffleIndices.push_back(i);
+			m_ShuffleUnplayedIndices.clear();
+			for(unsigned int i = 0; i < m_SoundContainers.size(); i++ ) {
+				m_ShuffleUnplayedIndices.push_back(i);
 			}
 		}
 
@@ -121,10 +121,10 @@ namespace RTE {
 
 		std::vector<SoundContainer> m_TransitionSoundContainers; //!< The SoundContainers that will play when first switching to this DynamicSongSection.
 		unsigned int m_LastTransitionSoundContainerIndex; //!< The last index used to select a TransitionSoundContainer.
-		std::vector<unsigned int> m_TransitionShuffleIndices; //!< Indices left to play if in Shuffle mode.
+		std::vector<unsigned int> m_TransitionShuffleUnplayedIndices; //!< Indices left to play if in Shuffle mode.
 		std::vector<SoundContainer> m_SoundContainers; //!< The SoundContainers making up this DynamicSongSection.
 		unsigned int m_LastSoundContainerIndex; //!< The last index used to select a SoundContainer.
-		std::vector<unsigned int> m_ShuffleIndices; //!< Indices left to play if in Shuffle mode.
+		std::vector<unsigned int> m_ShuffleUnplayedIndices; //!< Indices left to play if in Shuffle mode.
 
 		SoundContainerSelectionCycleMode m_SoundContainerSelectionCycleMode;  //!< The selection cycle mode to use when selecting the next SoundContainer.
 		std::string m_SectionType; //!< The name of the type of dynamic music this is.

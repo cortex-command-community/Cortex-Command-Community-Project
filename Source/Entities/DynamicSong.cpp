@@ -25,11 +25,11 @@ DynamicSongSection::~DynamicSongSection() {
 void DynamicSongSection::Clear() {
 	m_TransitionSoundContainers.clear();
 	m_LastTransitionSoundContainerIndex = -1;
-	m_TransitionShuffleIndices.clear();
+	m_TransitionShuffleUnplayedIndices.clear();
 	
 	m_SoundContainers.clear();
 	m_LastSoundContainerIndex = -1;
-	m_ShuffleIndices.clear();
+	m_ShuffleUnplayedIndices.clear();
 	
 	m_SoundContainerSelectionCycleMode = RANDOMNOREPEAT;
 	m_SectionType = "Default";
@@ -131,10 +131,12 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 	if (m_TransitionSoundContainers.size() == 1) {
 		return m_TransitionSoundContainers[0];
 	}
-
-	if (m_TransitionShuffleIndices.empty()) {
-		for(unsigned int i = 0; i <= m_TransitionSoundContainers.size() - 1; i++ ) {
-			m_TransitionShuffleIndices.push_back(i);
+	
+	if (m_TransitionShuffleUnplayedIndices.empty()) {
+		for(unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++ ) {
+			if (i != m_LastTransitionSoundContainerIndex) {
+				m_TransitionShuffleUnplayedIndices.push_back(i);
+			}
 		}
 	}
 
@@ -152,8 +154,10 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 			return m_TransitionSoundContainers[randomIndex];
 		}
 		case SHUFFLE: {
-			unsigned int selectedIndex = m_TransitionShuffleIndices[RandomNum(0, static_cast<int>(m_TransitionShuffleIndices.size()) - 1)];
-			m_TransitionShuffleIndices.erase(m_TransitionShuffleIndices.begin() + selectedIndex);
+			unsigned int randomSelection = RandomNum(0, static_cast<int>(m_TransitionShuffleUnplayedIndices.size() - 1));
+			unsigned int selectedIndex = m_TransitionShuffleUnplayedIndices[randomSelection];
+			m_TransitionShuffleUnplayedIndices.erase(m_TransitionShuffleUnplayedIndices.begin() + randomSelection);
+			m_LastTransitionSoundContainerIndex = selectedIndex;
 			return m_TransitionSoundContainers[selectedIndex];
 		}
 	}
@@ -166,9 +170,11 @@ SoundContainer& DynamicSongSection::SelectSoundContainer() {
 		return m_SoundContainers[0];
 	}
 
-	if (m_ShuffleIndices.empty()) {
-		for(unsigned int i = 0; i <= m_SoundContainers.size() - 1; i++ ) {
-			m_ShuffleIndices.push_back(i);
+	if (m_ShuffleUnplayedIndices.empty()) {
+		for(unsigned int i = 0; i < m_SoundContainers.size(); i++ ) {
+			if (i != m_LastSoundContainerIndex) {
+				m_ShuffleUnplayedIndices.push_back(i);
+			}
 		}
 	}
 
@@ -186,8 +192,10 @@ SoundContainer& DynamicSongSection::SelectSoundContainer() {
 			return m_SoundContainers[randomIndex];
 		}
 		case SHUFFLE: {
-			unsigned int selectedIndex = m_ShuffleIndices[RandomNum(0, static_cast<int>(m_ShuffleIndices.size()) - 1)];
-			m_ShuffleIndices.erase(m_ShuffleIndices.begin() + selectedIndex);
+			unsigned int randomSelection = RandomNum(0, static_cast<int>(m_ShuffleUnplayedIndices.size() - 1));
+			unsigned int selectedIndex = m_ShuffleUnplayedIndices[randomSelection];
+			m_ShuffleUnplayedIndices.erase(m_ShuffleUnplayedIndices.begin() + randomSelection);
+			m_LastSoundContainerIndex = selectedIndex;
 			return m_SoundContainers[selectedIndex];
 		}
 	}
