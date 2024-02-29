@@ -12,6 +12,12 @@ namespace RTE {
 		SerializableOverrideMethods;
 		ClassInfoGetters;
 
+		/// How the DynamicSongSection should select the next SoundContainer when SelectSoundContainer is called.
+		enum SoundContainerSelectionCycleMode {
+			RANDOMNOREPEAT = 0,
+			SHUFFLE
+		};
+
 #pragma region Creation
 		/// Constructor method used to instantiate a DynamicSongSection object in system memory. Create() should be called before using the object.
 		DynamicSongSection();
@@ -56,6 +62,13 @@ namespace RTE {
 		void AddSoundContainer(const SoundContainer& soundContainerToAdd) { m_SoundContainers.push_back(soundContainerToAdd); }
 #pragma endregion
 
+#pragma region INI Handling
+		/// Handles writing the given SoundContainerSelectionCycleMode out to the given Writer, using the static SoundContainerSelectionCycleMap.
+		/// @param writer A Writer filled in with the property to write to.
+		/// @param soundContainerSelectionCycleMode The SoundSelectionCycleMode to write.
+		static void SaveSoundContainerSelectionCycleMode(Writer& writer, SoundContainerSelectionCycleMode soundContainerSelectionCycleMode);
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Gets the vector of TransitionSoundContainers for this DynamicSongSection.
 		/// @return The vector of TransitionSoundContainers for this DynamicSongSection.
@@ -64,6 +77,26 @@ namespace RTE {
 		/// Gets the vector of SoundContainers for this DynamicSongSection.
 		/// @return The vector of SoundContainers for this DynamicSongSection.
 		std::vector<SoundContainer>& GetSoundContainers() { return m_SoundContainers; }
+
+		/// Gets the SoundContainerSelectionCycleMode of this DynamicSongSection.
+		/// @return The SoundContainerSelectionCycleMode of this DynamicSongSection.
+		SoundContainerSelectionCycleMode GetSoundContainerSelectionCycleMode() const { return m_SoundContainerSelectionCycleMode; }
+
+		/// Sets the SoundContainerSelectionCycleMode of this DynamicSongSection. Resets any current state of selection.
+		/// @param newSoundContainerSelectionCycleMode The new SoundContainerSelectionCycleMode for this DynamicSongSection.
+		void SetSoundContainerSelectionCycleMode(SoundContainerSelectionCycleMode newSoundContainerSelectionCycleMode) {
+			m_SoundContainerSelectionCycleMode = newSoundContainerSelectionCycleMode;
+			m_LastTransitionSoundContainerIndex = -1;
+			m_TransitionShuffleIndices.clear();
+			for(unsigned int i = 0; i <= m_TransitionSoundContainers.size() - 1; i++ ) {
+				m_TransitionShuffleIndices.push_back(i);
+			}
+			m_LastSoundContainerIndex = -1;
+			m_ShuffleIndices.clear();
+			for(unsigned int i = 0; i <= m_SoundContainers.size() - 1; i++ ) {
+				m_ShuffleIndices.push_back(i);
+			}
+		}
 
 		/// Gets the SectionType of this DynamicSongSection.
 		/// @return The SectionType of this DynamicSongSection.
@@ -84,11 +117,16 @@ namespace RTE {
 
 	private:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
+		static const std::unordered_map<std::string, SoundContainerSelectionCycleMode> c_SoundContainerSelectionCycleModeMap; //!< A map of strings to SoundContainerSelectionCycleModes to support string parsing for the SoundContainerSelectionCycleMode enum. Populated in the implementing cpp file.
 
 		std::vector<SoundContainer> m_TransitionSoundContainers; //!< The SoundContainers that will play when first switching to this DynamicSongSection.
 		unsigned int m_LastTransitionSoundContainerIndex; //!< The last index used to select a TransitionSoundContainer.
+		std::vector<unsigned int> m_TransitionShuffleIndices; //!< Indices left to play if in Shuffle mode.
 		std::vector<SoundContainer> m_SoundContainers; //!< The SoundContainers making up this DynamicSongSection.
 		unsigned int m_LastSoundContainerIndex; //!< The last index used to select a SoundContainer.
+		std::vector<unsigned int> m_ShuffleIndices; //!< Indices left to play if in Shuffle mode.
+
+		SoundContainerSelectionCycleMode m_SoundContainerSelectionCycleMode;  //!< The selection cycle mode to use when selecting the next SoundContainer.
 		std::string m_SectionType; //!< The name of the type of dynamic music this is.
 
 		/// Clears all the member variables of this DynamicSongSection, effectively resetting the members of this abstraction level only.

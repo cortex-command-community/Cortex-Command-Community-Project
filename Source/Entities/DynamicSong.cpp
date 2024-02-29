@@ -5,6 +5,10 @@ using namespace RTE;
 ConcreteClassInfo(DynamicSongSection, Entity, 50);
 ConcreteClassInfo(DynamicSong, Entity, 50);
 
+const std::unordered_map<std::string, DynamicSongSection::SoundContainerSelectionCycleMode> DynamicSongSection::c_SoundContainerSelectionCycleModeMap = {
+	{"randomnorepeat", SoundContainerSelectionCycleMode::RANDOMNOREPEAT},
+	{"shuffle", SoundContainerSelectionCycleMode::SHUFFLE}};
+
 DynamicSongSection::DynamicSongSection() {
 	Clear();
 }
@@ -21,8 +25,13 @@ DynamicSongSection::~DynamicSongSection() {
 void DynamicSongSection::Clear() {
 	m_TransitionSoundContainers.clear();
 	m_LastTransitionSoundContainerIndex = -1;
+	m_TransitionShuffleIndices.clear();
+	
 	m_SoundContainers.clear();
 	m_LastSoundContainerIndex = -1;
+	m_ShuffleIndices.clear();
+	
+	m_SoundContainerSelectionCycleMode = RANDOMNOREPEAT;
 	m_SectionType = "Default";
 }
 
@@ -34,16 +43,16 @@ int DynamicSongSection::Create(const DynamicSongSection& reference) {
 		soundContainer.Create(referenceSoundContainer);
 		m_TransitionSoundContainers.push_back(soundContainer);
 	}
-
 	m_LastTransitionSoundContainerIndex = reference.m_LastTransitionSoundContainerIndex;
-
+	
 	for (const SoundContainer& referenceSoundContainer: reference.m_SoundContainers) {
 		SoundContainer soundContainer;
 		soundContainer.Create(referenceSoundContainer);
 		m_SoundContainers.push_back(soundContainer);
 	}
-
 	m_LastSoundContainerIndex = reference.m_LastSoundContainerIndex;
+
+	m_SoundContainerSelectionCycleMode = reference.m_SoundContainerSelectionCycleMode;
 	m_SectionType = reference.m_SectionType;
 
 	return 0;
@@ -62,9 +71,30 @@ int DynamicSongSection::ReadProperty(const std::string_view& propName, Reader& r
 		reader >> soundContainerToAdd;
 		m_SoundContainers.push_back(soundContainerToAdd);
 	});
+	MatchProperty("SoundContainerSelectionCycleMode", {
+		std::string soundContainerSelectionCycleModeString = reader.ReadPropValue();
+		if (c_SoundContainerSelectionCycleModeMap.find(soundContainerSelectionCycleModeString) != c_SoundContainerSelectionCycleModeMap.end()) {
+			m_SoundContainerSelectionCycleMode = c_SoundContainerSelectionCycleModeMap.find(soundContainerSelectionCycleModeString)->second;
+		} else {
+			try {
+				m_SoundContainerSelectionCycleMode = static_cast<SoundContainerSelectionCycleMode>(std::stoi(soundContainerSelectionCycleModeString));
+			} catch (const std::exception&) {
+				reader.ReportError("Tried to set non-existent SoundContainerSelectionCycleMode " + soundContainerSelectionCycleModeString);
+			}
+		}
+	});
 	MatchProperty("SectionType", { reader >> m_SectionType; });
 
 	EndPropertyList;
+}
+
+void DynamicSongSection::SaveSoundContainerSelectionCycleMode(Writer& writer, SoundContainerSelectionCycleMode soundContainerSelectionCycleMode) {
+	auto cycleModeMapEntry = std::find_if(c_SoundContainerSelectionCycleModeMap.begin(), c_SoundContainerSelectionCycleModeMap.end(), [&soundContainerSelectionCycleMode = soundContainerSelectionCycleMode](auto element) { return element.second == soundContainerSelectionCycleMode; });
+	if (cycleModeMapEntry != c_SoundContainerSelectionCycleModeMap.end()) {
+		writer << cycleModeMapEntry->first;
+	} else {
+		RTEAbort("Tried to write invalid SoundContainerSelectionCycleMode when saving DynamicSongSection.");
+	}
 }
 
 int DynamicSongSection::Save(Writer& writer) const {
@@ -86,6 +116,8 @@ int DynamicSongSection::Save(Writer& writer) const {
 	}
 	writer.NewProperty("LastSoundContainerIndex");
 	writer << m_LastSoundContainerIndex;
+	writer.NewProperty("SoundContainerSelectionCycleMode");
+	SaveSoundContainerSelectionCycleMode(writer, m_SoundContainerSelectionCycleMode);
 	writer.NewProperty("SectionType");
 	writer << m_SectionType;
 
@@ -100,16 +132,31 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 		return m_TransitionSoundContainers[0];
 	}
 
-	std::vector<unsigned int> validIndices;
-	for (unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++) {
-		if (i != m_LastTransitionSoundContainerIndex) {
-			validIndices.push_back(i);
+	if (m_TransitionShuffleIndices.empty()) {
+		for(unsigned int i = 0; i <= m_TransitionSoundContainers.size() - 1; i++ ) {
+			m_TransitionShuffleIndices.push_back(i);
 		}
 	}
 
-	unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
-	m_LastTransitionSoundContainerIndex = randomIndex;
-	return m_TransitionSoundContainers[randomIndex];
+	switch (m_SoundContainerSelectionCycleMode) {
+		case RANDOMNOREPEAT: {
+			std::vector<unsigned int> validIndices;
+			for (unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++) {
+				if (i != m_LastTransitionSoundContainerIndex) {
+					validIndices.push_back(i);
+				}
+			}
+
+			unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+			m_LastTransitionSoundContainerIndex = randomIndex;
+			return m_TransitionSoundContainers[randomIndex];
+		}
+		case SHUFFLE: {
+			unsigned int selectedIndex = m_TransitionShuffleIndices[RandomNum(0, static_cast<int>(m_TransitionShuffleIndices.size()) - 1)];
+			m_TransitionShuffleIndices.erase(m_TransitionShuffleIndices.begin() + selectedIndex);
+			return m_TransitionSoundContainers[selectedIndex];
+		}
+	}
 }
 
 SoundContainer& DynamicSongSection::SelectSoundContainer() {
@@ -119,16 +166,31 @@ SoundContainer& DynamicSongSection::SelectSoundContainer() {
 		return m_SoundContainers[0];
 	}
 
-	std::vector<unsigned int> validIndices;
-	for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
-		if (i != m_LastSoundContainerIndex) {
-			validIndices.push_back(i);
+	if (m_ShuffleIndices.empty()) {
+		for(unsigned int i = 0; i <= m_SoundContainers.size() - 1; i++ ) {
+			m_ShuffleIndices.push_back(i);
 		}
 	}
 
-	unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
-	m_LastSoundContainerIndex = randomIndex;
-	return m_SoundContainers[randomIndex];
+	switch (m_SoundContainerSelectionCycleMode) {
+		case RANDOMNOREPEAT: {
+			std::vector<unsigned int> validIndices;
+			for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
+				if (i != m_LastSoundContainerIndex) {
+					validIndices.push_back(i);
+				}
+			}
+
+			unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+			m_LastSoundContainerIndex = randomIndex;
+			return m_SoundContainers[randomIndex];
+		}
+		case SHUFFLE: {
+			unsigned int selectedIndex = m_ShuffleIndices[RandomNum(0, static_cast<int>(m_ShuffleIndices.size()) - 1)];
+			m_ShuffleIndices.erase(m_ShuffleIndices.begin() + selectedIndex);
+			return m_SoundContainers[selectedIndex];
+		}
+	}
 }
 
 DynamicSong::DynamicSong() {
