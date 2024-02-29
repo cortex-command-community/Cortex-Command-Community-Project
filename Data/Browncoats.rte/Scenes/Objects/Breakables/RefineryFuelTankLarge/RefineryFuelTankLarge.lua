@@ -24,6 +24,6 @@ function OnCollideWithMO(self, MO, rootMO)
 	end
 end
 
-function OnDestroy(self)
+function Destroy(self)
 	self.plummetSound:FadeOut(200);
 end
