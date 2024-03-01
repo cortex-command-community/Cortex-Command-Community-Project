@@ -286,7 +286,6 @@ float SoundContainer::GetAudibleVolume() const {
 	return g_AudioMan.GetSoundContainerAudibleVolume(this);
 }
 
-
 void SoundContainer::SetVolume(float newVolume) {
 	newVolume = std::clamp(newVolume, 0.0F, 10.0F);
 	if (IsBeingPlayed()) {
