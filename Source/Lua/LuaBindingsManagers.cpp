@@ -44,6 +44,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {
 	return luabind::class_<MusicMan>("MusicManager")
 
 	    .def("ResetMusicState", &MusicMan::ResetMusicState)
+	    .def("IsMusicPlaying", &MusicMan::IsMusicPlaying)
 	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong1)
 	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong2)
 	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong3)

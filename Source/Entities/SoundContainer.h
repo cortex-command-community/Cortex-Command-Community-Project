@@ -223,6 +223,10 @@ namespace RTE {
 		/// @return Whether this SoundContainer's attenuation setting was successful.
 		void SetPosition(const Vector& newPosition);
 
+		/// Gets the real audible volume sounds in this SoundContainer are currently playing at, if any. Accounts for literally everything, including game volume.
+		/// @return The real audible volume the sounds in this SoundContainer are played at.
+		float GetAudibleVolume() const;
+
 		/// Gets the volume the sounds in this SoundContainer are played at. Note that this does not factor volume changes due to the SoundContainer's position.
 		/// @return The volume the sounds in this SoundContainer are played at.
 		float GetVolume() const { return m_Volume; }

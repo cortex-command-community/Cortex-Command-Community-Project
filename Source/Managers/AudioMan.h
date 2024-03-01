@@ -360,6 +360,11 @@ namespace RTE {
 		/// @return Whether the position was successfully set.
 		bool ChangeSoundContainerPlayingChannelsPosition(const SoundContainer* soundContainer);
 
+		/// Sets/updates the position of a SoundContainer's playing sounds.
+		/// @param soundContainer A pointer to a SoundContainer object. Ownership IS NOT transferred!
+		/// @return Whether the position was successfully set.
+		float GetSoundContainerAudibleVolume(const SoundContainer* soundContainer);
+
 		/// Changes the volume of a SoundContainer's playing sounds.
 		/// @param soundContainer A pointer to a SoundContainer object. Ownership IS NOT transferred!
 		/// @param newVolume The new volume to play sounds at, between 0 and 1.

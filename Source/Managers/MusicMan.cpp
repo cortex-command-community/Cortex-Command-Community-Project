@@ -56,13 +56,23 @@ void MusicMan::Update() {
 			m_PreviousSoundContainerSetToFade = false;
 		}
 	} else {
-		if (m_PreviousSoundContainer && !m_PreviousSoundContainer->IsBeingPlayed()) {
+		if (m_PreviousSoundContainer && m_PreviousSoundContainer->GetAudibleVolume() == 0.0F) {
 			m_PreviousSoundContainer = nullptr;
 		}
-		if (m_CurrentSoundContainer && !m_CurrentSoundContainer->IsBeingPlayed()) {
+		if (m_CurrentSoundContainer && m_CurrentSoundContainer->GetAudibleVolume() == 0.0F) {
 			m_CurrentSoundContainer = nullptr;
 		}
 	}
+}
+
+bool MusicMan::IsMusicPlaying() const {
+	bool interruptingMusicSoundContainerPlaying = m_InterruptingMusicSoundContainer != nullptr && m_InterruptingMusicSoundContainer->GetAudibleVolume() > 0.0F;
+	bool previousSoundContainerPlaying = m_PreviousSoundContainer != nullptr && m_PreviousSoundContainer->GetAudibleVolume() > 0.0F;
+	bool currentSoundContainerPlaying = m_CurrentSoundContainer != nullptr && m_CurrentSoundContainer->GetAudibleVolume() > 0.0F;
+	if (interruptingMusicSoundContainerPlaying || previousSoundContainerPlaying || currentSoundContainerPlaying) {
+		return true;
+	}
+	return false;
 }
 
 void MusicMan::ResetMusicState() {

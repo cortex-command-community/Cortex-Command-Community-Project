@@ -471,6 +471,30 @@ bool AudioMan::ChangeSoundContainerPlayingChannelsPosition(const SoundContainer*
 	return result == FMOD_OK;
 }
 
+float AudioMan::GetSoundContainerAudibleVolume(const SoundContainer* soundContainer) {
+	if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
+		return 0.0F;
+	}
+
+	FMOD_RESULT result;
+	FMOD::Channel* soundChannel;
+	float audibleVolume;
+
+	const std::unordered_set<int> channels = *soundContainer->GetPlayingChannels();
+	for (int channel: channels) {
+		result = m_AudioSystem->getChannel(channel, &soundChannel);
+		result = (result == FMOD_OK) ? soundChannel->getAudibility(&audibleVolume) : result;
+
+		if (result != FMOD_OK) {
+			g_ConsoleMan.PrintString("ERROR: Could not get sound audible volume in SoundContainer " + soundContainer->GetPresetName() + ": " + std::string(FMOD_ErrorString(result)));
+		} else {
+			// Simply return the first one, they are all the same
+			return audibleVolume;
+		}
+	}
+	return 0.0F;
+}
+
 bool AudioMan::ChangeSoundContainerPlayingChannelsVolume(const SoundContainer* soundContainer, float newVolume) {
 	if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
 		return false;

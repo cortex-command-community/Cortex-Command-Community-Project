@@ -38,6 +38,10 @@ namespace RTE {
 		/// Resets music state, stopping and clearing playing dynamic songs or interrupting music, etc. to make ready for new music.
 		void ResetMusicState();
 
+		/// Gets whether any music is audible, even if further playback is disabled.
+		/// @return Whether any music is audible or not.
+		bool IsMusicPlaying() const;
+
 		/// Begins playing a new dynamic song.
 		/// @param songName PresetName of the dynamic song to play.
 		/// @param songSectionType Type of DynamicSongSection to play first.

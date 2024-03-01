@@ -1282,6 +1282,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 	    .def("HasAnySounds", &SoundContainer::HasAnySounds)
 	    .def("GetTopLevelSoundSet", &SoundContainer::GetTopLevelSoundSet)
 	    .def("SetTopLevelSoundSet", &SoundContainer::SetTopLevelSoundSet)
+	    .def("GetAudibleVolume", &SoundContainer::GetAudibleVolume)
 	    .def("IsBeingPlayed", &SoundContainer::IsBeingPlayed)
 	    .def("Play", (bool(SoundContainer::*)()) & SoundContainer::Play)
 	    .def("Play", (bool(SoundContainer::*)(const int player)) & SoundContainer::Play)

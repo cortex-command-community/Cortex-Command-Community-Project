@@ -17,6 +17,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`ResetMusicState()` to immediately end all music and return the MusicMan to a blank state.
 	
 - New entities `DynamicSongSection` and `DynamicSong` which are used for organizing music to play using the new system.
+	`DynamicSongSection` is made up of TransitionSoundContainers, SoundContainers, a string SectionType, and either randomnorepeat or shuffle SoundContainerSelectionCycleMode.
+	`DynamicSong` is a simple container of DynamicSongSections. It can have one DefaultSongSection and as many added sections as needed.
+	
+- New `SoundContainer` features.
+		Lua property `Paused` (R/W) to pause or unpause all sounds of a SoundContainer. Newly played sounds will not begin playback until unpaused.
+		Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
   
 </details>
 
