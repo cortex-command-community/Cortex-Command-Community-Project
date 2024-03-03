@@ -960,6 +960,8 @@ function RefineryAssault:SetupStartingActors()
 		end
 	end
 	
+	self.saveTable.enemyActorTables.stage1 = {};
+	
 	-- locals used just to set up tasks
 	local stage1SquadsTable = {};
 	stage1SquadsTable[0] = {};
