@@ -17,6 +17,9 @@ function RefineryAssault:HandleMessage(message, object)
 	
 	if message == "ActorSpawner_ReturnedActor" then
 	
+		if self.verboseLogging then
+			print("INFO: Refinery Assault received ReturnedActor with UniqueID " .. object);
+		end
 		table.insert(self.actorSpawnerReturnedActors, MovableMan:FindObjectByUniqueID(object));
 	
 	elseif message == "RefineryAssault_IntroCinematicDone" then
@@ -954,9 +957,11 @@ function RefineryAssault:SetupStartingActors()
 	
 	-- Actor spawner setup
 	self.saveTable.stage2CounterAttSpawners = {};
-	for actor in MovableMan.AddedActors do	
-		if actor.PresetName == "Refinery S2 Counterattacker Spawner" then
-			table.insert(self.saveTable.stage2CounterAttSpawners, actor);
+	for par in MovableMan.AddedParticles do	
+		if par.PresetName == "Refinery S2 Counterattacker Spawner" then
+			print("DETECTED SPAWNER")
+			table.insert(self.saveTable.stage2CounterAttSpawners, par);
+			par:SendMessage("ActorSpawner_ReplaceDeliveryCreationHandler", self.deliveryCreationHandler);
 		end
 	end
 	
@@ -1238,13 +1243,13 @@ function RefineryAssault:MonitorStage1()
 		-- Send the counterattack by setting up squad
 		
 		-- Get actors back from spawners
-		self.saveTable.stage2CounterAttSpawners = {};
 		for k, spawner in pairs(self.saveTable.stage2CounterAttSpawners) do	
-			spawner:SendMessage("ActorSpawner_ManualTriggerAndReturnActor", self);
+			spawner:SendMessage("ActorSpawner_ManualTriggerAndReturnActor", "Activity");
+			print("sent spawn message return");
 		end
 		-- by now, we have gotten back messages and filled out our returned actor table.
 		
-		if self.actorSpawnerReturnedActors > 0 then
+		if #self.actorSpawnerReturnedActors > 0 then
 		
 			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 			local task = self.tacticsHandler:AddTask("Counterattack", self.aiTeam, taskArea, "PatrolArea", 10);
