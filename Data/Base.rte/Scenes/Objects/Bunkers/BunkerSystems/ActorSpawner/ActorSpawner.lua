@@ -16,7 +16,7 @@ function ActorSpawnerFunctions.PrepareNewActor(self)
 	
 	if self.spawnType == "Specific" then
 		local createFunc = "Create" .. self.specificActorClassName;	
-		actor = _G[createFunc](self.specificActorPresetName, self.specificActorTechName;);
+		actor = _G[createFunc](self.specificActorPresetName, self.specificActorTechName);
 		if self.spawnEquipment then
 			-- create a dummy actor that we only really want the equipment of
 			local equippedActor = self.deliveryCreationHandler:CreateSquad(self.customTeamToUseForDCHGeneration, 1, randomInfantryTypeTable[math.random(1, #randomInfantryTypeTable)])[1];
@@ -52,7 +52,7 @@ function OnGlobalMessage(self, message, object)
 		self.Deactivated = false;
 		self:RemoveNumberValue("Deactivated");	
 	elseif message  == "ActorSpawner_ReplaceDeliveryCreationHandler" then
-		self.deliveryCreationHandler = object;
+		--self.deliveryCreationHandler = object;
 	elseif message == "ActorSpawner_ManualTrigger" then
 		if object == true or not self.Deactivated then
 			self.manualTrigger = true;
@@ -77,18 +77,26 @@ function OnMessage(self, message, object)
 		self.Deactivated = false;
 		self:RemoveNumberValue("Deactivated");	
 	elseif message  == "ActorSpawner_ReplaceDeliveryCreationHandler" then
-		self.deliveryCreationHandler = object;
+		print("replaced deliverycreationahndler")
+		print(object)
+		print(#object)
+		--self.deliveryCreationHandler = object;
 	elseif message == "ActorSpawner_ManualTrigger" then
 		if object == true or not self.Deactivated then
 			self.manualTrigger = true;
 		end
 	elseif message == "ActorSpawner_ManualTriggerAndReturnActor" then
+		print("manualtriggerandreturn");
 		self.manualTrigger = true;
+		if object == "Activity" then
+			object = self.Activity;
+		end
 		object:SendMessage("ActorSpawner_ReturnedActor", self.nextActor.UniqueID);
 	end
 end
 
 function Create(self)
+	self.Activity = ToGameActivity(ActivityMan:GetActivity());
 	
 	self.Deactivated = self:GetNumberValue("StartDeactivated") == 1 and true or false;
 	if self:NumberValueExists("savedDeactivation") then
@@ -101,7 +109,7 @@ function Create(self)
 	end
 	
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
-	self.deliveryCreationHandler:Initialize(self, true);
+	self.deliveryCreationHandler:Initialize(self.Activity, true);
 	
 	self.useGlobalMessaging = self:GetNumberValue("SendSpawnedMessageGlobally") == 1 and true or false;
 	self.messageOnSpawn = self:GetStringValue("messageOnSpawn");
@@ -112,7 +120,6 @@ function Create(self)
 	self.triggerType = self:GetStringValue("TriggerType");
 	self.triggerRange =  self:NumberValueExists("TriggerRange") and self:GetNumberValue("TriggerRange") or 300;
 	self.triggerBehavior = self:GetStringValue("TriggerBehavior");
-	self.Activity = ToGameActivity(ActivityMan:GetActivity());
 	self.Scene = SceneMan.Scene;
 	if self:StringValueExists("SceneTriggerArea") then
 		if self.Scene:HasArea(self:GetStringValue("SceneTriggerArea")) then
@@ -139,7 +146,7 @@ function Create(self)
 	self.customTeamToUseForDCHGeneration = (self:NumberValueExists("CustomTeamToUseForDCHGeneration") and self:GetNumberValue("CustomTeamToUseForDCHGeneration") ~= -2)
 										   and self:GetNumberValue("CustomTeamToUseForDCHGeneration") or self.Team;
 										  
-	self:ActorSpawnerFunctions.PrepareNewActor();
+	ActorSpawnerFunctions.PrepareNewActor(self);
 end
 
 function ThreadedUpdate(self)
@@ -215,7 +222,7 @@ function ThreadedUpdate(self)
 				self:SetNumberValue("Deactivated", 1);
 			end
 			
-			self:ActorSpawnerFunctions.PrepareNewActor();
+			ActorSpawnerFunctions.PrepareNewActor(self);
 			
 			self.shouldSendSpawnMessage = true;
 			self:RequestSyncedUpdate();
@@ -228,7 +235,7 @@ function SyncedUpdate(self)
 		if self.useGlobalMessaging then
 			MovableMan:SendGlobalMessage(self.messageOnSpawn, self.spawnAmount);
 		else
-			self.Activity:SendMessage(self.messageOnSpawn self.spawnAmount);
+			self.Activity:SendMessage(self.messageOnSpawn, self.spawnAmount);
 		end
 
 		self.shouldSendSpawnMessage = false;
