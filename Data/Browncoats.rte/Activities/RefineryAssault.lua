@@ -179,6 +179,8 @@ function RefineryAssault:StartActivity(newGame)
 	
 	self.MOUtility = require("Scripts/Utility/MOUtility");	
 	
+	self.actorSpawnerReturnedActors = {};
+	
 	-- Stage stuff
 	
 	--2
@@ -527,6 +529,9 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
+	if #self.actorSpawnerReturnedActors > 0 then
+		self.actorSpawnerReturnedActors = {};
+	end
 	
 	
 	-- Debug

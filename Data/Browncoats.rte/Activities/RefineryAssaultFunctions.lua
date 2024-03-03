@@ -15,7 +15,11 @@ function RefineryAssault:HandleMessage(message, object)
 	
 	-- this is ugly, but there's no way to avoid this stuff except hiding it away even harder than in this separate script...
 	
-	if message == "RefineryAssault_IntroCinematicDone" then
+	if message == "ActorSpawner_ReturnedActor" then
+	
+		table.insert(self.actorSpawnerReturnedActors, object);
+	
+	elseif message == "RefineryAssault_IntroCinematicDone" then
 	
 		self.saveTable.introCinematicDone = true;
 	
@@ -948,8 +952,13 @@ function RefineryAssault:SetupStartingActors()
 		end
 	end
 	
-	self.saveTable.enemyActorTables.stage1 = {};
-	self.saveTable.enemyActorTables.stage1CounterAttActors = {};
+	-- Actor spawner setup
+	self.saveTable.stage2CounterAttSpawners = {};
+	for actor in MovableMan.AddedActors do	
+		if actor.PresetName == "Refinery S2 Counterattacker Spawner" then
+			table.insert(self.saveTable.stage2CounterAttSpawners, actor);
+		end
+	end
 	
 	-- locals used just to set up tasks
 	local stage1SquadsTable = {};
@@ -983,11 +992,6 @@ function RefineryAssault:SetupStartingActors()
 			--self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1KillEnemies" .. i, actor, 0.1, 2500, false);
 			
 		end
-		
-		if SceneMan.Scene:WithinArea("RefineryAssault_S1CounterAttActors", actor.Pos) and actor.Team == self.aiTeam then
-			table.insert(self.saveTable.enemyActorTables.stage1CounterAttActors, actor);
-			actor.HFlipped = true; -- look the right way numbnuts
-		end		
 		
 	end
 
@@ -1231,20 +1235,19 @@ function RefineryAssault:MonitorStage1()
 		
 		-- Send the counterattack by setting up squad
 		
-		-- First check they still exist, could be dealing with a wise guy
-		
-		for k, actor in pairs(self.saveTable.enemyActorTables.stage1CounterAttActors) do
-			if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
-				table.remove(self.saveTable.enemyActorTables.stage1CounterAttActors, k);
-			end
+		-- Get actors back from spawners
+		self.saveTable.stage2CounterAttSpawners = {};
+		for k, spawner in pairs(self.saveTable.stage2CounterAttSpawners) do	
+			spawner:SendMessage("ActorSpawner_ManualTriggerAndReturnActor", self);
 		end
+		-- by now, we have gotten back messages and filled out our returned actor table.
 		
-		if #self.saveTable.enemyActorTables.stage1CounterAttActors > 0 then
+		if self.actorSpawnerReturnedActors > 0 then
 		
 			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 			local task = self.tacticsHandler:AddTask("Counterattack", self.aiTeam, taskArea, "PatrolArea", 10);
 			
-			self.tacticsHandler:AddSquad(self.aiTeam, self.saveTable.enemyActorTables.stage1CounterAttActors, task.Name, true);
+			self.tacticsHandler:AddSquad(self.aiTeam, self.actorSpawnerReturnedActors, task.Name, true);
 			
 		end
 		
