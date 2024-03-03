@@ -17,7 +17,7 @@ function RefineryAssault:HandleMessage(message, object)
 	
 	if message == "ActorSpawner_ReturnedActor" then
 	
-		table.insert(self.actorSpawnerReturnedActors, object);
+		table.insert(self.actorSpawnerReturnedActors, MovableMan:FindObjectByUniqueID(object));
 	
 	elseif message == "RefineryAssault_IntroCinematicDone" then
 	
