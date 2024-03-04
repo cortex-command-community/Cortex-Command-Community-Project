@@ -600,7 +600,9 @@ function HUDHandler:UpdateHUDHandler()
 					else
 						pos = objTable.Position;
 					end
-					if not pos.Magnitude == 0 then -- if it's 0, 0 something probably went wrong, don't display it
+					if pos.Magnitude == 0 then -- if it's 0, 0 something probably went wrong, don't display it
+					
+					else -- i have no idea why not-ing this makes it not work, but well, here we are
 						self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
 					end
 				end
