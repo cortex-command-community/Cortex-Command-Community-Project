@@ -8,6 +8,7 @@ R"(- C O R T E X   C O M M A N D   C O M M U N I T Y   P R O J E C T -
 
 Programming
 3 4 3 N
+A L B E R T O  " T H E P A W N "  K U R T Y A N
 C O M R A D E S H O O K
 E V G E N I Y   " W E E G E E "   V I G O V S K I Y
 F R I S 0 U M A N
@@ -21,7 +22,6 @@ M A X   " M A X I M D U D E "   K
 M A X S H A D O W
 M Y N A M E I S T R E Z
 O O A A A O A O A O
-P A W N I S H O O V Y
 P R I K E
 R I K U   " 4 Z K "   K
 S T E W I E
@@ -31,6 +31,7 @@ W I L L I A M   " M A G E K I N G 1 7 "   H O W A R D
 Z A L O
 
 Art and Content Production
+A L B E R T O  " T H E P A W N "  K U R T Y A N
 A R M O K
 B H I J N
 C O M R A D E S H O O K
@@ -44,7 +45,6 @@ M E T A L L O B O X
 M I S S A K   G H O S T   C O M O D O
 M R M I K E X  /  C H E R K O V
 N I K O L A I   " B A D B E A V E R "   G O L U B O V
-P A W N I S H O O V Y
 P R I M E T Y R A N T
 R I K U   " 4 Z K "   K
 S K A I A N D E S T I N Y
@@ -54,9 +54,9 @@ W A Z U B A B A
 Z E T A
 
 Audio Design And Music
+A L B E R T O  " T H E P A W N "  K U R T Y A N
 G O S T S
 M O S S
-P A W N I S H O O V Y
 R I K U   " 4 Z K "   K
 
 Community and Mod Portal Management
@@ -69,6 +69,7 @@ M Y N A M E I S T R E Z
 Z E T A
 
 Website Design
+M A X I M   " V I M E V I "   T O R O P C H I N
 P O C K E T S
 T O M
 
