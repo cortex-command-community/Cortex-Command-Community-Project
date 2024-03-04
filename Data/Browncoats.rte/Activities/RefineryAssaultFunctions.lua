@@ -1142,6 +1142,20 @@ function RefineryAssault:SetupFirstStage()
 	
 	self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 2500);
 	
+	-- HUD Handler text
+	
+	self.HUDHandler:QueueScreenText(self.humanTeam,
+	"Insert Witty Intro Here!",
+	7000,
+	0,
+	true);
+	
+	self.HUDHandler:QueueScreenText(self.humanTeam,
+	"Prepare to assume... brownie command......",
+	7000,
+	0,
+	true);
+	
 
 end
 
