@@ -234,24 +234,25 @@ void LuaStateWrapper::Initialize() {
 
 	luaL_dostring(m_State,
 	              // Add cls() as a shortcut to ConsoleMan:Clear().
-	              "cls = function() ConsoleMan:Clear(); end"
-	              "\n"
+	              "cls = function() ConsoleMan:Clear(); end\n"
 	              // Override "print" in the lua state to output to the console.
-	              "print = function(stringToPrint) ConsoleMan:PrintString(\"PRINT: \" .. tostring(stringToPrint)); end"
-	              "\n"
+	              "print = function(stringToPrint) ConsoleMan:PrintString(\"PRINT: \" .. tostring(stringToPrint)); end\n"
 	              // Override random functions to appear global instead of under LuaMan
 	              "SelectRand = function(lower, upper) return LuaMan:SelectRand(lower, upper); end;\n"
 	              "RangeRand = function(lower, upper) return LuaMan:RangeRand(lower, upper); end;\n"
 	              "PosRand = function() return LuaMan:PosRand(); end;\n"
 	              "NormalRand = function() return LuaMan:NormalRand(); end;\n"
 	              // Override "math.random" in the lua state to use RTETools MT19937 implementation. Preserve return types of original to not break all the things.
-	              "math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end"
-	              "\n"
+	              "math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end\n"
 	              // Override "dofile"/"loadfile" to be able to account for Data/ or Mods/ directory.
-	              "OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;"
-	              "OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;"
+	              "OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;\n"
+	              "OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;\n"
+	              // Override "require" to be able to track loaded packages so we can clear them when scripts are reloaded.
+	              "_RequiredPackages = {};\n"
+	              "OriginalRequire = require; require = function(filePath) _RequiredPackages[filePath] = true; return OriginalRequire(filePath); end;\n"
+	              "_ClearRequiredPackages = function() for k, v in pairs(_RequiredPackages) do print(\"clearing: \" .. k); package.loaded[k] = nil; end; _RequiredPackages = {}; end;\n"
 	              // Internal helper functions to add callbacks for async pathing requests
-	              "_AsyncPathCallbacks = {};"
+	              "_AsyncPathCallbacks = {};\n"
 	              "_AddAsyncPathCallback = function(id, callback) _AsyncPathCallbacks[id] = callback; end\n"
 	              "_TriggerAsyncPathCallback = function(id, param) if _AsyncPathCallbacks[id] ~= nil then _AsyncPathCallbacks[id](param); _AsyncPathCallbacks[id] = nil; end end\n");
 }
@@ -415,7 +416,7 @@ void LuaMan::Destroy() {
 }
 
 void LuaStateWrapper::ClearUserModuleCache() {
-	luaL_dostring(m_State, "for m, n in pairs(package.loaded) do if type(n) == \"boolean\" then package.loaded[m] = nil; end; end;");
+	luaL_dostring(m_State, "_ClearRequiredPackages();");
 }
 
 void LuaStateWrapper::ClearLuaScriptCache() {
