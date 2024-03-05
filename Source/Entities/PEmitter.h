@@ -141,11 +141,11 @@ namespace RTE {
 
 		/// Gets the adjusted throttle multiplier that is factored into the emission rate of this PEmitter.
 		/// @return The throttle strength as a multiplier.
-		float GetThrottleFactor() const { return LERP(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle); }
+		float GetThrottleFactor() const { return Lerp(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle); }
 
 		/// Gets the throttle value that will achieve a given throttle factor that is factored into the emission rate of this AEmitter.
 		/// @return The throttle value that will achieve the given throttle factor.
-		float GetThrottleForThrottleFactor(float throttleFactor) const { return LERP(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor); }
+		float GetThrottleForThrottleFactor(float throttleFactor) const { return Lerp(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor); }
 
 		/*
 		/// Sets the rate at which this PEmitter emits its particles.
@@ -244,7 +244,6 @@ namespace RTE {
 
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
-		void PostUpdate() override { MOSParticle::PostUpdate(); }
 
 		/// Draws this PEmitter's current graphical representation to a
 		/// BITMAP of choice.

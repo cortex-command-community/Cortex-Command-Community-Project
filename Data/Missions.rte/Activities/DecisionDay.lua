@@ -1006,10 +1006,7 @@ function DecisionDay:UpdateCamera()
 	local scrollTargetAndSpeed;
 	if self.currentStage <= self.stages.showInitialText then
 		if self.currentStage == self.stages.showInitialText and self.messageTimer.SimTimeLimitProgress > 0.75 then
-			local brain = self:GetPlayerBrain(0);
-			if brain then
-				scrollTargetAndSpeed = {brain.Pos, fastScroll};
-			end
+			scrollTargetAndSpeed = {nil, fastScroll};
 		else
 			local dropShipToFollow = #self.initialDropShipsAndVelocities > 0 and self.initialDropShipsAndVelocities[1].dropShip or nil;
 			if dropShipToFollow then
@@ -1101,7 +1098,14 @@ function DecisionDay:UpdateCamera()
 
 	if scrollTargetAndSpeed then
 		for _, player in pairs(self.humanPlayers) do
-			CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], player);
+			if not scrollTargetAndSpeed[1] then
+				brain = self:GetPlayerBrain(player)
+				if brain then
+					CameraMan:SetScrollTarget(brain.pos, scrollTargetAndSpeed[2], player)
+				end
+			else
+				CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], player);
+			end
 		end
 	end
 	self.cameraIsPanning = scrollTargetAndSpeed ~= nil;
@@ -2045,8 +2049,8 @@ function DecisionDay:UpdateMainBunkerExternalPopoutTurrets()
 			if not boxData.movementTimer:IsPastSimTimeLimit() and boxData.actor then
 				local startPos = self.popoutTurretsData[bunkerId].turretsActivated and box.Center or box.Center + Vector(25, 25);
 				local endPos = self.popoutTurretsData[bunkerId].turretsActivated and box.Center + Vector(25, 25) or box.Center;
-				boxData.actor.Pos.X = LERP(0, 1, startPos.X, endPos.X, boxData.movementTimer.SimTimeLimitProgress);
-				boxData.actor.Pos.Y = LERP(0, 1, startPos.Y, endPos.Y, boxData.movementTimer.SimTimeLimitProgress);
+				boxData.actor.Pos.X = Lerp(0, 1, startPos.X, endPos.X, boxData.movementTimer.SimTimeLimitProgress);
+				boxData.actor.Pos.Y = Lerp(0, 1, startPos.Y, endPos.Y, boxData.movementTimer.SimTimeLimitProgress);
 				if boxData.movementSound:IsBeingPlayed() then
 					boxData.movementSound.Pos = boxData.actor.Pos;
 				else

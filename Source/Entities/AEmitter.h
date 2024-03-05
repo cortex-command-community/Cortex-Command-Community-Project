@@ -140,11 +140,11 @@ namespace RTE {
 
 		/// Gets the adjusted throttle multiplier that is factored into the emission rate of this AEmitter.
 		/// @return The throttle strength as a multiplier.
-		float GetThrottleFactor() const { return LERP(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle); }
+		float GetThrottleFactor() const { return Lerp(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle); }
 
 		/// Gets the throttle value that will achieve a given throttle factor that is factored into the emission rate of this AEmitter.
 		/// @return The throttle value that will achieve the given throttle factor.
-		float GetThrottleForThrottleFactor(float throttleFactor) const { return LERP(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor); }
+		float GetThrottleForThrottleFactor(float throttleFactor) const { return Lerp(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor); }
 
 		/// Returns a scaled throttle value that represents a linear increase of force.
 		/// Because of (bad) reasons, throttle is in the range -1.0F to 1.0F, where -1.0F is "minimum force" and 1.0F is "maximum force".
@@ -275,7 +275,6 @@ namespace RTE {
 
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
-		void PostUpdate() override { Attachable::PostUpdate(); }
 
 		/// Returns burst damage of this emitter.
 		/// @return Burst damage of emitter.

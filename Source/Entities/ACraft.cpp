@@ -752,8 +752,9 @@ void ACraft::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	m_HUDStack = -m_CharHeight / 2;
 
 	// Only do HUD if on a team
-	if (m_Team < 0)
+	if (m_Team < 0) {
 		return;
+	}
 
 	// Only draw if the team viewing this is on the same team OR has seen the space where this is located.
 	int viewingTeam = g_ActivityMan.GetActivity()->GetTeamOfPlayer(g_ActivityMan.GetActivity()->PlayerOfScreen(whichScreen));
@@ -771,93 +772,39 @@ void ACraft::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	GUIFont* pSmallFont = g_FrameMan.GetSmallFont();
 
 	// Draw hud guides for the Exits, depending on whether the doors are open
-	if (m_HatchState == OPEN) // || m_HatchState == OPENING)
-	{
+	if (m_HatchState == OPEN /* || m_HatchState == OPENING*/) {
 		// Doors open and inventory not empty yet, so show arrows pointing out of the exits since things are still coming out
 		if (!IsInventoryEmpty()) {
 			//  --------
 			//  |  \  \
-            // -+-  |  |
+			// -+-  |  |
 			//  |  /  /
 			//  --------
 			// Make the dotted lines crawl out of the exit, indicating that things are still coming out
-			if (--m_ExitLinePhase < 0)
+			if (--m_ExitLinePhase < 0) {
 				m_ExitLinePhase = EXITLINESPACING - 1;
+			}
 		}
 		// Inventory empty and doors open, so show arrows pointing into the exits IF the delay to allow for things to eject away all the way has passed
 		else if (m_ExitTimer.IsPastSimMS(EXITSUCKDELAYMS)) {
 			// Make the dotted lines crawl back into the exit, inviting people to jump in
-			if (++m_ExitLinePhase >= EXITLINESPACING)
+			if (++m_ExitLinePhase >= EXITLINESPACING) {
 				m_ExitLinePhase = 0;
-		}
-
-		Vector exitRadius;
-		Vector exitCorner;
-		Vector arrowVec;
-		// Draw the actual dotted lines
-		for (std::list<Exit>::iterator exit = m_Exits.begin(); exit != m_Exits.end(); ++exit) {
-			if (exit->CheckIfClear(m_Pos, m_Rotation, 18)) {
-				exitRadius = RotateOffset(exit->GetVelocity().GetPerpendicular().SetMagnitude(exit->GetRadius()));
-				exitCorner = m_Pos - targetPos + RotateOffset(exit->GetOffset()) + exitRadius;
-				arrowVec = RotateOffset(exit->GetVelocity().SetMagnitude(exit->GetRange()));
-				g_FrameMan.DrawLine(pTargetBitmap, exitCorner, exitCorner + arrowVec, 120, 120, EXITLINESPACING, m_ExitLinePhase);
-				exitCorner -= exitRadius * 2;
-				g_FrameMan.DrawLine(pTargetBitmap, exitCorner, exitCorner + arrowVec, 120, 120, EXITLINESPACING, m_ExitLinePhase);
 			}
 		}
-	}
 
-	// Only show extra HUD if this guy is controlled by a player
-	if (m_Controller.IsPlayerControlled() && pSmallFont && pSymbolFont) {
-		AllegroBitmap pBitmapInt(pTargetBitmap);
-		/*
-		        // AI Mode select GUI HUD
-		        if (m_Controller && m_Controller.IsState(PIE_MENU_ACTIVE))
-		        {
-		            char str[64];
-		            int iconOff = m_apAIIcons[0]->w + 2;
-		            int iconColor = m_Team == Activity::TeamOne ? AIICON_RED : AIICON_GREEN;
-		            Vector iconPos = GetCPUPos() - targetPos;
+		// Draw the actual dotted lines
+		for (std::list<Exit>::iterator exit = m_Exits.begin(); exit != m_Exits.end(); ++exit) {
+			if (!exit->CheckIfClear(m_Pos, m_Rotation, 18)) {
+				continue;
+			}
 
-		            if (m_AIMode == AIMODE_RETURN)
-		            {
-		                std::snprintf(str, sizeof(str), "%s", "Return");
-		                pSmallFont->DrawAligned(&pBitmapInt, iconPos.m_X, iconPos.m_Y - 18, str, GUIFont::Centre);
-		            }
-		            else if (m_AIMode == AIMODE_DELIVER)
-		            {
-		                std::snprintf(str, sizeof(str), "%s", "Deliver");
-		                pSmallFont->DrawAligned(&pBitmapInt, iconPos.m_X - 9, iconPos.m_Y - 5, str, GUIFont::Right);
-		            }
-		            else if (m_AIMode == AIMODE_SCUTTLE)
-		            {
-		                std::snprintf(str, sizeof(str), "%s", "Scuttle");
-		                pSmallFont->DrawAligned(&pBitmapInt, iconPos.m_X + 9, iconPos.m_Y - 5, str, GUIFont::Left);
-		            }
-		            else if (m_AIMode == AIMODE_STAY)
-		            {
-		                std::snprintf(str, sizeof(str), "%s", "Stay");
-		                pSmallFont->DrawAligned(&pBitmapInt, iconPos.m_X, iconPos.m_Y + 8, str, GUIFont::Centre);
-		            }
-
-		            // Draw the mode alternatives if they are not the current one
-		            if (m_AIMode != AIMODE_RETURN)
-		            {
-		                draw_sprite(pTargetBitmap, m_apAIIcons[AIMODE_RETURN], iconPos.m_X - 6, iconPos.m_Y - 6 - iconOff);
-		            }
-		            if (m_AIMode != AIMODE_DELIVER)
-		            {
-		                draw_sprite(pTargetBitmap, m_apAIIcons[AIMODE_DELIVER], iconPos.m_X - 6 - iconOff, iconPos.m_Y - 6);
-		            }
-		            if (m_AIMode != AIMODE_SCUTTLE)
-		            {
-		                draw_sprite(pTargetBitmap, m_apAIIcons[AIMODE_SCUTTLE], iconPos.m_X - 6 + iconOff, iconPos.m_Y - 6);
-		            }
-		            if (m_AIMode != AIMODE_STAY)
-		            {
-		                draw_sprite(pTargetBitmap, m_apAIIcons[AIMODE_STAY], iconPos.m_X - 6, iconPos.m_Y - 6 + iconOff);
-		            }
-		        }
-		*/
+			Vector exitRadius = RotateOffset(exit->GetVelocity().GetPerpendicular().SetMagnitude(exit->GetRadius()));
+			Vector exitCorner = m_Pos - targetPos + RotateOffset(exit->GetOffset()) + exitRadius;
+			Vector arrowVec = RotateOffset(exit->GetVelocity().SetMagnitude(exit->GetRange()));
+			g_FrameMan.DrawLine(pTargetBitmap, exitCorner, exitCorner + arrowVec, 120, 120, EXITLINESPACING, m_ExitLinePhase);
+			exitCorner -= exitRadius * 2;
+			g_FrameMan.DrawLine(pTargetBitmap, exitCorner, exitCorner + arrowVec, 120, 120, EXITLINESPACING, m_ExitLinePhase);
+		}
 	}
 }

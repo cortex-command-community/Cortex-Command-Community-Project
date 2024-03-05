@@ -552,7 +552,7 @@ bool Atom::StepForward(int numSteps) {
 			g_SceneMan.WrapPosition(m_IntPos[X], m_IntPos[Y]);
 
 			// Detect terrain hits, if not disabled.
-			if (g_MaterialAir != (m_TerrainMatHit = g_SceneMan.GetTerrMatter(m_IntPos[X], m_IntPos[Y]))) {
+			if (!m_OwnerMO->m_IgnoreTerrain && g_MaterialAir != (m_TerrainMatHit = g_SceneMan.GetTerrMatter(m_IntPos[X], m_IntPos[Y]))) {
 				// Check if we're temporarily disabled from hitting terrain
 				if (!m_TerrainHitsDisabled) {
 					m_OwnerMO->SetHitWhatTerrMaterial(m_TerrainMatHit);
@@ -627,13 +627,14 @@ void Atom::StepBack() {
 	}
 }
 
-int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
+int Atom::Travel(float travelTime, bool autoTravel) {
 	ZoneScoped;
 
 	if (!m_OwnerMO) {
 		RTEAbort("Traveling an Atom without a parent MO!");
 		return travelTime;
 	}
+
 	Vector& position = m_OwnerMO->m_Pos;
 	Vector& velocity = m_OwnerMO->m_Vel;
 	float mass = m_OwnerMO->GetMass();
@@ -689,11 +690,6 @@ int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
 
 	// Bake in the Atom offset.
 	position += m_Offset;
-
-	// Lock all bitmaps involved outside the loop.
-	if (!scenePreLocked) {
-		g_SceneMan.LockScene();
-	}
 
 	// Loop for all the different straight segments (between bounces etc) that have to be traveled during the timeLeft.
 	do {
@@ -766,7 +762,7 @@ int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
 		// Bresenham's line drawing algorithm execution
 		for (domSteps = 0; domSteps < delta[dom] && !(hit[X] || hit[Y]); ++domSteps) {
 			// Check for the special case if the Atom is starting out embedded in terrain. This can happen if something large gets copied to the terrain and embeds some Atoms.
-			if (domSteps == 0 && g_SceneMan.GetTerrMatter(intPos[X], intPos[Y]) != g_MaterialAir) {
+			if (!m_OwnerMO->m_IgnoreTerrain && domSteps == 0 && g_SceneMan.GetTerrMatter(intPos[X], intPos[Y]) != g_MaterialAir) {
 				++hitCount;
 				hit[X] = hit[Y] = true;
 				if (g_SceneMan.TryPenetrate(intPos[X], intPos[Y], velocity * mass * sharpness, velocity, retardation, 0.5F, m_NumPenetrations, removeOrphansRadius, removeOrphansMaxArea, removeOrphansRate)) {
@@ -902,7 +898,7 @@ int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
 			// Atom-Terrain collision detection and response.
 
 			// If there was no MO collision detected, then check for terrain hits.
-			else if ((hitMaterialID = g_SceneMan.GetTerrMatter(intPos[X], intPos[Y])) && !m_OwnerMO->m_IgnoreTerrain) {
+			else if (!m_OwnerMO->m_IgnoreTerrain && (hitMaterialID = g_SceneMan.GetTerrMatter(intPos[X], intPos[Y]))) {
 				if (hitMaterialID != g_MaterialAir) {
 					m_OwnerMO->SetHitWhatTerrMaterial(hitMaterialID);
 				}
@@ -1060,12 +1056,6 @@ int Atom::Travel(float travelTime, bool autoTravel, bool scenePreLocked) {
 		}
 
 		g_SceneMan.RegisterDrawing(trailBitmap, g_NoMOID, topLeftExtent.m_X, topLeftExtent.m_Y, bottomRightExtent.m_X + 1.0F, bottomRightExtent.m_Y + 1.0F);
-	}
-
-	// Unlock all bitmaps involved.
-	// if (m_TrailLength) { trailBitmap->UnLock(); }
-	if (!scenePreLocked) {
-		g_SceneMan.UnlockScene();
 	}
 
 	// Extract Atom offset.

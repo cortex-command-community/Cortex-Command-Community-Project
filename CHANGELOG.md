@@ -8,9 +8,81 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Changed</b></summary>
 
+- Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
+
+</details>
+
+## [Release v6.2.2] - 2024/02/24
+
+<details><summary><b>Added</b></summary>
+
+- Exposed `MovableObject` INI property `EffectAlwaysShows` to Lua (R/W), boolean. This property defines whether or not the glows on this MO will be obscured by other MOs.
+  
+</details>
+
+<details><summary><b>Changed</b></summary>
+
+- Brain vs Brain now uses the Infantry Brain preset if available, and picks a random brain if not.
+
+</details>
+
+<details><summary><b>Fixed</b></summary>
+
+- Fixed `UseSupportOffsetWhileReloading` defaulting to true instead of false, causing weird reload animations in some cases.
+
+- Fixed regression introduced in 6.1 causing Conquest activities to immediately fail if a defending brain was present (and probably breaking other activities as well).
+
+- Fixed the Conquest start game menu not letting you immediately start a game until you tweak some settings.
+
+- Fixed potential issues with One Man Army (and Diggers Only) that could occur when using a different player than player 1.
+
+</details>
+
+## [Release v6.2.1] - 2024/02/21
+
+<details><summary><b>Fixed</b></summary>
+
+- Fixed regression introduced in v6.2.0 preventing Massacre, One-Man Army, One-Man Army (Diggers Only), and Survival from spawning enemies at all. 
+
+- Fixed Constructor auto-cancelling build mode if you actively selected the "Order Construction" pie menu option.
+
+- Fixed issue where the offhand wouldn't default to the `IdleOffset` of its arm when the current held device had `Supportable = 0`.
+
+- Fixed edge case where having a device with `UseSupportOffsetWhileReloading = 1`, and `Supportable = 0/1` depending on if it was reloading or not, would result in the gun not being held by the support hand when reloading. 
+
+</details>
+
+## [Release v6.2.0] - 2024/02/19
+
+<details><summary><b>Added</b></summary>
+
+- New `MovableObject` INI and Lua property `PostEffectEnabled` (R/W), which determines whether or not the screen effect of an MO is enabled. Defaults to `true` for `MOPixels` and `MOSParticles`, `false` for everything else (to avoid backwards compatibility issues).
+
+- `Lerp` can now be used on Vectors and Matrices/Rotations, not just numbers.
+
+- Added `HDFirearm` lua bindings `EjectionOffset` (R/W) and `EjectionPos` (R). Work similarly to their Muzzle variants.
+
+- New `MovableObject` Lua functions `GetScreenEffectPath()` and `SetScreenEffectPath(string pathToFile)`, which get and set the file path to the object's screen effect.
+
+- Exposed `MovableObject` INI properties `EffectStartStrength` and `EffectStopStrength` to Lua (R/W). Default range in Lua is a float from 0-1 (0%-100%), but going outside of this range is possible.
+
+- New `MovableObject` Lua function `SetEffectStrength(float strength)`, which sets both `EffectStartStrength` and `EffectStopStrength` to the given value in order to simplify setting glow strength to a specific value.
+
+</details>
+
+<details><summary><b>Changed</b></summary>
+
 - Massacre now displays the remaining kill count to each player's screen instead of just the first one.
 
 - Slightly nerfed the Imperatus combat robot jetpack.
+
+- Improvements to AI navigation in automovers, so they get stuck less often.
+
+- Screen effects (glows) can now show on *any* `MovableObject` they're attached to; you may need to set `EffectAlwaysShows = 1` to see them on `MOSRotatings`. Try `InheritEffectRotAngle = 1` on one of them!
+
+- `LERP` Lua binding has been deprecated, and renamed to `Lerp`.
+
+- Six activities (Harvester, Keepie-Uppie, Massacre, One-Man Army, One-Man Army (Diggers Only), and Survival) now avoid AI deployments on top of the player.
 
 </details>
 
@@ -22,13 +94,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue that could cause post-effects to appear very blurry.
 
-- Fixed a rare crash that could occur depending on Lua garbage collection and async processing.
+- Fixed a couple of rare crashes that could occur depending on Lua garbage collection and async processing.
+
+- Fixed a crash that could occur when using the Nucleo Swarm weapon.
+
+- Fixed a crash that could occur when mods applied an invalid team to an Actor.
+
+- Fixed a crash that could occur when an actor was damaged without a defined wound.
 
 - Fixed a missing Lua write binding for `AEJetpack`'s `JetTimeLeft` property.
 
 - Fixed an issue where glows wouldn't render if the EffectStopTime was lower than the simulation deltatime.
 
-- Fixed an issue where a mission-only item was being bought by the AI.
+- Fixed an issue where sometimes doors were owned by the wrong team in Bunker Breach and Survival activities.
+
+- Fixed an issue where a mission-specific keycard item was being bought by the AI.
+
+- Fixed `MovableObject` INI and Lua property `IgnoreTerrain` not having any appreciable effect.
+
+- Fixed Signal Hunt speedrun mode not working properly if you used a player other than 1.
+
+- Fixed Decision Day camera potentially getting stuck at the start if player 1 wasn't present.
+
+- Fixed Conquest tech selection dropdown getting repeatedly repopulated with duplicated entries, which could cause a crash.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+- Removed `Settings.ini` property `SimplifiedCollisionDetection = 0/1`. With the physics detection overhaul in pre-5, this became unnecessary.
 
 </details>
 
@@ -74,10 +168,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed some compatibility issues which meant the game wouldn't run on older PCs.
 
 - Fixed an issue where the loading screen progress window didn't work even when enabled.
-
-</details>
-
-<details><summary><b>Removed</b></summary>
 
 </details>
 
@@ -2464,4 +2554,7 @@ Note: For a log of changes made prior to the commencement of the open source com
 [Release v5.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/releases/tag/v0.1.0-pre5.2
 [Release v6.0.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.0.0
 [Release v6.1.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.1.0
+[Release v6.2.0]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.2.0
+[Release v6.2.1]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.2.1
+[Release v6.2.2]: https://github.com/cortex-command-community/Cortex-Command-Community-Project/releases/tag/v6.2.2
 [Unreleased]: https://github.com/cortex-command-community/Cortex-Command-Community-Project-Source/compare/master...cortex-command-community:development

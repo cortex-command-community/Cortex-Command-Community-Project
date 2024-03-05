@@ -67,6 +67,13 @@ function Survival:StartNewGame()
 		self.randomSpawnTime = 4000;
 	end
 	self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.randomSpawnTime)) * rte.SpawnIntervalScale;
+	
+	for actor in MovableMan.AddedActors do
+		if IsADoor(actor) then
+			-- Give every door to the player team
+			actor.Team = self:GetTeamOfPlayer(Activity.PLAYER_1);
+		end
+	end
 
 	self:SetupHumanPlayerBrains();
 end
@@ -268,11 +275,11 @@ function Survival:UpdateActivity()
 
 			if ship then
 				-- Set the spawn point of the ship from orbit
-				if self.playertally == 1 then
-					for i = 1, #self.playerlist do
-						if self.playerlist[i] == true then
+				if self.HumanCount == 1 then
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						if self:PlayerActive(player) and self:PlayerHuman(player) then
 							local sceneChunk = SceneMan.SceneWidth / 3;
-							local checkPos = self:GetPlayerBrain(i - 1).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
+							local checkPos = self:GetPlayerBrain(player).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
 							if checkPos > SceneMan.SceneWidth then
 								checkPos = checkPos - SceneMan.SceneWidth;
 							elseif checkPos < 0 then

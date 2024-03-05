@@ -607,6 +607,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HDFirearm) {
 	return ConcreteTypeLuaClassDefinition(HDFirearm, HeldDevice)
 
 	    .property("ReloadEndOffset", &HDFirearm::GetReloadEndOffset, &HDFirearm::SetReloadEndOffset)
+	    .property("EjectionPos", &HDFirearm::GetEjectionPos)
+	    .property("EjectionOffset", &HDFirearm::GetEjectionOffset, &HDFirearm::SetEjectionOffset)
 	    .property("RateOfFire", &HDFirearm::GetRateOfFire, &HDFirearm::SetRateOfFire)
 	    .property("MSPerRound", &HDFirearm::GetMSPerRound)
 	    .property("FullAuto", &HDFirearm::IsFullAuto, &HDFirearm::SetFullAuto)
@@ -888,6 +890,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("Diameter", &MovableObject::GetDiameter)
 	    .property("Scale", &MovableObject::GetScale, &MovableObject::SetScale)
 	    .property("EffectRotAngle", &MovableObject::GetEffectRotAngle, &MovableObject::SetEffectRotAngle)
+	    .property("EffectAlwaysShows", &MovableObject::GetEffectAlwaysShows, &MovableObject::SetEffectAlwaysShows)
+	    .property("EffectStartStrength", &MovableObject::GetEffectStartStrengthFloat, &MovableObject::SetEffectStartStrengthFloat)
+	    .property("EffectStopStrength", &MovableObject::GetEffectStopStrengthFloat, &MovableObject::SetEffectStopStrengthFloat)
 	    .property("GlobalAccScalar", &MovableObject::GetGlobalAccScalar, &MovableObject::SetGlobalAccScalar)
 	    .property("AirResistance", &MovableObject::GetAirResistance, &MovableObject::SetAirResistance)
 	    .property("AirThreshold", &MovableObject::GetAirThreshold, &MovableObject::SetAirThreshold)
@@ -921,6 +926,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("ApplyWoundDamageOnCollision", &MovableObject::GetApplyWoundDamageOnCollision, &MovableObject::SetApplyWoundDamageOnCollision)
 	    .property("ApplyWoundBurstDamageOnCollision", &MovableObject::GetApplyWoundBurstDamageOnCollision, &MovableObject::SetApplyWoundBurstDamageOnCollision)
 	    .property("SimUpdatesBetweenScriptedUpdates", &MovableObject::GetSimUpdatesBetweenScriptedUpdates, &MovableObject::SetSimUpdatesBetweenScriptedUpdates)
+	    .property("PostEffectEnabled", &MovableObject::GetPostEffectEnabled, &MovableObject::SetPostEffectEnabled)
 
 	    .def("GetParent", (MOSRotating * (MovableObject::*)()) & MovableObject::GetParent)
 	    .def("GetParent", (const MOSRotating* (MovableObject::*)() const) & MovableObject::GetParent)
@@ -985,7 +991,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .def("RotateOffset", &MovableObject::RotateOffset)
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage1)
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage2)
-	    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate);
+	    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate)
+	    .def("SetEffectStrength", &MovableObject::SetEffectStrength)
+	    .def("GetScreenEffectPath", &MovableObject::GetScreenEffectPath)
+	    .def("SetScreenEffectPath", &MovableObject::SetScreenEffectPath);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {

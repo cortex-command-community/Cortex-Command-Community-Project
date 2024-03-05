@@ -219,7 +219,7 @@ end
 
 function OneManArmy:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER then
-		ActivityMan:GetActivity():SetTeamFunds(0,0);
+		ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_1);
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
@@ -229,7 +229,6 @@ function OneManArmy:UpdateActivity()
 					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", self:ScreenOfPlayer(player), 333, 5000, true);
 				end
 
-				-- The current player's team
 				local team = self:GetTeamOfPlayer(player);
 				-- Check if any player's brain is dead
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
@@ -242,8 +241,6 @@ function OneManArmy:UpdateActivity()
 						self.WinnerTeam = self:OtherTeam(team);
 						ActivityMan:EndActivity();
 					end
-				else
-					self.HuntPlayer = player;
 				end
 
 				--Check if the player has won.
@@ -252,7 +249,7 @@ function OneManArmy:UpdateActivity()
 					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 					FrameMan:SetScreenText("You survived!", self:ScreenOfPlayer(player), 333, -1, false);
 
-					self.WinnerTeam = player;
+					self.WinnerTeam = team;
 
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
@@ -321,11 +318,11 @@ function OneManArmy:UpdateActivity()
 
 			if ship then
 				-- Set the spawn point of the ship from orbit
-				if self.playertally == 1 then
-					for i = 1, #self.playerlist do
-						if self.playerlist[i] == true then
+				if self.HumanCount == 1 then
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						if self:PlayerActive(player) and self:PlayerHuman(player) then
 							local sceneChunk = SceneMan.SceneWidth / 3;
-							local checkPos = self:GetPlayerBrain(i - 1).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
+							local checkPos = self:GetPlayerBrain(player).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
 							if checkPos > SceneMan.SceneWidth then
 								checkPos = checkPos - SceneMan.SceneWidth;
 							elseif checkPos < 0 then

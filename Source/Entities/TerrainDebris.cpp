@@ -222,10 +222,6 @@ void TerrainDebris::DrawToTerrain(SLTerrain* terrain, BITMAP* bitmapToDraw, cons
 void TerrainDebris::ScatterOnTerrain(SLTerrain* terrain) {
 	RTEAssert(!m_Bitmaps.empty() && m_BitmapCount > 0, "No bitmaps loaded for terrain debris during TerrainDebris::ScatterOnTerrain!");
 
-	// Reference. Do not remove.
-	// acquire_bitmap(terrain->GetFGColorBitmap());
-	// acquire_bitmap(terrain->GetMaterialBitmap());
-
 	int possiblePieceToPlaceCount = static_cast<int>((static_cast<float>(terrain->GetMaterialBitmap()->w) * c_MPP) * m_Density);
 	for (int piece = 0; piece < possiblePieceToPlaceCount; ++piece) {
 		int pieceBitmapIndex = RandomNum(0, m_BitmapCount - 1);
@@ -235,7 +231,4 @@ void TerrainDebris::ScatterOnTerrain(SLTerrain* terrain) {
 			DrawToTerrain(terrain, m_Bitmaps[pieceBitmapIndex], possiblePiecePosition.GetCorner());
 		}
 	}
-	// Reference. Do not remove.
-	// release_bitmap(terrain->GetMaterialBitmap());
-	// release_bitmap(terrain->GetFGColorBitmap());
 }

@@ -87,6 +87,8 @@ function Create(self)
 	self.maxFillDistance = 6; -- block distance
 	self.tunnelFillDelay = 30000 + 30000 * (1 - ActivityMan:GetActivity().Difficulty/GameActivity.MAXDIFFICULTY);
 
+	self.menu_ignore = false; -- ignore the pie menu button until it's released
+
 	-- don't change these
 	self.toAutoBuild = false;
 	self.operatedByAI = false;
@@ -190,6 +192,12 @@ function Update(self)
 		local ctrl = actor:GetController();
 		local playerControlled = actor:IsPlayerControlled();
 		local screen = ActivityMan:GetActivity():ScreenOfPlayer(ctrl.Player);
+
+		if playerControlled and self.menu_ignore then
+			if not ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
+				self.menu_ignore = false
+			end
+		end
 
 		if self.Magazine then
 			self.Magazine.RoundCount = math.max(self.resource, 1);
@@ -394,6 +402,10 @@ function Update(self)
 			-- constructor build cursor
 			if playerControlled then
 				self.cursor = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
+				-- If the player actively selected this, ignore the pie menu.
+				if ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
+					self.menu_ignore = true;
+				end
 			end
 		end
 		local displayColorBlue = 5;
@@ -476,7 +488,7 @@ function Update(self)
 				self.cursor.Y = actor.ViewPoint.Y + self.maxCursorDist.Y * (dist.Y < 0 and -1 or 1);
 			end
 
-			if ctrl:IsState(Controller.PIE_MENU_ACTIVE) or ctrl:IsState(Controller.ACTOR_NEXT_PREP) or ctrl:IsState(Controller.ACTOR_PREV_PREP) then
+			if (not self.menu_ignore and ctrl:IsState(Controller.PIE_MENU_ACTIVE)) or ctrl:IsState(Controller.ACTOR_NEXT_PREP) or ctrl:IsState(Controller.ACTOR_PREV_PREP) then
 				self.cursor = nil;
 			elseif playerControlled then
 				-- add blocks to the build queue if the cursor is firing
