@@ -3,19 +3,14 @@ package.loaded.Constants = nil; require("Constants");
 dofile("Browncoats.rte/Activities/RefineryAssaultFunctions.lua");
 
 function RefineryAssault:OnGlobalMessage(message, object)
-
 	self:HandleMessage(message, object);
-
 end
 
 function RefineryAssault:OnMessage(message, object)
-
 	self:HandleMessage(message, object);
-
 end
 
 function RefineryAssault:SetupBuyDoorAreaTable(self, area)
-
 	-- remove BuyDoorArea_ from the area name to get our table key
 	local areaKey = string.sub(area.Name, 13, -1);
 	
@@ -42,51 +37,40 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 			self.saveTable.buyDoorTables[areaKey][tonumber(#self.saveTable.buyDoorTables.All)] = mo;
 		end
 	end
-		
-
 end
 
 
 function RefineryAssault:GetAIFunds(team)
-
 	if team == self.humanTeam then
 		return self.humanAIFunds;
 	elseif team == self.aiTeam then
 		return self:GetTeamFunds(self.aiTeam);
 	end
-
 end
 
 function RefineryAssault:ChangeAIFunds(team, changeAmount)
-
 	if team == self.humanTeam then
 		self.humanAIFunds = self.humanAIFunds + changeAmount;
 	elseif team == self.aiTeam then
 		self:ChangeTeamFunds(changeAmount, self.aiTeam);
 	end
-
 end
 
 function RefineryAssault:UpdateFunds()
-
 	-- Gold increasing for teams
-	
 	local playerFunds = self:GetTeamFunds(self.humanTeam);
 	local aiTeamFunds = self:GetTeamFunds(self.aiTeam);
 
 	if self.saveTable.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
-	
 		self.saveTable.goldTimer:Reset();
 		
 		self:SetTeamFunds(playerFunds + self.playerGoldIncreaseAmount, self.humanTeam);
 		self.humanAIFunds = self.humanAIFunds + self.humanAIGoldIncreaseAmount;
 		
 		self:SetTeamFunds(aiTeamFunds + self.aiTeamGoldIncreaseAmount, self.aiTeam);
-	
 	end
 
 	-- Debug view
-	
 	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
 
@@ -104,28 +88,13 @@ function RefineryAssault:UpdateFunds()
 				
 				local textPos = Vector(pos.X - 100, pos.Y - 20);
 				--PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
-
-				
 			end
 		end	
 	end
-
 end
 
 -----------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------
--- Game functions
------------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------
-
-
-
-
------------------------------------------------------------------------------------------
--- Start Activity
------------------------------------------------------------------------------------------
+-- Game functions after this point
 
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
@@ -146,7 +115,6 @@ function RefineryAssault:StartActivity(newGame)
 		end
 	end
 	
-	
 	self.goldIncreaseDelay = 4000;
 	
 	self.playerGoldIncreaseAmount = 5;	
@@ -155,7 +123,6 @@ function RefineryAssault:StartActivity(newGame)
 	self.aiTeamGoldIncreaseAmount = 0;
 	
 	self.humanAIFunds = 1;
-	
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(self.verboseLogging);
@@ -233,7 +200,6 @@ function RefineryAssault:StartActivity(newGame)
 				self.saveTable.roninPrisonerDoor = actor;
 				table.insert(self.saveTable.doorsToConstantlyReset, actor);
 			end
-			
 		end
 		
 		self.saveTable.stage2HoldTimer = Timer();
@@ -342,7 +308,6 @@ function RefineryAssault:StartActivity(newGame)
 				particle.MissionCritical = true;
 			end
 		end
-	
 	else
 		self:ResumeLoadedGame();
 	end
@@ -371,11 +336,9 @@ function RefineryAssault:StartActivity(newGame)
 			-- end
 		-- end
 	-- end	
-	
 end
 
 function RefineryAssault:ResumeLoadedGame()
-
 	print("loading local refineryassault save table...");
 	self.saveTable = self.saveLoadHandler:ReadSavedStringAsTable("saveTable");
 	print("loaded local refineryassault save table!");
@@ -392,11 +355,9 @@ function RefineryAssault:ResumeLoadedGame()
 	self.MOUtility:OnLoad(self.saveLoadHandler);
 	
 	self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
-		
 end
 
 function RefineryAssault:OnSave()
-	
 	self.saveLoadHandler:SaveTableAsString("saveTable", self.saveTable);
 	
 	self:SaveNumber("stage", self.Stage);
@@ -409,31 +370,17 @@ function RefineryAssault:OnSave()
 	self.HUDHandler:OnSave(self.saveLoadHandler);
 	
 	self.MOUtility:OnSave(self.saveLoadHandler);
-	
 end
-
------------------------------------------------------------------------------------------
--- Pause Activity
------------------------------------------------------------------------------------------
 
 function RefineryAssault:PauseActivity(pause)
 	print("PAUSE! -- RefineryAssault:PauseActivity()!");
 end
 
------------------------------------------------------------------------------------------
--- End Activity
------------------------------------------------------------------------------------------
-
 function RefineryAssault:EndActivity()
 	print("END! -- RefineryAssault:EndActivity()!");
 end
 
------------------------------------------------------------------------------------------
--- Update Activity
------------------------------------------------------------------------------------------
-
 function RefineryAssault:UpdateActivity()
-
 	-- if UInputMan:KeyPressed(Key.F) and UInputMan:KeyHeld(Key.SPACE) then
 		-- self.ActivityState = Activity.EDITING;
 
@@ -450,17 +397,13 @@ function RefineryAssault:UpdateActivity()
 	-- end
 
 	-- Monitor stage objectives
-	
 	self.stageFunc = self.stageFunctionTable[self.Stage];
 	self:stageFunc();
 
-
 	self:UpdateFunds();
-	
 	
 	-- Seek tasks to create squads for
 	-- Only human team uses docks
-	
 	local team, task = self.tacticsHandler:UpdateTacticsHandler();
 	
 	if task and self:GetAIFunds(team) > 0 then
@@ -483,18 +426,11 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
-	-- Update docking craft
-	
 	self.dockingHandler:UpdateDockingCraft();
-	
-	-- Update HUD handler
-	
 	self.HUDHandler:UpdateHUDHandler();
 	
 	-- Update MOUtility not needed yet
-	
 	--self.MOUtility:Update();
-	
 
 	for k, door in pairs(self.saveTable.doorsToConstantlyReset) do
 		if not door or not MovableMan:ValidMO(door) then
@@ -517,7 +453,6 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
-	
 	if self.roninPrisonerMessageTimer and not self.roninPrisonerMessageTimer:IsPastSimMS(6000) then
 		if self.saveTable.roninPrisonerLeader and MovableMan:ValidMO(self.saveTable.roninPrisonerLeader) then
 			PrimitiveMan:DrawTextPrimitive(self.saveTable.roninPrisonerLeader.AboveHUDPos, "We are in your debt.", true, 1);
@@ -533,9 +468,7 @@ function RefineryAssault:UpdateActivity()
 		self.actorSpawnerReturnedActors = {};
 	end
 	
-	
 	-- Debug
-	
 	if UInputMan.FlagAltState then
 		-- Unlimit camera
 		if UInputMan:KeyPressed(Key.KP_8) then
@@ -589,29 +522,20 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
-	local debugDoorTrigger = UInputMan:KeyPressed(Key.J)	
-	
-	local debugTrigger = UInputMan:KeyPressed(Key.I)
-	
-	local debugRocketTrigger = UInputMan:KeyPressed(Key.U)
-	
+	local debugDoorTrigger = UInputMan:KeyPressed(Key.J);
 	if debugDoorTrigger then
-	
 		self:SendBuyDoorDelivery(self.humanTeam);
-		
 	end
 	
+	local debugTrigger = UInputMan:KeyPressed(Key.I);
 	if debugTrigger then
-	
 		--self:SendDockDelivery(self.humanTeam, false);
 		print("tried dropship")
-		
 	end
 	
+	local debugRocketTrigger = UInputMan:KeyPressed(Key.U);
 	if debugRocketTrigger then
-	
 		--self:SendDockDelivery(self.humanTeam, true);
 		print("triedrocket")
-		
 	end	
 end
