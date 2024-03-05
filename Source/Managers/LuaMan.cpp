@@ -250,7 +250,7 @@ void LuaStateWrapper::Initialize() {
 	              // Override "require" to be able to track loaded packages so we can clear them when scripts are reloaded.
 	              "_RequiredPackages = {};\n"
 	              "OriginalRequire = require; require = function(filePath) _RequiredPackages[filePath] = true; return OriginalRequire(filePath); end;\n"
-	              "_ClearRequiredPackages = function() for k, v in pairs(_RequiredPackages) do print(\"clearing: \" .. k); package.loaded[k] = nil; end; _RequiredPackages = {}; end;\n"
+	              "_ClearRequiredPackages = function() for k, v in pairs(_RequiredPackages) do package.loaded[k] = nil; end; _RequiredPackages = {}; end;\n"
 	              // Internal helper functions to add callbacks for async pathing requests
 	              "_AsyncPathCallbacks = {};\n"
 	              "_AddAsyncPathCallback = function(id, callback) _AsyncPathCallbacks[id] = callback; end\n"
