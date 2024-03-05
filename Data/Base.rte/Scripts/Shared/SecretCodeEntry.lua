@@ -59,6 +59,9 @@ function SecretCodeEntry.Setup(callbackFunction, callbackSelfObject, codeSequenc
 	secretCodeEntryData.callbackSelfObject = callbackSelfObject;
 	secretCodeEntryData.codeSequenceOrCodeType = codeSequenceOrCodeType;
 	secretCodeEntryData.sequenceLength = sequenceLength;
+	if type(codeSequenceOrCodeType) == "table" then
+		secretCodeEntryData.codeSequence = codeSequenceOrCodeType;
+	end
 	secretCodeEntryData.firstEntrySoundContainer = firstEntrySoundContainer or SecretCodeEntry.defaultFirstEntrySoundContainer;
 	secretCodeEntryData.correctEntrySoundContainer = correctEntrySoundContainer or SecretCodeEntry.defaultCorrectEntrySoundContainer;
 	secretCodeEntryData.incorrectEntrySoundContainer = incorrectEntrySoundContainer or SecretCodeEntry.defaultIncorrectEntrySoundContainer;
