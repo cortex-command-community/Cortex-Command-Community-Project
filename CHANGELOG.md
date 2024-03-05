@@ -30,11 +30,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
 
+- ALl music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
+	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
+
 </details>
 
 <details><summary><b>Removed</b></summary>
-
-- Removed all music-related functionality from AudioMan.
 
 </details>
 
