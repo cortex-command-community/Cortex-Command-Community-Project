@@ -39,6 +39,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 </details>
 
+<details><summary><b>Fixed</b></summary>
+
+- Fixed an issue where palette index 255 was incorrectly showing as black.
+
+</details>
+
 ## [Release v6.2.2] - 2024/02/24
 
 <details><summary><b>Added</b></summary>
