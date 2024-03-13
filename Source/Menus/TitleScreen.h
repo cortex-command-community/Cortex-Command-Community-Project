@@ -191,6 +191,9 @@ namespace RTE {
 		std::array<BITMAP*, 8> m_IntroSlides; //!< Array that contains all the slideshow slide bitmaps. Not Owned.
 
 #pragma region Create Breakdown
+		/// Initializes music SoundContainers after they are done being loaded.
+		void InitializeMusic();
+
 		/// Creates all the elements that compose the title screen scene.
 		void CreateTitleElements();
 

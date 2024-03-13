@@ -211,9 +211,6 @@ namespace RTE {
 		bool m_ResumingActivityFromPauseMenu; //!< Whether the game simulation is being resumed from the pause menu.
 		bool m_SkipPauseMenuWhenPausingActivity; //!< Whether the pause menu should be skipped when the game simulation is paused.
 
-		std::string m_LastMusicPath; //!< Path to the last music stream being played.
-		float m_LastMusicPos; //!< What the last position of the in-game music track was before pause, in seconds.
-
 		bool m_LaunchIntoActivity; //!< Whether to skip the intro and main menu and launch directly into the set default Activity instead.
 		bool m_LaunchIntoEditor; //!< Whether to skip the intro and main menu and launch directly into the set editor Activity instead.
 		std::string_view m_EditorToLaunch; //!< The name of the editor Activity to launch directly into.

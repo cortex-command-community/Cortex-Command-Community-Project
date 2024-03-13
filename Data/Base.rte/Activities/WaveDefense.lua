@@ -7,10 +7,10 @@ function WaveDefense:CheckBrains()
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
 				if not foundBrain then
 					self.ActivityState = Activity.EDITING;
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					MusicMan:PlayDynamicSong("Generic Ambient Music", "Default", true);
 					self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player);
 				else
+					MusicMan:PlayDynamicSong("Generic Battle Music");
 					-- Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
@@ -24,6 +24,7 @@ function WaveDefense:CheckBrains()
 end
 
 function WaveDefense:StartActivity(isNewGame)
+
 	-- Get player team
 	self.playerTeam = Activity.TEAM_2;
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -140,6 +141,9 @@ function WaveDefense:ResumeLoadedGame()
 end
 
 function WaveDefense:InitWave()
+
+	MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
+
 	self.AI.SpawnTimer:Reset();
 	self.AI.BombTimer:Reset();
 	self.AI.HuntTimer:Reset();
@@ -218,6 +222,7 @@ function WaveDefense:UpdateActivity()
 			if UInputMan:KeyPressed(Key.SPACE) then
 				self.prepareForNextWave = false;
 				self.ActivityState = Activity.EDITING;
+				MusicMan:PlayDynamicSong("Generic Ambient Music", "Default", true);
 
 				-- Remove control of the actors during edit mode
 				for Act in MovableMan.Actors do
@@ -383,10 +388,8 @@ function WaveDefense:UpdateActivity()
 
 				-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
 				if not self:IsPaused() then
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-					AudioMan:QueueSilence(10);
-					AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+					MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+					MusicMan:PlayDynamicSong("Generic Ambient Music");
 				end
 				return;
 			end

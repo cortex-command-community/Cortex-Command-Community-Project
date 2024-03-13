@@ -32,6 +32,7 @@ function Prospecting:StartActivity()
 			self.braindead[player] = false;
 		end
 	end
+	MusicMan:PlayDynamicSong("Generic Ambient Music");
 
 	-- Set up the unseen layers
 	SceneMan:MakeAllUnseen(Vector(25, 25), Activity.TEAM_1);

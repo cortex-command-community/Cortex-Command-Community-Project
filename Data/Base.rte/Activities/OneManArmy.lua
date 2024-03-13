@@ -76,6 +76,8 @@ function OneManArmy:StartNewGame()
 		secondaryGroup = "Weapons - Secondary";
 	end
 	self.enemySpawnTimeLimit = 500;
+	
+	MusicMan:PlayDynamicSong("Generic Battle Music");
 
 	MovableMan:OpenAllDoors(true, -1);
 	for actor in MovableMan.AddedActors do
@@ -239,16 +241,12 @@ function OneManArmy:EndActivity()
 	if not self:IsPaused() then
 		--Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			--But if humans are left, play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end

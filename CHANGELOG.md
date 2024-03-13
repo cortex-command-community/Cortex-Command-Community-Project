@@ -6,9 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+<details><summary><b>Added</b></summary>
+
+- New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.
+	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
+	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.
+	`PlayInterruptingMusic(SoundContainer soundContainer)` to start an interrupting piece of music which will pause any playing DynamicSong. Note that pause menu music happily overrides this currently.
+	`EndInterruptingMusic()` to end any playing interrupting music, and resume any paused DynamicSongs.
+	`EndDynamicMusic(bool fadeOut)` to end any currently playing dynamic music, optionally immediately fading it out. If not fading it out, the currently playing piece will play to completion.
+	`ResetMusicState()` to immediately end all music and return the MusicMan to a blank state.
+	
+- New entities `DynamicSongSection` and `DynamicSong` which are used for organizing music to play using the new system.
+	`DynamicSongSection` is made up of TransitionSoundContainers, SoundContainers, a string SectionType, and either randomnorepeat or shuffle SoundContainerSelectionCycleMode.
+	`DynamicSong` is a simple container of DynamicSongSections. It can have one DefaultSongSection and as many added sections as needed.
+	
+- New `SoundContainer` features.
+		Lua property `Paused` (R/W) to pause or unpause all sounds of a SoundContainer. Newly played sounds will not begin playback until unpaused.
+		Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
+  
+</details>
+
 <details><summary><b>Changed</b></summary>
 
 - Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
+
+- ALl music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
+	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
+
+</details>
+
+<details><summary><b>Removed</b></summary>
 
 </details>
 

@@ -68,6 +68,9 @@ function DecisionDay:SetupInternalReinforcementsData()
 end
 
 function DecisionDay:StartActivity(isNewGame)
+
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
 	if self.Difficulty <= Activity.MINDIFFICULTY then
 		self.difficultyRatio = 0.5;
 	elseif self.Difficulty <= Activity.CAKEDIFFICULTY then
@@ -841,7 +844,7 @@ function DecisionDay:DoSpeedrunMode()
 	self:SetTeamTech(self.aiTeam, "-All-");
 	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
 	
-	AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+	MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 	
 	self.messageTimer:SetSimTimeLimitMS(1);
 	
@@ -2225,15 +2228,11 @@ function DecisionDay:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
 	if not self:IsPaused() then
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end

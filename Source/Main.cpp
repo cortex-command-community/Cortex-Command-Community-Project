@@ -48,6 +48,7 @@
 #include "PrimitiveMan.h"
 #include "ThreadMan.h"
 #include "LuaMan.h"
+#include "MusicMan.h"
 #include "System.h"
 
 #include "tracy/Tracy.hpp"
@@ -76,6 +77,7 @@ void InitializeManagers() {
 	PrimitiveMan::Construct();
 	AudioMan::Construct();
 	GUISound::Construct();
+	MusicMan::Construct();
 	UInputMan::Construct();
 	ConsoleMan::Construct();
 	SceneMan::Construct();
@@ -100,6 +102,7 @@ void InitializeManagers() {
 
 	if (g_AudioMan.Initialize()) {
 		g_GUISound.Initialize();
+		g_MusicMan.Initialize();
 	}
 
 	g_UInputMan.Initialize();
@@ -129,6 +132,7 @@ void DestroyManagers() {
 	g_ActivityMan.Destroy();
 	g_GUISound.Destroy();
 	g_AudioMan.Destroy();
+	g_MusicMan.Destroy();
 	g_PresetMan.Destroy();
 	g_UInputMan.Destroy();
 	g_PostProcessMan.Destroy();
@@ -252,6 +256,7 @@ void RunMenuLoop() {
 		g_TimerMan.Update();
 		g_TimerMan.UpdateSim();
 		g_AudioMan.Update();
+		g_MusicMan.Update();
 
 		if (g_WindowMan.ResolutionChanged()) {
 			g_MenuMan.Reinitialize();
@@ -346,6 +351,7 @@ void RunGameLoop() {
 			g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
 
 			g_AudioMan.Update();
+			g_MusicMan.Update();
 
 			g_ActivityMan.LateUpdateGlobalScripts();
 

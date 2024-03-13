@@ -187,11 +187,11 @@ namespace RTE {
 			}
 		}
 
-		/// Gets the volume of music. Does not get volume of sounds.
+		/// Gets the volume of music. Does not get volume of SFX or UI.
 		/// @return Current volume scalar value. 0.0-1.0.
 		float GetMusicVolume() const { return m_MusicVolume; }
 
-		/// Sets the music to a specific volume. Does not affect sounds.
+		/// Sets the music to a specific volume. Does not affect SFX or UI.
 		/// @param volume The desired volume scalar. 0.0-1.0.
 		void SetMusicVolume(float volume = 1.0F) {
 			m_MusicVolume = std::clamp(volume, 0.0F, 1.0F);
@@ -200,26 +200,10 @@ namespace RTE {
 			}
 		}
 
-		/// Sets the music to a specific volume, but it will only last until a new song is played. Useful for fading etc.
-		/// @param volume The desired volume scalar. 0.0-1.0.
-		void SetTempMusicVolume(float volume = 1.0F);
-
-		/// Gets the path of the last played music stream.
-		/// @return The file path of the last played music stream.
-		std::string GetMusicPath() const { return m_MusicPath; }
-
 		/// Sets/updates the frequency/pitch for the music channel.
 		/// @param pitch New pitch, a multiplier of the original normal frequency. Keep it > 0.
 		/// @return Whether the music channel's pitch was successfully updated.
 		bool SetMusicPitch(float pitch);
-
-		/// Gets the position of playback of the current music stream, in seconds.
-		/// @return The current position of the current stream playing, in seconds.
-		float GetMusicPosition() const;
-
-		/// Sets the music to a specific position in the song.
-		/// @param position The desired position from the start, in seconds.
-		void SetMusicPosition(float position);
 #pragma endregion
 
 #pragma region Overall Sound Getters and Setters
@@ -254,12 +238,11 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Global Playback and Handling
-		/// Stops all playback and clears the music playlist.
+		/// Stops all playback.
 		void StopAll() {
 			if (m_AudioEnabled) {
 				m_MasterChannelGroup->stop();
 			}
-			m_MusicPlayList.clear();
 		}
 
 		/// Makes all sounds that are looping stop looping, allowing them to play once more then be finished.
@@ -274,35 +257,7 @@ namespace RTE {
 		}
 #pragma endregion
 
-#pragma region Music Playback and Handling
-		/// Starts playing a certain WAVE, MOD, MIDI, OGG, MP3 file in the music channel.
-		/// @param filePath The path to the music file to play.
-		/// @param loops The number of times to loop the song. 0 means play once. -1 means play infinitely until stopped.
-		/// @param volumeOverrideIfNotMuted The volume override for music for this song only, if volume is not muted. < 0 means no override.
-		void PlayMusic(const char* filePath, int loops = -1, float volumeOverrideIfNotMuted = -1.0F);
-
-		/// Plays the next music stream in the queue, if any is queued.
-		void PlayNextStream();
-
-		/// Stops playing a the music channel.
-		void StopMusic();
-
-		/// Queues up another path to a stream that will be played after the current one is done.
-		/// Can be done several times to queue up many tracks. The last track in the queue will be looped infinitely.
-		/// @param filePath The path to the music file to play after the current one.
-		void QueueMusicStream(const char* filePath);
-
-		/// Queues up a period of silence in the music stream playlist.
-		/// @param seconds The number of secs to wait before going to the next stream.
-		void QueueSilence(int seconds) {
-			if (m_AudioEnabled && seconds > 0) {
-				m_MusicPlayList.push_back("@" + std::to_string(seconds));
-			}
-		}
-
-		/// Clears the music queue.
-		void ClearMusicQueue() { m_MusicPlayList.clear(); }
-
+#pragma region Music Handling
 		/// Sets the music muffled state.
 		/// @param musicMuffledState The new music muffled state to set.
 		/// @return Whether the new music muffled state was successfully set.
@@ -336,24 +291,6 @@ namespace RTE {
 		/// Sets the multiplayer mode flag.
 		/// @param value Whether this manager should operate in multiplayer mode.
 		void SetMultiplayerMode(bool value) { m_IsInMultiplayerMode = value; }
-
-		/// Fills the list with music events happened for the specified network player.
-		/// @param player Player to get events for.
-		/// @param list List with events for this player.
-		void GetMusicEvents(int player, std::list<NetworkMusicData>& list);
-
-		/// Adds the music event to internal list of music events for the specified player.
-		/// @param player Player(s) for which the event happened.
-		/// @param state NetworkMusicState for the event.
-		/// @param filepath Music file path to transmit to client.
-		/// @param loops LoopsOrSilence counter or, if state is silence, the length of the silence.
-		/// @param position Music playback position.
-		/// @param pitch Pitch value.
-		void RegisterMusicEvent(int player, NetworkMusicState state, const char* filepath, int loopsOrSilence = 0, float position = 0, float pitch = 1.0F);
-
-		/// Clears the list of current Music events for the target player.
-		/// @param player Player to clear music events for. -1 clears for all players
-		void ClearMusicEvents(int player);
 
 		/// Fills the list with sound events happened for the specified network player.
 		/// @param player Player to get events for.
@@ -403,13 +340,9 @@ namespace RTE {
 		//////////////////////////////////////////////////
 
 		bool m_MusicMuffled; //!< Whether the music bus is muffled.
-		std::string m_MusicPath; //!< The path to the last played music stream.
-		std::list<std::string> m_MusicPlayList; //!< Playlist of paths to music to play after the current non looping one is done.
-		Timer m_SilenceTimer; //!< Timer for measuring silences between songs.
 
 		bool m_IsInMultiplayerMode; //!< If true then the server is in multiplayer mode and will register sound and music events into internal lists.
 		std::list<NetworkSoundData> m_SoundEvents[c_MaxClients]; //!< Lists of per player sound events.
-		std::list<NetworkMusicData> m_MusicEvents[c_MaxClients]; //!< Lists of per player music events.
 
 		std::mutex g_SoundEventsListMutex[c_MaxClients]; //!< A list for locking sound events for multiplayer to avoid race conditions and other such problems.
 		std::mutex m_SoundChannelMinimumAudibleDistancesMutex; //!, As above but for m_SoundChannelMinimumAudibleDistances
@@ -426,6 +359,11 @@ namespace RTE {
 		/// @param soundContainer A pointer to a SoundContainer object. Ownership IS NOT transferred!
 		/// @return Whether the position was successfully set.
 		bool ChangeSoundContainerPlayingChannelsPosition(const SoundContainer* soundContainer);
+
+		/// Sets/updates the position of a SoundContainer's playing sounds.
+		/// @param soundContainer A pointer to a SoundContainer object. Ownership IS NOT transferred!
+		/// @return Whether the position was successfully set.
+		float GetSoundContainerAudibleVolume(const SoundContainer* soundContainer);
 
 		/// Changes the volume of a SoundContainer's playing sounds.
 		/// @param soundContainer A pointer to a SoundContainer object. Ownership IS NOT transferred!
@@ -453,6 +391,11 @@ namespace RTE {
 		/// @param soundContainer A pointer to a SoundContainer object. Ownership is NOT transferred!
 		/// @param fadeOutTime The amount of time, in ms, to fade out over.
 		void FadeOutSoundContainerPlayingChannels(SoundContainer* soundContainer, int fadeOutTime);
+
+		/// Pauses or unpauses a SoundContainer.
+		/// @param soundContainer A pointer to a SoundContainer object. Ownership is NOT transferred!
+		/// @param paused Whether to pause or unpause.
+		void SetPausedSoundContainerPlayingChannels(SoundContainer* soundContainer, bool paused) const;
 #pragma endregion
 
 #pragma region 3D Effect Handling
@@ -467,9 +410,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region FMOD Callbacks
-		/// A static callback function for FMOD to invoke when the music channel finishes playing. See fmod docs - FMOD_CHANNELCONTROL_CALLBACK for details
-		static FMOD_RESULT F_CALLBACK MusicChannelEndedCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE channelControlType, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void* commandData1, void* commandData2);
-
 		/// A static callback function for FMOD to invoke when a sound channel finished playing. See fmod docs - FMOD_CHANNELCONTROL_CALLBACK for details
 		static FMOD_RESULT F_CALLBACK SoundChannelEndedCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE channelControlType, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void* commandData1, void* commandData2);
 #pragma endregion

@@ -68,6 +68,9 @@ function SignalHunt:OnSave()
 end
 
 function SignalHunt:StartNewGame()
+
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
 	self.speedrunData = ActivitySpeedrunHelper.Setup(self, self.DoSpeedrunMode);
 
 	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
@@ -255,16 +258,12 @@ function SignalHunt:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -327,7 +326,7 @@ function SignalHunt:DoSpeedrunMode()
 	self.Difficulty = Activity.MAXDIFFICULTY;
 	self:SetTeamFunds(0, self.humanTeam);
 	
-	AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+	MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 	
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then

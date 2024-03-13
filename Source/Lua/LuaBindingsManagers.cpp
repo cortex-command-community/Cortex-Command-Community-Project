@@ -33,20 +33,33 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 	    .def("StopAll", &AudioMan::StopAll)
 	    .def("GetGlobalPitch", &AudioMan::GetGlobalPitch)
 	    .def("IsMusicPlaying", &AudioMan::IsMusicPlaying)
-	    .def("SetTempMusicVolume", &AudioMan::SetTempMusicVolume)
-	    .def("GetMusicPosition", &AudioMan::GetMusicPosition)
-	    .def("SetMusicPosition", &AudioMan::SetMusicPosition)
 	    .def("SetMusicPitch", &AudioMan::SetMusicPitch)
-	    .def("StopMusic", &AudioMan::StopMusic)
-	    .def("PlayMusic", &AudioMan::PlayMusic)
-	    .def("PlayNextStream", &AudioMan::PlayNextStream)
-	    .def("StopMusic", &AudioMan::StopMusic)
-	    .def("QueueMusicStream", &AudioMan::QueueMusicStream)
-	    .def("QueueSilence", &AudioMan::QueueSilence)
-	    .def("ClearMusicQueue", &AudioMan::ClearMusicQueue)
+	    .def("SetMusicMuffledState", &AudioMan::SetMusicMuffledState)
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath)) & AudioMan::PlaySound, luabind::adopt(luabind::result))
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position)) & AudioMan::PlaySound, luabind::adopt(luabind::result))
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position, int player)) & AudioMan::PlaySound, luabind::adopt(luabind::result));
+}
+
+LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {
+	return luabind::class_<MusicMan>("MusicManager")
+
+	    .def("ResetMusicState", &MusicMan::ResetMusicState)
+	    .def("IsMusicPlaying", &MusicMan::IsMusicPlaying)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong1)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong2)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong3)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong4)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong5)
+	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection1)
+	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection2)
+	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection3)
+	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection4)
+	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers1)
+	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers2)
+	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic1)
+	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic2)
+	    .def("PlayInterruptingMusic", &MusicMan::PlayInterruptingMusic)
+	    .def("EndInterruptingMusic", &MusicMan::EndInterruptingMusic);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {

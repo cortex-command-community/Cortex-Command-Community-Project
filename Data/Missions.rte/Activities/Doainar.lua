@@ -47,6 +47,9 @@ function DoainarMission:OnSave()
 end
 
 function DoainarMission:StartNewGame()
+
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
 	self:SetTeamFunds(math.max(100, self:GetStartingGold()), self.PlayerTeam);
 
 	self.sacDestroyed = false;
@@ -145,9 +148,9 @@ function DoainarMission:ResumeLoadedGame()
 	end
 
 	if self.mamaAggressive and not self.mamaDead then
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+		MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 	elseif self.passedPitfall then
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ruinexploration.ogg", -1, -1);
+		MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
 	end
 end
 
@@ -156,16 +159,12 @@ function DoainarMission:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -248,7 +247,7 @@ function DoainarMission:UpdateActivity()
 								self:ResetMessageTimer(player);
 								FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 								FrameMan:SetScreenText("Uh oh, looks like you angered the mother crab!  Kill it before it kills you!", self:ScreenOfPlayer(player), 0, 7500, true);
-								AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+								MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 							end
 						end
 
@@ -265,7 +264,7 @@ function DoainarMission:UpdateActivity()
 							self:ResetMessageTimer(player);
 							FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 							FrameMan:SetScreenText("That was a close one.  Go finish off their den!", self:ScreenOfPlayer(player), 0, 7500, true);
-							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", -1, -1);
+							MusicMan:PlayDynamicSong("Generic Ambient Music", "Default", true);
 						end
 
 						if MovableMan:IsParticle(self.eggSac) == false and self.sacDestroyed == false then
@@ -281,7 +280,6 @@ function DoainarMission:UpdateActivity()
 								FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 								FrameMan:SetScreenText("What the...?  It's some kind of ancient bunker?  There seems to be a control panel inside, go see what's on it...", self:ScreenOfPlayer(player), 0, 7500, true);
 								AudioMan:ClearMusicQueue();
-								AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ruinexploration.ogg", -1, -1);
 								self.passedPitfall = true;
 
 								for actor in MovableMan.Actors do
