@@ -42,5 +42,5 @@ luajit_dep = declare_dependency(
     link_args: lj_linkargs,
 )
 
-#meson.override_dependency('luajit', luajit_dep)
+meson.override_dependency('luajit', luajit_dep)
 endif
