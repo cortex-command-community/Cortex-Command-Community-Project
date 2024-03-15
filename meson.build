@@ -212,7 +212,7 @@ elif host_machine.system() == 'windows'
   sdl2 = subproject('SDL2-2.26.3')
   sdl2_dep = dependency('sdl2')
   luajit = subproject('LuaJIT-2.1')
-  luajit_dep = dependency('luajit')
+  luajit_dep = luajit.get_variable(luajit_dep)
   zlib = subproject('zlib-ng-2.1.3')
   zlib_dep = dependency('zlib')
   minizip = subproject('minizip-ng-4.0.0')

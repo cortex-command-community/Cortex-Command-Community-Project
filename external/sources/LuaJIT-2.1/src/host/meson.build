@@ -36,6 +36,7 @@ buildvm = executable('buildvm',
     include_directories: luajit_source_dir,
     c_args: buildvm_defines,
     dependencies: libm,
+    build_by_default: false,
     install: false,
     native: true
 )
