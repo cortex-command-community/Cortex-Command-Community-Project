@@ -1,6 +1,8 @@
 # Meson files from github.com/franko/luajit
 project('luajit', 'c', version : '2.0.5', default_options : ['c_winlibs='])
-
+if get_option('header_only')
+  luajit_source_dir = include_directories('src')
+else
 pkg = import('pkgconfig')
 
 cc = meson.get_compiler('c')
@@ -21,6 +23,7 @@ if not get_option('use_prebuilt_libraries') or host_machine.system() in ['darwin
         c_args: lj_defines,
         name_prefix: lj_libprefix,
         dependencies: luajit_dependencies,
+        build_by_default: false,
         install: true
     )
 else
@@ -40,10 +43,4 @@ luajit_dep = declare_dependency(
 )
 
 meson.override_dependency('luajit', luajit_dep)
-
-pkg.generate(libluajit,
-    filebase : 'luajit',
-    name : 'LuaJIT',
-    description : 'Just-in-time compiler for Lua',
-    url : 'http://luajit.org',
-)
+endif

@@ -148,7 +148,7 @@ endforeach
 vmdef = custom_target('vmdef.lua',
     input : ljlib_sources,
     output : 'vmdef.lua',
-    build_by_default : true,
+    build_by_default : false,
     install: true,
     install_dir: jitlib_install_dir,
     command : [buildvm, '-m', 'vmdef', '-o', '@OUTPUT@', '@INPUT@']
