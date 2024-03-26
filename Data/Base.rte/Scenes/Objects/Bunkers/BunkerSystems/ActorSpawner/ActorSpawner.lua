@@ -77,10 +77,8 @@ function OnMessage(self, message, object)
 		self.Deactivated = false;
 		self:RemoveNumberValue("Deactivated");	
 	elseif message  == "ActorSpawner_ReplaceDeliveryCreationHandler" then
-		print("replaced deliverycreationahndler")
-		print(object)
-		print(#object)
-		--self.deliveryCreationHandler = object;
+		self.deliveryCreationHandler:ReplaceHandlerWithSerialized(self.saveLoadHandler, object)
+		ActorSpawnerFunctions.PrepareNewActor(self);
 	elseif message == "ActorSpawner_ManualTrigger" then
 		if object == true or not self.Deactivated then
 			self.manualTrigger = true;
@@ -110,6 +108,9 @@ function Create(self)
 	
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
 	self.deliveryCreationHandler:Initialize(self.Activity, true);
+	
+	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
+	self.saveLoadHandler:Initialize(true);
 	
 	self.useGlobalMessaging = self:GetNumberValue("SendSpawnedMessageGlobally") == 1 and true or false;
 	self.messageOnSpawn = self:GetStringValue("messageOnSpawn");

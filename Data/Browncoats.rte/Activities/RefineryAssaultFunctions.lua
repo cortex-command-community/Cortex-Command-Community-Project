@@ -961,7 +961,7 @@ function RefineryAssault:SetupStartingActors()
 		if par.PresetName == "Refinery S2 Counterattacker Spawner" then
 			print("DETECTED SPAWNER")
 			table.insert(self.saveTable.stage2CounterAttSpawners, par);
-			par:SendMessage("ActorSpawner_ReplaceDeliveryCreationHandler", self.deliveryCreationHandler);
+			par:SendMessage("ActorSpawner_ReplaceDeliveryCreationHandler", self.deliveryCreationHandler:GetHandlerAsSerialized(self.saveLoadHandler));
 		end
 	end
 	
