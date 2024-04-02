@@ -194,11 +194,12 @@ function MaginotMission:DoGameOverCheck()
 				self:GetBanner(GUIBanner.RED, player):ClearText();
 
 				if not self.GameOverTimer:IsPastSimMS(self.GameOverPeriod) then
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
 					if self.brainDead[player] then
-						FrameMan:SetScreenText("You may have died, but your fellow brains lived to fight another day. Rest assured, you will be avenged!", self:ScreenOfPlayer(player), 0, 1, false);
+						FrameMan:SetScreenText("You may have died, but your fellow brains lived to fight another day. Rest assured, you will be avenged!", screen, 0, 1, false);
 					else
-						FrameMan:SetScreenText("Good job, you lived to fight another day. We've located the enemy fortress and are planning an assault on it!", self:ScreenOfPlayer(player), 0, 1, false);
+						FrameMan:SetScreenText("Good job, you lived to fight another day. We've located the enemy fortress and are planning an assault on it!", screen, 0, 1, false);
 					end
 				else
 					ActivityMan:EndActivity();
@@ -246,25 +247,26 @@ function MaginotMission:UpdateScreenText()
 	if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+				local screen = self:ScreenOfPlayer(player);
+				FrameMan:ClearScreenText(screen);
 				if self.currentFightStage == self.fightStage.beginFight then
 					if self:GetTeamFunds(self.defenderTeam) == 0 then
-						FrameMan:SetScreenText("Sensors show enemy dropship signatures en route to the West entrance.\nYou'll have to make do with the forces you have on site. Good luck!", self:ScreenOfPlayer(player), 0, 1, false);
+						FrameMan:SetScreenText("Sensors show enemy dropship signatures en route to the West entrance.\nYou'll have to make do with the forces you have on site. Good luck!", screen, 0, 1, false);
 					else
-						FrameMan:SetScreenText("Sensors show enemy dropship signatures en route to the West entrance.\nPrepare while you can, they'll be here soon!", self:ScreenOfPlayer(player), 0, 1, false);
+						FrameMan:SetScreenText("Sensors show enemy dropship signatures en route to the West entrance.\nPrepare while you can, they'll be here soon!", screen, 0, 1, false);
 					end
 				elseif self.currentFightStage == self.fightStage.defendLeft then
-					FrameMan:SetScreenText("The onslaught has begun. Hold the line!", self:ScreenOfPlayer(player), 1500, 1, true);
+					FrameMan:SetScreenText("The onslaught has begun. Hold the line!", screen, 1500, 1, true);
 				elseif self.currentFightStage == self.fightStage.defendRight then
-					FrameMan:SetScreenText("ALERT: A ground attack force is moving on the Eastern entrance!", self:ScreenOfPlayer(player), 1500, 1, true);
+					FrameMan:SetScreenText("ALERT: A ground attack force is moving on the Eastern entrance!", screen, 1500, 1, true);
 				elseif self.currentFightStage == self.fightStage.evacuateBrain then
 					if self.PlayerCount == 1 then
-						FrameMan:SetScreenText("The enemy force is too powerful, abandon the bunker immediately!\nYour brain has been loaded onto a bot, get to the LZ and evacuate.", self:ScreenOfPlayer(player), 0, 1, true);
+						FrameMan:SetScreenText("The enemy force is too powerful, abandon the bunker immediately!\nYour brain has been loaded onto a bot, get to the LZ and evacuate.", screen, 0, 1, true);
 					else
-						FrameMan:SetScreenText("The enemy force is too powerful, abandon the bunker immediately!\nYour brains have been loaded onto bots, get as many of them as possible to the LZ and evacuate.", self:ScreenOfPlayer(player), 0, 1, true);
+						FrameMan:SetScreenText("The enemy force is too powerful, abandon the bunker immediately!\nYour brains have been loaded onto bots, get as many of them as possible to the LZ and evacuate.", screen, 0, 1, true);
 					end
 				elseif self.currentFightStage == self.fightStage.enterEvacuationRocket then
-					FrameMan:SetScreenText("The evacuation rocket is coming in hot, get to the LZ!", self:ScreenOfPlayer(player), 1500, 1, true);
+					FrameMan:SetScreenText("The evacuation rocket is coming in hot, get to the LZ!", screen, 1500, 1, true);
 				end
 			end
 		end

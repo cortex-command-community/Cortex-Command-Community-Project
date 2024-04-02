@@ -35,13 +35,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 </details>
 
-<details><summary><b>Removed</b></summary>
-
-</details>
-
 <details><summary><b>Fixed</b></summary>
 
 - Fixed an issue where palette index 255 was incorrectly showing as black.
+
+- Fixed instances of `CameraMan:GetScrollTarget()` and `CameraMan:SetScrollTarget()` supplying a player index instead of a screen index.
+
+- Fixed a bug in Decision Day that could cause an error when trying to set the camera's scroll target, in addition to the previous issue.
 
 </details>
 

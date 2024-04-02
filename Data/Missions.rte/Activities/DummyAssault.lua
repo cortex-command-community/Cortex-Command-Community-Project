@@ -99,8 +99,9 @@ function DummyAssault:EndActivity()
 	if self.humanTeam == self.WinnerTeam then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-				FrameMan:SetScreenText("Congratulations, you've destroyed the enemy base!", self:ScreenOfPlayer(player), 0, -1, false);
+				local screen = self:ScreenOfPlayer(player);
+				FrameMan:ClearScreenText(screen);
+				FrameMan:SetScreenText("Congratulations, you've destroyed the enemy base!", screen, 0, -1, false);
 			end
 		end
 	end

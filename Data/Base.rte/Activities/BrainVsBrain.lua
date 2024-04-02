@@ -407,8 +407,9 @@ function BrainvsBrain:UpdateActivity()
 							end
 						else
 							self:ResetMessageTimer(player);
-							FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-							FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 2000, -1, false);
+							local screen = self:ScreenOfPlayer(player);
+							FrameMan:ClearScreenText(screen);
+							FrameMan:SetScreenText("Your brain has been destroyed!", screen, 2000, -1, false);
 						end
 					end
 				end
