@@ -64,15 +64,17 @@ void CameraMan::SetScroll(const Vector& center, int screenId) {
 }
 
 Vector CameraMan::GetScrollTarget(int screenId) const {
-	if (screenId < 0 || screenId >= c_MaxScreenCount)
+	if (screenId < 0 || screenId >= c_MaxScreenCount) {
 		// Would it be preferable to just set screenId to 0?
 		return Vector();
+	}
 	return g_NetworkClient.IsConnectedAndRegistered() ? g_NetworkClient.GetFrameTarget() : m_Screens[screenId].ScrollTarget;
 }
 
 void CameraMan::SetScrollTarget(const Vector& targetCenter, float speed, int screenId) {
-	if (screenId < 0 || screenId >= c_MaxScreenCount)
+	if (screenId < 0 || screenId >= c_MaxScreenCount) {
 		return;
+	}
 
 	Screen& screen = m_Screens[screenId];
 
