@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include "ConsoleMan.h"
+using namespace RTE;
 
 void CheckOpenGLError(const char* stmt, const char* fname, int line) {
 	GLenum errorCode = glGetError();
@@ -58,7 +59,7 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line) {
 			}
 
 			default: {
-				error = "Unknown Error: " + std::to_string(errorCode);
+				error = "Unknown Error" + std::to_string(errorCode);
 				description = "";
 			}
 		}
