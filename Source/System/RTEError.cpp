@@ -533,7 +533,6 @@ void RTEError::DumpHardwareInfo() {
 		g_ConsoleMan.PrintString("OS Version: " + std::string(osVersion));
 	}
 #endif
-
 }
 
 bool RTEError::DumpAbortScreen() {
