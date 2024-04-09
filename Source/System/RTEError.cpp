@@ -20,12 +20,12 @@
 #include <utility>
 #include <vector>
 
-
-#ifdef __MSVC__
+#ifdef _MSC_VER
 #include <intrin.h>
-#else
+#elif defined(__linux__)
 #include <cpuid.h>
 #endif
+
 #ifdef __linux__
 #include <sys/utsname.h>
 #include <fstream>
@@ -431,7 +431,7 @@ void RTEError::DumpHardwareInfo() {
 	unsigned int vendorRegs[4] = {0};
 #if defined(_MSC_VER) || defined(__linux__)
 #ifdef _MSC_VER
-	__cpuid(reinterpret_cast<int*>(cpuInfo), 0);
+	__cpuid(reinterpret_cast<int*>(vendorRegs), 0);
 #else
 	__cpuid(0, vendorRegs[0], vendorRegs[1], vendorRegs[2], vendorRegs[3]);
 #endif
@@ -445,7 +445,7 @@ void RTEError::DumpHardwareInfo() {
 	std::string cpuModel;
 	unsigned int modelRegs[12];
 #ifdef _MSC_VER
-	__cpuid(cpuInfo, 0x80000000);
+	__cpuid(reinterpret_cast<int*>(modelRegs), 0x80000000);
 #else
 	__cpuid(0x80000000, modelRegs[0], modelRegs[1], modelRegs[2], modelRegs[3]);
 #endif
