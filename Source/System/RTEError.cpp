@@ -20,6 +20,20 @@
 #include <utility>
 #include <vector>
 
+
+#ifdef __MSVC__
+#include <intrin.h>
+#else
+#include <cpuid.h>
+#endif
+#ifdef __linux__
+#include <sys/utsname.h>
+#include <fstream>
+#include <filesystem>
+#elif defined(__APPLE__) && defined(__MACH__)
+#include <sys/sysctl.h>
+#endif
+
 using namespace RTE;
 
 bool RTEError::s_CurrentlyAborting = false;
@@ -326,6 +340,8 @@ void RTEError::AbortFunc(const std::string& description, const std::source_locat
 
 		g_ConsoleMan.PrintString(abortMessage);
 
+		DumpHardwareInfo();
+
 		std::string callstack = "";
 
 #ifdef _WIN32
@@ -386,8 +402,8 @@ void RTEError::AssertFunc(const std::string& description, const std::source_loca
 
 	if (!s_IgnoreAllAsserts) {
 		std::string assertMessage =
-		    "Assertion in file '" + fileName + "', line " + lineNum + ",\nin function '" + funcName + "'\nbecause:\n\n" + description + "\n\n"
-		                                                                                                                                "You may choose to ignore this and crash immediately\nor at some unexpected point later on.\n\nProceed at your own risk!";
+		    "Assertion in file '" + fileName + "', line " + lineNum + ",\nin function '" + funcName + "'\nbecause:\n\n" + description + "\n\n" +
+		    "You may choose to ignore this and crash immediately\nor at some unexpected point later on.\n\nProceed at your own risk!";
 
 		if (ShowAssertMessageBox(assertMessage)) {
 			AbortFunc(description, srcLocation);
@@ -402,6 +418,122 @@ void RTEError::AssertFunc(const std::string& description, const std::source_loca
 		s_LastIgnoredAssertDescription = description;
 		s_LastIgnoredAssertLocation = srcLocation;
 	}
+}
+
+void RTEError::DumpHardwareInfo() {
+	std::string glVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+	std::string glVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+	std::string glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+	std::string hwInfo = "GL Version: " + glVersion + "\n" +
+	                     "GL Vendor: " + glVendor + "\n" +
+	                     "GL Renderer: " + glRenderer + "\n";
+
+	unsigned int vendorRegs[4] = {0};
+#if defined(_MSC_VER) || defined(__linux__)
+#ifdef _MSC_VER
+	__cpuid(reinterpret_cast<int*>(cpuInfo), 0);
+#else
+	__cpuid(0, vendorRegs[0], vendorRegs[1], vendorRegs[2], vendorRegs[3]);
+#endif
+
+	std::string cpuVendor(reinterpret_cast<const char*>(&vendorRegs[1]), 4);
+	cpuVendor += std::string(reinterpret_cast<const char*>(&vendorRegs[3]), 4);
+	cpuVendor += std::string(reinterpret_cast<const char*>(&vendorRegs[2]), 4);
+
+	hwInfo += "CPU Manufacturer ID: " + cpuVendor + "\n";
+
+	std::string cpuModel;
+	unsigned int modelRegs[12];
+#ifdef _MSC_VER
+	__cpuid(cpuInfo, 0x80000000);
+#else
+	__cpuid(0x80000000, modelRegs[0], modelRegs[1], modelRegs[2], modelRegs[3]);
+#endif
+	if (modelRegs[0] >= 0x80000004) {
+		for (size_t i = 0; i <= 2; ++i) {
+#ifdef _MSC_VER
+			__cpuid(&modelRegs[0] + i * 4, i + 0x80000002);
+#else
+			__cpuid(i + 0x80000002, modelRegs[0 + i * 4], modelRegs[1 + i * 4], modelRegs[2 + i * 4], modelRegs[3 + i * 4]);
+#endif
+		}
+		for (size_t i = 0; i < 12; ++i) {
+			cpuModel += std::string(reinterpret_cast<const char*>(&modelRegs[i]), 4);
+		}
+
+		hwInfo += "CPU Model: " + cpuModel + "\n";
+	}
+#elif defined(__APPLE__) && defined(__MACH__)
+	char vendor[1024];
+	size_t vendorSize = sizeof(vendor);
+	int error = sysctlbyname("machdep.cpu.vendor", &vendor, &vendorSize, nullptr, 0);
+	if (!error) {
+		hwInfo += "CPU Vendor: " + std::string(vendor) + "\n";
+	}
+	char brand[1024];
+	size_t brandSize = sizeof(brand);
+	error = sysctlbyname("machdep.cpu.brand_string", &brand, &brandSize, nullptr, 0);
+	if (!error) {
+		hwInfo += "CPU Model: " + std::string(brand) + "\n";
+	}
+#endif
+
+	g_ConsoleMan.PrintString(hwInfo);
+
+#ifdef __unix__
+	struct utsname unameData;
+	if (uname(&unameData) == 0) {
+		std::string osInfo = "uname: " + std::string(unameData.sysname) + " " + std::string(unameData.release) + " " + std::string(unameData.version);
+		g_ConsoleMan.PrintString(osInfo);
+	}
+#endif
+
+#ifdef _MSC_VER
+	g_ConsoleMan.PrintString("OS: Windows");
+#endif
+
+#ifdef __linux__
+	// Read distribution info from /etc/os-release
+	if (std::filesystem::exists("/etc/os-release")) {
+		std::ifstream osReleaseFile("/etc/os-release");
+		if (osReleaseFile.is_open()) {
+			std::string line;
+			while (std::getline(osReleaseFile, line)) {
+				if (line.find("PRETTY_NAME") != std::string::npos) {
+					g_ConsoleMan.PrintString("OS: " + line.substr(line.find_first_of('"') + 1, line.find_last_of('"') - line.find_first_of('"') - 1));
+					break;
+				}
+			}
+			osReleaseFile.close();
+		}
+	} else {
+		g_ConsoleMan.PrintString("OS: Unknown Linux (/etc/os-release not found)");
+	}
+#endif
+
+#if defined(__APPLE__) && defined(__MACH__)
+	char osType[1024];
+	size_t osTypeSize = sizeof(osType);
+	error = sysctlbyname("kern.ostype", &osType, &osTypeSize, nullptr, 0);
+	if (!error) {
+		g_ConsoleMan.PrintString("OS Type: " + std::string(osType));
+	}
+
+	char osRelease[1024];
+	size_t osReleaseSize = sizeof(osRelease);
+	error = sysctlbyname("kern.osrelease", &osRelease, &osReleaseSize, nullptr, 0);
+	if (!error) {
+		g_ConsoleMan.PrintString("OS Release: " + std::string(osRelease));
+	}
+
+	char osVersion[1024];
+	size_t osVersionSize = sizeof(osVersion);
+	error = sysctlbyname("kern.osversion", &osVersion, &osVersionSize, nullptr, 0);
+	if (!error) {
+		g_ConsoleMan.PrintString("OS Version: " + std::string(osVersion));
+	}
+#endif
+
 }
 
 bool RTEError::DumpAbortScreen() {
@@ -442,9 +574,10 @@ bool RTEError::DumpAbortSave() {
 
 void RTEError::FormatFunctionSignature(std::string& symbolName) {
 	// TODO: Expand this with more dumb signatures, or make something that makes more sense.
-	static const std::array<std::pair<std::regex, std::string>, 3> stlSigs{{{std::regex("( >)"), ">"},
-	                                                                        {std::regex("(std::basic_string<char,std::char_traits<char>,std::allocator<char>>)"), "std::string"},
-	                                                                        {std::regex("(class ?std::basic_string<char,struct ?std::char_traits<char>,class ?std::allocator<char>>)"), "std::string"}}};
+	static const std::array<std::pair<std::regex, std::string>, 3> stlSigs{
+	    {{std::regex("( >)"), ">"},
+	     {std::regex("(std::basic_string<char,std::char_traits<char>,std::allocator<char>>)"), "std::string"},
+	     {std::regex("(class ?std::basic_string<char,struct ?std::char_traits<char>,class ?std::allocator<char>>)"), "std::string"}}};
 	for (const auto& [fullSig, simpleSig]: stlSigs) {
 		symbolName = std::regex_replace(symbolName, fullSig, simpleSig);
 	}
