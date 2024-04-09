@@ -67,9 +67,9 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line) {
 		// Log the error
 		std::stringstream errorMessage;
 		errorMessage << "ERROR: An internal OpenGL call failed in "
-				  << fileString.substr(fileString.find_last_of("\\/") + 1) << "(" << line << ")."
-				  << "\nExpression:\n   " << stmt
-				  << "\nError description:\n   " << error << "\n   " << description << "\n";
+		             << fileString.substr(fileString.find_last_of("\\/") + 1) << "(" << line << ")."
+		             << "\nExpression:\n   " << stmt
+		             << "\nError description:\n   " << error << "\n   " << description << "\n";
 		g_ConsoleMan.PrintString(errorMessage.str());
 	}
 }
