@@ -428,10 +428,10 @@ void RTEError::DumpHardwareInfo() {
 	                     "GL Vendor: " + glVendor + "\n" +
 	                     "GL Renderer: " + glRenderer + "\n";
 
-	unsigned int vendorRegs[4] = {0};
 #if defined(_MSC_VER) || defined(__linux__)
+	int vendorRegs[4] = {0};
 #ifdef _MSC_VER
-	__cpuid(reinterpret_cast<int*>(vendorRegs), 0);
+	__cpuid(vendorRegs, 0);
 #else
 	__cpuid(0, vendorRegs[0], vendorRegs[1], vendorRegs[2], vendorRegs[3]);
 #endif
@@ -443,9 +443,9 @@ void RTEError::DumpHardwareInfo() {
 	hwInfo += "CPU Manufacturer ID: " + cpuVendor + "\n";
 
 	std::string cpuModel;
-	unsigned int modelRegs[12];
+	int modelRegs[12];
 #ifdef _MSC_VER
-	__cpuid(reinterpret_cast<int*>(modelRegs), 0x80000000);
+	__cpuid(modelRegs, 0x80000000);
 #else
 	__cpuid(0x80000000, modelRegs[0], modelRegs[1], modelRegs[2], modelRegs[3]);
 #endif
