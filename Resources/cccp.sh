@@ -5,7 +5,7 @@ link_base_files() {
         exit 1
     fi
 
-    ln -s "${base_data_path}"/*.rte "${base_data_path}/Credits.txt" $tmp_dir
+	ln -s "${base_data_path}"/Data "$tmp_dir"
 }
 
 link_user_files() {
