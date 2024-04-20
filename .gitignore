@@ -7,16 +7,17 @@
 *.vs
 *.APS
 *.user
-
+# IDE files
 /.idea
 
 compile_commands.json
-/.ccls-cache
+**/.ccls-cache
 
-/build*
+**/build*
 
 /enc_temp_folder
 
+.vs/
 /.idea
 /_Bin
 /NATPunchServer/Server/NATCompleteServer/Debug
@@ -84,10 +85,10 @@ CortexCommand_debug
 # MacOS stuff
 .DS_Store
 
-.vs/
-Screenshots/
+# CortexCommand user files
+Screen[sS]hots/
 Mods/
-Userdata/
+User[dD]ata/
 
 allegro.log
 AbortScreen.*
