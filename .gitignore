@@ -73,6 +73,7 @@ luac.out
 *.bat
 CortexCommand
 CortexCommand_debug
+CortexCommand.AppImage
 
 # Debug databases
 *.pdb
