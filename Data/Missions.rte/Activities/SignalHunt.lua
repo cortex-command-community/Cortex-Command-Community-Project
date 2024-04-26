@@ -475,8 +475,9 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 				if brain and self.currentFightStage > self.fightStage.beginFight and (not self.actorHoldingControlChip or self.actorHoldingControlChip.UniqueID ~= brain.UniqueID) and (not self.evacuationRocket or self.evacuationRocket.UniqueID ~= brain.UniqueID) then
 					self:AddObjectivePoint("Protect!", brain.AboveHUDPos, self.humanTeam, GameActivity.ARROWDOWN);
 				elseif not brain then
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText("Your brain has been lost!", self:ScreenOfPlayer(player), 333, -1, false);
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("Your brain has been lost!", screen, 333, -1, false);
 				end
 			end
 		end
@@ -485,8 +486,9 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 			if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-						FrameMan:SetScreenText("Contractor, we at Alchiral appreciate your cooperation and confidentiality on this assignment.\nPlease enter the cave to ascertain the source of the signal.", self:ScreenOfPlayer(player), 0, 1, false);
+						local screen = self:ScreenOfPlayer(player);
+						FrameMan:ClearScreenText(screen);
+						FrameMan:SetScreenText("Contractor, we at Alchiral appreciate your cooperation and confidentiality on this assignment.\nPlease enter the cave to ascertain the source of the signal.", screen, 0, 1, false);
 					end
 				end
 			else
@@ -501,8 +503,9 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 			if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-						FrameMan:SetScreenText("Contractor, these cloning tubes are not your primary target.\nYou may destroy them if they are obstructing your progress, but your task is to find the source of the signal.\nProceed farther into the cave.", self:ScreenOfPlayer(player), 0, 1, false);
+						local screen = self:ScreenOfPlayer(player);
+						FrameMan:ClearScreenText(screen);
+						FrameMan:SetScreenText("Contractor, these cloning tubes are not your primary target.\nYou may destroy them if they are obstructing your progress, but your task is to find the source of the signal.\nProceed farther into the cave.", screen, 0, 1, false);
 					end
 				end
 			else
@@ -512,8 +515,9 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 			if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-						FrameMan:SetScreenText("Contractor, the signal is coming from that case; there is a modified Alchiral Cloning Control Chip inside it.\nDestroy the case and retrieve our property, once the chip is outside we will send a rocket to evacuate it to orbit.", self:ScreenOfPlayer(player), 0, 1, false);
+						local screen = self:ScreenOfPlayer(player);
+						FrameMan:ClearScreenText(screen);
+						FrameMan:SetScreenText("Contractor, the signal is coming from that case; there is a modified Alchiral Cloning Control Chip inside it.\nDestroy the case and retrieve our property, once the chip is outside we will send a rocket to evacuate it to orbit.", screen, 0, 1, false);
 					end
 				end
 			end
@@ -522,8 +526,9 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 			if self.secretIndex == nil and not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-						FrameMan:SetScreenText(self:GetTeamOfPlayer(player) == self.humanTeam and "Get To The Rocket!!!" or "Y O U R   W I S H   I S   O U R   C O M M A N D,   O   D R E A D   L O R D\nW E   S H A L L   S L A U G H T E R   E V E R Y O N E", self:ScreenOfPlayer(player), 0, 1, true);
+						local screen = self:ScreenOfPlayer(player);
+						FrameMan:ClearScreenText(screen);
+						FrameMan:SetScreenText(self:GetTeamOfPlayer(player) == self.humanTeam and "Get To The Rocket!!!" or "Y O U R   W I S H   I S   O U R   C O M M A N D,   O   D R E A D   L O R D\nW E   S H A L L   S L A U G H T E R   E V E R Y O N E", screen, 0, 1, true);
 					end
 				end
 			else
@@ -531,8 +536,9 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 					if not self.evacuationRocketSpawned and self.numberOfAmbushingCraft > 0 then
 						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 							if self:PlayerActive(player) and self:PlayerHuman(player) then
-								FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-								FrameMan:SetScreenText("ALERT: Contractor, unknown hostiles are entering the area. They must not retrieve the Cloning Control Chip!", self:ScreenOfPlayer(player), 500, 1, true);
+								local screen = self:ScreenOfPlayer(player);
+								FrameMan:ClearScreenText(screen);
+								FrameMan:SetScreenText("ALERT: Contractor, unknown hostiles are entering the area. They must not retrieve the Cloning Control Chip!", screen, 500, 1, true);
 							end
 						end
 					end
@@ -554,19 +560,21 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 	elseif self.WinnerTeam == self.humanTeam and not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+				local screen = self:ScreenOfPlayer(player);
+				FrameMan:ClearScreenText(screen);
 				local endText = "Contractor, thank you for your efficient work. Your agreed-upon fee has been deposited to your account.\nWe at Alchiral are pleased with your performance, and look forward to a productive relationship with you in future.";
 				if self.secretIndex == nil then
 					endText = self:GetTeamOfPlayer(player) == self.humanTeam and "You may not have the chip, but at least you made it out after that betrayal!" or "D R E A D   L O R D,   T H E Y   H A V E   E S C A P E D   A N D   W I L L\nB R I N G   R U I N   D O W N   U P O N   U S   B E F O R E   W E   A R E   P R E P A R E D";
 				end
-				FrameMan:SetScreenText(endText, self:ScreenOfPlayer(player), 0, 1, true);
+				FrameMan:SetScreenText(endText, screen, 0, 1, true);
 			end
 		end
 	elseif self.WinnerTeam == self.zombieTeam and not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) and self:GetTeamOfPlayer(player) == self.zombieTeam then
-				FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-				FrameMan:SetScreenText("A    G R A N D    V I C T O R Y ,   Y O U R    H O R D E    S H A L L    G R O W    A N D    C O N Q U E R    T H I S    P L A N E T", self:ScreenOfPlayer(player), 0, 1, true);
+				local screen = self:ScreenOfPlayer(player);
+				FrameMan:ClearScreenText(screen);
+				FrameMan:SetScreenText("A    G R A N D    V I C T O R Y ,   Y O U R    H O R D E    S H A L L    G R O W    A N D    C O N Q U E R    T H I S    P L A N E T", screen, 0, 1, true);
 			end
 		end
 	end

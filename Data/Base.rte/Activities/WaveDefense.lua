@@ -337,9 +337,10 @@ function WaveDefense:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
 					local str = "Your brain has been destroyed on wave "..self.wave.." at "..self.Difficulty.."% difficulty";
-					FrameMan:SetScreenText(str, self:ScreenOfPlayer(player), 333, -1, false);
+					FrameMan:SetScreenText(str, screen, 333, -1, false);
 				else
 					playertally = playertally + 1;
 					if not setTeam[team] then

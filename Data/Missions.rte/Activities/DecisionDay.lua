@@ -992,8 +992,9 @@ end
 function DecisionDay:UpdateCamera()
 	for _, player in pairs(self.humanPlayers) do
 		local adjustedCameraMinimumX = self.cameraMinimumX + (0.5 * (FrameMan.PlayerScreenWidth - 960))
-		if CameraMan:GetScrollTarget(player).X < adjustedCameraMinimumX then
-			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, 0);
+		local screen = self:ScreenOfPlayer(player);
+		if CameraMan:GetScrollTarget(screen).X < adjustedCameraMinimumX then
+			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(screen).Y), 0.25, screen);
 		end
 	end
 	
@@ -1104,10 +1105,10 @@ function DecisionDay:UpdateCamera()
 			if not scrollTargetAndSpeed[1] then
 				brain = self:GetPlayerBrain(player)
 				if brain then
-					CameraMan:SetScrollTarget(brain.pos, scrollTargetAndSpeed[2], player)
+					CameraMan:SetScrollTarget(brain.Pos, scrollTargetAndSpeed[2], self:ScreenOfPlayer(player))
 				end
 			else
-				CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], player);
+				CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], self:ScreenOfPlayer(player));
 			end
 		end
 	end
@@ -1211,8 +1212,9 @@ function DecisionDay:UpdateMessages()
 		end
 
 		if messageText then
-			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-			FrameMan:SetScreenText(messageText, self:ScreenOfPlayer(player), blinkTime, 0, textCentered);
+			local screen = self:ScreenOfPlayer(player);
+			FrameMan:ClearScreenText(screen);
+			FrameMan:SetScreenText(messageText, screen, blinkTime, 0, textCentered);
 		end
 	end
 end
@@ -1312,7 +1314,7 @@ function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 
 				for _, player in pairs(self.humanPlayers) do
 					if self:GetViewState(player) == Activity.ACTORSELECT then
-						if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
+						if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(self:ScreenOfPlayer(player))).X) < FrameMan.PlayerScreenWidth * 0.75 then
 							local boxFillPrimitives = {};
 							for box in bunkerRegionData.totalArea.Boxes do
 								boxFillPrimitives[#boxFillPrimitives + 1] = BoxFillPrimitive(player, box.Corner, box.Corner + Vector(box.Width, box.Height), bunkerRegionData.ownerTeam == self.humanTeam and 147 or 13);

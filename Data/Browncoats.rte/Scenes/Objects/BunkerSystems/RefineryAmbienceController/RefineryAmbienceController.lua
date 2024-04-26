@@ -1,5 +1,5 @@
 function Create(self)
-	local activity = ActivityMan:GetActivity();
+	self.activity = ActivityMan:GetActivity();
 	
 	print("Refinery Ambience Controller initialized")
 	
@@ -10,7 +10,7 @@ function Create(self)
 	self.playerIntOneShotContainers = {};
 	
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if activity:PlayerActive(player) and activity:PlayerHuman(player) then
+		if self.activity:PlayerActive(player) and self.activity:PlayerHuman(player) then
 			self.playerIndoornesses[player] = 0;
 			self.playerExtContainers[player] = CreateSoundContainer("Yskely Refinery Ambience Ext", "Browncoats.rte");
 			self.playerIntContainers[player] = CreateSoundContainer("Yskely Refinery Ambience Int", "Browncoats.rte");
@@ -39,7 +39,7 @@ function ThreadedUpdate(self)
 	self.ToDelete = false;
 
 	for player, indoorness in pairs(self.playerIndoornesses) do
-		local cursorPos = CameraMan:GetScrollTarget(player)
+		local cursorPos = CameraMan:GetScrollTarget(self.activity:ScreenOfPlayer(player))
 		
 		if SceneMan.Scene:WithinArea("IndoorArea", cursorPos) then		
 			self.playerIndoornesses[player] = math.min(1, indoorness + TimerMan.DeltaTimeSecs * 0.5);			
