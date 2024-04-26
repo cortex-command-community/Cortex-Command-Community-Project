@@ -5,12 +5,12 @@ link_base_files() {
         exit 1
     fi
 
-    ln -s "${base_data_path}"/*.rte "${base_data_path}/Credits.txt" $tmp_dir
+    ln -s "${base_data_path}"/Data "$tmp_dir"
 }
 
 link_user_files() {
-    local user_files=("LogConsole.txt" "LogLoading.txt" "LogLoadingWarning.txt" "AbortScreen.bmp" "AbortScreen.png" "Settings.ini")
-    local user_directories=("Metagames.rte" "Scenes.rte" "_ScreenShots")
+    local user_files=("LogConsole.txt" "LogLoading.txt" "LogLoadingWarning.txt" "AbortLog.txt" "AbortScreen.bmp" "AbortScreen.png")
+    local user_directories=("Mods" "Userdata" "ScreenShots")
 
     if ! [[ -d "${user_data}" ]]; then
         mkdir -p "${user_data}"
@@ -19,16 +19,6 @@ link_user_files() {
     for file in $user_files; do
         ln -s "${user_data}/$file" $tmp_dir
     done
-
-    if ! [[ -d "${user_data}/Metagames.rte" ]]; then
-        mkdir -p "${user_data}/Metagames.rte"
-        echo -e "DataModule\n\tModuleName = Metagame Saves" > "${user_data}/Metagames.rte/Index.ini"
-    fi
-
-    if ! [[ -d "${user_data}/Scenes.rte" ]]; then
-        mkdir -p "${user_data}/Scenes.rte"
-        echo -e "DataModule\n\tModuleName = Saves" > "${user_data}/Scenes.rte/Index.ini"
-    fi
 
     for directory in ${user_directories[@]}; do
         if ! [[ -d "${user_data}/${directory}" ]]; then
@@ -50,8 +40,6 @@ link_base_files
 link_user_files
 
 cd "${tmp_dir}"
-
-export CCCP_SETTINGSPATH="Settings.ini"
 
 "@EXEPATH@/@EXENAME@" $@
 
