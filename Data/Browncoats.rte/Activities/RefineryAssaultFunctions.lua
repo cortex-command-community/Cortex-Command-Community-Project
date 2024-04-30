@@ -958,10 +958,12 @@ function RefineryAssault:SetupStartingActors()
 	-- Actor spawner setup
 	self.saveTable.stage2CounterAttSpawners = {};
 	for par in MovableMan.AddedParticles do	
-		if par.PresetName == "Refinery S2 Counterattacker Spawner" then
-			print("DETECTED SPAWNER")
-			table.insert(self.saveTable.stage2CounterAttSpawners, par);
+		if par:IsInGroup("Actor Spawners") then
 			par:SendMessage("ActorSpawner_ReplaceDeliveryCreationHandler", self.deliveryCreationHandler:GetHandlerAsSerialized(self.saveLoadHandler));
+		end
+		
+		if par.PresetName == "Refinery S2 Counterattacker Spawner" then
+			table.insert(self.saveTable.stage2CounterAttSpawners, par);
 		end
 	end
 	

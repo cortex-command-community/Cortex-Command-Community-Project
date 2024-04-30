@@ -34,6 +34,15 @@ function ActorSpawnerFunctions.PrepareNewActor(self)
 	
 	actor.Pos = self.Pos;
 	actor.Team = self.Team;
+	
+	if self:GetStringValue("AIMode") == "SENTRY" then
+		actor.AIMode = Actor.AIMODE_SENTRY;
+	elseif self:GetStringValue("AIMode") == "BRAINHUNT" then
+		actor.AIMode = Actor.AIMODE_BRAINHUNT;
+	elseif self:GetStringValue("AIMode") == "GOLDDIG" then
+		actor.AIMode = Actor.AIMODE_GOLDDIG;
+	end
+	
 	self.nextActor = actor;
 end
 	
@@ -107,7 +116,7 @@ function Create(self)
 	end
 	
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
-	self.deliveryCreationHandler:Initialize(self.Activity, true);
+	self.deliveryCreationHandler:Initialize(self.Activity, false);
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(true);
@@ -151,7 +160,6 @@ function Create(self)
 end
 
 function ThreadedUpdate(self)
-
 	if self.Activity.ActivityState == Activity.EDITING then
 		self.Frame = 0;
 	else
@@ -161,18 +169,32 @@ function ThreadedUpdate(self)
 	if self.triggerType ~= "ManualOnly" then
 		self.Triggered = false;
 		
-		if self.triggerType == "Constant" then
-			self.Triggered = true;
-		elseif self.actorCheckTimer:IsPastSimMS(self.actorCheckDelay) then
-			self.actorCheckTimer:Reset();
-			
-			local ownTeamActors = 0;
-			local enemyTeamActors = 0;
-			local totalActors = 0;
-			
-			if self.triggerType == "Area" then
-				for box in self.triggerArea.Boxes do
-					for actor in MovableMan:GetMOsInBox(box, -1, true) do
+		if not self.Deactivated then	
+			if self.triggerType == "Constant" then
+				self.Triggered = true;
+			elseif self.actorCheckTimer:IsPastSimMS(self.actorCheckDelay) then
+				self.actorCheckTimer:Reset();
+				
+				local ownTeamActors = 0;
+				local enemyTeamActors = 0;
+				local totalActors = 0;
+				
+				if self.triggerType == "Area" then
+					for box in self.triggerArea.Boxes do
+						for actor in MovableMan:GetMOsInBox(box, -1, true) do
+							if IsActor(actor) then
+								totalActors = totalActors + 1;
+								if actor.Team == self.Team then
+									ownTeamActors = ownTeamActors + 1;
+								else
+									enemyTeamActors = enemyTeamActors + 1;
+								end
+							end
+						end
+					end
+				else -- ought be Range
+					local actorList = MovableMan:GetMOsInRadius(self.Pos, self.triggerRange, -1, true);
+					for actor in actorList do
 						if IsActor(actor) then
 							totalActors = totalActors + 1;
 							if actor.Team == self.Team then
@@ -183,30 +205,18 @@ function ThreadedUpdate(self)
 						end
 					end
 				end
-			else -- ought be Range
-				local actorList = MovableMan:GetMOsInRadius(self.Pos, self.triggerRange, -1, true);
-				for actor in actorList do
-					if IsActor(actor) then
-						totalActors = totalActors + 1;
-						if actor.Team == self.Team then
-							ownTeamActors = ownTeamActors + 1;
-						else
-							enemyTeamActors = enemyTeamActors + 1;
-						end
-					end
-				end
+				
+				if self.triggerBehavior == "OnlyOwnTeam" and ownTeamActors > 0 and enemyTeamActors == 0 then
+					self.Triggered = true;
+				elseif self.triggerBehavior == "OwnTeam" and ownTeamActors > 0 then
+					self.Triggered = true;
+				elseif self.triggerBehavior == "EnemyTeam" and enemyTeamActors > 0 then
+					self.Triggered = true;
+				elseif self.triggerBehavior == "Empty" and totalActors == 0 then
+					self.Triggered = true;
+				end					
 			end
-		end
-		
-		if self.triggerBehavior == "OnlyOwnTeam" and ownTeamActors > 0 and enemyTeamActors == 0 then
-			self.Triggered = true;
-		elseif self.triggerBehavior == "OwnTeam" and ownTeamActors > 0 then
-			self.Triggered = true;
-		elseif self.triggerBehavior == "EnemyTeam" and enemyTeamActors > 0 then
-			self.Triggered = true;
-		elseif self.triggerBehavior == "Empty" and totalActors == 0 then
-			self.Triggered = true;
-		end
+		end		
 	end
 	
 	if (self.Triggered and self.spawnTimer:IsPastSimMS(self.spawnDelay)) or self.manualTrigger then
