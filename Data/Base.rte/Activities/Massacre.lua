@@ -5,7 +5,10 @@ function Massacre:StartActivity(isNewGame)
 	self.startMessageTimer = Timer();
 	self.enemySpawnTimer = Timer();
 
+	self.humanTeam = Activity.TEAM_2;
+	
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+	self.humanTechName = self:GetTeamTech(self.humanTeam);
 
 	if isNewGame then
 		self:StartNewGame();
@@ -18,7 +21,7 @@ function Massacre:OnSave()
 	self:SaveNumber("startMessageTimer.ElapsedSimTimeMS", self.startMessageTimer.ElapsedSimTimeMS);
 	self:SaveNumber("enemySpawnTimer.ElapsedSimTimeMS", self.enemySpawnTimer.ElapsedSimTimeMS);
 
-	self:SaveNumber("_currentKills", self:GetTeamDeathCount((Activity.TEAM_2)));
+	self:SaveNumber("_currentKills", self:GetTeamDeathCount((self.CPUTeam)));
 	self:SaveNumber("killsNeeded", self.killsNeeded);
 	self:SaveString("killsDisplay", self.killsDisplay);
 	self:SaveNumber("baseSpawnTime", self.baseSpawnTime);
@@ -28,12 +31,14 @@ end
 
 function Massacre:StartNewGame()
 	self:SetTeamFunds(1000000, self.CPUTeam);
-	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
+	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 
 	self.addFogOfWar = self:GetFogOfWarEnabled();
 
 	for actor in MovableMan.AddedActors do
-		actor.Team = Activity.TEAM_1;
+		if IsADoor(actor) then
+			actor.Team = self.humanTeam;
+		end
 	end
 
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
@@ -99,7 +104,7 @@ function Massacre:ResumeLoadedGame()
 	self.startMessageTimer.ElapsedSimTimeMS = self:LoadNumber("startMessageTimer.ElapsedSimTimeMS");
 	self.enemySpawnTimer.ElapsedSimTimeMS = self:LoadNumber("enemySpawnTimer.ElapsedSimTimeMS");
 
-	self:ReportDeath(Activity.TEAM_2, self:LoadNumber("_currentKills"));
+	self:ReportDeath(self.CPUTeam, self:LoadNumber("_currentKills"));
 	self.killsNeeded = self:LoadNumber("killsNeeded");
 	self.killsDisplay = self:LoadString("killsDisplay");
 	self.baseSpawnTime = self:LoadNumber("baseSpawnTime");
@@ -150,8 +155,8 @@ function Massacre:UpdateActivity()
 				local screen = self:ScreenOfPlayer(player);
 				--Display messages.
 				if self.startMessageTimer:IsPastSimMS(3000) then
-					if self.killsNeeded - self:GetTeamDeathCount(Activity.TEAM_2) > 1 then
-						FrameMan:SetScreenText(self.killsNeeded - self:GetTeamDeathCount(Activity.TEAM_2) .. " enemies left!", screen, 0, 1000, false);
+					if self.killsNeeded - self:GetTeamDeathCount(self.CPUTeam) > 1 then
+						FrameMan:SetScreenText(self.killsNeeded - self:GetTeamDeathCount(self.CPUTeam) .. " enemies left!", screen, 0, 1000, false);
 					else
 						FrameMan:SetScreenText("1 enemy left!", screen, 0, 1000, false);
 					end
@@ -186,12 +191,12 @@ function Massacre:UpdateActivity()
 				end
 
 				--Check if the player has won.
-				if self:GetTeamDeathCount(Activity.TEAM_2) >= self.killsNeeded then
+				if self:GetTeamDeathCount(self.CPUTeam) >= self.killsNeeded then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(screen);
 					FrameMan:SetScreenText("You killed all the attackers!", screen, 333, -1, false);
 
-					self.WinnerTeam = Activity.TEAM_1;
+					self.WinnerTeam = self.humanTeam;
 
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
@@ -206,7 +211,7 @@ function Massacre:UpdateActivity()
 		end
 
 		if self.addFogOfWar then
-			SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(Activity.PLAYER_1));
+			SceneMan:MakeAllUnseen(Vector(1, 1), self:GetTeamOfPlayer(Activity.PLAYER_1));
 			self.addFogOfWar = false;
 		end
 

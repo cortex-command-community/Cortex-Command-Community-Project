@@ -34,9 +34,12 @@ function DummyAssault:StartNewGame()
 
 	if self:GetFogOfWarEnabled() then
 		-- Make the scene unseen for the player team
-		SceneMan:MakeAllUnseen(Vector(20, 20), Activity.TEAM_1);
-		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth - 20, 25 do	-- Reveal the LZ
-			SceneMan:CastSeeRay(Activity.TEAM_1, Vector(x,-25), Vector(0,SceneMan.SceneHeight), Vector(), 4, 20);
+		local fogResolution = 1;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+
+		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth, fogResolution do
+			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, Activity.TEAM_1);
 		end
 
 		-- Hide the player LZ for the AI

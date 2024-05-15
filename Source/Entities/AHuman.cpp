@@ -1258,12 +1258,17 @@ bool AHuman::Look(float FOVSpread, float range) {
 	lookVector *= aimMatrix;
 	// Add the spread
 	lookVector.DegRotate(FOVSpread * RandomNormalNum());
+	
+	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
+	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
+
+	// This determines just under half the size of the box casted
+	int boxSpan = 20 - step * 2;
 
 	// TODO: generate an alarm event if we spot an enemy actor?
 
-	Vector ignored;
-	// Cast the seeing ray, adjusting the skip to match the resolution of the unseen map
-	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
+	Vector ignored(0, 0);
+	return g_SceneMan.CastUnseenBox(m_Team, aimPos, lookVector, ignored, boxSpan, 25, step, true);
 }
 
 bool AHuman::LookForGold(float FOVSpread, float range, Vector& foundLocation) const {

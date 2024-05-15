@@ -268,35 +268,38 @@ function SkirmishDefense:UpdateActivity()
 
 			-- Add fog of war once the game is no longer in editing mode.
 			if self.addFogOfWar then
-				self.addFogOfWar = false;
+				local fogResolution = 1;
 
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(player));
+						for x = 0, SceneMan.SceneWidth, fogResolution do
+							local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
+							SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self:GetTeamOfPlayer(player));
+						end
+						SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self:GetTeamOfPlayer(player));
 					end
 				end
 
-				for team = 0, Activity.MAXTEAMCOUNT - 1 do
+				for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 					if self:TeamActive(team) and self:TeamIsCPU(team) then
-						SceneMan:MakeAllUnseen(Vector(65, 65), team);
+						local fogResolution = 65;
+						for x = 0, SceneMan.SceneWidth, fogResolution do
+							local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
+							SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, team);
+						end
+						SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), team);
 					end
 				end
 
 				for Act in MovableMan.AddedActors do
 					if Act.ClassName ~= "ADoor" then
-						for ang = 0, math.pi*2, 0.15 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 5);
+						for ang = 0, math.pi*2, 0.05 do
+							SceneMan:CastUnseenBox(Act.Team, Act.EyePos, Vector(130+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 20, 1, 4, true);
 						end
 					end
 				end
 
-				--[[for Act in MovableMan.Actors do
-					if Act.ClassName ~= "ADoor" then
-						for ang = 0, math.pi*2, 0.15 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 5);
-						end
-					end
-				end--]]
+				self.addFogOfWar = false;
 			end
 		end
 

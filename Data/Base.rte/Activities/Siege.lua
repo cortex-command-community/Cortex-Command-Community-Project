@@ -217,7 +217,7 @@ function Siege:StartActivity()
 	-- Add fog
 	if self:GetFogOfWarEnabled() then
 		--SceneMan:MakeAllUnseen(Vector(65, 65), self.CPUTeam);
-		--SceneMan:MakeAllUnseen(Vector(25, 25), self.PlayerTeam);
+		--SceneMan:MakeAllUnseen(Vector(1, 1), self.PlayerTeam);
 	end
 
 	-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones

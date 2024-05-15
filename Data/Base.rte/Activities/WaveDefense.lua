@@ -259,16 +259,15 @@ function WaveDefense:UpdateActivity()
 
 			-- Add fog
 			if self.Fog then
-				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(player));
-					end
-				end
+				local fogResolution = 1;
+				SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), Activity.TEAM_1);
+				SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), Activity.TEAM_2);
 
-				for team = 0, Activity.MAXTEAMCOUNT - 1 do
-					if self:TeamActive(team) and self:TeamIsCPU(team) then
-						SceneMan:MakeAllUnseen(Vector(65, 65), team);
-					end
+				-- Reveal outside areas for everyone.
+				for x = 0, SceneMan.SceneWidth, fogResolution do
+					local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
+					SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, Activity.TEAM_1);
+					SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, Activity.TEAM_2);
 				end
 
 				-- Reveal the main bunker area for the defender.
@@ -281,16 +280,8 @@ function WaveDefense:UpdateActivity()
 
 				for Act in MovableMan.AddedActors do
 					if Act.ClassName ~= "ADoor" then
-						for ang = 0, math.pi*2, 0.15 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 5);
-						end
-					end
-				end
-
-				for Act in MovableMan.Actors do
-					if Act.ClassName ~= "ADoor" then
-						for ang = 0, math.pi*2, 0.15 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 5);
+						for ang = 0, math.pi*2, 0.05 do
+							SceneMan:CastUnseenBox(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 20, 1, 5, true);
 						end
 					end
 				end

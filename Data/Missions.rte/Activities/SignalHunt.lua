@@ -86,13 +86,19 @@ function SignalHunt:StartNewGame()
 
 	-- Hide everything inside the cave from the human player.
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam);
+		local fogResolution = 1;
+		SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), self.humanTeam);
 		local topRightCornerOfCave;
 		for box in self.caveArea.Boxes do
 			topRightCornerOfCave = box.Corner + Vector(box.Width, 0); -- Note: This assumes that there's only one box in the area, so its top right corner is the top right corner of the area.
 			break;
 		end
-		SceneMan:RevealUnseenBox(topRightCornerOfCave.X, topRightCornerOfCave.Y, SceneMan.SceneWidth, SceneMan.SceneHeight, self.humanTeam)
+
+		-- Reveal outside areas for the attacker.
+		for x = topRightCornerOfCave.X, SceneMan.SceneWidth, fogResolution do
+			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.humanTeam);
+		end
 	end
 
 	self.outerZombieGenerator = CreateAEmitter("Zombie Generator");

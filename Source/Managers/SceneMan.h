@@ -510,6 +510,22 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal);
 
+		/// Traces a box along a vector and reveals or hides pixels on the unseen layer of a team.
+		/// as long as the accumulated material strengths traced through the terrain
+		/// don't exceed a specific value.
+		/// @param team The team to see for.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param endPos A Vector that will be set to the position of where the sight ray was
+		/// terminated. If it reached the end, it will be set to the end of the ray.
+		/// @param size The minimum size of the box as it's cast.
+		/// @param strengthLimit The material strength limit where
+		/// @param skip For every pixel checked along the line, how many to skip between them
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param reveal Whether the ray should reveal or restore unseen layer
+		/// @return Whether any unseen pixels were revealed as a result of this seeing.
+		bool CastUnseenBox(int team, const Vector& start, const Vector& ray, Vector& endPos, int size, int strengthLimit, int skip, bool reveal);
+
 		/// Traces along a vector and reveals pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.

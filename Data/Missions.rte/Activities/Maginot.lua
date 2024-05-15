@@ -59,7 +59,7 @@ function MaginotMission:StartNewGame()
 	self.spawnTime = 30000 * math.exp(self.Difficulty * -0.014) * rte.SpawnIntervalScale; -- Scale spawn time from 20s to 5s. Normal = 10s
 
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.defenderTeam);
+		SceneMan:MakeAllUnseen(Vector(1, 1), self.defenderTeam);
 		for maginotBunkerAreaBox in self.maginotBunkerArea.Boxes do
 			SceneMan:RevealUnseenBox(maginotBunkerAreaBox.Corner.X, maginotBunkerAreaBox.Corner.Y, maginotBunkerAreaBox.Width, maginotBunkerAreaBox.Height, self.defenderTeam);
 		end

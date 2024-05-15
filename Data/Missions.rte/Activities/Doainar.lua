@@ -80,8 +80,8 @@ function DoainarMission:StartNewGame()
 			actor.DoorDirectionChangeSound.Volume = 0;
 		end
 	end
-
-	SceneMan:MakeAllUnseen(Vector(24, 24), self.PlayerTeam);
+	
+	SceneMan:MakeAllUnseen(Vector(1, 1), self.PlayerTeam);
 
 	self:SetupHumanPlayerBrains();
 end
@@ -346,6 +346,7 @@ function DoainarMission:UpdateActivity()
 			local textTime = 5000;
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
+					local screen = self:ScreenOfPlayer(player);
 					FrameMan:SetScreenText("These are cartesian coordinates...  Where could they possibly lead to?", screen, 0, textTime, true);
 				end
 			end

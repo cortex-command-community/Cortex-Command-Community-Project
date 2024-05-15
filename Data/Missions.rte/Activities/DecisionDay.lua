@@ -452,18 +452,20 @@ end
 
 function DecisionDay:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam);
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.aiTeam);
+		local resolution = 1;
+		SceneMan:MakeAllUnseen(Vector(resolution,resolution), self.humanTeam);
+		SceneMan:MakeAllUnseen(Vector(resolution,resolution), self.aiTeam);
 
 		-- Reveal above ground for everyone.
-		for x = 0, SceneMan.SceneWidth - 1, 20 do
-			SceneMan:CastSeeRay(self.humanTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
-			SceneMan:CastSeeRay(self.aiTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
+		for x = 0, SceneMan.SceneWidth, resolution do
+			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, resolution - 1);
+			SceneMan:RevealUnseenBox(x - 10, 0, resolution + 20, altitude + 10, self.humanTeam);
+			SceneMan:RevealUnseenBox(x - 10, 0, resolution + 20, altitude + 10, self.aiTeam);
 		end
 
 		-- Reveal extra areas - roofs and such that don't get handled by the vertical rays.
 		for box in self.initialExtraFOWReveal.Boxes do
-			SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+			SceneMan:RevealUnseenBox(box.Corner.X - 10, box.Corner.Y - 10, box.Width + 20, box.Height + 20, self.humanTeam);
 			SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.aiTeam);
 		end
 
@@ -474,20 +476,23 @@ function DecisionDay:SetupFogOfWar()
 		end
 
 		-- Reveal the dead bodies for the human team.
-		SceneMan:RevealUnseenBox(self.initialDeadBodiesArea.FirstBox.Center.X - 150, self.initialDeadBodiesArea.FirstBox.Center.Y - 150, 200, 420, self.humanTeam);
+		SceneMan:RevealUnseenBox(self.initialDeadBodiesArea.FirstBox.Center.X - 150, self.initialDeadBodiesArea.FirstBox.Center.Y - 150, SceneMan.SceneWidth - (self.initialDeadBodiesArea.FirstBox.Center.X - 150), 420, self.humanTeam);
 
-		-- Reveal the bunkers for the AI and hide them for the player.
+		-- Reveal the bunkers for the AI.
+		-- These areas are hidden with inset for the player, so that the outter surface is visible.
 		for _, bunkerArea in ipairs(self.bunkerAreas) do
 			for box in bunkerArea.totalArea.Boxes do
 				SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.aiTeam);
-				SceneMan:RestoreUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+				SceneMan:RestoreUnseenBox(box.Corner.X + 10, box.Corner.Y + 10, box.Width - 20, box.Height - 20, self.humanTeam);
 			end
 		end
 
 		-- Reveal a circle around actors.
 		for actor in MovableMan.AddedActors do
-			for angle = 0, math.pi * 2, 0.05 do
-				SceneMan:CastSeeRay(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 1, 4);
+			if not IsADoor(actor) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastUnseenBox(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 20, 1, 4, true);
+				end
 			end
 		end
 	end
@@ -2196,7 +2201,7 @@ function DecisionDay:UpdateActivity()
 		if self.currentStage >= self.stages.middleBunkerCaptured then
 			if self.bunkerRegions["Main Bunker Shield Generator"].ownerTeam == self.aiTeam and self.mainBunkerShieldedAreaFOWTimer:IsPastSimTimeLimit() then
 				for box in self.bunkerRegions["Main Bunker Command Center"].shieldedArea.Boxes do
-					SceneMan:RestoreUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+					SceneMan:RestoreUnseenBox(box.Corner.X + 10, box.Corner.Y + 10, box.Width - 20, box.Height - 20, self.humanTeam);
 				end
 				self.mainBunkerShieldedAreaFOWTimer:Reset();
 			end

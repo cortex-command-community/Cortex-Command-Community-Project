@@ -5,7 +5,10 @@ function Harvester:StartActivity(isNewGame)
 	self.startMessageTimer = Timer();
 	self.enemySpawnTimer = Timer();
 
+	self.humanTeam = Activity.TEAM_2;
+	
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+	self.humanTechName = self:GetTeamTech(self.humanTeam);
 
 	if isNewGame then
 		self:StartNewGame();
@@ -29,13 +32,15 @@ end
 
 function Harvester:StartNewGame()
 	self:SetTeamFunds(1000000, self.CPUTeam);
-	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
+	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 	self.humanTeamFundsAfterInitialEditingPhase = -1;
 
 	self.addFogOfWar = self:GetFogOfWarEnabled();
 
 	for actor in MovableMan.AddedActors do
-		actor.Team = Activity.TEAM_1;
+		if IsADoor(actor) then
+			actor.Team = self.humanTeam;
+		end
 	end
 
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
@@ -150,7 +155,7 @@ function Harvester:UpdateActivity()
 		end
 		--Determine how much gold the players started with.
 		if self.humanTeamFundsAfterInitialEditingPhase == -1 then
-			self.humanTeamFundsAfterInitialEditingPhase = self:GetTeamFunds(Activity.TEAM_1);
+			self.humanTeamFundsAfterInitialEditingPhase = self:GetTeamFunds(self.humanTeam);
 		end
 
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -158,7 +163,7 @@ function Harvester:UpdateActivity()
 				local screen = self:ScreenOfPlayer(player);
 				--Display messages.
 				if self.startMessageTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(self.goldNeeded - (math.ceil(self:GetTeamFunds(Activity.TEAM_1)) - self.humanTeamFundsAfterInitialEditingPhase) .. " oz of gold left", screen, 0, 1000, false);
+					FrameMan:SetScreenText(self.goldNeeded - (math.ceil(self:GetTeamFunds(self.humanTeam)) - self.humanTeamFundsAfterInitialEditingPhase) .. " oz of gold left", screen, 0, 1000, false);
 				else
 					FrameMan:SetScreenText("Dig up " .. self.goldDisplay .. " oz of gold!", screen, 333, 5000, true);
 				end
@@ -190,12 +195,12 @@ function Harvester:UpdateActivity()
 				end
 
 				--Check if the player has won.
-				if self:GetTeamFunds(Activity.TEAM_1) - self.humanTeamFundsAfterInitialEditingPhase > self.goldNeeded then
+				if self:GetTeamFunds(self.humanTeam) - self.humanTeamFundsAfterInitialEditingPhase > self.goldNeeded then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(screen);
 					FrameMan:SetScreenText("You dug up all the gold!", screen, 333, -1, false);
 
-					self.WinnerTeam = Activity.TEAM_1;
+					self.WinnerTeam = self.humanTeam;
 
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
@@ -210,7 +215,7 @@ function Harvester:UpdateActivity()
 		end
 
 		if self.addFogOfWar then
-			SceneMan:MakeAllUnseen(Vector(20, 20), Activity.TEAM_1);
+			SceneMan:MakeAllUnseen(Vector(1, 1), self.humanTeam);
 			self.addFogOfWar = false;
 		end
 
