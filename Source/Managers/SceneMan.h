@@ -510,7 +510,8 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal);
 
-		/// Traces a box along a vector and reveals or hides pixels on the unseen layer of a team.
+		// TODO: Find a better name for this before release
+		/// Traces a box along a vector and reveals or hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
