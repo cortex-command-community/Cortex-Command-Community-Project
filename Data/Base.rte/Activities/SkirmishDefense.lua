@@ -282,7 +282,6 @@ function SkirmishDefense:UpdateActivity()
 
 				for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 					if self:TeamActive(team) and self:TeamIsCPU(team) then
-						local fogResolution = 65;
 						SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), team);
 						for x = 0, SceneMan.SceneWidth, fogResolution do
 							local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);

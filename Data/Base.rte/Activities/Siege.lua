@@ -216,8 +216,24 @@ function Siege:StartActivity()
 
 	-- Add fog
 	if self:GetFogOfWarEnabled() then
-		--SceneMan:MakeAllUnseen(Vector(65, 65), self.CPUTeam);
-		--SceneMan:MakeAllUnseen(Vector(1, 1), self.PlayerTeam);
+		local fogResolution = 1;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.PlayerTeam);
+
+		-- Reveal outside areas for everyone.
+		for x = 0, SceneMan.SceneWidth, fogResolution do
+			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.CPUTeam);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.PlayerTeam);
+		end
+
+		for Act in MovableMan.AddedActors do
+			if Act.ClassName ~= "ADoor" then
+				for ang = 0, math.pi*2, 0.05 do
+					SceneMan:CastUnseenBox(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 20, 1, 5, true);
+				end
+			end
+		end
 	end
 
 	-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones

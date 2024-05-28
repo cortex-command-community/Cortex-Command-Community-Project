@@ -452,15 +452,15 @@ end
 
 function DecisionDay:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
-		local resolution = 1;
-		SceneMan:MakeAllUnseen(Vector(resolution,resolution), self.humanTeam);
-		SceneMan:MakeAllUnseen(Vector(resolution,resolution), self.aiTeam);
+		local fogResolution = 1;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.aiTeam);
 
 		-- Reveal above ground for everyone.
-		for x = 0, SceneMan.SceneWidth, resolution do
-			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, resolution - 1);
-			SceneMan:RevealUnseenBox(x - 10, 0, resolution + 20, altitude + 10, self.humanTeam);
-			SceneMan:RevealUnseenBox(x - 10, 0, resolution + 20, altitude + 10, self.aiTeam);
+		for x = 0, SceneMan.SceneWidth, fogResolution do
+			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.humanTeam);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.aiTeam);
 		end
 
 		-- Reveal extra areas - roofs and such that don't get handled by the vertical rays.

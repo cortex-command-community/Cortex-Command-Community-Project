@@ -195,8 +195,8 @@ end
 function BunkerBreach:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
 		local fogResolution = 1;
-		SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), self.attackerTeam);
-		SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), self.defenderTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.attackerTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.defenderTeam);
 
 		-- Reveal outside areas for the attacker.
 		for x = 0, SceneMan.SceneWidth, fogResolution do

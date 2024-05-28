@@ -33,7 +33,7 @@ function Test:StartActivity()
 
 	if self:GetFogOfWarEnabled() then
 		local fogResolution = 1;
-		SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), Activity.TEAM_1);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
 
 		for x = 0, SceneMan.SceneWidth, fogResolution do
 			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);

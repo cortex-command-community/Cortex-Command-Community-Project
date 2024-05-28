@@ -334,11 +334,8 @@ function BrainvsBrain:UpdateActivity()
 			-- Add fog
 			if self:GetFogOfWarEnabled() then
 				local fogResolution = 1;
-				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self:GetTeamOfPlayer(player));
-					end
-				end
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
 
 				-- Reveal outside areas for everyone.
 				for x = 0, SceneMan.SceneWidth, fogResolution do

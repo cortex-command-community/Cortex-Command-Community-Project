@@ -81,11 +81,22 @@ function KeepieUppie:StartNewGame()
 
 	if self:GetFogOfWarEnabled() then
 		local fogResolution = 1;
-		SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), Activity.TEAM_1);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
 
+		-- Reveal outside areas for everyone.
 		for x = 0, SceneMan.SceneWidth, fogResolution do
 			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.CPUTeam);
 			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, Activity.TEAM_1);
+		end
+
+		for Act in MovableMan.AddedActors do
+			if Act.ClassName ~= "ADoor" then
+				for ang = 0, math.pi*2, 0.05 do
+					SceneMan:CastUnseenBox(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 20, 1, 5, true);
+				end
+			end
 		end
 	end
 end

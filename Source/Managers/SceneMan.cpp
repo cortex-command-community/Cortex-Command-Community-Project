@@ -1429,11 +1429,11 @@ bool SceneMan::CastUnseenBox(int team, const Vector& start, const Vector& ray, V
 
 			// Reveal if we can, save the result
 			if (reveal) {
-				if (affectedAny = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y], team) || IsUnseen(intPos[X] + boxCheck, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] + boxCheck, team) || IsUnseen(intPos[X], intPos[Y] + boxCheck, team)) {
+				if (affectedAny = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y], team) || IsUnseen(intPos[X] + boxCheck, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - boxCheck, team) || IsUnseen(intPos[X], intPos[Y] + boxCheck, team)) {
 					RevealUnseenBox(intPos[X] - boxCheck, intPos[Y] - boxCheck, boxCheck * 2, boxCheck * 2, team);
 				}
 			} else {
-				if (affectedAny = !(IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y], team) || IsUnseen(intPos[X] + boxCheck, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] + boxCheck, team) || IsUnseen(intPos[X], intPos[Y] + boxCheck, team))) {
+				if (affectedAny = !(IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y], team) || IsUnseen(intPos[X] + boxCheck, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - boxCheck, team) || IsUnseen(intPos[X], intPos[Y] + boxCheck, team))) {
 					RestoreUnseenBox(intPos[X] - boxCheck, intPos[Y] - boxCheck, boxCheck * 2, boxCheck * 2, team);
 				}
 			}

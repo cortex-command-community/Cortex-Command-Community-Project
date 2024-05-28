@@ -260,8 +260,8 @@ function WaveDefense:UpdateActivity()
 			-- Add fog
 			if self.Fog then
 				local fogResolution = 1;
-				SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), Activity.TEAM_1);
-				SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), Activity.TEAM_2);
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
 
 				-- Reveal outside areas for everyone.
 				for x = 0, SceneMan.SceneWidth, fogResolution do

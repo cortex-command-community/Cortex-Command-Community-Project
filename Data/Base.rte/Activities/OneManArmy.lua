@@ -81,8 +81,8 @@ function OneManArmy:StartNewGame()
 
 	if self:GetFogOfWarEnabled() then
 		local fogResolution = 1;
-		SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), Activity.TEAM_1);
-		SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), self.CPUTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
 
 		-- Reveal outside areas for everyone.
 		for x = 0, SceneMan.SceneWidth, fogResolution do

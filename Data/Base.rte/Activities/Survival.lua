@@ -208,8 +208,8 @@ function Survival:UpdateActivity()
 
 		if self.addFogOfWar then
 			local fogResolution = 1;
-			SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), self.humanTeam);
-			SceneMan:MakeAllUnseen(Vector(fogResolution,fogResolution), self.CPUTeam);
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
 
 			-- Reveal outside areas for everyone.
 			for x = 0, SceneMan.SceneWidth, fogResolution do

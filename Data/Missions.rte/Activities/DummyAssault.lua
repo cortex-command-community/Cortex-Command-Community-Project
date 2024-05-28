@@ -32,24 +32,7 @@ function DummyAssault:StartNewGame()
 
 	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
 
-	if self:GetFogOfWarEnabled() then
-		-- Make the scene unseen for the player team
-		local fogResolution = 1;
-		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
-
-		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth, fogResolution do
-			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
-			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, Activity.TEAM_1);
-		end
-
-		-- Hide the player LZ for the AI
-		SceneMan:MakeAllUnseen(Vector(50, 50), Activity.TEAM_2);
-		for y = 0, SceneMan.SceneHeight, 50 do
-			for x = 0, SceneMan.SceneWidth-1000, 50 do
-				SceneMan:RevealUnseen(x, y, Activity.TEAM_2);
-			end
-		end
-	end
+	self:SetupFogOfWar();
 
 	-- Set up AI modes for the Actors that have been added to the scene by the scene definition
 	for actor in MovableMan.AddedActors do
@@ -80,6 +63,32 @@ function DummyAssault:StartNewGame()
 
 				-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
 				self:SetObservationTarget(brain.Pos, player);
+			end
+		end
+	end
+end
+
+function DummyAssault:SetupFogOfWar()
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 1;
+
+		-- Make the scene unseen for the player team
+		local fogResolution = 1;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+
+		-- Reveal player landing zone for players, hide for AI
+		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth, fogResolution do
+			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, Activity.TEAM_1);
+			SceneMan:RestoreUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.CPUTeam);
+		end
+
+		-- Reveal a circle around actors.
+		for actor in MovableMan.AddedActors do
+			if not IsADoor(actor) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastUnseenBox(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 20, 1, 4, true);
+				end
 			end
 		end
 	end
