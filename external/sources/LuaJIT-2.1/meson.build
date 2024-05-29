@@ -1,8 +1,5 @@
 # Meson files from github.com/franko/luajit
 project('luajit', 'c', version : '2.0.5', default_options : ['c_winlibs='])
-if get_option('header_only')
-  luajit_source_dir = include_directories('src')
-else
 pkg = import('pkgconfig')
 
 cc = meson.get_compiler('c')
@@ -43,4 +40,3 @@ luajit_dep = declare_dependency(
 )
 
 meson.override_dependency('luajit', luajit_dep)
-endif
