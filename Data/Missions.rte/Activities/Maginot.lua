@@ -81,10 +81,11 @@ function MaginotMission:SetupFogOfWar()
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.attackerTeam);
 
 		-- Reveal above ground for everyone.
-		for x = 0, SceneMan.SceneWidth, fogResolution do
-			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
-			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.defenderTeam);
-			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.attackerTeam);
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.defenderTeam);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.attackerTeam);
 		end
 
 		-- Reveal the bunker space for the defenders.

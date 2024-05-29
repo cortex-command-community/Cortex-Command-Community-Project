@@ -118,7 +118,7 @@ int MetaMan::NewGame(int gameSize) {
 		m_Scenes.back()->MigrateToModule(g_PresetMan.GetModuleID(METASAVEMODULENAME));
 		// Make them unexplored by all teams
 		for (int team = Activity::TeamOne; team < m_TeamCount; ++team)
-			m_Scenes.back()->FillUnseenLayer(Vector(25, 25), team, false);
+			m_Scenes.back()->FillUnseenLayer(Vector(1, 1), team, false);
 
 		//	Go through all AI plan elements and expand all bunker schemes to concrete assemblies
 		//	with fixed prices and place deployments

@@ -89,10 +89,11 @@ function OneManArmy:StartNewGame()
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
 
 		-- Reveal outside areas for everyone.
-		for x = 0, SceneMan.SceneWidth, fogResolution do
-			local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
-			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, Activity.TEAM_1);
-			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self.CPUTeam);
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
 		end
 
 		-- Reveal a circle around actors, so they're not standing in the dark.

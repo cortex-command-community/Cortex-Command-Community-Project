@@ -30,8 +30,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
 
-- ALl music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
+- All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
 	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
+
+- Increased fog of war resolution in all vanilla activities, and conquest, from 20x20 to 1x1. A SceneMan method has been added to accomodate revealing high fog resolution and all vanilla actors set to use it.
+	Mods which use `SceneMan:CastUnseenRay()` to reveal fog should instead use `SceneMan:CastUnseenBox()` if they use high resolution fog. It should be known that this is not strictly a box cast.
+
+- All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
+	You can now have fog of war in the test scene, and can no longer require path to orbit in Zero-G Diggers-Only One Man Army.
+
+- The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
 
 </details>
 
@@ -42,6 +50,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed instances of `CameraMan:GetScrollTarget()` and `CameraMan:SetScrollTarget()` supplying a player index instead of a screen index. This could prevent the functions from working properly, or at all, when playing as a player other than 1, potentially screwing up camera effects.
 
 - Fixed a bug in Decision Day that could cause an error when trying to set the camera's scroll target, in addition to the previous issue.
+
+- Fixed a bug in Harvester and Massacre where setting deploy units would auto-assign units of the wrong tech.
 
 </details>
 

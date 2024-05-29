@@ -270,22 +270,13 @@ function SkirmishDefense:UpdateActivity()
 			if self.addFogOfWar then
 				local fogResolution = 1;
 
-				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self:GetTeamOfPlayer(player));
-						for x = 0, SceneMan.SceneWidth, fogResolution do
-							local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
-							SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, self:GetTeamOfPlayer(player));
-						end
-					end
-				end
-
 				for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
-					if self:TeamActive(team) and self:TeamIsCPU(team) then
+					if self:TeamActive(team) then
 						SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), team);
-						for x = 0, SceneMan.SceneWidth, fogResolution do
-							local altitude = SceneMan:FindAltitude(Vector(x, 0), 0, fogResolution - 1);
-							SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude + 10, team);
+						for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+							local altitude = Vector(0, 0);
+							SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+							SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, team);
 						end
 					end
 				end
