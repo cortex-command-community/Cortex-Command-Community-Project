@@ -503,8 +503,7 @@ function MetaFight:StartActivity()
 
 	-- Starting in pregame, so play some appropriate music
 	if self.ActivityState == Activity.PREGAME then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+		MusicMan:PlayDynamicSong("Generic Ambient Music");
 	end
 
 	-- Disable AI if we are editing pregame
@@ -561,23 +560,17 @@ function MetaFight:EndActivity()
 			-- Should not clear blueprints because this wipes all placed loadouts info
 			--SceneMan.Scene:ClearPlacedObjectSet(Scene.BLUEPRINT);
 			-- Sad music
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		-- Also play sad music if no humans are left
 		elseif self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		-- But if humans are left, then play happy music!
 		else
 			-- Win music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 
@@ -749,8 +742,9 @@ function MetaFight:UpdateActivity()
 				local team = self:GetTeamOfPlayer(player);
 	--				if (self.ActivityState == Activity.RUNNING) then
 				if (SceneMan.Scene:IsScanScheduled(team)) then
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText(scanMessage, self:ScreenOfPlayer(player), messageBlink, 8000, false);
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText(scanMessage, screen, messageBlink, 8000, false);
 				end
 			end
 		end
@@ -830,9 +824,10 @@ function MetaFight:UpdateActivity()
 						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 						-- Clear the messages before starting the game
 						self:ResetMessageTimer(player);
-						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+						local screen = self:ScreenOfPlayer(player);
+						FrameMan:ClearScreenText(screen);
 						-- Reset the screen occlusion if any players are still in menus
-						CameraMan:SetScreenOcclusion(Vector(), self:ScreenOfPlayer(player));
+						CameraMan:SetScreenOcclusion(Vector(), screen);
 					end
 				end
 			end
@@ -851,12 +846,7 @@ function MetaFight:UpdateActivity()
 			UInputMan:SetMouseValueMagnitude(0, -1);
 			SceneMan.Scene:ResetPathFinding();
 			-- Start the in-game music track
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", 0, -1.0);
-			AudioMan:QueueSilence(30);
-			AudioMan:QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
-			AudioMan:QueueSilence(30);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
+			MusicMan:PlayDynamicSong("Generic Battle Music");
 
 			-- Find LZs for the AI teams
 			self:DesignateLZs();

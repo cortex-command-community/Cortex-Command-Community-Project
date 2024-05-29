@@ -135,12 +135,6 @@ namespace RTE {
 		// Timer to watchdog connection states and abort connection if nothing happened
 		Timer m_ConnectionWaitTimer;
 
-		// Last music file being player, used to recover playback state after pause
-		std::string m_LastMusic;
-
-		// Position of music being played, used to recover playback state after pause
-		double m_LastMusicPos;
-
 		/// Private member variable and method declarations
 	private:
 		/// Clears all the member variables of this Activity, effectively

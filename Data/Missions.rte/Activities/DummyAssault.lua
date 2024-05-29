@@ -27,6 +27,9 @@ function DummyAssault:OnSave()
 end
 
 function DummyAssault:StartNewGame()
+
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
 	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
 
 	if self:GetFogOfWarEnabled() then
@@ -96,8 +99,9 @@ function DummyAssault:EndActivity()
 	if self.humanTeam == self.WinnerTeam then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-				FrameMan:SetScreenText("Congratulations, you've destroyed the enemy base!", self:ScreenOfPlayer(player), 0, -1, false);
+				local screen = self:ScreenOfPlayer(player);
+				FrameMan:ClearScreenText(screen);
+				FrameMan:SetScreenText("Congratulations, you've destroyed the enemy base!", screen, 0, -1, false);
 			end
 		end
 	end
@@ -106,16 +110,12 @@ function DummyAssault:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end

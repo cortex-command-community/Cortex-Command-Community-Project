@@ -68,6 +68,9 @@ function DecisionDay:SetupInternalReinforcementsData()
 end
 
 function DecisionDay:StartActivity(isNewGame)
+
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
 	if self.Difficulty <= Activity.MINDIFFICULTY then
 		self.difficultyRatio = 0.5;
 	elseif self.Difficulty <= Activity.CAKEDIFFICULTY then
@@ -841,7 +844,7 @@ function DecisionDay:DoSpeedrunMode()
 	self:SetTeamTech(self.aiTeam, "-All-");
 	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
 	
-	AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+	MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 	
 	self.messageTimer:SetSimTimeLimitMS(1);
 	
@@ -989,8 +992,9 @@ end
 function DecisionDay:UpdateCamera()
 	for _, player in pairs(self.humanPlayers) do
 		local adjustedCameraMinimumX = self.cameraMinimumX + (0.5 * (FrameMan.PlayerScreenWidth - 960))
-		if CameraMan:GetScrollTarget(player).X < adjustedCameraMinimumX then
-			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, 0);
+		local screen = self:ScreenOfPlayer(player);
+		if CameraMan:GetScrollTarget(screen).X < adjustedCameraMinimumX then
+			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(screen).Y), 0.25, screen);
 		end
 	end
 	
@@ -1101,10 +1105,10 @@ function DecisionDay:UpdateCamera()
 			if not scrollTargetAndSpeed[1] then
 				brain = self:GetPlayerBrain(player)
 				if brain then
-					CameraMan:SetScrollTarget(brain.pos, scrollTargetAndSpeed[2], player)
+					CameraMan:SetScrollTarget(brain.Pos, scrollTargetAndSpeed[2], self:ScreenOfPlayer(player))
 				end
 			else
-				CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], player);
+				CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], self:ScreenOfPlayer(player));
 			end
 		end
 	end
@@ -1208,8 +1212,9 @@ function DecisionDay:UpdateMessages()
 		end
 
 		if messageText then
-			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-			FrameMan:SetScreenText(messageText, self:ScreenOfPlayer(player), blinkTime, 0, textCentered);
+			local screen = self:ScreenOfPlayer(player);
+			FrameMan:ClearScreenText(screen);
+			FrameMan:SetScreenText(messageText, screen, blinkTime, 0, textCentered);
 		end
 	end
 end
@@ -1309,7 +1314,7 @@ function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 
 				for _, player in pairs(self.humanPlayers) do
 					if self:GetViewState(player) == Activity.ACTORSELECT then
-						if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
+						if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(self:ScreenOfPlayer(player))).X) < FrameMan.PlayerScreenWidth * 0.75 then
 							local boxFillPrimitives = {};
 							for box in bunkerRegionData.totalArea.Boxes do
 								boxFillPrimitives[#boxFillPrimitives + 1] = BoxFillPrimitive(player, box.Corner, box.Corner + Vector(box.Width, box.Height), bunkerRegionData.ownerTeam == self.humanTeam and 147 or 13);
@@ -2225,15 +2230,11 @@ function DecisionDay:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
 	if not self:IsPaused() then
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end

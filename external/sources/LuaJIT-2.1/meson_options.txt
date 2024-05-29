@@ -1,2 +1,3 @@
 
 option('use_prebuilt_libraries', type: 'boolean', value: true, yield: true, description: 'On windows use the prebuilt libraries')
+option('header_only', type: 'boolean', value: false, description: 'Only expose the header files')

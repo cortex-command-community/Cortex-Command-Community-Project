@@ -42,6 +42,8 @@ function BrainvsBrain:StartActivity(isNewGame)
 	if self.CPUTeam ~= Activity.NOTEAM then
 		self.CPUTechID = PresetMan:GetModuleID(self.TechName[self.CPUTeam]);
 	end
+	
+	MusicMan:PlayDynamicSong("Generic Battle Music");
 
 	if isNewGame then
 		self:StartNewGame();
@@ -311,16 +313,11 @@ function BrainvsBrain:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
-			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -410,8 +407,9 @@ function BrainvsBrain:UpdateActivity()
 							end
 						else
 							self:ResetMessageTimer(player);
-							FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-							FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 2000, -1, false);
+							local screen = self:ScreenOfPlayer(player);
+							FrameMan:ClearScreenText(screen);
+							FrameMan:SetScreenText("Your brain has been destroyed!", screen, 2000, -1, false);
 						end
 					end
 				end

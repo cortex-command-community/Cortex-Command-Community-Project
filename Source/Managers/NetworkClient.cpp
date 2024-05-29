@@ -692,20 +692,13 @@ void NetworkClient::ReceiveMusicEventsMsg(RakNet::Packet* packet) {
 				char buf[128];
 				std::snprintf(buf, sizeof(buf), "MUSIC %s %d", path, musicDataPointer->LoopsOrSilence);
 
-				g_AudioMan.PlayMusic(path, musicDataPointer->LoopsOrSilence);
-				if (musicDataPointer->Position > 0) {
-					g_AudioMan.SetMusicPosition(musicDataPointer->Position);
-				}
 				break;
 			case AudioMan::MUSIC_STOP:
-				g_AudioMan.StopMusic();
 				break;
 			case AudioMan::MUSIC_SET_PITCH:
 				g_AudioMan.SetMusicPitch(musicDataPointer->Pitch);
 				break;
 			case AudioMan::MUSIC_SILENCE:
-				g_AudioMan.QueueSilence(musicDataPointer->LoopsOrSilence);
-				g_AudioMan.StopMusic();
 				break;
 			default:
 				RTEAbort("Multiplayer client tried to receive unhandled Music Event, of state " + musicDataPointer->State);

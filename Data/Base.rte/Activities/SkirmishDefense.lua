@@ -160,10 +160,10 @@ function SkirmishDefense:SetupHumanPlayerBrains()
 				if not foundBrain then
 					self.ActivityState = Activity.EDITING;
 					-- Open all doors so we can do pathfinding through them with the brain placement
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					MusicMan:PlayDynamicSong("Generic Ambient Music");
 					self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player);
 				else
+					MusicMan:PlayDynamicSong("Generic Battle Music");
 					-- Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
@@ -224,16 +224,12 @@ function SkirmishDefense:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -246,7 +242,12 @@ function SkirmishDefense:UpdateActivity()
 
 	if self.ActivityState == Activity.EDITING then
 		self.startTimer:Reset();
+		self.musicStarted = false;
 	else
+		if not self.musicStarted then
+			self.musicStarted = true;
+			MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
+		end
 		if not self.startTimer:IsPastSimMS(500) then
 			-- Make sure all actors are in sentry mode
 			for Act in MovableMan.Actors do
@@ -328,8 +329,9 @@ function SkirmishDefense:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 333, -1, false);
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("Your brain has been destroyed!", screen, 333, -1, false);
 				else
 					playertally = playertally + 1;
 					if not setTeam[team] then

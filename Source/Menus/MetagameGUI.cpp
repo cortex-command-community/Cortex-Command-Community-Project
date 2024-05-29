@@ -39,6 +39,7 @@
 #include "SLTerrain.h"
 #include "DataModule.h"
 #include "Loadout.h"
+#include "MusicMan.h"
 #include "System.h"
 
 using namespace RTE;
@@ -2621,7 +2622,8 @@ void MetagameGUI::CompletedActivity() {
 			UpdateScenesBox(true);
 
 			// Play some nice ambient music
-			g_AudioMan.PlayMusic("Base.rte/Music/Hubnester/ccmenu.ogg", -1, 0.4);
+			g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music")));
+			g_AudioMan.SetMusicMuffledState(false);
 		}
 	}
 }

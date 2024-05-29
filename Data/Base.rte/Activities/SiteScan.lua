@@ -39,6 +39,8 @@ function SiteScan:StartActivity()
 			self:GetBanner(GUIBanner.RED, player):ClearText();
 		end
 	end
+	
+	MusicMan:PlayDynamicSong("Generic Ambient Music");
 
 	-- Place resident brains into the simulation so they'll be collected properly afterwards
 	SceneMan.Scene:PlaceResidentBrains(self);
@@ -157,8 +159,9 @@ function SiteScan:UpdateActivity()
 				-- The current player's team
 				local team = self:GetTeamOfPlayer(player);
 				if (self.ActivityState == Activity.RUNNING) then
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText(scanMessage, self:ScreenOfPlayer(player), messageBlink, 8000, true);
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText(scanMessage, screen, messageBlink, 8000, true);
 				end
 			end
 		end
