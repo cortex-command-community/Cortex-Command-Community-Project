@@ -70,7 +70,7 @@ end
 
 function DummyAssault:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
-		local fogResolution = 1;
+		local fogResolution = 4;
 
 		-- Make the scene unseen for the player team
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
@@ -79,8 +79,10 @@ function DummyAssault:SetupFogOfWar()
 		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
 			local altitude = Vector(0, 0);
 			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
-			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
-			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+			end
 		end
 
 		-- Hide player landing zone for AI

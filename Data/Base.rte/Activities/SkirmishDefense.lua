@@ -276,7 +276,9 @@ function SkirmishDefense:UpdateActivity()
 						for x = 0, SceneMan.SceneWidth - 1, fogResolution do
 							local altitude = Vector(0, 0);
 							SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
-							SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, team);
+							if altitude.Y > 1 then
+								SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, team);
+							end
 						end
 					end
 				end
