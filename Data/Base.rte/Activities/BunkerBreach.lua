@@ -212,10 +212,10 @@ function BunkerBreach:SetupFogOfWar()
 		end
 
 		-- Reveal a circle around actors, so they're not standing in the dark.
-		for actor in MovableMan.AddedActors do
-			if not IsADoor(actor) then
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
 				for angle = 0, math.pi * 2, 0.05 do
-					SceneMan:CastUnseenBox(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 20, 1, 4, true);
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
 				end
 			end
 		end

@@ -1259,6 +1259,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		return false;
 
 	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int size = 40 - GetUnseenResolution(team).GetLargest();
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool affectedAny = false;
 	unsigned char materialID;
@@ -1316,128 +1317,24 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		}
 		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-			// Reveal if we can, save the result
-			if (reveal)
-				affectedAny = RevealUnseen(intPos[X], intPos[Y], team) || affectedAny;
-			else
-				affectedAny = RestoreUnseen(intPos[X], intPos[Y], team) || affectedAny;
-
-			// Check the strength of the terrain to see if we can penetrate further
-			materialID = GetTerrMatter(intPos[X], intPos[Y]);
-			// Get the material object
-			foundMaterial = GetMaterialFromID(materialID);
-			// Add the encountered material's strength to the tally
-			totalStrength += foundMaterial->GetIntegrity();
-			// See if we have hit the limits of our ray's strength
-			if (totalStrength >= strengthLimit) {
-				// Save the position of the end of the ray where blocked
-				endPos.SetXY(intPos[X], intPos[Y]);
-				break;
-			}
-			// Reset skip counter
-			skipped = 0;
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
-			}
-		}
-	}
-
-	return affectedAny;
-}
-
-bool SceneMan::CastUnseenBox(int team, const Vector& start, const Vector& ray, Vector& endPos, int size, int strengthLimit, int skip, bool reveal) {
-	if (!m_pCurrentScene->GetUnseenLayer(team))
-		return false;
-
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
-	int shift = 2;
-	int airCount = 0, boxCheck = 0;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	bool affectedAny = false;
-	unsigned char materialID;
-	Material const* foundMaterial;
-	int totalStrength = 0;
-	// Save the projected end of the ray pos
-	endPos = start + ray;
-
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-
-	if (delta[X] == 0 && delta[Y] == 0)
-		return false;
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
-
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
-
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
-		}
-		error += delta2[sub];
-
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
+		// Only check space if we're not due to skip any, or if this is the last step
 		if (++skipped > skip || domSteps + 1 == delta[dom]) {
 			// Scene wrapping
 			WrapPosition(intPos[X], intPos[Y]);
 
-			if (((materialID = GetTerrMatter(intPos[X], intPos[Y])) == g_MaterialAir) &&
-			    GetTerrMatter(intPos[X] - boxCheck * ((airCount & 1) * 2 - 1), intPos[Y] + boxCheck * (((airCount >> 1) & 1) * 2 - 1)) == g_MaterialAir) {
-				airCount++;
-			} else {
-				airCount = 0;
-			}
-
-			boxCheck = std::max(size, airCount >> shift);
-
 			// Reveal if we can, save the result
 			if (reveal) {
-				if (affectedAny = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y], team) || IsUnseen(intPos[X] + boxCheck, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - boxCheck, team) || IsUnseen(intPos[X], intPos[Y] + boxCheck, team)) {
-					RevealUnseenBox(intPos[X] - boxCheck, intPos[Y] - boxCheck, boxCheck * 2, boxCheck * 2, team);
+				if (affectedAny = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team)) {
+					RevealUnseenBox(intPos[X] - size/2, intPos[Y] - size/2, size, size, team);
 				}
 			} else {
-				if (affectedAny = !(IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] - boxCheck, team) || IsUnseen(intPos[X] + boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y] + boxCheck, team) || IsUnseen(intPos[X] - boxCheck, intPos[Y], team) || IsUnseen(intPos[X] + boxCheck, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - boxCheck, team) || IsUnseen(intPos[X], intPos[Y] + boxCheck, team))) {
-					RestoreUnseenBox(intPos[X] - boxCheck, intPos[Y] - boxCheck, boxCheck * 2, boxCheck * 2, team);
+				if (affectedAny = !(IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team))) {
+					RestoreUnseenBox(intPos[X] - size/2, intPos[Y] - size/2, size, size, team);
 				}
 			}
-
+			
+			// Check the strength of the terrain to see if we can penetrate further
+			materialID = GetTerrMatter(intPos[X], intPos[Y]);
 			// Get the material object
 			foundMaterial = GetMaterialFromID(materialID);
 			// Add the encountered material's strength to the tally

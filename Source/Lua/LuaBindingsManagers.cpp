@@ -315,7 +315,6 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 	    .def("CastSeeRay", &SceneMan::CastSeeRay)
 	    .def("CastUnseeRay", &SceneMan::CastUnseeRay)
 	    .def("CastUnseenRay", &SceneMan::CastUnseenRay)
-	    .def("CastUnseenBox", &SceneMan::CastUnseenBox)
 	    .def("CastMaterialRay", (bool(SceneMan::*)(const Vector&, const Vector&, unsigned char, Vector&, int, bool)) & SceneMan::CastMaterialRay)
 	    .def("CastMaterialRay", (float(SceneMan::*)(const Vector&, const Vector&, unsigned char, int)) & SceneMan::CastMaterialRay)
 	    .def("CastNotMaterialRay", (bool(SceneMan::*)(const Vector&, const Vector&, unsigned char, Vector&, int, bool)) & SceneMan::CastNotMaterialRay)

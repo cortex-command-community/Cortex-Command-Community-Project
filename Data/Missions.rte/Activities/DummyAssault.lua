@@ -73,22 +73,28 @@ function DummyAssault:SetupFogOfWar()
 		local fogResolution = 1;
 
 		-- Make the scene unseen for the player team
-		local fogResolution = 1;
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
 
-		-- Reveal player landing zone for players, hide for AI
-		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth - 1, fogResolution do
+		-- Reveal open air for everyone
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
 			local altitude = Vector(0, 0);
 			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
 			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+			SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+		end
+
+		-- Hide player landing zone for AI
+		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
 			SceneMan:RestoreUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
 		end
 
 		-- Reveal a circle around actors.
-		for actor in MovableMan.AddedActors do
-			if not IsADoor(actor) then
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
 				for angle = 0, math.pi * 2, 0.05 do
-					SceneMan:CastUnseenBox(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 20, 1, 4, true);
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
 				end
 			end
 		end

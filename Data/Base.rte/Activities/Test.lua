@@ -32,7 +32,7 @@ function Test:StartActivity()
 	end
 
 	if self:GetFogOfWarEnabled() then
-		local fogResolution = 1;
+		local fogResolution = 4;
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
 

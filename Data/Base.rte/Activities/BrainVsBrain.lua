@@ -99,7 +99,7 @@ function BrainvsBrain:StartNewGame()
 		local RedAreaString = "Red Build Area Center";
 		local GreenAreaString = "Green Build Area Center";
 		if SceneMan.Scene:HasArea(RedAreaString) and SceneMan.Scene:HasArea(GreenAreaString) then
-			local fogResolution = 1;
+			local fogResolution = 4;
 
 			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
 			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
@@ -333,7 +333,7 @@ function BrainvsBrain:UpdateActivity()
 
 			-- Add fog
 			if self:GetFogOfWarEnabled() then
-				local fogResolution = 1;
+				local fogResolution = 4;
 				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
 				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
 
@@ -347,8 +347,10 @@ function BrainvsBrain:UpdateActivity()
 
 				-- Lift the fog around friendly actors
 				for Act in MovableMan.AddedActors do
-					for ang = 0, math.pi*2, 0.05 do
-						SceneMan:CastUnseenBox(Act.Team, Act.EyePos, Vector(130+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 20, 1, 4, true);
+					if not IsADoor(Act) then
+						for angle = 0, math.pi * 2, 0.05 do
+							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+						end
 					end
 				end
 			else -- Lift any fog covering the build areas

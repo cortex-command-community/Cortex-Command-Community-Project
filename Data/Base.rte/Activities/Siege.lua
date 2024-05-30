@@ -216,7 +216,7 @@ function Siege:StartActivity()
 
 	-- Add fog
 	if self:GetFogOfWarEnabled() then
-		local fogResolution = 1;
+		local fogResolution = 4;
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.PlayerTeam);
 
@@ -229,9 +229,9 @@ function Siege:StartActivity()
 		end
 
 		for Act in MovableMan.AddedActors do
-			if Act.ClassName ~= "ADoor" then
-				for ang = 0, math.pi*2, 0.05 do
-					SceneMan:CastUnseenBox(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 20, 1, 5, true);
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
 				end
 			end
 		end

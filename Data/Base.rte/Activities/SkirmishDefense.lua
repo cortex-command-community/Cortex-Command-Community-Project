@@ -268,7 +268,7 @@ function SkirmishDefense:UpdateActivity()
 
 			-- Add fog of war once the game is no longer in editing mode.
 			if self.addFogOfWar then
-				local fogResolution = 1;
+				local fogResolution = 4;
 
 				for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 					if self:TeamActive(team) then
@@ -282,9 +282,9 @@ function SkirmishDefense:UpdateActivity()
 				end
 
 				for Act in MovableMan.AddedActors do
-					if Act.ClassName ~= "ADoor" then
-						for ang = 0, math.pi*2, 0.05 do
-							SceneMan:CastUnseenBox(Act.Team, Act.EyePos, Vector(130+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 20, 1, 4, true);
+					if not IsADoor(Act) then
+						for angle = 0, math.pi * 2, 0.05 do
+							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
 						end
 					end
 				end

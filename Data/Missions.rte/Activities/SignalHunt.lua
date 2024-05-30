@@ -85,7 +85,7 @@ function SignalHunt:StartNewGame()
 	end
 
 	if self:GetFogOfWarEnabled() then
-		local fogResolution = 1;
+		local fogResolution = 4;
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.ambusherTeam);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.zombieTeam);
