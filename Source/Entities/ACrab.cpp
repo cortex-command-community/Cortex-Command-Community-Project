@@ -689,7 +689,7 @@ bool ACrab::IsWithinRange(Vector& point) const {
 }
 
 bool ACrab::Look(float FOVSpread, float range) {
-	if (!g_SceneMan.AnythingUnseen(m_Team))
+	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false)
 		return false;
 
 	// Set the length of the look vector
