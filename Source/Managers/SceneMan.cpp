@@ -1325,14 +1325,14 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 			// Reveal if we can, save the result
 			if (reveal) {
 				if (affectedAny = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team)) {
-					RevealUnseenBox(intPos[X] - size/2, intPos[Y] - size/2, size, size, team);
+					RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
 				}
 			} else {
 				if (affectedAny = !(IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team))) {
-					RestoreUnseenBox(intPos[X] - size/2, intPos[Y] - size/2, size, size, team);
+					RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
 				}
 			}
-			
+
 			// Check the strength of the terrain to see if we can penetrate further
 			materialID = GetTerrMatter(intPos[X], intPos[Y]);
 			// Get the material object
