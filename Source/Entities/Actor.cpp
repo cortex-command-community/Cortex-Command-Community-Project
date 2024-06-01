@@ -1090,18 +1090,9 @@ void Actor::Update() {
 	// Update the viewpoint to be at least what the position is
 	m_ViewPoint = m_Pos;
 
-	// "See" the location and surroundings of this actor on the unseen map
-	// Todo - split MT safe and potentially expensive stuff like this in a seperate ThreadedUpdate for the C++ side
-	if (m_Status != Actor::INACTIVE) {
-		const int lookIterations = 6; // How many see rays to cast per frame
-		for (int i = 0; i < lookIterations; ++i) {
-			Look(45 * m_Perceptiveness, g_FrameMan.GetPlayerScreenWidth() * 0.51 * m_Perceptiveness);
-		}
-	}
-
 	// Check if the MO we're following still exists, and if not, then clear the destination
 	if (m_pMOMoveTarget && !g_MovableMan.ValidMO(m_pMOMoveTarget)) {
-		m_pMOMoveTarget = 0;
+		m_pMOMoveTarget = nullptr;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -1271,6 +1262,16 @@ void Actor::Update() {
 		}
 		if ((m_ToDelete || m_Status == DEAD) && g_SettingsMan.FlashOnBrainDamage()) {
 			g_FrameMan.FlashScreen(g_ActivityMan.GetActivity()->ScreenOfPlayer(brainOfPlayer), g_WhiteColor, 500);
+		}
+	}
+}
+
+void RTE::Actor::CastSeeRays() {
+	// "See" the location and surroundings of this actor on the unseen map
+	if (m_Status != Actor::INACTIVE) {
+		const int lookIterations = 6; // How many see rays to cast per frame
+		for (int i = 0; i < lookIterations; ++i) {
+			Look(45 * m_Perceptiveness, g_FrameMan.GetPlayerScreenWidth() * 0.51 * m_Perceptiveness);
 		}
 	}
 }
