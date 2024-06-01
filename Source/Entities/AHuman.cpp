@@ -1233,8 +1233,9 @@ bool AHuman::IsWithinRange(Vector& point) const {
 }
 
 bool AHuman::Look(float FOVSpread, float range) {
-	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false)
+	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false) {
 		return false;
+	}
 
 	// Set the length of the look vector
 	float aimDistance = m_AimDistance + range;

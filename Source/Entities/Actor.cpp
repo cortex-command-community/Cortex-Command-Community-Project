@@ -570,8 +570,9 @@ Controller::InputMode Actor::SwapControllerModes(Controller::InputMode newMode, 
 }
 
 bool Actor::Look(float FOVSpread, float range) {
-	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false)
+	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false) {
 		return false;
+	}
 
 	// Use the 'eyes' on the 'head', if applicable
 	Vector aimPos = GetEyePos();
@@ -1090,12 +1091,18 @@ void Actor::Update() {
 	m_ViewPoint = m_Pos;
 
 	// "See" the location and surroundings of this actor on the unseen map
-	if (m_Status != Actor::INACTIVE)
-		Look(45 * m_Perceptiveness, g_FrameMan.GetPlayerScreenWidth() * 0.51 * m_Perceptiveness);
+	// Todo - split MT safe and potentially expensive stuff like this in a seperate ThreadedUpdate for the C++ side
+	if (m_Status != Actor::INACTIVE) {
+		const int lookIterations = 6; // How many see rays to cast per frame
+		for (int i = 0; i < lookIterations; ++i) {
+			Look(45 * m_Perceptiveness, g_FrameMan.GetPlayerScreenWidth() * 0.51 * m_Perceptiveness);
+		}
+	}
 
 	// Check if the MO we're following still exists, and if not, then clear the destination
-	if (m_pMOMoveTarget && !g_MovableMan.ValidMO(m_pMOMoveTarget))
+	if (m_pMOMoveTarget && !g_MovableMan.ValidMO(m_pMOMoveTarget)) {
 		m_pMOMoveTarget = 0;
+	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Check for manual player-made progress made toward the set AI goal
