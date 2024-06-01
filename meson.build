@@ -195,7 +195,6 @@ if host_machine.system() in ['linux','darwin']
     dependency(['sdl2']),
     dependency('flac'),
     dependency('minizip'),
-    dependency('luajit'),
     dependency('threads'),
     dependency('liblz4'),
     dependency('libpng'),
@@ -211,8 +210,6 @@ if host_machine.system() in ['linux','darwin']
 elif host_machine.system() == 'windows'
   sdl2 = subproject('SDL2-2.26.3')
   sdl2_dep = dependency('sdl2')
-  luajit = subproject('LuaJIT-2.1')
-  luajit_dep = dependency('luajit')
   zlib = subproject('zlib-ng-2.1.3')
   zlib_dep = dependency('zlib')
   minizip = subproject('minizip-ng-4.0.0')
@@ -221,7 +218,7 @@ elif host_machine.system() == 'windows'
   libpng_dep = dependency('libpng')
   # Windows Libraries
   opengl = compiler.find_library('opengl32')
-  deps += [sdl2_dep, luajit_dep, zlib_dep, minizip_dep, libpng_dep, opengl]
+  deps += [sdl2_dep, zlib_dep, minizip_dep, libpng_dep, opengl]
 endif
 
 
@@ -233,6 +230,9 @@ boost_dep = declare_dependency(include_directories: include_directories('externa
 meson.override_dependency('boost-175', boost_dep)
 install_rpath = prefix/get_option('fmod_dir')
 allegro_proj = subproject('allegro 4.4.3.1-custom')
+luajit_proj = subproject('LuaJIT-2.1')
+luajit_dep = dependency('luajit')
+external_inc_dirs += luajit_proj.get_variable('luajit_source_dir')
 allegro_dep = dependency('allegro')
 loadpng_dep = dependency('loadpng')
 luabind_proj = subproject('luabind-0.7.1')
@@ -241,7 +241,7 @@ raknet_proj = subproject('RakNet')
 raknet_dep = dependency('RakNet')
 tracy_proj = subproject('tracy')
 tracy_dep = dependency('tracy')
-deps += [allegro_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
+deps += [allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
 
 #### Sources Setup ####
 source_inc_dirs = []

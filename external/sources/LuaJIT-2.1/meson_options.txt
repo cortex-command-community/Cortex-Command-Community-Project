@@ -1,3 +1,3 @@
-
+option('portable', type : 'boolean', value : false, description: 'portable install in a single directory')
+option('app', type : 'boolean', value : true, description: 'Build the luajit executable')
 option('use_prebuilt_libraries', type: 'boolean', value: true, yield: true, description: 'On windows use the prebuilt libraries')
-option('header_only', type: 'boolean', value: false, description: 'Only expose the header files')

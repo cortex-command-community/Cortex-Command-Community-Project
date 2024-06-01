@@ -27,7 +27,7 @@ function RefineryAssault:HandleMessage(message, object)
 		self.saveTable.introCinematicDone = true;
 	
 		if self:GetFogOfWarEnabled() then
-			SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam);
+			SceneMan:MakeAllUnseen(Vector(1, 1), self.humanTeam);
 		end
 		
 		-- Shorthand to make debug skipping this actually matter

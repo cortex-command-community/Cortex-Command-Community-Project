@@ -601,8 +601,13 @@ bool Actor::Look(float FOVSpread, float range) {
 		lookVector.DegRotate(FOVSpread * RandomNormalNum());
 	}
 
-	Vector ignored;
-	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
+	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
+	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
+
+	// TODO: generate an alarm event if we spot an enemy actor?
+
+	Vector ignored(0, 0);
+	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
 }
 
 void Actor::AddGold(float goldOz) {
