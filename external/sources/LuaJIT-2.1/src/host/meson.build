@@ -1,4 +1,3 @@
-# Meson files from github.com/franko/luajit
 minilua = executable('minilua', 'minilua.c', dependencies: libm, install: false, native: true)
 
 lj_arch_run = cc.run(lj_arch_test_source)
@@ -28,7 +27,7 @@ buildvm_arch_h = custom_target('buildvm_arch.h',
     command : dasm_args,
 )
 
-buildvm_sources = files(['buildvm.c', 'buildvm_asm.c', 'buildvm_peobj.c', 'buildvm_lib.c', 'buildvm_fold.c'])
+buildvm_sources = files('buildvm.c', 'buildvm_asm.c', 'buildvm_peobj.c', 'buildvm_lib.c', 'buildvm_fold.c')
 buildvm_sources += buildvm_arch_h
 
 buildvm = executable('buildvm',
