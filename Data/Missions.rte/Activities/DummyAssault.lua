@@ -32,21 +32,7 @@ function DummyAssault:StartNewGame()
 
 	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
 
-	if self:GetFogOfWarEnabled() then
-		-- Make the scene unseen for the player team
-		SceneMan:MakeAllUnseen(Vector(20, 20), Activity.TEAM_1);
-		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth - 20, 25 do	-- Reveal the LZ
-			SceneMan:CastSeeRay(Activity.TEAM_1, Vector(x,-25), Vector(0,SceneMan.SceneHeight), Vector(), 4, 20);
-		end
-
-		-- Hide the player LZ for the AI
-		SceneMan:MakeAllUnseen(Vector(50, 50), Activity.TEAM_2);
-		for y = 0, SceneMan.SceneHeight, 50 do
-			for x = 0, SceneMan.SceneWidth-1000, 50 do
-				SceneMan:RevealUnseen(x, y, Activity.TEAM_2);
-			end
-		end
-	end
+	self:SetupFogOfWar();
 
 	-- Set up AI modes for the Actors that have been added to the scene by the scene definition
 	for actor in MovableMan.AddedActors do
@@ -77,6 +63,41 @@ function DummyAssault:StartNewGame()
 
 				-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
 				self:SetObservationTarget(brain.Pos, player);
+			end
+		end
+	end
+end
+
+function DummyAssault:SetupFogOfWar()
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 4;
+
+		-- Make the scene unseen for the player team
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+
+		-- Reveal open air for everyone
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+			end
+		end
+
+		-- Hide player landing zone for AI
+		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			SceneMan:RestoreUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+		end
+
+		-- Reveal a circle around actors.
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
 			end
 		end
 	end

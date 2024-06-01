@@ -99,25 +99,18 @@ function BrainvsBrain:StartNewGame()
 		local RedAreaString = "Red Build Area Center";
 		local GreenAreaString = "Green Build Area Center";
 		if SceneMan.Scene:HasArea(RedAreaString) and SceneMan.Scene:HasArea(GreenAreaString) then
-			local fogWidth = 20;
+			local fogResolution = 4;
 
-			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_1);
-			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_2);
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
 
 			-- Reveal the build areas
 			local RedCenter = SceneMan.Scene:GetArea(RedAreaString):GetCenterPoint();
 			local GreenCenter = SceneMan.Scene:GetArea(GreenAreaString):GetCenterPoint();
 			local range = SceneMan:ShortestDistance(RedCenter, GreenCenter, false).Magnitude * 0.45;
-
-			for y = fogWidth/2, SceneMan.SceneHeight, fogWidth do
-				for x = fogWidth/2, SceneMan.SceneWidth, fogWidth do
-					if SceneMan:ShortestDistance(RedCenter, Vector(x, y), false).Largest < range then
-						SceneMan:RevealUnseen(x, y, Activity.TEAM_1);
-					elseif SceneMan:ShortestDistance(GreenCenter, Vector(x, y), false).Largest < range then
-						SceneMan:RevealUnseen(x, y, Activity.TEAM_2);
-					end
-				end
-			end
+			
+			SceneMan:RevealUnseenBox(RedCenter.X - range, RedCenter.Y - range, range * 2, range * 2, Activity.TEAM_1);
+			SceneMan:RevealUnseenBox(GreenCenter.X - range, GreenCenter.Y - range, range * 2, range * 2, Activity.TEAM_2);
 		end
 	else
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -340,16 +333,26 @@ function BrainvsBrain:UpdateActivity()
 
 			-- Add fog
 			if self:GetFogOfWarEnabled() then
-				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(32, 32), self:GetTeamOfPlayer(player));
+				local fogResolution = 4;
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
+
+				-- Reveal outside areas for everyone.
+				for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+					local altitude = Vector(0, 0);
+					SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+					if altitude.Y > 1 then
+						SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+						SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_2);
 					end
 				end
 
 				-- Lift the fog around friendly actors
 				for Act in MovableMan.AddedActors do
-					for ang = 0, math.pi*2, 0.1 do
-						SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(130+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 4);
+					if not IsADoor(Act) then
+						for angle = 0, math.pi * 2, 0.05 do
+							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+						end
 					end
 				end
 			else -- Lift any fog covering the build areas

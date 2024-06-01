@@ -58,16 +58,11 @@ function MaginotMission:StartNewGame()
 
 	self.spawnTime = 30000 * math.exp(self.Difficulty * -0.014) * rte.SpawnIntervalScale; -- Scale spawn time from 20s to 5s. Normal = 10s
 
-	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.defenderTeam);
-		for maginotBunkerAreaBox in self.maginotBunkerArea.Boxes do
-			SceneMan:RevealUnseenBox(maginotBunkerAreaBox.Corner.X, maginotBunkerAreaBox.Corner.Y, maginotBunkerAreaBox.Width, maginotBunkerAreaBox.Height, self.defenderTeam);
-		end
-	end
-
 	for actor in MovableMan.AddedActors do
 		actor.AIMode = Actor.AIMODE_SENTRY;
 	end
+
+	self:SetupFogOfWar();
 
 	self:SetupHumanPlayerBrains();
 
@@ -75,6 +70,29 @@ function MaginotMission:StartNewGame()
 		if self:PlayerActive(player) and self:PlayerHuman(player) and not self:GetPlayerBrain(player) then
 			self:ResetMessageTimer(player);
 			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+		end
+	end
+end
+
+function MaginotMission:SetupFogOfWar()
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.defenderTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.attackerTeam);
+
+		-- Reveal above ground for everyone.
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.defenderTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.attackerTeam);
+			end
+		end
+
+		-- Reveal the bunker space for the defenders.
+		for maginotBunkerAreaBox in self.maginotBunkerArea.Boxes do
+			SceneMan:RevealUnseenBox(maginotBunkerAreaBox.Corner.X, maginotBunkerAreaBox.Corner.Y, maginotBunkerAreaBox.Width, maginotBunkerAreaBox.Height, self.defenderTeam);
 		end
 	end
 end

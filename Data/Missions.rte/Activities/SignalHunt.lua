@@ -84,15 +84,30 @@ function SignalHunt:StartNewGame()
 		end
 	end
 
-	-- Hide everything inside the cave from the human player.
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam);
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.ambusherTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.zombieTeam);
+
+		-- Hide everything inside the cave from the human player.
 		local topRightCornerOfCave;
 		for box in self.caveArea.Boxes do
 			topRightCornerOfCave = box.Corner + Vector(box.Width, 0); -- Note: This assumes that there's only one box in the area, so its top right corner is the top right corner of the area.
 			break;
 		end
-		SceneMan:RevealUnseenBox(topRightCornerOfCave.X, topRightCornerOfCave.Y, SceneMan.SceneWidth, SceneMan.SceneHeight, self.humanTeam)
+
+		-- Reveal outside areas for the investigator and ambushers.
+		for x = topRightCornerOfCave.X + 27, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.humanTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.ambusherTeam);
+			end
+		end
+
+		-- Zombies are dumb so they get NO advance knowledge.
 	end
 
 	self.outerZombieGenerator = CreateAEmitter("Zombie Generator");

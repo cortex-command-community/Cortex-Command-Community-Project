@@ -985,7 +985,7 @@ function RefineryAssault:SetupFirstStage()
 
 	-- Fog of war-causing callback if it's enabled, but none if it's not
 	if self:GetFogOfWarEnabled() then
-		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true, function() SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam); end);
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true, function() SceneMan:MakeAllUnseen(Vector(1, 1), self.humanTeam); end);
 	else
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true);
 	end
