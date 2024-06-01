@@ -27,7 +27,8 @@ function RefineryAssault:HandleMessage(message, object)
 		self.saveTable.introCinematicDone = true;
 	
 		if self:GetFogOfWarEnabled() then
-			SceneMan:MakeAllUnseen(Vector(1, 1), self.humanTeam);
+			local fogResolution = 4;
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
 		end
 		
 		-- Shorthand to make debug skipping this actually matter

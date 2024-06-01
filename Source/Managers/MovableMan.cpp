@@ -1367,6 +1367,14 @@ void MovableMan::Update() {
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
 	{
+		auto actorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
+																					[&](int start, int end) {
+																						ZoneScopedN("Actors See");
+																						for (int i = start; i < end; ++i) {
+																							m_Actors[i]->CastSeeRays();
+																						}
+																					});
+
 		{
 			ZoneScopedN("Actors Update");
 
@@ -1438,6 +1446,8 @@ void MovableMan::Update() {
 				particle->PostUpdate();
 			}
 		}
+
+		actorsSeeFuture.wait();
 	} // namespace RTE
 
 	//////////////////////////////////////////////////////////////////////
