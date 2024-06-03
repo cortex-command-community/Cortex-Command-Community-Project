@@ -8,3 +8,7 @@ function OnDetach(self, exParent)
 		self.pingSound:Play(self.Pos);
 	end
 end
+
+function Update(self)
+	self.pingSound.Pos = self.Pos;
+end
