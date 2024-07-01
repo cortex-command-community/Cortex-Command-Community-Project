@@ -482,10 +482,11 @@ function HUDHandler:UpdateHUDHandler()
 				local pos = not cameraTable.Position.PresetName and cameraTable.Position or cameraTable.Position.Pos; -- severely ghetto mo check
 			
 				for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
-					CameraMan:SetScrollTarget(pos, cameraTable.Speed, player);
+					local screen = self.Activity:ScreenOfPlayer(player);
+					CameraMan:SetScrollTarget(pos, cameraTable.Speed, screen);
 					self.Activity:SetViewState(Activity.OBSERVE, player);
 					if cameraTable.disableHUDFully then
-						FrameMan:SetHudDisabled(true, self.Activity:ScreenOfPlayer(player));
+						FrameMan:SetHudDisabled(true, screen);
 						disableDrawingObjectives = true;
 					end
 				end
@@ -525,16 +526,17 @@ function HUDHandler:UpdateHUDHandler()
 		else -- enforce min/max limits
 		
 			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+				local screen = self.Activity:ScreenOfPlayer(player);
 				if self.saveTable.teamTables[team].cameraMinimumX then
 					local adjustedCameraMinimumX = self.saveTable.teamTables[team].cameraMinimumX + (0.5 * (FrameMan.PlayerScreenWidth - 960))
-					if CameraMan:GetScrollTarget(player).X < adjustedCameraMinimumX then
-						CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, player);
+					if CameraMan:GetScrollTarget(screen).X < adjustedCameraMinimumX then
+						CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(screen).Y), 0.25, screen);
 					end
 				end
 			
 				if self.saveTable.teamTables[team].cameraMaximumX then
-					if CameraMan:GetScrollTarget(player).X > self.saveTable.teamTables[team].cameraMaximumX then
-						CameraMan:SetScrollTarget(Vector(self.saveTable.teamTables[team].cameraMaximumX, CameraMan:GetScrollTarget(player).Y), 0.25, player);
+					if CameraMan:GetScrollTarget(screen).X > self.saveTable.teamTables[team].cameraMaximumX then
+						CameraMan:SetScrollTarget(Vector(self.saveTable.teamTables[team].cameraMaximumX, CameraMan:GetScrollTarget(screen).Y), 0.25, screen);
 					end
 				end
 			end

@@ -7,10 +7,10 @@ function WaveDefense:CheckBrains()
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
 				if not foundBrain then
 					self.ActivityState = Activity.EDITING;
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					MusicMan:PlayDynamicSong("Generic Ambient Music", "Default", true);
 					self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player);
 				else
+					MusicMan:PlayDynamicSong("Generic Battle Music");
 					-- Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
@@ -24,6 +24,7 @@ function WaveDefense:CheckBrains()
 end
 
 function WaveDefense:StartActivity(isNewGame)
+
 	-- Get player team
 	self.playerTeam = Activity.TEAM_2;
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -140,6 +141,9 @@ function WaveDefense:ResumeLoadedGame()
 end
 
 function WaveDefense:InitWave()
+
+	MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
+
 	self.AI.SpawnTimer:Reset();
 	self.AI.BombTimer:Reset();
 	self.AI.HuntTimer:Reset();
@@ -218,6 +222,7 @@ function WaveDefense:UpdateActivity()
 			if UInputMan:KeyPressed(Key.SPACE) then
 				self.prepareForNextWave = false;
 				self.ActivityState = Activity.EDITING;
+				MusicMan:PlayDynamicSong("Generic Ambient Music", "Default", true);
 
 				-- Remove control of the actors during edit mode
 				for Act in MovableMan.Actors do
@@ -254,15 +259,17 @@ function WaveDefense:UpdateActivity()
 
 			-- Add fog
 			if self.Fog then
-				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(player));
-					end
-				end
+				local fogResolution = 4;
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
 
-				for team = 0, Activity.MAXTEAMCOUNT - 1 do
-					if self:TeamActive(team) and self:TeamIsCPU(team) then
-						SceneMan:MakeAllUnseen(Vector(65, 65), team);
+				-- Reveal outside areas for everyone.
+				for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+					local altitude = Vector(0, 0);
+					SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+					if altitude.Y > 1 then
+						SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+						SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_2);
 					end
 				end
 
@@ -275,17 +282,9 @@ function WaveDefense:UpdateActivity()
 				end
 
 				for Act in MovableMan.AddedActors do
-					if Act.ClassName ~= "ADoor" then
-						for ang = 0, math.pi*2, 0.15 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 5);
-						end
-					end
-				end
-
-				for Act in MovableMan.Actors do
-					if Act.ClassName ~= "ADoor" then
-						for ang = 0, math.pi*2, 0.15 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 5);
+					if not IsADoor(Act) then
+						for angle = 0, math.pi * 2, 0.05 do
+							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
 						end
 					end
 				end
@@ -332,9 +331,10 @@ function WaveDefense:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
 					local str = "Your brain has been destroyed on wave "..self.wave.." at "..self.Difficulty.."% difficulty";
-					FrameMan:SetScreenText(str, self:ScreenOfPlayer(player), 333, -1, false);
+					FrameMan:SetScreenText(str, screen, 333, -1, false);
 				else
 					playertally = playertally + 1;
 					if not setTeam[team] then
@@ -383,10 +383,8 @@ function WaveDefense:UpdateActivity()
 
 				-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
 				if not self:IsPaused() then
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-					AudioMan:QueueSilence(10);
-					AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+					MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+					MusicMan:PlayDynamicSong("Generic Ambient Music");
 				end
 				return;
 			end

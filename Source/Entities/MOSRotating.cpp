@@ -1678,7 +1678,7 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 			for (int i = 0; i < passes; ++i) {
 				int spriteX = aDrawPos[i].GetFloorIntX();
 				int spriteY = aDrawPos[i].GetFloorIntY();
-				g_SceneMan.RegisterDrawing(pTargetBitmap, m_MOID, spriteX + m_SpriteOffset.m_X - (m_SpriteRadius * m_Scale), spriteY + m_SpriteOffset.m_Y - (m_SpriteRadius * m_Scale), spriteX - m_SpriteOffset.m_X + (m_SpriteRadius * m_Scale), spriteY - m_SpriteOffset.m_Y + (m_SpriteRadius * m_Scale));
+				g_SceneMan.RegisterDrawing(pTargetBitmap, m_MOID, spriteX - (m_SpriteRadius * m_Scale), spriteY - (m_SpriteRadius * m_Scale), spriteX + (m_SpriteRadius * m_Scale), spriteY + (m_SpriteRadius * m_Scale));
 				if (mode == g_DrawMOID) {
 					continue;
 				}
@@ -1708,7 +1708,7 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 			for (int i = 0; i < passes; ++i) {
 				int spriteX = aDrawPos[i].GetFloorIntX();
 				int spriteY = aDrawPos[i].GetFloorIntY();
-				g_SceneMan.RegisterDrawing(pTargetBitmap, m_MOID, spriteX + m_SpriteOffset.m_X - (m_SpriteRadius * m_Scale), spriteY + m_SpriteOffset.m_Y - (m_SpriteRadius * m_Scale), spriteX - m_SpriteOffset.m_X + (m_SpriteRadius * m_Scale), spriteY - m_SpriteOffset.m_Y + (m_SpriteRadius * m_Scale));
+				g_SceneMan.RegisterDrawing(pTargetBitmap, m_MOID, spriteX - (m_SpriteRadius * m_Scale), spriteY - (m_SpriteRadius * m_Scale), spriteX + (m_SpriteRadius * m_Scale), spriteY + (m_SpriteRadius * m_Scale));
 				if (mode == g_DrawMOID) {
 					continue;
 				}

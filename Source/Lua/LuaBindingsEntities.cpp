@@ -1276,11 +1276,13 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 	    .property("Pos", &SoundContainer::GetPosition, &SoundContainer::SetPosition)
 	    .property("Volume", &SoundContainer::GetVolume, &SoundContainer::SetVolume)
 	    .property("Pitch", &SoundContainer::GetPitch, &SoundContainer::SetPitch)
+	    .property("Paused", &SoundContainer::IsPaused, &SoundContainer::SetPaused)
 	    .property("PitchVariation", &SoundContainer::GetPitchVariation, &SoundContainer::SetPitchVariation)
 
 	    .def("HasAnySounds", &SoundContainer::HasAnySounds)
 	    .def("GetTopLevelSoundSet", &SoundContainer::GetTopLevelSoundSet)
 	    .def("SetTopLevelSoundSet", &SoundContainer::SetTopLevelSoundSet)
+	    .def("GetAudibleVolume", &SoundContainer::GetAudibleVolume)
 	    .def("IsBeingPlayed", &SoundContainer::IsBeingPlayed)
 	    .def("Play", (bool(SoundContainer::*)()) & SoundContainer::Play)
 	    .def("Play", (bool(SoundContainer::*)(const int player)) & SoundContainer::Play)

@@ -27,7 +27,8 @@ function RefineryAssault:HandleMessage(message, object)
 		self.saveTable.introCinematicDone = true;
 	
 		if self:GetFogOfWarEnabled() then
-			SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam);
+			local fogResolution = 4;
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
 		end
 		
 		-- Shorthand to make debug skipping this actually matter
@@ -248,6 +249,13 @@ function RefineryAssault:HandleMessage(message, object)
 		if self.Stage ~= 5 then
 		
 			self.Stage = 5;
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Their sub-commander holds a keycard you'll need to authorize yourself within the facility systems. He's not going to show up in your section without a good reason, so go destroy some generators and give him one.",
+			10000,
+			0,
+			true);			
+			
 			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, SceneMan.SceneWidth + 9999);
 			self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 			
@@ -533,6 +541,12 @@ function RefineryAssault:HandleMessage(message, object)
 					MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
 					self.Stage = 7;
 					
+					self.HUDHandler:QueueScreenText(self.humanTeam,
+					"You'll have to take yourself and the keycard to a physical authorization console, then get someone to hack into another computer and approve the authorization. We're almost there.",
+					10000,
+					0,
+					true);
+					
 					for particle in MovableMan.Particles do
 						if particle.PresetName == "Refinery Authorization Console" then
 						
@@ -584,6 +598,12 @@ function RefineryAssault:HandleMessage(message, object)
 	
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S8OpenBossDoor");
 		self.Stage = 9;
+		
+		self.HUDHandler:QueueScreenText(self.humanTeam,
+		"Now you can activate the door controls for the CNC-center and take control of it. Victory is within our grasp!",
+		7000,
+		0,
+		true);
 		
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS10FinalConsole");
 
@@ -958,10 +978,12 @@ function RefineryAssault:SetupStartingActors()
 	-- Actor spawner setup
 	self.saveTable.stage2CounterAttSpawners = {};
 	for par in MovableMan.AddedParticles do	
-		if par.PresetName == "Refinery S2 Counterattacker Spawner" then
-			print("DETECTED SPAWNER")
-			table.insert(self.saveTable.stage2CounterAttSpawners, par);
+		if par:IsInGroup("Actor Spawners") then
 			par:SendMessage("ActorSpawner_ReplaceDeliveryCreationHandler", self.deliveryCreationHandler:GetHandlerAsSerialized(self.saveLoadHandler));
+		end
+		
+		if par.PresetName == "Refinery S2 Counterattacker Spawner" then
+			table.insert(self.saveTable.stage2CounterAttSpawners, par);
 		end
 	end
 	
@@ -1145,13 +1167,13 @@ function RefineryAssault:SetupFirstStage()
 	-- HUD Handler text
 	
 	self.HUDHandler:QueueScreenText(self.humanTeam,
-	"Insert Witty Intro Here!",
-	7000,
+	"This under-construction segment of the Browncoat refinery is our best entry point. We've infiltrated you and your squad up top and are sending a few distraction squads via dropship down below.",
+	10000,
 	0,
 	true);
 	
 	self.HUDHandler:QueueScreenText(self.humanTeam,
-	"Prepare to assume... brownie command......",
+	"Clear this section out, then work your way forwards through the base. Godspeed, commander!",
 	7000,
 	0,
 	true);
@@ -1217,7 +1239,11 @@ function RefineryAssault:MonitorStage1()
 		-- stage completion!
 		self.Stage = 2;
 		
-		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("STAGE 1 DONE!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
+		self.HUDHandler:QueueScreenText(self.humanTeam,
+		"Good job, but we're not out of the weeds yet. The next section's logistics computers hold blueprints of the whole base's internals, and will let us find more entry points to overwhelm the Browncoats. Hack them.",
+		10000,
+		0,
+		true);
 		
 		-- Start using buydoors
 		
@@ -1329,8 +1355,13 @@ function RefineryAssault:MonitorStage2()
 	--print(self.saveTable.stage2HoldingBothConsoles)
 
 	if self.saveTable.stage2HoldingBothConsoles == true and self.saveTable.stage2HoldTimer:IsPastSimMS(self.stage2TimeToHoldConsoles) then
-		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE S2 WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 		self.Stage = 3;
+		
+		self.HUDHandler:QueueScreenText(self.humanTeam,
+		"We can get into the facility proper now. The blueprints dictate the way to the military section is blocked by nearly-impenetrable blast doors - we've sent over some objectives that should trigger a failsafe to open them.",
+		10000,
+		0,
+		true);
 		
 		-- Capturable setup
 		
@@ -1358,7 +1389,6 @@ function RefineryAssault:MonitorStage2()
 				self.tacticsHandler:AddTask("Defend Refinery Console " .. i, self.aiTeam, particle, "Defend", 10);
 				self.tacticsHandler:AddTask("Attack Refinery Console " .. i, self.humanTeam, particle, "Attack", 10);
 				i = i + 1;
-				print("found refinery breakable console and added task")
 			end
 		end
 		
@@ -1572,6 +1602,13 @@ function RefineryAssault:MonitorStage3()
 
 		if self.stage3DoorSequenceTimer:IsPastSimMS(12500) then
 			self.Stage = 4;
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Damn it! They've blocked the final door somehow! We can't tell what's going on exactly, you'll have to send an infiltration squad to see if you can open the door from the other side.",
+			8500,
+			0,
+			true);
+			
 			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 14500);
 			self.HUDHandler:RemoveAllObjectives(self.humanTeam);		
 			self.HUDHandler:AddObjective(self.humanTeam,
@@ -1584,8 +1621,6 @@ function RefineryAssault:MonitorStage3()
 				false,
 				true);
 		end
-		
-		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 
 		-- Capturables
 		
@@ -1628,6 +1663,13 @@ function RefineryAssault:MonitorStage5()
 	
 	if noGenerators then
 		self.Stage = 6;
+		
+		self.HUDHandler:QueueScreenText(self.humanTeam,
+		"That's him. Get his keycard!",
+		6000,
+		0,
+		true);
+		
 		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 		
 		-- Subcommander door spawn
