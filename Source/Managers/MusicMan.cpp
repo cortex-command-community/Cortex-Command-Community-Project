@@ -153,7 +153,7 @@ bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
 	m_CurrentSoundContainer = std::unique_ptr<SoundContainer>(dynamic_cast<SoundContainer*>(m_NextSoundContainer->Clone()));
 	SelectNextSoundContainer();
 	m_MusicTimer.Reset();
-	double timeUntilNextShouldBePlayed = m_CurrentSoundContainer->GetLength(SoundContainer::LengthOfSoundType::NextPlayed) - m_CurrentSoundContainer->GetMusicPostExitTime() - m_NextSoundContainer->GetMusicPreEntryTime();
+	double timeUntilNextShouldBePlayed = m_CurrentSoundContainer->GetMusicExitTime() - m_NextSoundContainer->GetMusicPreEntryTime();
 	m_MusicTimer.SetRealTimeLimitMS(timeUntilNextShouldBePlayed);
 	m_CurrentSoundContainer->Play();
 
