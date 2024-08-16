@@ -85,6 +85,10 @@ namespace RTE {
 		/// @return The number of ticks passed since the simulation started.
 		long long GetSimTickCount() const { return m_SimTimeTicks; }
 
+		/// Sets a current global simulation time measured in ticks from the start of the simulation up to the last Update of this TimerMan. Used to give a consistent value for save/load
+		/// @param newValue The number of ticks passed since the simulation started.
+		void SetSimTickCount(long long newValue) { m_SimTimeTicks = newValue; }
+
 		/// Gets a current global simulation time, measured in sim updates, from the start of the simulation up to the last Update of this TimerMan.
 		/// @return The number of simulation updates that have occurred since the simulation started.
 		long long GetSimUpdateCount() const { return m_SimUpdateCount; }
