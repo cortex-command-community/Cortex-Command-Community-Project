@@ -124,12 +124,12 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		}
 	}
 
-	writer->NewPropertyWithValue("MaxUniqueID", currentMaxID);
-	writer->NewPropertyWithValue("CurrentSimTicks", g_TimerMan.GetSimTickCount());
 	writer->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
 	writer->NewPropertyWithValue("PlaceObjectsIfSceneIsRestarted", g_SceneMan.GetPlaceObjectsOnLoad());
 	writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
 	writer->NewPropertyWithValue("Scene", modifiableScene.get());
+	writer->NewPropertyWithValue("MaxUniqueID", currentMaxID);
+	writer->NewPropertyWithValue("CurrentSimTicks", g_TimerMan.GetSimTickCount());
 
 	auto saveWriterData = [](Writer* writerToSave) {
 		writerToSave->EndWrite();
@@ -172,11 +172,6 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		std::string propName = reader.ReadPropName();
 		if (propName == "Activity") {
 			reader >> activity.get();
-		} else if (propName == "MaxUniqueID") {
-			reader >> maxUniqueID;
-			g_MovableMan.SetShouldPersistUniqueIDs(true);
-		} else if (propName == "CurrentSimTicks") {
-			reader >> simTimeTicks;
 		} else if (propName == "OriginalScenePresetName") {
 			reader >> originalScenePresetName;
 		} else if (propName == "PlaceObjectsIfSceneIsRestarted") {
@@ -185,6 +180,11 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 			reader >> placeUnitsIfSceneIsRestarted;
 		} else if (propName == "Scene") {
 			reader >> scene.get();
+		} else if (propName == "MaxUniqueID") {
+			reader >> maxUniqueID;
+			g_MovableMan.SetShouldPersistUniqueIDs(true);
+		} else if (propName == "CurrentSimTicks") {
+			reader >> simTimeTicks;
 		}
 	}
 
