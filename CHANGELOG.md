@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Added</b></summary>
 
+- New `ModuleMan` to handle module management, and allow global scripts and mod modules can now be dynamically enabled or disabled mid-game.
+	Moved the `PresetMan` lua parameters/functions `Modules`, `GetDataModule`, `GetModuleID`, `GetModuleIDFromPath`, `GetTotalModuleCount`, `IsModuleOfficial`, `IsModuleUserdata` and `GetFullModulePath` into `ModuleMan`
+
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
 	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.  
@@ -25,7 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
 
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
-  
+
 </details>
 
 <details><summary><b>Changed</b></summary>
