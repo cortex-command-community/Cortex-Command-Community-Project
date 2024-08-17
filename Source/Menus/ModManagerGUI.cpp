@@ -120,6 +120,13 @@ void ModManagerGUI::ToggleMod() {
 			disabledModsList.emplace(modRecord.ModulePath);
 			g_ModuleMan.UnloadDataModule(modRecord.ModulePath);
 		}
+
+		const DataModule* dataModule = g_ModuleMan.GetDataModule(g_ModuleMan.GetModuleID(modRecord.ModulePath));
+		if (dataModule) {
+			modRecord.ModuleName = dataModule->GetFriendlyName();
+			modRecord.Description = dataModule->GetDescription();
+		}
+
 		selectedItem->m_Name = modRecord.GetDisplayString();
 		m_ModsListBox->SetSelectedIndex(index);
 		m_ModsListBox->Invalidate();
