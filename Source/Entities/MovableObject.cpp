@@ -137,17 +137,18 @@ LuaStateWrapper& MovableObject::GetAndLockStateForScript(const std::string& scri
 }
 
 int MovableObject::Create() {
-	if (SceneObject::Create() < 0)
+	if (SceneObject::Create() < 0) {
 		return -1;
+	}
 
 	m_RestTimer.Reset();
 
 	// If the stop time hasn't been assigned, just make the same as the life time.
-	if (m_EffectStopTime <= 0)
+	if (m_EffectStopTime <= 0) {
 		m_EffectStopTime = m_Lifetime;
+	}
 
-	if (m_UniqueID == 0)
-	{
+	if (m_UniqueID == 0) {
 		m_UniqueID = g_MovableMan.GetNextUniqueID();
 		m_AgeTimer.Reset();
 	}
