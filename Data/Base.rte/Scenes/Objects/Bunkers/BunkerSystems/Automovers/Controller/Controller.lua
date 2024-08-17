@@ -86,7 +86,7 @@ function Create(self)
 
 	for actor in MovableMan.Actors do
 		if actor.PresetName:find("Automover Controller") and actor.Team == self.Team and actor.UniqueID ~= self.UniqueID then
-			ActivityMan:GetActivity():SetTeamFunds(ActivityMan:GetActivity():GetTeamFunds(self.Team) + actor:GetGoldValue(0, 0), self.Team);
+			self.currentActivity:SetTeamFunds(self.currentActivity:GetTeamFunds(self.Team) + actor:GetGoldValue(0, 0), self.Team);
 			actor.ToDelete = true;
 		end
 	end
@@ -1082,9 +1082,10 @@ automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self
 		end
 
 		local player = actorController.Player;
-		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, player);
-		FrameMan:ClearScreenText(player);
-		FrameMan:SetScreenText("CHOOSING TELEPORTER: Move Left or Right to change teleporter. Press Fire to teleport. Open the Pie Menu to cancel.", player, 0, 100, false);
+		local screen = self.currentActivity:ScreenOfPlayer(player);
+		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, screen);
+		FrameMan:ClearScreenText(screen);
+		FrameMan:SetScreenText("CHOOSING TELEPORTER: Move Left or Right to change teleporter. Press Fire to teleport. Open the Pie Menu to cancel.", screen, 0, 100, false);
 	else
 		self:changeScaleOfMOSRotatingAndAttachables(actor, (manualTeleporterData.actorTeleportationStage == 2 and manualTeleporterData.teleporterVisualsTimer.SimTimeLimitProgress or 1 - manualTeleporterData.teleporterVisualsTimer.SimTimeLimitProgress));
 		self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData, true);

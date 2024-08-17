@@ -2,13 +2,14 @@ function Survival:StartActivity(isNewGame)
 	SceneMan.Scene:GetArea("LZ Team 1");
 	SceneMan.Scene:GetArea("LZ All");
 
+	self.humanTeam = Activity.TEAM_2;
+	
+	self.humanTechName = self:GetTeamTech(self.humanTeam);
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
 
 	self.startMessageTimer = Timer();
 	self.enemySpawnTimer = Timer();
 	self.winTimer = Timer();
-
-	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
 
 	if isNewGame then
 		self:StartNewGame();
@@ -31,9 +32,15 @@ end
 
 function Survival:StartNewGame()
 	self:SetTeamFunds(1000000, self.CPUTeam);
-	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
+	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 
 	self.addFogOfWar = self:GetFogOfWarEnabled();
+
+	for actor in MovableMan.AddedActors do
+		if IsADoor(actor) then
+			actor.Team = self.humanTeam;
+		end
+	end
 
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
 		self.timeLimit = 125000;
@@ -138,16 +145,17 @@ function Survival:UpdateActivity()
 		end
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local screen = self:ScreenOfPlayer(player);
 				--Display messages.
 				if self.startMessageTimer:IsPastSimMS(3000) then
 					local secondsLeft = math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) / 1000);
 					if (secondsLeft > 1) then
-						FrameMan:SetScreenText(secondsLeft .. " seconds left", self:ScreenOfPlayer(player), 0, 1000, false);
+						FrameMan:SetScreenText(secondsLeft .. " seconds left", screen, 0, 1000, false);
 					else
-						FrameMan:SetScreenText("1 second left!", self:ScreenOfPlayer(player), 0, 1000, false);
+						FrameMan:SetScreenText("1 second left!", screen, 0, 1000, false);
 					end
 				else
-					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", self:ScreenOfPlayer(player), 333, 5000, true);
+					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", screen, 333, 5000, true);
 				end
 
 				-- The current player's team
@@ -167,8 +175,8 @@ function Survival:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("Your brain has been destroyed!", screen, 333, -1, false);
 					-- Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
 						self.WinnerTeam = self:OtherTeam(team);
@@ -181,10 +189,10 @@ function Survival:UpdateActivity()
 				--Check if the player has won.
 				if self.winTimer:IsPastSimMS(self.timeLimit) then
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText("You survived!", self:ScreenOfPlayer(player), 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("You survived!", screen, 333, -1, false);
 
-					self.WinnerTeam = Activity.TEAM_1;
+					self.WinnerTeam = self.humanTeam;
 
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
@@ -199,7 +207,29 @@ function Survival:UpdateActivity()
 		end
 
 		if self.addFogOfWar then
-			SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(Activity.PLAYER_1));
+			local fogResolution = 4;
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
+
+			-- Reveal outside areas for everyone.
+			for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+				local altitude = Vector(0, 0);
+				SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+				if altitude.Y > 1 then
+					SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.humanTeam);
+					SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+				end
+			end
+
+			-- Reveal a circle around actors, so they're not standing in the dark.
+			for Act in MovableMan.AddedActors do
+				if not IsADoor(Act) then
+					for angle = 0, math.pi * 2, 0.05 do
+						SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+					end
+				end
+			end
+
 			self.addFogOfWar = false;
 		end
 

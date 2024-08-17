@@ -482,14 +482,45 @@ namespace RTE {
 		/// @param mo MO to remove.
 		void UnregisterObject(MovableObject* mo);
 
+		/// Reregisters an object in a global Map collection to handle if it's unique ID changes
+		/// @param mo MO to reregister if necessary.
+		/// @param oldUniqueID The MO's old UniqueID.
+		void ReregisterObjectIfApplicable(MovableObject* mo, long oldUniqueId);
+
+		/// Returns the next unique id for MO's and increments unique ID counter
+		/// @return Returns the next unique id.
+		long GetNextUniqueID() {
+			if (m_ShouldPersistUniqueIDs) {
+				return 0;
+			}
+			return ++m_UniqueIDCounter;
+		}
+
+		/// Returns the max unique id for MO's
+		/// @return Returns the current max unique id.
+		long GetMaxUniqueID() { return m_UniqueIDCounter; }
+
+		/// Set the max unique id for MO's. This is used so we can consistently save/load unique IDs so they're consistent within a game session
+		/// @param id Unique Id to set.
+		void SetMaxUniqueID(long newMaxID) { m_UniqueIDCounter = newMaxID; }
+
+		/// Returns whether we should be persisting uniqueIDs for save/load
+		/// @return Returns whether we are persisting uniqueIDs.
+		bool ShouldPersistUniqueIDs() { return m_ShouldPersistUniqueIDs; }
+
+		/// Sets whether we should be persisting uniqueIDs for save/load
+		/// @param newValue Whether we should be persisting uniqueIDs.
+		void SetShouldPersistUniqueIDs(bool newValue) { m_ShouldPersistUniqueIDs = newValue; }
+
 		/// Uses a global lookup map to find an object by it's unique id.
 		/// @param id Unique Id to look for.
 		/// @return Object found or 0 if not found any.
-		MovableObject* FindObjectByUniqueID(long int id) {
-			if (m_KnownObjects.count(id) > 0)
+		MovableObject* FindObjectByUniqueID(long id) {
+			if (m_KnownObjects.count(id) > 0) {
 				return m_KnownObjects[id];
-			else
+			} else {
 				return 0;
+			}
 		}
 
 		/// Returns the size of the object registry collection
@@ -551,6 +582,10 @@ namespace RTE {
 		std::deque<Actor*> m_Actors;
 		// A map to give a unique contiguous identifier per-actor. This is re-created per frame.
 		std::unordered_map<const Actor*, int> m_ContiguousActorIDs;
+		// Global counter with unique ID's
+		std::atomic<long> m_UniqueIDCounter;
+		// Whether or not UniqueIDs should be persisted (for save/load)
+		bool m_ShouldPersistUniqueIDs;
 		// List of items that are pickup-able by actors
 		std::deque<MovableObject*> m_Items;
 		// List of free, dead particles flying around
@@ -621,8 +656,8 @@ namespace RTE {
 
 		unsigned int m_SimUpdateFrameNumber;
 
-		// Global map which stores all objects so they could be foud by their unique ID
-		std::map<long int, MovableObject*> m_KnownObjects;
+		// Global map which stores all objects so they could be found by their unique ID
+		std::map<long, MovableObject*> m_KnownObjects;
 
 		/// Private member variable and method declarations
 	private:

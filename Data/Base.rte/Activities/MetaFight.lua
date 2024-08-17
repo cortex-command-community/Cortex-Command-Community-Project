@@ -742,8 +742,9 @@ function MetaFight:UpdateActivity()
 				local team = self:GetTeamOfPlayer(player);
 	--				if (self.ActivityState == Activity.RUNNING) then
 				if (SceneMan.Scene:IsScanScheduled(team)) then
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText(scanMessage, self:ScreenOfPlayer(player), messageBlink, 8000, false);
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText(scanMessage, screen, messageBlink, 8000, false);
 				end
 			end
 		end
@@ -823,9 +824,10 @@ function MetaFight:UpdateActivity()
 						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 						-- Clear the messages before starting the game
 						self:ResetMessageTimer(player);
-						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+						local screen = self:ScreenOfPlayer(player);
+						FrameMan:ClearScreenText(screen);
 						-- Reset the screen occlusion if any players are still in menus
-						CameraMan:SetScreenOcclusion(Vector(), self:ScreenOfPlayer(player));
+						CameraMan:SetScreenOcclusion(Vector(), screen);
 					end
 				end
 			end

@@ -8,21 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Added</b></summary>
 
-- New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.
+- New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
-	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.
-	`PlayInterruptingMusic(SoundContainer soundContainer)` to start an interrupting piece of music which will pause any playing DynamicSong. Note that pause menu music happily overrides this currently.
-	`EndInterruptingMusic()` to end any playing interrupting music, and resume any paused DynamicSongs.
-	`EndDynamicMusic(bool fadeOut)` to end any currently playing dynamic music, optionally immediately fading it out. If not fading it out, the currently playing piece will play to completion.
+	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.  
+	`PlayInterruptingMusic(SoundContainer soundContainer)` to start an interrupting piece of music which will pause any playing DynamicSong. Note that pause menu music happily overrides this currently.  
+	`EndInterruptingMusic()` to end any playing interrupting music, and resume any paused DynamicSongs.  
+	`EndDynamicMusic(bool fadeOut)` to end any currently playing dynamic music, optionally immediately fading it out. If not fading it out, the currently playing piece will play to completion.  
 	`ResetMusicState()` to immediately end all music and return the MusicMan to a blank state.
 	
-- New entities `DynamicSongSection` and `DynamicSong` which are used for organizing music to play using the new system.
-	`DynamicSongSection` is made up of TransitionSoundContainers, SoundContainers, a string SectionType, and either randomnorepeat or shuffle SoundContainerSelectionCycleMode.
+- New entities `DynamicSongSection` and `DynamicSong` which are used for organizing music to play using the new system.  
+	`DynamicSongSection` is made up of TransitionSoundContainers, SoundContainers, a string SectionType, and either randomnorepeat or shuffle SoundContainerSelectionCycleMode.  
 	`DynamicSong` is a simple container of DynamicSongSections. It can have one DefaultSongSection and as many added sections as needed.
 	
-- New `SoundContainer` features.
-		Lua property `Paused` (R/W) to pause or unpause all sounds of a SoundContainer. Newly played sounds will not begin playback until unpaused.
-		Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
+- New `SoundContainer` features.  
+	Lua property `Paused` (R/W) to pause or unpause all sounds of a SoundContainer. Newly played sounds will not begin playback until unpaused.  
+	Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
+
+- Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
   
 </details>
 
@@ -30,18 +32,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
 
-- ALl music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
+- All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
 	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
 
-</details>
+- Increased fog-of-war resolution in all vanilla activities, and conquest, from 20x20 to 4x4.
+	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as course as 20x20.
+	The fog-of-war revealing code is now multithreaded to increase performance.
 
-<details><summary><b>Removed</b></summary>
+- All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
+	You can now have fog of war in the test scene, and can no longer require path to orbit in Zero-G Diggers-Only One Man Army.
+
+- The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
+
+- `MovableObject`'s `UniqueID` and `Age` fields are now persisted through game save/load.
 
 </details>
 
 <details><summary><b>Fixed</b></summary>
 
+- Fixed a crash on launch that could occur depending on what Microsoft Visual C++ Redistributable the user has installed.
+
 - Fixed an issue where palette index 255 was incorrectly showing as black.
+
+- Fixed instances of `CameraMan:GetScrollTarget()` and `CameraMan:SetScrollTarget()` supplying a player index instead of a screen index. This could prevent the functions from working properly, or at all, when playing as a player other than 1, potentially screwing up camera effects.
+
+- Fixed a bug in Decision Day that could cause an error when trying to set the camera's scroll target, in addition to the previous issue.
+
+- Fixed a bug in Harvester and Massacre where setting deploy units would auto-assign units of the wrong tech.
 
 </details>
 

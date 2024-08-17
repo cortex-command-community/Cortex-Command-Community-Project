@@ -216,8 +216,27 @@ function Siege:StartActivity()
 
 	-- Add fog
 	if self:GetFogOfWarEnabled() then
-		--SceneMan:MakeAllUnseen(Vector(65, 65), self.CPUTeam);
-		--SceneMan:MakeAllUnseen(Vector(25, 25), self.PlayerTeam);
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.PlayerTeam);
+
+		-- Reveal outside areas for everyone.
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.PlayerTeam);
+			end
+		end
+
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
+			end
+		end
 	end
 
 	-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
@@ -319,8 +338,9 @@ function Siege:UpdateActivity()
 					-- self:AddObjectivePoint("Protect!", Brain.AboveHUDPos, self.PlayerTeam, GameActivity.ARROWDOWN);
 				else
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 2000, -1, false);
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("Your brain has been destroyed!", screen, 2000, -1, false);
 				end
 			end
 		end

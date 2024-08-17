@@ -88,18 +88,20 @@ function SiteScan:UpdateActivity()
 				scanMessage = " " .. scanMessage .. ".";
 			end
 			messageBlink = 0;
---			self:SetObservationTarget(Vector(0, 0), player);
+			-- self:SetObservationTarget(Vector(0, 0), player);
 			if self.ScanTimer[self.ScanTeam]:IsPastSimMS(2000) then
 				self.CurrentScanStage = self.ScanStage.SCANNING;
+				self.ScanTimer[team]:Reset();
 			end
 		-- Do actual scanning process
 		elseif self.CurrentScanStage == self.ScanStage.SCANNING then
 			for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 				if self:TeamActive(team) then
 					-- Time to do a scan step?
-					if self.ScanTimer[team]:IsPastRealMS(SceneMan:GetUnseenResolution(team).X) then
+					while self.ScanTimer[team]:IsPastRealMS(self.ScanPosX[team] * 3) and self.ScanPosX[team] <= SceneMan.Scene.Width do
 						-- Scan the column, find the end where the ray is blocked
-						SceneMan:CastSeeRay(team, Vector(self.ScanPosX[team], 0), Vector(0, SceneMan.Scene.Height), self.ScanEndPos, 50, SceneMan:GetUnseenResolution(team).Y / 2);
+						SceneMan:CastTerrainPenetrationRay(Vector(self.ScanPosX[team], 0), Vector(0, SceneMan.Scene.Height), self.ScanEndPos, 50, SceneMan:GetUnseenResolution(team).Y / 2);
+						SceneMan:RevealUnseenBox(self.ScanPosX[team] - 10, 0, 20, self.ScanEndPos.Y + 10, team);
 						-- Adjust up a bit so one sees more of the sky than blackness
 						self.ScanEndPos.Y = self.ScanEndPos.Y - (FrameMan.PlayerScreenHeight / 4);
 						-- Also a bit more behind the scanning front so we see more of the terrain
@@ -108,14 +110,13 @@ function SiteScan:UpdateActivity()
 							self.ScanEndPos.X = 0;
 						end
 
-						if (self.ScanPosX[team] < SceneMan.Scene.Width) then
+						if (self.ScanPosX[team] <= SceneMan.Scene.Width) then
 							scanMessage = "Scanning";
 							messageBlink = 500;
 							-- Move on to the next column
 							self.ScanPosX[team] = self.ScanPosX[team] + SceneMan:GetUnseenResolution(team).X;
 							-- Set the proportionate amount from the team funds to represent payment for the scanning
 							self:SetTeamFunds((self.StartFunds[team] * (1.0 - (self.ScanPosX[team] / SceneMan.Scene.Width))) * rte.StartingFundsScale, team);
-							self.ScanTimer[team]:Reset();
 							-- Set all screens of the teammates to the ray end pos so their screens follow the scanning
 							for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 								if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -159,8 +160,9 @@ function SiteScan:UpdateActivity()
 				-- The current player's team
 				local team = self:GetTeamOfPlayer(player);
 				if (self.ActivityState == Activity.RUNNING) then
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText(scanMessage, self:ScreenOfPlayer(player), messageBlink, 8000, true);
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText(scanMessage, screen, messageBlink, 8000, true);
 				end
 			end
 		end

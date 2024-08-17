@@ -620,7 +620,9 @@ void _normal_rectfill(BITMAP *bmp, int x1, int y1, int x2, int y2, int color)
       if (y2 < y1)
 	 return;
 
-      bmp->clip = FALSE;
+      // Don't mess with clip status as it fucks up multithreaded draws
+      // Todo - maybe we can add another flag for whether this should be thread-safe or not
+      //bmp->clip = FALSE;
       t = TRUE;
    }
    else
@@ -635,7 +637,7 @@ void _normal_rectfill(BITMAP *bmp, int x1, int y1, int x2, int y2, int color)
 
    release_bitmap(bmp);
 
-   bmp->clip = t;
+   //bmp->clip = t;
 }
 
 

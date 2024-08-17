@@ -194,12 +194,18 @@ end
 
 function BunkerBreach:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.attackerTeam);
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.defenderTeam);
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.attackerTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.defenderTeam);
 
 		-- Reveal outside areas for the attacker.
-		for x = 0, SceneMan.SceneWidth - 1, 20 do
-			SceneMan:CastSeeRay(self.attackerTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.attackerTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.defenderTeam);
+			end
 		end
 
 		-- Reveal the main bunker area for the defender.
@@ -208,9 +214,11 @@ function BunkerBreach:SetupFogOfWar()
 		end
 
 		-- Reveal a circle around actors, so they're not standing in the dark.
-		for actor in MovableMan.AddedActors do
-			for angle = 0, math.pi * 2, 0.05 do
-				SceneMan:CastSeeRay(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 1, 4);
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
 			end
 		end
 	end

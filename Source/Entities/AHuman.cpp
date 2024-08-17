@@ -1233,8 +1233,9 @@ bool AHuman::IsWithinRange(Vector& point) const {
 }
 
 bool AHuman::Look(float FOVSpread, float range) {
-	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false)
+	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false) {
 		return false;
+	}
 
 	// Set the length of the look vector
 	float aimDistance = m_AimDistance + range;
@@ -1259,11 +1260,13 @@ bool AHuman::Look(float FOVSpread, float range) {
 	// Add the spread
 	lookVector.DegRotate(FOVSpread * RandomNormalNum());
 
+	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
+	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
+
 	// TODO: generate an alarm event if we spot an enemy actor?
 
-	Vector ignored;
-	// Cast the seeing ray, adjusting the skip to match the resolution of the unseen map
-	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
+	Vector ignored(0, 0);
+	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
 }
 
 bool AHuman::LookForGold(float FOVSpread, float range, Vector& foundLocation) const {
