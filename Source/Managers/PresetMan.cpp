@@ -131,7 +131,8 @@ const Entity* PresetMan::GetEntityPreset(const std::string& typeName, std::strin
 		}
 	} else {
 		// Try to get it from the asked for module
-		pRetEntity = g_ModuleMan.GetDataModule(whichModule)->GetEntityPreset(typeName, presetName);
+		DataModule* dataModule = g_ModuleMan.GetDataModule(whichModule);
+		pRetEntity = dataModule ? dataModule->GetEntityPreset(typeName, presetName) : nullptr;
 
 		// If couldn't find it in there, then try all the official modules!
 		if (!pRetEntity) {
