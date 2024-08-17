@@ -4,6 +4,8 @@
 #include "LuabindObjectWrapper.h"
 #include "LuaMan.h"
 
+#include "lj_obj.h"
+
 using namespace RTE;
 
 std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions = {};
@@ -295,11 +297,8 @@ void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::
 	// So, luabind::object is a weak reference, holding just a stack and a position in the stack
 	// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
 	// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
-	// It looks like Luabind constructs temporary interpreters and really doesn't like if you destroy these luabind objects
-	// In any case, it's extremely unsafe to use! For example capturing the callback by value into the lambdas causes random crashes
-	// Even if we did literally nothing with it except capture it into a no-op lambda
-	// TODO: validate this is still actually the case. Changes to lua may have fixed this
-	lua_State* luaState = callbackParam.interpreter();
+	lua_State* luaState = mainthread(G(callbackParam.interpreter())); // Get the main thread for the state, in case we're a temp lua thread
+
 	static int currentCallbackId = 0;
 	int thisCallbackId = currentCallbackId++;
 	if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
@@ -537,6 +536,58 @@ void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan& movableMan, const std
 	}
 
 	movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message}, {&wrapper});
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong1(MusicMan& musicMan, const std::string& songName) {
+	return musicMan.PlayDynamicSong(songName);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong2(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType) {
+	return musicMan.PlayDynamicSong(songName, songSectionType);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong3(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately) {
+	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong4(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition) {
+	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately, playTransition);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong5(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
+	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately, playTransition, smoothFade);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection1(MusicMan& musicMan, const std::string& songSectionType) {
+	return musicMan.SetNextDynamicSongSection(songSectionType);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection2(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately) {
+	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection3(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition) {
+	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately, playTransition);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection4(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
+	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately, playTransition, smoothFade);
+}
+
+bool LuaAdaptersMusicMan::CyclePlayingSoundContainers1(MusicMan& musicMan) {
+	return musicMan.CyclePlayingSoundContainers();
+}
+
+bool LuaAdaptersMusicMan::CyclePlayingSoundContainers2(MusicMan& musicMan, bool smoothFade) {
+	return musicMan.CyclePlayingSoundContainers(smoothFade);
+}
+
+bool LuaAdaptersMusicMan::EndDynamicMusic1(MusicMan& musicMan) {
+	return musicMan.EndDynamicMusic();
+}
+
+bool LuaAdaptersMusicMan::EndDynamicMusic2(MusicMan& musicMan, bool fadeOutCurrent) {
+	return musicMan.EndDynamicMusic(fadeOutCurrent);
 }
 
 double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan& timerMan) {

@@ -40,10 +40,6 @@ namespace RTE {
 	enum LayerDrawMode {
 		g_LayerNormal = 0,
 		g_LayerTerrainMatter,
-
-#ifdef DRAW_MOID_LAYER
-		g_LayerMOID
-#endif
 	};
 
 #define SCENEGRIDSIZE 24
@@ -214,18 +210,6 @@ namespace RTE {
 		/// @return A BITMAP pointer to the debug bitmap. Ownership is NOT transferred!
 		BITMAP* GetDebugBitmap() const;
 
-		/// Gets the bitmap of the SceneLayer that all MovableObject:s draw thir
-		/// current (for the frame only!) MOID's onto.
-		/// @return A BITMAP pointer to the MO bitmap. Ownership is NOT transferred!
-		BITMAP* GetMOIDBitmap() const;
-
-		// TEMP!
-		/// Makes sure the MOID bitmap layer is completely of NoMOID color.
-		/// If found to be not, dumps MOID layer and the FG actor color layer for
-		/// debugging.
-		/// @return Was it clear?
-		bool MOIDClearCheck();
-
 		/// Gets the current drawing mode of the SceneMan.
 		/// @return The current layer draw mode, see the LayerDrawMode enumeration for the
 		/// different possible mode settings.
@@ -273,23 +257,6 @@ namespace RTE {
 		/// different possible settings.
 		void SetLayerDrawMode(int mode) { m_LayerDrawMode = mode; }
 
-		/// Locks all dynamic internal scene bitmaps so that manipulaitons of the
-		/// scene's color and matter representations can take place.
-		/// Doing it in a separate method like this is more efficient because
-		/// many bitmap manipulaitons can be performed between a lock and unlock.
-		/// UnlockScene() should always be called after accesses are completed.
-		void LockScene();
-
-		/// Unlocks the scene's bitmaps and prevents access to display memory.
-		/// Doing it in a separate method like this is more efficient because
-		/// many bitmap accesses can be performed between a lock and an unlock.
-		/// UnlockScene() should only be called after LockScene().
-		void UnlockScene();
-
-		/// Indicates whether the entire scene is currently locked or not.
-		/// @return Whether the entire scene is currently locked or not.
-		bool SceneIsLocked() const;
-
 		/// Registers an area to be drawn upon, so it can be tracked and cleared later.
 		/// @param bitmap The bitmap being drawn upon.
 		/// @param moid The MOID, if we're drawing MOIDs.
@@ -306,13 +273,10 @@ namespace RTE {
 		/// @param radius The radius of the drawn area.
 		void RegisterDrawing(const BITMAP* bitmap, int moid, const Vector& center, float radius);
 
-		/// Clears all registered drawn areas of the MOID layer to the g_NoMOID
-		/// color and clears the registrations too. Should be done each sim update.
+		/// Clears all registered drawn areas of the MOID layer to the g_NoMOID color and clears the registrations too. Should be done each sim update.
 		void ClearAllMOIDDrawings();
 
-		/// Test whether a pixel of the scene would be knocked loose and
-		/// turned into a MO by another particle of a certain material going at a
-		/// certain velocity. Scene needs to be locked to do this!
+		/// Test whether a pixel of the scene would be knocked loose and turned into a MO by another particle of a certain material going at a certain velocity.
 		/// @param posX The X and Y coords of the scene pixel that is collided with.
 		/// @param posY The velocity of the incoming particle.
 		/// @param velocity The mass of the incoming particle.
@@ -324,9 +288,7 @@ namespace RTE {
 		                   const Vector& velocity,
 		                   const float mass) { return WillPenetrate(posX, posY, velocity * mass); }
 
-		/// Test whether a pixel of the scene would be knocked loose and
-		/// turned into a MO by a certian impulse force. Scene needs to be locked
-		/// to do this!
+		/// Test whether a pixel of the scene would be knocked loose and turned into a MO by a certain impulse force.
 		/// @param posX The X and Y coords of the scene pixel that is collided with.
 		/// @param posY The impulse force vector, in Kg * m/s.
 		/// @return A bool indicating wether the scene pixel would be knocked loose or
@@ -336,11 +298,8 @@ namespace RTE {
 		                   const int posY,
 		                   const Vector& impulse);
 
-		/// Calculate whether a pixel of the scene would be knocked loose and
-		/// turned into a MO by another particle of a certain material going at a
-		/// certain velocity. If so, the incoming particle will knock loose the
-		/// specified pixel in the scene and momentarily take its place.
-		/// Scene needs to be locked to do this!
+		/// Calculate whether a pixel of the scene would be knocked loose and turned into a MO by another particle of a certain material going at a certain velocity.
+		/// If so, the incoming particle will knock loose the specified pixel in the scene and momentarily take its place.
 		/// @param posX The X and Y coord of the scene pixel that is to be collided with.
 		/// @param posY The impulse force exerted on the terrain pixel. If this magnitude
 		/// exceeds the strength threshold of the material of the terrain pixel
@@ -536,7 +495,7 @@ namespace RTE {
 		/// @return Whether the ray was stopped prematurely or not.
 		bool CastTerrainPenetrationRay(const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip);
 
-		/// Traces along a vector and reveals or hides pixels on the unseen layer of a team
+		/// Traces a box along a vector and reveals or hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -551,7 +510,7 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal);
 
-		/// Traces along a vector and reveals pixels on the unseen layer of a team
+		/// Traces a box along a vector and reveals pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -565,7 +524,7 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0);
 
-		/// Traces along a vector and hides pixels on the unseen layer of a team
+		/// Traces a box along a vector and hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -784,37 +743,37 @@ namespace RTE {
 		/// @param pixelX Int coordinates.
 		/// @param pixelY A margin
 		/// @return Whether within bounds or not, considering wrapping.
-		bool IsWithinBounds(const int pixelX, const int pixelY, const int margin = 0);
+		bool IsWithinBounds(const int pixelX, const int pixelY, const int margin = 0) const;
 
 		/// Wraps or bounds a position coordinate if it is off bounds of the
 		/// Scene, depending on the wrap settings of this Scene.
 		/// @param posX The X and Y coordinates of the position to wrap, if needed.
 		/// @return Whether wrapping was performed or not. (Does not report on bounding)
-		bool ForceBounds(int& posX, int& posY);
+		bool ForceBounds(int& posX, int& posY) const;
 
 		/// Wraps or bounds a position coordinate if it is off bounds of the
 		/// Scene, depending on the wrap settings of this Scene.
 		/// @param pos The vector coordinates of the position to wrap, if needed.
 		/// @return Whether wrapping was performed or not. (Does not report on bounding)
-		bool ForceBounds(Vector& pos);
+		bool ForceBounds(Vector& pos) const;
 
 		/// Only wraps a position coordinate if it is off bounds of the Scene
 		/// and wrapping in the corresponding axes are turned on.
 		/// @param posX The X and Y coordinates of the position to wrap, if needed.
 		/// @return Whether wrapping was performed or not.
-		bool WrapPosition(int& posX, int& posY);
+		bool WrapPosition(int& posX, int& posY) const;
 
 		/// Only wraps a position coordinate if it is off bounds of the Scene
 		/// and wrapping in the corresponding axes are turned on.
 		/// @param pos The vector coordinates of the position to wrap, if needed.
 		/// @return Whether wrapping was performed or not.
-		bool WrapPosition(Vector& pos);
+		bool WrapPosition(Vector& pos) const;
 
 		/// Returns a position snapped to the current scene grid.
 		/// @param pos The vector coordinates of the position to snap.
 		/// @param snap Whether to actually snap or not. This is useful for cleaner toggle code. (default: true)
 		/// @return The new snapped position.
-		Vector SnapPosition(const Vector& pos, bool snap = true);
+		Vector SnapPosition(const Vector& pos, bool snap = true) const;
 
 		/// Calculates the shortest distance between two points in scene
 		/// coordinates, taking into account all wrapping and out of bounds of the
@@ -825,7 +784,7 @@ namespace RTE {
 		/// wrap them if they are.
 		/// @return The resulting vector screen shows the shortest distance, spanning over
 		/// wrapping borders etc. Basically the ideal pos2 - pos1.
-		Vector ShortestDistance(Vector pos1, Vector pos2, bool checkBounds = false);
+		Vector ShortestDistance(Vector pos1, Vector pos2, bool checkBounds = false) const;
 
 		/// Calculates the shortest distance between two x values in scene
 		/// coordinates, taking into account all wrapping and out of bounds of the
@@ -839,7 +798,7 @@ namespace RTE {
 		/// will be ignored.
 		/// @return The resulting X value screen shows the shortest distance, spanning over
 		/// wrapping borders etc. Basically the ideal val2 - val1.
-		float ShortestDistanceX(float val1, float val2, bool checkBounds = false, int direction = 0);
+		float ShortestDistanceX(float val1, float val2, bool checkBounds = false, int direction = 0) const;
 
 		/// Calculates the shortest distance between two Y values in scene
 		/// coordinates, taking into account all wrapping and out of bounds of the
@@ -853,7 +812,7 @@ namespace RTE {
 		/// will be ignored.
 		/// @return The resulting Y value screen shows the shortest distance, spanning over
 		/// wrapping borders etc. Basically the ideal val2 - val1.
-		float ShortestDistanceY(float val1, float val2, bool checkBounds = false, int direction = 0);
+		float ShortestDistanceY(float val1, float val2, bool checkBounds = false, int direction = 0) const;
 
 		/// Tells whether a point on the scene is obscured by MOID or Terrain
 		/// non-air material.
@@ -973,8 +932,6 @@ namespace RTE {
 		Scene* m_pCurrentScene;
 		// Color MO layer
 		SceneLayerTracked* m_pMOColorLayer;
-		// MovableObject ID layer
-		SceneLayerTracked* m_pMOIDLayer;
 		// A spatial partitioning grid of MOIDs, used to optimize collision and distance queries
 		SpatialPartitionGrid m_MOIDsGrid;
 

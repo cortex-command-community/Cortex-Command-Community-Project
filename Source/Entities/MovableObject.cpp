@@ -13,6 +13,7 @@
 #include "PieMenu.h"
 #include "Serializable.h"
 #include "System.h"
+#include "PostProcessMan.h"
 
 #include "Base64/base64.h"
 #include "tracy/Tracy.hpp"
@@ -23,7 +24,6 @@ using namespace RTE;
 
 AbstractClassInfo(MovableObject, SceneObject);
 
-std::atomic<long> MovableObject::m_UniqueIDCounter = 1;
 std::string MovableObject::ms_EmptyString = "";
 
 MovableObject::MovableObject() {
@@ -98,6 +98,7 @@ void MovableObject::Clear() {
 	m_EffectStartStrength = 128;
 	m_EffectStopStrength = 128;
 	m_EffectAlwaysShows = false;
+	m_PostEffectEnabled = false;
 
 	m_UniqueID = 0;
 
@@ -137,17 +138,21 @@ LuaStateWrapper& MovableObject::GetAndLockStateForScript(const std::string& scri
 }
 
 int MovableObject::Create() {
-	if (SceneObject::Create() < 0)
+	if (SceneObject::Create() < 0) {
 		return -1;
+	}
 
-	m_AgeTimer.Reset();
 	m_RestTimer.Reset();
 
 	// If the stop time hasn't been assigned, just make the same as the life time.
-	if (m_EffectStopTime <= 0)
+	if (m_EffectStopTime <= 0) {
 		m_EffectStopTime = m_Lifetime;
+	}
 
-	m_UniqueID = MovableObject::GetNextUniqueID();
+	if (m_UniqueID == 0) {
+		m_UniqueID = g_MovableMan.GetNextUniqueID();
+		m_AgeTimer.Reset();
+	}
 
 	m_MOIDHit = g_NoMOID;
 	m_TerrainMatHit = g_MaterialAir;
@@ -176,7 +181,7 @@ int MovableObject::Create(const float mass,
 	m_HitsMOs = hitMOs;
 	m_GetsHitByMOs = getHitByMOs;
 
-	m_UniqueID = MovableObject::GetNextUniqueID();
+	m_UniqueID = g_MovableMan.GetNextUniqueID();
 
 	m_MOIDHit = g_NoMOID;
 	m_TerrainMatHit = g_MaterialAir;
@@ -202,9 +207,6 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_RestThreshold = reference.m_RestThreshold;
 	//    m_Force = reference.m_Force;
 	//    m_ImpulseForce = reference.m_ImpulseForce;
-	// Should reset age instead??
-	//    m_AgeTimer = reference.m_AgeTimer;
-	m_AgeTimer.Reset();
 	m_RestTimer.Reset();
 	m_Lifetime = reference.m_Lifetime;
 	m_Sharpness = reference.m_Sharpness;
@@ -221,6 +223,7 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_MissionCritical = reference.m_MissionCritical;
 	m_CanBeSquished = reference.m_CanBeSquished;
 	m_HUDVisible = reference.m_HUDVisible;
+	m_PostEffectEnabled = reference.m_PostEffectEnabled;
 
 	m_ForceIntoMasterLuaState = reference.m_ForceIntoMasterLuaState;
 	for (auto& [scriptPath, scriptEnabled]: reference.m_AllLoadedScripts) {
@@ -264,7 +267,17 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_NumberValueMap = reference.m_NumberValueMap;
 	m_ObjectValueMap = reference.m_ObjectValueMap;
 
-	m_UniqueID = MovableObject::GetNextUniqueID();
+	// If we have a -1 unique ID, then we're currently performing a game save or load
+	// In this case, we actually want to persist our existing IDs
+	if (g_MovableMan.ShouldPersistUniqueIDs()) {
+		m_UniqueID = reference.m_UniqueID;
+		m_AgeTimer = reference.m_AgeTimer;
+	} else {
+		// Otherwise we're copying from a preset normally and ought to create a new object
+		m_UniqueID = g_MovableMan.GetNextUniqueID();
+		m_AgeTimer.Reset();
+	}
+
 	g_MovableMan.RegisterObject(this);
 
 	return 0;
@@ -342,12 +355,16 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 		m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
 		m_ScreenEffectHash = m_ScreenEffectFile.GetHash();
 	});
+	MatchProperty("PostEffectEnabled", { reader >> m_PostEffectEnabled; });
 	MatchProperty("EffectStartTime", { reader >> m_EffectStartTime; });
 	MatchProperty("EffectRotAngle", { reader >> m_EffectRotAngle; });
 	MatchProperty("InheritEffectRotAngle", { reader >> m_InheritEffectRotAngle; });
 	MatchProperty("RandomizeEffectRotAngle", { reader >> m_RandomizeEffectRotAngle; });
 	MatchProperty("RandomizeEffectRotAngleEveryFrame", { reader >> m_RandomizeEffectRotAngleEveryFrame; });
-	MatchProperty("EffectStopTime", { reader >> m_EffectStopTime; });
+	MatchProperty("EffectStopTime", {
+		reader >> m_EffectStopTime;
+		m_EffectStopTime = std::max(m_EffectStopTime, static_cast<int>(g_TimerMan.GetDeltaTimeMS()) + 1);
+	});
 	MatchProperty("EffectStartStrength", {
 		float strength;
 		reader >> strength;
@@ -368,6 +385,11 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("SimUpdatesBetweenScriptedUpdates", { reader >> m_SimUpdatesBetweenScriptedUpdates; });
 	MatchProperty("AddCustomValue", { ReadCustomValueProperty(reader); });
 	MatchProperty("ForceIntoMasterLuaState", { reader >> m_ForceIntoMasterLuaState; });
+	MatchProperty("SpecialBehaviour_SetUniqueID", {
+		long oldID = m_UniqueID;
+		reader >> m_UniqueID;
+		g_MovableMan.ReregisterObjectIfApplicable(this, oldID);
+	});
 
 	EndPropertyList;
 }
@@ -444,6 +466,8 @@ int MovableObject::Save(Writer& writer) const {
 	}
 	writer.NewProperty("ScreenEffect");
 	writer << m_ScreenEffectFile;
+	writer.NewProperty("PostEffectEnabled");
+	writer << m_PostEffectEnabled;
 	writer.NewProperty("EffectStartTime");
 	writer << m_EffectStartTime;
 	writer.NewProperty("EffectStopTime");
@@ -825,11 +849,6 @@ void MovableObject::PreTravel() {
 	// Temporarily remove the representation of this from the scene MO sampler
 	if (m_GetsHitByMOs) {
 		m_IsTraveling = true;
-#ifdef DRAW_MOID_LAYER
-		if (!g_SettingsMan.SimplifiedCollisionDetection()) {
-			Draw(g_SceneMan.GetMOIDBitmap(), Vector(), DrawMode::g_DrawNoMOID, true);
-		}
-#endif
 	}
 
 	// Save previous position and velocities before moving
@@ -853,11 +872,6 @@ void MovableObject::PostTravel() {
 	if (m_GetsHitByMOs) {
 		if (!GetParent()) {
 			m_IsTraveling = false;
-#ifdef DRAW_MOID_LAYER
-			if (!g_SettingsMan.SimplifiedCollisionDetection()) {
-				Draw(g_SceneMan.GetMOIDBitmap(), Vector(), DrawMode::g_DrawMOID, true);
-			}
-#endif
 		}
 		m_AlreadyHitBy.clear();
 	}
@@ -891,6 +905,10 @@ void MovableObject::Update() {
 	if (m_RandomizeEffectRotAngleEveryFrame) {
 		m_EffectRotAngle = c_PI * 2.0F * RandomNormalNum();
 	}
+
+	if (m_pScreenEffect && m_PostEffectEnabled) {
+		SetPostScreenEffectToDraw();
+	}
 }
 
 void MovableObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
@@ -898,7 +916,7 @@ void MovableObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode
 		return;
 	}
 
-	g_SceneMan.RegisterDrawing(targetBitmap, mode == g_DrawNoMOID ? g_NoMOID : m_MOID, m_Pos - targetPos, 1.0F);
+	g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, m_Pos - targetPos, 1.0F);
 }
 
 int MovableObject::UpdateScripts() {
@@ -1118,4 +1136,12 @@ bool MovableObject::DrawToTerrain(SLTerrain* terrain) {
 		g_SceneMan.RegisterTerrainChange(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), 1, 1, DrawMode::g_DrawColor, false);
 	}
 	return true;
+}
+
+void MovableObject::SetPostScreenEffectToDraw() const {
+	if (m_AgeTimer.GetElapsedSimTimeMS() >= m_EffectStartTime && (m_EffectStopTime == 0 || !m_AgeTimer.IsPastSimMS(m_EffectStopTime))) {
+		if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY())) {
+			g_PostProcessMan.RegisterPostEffect(m_Pos, m_pScreenEffect, m_ScreenEffectHash, Lerp(m_EffectStartTime, m_EffectStopTime, m_EffectStartStrength, m_EffectStopStrength, m_AgeTimer.GetElapsedSimTimeMS()), m_EffectRotAngle);
+		}
+	}
 }

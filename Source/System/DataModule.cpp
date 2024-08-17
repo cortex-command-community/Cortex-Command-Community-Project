@@ -116,9 +116,9 @@ int DataModule::ReadModuleProperties(const std::string& moduleName, const Progre
 }
 
 int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
-	StartPropertyList(if (!g_PresetMan.GetEntityPreset(reader)) { reader.ReportError("Could not understand Preset type!"); })
+	StartPropertyList(if (!g_PresetMan.GetEntityPreset(reader)) { reader.ReportError("Could not understand Preset type!"); });
 
-	    MatchProperty("ModuleName", { reader >> m_FriendlyName; });
+	MatchProperty("ModuleName", { reader >> m_FriendlyName; });
 	MatchProperty("Author", { reader >> m_Author; });
 	MatchProperty("Description", {
 		std::string descriptionValue = reader.ReadPropValue();

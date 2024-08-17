@@ -17,6 +17,7 @@ namespace RTE {
 	/* ManagerLuaBindings */ \
 	PER_LUA_BINDING(ActivityMan) \
 	PER_LUA_BINDING(AudioMan) \
+	PER_LUA_BINDING(MusicMan) \
 	PER_LUA_BINDING(CameraMan) \
 	PER_LUA_BINDING(ConsoleMan) \
 	PER_LUA_BINDING(FrameMan) \
@@ -187,6 +188,7 @@ namespace RTE {
 	struct ManagerLuaBindings {
 		LuaBindingRegisterFunctionDeclarationForType(ActivityMan);
 		LuaBindingRegisterFunctionDeclarationForType(AudioMan);
+		LuaBindingRegisterFunctionDeclarationForType(MusicMan);
 		LuaBindingRegisterFunctionDeclarationForType(CameraMan);
 		LuaBindingRegisterFunctionDeclarationForType(ConsoleMan);
 		LuaBindingRegisterFunctionDeclarationForType(FrameMan);

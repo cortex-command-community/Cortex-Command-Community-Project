@@ -531,6 +531,10 @@ Vector HDFirearm::GetMuzzlePos() const {
 	return m_Pos + RotateOffset(m_MuzzleOff);
 }
 
+Vector HDFirearm::GetEjectionPos() const {
+	return m_Pos + RotateOffset(m_EjectOff);
+}
+
 void HDFirearm::RestDetection() {
 	HeldDevice::RestDetection();
 
@@ -959,16 +963,16 @@ void HDFirearm::Update() {
 				int animDuration = m_SpriteAnimDuration;
 				// Spin up - can only spin up if mag is inserted
 				if (m_Activated && !m_Reloading && m_ActivationTimer.GetElapsedSimTimeMS() < m_ActivationDelay) {
-					animDuration = (int)LERP(0, m_ActivationDelay, (float)(m_SpriteAnimDuration * 10), (float)m_SpriteAnimDuration, m_ActivationTimer.GetElapsedSimTimeMS());
+					animDuration = (int)Lerp(0, m_ActivationDelay, (float)(m_SpriteAnimDuration * 10), (float)m_SpriteAnimDuration, m_ActivationTimer.GetElapsedSimTimeMS());
 					if (m_ActiveSound) {
-						m_ActiveSound->SetPitch(LERP(0, m_ActivationDelay, 0, 1.0, m_ActivationTimer.GetElapsedSimTimeMS()));
+						m_ActiveSound->SetPitch(Lerp(0, m_ActivationDelay, 0, 1.0, m_ActivationTimer.GetElapsedSimTimeMS()));
 					}
 				}
 				// Spin down
 				if ((!m_Activated || m_Reloading) && m_LastFireTmr.GetElapsedSimTimeMS() < m_DeactivationDelay) {
-					animDuration = (int)LERP(0, m_DeactivationDelay, (float)m_SpriteAnimDuration, (float)(m_SpriteAnimDuration * 10), m_LastFireTmr.GetElapsedSimTimeMS());
+					animDuration = (int)Lerp(0, m_DeactivationDelay, (float)m_SpriteAnimDuration, (float)(m_SpriteAnimDuration * 10), m_LastFireTmr.GetElapsedSimTimeMS());
 					if (m_ActiveSound) {
-						m_ActiveSound->SetPitch(LERP(0, m_DeactivationDelay, 1.0, 0, m_LastFireTmr.GetElapsedSimTimeMS()));
+						m_ActiveSound->SetPitch(Lerp(0, m_DeactivationDelay, 1.0, 0, m_LastFireTmr.GetElapsedSimTimeMS()));
 					}
 				}
 
@@ -1052,7 +1056,6 @@ void HDFirearm::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whic
 	sharpLength -= static_cast<float>(pointSpacing * pointCount) * 0.5F;
 	Vector muzzleOffset(std::max(m_MuzzleOff.m_X, m_SpriteRadius), m_MuzzleOff.m_Y);
 
-	// acquire_bitmap(pTargetBitmap);
 	for (int i = 0; i < pointCount; ++i) {
 		Vector aimPoint(sharpLength + static_cast<float>(pointSpacing * i), 0);
 		aimPoint = RotateOffset(aimPoint + muzzleOffset) + m_Pos;
@@ -1062,5 +1065,4 @@ void HDFirearm::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whic
 		g_SceneMan.WrapPosition(aimPoint);
 		putpixel(pTargetBitmap, aimPoint.GetFloorIntX(), aimPoint.GetFloorIntY(), g_YellowGlowColor);
 	}
-	// release_bitmap(pTargetBitmap);
 }

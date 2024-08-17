@@ -52,10 +52,6 @@ namespace RTE {
 		/// @return Recommended MOID count.
 		int RecommendedMOIDCount() const { return m_RecommendedMOIDCount; }
 
-		/// Gets whether simplified collision detection (reduced MOID layer sampling) is enabled.
-		/// @return Whether simplified collision detection is enabled or not.
-		bool SimplifiedCollisionDetection() const { return m_SimplifiedCollisionDetection; }
-
 		/// Gets the Scene background layer auto-scaling mode.
 		/// @return The Scene background layer auto-scaling mode. 0 for off, 1 for fit screen dimensions and 2 for always upscaled to x2.
 		int GetSceneBackgroundAutoScaleMode() const { return m_SceneBackgroundAutoScaleMode; }
@@ -380,7 +376,6 @@ namespace RTE {
 
 		bool m_DisableLuaJIT; //!< Whether to disable LuaJIT or not. Disabling will skip loading the JIT library entirely as just setting 'jit.off()' seems to have no visible effect.
 		int m_RecommendedMOIDCount; //!< Recommended max MOID's before removing actors from scenes.
-		bool m_SimplifiedCollisionDetection; //!< Whether simplified collision detection (reduced MOID layer sampling) is enabled.
 		int m_SceneBackgroundAutoScaleMode; //!< Scene background layer auto-scaling mode. 0 for off, 1 for fit screen dimensions and 2 for always upscaled to x2.
 		bool m_DisableFactionBuyMenuThemes; //!< Whether faction BuyMenu theme support is disabled.
 		bool m_DisableFactionBuyMenuThemeCursors; //!< Whether custom cursor support in faction BuyMenu themes is disabled.

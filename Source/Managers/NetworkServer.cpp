@@ -643,55 +643,6 @@ void NetworkServer::SendSoundData(short player) {
 	}
 }
 
-void NetworkServer::SendMusicData(short player) {
-	std::list<AudioMan::NetworkMusicData> events;
-	g_AudioMan.GetMusicEvents(player, events);
-
-	if (events.empty()) {
-		return;
-	}
-
-	MsgMusicEvents* msg = (MsgMusicEvents*)m_CompressedLineBuffer[player];
-	AudioMan::NetworkMusicData* musicDataPointer = (AudioMan::NetworkMusicData*)((char*)msg + sizeof(MsgMusicEvents));
-
-	msg->Id = ID_SRV_MUSIC_EVENTS;
-	msg->FrameNumber = m_FrameNumbers[player];
-	msg->MusicEventsCount = 0;
-
-	for (const AudioMan::NetworkMusicData& musicEvent: events) {
-		musicDataPointer->State = musicEvent.State;
-		musicDataPointer->LoopsOrSilence = musicEvent.LoopsOrSilence;
-		musicDataPointer->Pitch = musicEvent.Pitch;
-		musicDataPointer->Position = musicEvent.Position;
-		strncpy(musicDataPointer->Path, musicEvent.Path, 255);
-
-		msg->MusicEventsCount++;
-		musicDataPointer++;
-
-		if (msg->MusicEventsCount >= 4) {
-			int payloadSize = sizeof(MsgMusicEvents) + sizeof(AudioMan::NetworkMusicData) * msg->MusicEventsCount;
-			m_Server->Send((const char*)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
-			msg->MusicEventsCount = 0;
-			musicDataPointer = (AudioMan::NetworkMusicData*)((char*)msg + sizeof(MsgMusicEvents));
-
-			m_SoundDataSentCurrent[player][STAT_CURRENT] += payloadSize;
-			m_SoundDataSentTotal[player] += payloadSize;
-
-			m_DataSentTotal[player] += payloadSize;
-		}
-	}
-
-	if (msg->MusicEventsCount > 0) {
-		int payloadSize = sizeof(MsgMusicEvents) + sizeof(AudioMan::NetworkMusicData) * msg->MusicEventsCount;
-		m_Server->Send((const char*)msg, payloadSize, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, m_ClientConnections[player].ClientId, false);
-
-		m_SoundDataSentCurrent[player][STAT_CURRENT] += payloadSize;
-		m_SoundDataSentTotal[player] += payloadSize;
-
-		m_DataSentTotal[player] += payloadSize;
-	}
-}
-
 void NetworkServer::SendSceneSetupData(short player) {
 	MsgSceneSetup msgSceneSetup = {};
 	msgSceneSetup.Id = ID_SRV_SCENE_SETUP;
@@ -753,14 +704,6 @@ void NetworkServer::SendSceneSetupData(short player) {
 	m_SendSceneSetupData[player] = false;
 	m_SendSceneData[player] = false;
 	m_SendFrameData[player] = false;
-
-	// While we're on the same thread with freshly connected player, send current music being played
-	if (g_AudioMan.IsMusicPlaying()) {
-		std::string currentMusic = g_AudioMan.GetMusicPath();
-		if (!currentMusic.empty()) {
-			g_AudioMan.RegisterMusicEvent(player, AudioMan::MUSIC_PLAY, currentMusic.c_str(), -1, g_AudioMan.GetMusicPosition(), 1.0F);
-		}
-	}
 }
 
 void NetworkServer::ReceiveSceneSetupDataAccepted(RakNet::Packet* packet) {
@@ -814,8 +757,6 @@ void NetworkServer::SendSceneData(short player) {
 		} else if (layer == 1) {
 			bmp = terrain->GetFGColorBitmap();
 		}
-
-		lock_bitmap(bmp);
 
 		for (lineX = 0;; lineX += lineWidth) {
 			int width = lineWidth;
@@ -882,7 +823,6 @@ void NetworkServer::SendSceneData(short player) {
 				break;
 			}
 		}
-		release_bitmap(bmp);
 	}
 
 	m_SceneLock[player].unlock();
@@ -1245,7 +1185,6 @@ int NetworkServer::SendFrame(short player) {
 	SendFrameSetupMsg(player);
 	SendPostEffectData(player);
 	SendSoundData(player);
-	SendMusicData(player);
 
 	m_FramesSent[player]++;
 
@@ -1879,7 +1818,6 @@ void NetworkServer::Update(bool processInput) {
 	for (short player = 0; player < c_MaxClients; player++) {
 		if (!IsPlayerConnected(player)) {
 			g_AudioMan.ClearSoundEvents(player);
-			g_AudioMan.ClearMusicEvents(player);
 		}
 	}
 

@@ -24,9 +24,6 @@ namespace RTE {
 		/// @param Manager GUIManager, GUIControlManager.
 		GUICollectionBox(GUIManager* Manager, GUIControlManager* ControlManager);
 
-		/// Destructor method used to clean up this before deletion from memory.
-		~GUICollectionBox();
-
 		/// Called when the control has been created.
 		/// @param Name Name, Position.
 		void Create(const std::string& Name, int X, int Y, int Width = -1, int Height = -1) override;

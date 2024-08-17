@@ -68,8 +68,8 @@ ScenarioActivityConfigGUI::ScenarioActivityConfigGUI(GUIControlManager* parentCo
 }
 
 void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {
-	static constexpr int allTechIndex = -2;
-	static constexpr int randomTechIndex = -1;
+	static constexpr int allTechIndex = 0;
+	static constexpr int randomTechIndex = 1;
 
 	std::array<int, Activity::Teams::MaxTeamCount> lastSelectedIndices = {};
 	lastSelectedIndices.fill(allTechIndex);
@@ -84,13 +84,12 @@ void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {
 		if (dataModule->IsFaction()) {
 			for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 				m_TeamTechComboBoxes[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
-				m_TeamTechComboBoxes[team]->GetListPanel()->ScrollToTop();
-				m_TeamTechComboBoxes[team]->SetSelectedIndex(0);
 			}
 		}
 	}
 	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-		m_TeamTechComboBoxes[team]->SetSelectedIndex(lastSelectedIndices[team] < m_TeamTechComboBoxes[team]->GetCount() ? lastSelectedIndices[team] : allTechIndex);
+		m_TeamTechComboBoxes[team]->SetSelectedIndex(lastSelectedIndices[team] >= 0 && lastSelectedIndices[team] < m_TeamTechComboBoxes[team]->GetCount() ? lastSelectedIndices[team] : allTechIndex);
+		m_TeamTechComboBoxes[team]->GetListPanel()->ScrollToTop();
 	}
 }
 

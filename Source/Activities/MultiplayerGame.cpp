@@ -60,9 +60,6 @@ void MultiplayerGame::Clear() {
 	m_BackToMainButton = nullptr;
 
 	m_Mode = SETUP;
-
-	m_LastMusic = "";
-	m_LastMusicPos = 0;
 }
 
 int MultiplayerGame::Create() {
@@ -105,9 +102,6 @@ void MultiplayerGame::Destroy(bool notInherited) {
 
 int MultiplayerGame::Start() {
 	int error = Activity::Start();
-
-	g_AudioMan.ClearMusicQueue();
-	g_AudioMan.StopMusic();
 
 	if (!m_pGUIScreen)
 		m_pGUIScreen = new AllegroScreen(g_FrameMan.GetBackBuffer8());
@@ -172,17 +166,7 @@ void MultiplayerGame::SetPaused(bool pause) {
 	// m_Paused = false;
 	Activity::SetPaused(pause);
 
-	if (pause) {
-		if (g_AudioMan.IsMusicPlaying()) {
-			m_LastMusic = g_AudioMan.GetMusicPath();
-			m_LastMusicPos = g_AudioMan.GetMusicPosition();
-		}
-	} else {
-		if (m_LastMusic != "") {
-			g_AudioMan.PlayMusic(m_LastMusic.c_str());
-			g_AudioMan.SetMusicPosition(m_LastMusicPos);
-		}
-
+	if (!pause) {
 		if (m_Mode == GAMEPLAY) {
 			g_UInputMan.TrapMousePos(true, 0);
 		}

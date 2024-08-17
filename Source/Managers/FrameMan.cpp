@@ -242,15 +242,12 @@ void FrameMan::Update() {
 }
 
 void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
-	if (m_PlayerScreen) {
-		release_bitmap(m_PlayerScreen.get());
-	}
-
 	// Override screen splitting according to settings if needed
 	if ((hSplit || vSplit) && !(hSplit && vSplit) && m_TwoPlayerVSplit) {
 		hSplit = false;
 		vSplit = m_TwoPlayerVSplit;
 	}
+
 	m_HSplit = hSplit;
 	m_VSplit = vSplit;
 
@@ -712,8 +709,6 @@ int FrameMan::SharedDrawLine(BITMAP* bitmap, const Vector& start, const Vector& 
 		}
 	}
 
-	// release_bitmap(bitmap);
-
 	// Return the end phase state of the skipping
 	return skipped;
 }
@@ -964,11 +959,6 @@ void FrameMan::DrawScreenText(int playerScreen, AllegroBitmap playerGUIBitmap) {
 			case g_LayerTerrainMatter:
 				GetSmallFont()->DrawAligned(&playerGUIBitmap, GetPlayerScreenWidth() / 2, GetPlayerScreenHeight() - 12, "Viewing terrain material layer\nHit Ctrl+M to cycle modes", GUIFont::Centre, GUIFont::Bottom);
 				break;
-#ifdef DRAW_MOID_LAYER
-			case g_LayerMOID:
-				GetSmallFont()->DrawAligned(&playerGUIBitmap, GetPlayerScreenWidth() / 2, GetPlayerScreenHeight() - 12, "Viewing MovableObject ID layer\nHit Ctrl+M to cycle modes", GUIFont::Centre, GUIFont::Bottom);
-				break;
-#endif
 			default:
 				break;
 		}

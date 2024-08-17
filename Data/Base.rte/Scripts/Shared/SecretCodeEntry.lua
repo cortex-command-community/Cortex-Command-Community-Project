@@ -59,6 +59,9 @@ function SecretCodeEntry.Setup(callbackFunction, callbackSelfObject, codeSequenc
 	secretCodeEntryData.callbackSelfObject = callbackSelfObject;
 	secretCodeEntryData.codeSequenceOrCodeType = codeSequenceOrCodeType;
 	secretCodeEntryData.sequenceLength = sequenceLength;
+	if type(codeSequenceOrCodeType) == "table" then
+		secretCodeEntryData.codeSequence = codeSequenceOrCodeType;
+	end
 	secretCodeEntryData.firstEntrySoundContainer = firstEntrySoundContainer or SecretCodeEntry.defaultFirstEntrySoundContainer;
 	secretCodeEntryData.correctEntrySoundContainer = correctEntrySoundContainer or SecretCodeEntry.defaultCorrectEntrySoundContainer;
 	secretCodeEntryData.incorrectEntrySoundContainer = incorrectEntrySoundContainer or SecretCodeEntry.defaultIncorrectEntrySoundContainer;
@@ -90,6 +93,7 @@ function SecretCodeEntry.Update(secretCodeEntryDataIndex)
 	local playersWhoCompletedCode = {};
 	
 	if UInputMan:AnyPress() then
+		local activity = ActivityMan:GetActivity();
 		for player, inputData in pairs(secretCodeEntryData.inputs) do
 			local expectedNextControlState;
 			if type(secretCodeEntryData.codeSequenceOrCodeType) == "number" then
@@ -118,7 +122,7 @@ function SecretCodeEntry.Update(secretCodeEntryDataIndex)
 				inputData.currentStep = inputData.currentStep + 1;
 			end
 			if soundToPlay then
-				soundToPlay:Play(CameraMan:GetScrollTarget(inputData.controller.Player), inputData.controller.Player);
+				soundToPlay:Play(CameraMan:GetScrollTarget(activity:ScreenOfPlayer(inputData.controller.Player)), inputData.controller.Player);
 			end
 			
 			if inputData.currentStep == secretCodeEntryData.sequenceLength then

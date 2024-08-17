@@ -437,8 +437,7 @@ namespace RTE {
 		/// @return Whether enabled or not.
 		bool IsParticleSettlingEnabled() { return m_SettlingEnabled; }
 
-		/// Sets whether particles will get copied into the terrain upon them
-		/// settling down.
+		/// Sets whether particles will get copied into the terrain upon them settling down.
 		/// @param enable Whether to enable or not. (default: true)
 		void EnableParticleSettling(bool enable = true) { m_SettlingEnabled = enable; }
 
@@ -446,34 +445,26 @@ namespace RTE {
 		/// @return Whether enabled or not.
 		bool IsMOSubtractionEnabled() { return m_MOSubtractionEnabled; }
 
-		/// Forces all objects potnetially overlapping a specific MO to re-draw
-		/// this MOID representations onto the MOID bitmap.
-		/// @param pOverlapsThis A pointer to the MO to check for overlaps against. Ownerhip is NOT
-		/// transferred.
-		void RedrawOverlappingMOIDs(MovableObject* pOverlapsThis);
-
 		/// Updates the state of this MovableMan. Supposed to be done every frame.
 		void Update();
 
-		/// Draws this MovableMan's all MO's current material representations to a
-		/// BITMAP of choice.
+		/// Draws this MovableMan's all MO's current material representations to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene.
 		void DrawMatter(BITMAP* pTargetBitmap, Vector& targetPos);
 
-		/// Updates the MOIDs of all current MOs and draws their ID's to a BITMAP
-		/// of choice. If there are more than 255 MO's to draw, some will not be.
-		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
-		void UpdateDrawMOIDs(BITMAP* pTargetBitmap);
+		/// Updates the MOIDs of all current MOs.
+		void UpdateDrawMOIDs();
 
-		/// Draws this MovableMan's current graphical representation to a
-		/// BITMAP of choice.
+		// Forces MOID drawing to complete (should be done before any physics sim or collision detection etc)
+		void CompleteQueuedMOIDDrawings();
+
+		/// Draws this MovableMan's current graphical representation to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector());
 
-		/// Draws the HUDs of all MovableObject:s of this MovableMan to a BITMAP
-		/// of choice.
+		/// Draws the HUDs of all MovableObject:s of this MovableMan to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		/// @param which Which player's screen is being drawn. Tis affects which actor's HUDs (default: 0)
@@ -491,14 +482,45 @@ namespace RTE {
 		/// @param mo MO to remove.
 		void UnregisterObject(MovableObject* mo);
 
+		/// Reregisters an object in a global Map collection to handle if it's unique ID changes
+		/// @param mo MO to reregister if necessary.
+		/// @param oldUniqueID The MO's old UniqueID.
+		void ReregisterObjectIfApplicable(MovableObject* mo, long oldUniqueId);
+
+		/// Returns the next unique id for MO's and increments unique ID counter
+		/// @return Returns the next unique id.
+		long GetNextUniqueID() {
+			if (m_ShouldPersistUniqueIDs) {
+				return 0;
+			}
+			return ++m_UniqueIDCounter;
+		}
+
+		/// Returns the max unique id for MO's
+		/// @return Returns the current max unique id.
+		long GetMaxUniqueID() { return m_UniqueIDCounter; }
+
+		/// Set the max unique id for MO's. This is used so we can consistently save/load unique IDs so they're consistent within a game session
+		/// @param id Unique Id to set.
+		void SetMaxUniqueID(long newMaxID) { m_UniqueIDCounter = newMaxID; }
+
+		/// Returns whether we should be persisting uniqueIDs for save/load
+		/// @return Returns whether we are persisting uniqueIDs.
+		bool ShouldPersistUniqueIDs() { return m_ShouldPersistUniqueIDs; }
+
+		/// Sets whether we should be persisting uniqueIDs for save/load
+		/// @param newValue Whether we should be persisting uniqueIDs.
+		void SetShouldPersistUniqueIDs(bool newValue) { m_ShouldPersistUniqueIDs = newValue; }
+
 		/// Uses a global lookup map to find an object by it's unique id.
 		/// @param id Unique Id to look for.
 		/// @return Object found or 0 if not found any.
-		MovableObject* FindObjectByUniqueID(long int id) {
-			if (m_KnownObjects.count(id) > 0)
+		MovableObject* FindObjectByUniqueID(long id) {
+			if (m_KnownObjects.count(id) > 0) {
 				return m_KnownObjects[id];
-			else
+			} else {
 				return 0;
+			}
 		}
 
 		/// Returns the size of the object registry collection
@@ -560,6 +582,10 @@ namespace RTE {
 		std::deque<Actor*> m_Actors;
 		// A map to give a unique contiguous identifier per-actor. This is re-created per frame.
 		std::unordered_map<const Actor*, int> m_ContiguousActorIDs;
+		// Global counter with unique ID's
+		std::atomic<long> m_UniqueIDCounter;
+		// Whether or not UniqueIDs should be persisted (for save/load)
+		bool m_ShouldPersistUniqueIDs;
 		// List of items that are pickup-able by actors
 		std::deque<MovableObject*> m_Items;
 		// List of free, dead particles flying around
@@ -630,8 +656,8 @@ namespace RTE {
 
 		unsigned int m_SimUpdateFrameNumber;
 
-		// Global map which stores all objects so they could be foud by their unique ID
-		std::map<long int, MovableObject*> m_KnownObjects;
+		// Global map which stores all objects so they could be found by their unique ID
+		std::map<long, MovableObject*> m_KnownObjects;
 
 		/// Private member variable and method declarations
 	private:

@@ -17,8 +17,7 @@ function Test:StartActivity()
 					self.ActivityState = Activity.EDITING;
 					-- Open all doors so we can do pathfinding through them with the brain placement
 					MovableMan:OpenAllDoors(true, Activity.NOTEAM);
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					MusicMan:PlayDynamicSong("Generic Ambient Music");
 					self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player);
 				else
 					-- Set the found brain to be the selected actor at start
@@ -28,6 +27,21 @@ function Test:StartActivity()
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
 					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
+			end
+		end
+	end
+
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
+
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_2);
 			end
 		end
 	end
@@ -70,14 +84,14 @@ function Test:UpdateActivity()
 	if self.doorMessageTimer then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:SetScreenText("NOTE: You can press ALT + 1 to open or close all doors", player, 0, -1, false);
+				FrameMan:SetScreenText("NOTE: You can press ALT + 1 to open or close all doors", self:ScreenOfPlayer(player), 0, -1, false);
 			end
 		end
 		if self.doorMessageTimer:IsPastSimTimeLimit() then
 			self.doorMessageTimer = nil;
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
-					FrameMan:ClearScreenText(player);
+					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 				end
 			end
 		end

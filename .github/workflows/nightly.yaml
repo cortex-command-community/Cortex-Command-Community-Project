@@ -35,7 +35,7 @@ jobs:
 
       - name: Checkout code
         if: ${{ steps.check_manual_run.outputs.needs_build == 'false' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: fetch tags
         if: ${{ steps.check_manual_run.outputs.needs_build == 'false' }}
@@ -90,7 +90,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: fetch tags
         run: git fetch --tags origin
@@ -127,7 +127,7 @@ jobs:
       - name: Update tag pointing to the previous nightly release
         if: steps.check_nightly.outputs.release_exists
         run: |
-          curl -X PATCH \
+          curl --fail-with-body -X PATCH \
             -H "Authorization: Bearer ${{ secrets.WORKFLOW_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${{ env.PREV_TAG }} \

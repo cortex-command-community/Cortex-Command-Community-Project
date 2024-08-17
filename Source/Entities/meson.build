@@ -16,6 +16,7 @@ sources += files(
 'BunkerAssembly.cpp',
 'BunkerAssemblyScheme.cpp',
 'Deployment.cpp',
+'DynamicSong.cpp',
 'Emission.cpp',
 'Gib.cpp',
 'GlobalScript.cpp',

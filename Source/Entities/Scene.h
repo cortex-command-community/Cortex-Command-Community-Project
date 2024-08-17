@@ -679,23 +679,6 @@ namespace RTE {
 		/// @return Whether both coordinates represent the same path node.
 		bool PositionsAreTheSamePathNode(const Vector& pos1, const Vector& pos2) const;
 
-		/// Locks all dynamic internal scene bitmaps so that manipulaitons of the
-		/// scene's color and matter representations can take place.
-		/// Doing it in a separate method like this is more efficient because
-		/// many bitmap manipulaitons can be performed between a lock and unlock.
-		/// UnlockScene() should always be called after accesses are completed.
-		void Lock();
-
-		/// Unlocks the scene's bitmaps and prevents access to display memory.
-		/// Doing it in a separate method like this is more efficient because
-		/// many bitmap accesses can be performed between a lock and an unlock.
-		/// UnlockScene() should only be called after LockScene().
-		void Unlock();
-
-		/// Indicates whether the entire scene is currently locked or not.
-		/// @return Whether the entire scene is currently locked or not.
-		bool IsLocked() const { return m_Locked; }
-
 		/// Updates the state of this Scene. Supposed to be done every frame
 		/// before drawing.
 		void Update();
@@ -783,8 +766,6 @@ namespace RTE {
 		std::vector<std::string> m_NavigatableAreas;
 		bool m_NavigatableAreasUpToDate;
 
-		// Whether the scene's bitmaps are locked or not.
-		bool m_Locked;
 		// The global acceleration vector in m/s^2. (think gravity/wind)
 		Vector m_GlobalAcc;
 		// Names of all Schemes and selected assemblies for them
@@ -810,8 +791,8 @@ namespace RTE {
 	private:
 		/// Gets the pathfinder for a given team.
 		/// @param team The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.
-		/// @return A pointer to the pathfinder for the given team.
-		std::unique_ptr<PathFinder>& GetPathFinder(Activity::Teams team);
+		/// @return A reference to the pathfinder for the given team.
+		PathFinder& GetPathFinder(Activity::Teams team);
 
 		/// Serializes the SceneObject via the Writer. Necessary because full serialization doesn't know how to deal with duplicate properties.
 		/// @param writer The Writer being used for serialization.

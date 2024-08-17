@@ -385,6 +385,18 @@ namespace RTE {
 		/// @param newAngle The new absolute angle in radians.
 		void SetEffectRotAngle(float newAngle) { m_EffectRotAngle = newAngle; }
 
+		/// Gets the file path of this MovableObject's current screen effect.
+		/// @return A string containing the file path of the screen effect.
+		std::string GetScreenEffectPath() const { return m_ScreenEffectFile.GetDataPath(); }
+
+		/// Gets the file path of this MovableObject's current screen effect.
+		/// @param pathToFile A string containing the file path of the new screen effect.
+		void SetScreenEffectPath(std::string pathToFile) {
+			m_ScreenEffectFile.SetDataPath(pathToFile);
+			m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
+			m_ScreenEffectHash = m_ScreenEffectFile.GetHash();
+		}
+
 		/// Gets the current absolute angle of rotation of this MovableObject's effect.
 		/// @return The absolute angle in radians.
 		float GetEffectRotAngle() const { return m_EffectRotAngle; }
@@ -393,9 +405,45 @@ namespace RTE {
 		/// @return The starting strength of the effect, 0-255.
 		int GetEffectStartStrength() const { return m_EffectStartStrength; }
 
+		/// Gets the starting strength of this MovableObject's effect as a float.
+		/// @return The starting strength of the effect, 0.0-1.0.
+		float GetEffectStartStrengthFloat() const { return static_cast<float>(m_EffectStartStrength) / 255.0f; }
+
+		/// Sets the starting strength of this MovableObject's effect.
+		/// @param strength The new starting strength of the effect, 0.0-1.0.
+		void SetEffectStartStrengthFloat(float strength) { m_EffectStartStrength = std::floor(255.0F * strength); }
+
 		/// Gets the stopping strength of this MovableObject's effect.
 		/// @return The stopping strength of the effect, 0-255.
 		int GetEffectStopStrength() const { return m_EffectStopStrength; }
+
+		/// Gets the stopping strength of this MovableObject's effect as a float.
+		/// @return The stopping strength of the effect, 0.0-1.0.
+		float GetEffectStopStrengthFloat() const { return static_cast<float>(m_EffectStopStrength) / 255.0f; }
+
+		/// Sets the stopping strength of this MovableObject's effect.
+		/// @param strength The new stopping strength of the effect, 0.0-1.0.
+		void SetEffectStopStrengthFloat(float strength) { m_EffectStopStrength = std::floor(255.0F * strength); }
+
+		/// Sets both strengths of this MovableObject's effect.
+		/// @param strength The new strengths of the effect, 0.0-1.0.
+		void SetEffectStrength(float strength) { m_EffectStartStrength = m_EffectStopStrength = std::floor(255.0F * strength); }
+
+		/// Gets whether or not this MovableObject's effect is drawn every frame.
+		/// @return Boolean indicating whether or not the effect is drawn.
+		bool GetPostEffectEnabled() const { return m_PostEffectEnabled; }
+
+		/// Sets whether or not to draw this MovableObject's effect every frame.
+		/// @param newValue Boolean indicating whether or not to draw the effect.
+		void SetPostEffectEnabled(bool newValue) { m_PostEffectEnabled = newValue; }
+
+		/// Gets whether or not this MovableObject's effect can be obscured.
+		/// @return Boolean indicating whether or not the effect can be obscured.
+		bool GetEffectAlwaysShows() const { return m_EffectAlwaysShows; }
+
+		/// Sets whether or not this MovableObject's effect can be obscured.
+		/// @param newValue Boolean indicating whether or not the effect can be obscured.
+		void SetEffectAlwaysShows(bool newValue) { m_EffectAlwaysShows = newValue; }
 
 		/// Sets the current angular velocity of this MovableObject. Positive is
 		/// a counter clockwise rotation.
@@ -915,12 +963,6 @@ namespace RTE {
 		/// be done every frame.
 		void UpdateMOID(std::vector<MovableObject*>& MOIDIndex, MOID rootMOID = g_NoMOID, bool makeNewMOID = true);
 
-		/// Draws the MOID representation of this to the SceneMan's MOID layer if
-		/// this is found to potentially overlap another MovableObject.
-		/// @param pOverlapMO The MovableObject to check this for overlap against.
-		/// @return Whether it was drawn or not.
-		virtual bool DrawMOIDIfOverlapping(MovableObject* pOverlapMO) { return false; }
-
 		/// Draws this' current graphical HUD overlay representation to a
 		/// BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
@@ -936,10 +978,6 @@ namespace RTE {
 		/// Sets current rest threshold for this MO
 		/// @param newRestThreshold New rest threshold value
 		void SetRestThreshold(int newRestThreshold) { m_RestThreshold = newRestThreshold; }
-
-		/// Returns the next unique id for MO's and increments unique ID counter
-		/// @return Returns the next unique id.
-		static long GetNextUniqueID() { return ++m_UniqueIDCounter; }
 
 		/// Returns this MO's unique persistent ID
 		/// @return Returns this MO's unique persistent ID
@@ -1097,8 +1135,7 @@ namespace RTE {
 		/// @param A MovableObject object which is passed in by reference.
 		// Member variables
 		static Entity::ClassInfo m_sClass;
-		// Global counter with unique ID's
-		static std::atomic<long> m_UniqueIDCounter;
+
 		// The type of MO this is, either Actor, Item, or Particle
 		int m_MOType;
 		float m_Mass; // In metric kilograms (kg).
@@ -1227,6 +1264,8 @@ namespace RTE {
 		bool m_RandomizeEffectRotAngle;
 		// Whether effects rot angle should be randomized every frame
 		bool m_RandomizeEffectRotAngleEveryFrame;
+		// Whether or not to draw the effect every frame; used for flashes
+		bool m_PostEffectEnabled;
 
 		// This object's unique persistent ID
 		long m_UniqueID;
@@ -1277,6 +1316,9 @@ namespace RTE {
 		// Disallow the use of some implicit methods.
 		MovableObject(const MovableObject& reference) = delete;
 		MovableObject& operator=(const MovableObject& ref) = delete;
+
+		/// Sets the screen effect to draw at the final post-processing stage.
+		void SetPostScreenEffectToDraw() const;
 	};
 
 } // namespace RTE

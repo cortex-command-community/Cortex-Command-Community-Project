@@ -27,6 +27,7 @@
 #include "NetworkServer.h"
 #include "MultiplayerServerLobby.h"
 #include "MultiplayerGame.h"
+#include "MusicMan.h"
 
 using namespace RTE;
 
@@ -49,8 +50,6 @@ void ActivityMan::Clear() {
 	m_ActivityNeedsResume = false;
 	m_ResumingActivityFromPauseMenu = false;
 	m_SkipPauseMenuWhenPausingActivity = false;
-	m_LastMusicPath.clear();
-	m_LastMusicPos = 0.0F;
 	m_LaunchIntoActivity = false;
 	m_LaunchIntoEditor = false;
 }
@@ -95,6 +94,9 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		return false;
 	}
 
+	long currentMaxID = g_MovableMan.GetMaxUniqueID();
+	g_MovableMan.SetShouldPersistUniqueIDs(true);
+
 	// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
 	std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
 
@@ -127,6 +129,8 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	writer->NewPropertyWithValue("PlaceObjectsIfSceneIsRestarted", g_SceneMan.GetPlaceObjectsOnLoad());
 	writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
 	writer->NewPropertyWithValue("Scene", modifiableScene.get());
+	writer->NewPropertyWithValue("MaxUniqueID", currentMaxID);
+	writer->NewPropertyWithValue("CurrentSimTicks", g_TimerMan.GetSimTickCount());
 
 	auto saveWriterData = [](Writer* writerToSave) {
 		writerToSave->EndWrite();
@@ -138,6 +142,8 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 	// We didn't transfer ownership, so we must be very careful that sceneAltered's deletion doesn't touch the stuff we got from MovableMan.
 	modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, false);
+
+	g_MovableMan.SetShouldPersistUniqueIDs(false);
 
 	g_ConsoleMan.PrintString("SYSTEM: Game saved to \"" + fileName + "\"!");
 	return true;
@@ -158,6 +164,8 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	std::unique_ptr<Scene> scene(std::make_unique<Scene>());
 	std::unique_ptr<GAScripted> activity(std::make_unique<GAScripted>());
 
+	long maxUniqueID = 0;
+	long long simTimeTicks = 0;
 	std::string originalScenePresetName = fileName;
 	bool placeObjectsIfSceneIsRestarted = true;
 	bool placeUnitsIfSceneIsRestarted = true;
@@ -173,6 +181,11 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 			reader >> placeUnitsIfSceneIsRestarted;
 		} else if (propName == "Scene") {
 			reader >> scene.get();
+		} else if (propName == "MaxUniqueID") {
+			reader >> maxUniqueID;
+			g_MovableMan.SetShouldPersistUniqueIDs(true);
+		} else if (propName == "CurrentSimTicks") {
+			reader >> simTimeTicks;
 		}
 	}
 
@@ -183,6 +196,15 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	scene->SetPresetName(originalScenePresetName);
 	// For starting Activity, we need to directly clone the Activity we want to start.
 	StartActivity(dynamic_cast<GAScripted*>(activity->Clone()));
+
+	// Set the max unique ID to our loaded maximum so we don't stomp over any existing ones
+	if (maxUniqueID != 0) {
+		g_MovableMan.SetMaxUniqueID(maxUniqueID);
+	}
+
+	g_MovableMan.SetShouldPersistUniqueIDs(false);
+	g_TimerMan.SetSimTickCount(simTimeTicks);
+
 	// When this method exits, our Scene object will be destroyed, which will cause problems if you try to restart it. To avoid this, set the Scene to load to the preset object with the same name.
 	g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
 
@@ -290,11 +312,10 @@ int ActivityMan::StartActivity(Activity* activity) {
 	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
 	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
-	// Stop all music played by the current activity. It will be re-started by the new Activity.
-	g_AudioMan.StopMusic();
-
 	m_StartActivity.reset(activity);
 	m_Activity.reset(dynamic_cast<Activity*>(m_StartActivity->Clone()));
+
+	g_MusicMan.ResetMusicState();
 
 	m_Activity->SetupPlayers();
 	int error = m_Activity->Start();
@@ -319,8 +340,6 @@ int ActivityMan::StartActivity(Activity* activity) {
 	// Reset the mouse input to the center
 	g_UInputMan.SetMouseValueMagnitude(0.05F);
 
-	m_LastMusicPath = "";
-	m_LastMusicPos = 0;
 	g_AudioMan.PauseIngameSounds(false);
 
 	g_PerformanceMan.ResetPerformanceTimings();
@@ -356,26 +375,18 @@ void ActivityMan::PauseActivity(bool pause, bool skipPauseMenu) {
 		return;
 	}
 
-	if (pause) {
-		m_LastMusicPath = g_AudioMan.GetMusicPath();
-		m_LastMusicPos = g_AudioMan.GetMusicPosition();
-	} else {
-		if (!m_ResumingActivityFromPauseMenu && (!m_LastMusicPath.empty() && m_LastMusicPos > 0)) {
-			g_AudioMan.ClearMusicQueue();
-			g_AudioMan.PlayMusic(m_LastMusicPath.c_str());
-			g_AudioMan.SetMusicPosition(m_LastMusicPos);
-			g_AudioMan.QueueSilence(30);
-			g_AudioMan.QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
-			g_AudioMan.QueueSilence(30);
-			g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
-		}
-	}
-
 	m_Activity->SetPaused(pause);
 	m_InActivity = !pause;
 	m_ResumingActivityFromPauseMenu = false;
 	m_SkipPauseMenuWhenPausingActivity = skipPauseMenu;
+
 	g_AudioMan.PauseIngameSounds(pause);
+	g_AudioMan.SetMusicMuffledState(pause);
+
+	if (!pause) {
+		g_MusicMan.EndInterruptingMusic();
+	}
+
 	g_ConsoleMan.PrintString("SYSTEM: Activity \"" + m_Activity->GetPresetName() + "\" was " + (pause ? "paused" : "resumed"));
 }
 

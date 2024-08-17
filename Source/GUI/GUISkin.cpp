@@ -17,10 +17,6 @@ GUISkin::GUISkin(GUIScreen* Screen) {
 	Clear();
 }
 
-GUISkin::~GUISkin() {
-	Destroy();
-}
-
 void GUISkin::Clear() {
 	m_PropList.clear();
 	m_ImageCache.clear();

@@ -316,12 +316,12 @@ bool AtomGroup::UpdateSubAtoms(long subgroupID, const Vector& newOffset, const M
 	return true;
 }
 
-float AtomGroup::Travel(float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
-	return Travel(m_OwnerMOSR->m_Pos, m_OwnerMOSR->m_Vel, m_OwnerMOSR->m_Rotation, m_OwnerMOSR->m_AngularVel, m_OwnerMOSR->m_DidWrap, m_OwnerMOSR->m_TravelImpulse, m_OwnerMOSR->GetMass(), travelTime, callOnBounce, callOnSink, scenePreLocked);
+float AtomGroup::Travel(float travelTime, bool callOnBounce, bool callOnSink) {
+	return Travel(m_OwnerMOSR->m_Pos, m_OwnerMOSR->m_Vel, m_OwnerMOSR->m_Rotation, m_OwnerMOSR->m_AngularVel, m_OwnerMOSR->m_DidWrap, m_OwnerMOSR->m_TravelImpulse, m_OwnerMOSR->GetMass(), travelTime, callOnBounce, callOnSink);
 }
 
 // TODO: Break down and rework this trainwreck.
-float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, float& angularVel, bool& didWrap, Vector& totalImpulse, float mass, float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
+float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, float& angularVel, bool& didWrap, Vector& totalImpulse, float mass, float travelTime, bool callOnBounce, bool callOnSink) {
 	ZoneScoped;
 
 	RTEAssert(m_OwnerMOSR, "Tried to travel an AtomGroup that has no parent!");
@@ -363,9 +363,6 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 	penetratingAtoms.clear();
 	thread_local std::vector<Atom*> hitResponseAtoms;
 	hitResponseAtoms.clear();
-
-	// Lock all bitmaps involved outside the loop - only relevant for video bitmaps so disabled at the moment.
-	// if (!scenePreLocked) { g_SceneMan.LockScene(); }
 
 	// Loop for all the different straight segments (between bounces etc) that have to be traveled during the travelTime.
 	do {
@@ -730,8 +727,6 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 
 	ResolveMOSIntersection(position);
 
-	// if (!scenePreLocked) { g_SceneMan.UnlockScene(); }
-
 	ClearMOIDIgnoreList();
 
 	// If too many Atoms are ignoring terrain, make a hole for the body so they won't
@@ -765,7 +760,7 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 }
 
 // TODO: Break down and rework this dumpsterfire.
-Vector AtomGroup::PushTravel(Vector& position, const Vector& velocity, float pushForce, bool& didWrap, float travelTime, bool callOnBounce, bool callOnSink, bool scenePreLocked) {
+Vector AtomGroup::PushTravel(Vector& position, const Vector& velocity, float pushForce, bool& didWrap, float travelTime, bool callOnBounce, bool callOnSink) {
 	ZoneScoped;
 
 	RTEAssert(m_OwnerMOSR, "Tried to push-travel an AtomGroup that has no parent!");
@@ -811,9 +806,6 @@ Vector AtomGroup::PushTravel(Vector& position, const Vector& velocity, float pus
 	hitTerrAtoms.clear();
 	thread_local std::deque<std::pair<Atom*, Vector>> penetratingAtoms;
 	penetratingAtoms.clear();
-
-	// Lock all bitmaps involved outside the loop - only relevant for video bitmaps so disabled at the moment.
-	// if (!scenePreLocked) { g_SceneMan.LockScene(); }
 
 	// Before the very first step of the first leg of this travel, we find that we're already intersecting with another MO, then we completely ignore collisions with that MO for this entire travel.
 	// This is to prevent MO's from getting stuck in each other.
@@ -1301,7 +1293,7 @@ void AtomGroup::FlailAsLimb(const Vector& ownerPos, const Vector& jointOffset, c
 	totalVel.RadRotate(angularVel * travelTime);
 	totalVel += jointOffset * std::abs(angularVel);
 
-	Vector pushImpulse = PushTravel(m_LimbPos, totalVel, 100, didWrap, travelTime, false, false, false);
+	Vector pushImpulse = PushTravel(m_LimbPos, totalVel, 100, didWrap, travelTime, false, false);
 
 	Vector limbRange = m_LimbPos - jointPos;
 
@@ -1315,9 +1307,6 @@ void AtomGroup::FlailAsLimb(const Vector& ownerPos, const Vector& jointOffset, c
 bool AtomGroup::InTerrain() const {
 	RTEAssert(m_OwnerMOSR, "Tried to check overlap with terrain for an AtomGroup that has no parent!");
 
-	// Only relevant for video bitmaps so disabled at the moment.
-	// if (!g_SceneMan.SceneIsLocked()) { g_SceneMan.LockScene(); }
-
 	bool penetrates = false;
 	Vector atomPos;
 
@@ -1329,16 +1318,11 @@ bool AtomGroup::InTerrain() const {
 		}
 	}
 
-	// if (g_SceneMan.SceneIsLocked()) { g_SceneMan.UnlockScene(); }
-
 	return penetrates;
 }
 
 float AtomGroup::RatioInTerrain() const {
 	RTEAssert(m_OwnerMOSR, "Tried to check ratio in terrain for an AtomGroup that has no parent!");
-
-	// Only relevant for video bitmaps so disabled at the moment.
-	// if (!g_SceneMan.SceneIsLocked()) { g_SceneMan.LockScene(); }
 
 	Vector atomPos;
 	int inTerrain = 0;
@@ -1349,8 +1333,6 @@ float AtomGroup::RatioInTerrain() const {
 			inTerrain++;
 		}
 	}
-
-	// if (g_SceneMan.SceneIsLocked()) { g_SceneMan.UnlockScene(); }
 
 	return static_cast<float>(inTerrain) / static_cast<float>(m_Atoms.size());
 }
@@ -1377,9 +1359,11 @@ bool AtomGroup::ResolveTerrainIntersection(Vector& position, unsigned char stron
 			intersectingAtoms.push_back(atom);
 		}
 	}
+
 	if (intersectingAtoms.empty()) {
 		return true;
 	}
+
 	if (intersectingAtoms.size() >= m_Atoms.size()) {
 		return false;
 	}
@@ -1470,13 +1454,11 @@ bool AtomGroup::ResolveMOSIntersection(Vector& position) {
 			if (tempMO->GetsHitByMOs()) {
 				// Make that MO draw itself again in the MOID layer so we can find its true edges
 				intersectedMO = tempMO;
-#ifdef DRAW_MOID_LAYER
-				intersectedMO->Draw(g_SceneMan.GetMOIDBitmap(), Vector(), g_DrawMOID, true);
-#endif
 				break;
 			}
 		}
 	}
+
 	if (!intersectedMO) {
 		return false;
 	}
@@ -1604,8 +1586,6 @@ void AtomGroup::Draw(BITMAP* targetBitmap, const Vector& targetPos, bool useLimb
 	Vector atomPos;
 	Vector normal;
 
-	acquire_bitmap(targetBitmap);
-
 	for (const Atom* atom: m_Atoms) {
 		if (!useLimbPos) {
 			atomPos = m_OwnerMOSR->GetPos() + GetAdjustedAtomOffset(atom);
@@ -1618,7 +1598,6 @@ void AtomGroup::Draw(BITMAP* targetBitmap, const Vector& targetPos, bool useLimb
 		}
 		putpixel(targetBitmap, atomPos.GetFloorIntX() - targetPos.GetFloorIntX(), atomPos.GetFloorIntY() - targetPos.GetFloorIntY(), color);
 	}
-	release_bitmap(targetBitmap);
 }
 
 // TODO: dan pls.
@@ -1813,8 +1792,6 @@ void AtomGroup::GenerateAtomGroup(MOSRotating* ownerMOSRotating) {
 				}
 			}
 		}
-		release_bitmap(refSprite);
-		release_bitmap(checkBitmap);
 
 		destroy_bitmap(checkBitmap);
 		checkBitmap = nullptr;

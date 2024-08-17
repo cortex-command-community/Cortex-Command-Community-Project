@@ -52,6 +52,11 @@ void SoundContainer::Clear() {
 	m_Volume = 1.0F;
 	m_Pitch = 1.0F;
 	m_PitchVariation = 0;
+
+	m_WasFadedOut = false;
+	m_Paused = false;
+	m_MusicPreEntryTime = 0.0F;
+	m_MusicPostExitTime = 0.0F;
 }
 
 int SoundContainer::Create(const SoundContainer& reference) {
@@ -76,6 +81,11 @@ int SoundContainer::Create(const SoundContainer& reference) {
 	m_Volume = reference.m_Volume;
 	m_Pitch = reference.m_Pitch;
 	m_PitchVariation = reference.m_PitchVariation;
+
+	m_WasFadedOut = reference.m_WasFadedOut;
+	m_Paused = reference.m_Paused;
+	m_MusicPreEntryTime = reference.m_MusicPreEntryTime;
+	m_MusicPostExitTime = reference.m_MusicPostExitTime;
 
 	return 0;
 }
@@ -145,6 +155,9 @@ int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reade
 	MatchProperty("Pitch", { reader >> m_Pitch; });
 	MatchProperty("PitchVariation", { reader >> m_PitchVariation; });
 
+	MatchProperty("MusicPreEntryTime", { reader >> m_MusicPreEntryTime; });
+	MatchProperty("MusicPostExitTime", { reader >> m_MusicPostExitTime; });
+
 	EndPropertyList;
 }
 
@@ -190,6 +203,15 @@ int SoundContainer::Save(Writer& writer) const {
 	writer << m_Pitch;
 	writer.NewProperty("PitchVariation");
 	writer << m_PitchVariation;
+
+	writer.NewProperty("WasFadedOut");
+	writer << m_WasFadedOut;
+	writer.NewProperty("Paused");
+	writer << m_Paused;
+	writer.NewProperty("MusicPreEntryTime");
+	writer << m_MusicPreEntryTime;
+	writer.NewProperty("MusicPostExitTime");
+	writer << m_MusicPostExitTime;
 
 	return 0;
 }
@@ -260,6 +282,10 @@ void SoundContainer::SetPosition(const Vector& newPosition) {
 	}
 }
 
+float SoundContainer::GetAudibleVolume() const {
+	return g_AudioMan.GetSoundContainerAudibleVolume(this);
+}
+
 void SoundContainer::SetVolume(float newVolume) {
 	newVolume = std::clamp(newVolume, 0.0F, 10.0F);
 	if (IsBeingPlayed()) {
@@ -275,8 +301,16 @@ void SoundContainer::SetPitch(float newPitch) {
 	}
 }
 
+void SoundContainer::SetPaused(bool paused) {
+	if (paused != m_Paused) {
+		m_Paused = paused;
+		g_AudioMan.SetPausedSoundContainerPlayingChannels(this, paused);
+	}
+}
+
 bool SoundContainer::Play(int player) {
 	if (HasAnySounds()) {
+		m_WasFadedOut = false;
 		if (IsBeingPlayed()) {
 			if (m_SoundOverlapMode == SoundOverlapMode::RESTART) {
 				return Restart(player);
@@ -298,7 +332,8 @@ bool SoundContainer::Restart(int player) {
 }
 
 void SoundContainer::FadeOut(int fadeOutTime) {
-	if (IsBeingPlayed()) {
+	if (!m_WasFadedOut && IsBeingPlayed()) {
+		m_WasFadedOut = true;
 		return g_AudioMan.FadeOutSoundContainerPlayingChannels(this, fadeOutTime);
 	}
 }

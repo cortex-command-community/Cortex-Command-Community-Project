@@ -567,56 +567,6 @@ BITMAP* ACrab::GetGraphicalIcon() const {
 	return m_GraphicalIcon ? m_GraphicalIcon : (m_pTurret ? m_pTurret->GetSpriteFrame(0) : GetSpriteFrame(0));
 }
 
-bool ACrab::CollideAtPoint(HitData& hd) {
-	return Actor::CollideAtPoint(hd);
-
-	/*
-	    hd.ResImpulse[HITOR].Reset();
-	    hd.ResImpulse[HITEE].Reset();
-	    hd.HitRadius[HITEE] = (hd.HitPoint - m_Pos) * c_MPP;
-	    hd.mass[HITEE] = m_Mass;
-	    hd.MomInertia[HITEE] = m_pAtomGroup->GetMomentOfInertia();
-	    hd.HitVel[HITEE] = m_Vel + hd.HitRadius[HITEE].GetPerpendicular() * m_AngularVel;
-	    hd.VelDiff = hd.HitVel[HITOR] - hd.HitVel[HITEE];
-	    Vector hitAcc = -hd.VelDiff * (1 + hd.Body[HITOR]->GetMaterial().restitution * GetMaterial().restitution);
-
-	    float hittorLever = hd.HitRadius[HITOR].GetPerpendicular().Dot(hd.BitmapNormal);
-	    float hitteeLever = hd.HitRadius[HITEE].GetPerpendicular().Dot(hd.BitmapNormal);
-	    hittorLever *= hittorLever;
-	    hitteeLever *= hitteeLever;
-	    float impulse = hitAcc.Dot(hd.BitmapNormal) / (((1 / hd.mass[HITOR]) + (1 / hd.mass[HITEE])) +
-	                    (hittorLever / hd.MomInertia[HITOR]) + (hitteeLever / hd.MomInertia[HITEE]));
-
-	    hd.ResImpulse[HITOR] = hd.BitmapNormal * impulse * hd.ImpulseFactor[HITOR];
-	    hd.ResImpulse[HITEE] = hd.BitmapNormal * -impulse * hd.ImpulseFactor[HITEE];
-
-	    ////////////////////////////////////////////////////////////////////////////////
-	    // If a particle, which does not penetrate, but bounces, do any additional
-	    // effects of that bounce.
-	    if (!ParticlePenetration())
-	// TODO: Add blunt trauma effects here!")
-	        ;
-	    }
-
-	    m_Vel += hd.ResImpulse[HITEE] / hd.mass[HITEE];
-	    m_AngularVel += hd.HitRadius[HITEE].GetPerpendicular().Dot(hd.ResImpulse[HITEE]) /
-	                    hd.MomInertia[HITEE];
-	*/
-}
-
-/*
-bool ACrab::OnBounce(const Vector &pos)
-{
-    return false;
-}
-
-
-bool ACrab::OnSink(const Vector &pos)
-{
-    return false;
-}
-*/
-
 bool ACrab::HandlePieCommand(PieSliceType pieSliceIndex) {
 	if (pieSliceIndex != PieSliceType::NoType) {
 		if (pieSliceIndex == PieSliceType::Reload) {
@@ -739,8 +689,9 @@ bool ACrab::IsWithinRange(Vector& point) const {
 }
 
 bool ACrab::Look(float FOVSpread, float range) {
-	if (!g_SceneMan.AnythingUnseen(m_Team))
+	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false) {
 		return false;
+	}
 
 	// Set the length of the look vector
 	float aimDistance = m_AimDistance + range;
@@ -765,11 +716,13 @@ bool ACrab::Look(float FOVSpread, float range) {
 	// Add the spread
 	lookVector.DegRotate(FOVSpread * RandomNormalNum());
 
+	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
+	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
+
 	// TODO: generate an alarm event if we spot an enemy actor?
 
-	Vector ignored;
-	// Cast the seeing ray, adjusting the skip to match the resolution of the unseen map
-	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
+	Vector ignored(0, 0);
+	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
 }
 
 MovableObject* ACrab::LookForMOs(float FOVSpread, unsigned char ignoreMaterial, bool ignoreAllTerrain) {
@@ -1423,29 +1376,6 @@ void ACrab::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	if (!m_HUDVisible) {
 		return;
 	}
-	/*
-	// TODO: REMOVE< THIS IS TEMP
-	    // Draw the AI paths
-	    list<Vector>::iterator last = m_MovePath.begin();
-	    Vector waypoint, lastPoint, lineVec;
-	    for (list<Vector>::iterator lItr = m_MovePath.begin(); lItr != m_MovePath.end(); ++lItr)
-	    {
-	        lastPoint = (*last) - targetPos;
-	        waypoint = lastPoint + g_SceneMan.ShortestDistance(lastPoint, (*lItr) - targetPos);
-	        line(pTargetBitmap, lastPoint.m_X, lastPoint.m_Y, waypoint.m_X, waypoint.m_Y, g_RedColor);
-	        last = lItr;
-	    }
-	    waypoint = m_MoveTarget - targetPos;
-	    circlefill(pTargetBitmap, waypoint.m_X, waypoint.m_Y, 3, g_RedColor);
-	    lastPoint = m_PrevPathTarget - targetPos;
-	    circlefill(pTargetBitmap, lastPoint.m_X, lastPoint.m_Y, 2, g_YellowGlowColor);
-	    lastPoint = m_DigTunnelEndPos - targetPos;
-	    circlefill(pTargetBitmap, lastPoint.m_X, lastPoint.m_Y, 2, g_YellowGlowColor);
-	    // Raidus
-	//    waypoint = m_Pos - targetPos;
-	//    circle(pTargetBitmap, waypoint.m_X, waypoint.m_Y, m_MoveProximityLimit, g_RedColor);
-	// TODO: REMOVE THIS IS TEMP
-	*/
 
 	// Player AI drawing
 
@@ -1554,63 +1484,6 @@ void ACrab::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 			}
 			m_HUDStack -= 9;
 		}
-
-		// Print aim angle and rot angle stoff
-		/*{
-		    std::snprintf(str, sizeof(str), "Aim %.2f Rot %.2f Lim %.2f", m_AimAngle, GetRotAngle(), m_AimRange + GetRotAngle());
-		    pSmallFont->DrawAligned(&allegroBitmap, drawPos.m_X - 0, drawPos.m_Y + m_HUDStack + 3, str, GUIFont::Centre);
-
-		    m_HUDStack += -10;
-		}*/
-
-		/*
-		        // AI Mode select GUI HUD
-		        if (m_Controller.IsState(AI_MODE_SET))
-		        {
-		            int iconOff = m_apAIIcons[0]->w + 2;
-		            int iconColor = m_Team == Activity::TeamOne ? AIICON_RED : AIICON_GREEN;
-		            Vector iconPos = GetCPUPos() - targetPos;
-
-		            if (m_AIMode == AIMODE_SENTRY)
-		            {
-		                std::snprintf(str, sizeof(str), "%s", "Sentry");
-		                pSmallFont->DrawAligned(&allegroBitmap, iconPos.m_X, iconPos.m_Y - 18, str, GUIFont::Centre);
-		            }
-		            else if (m_AIMode == AIMODE_PATROL)
-		            {
-		                std::snprintf(str, sizeof(str), "%s", "Patrol");
-		                pSmallFont->DrawAligned(&allegroBitmap, iconPos.m_X - 9, iconPos.m_Y - 5, str, GUIFont::Right);
-		            }
-		            else if (m_AIMode == AIMODE_BRAINHUNT)
-		            {
-		                std::snprintf(str, sizeof(str), "%s", "Brainhunt");
-		                pSmallFont->DrawAligned(&allegroBitmap, iconPos.m_X + 9, iconPos.m_Y - 5, str, GUIFont::Left);
-		            }
-		            else if (m_AIMode == AIMODE_GOLDDIG)
-		            {
-		                std::snprintf(str, sizeof(str), "%s", "Gold Dig");
-		                pSmallFont->DrawAligned(&allegroBitmap, iconPos.m_X, iconPos.m_Y + 8, str, GUIFont::Centre);
-		            }
-
-		            // Draw the mode alternatives if they are not the current one
-		            if (m_AIMode != AIMODE_SENTRY)
-		            {
-		                draw_sprite(pTargetBitmap, m_apAIIcons[AIMODE_SENTRY], iconPos.m_X - 6, iconPos.m_Y - 6 - iconOff);
-		            }
-		            if (m_AIMode != AIMODE_PATROL)
-		            {
-		                draw_sprite(pTargetBitmap, m_apAIIcons[AIMODE_PATROL], iconPos.m_X - 6 - iconOff, iconPos.m_Y - 6);
-		            }
-		            if (m_AIMode != AIMODE_BRAINHUNT)
-		            {
-		                draw_sprite(pTargetBitmap, m_apAIIcons[AIMODE_BRAINHUNT], iconPos.m_X - 6 + iconOff, iconPos.m_Y - 6);
-		            }
-		            if (m_AIMode != AIMODE_GOLDDIG)
-		            {
-		                draw_sprite(pTargetBitmap, m_apAIIcons[AIMODE_GOLDDIG], iconPos.m_X - 6, iconPos.m_Y - 6 + iconOff);
-		            }
-		        }
-		*/
 	}
 }
 

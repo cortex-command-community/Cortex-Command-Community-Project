@@ -7,7 +7,7 @@ runs:
       shell: bash
 
     - name: Download build artefacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: release
 
@@ -18,8 +18,8 @@ runs:
       shell: bash
       run: |
         zip --must-match -j CortexCommand.windows.zip \
-          release/Cortex\ Command*.exe/Cortex\ Command*.exe \
-          release/Cortex\ Command*.exe/Cortex\ Command*.pdb \
+          release/Cortex\ Command*/Cortex\ Command*.exe \
+          release/Cortex\ Command*/Cortex\ Command*.pdb \
           external/lib/win/{fmod,SDL2}.dll
 
     - name: Compress Linux Release

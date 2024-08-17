@@ -142,9 +142,6 @@ void MultiplayerServerLobby::Destroy(bool notInherited) {
 int MultiplayerServerLobby::Start() {
 	int error = GameActivity::Start();
 
-	g_AudioMan.ClearMusicQueue();
-	g_AudioMan.StopMusic();
-
 	SetPresetName("Multiplayer Lobby");
 
 	//////////////////////////////////////////////
@@ -807,9 +804,6 @@ bool MultiplayerServerLobby::StartGame() {
 
 	// Put the new and newly set up Activity as the one to start
 	g_ActivityMan.EndActivity();
-
-	g_AudioMan.ClearMusicQueue();
-	g_AudioMan.StopMusic();
 
 	g_ActivityMan.SetRestartActivity();
 	g_ActivityMan.SetStartActivity(pActivity);

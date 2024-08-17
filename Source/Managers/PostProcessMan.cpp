@@ -1,6 +1,7 @@
 #include "PostProcessMan.h"
 
 #include "CameraMan.h"
+#include "WindowMan.h"
 #include "FrameMan.h"
 #include "Scene.h"
 #include "ContentFile.h"
@@ -124,9 +125,11 @@ void PostProcessMan::CreateGLBackBuffers() {
 	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, c_PaletteEntriesNumber, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 	UpdatePalette();
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	m_ProjectionMatrix = std::make_unique<glm::mat4>(glm::ortho(0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->w), 0.0F, static_cast<float>(g_FrameMan.GetBackBuffer8()->h), -1.0F, 1.0F));
+	m_ProjectionMatrix = std::make_unique<glm::mat4>(glm::ortho(0.0F, static_cast<float>(g_WindowMan.GetResX()), 0.0F, static_cast<float>(g_WindowMan.GetResY()), -1.0F, 1.0F));
 }
 
 void PostProcessMan::UpdatePalette() {
@@ -152,8 +155,8 @@ void PostProcessMan::LazyInitBitmap(BITMAP* bitmap) {
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, reinterpret_cast<GLBitmapInfo*>(bitmap->extra)->m_Texture));
 	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmap->w, bitmap->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[0]));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
 }
 
@@ -385,7 +388,7 @@ void PostProcessMan::PostProcess() {
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_Palette8Texture));
 	GL_CHECK(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_BlitFramebuffer));
 	GL_CHECK(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_BackBuffer32, 0));
-	GL_CHECK(glViewport(0, 0, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h));
+	GL_CHECK(glViewport(0, 0, g_WindowMan.GetResX(), g_WindowMan.GetResY()));
 	m_Blit8->Use();
 	m_Blit8->SetInt(m_Blit8->GetTextureUniform(), 0);
 	int paletteUniform = m_Blit8->GetUniformLocation("rtePalette");
@@ -404,7 +407,7 @@ void PostProcessMan::PostProcess() {
 	GL_CHECK(glBlendColor(0.5F, 0.5F, 0.5F, 0.5F));
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, m_PostProcessFramebuffer));
 	GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_BackBuffer32, 0));
-	GL_CHECK(glViewport(0, 0, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h));
+	GL_CHECK(glViewport(0, 0, g_WindowMan.GetResX(), g_WindowMan.GetResY()));
 
 	m_PostProcessShader->Use();
 
@@ -503,7 +506,7 @@ void PostProcessMan::DrawPostScreenEffects() {
 			glm::mat4 transformMatrix(1);
 			transformMatrix = glm::translate(transformMatrix, glm::vec3(effectPosX, effectPosY, 0));
 			transformMatrix = glm::rotate(transformMatrix, -postEffect.m_Angle, glm::vec3(0, 0, 1));
-			transformMatrix = glm::scale(transformMatrix, glm::vec3(effectBitmap->w * 0.5f, effectBitmap->h * 0.5f, 1.0));
+			transformMatrix = glm::scale(transformMatrix, glm::vec3(static_cast<float>(effectBitmap->w) * 0.5f, static_cast<float>(effectBitmap->h) * 0.5f, 1.0f));
 
 			GL_CHECK(glBindTexture(GL_TEXTURE_2D, reinterpret_cast<GLBitmapInfo*>(postEffect.m_Bitmap->extra)->m_Texture));
 			m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetTransformUniform(), transformMatrix);
