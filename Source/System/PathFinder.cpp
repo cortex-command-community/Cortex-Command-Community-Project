@@ -360,7 +360,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 				break;
 			}
 
-			totalMaterialCost += 1.0f + extraUpCost + (GetMaterialTransitionCost(*node->UpMaterial) * 50.0F) + radiatedCost;
+			totalMaterialCost += 1.0f + extraUpCost + (GetMaterialTransitionCost(*node->UpMaterial) * 3.0F) + radiatedCost;
 
 			adjCost.cost = totalMaterialCost;
 			adjCost.state = static_cast<void*>(currentNode->Up);
