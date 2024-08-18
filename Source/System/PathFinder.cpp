@@ -319,6 +319,23 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 			adjacentList->push_back(adjCost);
 
 			currentNode = currentNode->Up;
+
+			// We can step here
+			if (currentNode->Left && currentNode->Left->m_Navigatable && 
+				currentNode->LeftMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && currentNode->Left->DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
+
+				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
+				adjCost.state = static_cast<void*>(node->Left);
+				adjacentList->push_back(adjCost);
+			}
+
+			if (currentNode->Right && currentNode->Right->m_Navigatable &&
+			    currentNode->RightMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && currentNode->Right->DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
+
+				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
+				adjCost.state = static_cast<void*>(node->Right);
+				adjacentList->push_back(adjCost);
+			}
 		}
 
 		// We can only go straight left or right if we're on solid ground, otherwise we need to go downwards
