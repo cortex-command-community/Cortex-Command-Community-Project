@@ -96,15 +96,23 @@ int Scene::Area::Save(Writer& writer) const {
 	return 0;
 }
 
-bool Scene::Area::AddBox(const Box& newBox) {
-	if (newBox.IsEmpty())
-		return false;
+// Having a mutex on all areas is fugly, but this is only really useful to stop async pathfinding getting fucked by the list changing underneath us
+// TODO: Something much, much better
+static std::shared_mutex g_sceneAreaMutex;
 
+bool Scene::Area::AddBox(const Box& newBox) {
+	if (newBox.IsEmpty()) {
+		return false;
+	}
+
+	std::unique_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 	m_BoxList.push_back(newBox);
 	return true;
 }
 
 bool Scene::Area::RemoveBox(const Box& boxToRemove) {
+	std::unique_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	std::vector<Box>::iterator boxToRemoveIterator = std::find(m_BoxList.begin(), m_BoxList.end(), boxToRemove);
 	if (boxToRemoveIterator != m_BoxList.end()) {
 		m_BoxList.erase(boxToRemoveIterator);
@@ -115,10 +123,12 @@ bool Scene::Area::RemoveBox(const Box& boxToRemove) {
 
 bool Scene::Area::HasNoArea() const {
 	// If no boxes, then yeah we don't have any area
-	if (m_BoxList.empty())
+	if (m_BoxList.empty()) {
 		return true;
+	}
 
 	// Search through the boxes to see if we find any with both width and height
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 	for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr) {
 		if (!itr->IsEmpty())
 			return false;
@@ -128,6 +138,8 @@ bool Scene::Area::HasNoArea() const {
 }
 
 bool Scene::Area::IsInside(const Vector& point) const {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+	
 	std::list<Box> wrappedBoxes;
 	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
 		// Handle wrapped boxes properly
@@ -144,6 +156,8 @@ bool Scene::Area::IsInside(const Vector& point) const {
 }
 
 bool Scene::Area::IsInsideX(float pointX) const {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	std::list<Box> wrappedBoxes;
 	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
 		// Handle wrapped boxes properly
@@ -160,6 +174,8 @@ bool Scene::Area::IsInsideX(float pointX) const {
 }
 
 bool Scene::Area::IsInsideY(float pointY) const {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	std::list<Box> wrappedBoxes;
 	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
 		// Handle wrapped boxes properly
@@ -176,8 +192,11 @@ bool Scene::Area::IsInsideY(float pointY) const {
 }
 
 bool Scene::Area::MovePointInsideX(float& pointX, int direction) const {
-	if (HasNoArea() || IsInsideX(pointX))
+	if (HasNoArea() || IsInsideX(pointX)) {
 		return false;
+	}
+
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 
 	float notFoundValue = 10000000;
 	float shortest = notFoundValue;
@@ -227,6 +246,8 @@ bool Scene::Area::MovePointInsideX(float& pointX, int direction) const {
 }
 
 Box* Scene::Area::GetBoxInside(const Vector& point) {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	std::list<Box> wrappedBoxes;
 	for (std::vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
 		// Handle wrapped boxes properly
@@ -244,6 +265,8 @@ Box* Scene::Area::GetBoxInside(const Vector& point) {
 }
 
 Box Scene::Area::RemoveBoxInside(const Vector& point) {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	Box returnBox;
 
 	std::list<Box> wrappedBoxes;
@@ -266,8 +289,9 @@ Box Scene::Area::RemoveBoxInside(const Vector& point) {
 }
 
 Vector Scene::Area::GetCenterPoint() const {
-	Vector areaCenter;
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 
+	Vector areaCenter;
 	if (!m_BoxList.empty()) {
 		if (m_BoxList.size() == 1) {
 			return m_BoxList[0].GetCenter();
@@ -288,10 +312,12 @@ Vector Scene::Area::GetCenterPoint() const {
 
 Vector Scene::Area::GetRandomPoint() const {
 	// If no boxes, then can't return valid point
-	if (m_BoxList.empty())
+	if (m_BoxList.empty()) {
 		return Vector();
+	}
 
 	// Randomly choose a box, and a point within it
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 	return m_BoxList[RandomNum<int>(0, m_BoxList.size() - 1)].GetRandomPoint();
 }
 
