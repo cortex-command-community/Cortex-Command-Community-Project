@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Added</b></summary>
 
+- Pathfinding and navigation overhaul, including jetpack/jump-aware pathfinding.  
+	Actors will now intelligently choose their path depending on how high they can jump, instead of always taking the shortest path. This will reduce instances of the AI getting stuck while trying to take impossible paths.
+
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
 	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.  
