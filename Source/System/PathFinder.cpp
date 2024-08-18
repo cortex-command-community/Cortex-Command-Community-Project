@@ -165,7 +165,7 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	s_DigStrength = digStrength;
 
 	// Actors capable of jumping/jetpacking can move vertically. Hardcoded for now
-	s_JumpHeight = 5.0f;
+	s_JumpHeight = 15.0f;
 
 	// Do the actual pathfinding, fetch out the list of states that comprise the best path.
 	int result = MicroPather::NO_SOLUTION;
@@ -298,45 +298,35 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 	const float costRadiationMultiplier = 0.2F;
 	float radiatedCost = 0.0f; //GetNodeAverageTransitionCost(*node) * costRadiationMultiplier;
 
+	if (node->Down && node->Down->m_Navigatable) {
+		adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->DownMaterial) + radiatedCost;
+		adjCost.state = static_cast<void*>(node->Down);
+		adjacentList->push_back(adjCost);
+	}
+
+	if (node->RightDown && node->RightDown->m_Navigatable) {
+		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->RightDownMaterial) * 1.4F) + radiatedCost;
+		adjCost.state = static_cast<void*>(node->RightDown);
+		adjacentList->push_back(adjCost);
+	}
+
+	if (node->DownLeft && node->DownLeft->m_Navigatable) {
+		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->DownLeftMaterial) * 1.4F) + radiatedCost;
+		adjCost.state = static_cast<void*>(node->DownLeft);
+		adjacentList->push_back(adjCost);
+	}
+
 	// How high up we can jump from this node
-	const bool isOnSolidGround = node->Down && node->DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength;
-	if (isOnSolidGround) {
+	auto nodeIsOnSolidGround = [](const PathNode* node) {
+		return node->Down && node->DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength;
+	};
+
+	if (nodeIsOnSolidGround(node)) {
 		// Cost to discourage us from going up
 		const float extraUpCost = 3.0F;
 
 		// How far we can jump up
 		const int jumpHeightInNodes = static_cast<int>(s_JumpHeight / (m_NodeDimension * c_MPP));
-
-		const PathNode* currentNode = node;
-		for (int i = 0; i < jumpHeightInNodes; ++i) {
-			if (currentNode->Up == nullptr || !currentNode->Up->m_Navigatable || currentNode->UpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
-				// solid ceiling, stop
-				break;
-			}
-
-			adjCost.cost = 1.0f + static_cast<float>(i) + extraUpCost + radiatedCost;
-			adjCost.state = static_cast<void*>(currentNode->Up);
-			adjacentList->push_back(adjCost);
-
-			currentNode = currentNode->Up;
-
-			// We can step here
-			if (currentNode->Left && currentNode->Left->m_Navigatable && 
-				currentNode->LeftMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && currentNode->Left->DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
-
-				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
-				adjCost.state = static_cast<void*>(node->Left);
-				adjacentList->push_back(adjCost);
-			}
-
-			if (currentNode->Right && currentNode->Right->m_Navigatable &&
-			    currentNode->RightMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && currentNode->Right->DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
-
-				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
-				adjCost.state = static_cast<void*>(node->Right);
-				adjacentList->push_back(adjCost);
-			}
-		}
 
 		// We can only go straight left or right if we're on solid ground, otherwise we need to go downwards
 		if (node->Left && node->Left->m_Navigatable) {
@@ -357,7 +347,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 				adjacentList->push_back(adjCost);
 
 				currentNode = currentNode->Left;
-				if (currentNode->DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
+				if (nodeIsOnSolidGround(currentNode)) {
 					// Solid ground, just walk from here
 					break;
 				}
@@ -382,7 +372,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 				adjacentList->push_back(adjCost);
 
 				currentNode = currentNode->Right;
-				if (currentNode->DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
+				if (nodeIsOnSolidGround(currentNode)) {
 					// Solid ground, just walk from here
 					break;
 				}
@@ -401,24 +391,37 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 			adjCost.state = static_cast<void*>(node->LeftUp);
 			adjacentList->push_back(adjCost);
 		}
-	}
 
-	if (node->Down && node->Down->m_Navigatable) {
-		adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->DownMaterial) + radiatedCost;
-		adjCost.state = static_cast<void*>(node->Down);
-		adjacentList->push_back(adjCost);
-	}
+		const PathNode* currentNode = node;
+		for (int i = 0; i < jumpHeightInNodes; ++i) {
+			if (currentNode->Up == nullptr || !currentNode->Up->m_Navigatable || currentNode->UpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
+				// solid ceiling, stop
+				break;
+			}
 
-	if (node->RightDown && node->RightDown->m_Navigatable) {
-		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->RightDownMaterial) * 1.4F) + radiatedCost;
-		adjCost.state = static_cast<void*>(node->RightDown);
-		adjacentList->push_back(adjCost);
-	}
+			adjCost.cost = 1.0f + static_cast<float>(i) + extraUpCost + radiatedCost;
+			adjCost.state = static_cast<void*>(currentNode->Up);
+			adjacentList->push_back(adjCost);
 
-	if (node->DownLeft && node->DownLeft->m_Navigatable) {
-		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->DownLeftMaterial) * 1.4F) + radiatedCost;
-		adjCost.state = static_cast<void*>(node->DownLeft);
-		adjacentList->push_back(adjCost);
+			currentNode = currentNode->Up;
+
+			// We can step here
+			if (currentNode->Left && currentNode->Left->m_Navigatable &&
+			    currentNode->LeftMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && nodeIsOnSolidGround(currentNode->Left)) {
+
+				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
+				adjCost.state = static_cast<void*>(node->Left);
+				adjacentList->push_back(adjCost);
+			}
+
+			if (currentNode->Right && currentNode->Right->m_Navigatable &&
+			    currentNode->RightMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && nodeIsOnSolidGround(currentNode->Right)) {
+
+				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
+				adjCost.state = static_cast<void*>(node->Right);
+				adjacentList->push_back(adjCost);
+			}
+		}
 	}
 }
 
