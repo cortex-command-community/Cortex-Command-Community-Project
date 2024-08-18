@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include "SceneMan.h"
 #include "ThreadMan.h"
+#include "ConsoleMan.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -330,50 +331,12 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->LeftMaterial) + radiatedCost;
 			adjCost.state = static_cast<void*>(node->Left);
 			adjacentList->push_back(adjCost);
-
-			// Allow us to jump gaps
-			const PathNode* currentNode = node->Left;
-			for (int i = 0; i < jumpHeightInNodes + 1; ++i) {
-				if (currentNode->Left == nullptr || !currentNode->Left->m_Navigatable || currentNode->LeftMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
-					// solid ceiling, stop
-					break;
-				}
-
-				adjCost.cost = 1.0f + static_cast<float>(i) + extraUpCost + radiatedCost;
-				adjCost.state = static_cast<void*>(currentNode->Left);
-				adjacentList->push_back(adjCost);
-
-				currentNode = currentNode->Left;
-				if (NodeIsOnSolidGround(*currentNode)) {
-					// Solid ground, just walk from here
-					break;
-				}
-			}
 		}
 
 		if (node->Right && node->Right->m_Navigatable) {
 			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->RightMaterial) + radiatedCost;
 			adjCost.state = static_cast<void*>(node->Right);
 			adjacentList->push_back(adjCost);
-
-			// Allow us to jump gaps
-			const PathNode* currentNode = node->Right;
-			for (int i = 0; i < jumpHeightInNodes + 1; ++i) {
-				if (currentNode->Right == nullptr || !currentNode->Right->m_Navigatable || currentNode->RightMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
-					// solid ceiling, stop
-					break;
-				}
-
-				adjCost.cost = 1.0f + static_cast<float>(i) + extraUpCost + radiatedCost;
-				adjCost.state = static_cast<void*>(currentNode->Right);
-				adjacentList->push_back(adjCost);
-
-				currentNode = currentNode->Right;
-				if (NodeIsOnSolidGround(*currentNode)) {
-					// Solid ground, just walk from here
-					break;
-				}
-			}
 		}
 
 		// Add cost for digging at 45 degrees and for digging upwards.
@@ -390,34 +353,20 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		}
 
 		const PathNode* currentNode = node;
+		float totalMaterialCost = 0;
 		for (int i = 0; i < jumpHeightInNodes; ++i) {
 			if (currentNode->Up == nullptr || !currentNode->Up->m_Navigatable || currentNode->UpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
 				// solid ceiling, stop
 				break;
 			}
 
-			adjCost.cost = 1.0f + static_cast<float>(i) + extraUpCost + radiatedCost;
+			totalMaterialCost += 1.0f + extraUpCost + (GetMaterialTransitionCost(*node->UpMaterial) * 50.0F) + radiatedCost;
+
+			adjCost.cost = totalMaterialCost;
 			adjCost.state = static_cast<void*>(currentNode->Up);
 			adjacentList->push_back(adjCost);
 
 			currentNode = currentNode->Up;
-
-			// We can step here
-			if (currentNode->Left && currentNode->Left->m_Navigatable &&
-			    currentNode->LeftMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && NodeIsOnSolidGround(*currentNode->Left)) {
-
-				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
-				adjCost.state = static_cast<void*>(node->Left);
-				adjacentList->push_back(adjCost);
-			}
-
-			if (currentNode->Right && currentNode->Right->m_Navigatable &&
-			    currentNode->RightMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && NodeIsOnSolidGround(*currentNode->Right)) {
-
-				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
-				adjCost.state = static_cast<void*>(node->Right);
-				adjacentList->push_back(adjCost);
-			}
 		}
 	}
 }
