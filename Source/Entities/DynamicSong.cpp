@@ -128,77 +128,79 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 	if (m_TransitionSoundContainers.empty()) {
 		return SelectSoundContainer();
 	}
-	if (m_TransitionSoundContainers.size() == 1) {
-		return m_TransitionSoundContainers[0];
-	}
 
-	if (m_TransitionShuffleUnplayedIndices.empty()) {
-		for (unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++) {
-			if (i != m_LastTransitionSoundContainerIndex) {
-				m_TransitionShuffleUnplayedIndices.push_back(i);
-			}
-		}
-	}
-
-	switch (m_SoundContainerSelectionCycleMode) {
-		case RANDOMNOREPEAT: {
-			std::vector<unsigned int> validIndices;
+	// Shuffle between our options if we have multiple
+	if (m_TransitionSoundContainers.size() > 1) {
+		if (m_TransitionShuffleUnplayedIndices.empty()) {
 			for (unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++) {
 				if (i != m_LastTransitionSoundContainerIndex) {
-					validIndices.push_back(i);
+					m_TransitionShuffleUnplayedIndices.push_back(i);
 				}
 			}
-
-			unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
-			m_LastTransitionSoundContainerIndex = randomIndex;
-			return m_TransitionSoundContainers[randomIndex];
 		}
-		case SHUFFLE: {
-			unsigned int randomSelection = RandomNum(0, static_cast<int>(m_TransitionShuffleUnplayedIndices.size() - 1));
-			unsigned int selectedIndex = m_TransitionShuffleUnplayedIndices[randomSelection];
-			m_TransitionShuffleUnplayedIndices.erase(m_TransitionShuffleUnplayedIndices.begin() + randomSelection);
-			m_LastTransitionSoundContainerIndex = selectedIndex;
-			return m_TransitionSoundContainers[selectedIndex];
+
+		switch (m_SoundContainerSelectionCycleMode) {
+			case RANDOMNOREPEAT: {
+				std::vector<unsigned int> validIndices;
+				for (unsigned int i = 0; i < m_TransitionSoundContainers.size(); i++) {
+					if (i != m_LastTransitionSoundContainerIndex) {
+						validIndices.push_back(i);
+					}
+				}
+
+				unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+				m_LastTransitionSoundContainerIndex = randomIndex;
+				return m_TransitionSoundContainers[randomIndex];
+			}
+			case SHUFFLE: {
+				unsigned int randomSelection = RandomNum(0, static_cast<int>(m_TransitionShuffleUnplayedIndices.size() - 1));
+				unsigned int selectedIndex = m_TransitionShuffleUnplayedIndices[randomSelection];
+				m_TransitionShuffleUnplayedIndices.erase(m_TransitionShuffleUnplayedIndices.begin() + randomSelection);
+				m_LastTransitionSoundContainerIndex = selectedIndex;
+				return m_TransitionSoundContainers[selectedIndex];
+			}
 		}
 	}
+
+	return m_TransitionSoundContainers[0];
 }
 
 SoundContainer& DynamicSongSection::SelectSoundContainer() {
-	RTEAssert(!m_SoundContainers.empty(), "Tried to get a SoundContainer from a DynamicSongSection with none to choose from!");
-
-	if (m_SoundContainers.size() == 1) {
-		return m_SoundContainers[0];
-	}
-
-	if (m_ShuffleUnplayedIndices.empty()) {
-		for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
-			if (i != m_LastSoundContainerIndex) {
-				m_ShuffleUnplayedIndices.push_back(i);
-			}
-		}
-	}
-
-	switch (m_SoundContainerSelectionCycleMode) {
-		case RANDOMNOREPEAT: {
-			std::vector<unsigned int> validIndices;
+	// Shuffle between our options if we have multiple
+	if (m_SoundContainers.size() != 1) {
+		if (m_ShuffleUnplayedIndices.empty()) {
 			for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
 				if (i != m_LastSoundContainerIndex) {
-					validIndices.push_back(i);
+					m_ShuffleUnplayedIndices.push_back(i);
 				}
 			}
-
-			unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
-			m_LastSoundContainerIndex = randomIndex;
-			return m_SoundContainers[randomIndex];
 		}
-		case SHUFFLE: {
-			unsigned int randomSelection = RandomNum(0, static_cast<int>(m_ShuffleUnplayedIndices.size() - 1));
-			unsigned int selectedIndex = m_ShuffleUnplayedIndices[randomSelection];
-			m_ShuffleUnplayedIndices.erase(m_ShuffleUnplayedIndices.begin() + randomSelection);
-			m_LastSoundContainerIndex = selectedIndex;
-			return m_SoundContainers[selectedIndex];
+
+		switch (m_SoundContainerSelectionCycleMode) {
+			case RANDOMNOREPEAT: {
+				std::vector<unsigned int> validIndices;
+				for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
+					if (i != m_LastSoundContainerIndex) {
+						validIndices.push_back(i);
+					}
+				}
+
+				unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+				m_LastSoundContainerIndex = randomIndex;
+				return m_SoundContainers[randomIndex];
+			}
+			case SHUFFLE: {
+				unsigned int randomSelection = RandomNum(0, static_cast<int>(m_ShuffleUnplayedIndices.size() - 1));
+				unsigned int selectedIndex = m_ShuffleUnplayedIndices[randomSelection];
+				m_ShuffleUnplayedIndices.erase(m_ShuffleUnplayedIndices.begin() + randomSelection);
+				m_LastSoundContainerIndex = selectedIndex;
+				return m_SoundContainers[selectedIndex];
+			}
 		}
 	}
+
+	RTEAssert(!m_SoundContainers.empty(), "Tried to get a SoundContainer from a DynamicSongSection with none to choose from!");
+	return m_SoundContainers[0];
 }
 
 DynamicSong::DynamicSong() {
