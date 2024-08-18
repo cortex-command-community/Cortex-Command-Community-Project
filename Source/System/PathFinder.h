@@ -203,6 +203,11 @@ namespace RTE {
 		/// @return A list of the PathNode ids inside the box.
 		std::vector<int> GetNodeIdsInBox(Box box);
 
+		/// Helper function to determine if a node is on solid fround.
+		/// @param node The node we're checking.
+		/// @return Whether the node is on solid ground.
+		bool NodeIsOnSolidGround(const PathNode& node) const;
+
 		/// Gets the cost for transitioning through this Material.
 		/// @param material The Material to get the transition cost for.
 		/// @return The transition cost for the Material.

@@ -2237,13 +2237,21 @@ bool SceneMan::OverAltitude(const Vector& point, int threshold, int accuracy) {
 	return g_SceneMan.CastNotMaterialRay(temp, Vector(0, threshold), g_MaterialAir, accuracy) < 0;
 }
 
-Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
+bool SceneMan::IsPointInNoGravArea(const Vector& point) const {
 	// Todo, instead of a nograv area maybe best to tag certain areas as NoGrav. As otherwise it's tricky to keep track of when things are removed
 	if (m_pCurrentScene) {
 		Scene::Area* noGravArea = m_pCurrentScene->GetOptionalArea("NoGravityArea");
-		if (noGravArea && noGravArea->IsInside(from)) {
-			return from;
+		if (noGravArea && noGravArea->IsInside(point)) {
+			return true;
 		}
+	}
+
+	return false;
+}
+
+Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
+	if (IsPointInNoGravArea(from)) {
+		return from;
 	}
 
 	Vector temp(from);

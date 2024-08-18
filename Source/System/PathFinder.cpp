@@ -165,7 +165,7 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	s_DigStrength = digStrength;
 
 	// Actors capable of jumping/jetpacking can move vertically. Hardcoded for now
-	s_JumpHeight = 15.0f;
+	s_JumpHeight = 10.0f;
 
 	// Do the actual pathfinding, fetch out the list of states that comprise the best path.
 	int result = MicroPather::NO_SOLUTION;
@@ -286,7 +286,9 @@ std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, int 
 }
 
 float PathFinder::LeastCostEstimate(void* startState, void* endState) {
-	return g_SceneMan.ShortestDistance((static_cast<PathNode*>(startState))->Pos, (static_cast<PathNode*>(endState))->Pos).GetMagnitude() / m_NodeDimension;
+	const PathNode* startNode = static_cast<PathNode*>(startState);
+	const PathNode* endNode = static_cast<PathNode*>(endState);
+	return g_SceneMan.ShortestDistance(startNode->Pos, endNode->Pos).GetMagnitude() / m_NodeDimension;
 }
 
 void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* adjacentList) {
@@ -316,16 +318,11 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		adjacentList->push_back(adjCost);
 	}
 
-	// How high up we can jump from this node
-	auto nodeIsOnSolidGround = [](const PathNode* node) {
-		return node->Down && node->DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength;
-	};
-
-	if (nodeIsOnSolidGround(node)) {
+	if (NodeIsOnSolidGround(*node)) {
 		// Cost to discourage us from going up
 		const float extraUpCost = 3.0F;
 
-		// How far we can jump up
+		// How high up we can jump from this node
 		const int jumpHeightInNodes = static_cast<int>(s_JumpHeight / (m_NodeDimension * c_MPP));
 
 		// We can only go straight left or right if we're on solid ground, otherwise we need to go downwards
@@ -347,7 +344,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 				adjacentList->push_back(adjCost);
 
 				currentNode = currentNode->Left;
-				if (nodeIsOnSolidGround(currentNode)) {
+				if (NodeIsOnSolidGround(*currentNode)) {
 					// Solid ground, just walk from here
 					break;
 				}
@@ -372,7 +369,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 				adjacentList->push_back(adjCost);
 
 				currentNode = currentNode->Right;
-				if (nodeIsOnSolidGround(currentNode)) {
+				if (NodeIsOnSolidGround(*currentNode)) {
 					// Solid ground, just walk from here
 					break;
 				}
@@ -407,7 +404,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 
 			// We can step here
 			if (currentNode->Left && currentNode->Left->m_Navigatable &&
-			    currentNode->LeftMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && nodeIsOnSolidGround(currentNode->Left)) {
+			    currentNode->LeftMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && NodeIsOnSolidGround(*currentNode->Left)) {
 
 				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
 				adjCost.state = static_cast<void*>(node->Left);
@@ -415,7 +412,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 			}
 
 			if (currentNode->Right && currentNode->Right->m_Navigatable &&
-			    currentNode->RightMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && nodeIsOnSolidGround(currentNode->Right)) {
+			    currentNode->RightMaterial->GetIntegrity() <= c_PathFindingDefaultDigStrength && NodeIsOnSolidGround(*currentNode->Right)) {
 
 				adjCost.cost = 2.0F + static_cast<float>(i) + radiatedCost;
 				adjCost.state = static_cast<void*>(node->Right);
@@ -431,6 +428,10 @@ bool PathFinder::PositionsAreTheSamePathNode(const Vector& pos1, const Vector& p
 	int endNodeX = std::floor(pos2.m_X / static_cast<float>(m_NodeDimension));
 	int endNodeY = std::floor(pos2.m_Y / static_cast<float>(m_NodeDimension));
 	return startNodeX == endNodeX && startNodeY == endNodeY;
+}
+
+bool PathFinder::NodeIsOnSolidGround(const PathNode& node) const {
+	return (node.Down && node.DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) || g_SceneMan.IsPointInNoGravArea(node.Pos);
 }
 
 float PathFinder::GetMaterialTransitionCost(const Material& material) const {

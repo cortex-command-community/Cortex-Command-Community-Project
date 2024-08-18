@@ -710,22 +710,23 @@ namespace RTE {
 		/// @return A vector with the absolute pos of where the last ray cast hit somehting.
 		const Vector& GetLastRayHitPos();
 
-		/// Calculates the altitide of a certain point above the terrain, measured
-		/// in pixels.
+		/// Calculates the altitude of a certain point above the terrain, measured in pixels.
 		/// @param from The max altitude you care to check for. 0 Means check the whole scene's height.
-		/// @param max The accuracy within screen measurement is acceptable. Higher number
-		/// here means less calculation.
+		/// @param max The accuracy within screen measurement is acceptable. Higher number here means less calculation.
 		/// @return The altitude over the terrain, in pixels.
 		float FindAltitude(const Vector& from, int max, int accuracy, bool fromSceneOrbitDirection);
 		float FindAltitude(const Vector& from, int max, int accuracy) { return FindAltitude(from, max, accuracy, false); }
 
-		/// Calculates the altitide of a certain point above the terrain, measured
-		/// in pixels, and then tells if that point is over a certain value.
+		/// Calculates the altitude of a certain point above the terrain, measured in pixels, and then tells if that point is over a certain value.
 		/// @param point The altitude threshold you want to check for.
-		/// @param threshold The accuracy within screen measurement is acceptable. Higher number
-		/// here means less costly.
+		/// @param threshold The accuracy within screen measurement is acceptable. Higher number here means less costly.
 		/// @return Whether the point is over the threshold altitude or not.
 		bool OverAltitude(const Vector& point, int threshold, int accuracy = 0);
+
+		/// Returns whether a given point is inside a no-grav area.
+		/// @param point The point you want to check.
+		/// @return Whether the point is inside a nograv area.
+		bool IsPointInNoGravArea(const Vector& point) const;
 
 		/// Takes an arbitrary point in the air and calculates it to be straight
 		/// down at a certain maximum distance from the ground.
