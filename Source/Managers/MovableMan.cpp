@@ -1126,7 +1126,7 @@ int MovableMan::GetTeamMOIDCount(int team) const {
 void MovableMan::OpenAllDoors(bool open, int team) const {
 	for (std::deque<Actor*> actorDeque: {m_Actors, m_AddedActors}) {
 		for (Actor* actor: actorDeque) {
-			if (ADoor* actorAsADoor = dynamic_cast<ADoor*>(actor); actorAsADoor && (team == Activity::NoTeam || actorAsADoor->GetTeam() == team)) {
+			if (ADoor* actorAsADoor = dynamic_cast<ADoor*>(actor); actorAsADoor && actorAsADoor->GetTeam() == team) {
 				if (actorAsADoor->GetDoorState() != (open ? ADoor::DoorState::OPEN : ADoor::DoorState::CLOSED)) {
 					actorAsADoor->Update();
 					actorAsADoor->SetClosedByDefault(!open);

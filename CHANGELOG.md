@@ -47,6 +47,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
 
+- `MovableMan:OpenAllDoors()`, when passed `NOTEAM`, will now open/close doors specifically for `NOTEAM` (instead of all doors).
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
