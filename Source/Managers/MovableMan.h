@@ -482,19 +482,9 @@ namespace RTE {
 		/// @param mo MO to remove.
 		void UnregisterObject(MovableObject* mo);
 
-		/// Reregisters an object in a global Map collection to handle if it's unique ID changes
-		/// @param mo MO to reregister if necessary.
-		/// @param oldUniqueID The MO's old UniqueID.
-		void ReregisterObjectIfApplicable(MovableObject* mo, long oldUniqueId);
-
 		/// Returns the next unique id for MO's and increments unique ID counter
 		/// @return Returns the next unique id.
-		long GetNextUniqueID() {
-			if (m_ShouldPersistUniqueIDs) {
-				return 0;
-			}
-			return ++m_UniqueIDCounter;
-		}
+		long GetNextUniqueID() { return ++m_UniqueIDCounter; }
 
 		/// Returns the max unique id for MO's
 		/// @return Returns the current max unique id.
@@ -511,6 +501,9 @@ namespace RTE {
 		/// Sets whether we should be persisting uniqueIDs for save/load
 		/// @param newValue Whether we should be persisting uniqueIDs.
 		void SetShouldPersistUniqueIDs(bool newValue) { m_ShouldPersistUniqueIDs = newValue; }
+
+		/// Clears all known objects. Should only be used for internal usage, it's unsafe!
+		void ClearKnownObjects();
 
 		/// Uses a global lookup map to find an object by it's unique id.
 		/// @param id Unique Id to look for.

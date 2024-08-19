@@ -128,12 +128,12 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		}
 	}
 
+	writer->NewPropertyWithValue("MaxUniqueID", currentMaxID);
+	writer->NewPropertyWithValue("CurrentSimTicks", g_TimerMan.GetSimTickCount());
 	writer->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
 	writer->NewPropertyWithValue("PlaceObjectsIfSceneIsRestarted", g_SceneMan.GetPlaceObjectsOnLoad());
 	writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
 	writer->NewPropertyWithValue("Scene", modifiableScene.get());
-	writer->NewPropertyWithValue("MaxUniqueID", currentMaxID);
-	writer->NewPropertyWithValue("CurrentSimTicks", g_TimerMan.GetSimTickCount());
 
 	auto saveWriterData = [](Writer* writerToSave) {
 		writerToSave->EndWrite();
@@ -170,14 +170,22 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	std::unique_ptr<Scene> scene(std::make_unique<Scene>());
 	std::unique_ptr<GAScripted> activity(std::make_unique<GAScripted>());
 
-	long maxUniqueID = 0;
+	g_MovableMan.ClearKnownObjects();
+
+	g_MovableMan.SetMaxUniqueID(std::numeric_limits<long>::min());
+
+	long maxUniqueID = 1;
 	long long simTimeTicks = 0;
 	std::string originalScenePresetName = fileName;
 	bool placeObjectsIfSceneIsRestarted = true;
 	bool placeUnitsIfSceneIsRestarted = true;
 	while (reader.NextProperty()) {
 		std::string propName = reader.ReadPropName();
-		if (propName == "Activity") {
+		if (propName == "MaxUniqueID") {
+			reader >> maxUniqueID;
+		} else if (propName == "CurrentSimTicks") {
+			reader >> simTimeTicks;
+		} else if (propName == "Activity") {
 			reader >> activity.get();
 		} else if (propName == "OriginalScenePresetName") {
 			reader >> originalScenePresetName;
@@ -187,13 +195,10 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 			reader >> placeUnitsIfSceneIsRestarted;
 		} else if (propName == "Scene") {
 			reader >> scene.get();
-		} else if (propName == "MaxUniqueID") {
-			reader >> maxUniqueID;
-			g_MovableMan.SetShouldPersistUniqueIDs(true);
-		} else if (propName == "CurrentSimTicks") {
-			reader >> simTimeTicks;
 		}
 	}
+
+	g_MovableMan.SetShouldPersistUniqueIDs(true);
 
 	// SetSceneToLoad() doesn't Clone(), but when the Activity starts, it will eventually call LoadScene(), which does a Clone() of scene internally.
 	g_SceneMan.SetSceneToLoad(scene.get(), true, true);
@@ -203,18 +208,18 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	// For starting Activity, we need to directly clone the Activity we want to start.
 	StartActivity(dynamic_cast<GAScripted*>(activity->Clone()));
 
-	// Set the max unique ID to our loaded maximum so we don't stomp over any existing ones
-	if (maxUniqueID != 0) {
-		g_MovableMan.SetMaxUniqueID(maxUniqueID);
-	}
-
 	g_MovableMan.SetShouldPersistUniqueIDs(false);
+
+	// Set the max unique ID to our loaded maximum so we don't stomp over any existing ones
+	g_MovableMan.SetMaxUniqueID(maxUniqueID);
+
 	//g_TimerMan.SetSimTickCount(simTimeTicks); // Don't do for now... causes issues with negative times in places
 
 	// When this method exits, our Scene object will be destroyed, which will cause problems if you try to restart it. To avoid this, set the Scene to load to the preset object with the same name.
 	g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
 
 	g_ConsoleMan.PrintString("SYSTEM: Game \"" + fileName + "\" loaded!");
+
 	return true;
 }
 
