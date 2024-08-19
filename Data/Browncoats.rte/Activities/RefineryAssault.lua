@@ -181,8 +181,13 @@ function RefineryAssault:StartActivity(newGame)
 	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 	
 	if newGame then
+	
 		self.saveTable = {};
 		self.saveTable.goldTimer = Timer();
+		
+		self.saveTable.musicState = "Ambient";
+		MusicMan:PlayDynamicSong("BC", "Intro", true, true, true);
+		MusicMan:SetNextDynamicSongSection("Ambient", false, false, false);
 		
 		self.saveTable.activeDocks = {1, 2};
 		self.deliveryCreationHandler:RemoveAvailablePreset(-1, "Tubby Rocket");
@@ -355,6 +360,10 @@ function RefineryAssault:ResumeLoadedGame()
 	self.MOUtility:OnLoad(self.saveLoadHandler);
 	
 	self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
+	
+	-- Resume music
+	MusicMan:ResetMusicState()
+	MusicMan:PlayDynamicSong("BC", self.saveTable.musicState, true, true, true);
 end
 
 function RefineryAssault:OnSave()
