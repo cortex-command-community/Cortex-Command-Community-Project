@@ -34,6 +34,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <shared_mutex>
+
 using namespace RTE;
 
 ConcreteClassInfo(Scene, Entity, 0);
