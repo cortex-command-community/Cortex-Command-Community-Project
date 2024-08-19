@@ -359,6 +359,12 @@ GUIReader& GUIReader::operator>>(unsigned long& var) {
 	return *this;
 }
 
+GUIReader& GUIReader::operator>>(long long& var) {
+	DiscardEmptySpace();
+	*m_Stream >> var;
+	return *this;
+}
+
 // Yeah, this is dumb - read as double and cast.
 // This is because, for whatever fucking reason, iostream can save out floats at a precision that it's then unable to read...
 GUIReader& GUIReader::operator>>(float& var) {
