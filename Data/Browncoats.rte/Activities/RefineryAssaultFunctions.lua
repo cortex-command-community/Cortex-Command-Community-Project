@@ -599,12 +599,6 @@ function RefineryAssault:HandleMessage(message, object)
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S8OpenBossDoor");
 		self.Stage = 9;
 		
-		self.HUDHandler:QueueScreenText(self.humanTeam,
-		"Now you can activate the door controls for the CNC-center and take control of it. Victory is within our grasp!",
-		7000,
-		0,
-		true);
-		
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS10FinalConsole");
 
 		for particle in MovableMan.Particles do
@@ -1227,7 +1221,7 @@ function RefineryAssault:MonitorStage1()
 	local noActors = true;
 
 	for i, actor in ipairs(self.saveTable.enemyActorTables.stage1) do
-		if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
+		if not actor or not MovableMan:ValidMO(actor) or ToActor(actor):IsDead() then
 			self.saveTable.enemyActorTables.stage1[i] = false;
 			self.HUDHandler:RemoveObjective(self.humanTeam, "S1KillEnemies" .. i);
 		else
@@ -1755,10 +1749,10 @@ function RefineryAssault:MonitorStage7()
 				particle:SendMessage("ActivateRefineryBossDoorConsole");
 				
 				self.HUDHandler:QueueScreenText(self.humanTeam,
-				"You're authorized. Now open the command center up.",
+				"Now you can activate the door controls for the CNC-center and take control of it. Victory is within our grasp!",
 				7000,
 				0,
-				true);		
+				true);
 	
 				self.HUDHandler:AddObjective(self.humanTeam,
 				"S8OpenBossDoor",
