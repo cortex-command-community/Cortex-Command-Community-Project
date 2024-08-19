@@ -175,6 +175,7 @@ namespace RTE {
 		MicroPather* m_Pather; //!< The actual pathing object that does the pathfinding work. Owned.
 		std::vector<PathNode> m_NodeGrid; //!< The array of PathNodes representing the grid on the scene.
 		unsigned int m_NodeDimension; //!< The width and height of each PathNode, in pixels on the scene.
+		Vector m_Offset;
 		int m_GridWidth; //!< The width of the pathing grid, in PathNodes.
 		int m_GridHeight; //!< The height of the pathing grid, in PathNodes.
 		bool m_WrapsX; //!< Whether the pathing grid wraps on the X axis.

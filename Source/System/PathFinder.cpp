@@ -56,6 +56,7 @@ PathFinder::~PathFinder() {
 void PathFinder::Clear() {
 	m_NodeGrid.clear();
 	m_NodeDimension = SCENEGRIDSIZE;
+	m_Offset = Vector();
 }
 
 int PathFinder::Create(int nodeDimension) {
@@ -72,8 +73,10 @@ int PathFinder::Create(int nodeDimension) {
 	m_WrapsX = g_SceneMan.SceneWrapsX();
 	m_WrapsY = g_SceneMan.SceneWrapsY();
 
+	m_Offset = Vector(nodeDimension * 0.5f, nodeDimension * 0.5f);
+
 	// Create and assign scene coordinate positions for all nodes.
-	Vector nodePos = Vector(static_cast<float>(nodeDimension) / 2.0F, static_cast<float>(nodeDimension) / 2.0F);
+	Vector nodePos = Vector(static_cast<float>(nodeDimension) / 2.0F, static_cast<float>(nodeDimension) / 2.0F) + m_Offset;
 	m_NodeGrid.reserve(m_GridWidth * m_GridHeight);
 	for (int y = 0; y < m_GridHeight; ++y) {
 		// Make sure no cell centers are off the scene (since they can overlap the far edge of the scene).
@@ -454,10 +457,10 @@ std::vector<int> PathFinder::GetNodeIdsInBox(Box box) {
 	box.Unflip();
 
 	// Get the extents of the box's potential influence on PathNodes and their connecting edges.
-	int firstX = static_cast<int>(std::floor((box.m_Corner.m_X / static_cast<float>(m_NodeDimension)) + 0.5F) - 1);
-	int lastX = static_cast<int>(std::floor(((box.m_Corner.m_X + box.m_Width) / static_cast<float>(m_NodeDimension)) + 0.5F) + 1);
-	int firstY = static_cast<int>(std::floor((box.m_Corner.m_Y / static_cast<float>(m_NodeDimension)) + 0.5F) - 1);
-	int lastY = static_cast<int>(std::floor(((box.m_Corner.m_Y + box.m_Height) / static_cast<float>(m_NodeDimension)) + 0.5F) + 1);
+	int firstX = static_cast<int>(std::floor( (box.m_Corner.m_X                 / static_cast<float>(m_NodeDimension)) + 0.5F) - 1);
+	int lastX  = static_cast<int>(std::floor(((box.m_Corner.m_X + box.m_Width)  / static_cast<float>(m_NodeDimension)) + 0.5F) + 1);
+	int firstY = static_cast<int>(std::floor( (box.m_Corner.m_Y                 / static_cast<float>(m_NodeDimension)) + 0.5F) - 1);
+	int lastY  = static_cast<int>(std::floor(((box.m_Corner.m_Y + box.m_Height) / static_cast<float>(m_NodeDimension)) + 0.5F) + 1);
 
 	// Only iterate through the grid where the box overlaps any edges.
 	for (int nodeX = firstX; nodeX <= lastX; ++nodeX) {
