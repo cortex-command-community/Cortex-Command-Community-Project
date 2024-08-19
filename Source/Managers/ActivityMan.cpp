@@ -76,6 +76,10 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
 	m_SaveGameTask = BS::multi_future<void>();
 
+	// Might not be strictly necessary?
+	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
+	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
+
 	Scene* scene = g_SceneMan.GetScene();
 	GAScripted* activity = dynamic_cast<GAScripted*>(GetActivity());
 
@@ -150,6 +154,9 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
+
+	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
+	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
 	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini";
 
