@@ -44,6 +44,7 @@ void LuaStateWrapper::Initialize() {
 	    {LUA_STRLIBNAME, luaopen_string},
 	    {LUA_MATHLIBNAME, luaopen_math},
 	    {LUA_DBLIBNAME, luaopen_debug},
+	    {LUA_BITLIBNAME, luaopen_bit},
 	    {LUA_JITLIBNAME, luaopen_jit},
 	    {NULL, NULL} // End of array
 	};

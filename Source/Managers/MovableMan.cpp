@@ -1368,12 +1368,12 @@ void MovableMan::Update() {
 
 	{
 		auto actorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
-																					[&](int start, int end) {
-																						ZoneScopedN("Actors See");
-																						for (int i = start; i < end; ++i) {
-																							m_Actors[i]->CastSeeRays();
-																						}
-																					});
+		                                                                            [&](int start, int end) {
+			                                                                            ZoneScopedN("Actors See");
+			                                                                            for (int i = start; i < end; ++i) {
+				                                                                            m_Actors[i]->CastSeeRays();
+			                                                                            }
+		                                                                            });
 
 		{
 			ZoneScopedN("Actors Update");
