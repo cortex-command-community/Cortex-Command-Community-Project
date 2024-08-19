@@ -55,7 +55,7 @@ PathFinder::~PathFinder() {
 
 void PathFinder::Clear() {
 	m_NodeGrid.clear();
-	m_NodeDimension = SCENEGRIDSIZE;
+	m_NodeDimension = 18;
 	m_Offset = Vector();
 }
 
@@ -567,7 +567,7 @@ RTE::PathNode* PathFinder::GetPathNodeAtGridCoords(int x, int y) {
 	return nodeId != -1 ? &m_NodeGrid[nodeId] : nullptr;
 }
 
-int PathFinder::ConvertCoordsToNodeId(int x, int y) {
+int PathFinder::ConvertCoordsToNodeId(int x, int y) const {
 	if (m_WrapsX) {
 		x = x % m_GridWidth;
 		x = x < 0 ? x + m_GridWidth : x;
@@ -583,4 +583,18 @@ int PathFinder::ConvertCoordsToNodeId(int x, int y) {
 	}
 
 	return (y * m_GridWidth) + x;
+}
+
+void PathFinder::DebugRender(BITMAP* targetBitmap, const Vector& targetPos, int whichScreen) const {
+	for (int x = 0; x < m_GridWidth; ++x) {
+		Vector startPos = (m_NodeGrid[ConvertCoordsToNodeId(x, 0)].Pos - m_Offset) - targetPos;
+		Vector endPos = startPos + Vector(0.0F, m_NodeDimension * m_GridHeight);
+		line(targetBitmap, startPos.GetX(), startPos.GetY(), endPos.GetX(), endPos.GetY(), g_BlackColor);
+	}
+
+	for (int y = 0; y < m_GridHeight; ++y) {
+		Vector startPos = (m_NodeGrid[ConvertCoordsToNodeId(0, y)].Pos - m_Offset) - targetPos;
+		Vector endPos = startPos + Vector(m_NodeDimension * m_GridWidth, 0.0F);
+		line(targetBitmap, startPos.GetX(), startPos.GetY(), endPos.GetX(), endPos.GetY(), g_BlackColor);
+	}
 }

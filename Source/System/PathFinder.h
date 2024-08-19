@@ -167,6 +167,11 @@ namespace RTE {
 		/// Since void* aren't really human readable, this will print out some concise info without an ending newline.
 		/// @param state The state to print out info about.
 		void PrintStateInfo(void* state) override {}
+
+		/// Draws a debug rendering for this pathfinder to a BITMAP of choice.
+		/// @param targetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
+		void DebugRender(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0) const;
 #pragma endregion
 
 	private:
@@ -230,7 +235,7 @@ namespace RTE {
 		/// @param x The X coordinate, in PathNodes.
 		/// @param y The Y coordinate, in PathNodes.
 		/// @return The PathNode id at the given coordinates.
-		int ConvertCoordsToNodeId(int x, int y);
+		int ConvertCoordsToNodeId(int x, int y) const;
 
 		/// Clears all the member variables of this PathFinder, effectively resetting the members of this abstraction level only.
 		void Clear();

@@ -874,12 +874,9 @@ namespace RTE {
 		/// @param screenId Which screen to update for. (default: 0)
 		void Update(int screenId = 0);
 
-		/// Draws this SceneMan's current graphical representation to a
-		/// BITMAP of choice.
-		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split
-		/// screen segment.
-		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner
-		/// is located.
+		/// Draws this SceneMan's current graphical representation to a BITMAP of choice.
+		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split screen segment.
+		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
 		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
 		/// Clears the color MO layer. Should be done every frame.

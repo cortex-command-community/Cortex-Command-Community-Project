@@ -705,6 +705,11 @@ namespace RTE {
 		/// @return Pointer to preview bitmap.
 		BITMAP* GetPreviewBitmap() const { return m_pPreviewBitmap; };
 
+		/// Gets the pathfinder for a given team.
+		/// @param team The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.
+		/// @return A reference to the pathfinder for the given team.
+		PathFinder& GetPathFinder(Activity::Teams team);
+
 		/// Protected member variable and method declarations
 	protected:
 		// Member variables
@@ -789,11 +794,6 @@ namespace RTE {
 
 		/// Private member variable and method declarations
 	private:
-		/// Gets the pathfinder for a given team.
-		/// @param team The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.
-		/// @return A reference to the pathfinder for the given team.
-		PathFinder& GetPathFinder(Activity::Teams team);
-
 		/// Serializes the SceneObject via the Writer. Necessary because full serialization doesn't know how to deal with duplicate properties.
 		/// @param writer The Writer being used for serialization.
 		/// @param sceneObjectToSave The SceneObject to save.
