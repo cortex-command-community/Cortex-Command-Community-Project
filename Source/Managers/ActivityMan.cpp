@@ -209,7 +209,7 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	}
 
 	g_MovableMan.SetShouldPersistUniqueIDs(false);
-	//g_TimerMan.SetSimTickCount(simTimeTicks); // Don't do for now... causes issues with negative times in places
+	g_TimerMan.SetSimTickCount(simTimeTicks);
 
 	// When this method exits, our Scene object will be destroyed, which will cause problems if you try to restart it. To avoid this, set the Scene to load to the preset object with the same name.
 	g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
