@@ -489,12 +489,7 @@ namespace RTE {
 
 		/// Returns the next unique id for MO's and increments unique ID counter
 		/// @return Returns the next unique id.
-		long GetNextUniqueID() {
-			if (m_ShouldPersistUniqueIDs) {
-				return 0;
-			}
-			return ++m_UniqueIDCounter;
-		}
+		long GetNextUniqueID() { if (m_ShouldPersistUniqueIDs) { return 0; } return ++m_UniqueIDCounter; }
 
 		/// Returns the max unique id for MO's
 		/// @return Returns the current max unique id.
