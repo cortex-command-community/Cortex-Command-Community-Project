@@ -251,7 +251,7 @@ function RefineryAssault:HandleMessage(message, object)
 			self.Stage = 5;
 			
 			self.HUDHandler:QueueScreenText(self.humanTeam,
-			"Their sub-commander holds a keycard you'll need to authorize yourself within the facility systems. He's not going to show up in your section without a good reason, so go destroy some generators and give him one.",
+			"Their sub-commander holds a keycard you'll need to authorize yourself within the facility systems. He's      not going to show up in your section without a good reason, so go destroy some generators and give him one.",
 			10000,
 			0,
 			true);			
@@ -541,7 +541,7 @@ function RefineryAssault:HandleMessage(message, object)
 					MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
 					self.Stage = 7;
 					
-					self.HUDHandler:QueueScreenText(self.humanTeam,
+					self.HUDHandler:§reenText(self.humanTeam,
 					"You'll have to take yourself and the keycard to a physical authorization console, then get someone to hack into another computer and approve the authorization. We're almost there.",
 					10000,
 					0,
@@ -1167,7 +1167,7 @@ function RefineryAssault:SetupFirstStage()
 	-- HUD Handler text
 	
 	self.HUDHandler:QueueScreenText(self.humanTeam,
-	"This under-construction segment of the Browncoat refinery is our best entry point. We've infiltrated you and your squad up top and are sending a few distraction squads via dropship down below.",
+	"This under-construction segment of the Browncoat refinery is our best entry point. We've                infiltrated you and your squad up top and are sending a few distraction squads via dropship down below.",
 	10000,
 	0,
 	true);
@@ -1240,7 +1240,7 @@ function RefineryAssault:MonitorStage1()
 		self.Stage = 2;
 		
 		self.HUDHandler:QueueScreenText(self.humanTeam,
-		"Good job, but we're not out of the weeds yet. The next section's logistics computers hold blueprints of the whole base's internals, and will let us find more entry points to overwhelm the Browncoats. Hack them.",
+		"Good job, but we're not out of the weeds yet. The next section's logistics computers hold blueprints of    the whole base's internals, and will let us find more entry points to overwhelm the Browncoats. Hack them.",
 		10000,
 		0,
 		true);
@@ -1604,7 +1604,7 @@ function RefineryAssault:MonitorStage3()
 			self.Stage = 4;
 			
 			self.HUDHandler:QueueScreenText(self.humanTeam,
-			"Damn it! They've blocked the final door somehow! We can't tell what's going on exactly, you'll have to send an infiltration squad to see if you can open the door from the other side.",
+			"Damn it! They've blocked the final door somehow! We can't tell what's going on exactly,       you'll have to send an infiltration squad to see if you can open the door from the other side.",
 			8500,
 			0,
 			true);
@@ -1753,6 +1753,12 @@ function RefineryAssault:MonitorStage7()
 			if particle.PresetName == "Refinery Boss Door Console" then
 	
 				particle:SendMessage("ActivateRefineryBossDoorConsole");
+				
+				self.HUDHandler:QueueScreenText(self.humanTeam,
+				"You're authorized. Now open the command center up.",
+				7000,
+				0,
+				true);		
 	
 				self.HUDHandler:AddObjective(self.humanTeam,
 				"S8OpenBossDoor",
