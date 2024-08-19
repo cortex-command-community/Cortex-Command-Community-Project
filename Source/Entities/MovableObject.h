@@ -979,9 +979,6 @@ namespace RTE {
 		/// @param newRestThreshold New rest threshold value
 		void SetRestThreshold(int newRestThreshold) { m_RestThreshold = newRestThreshold; }
 
-		/// Resets this MO's unique persistent ID. Unsafe, only for internal use!
-		void ResetUniqueID() { m_UniqueID = 0; }
-
 		/// Returns this MO's unique persistent ID
 		/// @return Returns this MO's unique persistent ID
 		long GetUniqueID() const { return m_UniqueID; }

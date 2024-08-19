@@ -166,7 +166,7 @@ MOID MovableMan::GetMOIDPixel(int pixelX, int pixelY, const std::vector<int>& mo
 }
 
 void MovableMan::RegisterObject(MovableObject* mo) {
-	if (!mo || mo->GetUniqueID() <= 0) {
+	if (!mo) {
 		return;
 	}
 
@@ -183,12 +183,15 @@ void MovableMan::UnregisterObject(MovableObject* mo) {
 	m_KnownObjects.erase(mo->GetUniqueID());
 }
 
-void RTE::MovableMan::ClearKnownObjects() {
-	for (auto& pair : m_KnownObjects) {
-		pair.second->ResetUniqueID();
+void MovableMan::ReregisterObjectIfApplicable(MovableObject* mo, long oldUniqueId) {
+	if (mo == nullptr || m_KnownObjects.find(oldUniqueId) == m_KnownObjects.end()) {
+		// Old ID was never registered, don't need to do anything
+		return;
 	}
 
-	m_KnownObjects.clear();
+	std::lock_guard<std::mutex> guard(m_ObjectRegisteredMutex);
+	m_KnownObjects[oldUniqueId] = nullptr;
+	m_KnownObjects[mo->GetUniqueID()] = mo;
 }
 
 const std::vector<MovableObject*>* MovableMan::GetMOsInBox(const Box& box, int ignoreTeam, bool getsHitByMOsOnly) const {
