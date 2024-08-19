@@ -1172,7 +1172,6 @@ void Scene::SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave
 		writer.NewPropertyWithValue("LifeTime", movableObjectToSave->GetLifetime());
 		writer.NewPropertyWithValue("Age", movableObjectToSave->GetAge());
 		writer.NewPropertyWithValue("PinStrength", movableObjectToSave->GetPinStrength());
-		writer.NewPropertyWithValue("SpecialBehaviour_SetUniqueID", movableObjectToSave->GetUniqueID());
 	}
 
 	if (const MOSprite* moSpriteToSave = dynamic_cast<const MOSprite*>(sceneObjectToSave)) {

@@ -43,7 +43,6 @@ struct MOXPosComparison {
 
 MovableMan::MovableMan() {
 	Clear();
-	m_UniqueIDCounter = 1;
 }
 
 MovableMan::~MovableMan() {
@@ -76,7 +75,6 @@ void MovableMan::Clear() {
 	m_MaxDroppedItems = 100;
 	m_SettlingEnabled = true;
 	m_MOSubtractionEnabled = true;
-	m_ShouldPersistUniqueIDs = false;
 }
 
 int MovableMan::Initialize() {
@@ -181,17 +179,6 @@ void MovableMan::UnregisterObject(MovableObject* mo) {
 
 	std::lock_guard<std::mutex> guard(m_ObjectRegisteredMutex);
 	m_KnownObjects.erase(mo->GetUniqueID());
-}
-
-void MovableMan::ReregisterObjectIfApplicable(MovableObject* mo, long oldUniqueId) {
-	if (mo == nullptr || m_KnownObjects.find(oldUniqueId) == m_KnownObjects.end()) {
-		// Old ID was never registered, don't need to do anything
-		return;
-	}
-
-	std::lock_guard<std::mutex> guard(m_ObjectRegisteredMutex);
-	m_KnownObjects[oldUniqueId] = nullptr;
-	m_KnownObjects[mo->GetUniqueID()] = mo;
 }
 
 const std::vector<MovableObject*>* MovableMan::GetMOsInBox(const Box& box, int ignoreTeam, bool getsHitByMOsOnly) const {
