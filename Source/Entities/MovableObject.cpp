@@ -267,10 +267,9 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_ObjectValueMap = reference.m_ObjectValueMap;
 
 	// If we're currently performing a game save or load we want to persist our existing IDs
-	if (g_MovableMan.ShouldPersistUniqueIDs() && reference.m_UniqueID != 0) {
-		m_UniqueID = reference.m_UniqueID;
+	if (g_MovableMan.ShouldPersistUniqueIDs()) {
+		m_UniqueID = reference.m_UniqueID == 0 ? g_MovableMan.GetNextUniqueID() : reference.m_UniqueID;
 		m_AgeTimer = reference.m_AgeTimer;
-		const_cast<MovableObject&>(reference).m_UniqueID = 0; // fuck it, stop it deregistering us
 	} else {
 		// Otherwise we're copying from a preset normally and ought to create a new object
 		m_UniqueID = g_MovableMan.GetNextUniqueID();
