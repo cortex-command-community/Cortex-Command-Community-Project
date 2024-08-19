@@ -128,23 +128,6 @@ function TacticsHandler:OnLoad(saveLoadHandler)
 	print("INFO: TacticsHandler loading...");
 	
 	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("tacticsHandlerSaveTable");
-	for team = 0, #self.saveTable.teamList do
-		for squad = 1, #self.saveTable.teamList[team].squadList do
-			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do	
-				-- note that if it IS a number then it's probably a stale UniqueID with no actor
-				-- that we didn't convert when saving... but that's fine, we deal with stale IDs constantly.
-				if type(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) ~= "number" then
-					print("tacticshandler converted following actor to following uniqueid:")
-					print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
-					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = self.saveTable.teamList[team].squadList[squad].Actors[actorIndex].UniqueID;
-					print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
-				else
-					print("tacticshandler removed stale uniqueID on load");
-					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = -1;
-				end
-			end
-		end
-	end
 	
 	print("INFO: TacticsHandler loaded!");
 	
@@ -154,68 +137,8 @@ end
 
 function TacticsHandler:OnSave(saveLoadHandler)
 	print("INFO: TacticsHandler saving...");
-	-- saving/loading destroys all not-in-sim entities forever
-	-- fugg :DD
-	-- salvage what we can, resolve our uniqueids into MOs that the saveloadhandler can handle at least
-
-	
-	for team = 0, #self.saveTable.teamList do
-		for squad = 1, #self.saveTable.teamList[team].squadList do
-			if self.verboseLogging then
-				print("INFO: TacticsHandler is trying to save squad: " .. squad .. " of team " .. team);
-			end
-			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do
-				if type(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) ~= "number" then
-					print("ERROR: TacticsHandler UniqueID during saving was not a number! Something's very broken.");
-					print("It was: ");
-					print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]);
-					break;
-				end
-				local actor = MovableMan:FindObjectByUniqueID(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]);
-				if actor then
-					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = actor;
-				end
-			end
-		end
-	end
-	
-	-- for t, team in pairs(self.saveTable.teamList) do
-		-- for sI, squad in pairs(team.squadList) do
-			-- print("Trying to save squad: " .. sI .. " of team " .. t);
-			-- print("This squad had task: " .. squad.taskName);
-			-- for aI, uniqueID in pairs(squad.Actors) do
-				-- print("tacticshandler tried to save the following actor:")
-				-- print(uniqueID)
-				-- if type(uniqueID) ~= "number" then
-					-- print("ERROR: Tacticshandler UniqueID was not a number! Something's very broken.");
-					-- print("It was: ");
-					-- print(uniqueID);
-					-- break;
-				-- end
-				-- local actor = MovableMan:FindObjectByUniqueID(uniqueID);
-				-- if actor then
-					-- squad.Actors[sI] = actor;
-				-- else
-					-- squad.Actors[sI] = nil;
-				-- end
-			-- end
-		-- end
-	-- end
 					
 	saveLoadHandler:SaveTableAsString("tacticsHandlerSaveTable", self.saveTable);
-	
-	-- and now so we can actually keep playing...
-	-- turn them back, lol
-	
-	for team = 0, #self.saveTable.teamList do
-		for squad = 1, #self.saveTable.teamList[team].squadList do
-			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do
-				if type(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) ~= "number" and IsActor(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) then
-					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = self.saveTable.teamList[team].squadList[squad].Actors[actorIndex].UniqueID;
-				end
-			end
-		end
-	end
 
 	print("INFO: TacticsHandler saved!");
 end
