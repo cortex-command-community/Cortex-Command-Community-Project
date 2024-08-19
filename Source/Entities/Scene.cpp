@@ -1167,7 +1167,6 @@ void Scene::SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave
 	}
 
 	if (const MovableObject* movableObjectToSave = dynamic_cast<const MovableObject*>(sceneObjectToSave); movableObjectToSave && saveFullData) {
-		writer.NewPropertyWithValue("SpecialBehaviour_SetUniqueID", movableObjectToSave->GetUniqueID());
 		writer.NewPropertyWithValue("HUDVisible", movableObjectToSave->GetHUDVisible());
 		writer.NewPropertyWithValue("Velocity", movableObjectToSave->GetVel());
 		writer.NewPropertyWithValue("LifeTime", movableObjectToSave->GetLifetime());

@@ -76,10 +76,6 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
 	m_SaveGameTask = BS::multi_future<void>();
 
-	// Might not be strictly necessary?
-	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
-	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
-
 	Scene* scene = g_SceneMan.GetScene();
 	GAScripted* activity = dynamic_cast<GAScripted*>(GetActivity());
 
@@ -96,9 +92,6 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		g_ConsoleMan.PrintString("ERROR: Failed to save scene bitmaps while saving!");
 		return false;
 	}
-
-	long currentMaxID = g_MovableMan.GetMaxUniqueID();
-	g_MovableMan.SetShouldPersistUniqueIDs(true);
 
 	// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
 	std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
@@ -132,8 +125,6 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	writer->NewPropertyWithValue("PlaceObjectsIfSceneIsRestarted", g_SceneMan.GetPlaceObjectsOnLoad());
 	writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
 	writer->NewPropertyWithValue("Scene", modifiableScene.get());
-	writer->NewPropertyWithValue("MaxUniqueID", currentMaxID);
-	writer->NewPropertyWithValue("CurrentSimTicks", g_TimerMan.GetSimTickCount());
 
 	auto saveWriterData = [](Writer* writerToSave) {
 		writerToSave->EndWrite();
@@ -146,17 +137,12 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	// We didn't transfer ownership, so we must be very careful that sceneAltered's deletion doesn't touch the stuff we got from MovableMan.
 	modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, false);
 
-	g_MovableMan.SetShouldPersistUniqueIDs(false);
-
 	g_ConsoleMan.PrintString("SYSTEM: Game saved to \"" + fileName + "\"!");
 	return true;
 }
 
 bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
-
-	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
-	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
 	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini";
 
@@ -170,12 +156,6 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	std::unique_ptr<Scene> scene(std::make_unique<Scene>());
 	std::unique_ptr<GAScripted> activity(std::make_unique<GAScripted>());
 
-	g_MovableMan.ClearKnownObjects();
-
-	g_MovableMan.SetMaxUniqueID(std::numeric_limits<long>::min());
-
-	long maxUniqueID = 1;
-	long long simTimeTicks = 0;
 	std::string originalScenePresetName = fileName;
 	bool placeObjectsIfSceneIsRestarted = true;
 	bool placeUnitsIfSceneIsRestarted = true;
@@ -191,14 +171,8 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 			reader >> placeUnitsIfSceneIsRestarted;
 		} else if (propName == "Scene") {
 			reader >> scene.get();
-	    } else if (propName == "MaxUniqueID") {
-		    reader >> maxUniqueID;
-	    } else if (propName == "CurrentSimTicks") {
-		    reader >> simTimeTicks;
-	    }
+		}
 	}
-
-	g_MovableMan.SetShouldPersistUniqueIDs(true);
 
 	// SetSceneToLoad() doesn't Clone(), but when the Activity starts, it will eventually call LoadScene(), which does a Clone() of scene internally.
 	g_SceneMan.SetSceneToLoad(scene.get(), true, true);
@@ -207,19 +181,10 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	scene->SetPresetName(originalScenePresetName);
 	// For starting Activity, we need to directly clone the Activity we want to start.
 	StartActivity(dynamic_cast<GAScripted*>(activity->Clone()));
-
-	g_MovableMan.SetShouldPersistUniqueIDs(false);
-
-	// Set the max unique ID to our loaded maximum so we don't stomp over any existing ones
-	g_MovableMan.SetMaxUniqueID(maxUniqueID);
-
-	//g_TimerMan.SetSimTickCount(simTimeTicks); // Don't do for now... causes issues with negative times in places
-
 	// When this method exits, our Scene object will be destroyed, which will cause problems if you try to restart it. To avoid this, set the Scene to load to the preset object with the same name.
 	g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
 
 	g_ConsoleMan.PrintString("SYSTEM: Game \"" + fileName + "\" loaded!");
-
 	return true;
 }
 

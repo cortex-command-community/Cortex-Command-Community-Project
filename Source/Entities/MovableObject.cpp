@@ -23,6 +23,7 @@ using namespace RTE;
 
 AbstractClassInfo(MovableObject, SceneObject);
 
+std::atomic<long> MovableObject::m_UniqueIDCounter = 1;
 std::string MovableObject::ms_EmptyString = "";
 
 MovableObject::MovableObject() {
@@ -137,21 +138,17 @@ LuaStateWrapper& MovableObject::GetAndLockStateForScript(const std::string& scri
 }
 
 int MovableObject::Create() {
-	if (SceneObject::Create() < 0) {
+	if (SceneObject::Create() < 0)
 		return -1;
-	}
 
+	m_AgeTimer.Reset();
 	m_RestTimer.Reset();
 
 	// If the stop time hasn't been assigned, just make the same as the life time.
-	if (m_EffectStopTime <= 0) {
+	if (m_EffectStopTime <= 0)
 		m_EffectStopTime = m_Lifetime;
-	}
 
-	if (m_UniqueID == 0) {
-		m_UniqueID = g_MovableMan.GetNextUniqueID();
-		m_AgeTimer.Reset();
-	}
+	m_UniqueID = MovableObject::GetNextUniqueID();
 
 	m_MOIDHit = g_NoMOID;
 	m_TerrainMatHit = g_MaterialAir;
@@ -180,7 +177,7 @@ int MovableObject::Create(const float mass,
 	m_HitsMOs = hitMOs;
 	m_GetsHitByMOs = getHitByMOs;
 
-	m_UniqueID = g_MovableMan.GetNextUniqueID();
+	m_UniqueID = MovableObject::GetNextUniqueID();
 
 	m_MOIDHit = g_NoMOID;
 	m_TerrainMatHit = g_MaterialAir;
@@ -206,6 +203,9 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_RestThreshold = reference.m_RestThreshold;
 	//    m_Force = reference.m_Force;
 	//    m_ImpulseForce = reference.m_ImpulseForce;
+	// Should reset age instead??
+	//    m_AgeTimer = reference.m_AgeTimer;
+	m_AgeTimer.Reset();
 	m_RestTimer.Reset();
 	m_Lifetime = reference.m_Lifetime;
 	m_Sharpness = reference.m_Sharpness;
@@ -266,17 +266,7 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_NumberValueMap = reference.m_NumberValueMap;
 	m_ObjectValueMap = reference.m_ObjectValueMap;
 
-	// If we're currently performing a game save or load we want to persist our existing IDs
-	if (g_MovableMan.ShouldPersistUniqueIDs() && reference.m_UniqueID != 0) {
-		m_UniqueID = reference.m_UniqueID;
-		m_AgeTimer = reference.m_AgeTimer;
-		const_cast<MovableObject&>(reference).m_UniqueID = 0; // fuck it, stop it deregistering us
-	} else {
-		// Otherwise we're copying from a preset normally and ought to create a new object
-		m_UniqueID = g_MovableMan.GetNextUniqueID();
-		m_AgeTimer.Reset();
-	}
-
+	m_UniqueID = MovableObject::GetNextUniqueID();
 	g_MovableMan.RegisterObject(this);
 
 	return 0;
@@ -384,7 +374,6 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("SimUpdatesBetweenScriptedUpdates", { reader >> m_SimUpdatesBetweenScriptedUpdates; });
 	MatchProperty("AddCustomValue", { ReadCustomValueProperty(reader); });
 	MatchProperty("ForceIntoMasterLuaState", { reader >> m_ForceIntoMasterLuaState; });
-	MatchProperty("SpecialBehaviour_SetUniqueID", { reader >> m_UniqueID; });
 
 	EndPropertyList;
 }

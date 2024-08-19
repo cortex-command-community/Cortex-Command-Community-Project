@@ -979,8 +979,9 @@ namespace RTE {
 		/// @param newRestThreshold New rest threshold value
 		void SetRestThreshold(int newRestThreshold) { m_RestThreshold = newRestThreshold; }
 
-		/// Resets this MO's unique persistent ID. Unsafe, only for internal use!
-		void ResetUniqueID() { m_UniqueID = 0; }
+		/// Returns the next unique id for MO's and increments unique ID counter
+		/// @return Returns the next unique id.
+		static long GetNextUniqueID() { return ++m_UniqueIDCounter; }
 
 		/// Returns this MO's unique persistent ID
 		/// @return Returns this MO's unique persistent ID
@@ -1138,7 +1139,8 @@ namespace RTE {
 		/// @param A MovableObject object which is passed in by reference.
 		// Member variables
 		static Entity::ClassInfo m_sClass;
-
+		// Global counter with unique ID's
+		static std::atomic<long> m_UniqueIDCounter;
 		// The type of MO this is, either Actor, Item, or Particle
 		int m_MOType;
 		float m_Mass; // In metric kilograms (kg).
