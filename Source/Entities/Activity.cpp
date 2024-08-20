@@ -682,8 +682,6 @@ void Activity::ReassignSquadLeader(const int player, const int team) {
 				if (actor && (actor->GetAIMode() == Actor::AIMODE_SQUAD) && (actor->GetAIMOWaypointID() == leaderID) && !actor->GetController()->IsPlayerControlled() && !actor->IsInGroup("Brains")) {
 					actor->ClearAIWaypoints();
 					actor->AddAIMOWaypoint(m_ControlledActor[player]);
-					// Make sure actor has m_ControlledActor registered as an AIMOWaypoint
-					actor->UpdateMovePath();
 				} else if (actor && actor->GetID() == leaderID) {
 					// Set the old leader to follow the controlled actor and inherit his AI mode
 					m_ControlledActor[player]->ClearAIWaypoints();
@@ -703,8 +701,6 @@ void Activity::ReassignSquadLeader(const int player, const int team) {
 					actor->ClearAIWaypoints();
 					actor->SetAIMode(Actor::AIMODE_SQUAD);
 					actor->AddAIMOWaypoint(m_ControlledActor[player]);
-					// Make sure actor has m_ControlledActor registered as an AIMOWaypoint
-					actor->UpdateMovePath();
 				}
 				actor = g_MovableMan.GetNextTeamActor(team, actor);
 			} while (actor && actor != m_ControlledActor[player]);
