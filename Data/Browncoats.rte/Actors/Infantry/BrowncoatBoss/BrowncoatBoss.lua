@@ -3,12 +3,16 @@ dofile("Base.rte/Constants.lua")
 
 function Create(self)
 	self.voiceSounds = {
-	Pain = CreateSoundContainer("Browncoat Boss VO Pain", "Browncoats.rte"),
+	LightPain = CreateSoundContainer("Browncoat Boss VO Light Pain", "Browncoats.rte"),
+	MediumPain = CreateSoundContainer("Browncoat Boss VO Medium Pain", "Browncoats.rte"),
+	HeavyPain = CreateSoundContainer("Browncoat Boss VO Heavy Pain", "Browncoats.rte"),
 	Death = CreateSoundContainer("Browncoat Boss VO Death", "Browncoats.rte"),
+	Throw = CreateSoundContainer("Browncoat Boss VO Throw", "Browncoats.rte"),
+	Jump = CreateSoundContainer("Browncoat Boss VO Jump", "Browncoats.rte"),
+	Land = CreateSoundContainer("Browncoat Boss VO Land", "Browncoats.rte"),
 	DeathScripted = CreateSoundContainer("Browncoat Boss VO DeathScripted", "Browncoats.rte"),
 	JumpAttack = CreateSoundContainer("Browncoat Boss VO JumpAttack", "Browncoats.rte"),
-	OilThrowTaunt = CreateSoundContainer("Browncoat Boss VO OilThrowTaunt", "Browncoats.rte"),
-	ThrowGrunt = CreateSoundContainer("Browncoat Boss VO ThrowGrunt", "Browncoats.rte")}
+	OilThrowTaunt = CreateSoundContainer("Browncoat Boss VO OilThrowTaunt", "Browncoats.rte")}
 	
 	self.voiceSound = CreateSoundContainer("Browncoat Boss JumpPack", "Browncoats.rte");
 	-- MEANINGLESS! this is just so we can do voiceSound.Pos without an if check first! it will be overwritten first actual VO play
@@ -209,6 +213,10 @@ function Update(self)
 			else
 				self.Vel = Vector(self.Vel.X + jumpVec.X, self.Vel.Y + jumpVec.Y)
 			end
+			
+			if math.random(0, 100) < 20 then
+				BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Jump, 2, false);
+			end
 
 			self.isJumping = true
 			self.jumpTimer:Reset()
@@ -229,7 +237,11 @@ function Update(self)
 					BrowncoatBossFunctions.abilityShockwaveLanding(self);
 				else
 					self.landSound:Play(self.Pos);
+					if math.random(0, 100) < 20 then
+						BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Land, 2, false);
+					end
 				end
+				
 				
 				self.moveSoundTimer:Reset();			
 			end
@@ -241,7 +253,7 @@ function Update(self)
 		self.toThrowFoley = true;
 	elseif self.toThrowFoley then
 		self.toThrowFoley = false;
-		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.ThrowGrunt, 3, false);
+		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Throw, 2, false);
 		self.throwFoleySound:Play(self.Pos);
 	end
 end
