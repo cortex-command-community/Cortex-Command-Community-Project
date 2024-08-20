@@ -354,7 +354,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 					break;
 				}
 
-				totalMaterialCost += 1.0F + extraUpCost + (GetMaterialTransitionCost(*node->UpMaterial) * 3.0F) + radiatedCost;
+				totalMaterialCost += 1.0F + extraUpCost + (GetMaterialTransitionCost(*currentNode->UpMaterial) * 3.0F) + radiatedCost;
 
 				adjCost.cost = totalMaterialCost;
 				adjCost.state = static_cast<void*>(currentNode->Up);
@@ -367,14 +367,14 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		// Jumping diagonally
 		if (node->UpRight) {
 			const PathNode* currentNode = node->UpRight;
-			float totalMaterialCost = 0.0F;
+			float totalMaterialCost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
 			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
 				if (currentNode->UpRight == nullptr || !currentNode->UpRight->m_Navigatable || currentNode->UpRightMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
 					// solid ceiling, stop
 					break;
 				}
 
-				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
+				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*currentNode->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
 
 				adjCost.cost = totalMaterialCost;
 				adjCost.state = static_cast<void*>(currentNode->UpRight);
@@ -386,14 +386,14 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 
 		if (node->LeftUp) {
 			const PathNode* currentNode = node->LeftUp;
-			float totalMaterialCost = 0.0F;
+			float totalMaterialCost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
 			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
 				if (currentNode->LeftUp == nullptr || !currentNode->LeftUp->m_Navigatable || currentNode->LeftUpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
 					// solid ceiling, stop
 					break;
 				}
 
-				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
+				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*currentNode->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
 
 				adjCost.cost = totalMaterialCost;
 				adjCost.state = static_cast<void*>(currentNode->LeftUp);
@@ -405,13 +405,13 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 
 		// Add cost for digging at 45 degrees and for digging upwards.
 		if (node->UpRight && node->UpRight->m_Navigatable) {
-			adjCost.cost = 1.4F + extraUpCost + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
+			adjCost.cost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
 			adjCost.state = static_cast<void*>(node->UpRight);
 			adjacentList->push_back(adjCost);
 		}
 
 		if (node->LeftUp && node->LeftUp->m_Navigatable) {
-			adjCost.cost = 1.4F + extraUpCost + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
+			adjCost.cost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
 			adjCost.state = static_cast<void*>(node->LeftUp);
 			adjacentList->push_back(adjCost);
 		}
