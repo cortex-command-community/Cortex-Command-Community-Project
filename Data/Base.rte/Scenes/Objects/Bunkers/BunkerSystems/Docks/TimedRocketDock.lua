@@ -21,7 +21,7 @@ function Create(self)
 	self.confirmCapture = true;
 	
 	if self:StringValueExists("savedDockedCraft") then
-		self.craft = self.saveLoadHandled:LoadLocallySavedMO(self, "savedDockedCraft");
+		self.craft = self.saveLoadHandler:LoadLocallySavedMO(self, "savedDockedCraft");
 	end
 end
 
