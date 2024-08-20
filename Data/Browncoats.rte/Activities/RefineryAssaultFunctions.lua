@@ -1221,7 +1221,7 @@ function RefineryAssault:MonitorStage1()
 	local noActors = true;
 
 	for i, actor in ipairs(self.saveTable.enemyActorTables.stage1) do
-		if not actor or not MovableMan:ValidMO(actor) or ToActor(actor):IsDead() then
+		if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
 			self.saveTable.enemyActorTables.stage1[i] = false;
 			self.HUDHandler:RemoveObjective(self.humanTeam, "S1KillEnemies" .. i);
 		else

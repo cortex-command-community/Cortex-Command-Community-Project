@@ -762,7 +762,6 @@ function TacticsHandler:UpdateTacticsHandler()
 			if UInputMan:KeyPressed(Key.L) then
 				if not self.debugTextDisabled then
 					self.debugTextDisabled = true;
-					print("DEBUG TEXT ENABLED")
 				else
 					self.debugTextDisabled = false;
 				end
