@@ -1852,7 +1852,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											local Trace = SceneMan:ShortestDistance(Owner.Head.Pos, FallPos, false);
 											SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
-											local deltaToJump = 25;
+											local deltaToJump = 15;
 											if Owner.Jetpack.JetpackType == AEJetpack.JumpPack then
 												deltaToJump = deltaToJump * 1.4;
 											end

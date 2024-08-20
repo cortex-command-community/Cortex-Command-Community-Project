@@ -581,7 +581,6 @@ bool ACrab::HandlePieCommand(PieSliceType pieSliceIndex) {
 		} else if (pieSliceIndex == PieSliceType::GoTo) {
 			m_AIMode = AIMODE_GOTO;
 			ClearAIWaypoints();
-			m_UpdateMovePath = true;
 		} else {
 			return Actor::HandlePieCommand(pieSliceIndex);
 		}
@@ -1228,34 +1227,6 @@ void ACrab::Update() {
 	// Add velocity also so the viewpoint moves ahead at high speeds
 	if (m_Vel.MagnitudeIsGreaterThan(10.0F))
 		m_ViewPoint += m_Vel * std::sqrt(m_Vel.GetMagnitude() * 0.1F);
-
-	/* Done by pie menu now, see HandlePieCommand()
-	    ////////////////////////////////////////
-	    // AI mode setting
-
-	    if (m_Controller.IsState(AI_MODE_SET))
-	    {
-	        if (m_Controller.IsState(PRESS_RIGHT))
-	        {
-	            m_AIMode = AIMODE_BRAINHUNT;
-	            m_UpdateMovePath = true;
-	        }
-	        else if (m_Controller.IsState(PRESS_LEFT))
-	        {
-	            m_AIMode = AIMODE_PATROL;
-	        }
-	        else if (m_Controller.IsState(PRESS_UP))
-	        {
-	            m_AIMode = AIMODE_SENTRY;
-	        }
-	        else if (m_Controller.IsState(PRESS_DOWN))
-	        {
-	            m_AIMode = AIMODE_GOLDDIG;
-	        }
-
-	        m_DeviceState = SCANNING;
-	    }
-	*/
 
 	////////////////////////////////////////
 	// Balance stuff

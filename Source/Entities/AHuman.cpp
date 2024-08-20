@@ -597,7 +597,6 @@ bool AHuman::HandlePieCommand(PieSliceType pieSliceIndex) {
 		} else if (pieSliceIndex == PieSliceType::GoTo) {
 			m_AIMode = AIMODE_GOTO;
 			ClearAIWaypoints();
-			m_UpdateMovePath = true;
 		} else if (pieSliceIndex == PieSliceType::GoldDig) {
 			m_AIMode = AIMODE_GOLDDIG;
 		} else {
