@@ -55,7 +55,7 @@ PathFinder::~PathFinder() {
 
 void PathFinder::Clear() {
 	m_NodeGrid.clear();
-	m_NodeDimension = 18;
+	m_NodeDimension = SCENEGRIDSIZE;
 	m_Offset = Vector();
 }
 
@@ -302,7 +302,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 	// We do a little trick here, where we radiate out a little percentage of our average cost in all directions.
 	// This encourages the AI to generally try to give hard surfaces some berth when pathing, so we don't get too close and get stuck.
 	const float costRadiationMultiplier = 0.2F;
-	float radiatedCost = 0.0f; //GetNodeAverageTransitionCost(*node) * costRadiationMultiplier;
+	float radiatedCost = 0.0F; //GetNodeAverageTransitionCost(*node) * costRadiationMultiplier;
 
 	if (node->Down && node->Down->m_Navigatable) {
 		adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->DownMaterial) + radiatedCost;
@@ -326,9 +326,6 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		// Cost to discourage us from going up
 		const float extraUpCost = 3.0F;
 
-		// How high up we can jump from this node
-		const int jumpHeightInNodes = static_cast<int>(s_JumpHeight / (m_NodeDimension * c_MPP));
-
 		// We can only go straight left or right if we're on solid ground, otherwise we need to go downwards
 		if (node->Left && node->Left->m_Navigatable) {
 			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->LeftMaterial) + radiatedCost;
@@ -342,6 +339,70 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 			adjacentList->push_back(adjCost);
 		}
 
+		// How high up we can jump from this node
+		const int verticalJumpHeightInNodes = static_cast<int>(s_JumpHeight / (m_NodeDimension * c_MPP));
+		const int diagonalJumpHeightInNodes = static_cast<int>((s_JumpHeight * 0.7F) / (m_NodeDimension * c_MPP));
+
+		// Jumping vertically
+		{
+			// How high up we can jump from this node
+			const PathNode* currentNode = node;
+			float totalMaterialCost = 0.0F;
+			for (int i = 0; i < verticalJumpHeightInNodes; ++i) {
+				if (currentNode->Up == nullptr || !currentNode->Up->m_Navigatable || currentNode->UpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
+					// solid ceiling, stop
+					break;
+				}
+
+				totalMaterialCost += 1.0F + extraUpCost + (GetMaterialTransitionCost(*node->UpMaterial) * 3.0F) + radiatedCost;
+
+				adjCost.cost = totalMaterialCost;
+				adjCost.state = static_cast<void*>(currentNode->Up);
+				adjacentList->push_back(adjCost);
+
+				currentNode = currentNode->Up;
+			}
+		}
+
+		// Jumping diagonally
+		if (node->UpRight) {
+			const PathNode* currentNode = node->UpRight;
+			float totalMaterialCost = 0.0F;
+			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
+				if (currentNode->UpRight == nullptr || !currentNode->UpRight->m_Navigatable || currentNode->UpRightMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
+					// solid ceiling, stop
+					break;
+				}
+
+				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
+
+				adjCost.cost = totalMaterialCost;
+				adjCost.state = static_cast<void*>(currentNode->UpRight);
+				adjacentList->push_back(adjCost);
+
+				currentNode = currentNode->UpRight;
+			}
+		}
+
+		if (node->LeftUp) {
+			const PathNode* currentNode = node->LeftUp;
+			float totalMaterialCost = 0.0F;
+			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
+				if (currentNode->LeftUp == nullptr || !currentNode->LeftUp->m_Navigatable || currentNode->LeftUpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
+					// solid ceiling, stop
+					break;
+				}
+
+				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
+
+				adjCost.cost = totalMaterialCost;
+				adjCost.state = static_cast<void*>(currentNode->LeftUp);
+				adjacentList->push_back(adjCost);
+
+				currentNode = currentNode->LeftUp;
+			}
+		}
+
 		// Add cost for digging at 45 degrees and for digging upwards.
 		if (node->UpRight && node->UpRight->m_Navigatable) {
 			adjCost.cost = 1.4F + extraUpCost + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
@@ -353,23 +414,6 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 			adjCost.cost = 1.4F + extraUpCost + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
 			adjCost.state = static_cast<void*>(node->LeftUp);
 			adjacentList->push_back(adjCost);
-		}
-
-		const PathNode* currentNode = node;
-		float totalMaterialCost = 0;
-		for (int i = 0; i < jumpHeightInNodes; ++i) {
-			if (currentNode->Up == nullptr || !currentNode->Up->m_Navigatable || currentNode->UpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
-				// solid ceiling, stop
-				break;
-			}
-
-			totalMaterialCost += 1.0f + extraUpCost + (GetMaterialTransitionCost(*node->UpMaterial) * 3.0F) + radiatedCost;
-
-			adjCost.cost = totalMaterialCost;
-			adjCost.state = static_cast<void*>(currentNode->Up);
-			adjacentList->push_back(adjCost);
-
-			currentNode = currentNode->Up;
 		}
 	}
 }
