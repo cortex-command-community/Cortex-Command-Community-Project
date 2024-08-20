@@ -73,7 +73,7 @@ int PathFinder::Create(int nodeDimension) {
 	m_WrapsX = g_SceneMan.SceneWrapsX();
 	m_WrapsY = g_SceneMan.SceneWrapsY();
 
-	m_Offset = Vector(nodeDimension * 0.5f, nodeDimension * 0.5f);
+	m_Offset = Vector(nodeDimension * 0.5f, 0.0F);
 
 	// Create and assign scene coordinate positions for all nodes.
 	Vector nodePos = Vector(static_cast<float>(nodeDimension) / 2.0F, static_cast<float>(nodeDimension) / 2.0F) + m_Offset;
