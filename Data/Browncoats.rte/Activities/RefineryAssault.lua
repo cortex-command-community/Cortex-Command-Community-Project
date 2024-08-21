@@ -147,7 +147,7 @@ function RefineryAssault:StartActivity(newGame)
 	self.MOUtility = require("Scripts/Utility/MOUtility");
 	
 	self.GameIntensityCalculator = require("Activities/Utility/GameIntensityCalculator");
-	self.GameIntensityCalculator:Initialize(self, newGame, 0.15, 0.01, self.verboseLogging);
+	self.GameIntensityCalculator:Initialize(self, newGame, 0.11, 0.01, self.verboseLogging);
 	
 	self.actorSpawnerReturnedActors = {};
 	
@@ -540,24 +540,30 @@ function RefineryAssault:UpdateActivity()
 	
 	-- Music
 	local gameIntensity = self.GameIntensityCalculator:UpdateGameIntensityCalculator();
-	print(gameIntensity)
-	print(self.saveTable.musicState)
 	if self.saveTable.musicState ~= "Boss" and self.musicGraceTimer:IsPastRealMS(20000) then
 		if gameIntensity > 0.67 then
 			if self.saveTable.musicState ~= "Intense" then
 				self.saveTable.musicState = "Intense";
-				MusicMan:SetNextDynamicSongSection("Intense", true, true, true);
+				if MusicMan:GetCurrentDynamicSongSectionType() == "Intense" then
+					MusicMan:SetNextDynamicSongSection("Intense", false, false, false);
+				else
+					MusicMan:SetNextDynamicSongSection("Intense", true, true, false);
+				end
 			end
 		elseif gameIntensity > 0.2 then
 			if self.saveTable.musicState ~= "Tense" then
 				local playImmediately = self.saveTable.musicState == "Ambient" and true or false;
 				self.saveTable.musicState = "Tense";
-				MusicMan:SetNextDynamicSongSection("Tense", playImmediately, true, true);
+				if MusicMan:GetCurrentDynamicSongSectionType() == "Tense" then
+					MusicMan:SetNextDynamicSongSection("Tense", false, false, false);
+				else
+					MusicMan:SetNextDynamicSongSection("Tense", playImmediately, true, true);
+				end
 			end
 		else
 			if self.saveTable.musicState ~= "Ambient" then
 				self.saveTable.musicState = "Ambient";
-				MusicMan:SetNextDynamicSongSection("Ambient", false, true, true);
+				MusicMan:SetNextDynamicSongSection("Ambient", false, true, false);
 			end
 		end
 	end
