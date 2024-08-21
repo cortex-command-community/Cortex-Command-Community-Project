@@ -639,9 +639,6 @@ namespace RTE {
 		/// @return The number of waypoints in the MovePath.
 		int GetMovePathSize() const { return m_MovePath.size(); }
 
-		/// Starts updating this Actor's movepath.
-		virtual void UpdateMovePath();
-
 		/// Returns whether we're waiting on a new pending movepath.
 		/// @return Whether we're waiting on a new pending movepath.
 		bool IsWaitingOnNewMovePath() const { return m_PathRequest != nullptr || m_UpdateMovePath; }
@@ -807,6 +804,9 @@ namespace RTE {
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
 		virtual void OnNewMovePath();
+
+		/// Starts updating this Actor's movepath.
+		virtual void UpdateMovePath();
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;

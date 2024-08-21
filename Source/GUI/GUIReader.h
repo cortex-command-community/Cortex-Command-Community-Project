@@ -92,7 +92,6 @@ namespace RTE {
 		GUIReader& operator>>(unsigned int& var);
 		GUIReader& operator>>(long& var);
 		GUIReader& operator>>(unsigned long& var);
-		GUIReader& operator>>(long long& var);
 		GUIReader& operator>>(float& var);
 		GUIReader& operator>>(double& var);
 		GUIReader& operator>>(std::string& var);

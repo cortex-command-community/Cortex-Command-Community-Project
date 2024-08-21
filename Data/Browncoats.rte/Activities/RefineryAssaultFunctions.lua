@@ -231,6 +231,13 @@ function RefineryAssault:HandleMessage(message, object)
 		self.saveTable.stage3DrillOverloaded = true;
 		
 		MovableMan:SendGlobalMessage("RefineryAssault_DrillOverloadBegin");
+		
+	elseif message == "Refinery_S3DrillExploded" then	
+		
+		if not (self.bossPALastPlayed and self.bossPALastPlayed:IsBeingPlayed()) then
+			self.bossPALastPlayed = CreateSoundContainer("Yskely Refinery Boss PA S3 Drill", "Browncoats.rte");
+			self.bossPALastPlayed:Play();
+		end
 	
 	elseif message == "Captured_RefineryS4FuelPipeConsole" then	
 		
@@ -541,11 +548,16 @@ function RefineryAssault:HandleMessage(message, object)
 					MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
 					self.Stage = 7;
 					
-					self.HUDHandler:§reenText(self.humanTeam,
+					self.HUDHandler:QueueScreenText(self.humanTeam,
 					"You'll have to take yourself and the keycard to a physical authorization console, then get someone to hack into another computer and approve the authorization. We're almost there.",
 					10000,
 					0,
 					true);
+					
+					if not (self.bossPALastPlayed and self.bossPALastPlayed:IsBeingPlayed()) then
+						self.bossPALastPlayed = CreateSoundContainer("Yskely Refinery Boss PA S4 Comm Dead", "Browncoats.rte");
+						self.bossPALastPlayed:Play();
+					end
 					
 					for particle in MovableMan.Particles do
 						if particle.PresetName == "Refinery Authorization Console" then
@@ -598,12 +610,6 @@ function RefineryAssault:HandleMessage(message, object)
 	
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S8OpenBossDoor");
 		self.Stage = 9;
-		
-		self.HUDHandler:QueueScreenText(self.humanTeam,
-		"Now you can activate the door controls for the CNC-center and take control of it. Victory is within our grasp!",
-		7000,
-		0,
-		true);
 		
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS10FinalConsole");
 
@@ -1245,6 +1251,11 @@ function RefineryAssault:MonitorStage1()
 		0,
 		true);
 		
+		if not (self.bossPALastPlayed and self.bossPALastPlayed:IsBeingPlayed()) then
+			self.bossPALastPlayed = CreateSoundContainer("Yskely Refinery Boss PA S1 Const Crew", "Browncoats.rte");
+			self.bossPALastPlayed:Play();
+		end
+		
 		-- Start using buydoors
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
@@ -1362,6 +1373,11 @@ function RefineryAssault:MonitorStage2()
 		10000,
 		0,
 		true);
+		
+		if not (self.bossPALastPlayed and self.bossPALastPlayed:IsBeingPlayed()) then
+			self.bossPALastPlayed = CreateSoundContainer("Yskely Refinery Boss PA S2 Logistics", "Browncoats.rte");
+			self.bossPALastPlayed:Play();
+		end
 		
 		-- Capturable setup
 		
@@ -1515,7 +1531,7 @@ function RefineryAssault:MonitorStage3()
 
 		for k, console in pairs(self.saveTable.stage3Consoles) do
 			if not console or not MovableMan:ValidMO(console) then
-				self.saveTable.stage3Consoles[k] = nil;
+				table.remove(self.saveTable.stage3Consoles, k);
 				
 				self.tacticsHandler:RemoveTask("Defend Refinery Console " .. k, self.aiTeam);
 				self.tacticsHandler:RemoveTask("Attack Refinery Console " .. k, self.humanTeam);
@@ -1526,9 +1542,17 @@ function RefineryAssault:MonitorStage3()
 			end
 		end
 		
+		print(#self.saveTable.stage3Consoles)
+		
 		if #self.saveTable.stage3Consoles == 0 then
 			self.stage3AllConsolesBroken = true;
 			self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
+		elseif #self.saveTable.stage3Consoles == 1 and not self.saveTable.consolesBossPAPlayed then
+			self.saveTable.consolesBossPAPlayed = true;
+			if not (self.bossPALastPlayed and self.bossPALastPlayed:IsBeingPlayed()) then
+				self.bossPALastPlayed = CreateSoundContainer("Yskely Refinery Boss PA S3 Broken Cons", "Browncoats.rte");
+				self.bossPALastPlayed:Play();
+			end
 		end
 		
 	end
@@ -1609,6 +1633,11 @@ function RefineryAssault:MonitorStage3()
 			0,
 			true);
 			
+			if not (self.bossPALastPlayed and self.bossPALastPlayed:IsBeingPlayed()) then
+				self.bossPALastPlayed = CreateSoundContainer("Yskely Refinery Boss PA S4 Blast Door", "Browncoats.rte");
+				self.bossPALastPlayed:Play();
+			end
+			
 			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 14500);
 			self.HUDHandler:RemoveAllObjectives(self.humanTeam);		
 			self.HUDHandler:AddObjective(self.humanTeam,
@@ -1671,6 +1700,11 @@ function RefineryAssault:MonitorStage5()
 		true);
 		
 		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+		
+		if not (self.bossPALastPlayed and self.bossPALastPlayed:IsBeingPlayed()) then
+			self.bossPALastPlayed = CreateSoundContainer("Yskely Refinery Boss PA S4 Comm Arrived", "Browncoats.rte");
+			self.bossPALastPlayed:Play();
+		end
 		
 		-- Subcommander door spawn
 		
@@ -1755,10 +1789,10 @@ function RefineryAssault:MonitorStage7()
 				particle:SendMessage("ActivateRefineryBossDoorConsole");
 				
 				self.HUDHandler:QueueScreenText(self.humanTeam,
-				"You're authorized. Now open the command center up.",
+				"Now you can activate the door controls for the CNC-center and take control of it. Victory is within our grasp!",
 				7000,
 				0,
-				true);		
+				true);
 	
 				self.HUDHandler:AddObjective(self.humanTeam,
 				"S8OpenBossDoor",

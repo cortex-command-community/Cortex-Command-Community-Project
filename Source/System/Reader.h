@@ -185,11 +185,6 @@ namespace RTE {
 			*m_Stream >> var;
 			return *this;
 		}
-		Reader& operator>>(long long& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
-			return *this;
-		}
 		// Yeah, this is dumb - read as double and cast.
 		// This is because, for whatever fucking reason, iostream can save out floats at a precision that it's then unable to read...
 		Reader& operator>>(float& var) {

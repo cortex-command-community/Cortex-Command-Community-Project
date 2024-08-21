@@ -109,7 +109,7 @@ void Actor::Clear() {
 	m_PrevPathTarget.Reset();
 	m_MoveVector.Reset();
 	m_MovePath.clear();
-	m_UpdateMovePath = true;
+	m_UpdateMovePath = false;
 	m_MoveProximityLimit = 20.0F;
 	m_AIBaseDigStrength = c_PathFindingDefaultDigStrength;
 	m_BaseMass = std::numeric_limits<float>::infinity();
@@ -135,7 +135,6 @@ int Actor::Create() {
 	// Default to an interesting AI controller mode
 	m_Controller.SetInputMode(Controller::CIM_AI);
 	m_Controller.SetControlledActor(this);
-	m_UpdateMovePath = true;
 
 	m_ViewPoint = m_Pos;
 	m_HUDStack = -m_CharHeight / 2;
@@ -1098,7 +1097,7 @@ void Actor::Update() {
 	///////////////////////////////////////////////////////////////////////////////
 	// Check for manual player-made progress made toward the set AI goal
 
-	if ((m_AIMode == AIMODE_GOTO || m_AIMode == AIMODE_SQUAD) && m_Controller.IsPlayerControlled() && !m_Controller.IsDisabled()) {
+	if ((m_AIMode == AIMODE_GOTO || m_AIMode == AIMODE_SQUAD) && (!m_PathRequest || m_PathRequest->complete) && m_Controller.IsPlayerControlled() && !m_Controller.IsDisabled()) {
 		Vector notUsed;
 		// See if we are close enough to the next move target that we should grab the next in the path that is out of proximity range
 		Vector pathPointVec;
