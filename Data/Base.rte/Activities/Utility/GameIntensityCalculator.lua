@@ -87,7 +87,7 @@ function GameIntensityCalculator:UpdateGameIntensityCalculator()
 			for mo in MovableMan:GetMOsInBox(screenBox, -1, true) do
 				if IsActor(mo) then
 					mo = ToActor(mo);
-					healthLostThisFrame = healthLostThisFrame + mo.PrevHealth - mo.Health;
+					healthLostThisFrame = math.max(0, healthLostThisFrame + mo.PrevHealth - mo.Health);
 				end
 			end
 		end
