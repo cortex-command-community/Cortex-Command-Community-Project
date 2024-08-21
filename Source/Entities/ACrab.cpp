@@ -758,6 +758,10 @@ MovableObject* ACrab::LookForMOs(float FOVSpread, unsigned char ignoreMaterial, 
 	return pSeenMO;
 }
 
+float ACrab::EstimateJumpHeight() const {
+	return 0.0f; // todo, add support to detect crabs with jetpacks
+}
+
 void ACrab::OnNewMovePath() {
 	Actor::OnNewMovePath();
 }

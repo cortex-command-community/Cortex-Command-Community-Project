@@ -933,6 +933,10 @@ float AHuman::EstimateDigStrength() const {
 	return maxPenetration;
 }
 
+float AHuman::EstimateJumpHeight() const {
+	return 20.0f; // hardcoded for now
+}
+
 bool AHuman::EquipShield() {
 	if (!(m_pFGArm && m_pFGArm->IsAttached())) {
 		return false;

@@ -144,7 +144,7 @@ MicroPather* PathFinder::GetPather() {
 	return s_Pather.m_Instance;
 }
 
-int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float digStrength) {
+int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float digStrength, float jumpHeight) {
 	ZoneScoped;
 
 	++m_CurrentPathingRequests;
@@ -168,8 +168,8 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
 	s_DigStrength = digStrength;
 
-	// Actors capable of jumping/jetpacking can move vertically. Hardcoded for now
-	s_JumpHeight = 10.0f;
+	// Actors capable of jumping/jetpacking can move vertically.
+	s_JumpHeight = jumpHeight;
 
 	// Do the actual pathfinding, fetch out the list of states that comprise the best path.
 	int result = MicroPather::NO_SOLUTION;
@@ -214,18 +214,18 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	return result;
 }
 
-std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector start, Vector end, float digStrength, PathCompleteCallback callback) {
+std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector start, Vector end, float digStrength, float jumpHeight, PathCompleteCallback callback) {
 	std::shared_ptr<volatile PathRequest> pathRequest = std::make_shared<PathRequest>();
 
 	const_cast<Vector&>(pathRequest->startPos) = start;
 	const_cast<Vector&>(pathRequest->targetPos) = end;
 
 	g_ThreadMan.GetBackgroundThreadPool().push_task(
-	    [this, start, end, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
+	    [this, start, end, digStrength, jumpHeight, callback](std::shared_ptr<volatile PathRequest> volRequest) {
 		    // Cast away the volatile-ness - only matters outside (and complicates the API otherwise)
 		    PathRequest& request = const_cast<PathRequest&>(*volRequest);
 
-		    int status = this->CalculatePath(start, end, request.path, request.totalCost, digStrength);
+		    int status = this->CalculatePath(start, end, request.path, request.totalCost, digStrength, jumpHeight);
 
 		    request.status = status;
 		    request.pathLength = request.path.size();
@@ -344,7 +344,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		const int diagonalJumpHeightInNodes = static_cast<int>((s_JumpHeight * 0.7F) / (m_NodeDimension * c_MPP));
 
 		// Jumping vertically
-		{
+		if (s_JumpHeight < FLT_MAX) {
 			// How high up we can jump from this node
 			const PathNode* currentNode = node;
 			float totalMaterialCost = 0.0F;
@@ -362,10 +362,14 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 
 				currentNode = currentNode->Up;
 			}
+		} else if (node->Up && node->Up->m_Navigatable) {
+			adjCost.cost = 1.0F + (extraUpCost) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 3.0F) + radiatedCost; // Three times more expensive when digging.
+			adjCost.state = static_cast<void*>(node->Up);
+			adjacentList->push_back(adjCost);
 		}
 
 		// Jumping diagonally
-		if (node->UpRight) {
+		if (s_JumpHeight < FLT_MAX && node->UpRight) {
 			const PathNode* currentNode = node->UpRight;
 			float totalMaterialCost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
 			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
@@ -384,7 +388,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 			}
 		}
 
-		if (node->LeftUp) {
+		if (s_JumpHeight < FLT_MAX && node->LeftUp) {
 			const PathNode* currentNode = node->LeftUp;
 			float totalMaterialCost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
 			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
@@ -427,7 +431,7 @@ bool PathFinder::PositionsAreTheSamePathNode(const Vector& pos1, const Vector& p
 }
 
 bool PathFinder::NodeIsOnSolidGround(const PathNode& node) const {
-	return (node.Down && node.DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) || g_SceneMan.IsPointInNoGravArea(node.Pos);
+	return s_JumpHeight == FLT_MAX || (node.Down && node.DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) || g_SceneMan.IsPointInNoGravArea(node.Pos);
 }
 
 float PathFinder::GetMaterialTransitionCost(const Material& material) const {

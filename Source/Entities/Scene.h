@@ -652,20 +652,24 @@ namespace RTE {
 		/// When pathing using the NoTeam pathFinder, no doors are considered passable.
 		/// @param start Start and end positions on the scene to find the path between.
 		/// @param end A list which will be filled out with waypoints between the start and end.
-		/// @param pathResult The maximum material strength any actor traveling along the path can dig through.
-		/// @param digStrength The team we're pathing for (doors for this team will be considered passable) (default: c_PathFindingDefaultDigStrength)
+		/// @param pathResult The generated path.
+		/// @param digStrength The maximum material strength any actor traveling along the path can dig through.
+		/// @param jumpHeight How high, in metres, the search can jump vertically.
+		/// @param team The team we're pathing for (doors for this team will be considered passable).
 		/// @return The total minimum difficulty cost calculated between the two points on
 		/// the scene.
-		float CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam);
+		float CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float digStrength = c_PathFindingDefaultDigStrength, float jumpHeight = FLT_MAX, Activity::Teams team = Activity::Teams::NoTeam);
 
 		/// Asynchronously calculates the least difficult path between two points on the current Scene. Takes both distance and materials into account.
 		/// When pathing using the NoTeam pathFinder, no doors are considered passable.
 		/// @param start Start position of the pathfinding request.
 		/// @param end End position of the pathfinding request.
 		/// @param digStrength The maximum material strength any actor traveling along the path can dig through.
-		/// @param team The team we're pathing for (doors for this team will be considered passable)
+		/// @param jumpHeight How high, in metres, the search can jump vertically.
+		/// @param team The team we're pathing for (doors for this team will be considered passable).
+		/// @param callback The callback function we'll call after our pathfind request has finished calculating.
 		/// @return A shared pointer to the volatile PathRequest to be used to track whehter the asynchrnous path calculation has been completed, and check its results.
-		std::shared_ptr<volatile PathRequest> CalculatePathAsync(const Vector& start, const Vector& end, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam, PathCompleteCallback callback = nullptr);
+		std::shared_ptr<volatile PathRequest> CalculatePathAsync(const Vector& start, const Vector& end, float digStrength = c_PathFindingDefaultDigStrength, float jumpHeight = FLT_MAX, Activity::Teams team = Activity::Teams::NoTeam, PathCompleteCallback callback = nullptr);
 
 		/// Gets how many waypoints there are in the ScenePath currently
 		/// @return The number of waypoints in the ScenePath.

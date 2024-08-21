@@ -267,6 +267,10 @@ namespace RTE {
 		/// @param aimRangeLowerLimit The new lower limit of this ACrab's aim range.
 		void SetAimRangeLowerLimit(float aimRangeLowerLimit) { m_AimRangeLowerLimit = aimRangeLowerLimit; }
 
+		// Estimates how high this actor can jump.
+		/// @return The actor's jump height.
+		virtual float EstimateJumpHeight() const override;
+
 		/// Protected member variable and method declarations
 	protected:
 		/// Function that is called when we get a new movepath.

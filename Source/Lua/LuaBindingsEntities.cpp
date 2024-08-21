@@ -206,6 +206,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .property("PieMenu", &Actor::GetPieMenu, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetPieMenu)
 	    .property("AIBaseDigStrength", &Actor::GetAIBaseDigStrength, &Actor::SetAIBaseDigStrength)
 	    .property("DigStrength", &Actor::EstimateDigStrength)
+	    .property("JumpHeight", &Actor::EstimateJumpHeight)
 	    .property("SceneWaypoints", &LuaAdaptersActor::GetSceneWaypoints, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .property("LimbPushForcesAndCollisionsDisabled", &Actor::GetLimbPushForcesAndCollisionsDisabled, &Actor::SetLimbPushForcesAndCollisionsDisabled)
 	    .property("MoveProximityLimit", &Actor::GetMoveProximityLimit, &Actor::SetMoveProximityLimit)
@@ -1173,8 +1174,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .def("ResetPathFinding", &Scene::ResetPathFinding)
 	    .def("UpdatePathFinding", &Scene::UpdatePathFinding)
 	    .def("PathFindingUpdated", &Scene::PathFindingUpdated)
+	    .def("CalculatePath", &LuaAdaptersScene::CalculatePath)
 	    .def("CalculatePath", &LuaAdaptersScene::CalculatePath1)
 	    .def("CalculatePath", &LuaAdaptersScene::CalculatePath2)
+	    .def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync)
 	    .def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync1)
 	    .def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync2)
 

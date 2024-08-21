@@ -275,10 +275,10 @@ std::vector<Vector>* LuaAdaptersActor::GetSceneWaypoints(Actor* luaSelfObject) {
 	return sceneWaypoints;
 }
 
-int LuaAdaptersScene::CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
+int LuaAdaptersScene::CalculatePath(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, float jumpHeight, Activity::Teams team) {
 	std::list<Vector>& threadScenePath = luaSelfObject->GetScenePath();
 	team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
-	luaSelfObject->CalculatePath(start, end, threadScenePath, digStrength, team);
+	luaSelfObject->CalculatePath(start, end, threadScenePath, digStrength, jumpHeight, team);
 	if (!threadScenePath.empty()) {
 		if (movePathToGround) {
 			for (Vector& scenePathPoint: threadScenePath) {
@@ -291,7 +291,7 @@ int LuaAdaptersScene::CalculatePath2(Scene* luaSelfObject, const Vector& start, 
 	return -1;
 }
 
-void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::object& callbackParam, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
+void LuaAdaptersScene::CalculatePathAsync(Scene* luaSelfObject, const luabind::object& callbackParam, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, float jumpHeight, Activity::Teams team) {
 	team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
 
 	// So, luabind::object is a weak reference, holding just a stack and a position in the stack
@@ -319,7 +319,7 @@ void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::
 		});
 	};
 
-	luaSelfObject->CalculatePathAsync(start, end, digStrength, team, callLuaCallback);
+	luaSelfObject->CalculatePathAsync(start, end, digStrength, jumpHeight, team, callLuaCallback);
 }
 
 void LuaAdaptersAHuman::ReloadFirearms(AHuman* luaSelfObject) {

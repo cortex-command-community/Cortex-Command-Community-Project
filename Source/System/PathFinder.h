@@ -100,17 +100,19 @@ namespace RTE {
 		/// @param pathResult A list which will be filled out with waypoints between the start and end.
 		/// @param totalCostResult The total minimum difficulty cost calculated between the two points on the scene.
 		/// @param digStrength What material strength the search is capable of digging through.
+		/// @param jumpHeight How high, in metres, the search can jump vertically.
 		/// @return Success or failure, expressed as SOLVED, NO_SOLUTION, or START_END_SAME.
-		int CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float digStrength);
+		int CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float digStrength, float jumpHeight);
 
 		/// Calculates and returns the least difficult path between two points on the current scene.
 		/// This is asynchronous and thus will not block the current thread.
 		/// @param start Start positions on the scene to find the path between.
 		/// @param end End positions on the scene to find the path between.
 		/// @param digStrength What material strength the search is capable of digging through.
+		/// @param jumpHeight How high, in metres, the search can jump vertically.
 		/// @param callback The callback function to be run when the path calculation is completed.
 		/// @return A shared pointer to the volatile PathRequest to be used to track whether the asynchronous path calculation has been completed, and check its results.
-		std::shared_ptr<volatile PathRequest> CalculatePathAsync(Vector start, Vector end, float digStrength, PathCompleteCallback callback = nullptr);
+		std::shared_ptr<volatile PathRequest> CalculatePathAsync(Vector start, Vector end, float digStrength, float jumpHeight, PathCompleteCallback callback = nullptr);
 
 		// <summary>
 		/// Returns how many pathfinding requests are currently active.
