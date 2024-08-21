@@ -1,7 +1,6 @@
 require("AI/NativeHumanAI");
 
 function Create(self)
-
 	self.activity = ToGameActivity(ActivityMan:GetActivity())
 
 	-- AI Overrides
@@ -83,8 +82,6 @@ function Create(self)
 	self.deathScriptedStartSound = CreateSoundContainer("Browncoat Boss DeathScriptedStart", "Browncoats.rte");
 	self.deathScriptedMidBurnSound = CreateSoundContainer("Browncoat Boss DeathScriptedMidBurn", "Browncoats.rte");
 	self.deathScriptedExplodeSound = CreateSoundContainer("Browncoat Boss DeathScriptedExplode", "Browncoats.rte");	
-
-	
 end
 
 function Update(self)
@@ -227,17 +224,23 @@ function Update(self)
 			end
 		end
 	end
+	
+	-- Random taunting
+	if self.tauntVoiceLineTimer:IsPastSimMS(self.tauntVoiceLineDelay) then
+		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Taunt, 10, false);
+		self.tauntVoiceLineTimer:Reset();
+		self.tauntVoiceLineDelay = math.random(40000, 70000);
+	end
 end
 
 function UpdateAI(self)
 	-- Quick throw AI trigger on a timer
-
 	if not self:IsPlayerControlled() then -- just in case
 		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then
-			if not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
+			if (self.EquippedItem) and not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
 				if self.AI:CreateQuickthrowBehavior(self) then
 					self.quickThrowTimer:Reset();
-					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, true);
+					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, false);
 				end
 			end
 		end
