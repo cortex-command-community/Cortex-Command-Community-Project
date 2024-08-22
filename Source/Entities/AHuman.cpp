@@ -934,7 +934,29 @@ float AHuman::EstimateDigStrength() const {
 }
 
 float AHuman::EstimateJumpHeight() const {
-	return 20.0f; // hardcoded for now
+	if (!m_pJetpack) {
+		return 0.0F;
+	}
+
+	float totalMass = GetMass();
+	float fuelTime = m_pJetpack->GetJetTimeTotal();
+	float fuelUseMultiplier = m_pJetpack->GetThrottleFactor();
+	float impulseBurst = m_pJetpack->EstimateImpulse(true) / totalMass;
+	float impulseThrust = m_pJetpack->EstimateImpulse(false) / totalMass;
+
+	Vector globalAcc = g_SceneMan.GetGlobalAcc() * g_TimerMan.GetDeltaTimeSecs();
+	Vector currentVelocity = Vector(0.0F, -impulseBurst);
+	float totalHeight = 0.0F;
+	do {
+		currentVelocity += globalAcc;
+		totalHeight += currentVelocity.GetY();
+		if (fuelTime > 0.0F) {
+			currentVelocity.m_Y -= impulseThrust;
+			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
+		}
+	} while (currentVelocity.GetY() < 0.0F);
+
+	return totalHeight * -1.0F * c_MPP;
 }
 
 bool AHuman::EquipShield() {
