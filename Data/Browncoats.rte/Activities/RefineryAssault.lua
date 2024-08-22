@@ -99,7 +99,7 @@ end
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
 	
-	self.verboseLogging = true;
+	self.verboseLogging = false;
 	
 	self.humansAreControllingAlliedActors = false;
 	
@@ -486,6 +486,29 @@ function RefineryAssault:UpdateActivity()
 	
 	-- Debug
 	if UInputMan.FlagAltState then
+	
+		-- Force music state
+		
+		if UInputMan:KeyPressed(Key.H) then
+			self.forcedGameIntensity = nil;
+			print("REFINERY ASSAULT: Cleared forced music intensity")
+		end		
+		
+		if UInputMan:KeyPressed(Key.J) then
+			self.forcedGameIntensity = -0;
+			print("REFINERY ASSAULT: Ambient forced music intensity")
+		end
+		
+		if UInputMan:KeyPressed(Key.K) then
+			self.forcedGameIntensity = 0.5;
+			print("REFINERY ASSAULT: Tense forced music intensity")
+		end
+		
+		if UInputMan:KeyPressed(Key.L) then
+			self.forcedGameIntensity = 1.0;
+			print("REFINERY ASSAULT: Intense forced music intensity")
+		end
+	
 		-- Unlimit camera
 		if UInputMan:KeyPressed(Key.KP_8) then
 			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 999999);
@@ -540,6 +563,9 @@ function RefineryAssault:UpdateActivity()
 	
 	-- Music
 	local gameIntensity = self.GameIntensityCalculator:UpdateGameIntensityCalculator();
+	if self.forcedGameIntensity then
+		gameIntensity = self.forcedGameIntensity;
+	end
 	if self.saveTable.musicState ~= "Boss" and self.musicGraceTimer:IsPastRealMS(20000) then
 		if gameIntensity > 0.67 then
 			if self.saveTable.musicState ~= "Intense" then

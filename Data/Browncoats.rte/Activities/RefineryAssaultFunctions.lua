@@ -1542,7 +1542,7 @@ function RefineryAssault:MonitorStage3()
 			end
 		end
 		
-		print(#self.saveTable.stage3Consoles)
+		--print(#self.saveTable.stage3Consoles)
 		
 		if #self.saveTable.stage3Consoles == 0 then
 			self.stage3AllConsolesBroken = true;
