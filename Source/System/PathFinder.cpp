@@ -304,25 +304,28 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 	const float costRadiationMultiplier = 0.2F;
 	float radiatedCost = 0.0F; //GetNodeAverageTransitionCost(*node) * costRadiationMultiplier;
 
+	bool isInNoGrav = g_SceneMan.IsPointInNoGravArea(node->Pos);
+	bool allowDiagonal = !isInNoGrav; // We don't allow diagonals in nograv to improve automover behaviour
+	
 	if (node->Down && node->Down->m_Navigatable) {
 		adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->DownMaterial) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->Down);
 		adjacentList->push_back(adjCost);
 	}
 
-	if (node->RightDown && node->RightDown->m_Navigatable) {
+	if (node->RightDown && node->RightDown->m_Navigatable && !isInNoGrav) {
 		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->RightDownMaterial) * 1.4F) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->RightDown);
 		adjacentList->push_back(adjCost);
 	}
 
-	if (node->DownLeft && node->DownLeft->m_Navigatable) {
+	if (node->DownLeft && node->DownLeft->m_Navigatable && !isInNoGrav) {
 		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->DownLeftMaterial) * 1.4F) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->DownLeft);
 		adjacentList->push_back(adjCost);
 	}
 
-	if (NodeIsOnSolidGround(*node)) {
+	if (isInNoGrav || NodeIsOnSolidGround(*node)) {
 		// Cost to discourage us from going up
 		const float extraUpCost = 3.0F;
 
@@ -369,7 +372,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		}
 
 		// Jumping diagonally
-		if (s_JumpHeight < FLT_MAX && node->UpRight) {
+		if (s_JumpHeight < FLT_MAX && node->UpRight && !isInNoGrav) {
 			const PathNode* currentNode = node->UpRight;
 			float totalMaterialCost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
 			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
@@ -388,7 +391,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 			}
 		}
 
-		if (s_JumpHeight < FLT_MAX && node->LeftUp) {
+		if (s_JumpHeight < FLT_MAX && node->LeftUp && !isInNoGrav) {
 			const PathNode* currentNode = node->LeftUp;
 			float totalMaterialCost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
 			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
@@ -408,13 +411,13 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		}
 
 		// Add cost for digging at 45 degrees and for digging upwards.
-		if (node->UpRight && node->UpRight->m_Navigatable) {
+		if (node->UpRight && node->UpRight->m_Navigatable && !isInNoGrav) {
 			adjCost.cost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
 			adjCost.state = static_cast<void*>(node->UpRight);
 			adjacentList->push_back(adjCost);
 		}
 
-		if (node->LeftUp && node->LeftUp->m_Navigatable) {
+		if (node->LeftUp && node->LeftUp->m_Navigatable && !isInNoGrav) {
 			adjCost.cost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
 			adjCost.state = static_cast<void*>(node->LeftUp);
 			adjacentList->push_back(adjCost);
@@ -431,7 +434,7 @@ bool PathFinder::PositionsAreTheSamePathNode(const Vector& pos1, const Vector& p
 }
 
 bool PathFinder::NodeIsOnSolidGround(const PathNode& node) const {
-	return s_JumpHeight == FLT_MAX || (node.Down && node.DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) || g_SceneMan.IsPointInNoGravArea(node.Pos);
+	return s_JumpHeight == FLT_MAX || (node.Down && node.DownMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength);
 }
 
 float PathFinder::GetMaterialTransitionCost(const Material& material) const {
