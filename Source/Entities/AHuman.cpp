@@ -946,10 +946,10 @@ float AHuman::EstimateJumpHeight() const {
 
 	Vector globalAcc = g_SceneMan.GetGlobalAcc() * g_TimerMan.GetDeltaTimeSecs();
 	Vector currentVelocity = Vector(0.0F, -impulseBurst);
-	float totalHeight = 0.0F;
+	float totalHeight = currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
 	do {
 		currentVelocity += globalAcc;
-		totalHeight += currentVelocity.GetY();
+		totalHeight += currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
 		if (fuelTime > 0.0F) {
 			currentVelocity.m_Y -= impulseThrust;
 			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
