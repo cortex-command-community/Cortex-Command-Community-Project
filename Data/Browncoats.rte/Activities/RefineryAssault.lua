@@ -184,6 +184,7 @@ function RefineryAssault:StartActivity(newGame)
 	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 	
 	self.musicGraceTimer = Timer();
+	self.musicGraceTime = 4000;
 	
 	if newGame then
 	
@@ -566,7 +567,8 @@ function RefineryAssault:UpdateActivity()
 	if self.forcedGameIntensity then
 		gameIntensity = self.forcedGameIntensity;
 	end
-	if self.saveTable.musicState ~= "Boss" and self.musicGraceTimer:IsPastRealMS(20000) then
+	if self.saveTable.musicState ~= "Boss" and self.musicGraceTimer:IsPastRealMS(self.musicGraceTime) then
+		self.musicGraceTimer:Reset();
 		if gameIntensity > 0.67 then
 			if self.saveTable.musicState ~= "Intense" then
 				self.saveTable.musicState = "Intense";
