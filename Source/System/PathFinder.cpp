@@ -154,10 +154,10 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	g_SceneMan.ForceBounds(end);
 
 	// Convert from absolute scene pixel coordinates to path node indices.
-	int startNodeX = std::floor(start.m_X / static_cast<float>(m_NodeDimension));
-	int startNodeY = std::floor(start.m_Y / static_cast<float>(m_NodeDimension));
-	int endNodeX = std::floor(end.m_X / static_cast<float>(m_NodeDimension));
-	int endNodeY = std::floor(end.m_Y / static_cast<float>(m_NodeDimension));
+	int startNodeX =                std::floor( start.m_X / static_cast<float>(m_NodeDimension));
+	int startNodeY = std::max(0.0F, std::floor((start.m_Y / static_cast<float>(m_NodeDimension) - 0.5f)));
+	int endNodeX   =                std::floor( end.m_X   / static_cast<float>(m_NodeDimension));
+	int endNodeY   = std::max(0.0F, std::floor((end.m_Y   / static_cast<float>(m_NodeDimension) - 0.5f)));
 
 	// Clear out the results if it happens to contain anything
 	pathResult.clear();
