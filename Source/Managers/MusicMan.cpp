@@ -144,8 +144,10 @@ bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, 
 		if (m_PreviousSoundContainerSetToFade) {
 			//g_ConsoleMan.PrintString("MusicMan: Immediately played new song section has stopped PreviousSoundContainer.");
 			m_PreviousSoundContainerSetToFade = false;
-			m_PreviousSoundContainer->Stop();
-			m_PreviousSoundContainer = nullptr;
+			if (m_PreviousSoundContainer) {
+				m_PreviousSoundContainer->Stop();
+				m_PreviousSoundContainer = nullptr;				
+			}
 		}
 		CyclePlayingSoundContainers(smoothFade);
 	}
