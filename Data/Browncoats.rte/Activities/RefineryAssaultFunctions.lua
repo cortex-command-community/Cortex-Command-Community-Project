@@ -637,11 +637,22 @@ function RefineryAssault:HandleMessage(message, object)
 		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;		
 		
 	elseif message == "Captured_RefineryS9FinalConsole" then	
-	
+
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S9FinalConsole");
+		
+		MusicMan:SetNextDynamicSongSection("Boss", true, true, true);
+		
 		self.saveTable.stage9FinalConsoleCaptured = true;
 
 	elseif message == "Refinery_RefineryS10FinalBossDead" then	
+	
+		MusicMan:SetNextDynamicSongSection("Victory Stinger", true, true, true);
+		MusicMan:EndDynamicMusic(false);
+		
+	elseif message == "Refinery_RefineryS10FinalBossExploded" then	
+		
+		MusicMan:PlayDynamicSong("BC", "Victory", true, true, true);
+		MusicMan:EndDynamicMusic(false);
 		
 	end
 	
@@ -1824,7 +1835,8 @@ function RefineryAssault:MonitorStage9()
 	
 		self.stage9FinalTimer = Timer();
 		
-	elseif self.stage9FinalTimer and self.stage9FinalTimer:IsPastSimMS(5000) then
+		-- ideally this would be SimMS but...
+	elseif self.stage9FinalTimer and self.stage9FinalTimer:IsPastRealMS(21000) then
 	
 		self.Stage = 10;
 		MovableMan:SendGlobalMessage("Refinery_S10SpawnBoss", self.aiTeam);

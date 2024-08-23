@@ -213,6 +213,8 @@ bool MusicMan::EndDynamicMusic(bool fadeOutCurrent) {
 		m_CurrentSoundContainer->FadeOut(2000);
 	}
 
+	m_NextSoundContainer = nullptr;
+
 	m_MusicTimer.Reset();
 	m_MusicTimer.SetRealTimeLimitMS(0);
 	m_MusicPausedTime = 0.0;

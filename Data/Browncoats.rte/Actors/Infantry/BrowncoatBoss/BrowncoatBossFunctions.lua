@@ -48,7 +48,8 @@ function BrowncoatBossFunctions.updateHealth(self)
 		if self.Health <= 0 then
 			if not self.bossMode then
 				BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Death, 11, true);
-			else
+			else		
+				self.activity:SendMessage("Refinery_RefineryS10FinalBossDead");
 				
 				self.deathScripted = true;
 				self.deathScriptedTimer:Reset();

@@ -82,6 +82,8 @@ function Create(self)
 	self.deathScriptedStartSound = CreateSoundContainer("Browncoat Boss DeathScriptedStart", "Browncoats.rte");
 	self.deathScriptedMidBurnSound = CreateSoundContainer("Browncoat Boss DeathScriptedMidBurn", "Browncoats.rte");
 	self.deathScriptedExplodeSound = CreateSoundContainer("Browncoat Boss DeathScriptedExplode", "Browncoats.rte");	
+	
+	BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.MonologueOutro, 11, true);
 end
 
 function Update(self)
@@ -157,6 +159,8 @@ function Update(self)
 			for att in self.Attachables do
 				att.MissionCritical = false;
 			end
+			
+			self.activity:SendMessage("Refinery_RefineryS10FinalBossExploded");
 			
 			self:GibThis();
 			
@@ -251,5 +255,4 @@ end
 
 function Destroy(self)
 	self.AI:Destroy(self);
-	self.activity:SendMessage("Refinery_S10FinalBossDead");
 end
