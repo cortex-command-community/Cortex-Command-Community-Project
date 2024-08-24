@@ -522,12 +522,12 @@ function RefineryAssault:HandleMessage(message, object)
 			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 5", self.aiTeam);		
 		end		
 		
-	elseif message == "Captured_RefineryS4BankCapturable" then
+	elseif message == "Captured_RefineryBankCapturable" then
 	
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
 		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;
 		
-	elseif message == "Captured_RefineryS4GoldVaultCapturable" then
+	elseif message == "Captured_RefineryGoldVaultCapturable" then
 	
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 4;		
 		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 4;
@@ -633,8 +633,8 @@ function RefineryAssault:HandleMessage(message, object)
 
 	elseif message == "Captured_RefineryS9BossBankCapturable" then
 	
-		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
-		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;		
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 30;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 30;		
 		
 	elseif message == "Captured_RefineryS9FinalConsole" then	
 
