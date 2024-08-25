@@ -1587,11 +1587,10 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 				local stop = false;
 				for pos in actor.MovePath do
 					local adjustedPos = pos;
-					adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
-					table.insert(positionsToFixUp, adjustedPos);
-					if not directionConnectingArea:IsInside(pos) then
-						break;
+					if directionConnectingArea:IsInside(pos) then
+						adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
 					end
+					table.insert(positionsToFixUp, adjustedPos);
 				end
 
 				-- Clear these points from our move path
