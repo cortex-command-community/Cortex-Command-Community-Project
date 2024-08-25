@@ -522,18 +522,48 @@ function RefineryAssault:HandleMessage(message, object)
 			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 5", self.aiTeam);		
 		end		
 		
-	elseif message == "Captured_RefineryS4BankCapturable" then
+	elseif message == "Captured_RefineryBankCapturable" then
 	
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
 		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;
 		
-	elseif message == "Captured_RefineryS4GoldVaultCapturable" then
+		if not self.saveTable.capturedAtLeastOneBank then
+			self.saveTable.capturedAtLeastOneBank = true;
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"You've just linked a FreeTrade account over to us!",
+			5000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"We'll siphon the funds as fast as we can. Keep it up!",
+			5000,
+			0,
+			true);
+		end
+		
+	elseif message == "Captured_RefineryGoldVaultCapturable" then
 	
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 4;		
 		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 4;
 		
 		self:ChangeAIFunds(self.humanTeam, 2000);
 		self:ChangeTeamFunds(2000, self.humanTeam); -- player, will also play gold sound
+		
+		if not self.saveTable.capturedAtLeastOneVault then
+			self.saveTable.capturedAtLeastOneVault = true;
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"FreeTrade's just let us know some gold reserves have been transferred to us.",
+			5000,
+			0,
+			true);
+
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Whatever you did, we have more funds available now. Keep at it.",
+			5000,
+			0,
+			true);
+		end
 		
 	elseif message == "Refinery_S4CameraServerBroken" then
 	
@@ -633,15 +663,77 @@ function RefineryAssault:HandleMessage(message, object)
 
 	elseif message == "Captured_RefineryS9BossBankCapturable" then
 	
-		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
-		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;		
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 30;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 30;
+		
+		self.HUDHandler:QueueScreenText(self.humanTeam,
+		"Seems to be the Baron's own account... we'll drain it.",
+		5000,
+		0,
+		true);
 		
 	elseif message == "Captured_RefineryS9FinalConsole" then	
-	
+
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S9FinalConsole");
+		
+		MusicMan:SetNextDynamicSongSection("Boss", true, true, true);
+		
 		self.saveTable.stage9FinalConsoleCaptured = true;
+		
+	elseif message == "Refinery_S10BossUniqueIDReturn" then
+		
+		self.saveTable.bossActor = ToActor(MovableMan:FindObjectByUniqueID(object));
 
 	elseif message == "Refinery_RefineryS10FinalBossDead" then	
+	
+		self.saveTable.gameFinished = true;
+		
+		self.saveTable.finalBossPosition = Vector(self.saveTable.bossActor.Pos.X, self.saveTable.bossActor.Pos.Y);
+	
+		MusicMan:SetNextDynamicSongSection("Victory Stinger", true, true, true);
+		MusicMan:EndDynamicMusic(false);
+		
+		self.HUDHandler:SetCinematicBars(self.humanTeam, true)
+		
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10BossDeath", self.saveTable.bossActor, 0.1, 4000, true, true, true);
+		
+	elseif message == "Refinery_RefineryS10FinalBossExploded" then	
+	
+		self.saveTable.finalMessageTimer = Timer();
+		
+		MusicMan:PlayDynamicSong("BC", "Victory", true, true, true);
+		MusicMan:EndDynamicMusic(false);
+		
+		for actor in MovableMan.Actors do
+			actor = ToActor(actor)
+			if actor.Team == self.aiTeam then
+				actor.AIMode = 0;
+				actor.MovementState = 0;
+				
+				local controller = actor:GetController();
+				controller:SetState(Controller.WEAPON_DROP, true);
+				actor:DropAllInventory();
+			end
+		end
+		
+		self.HUDHandler:RemoveAllCameraPanEvents(self.humanTeam, true)
+		
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10BossPostDeath", self.saveTable.finalBossPosition, 1, 3000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan1").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan1", cameraPos, 0.0015, 10000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan2").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan2", cameraPos, 0.001, 10000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan3").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan3", cameraPos, 0.001, 10000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan4").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan4", cameraPos, 0.001, 15000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan5").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan5", cameraPos, 0.0015, 999999, true, true, true);
 		
 	end
 	
@@ -698,6 +790,11 @@ function RefineryAssault:HandleMessage(message, object)
 		self.saveTable.stage3FacilityOperator = nil;
 		self.saveTable.stage3DrillOverloaded = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
+		
+		if self.stage3DoorSequenceTimer then
+			self.stage3DoorSequenceTimer.ElapsedSimTimeMS = 10000;
+			self.HUDHandler:RemoveAllCameraPanEvents(self.humanTeam);
+		end
 	elseif message == "SkipStage4" then
 		for k, door in pairs(self.saveTable.stage4Door) do
 			door:GibThis();
@@ -1824,7 +1921,8 @@ function RefineryAssault:MonitorStage9()
 	
 		self.stage9FinalTimer = Timer();
 		
-	elseif self.stage9FinalTimer and self.stage9FinalTimer:IsPastSimMS(5000) then
+		-- ideally this would be SimMS but...
+	elseif self.stage9FinalTimer and self.stage9FinalTimer:IsPastRealMS(21000) then
 	
 		self.Stage = 10;
 		MovableMan:SendGlobalMessage("Refinery_S10SpawnBoss", self.aiTeam);

@@ -12,6 +12,7 @@ function Create(self)
 	Land = CreateSoundContainer("Browncoat Boss VO Land", "Browncoats.rte"),
 	SquadLead = CreateSoundContainer("Browncoat Boss VO Squad Lead", "Browncoats.rte"),
 	Taunt = CreateSoundContainer("Browncoat Boss VO Taunt", "Browncoats.rte"),
+	MonologueOutro = CreateSoundContainer("Browncoat Boss VO Monologue Outro", "Browncoats.rte"),
 	DeathScripted = CreateSoundContainer("Browncoat Boss VO Death Scripted", "Browncoats.rte"),
 	JumpAttack = CreateSoundContainer("Browncoat Boss VO Ability Jump Attack", "Browncoats.rte"),
 	OilThrowTaunt = CreateSoundContainer("Browncoat Boss VO Ability Oil Throw", "Browncoats.rte")}
