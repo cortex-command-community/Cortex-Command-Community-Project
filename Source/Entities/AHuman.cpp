@@ -933,6 +933,34 @@ float AHuman::EstimateDigStrength() const {
 	return maxPenetration;
 }
 
+float AHuman::EstimateJumpHeight() const {
+	if (!m_pJetpack) {
+		return 0.0F;
+	}
+
+	float totalMass = GetMass();
+	float fuelTime = m_pJetpack->GetJetTimeTotal();
+	float fuelUseMultiplier = m_pJetpack->GetThrottleFactor();
+	float impulseBurst = m_pJetpack->EstimateImpulse(true) / totalMass;
+	float impulseThrust = m_pJetpack->EstimateImpulse(false) / totalMass;
+
+	Vector globalAcc = g_SceneMan.GetGlobalAcc() * g_TimerMan.GetDeltaTimeSecs();
+	Vector currentVelocity = Vector(0.0F, -impulseBurst);
+	float totalHeight = currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+	do {
+		currentVelocity += globalAcc;
+		totalHeight += currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+		if (fuelTime > 0.0F) {
+			currentVelocity.m_Y -= impulseThrust;
+			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
+		}
+	} while (currentVelocity.GetY() < 0.0F);
+
+	float finalCalculatedHeight = totalHeight * -1.0F * c_MPP;
+	float finalHeightMultipler = 0.8f; // Make us think we can do a little less because AI path following is shit
+	return finalCalculatedHeight * finalHeightMultipler;
+}
+
 bool AHuman::EquipShield() {
 	if (!(m_pFGArm && m_pFGArm->IsAttached())) {
 		return false;
@@ -1317,34 +1345,6 @@ void AHuman::ResetAllTimers() {
 
 void AHuman::OnNewMovePath() {
 	Actor::OnNewMovePath();
-
-	// Process the new path we now have, if any
-	if (!m_MovePath.empty()) {
-		// Smash all airborne waypoints down to just above the ground, except for when it makes the path intersect terrain or it is the final destination
-		std::list<Vector>::iterator finalItr = m_MovePath.end();
-		finalItr--;
-		Vector smashedPoint;
-		Vector previousPoint = *(m_MovePath.begin());
-		std::list<Vector>::iterator nextItr = m_MovePath.begin();
-		for (std::list<Vector>::iterator lItr = m_MovePath.begin(); lItr != finalItr; ++lItr) {
-			nextItr++;
-			smashedPoint = g_SceneMan.MovePointToGround((*lItr), m_CharHeight * 0.2, 7);
-
-			// Only smash if the new location doesn't cause the path to intersect hard terrain ahead or behind of it
-			// Try three times to halve the height to see if that won't intersect
-			for (int i = 0; i < 3; i++) {
-				Vector notUsed;
-				if (!g_SceneMan.CastStrengthRay(previousPoint, smashedPoint - previousPoint, 5, notUsed, 3, g_MaterialDoor) &&
-				    nextItr != m_MovePath.end() && !g_SceneMan.CastStrengthRay(smashedPoint, (*nextItr) - smashedPoint, 5, notUsed, 3, g_MaterialDoor)) {
-					(*lItr) = smashedPoint;
-					break;
-				} else
-					smashedPoint.m_Y -= ((smashedPoint.m_Y - (*lItr).m_Y) / 2);
-			}
-
-			previousPoint = (*lItr);
-		}
-	}
 }
 
 void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
