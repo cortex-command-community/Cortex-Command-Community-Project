@@ -956,7 +956,9 @@ float AHuman::EstimateJumpHeight() const {
 		}
 	} while (currentVelocity.GetY() < 0.0F);
 
-	return totalHeight * -1.0F * c_MPP;
+	float finalCalculatedHeight = totalHeight * -1.0F * c_MPP;
+	float finalHeightMultipler = 0.8f; // Make us think we can do a little less because AI path following is shit
+	return finalCalculatedHeight * finalHeightMultipler;
 }
 
 bool AHuman::EquipShield() {
@@ -2545,7 +2547,6 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 		return;
 	}
 
-#ifdef DEBUG_BUILD
 	// Limbpath debug drawing
 	m_Paths[FGROUND][WALK].Draw(pTargetBitmap, targetPos, 122);
 	m_Paths[FGROUND][CRAWL].Draw(pTargetBitmap, targetPos, 122);
@@ -2575,7 +2576,6 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	// Radius
 //    waypoint = m_Pos - targetPos;
 //    circle(pTargetBitmap, waypoint.m_X, waypoint.m_Y, m_MoveProximityLimit, g_RedColor);
-#endif
 
 	// Player AI drawing
 

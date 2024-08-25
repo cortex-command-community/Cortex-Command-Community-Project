@@ -1353,114 +1353,74 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					if WptList then
 						local NextWptPos = WptList[1].Pos;
 						Dist = SceneMan:ShortestDistance(Owner.Pos, NextWptPos, false);
-						if Dist.Y < -25 and math.abs(Dist.X) < 30 then	-- avoid any corners if the next waypoint is above us
-							local cornerType;
-							local CornerPos = Vector(NextWptPos.X, NextWptPos.Y);
-							if Owner.Pos.X > CornerPos.X then
-								CornerPos = CornerPos + Vector(25, -40);
-								cornerType = "right";
-							else
-								CornerPos = CornerPos + Vector(-25, -40);
-								cornerType = "left";
-							end
-
+						Waypoint = table.remove(WptList, 1);
+						if Waypoint.Type ~= "air" then
 							local Free = Vector();
-							Dist = SceneMan:ShortestDistance(NextWptPos, CornerPos, false);
-							-- make sure the corner waypoint is not inside terrain
-							local pixels = SceneMan:CastObstacleRay(NextWptPos, Dist, Vector(), Free, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
-							if pixels == 0 then
-								break; -- the waypoint is inside terrain, plot a new path
-							elseif pixels > 0 then
-								CornerPos = (NextWptPos + Free) / 2; -- compensate for obstacles
-							end
 
-							-- check if we have LOS
-							Dist = SceneMan:ShortestDistance(Owner.Pos, CornerPos, false);
-							if 0 <= SceneMan:CastObstacleRay(Owner.Pos, Dist, Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 2) then
-								-- CornerPos is blocked
-								CornerPos.X = Owner.Pos.X; -- move CornerPos straight above us
-								cornerType = "air";
-							end
-
-							Waypoint = {Pos=CornerPos, Type=cornerType};
-							if WptList[2] and not WptList[1].Type then	-- remove the waypoint after the corner if possible
-								table.remove(WptList, 1);
-								Owner:RemoveMovePathBeginning(); -- clean up the graphical representation of the path
-							end
-
-							if not Owner.MOMoveTarget then
-								Owner:AddToMovePathBeginning(Waypoint.Pos);
-							end
-						else
-							Waypoint = table.remove(WptList, 1);
-							if Waypoint.Type ~= "air" then
-								local Free = Vector();
-
-								-- only if we have a digging tool
-								if Waypoint.Type ~= "drop" and Owner:HasObjectInGroup("Tools - Diggers") then
-									local PathSegRay = SceneMan:ShortestDistance(PrevWptPos, Waypoint.Pos, false); -- detect material blocking the path and start digging through it
-									if AI.teamBlockState ~= Actor.BLOCKED and SceneMan:CastStrengthRay(PrevWptPos, PathSegRay, 4, Free, 2, rte.doorID, true) then
-										if SceneMan:ShortestDistance(Owner.Pos, Free, false):MagnitudeIsLessThan(Owner.Height*0.4) then	-- check that we're close enough to start digging
-											digState = AHuman.STARTDIG;
-											AI.deviceState = AHuman.DIGGING;
-											obstacleState = Actor.DIGPAUSING;
-											nextLatMove = Actor.LAT_STILL;
-											sweepRange = math.min(math.pi*0.2, Owner.AimRange);
-											StuckTimer:SetSimTimeLimitMS(6000);
-											AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).Normalized; -- aim in the direction of the next waypoint
-										else
-											digState = AHuman.NOTDIGGING;
-											obstacleState = Actor.PROCEEDING;
-										end
-
-										local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-										if _abrt then return true end
+							-- only if we have a digging tool
+							if Waypoint.Type ~= "drop" and Owner:HasObjectInGroup("Tools - Diggers") then
+								local PathSegRay = SceneMan:ShortestDistance(PrevWptPos, Waypoint.Pos, false); -- detect material blocking the path and start digging through it
+								if AI.teamBlockState ~= Actor.BLOCKED and SceneMan:CastStrengthRay(PrevWptPos, PathSegRay, 4, Free, 2, rte.doorID, true) then
+									if SceneMan:ShortestDistance(Owner.Pos, Free, false):MagnitudeIsLessThan(Owner.Height*0.4) then	-- check that we're close enough to start digging
+										digState = AHuman.STARTDIG;
+										AI.deviceState = AHuman.DIGGING;
+										obstacleState = Actor.DIGPAUSING;
+										nextLatMove = Actor.LAT_STILL;
+										sweepRange = math.min(math.pi*0.2, Owner.AimRange);
+										StuckTimer:SetSimTimeLimitMS(6000);
+										AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).Normalized; -- aim in the direction of the next waypoint
 									else
 										digState = AHuman.NOTDIGGING;
 										obstacleState = Actor.PROCEEDING;
-										StuckTimer:SetSimTimeLimitMS(1000);
 									end
+
+									local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+									if _abrt then return true end
+								else
+									digState = AHuman.NOTDIGGING;
+									obstacleState = Actor.PROCEEDING;
+									StuckTimer:SetSimTimeLimitMS(1000);
 								end
+							end
 
-								if digState == AHuman.NOTDIGGING and AI.deviceState ~= AHuman.DIGGING then
-									-- if our path isn't blocked enough to dig, but the headroom is too little, start crawling to get through
-									local heading = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):SetMagnitude(Owner.Height*0.5);
+							if digState == AHuman.NOTDIGGING and AI.deviceState ~= AHuman.DIGGING then
+								-- if our path isn't blocked enough to dig, but the headroom is too little, start crawling to get through
+								local heading = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):SetMagnitude(Owner.Height*0.5);
 
-									-- This gets the angle of the heading vector relative to flat (i.e, straight along the X axis)
-									-- This gives a range of [0, 90]
-									-- 0 is pointing straight left/right, and 90 is pointing straight up/down.
-									local angleRadians = math.abs(math.atan2(-(heading.X * heading.Y), heading.X * heading.X));
-									local angleDegrees = angleRadians * (180 / math.pi);
+								-- This gets the angle of the heading vector relative to flat (i.e, straight along the X axis)
+								-- This gives a range of [0, 90]
+								-- 0 is pointing straight left/right, and 90 is pointing straight up/down.
+								local angleRadians = math.abs(math.atan2(-(heading.X * heading.Y), heading.X * heading.X));
+								local angleDegrees = angleRadians * (180 / math.pi);
 
-									-- We only crawl it it's quite flat, otherwise climb
-									local crawlThresholdDegrees = 30;
-									if angleDegrees <= crawlThresholdDegrees and Owner.Head and Owner.Head:IsAttached() then
-										local topHeadPos = Owner.Head.Pos - Vector(0, Owner.Head.Radius*0.7);
+								-- We only crawl it it's quite flat, otherwise climb
+								local crawlThresholdDegrees = 30;
+								if angleDegrees <= crawlThresholdDegrees and Owner.Head and Owner.Head:IsAttached() then
+									local topHeadPos = Owner.Head.Pos - Vector(0, Owner.Head.Radius*0.7);
 
-										-- first check up to the top of the head, and then from there forward
-										if SceneMan:CastStrengthRay(Owner.Pos, topHeadPos - Owner.Pos, 5, Free, 4, rte.doorID, true) or SceneMan:CastStrengthRay(topHeadPos, heading, 5, Free, 4, rte.doorID, true) then
-											AI.proneState = AHuman.PRONE;
-										else
-											AI.proneState = AHuman.NOTPRONE;
-										end
-
-										local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-										if _abrt then return true end
+									-- first check up to the top of the head, and then from there forward
+									if SceneMan:CastStrengthRay(Owner.Pos, topHeadPos - Owner.Pos, 5, Free, 4, rte.doorID, true) or SceneMan:CastStrengthRay(topHeadPos, heading, 5, Free, 4, rte.doorID, true) then
+										AI.proneState = AHuman.PRONE;
 									else
 										AI.proneState = AHuman.NOTPRONE;
 									end
+
+									local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+									if _abrt then return true end
+								else
+									AI.proneState = AHuman.NOTPRONE;
 								end
 							end
+						end
 
-							if not WptList[1] then
-								WptList = nil; -- update the path
-							end
+						if not WptList[1] then
+							WptList = nil; -- update the path
 						end
 
 						if not Waypoint.Type then
 							ArrivedTimer:SetSimTimeLimitMS(100);
 						elseif Waypoint.Type == "last" then
-							ArrivedTimer:SetSimTimeLimitMS(600);
+							ArrivedTimer:SetSimTimeLimitMS(300);
 						else	-- air or corner wpt
 							ArrivedTimer:SetSimTimeLimitMS(0);
 						end
@@ -1743,7 +1703,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								if Owner.Jetpack and Owner.Head and Owner.Head:IsAttached() then
 									if Owner.Jetpack.JetTimeLeft < AI.minBurstTime then
 										AI.jump = false; -- not enough fuel left, no point in jumping yet
-										if not AI.flying or Owner.Vel.Y > 1 then
+										if not AI.flying or Owner.Vel.Y > 4 then
 											AI.refuel = true;
 										end
 									else
