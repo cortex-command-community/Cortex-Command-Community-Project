@@ -439,7 +439,9 @@ bool PathFinder::NodeIsOnSolidGround(const PathNode& node) const {
 
 float PathFinder::GetMaterialTransitionCost(const Material& material) const {
 	float strength = material.GetIntegrity();
-	if (strength > s_DigStrength) {
+
+	// Always treat doors as diggable.
+	if (strength > s_DigStrength && material.GetIndex() != MaterialColorKeys::g_MaterialDoor) {
 		strength *= 1000.0F;
 	}
 
