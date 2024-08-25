@@ -1425,30 +1425,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 							ArrivedTimer:SetSimTimeLimitMS(0);
 						end
 					end
-				elseif WptList[2] then	-- check if some other waypoint is closer
-					local test = math.random(1, math.min(10, #WptList));
-					local RandomWpt = WptList[test];
-					if RandomWpt then
-						Dist = SceneMan:ShortestDistance(Owner.Pos, RandomWpt.Pos, false);
-						if Dist:MagnitudeIsLessThan(50) and Dist:MagnitudeIsLessThan(SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).Magnitude * 0.33) then
-							-- this waypoint is closer, check LOS
-							if -1 == SceneMan:CastObstacleRay(Owner.Pos, Dist, Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 4) then
-								Waypoint = RandomWpt; -- go here instead
-								if WptList[test-1] then
-									PrevWptPos = Vector(WptList[test-1].Pos.X, WptList[test-1].Pos.Y);
-								else
-									PrevWptPos = Vector(Owner.Pos.X, Owner.Pos.Y);
-								end
-
-								for _ = 1, test do	-- delete the earlier waypoints
-									table.remove(WptList, 1);
-									if WptList[1] then
-										Owner:RemoveMovePathBeginning();
-									end
-								end
-							end
-						end
-					end
 				end
 
 				if Waypoint then
