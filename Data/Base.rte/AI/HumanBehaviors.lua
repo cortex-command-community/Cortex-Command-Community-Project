@@ -1894,24 +1894,23 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				local TmpWpts = {};
 				table.insert(TmpWpts, {Pos=Owner.Pos});
 
-				local Origin;
 				local LastPos = PathDump[1];
 				local index = 1;
 				for _, WptPos in pairs(PathDump) do
-					Origin = TmpWpts[index].Pos;
-					local Dist = SceneMan:ShortestDistance(Origin, WptPos, false);
-					if math.abs(Dist.Y) > 30 or Dist:MagnitudeIsGreaterThan(80) or	-- skip any waypoint too close to the previous one
-						SceneMan:CastStrengthSumRay(Origin, WptPos, 3, rte.grassID) > 5
-					then
+					--Origin = TmpWpts[index].Pos;
+					--local Dist = SceneMan:ShortestDistance(Origin, WptPos, false);
+					--if math.abs(Dist.Y) > 30 or Dist:MagnitudeIsGreaterThan(80) or	-- skip any waypoint too close to the previous one
+					--	SceneMan:CastStrengthSumRay(Origin, WptPos, 3, rte.grassID) > 5
+					--then
 						table.insert(TmpWpts, {Pos=LastPos});
 						index = index + 1;
-					end
+					--end
 
 					LastPos = WptPos;
 				end
 
 				-- No path
-				if #PathDump == 0 then
+				if #TmpWpts == 0 then
 					break;
 				end
 
@@ -1921,50 +1920,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				local StartWpt = table.remove(TmpWpts, 1);
 				while TmpWpts[1] do
 					local NextWpt = table.remove(TmpWpts, 1);
-
-					if Lower(NextWpt, StartWpt, 30) then	-- scan for sharp drops
-						local Dist = SceneMan:ShortestDistance(StartWpt.Pos, NextWpt.Pos, false);
-						if math.abs(Dist.X) < Dist.Y then -- check the slope
-							if SceneMan:CastObstacleRay(StartWpt.Pos, Dist, Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 4) < 0 then
-								NextWpt.Type = "drop"; -- LOS from StartWpt to NextWpt
-							end
-
-							local GapList = {};
-							for j, JumpWpt in pairs(TmpWpts) do	-- look for the other side
-								local Gap = SceneMan:ShortestDistance(StartWpt.Pos, JumpWpt.Pos, false);
-								if Gap:MagnitudeIsGreaterThan(400 - Gap.Y) then	-- TODO: use actor properties here
-									break; -- too far
-								end
-
-								if Gap.Y > -40 then	-- no more than 2m above
-									table.insert(GapList, {Wpt=JumpWpt, score=math.abs(Gap.X/Gap.Y), index=j});
-								end
-							end
-
-							table.sort(GapList, function(A, B) return A.score > B.score end); -- sort largest first
-
-							for _, LZ in pairs(GapList) do
-								-- check if we can jump
-								local Trace = SceneMan:ShortestDistance(StartWpt.Pos, LZ.Wpt.Pos, false);
-								if SceneMan:CastObstacleRay(StartWpt.Pos, Trace, Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 4) < 0 then
-									-- find a point mid-air
-									local TestPos = StartWpt.Pos + Trace * 0.6;
-									local Free = Vector();
-									if 0 ~= SceneMan:CastObstacleRay(TestPos, Vector(0, -math.abs(Trace.X)/2), Vector(), Free, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 2) then	-- TODO: check LOS? what if 0?
-										table.insert(WptList, {Pos=Free+Vector(0,Owner.Height/3), Type="air"}); -- guide point in the air
-										NextWpt = LZ.Wpt;
-
-										-- delete any waypoints between StartWpt and the LZ
-										for i = LZ.index, 1, -1 do
-											table.remove(TmpWpts, i);
-										end
-
-										break;
-									end
-								end
-							end
-						end
-					end
 
 					table.insert(WptList, NextWpt);
 					StartWpt = NextWpt;

@@ -313,13 +313,13 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		adjacentList->push_back(adjCost);
 	}
 
-	if (node->RightDown && node->RightDown->m_Navigatable && !isInNoGrav) {
+	if (node->RightDown && node->RightDown->m_Navigatable && allowDiagonal) {
 		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->RightDownMaterial) * 1.4F) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->RightDown);
 		adjacentList->push_back(adjCost);
 	}
 
-	if (node->DownLeft && node->DownLeft->m_Navigatable && !isInNoGrav) {
+	if (node->DownLeft && node->DownLeft->m_Navigatable && allowDiagonal) {
 		adjCost.cost = 1.4F + (GetMaterialTransitionCost(*node->DownLeftMaterial) * 1.4F) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->DownLeft);
 		adjacentList->push_back(adjCost);
@@ -411,13 +411,13 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		}
 
 		// Add cost for digging at 45 degrees and for digging upwards.
-		if (node->UpRight && node->UpRight->m_Navigatable && !isInNoGrav) {
+		if (node->UpRight && node->UpRight->m_Navigatable && allowDiagonal) {
 			adjCost.cost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
 			adjCost.state = static_cast<void*>(node->UpRight);
 			adjacentList->push_back(adjCost);
 		}
 
-		if (node->LeftUp && node->LeftUp->m_Navigatable && !isInNoGrav) {
+		if (node->LeftUp && node->LeftUp->m_Navigatable && allowDiagonal) {
 			adjCost.cost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost; // Three times more expensive when digging.
 			adjCost.state = static_cast<void*>(node->LeftUp);
 			adjacentList->push_back(adjCost);

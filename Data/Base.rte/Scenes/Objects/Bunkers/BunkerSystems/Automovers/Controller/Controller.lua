@@ -1132,6 +1132,8 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 			actor:RemoveMovePathBeginning();
 		end
 
+		analogMove:Normalize();
+
 		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.05) then
 			-- choose a random direction to get unstuck
 			-- TODO, it'd be better if the AI logic can communicate this to us instead!
@@ -1579,16 +1581,17 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 		local centeringSpeedAndDistance = self.movementAcceleration * 5;
 
 		for _, centeringAxis in pairs(centeringAxes) do
-			if actor.MovePathSize > 0 then
+			if actor.MovePathSize > 0 and directionConnectingArea == nil ~= nil then
 				-- Collect all points ahead of us in the box to adjust to centre
 				local positionsToFixUp = {};
+				local stop = false;
 				for pos in actor.MovePath do
-					if pos[centeringAxis] == closestNode.Pos[centeringAxis] or directionConnectingArea == nil or not directionConnectingArea:IsInside(pos) then
-						break;
-					end
 					local adjustedPos = pos;
 					adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
 					table.insert(positionsToFixUp, adjustedPos);
+					if not directionConnectingArea:IsInside(pos) then
+						break;
+					end
 				end
 
 				-- Clear these points from our move path
