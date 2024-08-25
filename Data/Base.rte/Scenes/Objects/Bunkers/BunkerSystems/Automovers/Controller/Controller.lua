@@ -752,7 +752,7 @@ automoverUtilityFunctions.findNodeWithShortestScenePath = function(self, positio
 
 	local shortestPathCoroutine = coroutine.create(FindStartPositionWithShortestPathToEndPosition);
 	while coroutine.status(shortestPathCoroutine) ~= "dead" do
-		local _, result = coroutine.resume(shortestPathCoroutine, potentialClosestNodes, positionToFindClosestNodeFor, pathfinderTeam, false, pathfinderDigStrength);
+		local _, result = coroutine.resume(shortestPathCoroutine, potentialClosestNodes, positionToFindClosestNodeFor, pathfinderTeam, GetPathFindingFlyingJumpHeight(), pathfinderDigStrength);
 		if result then
 			return result;
 		else
@@ -1490,7 +1490,7 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 						end
 					end
 				end,
-				actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team
+				actor.Pos, waypointData.targetPosition, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.Team
 			);
 		elseif waypointData.exitPath ~= nil and #waypointData.exitPath > 0 then
 			local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);

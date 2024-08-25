@@ -1420,7 +1420,7 @@ void SceneEditorGUI::UpdateBrainSkyPathAndCost(Vector brainPos) {
 	}
 
 	Activity::Teams team = static_cast<Activity::Teams>(g_ActivityMan.GetActivity()->GetTeamOfPlayer(m_pController->GetPlayer()));
-	m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(pos1, pos2, c_PathFindingDefaultDigStrength, FLT_MAX, team,
+	m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(pos1, pos2, FLT_MAX, c_PathFindingDefaultDigStrength, team,
 	                                                          [&](std::shared_ptr<volatile PathRequest> pathRequest) {
 		                                                          m_BrainSkyPath = const_cast<std::list<Vector>&>(pathRequest->path);
 		                                                          m_BrainSkyPathCost = pathRequest->totalCost;

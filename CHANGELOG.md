@@ -9,7 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 <details><summary><b>Added</b></summary>
 
 - Pathfinding and navigation overhaul, including jetpack/jump-aware pathfinding.  
-	Actors will now intelligently choose their path depending on how high they can jump, instead of always taking the shortest path. This will reduce instances of the AI getting stuck while trying to take impossible paths.
+	Actors will now intelligently choose their path depending on how high they can jump, instead of always taking the shortest path. This will reduce instances of the AI getting stuck while trying to take impossible paths.  
+	In the `CalculatePath` and `CalculatePathAsync` functions, the parameter `movePathToGround` has been replaced with `jumpHeight`, which is the height in metres the pathfind can jump vertically.  
+	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height).  
+	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight.
 
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.

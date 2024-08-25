@@ -1007,7 +1007,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 							end
 							searchesRemaining = searchesRemaining - 1;
 						end, 
-						Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+						Owner.Pos, device.Pos, Owner.JumpHeight, Owner.DigStrength, Owner.Team
 					);
 				end
 			end
@@ -1123,7 +1123,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 						end
 						searchesRemaining = searchesRemaining - 1;
 					end, 
-					Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+					Owner.Pos, device.Pos, Owner.JumpHeight, Owner.DigStrength, Owner.Team
 				);
 			end
 		end

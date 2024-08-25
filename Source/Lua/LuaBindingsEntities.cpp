@@ -1176,10 +1176,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .def("PathFindingUpdated", &Scene::PathFindingUpdated)
 	    .def("CalculatePath", &LuaAdaptersScene::CalculatePath)
 	    .def("CalculatePath", &LuaAdaptersScene::CalculatePath1)
-	    .def("CalculatePath", &LuaAdaptersScene::CalculatePath2)
 	    .def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync)
 	    .def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync1)
-	    .def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync2)
 
 	    .enum_("PlacedObjectSets")[luabind::value("PLACEONLOAD", Scene::PlacedObjectSets::PLACEONLOAD),
 	                               luabind::value("BLUEPRINT", Scene::PlacedObjectSets::BLUEPRINT),

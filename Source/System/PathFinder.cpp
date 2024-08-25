@@ -27,13 +27,13 @@ struct MicroPatherWrapper {
 
 thread_local MicroPatherWrapper s_Pather;
 
+// How high the given agent can jump / jetpack vertically, in metres
+thread_local float s_JumpHeight = 0.0F;
+
 // What material strength the search is capable of digging through.
 // Needs to be thread-local because of how it's passed around, unfortunately it doesn't seem we can give userdata for a path agent in MicroPather.
 // TODO: Enhance MicroPather to add that capability (or write our own pather)!
 thread_local float s_DigStrength = 0.0F;
-
-// How high the given agent can jump / jetpack vertically, in metres
-thread_local float s_JumpHeight = 0.0F;
 
 RTE::PathNode::PathNode(const Vector& pos) :
     Pos(pos) {
@@ -144,7 +144,7 @@ MicroPather* PathFinder::GetPather() {
 	return s_Pather.m_Instance;
 }
 
-int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float digStrength, float jumpHeight) {
+int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float jumpHeight, float digStrength) {
 	ZoneScoped;
 
 	++m_CurrentPathingRequests;
@@ -165,11 +165,11 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	// Due to different actors having different dig strengths, node costs aren't consistent, so reset on every path.
 	GetPather()->Reset();
 
-	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
-	s_DigStrength = digStrength;
-
 	// Actors capable of jumping/jetpacking can move vertically.
 	s_JumpHeight = jumpHeight;
+
+	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
+	s_DigStrength = digStrength;
 
 	// Do the actual pathfinding, fetch out the list of states that comprise the best path.
 	int result = MicroPather::NO_SOLUTION;
@@ -214,18 +214,18 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	return result;
 }
 
-std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector start, Vector end, float digStrength, float jumpHeight, PathCompleteCallback callback) {
+std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector start, Vector end, float jumpHeight, float digStrength, PathCompleteCallback callback) {
 	std::shared_ptr<volatile PathRequest> pathRequest = std::make_shared<PathRequest>();
 
 	const_cast<Vector&>(pathRequest->startPos) = start;
 	const_cast<Vector&>(pathRequest->targetPos) = end;
 
 	g_ThreadMan.GetBackgroundThreadPool().push_task(
-	    [this, start, end, digStrength, jumpHeight, callback](std::shared_ptr<volatile PathRequest> volRequest) {
+	    [this, start, end, jumpHeight, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
 		    // Cast away the volatile-ness - only matters outside (and complicates the API otherwise)
 		    PathRequest& request = const_cast<PathRequest&>(*volRequest);
 
-		    int status = this->CalculatePath(start, end, request.path, request.totalCost, digStrength, jumpHeight);
+		    int status = this->CalculatePath(start, end, request.path, request.totalCost, jumpHeight, digStrength);
 
 		    request.status = status;
 		    request.pathLength = request.path.size();

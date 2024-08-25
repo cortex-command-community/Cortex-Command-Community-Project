@@ -301,21 +301,15 @@ namespace RTE {
 
 #pragma region Scene Lua Adapters
 	struct LuaAdaptersScene {
-		static int CalculatePath1(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength) {
-			return CalculatePath(luaSelfObject, start, end, movePathToGround, digStrength, FLT_MAX, Activity::Teams::NoTeam);
+		static int CalculatePath1(Scene* luaSelfObject, const Vector& start, const Vector& end, float jumpHeight, float digStrength) {
+			return CalculatePath(luaSelfObject, start, end, jumpHeight, digStrength, Activity::Teams::NoTeam);
 		}
-		static int CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
-			return CalculatePath(luaSelfObject, start, end, movePathToGround, digStrength, FLT_MAX, team);
-		}
-		static int CalculatePath(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, float jumpHeight, Activity::Teams team);
+		static int CalculatePath(Scene* luaSelfObject, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team);
 
-		static void CalculatePathAsync1(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, bool movePathToGround, float digStrength) {
-			return CalculatePathAsync(luaSelfObject, callback, start, end, movePathToGround, digStrength, FLT_MAX, Activity::Teams::NoTeam);
+		static void CalculatePathAsync1(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength) {
+			return CalculatePathAsync(luaSelfObject, callback, start, end, jumpHeight, digStrength, Activity::Teams::NoTeam);
 		}
-		static void CalculatePathAsync2(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
-			return CalculatePathAsync(luaSelfObject, callback, start, end, movePathToGround, digStrength, FLT_MAX, team);
-		}
-		static void CalculatePathAsync(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, float jumpHeight, Activity::Teams team);
+		static void CalculatePathAsync(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team);
 	};
 #pragma endregion
 
@@ -599,6 +593,10 @@ namespace RTE {
 		/// Gets the ratio between the on-screen pixels and the physics engine's Liters.
 		/// @return A float describing the current PPL ratio.
 		static float GetPPL();
+
+		/// Gets the pathfinder jump-height value that represents flying.
+		/// @return A float describing the pathfinder jump-height value that represents flying.
+		static float GetPathFindingFlyingJumpHeight();
 
 		/// Gets the default pathfinder penetration value that'll allow pathing through corpses, debris, and such stuff.
 		/// @return A float describing the default pathfinder penetration value.

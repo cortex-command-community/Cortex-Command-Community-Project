@@ -2398,16 +2398,16 @@ void Scene::UpdatePathFinding() {
 	m_PathfindingUpdated = true;
 }
 
-float Scene::CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float digStrength, float jumpHeight, Activity::Teams team) {
+float Scene::CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float jumpHeight, float digStrength, Activity::Teams team) {
 	float totalCostResult = -1;
-	int result = GetPathFinder(team).CalculatePath(start, end, pathResult, totalCostResult, digStrength, jumpHeight);
+	int result = GetPathFinder(team).CalculatePath(start, end, pathResult, totalCostResult, jumpHeight, digStrength);
 
 	// It's ok if start and end nodes happen to be the same, the exact pixel locations are added at the front and end of the result regardless
 	return (result == micropather::MicroPather::SOLVED || result == micropather::MicroPather::START_END_SAME) ? totalCostResult : -1;
 }
 
-std::shared_ptr<volatile PathRequest> Scene::CalculatePathAsync(const Vector& start, const Vector& end, float digStrength, float jumpHeight, Activity::Teams team, PathCompleteCallback callback) {
-	return GetPathFinder(team).CalculatePathAsync(start, end, digStrength, jumpHeight, callback);
+std::shared_ptr<volatile PathRequest> Scene::CalculatePathAsync(const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team, PathCompleteCallback callback) {
+	return GetPathFinder(team).CalculatePathAsync(start, end, jumpHeight, digStrength, callback);
 }
 
 int Scene::GetScenePathSize() const {
