@@ -1581,7 +1581,7 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 		local centeringSpeedAndDistance = self.movementAcceleration * 5;
 
 		for _, centeringAxis in pairs(centeringAxes) do
-			if actor.MovePathSize > 0 and directionConnectingArea == nil ~= nil then
+			if actor.MovePathSize > 0 and directionConnectingArea ~= nil then
 				-- Collect all points ahead of us in the box to adjust to centre
 				local positionsToFixUp = {};
 				local stop = false;
