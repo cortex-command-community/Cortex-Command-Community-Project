@@ -527,6 +527,21 @@ function RefineryAssault:HandleMessage(message, object)
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
 		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;
 		
+		if not self.saveTable.capturedAtLeastOneBank then
+			self.saveTable.capturedAtLeastOneBank = true;
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"You've just linked a FreeTrade account over to us!",
+			5000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"We'll siphon the funds as fast as we can. Keep it up!",
+			5000,
+			0,
+			true);
+		end
+		
 	elseif message == "Captured_RefineryGoldVaultCapturable" then
 	
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 4;		
@@ -534,6 +549,21 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		self:ChangeAIFunds(self.humanTeam, 2000);
 		self:ChangeTeamFunds(2000, self.humanTeam); -- player, will also play gold sound
+		
+		if not self.saveTable.capturedAtLeastOneVault then
+			self.saveTable.capturedAtLeastOneVault = true;
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"FreeTrade's just let us know some gold reserves have been transferred to us.",
+			5000,
+			0,
+			true);
+
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Whatever you did, we have more funds available now. Keep at it.",
+			5000,
+			0,
+			true);
+		end
 		
 	elseif message == "Refinery_S4CameraServerBroken" then
 	
@@ -634,7 +664,13 @@ function RefineryAssault:HandleMessage(message, object)
 	elseif message == "Captured_RefineryS9BossBankCapturable" then
 	
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 30;		
-		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 30;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 30;
+		
+		self.HUDHandler:QueueScreenText(self.humanTeam,
+		"Seems to be the Baron's own account... we'll drain it.",
+		5000,
+		0,
+		true);
 		
 	elseif message == "Captured_RefineryS9FinalConsole" then	
 
