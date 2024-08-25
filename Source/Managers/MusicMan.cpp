@@ -181,6 +181,7 @@ bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
 		}
 		if (m_PreviousSoundContainer) {
 			g_ConsoleMan.PrintString("Found unfaded PreviousSoundContainer. Stopping: " + m_PreviousSoundContainer->GetPresetName());
+			m_PreviousSoundContainerSetToFade = false;
 			m_PreviousSoundContainer->Stop();
 			m_PreviousSoundContainer = nullptr;
 		}
