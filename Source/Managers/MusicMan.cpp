@@ -61,7 +61,7 @@ void MusicMan::Update() {
 		}
 	} else if (!m_ReturnToDynamicMusic) {
 		if (m_CurrentSoundContainer && m_CurrentSoundContainer->GetAudibleVolume() == 0.0F) {
-			g_ConsoleMan.PrintString("MusicMan: Inaudible CurrentSoundContainer is about to be deleted: " + m_PreviousSoundContainer->GetPresetName());
+			g_ConsoleMan.PrintString("MusicMan: Inaudible CurrentSoundContainer is about to be deleted: " + m_CurrentSoundContainer->GetPresetName());
 			m_CurrentSoundContainer = nullptr;
 		}
 	}
