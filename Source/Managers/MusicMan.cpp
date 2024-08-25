@@ -59,13 +59,15 @@ void MusicMan::Update() {
 				m_PreviousSoundContainer->FadeOut(musicFadeOutTimeMs);
 			}
 		}
+	} else if (!m_ReturnToDynamicMusic) {
+		if (m_CurrentSoundContainer && m_CurrentSoundContainer->GetAudibleVolume() == 0.0F) {
+			g_ConsoleMan.PrintString("MusicMan: Inaudible CurrentSoundContainer is about to be deleted: " + m_PreviousSoundContainer->GetPresetName());
+			m_CurrentSoundContainer = nullptr;
+		}
 	}
 	if (m_PreviousSoundContainer && m_PreviousSoundContainer->GetAudibleVolume() == 0.0F) {
 		g_ConsoleMan.PrintString("MusicMan: Inaudible PreviousSoundContainer is about to be deleted: " + m_PreviousSoundContainer->GetPresetName());
 		m_PreviousSoundContainer = nullptr;
-	}
-	if (m_CurrentSoundContainer && m_CurrentSoundContainer->GetAudibleVolume() == 0.0F) {
-		m_CurrentSoundContainer = nullptr;
 	}
 }
 
@@ -171,8 +173,8 @@ bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
 	if (m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		if (smoothFade) {
 			m_CurrentSoundContainer->FadeOut(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
-		} else {
-			g_ConsoleMan.PrintString("No smoothFade means upcoming PreviousSoundContainer will be faded out at entry point.");
+		} else if (!m_MusicTimer.IsPastRealTimeLimit()) {
+			g_ConsoleMan.PrintString("No smoothFade and premature cycling means upcoming PreviousSoundContainer will be faded out at entry point.");
 			m_PreviousSoundContainerSetToFade = true;
 			m_MusicFadeTimer.Reset();
 			m_MusicFadeTimer.SetRealTimeLimitMS(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
@@ -251,6 +253,7 @@ void MusicMan::PlayInterruptingMusic(const SoundContainer* soundContainer) {
 }
 
 void MusicMan::EndInterruptingMusic() {
+	g_ConsoleMan.PrintString("MusicMan: Ending interrupting music.");
 	if (m_InterruptingMusicSoundContainer && m_InterruptingMusicSoundContainer->IsBeingPlayed()) {
 		m_InterruptingMusicSoundContainer->Stop();
 
@@ -259,6 +262,7 @@ void MusicMan::EndInterruptingMusic() {
 		}
 
 		if (m_CurrentSoundContainer != nullptr) {
+			g_ConsoleMan.PrintString("Unpausing CurrentSoundContainer.");
 			m_CurrentSoundContainer->SetPaused(false);
 		}
 
