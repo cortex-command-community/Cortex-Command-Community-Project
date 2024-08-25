@@ -1415,8 +1415,7 @@ void SceneEditorGUI::UpdateBrainSkyPathAndCost(Vector brainPos) {
 
 	Vector pos1 = orbitPos;
 	Vector pos2 = brainPos;
-	if (pos1.GetY() > pos2.GetY())
-	{
+	if (pos1.GetY() > pos2.GetY()) {
 		std::swap(pos1, pos2);
 	}
 

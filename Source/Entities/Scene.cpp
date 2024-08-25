@@ -141,7 +141,7 @@ bool Scene::Area::HasNoArea() const {
 
 bool Scene::Area::IsInside(const Vector& point) const {
 	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
-	
+
 	std::list<Box> wrappedBoxes;
 	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
 		// Handle wrapped boxes properly

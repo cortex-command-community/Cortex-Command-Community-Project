@@ -154,10 +154,10 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	g_SceneMan.ForceBounds(end);
 
 	// Convert from absolute scene pixel coordinates to path node indices.
-	int startNodeX =                std::floor( start.m_X / static_cast<float>(m_NodeDimension));
+	int startNodeX = std::floor(start.m_X / static_cast<float>(m_NodeDimension));
 	int startNodeY = std::max(0.0F, std::floor((start.m_Y / static_cast<float>(m_NodeDimension) - 0.5f)));
-	int endNodeX   =                std::floor( end.m_X   / static_cast<float>(m_NodeDimension));
-	int endNodeY   = std::max(0.0F, std::floor((end.m_Y   / static_cast<float>(m_NodeDimension) - 0.5f)));
+	int endNodeX = std::floor(end.m_X / static_cast<float>(m_NodeDimension));
+	int endNodeY = std::max(0.0F, std::floor((end.m_Y / static_cast<float>(m_NodeDimension) - 0.5f)));
 
 	// Clear out the results if it happens to contain anything
 	pathResult.clear();
@@ -302,11 +302,11 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 	// We do a little trick here, where we radiate out a little percentage of our average cost in all directions.
 	// This encourages the AI to generally try to give hard surfaces some berth when pathing, so we don't get too close and get stuck.
 	const float costRadiationMultiplier = 0.2F;
-	float radiatedCost = 0.0F; //GetNodeAverageTransitionCost(*node) * costRadiationMultiplier;
+	float radiatedCost = 0.0F; // GetNodeAverageTransitionCost(*node) * costRadiationMultiplier;
 
 	bool isInNoGrav = g_SceneMan.IsPointInNoGravArea(node->Pos);
 	bool allowDiagonal = !isInNoGrav; // We don't allow diagonals in nograv to improve automover behaviour
-	
+
 	if (node->Down && node->Down->m_Navigatable) {
 		adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->DownMaterial) + radiatedCost;
 		adjCost.state = static_cast<void*>(node->Down);
@@ -508,10 +508,10 @@ std::vector<int> PathFinder::GetNodeIdsInBox(Box box) {
 	box.Unflip();
 
 	// Get the extents of the box's potential influence on PathNodes and their connecting edges.
-	int firstX = static_cast<int>(std::floor( (box.m_Corner.m_X                 / static_cast<float>(m_NodeDimension)) + 0.5F) - 1);
-	int lastX  = static_cast<int>(std::floor(((box.m_Corner.m_X + box.m_Width)  / static_cast<float>(m_NodeDimension)) + 0.5F) + 1);
-	int firstY = static_cast<int>(std::floor( (box.m_Corner.m_Y                 / static_cast<float>(m_NodeDimension)) + 0.5F) - 1);
-	int lastY  = static_cast<int>(std::floor(((box.m_Corner.m_Y + box.m_Height) / static_cast<float>(m_NodeDimension)) + 0.5F) + 1);
+	int firstX = static_cast<int>(std::floor((box.m_Corner.m_X / static_cast<float>(m_NodeDimension)) + 0.5F) - 1);
+	int lastX = static_cast<int>(std::floor(((box.m_Corner.m_X + box.m_Width) / static_cast<float>(m_NodeDimension)) + 0.5F) + 1);
+	int firstY = static_cast<int>(std::floor((box.m_Corner.m_Y / static_cast<float>(m_NodeDimension)) + 0.5F) - 1);
+	int lastY = static_cast<int>(std::floor(((box.m_Corner.m_Y + box.m_Height) / static_cast<float>(m_NodeDimension)) + 0.5F) + 1);
 
 	// Only iterate through the grid where the box overlaps any edges.
 	for (int nodeX = firstX; nodeX <= lastX; ++nodeX) {
