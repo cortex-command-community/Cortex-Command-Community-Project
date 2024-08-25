@@ -2547,6 +2547,7 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 		return;
 	}
 
+#ifdef DEBUG_BUILD
 	// Limbpath debug drawing
 	m_Paths[FGROUND][WALK].Draw(pTargetBitmap, targetPos, 122);
 	m_Paths[FGROUND][CRAWL].Draw(pTargetBitmap, targetPos, 122);
@@ -2576,6 +2577,7 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	// Radius
 //    waypoint = m_Pos - targetPos;
 //    circle(pTargetBitmap, waypoint.m_X, waypoint.m_Y, m_MoveProximityLimit, g_RedColor);
+#endif
 
 	// Player AI drawing
 
