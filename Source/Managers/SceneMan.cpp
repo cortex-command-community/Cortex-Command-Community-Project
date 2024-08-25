@@ -2237,13 +2237,21 @@ bool SceneMan::OverAltitude(const Vector& point, int threshold, int accuracy) {
 	return g_SceneMan.CastNotMaterialRay(temp, Vector(0, threshold), g_MaterialAir, accuracy) < 0;
 }
 
-Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
+bool SceneMan::IsPointInNoGravArea(const Vector& point) const {
 	// Todo, instead of a nograv area maybe best to tag certain areas as NoGrav. As otherwise it's tricky to keep track of when things are removed
 	if (m_pCurrentScene) {
 		Scene::Area* noGravArea = m_pCurrentScene->GetOptionalArea("NoGravityArea");
-		if (noGravArea && noGravArea->IsInside(from)) {
-			return from;
+		if (noGravArea && noGravArea->IsInside(point)) {
+			return true;
 		}
+	}
+
+	return false;
+}
+
+Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
+	if (IsPointInNoGravArea(from)) {
+		return from;
 	}
 
 	Vector temp(from);
@@ -2583,7 +2591,9 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 	if (!m_pCurrentScene) {
 		return;
 	}
+
 	SLTerrain* terrain = m_pCurrentScene->GetTerrain();
+
 	// Set up the target box to draw to on the target bitmap, if it is larger than the scene in either dimension.
 	Box targetBox(Vector(), static_cast<float>(targetBitmap->w), static_cast<float>(targetBitmap->h));
 
@@ -2635,24 +2645,30 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 				g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
 			}
 
-#ifdef DRAW_NOGRAV_BOXES
-			if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
-				const std::vector<Box>& boxList = noGravArea->GetBoxes();
-				g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
-				drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
+			static bool s_drawNoGravBoxes = false;
+			if (s_drawNoGravBoxes) {
+				if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
+					const std::vector<Box>& boxList = noGravArea->GetBoxes();
+					g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
+					drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
 
-				std::list<Box> wrappedBoxes;
-				for (std::vector<Box>::const_iterator bItr = boxList.begin(); bItr != boxList.end(); ++bItr) {
-					wrappedBoxes.clear();
-					g_SceneMan.WrapBox(*bItr, wrappedBoxes);
+					std::list<Box> wrappedBoxes;
+					for (std::vector<Box>::const_iterator bItr = boxList.begin(); bItr != boxList.end(); ++bItr) {
+						wrappedBoxes.clear();
+						g_SceneMan.WrapBox(*bItr, wrappedBoxes);
 
-					for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
-						Vector adjCorner = (*wItr).GetCorner() - targetPos;
-						rectfill(targetBitmap, adjCorner.m_X, adjCorner.m_Y, adjCorner.m_X + (*wItr).GetWidth(), adjCorner.m_Y + (*wItr).GetHeight(), g_RedColor);
+						for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
+							Vector adjCorner = (*wItr).GetCorner() - targetPos;
+							rectfill(targetBitmap, adjCorner.m_X, adjCorner.m_Y, adjCorner.m_X + (*wItr).GetWidth(), adjCorner.m_Y + (*wItr).GetHeight(), g_RedColor);
+						}
 					}
 				}
 			}
-#endif
+
+			static int s_drawPathfinderDebugForTeam = -2;
+			if (s_drawPathfinderDebugForTeam > -2) {
+				m_pCurrentScene->GetPathFinder(static_cast<Activity::Teams>(s_drawPathfinderDebugForTeam)).DebugRender(targetBitmap, targetPos, m_LastUpdatedScreen);
+			}
 
 			if (m_pDebugLayer) {
 				m_pDebugLayer->Draw(targetBitmap, targetBox);

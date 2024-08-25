@@ -1,4 +1,4 @@
-function FindStartPositionWithShortestPathToEndPosition(startPositions, endPosition, team, movePathToGround, digStrength)
+function FindStartPositionWithShortestPathToEndPosition(startPositions, endPosition, team, jumpHeight, digStrength)
 	if startPositions == nil or type(startPositions) ~= "table" then
 		print("FindShortestPathAsync Error: A table of start positions is required.");
 		return;
@@ -12,7 +12,7 @@ function FindStartPositionWithShortestPathToEndPosition(startPositions, endPosit
 		return;
 	end
 	
-	movePathToGround = movePathToGround or false;
+	jumpHeight = jumpHeight or GetPathFindingFlyingJumpHeight();
 	digStrength = digStrength or GetPathFindingDefaultDigStrength();
 	
 	local closestStartPositionKey;
@@ -30,7 +30,7 @@ function FindStartPositionWithShortestPathToEndPosition(startPositions, endPosit
 				end
 				pathRequestsCompleted = pathRequestsCompleted + 1;
 			end, 
-			startPosition, endPosition, movePathToGround, digStrength, team
+			startPosition, endPosition, jumpHeight, digStrength, team
 		);
 		totalPathingRequests = totalPathingRequests + 1;
 	end
