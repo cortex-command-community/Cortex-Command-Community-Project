@@ -679,16 +679,61 @@ function RefineryAssault:HandleMessage(message, object)
 		MusicMan:SetNextDynamicSongSection("Boss", true, true, true);
 		
 		self.saveTable.stage9FinalConsoleCaptured = true;
+		
+	elseif message == "Refinery_S10BossUniqueIDReturn" then
+		
+		self.saveTable.bossActor = ToActor(MovableMan:FindObjectByUniqueID(object));
 
 	elseif message == "Refinery_RefineryS10FinalBossDead" then	
+	
+		self.saveTable.gameFinished = true;
+		
+		self.saveTable.finalBossPosition = Vector(self.saveTable.bossActor.Pos.X, self.saveTable.bossActor.Pos.Y);
 	
 		MusicMan:SetNextDynamicSongSection("Victory Stinger", true, true, true);
 		MusicMan:EndDynamicMusic(false);
 		
+		self.HUDHandler:SetCinematicBars(self.humanTeam, true)
+		
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10BossDeath", self.saveTable.bossActor, 0.1, 4000, true, true, true);
+		
 	elseif message == "Refinery_RefineryS10FinalBossExploded" then	
+	
+		self.saveTable.finalMessageTimer = Timer();
 		
 		MusicMan:PlayDynamicSong("BC", "Victory", true, true, true);
 		MusicMan:EndDynamicMusic(false);
+		
+		for actor in MovableMan.Actors do
+			actor = ToActor(actor)
+			if actor.Team == self.aiTeam then
+				actor.AIMode = 0;
+				actor.MovementState = 0;
+				
+				local controller = actor:GetController();
+				controller:SetState(Controller.WEAPON_DROP, true);
+				actor:DropAllInventory();
+			end
+		end
+		
+		self.HUDHandler:RemoveAllCameraPanEvents(self.humanTeam, true)
+		
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10BossPostDeath", self.saveTable.finalBossPosition, 1, 3000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan1").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan1", cameraPos, 0.0015, 10000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan2").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan2", cameraPos, 0.001, 10000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan3").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan3", cameraPos, 0.001, 10000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan4").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan4", cameraPos, 0.001, 15000, true, true, true);
+		
+		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan5").Center;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan5", cameraPos, 0.0015, 999999, true, true, true);
 		
 	end
 	
@@ -745,6 +790,11 @@ function RefineryAssault:HandleMessage(message, object)
 		self.saveTable.stage3FacilityOperator = nil;
 		self.saveTable.stage3DrillOverloaded = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
+		
+		if self.stage3DoorSequenceTimer then
+			self.stage3DoorSequenceTimer.ElapsedSimTimeMS = 10000;
+			self.HUDHandler:RemoveAllCameraPanEvents(self.humanTeam);
+		end
 	elseif message == "SkipStage4" then
 		for k, door in pairs(self.saveTable.stage4Door) do
 			door:GibThis();

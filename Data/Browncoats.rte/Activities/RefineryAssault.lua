@@ -412,34 +412,71 @@ function RefineryAssault:UpdateActivity()
 			-- end
 		-- end
 	-- end
-
-	-- Monitor stage objectives
-	self.stageFunc = self.stageFunctionTable[self.Stage];
-	self:stageFunc();
-
-	self:UpdateFunds();
 	
-	-- Seek tasks to create squads for
-	-- Only human team uses docks
-	local team, task = self.tacticsHandler:UpdateTacticsHandler();
-	
-	if task and self:GetAIFunds(team) > 0 then
-		--print("gottask")
-		local squad;
-		if team == self.aiTeam then
-			squad = self:SendBuyDoorDelivery(team, task);
-		else
-			if math.random() < 0.2 then
-				squad = self:SendDockDelivery(team, task);
+	if not self.saveTable.gameFinished then
+
+		-- Monitor stage objectives
+		self.stageFunc = self.stageFunctionTable[self.Stage];
+		self:stageFunc();
+
+		self:UpdateFunds();
+		
+		-- Seek tasks to create squads for
+		-- Only human team uses docks
+		local team, task = self.tacticsHandler:UpdateTacticsHandler();
+		
+		if task and self:GetAIFunds(team) > 0 then
+			--print("gottask")
+			local squad;
+			if team == self.aiTeam then
+				squad = self:SendBuyDoorDelivery(team, task);
 			else
-				squad = self:SendBuyDoorDelivery(team, task);
+				if math.random() < 0.2 then
+					squad = self:SendDockDelivery(team, task);
+				else
+					squad = self:SendBuyDoorDelivery(team, task);
+				end
+				if not squad then
+					squad = self:SendBuyDoorDelivery(team, task);
+				end
 			end
-			if not squad then
-				squad = self:SendBuyDoorDelivery(team, task);
+			if squad then
+				self.tacticsHandler:AddSquad(team, squad, task.Name, true);
 			end
 		end
-		if squad then
-			self.tacticsHandler:AddSquad(team, squad, task.Name, true);
+	else
+		if self.saveTable.finalMessageTimer and self.saveTable.finalMessageTimer:IsPastSimMS(2000) and not self.saveTable.finalMessagesQueued then
+			self.saveTable.finalMessagesQueued = true;
+		
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"The Baron's death has forced the refinery to surrender to us wholly. Brilliant job!",
+			7000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Aside from utterly defeating the fearsome Browncoats, this facility will be indispensable.",
+			13000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Oil and steel alike are available to us in great quantities - after a few repairs, anyway...",
+			10000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"And now lacking a leader, what's left of the Browncoats may very well fight for us instead.",
+			15000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Today is a great victory. Your efforts will not be forgotten, commander.",
+			20000,
+			0,
+			true);
 		end
 	end
 	
