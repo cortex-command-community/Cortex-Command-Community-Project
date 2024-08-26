@@ -1436,6 +1436,7 @@ void GameActivity::Update() {
 								pActor->ClearAIWaypoints();
 								pActor->SetAIMode(Actor::AIMODE_SQUAD);
 								pActor->AddAIMOWaypoint(m_ControlledActor[player]);
+								pActor->SetMovePathToUpdate();
 							}
 					}
 

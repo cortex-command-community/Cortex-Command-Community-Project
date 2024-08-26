@@ -6,6 +6,12 @@ package.loaded.Constants = nil; require("Constants");
 
 function Test:StartActivity()
 	print("START! -- Test:StartActivity()!");
+	
+	for actor in MovableMan.AddedActors do
+		if IsADoor(actor) then
+			actor.Team = Activity.NOTEAM;
+		end
+	end
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
