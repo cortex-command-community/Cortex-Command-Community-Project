@@ -99,7 +99,7 @@ end
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
 	
-	self.verboseLogging = false;
+	self.verboseLogging = true;
 	
 	self.humansAreControllingAlliedActors = false;
 	
