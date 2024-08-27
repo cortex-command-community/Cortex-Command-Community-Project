@@ -17,10 +17,10 @@ function Create(self)
 	JumpAttack = CreateSoundContainer("Browncoat Boss VO Ability Jump Attack", "Browncoats.rte"),
 	OilThrowTaunt = CreateSoundContainer("Browncoat Boss VO Ability Oil Throw", "Browncoats.rte")}
 	
-	self.voiceSound = CreateSoundContainer("Browncoat Boss JumpPack", "Browncoats.rte");
+	self.voiceSound = CreateSoundContainer("Browncoat Boss Jump Pack", "Browncoats.rte");
 	-- MEANINGLESS! this is just so we can do voiceSound.Pos without an if check first! it will be overwritten first actual VO play
 
-	self.jumpPackSound = CreateSoundContainer("Browncoat Boss JumpPack", "Browncoats.rte");
+	self.jumpPackSound = CreateSoundContainer("Browncoat Boss Jump Pack", "Browncoats.rte");
 
 	self.stepSound = CreateSoundContainer("Browncoat Boss Stride", "Browncoats.rte");	
 	self.jumpSound = CreateSoundContainer("Browncoat Boss Jump", "Browncoats.rte");	
@@ -218,6 +218,38 @@ function Update(self)
 					self.abilityShockwaveOngoing = false;
 					self.abilityShockwaveWhooshSound:Stop(-1);
 					self.voiceSound:FadeOut(90);
+					
+					-- it's stupid that this is here in force, but the rest of the game has nothing like this yet and so it isn't standardized.
+					local terrainIDs = {
+					[12] = "Concrete",
+					[164] = "Concrete",
+					[176] = "Concrete",
+					[177] = "Concrete",
+					[9] = "Dirt",
+					[10] = "Dirt",
+					[11] = "Dirt",
+					[128] = "Dirt",
+					[6] = "Dirt",
+					[8] = "Dirt",
+					[178] = "Metal",
+					[179] = "Metal",
+					[180] = "Metal",
+					[181] = "Metal",
+					[182] = "Metal"};
+					
+					local hitPos = Vector(0, 0);
+					local ray = SceneMan:CastObstacleRay(self.Pos, Vector(0, 50), hitPos, Vector(0, 0), self.ID, self.Team, 0, 3);	
+					if ray ~= -1 then
+						terrainID = SceneMan:GetTerrMatter(hitPos.X, hitPos.Y)
+						
+						if terrainID ~= -1 then
+							if terrainIDs[terrainID] then
+								if self.abilityShockwaveTerrainSounds[terrainIDs[terrainID]] ~= nil then
+									self.abilityShockwaveTerrainSounds[terrainIDs[terrainID]]:Play(self.Pos);
+								end
+							end	
+						end
+					end
 					
 					self.abilityShockwaveLandSound:Play(self.Pos);
 					
