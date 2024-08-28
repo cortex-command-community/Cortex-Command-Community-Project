@@ -30,6 +30,10 @@ thread_local MicroPatherWrapper s_Pather;
 // How high the given agent can jump / jetpack vertically, in metres
 thread_local float s_JumpHeight = 0.0F;
 
+// How high the given agent can jump / jetpack vertically, in nodes
+thread_local int s_JumpHeightVertical = 0;
+thread_local int s_JumpHeightDiagonal = 0;
+
 // What material strength the search is capable of digging through.
 // Needs to be thread-local because of how it's passed around, unfortunately it doesn't seem we can give userdata for a path agent in MicroPather.
 // TODO: Enhance MicroPather to add that capability (or write our own pather)!
@@ -165,8 +169,12 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	// Due to different actors having different dig strengths, node costs aren't consistent, so reset on every path.
 	GetPather()->Reset();
 
-	// Actors capable of jumping/jetpacking can move vertically.
+	// Actors capable of jumping/jetpacking can jump upwards.
 	s_JumpHeight = jumpHeight;
+
+	// How high up we can jump from this node
+	s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP))); // min of 1 so automovers work a bit better
+	s_JumpHeightDiagonal = static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP));
 
 	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
 	s_DigStrength = digStrength;
@@ -342,16 +350,12 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 			adjacentList->push_back(adjCost);
 		}
 
-		// How high up we can jump from this node
-		const int verticalJumpHeightInNodes = static_cast<int>(s_JumpHeight / (m_NodeDimension * c_MPP));
-		const int diagonalJumpHeightInNodes = static_cast<int>((s_JumpHeight * 0.7F) / (m_NodeDimension * c_MPP));
-
 		// Jumping vertically
 		if (s_JumpHeight < FLT_MAX) {
 			// How high up we can jump from this node
 			const PathNode* currentNode = node;
 			float totalMaterialCost = 0.0F;
-			for (int i = 0; i < verticalJumpHeightInNodes; ++i) {
+			for (int i = 0; i < s_JumpHeightVertical; ++i) {
 				if (currentNode->Up == nullptr || !currentNode->Up->m_Navigatable || currentNode->UpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
 					// solid ceiling, stop
 					break;
@@ -375,7 +379,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		if (s_JumpHeight < FLT_MAX && node->UpRight && !isInNoGrav) {
 			const PathNode* currentNode = node->UpRight;
 			float totalMaterialCost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
-			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
+			for (int i = 0; i < s_JumpHeightDiagonal; ++i) {
 				if (currentNode->UpRight == nullptr || !currentNode->UpRight->m_Navigatable || currentNode->UpRightMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
 					// solid ceiling, stop
 					break;
@@ -394,7 +398,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		if (s_JumpHeight < FLT_MAX && node->LeftUp && !isInNoGrav) {
 			const PathNode* currentNode = node->LeftUp;
 			float totalMaterialCost = 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*node->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
-			for (int i = 0; i < diagonalJumpHeightInNodes; ++i) {
+			for (int i = 0; i < s_JumpHeightDiagonal; ++i) {
 				if (currentNode->LeftUp == nullptr || !currentNode->LeftUp->m_Navigatable || currentNode->LeftUpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) {
 					// solid ceiling, stop
 					break;

@@ -914,8 +914,8 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 		actor:SetNumberValue("Automover_OldMoveProximityLimit", actor.MoveProximityLimit);
 	end
 
-	-- Make move proximity much lower so we don't get caught on corners
-	actor.MoveProximityLimit = 2;
+	-- Make move proximity much higher so we don't zigzag back and forth
+	actor.MoveProximityLimit = 5;
 
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
@@ -1127,9 +1127,9 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 
 		analogMove = wptPos - actor.Pos;
 
-		-- the ai only removes points if it's not flying and moving, so let's remove the point if needed
-		if analogMove:MagnitudeIsLessThan(3) then
-			actor:RemoveMovePathBeginning();
+		-- zero out the axis we're being centred on, if we're only being centred on one
+		if actorData.centeringAxes ~= nil and #actorData.centeringAxes == 1 then
+			analogMove[actorData.centeringAxes[1]] = 0;
 		end
 
 		analogMove:Normalize();
@@ -1540,6 +1540,8 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
+	actorData.centeringAxes = {};
+
 	local oldClosestNode = actorData.currentClosestNode;
 	local closestNode = self:findClosestNode(actor.Pos, actorData.currentClosestNode, true, true) or actorData.currentClosestNode;
 	actorData.currentClosestNode = closestNode;
@@ -1577,6 +1579,8 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 		else
 			centeringAxes = { (directionToUseForCentering == Directions.Up or directionToUseForCentering == Directions.Down) and "X" or "Y"; }
 		end
+		actorData.centeringAxes = centeringAxes;
+
 		local gravityAdjustment = SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * -1;
 		local centeringSpeedAndDistance = self.movementAcceleration * 5;
 
