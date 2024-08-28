@@ -120,9 +120,6 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 					else
 						AI.proneState = AHuman.NOTPRONE;
 					end
-
-					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-					if _abrt then return true end
 				else
 					AI.proneState = AHuman.NOTPRONE;
 				end
@@ -245,8 +242,6 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 										UpdatePathTimer:Reset();
 										AI.lateralMoveState = Actor.LAT_STILL;
 										AI.jump = false;
-										local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-										if _abrt then return true end
 
 										if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 											Trace = SceneMan:ShortestDistance(Owner.Pos, Owner.MOMoveTarget.Pos, false);
@@ -306,15 +301,9 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 											local centerAngle = CurrDist.AbsRadAngle;
 											local Ray = Vector(Owner.Height*0.3, 0):RadRotate(centerAngle); -- center
 											if SceneMan:CastNotMaterialRay(Owner.Pos, Ray, 0, 3, false) < 0 then
-												local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-												if _abrt then return true end
-
 												-- now check the tunnel's thickness
 												Ray = Vector(Owner.Height*0.3, 0):RadRotate(centerAngle + sweepRange); -- up
 												if SceneMan:CastNotMaterialRay(Owner.Pos, Ray, rte.airID, 3, false) < 0 then
-													local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-													if _abrt then return true end
-
 													Ray = Vector(Owner.Height*0.3, 0):RadRotate(centerAngle - sweepRange); -- down
 													if SceneMan:CastNotMaterialRay(Owner.Pos, Ray, rte.airID, 3, false) < 0 then
 														obstacleState = Actor.PROCEEDING; -- ok the tunnel section is clear, so start walking forward while still digging
@@ -325,9 +314,6 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 											else
 												obstacleState = Actor.DIGPAUSING; -- tunnel cavity not clear yet, so stay put and dig some more
 											end
-
-											local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-											if _abrt then return true end
 
 											local aimAngle = Owner:GetAimAngle(true);
 											local AimVec = Vector(1, 0):RadRotate(aimAngle);
@@ -355,28 +341,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 											end
 
 											-- check if we are done when we get close enough to the waypoint
-											if SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).Largest < Owner.Height*0.3 then
-												if not SceneMan:CastStrengthRay(PrevWptPos, SceneMan:ShortestDistance(PrevWptPos, Waypoint.Pos, false), 5, Vector(), 1, rte.doorID, true) and
-													not SceneMan:CastStrengthRay(Owner.EyePos, SceneMan:ShortestDistance(Owner.EyePos, Waypoint.Pos, false), 5, Vector(), 1, rte.doorID, true)
-												then
-													-- advance to the next waypoint, if there are any
-													if Owner.MovePathSize > 0 then
-														UpdatePathTimer:Reset();
-														PrevWptPos = Waypoint.Pos;
-														Owner:RemoveMovePathBeginning();
-														
-														if Owner.MovePathSize > 0 then
-															Waypoint.Pos = Owner.MovePath[1];
-															Waypoint.Type = nil;
-															if Owner.MovePathSize == 1 then
-																Waypoint.Type = "last";
-															end
-														end
-													else
-														Waypoint = nil;
-													end
-												end
-											elseif Owner.AIMode == Actor.AIMODE_GOLDDIG then
+											if Owner.AIMode == Actor.AIMODE_GOLDDIG then
 												Waypoint.Pos = SceneMan:MovePointToGround(Waypoint.Pos, Owner.Height*0.2, 4);
 											end
 										end
