@@ -177,9 +177,12 @@ bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
 	// Clone instead of just point to because we might wanna keep this around even if the DynamicSong is gone
 	m_CurrentSoundContainer = std::unique_ptr<SoundContainer>(dynamic_cast<SoundContainer*>(m_NextSoundContainer->Clone()));
 	SelectNextSoundContainer();
-
-	double timeUntilNextShouldBePlayed = std::max(0.0F, m_CurrentSoundContainer->GetMusicExitTime() - m_NextSoundContainer->GetMusicPreEntryTime());
 	m_MusicTimer.Reset();
+	float exitTime = m_CurrentSoundContainer->GetMusicExitTime();
+	if (exitTime == 0.0F) {
+		exitTime = m_CurrentSoundContainer->GetLength(SoundContainer::LengthOfSoundType::NextPlayed);
+	}
+	double timeUntilNextShouldBePlayed = std::max(0.0F, exitTime - m_NextSoundContainer->GetMusicPreEntryTime());
 	m_MusicTimer.SetRealTimeLimitMS(timeUntilNextShouldBePlayed);
 	m_CurrentSoundContainer->Play();
 	m_CurrentSongSectionType = m_NextSongSectionType;
