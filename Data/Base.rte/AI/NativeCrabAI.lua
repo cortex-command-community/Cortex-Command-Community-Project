@@ -1,6 +1,7 @@
 require("Constants")
 require("AI/HumanBehaviors");
 require("AI/CrabBehaviors");
+require("AI/SharedBehaviors");
 
 NativeCrabAI = {};
 
@@ -347,7 +348,7 @@ function NativeCrabAI:CreateSuppressBehavior(Owner)
 end
 
 function NativeCrabAI:CreateGoToBehavior(Owner)
-	self.NextBehavior = coroutine.create(CrabBehaviors.GoToWpt);
+	self.NextBehavior = coroutine.create(SharedBehaviors.GoToWpt);
 	self.NextBehaviorName = "GoToWpt";
 
 	self.NextCleanup = function(AI)

@@ -1,5 +1,6 @@
 require("Constants")
 require("AI/HumanBehaviors");
+require("AI/SharedBehaviors");
 
 NativeHumanAI = {};
 
@@ -729,7 +730,7 @@ function NativeHumanAI:CreateGetWeaponBehavior(Owner)
 end
 
 function NativeHumanAI:CreateGoToBehavior(Owner)
-	self.NextGoTo = coroutine.create(HumanBehaviors.GoToWpt);
+	self.NextGoTo = coroutine.create(SharedBehaviors.GoToWpt);
 	self.NextGoToCleanup = function(AI)
 		AI.lateralMoveState = Actor.LAT_STILL;
 		AI.deviceState = AHuman.STILL;
