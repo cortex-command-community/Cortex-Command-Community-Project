@@ -452,8 +452,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 
 								if Owner.Jetpack and Owner.Head and Owner.Head:IsAttached() then
 									if Owner.Jetpack.JetTimeLeft < AI.minBurstTime then
-										AI.jump = false; -- not enough fuel left, no point in jumping yet
 										if not AI.flying or Owner.Vel.Y > 4 then
+											AI.jump = false; -- not enough fuel left, no point in jumping yet
 											AI.refuel = true;
 										end
 									else
@@ -522,34 +522,42 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 											end
 
 											-- predict jetpack movement...
-											local jumpHeight = Owner.JumpHeight;
+											local jetStrength = (AI.jetImpulseFactor / Owner.Mass);
+											local t = math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001);
+											local PixelVel = Owner.Vel * (GetPPM() * t);
+											local Accel = SceneMan.GlobalAcc * GetPPM();
+
+											-- a burst use 10x more fuel
+											if Owner.Jetpack:CanTriggerBurst() then
+												t = math.max(math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
+											end
 
 											-- when jumping (check four directions)
 											for k, Face in pairs(Facings) do
-												local JetAccel = Vector(-jumpHeight, 0):RadRotate(Owner.RotAngle+1.375*math.pi+Face.facing*0.25);
-												local JumpPos = Owner.Head.Pos + JetAccel;
+												local JetAccel = Vector(-jetStrength, 0):RadRotate(Owner.RotAngle+1.375*math.pi+Face.facing*0.25);
+												local JumpPos = Owner.Pos + PixelVel + (Accel + JetAccel) * (t*t*0.5);
+
+												-- a burst add a one time boost to acceleration
+												if Owner.Jetpack:CanTriggerBurst() then
+													JumpPos = JumpPos + Vector(-AI.jetBurstFactor, 0):AbsRotateTo(JetAccel);
+												end
 
 												-- check for obstacles from the head
-												Trace = SceneMan:ShortestDistance(Owner.Head.Pos, JumpPos, false);
-												local obstDist = SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, JumpPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
-												if obstDist < 0 then	-- no obstacles: calculate the distance from the future pos to the wpt
-													Facings[k].range = SceneMan:ShortestDistance(Waypoint.Pos, JumpPos, false).Magnitude;
-												else -- the ray hit terrain or start inside terrain: avoid
-													Facings[k].range = SceneMan:ShortestDistance(Waypoint.Pos, JumpPos, false).Largest * 2;
-												end
+												Trace = SceneMan:ShortestDistance(Owner.Pos, JumpPos, false);
+												Facings[k].range = SceneMan:ShortestDistance(Waypoint.Pos, JumpPos, false).Magnitude;
 											end
 
 											-- when falling or walking
-											local FallPos = Owner.Head.Pos + PixelVel;
+											local FallPos = Owner.Pos + PixelVel;
 											if AI.flying then
 												FallPos = FallPos + Accel * (t*t*0.5);
 											end
 
 											-- check for obstacles when falling/walking
-											local Trace = SceneMan:ShortestDistance(Owner.Head.Pos, FallPos, false);
-											SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
+											local Trace = SceneMan:ShortestDistance(Owner.Pos, FallPos, false);
+											SceneMan:CastObstacleRay(Owner.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
-											local deltaToJump = 15;
+											local deltaToJump = 1;
 											if Owner.Jetpack.JetpackType == AEJetpack.JumpPack then
 												deltaToJump = deltaToJump * 1.4;
 											end
