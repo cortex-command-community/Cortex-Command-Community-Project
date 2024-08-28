@@ -522,25 +522,12 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 											end
 
 											-- predict jetpack movement...
-											local jetStrength = AI.jetImpulseFactor / Owner.Mass;
-											local t = math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001);
-											local PixelVel = Owner.Vel * (GetPPM() * t);
-											local Accel = SceneMan.GlobalAcc * GetPPM();
-
-											-- a burst use 10x more fuel
-											if Owner.Jetpack:CanTriggerBurst() then
-												t = math.max(math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
-											end
+											local jumpHeight = Owner.JumpHeight;
 
 											-- when jumping (check four directions)
 											for k, Face in pairs(Facings) do
-												local JetAccel = Vector(-jetStrength, 0):RadRotate(Owner.RotAngle+1.375*math.pi+Face.facing*0.25);
-												local JumpPos = Owner.Head.Pos + PixelVel + (Accel + JetAccel) * (t*t*0.5);
-
-												-- a burst add a one time boost to acceleration
-												if Owner.Jetpack:CanTriggerBurst() then
-													JumpPos = JumpPos + Vector(-AI.jetBurstFactor, 0):AbsRotateTo(JetAccel);
-												end
+												local JetAccel = Vector(-jumpHeight, 0):RadRotate(Owner.RotAngle+1.375*math.pi+Face.facing*0.25);
+												local JumpPos = Owner.Head.Pos + JetAccel;
 
 												-- check for obstacles from the head
 												Trace = SceneMan:ShortestDistance(Owner.Head.Pos, JumpPos, false);
