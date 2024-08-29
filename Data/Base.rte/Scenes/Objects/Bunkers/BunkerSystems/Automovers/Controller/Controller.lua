@@ -1148,7 +1148,6 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 				actorData.lastAnalogMove:RadRotate(RangeRand(-0.15,0.15));
 				analogMove = actorData.lastAnalogMove;
 			end
-			print(analogMove);
 		end
 
 		analogMove:Normalize();

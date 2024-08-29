@@ -42,7 +42,7 @@ function NativeHumanAI:Create(Owner)
 	Members.idleAimTime = Owner:NumberValueExists("AIIdleAimTime") and Owner:GetNumberValue("AIIdleAimTime") or 500;
 
 	-- set shooting skill
-	Members.aimSpeed, Members.aimSkill, Members.skill = HumanBehaviors.GetTeamShootingSkill(Owner.Team);
+	Members.aimSpeed, Members.aimSkill, Members.skill = SharedBehaviors.GetTeamShootingSkill(Owner.Team);
 	
 	Members.aimSpeed = Owner:NumberValueExists("AIAimSpeed") and Owner:GetNumberValue("AIAimSpeed") or Members.aimSpeed;
 	Members.aimSkill = Owner:NumberValueExists("AIAimSkill") and Owner:GetNumberValue("AIAimSkill") or Members.aimSkill;
@@ -302,7 +302,7 @@ function NativeHumanAI:Update(Owner)
 			if FoundMO and FoundMO.Status < Actor.INACTIVE then
 				if self.Target then
 					-- check if this MO should be targeted instead
-					if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(self.Target, Owner) + 0.5 then
+					if SharedBehaviors.CalculateThreatLevel(FoundMO, Owner) > SharedBehaviors.CalculateThreatLevel(self.Target, Owner) + 0.5 then
 						self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y);
 						self.Target = FoundMO;
 						self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
@@ -577,7 +577,7 @@ function NativeHumanAI:Update(Owner)
 					self.useMedikit = false;
 					Owner:EquipFirearm(true);
 				end
-				if self.AlarmTimer:IsPastSimTimeLimit() and HumanBehaviors.ProcessAlarmEvent(self, Owner) then
+				if self.AlarmTimer:IsPastSimTimeLimit() and SharedBehaviors.ProcessAlarmEvent(self, Owner) then
 					self.AlarmTimer:Reset();
 				end
 			end
@@ -687,7 +687,7 @@ function NativeHumanAI:CreateSentryBehavior(Owner)
 end
 
 function NativeHumanAI:CreatePatrolBehavior(Owner)
-	self.NextBehavior = coroutine.create(HumanBehaviors.Patrol);
+	self.NextBehavior = coroutine.create(SharedBehaviors.Patrol);
 	self.NextCleanup = nil;
 	self.NextBehaviorName = "Patrol";
 end
@@ -708,7 +708,7 @@ function NativeHumanAI:CreateGoldDigBehavior(Owner)
 end
 
 function NativeHumanAI:CreateBrainSearchBehavior(Owner)
-	self.NextBehavior = coroutine.create(HumanBehaviors.BrainSearch);
+	self.NextBehavior = coroutine.create(SharedBehaviors.BrainSearch);
 	self.NextCleanup = nil;
 	self.NextBehaviorName = "BrainSearch";
 end
@@ -752,7 +752,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		if Owner:EquipDeviceInGroup("Tools - Breaching", true) then
 			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget);
 			self.NextBehaviorName = "AttackTarget";
-		elseif Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > (self.Target.Door or self.Target).Material.StructuralIntegrity then
+		elseif Owner.FirearmIsReady and SharedBehaviors.GetProjectileData(Owner).pen * 0.9 > (self.Target.Door or self.Target).Material.StructuralIntegrity then
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget);
 			self.NextBehaviorName = "ShootTarget";
 		else	--Cannot harm this door!
@@ -840,14 +840,14 @@ function NativeHumanAI:CreateSuppressBehavior(Owner)
 end
 
 function NativeHumanAI:CreateFaceAlarmBehavior(Owner)
-	self.NextBehavior = coroutine.create(HumanBehaviors.FaceAlarm);
+	self.NextBehavior = coroutine.create(SharedBehaviors.FaceAlarm);
 	self.NextBehaviorName = "FaceAlarm";
 	self.NextCleanup = nil;
 end
 
 function NativeHumanAI:CreatePinBehavior(Owner)
 	if self.OldTargetPos and Owner:EquipFirearm(true) then
-		self.NextBehavior = coroutine.create(HumanBehaviors.PinArea);
+		self.NextBehavior = coroutine.create(SharedBehaviors.PinArea);
 		self.NextBehaviorName = "PinArea";
 	else
 		return;

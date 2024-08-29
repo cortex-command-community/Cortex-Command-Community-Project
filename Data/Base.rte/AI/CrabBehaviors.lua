@@ -31,7 +31,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 				FoundMO = ToACRocket(FoundMO);
 			elseif FoundMO.ClassName == "ACDropShip" then
 				FoundMO = ToACDropShip(FoundMO);
-			elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity then
+			elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() and SharedBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity then
 				FoundMO = ToADoor(FoundMO);
 			elseif FoundMO.ClassName == "Actor" then
 				FoundMO = ToActor(FoundMO);
@@ -42,7 +42,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 			if FoundMO then
 				if AI.Target then
 					-- check if this MO should be targeted instead
-					if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(AI.Target, Owner) + 0.2 then
+					if SharedBehaviors.CalculateThreatLevel(FoundMO, Owner) > SharedBehaviors.CalculateThreatLevel(AI.Target, Owner) + 0.2 then
 						AI.OldTargetPos = Vector(AI.Target.Pos.X, AI.Target.Pos.Y);
 						AI.Target = FoundMO;
 						AI.TargetOffset = SceneMan:ShortestDistance(AI.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
