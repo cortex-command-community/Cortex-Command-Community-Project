@@ -1,5 +1,386 @@
 SharedBehaviors = {};
 
+function SharedBehaviors.GetTeamShootingSkill(team)
+	local skill = 80;
+	local Activ = ActivityMan:GetActivity();
+	if Activ then
+		-- i am fancy mathematician, doing fancy mathematics
+		-- this weigh actor skill heavily towards 100
+		local num = (Activ:GetTeamAISkill(team)/100);
+		skill = (1 - math.pow(1 - num, 3)) * 100;
+	end
+
+	local aimSpeed, aimSkill;
+	if skill >= Activity.UNFAIRSKILL then
+		aimSpeed = 0.04;
+		aimSkill = 0.04;
+	else
+		-- the AI shoot sooner and with slightly better precision
+		aimSpeed = 1/(0.65/(2.9-math.exp(skill*0.01)));
+		aimSkill = 1/(0.75/(3.0-math.exp(skill*0.01)));
+	end
+	return aimSpeed, aimSkill, skill;
+end
+
+function SharedBehaviors.ProcessAlarmEvent(AI, Owner)
+	AI.AlarmPos = nil;
+
+	local loudness, AlarmVec;
+	local canSupress = not AI.flying and Owner.FirearmIsReady and Owner.EquippedItem:HasObjectInGroup("Weapons - Explosive");
+	for Event in MovableMan.AlarmEvents do
+		if Event.Team ~= Owner.Team then	-- caused by some other team's activities - alarming!
+			loudness = Owner.AimDistance + Owner.Perceptiveness * Event.Range;
+			AlarmVec = SceneMan:ShortestDistance(Owner.EyePos, Event.ScenePos, false); -- see how far away the alarm situation is
+			if AlarmVec.Largest < loudness then	-- only react if the alarm is within hearing range
+				-- if our relative position to the alarm location is the same, don't repeat the signal
+				-- check if we have line of sight to the alarm point
+				if (not AI.LastAlarmVec or SceneMan:ShortestDistance(AI.LastAlarmVec, AlarmVec, false):MagnitudeIsGreaterThan(25)) then
+					AI.LastAlarmVec = AlarmVec;
+
+					if AlarmVec.Largest < 100 then
+						-- check more carfully at close range, and allow hearing of partially blocked alarm events
+						if SceneMan:CastStrengthSumRay(Owner.EyePos, Event.ScenePos, 4, rte.grassID) < 100 then
+							AI.AlarmPos = Vector(Event.ScenePos.X, Event.ScenePos.Y);
+						end
+					elseif not SceneMan:CastStrengthRay(Owner.EyePos, AlarmVec, 6, Vector(), 8, rte.grassID, true) then
+						AI.AlarmPos = Vector(Event.ScenePos.X, Event.ScenePos.Y);
+					end
+
+					if AI.AlarmPos then
+						Owner:SetAlarmPoint(AI.AlarmPos);
+						AI:CreateFaceAlarmBehavior(Owner);
+						return true;
+					end
+				end
+			-- sometimes try to shoot back at enemies outside our view range (0.5 is the range of the brain alarm)
+			elseif canSupress and Event.Range > 0.5 and PosRand() > (0.3/AI.aimSkill) and
+				AlarmVec.Largest < FrameMan.PlayerScreenWidth * 1.8 and
+				(not AI.LastAlarmVec or SceneMan:ShortestDistance(AI.LastAlarmVec, AlarmVec, false).Largest > 30)
+			then
+				-- only do this if we are facing the shortest distance to the alarm event
+				local AimOwner = SceneMan:ShortestDistance(Owner.EyePos, Owner.ViewPoint, false).Normalized;
+				local AlarmNormal = AlarmVec.Normalized;
+				local dot = AlarmNormal.X * AimOwner.X + AlarmNormal.Y * AimOwner.Y;
+				if dot > 0.2 then
+					-- check LOS
+					local ID = SceneMan:CastMORay(Owner.EyePos, AlarmVec, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, false, 11);
+					if ID ~= rte.NoMOID then
+						local FoundMO = MovableMan:GetMOFromID(ID);
+						if FoundMO then
+							FoundMO = FoundMO:GetRootParent();
+
+							if not FoundMO.EquippedItem or not FoundMO.EquippedItem:HasObjectInGroup("Weapons - Explosive") then
+								FoundMO = nil; -- don't shoot at without weapons or actors using tools
+							end
+
+							if FoundMO and FoundMO:GetController() and FoundMO:GetController():IsState(Controller.WEAPON_FIRE) and FoundMO.Vel.Largest < 20 then
+								-- compare the enemy aim angle with the angle of the alarm vector
+								local AimEnemy = SceneMan:ShortestDistance(FoundMO.EyePos, FoundMO.ViewPoint, false).Normalized;
+								local dot = AlarmNormal.X * AimEnemy.X + AlarmNormal.Y * AimEnemy.Y;
+								if dot < -0.5 then
+									-- this actor is shooting in our direction
+									AI.ReloadTimer:Reset();
+									AI.TargetLostTimer:Reset();
+
+									-- try to shoot back
+									AI.UnseenTarget = FoundMO;
+									AI:CreateSuppressBehavior(Owner);
+
+									AI.AlarmPos = Event.ScenePos;
+									return true;
+								end
+							end
+						end
+					else
+						AI.LastAlarmVec = AlarmVec; -- don't look here again if the raycast failed
+						AI.LastAlarmVec = nil;
+					end
+				end
+			end
+		end
+	end
+end
+
+-- look at the alarm event
+function SharedBehaviors.FaceAlarm(AI, Owner, Abort)
+	if AI.AlarmPos then
+		local AlarmDist = SceneMan:ShortestDistance(Owner.EyePos, AI.AlarmPos, false);
+		AI.AlarmPos = nil;
+		for _ = 1, math.ceil(200/TimerMan.AIDeltaTimeMS) do
+			AI.deviceState = AHuman.AIMING;
+			if not Owner.aggressive then
+				AI.lateralMoveState = Actor.LAT_STILL;
+			end
+			AI.Ctrl.AnalogAim = AlarmDist.Normalized;
+			local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+			if _abrt then return true end
+		end
+	end
+	return true;
+end
+
+-- find the closest enemy brain
+function SharedBehaviors.BrainSearch(AI, Owner, Abort)
+	if AI.PlayerPreferredHD then
+		Owner:EquipNamedDevice(AI.PlayerPreferredHD, true);
+	end
+
+	local Brains = {};
+	for Act in MovableMan.Actors do
+		if Act.Team ~= Owner.Team and Act:HasObjectInGroup("Brains") then
+			table.insert(Brains, Act);
+		end
+	end
+
+	if #Brains < 1 then	-- no brain actors found, check if some other actor is the brain
+		local GmActiv = ActivityMan:GetActivity();
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if GmActiv:PlayerActive(player) and GmActiv:GetTeamOfPlayer(player) ~= Owner.Team then
+				local Act = GmActiv:GetPlayerBrain(player);
+				if Act and MovableMan:IsActor(Act) then
+					table.insert(Brains, Act);
+				end
+			end
+		end
+	end
+
+	if #Brains > 0 then
+		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+		if _abrt then return true end
+
+		if #Brains == 1 then
+			if MovableMan:IsActor(Brains[1]) then
+				Owner:ClearAIWaypoints();
+				Owner:AddAIMOWaypoint(Brains[1]);
+				AI:CreateGoToBehavior(Owner);
+			end
+		else	-- lobotomy test
+			local ClosestBrain;
+			local minDist = math.huge;
+			for _, Act in pairs(Brains) do
+				-- measure how easy the path to the destination is to traverse
+				if MovableMan:IsActor(Act) then
+					Owner:ClearAIWaypoints();
+					Owner:AddAISceneWaypoint(Act.Pos);
+					Owner:UpdateMovePath();
+
+					-- wait until movepath is updated
+					while Owner.IsWaitingOnNewMovePath do
+						local _ai, _ownr, _abrt = coroutine.yield();
+						if _abrt then return true end
+					end
+
+					local OldWpt, deltaY;
+					local index = 0;
+					local height = 0;
+					local pathLength = 0;
+					local pathObstMaxHeight = 0;
+
+					local PathDump = {}
+					-- copy the MovePath to a temporary table so we can yield safely while working on the path
+					for WptPos in Owner.MovePath do
+						table.insert(PathDump, WptPos);
+					end
+
+					for _, Wpt in pairs(PathDump) do
+						pathLength = pathLength + 1;
+						if OldWpt then
+							deltaY = OldWpt.Y - Wpt.Y;
+							if deltaY > 20 then	-- Wpt is more than n pixels above OldWpt in the scene
+								if deltaY / math.abs(SceneMan:ShortestDistance(OldWpt, Wpt, false).X) > 1 then	-- the slope is more than 45 degrees
+									height = height + (OldWpt.Y - Wpt.Y);
+									pathObstMaxHeight = math.max(pathObstMaxHeight, height);
+								else
+									height = 0;
+								end
+							else
+								height = 0;
+							end
+						end
+
+						OldWpt = Wpt;
+
+						if index > 20 then
+							index = 0;
+							local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+							if _abrt then return true end
+						else
+							index = index + 1;
+						end
+					end
+
+					local score = pathLength * 0.55 + math.floor(pathObstMaxHeight/27) * 8;
+					if score < minDist then
+						minDist = score;
+						ClosestBrain = Act;
+					end
+
+					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+					if _abrt then return true end
+				end
+			end
+
+			--Owner:ClearAIWaypoints(); -- this part freezes the script when facing the opposing brain
+
+			if MovableMan:IsActor(ClosestBrain) then
+				Owner:ClearAIWaypoints(); -- moving the function here fixes it (4zK)
+				Owner:AddAIMOWaypoint(ClosestBrain);
+				AI:CreateGoToBehavior(Owner);
+			else
+				return true; -- the brain we found died while we where searching, restart this behavior next frame
+			end
+		end
+	else	-- no enemy brains left
+		AI:CreateSentryBehavior(Owner);
+	end
+
+	return true;
+end
+
+function SharedBehaviors.Patrol(AI, Owner, Abort)
+	while AI.flying or Owner.Vel:MagnitudeIsGreaterThan(4) do	-- wait until we are stationary
+		return true;
+	end
+
+	if Owner.ClassName == "AHuman" then
+		if AI.PlayerPreferredHD then
+			Owner:EquipNamedDevice(AI.PlayerPreferredHD, true);
+		elseif not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+			Owner:EquipDeviceInGroup("Weapons - Secondary", true);
+		end
+	end
+
+	local Free = Vector();
+	local WptA, WptB;
+
+	-- look for a path to the right
+	SceneMan:CastObstacleRay(Owner.Pos, Vector(512, 0), Vector(), Free, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 4);
+	local Dist = SceneMan:ShortestDistance(Owner.Pos, Free, false);
+
+	if Dist:MagnitudeIsGreaterThan(20) then
+		Owner:ClearAIWaypoints();
+		Owner:AddAISceneWaypoint(Free);	
+		Owner:UpdateMovePath();
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
+
+		local PrevPos = Vector(Owner.Pos.X, Owner.Pos.Y);
+		for WptPos in Owner.MovePath do
+			if math.abs(PrevPos.Y - WptPos.Y) > 14 then
+				break;
+			end
+
+			WptA = Vector(PrevPos.X, PrevPos.Y);
+			PrevPos:SetXY(WptPos.X, WptPos.Y);
+		end
+	end
+
+	-- look for a path to the left
+	SceneMan:CastObstacleRay(Owner.Pos, Vector(-512, 0), Vector(), Free, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 4);
+	Dist = SceneMan:ShortestDistance(Owner.Pos, Free, false);
+
+	if Dist:MagnitudeIsGreaterThan(20) then
+		Owner:ClearAIWaypoints();
+		Owner:AddAISceneWaypoint(Free);
+		Owner:UpdateMovePath();
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
+
+		local PrevPos = Vector(Owner.Pos.X, Owner.Pos.Y);
+		for WptPos in Owner.MovePath do
+			if math.abs(PrevPos.Y - WptPos.Y) > 14 then
+				break;
+			end
+
+			WptB = Vector(PrevPos.X, PrevPos.Y);
+			PrevPos:SetXY(WptPos.X, WptPos.Y);
+		end
+	end
+
+	Owner:ClearAIWaypoints();
+	local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+	if _abrt then return true end
+
+	if WptA then
+		Dist = SceneMan:ShortestDistance(Owner.Pos, WptA, false);
+		if Dist:MagnitudeIsGreaterThan(20) then
+			Owner:AddAISceneWaypoint(WptA);
+		else
+			WptA = nil;
+		end
+	end
+
+	if WptB then
+		Dist = SceneMan:ShortestDistance(Owner.Pos, WptB, false);
+		if Dist:MagnitudeIsGreaterThan(20) then
+			Owner:AddAISceneWaypoint(WptB);
+		else
+			WptB = nil;
+		end
+	end
+
+	if WptA or WptB then
+		AI:CreateGoToBehavior(Owner);
+	else	-- no path was found
+		local FlipTimer = Timer();
+		FlipTimer:SetSimTimeLimitMS(3000);
+		while true do
+			local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+			if _abrt then return true end
+			if FlipTimer:IsPastSimTimeLimit() then
+				FlipTimer:Reset();
+				FlipTimer:SetSimTimeLimitMS(RangeRand(2000, 5000));
+				Owner.HFlipped = not Owner.HFlipped	-- turn around and try the other direction sometimes
+				if PosRand() < 0.3 then
+					break; -- end the behavior
+				end
+			end
+		end
+	end
+	return true;
+end
+
+-- sharp aim at an area where we expect the enemy to be
+function SharedBehaviors.PinArea(AI, Owner, Abort)
+	if AI.OldTargetPos then
+		local AlarmDist = SceneMan:ShortestDistance(Owner.EyePos, AI.OldTargetPos, false);
+		for _ = 1, math.ceil(math.random(1000, 3000)/TimerMan.AIDeltaTimeMS) do
+			AI.deviceState = AHuman.AIMING;
+			AI.lateralMoveState = Actor.LAT_STILL;
+			AlarmDist:SetXY(AlarmDist.X+RangeRand(-5,5), AlarmDist.Y+RangeRand(-5,5));
+			AI.Ctrl.AnalogAim = AlarmDist.Normalized;
+			local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+			if _abrt then return true end
+		end
+	end
+	return true;
+end
+
+function SharedBehaviors.GetRealVelocity(Owner)
+	-- Calculate a velocity based on our actual movement. This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero.
+	-- Note - we use normal delta time, not AI delta time, because PrevPos is updated per-tick (not per-AI-tick)
+	return (Owner.Pos - Owner.PrevPos) / TimerMan.DeltaTimeSecs;
+end
+
+function SharedBehaviors.UpdateAverageVel(Owner, AverageVel)
+	-- Store an exponential moving average of our speed over the past seconds
+	local timeInSeconds = 1;
+
+	local ticksPerTime = timeInSeconds / TimerMan.AIDeltaTimeSecs;
+	AverageVel = AverageVel - (AverageVel / ticksPerTime);
+	AverageVel = AverageVel + (SharedBehaviors.GetRealVelocity(Owner) / ticksPerTime);
+
+	return AverageVel;
+end
+
 -- move to the next waypoint
 function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	-- check if we have arrived
@@ -56,6 +437,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	
 	local NeedsNewPath, Waypoint, HasMovePath, Dist, CurrDist;
 	NeedsNewPath = true;
+
+	Owner:RemoveNumberValue("AI_StuckForTime");
 
 	while true do
 		Waypoint = nil;
@@ -134,7 +517,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 			ArrivedTimer:SetSimTimeLimitMS(0);
 		end
 
-		AverageVel = HumanBehaviors.UpdateAverageVel(Owner, AverageVel);
+		AverageVel = SharedBehaviors.UpdateAverageVel(Owner, AverageVel);
 		
 		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
 
@@ -143,6 +526,9 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 
 		-- Reset our stuck timer if we're moving
 		if AverageVel:MagnitudeIsGreaterThan(stuckThreshold) then
+			if StuckTimer:IsPastSimTimeLimit() then
+				Owner:RemoveNumberValue("AI_StuckForTime");
+			end
 			StuckTimer:Reset();
 		end
 
@@ -165,6 +551,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 			Waypoint = nil;
 			NeedsNewPath = true; -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
+			Owner:SetNumberValue("AI_StuckForTime", StuckTimer.ElapsedSimTimeMS);
 			if AI.jump then
 				if Owner.Jetpack and Owner.Jetpack.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false;
@@ -643,5 +1030,105 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 		if _abrt then return true end
 	end
 
+	Owner:RemoveNumberValue("AI_StuckForTime");
 	return true;
 end
+
+function SharedBehaviors.CalculateThreatLevel(MO, Owner)
+	-- prioritize closer targets
+	local priority = -SceneMan:ShortestDistance(Owner.Pos, MO.Pos, false).Largest / FrameMan.PlayerScreenWidth;
+
+	-- prioritize the weaker humans over crabs
+	if MO.ClassName == "AHuman" then
+		if MO.FirearmIsReady then	-- prioritize armed targets
+			priority = priority + 1.0;
+		else
+			priority = priority + 0.5;
+		end
+	elseif MO.ClassName == "ACrab" then
+		if MO.FirearmIsReady then	-- prioritize armed targets
+			priority = priority + 0.7;
+		else
+			priority = priority + 0.3;
+		end
+	elseif MO.ClassName == "ADoor" then
+		priority = priority * 0.3;
+	end
+
+	return priority - MO.Health / 500; -- prioritize damaged targets
+end
+
+-- get the projectile properties from the magazine
+function SharedBehaviors.GetProjectileData(Owner)
+	local PrjDat = {MagazineName = ""};
+	local Weapon, Round, Projectile;
+	if Owner.EquippedItem and IsHDFirearm(Owner.EquippedItem) then
+		Weapon = ToHDFirearm(Owner.EquippedItem);
+		if Weapon.Magazine then
+			Round = Weapon.Magazine.NextRound;
+			Projectile = Round.NextParticle;
+			PrjDat.MagazineName = Weapon.Magazine.PresetName;
+		end
+	end
+	if Round == nil or Round.IsEmpty then	-- set default values if there is no particle
+		PrjDat.g = 0;
+		PrjDat.vel = 100;
+		PrjDat.rng = math.huge;
+		PrjDat.pen = math.huge;
+		PrjDat.blast = 0;
+	else
+		-- find muzzle velocity
+		PrjDat.vel = Weapon:GetAIFireVel();
+		-- half of the theoretical upper limit for the total amount of material strength this weapon can destroy in 250ms
+
+		PrjDat.g = SceneMan.GlobalAcc.Y * 0.67 * Weapon:GetBulletAccScalar(); -- underestimate gravity
+		PrjDat.vsq = PrjDat.vel^2; -- muzzle velocity squared
+		PrjDat.vqu = PrjDat.vsq^2; -- muzzle velocity quad
+		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.DeltaTimeSecs; -- AirResistance is stored as the ini-value times 60
+		PrjDat.thr = math.min(Projectile.AirThreshold, PrjDat.vel);
+		PrjDat.pen = (Projectile.Mass * Projectile.Sharpness * PrjDat.vel) * PrjDat.drg;
+
+		PrjDat.blast = Weapon:GetAIBlastRadius();
+		if PrjDat.blast > 0 or Weapon:IsInGroup("Weapons - Explosive") then
+			PrjDat.exp = true; -- set this for legacy reasons
+			PrjDat.pen = PrjDat.pen + 100;
+		end
+
+		-- estimate theoretical max range with ...
+		local lifeTime = Weapon:GetAIBulletLifeTime();
+		if lifeTime < 1 then	-- infinite life time
+			PrjDat.rng = math.huge;
+		elseif PrjDat.drg < 1 then	-- AirResistance
+			PrjDat.rng = 0;
+			local threshold = PrjDat.thr * rte.PxTravelledPerFrame; -- AirThreshold in pixels/frame
+			local vel = PrjDat.vel * rte.PxTravelledPerFrame; -- muzzle velocity in pixels/frame
+
+			for _ = 0, math.ceil(lifeTime/TimerMan.DeltaTimeMS) do
+				PrjDat.rng = PrjDat.rng + vel;
+				if vel > threshold then
+					vel = vel * PrjDat.drg;
+				end
+			end
+		else	-- no AirResistance
+			PrjDat.rng = PrjDat.vel * rte.PxTravelledPerFrame * (lifeTime / TimerMan.DeltaTimeMS);
+		end
+
+		-- Artificially decrease reported range to make sure AI
+		-- is close enough to reach target with current weapon
+		-- even if it the range is calculated incorrectly
+		PrjDat.rng = PrjDat.rng * 0.9;
+	end
+
+	return PrjDat;
+end
+
+-- stop the user from inadvertently modifying the storage table
+local Proxy = {};
+local Mt = {
+	__index = SharedBehaviors,
+	__newindex = function(Table, k, v)
+		error("The SharedBehaviors table is read-only.", 2);
+	end
+}
+setmetatable(Proxy, Mt);
+SharedBehaviors = Proxy;
