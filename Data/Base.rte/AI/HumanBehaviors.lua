@@ -1182,23 +1182,6 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	return true;
 end
 
-function HumanBehaviors.GetRealVelocity(Owner)
-	-- Calculate a velocity based on our actual movement. This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero.
-	-- Note - we use normal delta time, not AI delta time, because PrevPos is updated per-tick (not per-AI-tick)
-	return (Owner.Pos - Owner.PrevPos) / TimerMan.DeltaTimeSecs;
-end
-
-function HumanBehaviors.UpdateAverageVel(Owner, AverageVel)
-	-- Store an exponential moving average of our speed over the past seconds
-	local timeInSeconds = 1;
-
-	local ticksPerTime = timeInSeconds / TimerMan.AIDeltaTimeSecs;
-	AverageVel = AverageVel - (AverageVel / ticksPerTime);
-	AverageVel = AverageVel + (HumanBehaviors.GetRealVelocity(Owner) / ticksPerTime);
-
-	return AverageVel;
-end
-
 -- go prone if we can shoot from the prone position and return the result
 function HumanBehaviors.GoProne(AI, Owner, TargetPos, targetID)
 	if (not Owner.Head or AI.proneState == AHuman.PRONE) or (Owner:NumberValueExists("AIDisableProne")) then

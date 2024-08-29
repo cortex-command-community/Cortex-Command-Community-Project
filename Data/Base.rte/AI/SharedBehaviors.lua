@@ -1,5 +1,22 @@
 SharedBehaviors = {};
 
+function SharedBehaviors.GetRealVelocity(Owner)
+	-- Calculate a velocity based on our actual movement. This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero.
+	-- Note - we use normal delta time, not AI delta time, because PrevPos is updated per-tick (not per-AI-tick)
+	return (Owner.Pos - Owner.PrevPos) / TimerMan.DeltaTimeSecs;
+end
+
+function SharedBehaviors.UpdateAverageVel(Owner, AverageVel)
+	-- Store an exponential moving average of our speed over the past seconds
+	local timeInSeconds = 1;
+
+	local ticksPerTime = timeInSeconds / TimerMan.AIDeltaTimeSecs;
+	AverageVel = AverageVel - (AverageVel / ticksPerTime);
+	AverageVel = AverageVel + (SharedBehaviors.GetRealVelocity(Owner) / ticksPerTime);
+
+	return AverageVel;
+end
+
 -- move to the next waypoint
 function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	-- check if we have arrived
@@ -56,6 +73,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	
 	local NeedsNewPath, Waypoint, HasMovePath, Dist, CurrDist;
 	NeedsNewPath = true;
+
+	Owner:RemoveNumberValue("AI_StuckForTime");
 
 	while true do
 		Waypoint = nil;
@@ -134,7 +153,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 			ArrivedTimer:SetSimTimeLimitMS(0);
 		end
 
-		AverageVel = HumanBehaviors.UpdateAverageVel(Owner, AverageVel);
+		AverageVel = SharedBehaviors.UpdateAverageVel(Owner, AverageVel);
 		
 		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
 
@@ -143,6 +162,9 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 
 		-- Reset our stuck timer if we're moving
 		if AverageVel:MagnitudeIsGreaterThan(stuckThreshold) then
+			if StuckTimer:IsPastSimTimeLimit() then
+				Owner:RemoveNumberValue("AI_StuckForTime");
+			end
 			StuckTimer:Reset();
 		end
 
@@ -165,6 +187,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 			Waypoint = nil;
 			NeedsNewPath = true; -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
+			Owner:SetNumberValue("AI_StuckForTime", StuckTimer.ElapsedSimTimeMS);
 			if AI.jump then
 				if Owner.Jetpack and Owner.Jetpack.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false;
@@ -643,5 +666,17 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 		if _abrt then return true end
 	end
 
+	Owner:RemoveNumberValue("AI_StuckForTime");
 	return true;
 end
+
+-- stop the user from inadvertently modifying the storage table
+local Proxy = {};
+local Mt = {
+	__index = SharedBehaviors,
+	__newindex = function(Table, k, v)
+		error("The SharedBehaviors table is read-only.", 2);
+	end
+}
+setmetatable(Proxy, Mt);
+SharedBehaviors = Proxy;

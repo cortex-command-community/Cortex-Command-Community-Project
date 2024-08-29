@@ -1132,14 +1132,29 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 			analogMove[actorData.centeringAxes[1]] = 0;
 		end
 
-		analogMove:Normalize();
+		if actor:NumberValueExists("AI_StuckForTime") and actorData.lastAnalogMove ~= nil then
+			-- Sometimes give no input to let things reset
+			local stuckForMS = actor:GetNumberValue("AI_StuckForTime");
+			if math.fmod(stuckForMS, 5000) < 500 then
+				analogMove = Vector();
+			else
+				if actorData.lastAnalogMove:IsZero() then
+					-- We tried a random direction and failed to get unstuck in 5 secs
+					-- so try the opposite direction as our waypoint
+					actorData.lastAnalogMove = analogMove * -1;
+				end
 
-		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.05) then
-			-- choose a random direction to get unstuck
-			-- TODO, it'd be better if the AI logic can communicate this to us instead!
-			analogMove:RadRotate(RangeRand(-math.pi,math.pi));
+				-- add a random deviation to get unstuck
+				actorData.lastAnalogMove:RadRotate(RangeRand(-0.15,0.15));
+				analogMove = actorData.lastAnalogMove;
+			end
+			print(analogMove);
 		end
+
+		analogMove:Normalize();
 	end
+
+	actorData.lastAnalogMove = analogMove;
 
 	local deadZone = 0.1;
 	if analogMove:MagnitudeIsGreaterThan(deadZone) then
