@@ -759,7 +759,31 @@ MovableObject* ACrab::LookForMOs(float FOVSpread, unsigned char ignoreMaterial, 
 }
 
 float ACrab::EstimateJumpHeight() const {
-	return 0.0f; // todo, add support to detect crabs with jetpacks
+	if (!m_pJetpack) {
+		return 0.0F;
+	}
+
+	float totalMass = GetMass();
+	float fuelTime = m_pJetpack->GetJetTimeTotal();
+	float fuelUseMultiplier = m_pJetpack->GetThrottleFactor();
+	float impulseBurst = m_pJetpack->EstimateImpulse(true) / totalMass;
+	float impulseThrust = m_pJetpack->EstimateImpulse(false) / totalMass;
+
+	Vector globalAcc = g_SceneMan.GetGlobalAcc() * g_TimerMan.GetDeltaTimeSecs();
+	Vector currentVelocity = Vector(0.0F, -impulseBurst);
+	float totalHeight = currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+	do {
+		currentVelocity += globalAcc;
+		totalHeight += currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+		if (fuelTime > 0.0F) {
+			currentVelocity.m_Y -= impulseThrust;
+			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
+		}
+	} while (currentVelocity.GetY() < 0.0F);
+
+	float finalCalculatedHeight = totalHeight * -1.0F * c_MPP;
+	float finalHeightMultipler = 0.8f; // Make us think we can do a little less because AI path following is shit
+	return finalCalculatedHeight * finalHeightMultipler;
 }
 
 void ACrab::OnNewMovePath() {
