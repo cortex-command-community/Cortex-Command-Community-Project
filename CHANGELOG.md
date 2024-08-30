@@ -10,9 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Pathfinding and navigation overhaul, including jetpack/jump-aware pathfinding.  
 	Actors will now intelligently choose their path depending on how high they can jump, instead of always taking the shortest path. This will reduce instances of the AI getting stuck while trying to take impossible paths.  
+	Enhancement to both `ACrab` and `AHuman` navigation. `ACrab`s are now aware of how to pathfind and navigate using their jetpack, and will use it where applicable. Actors are more capable with jetpacking, and both `AHuman`s and `ACrabs` will intelligently use automovers if their jetpack is not sufficient to reach a destination.
+	Actors are now more intelligent and responsive when digging. They will also preferably dig to their target if they cannot reach it with their jetpack (for example if there is a long vertical shaft in the route they cannot get up), and they preferentially avoid rocks, metal and other hard substances by digging around them. Digging actors are also more responsive and will spend less time idle.
 	In the `CalculatePath` and `CalculatePathAsync` functions, the parameter `movePathToGround` has been replaced with `jumpHeight`, which is the height in metres the pathfind can jump vertically.  
-	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height).  
-	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight.
+	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight. Actors without a jetpack return 0.  
+	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropships` return for `JumpHeight`.
 
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
