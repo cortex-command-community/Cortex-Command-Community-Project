@@ -297,18 +297,24 @@ function NativeCrabAI:Update(Owner)
 		self.AirTimer:Reset();
 
 		local Origin = {};
-		if Owner.FGFoot then
-			table.insert(Origin, Vector(Owner.FGFoot.Pos.X, Owner.FGFoot.Pos.Y) + Vector(0, 4));
+		if Owner.LeftFGLeg then
+			table.insert(Origin, Vector(Owner.LeftFGLeg.Pos.X, Owner.LeftFGLeg.Pos.Y) + Vector(0, 4));
 		end
-		if Owner.BGFoot then
-			table.insert(Origin, Vector(Owner.BGFoot.Pos.X, Owner.BGFoot.Pos.Y) + Vector(0, 4));
+		if Owner.RightFGLeg then
+			table.insert(Origin, Vector(Owner.RightFGLeg.Pos.X, Owner.RightFGLeg.Pos.Y) + Vector(0, 4));
+		end
+		if Owner.LeftBGLeg then
+			table.insert(Origin, Vector(Owner.LeftBGLeg.Pos.X, Owner.LeftBGLeg.Pos.Y) + Vector(0, 4));
+		end
+		if Owner.RightBGLeg then
+			table.insert(Origin, Vector(Owner.RightBGLeg.Pos.X, Owner.RightBGLeg.Pos.Y) + Vector(0, 4));
 		end
 		if #Origin == 0 then
 			table.insert(Origin, Vector(Owner.Pos.X, Owner.Pos.Y) + Vector(0, 4 + ToMOSprite(Owner):GetSpriteHeight() + Owner.SpriteOffset.Y));
 		end
 		for i = 1, #Origin do
 			if SceneMan:GetTerrMatter(Origin[i].X, Origin[i].Y) ~= rte.airID then
-				self.groundContact = 3;
+				self.groundContact = 5;
 				break;
 			else
 				self.groundContact = self.groundContact - 1;
@@ -316,7 +322,7 @@ function NativeCrabAI:Update(Owner)
 		end
 
 		local newFlying = false;
-		if not (Owner.FGLeg and Owner.BGLeg) then
+		if not (Owner.LeftFGLeg and Owner.RightFGLeg and Owner.LeftBGLeg and Owner.RightBGLeg) then
 			newFlying = true;
 		end
 
