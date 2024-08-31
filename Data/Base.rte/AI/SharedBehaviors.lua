@@ -837,7 +837,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 									end
 								end
 
-								if Owner.Jetpack and Owner.Head and Owner.Head:IsAttached() then
+								if Owner.Jetpack then
 									if Owner.Jetpack.JetTimeLeft < AI.minBurstTime then
 										if not AI.flying or Owner.Vel.Y > 4 then
 											AI.jump = false; -- not enough fuel left, no point in jumping yet
@@ -944,7 +944,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 											local Trace = SceneMan:ShortestDistance(Owner.Pos, FallPos, false);
 											SceneMan:CastObstacleRay(Owner.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
-											local deltaToJump = 1;
+											local deltaToJump = 5;
 											if Owner.Jetpack.JetpackType == AEJetpack.JumpPack then
 												deltaToJump = deltaToJump * 1.4;
 											end
