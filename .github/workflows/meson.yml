@@ -84,7 +84,7 @@ jobs:
           sudo pip install meson
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@v1 # Keep this at 1.2.11 until #181 or #182 is closed
+        uses: hendrikmuhs/ccache-action@v1
         with:
           key: ${{ github.job }}-${{ matrix.os }}
 
@@ -193,7 +193,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@v1 # Keep this at 1.2.11 until #181 or #182 is closed
+        uses: hendrikmuhs/ccache-action@v1
         with:
           key: ${{ github.job }}-${{ matrix.os }}
 
