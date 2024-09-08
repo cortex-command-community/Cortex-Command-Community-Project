@@ -8,12 +8,16 @@ function NativeCrabAI:Create(Owner)
 	local Members = {};
 
 	Members.lateralMoveState = Actor.LAT_STILL;
+	Members.jumpState = ACrab.NOTJUMPING;
 	Members.deviceState = ACrab.STILL;
 	Members.lastAIMode = Actor.AIMODE_NONE;
 	Members.teamBlockState = Actor.NOTBLOCKED;
 	Members.SentryFacing = Owner.HFlipped;
 	Members.fire = false;
+	Members.groundContact = 5;
+	Members.flying = false;
 
+	Members.AirTimer = Timer();
 	Members.ReloadTimer = Timer();
 	Members.BlockedTimer = Timer();
 	Members.TargetLostTimer = Timer();
@@ -38,6 +42,15 @@ function NativeCrabAI:Create(Owner)
 	-- set shooting skill
 	Members.aimSpeed, Members.aimSkill = SharedBehaviors.GetTeamShootingSkill(Owner.Team);
 
+	-- the native AI assume the jetpack cannot be destroyed
+	if Owner.Jetpack then
+		if not Members.isPlayerOwned then
+			Owner.Jetpack.JetTimeTotal = Owner.Jetpack.JetTimeTotal * 1.2;	-- increase jetpack fuel to compensate for extra fuel spend
+		end
+
+		Members.minBurstTime = math.min(Owner.Jetpack.BurstSpacing*2, Owner.Jetpack.JetTimeTotal*0.99); -- in milliseconds
+	end
+
 	setmetatable(Members, self);
 	self.__index = self;
 	return Members;
@@ -45,6 +58,12 @@ end
 
 function NativeCrabAI:Update(Owner)
 	self.Ctrl = Owner:GetController();
+
+	-- Our jetpack might have thrust balancing enabled, so update for our current mass
+	if Owner.Jetpack then		
+		self.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs;
+		self.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * GetPPM() / TimerMan.DeltaTimeSecs - self.jetImpulseFactor) * math.pow(TimerMan.DeltaTimeSecs, 2) * 0.5;
+	end
 
 	if self.isPlayerOwned then
 		if self.PlayerInterferedTimer:IsPastSimTimeLimit() then
@@ -273,6 +292,50 @@ function NativeCrabAI:Update(Owner)
 		end
 	end
 
+	-- check if the feet reach the ground
+	if self.AirTimer:IsPastSimMS(250) then
+		self.AirTimer:Reset();
+
+		local Origin = {};
+		if Owner.LeftFGLeg then
+			table.insert(Origin, Vector(Owner.LeftFGLeg.Pos.X, Owner.LeftFGLeg.Pos.Y) + Vector(0, 4));
+		end
+		if Owner.RightFGLeg then
+			table.insert(Origin, Vector(Owner.RightFGLeg.Pos.X, Owner.RightFGLeg.Pos.Y) + Vector(0, 4));
+		end
+		if Owner.LeftBGLeg then
+			table.insert(Origin, Vector(Owner.LeftBGLeg.Pos.X, Owner.LeftBGLeg.Pos.Y) + Vector(0, 4));
+		end
+		if Owner.RightBGLeg then
+			table.insert(Origin, Vector(Owner.RightBGLeg.Pos.X, Owner.RightBGLeg.Pos.Y) + Vector(0, 4));
+		end
+		if #Origin == 0 then
+			table.insert(Origin, Vector(Owner.Pos.X, Owner.Pos.Y) + Vector(0, 4 + ToMOSprite(Owner):GetSpriteHeight() + Owner.SpriteOffset.Y));
+		end
+		for i = 1, #Origin do
+			if SceneMan:GetTerrMatter(Origin[i].X, Origin[i].Y) ~= rte.airID then
+				self.groundContact = 5;
+				break;
+			else
+				self.groundContact = self.groundContact - 1;
+			end
+		end
+
+		local newFlying = false;
+		if not (Owner.LeftFGLeg and Owner.RightFGLeg and Owner.LeftBGLeg and Owner.RightBGLeg) then
+			newFlying = true;
+		end
+
+		if self.groundContact < 0 then
+			newFlying = true;
+		end
+
+		if self.flying ~= newFlying then
+			Owner:SendMessage("AI_IsFlying", newFlying);
+			self.flying = newFlying;
+		end
+	end
+
 	-- controller states
 	self.Ctrl:SetState(Controller.WEAPON_FIRE, self.fire or self.squadShoot);
 
@@ -284,6 +347,24 @@ function NativeCrabAI:Update(Owner)
 		self.Ctrl:SetState(Controller.MOVE_LEFT, true);
 	elseif self.lateralMoveState == Actor.LAT_RIGHT then
 		self.Ctrl:SetState(Controller.MOVE_RIGHT, true);
+	end
+
+	if self.jump and Owner.Jetpack and Owner.Jetpack.JetTimeLeft > TimerMan.AIDeltaTimeMS then
+		if self.jumpState == ACrab.PREJUMP then
+			self.jumpState = ACrab.UPJUMP;
+		elseif self.jumpState ~= ACrab.UPJUMP then	-- the jetpack is off
+			self.jumpState = ACrab.PREJUMP;
+		end
+	else
+		self.jumpState = ACrab.NOTJUMPING;
+	end
+
+	if Owner.Jetpack then
+		if self.jumpState == ACrab.PREJUMP then
+			self.Ctrl:SetState(Controller.BODY_JUMPSTART, true); -- try to trigger a burst
+		elseif self.jumpState == ACrab.UPJUMP then
+			self.Ctrl:SetState(Controller.BODY_JUMP, true); -- trigger normal jetpack emission
+		end
 	end
 end
 
