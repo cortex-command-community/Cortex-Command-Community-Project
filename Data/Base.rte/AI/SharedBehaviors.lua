@@ -630,6 +630,9 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 										AI.lateralMoveState = Actor.LAT_STILL;
 										AI.jump = false;
 
+										local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+										if _abrt then return true end
+
 										if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 											Trace = SceneMan:ShortestDistance(Owner.Pos, Owner.MOMoveTarget.Pos, false);
 											if Trace.Largest > Owner.Height * 0.4 + (Owner.MOMoveTarget.Height or 100) * 0.4 or
