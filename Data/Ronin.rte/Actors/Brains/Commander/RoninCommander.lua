@@ -12,6 +12,7 @@ function Create(self)
 		if self.Head then
 			self.Head.Frame = self.face;
 		end
+		
 		self:SetNumberValue("Identity", self.face);
 		--Add a ponytail if we are Lara
 		if self.face == 2 then
@@ -27,6 +28,7 @@ function Create(self)
 			self.Head.Frame = self.face;
 		end
 	end
+
 	self.stableVel = self:GetStableVelocityThreshold();
 
 	function self.lunge(power)
@@ -53,6 +55,7 @@ function Create(self)
 			self.Status = Actor.UNSTABLE;
 			self.tapTimer:Reset();
 		end
+
 		return flip;
 	end
 end
@@ -63,12 +66,14 @@ function Update(self)
 		self.updateTimer:Reset();
 		self.aggressive = self.Health < self.MaxHealth * 0.5;
 	end
+
 	if self.Head then
 		self.Head.Frame = self.face;
 		if (self.controller:IsState(Controller.WEAPON_FIRE) and not self:FirearmsAreReloading(false)) or self.aggressive or self.Health < self.PrevHealth - 1 then
 			self.Head.Frame = self.face + (self.Head.FrameCount * 0.5);
 		end
 	end
+
 	self.Frame = (self.face == 2 and self.Vel.Y > (SceneMan.GlobalAcc.Y * 0.15)) and 3 or self.face;
 	local crouching = false;
 	if self:IsPlayerControlled() and self.Status < Actor.INACTIVE and self.FGLeg and self.BGLeg then
@@ -83,6 +88,7 @@ function Update(self)
 			else
 				self.dir = 0;
 			end
+
 			crouching = false;
 		elseif crouching then
 			if not self.crouchHeld then
@@ -93,7 +99,9 @@ function Update(self)
 				self.controller:SetState(Controller.BODY_CROUCH, false);
 			end
 		end
+
 		self.crouchHeld = crouching;
 	end
+
 	self:SetStableVelocityThreshold(crouching and self.stableVel * (1 + math.cos(self.RotAngle)) or self.stableVel);
 end

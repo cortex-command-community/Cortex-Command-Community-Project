@@ -3,6 +3,8 @@
 #include "Entity.h"
 #include "AudioMan.h"
 
+#include <unordered_set>
+
 namespace RTE {
 	class Vector;
 	struct SoundData;
@@ -221,6 +223,10 @@ namespace RTE {
 		/// @return Whether this SoundContainer's attenuation setting was successful.
 		void SetPosition(const Vector& newPosition);
 
+		/// Gets the real audible volume sounds in this SoundContainer are currently playing at, if any. Accounts for literally everything, including game volume.
+		/// @return The real audible volume the sounds in this SoundContainer are played at.
+		float GetAudibleVolume() const;
+
 		/// Gets the volume the sounds in this SoundContainer are played at. Note that this does not factor volume changes due to the SoundContainer's position.
 		/// @return The volume the sounds in this SoundContainer are played at.
 		float GetVolume() const { return m_Volume; }
@@ -244,6 +250,30 @@ namespace RTE {
 		/// Sets the pitch variation the sounds in this SoundContainer are played at.
 		/// @param newValue The pitch variation the sounds in this SoundContainer are played at.
 		void SetPitchVariation(float newValue) { m_PitchVariation = newValue; }
+
+		/// Gets whether this SoundContainer's channels are paused or not.
+		/// @return Whether this SoundContainer's channels are paused or not.
+		bool IsPaused() const { return m_Paused; }
+
+		/// Sets whether this SoundContainer's channels are paused or not.
+		/// @param paused The new paused setting.
+		void SetPaused(bool paused);
+
+		/// Gets the music pre-entry time for this SoundContainer.
+		/// @return The time before the music starts in this SoundContainer in MS.
+		float GetMusicPreEntryTime() const { return m_MusicPreEntryTime; }
+
+		/// Sets the music pre-entry time for this SoundContainer.
+		/// @param newValue The new MusicPreEntryTime for this SoundContainer in MS.
+		void SetMusicPreEntryTime(float newValue) { m_MusicPreEntryTime = newValue; }
+
+		/// Gets the music post-exit time for this SoundContainer.
+		/// @return The time after the music ends in this SoundContainer in MS.
+		float GetMusicPostExitTime() const { return m_MusicPostExitTime; }
+
+		/// Sets the music post-exit time for this SoundContainer.
+		/// @param newValue The new MusicPostExitTime for this SoundContainer in MS.
+		void SetMusicPostExitTime(float newValue) { m_MusicPostExitTime = newValue; }
 #pragma endregion
 
 #pragma region Playback Controls
@@ -326,6 +356,11 @@ namespace RTE {
 		float m_Pitch; //!< The current natural pitch of this SoundContainer's sounds.
 		float m_PitchVariation; //!< The randomized pitch variation of this SoundContainer's sounds. 1 means the sound will vary a full octave both ways.
 		float m_Volume; //!< The current natural volume of this SoundContainer's sounds.
+
+		bool m_WasFadedOut; //!< Whether this SoundContainer has had its current playing sounds faded out or not.
+		bool m_Paused; //!< Whether this SoundContainer is paused or not.
+		float m_MusicPreEntryTime; //!< The time in MS before the music starts in this SoundContainer.
+		float m_MusicPostExitTime; //!< The time in MS after the music ends in this SoundContainer, until the end of the sound.
 
 		/// Clears all the member variables of this SoundContainer, effectively resetting the members of this abstraction level only.
 		void Clear();

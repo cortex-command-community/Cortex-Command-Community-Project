@@ -4,6 +4,8 @@
 #include "LuabindObjectWrapper.h"
 #include "LuaMan.h"
 
+#include "lj_obj.h"
+
 using namespace RTE;
 
 std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions = {};
@@ -273,54 +275,39 @@ std::vector<Vector>* LuaAdaptersActor::GetSceneWaypoints(Actor* luaSelfObject) {
 	return sceneWaypoints;
 }
 
-int LuaAdaptersScene::CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
+int LuaAdaptersScene::CalculatePath(Scene* luaSelfObject, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team) {
 	std::list<Vector>& threadScenePath = luaSelfObject->GetScenePath();
 	team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
-	luaSelfObject->CalculatePath(start, end, threadScenePath, digStrength, team);
+	luaSelfObject->CalculatePath(start, end, threadScenePath, jumpHeight, digStrength, team);
 	if (!threadScenePath.empty()) {
-		if (movePathToGround) {
-			for (Vector& scenePathPoint: threadScenePath) {
-				scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
-			}
-		}
-
 		return static_cast<int>(threadScenePath.size());
 	}
 	return -1;
 }
 
-void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::object& callbackParam, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
+void LuaAdaptersScene::CalculatePathAsync(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team) {
 	team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
 
 	// So, luabind::object is a weak reference, holding just a stack and a position in the stack
 	// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
 	// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
-	// Note that also, the callbackParam's interpreter is actually different from our Lua state.
-	// It looks like Luabind constructs temporary interpreters and really doesn't like if you destroy these luabind objects
-	// In any case, it's extremely unsafe to use! For example capturing the callback by value into the lambdas causes random crashes
-	// Even if we did literally nothing with it except capture it into a no-op lambda
-	LuaStateWrapper* luaState = g_LuaMan.GetThreadCurrentLuaState();
+	lua_State* luaState = mainthread(G(callback.interpreter())); // Get the main thread for the state, in case we're a temp lua thread
+
 	static int currentCallbackId = 0;
 	int thisCallbackId = currentCallbackId++;
-	if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
-		luabind::call_function<void>(luaState->GetLuaState(), "_AddAsyncPathCallback", thisCallbackId, callbackParam);
+	if (luabind::type(callback) == LUA_TFUNCTION && callback.is_valid()) {
+		luabind::call_function<void>(luaState, "_AddAsyncPathCallback", thisCallbackId, callback);
 	}
 
-	auto callLuaCallback = [luaState, thisCallbackId, movePathToGround](std::shared_ptr<volatile PathRequest> pathRequestVol) {
+	auto callLuaCallback = [luaState, thisCallbackId](std::shared_ptr<volatile PathRequest> pathRequestVol) {
 		// This callback is called from the async pathing thread, so we need to further delay this logic into the main thread (via AddLuaScriptCallback)
-		g_LuaMan.AddLuaScriptCallback([luaState, thisCallbackId, movePathToGround, pathRequestVol]() {
+		g_LuaMan.AddLuaScriptCallback([luaState, thisCallbackId, pathRequestVol]() {
 			PathRequest pathRequest = const_cast<PathRequest&>(*pathRequestVol); // erh, to work with luabind etc
-			if (movePathToGround) {
-				for (Vector& scenePathPoint: pathRequest.path) {
-					scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
-				}
-			}
-
-			luabind::call_function<void>(luaState->GetLuaState(), "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
+			luabind::call_function<void>(luaState, "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
 		});
 	};
 
-	luaSelfObject->CalculatePathAsync(start, end, digStrength, team, callLuaCallback);
+	luaSelfObject->CalculatePathAsync(start, end, jumpHeight, digStrength, team, callLuaCallback);
 }
 
 void LuaAdaptersAHuman::ReloadFirearms(AHuman* luaSelfObject) {
@@ -539,6 +526,58 @@ void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan& movableMan, const std
 	movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message}, {&wrapper});
 }
 
+bool LuaAdaptersMusicMan::PlayDynamicSong1(MusicMan& musicMan, const std::string& songName) {
+	return musicMan.PlayDynamicSong(songName);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong2(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType) {
+	return musicMan.PlayDynamicSong(songName, songSectionType);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong3(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately) {
+	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong4(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition) {
+	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately, playTransition);
+}
+
+bool LuaAdaptersMusicMan::PlayDynamicSong5(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
+	return musicMan.PlayDynamicSong(songName, songSectionType, playImmediately, playTransition, smoothFade);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection1(MusicMan& musicMan, const std::string& songSectionType) {
+	return musicMan.SetNextDynamicSongSection(songSectionType);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection2(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately) {
+	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection3(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition) {
+	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately, playTransition);
+}
+
+bool LuaAdaptersMusicMan::SetNextDynamicSongSection4(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
+	return musicMan.SetNextDynamicSongSection(songSectionType, playImmediately, playTransition, smoothFade);
+}
+
+bool LuaAdaptersMusicMan::CyclePlayingSoundContainers1(MusicMan& musicMan) {
+	return musicMan.CyclePlayingSoundContainers();
+}
+
+bool LuaAdaptersMusicMan::CyclePlayingSoundContainers2(MusicMan& musicMan, bool smoothFade) {
+	return musicMan.CyclePlayingSoundContainers(smoothFade);
+}
+
+bool LuaAdaptersMusicMan::EndDynamicMusic1(MusicMan& musicMan) {
+	return musicMan.EndDynamicMusic();
+}
+
+bool LuaAdaptersMusicMan::EndDynamicMusic2(MusicMan& musicMan, bool fadeOutCurrent) {
+	return musicMan.EndDynamicMusic(fadeOutCurrent);
+}
+
 double LuaAdaptersTimerMan::GetDeltaTimeTicks(const TimerMan& timerMan) {
 	return static_cast<double>(timerMan.GetDeltaTimeTicks());
 }
@@ -621,6 +660,10 @@ float LuaAdaptersUtility::GetLPP() {
 
 float LuaAdaptersUtility::GetPPL() {
 	return c_PPL;
+}
+
+float LuaAdaptersUtility::GetPathFindingFlyingJumpHeight() {
+	return FLT_MAX;
 }
 
 float LuaAdaptersUtility::GetPathFindingDefaultDigStrength() {

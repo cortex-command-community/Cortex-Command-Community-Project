@@ -16,10 +16,6 @@ GUICollectionBox::GUICollectionBox(GUIManager* Manager, GUIControlManager* Contr
 	m_IsContainer = true; // We are a container
 }
 
-GUICollectionBox::~GUICollectionBox() {
-	Destroy();
-}
-
 void GUICollectionBox::Create(const std::string& Name, int X, int Y, int Width, int Height) {
 	GUIControl::Create(Name, X, Y, Width, Height);
 

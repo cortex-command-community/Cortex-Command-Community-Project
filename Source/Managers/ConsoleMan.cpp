@@ -13,6 +13,7 @@
 #include "GUICollectionBox.h"
 #include "GUITextBox.h"
 #include "GUILabel.h"
+#include "System.h"
 
 using namespace RTE;
 

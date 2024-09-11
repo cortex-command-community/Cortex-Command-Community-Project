@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.explodeTimer = Timer();
 	self.partList = {};
 
@@ -24,6 +23,7 @@ function Create(self)
 			MovableMan:AddParticle(part);
 		end
 	end
+
 	self.toPlaySound = true;
 	if self:NumberValueExists("Secondary") then
 		self.toPlaySound = false;
@@ -42,6 +42,7 @@ function Update(self)
 			sfx:GibThis();
 			MovableMan:AddParticle(sfx);
 		end
+
 		local partsLeft = 0;
 		for i = 1, #self.partList do
 			if self.partList[i] and MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Boss Oil Bomb Fuel" then
@@ -56,6 +57,7 @@ function Update(self)
 						fire.Vel = self.Vel;
 						fire.Lifetime = math.random(14000, 16000);
 					end
+
 					MovableMan:AddParticle(fire);
 					for j = 1, self.particlesPerOil do
 						local firePar;
@@ -74,12 +76,14 @@ function Update(self)
 						firePar.Pos = Vector(self.partList[i].Pos.X, self.partList[i].Pos.Y);
 						MovableMan:AddParticle(firePar);
 					end
+					
 					self.partList[i].ToDelete = true;
 				else
 					partsLeft = partsLeft + 1;
 				end
 			end
 		end
+
 		if partsLeft == 0 then
 			self.ToDelete = true;
 		end

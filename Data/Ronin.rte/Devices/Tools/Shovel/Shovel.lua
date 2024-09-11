@@ -35,6 +35,7 @@ function Update(self)
 		else
 			self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (0.0003 * self.RateOfFire), 0);
 		end
+
 		self.SupportOffset = Vector(-self.InheritedRotAngleOffset * 5, 2);
 		if self.FiredFrame then
 			local offsetMultiplier = math.max(self.InheritedRotAngleOffset, 1);
@@ -48,6 +49,7 @@ function Update(self)
 				part.Sharpness = part.Sharpness * (0.5 + (i/self.particleCount) * 0.5);
 				MovableMan:AddParticle(part);
 			end
+
 			--Damage particles
 			fireVec = fireVec * offsetMultiplier;
 			local spread = 0.3;
@@ -63,6 +65,7 @@ function Update(self)
 				damagePar.Sharpness = self.Sharpness * (i/particleCount);
 				MovableMan:AddParticle(damagePar);
 			end
+
 			local overhead = self.InheritedRotAngleOffset > self.angleSize * 0.5;
 			local trace = fireVec * rte.PxTravelledPerFrame;
 			--Play a radical sound if a MO is met
@@ -93,8 +96,10 @@ function Update(self)
 					end
 				end
 			end
+
 			self.InheritedRotAngleOffset = overhead and -0.1 or self.angleSize;
 		end
+
 		--This trick disables the collision for the weapon while the Magazine has no collision but looks exactly the same
 		self.Scale = 0;
 		if self.Magazine then
@@ -102,12 +107,14 @@ function Update(self)
 
 			self.Magazine.RoundCount = resource > 0 and resource or -1;
 		end
+
 		self.RateOfFire = self.minimumRoF + (self.minimumRoF) * (parent.Health/parent.MaxHealth);
 	else
 		self.Scale = 1;
 		if self.Magazine then
 			self.Magazine.Scale = 0;
 		end
+
 		if self.lastVel:MagnitudeIsGreaterThan(25) then
 			local spread = 0.3 + self.AngularVel * TimerMan.DeltaTimeSecs * 0.5;
 			local mo = MovableMan:GetMOFromID(self.HitWhatMOID);
@@ -124,6 +131,7 @@ function Update(self)
 					damagePar:SetWhichMOToNotHit(self, -1);
 					MovableMan:AddParticle(damagePar);
 				end
+
 				self.hitSound:Play(self.MuzzlePos);
 			end
 			for i = 1, self.lastVel.Magnitude * 0.5 do
@@ -134,6 +142,7 @@ function Update(self)
 			end
 		end
 	end
+	
 	self.StanceOffset = Vector(self.InheritedRotAngleOffset * 5, 0) + Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
 	self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origSharpStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
 

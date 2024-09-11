@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <vector>
+#include <memory>
+
 namespace RTE {
 
 	class AllegroScreen;

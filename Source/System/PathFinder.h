@@ -3,6 +3,12 @@
 #include "Box.h"
 #include "System/MicroPather/micropather.h"
 
+#include <atomic>
+#include <list>
+#include <memory>
+#include <functional>
+#include <vector>
+
 using namespace micropather;
 
 namespace RTE {
@@ -93,18 +99,20 @@ namespace RTE {
 		/// @param end End positions on the scene to find the path between.
 		/// @param pathResult A list which will be filled out with waypoints between the start and end.
 		/// @param totalCostResult The total minimum difficulty cost calculated between the two points on the scene.
+		/// @param jumpHeight How high, in metres, the search can jump vertically.
 		/// @param digStrength What material strength the search is capable of digging through.
 		/// @return Success or failure, expressed as SOLVED, NO_SOLUTION, or START_END_SAME.
-		int CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float digStrength);
+		int CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float jumpHeight, float digStrength);
 
 		/// Calculates and returns the least difficult path between two points on the current scene.
 		/// This is asynchronous and thus will not block the current thread.
 		/// @param start Start positions on the scene to find the path between.
 		/// @param end End positions on the scene to find the path between.
+		/// @param jumpHeight How high, in metres, the search can jump vertically.
 		/// @param digStrength What material strength the search is capable of digging through.
 		/// @param callback The callback function to be run when the path calculation is completed.
 		/// @return A shared pointer to the volatile PathRequest to be used to track whether the asynchronous path calculation has been completed, and check its results.
-		std::shared_ptr<volatile PathRequest> CalculatePathAsync(Vector start, Vector end, float digStrength, PathCompleteCallback callback = nullptr);
+		std::shared_ptr<volatile PathRequest> CalculatePathAsync(Vector start, Vector end, float jumpHeight, float digStrength, PathCompleteCallback callback = nullptr);
 
 		// <summary>
 		/// Returns how many pathfinding requests are currently active.
@@ -161,6 +169,11 @@ namespace RTE {
 		/// Since void* aren't really human readable, this will print out some concise info without an ending newline.
 		/// @param state The state to print out info about.
 		void PrintStateInfo(void* state) override {}
+
+		/// Draws a debug rendering for this pathfinder to a BITMAP of choice.
+		/// @param targetBitmap A pointer to a BITMAP to draw on.
+		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
+		void DebugRender(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0) const;
 #pragma endregion
 
 	private:
@@ -169,6 +182,7 @@ namespace RTE {
 		MicroPather* m_Pather; //!< The actual pathing object that does the pathfinding work. Owned.
 		std::vector<PathNode> m_NodeGrid; //!< The array of PathNodes representing the grid on the scene.
 		unsigned int m_NodeDimension; //!< The width and height of each PathNode, in pixels on the scene.
+		Vector m_Offset;
 		int m_GridWidth; //!< The width of the pathing grid, in PathNodes.
 		int m_GridHeight; //!< The height of the pathing grid, in PathNodes.
 		bool m_WrapsX; //!< Whether the pathing grid wraps on the X axis.
@@ -197,6 +211,11 @@ namespace RTE {
 		/// @return A list of the PathNode ids inside the box.
 		std::vector<int> GetNodeIdsInBox(Box box);
 
+		/// Helper function to determine if a node is on solid fround.
+		/// @param node The node we're checking.
+		/// @return Whether the node is on solid ground.
+		bool NodeIsOnSolidGround(const PathNode& node) const;
+
 		/// Gets the cost for transitioning through this Material.
 		/// @param material The Material to get the transition cost for.
 		/// @return The transition cost for the Material.
@@ -218,7 +237,7 @@ namespace RTE {
 		/// @param x The X coordinate, in PathNodes.
 		/// @param y The Y coordinate, in PathNodes.
 		/// @return The PathNode id at the given coordinates.
-		int ConvertCoordsToNodeId(int x, int y);
+		int ConvertCoordsToNodeId(int x, int y) const;
 
 		/// Clears all the member variables of this PathFinder, effectively resetting the members of this abstraction level only.
 		void Clear();

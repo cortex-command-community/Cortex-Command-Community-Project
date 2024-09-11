@@ -1,0 +1,26 @@
+diff --git a/tools/osxcross-macports b/tools/osxcross-macports
+index 3e87735..5c48e4e 100755
+--- a/tools/osxcross-macports
++++ b/tools/osxcross-macports
+@@ -250,8 +250,10 @@ verifyFileIntegrity()
+     getFile $PUBKEYURL "$PUBKEY"
+   fi
+ 
+-  local rmd160=$(openssl rmd160 "$PUBKEY" | awk '{print $2}')
+-  local sha1=$(openssl sha1 "$PUBKEY" | awk '{print $2}')
++  errorMsg "set rmd160"
++  local rmd160=$(openssl rmd160 -provider legacy "$PUBKEY" | awk '{print $2}')
++  errorMsg "set sha1"
++  local sha1=$(openssl sha1 "$PUBKEY" | awk '{print $2}')
+ 
+   if [ "$rmd160" != "$PUBKEYRMD160" -o "$sha1" != "$PUBKEYSHA1" ]; then
+     errorMsg "invalid macports public key (hash check failed)"
+@@ -262,7 +264,7 @@ verifyFileIntegrity()
+ 
+   set +e
+ 
+-  openssl dgst -ripemd160 -verify "$PUBKEY" -signature \
++  openssl dgst -provider legacy -provider default -ripemd160 -verify "$PUBKEY" -signature \
+     "$CACHE/$file.rmd160" "$CACHE/$file" 1>/dev/null
+ 
+   if [ $? -ne 0 ]; then

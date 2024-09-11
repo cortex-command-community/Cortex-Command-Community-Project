@@ -223,7 +223,7 @@ namespace RTE {
 		/// Returns a copy of this Vector, rotated relatively by an angle in radians.
 		/// @param angle The angle in radians to rotate by. Positive angles rotate counter-clockwise, and negative angles clockwise.
 		/// @return A rotated copy of this Vector.
-		inline Vector GetRadRotatedCopy(const float angle) {
+		inline Vector GetRadRotatedCopy(const float angle) const {
 			Vector returnVector = *this;
 			const float adjustedAngle = -angle;
 			returnVector.m_X = m_X * std::cos(adjustedAngle) - m_Y * std::sin(adjustedAngle);
@@ -242,7 +242,7 @@ namespace RTE {
 		/// Returns a copy of this Vector, rotated relatively by an angle in degrees.
 		/// @param angle The angle in degrees to rotate by. Positive angles rotate counter-clockwise, and negative angles clockwise.
 		/// @return A rotated copy of this Vector.
-		inline Vector GetDegRotatedCopy(const float angle) { return GetRadRotatedCopy(angle * c_PI / 180.0F); };
+		inline Vector GetDegRotatedCopy(const float angle) const { return GetRadRotatedCopy(angle * c_PI / 180.0F); };
 
 		/// Rotate this Vector relatively by an angle in degrees.
 		/// @param angle The angle in degrees to rotate by. Positive angles rotate counter-clockwise, and negative angles clockwise.
@@ -360,7 +360,7 @@ namespace RTE {
 
 		/// Unary negation overload for single Vectors.
 		/// @return The resulting Vector.
-		inline Vector operator-() { return Vector(-m_X, -m_Y); }
+		inline Vector operator-() const { return Vector(-m_X, -m_Y); }
 
 		/// An equality operator for testing if any two Vectors are equal.
 		/// @param lhs A Vector reference as the left hand side operand.

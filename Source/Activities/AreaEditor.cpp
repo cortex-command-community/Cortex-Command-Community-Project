@@ -14,6 +14,7 @@
 #include "HeldDevice.h"
 #include "Scene.h"
 #include "DataModule.h"
+#include "System.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"

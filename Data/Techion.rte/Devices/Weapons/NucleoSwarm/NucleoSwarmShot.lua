@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.speed = 10;
 	self.adjustmentAmount = 70;
 	self.targetingAdjustmentAmount = 70;
@@ -48,7 +47,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	local useAdjust = self.adjustmentAmount;
 
 	if self.target ~= nil and self.target.ID ~= rte.NoMOID then
@@ -83,6 +81,7 @@ function Update(self)
 	if self.lifeTimer:IsPastSimMS(8000) then
 		self:GibThis();
 	end
+	
 	--TODO: Add wounds through Lua like the other disintegrator weapons
 	if SceneMan:GetTerrMatter(self.Pos.X, self.Pos.Y) == rte.airID then
 		local moCheck = SceneMan:GetMOIDPixel(self.Pos.X, self.Pos.Y);

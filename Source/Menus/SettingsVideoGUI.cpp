@@ -20,6 +20,8 @@
 #include <format>
 #endif
 
+#include <set>
+
 using namespace RTE;
 
 std::string SettingsVideoGUI::PresetResolutionRecord::GetDisplayString() const {

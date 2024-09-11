@@ -273,8 +273,22 @@ namespace RTE {
 
 		/// Sets the unrotated relative offset from the position to the muzzle or
 		/// other equivalent point of this.
-		/// @param newOffset Bew ofsset value.
+		/// @param newOffset New offset value.
 		void SetMuzzleOffset(Vector newOffset) override { m_MuzzleOff = newOffset; }
+
+		/// Gets the absolute position of the Shell ejection point.
+		/// @return A vector describing the absolute world coordinates for the Shell
+		/// ejection point of this
+		Vector GetEjectionPos() const;
+
+		/// Gets the unrotated relative offset from the position to the Shell ejection point.
+		/// @return A unrotated vector describing the relative for the Shell ejection point of
+		/// this from this' position.
+		Vector GetEjectionOffset() const { return m_EjectOff; }
+
+		/// Sets the unrotated relative offset from the position to the Shell ejection point.
+		/// @param newOffset New offset value.
+		void SetEjectionOffset(Vector newOffset) { m_EjectOff = newOffset; }
 
 		/// Gets this HDFirearm's pre fire sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this HDFirearm's pre fire sound.
@@ -364,7 +378,6 @@ namespace RTE {
 		/// the trigger'.
 		void Deactivate() override;
 
-		/// Method:			StopActivationSound
 		/// Aborts playing of active sound no matter what. Used to silence spinning
 		/// weapons when weapons swapped
 		void StopActivationSound();

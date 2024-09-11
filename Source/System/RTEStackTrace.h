@@ -2,6 +2,9 @@
 
 #include "StackWalker/StackWalker.h"
 
+#include <string>
+#include <sstream>
+
 namespace RTE {
 
 	/// Class for dumping stack traces on Windows.

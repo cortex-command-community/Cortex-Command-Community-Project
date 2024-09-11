@@ -61,9 +61,6 @@ void MultiplayerGame::Clear() {
 	m_BackToMainButton = nullptr;
 
 	m_Mode = SETUP;
-
-	m_LastMusic = "";
-	m_LastMusicPos = 0;
 }
 
 int MultiplayerGame::Create() {
@@ -106,9 +103,6 @@ void MultiplayerGame::Destroy(bool notInherited) {
 
 int MultiplayerGame::Start() {
 	int error = Activity::Start();
-
-	g_AudioMan.ClearMusicQueue();
-	g_AudioMan.StopMusic();
 
 	if (!m_pGUIScreen)
 		m_pGUIScreen = new AllegroScreen(g_FrameMan.GetBackBuffer8());
@@ -173,17 +167,7 @@ void MultiplayerGame::SetPaused(bool pause) {
 	// m_Paused = false;
 	Activity::SetPaused(pause);
 
-	if (pause) {
-		if (g_AudioMan.IsMusicPlaying()) {
-			m_LastMusic = g_AudioMan.GetMusicPath();
-			m_LastMusicPos = g_AudioMan.GetMusicPosition();
-		}
-	} else {
-		if (m_LastMusic != "") {
-			g_AudioMan.PlayMusic(m_LastMusic.c_str());
-			g_AudioMan.SetMusicPosition(m_LastMusicPos);
-		}
-
+	if (!pause) {
 		if (m_Mode == GAMEPLAY) {
 			g_UInputMan.TrapMousePos(true, 0);
 		}
@@ -359,11 +343,6 @@ void MultiplayerGame::Update() {
 	g_NetworkClient.Update();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          DrawGUI
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 void MultiplayerGame::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 	if (m_pGUIController) {
 		AllegroScreen drawScreen(pTargetBitmap);
@@ -372,12 +351,6 @@ void MultiplayerGame::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, in
 			m_pGUIController->DrawMouse();
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this MultiplayerGame's current graphical representation to a
-//                  BITMAP of choice. This includes all game-related graphics.
 
 void MultiplayerGame::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 	Activity::Draw(pTargetBitmap, targetPos);

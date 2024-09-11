@@ -3,6 +3,9 @@
 #include "InputMapping.h"
 #include "Constants.h"
 
+#include <array>
+#include <string>
+
 namespace RTE {
 
 	/// A complete input configuration scheme description for a single player.

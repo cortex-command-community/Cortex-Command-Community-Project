@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Serializable.h"
-#include "glm/glm.hpp"
+#include "glm/fwd.hpp"
 
 namespace RTE {
 	class Shader {

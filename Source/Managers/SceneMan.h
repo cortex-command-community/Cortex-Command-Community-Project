@@ -13,6 +13,13 @@
 
 #include "ActivityMan.h"
 
+#include <map>
+#include <array>
+#include <list>
+#include <vector>
+#include <string>
+#include <utility>
+
 #define g_SceneMan SceneMan::Instance()
 
 namespace RTE {
@@ -24,6 +31,7 @@ namespace RTE {
 	class SceneObject;
 	class TerrainObject;
 	class MovableObject;
+	class MOPixel;
 	class Material;
 	class SoundContainer;
 	struct PostEffect;
@@ -32,10 +40,6 @@ namespace RTE {
 	enum LayerDrawMode {
 		g_LayerNormal = 0,
 		g_LayerTerrainMatter,
-
-#ifdef DRAW_MOID_LAYER
-		g_LayerMOID
-#endif
 	};
 
 #define SCENEGRIDSIZE 24
@@ -206,18 +210,6 @@ namespace RTE {
 		/// @return A BITMAP pointer to the debug bitmap. Ownership is NOT transferred!
 		BITMAP* GetDebugBitmap() const;
 
-		/// Gets the bitmap of the SceneLayer that all MovableObject:s draw thir
-		/// current (for the frame only!) MOID's onto.
-		/// @return A BITMAP pointer to the MO bitmap. Ownership is NOT transferred!
-		BITMAP* GetMOIDBitmap() const;
-
-		// TEMP!
-		/// Makes sure the MOID bitmap layer is completely of NoMOID color.
-		/// If found to be not, dumps MOID layer and the FG actor color layer for
-		/// debugging.
-		/// @return Was it clear?
-		bool MOIDClearCheck();
-
 		/// Gets the current drawing mode of the SceneMan.
 		/// @return The current layer draw mode, see the LayerDrawMode enumeration for the
 		/// different possible mode settings.
@@ -265,23 +257,6 @@ namespace RTE {
 		/// different possible settings.
 		void SetLayerDrawMode(int mode) { m_LayerDrawMode = mode; }
 
-		/// Locks all dynamic internal scene bitmaps so that manipulaitons of the
-		/// scene's color and matter representations can take place.
-		/// Doing it in a separate method like this is more efficient because
-		/// many bitmap manipulaitons can be performed between a lock and unlock.
-		/// UnlockScene() should always be called after accesses are completed.
-		void LockScene();
-
-		/// Unlocks the scene's bitmaps and prevents access to display memory.
-		/// Doing it in a separate method like this is more efficient because
-		/// many bitmap accesses can be performed between a lock and an unlock.
-		/// UnlockScene() should only be called after LockScene().
-		void UnlockScene();
-
-		/// Indicates whether the entire scene is currently locked or not.
-		/// @return Whether the entire scene is currently locked or not.
-		bool SceneIsLocked() const;
-
 		/// Registers an area to be drawn upon, so it can be tracked and cleared later.
 		/// @param bitmap The bitmap being drawn upon.
 		/// @param moid The MOID, if we're drawing MOIDs.
@@ -298,13 +273,10 @@ namespace RTE {
 		/// @param radius The radius of the drawn area.
 		void RegisterDrawing(const BITMAP* bitmap, int moid, const Vector& center, float radius);
 
-		/// Clears all registered drawn areas of the MOID layer to the g_NoMOID
-		/// color and clears the registrations too. Should be done each sim update.
+		/// Clears all registered drawn areas of the MOID layer to the g_NoMOID color and clears the registrations too. Should be done each sim update.
 		void ClearAllMOIDDrawings();
 
-		/// Test whether a pixel of the scene would be knocked loose and
-		/// turned into a MO by another particle of a certain material going at a
-		/// certain velocity. Scene needs to be locked to do this!
+		/// Test whether a pixel of the scene would be knocked loose and turned into a MO by another particle of a certain material going at a certain velocity.
 		/// @param posX The X and Y coords of the scene pixel that is collided with.
 		/// @param posY The velocity of the incoming particle.
 		/// @param velocity The mass of the incoming particle.
@@ -316,9 +288,7 @@ namespace RTE {
 		                   const Vector& velocity,
 		                   const float mass) { return WillPenetrate(posX, posY, velocity * mass); }
 
-		/// Test whether a pixel of the scene would be knocked loose and
-		/// turned into a MO by a certian impulse force. Scene needs to be locked
-		/// to do this!
+		/// Test whether a pixel of the scene would be knocked loose and turned into a MO by a certain impulse force.
 		/// @param posX The X and Y coords of the scene pixel that is collided with.
 		/// @param posY The impulse force vector, in Kg * m/s.
 		/// @return A bool indicating wether the scene pixel would be knocked loose or
@@ -328,11 +298,8 @@ namespace RTE {
 		                   const int posY,
 		                   const Vector& impulse);
 
-		/// Calculate whether a pixel of the scene would be knocked loose and
-		/// turned into a MO by another particle of a certain material going at a
-		/// certain velocity. If so, the incoming particle will knock loose the
-		/// specified pixel in the scene and momentarily take its place.
-		/// Scene needs to be locked to do this!
+		/// Calculate whether a pixel of the scene would be knocked loose and turned into a MO by another particle of a certain material going at a certain velocity.
+		/// If so, the incoming particle will knock loose the specified pixel in the scene and momentarily take its place.
 		/// @param posX The X and Y coord of the scene pixel that is to be collided with.
 		/// @param posY The impulse force exerted on the terrain pixel. If this magnitude
 		/// exceeds the strength threshold of the material of the terrain pixel
@@ -394,7 +361,70 @@ namespace RTE {
 		/// @param posX The X coordinate of the terrain pixel.
 		/// @param posX The Y coordinate of the terrain pixel.
 		/// @return The newly dislodged pixel, if one was found.
-		MovableObject* DislodgePixel(int posX, int posY);
+		MOPixel* DislodgePixel(int posX, int posY);
+
+		/// Removes a pixel from the terrain and adds it to MovableMan.
+		/// @param posX The X coordinate of the terrain pixel.
+		/// @param posX The Y coordinate of the terrain pixel.
+		/// @param deletePixel Whether or not to immediately mark the pixel for deletion.
+		/// @return The newly dislodged pixel, if one was found.
+		MOPixel* DislodgePixelBool(int posX, int posY, bool deletePixel);
+
+		/// Removes a circle of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the circle.
+		/// @param radius The radius of the circle of pixels to remove.
+		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelCircle(const Vector& centre, float radius, bool deletePixels);
+
+		/// Removes a circle of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the circle.
+		/// @param radius The radius of the circle of pixels to remove.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelCircleNoBool(const Vector& centre, float radius);
+
+		/// Removes a ring of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the ring.
+		/// @param innerRadius The inner radius of the ring of pixels to remove.
+		/// @param outerRadius The outer radius of the ring of pixels to remove.
+		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelRing(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels);
+
+		/// Removes a ring of pixels from the terrain and adds them to MovableMan.
+		/// @param centre The vector position of the centre of the ring.
+		/// @param innerRadius The inner radius of the ring of pixels to remove.
+		/// @param outerRadius The outer radius of the ring of pixels to remove.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelRingNoBool(const Vector& centre, float innerRadius, float outerRadius);
+
+		/// Removes a box of pixels from the terrain and adds them to MovableMan.
+		/// @param upperLeftCorner The vector position of the upper left corner of the box.
+		/// @param lowerRightCorner The vector position of the lower right corner of the box.
+		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelBox(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels);
+
+		/// Removes a box of pixels from the terrain and adds them to MovableMan.
+		/// @param upperLeftCorner The vector position of the upper left corner of the box.
+		/// @param lowerRightCorner The vector position of the lower right corner of the box.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelBoxNoBool(const Vector& upperLeftCorner, const Vector& lowerRightCorner);
+
+		/// Removes a line of pixels from the terrain and adds them to MovableMan.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param skip For every pixel checked along the line, how many to skip between them.
+		/// @param deletePixels Whether or not to immediately mark all found pixels for deletion.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelLine(const Vector& start, const Vector& ray, int skip, bool deletePixels);
+
+		/// Removes a line of pixels from the terrain and adds them to MovableMan.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param skip For every pixel checked along the line, how many to skip between them.
+		/// @return A list of the removed pixels, if any.
+		std::vector<MOPixel*>* DislodgePixelLineNoBool(const Vector& start, const Vector& ray, int skip);
 
 		/// Sets one team's view of the scene to be unseen, using a generated map
 		/// of a specific resolution chunkiness.
@@ -453,7 +483,19 @@ namespace RTE {
 		/// @param width The team to restore for.
 		void RestoreUnseenBox(const int posX, const int posY, const int width, const int height, const int team);
 
-		/// Traces along a vector and reveals or hides pixels on the unseen layer of a team
+		/// Traces along a vector and stops when the accumulated material strengths of the
+		/// traced-through terrain meets or exceeds a given value.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param endPos A Vector that will be set to the position of where the sight ray was
+		/// terminated. If it reached the end, it will be set to the end of the ray.
+		/// @param strengthLimit The accumulated material strength limit where the ray stops.
+		/// @param skip For every pixel checked along the line, how many to skip between them
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return Whether the ray was stopped prematurely or not.
+		bool CastTerrainPenetrationRay(const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip);
+
+		/// Traces a box along a vector and reveals or hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -468,7 +510,7 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal);
 
-		/// Traces along a vector and reveals pixels on the unseen layer of a team
+		/// Traces a box along a vector and reveals pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -482,7 +524,7 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0);
 
-		/// Traces along a vector and hides pixels on the unseen layer of a team
+		/// Traces a box along a vector and hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -668,22 +710,23 @@ namespace RTE {
 		/// @return A vector with the absolute pos of where the last ray cast hit somehting.
 		const Vector& GetLastRayHitPos();
 
-		/// Calculates the altitide of a certain point above the terrain, measured
-		/// in pixels.
+		/// Calculates the altitude of a certain point above the terrain, measured in pixels.
 		/// @param from The max altitude you care to check for. 0 Means check the whole scene's height.
-		/// @param max The accuracy within screen measurement is acceptable. Higher number
-		/// here means less calculation.
+		/// @param max The accuracy within screen measurement is acceptable. Higher number here means less calculation.
 		/// @return The altitude over the terrain, in pixels.
 		float FindAltitude(const Vector& from, int max, int accuracy, bool fromSceneOrbitDirection);
 		float FindAltitude(const Vector& from, int max, int accuracy) { return FindAltitude(from, max, accuracy, false); }
 
-		/// Calculates the altitide of a certain point above the terrain, measured
-		/// in pixels, and then tells if that point is over a certain value.
+		/// Calculates the altitude of a certain point above the terrain, measured in pixels, and then tells if that point is over a certain value.
 		/// @param point The altitude threshold you want to check for.
-		/// @param threshold The accuracy within screen measurement is acceptable. Higher number
-		/// here means less costly.
+		/// @param threshold The accuracy within screen measurement is acceptable. Higher number here means less costly.
 		/// @return Whether the point is over the threshold altitude or not.
 		bool OverAltitude(const Vector& point, int threshold, int accuracy = 0);
+
+		/// Returns whether a given point is inside a no-grav area.
+		/// @param point The point you want to check.
+		/// @return Whether the point is inside a nograv area.
+		bool IsPointInNoGravArea(const Vector& point) const;
 
 		/// Takes an arbitrary point in the air and calculates it to be straight
 		/// down at a certain maximum distance from the ground.
@@ -701,37 +744,37 @@ namespace RTE {
 		/// @param pixelX Int coordinates.
 		/// @param pixelY A margin
 		/// @return Whether within bounds or not, considering wrapping.
-		bool IsWithinBounds(const int pixelX, const int pixelY, const int margin = 0);
+		bool IsWithinBounds(const int pixelX, const int pixelY, const int margin = 0) const;
 
 		/// Wraps or bounds a position coordinate if it is off bounds of the
 		/// Scene, depending on the wrap settings of this Scene.
 		/// @param posX The X and Y coordinates of the position to wrap, if needed.
 		/// @return Whether wrapping was performed or not. (Does not report on bounding)
-		bool ForceBounds(int& posX, int& posY);
+		bool ForceBounds(int& posX, int& posY) const;
 
 		/// Wraps or bounds a position coordinate if it is off bounds of the
 		/// Scene, depending on the wrap settings of this Scene.
 		/// @param pos The vector coordinates of the position to wrap, if needed.
 		/// @return Whether wrapping was performed or not. (Does not report on bounding)
-		bool ForceBounds(Vector& pos);
+		bool ForceBounds(Vector& pos) const;
 
 		/// Only wraps a position coordinate if it is off bounds of the Scene
 		/// and wrapping in the corresponding axes are turned on.
 		/// @param posX The X and Y coordinates of the position to wrap, if needed.
 		/// @return Whether wrapping was performed or not.
-		bool WrapPosition(int& posX, int& posY);
+		bool WrapPosition(int& posX, int& posY) const;
 
 		/// Only wraps a position coordinate if it is off bounds of the Scene
 		/// and wrapping in the corresponding axes are turned on.
 		/// @param pos The vector coordinates of the position to wrap, if needed.
 		/// @return Whether wrapping was performed or not.
-		bool WrapPosition(Vector& pos);
+		bool WrapPosition(Vector& pos) const;
 
 		/// Returns a position snapped to the current scene grid.
 		/// @param pos The vector coordinates of the position to snap.
 		/// @param snap Whether to actually snap or not. This is useful for cleaner toggle code. (default: true)
 		/// @return The new snapped position.
-		Vector SnapPosition(const Vector& pos, bool snap = true);
+		Vector SnapPosition(const Vector& pos, bool snap = true) const;
 
 		/// Calculates the shortest distance between two points in scene
 		/// coordinates, taking into account all wrapping and out of bounds of the
@@ -742,7 +785,7 @@ namespace RTE {
 		/// wrap them if they are.
 		/// @return The resulting vector screen shows the shortest distance, spanning over
 		/// wrapping borders etc. Basically the ideal pos2 - pos1.
-		Vector ShortestDistance(Vector pos1, Vector pos2, bool checkBounds = false);
+		Vector ShortestDistance(Vector pos1, Vector pos2, bool checkBounds = false) const;
 
 		/// Calculates the shortest distance between two x values in scene
 		/// coordinates, taking into account all wrapping and out of bounds of the
@@ -756,7 +799,7 @@ namespace RTE {
 		/// will be ignored.
 		/// @return The resulting X value screen shows the shortest distance, spanning over
 		/// wrapping borders etc. Basically the ideal val2 - val1.
-		float ShortestDistanceX(float val1, float val2, bool checkBounds = false, int direction = 0);
+		float ShortestDistanceX(float val1, float val2, bool checkBounds = false, int direction = 0) const;
 
 		/// Calculates the shortest distance between two Y values in scene
 		/// coordinates, taking into account all wrapping and out of bounds of the
@@ -770,7 +813,7 @@ namespace RTE {
 		/// will be ignored.
 		/// @return The resulting Y value screen shows the shortest distance, spanning over
 		/// wrapping borders etc. Basically the ideal val2 - val1.
-		float ShortestDistanceY(float val1, float val2, bool checkBounds = false, int direction = 0);
+		float ShortestDistanceY(float val1, float val2, bool checkBounds = false, int direction = 0) const;
 
 		/// Tells whether a point on the scene is obscured by MOID or Terrain
 		/// non-air material.
@@ -789,14 +832,10 @@ namespace RTE {
 		bool ObscuredPoint(int x, int y, int team = -1);
 
 		/*
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SceneRectsIntersect
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Tells whether two IntRect:s in the scene intersect, while taking
-		//                  wrapping into account.
-		// Arguments:       The point on the scene to check.
-		// Return value:    Whether that point is obscured/obstructed or not.
-
+		/// Tells whether two IntRect:s in the scene intersect, while taking
+		/// wrapping into account.
+		/// @param x The point on the scene to check.
+		/// @return Whether that point is obscured/obstructed or not.
 		    bool SceneRectsIntersect(int x, int y);
 		*/
 
@@ -835,12 +874,9 @@ namespace RTE {
 		/// @param screenId Which screen to update for. (default: 0)
 		void Update(int screenId = 0);
 
-		/// Draws this SceneMan's current graphical representation to a
-		/// BITMAP of choice.
-		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split
-		/// screen segment.
-		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner
-		/// is located.
+		/// Draws this SceneMan's current graphical representation to a BITMAP of choice.
+		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split screen segment.
+		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
 		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
 		/// Clears the color MO layer. Should be done every frame.
@@ -894,8 +930,6 @@ namespace RTE {
 		Scene* m_pCurrentScene;
 		// Color MO layer
 		SceneLayerTracked* m_pMOColorLayer;
-		// MovableObject ID layer
-		SceneLayerTracked* m_pMOIDLayer;
 		// A spatial partitioning grid of MOIDs, used to optimize collision and distance queries
 		SpatialPartitionGrid m_MOIDsGrid;
 

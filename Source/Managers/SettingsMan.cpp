@@ -10,6 +10,7 @@
 #include "UInputMan.h"
 #include "NetworkClient.h"
 #include "NetworkServer.h"
+#include "System.h"
 
 using namespace RTE;
 
@@ -44,11 +45,10 @@ void SettingsMan::Clear() {
 
 	m_DisableLuaJIT = false;
 	m_RecommendedMOIDCount = 512;
-	m_SimplifiedCollisionDetection = false;
 	m_SceneBackgroundAutoScaleMode = 1;
 	m_DisableFactionBuyMenuThemes = false;
 	m_DisableFactionBuyMenuThemeCursors = false;
-	m_PathFinderGridNodeSize = c_PPM;
+	m_PathFinderGridNodeSize = SCENEGRIDSIZE;
 	m_AIUpdateInterval = 2;
 
 	m_NumberOfLuaStatesOverride = -1;
@@ -160,7 +160,6 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DefaultSceneName", { reader >> g_SceneMan.m_DefaultSceneName; });
 	MatchProperty("DisableLuaJIT", { reader >> m_DisableLuaJIT; });
 	MatchProperty("RecommendedMOIDCount", { reader >> m_RecommendedMOIDCount; });
-	MatchProperty("SimplifiedCollisionDetection", { reader >> m_SimplifiedCollisionDetection; });
 	MatchProperty("SceneBackgroundAutoScaleMode", { SetSceneBackgroundAutoScaleMode(std::stoi(reader.ReadPropValue())); });
 	MatchProperty("DisableFactionBuyMenuThemes", { reader >> m_DisableFactionBuyMenuThemes; });
 	MatchProperty("DisableFactionBuyMenuThemeCursors", { reader >> m_DisableFactionBuyMenuThemeCursors; });
@@ -305,7 +304,6 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewLine(false);
 	writer.NewPropertyWithValue("DisableLuaJIT", m_DisableLuaJIT);
 	writer.NewPropertyWithValue("RecommendedMOIDCount", m_RecommendedMOIDCount);
-	writer.NewPropertyWithValue("SimplifiedCollisionDetection", m_SimplifiedCollisionDetection);
 	writer.NewPropertyWithValue("SceneBackgroundAutoScaleMode", m_SceneBackgroundAutoScaleMode);
 	writer.NewPropertyWithValue("DisableFactionBuyMenuThemes", m_DisableFactionBuyMenuThemes);
 	writer.NewPropertyWithValue("DisableFactionBuyMenuThemeCursors", m_DisableFactionBuyMenuThemeCursors);

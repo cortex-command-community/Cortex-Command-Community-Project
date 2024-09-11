@@ -2,6 +2,10 @@
 
 #include "Singleton.h"
 
+#include <deque>
+#include <unordered_set>
+#include <string>
+
 #define g_ConsoleMan ConsoleMan::Instance()
 
 namespace RTE {

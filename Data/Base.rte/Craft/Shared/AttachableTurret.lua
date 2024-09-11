@@ -36,16 +36,19 @@ function Update(self)
 				self.verticalFactor = self.verticalFactor - self.turnSpeed;
 			end
 		end
+
 		if math.abs(self.rotation) > 0.001 then
 			self.rotation = self.rotation/(1 + self.turnSpeed * 2);
 		else
 			self.rotation = 0;
 		end
+
 		if math.abs(self.verticalFactor) > 0.001 then
 			self.verticalFactor = self.verticalFactor/(1 + self.turnSpeed * 4);
 		else
 			self.verticalFactor = 0;
 		end
+
 		if self.areaMode then	--Area Mode
 			local aimPos = self.Pos + Vector((self.searchRange * 0.5), 0):RadRotate(self.RotAngle);
 			--Debug: visualize aim area
@@ -84,6 +87,7 @@ function Update(self)
 					target = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck2).RootID);
 				end
 			end
+
 			local color = 13;	--Debug trace color: red
 			if target and IsActor(target) and ToActor(target).Status < Actor.INACTIVE then
 				self:EnableEmission(true);
@@ -94,6 +98,7 @@ function Update(self)
 					color = 254;	--Debug trace color: white
 				end
 			end
+
 			--Debug: visualize aim traces
 			if self.showAim then
 				PrimitiveMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(1/math.sqrt(self.searchRange)), color);
@@ -101,6 +106,7 @@ function Update(self)
 			end
 		end
 	end
+	
 	if self.fireTimer:IsPastSimTimeLimit() then
 		self:EnableEmission(false);
 	end

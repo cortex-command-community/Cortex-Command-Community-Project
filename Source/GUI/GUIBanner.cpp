@@ -221,12 +221,6 @@ void GUIBanner::ShowText(const std::string& text, AnimMode mode, long duration, 
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          HideText
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Tells the banner to animate away elegantly. Especially useful when
-//                  a ShowText is waiting with a negative duration.
-
 void GUIBanner::HideText()
 {
 

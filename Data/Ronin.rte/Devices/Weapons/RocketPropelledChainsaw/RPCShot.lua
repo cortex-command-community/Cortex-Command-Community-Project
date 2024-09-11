@@ -48,6 +48,7 @@ function Update(self)
 					pix.Vel = randVel + Vector((50 + velFactor) * self.FlipFactor, 0):RadRotate(self.RotAngle);
 					MovableMan:AddParticle(pix);
 				end
+
 				if IsAttachable(mo) and ToAttachable(mo):IsAttached() and not (IsHeldDevice(mo) or IsThrownDevice(mo)) then
 					mo = ToAttachable(mo);
 					local jointPos = mo.Pos + Vector(mo.JointOffset.X * mo.FlipFactor, mo.JointOffset.Y):RadRotate(mo.RotAngle);
@@ -72,8 +73,10 @@ function Update(self)
 			end
 		end
 	end
+
 	if self.toGibCounter == 60 then	--60 frames have passed while still (or 90 inside a MO)
 		self:GibThis();
 	end
+	
 	self.lastAngle = self.RotAngle;
 end

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "System.h"
-
 #include "allegro.h"
 #include "loadpng.h"
 
@@ -16,6 +14,9 @@
 #else
 #define AbortAction std::abort()
 #endif
+
+#include <source_location>
+#include <string>
 
 namespace RTE {
 
@@ -64,6 +65,15 @@ namespace RTE {
 		/// @param message The string that the message box should display.
 		/// @return Whether to abort, or ignore the assert and continue execution.
 		static bool ShowAssertMessageBox(const std::string& message);
+
+		/// Prints details on the user hardware to the abort log.
+		/// @remark
+		/// Included details:
+		/// OpenGL version string, OpenGL GPU vendor string, OpenGL Renderer string.
+		/// CPU vendor and brand string (as reported by cpuid on windows and linux or sysctl on macos).
+		/// linux: uname sysname, release, version.
+		/// macos: sysctl kern.osrelease, kern.ostype, kern.osversion.
+		static void DumpHardwareInfo();
 
 		/// Saves the current frame to a file.
 		/// @return Whether the file was saved successfully.@return

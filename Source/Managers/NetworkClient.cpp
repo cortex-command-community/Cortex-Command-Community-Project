@@ -288,8 +288,6 @@ void NetworkClient::ReceiveFrameLineMsg(RakNet::Packet* packet) {
 		bmp = g_FrameMan.GetNetworkBackBufferIntermediateGUI8Ready(0);
 	}
 
-	acquire_bitmap(bmp);
-
 	int width = frameData->DataSize;
 	int pixels = std::min(bmp->w, width);
 
@@ -312,7 +310,6 @@ void NetworkClient::ReceiveFrameLineMsg(RakNet::Packet* packet) {
 			}
 		}
 	}
-	release_bitmap(bmp);
 }
 
 void NetworkClient::ReceiveFrameBoxMsg(RakNet::Packet* packet) {
@@ -334,8 +331,6 @@ void NetworkClient::ReceiveFrameBoxMsg(RakNet::Packet* packet) {
 	} else if (frameData->Id == ID_SRV_FRAME_BOX_UI || frameData->Id == ID_SRV_FRAME_BOX_UI_DELTA) {
 		bmp = g_FrameMan.GetNetworkBackBufferIntermediateGUI8Ready(0);
 	}
-
-	acquire_bitmap(bmp);
 
 	int maxWidth = m_CurrentBoxWidth;
 	int maxHeight = m_CurrentBoxHeight;
@@ -419,7 +414,6 @@ void NetworkClient::ReceiveFrameBoxMsg(RakNet::Packet* packet) {
 			}
 		}
 	}
-	release_bitmap(bmp);
 }
 
 void NetworkClient::SendSceneAcceptedMsg() {
@@ -698,20 +692,13 @@ void NetworkClient::ReceiveMusicEventsMsg(RakNet::Packet* packet) {
 				char buf[128];
 				std::snprintf(buf, sizeof(buf), "MUSIC %s %d", path, musicDataPointer->LoopsOrSilence);
 
-				g_AudioMan.PlayMusic(path, musicDataPointer->LoopsOrSilence);
-				if (musicDataPointer->Position > 0) {
-					g_AudioMan.SetMusicPosition(musicDataPointer->Position);
-				}
 				break;
 			case AudioMan::MUSIC_STOP:
-				g_AudioMan.StopMusic();
 				break;
 			case AudioMan::MUSIC_SET_PITCH:
 				g_AudioMan.SetMusicPitch(musicDataPointer->Pitch);
 				break;
 			case AudioMan::MUSIC_SILENCE:
-				g_AudioMan.QueueSilence(musicDataPointer->LoopsOrSilence);
-				g_AudioMan.StopMusic();
 				break;
 			default:
 				RTEAbort("Multiplayer client tried to receive unhandled Music Event, of state " + musicDataPointer->State);

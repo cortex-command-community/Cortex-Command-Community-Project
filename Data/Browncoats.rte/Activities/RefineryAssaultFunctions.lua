@@ -2,10 +2,16 @@ function RefineryAssault:HandleMessage(message, object)
 
 	self.tacticsHandler:OnMessage(message, object);
 
-	print("activitygotmessage")
+	--print("activitygotmessage")
 	
-	print(message)
-	print(object)
+	if self.verboseLogging then
+		--print("INFO: Refinery Assault received message: " .. message);
+		--print("INFO: Context as follows:")
+		--print(object);
+	end
+	
+	--print(message)
+	--print(object)
 	
 	-- this is ugly, but there's no way to avoid this stuff except hiding it away even harder than in this separate script...
 
@@ -27,7 +33,7 @@ function RefineryAssault:HandleMessage(message, object)
 			end
 	
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC1");
-			self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+			self:RemoveStringFromTable("LC1", self.saveTable.buyDoorTables.teamAreas[self.aiTeam]);
 			
 			for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
 				v.Team = self.humanTeam;
@@ -39,7 +45,7 @@ function RefineryAssault:HandleMessage(message, object)
 			self.stage2HoldingBothConsoles = false;
 		
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.aiTeam], "LC1");
-			self.saveTable.buyDoorTables.teamAreas[self.humanTeam].LC1 = nil;
+			self:RemoveStringFromTable("LC1", self.saveTable.buyDoorTables.teamAreas[self.humanTeam]);
 			
 			for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
 				v.Team = self.aiTeam;
@@ -66,7 +72,7 @@ function RefineryAssault:HandleMessage(message, object)
 			end
 	
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC2");
-			self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
+			self:RemoveStringFromTable("LC2", self.saveTable.buyDoorTables.teamAreas[self.aiTeam]);
 			
 			for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
 				v.Team = self.humanTeam;
@@ -76,7 +82,7 @@ function RefineryAssault:HandleMessage(message, object)
 			self.stage2HoldingBothConsoles = false;
 			
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.aiTeam], "LC2");
-			self.saveTable.buyDoorTables.teamAreas[self.humanTeam].LC2 = nil;
+			self:RemoveStringFromTable("LC2", self.saveTable.buyDoorTables.teamAreas[self.humanTeam]);
 			
 			for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
 				v.Team = self.aiTeam;
@@ -86,11 +92,29 @@ function RefineryAssault:HandleMessage(message, object)
 		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
 		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
 		
+	elseif message == "Captured_RefineryS3DockConsole" then
+	
+		if self.verboseLogging then
+			print("INFO: Refinery Assault detected capture of S3 dock console. Setting active docks...");
+		end
+	
+		if self.saveTable.activeDocks[1] ~= 5 then -- ghetto check we haven't capped the s4 one
+			self.saveTable.activeDocks = {3, 4};
+			if self.verboseLogging then
+				print("INFO: Refinery Assault set S3 active docks!");
+			end
+		else
+			if self.verboseLogging then
+				print("INFO: Refinery Assault detected S4 active docks. Active docks not re-set.");
+			end
+		end
+		
 	elseif message == "Captured_RefineryS3BuyDoorConsole1" then
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_1");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
 		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_1 = nil;
+		self:RemoveStringFromTable("S3_1", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_1) do
 			v.Team = object;
@@ -114,7 +138,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_2");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_2 = nil;
+		self:RemoveStringFromTable("S3_2", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_2) do
 			v.Team = object;
@@ -138,7 +162,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_3");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_3 = nil;
+		self:RemoveStringFromTable("S3_3", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_3) do
 			v.Team = object;
@@ -158,30 +182,6 @@ function RefineryAssault:HandleMessage(message, object)
 			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 3", self.aiTeam);		
 		end
 		
-	elseif message == "Captured_RefineryS3BuyDoorConsole4" then
-		
-		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_4");
-		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_4 = nil;
-		
-		for k, v in pairs(self.saveTable.buyDoorTables.S3_4) do
-			v.Team = object;
-		end
-		
-		-- dupe code woo
-		if object == self.humanTeam then		
-			local pos;
-			for particle in MovableMan.Particles do
-				if particle.PresetName == "Refinery S3 Buy Door Console 4" then
-					pos = particle.Pos;
-					break;
-				end
-			end		
-			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 4", self.aiTeam, pos, "Attack", 20);		
-		else
-			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 4", self.aiTeam);		
-		end
-		
 	elseif message == "Captured_RefineryS3OilCapturable" then
 	
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
@@ -195,19 +195,41 @@ function RefineryAssault:HandleMessage(message, object)
 		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "FL-200 Heatlance", "HDFirearm", "Browncoats.rte");
 		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "IN-02 Backblast", "HDFirearm", "Browncoats.rte");
 		
-		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "FL-200 Heatlance");
-		-- don't remove the IN-02, castrates the brownies too much this early on.
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "IN-02 Backblast");
+		
+	elseif message == "Captured_RefineryS3GrenadeConsole" then	
+		
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "Fuel Bomb Bandolier", "TDExplosive", "Browncoats.rte");
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "Fire Bomb Bandolier", "TDExplosive", "Browncoats.rte");
+		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Fuel Bomb Bandolier");
+		
 		
 	elseif message == "Captured_RefineryS3DrillOverloadConsole" then	
 		
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
 		self.stage3DrillOverloaded = true;
 		
+		MovableMan:SendGlobalMessage("RefineryAssault_DrillOverloadBegin");
+	
+	elseif message == "Captured_RefineryS4FuelPipeConsole" then	
+		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Fire Bomb Bandolier");
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "FL-200 Heatlance");
+		
+	elseif message == "Captured_RefineryS4AdvancedGunsConsole" then	
+		
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "BR-76 Stormbringer", "HDFirearm", "Browncoats.rte");
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "R-500 Extinction", "HDFirearm", "Browncoats.rte");
+		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "BR-76 Stormbringer");
+		
 	elseif message == "RefineryAssault_S4DoorsBlownUp" then	
 		
 		if self.Stage ~= 5 then
 		
 			self.Stage = 5;
+			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, SceneMan.SceneWidth + 9999);
 			self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 			
 			local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
@@ -274,17 +296,272 @@ function RefineryAssault:HandleMessage(message, object)
 			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole1");
 			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole2");
 			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole3");
+			
+			-- 1 is already activated when the door first jams
+			MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole2");	
+			MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole3");	
+			MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole4");	
+			MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole5");	
+			
+			-- Start using buy doors
+			
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_2) do
+				v.Team = self.aiTeam;
+			end
+			
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_3) do
+				v.Team = self.aiTeam;
+			end
+
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_4) do
+				v.Team = self.aiTeam;
+			end
+			
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_5) do
+				v.Team = self.aiTeam;
+			end
+			
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_6) do
+				v.Team = self.aiTeam;
+			end
+			
+			
+			-- Ronin prisoner spawns for the side objective
+			
+			self.deliveryCreationHandler:AddVirtualTeam(5, "Ronin.rte");
+			
+			self.saveTable.roninPrisoners = self.deliveryCreationHandler:CreateEliteSquad(5, 5);
+			self.saveTable.roninPrisonerLeader = self.saveTable.roninPrisoners[1];
+			local area = SceneMan.Scene:GetOptionalArea("RefineryAssault_RoninPrisonersSpawn");
+			for k, actor in pairs(self.saveTable.roninPrisoners) do
+				actor.HFlipped = true;
+				if self.saveTable.roninPrisonerDoorBroken then
+					-- failsafe
+					actor.Team = self.humanTeam;
+					actor.PlayerControllable = true;
+				else
+					actor.Team = -1;
+					actor:DisableScript("Base.rte/AI/HumanAI.lua");
+				end
+				local pos = area.RandomPoint;
+				actor.Pos = pos;
+				MovableMan:AddActor(actor);
+				actor:UnequipArms();
+			end
 
 		end
 		
+	elseif message == "RefineryAssault_RoninPrisonerDoorBroken" then
+	
+		self.saveTable.roninPrisonerDoorBroken = true;
+		self.roninPrisonerMessageTimer = Timer();
+		
+		if self.saveTable.roninPrisoners then
+			for k, actor in pairs(self.saveTable.roninPrisoners) do
+				MovableMan:ChangeActorTeam(actor, self.humanTeam);
+				actor:AddScript("Base.rte/AI/HumanAI.lua");
+				actor.PlayerControllable = true;
+			end
+		end
+		
+	elseif message == "Captured_RefineryS4DockConsole" then
+	
+		self.saveTable.activeDocks = {5, 6};
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole1" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_1");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self:RemoveStringFromTable("S4_1", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_1) do
+			v.Team = object;
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 1" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 1", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 1", self.aiTeam);		
+		end
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole2" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_2");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self:RemoveStringFromTable("S4_2", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_2) do
+			v.Team = object;
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 2" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 2", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 2", self.aiTeam);		
+		end
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole3" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_3");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self:RemoveStringFromTable("S4_3", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_3) do
+			v.Team = object;
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 3" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 3", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 3", self.aiTeam);		
+		end		
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole4" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_4");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self:RemoveStringFromTable("S4_4", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_4) do
+			v.Team = object;
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 4" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 4", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 4", self.aiTeam);		
+		end
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole5" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_1");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self:RemoveStringFromTable("S4_5", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_5) do
+			v.Team = object;
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 5" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 5", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 5", self.aiTeam);		
+		end		
+		
+	elseif message == "Captured_RefineryS4BankCapturable" then
+	
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;
+		
+	elseif message == "Captured_RefineryS4GoldVaultCapturable" then
+	
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 4;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 4;
+		
+		self:ChangeAIFunds(self.humanTeam, 2000);
+		self:ChangeTeamFunds(2000, self.humanTeam); -- player, will also play gold sound
+		
+	elseif message == "Refinery_S4CameraServerBroken" then
+	
+		self.saveTable.cameraServerBroken = self.saveTable.cameraServerBroken == nil and 1 or self.saveTable.cameraServerBroken + 1;
+		
+	elseif message == "RefineryAssault_S7BrainAuthorized" then		
+	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S7AuthorizeBrain");
+		self.saveTable.stage7BrainAuthorized = true;
+		
+	elseif message == "Captured_RefineryS7AuxAuthConsole" then	
+	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S7AuxAuth");
+		self.saveTable.stage7AuxAuthConsoleCaptured = true;
+		
+	elseif message == "RefineryAssault_S8BossDoorOpened" then	
+	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S8OpenBossDoor");
+		self.Stage = 9;
+		
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS10FinalConsole");
+
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Refinery S9 Final Console" then
+
+				self.HUDHandler:AddObjective(self.humanTeam,
+				"S9FinalConsole",
+				"Capture",
+				"Attack",
+				"Capture the CNC-center console!",
+				"This is it! Get into that console and every Browncoat left on this base is at our mercy!",
+				particle.Pos,
+				false,
+				true,
+				true);		
+				
+				break;
+			end
+		end
+
+	elseif message == "Captured_RefineryS9BossBankCapturable" then
+	
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;		
+		
+	elseif message == "Captured_RefineryS9FinalConsole" then	
+	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S9FinalConsole");
+		self.saveTable.stage9FinalConsoleCaptured = true;
+
+	elseif message == "Refinery_RefineryS10FinalBossDead" then	
+		
 	end
 	
-	
 	-- DEBUG STAGE SKIPS
+
+	-- ActivityMan:GetActivity():SetTeamFunds(5000, 0)
 
 	-- ActivityMan:GetActivity():SendMessage("SkipCurrentStage");
 	if message == "SkipCurrentStage" then
 		message = "SkipStage" .. self.Stage;
+		self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, SceneMan.SceneWidth + 9999);
 	end
 
 	-- ActivityMan:GetActivity():SendMessage("SkipStage1");
@@ -295,7 +572,32 @@ function RefineryAssault:HandleMessage(message, object)
 	elseif message == "SkipStage2" then
 		self.stage2HoldingBothConsoles = true;
 		self.stage2TimeToHoldConsoles = 0;
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC2");
+		self:RemoveStringFromTable("LC2", self.saveTable.buyDoorTables.teamAreas[self.aiTeam]);
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
+			v.Team = self.humanTeam;
+		end
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC1");
+		self:RemoveStringFromTable("LC1", self.saveTable.buyDoorTables.teamAreas[self.aiTeam]);
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
+			v.Team = self.humanTeam;
+		end
+		
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
+
 	elseif message == "SkipStage3" then
+	
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_1) do
+			if v.Team == 1 then
+				self:SendMessage("Captured_RefineryS3BuyDoorConsole1", self.humanTeam);
+			end
+			break;
+		end
+
 		self.stage3AllConsolesBroken = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
 		self.saveTable.enemyActorTables.stage3FacilityOperator = {};
@@ -310,6 +612,67 @@ function RefineryAssault:HandleMessage(message, object)
 		end
 		self:SendMessage("RefineryAssault_S4DoorsBlownUp");
 	elseif message == "SkipStage5" then
+		for i, generator in ipairs(self.saveTable.stage5Generators) do
+			if not generator or not MovableMan:ValidMO(generator) then
+			else
+				ToMOSRotating(generator):GibThis();
+			end
+		end		
+	elseif message == "SkipStage6" then
+	
+		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
+		MovableMan:SendGlobalMessage("ActivateRefineryAuthorizationConsole");
+		self.Stage = 7;
+		
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Refinery Authorization Console" then
+	
+				self.HUDHandler:AddObjective(self.humanTeam,
+				"S7AuthorizeBrain",
+				"Authorize yourself",
+				"Attack",
+				"Authorize your commander using the keycard",
+				"With the keycard, you can authorize your commander's physical signature to open the CNC-center blast door at this console.",
+				particle.Pos,
+				false,
+				true,
+				true);					
+		
+			elseif particle.PresetName == "Refinery S7 Auxiliary Authorization Console" then
+			
+				self.HUDHandler:AddObjective(self.humanTeam,
+				"S7AuxAuth",
+				"Hack",
+				"Attack",
+				"Hack the auxiliary authorization console",
+				"This console is also responsible for the CNC-center's door authorization list. Hack it.",
+				particle.Pos,
+				false,
+				true,
+				true);
+				
+			end
+		end
+		
+	elseif message == "SkipStage7" then
+	
+		self:SendMessage("Captured_RefineryS7AuxAuthConsole");
+		self:SendMessage("RefineryAssault_S7BrainAuthorized");
+		
+	elseif message == "SkipStage8" then
+
+		for actor in MovableMan.Actors do
+			if actor:NumberValueExists("BossVaultDoor") then
+				ToADoor(actor):OpenDoor();
+			end
+		end
+		
+		self:SendMessage("RefineryAssault_S8BossDoorOpened");
+		
+	elseif message == "SkipStage9" then
+	
+		self:SendMessage("Captured_RefineryS10FinalConsole");
 		
 	end
 	
@@ -317,28 +680,78 @@ function RefineryAssault:HandleMessage(message, object)
 
 end
 
+function RefineryAssault:RemoveStringFromTable(str, tab)
 
+	for k, v in pairs(tab) do
+		if v == str then
+			table.remove(tab, k);
+		end
+	end
+	
+end
 
 function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
 
 	local squadCount = math.random(3, 4);
 
 	local craft;
-	local order;
+	local squad;
 	local goldCost;
-
-	if squadType == "Elite" then
-		craft, squad, goldCost = self.deliveryCreationHandler:CreateEliteSquadWithCraft(team, forceRocketUsage, squadCount);
-	else
-		craft, squad, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType);
+	
+	if not forceRocketUsage then
+		forceRocketUsage = math.random() < 0.3 and true or false;
 	end
 	
-	local success = self.dockingHandler:SpawnDockingCraft(craft)
-			
+	if squadType == "Elite" then
+		-- we already always go elite, avoid giving DeliveryCreationHandler an invalid infantry type
+		squadType = nil;
+	end
+
+	-- Dock deliveries are always elite
+	craft, squad, goldCost = self.deliveryCreationHandler:CreateEliteSquadWithCraft(team, forceRocketUsage, squadCount, squadType);
+	
+	for k, actor in pairs(squad) do
+		actor.PlayerControllable = self.humansAreControllingAlliedActors;
+		if team == self.humanTeam then
+			actor.HUDVisible = self.humansAreControllingAlliedActors;
+		end
+	end
+	
+	craft.PlayerControllable = self.humansAreControllingAlliedActors;
+	craft.HUDVisible = self.humansAreControllingAlliedActors;
+	craft:SetGoldValue(0);
+	
+	-- reminder that only player team sends to dock in this activity.
+	
+	if self.verboseLogging then
+		print("INFO: Refinery Assault is sending a dock delivery. Active docks:")
+		for k, v in ipairs(self.saveTable.activeDocks) do
+			print("INFO: ACTIVE DOCK: " .. v);
+		end
+	end
+	
+	local tempActiveDocks = {};
+	
+	for k, v in ipairs(self.saveTable.activeDocks) do
+		tempActiveDocks[k] = v;
+	end
+	
+	local specificDock;
+	local success;
+	
+	while #tempActiveDocks > 0 and not success do
+		local rand = math.random(1, #tempActiveDocks);
+		specificDock = tempActiveDocks[rand];
+		success = self.dockingHandler:SpawnDockingCraft(craft, specificDock);
+		table.remove(tempActiveDocks, rand);
+	end
+	
 	if success then
-		self.tacticsHandler:ApplyTaskToSquadActors(squad, task);
 		self:ChangeAIFunds(team, -goldCost);
-		return squad
+		if self.verboseLogging then
+			print("INFO: RefineryAssault sent a dock delivery for team " .. team);
+		end
+		return squad;
 	end
 	
 	return false;
@@ -347,7 +760,7 @@ end
 
 function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificIndex)
 
-	local squadCount = math.random(1, 2);
+	local squadCount = math.random(2, 3);
 
 	local order;
 	local goldCost;
@@ -356,6 +769,13 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 		order, goldCost = self.deliveryCreationHandler:CreateEliteSquad(team, squadCount);
 	else
 		order, goldCost = self.deliveryCreationHandler:CreateSquad(team, squadCount, squadType);
+	end
+	
+	for k, actor in pairs(order) do
+		actor.PlayerControllable = self.humansAreControllingAlliedActors;
+		if actor.Team == self.humanTeam then
+			actor.HUDVisible = self.humansAreControllingAlliedActors;
+		end
 	end
 	
 	--print("tried order for team: " .. team);
@@ -374,6 +794,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 				local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.saveTable.buyDoorTables.teamAreas[team][i]);
 				if area:IsInside(taskPos) then
 					areaThisIsIn = area;
+					--print("is inside teamowned area: " .. area.Name);
 					break;
 				end
 			end
@@ -390,6 +811,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			local closestDist = false;
 			if #self.saveTable.buyDoorTables.teamAreas[team] > 0 then
 				for k, area in pairs(self.saveTable.buyDoorTables.teamAreas[team]) do
+					--print(area)
 					for k, buyDoor in pairs(self.saveTable.buyDoorTables[area]) do
 						local dist = SceneMan:ShortestDistance(taskPos, buyDoor.Pos, SceneMan.SceneWrapsX).Magnitude;
 						if not closestDist then
@@ -410,6 +832,9 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			end
 		end
 		
+		--print(team)
+		--print(areaThisIsIn.Name)
+		
 		if areaThisIsIn then
 			--print(areaThisIsIn.Name)
 			
@@ -421,10 +846,17 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			end
 			
 			if randomSelection then
+				if team == self.aiTeam and self.saveTable.cameraServersBroken and self.saveTable.cameraServersBroken >= 2 then
+					self.buyDoorHandler:ChangeCooldownTime(randomSelection, 15000);
+				else
+					self.buyDoorHandler:ChangeCooldownTime(randomSelection, 5000);
+				end
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
-					self.tacticsHandler:ApplyTaskToSquadActors(order, task);
 					self:ChangeAIFunds(team, -goldCost);
+					if self.verboseLogging then
+						print("INFO: RefineryAssault sent a buydoor delivery for team " .. team);
+					end
 					return order;
 				end
 			end
@@ -499,7 +931,7 @@ function RefineryAssault:SetupStartingActors()
 
 	for k, v in pairs(stage1SquadsTable) do
 		local task = self.tacticsHandler:PickTask(self.aiTeam);
-		self.tacticsHandler:AddTaskedSquad(self.aiTeam, stage1SquadsTable[k], task.Name);
+		self.tacticsHandler:AddSquad(self.aiTeam, stage1SquadsTable[k], task.Name, true);
 	end
 	
 	self.saveTable.enemyActorTables.stage3FacilityOperator = {};
@@ -535,6 +967,30 @@ function RefineryAssault:SetupFirstStage()
 	-- Unique function just to hide away init stuff - every other stage setup is immediately done upon completion of its
 	-- Monitor function
 	
+	-- Intro cinematics
+	
+	self.saveTable.introTimer = Timer();
+	self.saveTable.introLastRocketSpawnTime = 0;
+	
+	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan1").Center;
+	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan1", cameraPos, 1, 500, true, true, true);
+	
+	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan2").Center;
+	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan2", cameraPos, 0.01, 6000, true, true, true);
+	
+	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan3").Center;
+	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan3", cameraPos, 0.01, 3500, true, true, true);
+	
+	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan4").Center;
+
+	-- Fog of war-causing callback if it's enabled, but none if it's not
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 4;
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true, function() SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam); end);
+	else
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true);
+	end
+	
 	-- Disable all buy doors, not using them quite yet
 	
 	for k, v in pairs(self.saveTable.buyDoorTables.All) do
@@ -554,13 +1010,13 @@ function RefineryAssault:SetupFirstStage()
 	taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 	local task = self.tacticsHandler:AddTask("Search And Destroy", self.humanTeam, taskArea, "PatrolArea", 10);
 	
-	local squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
+	local squad = self:SendDockDelivery(self.humanTeam, task, true, "Elite");
 	
-	self.tacticsHandler:AddTaskedSquad(self.humanTeam, squad, task.Name);
+	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	
-	squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
+	squad = self:SendDockDelivery(self.humanTeam, task, true, "Elite");
 	
-	self.tacticsHandler:AddTaskedSquad(self.humanTeam, squad, task.Name);
+	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	
 	-- Set up player squad and dropship
 	
@@ -569,7 +1025,10 @@ function RefineryAssault:SetupFirstStage()
 	dropShip.Team = self.humanTeam;
 	dropShip.Pos = dropShipPos;
 	dropShip.AIMode = Actor.AIMODE_SENTRY;
-	dropShip.PlayerControllable = true;
+	dropShip.PlayerControllable = self.humansAreControllingAlliedActors;
+	dropShip:SetGoldValue(0);
+	
+	self.saveTable.playerBrains = {};
 	
 	for i, player in pairs(self.humanPlayers) do
 		local brain = PresetMan:GetLoadout("Infantry Brain", self.humanTeamTech, false);
@@ -587,12 +1046,15 @@ function RefineryAssault:SetupFirstStage()
 		self:SetObservationTarget(brain.Pos, player);
 		self:SwitchToActor(brain, player, self.humanTeam);
 		brain.Pos = dropShip.Pos + Vector(0 + (10 * i), 180);
+		table.insert(self.saveTable.playerBrains, brain);
 		MovableMan:AddActor(brain);
 		--dropShip:AddInventoryItem(brain);
 	end
-		
+	
+	self.saveTable.stage1InitialDropship = dropShip;
+	
 	MovableMan:AddActor(dropShip)
-	dropShip:OpenHatch();
+	--dropShip:OpenHatch();
 	
 	-- HUD handler listed objective
 	
@@ -605,10 +1067,56 @@ function RefineryAssault:SetupFirstStage()
 	nil,
 	false,
 	true);
+	
+	-- HUD handler camera limits
+	
+	self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 2500);
+	
 
 end
 
 function RefineryAssault:MonitorStage1()
+
+	if not self.saveTable.introTimer:IsPastSimMS(2000) then
+		if self.saveTable.introTimer:IsPastSimMS(self.saveTable.introLastRocketSpawnTime + 100) then
+			self.saveTable.introLastRocketSpawnTime = self.saveTable.introTimer.ElapsedSimTimeMS;
+			local particle = CreateAEmitter("Particle Rocket Launcher", "Base.rte");
+			particle.Pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroRocketSpawns").RandomPoint;
+			particle.Vel = Vector(math.random(-5, 5), -70);
+			particle.RotAngle = math.pi/2;
+			particle.Team = self.humanTeam;
+			MovableMan:AddParticle(particle);
+			particle:EnableEmission(true);
+		end
+	end
+		
+
+	-- Send away the initial dropship once it's empty
+	if self.saveTable.stage1InitialDropship then
+		local craft = ToACDropShip(self.saveTable.stage1InitialDropship);
+		if not craft or not MovableMan:ValidMO(craft) or craft:IsDead() then
+			self.saveTable.stage1InitialDropship = nil;
+		else
+			craft = ToACDropShip(self.saveTable.stage1InitialDropship);
+			if self.saveTable.stage1InitialDropshipToReturn then
+				if craft.AIMode == Actor.AIMODE_SENTRY then
+					craft.AIMode = Actor.AIMODE_RETURN;
+					self.saveTable.stage1InitialDropship = nil;
+					self.saveTable.stage1InitialDropshipToReturn = nil;
+				end
+			elseif craft:IsInventoryEmpty() then
+				local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_HumanBrainSpawn").Center;
+				craft:ClearAIWaypoints();
+				craft:AddAISceneWaypoint(Vector(pos.X - 300, pos.Y));
+				craft.DeliveryState = ACraft.LAUNCH;
+				craft.AIMode = Actor.AIMODE_GOTO;
+				craft:CloseHatch();
+				self.saveTable.stage1InitialDropshipToReturn = true;
+			elseif self.saveTable.introTimer:IsPastSimMS(8000) then
+				craft:OpenHatch();
+			end
+		end
+	end
 
 	local noActors = true;
 
@@ -677,7 +1185,7 @@ function RefineryAssault:MonitorStage1()
 			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 			local task = self.tacticsHandler:AddTask("Counterattack", self.aiTeam, taskArea, "PatrolArea", 10);
 			
-			self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.saveTable.enemyActorTables.stage1CounterAttActors, task.Name);
+			self.tacticsHandler:AddSquad(self.aiTeam, self.saveTable.enemyActorTables.stage1CounterAttActors, task.Name, true);
 			
 		end
 		
@@ -725,6 +1233,8 @@ function RefineryAssault:MonitorStage1()
 		objPos,
 		true,
 		true);
+		
+		self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 6300);
 	
 	end	
 	
@@ -805,7 +1315,7 @@ function RefineryAssault:MonitorStage2()
 			v.Team = self.aiTeam;
 		end
 		
-		for k, v in pairs(self.saveTable.buyDoorTables.S3_4) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_1) do
 			v.Team = self.aiTeam;
 		end
 		
@@ -859,6 +1369,8 @@ function RefineryAssault:MonitorStage2()
 		true,
 		true);
 		
+		self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 12000);
+		
 	end
 	
 end
@@ -890,8 +1402,8 @@ function RefineryAssault:MonitorStage3()
 				self.tacticsHandler:RemoveTask("Attack Refinery Console " .. k, self.humanTeam);
 
 			else
-				print(console)
-				print(k)
+				--print(console)
+				--print(k)
 			end
 		end
 		
@@ -905,7 +1417,6 @@ function RefineryAssault:MonitorStage3()
 	if self.stage3AllConsolesBroken and self.stage3FacilityOperatorKilled and self.stage3DrillOverloaded and not self.stage3DoorSequenceTimer then
 	
 		-- initiate scripted sequence
-	
 		self.stage3DoorSequenceTimer = Timer();
 	
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OpenDoors");
@@ -915,7 +1426,7 @@ function RefineryAssault:MonitorStage3()
 		local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Alarm", "Browncoats.rte");
 		soundContainer:Play(pos);
 		
-		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 10500, true);
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 15000, true, true, true);
 
 	elseif self.stage3DoorSequenceTimer and self.stage3DoorSequenceTimer:IsPastSimMS(6250) then
 	
@@ -925,48 +1436,67 @@ function RefineryAssault:MonitorStage3()
 			CameraMan:AddScreenShake(10, pos);
 		end
 		
-		for k, door in pairs(self.saveTable.stage4Door) do
-			if MovableMan:ValidMO(door) then
-				ToADoor(door):OpenDoor();
+		-- thou shalt deal with this bad code
+		if MovableMan:ValidMO(self.saveTable.stage3Doors[1]) then
+			ToADoor(self.saveTable.stage3Doors[1]):OpenDoor();
+		end
+		
+		if self.stage3DoorSequenceTimer:IsPastSimMS(7500) then
+			if MovableMan:ValidMO(self.saveTable.stage3Doors[2]) then
+				ToADoor(self.saveTable.stage3Doors[2]):OpenDoor();
+				if not self.stage3ScreenShake2 then
+					self.stage3ScreenShake2 = true;
+					local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+					CameraMan:AddScreenShake(10, pos);
+				end
 			end
 		end
 		
-		for k, door in pairs(self.saveTable.stage3Doors) do
-			if MovableMan:ValidMO(door) then
-				ToADoor(door):OpenDoor();
+		if not self.stage3PlayedDoorStopSound == true and self.stage3DoorSequenceTimer:IsPastSimMS(8750) then
+			if MovableMan:ValidMO(self.saveTable.stage4Door[1]) then
+				ToADoor(self.saveTable.stage4Door[1]):OpenDoor();
+				if not self.stage3ScreenShake3 then
+					self.stage3ScreenShake3 = true;
+					local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+					CameraMan:AddScreenShake(10, pos);
+				end
 			end
 		end
 		
-		if self.stage3DoorSequenceTimer:IsPastSimMS(7250) then
-			for k, door in pairs(self.saveTable.stage4Door) do
-				if MovableMan:ValidMO(door) then
+		if self.stage3DoorSequenceTimer:IsPastSimMS(10000) then
+			if MovableMan:ValidMO(self.saveTable.stage4Door[1]) then
+				local door = self.saveTable.stage4Door[1];
+				ToADoor(door):ResetSensorTimer();
+				if not self.stage3PlayedDoorStopSound then
 					ToADoor(door):StopDoor();
-					self.Stage = 4;
 					local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Stop", "Browncoats.rte");
 					soundContainer:Play(door.Pos);
 					CameraMan:AddScreenShake(20, door.Pos);
-					
-					self.HUDHandler:RemoveAllObjectives(self.humanTeam);
-					
-					self.HUDHandler:AddObjective(self.humanTeam,
-					"S4DestroyDoor",
-					"Find a way to open the door",
-					"Attack",
-					"Find a way to open the door",
-					"They've jammed the last door! Find a way around and let our main force through.",
-					nil,
-					false,
-					true);
-					
+					self.stage3PlayedDoorStopSound = true;
 				end
 			end
+		end
+
+		if self.stage3DoorSequenceTimer:IsPastSimMS(12500) then
+			self.Stage = 4;
+			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 14500);
+			self.HUDHandler:RemoveAllObjectives(self.humanTeam);		
+			self.HUDHandler:AddObjective(self.humanTeam,
+				"S4DestroyDoor",
+				"Find a way to open the door",
+				"Attack",
+				"Find a way to open the door",
+				"They've jammed the last door! Find a way around and let our main force through.",
+				nil,
+				false,
+				true);
 		end
 		
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 
 		-- Capturables
 		
-		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole4");		
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole1");		
 		
 	end
 	
@@ -1006,10 +1536,192 @@ function RefineryAssault:MonitorStage5()
 	if noGenerators then
 		self.Stage = 6;
 		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+		
+		-- Subcommander door spawn
+		
+		local squadTypeTable = {"Heavy", "CQB", "Heavy", "Sniper"};
+		
+		self.saveTable.enemyActorTables.stage6SubCommanderSquad = self.deliveryCreationHandler:CreateSquad(self.aiTeam, squadTypeTable);
+
+		-- note index access, we get a table back
+		self.saveTable.stage6subCommander = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
+		self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
+		self.saveTable.stage6subCommander:AddInventoryItem(self.saveTable.stage6Keycard);
+		
+		table.insert(self.saveTable.enemyActorTables.stage6SubCommanderSquad, self.saveTable.stage6subCommander);
+		
+		self.tacticsHandler:AddSquad(self.aiTeam, self.saveTable.enemyActorTables.stage6SubCommanderSquad, "Brainhunt");
+		
+		for k, item in pairs(self.saveTable.enemyActorTables.stage6SubCommanderSquad) do
+			self.stage6SubcommanderDoor:AddInventoryItem(item);
+		end
+		
+		self.stage6SubcommanderDoor:SendMessage("BuyDoor_CustomTableOrder");
+		
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S6SubcommanderView", self.stage6SubcommanderDoor.Pos, 0.05, 5000, true);
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S6GetKeycard",
+		"Get the keycard",
+		"Attack",
+		"Get the subcommander's keycard",
+		"That's the commander with the keycard we need. Get it to your own commander.",
+		self.saveTable.stage6Keycard,
+		false,
+		true);
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S6KillSubcommander",
+		"Kill",
+		"Attack",
+		"Kill the subcommander.",
+		"Kill the subcommander for his keycard.",
+		self.saveTable.stage6subCommander,
+		true,
+		true);
+		
 	end
 
 end
 
 function RefineryAssault:MonitorStage6()
+
+	-- if not self.saveTable.stage6subCommanderKilled then
+
+		-- if not self.saveTable.stage6subCommander or not MovableMan:ValidMO(self.saveTable.stage6subCommander) or self.saveTable.stage6subCommander:IsDead() then
+			-- self.HUDHandler:RemoveObjective(self.humanTeam, "S6KillSubcommander");
+			-- self.saveTable.stage6subCommanderKilled = true;
+		-- end
+
+	-- end	
+	
+	-- NOTE: on first frame when the keycard disappears it is, for some reason, not in any actor's inventory
+	-- so we have to wait a frame
+	
+	if not self.saveTable.stage6Keycard or (self.saveTable.stage6Keycard.HasEverBeenAddedToMovableMan and not MovableMan:ValidMO(self.saveTable.stage6Keycard)) then
+		
+		if self.stage7FrameWaited then
+		
+			local keyCardLost = true;
+		
+			-- inefficient if misc. actor is holding onto it... and obj arrow disappears
+			-- hopefully AI doesn't ever randomly pick it up
+			-- alternative: auto drop it, force brain to pick it up first
+			for actor in MovableMan.Actors do
+				for item in actor.Inventory do
+					if item.PresetName == "Browncoat Military Keycard" then
+						keyCardLost = false;
+						if actor.Team == self.humanTeam and actor:IsInGroup("Brains") then
+							-- player brain got it
+							actor:RemoveInventoryItem("Browncoat Military Keycard");
+							self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+							MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
+							self.Stage = 7;
+							
+							for particle in MovableMan.Particles do
+								if particle.PresetName == "Refinery Authorization Console" then
+								
+									particle:SendMessage("ActivateRefineryAuthorizationConsole");
+						
+									self.HUDHandler:AddObjective(self.humanTeam,
+									"S7AuthorizeBrain",
+									"Authorize yourself",
+									"Attack",
+									"Authorize your commander using the keycard",
+									"With the keycard, you can authorize your commander's physical signature to open the CNC-center blast door at this console.",
+									particle.Pos,
+									false,
+									true,
+									true);					
+							
+								elseif particle.PresetName == "Refinery S7 Auxiliary Authorization Console" then
+								
+									self.HUDHandler:AddObjective(self.humanTeam,
+									"S7AuxAuth",
+									"Hack",
+									"Attack",
+									"Hack the auxiliary authorization console",
+									"This console is also responsible for the CNC-center's door authorization list. Hack it.",
+									particle.Pos,
+									false,
+									true,
+									true);
+									
+								end
+							end
+							
+							return;
+						end
+					end
+				end
+			end
+			
+			if keyCardLost then
+				-- spawn a new one
+				self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
+				self.saveTable.stage6Keycard.Pos = self.stage6SubcommanderDoor.Pos
+				MovableMan:AddItem(self.saveTable.stage6Keycard);
+			end
+		else
+			self.stage7FrameWaited = true;
+		end
+		self.stage7FrameWaited = false;
+	end
+
+end
+
+function RefineryAssault:MonitorStage7()
+
+	if self.saveTable.stage7BrainAuthorized and self.saveTable.stage7AuxAuthConsoleCaptured then
+
+		self.Stage = 8;
+		
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Refinery Boss Door Console" then
+	
+				particle:SendMessage("ActivateRefineryBossDoorConsole");
+	
+				self.HUDHandler:AddObjective(self.humanTeam,
+				"S8OpenBossDoor",
+				"Open the door",
+				"Attack",
+				"Open the CNC-center door",
+				"We're in the home stretch. This is the last door to the main control console of the entire facility. Open it with your authorized commander.",
+				particle.Pos,
+				false,
+				true,
+				true);					
+				
+			end
+		end		
+		
+	end
+	
+end
+
+function RefineryAssault:MonitorStage8()
+
+	-- nothing to actually do here... handled in messages
+
+end
+
+function RefineryAssault:MonitorStage9()
+
+	if self.saveTable.stage9FinalConsoleCaptured and not self.stage9FinalTimer then
+	
+		self.stage9FinalTimer = Timer();
+		
+	elseif self.stage9FinalTimer and self.stage9FinalTimer:IsPastSimMS(5000) then
+	
+		self.Stage = 10;
+		MovableMan:SendGlobalMessage("Refinery_S10SpawnBoss", self.aiTeam);
+	
+	end
+
+
+end
+
+function RefineryAssault:MonitorStage10()
+
 
 end

@@ -74,6 +74,8 @@ distribution.
 	typedef unsigned MP_UPTR;
 #endif
 
+#include <limits>
+
 namespace micropather
 {
 #ifdef GRINLIZ_NO_STL

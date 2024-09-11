@@ -13,6 +13,6 @@ function OnAttach(self, newParent)
 		end
 	end
 	if not hasShield then
-		self:DisableScript("Coalition.rte/Devices/Shields/CombatShield/Support.lua");
+		self:DisableScript();
 	end
 end

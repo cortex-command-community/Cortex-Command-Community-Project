@@ -10,6 +10,7 @@
 #include "Icon.h"
 #include "GameActivity.h"
 #include "NetworkServer.h"
+#include "System.h"
 
 #include "SDL.h"
 

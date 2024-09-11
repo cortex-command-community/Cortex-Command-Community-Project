@@ -73,17 +73,19 @@ void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {
 	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 		m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-All-", "", nullptr, nullptr, -2);
 		m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
+		m_TeamTechComboBoxes[team]->SetSelectedIndex(0);
 	}
 	for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
 		if (const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID)) {
 			if (dataModule->IsFaction()) {
 				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 					m_TeamTechComboBoxes[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
-					m_TeamTechComboBoxes[team]->GetListPanel()->ScrollToTop();
-					m_TeamTechComboBoxes[team]->SetSelectedIndex(0);
 				}
 			}
 		}
+	}
+	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+		m_TeamTechComboBoxes[team]->GetListPanel()->ScrollToTop();
 	}
 	m_TechListFetched = true;
 }

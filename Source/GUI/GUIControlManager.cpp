@@ -1,6 +1,8 @@
 #include "GUI.h"
 #include "PresetMan.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUIControlManager::GUIControlManager() {

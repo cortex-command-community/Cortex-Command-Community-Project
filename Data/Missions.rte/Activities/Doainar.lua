@@ -47,6 +47,9 @@ function DoainarMission:OnSave()
 end
 
 function DoainarMission:StartNewGame()
+
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
 	self:SetTeamFunds(math.max(100, self:GetStartingGold()), self.PlayerTeam);
 
 	self.sacDestroyed = false;
@@ -77,10 +80,37 @@ function DoainarMission:StartNewGame()
 			actor.DoorDirectionChangeSound.Volume = 0;
 		end
 	end
-
-	SceneMan:MakeAllUnseen(Vector(24, 24), self.PlayerTeam);
+	
+	self:SetupFogOfWar();
 
 	self:SetupHumanPlayerBrains();
+end
+
+function DoainarMission:SetupFogOfWar()
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.PlayerTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
+
+		-- Reveal above ground for everyone.
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.PlayerTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+			end
+		end
+
+		-- Reveal a circle around actors.
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
+			end
+		end
+	end
 end
 
 function DoainarMission:SetupHumanPlayerBrains()
@@ -145,9 +175,9 @@ function DoainarMission:ResumeLoadedGame()
 	end
 
 	if self.mamaAggressive and not self.mamaDead then
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+		MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 	elseif self.passedPitfall then
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ruinexploration.ogg", -1, -1);
+		MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
 	end
 end
 
@@ -156,16 +186,12 @@ function DoainarMission:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -204,109 +230,111 @@ function DoainarMission:UpdateActivity()
 	local invest2obj = 0;
 	if not (self.ActivityState == Activity.OVER) then
 		-- Iterate through all human players
-		for player = 0, self.PlayerCount - 1 do
-			-- The current player's team
-			local team = self:GetTeamOfPlayer(player);
-			-- Make sure the game is not already ending
-			-- Check if any player's brain is dead
-			local brain = self:GetPlayerBrain(player);
-			if not brain or not MovableMan:IsActor(brain) or not brain:HasObjectInGroup("Brains") then
-				self:SetPlayerBrain(nil, player);
-				-- Try to find a new unasigned brain this player can use instead, or if his old brain entered a craft
-				local newBrain = MovableMan:GetUnassignedBrain(team);
-				-- Found new brain actor, assign it and keep on truckin'
-				if newBrain and self.brainDead[player] == false then
-					self:SetPlayerBrain(newBrain, player);
-					self:SwitchToActor(newBrain, player, team);
-				else
-					FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, true);
-					self.brainDead[player] = true;
-					-- Now see if all brains of self player's team are dead, and if so, end the game
-					if not MovableMan:GetFirstBrainActor(team) then
-						self.WinnerTeam = self:OtherTeam(team);
-						ActivityMan:EndActivity();
-					end
-				end
-			else
-				-- Update the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-				self:SetObservationTarget(brain.Pos, player);
-			end
-			if self.brainDead[player] == false then
-				if (-self.spawnTimer:LeftTillSimMS(0) >= 25) then
-					--Check if all the outside crabs have died, and if so, enter the "aggression" stage, where all the crabs try to kill you.
-					if self.mamaAggressive == false then
-						if MovableMan:IsActor(self.mamaCrab) and (crabsOutside == 0 or self.mamaCrab.PinStrength == 0 or self.mamaCrab.Health < self.mamaCrab.MaxHealth) then
-							self.mamaCrab.SpriteAnimDuration = self.mamaCrab.SpriteAnimDuration * 0.1;
-							self.mamaAggressive = true;
-
-							self.mamaCrab.PinStrength = 0;
-							self.mamaCrab.Status = Actor.UNSTABLE;
-
-							self.target = MovableMan:GetClosestTeamActor(self.PlayerTeam, Activity.PLAYER_NONE, self.mamaCrab.Pos, SceneMan.SceneWidth, Vector(), self.mamaCrab);
-
-							self:ResetMessageTimer(player);
-							FrameMan:ClearScreenText(player);
-							FrameMan:SetScreenText("Uh oh, looks like you angered the mother crab!  Kill it before it kills you!", player, 0, 7500, true);
-							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local screen = self:ScreenOfPlayer(player);
+				-- The current player's team
+				local team = self:GetTeamOfPlayer(player);
+				-- Make sure the game is not already ending
+				-- Check if any player's brain is dead
+				local brain = self:GetPlayerBrain(player);
+				if not brain or not MovableMan:IsActor(brain) or not brain:HasObjectInGroup("Brains") then
+					self:SetPlayerBrain(nil, player);
+					-- Try to find a new unasigned brain this player can use instead, or if his old brain entered a craft
+					local newBrain = MovableMan:GetUnassignedBrain(team);
+					-- Found new brain actor, assign it and keep on truckin'
+					if newBrain and self.brainDead[player] == false then
+						self:SetPlayerBrain(newBrain, player);
+						self:SwitchToActor(newBrain, player, team);
+					else
+						FrameMan:SetScreenText("Your brain has been lost!", screen, 333, -1, true);
+						self.brainDead[player] = true;
+						-- Now see if all brains of self player's team are dead, and if so, end the game
+						if not MovableMan:GetFirstBrainActor(team) then
+							self.WinnerTeam = self:OtherTeam(team);
+							ActivityMan:EndActivity();
 						end
 					end
+				else
+					-- Update the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					self:SetObservationTarget(brain.Pos, player);
+				end
+				if self.brainDead[player] == false then
+					if (-self.spawnTimer:LeftTillSimMS(0) >= 25) then
+						--Check if all the outside crabs have died, and if so, enter the "aggression" stage, where all the crabs try to kill you.
+						if self.mamaAggressive == false then
+							if MovableMan:IsActor(self.mamaCrab) and (crabsOutside == 0 or self.mamaCrab.PinStrength == 0 or self.mamaCrab.Health < self.mamaCrab.MaxHealth) then
+								self.mamaCrab.SpriteAnimDuration = self.mamaCrab.SpriteAnimDuration * 0.1;
+								self.mamaAggressive = true;
 
-					if MovableMan:IsActor(brain) and self.brainHasLanded[player] == false then
-						self:SwitchToActor(brain, player, team);
-						self.brainHasLanded[player] = true;
-						self:ResetMessageTimer(player);
-						FrameMan:ClearScreenText(player);
-						FrameMan:SetScreenText("Looks like there's a crab den down here.  We'll have to clear them out first.", player, 0, 7500, true);
-					end
+								self.mamaCrab.PinStrength = 0;
+								self.mamaCrab.Status = Actor.UNSTABLE;
 
-					if not self.mamaCrab and self.mamaDead == false and self.mamaAggressive == true then
-						self.mamaDead = true;
-						self:ResetMessageTimer(player);
-						FrameMan:ClearScreenText(player);
-						FrameMan:SetScreenText("That was a close one.  Go finish off their den!", player, 0, 7500, true);
-						AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", -1, -1);
-					end
+								self.target = MovableMan:GetClosestTeamActor(self.PlayerTeam, Activity.PLAYER_NONE, self.mamaCrab.Pos, SceneMan.SceneWidth, Vector(), self.mamaCrab);
 
-					if MovableMan:IsParticle(self.eggSac) == false and self.sacDestroyed == false then
-						self:ResetMessageTimer(player);
-						FrameMan:ClearScreenText(player);
-						FrameMan:SetScreenText("Looks like a cave-in happened down here.  Dig through that sand, there might be something under it.", player, 0, 7500, true);
-						self.sacDestroyed = true;
-					end
-
-					if MovableMan:IsActor(self:GetControlledActor(player)) then
-						if self.pitfallArea:IsInside(self:GetControlledActor(player).Pos) and self.passedPitfall == false then
-							self:ResetMessageTimer(player);
-							FrameMan:ClearScreenText(player);
-							FrameMan:SetScreenText("What the...?  It's some kind of ancient bunker?  There seems to be a control panel inside, go see what's on it...", player, 0, 7500, true);
-							AudioMan:ClearMusicQueue();
-							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ruinexploration.ogg", -1, -1);
-							self.passedPitfall = true;
-
-							for actor in MovableMan.Actors do
-								if actor.ClassName == "ADoor" then
-									actor = ToADoor(actor);
-									actor.DoorMoveSound.Volume = 1;
-									actor.DoorMoveStartSound.Volume = 1;
-									actor.DoorMoveEndSound.Volume = 1;
-									actor.DoorDirectionChangeSound.Volume = 1;
-								end
+								self:ResetMessageTimer(player);
+								FrameMan:ClearScreenText(screen);
+								FrameMan:SetScreenText("Uh oh, looks like you angered the mother crab!  Kill it before it kills you!", screen, 0, 7500, true);
+								MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 							end
 						end
-						if self.consoleArea:IsInside(self:GetControlledActor(player).Pos) then
-							self:GetControlledActor(player).HUDVisible = false;
-							playerInsideConsoleArea = 1;
-						else
-							self:GetControlledActor(player).HUDVisible = true;
+
+						if MovableMan:IsActor(brain) and self.brainHasLanded[player] == false then
+							self:SwitchToActor(brain, player, team);
+							self.brainHasLanded[player] = true;
+							self:ResetMessageTimer(player);
+							FrameMan:ClearScreenText(screen);
+							FrameMan:SetScreenText("Looks like there's a crab den down here.  We'll have to clear them out first.", screen, 0, 7500, true);
 						end
-					end
 
-					if self.sacDestroyed == true and self.passedPitfall == false then
-						invest2obj = 1;
-					end
+						if not self.mamaCrab and self.mamaDead == false and self.mamaAggressive == true then
+							self.mamaDead = true;
+							self:ResetMessageTimer(player);
+							FrameMan:ClearScreenText(screen);
+							FrameMan:SetScreenText("That was a close one.  Go finish off their den!", screen, 0, 7500, true);
+							MusicMan:PlayDynamicSong("Generic Ambient Music", "Default", true);
+						end
 
-					if MovableMan:IsActor(brain) and self.passedPitfall == false and playerInsideConsoleArea == 0 then
-						self:AddObjectivePoint("Protect!", brain.AboveHUDPos + Vector(0, -8), self.PlayerTeam, GameActivity.ARROWDOWN);
+						if MovableMan:IsParticle(self.eggSac) == false and self.sacDestroyed == false then
+							self:ResetMessageTimer(player);
+							FrameMan:ClearScreenText(screen);
+							FrameMan:SetScreenText("Looks like a cave-in happened down here.  Dig through that sand, there might be something under it.", screen, 0, 7500, true);
+							self.sacDestroyed = true;
+						end
+
+						if MovableMan:IsActor(self:GetControlledActor(player)) then
+							if self.pitfallArea:IsInside(self:GetControlledActor(player).Pos) and self.passedPitfall == false then
+								self:ResetMessageTimer(player);
+								FrameMan:ClearScreenText(screen);
+								FrameMan:SetScreenText("What the...?  It's some kind of ancient bunker?  There seems to be a control panel inside, go see what's on it...", screen, 0, 7500, true);
+								AudioMan:ClearMusicQueue();
+								self.passedPitfall = true;
+
+								for actor in MovableMan.Actors do
+									if actor.ClassName == "ADoor" then
+										actor = ToADoor(actor);
+										actor.DoorMoveSound.Volume = 1;
+										actor.DoorMoveStartSound.Volume = 1;
+										actor.DoorMoveEndSound.Volume = 1;
+										actor.DoorDirectionChangeSound.Volume = 1;
+									end
+								end
+							end
+							if self.consoleArea:IsInside(self:GetControlledActor(player).Pos) then
+								self:GetControlledActor(player).HUDVisible = false;
+								playerInsideConsoleArea = 1;
+							else
+								self:GetControlledActor(player).HUDVisible = true;
+							end
+						end
+
+						if self.sacDestroyed == true and self.passedPitfall == false then
+							invest2obj = 1;
+						end
+
+						if MovableMan:IsActor(brain) and self.passedPitfall == false and playerInsideConsoleArea == 0 then
+							self:AddObjectivePoint("Protect!", brain.AboveHUDPos + Vector(0, -8), self.PlayerTeam, GameActivity.ARROWDOWN);
+						end
 					end
 				end
 			end
@@ -343,8 +371,11 @@ function DoainarMission:UpdateActivity()
 			self:AddObjectivePoint("Loading... " .. math.ceil(self.decipherTimer:LeftTillSimMS(3000)/1000) .. " seconds left.", Vector(1104, 600), self.PlayerTeam, GameActivity.ARROWDOWN);
 		elseif self.decipherTimer:IsPastSimMS(3000) then
 			local textTime = 5000;
-			for player = 0, self.PlayerCount - 1 do
-				FrameMan:SetScreenText("These are cartesian coordinates...  Where could they possibly lead to?", player, 0, textTime, true);
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				if self:PlayerActive(player) and self:PlayerHuman(player) then
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:SetScreenText("These are cartesian coordinates...  Where could they possibly lead to?", screen, 0, textTime, true);
+				end
 			end
 			self.WinnerTeam = self.PlayerTeam;
 			self:ClearObjectivePoints();

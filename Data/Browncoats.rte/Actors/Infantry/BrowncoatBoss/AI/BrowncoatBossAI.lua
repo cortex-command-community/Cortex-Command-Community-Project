@@ -58,6 +58,7 @@ function Create(self)
 	self.BGLeg.ImpulseDamageThreshold = 99999999;
 	self.BGLeg.GibWoundLimit = 99999999;
 	
+	self.jumpPackSound = CreateSoundContainer("Browncoat Boss Jump Pack", "Browncoats.rte");
 	
 	self.abilityShockwaveWhooshSound = CreateSoundContainer("Browncoat Boss Ability Shockwave Whoosh", "Browncoats.rte");	
 	self.abilityShockwaveLandSound = CreateSoundContainer("Browncoat Boss Ability Shockwave Land", "Browncoats.rte");	
@@ -88,6 +89,7 @@ end
 
 function Update(self)
 	self.abilityShockwaveWhooshSound.Pos = self.Pos;
+	self.jumpPackSound.Pos = self.Pos;
 	
 	local debugHealthTrigger = UInputMan:KeyPressed(Key.N);
 	
@@ -96,16 +98,13 @@ function Update(self)
 	end
 
 	if not self:IsDead() then
-	
 		-- Replenish our oil throw ability to always have it ready
 	
 		if not self.deathScripted == true then
-	
 			if not self:HasObjectInGroup("Bombs") then 
 				local explosive = self.quickThrowExplosive:Clone();
 				self:AddInventoryItem(explosive);
 			end
-			
 		end
 
 		-- The boss LMG already has its own OnAttach delay and animation, but might as well do it here too for a post-quickthrow pause
@@ -119,9 +118,7 @@ function Update(self)
 		-- Boss health bar
 		
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
-			
 			if self.activity:PlayerActive(player) and self.activity:PlayerHuman(player) then
-			
 				local pos = CameraMan:GetOffset(player);
 				pos.X = pos.X + FrameMan.PlayerScreenWidth * 0.5;
 				--print(pos)
@@ -140,17 +137,13 @@ function Update(self)
 				PrimitiveMan:DrawLinePrimitive(pos - xOffset, pos + xOffset, 26, 10);
 				-- Bar Foreground
 				PrimitiveMan:DrawLinePrimitive(pos - xOffset, pos - xOffset + Vector(xOffset.X * 2 * fac, 0), color, 10);
-				
 			end
-			
 		end		
-		
 	end
 	
 	-- Death sequence
 	
 	if self.deathScripted then
-	
 		self.Health = 1;
 		self.Status = 0;
 	
@@ -162,7 +155,6 @@ function Update(self)
 		self.deathScriptedStartSound:Play(self.Pos);
 		
 		if self.deathScriptedTimer:IsPastSimMS(self.deathScriptedExplodeDelay) then
-		
 			self.deathScriptedExplodeSound:Play(self.Pos);
 			self.MissionCritical = false;
 			for att in self.Attachables do
@@ -172,9 +164,7 @@ function Update(self)
 			self:GibThis();
 			
 			CameraMan:AddScreenShake(25, self.Pos);
-		
 		elseif self.deathScriptedMidBurnDone ~= true and self.deathScriptedTimer:IsPastSimMS(self.deathScriptedMidBurnDelay) then
-		
 			self.deathScriptedMidBurnDone = true;
 			-- played via BurstSound
 			--self.deathScriptedMidBurnSound:Play(self.Pos);
@@ -200,26 +190,46 @@ function Update(self)
 	
 	if debugTrigger then
 		self.abilityShockwaveTrigger = true;
+		self.abilityShockwaveJumpPacked = false;
 	end
 	
 	if self.abilityShockwaveOngoing then
-		if self.abilityShockwaveTimer:IsPastSimMS(self.abilityShockwaveJumpPackDelay) then
-		
-			self.Jetpack.NegativeThrottleMultiplier = self.jumpPackDefaultNegativeMult * 1.3;
-			self.Jetpack.PositiveThrottleMultiplier = self.jumpPackDefaultPositiveMult * 1.3;
+		if not self.abilityShockwaveJumpPacked and self.abilityShockwaveTimer:IsPastSimMS(self.abilityShockwaveJumpPackDelay) then
+			self.abilityShockwaveJumpPacked = true;
+			
+			-- Old actual jetpack method
+			--self.Jetpack.NegativeThrottleMultiplier = self.jumpPackDefaultNegativeMult * 1.3;
+			--self.Jetpack.PositiveThrottleMultiplier = self.jumpPackDefaultPositiveMult * 1.3;
 			
 			self.controller:SetState(Controller.BODY_JUMPSTART, true)
 			self.controller:SetState(Controller.BODY_JUMP, true)
+			
+			self.jumpPackSound:Play(self.Pos);
+			
+			self.Vel = self.Vel + Vector(2 * self.FlipFactor, -10);
+			
+			local offset = Vector(0, -3)
+			
+			local emitterA = CreateAEmitter("Browncoat Boss JumpPack Smoke Trail Medium")
+			emitterA.InheritedRotAngleOffset = math.pi/2;
+			self.Jetpack:AddAttachable(emitterA);
+			
+			ToAttachable(emitterA).ParentOffset = offset
+			
+			local emitterB = CreateAEmitter("Browncoat Boss JumpPack Smoke Trail Heavy")
+			emitterB.InheritedRotAngleOffset = math.pi/2;
+			self.Jetpack:AddAttachable(emitterB);
+			
+			ToAttachable(emitterB).ParentOffset = offset
+			
 			if not self.abilityShockwaveWhooshSound:IsBeingPlayed() then
 				self.abilityShockwaveWhooshSound:Play(self.Pos);
 			end
 		end
 	end
-
 end
 
 function UpdateAI(self)
-
 	-- Quick throw AI trigger on a timer
 
 	if not self:IsPlayerControlled() then -- just in case
@@ -235,6 +245,8 @@ function UpdateAI(self)
 
 	self.AI:Update(self);
 end
+
 function Destroy(self)
 	self.AI:Destroy(self);
+	self.activity:SendMessage("Refinery_S10FinalBossDead");
 end

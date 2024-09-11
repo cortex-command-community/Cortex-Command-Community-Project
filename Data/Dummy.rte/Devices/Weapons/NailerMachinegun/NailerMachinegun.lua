@@ -8,6 +8,7 @@ function Update(self)
 		self.muzzleSelect = math.abs(self.muzzleSelect - 1);
 		self.MuzzleOffset = self.muzzleTable[self.muzzleSelect + 1];
 	end
+	
 	if self.ID == self.RootID and self.activate then
 		if self.RoundInMagCount == 0 then
 			self:Deactivate();

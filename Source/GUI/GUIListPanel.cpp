@@ -1,6 +1,8 @@
 #include "GUI.h"
 #include "GUIListPanel.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 #define RIGHTTEXTWIDTH 36

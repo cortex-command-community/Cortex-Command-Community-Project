@@ -4,6 +4,7 @@
 
 #include "ActivityMan.h"
 #include "AudioMan.h"
+#include "MusicMan.h"
 #include "CameraMan.h"
 #include "ConsoleMan.h"
 #include "FrameMan.h"
@@ -300,11 +301,15 @@ namespace RTE {
 
 #pragma region Scene Lua Adapters
 	struct LuaAdaptersScene {
-		static int CalculatePath1(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength) { return CalculatePath2(luaSelfObject, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
-		static int CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team);
+		static int CalculatePath1(Scene* luaSelfObject, const Vector& start, const Vector& end, float jumpHeight, float digStrength) {
+			return CalculatePath(luaSelfObject, start, end, jumpHeight, digStrength, Activity::Teams::NoTeam);
+		}
+		static int CalculatePath(Scene* luaSelfObject, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team);
 
-		static void CalculatePathAsync1(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, bool movePathToGround, float digStrength) { return CalculatePathAsync2(luaSelfObject, callback, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
-		static void CalculatePathAsync2(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team);
+		static void CalculatePathAsync1(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength) {
+			return CalculatePathAsync(luaSelfObject, callback, start, end, jumpHeight, digStrength, Activity::Teams::NoTeam);
+		}
+		static void CalculatePathAsync(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team);
 	};
 #pragma endregion
 
@@ -420,6 +425,27 @@ namespace RTE {
 
 		static void SendGlobalMessage1(MovableMan& movableMan, const std::string& message);
 		static void SendGlobalMessage2(MovableMan& movableMan, const std::string& message, luabind::object context);
+	};
+#pragma endregion
+
+#pragma region MusicMan Lua Adapters
+	struct LuaAdaptersMusicMan {
+		static bool PlayDynamicSong1(MusicMan& musicMan, const std::string& songName);
+		static bool PlayDynamicSong2(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType);
+		static bool PlayDynamicSong3(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately);
+		static bool PlayDynamicSong4(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition);
+		static bool PlayDynamicSong5(MusicMan& musicMan, const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade);
+
+		static bool SetNextDynamicSongSection1(MusicMan& musicMan, const std::string& songSectionType);
+		static bool SetNextDynamicSongSection2(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately);
+		static bool SetNextDynamicSongSection3(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition);
+		static bool SetNextDynamicSongSection4(MusicMan& musicMan, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade);
+
+		static bool CyclePlayingSoundContainers1(MusicMan& musicMan);
+		static bool CyclePlayingSoundContainers2(MusicMan& musicMan, bool smoothFade);
+
+		static bool EndDynamicMusic1(MusicMan& musicMan);
+		static bool EndDynamicMusic2(MusicMan& musicMan, bool fadeOutCurrent);
 	};
 #pragma endregion
 
@@ -567,6 +593,10 @@ namespace RTE {
 		/// Gets the ratio between the on-screen pixels and the physics engine's Liters.
 		/// @return A float describing the current PPL ratio.
 		static float GetPPL();
+
+		/// Gets the pathfinder jump-height value that represents flying.
+		/// @return A float describing the pathfinder jump-height value that represents flying.
+		static float GetPathFindingFlyingJumpHeight();
 
 		/// Gets the default pathfinder penetration value that'll allow pathing through corpses, debris, and such stuff.
 		/// @return A float describing the default pathfinder penetration value.

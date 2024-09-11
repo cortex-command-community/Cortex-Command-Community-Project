@@ -136,13 +136,8 @@ namespace RTE {
 		float GetAngularVel() const override { return m_AngularVel; }
 
 		/* Can't do this since sprite is owned by ContentMan.
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetSprite
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Replaces this MOSprite's BITMAP and deletes the old one.
-		// Arguments:       A pointer to a BITMAP.
-		// Return value:    None.
-
+		/// Replaces this MOSprite's BITMAP and deletes the old one.
+		/// @param pSprite A pointer to a BITMAP.
 		    void SetSprite(BITMAP *pSprite) { delete m_aSprite; m_aSprite = pSprite; }
 		*/
 

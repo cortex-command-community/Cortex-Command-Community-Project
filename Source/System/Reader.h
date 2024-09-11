@@ -1,5 +1,11 @@
 #pragma once
 
+#include <functional>
+#include <string>
+#include <memory>
+#include <stack>
+#include <istream>
+
 namespace RTE {
 
 	using ProgressCallback = std::function<void(std::string, bool)>; //!< Convenient name definition for the progress report callback function.

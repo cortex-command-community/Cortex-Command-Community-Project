@@ -3,7 +3,7 @@
 ------- Require this in your script like so: 
 
 -- self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
--- self.buyDoorHandler:Initialize(Activity, bool newGame);
+-- self.buyDoorHandler:Initialize(Activity, bool newGame, bool verboseLogging);
 
 -- This is a simple utility for activities to send orders to buy doors.
 -- Create your items/actors beforehand and put them in a table.
@@ -41,9 +41,11 @@ function BuyDoorHandler:Create()
 	return Members;
 end
 
-function BuyDoorHandler:Initialize(activity, newGame)
-	
-	print("buydoorhandlerinited")
+function BuyDoorHandler:Initialize(activity, newGame, verboseLogging)
+
+	if verboseLogging then
+		self.verboseLogging = true;
+	end
 	
 	self.Activity = activity;
 	
@@ -61,20 +63,23 @@ function BuyDoorHandler:Initialize(activity, newGame)
 		
 	end
 	
+	print("INFO: BuyDoorHandler initialized!")
+	
 end
 
 function BuyDoorHandler:OnLoad(saveLoadHandler)
 	
-	print("loading buydoorhandler...");
+	print("INFO: BuyDoorHandler loading...");
 	self.buyDoorTable = saveLoadHandler:ReadSavedStringAsTable("buyDoorHandlerBuyDoorTable");
-	print("loaded buydoorhandler!");
+	print("INFO: BuyDoorHandler loaded!");
 	
 end
 
 function BuyDoorHandler:OnSave(saveLoadHandler)
 	
-	print("saving buy door")
+	print("INFO: BuyDoorHandler saving...");
 	saveLoadHandler:SaveTableAsString("buyDoorHandlerBuyDoorTable", self.buyDoorTable);
+	print("INFO: BuyDoorHandler saved!");
 	
 end
 
@@ -114,10 +119,26 @@ function BuyDoorHandler:GetAvailableBuyDoorsInArea(area, team)
 	
 end
 
+function BuyDoorHandler:ChangeCooldownTime(index, newTime)
+
+	if index and newTime then
+		if self.buyDoorTable[index] then
+			self.buyDoorTable[index]:SendMessage("BuyDoor_ChangeCooldownTime", newTime);
+		else
+			print("ERROR: BuyDoorHandler was asked to change the cooldown time of an index that didn't exist!");
+			return false;
+		end
+	else
+		print("ERROR: BuyDoorHandler was asked to change a cooldown time, but was not given an index or a new time!");
+		return false;
+	end
+	
+	return true;
+
+end
 function BuyDoorHandler:SendCustomOrder(order, team, specificIndex)
 	
 	if specificIndex then
-		--print("specificattempted")
 		if (not self.buyDoorTable[specificIndex]:NumberValueExists("BuyDoor_Unusable")) and self.buyDoorTable[specificIndex]:IsInventoryEmpty() then
 			for k, item in pairs(order) do
 				self.buyDoorTable[specificIndex]:AddInventoryItem(item);

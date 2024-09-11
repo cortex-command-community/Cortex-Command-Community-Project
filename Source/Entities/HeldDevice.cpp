@@ -40,7 +40,7 @@ void HeldDevice::Clear() {
 	m_Supported = false;
 	m_SupportAvailable = false;
 	m_SupportOffset.Reset();
-	m_UseSupportOffsetWhileReloading = true;
+	m_UseSupportOffsetWhileReloading = false;
 	m_SeenByPlayer.fill(false);
 	m_IsUnPickupable = false;
 	m_PickupableByPresetNames.clear();
@@ -275,6 +275,7 @@ void HeldDevice::Activate() {
 	if (!m_Activated) {
 		m_ActivationTimer.Reset();
 	}
+
 	m_Activated = true;
 }
 
@@ -310,13 +311,6 @@ bool HeldDevice::TransferJointImpulses(Vector& jointImpulses, float jointStiffne
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Travel
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Travels this, using its physical representation.
-// Arguments:       None.
-// Return value:    None.
-
 void HeldDevice::Travel()
 {
     Attachable::Travel();

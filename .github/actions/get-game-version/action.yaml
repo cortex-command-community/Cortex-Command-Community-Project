@@ -1,0 +1,21 @@
+name: 'Get Game version Version'
+description: 'Fetches the current game version from the source code'
+
+inputs:
+  version-file:
+    description: 'The file containing the version string'
+    required: false
+    default: Source/System/GameVersion.h
+
+outputs:
+  game-version:
+    description: 'The current version string'
+    value: ${{ steps.read-version.outputs.game-version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get the current Game Version from the source code
+      id: read-version
+      run: echo "game-version=$(grep 'c_VersionString = ' ${{ inputs.version-file }} | awk -F'"' '{print $2}')" >> $GITHUB_OUTPUT 
+      shell: bash

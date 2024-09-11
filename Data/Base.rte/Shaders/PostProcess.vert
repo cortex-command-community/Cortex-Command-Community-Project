@@ -1,7 +1,7 @@
-#version 330 core
+#version 130
 
-layout(location = 0) in vec2 rteVertexPosition;
-layout(location = 1) in vec2 rteTexUV;
+in vec2 rteVertexPosition;
+in vec2 rteTexUV;
 
 out vec2 textureUV;
 

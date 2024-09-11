@@ -10,6 +10,8 @@
 #include "Controller.h"
 #include "Loadout.h"
 
+#include <map>
+
 struct BITMAP;
 
 namespace RTE {
@@ -176,91 +178,73 @@ namespace RTE {
 		/// @param drawBitmap The bitmap to draw on.
 		void Draw(BITMAP* drawBitmap) const;
 
-		/// Method:			EnforceMaxPassengersConstraint
 		/// Tells whether passenger count constraints are enforced by this buy menu.
 		/// @return True if passenger constraints are enforced by this menu, false otherwise
 		bool EnforceMaxPassengersConstraint() const { return m_EnforceMaxPassengersConstraint; };
 
-		/// Method:			SetEnforceMaxPassengersConstraint
 		/// Sets whether passenger count constraints are enforced by this buy menu.
 		/// @param enforce True to enforce passenger constraints by this menu, false otherwise
 		void SetEnforceMaxPassengersConstraint(bool enforce) { m_EnforceMaxPassengersConstraint = enforce; };
 
-		/// Method:			EnforceMaxMassConstraint
 		/// Sets whether mass constraints are enforced by this buy menu.
 		/// @param True if mass constraints are enforced by this menu, false otherwise
 		bool EnforceMaxMassConstraint() const { return m_EnforceMaxMassConstraint; };
 
-		/// Method:			SetEnforceMaxMassConstraint
 		/// Sets whether mass constraints are enforced by this buy menu.
 		/// @param enforce True to enforce mass constraints by this menu, false otherwise
 		void SetEnforceMaxMassConstraint(bool enforce) { m_EnforceMaxMassConstraint = enforce; };
 
-		/// Method:			AddAllowedItem
 		/// Adds an item to the list of allowed items.
 		/// If the list is not empty then everything not in the list is removed from the buy menu
 		/// Items will be removed from the buy menu when it's called, category changed or after a ForceRefresh().
 		/// @param presetName Full preset name to add.
 		void AddAllowedItem(std::string presetName) { m_AllowedItems[presetName] = true; };
 
-		/// Method:			RemoveAllowedItem
 		/// Removes an item from the list of allowed items.
 		/// @param m_AllowedItems.erase(presetName Full preset name to remove.
 		void RemoveAllowedItem(std::string presetName) { m_AllowedItems.erase(presetName); };
 
-		/// Method:			ClearAllowedItems
 		/// Clears the list of allowed items
 		void ClearAllowedItems() { m_AllowedItems.clear(); };
 
-		/// Method:			IsAllowedItem
 		/// Returns true if the item is in allowed list
 		/// @param ! Full preset name. (default: m_AllowedItems.end()
 		bool IsAllowedItem(std::string presetName) { return m_AllowedItems.find(presetName) != m_AllowedItems.end(); }
 
-		/// Method:			AddAlwaysAllowedItem
 		/// Adds an item to the list of always allowed items. This list overrides all previous constraints.
 		/// @param presetName Full preset name to add.
 		void AddAlwaysAllowedItem(std::string presetName) { m_AlwaysAllowedItems[presetName] = true; };
 
-		/// Method:			RemoveAlwaysAllowedItem
 		/// Removes an item from the list of always allowed items.
 		/// @param m_AlwaysAllowedItems.erase(presetName Full preset name to remove.
 		void RemoveAlwaysAllowedItem(std::string presetName) { m_AlwaysAllowedItems.erase(presetName); };
 
-		/// Method:			ClearAlwaysAllowedItems
 		/// Clears the list of allowed items
 		void ClearAlwaysAllowedItems() { m_AlwaysAllowedItems.clear(); };
 
-		/// Method:			IsAlwaysAllowedItem
 		/// Returns true if the item is in always allowed list
 		/// @param ! Full preset name. (default: m_AlwaysAllowedItems.end()
 		bool IsAlwaysAllowedItem(std::string presetName) { return m_AlwaysAllowedItems.find(presetName) != m_AlwaysAllowedItems.end(); }
 
-		/// Method:			AddProhibitedItem
 		/// Adds an item prohibited to buy from the buy menu.
 		/// The item will be removed from the buy menu when it's called, category changed or after a ForceRefresh().
 		/// @param presetName Full preset name to add.
 		void AddProhibitedItem(std::string presetName) { m_ProhibitedItems[presetName] = true; };
 
-		/// Method:			RemoveProhibitedItem
 		/// Removes item from the list of prohibited items
 		/// @param m_ProhibitedItems.erase(presetName Full preset name to remove.
 		void RemoveProhibitedItem(std::string presetName) { m_ProhibitedItems.erase(presetName); };
 
-		/// Method:			ClearProhibitedItems
 		/// Clears the list of prohibited items
 		void ClearProhibitedItems() { m_ProhibitedItems.clear(); };
 
-		/// Method:			IsProhibitedItem
 		/// Returns true if the item is in prohibited list
 		/// @param ! Full preset name. (default: m_ProhibitedItems.end()
 		bool IsProhibitedItem(std::string presetName) { return m_ProhibitedItems.find(presetName) != m_ProhibitedItems.end(); }
 
-		/// Method:			ForceRefresh
 		/// Forces a refresh update of the list of buy menu items
 		void ForceRefresh() { CategoryChange(); }
 
-		/// Method:			ClearCartList
 		/// Clear the cart out of items selected for purchase
 		void ClearCartList();
 
@@ -276,26 +260,21 @@ namespace RTE {
 		/// @param itemIndex The index of the item to duplicate.
 		void DuplicateCartItem(const int itemIndex);
 
-		/// Method:			LoadDefaultLoadoutToCart
 		/// Loads the default loadout to the cart
 		void LoadDefaultLoadoutToCart() { DeployLoadout(0); }
 
-		/// Method:			SetOnlyShowOwnedItems
 		/// If set to true only owned items will be shown in buy menu. Overriden by AlwaysAllowed list.
 		/// @param value Value.
 		void SetOnlyShowOwnedItems(bool value) { m_OnlyShowOwnedItems = value; }
 
-		/// Method:			GetOnlyShowOwnedItems
 		/// Returns whether only owned items will be shown in buy menu. Overriden by AlwaysAllowed list.
 		/// @return Whether only owned items will be shown in buy menu.
 		bool GetOnlyShowOwnedItems() const { return m_OnlyShowOwnedItems; }
 
-		/// Method:			SetOwnedItemsAmount
 		/// Sets the amount of specified items to be owned in this buy menu
 		/// @param presetName Full preset name of item to own. Amount of owned items.
 		void SetOwnedItemsAmount(std::string presetName, int amount) { m_OwnedItems[presetName] = amount; };
 
-		/// Method:			GetOwnedItemsAmount
 		/// Returns the amount of specified items owned in this buy menu
 		/// @param presetName Full preset name of item.
 		/// @return Amount of owned items.
@@ -306,7 +285,6 @@ namespace RTE {
 				return 0;
 		};
 
-		/// Method:			CommitPurchase
 		/// Deducts 1 piece of owned item and return true if purchase can be made or false if the item is out of stock.
 		/// @param presetName Full preset name of item.
 		/// @return Whether the purchase can be conducted or the item is out of stock.

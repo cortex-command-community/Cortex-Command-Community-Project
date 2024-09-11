@@ -76,25 +76,15 @@ namespace RTE {
 		float EstimateImpulse(bool burst = false);
 
 		/*
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetEmitRate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the rate at which this PEmitter emits its particles.
-		// Arguments:       None.
-		// Return value:    A float with the rate in #/min.
-
+		/// Gets the rate at which this PEmitter emits its particles.
+		/// @return A float with the rate in #/min.
 		float GetEmitRate() const { return m_PPM; }
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetBurstCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the number of particles that will be emitted in one shot upon
-		//                  a triggered burst of this PEmitter.
-		// Arguments:       None.
-		// Return value:    The number of emitted particles a burst should have. 0 means burst
-		//                  are disabled.
-
+		/// Gets the number of particles that will be emitted in one shot upon
+		/// a triggered burst of this PEmitter.
+		/// @return The number of emitted particles a burst should have. 0 means burst
+		/// are disabled.
 		int GetBurstCount() const { return m_BurstSize; }
 		*/
 
@@ -122,38 +112,23 @@ namespace RTE {
 		float GetBurstSpacing() const { return m_BurstSpacing; }
 
 		/*
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetEmitSpread
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the angle spread of velocity of the emitted MO's to each side of
-		//                  the angle of emission of this PEmitter.
-		// Arguments:       None.
-		// Return value:    A float with the spread in r's. PI/2 would mean that MO's fly out to
-		//                  one side only, with the m_EmitAngle defining the middle of that half
-		//                  circle.
-
+		/// Gets the angle spread of velocity of the emitted MO's to each side of
+		/// the angle of emission of this PEmitter.
+		/// @return A float with the spread in r's. PI/2 would mean that MO's fly out to
+		/// one side only, with the m_EmitAngle defining the middle of that half
+		/// circle.
 		float GetEmitSpread() const { return m_Spread; }
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetEmitVelMin
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the min end of the range the velocity of a particle being emitted
-		//                  by this PEmitter can have.
-		// Arguments:       None.
-		// Return value:    A float with the min vel possible for an emitted particle.
-
+		/// Gets the min end of the range the velocity of a particle being emitted
+		/// by this PEmitter can have.
+		/// @return A float with the min vel possible for an emitted particle.
 		float GetEmitVelMin() const { return m_MinVelocity; }
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          GetEmitVelMax
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Gets the max end of the range the velocity of a particle being emitted
-		//                  by this PEmitter can have.
-		// Arguments:       None.
-		// Return value:    A float with the max vel possible for an emitted particle.
-
+		/// Gets the max end of the range the velocity of a particle being emitted
+		/// by this PEmitter can have.
+		/// @return A float with the max vel possible for an emitted particle.
 		float GetEmitVelMax() const { return m_MaxVelocity; }
 		*/
 
@@ -166,32 +141,22 @@ namespace RTE {
 
 		/// Gets the adjusted throttle multiplier that is factored into the emission rate of this PEmitter.
 		/// @return The throttle strength as a multiplier.
-		float GetThrottleFactor() const { return LERP(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle); }
+		float GetThrottleFactor() const { return Lerp(-1.0f, 1.0f, m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, m_Throttle); }
 
 		/// Gets the throttle value that will achieve a given throttle factor that is factored into the emission rate of this AEmitter.
 		/// @return The throttle value that will achieve the given throttle factor.
-		float GetThrottleForThrottleFactor(float throttleFactor) const { return LERP(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor); }
+		float GetThrottleForThrottleFactor(float throttleFactor) const { return Lerp(m_NegativeThrottleMultiplier, m_PositiveThrottleMultiplier, -1.0f, 1.0f, throttleFactor); }
 
 		/*
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEmitRate
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the rate at which this PEmitter emits its particles.
-		// Arguments:       A float with the rate in #/min.
-		// Return value:    None.
-
+		/// Sets the rate at which this PEmitter emits its particles.
+		/// @param rate A float with the rate in #/min.
 		void SetEmitRate(const float rate) { m_PPM = rate; }
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetBurstCount
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the number of particles that will be emitted in one shot upon
-		//                  a triggered burst of this PEmitter.
-		// Arguments:       The number of emitted particles a burst should have. 0 means burst
-		//                  are disabled.
-		// Return value:    None.
-
+		/// Sets the number of particles that will be emitted in one shot upon
+		/// a triggered burst of this PEmitter.
+		/// @param count The number of emitted particles a burst should have. 0 means burst
+		/// are disabled.
 		void SetBurstCount(const int count) { m_BurstSize = count; }
 		*/
 
@@ -224,38 +189,23 @@ namespace RTE {
 		void SetThrottle(float throttle) { m_Throttle = throttle > 1.0f ? 1.0f : (throttle < -1.0f ? -1.0f : throttle); }
 
 		/*
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEmitSpread
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the angle spread of velocity of the emitted MO's to each side of
-		//                  angle of emission of this PEmitter.
-		// Arguments:       A float with the spread in r's. PI/2 would mean that MO's fly out to
-		//                  one side only, with the m_EmitAngle defining the middle of that half
-		//                  circle.
-		// Return value:    None.
-
+		/// Sets the angle spread of velocity of the emitted MO's to each side of
+		/// angle of emission of this PEmitter.
+		/// @param spread A float with the spread in r's. PI/2 would mean that MO's fly out to
+		/// one side only, with the m_EmitAngle defining the middle of that half
+		/// circle.
 		void SetEmitSpread(const float spread) { m_Spread = spread; }
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEmitVelMin
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the min end of the range the velocity of a particle being emitted
-		//                  by this PEmitter can have.
-		// Arguments:       A float with the min vel possible for an emitted particle.
-		// Return value:    None.
-
+		/// Sets the min end of the range the velocity of a particle being emitted
+		/// by this PEmitter can have.
+		/// @param minVel A float with the min vel possible for an emitted particle.
 		void SetEmitVelMin(const float minVel) { m_MinVelocity = minVel; }
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Method:          SetEmitVelMax
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Sets the max end of the range the velocity of a particle being emitted
-		//                  by this PEmitter can have.
-		// Arguments:       A float with the max vel possible for an emitted particle.
-		// Return value:    None.
-
+		/// Sets the max end of the range the velocity of a particle being emitted
+		/// by this PEmitter can have.
+		/// @param maxVel A float with the max vel possible for an emitted particle.
 		void SetEmitVelMax(const float maxVel) { m_MaxVelocity = maxVel; }
 		*/
 
@@ -294,7 +244,6 @@ namespace RTE {
 
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
-		void PostUpdate() override { MOSParticle::PostUpdate(); }
 
 		/// Draws this PEmitter's current graphical representation to a
 		/// BITMAP of choice.

@@ -13,7 +13,7 @@ function Create(self)
 
 	self.addedWound = nil;
 	self.addedWoundOffset = nil;
-	self.addedWoundToMOID = nil;
+	self.addedWoundToUniqueID = nil;
 
 	function self.emitSmoke(particleCount)
 		for i = 1, particleCount do
@@ -70,6 +70,7 @@ function ThreadedUpdate(self)
 						woundOffset = woundOffset:RadRotate(-mo.RotAngle);
 						self.addedWound = wound;
 						self.addedWoundOffset = woundOffset;
+						self.addedWoundToUniqueID = mo.UniqueID;
 						self:RequestSyncedUpdate();
 					end
 				end
@@ -128,14 +129,16 @@ end
 
 function SyncedUpdate(self)
 	if self.addedWound then
-		local mo = ToMOSRotating(MovableMan:GetMOFromID(self.addedWoundToMOID));
-		if MovableMan:ValidMO(mo) then
+		local mo = MovableMan:FindObjectByUniqueID(self.addedWoundToUniqueID);
+		if mo then
+			mo = ToMOSRotating(mo);
 			mo:AddWound(self.addedWound, self.addedWoundOffset, true);
 		end
 		
 		self.addedWound = nil;
 		self.addedWoundOffset = nil;
 		self.addedWoundToMOID = nil;
+		self.addedWoundToUniqueID = nil;
 	end
 
 	for i = 1, #self.addedParticles do

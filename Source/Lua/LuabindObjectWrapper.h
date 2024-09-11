@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <string_view>
+
 struct lua_State;
 
 namespace luabind::adl {

@@ -255,7 +255,6 @@ namespace RTE {
 		/// @param drawBitmap The bitmap to draw on.
 		void Draw(BITMAP* drawBitmap);
 
-		/// Method:		SetToStartNewGame
 		/// Resets internal state of GUI to show 'Start new campaign' screen
 		void SetToStartNewGame();
 
@@ -454,11 +453,11 @@ namespace RTE {
 		/// Updates the site line meter ratios of a player based on their fund
 		/// amounts and visibilty.
 		/// @param lineList A vector with SiteLine:s which may contain other players' lines too.
-		/// @param player Which player's lines to update.
+		/// @param metaPlayer Which player's lines to update.
 		/// @param onlyVisible Whetehr to only care about visible lines. (default: true)
 		/// @param total The total funds to be calculating the ratios against. If negative, (default: -1)
 		/// the total line amounts is what will be used.
-		void UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, unsigned int player, bool onlyVisible = true, float total = -1);
+		void UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, int metaPlayer, bool onlyVisible = true, float total = -1);
 
 		/// Draws a fancy thick flickering line to point out scene points on the
 		/// planet.
@@ -635,7 +634,7 @@ namespace RTE {
 		float m_AnimFundsMax;
 		float m_AnimFundsMin;
 		int m_AnimBuildCount;
-		unsigned int m_AnimIncomeLine;
+		int m_AnimIncomeLineIndex;
 		bool m_AnimIncomeLineChange;
 		int m_AnimActionLine;
 		bool m_AnimActionLineChange;
@@ -772,6 +771,8 @@ namespace RTE {
 		Scene* m_pSelectedScene;
 		// The scene currently being played, NOT OWNED
 		Scene* m_pPlayingScene;
+
+		bool m_TechAndFlagListFetched; //!< Whether the tech list was fetched and each team's ComboBox was populated with it, even if no valid tech modules were added. The team flags are also populated at the same time.
 
 		// NEW GAME DIALOG
 		// Game size label and slider

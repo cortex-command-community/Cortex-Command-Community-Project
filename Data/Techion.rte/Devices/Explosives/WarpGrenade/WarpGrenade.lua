@@ -51,13 +51,16 @@ function Update(self)
 						end
 					end
 				end
+
 				local parent = self:GetParent();
 				if parent then
 					parent:RemoveAttachable(self, true, true);
 				end
+
 				if not self.holder:HasObject(self.PresetName) then
 					self.holder:AddInventoryItem(CreateTDExplosive(self.PresetName));
 				end
+
 				self.ToDelete = true;
 			else
 				self:GibThis();
@@ -80,6 +83,7 @@ function Update(self)
 				self.holder = ToActor(newHolder);
 			end
 		end
+		
 		self.fuze = Timer();
 	end
 end

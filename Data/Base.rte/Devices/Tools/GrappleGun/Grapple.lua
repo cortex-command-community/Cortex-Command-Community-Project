@@ -45,6 +45,7 @@ function Create(self)
 				elseif IsACrab(self.parent) then
 					self.parent = ToACrab(self.parent);
 				end
+
 				self.Vel = (self.parent.Vel * 0.5) + Vector(self.fireVel, 0):RadRotate(self.parent:GetAimAngle(true));
 				self.parentGun:RemoveNumberValue("GrappleMode");
 				for part in self.parent.Attachables do
@@ -53,11 +54,13 @@ function Create(self)
 						self.parentRadius = radcheck;
 					end
 				end
+
 				self.actionMode = 1;
 			end
 			break;
 		end
 	end
+
 	if self.parentGun == nil then	-- Failed to find our gun, abort
 		self.ToDelete = true;
 	end
@@ -74,7 +77,6 @@ function Update(self)
 		self.lineLength = self.lineVec.Magnitude;
 
 		if self.parentGun and self.parentGun.ID ~= rte.NoMOID then
-
 			self.parent = ToMOSRotating(MovableMan:GetMOFromID(self.parentGun.RootID));
 
 			if self.parentGun.Magazine then
@@ -90,6 +92,7 @@ function Update(self)
 				self.pieSelection = mode;
 				self.parentGun:RemoveNumberValue("GrappleMode");
 			end
+
 			if self.parentGun.FiredFrame then
 				if self.actionMode == 1 then
 					self.ToDelete = true;
@@ -97,10 +100,12 @@ function Update(self)
 					self.canRelease = true;
 				end
 			end
+
 			if self.parentGun.FiredFrame and self.canRelease and (Vector(self.parentGun.Vel.X, self.parentGun.Vel.Y) ~= Vector(0, -1) or self.parentGun:IsActivated()) then
 				self.ToDelete = true;
 			end
 		end
+
 		if IsAHuman(self.parent) then
 			self.parent = ToAHuman(self.parent);
 			-- We now have a user that controls this grapple
@@ -181,6 +186,7 @@ function Update(self)
 					MovableMan:AddParticle(part);
 				end
 			end
+
 			if self.actionMode > 1 then
 				self.stickSound:Play(self.Pos);
 				self.setLineLength = math.floor(self.lineLength);
@@ -188,6 +194,7 @@ function Update(self)
 				self.PinStrength = 1000;
 				self.Frame = 1;
 			end
+
 			if self.lineLength > self.maxLineLength then
 				if self.limitReached == false then
 					self.limitReached = true;
@@ -216,6 +223,7 @@ function Update(self)
 			else
 				self.terrcheck = false;
 			end
+
 			-- Control automatic extension and retraction
 			if self.pieSelection ~= 0 and self.climbTimer:IsPastSimMS(self.climbDelay) then
 				self.climbTimer:Reset();
@@ -235,6 +243,7 @@ function Update(self)
 					end
 				end
 			end
+
 			-- Control the rope if the user is holding the gun
 			if self.parentGun and self.parentGun.ID ~= rte.NoMOID and controller then
 				-- These forces are to help the user nudge across obstructing terrain
@@ -264,6 +273,7 @@ function Update(self)
 						end
 					end
 				end
+
 				-- Hold crouch to control rope manually
 				if controller:IsState(Controller.BODY_CROUCH) then
 					if self.climb == 1 or self.climb == 2 then
@@ -276,6 +286,7 @@ function Update(self)
 									self.setLineLength = self.setLineLength + self.climbInterval;
 								end
 							end
+
 							self.climb = 0;
 						end
 					elseif self.climb == 3 or self.climb == 4 then
@@ -303,6 +314,7 @@ function Update(self)
 							end
 						end
 					end
+
 					if controller:IsMouseControlled() then
 						controller:SetState(Controller.WEAPON_CHANGE_NEXT, false);
 						controller:SetState(Controller.WEAPON_CHANGE_PREV, false);
@@ -310,6 +322,7 @@ function Update(self)
 							self.climbTimer:Reset();
 							self.climb = 3;
 						end
+
 						if controller:IsState(Controller.SCROLL_DOWN) then
 							self.climbTimer:Reset();
 							self.climb = 4;
@@ -324,6 +337,7 @@ function Update(self)
 								self.parent.Vel = self.parent.Vel + aimvec;
 							end
 						end
+
 						if controller:IsState(Controller.HOLD_DOWN) and self.setLineLength < (self.maxLineLength-self.climbInterval) then
 							self.climb = 2;
 						end
@@ -332,20 +346,19 @@ function Update(self)
 					controller:SetState(Controller.AIM_DOWN, false);
 				end
 			end
+
 			if self.actionMode == 2 then	-- Stuck terrain
 				if self.stretchMode then
-
 					local pullVec = self.lineVec:SetMagnitude(0.15 * math.sqrt(self.lineLength)/parentForces);
 					self.parent.Vel = self.parent.Vel + pullVec;
-
 				elseif self.lineLength > self.setLineLength then
-
 					local hookVel = SceneMan:ShortestDistance(Vector(self.PrevPos.X, self.PrevPos.Y), Vector(self.Pos.X, self.Pos.Y), self.mapWrapsX);
 
 					local pullAmountNumber = self.lineVec.AbsRadAngle - self.parent.Vel.AbsRadAngle;
 					if pullAmountNumber < 0 then
 						pullAmountNumber = pullAmountNumber * -1;
 					end
+
 					pullAmountNumber = pullAmountNumber/6.28;
 					self.parent:AddAbsForce(self.lineVec:SetMagnitude(((self.lineLength - self.setLineLength)^3) * pullAmountNumber) + hookVel:SetMagnitude(math.pow(self.lineLength - self.setLineLength, 2) * 0.8), self.parent.Pos);
 
@@ -357,6 +370,7 @@ function Update(self)
 							moveToPos = Vector(SceneMan.SceneWidth + moveToPos.X, moveToPos.Y);
 						end
 					end
+
 					self.parent.Pos = moveToPos;
 
 					local pullAmountNumber = math.abs(self.lineVec.AbsRadAngle - self.parent.Vel.AbsRadAngle)/6.28;
@@ -364,12 +378,12 @@ function Update(self)
 					if (self.parent.Vel - self.lineVec:SetMagnitude(self.parent.Vel.Magnitude * pullAmountNumber)):MagnitudeIsGreaterThan(self.lineStrength) then
 						self.ToDelete = true;
 					end
+
 					self.parent.Vel = self.parent.Vel + self.lineVec;
 				end
 
 			elseif self.actionMode == 3 then	-- Stuck MO
 				if self.target.ID ~= rte.NoMOID then
-
 					self.Pos = self.target.Pos + Vector(self.stickPosition.X, self.stickPosition.Y):RadRotate(self.target.RotAngle - self.stickRotation);
 					self.RotAngle = self.stickDirection + (self.target.RotAngle - self.stickRotation);
 
@@ -382,14 +396,13 @@ function Update(self)
 							target = mo;
 						end
 					end
-					if self.stretchMode then
 
+					if self.stretchMode then
 						local pullVec = self.lineVec:SetMagnitude(self.stretchPullRatio * math.sqrt(self.lineLength)/parentForces);
 						self.parent.Vel = self.parent.Vel + pullVec;
 
 						local targetForces = 1 + (target.Vel.Magnitude * 10 + target.Mass)/(1 + self.lineLength);
 						target.Vel = target.Vel - (pullVec) * parentForces/targetForces;
-
 					elseif self.lineLength > self.setLineLength then
 						-- Take wrapping to account, treat all distances relative to hook
 						local parentPos = target.Pos + SceneMan:ShortestDistance(target.Pos, self.parent.Pos, self.mapWrapsX);
@@ -418,6 +431,7 @@ function Update(self)
 				end
 			end
 		end
+
 		-- Double tapping crouch retrieves the hook
 		if controller and controller:IsState(Controller.BODY_CROUCH) then
 			self.pieSelection = 0;
@@ -427,6 +441,7 @@ function Update(self)
 				if self.parentGun ~= nil and self.parentGun.ID ~= rte.NoMOID then
 					self.parentGun:RemoveNumberValue("GrappleMode");
 				end
+
 				self.tapTimer:Reset();
 				self.didTap = true;
 				self.canTap = false;
@@ -435,6 +450,7 @@ function Update(self)
 		else
 			self.canTap = true;
 		end
+
 		if self.tapTimer:IsPastSimMS(self.tapTime) then
 			self.tapCounter = 0;
 		else
@@ -442,6 +458,7 @@ function Update(self)
 				self.ToDelete = true;
 			end
 		end
+
 		-- Fine tuning: take the seam into account when drawing the rope
 		local drawPos = self.parent.Pos + self.lineVec:SetMagnitude(self.lineLength);
 		if self.ToDelete == true then
@@ -454,6 +471,7 @@ function Update(self)
 			end
 			self.returnSound:Play(drawPos);
 		end
+		
 		PrimitiveMan:DrawLinePrimitive(startPos, drawPos, 249);
 	elseif self.parentGun and IsHDFirearm(self.parentGun) then
 		self.parent = self.parentGun;

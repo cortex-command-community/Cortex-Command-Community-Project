@@ -38,6 +38,7 @@ function Update(self)
 			sfx:GibThis();
 			MovableMan:AddParticle(sfx);
 		end
+
 		local partsLeft = 0;
 		for i = 1, #self.partList do
 			if self.partList[i] and MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Fuel Bomb Fuel" then
@@ -51,6 +52,7 @@ function Update(self)
 						fire.Vel = self.Vel;
 						fire.Lifetime = math.random(1500, 3000);
 					end
+
 					MovableMan:AddParticle(fire);
 					for j = 1, self.particlesPerOil do
 						local firePar;
@@ -66,12 +68,14 @@ function Update(self)
 						firePar.Pos = Vector(self.partList[i].Pos.X, self.partList[i].Pos.Y);
 						MovableMan:AddParticle(firePar);
 					end
+
 					self.partList[i].ToDelete = true;
 				else
 					partsLeft = partsLeft + 1;
 				end
 			end
 		end
+
 		if partsLeft == 0 then
 			self.ToDelete = true;
 		end
@@ -79,9 +83,7 @@ function Update(self)
 		--Look for targets to douse with fuel
 		for i = 1, #self.partList do
 			if self.partList[i] and MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Fuel Bomb Fuel" then
-
 				if self.partList[i].target and self.partList[i].target.ID ~= rte.NoMOID and not self.partList[i].target.ToDelete then
-
 					if math.random() < 0.01 then
 						self.partList[i].Vel = self.partList[i].target.Vel;
 						self.partList[i].Pos = self.partList[i].target.Pos + Vector(self.partList[i].stickOffset.X, self.partList[i].stickOffset.Y):RadRotate(self.partList[i].target.RotAngle - self.partList[i].targetStickAngle);

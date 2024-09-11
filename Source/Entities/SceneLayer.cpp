@@ -8,6 +8,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <array>
+
 using namespace RTE;
 
 ConcreteClassInfo(SceneLayerTracked, Entity, 0);

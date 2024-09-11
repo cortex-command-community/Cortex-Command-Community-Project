@@ -39,6 +39,7 @@ function Update(self)
 					end
 				end
 			end
+
 			for i = 1, self.clusterCount do
 				local minibomb = CreateAEmitter("Imperatus Scatter Bomb Piece");
 				minibomb.Pos = self.Pos;
@@ -50,6 +51,7 @@ function Update(self)
 				end
 				MovableMan:AddParticle(minibomb);
 			end
+			
 			self:GibThis();
 		end
 	end

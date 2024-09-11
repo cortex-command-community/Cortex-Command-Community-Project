@@ -47,12 +47,14 @@ function Update(self)
 		self.trailPar.Vel = self.lastVel * 0.5;
 		self.trailPar.Lifetime = self.Age + TimerMan.DeltaTimeMS;
 	end
+
 	if self.deleteNextFrame then
 		self.ToDelete = true;
 	elseif self.Vel:MagnitudeIsGreaterThan(self.speedThreshold) then
 		--Check forward.
 		self.CheckCollision(false);
 	end
+	
 	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 end
 

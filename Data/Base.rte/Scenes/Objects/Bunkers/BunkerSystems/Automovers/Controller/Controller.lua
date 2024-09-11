@@ -86,7 +86,7 @@ function Create(self)
 
 	for actor in MovableMan.Actors do
 		if actor.PresetName:find("Automover Controller") and actor.Team == self.Team and actor.UniqueID ~= self.UniqueID then
-			ActivityMan:GetActivity():SetTeamFunds(ActivityMan:GetActivity():GetTeamFunds(self.Team) + actor:GetGoldValue(0, 0), self.Team);
+			self.currentActivity:SetTeamFunds(self.currentActivity:GetTeamFunds(self.Team) + actor:GetGoldValue(0, 0), self.Team);
 			actor.ToDelete = true;
 		end
 	end
@@ -103,6 +103,7 @@ function Create(self)
 		chevron = {},
 		chevronNarrow = {},
 	};
+
 	local function addVisualEffectsConfig(self, visualEffectsSize, visualEffectsType)
 		local visualEffectsConfigSizeTable = {
 			coolDownInterval = visualEffectsSize * 1000,
@@ -128,10 +129,12 @@ function Create(self)
 
 		self.visualEffectsConfig[visualEffectsType][visualEffectsSize] = visualEffectsConfigSizeTable;
 	end
+
 	for _, visualEffectsSize in pairs(self.visualEffectsSizes) do
 		addVisualEffectsConfig(self, visualEffectsSize, "chevron");
 		addVisualEffectsConfig(self, visualEffectsSize, "chevronNarrow");
 	end
+
 	self.visualEffectsData = {};
 
 	self.obstructionCheckCoroutine = coroutine.create(self.checkAllObstructions);
@@ -173,7 +176,7 @@ function Update(self)
 		self:updateActivityEditingMode();
 	elseif self.currentActivity.ActivityState == Activity.RUNNING then
 		if self.obstructionCheckTimer:IsPastSimTimeLimit() then
-			self:checkForObstructions();
+			--self:checkForObstructions();
 			self.obstructionCheckTimer:Reset();
 		end
 
@@ -311,10 +314,12 @@ automoverUtilityFunctions.handlePieButtons = function(self)
 		self.acceptsAllTeams = not self.acceptsAllTeams;
 		self:RemoveNumberValue("SwapAcceptsAllTeams");
 	end
+
 	if self:NumberValueExists("SwapAcceptsCrafts") then
 		self.acceptsCrafts = not self.acceptsCrafts;
 		self:RemoveNumberValue("SwapAcceptsCrafts");
 	end
+
 	if self:NumberValueExists("SwapHumansRemainUpright") then
 		self.humansRemainUpright = not self.humansRemainUpright;
 		self:RemoveNumberValue("SwapHumansRemainUpright");
@@ -328,6 +333,7 @@ automoverUtilityFunctions.handlePieButtons = function(self)
 		end
 		self.heldInputTimer:Reset()
 	end
+
 	if self:NumberValueExists("ModifyMassLimit") and self.heldInputTimer:IsPastSimTimeLimit() then
 		if self:GetController():IsState(Controller.SCROLL_UP) or self:GetController():IsState(Controller.HOLD_UP) then
 			self.massLimit = math.min(self.massLimit + 25, self.massLimitMax);
@@ -349,9 +355,11 @@ automoverUtilityFunctions.handlePieButtons = function(self)
 				break;
 			end
 		end
+
 		self.visualEffectsData = {};
 		self:RemoveNumberValue("ModifyVisualEffectsType");
 	end
+
 	if self:NumberValueExists("ModifyVisualEffectsSize") then
 		self.visualEffectsSelectedSize = (self.visualEffectsSelectedSize % self.visualEffectsSizes.large) + 1;
 		self.visualEffectsData = {};
@@ -378,6 +386,7 @@ automoverUtilityFunctions.fuzzyPositionMatch = function(self, pos1, pos2, ignore
 			end
 		end
 	end
+
 	return valuesMatch.X and valuesMatch.Y;
 end
 
@@ -433,6 +442,7 @@ automoverUtilityFunctions.updateActivityEditingMode = function(self)
 						end
 					end
 				end
+
 				for matchType, distanceToMatch in pairs(matches) do
 					if SceneMan:CastStrengthRay(selectedEditorObjectPos, distanceToMatch, 15, Vector(), 4, 0, true) then
 						PrimitiveMan:DrawLinePrimitive(selectedEditorObjectPos, selectedEditorObjectPos + distanceToMatch, matchType == "exact" and 12 or 8);
@@ -512,12 +522,14 @@ automoverUtilityFunctions.addAllBoxesAndPaths = function(self)
 	if not self.allBoxesAdded and coroutine.status(self.addAllBoxesCoroutine) == "dead" then
 		self.addAllBoxesCoroutine = coroutine.create(self.addAllBoxes);
 	end
+
 	coroutine.resume(self.addAllBoxesCoroutine, self);
 	self.allBoxesAdded = self.allBoxesAdded or coroutine.status(self.addAllBoxesCoroutine) == "dead";
 
 	if not self.allPathsAdded and coroutine.status(self.addAllPathsCoroutine) == "dead" then
 		self.addAllPathsCoroutine = coroutine.create(self.addAllPaths);
 	end
+
 	coroutine.resume(self.addAllPathsCoroutine, self);
 
 	self.allPathsAdded = self.allPathsAdded or coroutine.status(self.addAllPathsCoroutine) == "dead";
@@ -562,11 +574,13 @@ automoverUtilityFunctions.addAllBoxes = function(self)
 				end
 			end
 		end
+
 		addedNodeCount = addedNodeCount + 1;
 		if addedNodeCount % 10 == 0 and coroutine.running() then
 			coroutine.yield();
 		end
 	end
+
 	for node, nodeData in pairs(teamNodeTable) do
 		for _, direction in pairs({Directions.Down, Directions.Right}) do
 			if nodeData.connectedNodeData[direction] then
@@ -574,6 +588,7 @@ automoverUtilityFunctions.addAllBoxes = function(self)
 			end
 		end
 	end
+
 	return true;
 end
 
@@ -613,9 +628,11 @@ automoverUtilityFunctions.addAllPaths = function(self)
 					distanceToClosestNode = tentativeNodeData.distance;
 				end
 			end
+
 			if closestNode == nil then
 				break;
 			end
+
 			confirmedNodes[closestNode] = { distance = distanceToClosestNode, direction = tentativeNodes[closestNode].direction };
 			tentativeNodes[closestNode] = nil;
 
@@ -642,11 +659,13 @@ automoverUtilityFunctions.addAllPaths = function(self)
 				coroutine.yield();
 			end
 		end
+
 		self.pathTable[node] = confirmedNodes;
 		if coroutine.running() then
 			coroutine.yield();
 		end
 	end
+
 	return true;
 end
 
@@ -693,6 +712,7 @@ automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosest
 			end
 		end
 	end
+
 	tracy.ZoneEnd();
 	return closestNode;
 end
@@ -724,6 +744,7 @@ automoverUtilityFunctions.findNodeWithShortestScenePath = function(self, positio
 				end
 			end
 		end
+
 		if nodeSatisfiesConditions then
 			potentialClosestNodes[node] = node.Pos;
 		end
@@ -731,7 +752,7 @@ automoverUtilityFunctions.findNodeWithShortestScenePath = function(self, positio
 
 	local shortestPathCoroutine = coroutine.create(FindStartPositionWithShortestPathToEndPosition);
 	while coroutine.status(shortestPathCoroutine) ~= "dead" do
-		local _, result = coroutine.resume(shortestPathCoroutine, potentialClosestNodes, positionToFindClosestNodeFor, pathfinderTeam, false, pathfinderDigStrength);
+		local _, result = coroutine.resume(shortestPathCoroutine, potentialClosestNodes, positionToFindClosestNodeFor, pathfinderTeam, GetPathFindingFlyingJumpHeight(), pathfinderDigStrength);
 		if result then
 			return result;
 		else
@@ -875,6 +896,7 @@ automoverActorFunctions.checkForNewActors = function(self)
 			end
 		end
 	end
+
 	tracy.ZoneEnd();
 end
 
@@ -887,6 +909,13 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 		currentClosestNode = self:findClosestNode(actor.Pos, nil, false, false),
 		waypointData = nil,
 	};
+
+	if not actor:NumberValueExists("Automover_OldMoveProximityLimit") then
+		actor:SetNumberValue("Automover_OldMoveProximityLimit", actor.MoveProximityLimit);
+	end
+
+	-- Make move proximity much higher so we don't zigzag back and forth
+	actor.MoveProximityLimit = 5;
 
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
@@ -902,6 +931,11 @@ automoverActorFunctions.removeActorFromAutomoverTable = function(self, actor, op
 	end
 
 	if MovableMan:ValidMO(actor) then
+		if actor:NumberValueExists("Automover_OldMoveProximityLimit") then
+			actor.MoveProximityLimit = actor:GetNumberValue("Automover_OldMoveProximityLimit");
+			actor:RemoveNumberValue("Automover_OldMoveProximityLimit");
+		end
+
 		actor.PieMenu:RemovePieSlicesByPresetName(self.leaveAutomoverNetworkPieSlice.PresetName);
 		actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
 
@@ -933,6 +967,10 @@ automoverActorFunctions.setActorMovementModeToLeaveAutomovers = function(self, a
 end
 
 automoverActorFunctions.convertActorWaypointsToWaypointData = function(self, actorData)
+	if actorData.movementMode ~= self.movementModes.teleporting then
+		return;
+	end
+	
 	local actor = actorData.actor;
 	actorData.waypointData = {};
 	local waypointData = actorData.waypointData;
@@ -948,6 +986,7 @@ automoverActorFunctions.convertActorWaypointsToWaypointData = function(self, act
 			waypointData.sceneTargets[#waypointData.sceneTargets + 1] = Vector(actorSceneWaypoint.X, actorSceneWaypoint.Y);
 		end
 	end
+
 	waypointData.previousAIMode = actor.AIMode;
 	actor.AIMode = Actor.AIMODE_SENTRY;
 	actor:ClearAIWaypoints();
@@ -998,11 +1037,13 @@ automoverActorFunctions.setupManualTeleporterData = function(self, actorData)
 					break;
 				end
 			end
+
 			if not teleporterNodeAddedToSortedTable then
 				table.insert(manualTeleporterData.sortedTeleporters, #manualTeleporterData.sortedTeleporters + 1, { node = teleporterNode, distance = xDistanceToTeleporter });
 			end
 		end
 	end
+
 	for index, sortedTeleporterData in pairs(manualTeleporterData.sortedTeleporters) do
 		if sortedTeleporterData.node.UniqueID == startingTeleporter.UniqueID then
 			manualTeleporterData.currentChosenTeleporter = index;
@@ -1023,12 +1064,14 @@ automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self
 			if manualTeleporterData.currentChosenTeleporter <= 0 then
 				manualTeleporterData.currentChosenTeleporter = #manualTeleporterData.sortedTeleporters;
 			end
+
 			self.heldInputTimer:Reset();
 		elseif actorController:IsState(Controller.PRESS_RIGHT) or (actorController:IsState(Controller.HOLD_RIGHT) and self.heldInputTimer:IsPastSimMS(250)) then
 			manualTeleporterData.currentChosenTeleporter = manualTeleporterData.currentChosenTeleporter + 1;
 			if manualTeleporterData.currentChosenTeleporter > #manualTeleporterData.sortedTeleporters then
 				manualTeleporterData.currentChosenTeleporter = 1;
 			end
+
 			self.heldInputTimer:Reset();
 		elseif actorController:IsState(Controller.PRESS_PRIMARY) and self.heldInputTimer:IsPastSimTimeLimit() then
 			manualTeleporterData.actorTeleportationStage = 1;
@@ -1039,9 +1082,10 @@ automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self
 		end
 
 		local player = actorController.Player;
-		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, player);
-		FrameMan:ClearScreenText(player);
-		FrameMan:SetScreenText("CHOOSING TELEPORTER: Move Left or Right to change teleporter. Press Fire to teleport. Open the Pie Menu to cancel.", player, 0, 100, false);
+		local screen = self.currentActivity:ScreenOfPlayer(player);
+		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, screen);
+		FrameMan:ClearScreenText(screen);
+		FrameMan:SetScreenText("CHOOSING TELEPORTER: Move Left or Right to change teleporter. Press Fire to teleport. Open the Pie Menu to cancel.", screen, 0, 100, false);
 	else
 		self:changeScaleOfMOSRotatingAndAttachables(actor, (manualTeleporterData.actorTeleportationStage == 2 and manualTeleporterData.teleporterVisualsTimer.SimTimeLimitProgress or 1 - manualTeleporterData.teleporterVisualsTimer.SimTimeLimitProgress));
 		self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData, true);
@@ -1056,6 +1100,7 @@ automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self
 			end
 		end
 	end
+
 	actor:FlashWhite(100);
 	self:updateFrozenActor(actorData);
 	return;
@@ -1082,17 +1127,33 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 
 		analogMove = wptPos - actor.Pos;
 
-		-- the ai only removes points if it's not flying and moving, so let's remove the point if needed
-		if analogMove:MagnitudeIsLessThan(3) then
-			actor:RemoveMovePathBeginning();
+		-- zero out the axis we're being centred on, if we're only being centred on one
+		if actorData.centeringAxes ~= nil and #actorData.centeringAxes == 1 then
+			analogMove[actorData.centeringAxes[1]] = 0;
 		end
 
-		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.05) then
-			-- choose a random direction to get unstuck
-			-- TODO, it'd be better if the AI logic can communicate this to us instead!
-			analogMove:RadRotate(RangeRand(-math.pi,math.pi));
+		if actor:NumberValueExists("AI_StuckForTime") and actorData.lastAnalogMove ~= nil then
+			-- Sometimes give no input to let things reset
+			local stuckForMS = actor:GetNumberValue("AI_StuckForTime");
+			if math.fmod(stuckForMS, 5000) < 500 then
+				analogMove = Vector();
+			else
+				if actorData.lastAnalogMove:IsZero() then
+					-- We tried a random direction and failed to get unstuck in 5 secs
+					-- so try the opposite direction as our waypoint
+					actorData.lastAnalogMove = analogMove * -1;
+				end
+
+				-- add a random deviation to get unstuck
+				actorData.lastAnalogMove:RadRotate(RangeRand(-0.15,0.15));
+				analogMove = actorData.lastAnalogMove;
+			end
 		end
+
+		analogMove:Normalize();
 	end
+
+	actorData.lastAnalogMove = analogMove;
 
 	local deadZone = 0.1;
 	if analogMove:MagnitudeIsGreaterThan(deadZone) then
@@ -1124,6 +1185,7 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 			self:convertWaypointDataToActorWaypoints(actorData);
 		end
 	end
+
 	tracy.ZoneEnd();
 end
 
@@ -1190,6 +1252,7 @@ automoverActorFunctions.setupActorWaypointData = function(self, actorData)
 			coroutine.yield();
 		end
 	end
+
 	if waypointData.endNode == nil then
 		nodeWithShortestPathCoroutine = coroutine.create(self.findNodeWithShortestScenePath);
 		while coroutine.status(nodeWithShortestPathCoroutine) ~= "dead" do
@@ -1200,9 +1263,11 @@ automoverActorFunctions.setupActorWaypointData = function(self, actorData)
 				coroutine.yield();
 			end
 		end
+
 		if waypointData.endNode == nil then
 			waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, false);
 		end
+
 		if waypointData.targetIsInsideAutomoverArea then
 			nodeWithShortestPathCoroutine = coroutine.create(self.findNodeWithShortestScenePath);
 			local _, result = coroutine.resume(nodeWithShortestPathCoroutine, self, waypointData.targetPosition, nil, true, actor.Team, actor.DigStrength);
@@ -1296,6 +1361,7 @@ automoverActorFunctions.makeActorMoveToStartingNodeIfAppropriateWhenSettingUpAct
 		relevantAxis = (actorData.direction == Directions.Up or actorData.direction == Directions.Down) and "X" or "Y";
 		distanceThreshold = 24;
 	end
+
 	if math.abs(distanceFromActorToPreviousNode[relevantAxis]) > distanceThreshold then
 		if relevantAxis == "X" then
 			actorData.direction = distanceFromActorToPreviousNode[relevantAxis] > 0 and Directions.Left or Directions.Right;
@@ -1305,6 +1371,7 @@ automoverActorFunctions.makeActorMoveToStartingNodeIfAppropriateWhenSettingUpAct
 		waypointData.nextNode = waypointData.previousNode;
 		return true;
 	end
+
 	return false;
 end
 
@@ -1439,7 +1506,7 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 						end
 					end
 				end,
-				actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team
+				actor.Pos, waypointData.targetPosition, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.Team
 			);
 		elseif waypointData.exitPath ~= nil and #waypointData.exitPath > 0 then
 			local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
@@ -1487,6 +1554,8 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
+	actorData.centeringAxes = {};
+
 	local oldClosestNode = actorData.currentClosestNode;
 	local closestNode = self:findClosestNode(actor.Pos, actorData.currentClosestNode, true, true) or actorData.currentClosestNode;
 	actorData.currentClosestNode = closestNode;
@@ -1524,19 +1593,21 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 		else
 			centeringAxes = { (directionToUseForCentering == Directions.Up or directionToUseForCentering == Directions.Down) and "X" or "Y"; }
 		end
+		actorData.centeringAxes = centeringAxes;
+
 		local gravityAdjustment = SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * -1;
 		local centeringSpeedAndDistance = self.movementAcceleration * 5;
 
 		for _, centeringAxis in pairs(centeringAxes) do
-			if actor.MovePathSize > 0 then
+			if actor.MovePathSize > 0 and directionConnectingArea ~= nil then
 				-- Collect all points ahead of us in the box to adjust to centre
 				local positionsToFixUp = {};
+				local stop = false;
 				for pos in actor.MovePath do
-					if pos[centeringAxis] == closestNode.Pos[centeringAxis] or directionConnectingArea == nil or not directionConnectingArea:IsInside(pos) then
-						break;
-					end
 					local adjustedPos = pos;
-					adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
+					if directionConnectingArea:IsInside(pos) then
+						adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
+					end
 					table.insert(positionsToFixUp, adjustedPos);
 				end
 
@@ -1560,13 +1631,16 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 					actorData.movementMode = self.movementModes.move;
 					actorData.unstickTimer:Reset();
 				end
+
 				actor.Vel[centeringAxis] = gravityAdjustment[centeringAxis];
 				actor.Pos[centeringAxis] = closestNode.Pos[centeringAxis] + actorSizeCenteringAdjustment[centeringAxis];
 			end
 		end
+
 		tracy.ZoneEnd();
 		return true;
 	end
+
 	tracy.ZoneEnd();
 	return false;
 end
@@ -1588,6 +1662,7 @@ automoverActorFunctions.updateFrozenActor = function(self, actorData)
 			end
 		end
 	end
+
 	tracy.ZoneEnd();
 end
 
@@ -1642,6 +1717,7 @@ automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteri
 			end
 		end
 	end
+
 	tracy.ZoneEnd();
 end
 
@@ -1681,6 +1757,7 @@ automoverUIFunctions.updateInfoUI = function(self)
 		table.insert(textDataTable, 1, "--------------------------");
 		desiredPieMenuFullInnerRadius = 160;
 	end
+
 	local centerPoint = Vector(self.Pos.X, self.Pos.Y);
 	local config = { useSmallText = self.infoUIUseSmallText, bgColour = self.infoUIBGColour, outlineWidth = self.infoUIOutlineWidth, outlineColour = self.infoUIOutlineColour, transparency = self.infoUITransparency };
 
@@ -1716,30 +1793,39 @@ automoverUIFunctions.setupTextBoxConfigIfNeeded = function(self, config, maxSize
 	if type(config) == "nil" then
 		config = {};
 	end
+
 	if type(config.useSmallText) == "nil" then
 		config.useSmallText = false;
 	end
+
 	if type(config.scaleBoxToFitText) == "nil" or maxSizeBoxOrCenterPoint.ClassName == "Vector" then
 		config.scaleBoxToFitText = (maxSizeBoxOrCenterPoint.ClassName == "Vector");
 	end
+
 	if type(config.snapSize) == "nil" then
 		config.snapSize = config.useSmallText and 2 or 4;
 	end
+
 	if type(config.padding) == "nil" then
 		config.padding = config.useSmallText and 3 or 6;
 	end
+
 	if type(config.bgColour) == "nil" then
 		config.bgColour = 127;
 	end
+
 	if type(config.outlineWidth) == "nil" then
 		config.outlineWidth = 2;
 	end
+
 	if type(config.outlineColour) == "nil" then
 		config.outlineColour = 71;
 	end
+
 	if type(config.transparency) == "nil" then
 		config.transparency = 0;
 	end
+
 	return config;
 end
 
@@ -1750,6 +1836,7 @@ automoverUIFunctions.setupCenterPointAndMaxSizeAndFixTextDataTableIfNecessary = 
 		centerPoint = maxSizeBoxOrCenterPoint.Center;
 		maxSize = Vector(maxSizeBoxOrCenterPoint.Width - config.padding * 2, maxSizeBoxOrCenterPoint.Height - config.padding * 2);
 	end
+
 	maxSize = self:getScaledMaxSizeAndFixTextDataTableIfNecessary(textDataTable, maxSize, config);
 	return centerPoint, maxSize;
 end
@@ -1761,6 +1848,7 @@ automoverUIFunctions.getScaledMaxSizeAndFixTextDataTableIfNecessary = function(s
 		if type(textDataTable[i]) == "string" then
 			textDataTable[i] = { text = textDataTable[i] };
 		end
+
 		numberOfLines = numberOfLines + self:getNumberOfLinesForText(textDataTable[i].text, maxSize.X, config.useSmallText);
 		if config.scaleBoxToFitText then
 			local textWidth = FrameMan:CalculateTextWidth(textDataTable[i].text, config.useSmallText);
@@ -1776,6 +1864,7 @@ automoverUIFunctions.getScaledMaxSizeAndFixTextDataTableIfNecessary = function(s
 			break;
 		end
 	end
+
 	maxSizeIfScalingBoxToFitText.Y = totalHeight;
 
 	if config.scaleBoxToFitText then
@@ -1783,6 +1872,7 @@ automoverUIFunctions.getScaledMaxSizeAndFixTextDataTableIfNecessary = function(s
 		maxSizeIfScalingBoxToFitText.Y = maxSizeIfScalingBoxToFitText.Y + config.snapSize - maxSizeIfScalingBoxToFitText.Y % config.snapSize;
 		maxSize = Vector(math.min(maxSize.X, maxSizeIfScalingBoxToFitText.X), math.min(maxSize.Y, maxSizeIfScalingBoxToFitText.Y));
 	end
+
 	return maxSize;
 end
 
@@ -1792,5 +1882,6 @@ automoverUIFunctions.getNumberOfLinesForText = function(self, textString, maxWid
 	if stringWidth > maxWidth then
 		numberOfLines = numberOfLines + math.modf(stringWidth / maxWidth);
 	end
+	
 	return numberOfLines;
 end

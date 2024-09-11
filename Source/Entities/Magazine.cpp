@@ -196,12 +196,6 @@ void Magazine::Update() {
 	}*/
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual method:  Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this Magazine's current graphical representation to a
-//                  BITMAP of choice.
-
 void Magazine::Draw(BITMAP* pTargetBitmap,
                     const Vector& targetPos,
                     DrawMode mode,

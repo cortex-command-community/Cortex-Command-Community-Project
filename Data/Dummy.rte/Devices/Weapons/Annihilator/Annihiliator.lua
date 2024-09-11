@@ -17,7 +17,6 @@ end
 
 function Update(self)
 	if self:IsActivated() then
-
 		if self.chargeCounter > self.maxCharge/2 then
 			local actor = MovableMan:GetMOFromID(self.RootID);
 			if MovableMan:IsActor(actor) and ToActor(actor):IsPlayerControlled() == false then
@@ -61,9 +60,7 @@ function Update(self)
 			end
 			MovableMan:AddParticle(effectPar);
 		end
-
 	else
-
 		if self.chargeCounter > 0 then
 			if self.HFlipped == false then
 				self.reverseNum = 1;
@@ -108,6 +105,7 @@ function Update(self)
 				self.particleTable[i].ToDelete = true;
 			end
 		end
+		
 		self.fireTimer:Reset();
 		self.particleTable = {};
 	end

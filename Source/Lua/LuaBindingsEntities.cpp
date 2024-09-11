@@ -206,6 +206,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .property("PieMenu", &Actor::GetPieMenu, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetPieMenu)
 	    .property("AIBaseDigStrength", &Actor::GetAIBaseDigStrength, &Actor::SetAIBaseDigStrength)
 	    .property("DigStrength", &Actor::EstimateDigStrength)
+	    .property("JumpHeight", &Actor::EstimateJumpHeight)
 	    .property("SceneWaypoints", &LuaAdaptersActor::GetSceneWaypoints, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .property("LimbPushForcesAndCollisionsDisabled", &Actor::GetLimbPushForcesAndCollisionsDisabled, &Actor::SetLimbPushForcesAndCollisionsDisabled)
 	    .property("MoveProximityLimit", &Actor::GetMoveProximityLimit, &Actor::SetMoveProximityLimit)
@@ -377,7 +378,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEJetpack) {
 
 	    .property("JetpackType", &AEJetpack::GetJetpackType, &AEJetpack::SetJetpackType)
 	    .property("JetTimeTotal", &AEJetpack::GetJetTimeTotal, &AEJetpack::SetJetTimeTotal)
-	    .property("JetTimeLeft", &AEJetpack::GetJetTimeLeft)
+	    .property("JetTimeLeft", &AEJetpack::GetJetTimeLeft, &AEJetpack::SetJetTimeLeft)
 	    .property("JetReplenishRate", &AEJetpack::GetJetReplenishRate, &AEJetpack::SetJetReplenishRate)
 	    .property("MinimumFuelRatio", &AEJetpack::GetMinimumFuelRatio, &AEJetpack::SetMinimumFuelRatio)
 	    .property("JetAngleRange", &AEJetpack::GetJetAngleRange, &AEJetpack::SetJetAngleRange)
@@ -607,6 +608,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HDFirearm) {
 	return ConcreteTypeLuaClassDefinition(HDFirearm, HeldDevice)
 
 	    .property("ReloadEndOffset", &HDFirearm::GetReloadEndOffset, &HDFirearm::SetReloadEndOffset)
+	    .property("EjectionPos", &HDFirearm::GetEjectionPos)
+	    .property("EjectionOffset", &HDFirearm::GetEjectionOffset, &HDFirearm::SetEjectionOffset)
 	    .property("RateOfFire", &HDFirearm::GetRateOfFire, &HDFirearm::SetRateOfFire)
 	    .property("MSPerRound", &HDFirearm::GetMSPerRound)
 	    .property("FullAuto", &HDFirearm::IsFullAuto, &HDFirearm::SetFullAuto)
@@ -763,7 +766,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOPixel) {
 	return ConcreteTypeLuaClassDefinition(MOPixel, MovableObject)
 
 	    .property("TrailLength", &MOPixel::GetTrailLength, &MOPixel::SetTrailLength)
-	    .property("Staininess", &MOPixel::GetStaininess, &MOPixel::SetStaininess);
+	    .property("Staininess", &MOPixel::GetStaininess, &MOPixel::SetStaininess)
+
+	    .def("GetColorIndex", &MOPixel::GetColorIndex)
+	    .def("SetColorIndex", &MOPixel::SetColorIndex);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSParticle) {
@@ -885,6 +891,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("Diameter", &MovableObject::GetDiameter)
 	    .property("Scale", &MovableObject::GetScale, &MovableObject::SetScale)
 	    .property("EffectRotAngle", &MovableObject::GetEffectRotAngle, &MovableObject::SetEffectRotAngle)
+	    .property("EffectAlwaysShows", &MovableObject::GetEffectAlwaysShows, &MovableObject::SetEffectAlwaysShows)
+	    .property("EffectStartStrength", &MovableObject::GetEffectStartStrengthFloat, &MovableObject::SetEffectStartStrengthFloat)
+	    .property("EffectStopStrength", &MovableObject::GetEffectStopStrengthFloat, &MovableObject::SetEffectStopStrengthFloat)
 	    .property("GlobalAccScalar", &MovableObject::GetGlobalAccScalar, &MovableObject::SetGlobalAccScalar)
 	    .property("AirResistance", &MovableObject::GetAirResistance, &MovableObject::SetAirResistance)
 	    .property("AirThreshold", &MovableObject::GetAirThreshold, &MovableObject::SetAirThreshold)
@@ -918,6 +927,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("ApplyWoundDamageOnCollision", &MovableObject::GetApplyWoundDamageOnCollision, &MovableObject::SetApplyWoundDamageOnCollision)
 	    .property("ApplyWoundBurstDamageOnCollision", &MovableObject::GetApplyWoundBurstDamageOnCollision, &MovableObject::SetApplyWoundBurstDamageOnCollision)
 	    .property("SimUpdatesBetweenScriptedUpdates", &MovableObject::GetSimUpdatesBetweenScriptedUpdates, &MovableObject::SetSimUpdatesBetweenScriptedUpdates)
+	    .property("PostEffectEnabled", &MovableObject::GetPostEffectEnabled, &MovableObject::SetPostEffectEnabled)
 
 	    .def("GetParent", (MOSRotating * (MovableObject::*)()) & MovableObject::GetParent)
 	    .def("GetParent", (const MOSRotating* (MovableObject::*)() const) & MovableObject::GetParent)
@@ -982,7 +992,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .def("RotateOffset", &MovableObject::RotateOffset)
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage1)
 	    .def("SendMessage", &LuaAdaptersMovableObject::SendMessage2)
-	    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate);
+	    .def("RequestSyncedUpdate", &MovableObject::RequestSyncedUpdate)
+	    .def("SetEffectStrength", &MovableObject::SetEffectStrength)
+	    .def("GetScreenEffectPath", &MovableObject::GetScreenEffectPath)
+	    .def("SetScreenEffectPath", &MovableObject::SetScreenEffectPath);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
@@ -1161,10 +1174,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .def("ResetPathFinding", &Scene::ResetPathFinding)
 	    .def("UpdatePathFinding", &Scene::UpdatePathFinding)
 	    .def("PathFindingUpdated", &Scene::PathFindingUpdated)
+	    .def("CalculatePath", &LuaAdaptersScene::CalculatePath)
 	    .def("CalculatePath", &LuaAdaptersScene::CalculatePath1)
-	    .def("CalculatePath", &LuaAdaptersScene::CalculatePath2)
+	    .def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync)
 	    .def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync1)
-	    .def("CalculatePathAsync", &LuaAdaptersScene::CalculatePathAsync2)
 
 	    .enum_("PlacedObjectSets")[luabind::value("PLACEONLOAD", Scene::PlacedObjectSets::PLACEONLOAD),
 	                               luabind::value("BLUEPRINT", Scene::PlacedObjectSets::BLUEPRINT),
@@ -1264,11 +1277,13 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 	    .property("Pos", &SoundContainer::GetPosition, &SoundContainer::SetPosition)
 	    .property("Volume", &SoundContainer::GetVolume, &SoundContainer::SetVolume)
 	    .property("Pitch", &SoundContainer::GetPitch, &SoundContainer::SetPitch)
+	    .property("Paused", &SoundContainer::IsPaused, &SoundContainer::SetPaused)
 	    .property("PitchVariation", &SoundContainer::GetPitchVariation, &SoundContainer::SetPitchVariation)
 
 	    .def("HasAnySounds", &SoundContainer::HasAnySounds)
 	    .def("GetTopLevelSoundSet", &SoundContainer::GetTopLevelSoundSet)
 	    .def("SetTopLevelSoundSet", &SoundContainer::SetTopLevelSoundSet)
+	    .def("GetAudibleVolume", &SoundContainer::GetAudibleVolume)
 	    .def("IsBeingPlayed", &SoundContainer::IsBeingPlayed)
 	    .def("Play", (bool(SoundContainer::*)()) & SoundContainer::Play)
 	    .def("Play", (bool(SoundContainer::*)(const int player)) & SoundContainer::Play)

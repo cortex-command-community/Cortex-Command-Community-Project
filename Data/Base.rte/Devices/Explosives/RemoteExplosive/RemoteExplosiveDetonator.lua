@@ -9,7 +9,7 @@ function Create(self)
 	self.detonateSound = CreateSoundContainer("Explosive Device Detonate", "Base.rte");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.ID ~= self.RootID then
 		local actor = MovableMan:GetMOFromID(self.RootID);
 		if MovableMan:IsActor(actor) then
@@ -26,14 +26,17 @@ function Update(self)
 				self.Magazine.RoundCount = math.ceil(100 * (1 - 1 * self.delayTimer.ElapsedSimTimeMS/self.detonateDelay));
 			end
 			if self.actionPhase >= 1 then
+			
+				self.explosiveTable = {};
 
-				if RemoteExplosiveTableA and RemoteExplosiveTableB then
-					for i = 1, #RemoteExplosiveTableA do
-						if MovableMan:IsParticle(RemoteExplosiveTableA[i]) and RemoteExplosiveTableB[i] == self.alliedTeam then
-							RemoteExplosiveTableA[i].Sharpness = 2;
-						end
+				for particle in MovableMan.Particles do
+					if particle.PresetName == "Remote Explosive Active" then
+						table.insert(self.explosiveTable, particle);
 					end
 				end
+				
+				self:RequestSyncedUpdate();
+				
 				self.detonateSound:Play(self.Pos);
 				self:Reload();
 			end
@@ -44,4 +47,12 @@ function Update(self)
 			self.actionPhase = 0;
 		end
 	end
+end
+
+function SyncedUpdate(self)
+	for k, explosive in pairs(self.explosiveTable) do
+		explosive:SendMessage("RemoteExplosive_Detonate", self.alliedTeam);
+	end
+	
+	self.explosiveTable = nil;
 end

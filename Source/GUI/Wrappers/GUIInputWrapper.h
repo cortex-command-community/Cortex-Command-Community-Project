@@ -3,6 +3,9 @@
 #include "GUIInput.h"
 #include "SDL_scancode.h"
 
+#include <array>
+#include <memory>
+
 namespace RTE {
 
 	class Timer;

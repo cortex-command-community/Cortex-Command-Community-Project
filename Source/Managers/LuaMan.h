@@ -214,7 +214,6 @@ namespace RTE {
 		const std::vector<std::string>* FileList(const std::string& path);
 		bool FileExists(const std::string& path);
 		bool DirectoryExists(const std::string& path);
-		bool IsValidModulePath(const std::string& path);
 		int FileOpen(const std::string& path, const std::string& accessMode);
 		void FileClose(int fileIndex);
 		void FileCloseAll();

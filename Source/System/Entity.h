@@ -3,6 +3,9 @@
 #include "Serializable.h"
 #include "RTEError.h"
 
+#include <list>
+#include <unordered_set>
+
 namespace RTE {
 
 	typedef std::function<void*()> MemoryAllocate; //!< Convenient name definition for the memory allocation callback function.
@@ -51,7 +54,6 @@ namespace RTE {
 		g_DrawMaterial,
 		g_DrawWhite,
 		g_DrawMOID,
-		g_DrawNoMOID,
 		g_DrawDoor,
 		g_DrawTrans,
 		g_DrawAlpha

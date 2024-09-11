@@ -2,6 +2,8 @@
 
 #include "Activity.h"
 
+#include <array>
+
 namespace RTE {
 
 	class GameActivity;

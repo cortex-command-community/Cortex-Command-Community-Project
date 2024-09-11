@@ -1,12 +1,10 @@
 function OnDetach(self)
-
 	if not self.activated then
 		self.ToDelete = true;
 	end
 end
 
 function Create(self)
-
 	self.thrownSound = CreateSoundContainer("Browncoat Boss Oil Bomb Thrown", "Browncoats.rte");
 	
 	self.fuzeDelay = 1500;
@@ -14,11 +12,9 @@ function Create(self)
 	self.throwForcedDelay = 1000;
 	
 	self.HUDVisible = false;
-
 end
 
 function Update(self)
-
 	self.thrownSound.Pos = self.Pos;
 	
 	if self:IsAttached() then
@@ -28,7 +24,6 @@ function Update(self)
 	end
 
 	if self.fuze then
-	
 		if self.fuze:IsPastSimMS(self.fuzeDelay) then
 			self:GibThis();
 			local igniter = CreateMOSRotating("Browncoat Boss Oil Bomb Igniter", "Browncoats.rte");
@@ -40,11 +35,8 @@ function Update(self)
 			igniter.Team = self.Team;
 			MovableMan:AddParticle(igniter);
 		end
-		
 	elseif self.activated then
-	
 		if not self:IsAttached() then
-		
 			self.HUDVisible = false;
 		
 			self.thrownSound:Play(self.Pos);
@@ -66,23 +58,19 @@ function Update(self)
 				dupe.Team = self.Team;
 				MovableMan:AddParticle(dupe);
 			end
-			
 		end
 		
 		if self.controller and not self.throwDelayTimer:IsPastSimMS(self.throwForcedDelay) then
 			self.controller:SetState(Controller.PRIMARY_ACTION, true);
 			self.controller:SetState(Controller.WEAPON_FIRE, true);
 			
-			
 			self.controller:SetState(Controller.WEAPON_CHANGE_NEXT, false);
 			self.controller:SetState(Controller.WEAPON_CHANGE_PREV, false);
 			self.controller:SetState(Controller.WEAPON_DROP, false);
-			
 		end
 		
 	elseif self:IsAttached() and (self.controller:IsState(Controller.PRIMARY_ACTION) or self:IsActivated()) then
 		self.activated = true;
 		self.throwDelayTimer = Timer();
 	end
-
 end

@@ -67,7 +67,6 @@ end
 
 function Update(self)
 	if self.target and self.target.ID ~= rte.NoMOID then
-
 		self.target.ToSettle = false;
 		self.target.Vel = (self.target.Vel * 0.9) - (SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs);
 		self.target.AngularVel = self.target.AngularVel * 0.5;
@@ -101,11 +100,13 @@ function Update(self)
 					attAtt.Pos = attAtt.Pos - Vector(0, 100/attAtt.Radius * inverseScale);
 				end
 			end
+
 			mo.ParentOffset = Vector(mo.ParentOffset.X + RangeRand(-0.3, 0.3), mo.ParentOffset.Y + RangeRand(-0.3, 0.3)):SetMagnitude(mo.ParentOffset.Magnitude + RangeRand(0, 0.3) * inverseScale);
 			mo.Pos = mo.Pos - Vector(0, 100/mo.Radius * inverseScale);
 			if mo.Radius == mo.IndividualRadius then
 				mo.RotAngle = mo.RotAngle + (mo.FlipFactor * inverseScale) * 0.5;
 			end
+
 			--Induce randomized deletion
 			if (mo.Radius * self.setScale) < math.random(3) then
 				mo.ToDelete = true;
@@ -119,6 +120,7 @@ function Update(self)
 				mo.ToDelete = true;
 				radius = radius * 2;
 			end
+
 			for i = 1, radius do
 				if math.random(radius) > i then
 
@@ -136,6 +138,7 @@ function Update(self)
 				end
 			end
 		end
+		
 		self.setScale = self.setScale - (self.effectSpeed * flag);
 		if self.setScale < self.minScale then
 

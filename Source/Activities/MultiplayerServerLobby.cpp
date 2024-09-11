@@ -142,9 +142,6 @@ void MultiplayerServerLobby::Destroy(bool notInherited) {
 int MultiplayerServerLobby::Start() {
 	int error = GameActivity::Start();
 
-	g_AudioMan.ClearMusicQueue();
-	g_AudioMan.StopMusic();
-
 	SetPresetName("Multiplayer Lobby");
 
 	//////////////////////////////////////////////
@@ -292,11 +289,6 @@ int MultiplayerServerLobby::Start() {
 	return error;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateActivityBox
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the contents of the Activity selection box.
-
 void MultiplayerServerLobby::UpdateActivityBox() {
 	// Get the currently selected Activity
 	const Activity* pSelected = m_pActivitySelect->GetSelectedItem() ? dynamic_cast<const Activity*>(m_pActivitySelect->GetSelectedItem()->m_pEntity) : 0;
@@ -408,11 +400,6 @@ void MultiplayerServerLobby::UpdateDifficultySlider() {
 
 void MultiplayerServerLobby::UpdateSkillSlider() {
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdatePlayersBox
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the contents of the player config box.
 
 void MultiplayerServerLobby::UpdatePlayersBox(bool newActivity) {
 	// Get the currently selected Activity
@@ -719,11 +706,6 @@ void MultiplayerServerLobby::UpdatePlayersBox(bool newActivity) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          PlayerCount
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Counts how many players are currently assigned to play this Activity.
-
 int MultiplayerServerLobby::PlayerCount() {
 	int count = 0;
 	// Go through all the on-team non-CPU cells and see how many players are already assigned.
@@ -735,13 +717,6 @@ int MultiplayerServerLobby::PlayerCount() {
 	}
 	return count;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          StartGame
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Sets up and starts the currently selected Activity and settings.
-// Arguments:       None.
-// Return value:    None.
 
 bool MultiplayerServerLobby::StartGame() {
 	// Get the currently selected Activity
@@ -830,9 +805,6 @@ bool MultiplayerServerLobby::StartGame() {
 	// Put the new and newly set up Activity as the one to start
 	g_ActivityMan.EndActivity();
 
-	g_AudioMan.ClearMusicQueue();
-	g_AudioMan.StopMusic();
-
 	g_ActivityMan.SetRestartActivity();
 	g_ActivityMan.SetStartActivity(pActivity);
 
@@ -843,11 +815,6 @@ bool MultiplayerServerLobby::StartGame() {
 	// Signal the start of this Activity we just set up
 	return /*m_ActivityRestarted = */ true;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          GetAllScenesAndActivities
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Gathers all the available Scene:s and Activity presets there are.
 
 void MultiplayerServerLobby::GetAllScenesAndActivities() {
 	// Redo the list of Activities
@@ -921,20 +888,10 @@ void MultiplayerServerLobby::GetAllScenesAndActivities() {
 	m_pSelectedScene = m_pScenes ? m_pScenes->front() : 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Pause
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Pauses and unpauses the game.
-
 void MultiplayerServerLobby::SetPaused(bool pause) {
 	// Override the pause
 	m_Paused = false;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          End
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Forces the current game's end.
 
 void MultiplayerServerLobby::End() {
 	Activity::End();
@@ -942,12 +899,6 @@ void MultiplayerServerLobby::End() {
 	m_ActivityState = ActivityState::Over;
 	g_FrameMan.SetDrawNetworkBackBuffer(false);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Update
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Updates the state of this MultiplayerServerLobby. Supposed to be done every frame
-//                  before drawing.
 
 void MultiplayerServerLobby::Update() {
 	Activity::Update();
@@ -1080,11 +1031,6 @@ void MultiplayerServerLobby::UpdateInput() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          DrawGUI
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws the currently active GUI of a screen to a BITMAP of choice.
-
 void MultiplayerServerLobby::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int which) {
 	if (!m_pGUIController)
 		return;
@@ -1190,12 +1136,6 @@ void MultiplayerServerLobby::DrawGUI(BITMAP* pTargetBitmap, const Vector& target
 		}*/
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Draw
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Draws this MultiplayerServerLobby's current graphical representation to a
-//                  BITMAP of choice. This includes all game-related graphics.
 
 void MultiplayerServerLobby::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 	Activity::Draw(pTargetBitmap, targetPos);
